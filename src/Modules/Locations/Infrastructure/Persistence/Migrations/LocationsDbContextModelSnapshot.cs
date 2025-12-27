@@ -27,55 +27,65 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("CityName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("city_name");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("created_by");
 
                     b.Property<int?>("IbgeCode")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("ibge_code");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(true);
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
 
                     b.Property<string>("StateSigla")
                         .IsRequired()
                         .HasMaxLength(2)
                         .HasColumnType("character(2)")
+                        .HasColumnName("state_sigla")
                         .IsFixedLength();
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("updated_by");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_allowed_cities");
 
                     b.HasIndex("IbgeCode")
                         .IsUnique()
-                        .HasDatabaseName("IX_AllowedCities_IbgeCode")
-                        .HasFilter("\"IbgeCode\" IS NOT NULL");
+                        .HasDatabaseName("ix_allowed_cities_ibge_code")
+                        .HasFilter("ibge_code IS NOT NULL");
 
                     b.HasIndex("IsActive")
-                        .HasDatabaseName("IX_AllowedCities_IsActive");
+                        .HasDatabaseName("ix_allowed_cities_is_active");
 
                     b.HasIndex("CityName", "StateSigla")
                         .IsUnique()
-                        .HasDatabaseName("IX_AllowedCities_CityName_State");
+                        .HasDatabaseName("ix_allowed_cities_city_name_state_sigla");
 
                     b.ToTable("allowed_cities", "locations");
                 });

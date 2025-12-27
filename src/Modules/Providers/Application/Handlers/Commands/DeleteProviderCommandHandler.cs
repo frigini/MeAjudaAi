@@ -3,7 +3,6 @@ using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Functional;
-using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -16,7 +15,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// <param name="logger">Logger estruturado</param>
 public sealed class DeleteProviderCommandHandler(
     IProviderRepository providerRepository,
-    IDateTimeProvider dateTimeProvider,
+    TimeProvider dateTimeProvider,
     ILogger<DeleteProviderCommandHandler> logger
 ) : ICommandHandler<DeleteProviderCommand, Result>
 {

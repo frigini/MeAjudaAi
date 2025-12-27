@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
@@ -75,7 +76,7 @@ internal sealed class GetUserByIdQueryHandler(
                     "User not found. CorrelationId: {CorrelationId}, UserId: {UserId}",
                     correlationId, query.UserId);
 
-                return Result<UserDto>.Failure(Error.NotFound("User not found"));
+                throw new Shared.Exceptions.NotFoundException("User", query.UserId.ToString());
             }
 
             logger.LogInformation(
@@ -83,6 +84,11 @@ internal sealed class GetUserByIdQueryHandler(
                 correlationId, query.UserId);
 
             return Result<UserDto>.Success(userDto);
+        }
+        catch (DomainException)
+        {
+            // Let domain exceptions (NotFound, Validation, etc.) propagate to GlobalExceptionHandler
+            throw;
         }
         catch (Exception ex)
         {

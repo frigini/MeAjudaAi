@@ -1,3 +1,4 @@
+using FluentValidation;
 using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
@@ -6,7 +7,7 @@ using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Attributes;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;
@@ -67,15 +68,31 @@ public class UpdateUserProfileEndpoint : BaseEndpoint, IEndpoint
     /// 2. Cria comando de atualização com dados da requisição
     /// 3. Envia comando através do dispatcher CQRS
     /// 4. Retorna resposta HTTP com dados atualizados
-    /// 
-    /// Dados atualizáveis: FirstName, LastName, Email
+    ///
+    /// Dados atualizáveis: FirstName, LastName, Email, PhoneNumber
     /// </remarks>
+    /// <param name="validator">Validador de requisição</param>
     private static async Task<IResult> UpdateUserAsync(
         Guid id,
         [FromBody] UpdateUserProfileRequest request,
         ICommandDispatcher commandDispatcher,
+        IValidator<UpdateUserProfileRequest> validator,
         CancellationToken cancellationToken)
     {
+        // Validar request
+        var validationResult = await validator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors
+                .GroupBy(e => e.PropertyName)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(e => e.ErrorMessage).ToArray()
+                );
+            
+            return Results.ValidationProblem(errors);
+        }
+
         var command = request.ToCommand(id);
         var result = await commandDispatcher.SendAsync<UpdateUserProfileCommand, Result<UserDto>>(
             command, cancellationToken);

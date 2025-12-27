@@ -1,16 +1,16 @@
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Jobs;
 using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Messaging.NoOp;
 using MeAjudaAi.Shared.Monitoring;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Seeding;
 using MeAjudaAi.Shared.Serialization;
-using MeAjudaAi.Shared.Time;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -30,7 +30,7 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+        services.AddSingleton(TimeProvider.System);
         services.AddCustomSerialization();
         // Serilog configurado no Program.cs do ApiService
 
@@ -71,6 +71,9 @@ public static class ServiceCollectionExtensions
         // Adicionar seeding de dados de desenvolvimento
         services.AddDevelopmentSeeding();
 
+        // Adicionar Business Metrics (necessário para UseAdvancedMonitoring)
+        services.AddBusinessMetrics();
+
         // Registra NoOpBackgroundJobService como implementação padrão
         // Módulos que precisam de Hangfire devem registrar HangfireBackgroundJobService explicitamente
         services.AddSingleton<IBackgroundJobService, NoOpBackgroundJobService>();
@@ -80,25 +83,12 @@ public static class ServiceCollectionExtensions
 
     public static IApplicationBuilder UseSharedServices(this IApplicationBuilder app, IConfiguration configuration)
     {
-        app.UseErrorHandling();
-        app.UseAdvancedMonitoring();
-
-        app.UseHangfireDashboardIfEnabled(configuration);
-
+        ConfigureSharedMiddleware(app, configuration);
         return app;
     }
 
     public static async Task<IApplicationBuilder> UseSharedServicesAsync(this IApplicationBuilder app)
     {
-        app.UseErrorHandling();
-        // Nota: UseAdvancedMonitoring requer registro de BusinessMetrics durante a configuração de serviços.
-        // O caminho assíncrono atualmente não registra esses serviços da mesma forma que o caminho síncrono.
-        // TODO(#249): Alinhar registro de middleware entre UseSharedServices() e UseSharedServicesAsync().
-        // Issue: Caminho assíncrono pula registro de BusinessMetrics causando falha em UseAdvancedMonitoring.
-        // Solução: Extrair registro compartilhado de middleware para método ConfigureSharedMiddleware(),
-        // chamar de ambos os caminhos, ou aplicar monitoramento condicionalmente baseado em verificações do IServiceCollection.
-        // Impacto: Ambientes de desenvolvimento usando caminho assíncrono não têm dashboards de métricas de negócio.
-
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
                          Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ??
                          "Development";
@@ -113,10 +103,10 @@ public static class ServiceCollectionExtensions
         {
             var configuration = webApp.Services.GetRequiredService<IConfiguration>();
 
-            // Configurar Hangfire Dashboard se habilitado
-            app.UseHangfireDashboardIfEnabled(configuration);
+            // Configure shared middleware (error handling, monitoring, Hangfire)
+            ConfigureSharedMiddleware(app, configuration);
 
-            // Garante que a infraestrutura de messaging seja criada (ignora em ambiente de teste ou quando desabilitado)
+            // Ensure messaging infrastructure is created (skip in test environment or when disabled)
             if (!isTestingEnvironment)
             {
                 var isMessagingEnabled = configuration.GetValue<bool>("Messaging:Enabled", true);
@@ -129,5 +119,16 @@ public static class ServiceCollectionExtensions
         }
 
         return app;
+    }
+
+    /// <summary>
+    /// Configures shared middleware for both synchronous and asynchronous initialization paths.
+    /// Ensures consistent middleware registration including error handling, advanced monitoring, and Hangfire dashboard.
+    /// </summary>
+    private static void ConfigureSharedMiddleware(IApplicationBuilder app, IConfiguration configuration)
+    {
+        app.UseErrorHandling();
+        app.UseAdvancedMonitoring();
+        app.UseHangfireDashboardIfEnabled(configuration);
     }
 }

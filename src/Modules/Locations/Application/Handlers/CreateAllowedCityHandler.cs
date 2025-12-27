@@ -17,27 +17,38 @@ public sealed class CreateAllowedCityHandler(
 {
     public async Task<Guid> HandleAsync(CreateAllowedCityCommand command, CancellationToken cancellationToken = default)
     {
-        // Validar se já existe cidade com mesmo nome e estado
-        var exists = await repository.ExistsAsync(command.CityName, command.StateSigla, cancellationToken);
-        if (exists)
+        try
         {
-            throw new DuplicateAllowedCityException(command.CityName, command.StateSigla);
+            // Validar se já existe cidade com mesmo nome e estado
+            var exists = await repository.ExistsAsync(command.CityName, command.StateSigla, cancellationToken);
+            if (exists)
+            {
+                throw new DuplicateAllowedCityException(command.CityName, command.StateSigla);
+            }
+
+            // Obter usuário atual (Admin)
+            var currentUser = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email) ?? "system";
+
+            // Criar entidade
+            var allowedCity = new AllowedCity(
+                command.CityName,
+                command.StateSigla,
+                currentUser,
+                command.IbgeCode,
+                command.IsActive);
+
+            // Persistir
+            await repository.AddAsync(allowedCity, cancellationToken);
+
+            return allowedCity.Id;
         }
-
-        // Obter usuário atual (Admin)
-        var currentUser = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email) ?? "system";
-
-        // Criar entidade
-        var allowedCity = new AllowedCity(
-            command.CityName,
-            command.StateSigla,
-            currentUser,
-            command.IbgeCode,
-            command.IsActive);
-
-        // Persistir
-        await repository.AddAsync(allowedCity, cancellationToken);
-
-        return allowedCity.Id;
+        catch (DuplicateAllowedCityException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to create allowed city {command.CityName}-{command.StateSigla}", ex);
+        }
     }
 }

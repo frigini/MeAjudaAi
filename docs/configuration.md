@@ -8,9 +8,27 @@ A aplicação suporta configuração específica para dois ambientes principais:
 - **Development** - Desenvolvimento local
 - **Production** - Ambiente de produção
 
-### Templates Disponíveis
+### Seções de Configuração Principais
 
-#### 1. Development (`appsettings.Development.template.json`)
+#### 1. DocumentUpload
+Configurações para upload de documentos:
+```json
+"DocumentUpload": {
+  "MaxFileSizeBytes": 10485760,  // 10MB
+  "AllowedContentTypes": [
+    "image/jpeg",
+    "image/png",
+    "image/jpg",
+    "application/pdf"
+  ]
+}
+```
+
+**Personalização por Ambiente:**
+- **Development**: Limites maiores para testes (ex: 20MB)
+- **Production**: Limites conservadores (10MB) para otimizar custos de storage
+
+#### 2. Caching
 - **Propósito**: Desenvolvimento local e testes
 - **Características**:
   - Logging detalhado (Debug level)

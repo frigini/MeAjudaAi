@@ -11,6 +11,7 @@ internal sealed class AllowedCityConfiguration : IEntityTypeConfiguration<Allowe
 {
     public void Configure(EntityTypeBuilder<AllowedCity> builder)
     {
+        // Tabela no schema locations (snake_case aplicado automaticamente via UseSnakeCaseNamingConvention)
         builder.ToTable("allowed_cities", "locations");
 
         builder.HasKey(x => x.Id);
@@ -48,14 +49,14 @@ internal sealed class AllowedCityConfiguration : IEntityTypeConfiguration<Allowe
         // Índices para performance
         builder.HasIndex(x => new { x.CityName, x.StateSigla })
             .IsUnique()
-            .HasDatabaseName("IX_AllowedCities_CityName_State");
+            .HasDatabaseName("ix_allowed_cities_city_name_state_sigla");
 
         builder.HasIndex(x => x.IsActive)
-            .HasDatabaseName("IX_AllowedCities_IsActive");
+            .HasDatabaseName("ix_allowed_cities_is_active");
 
         builder.HasIndex(x => x.IbgeCode)
             .IsUnique()
-            .HasFilter("\"IbgeCode\" IS NOT NULL")
-            .HasDatabaseName("IX_AllowedCities_IbgeCode");
+            .HasFilter("ibge_code IS NOT NULL")
+            .HasDatabaseName("ix_allowed_cities_ibge_code");
     }
 }

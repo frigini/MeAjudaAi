@@ -6,7 +6,7 @@ Plataforma conectando clientes com prestadores de serviços para serviços domé
 
 - [Primeiros Passos](development.md) - Configure seu ambiente de desenvolvimento
 - [Arquitetura](architecture.md) - Design e componentes do sistema
-- [Referência da API](api-reference.md) - Documentação dos endpoints REST
+- [Referência da API](https://frigini.github.io/MeAjudaAi/redoc/) - Documentação OpenAPI (ReDoc)
 - [Configuração](configuration.md) - Configurações de ambiente e deploy
 - [Testes](testing/unit-vs-integration-tests.md) - Estratégias e guias de testes
 - [CI/CD](ci-cd.md) - Integração e deploy contínuos

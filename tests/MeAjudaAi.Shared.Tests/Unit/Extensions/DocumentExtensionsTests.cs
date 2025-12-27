@@ -6,9 +6,9 @@ namespace MeAjudaAi.Shared.Tests.Unit.Extensions;
 public class DocumentExtensionsTests
 {
     [Theory]
-    [InlineData("111.444.777-35")] // Valid CPF with formatting
-    [InlineData("11144477735")]     // Valid CPF without formatting
-    [InlineData("529.982.247-25")] // Another valid CPF
+    [InlineData("111.444.777-35")] // CPF válido com formatação
+    [InlineData("11144477735")]     // CPF válido sem formatação
+    [InlineData("529.982.247-25")] // Outro CPF válido
     public void IsValidCpf_WithValidCpf_ShouldReturnTrue(string cpf)
     {
         // Act
@@ -19,15 +19,15 @@ public class DocumentExtensionsTests
     }
 
     [Theory]
-    [InlineData("000.000.000-00")] // All zeros
-    [InlineData("111.111.111-11")] // All same digits
-    [InlineData("123.456.789-00")] // Invalid check digits
-    [InlineData("12345678900")]     // Invalid check digits
-    [InlineData("123")]             // Too short
-    [InlineData("")]                // Empty
-    [InlineData(null)]              // Null
-    [InlineData("   ")]             // Whitespace
-    [InlineData("abc.def.ghi-jk")] // Non-numeric
+    [InlineData("000.000.000-00")] // Todos zeros
+    [InlineData("111.111.111-11")] // Todos os dígitos iguais
+    [InlineData("123.456.789-00")] // Dígitos verificadores inválidos
+    [InlineData("12345678900")]     // Dígitos verificadores inválidos
+    [InlineData("123")]             // Muito curto
+    [InlineData("")]                // Vazio
+    [InlineData(null)]              // Nulo
+    [InlineData("   ")]             // Espaços em branco
+    [InlineData("abc.def.ghi-jk")] // Não numérico
     public void IsValidCpf_WithInvalidCpf_ShouldReturnFalse(string cpf)
     {
         // Act
@@ -38,9 +38,9 @@ public class DocumentExtensionsTests
     }
 
     [Theory]
-    [InlineData("11.222.333/0001-81")] // Valid CNPJ with formatting
-    [InlineData("11222333000181")]      // Valid CNPJ without formatting
-    [InlineData("34.028.316/0001-03")] // Another valid CNPJ
+    [InlineData("11.222.333/0001-81")] // CNPJ válido com formatação
+    [InlineData("11222333000181")]      // CNPJ válido sem formatação
+    [InlineData("34.028.316/0001-03")] // Outro CNPJ válido
     public void IsValidCnpj_WithValidCnpj_ShouldReturnTrue(string cnpj)
     {
         // Act
@@ -51,15 +51,15 @@ public class DocumentExtensionsTests
     }
 
     [Theory]
-    [InlineData("00.000.000/0000-00")] // All zeros
-    [InlineData("11.111.111/1111-11")] // All same digits
-    [InlineData("12.345.678/0001-00")] // Invalid check digits
-    [InlineData("123456780001")]        // Invalid length
-    [InlineData("123")]                 // Too short
-    [InlineData("")]                    // Empty
-    [InlineData(null)]                  // Null
-    [InlineData("   ")]                 // Whitespace
-    [InlineData("ab.cde.fgh/ijkl-mn")] // Non-numeric
+    [InlineData("00.000.000/0000-00")] // Todos zeros
+    [InlineData("11.111.111/1111-11")] // Todos os dígitos iguais
+    [InlineData("12.345.678/0001-00")] // Dígitos verificadores inválidos
+    [InlineData("123456780001")]        // Tamanho inválido
+    [InlineData("123")]                 // Muito curto
+    [InlineData("")]                    // Vazio
+    [InlineData(null)]                  // Nulo
+    [InlineData("   ")]                 // Espaços em branco
+    [InlineData("ab.cde.fgh/ijkl-mn")] // Não numérico
     public void IsValidCnpj_WithInvalidCnpj_ShouldReturnFalse(string cnpj)
     {
         // Act

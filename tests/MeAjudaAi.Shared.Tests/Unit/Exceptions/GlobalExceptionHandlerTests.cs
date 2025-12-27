@@ -69,8 +69,8 @@ public class GlobalExceptionHandlerTests
         var problemDetails = await DeserializeProblemDetails();
         problemDetails.Should().NotBeNull();
         problemDetails!.Status.Should().Be(400);
-        problemDetails.Title.Should().Be("Validation Error");
-        problemDetails.Detail.Should().Be("One or more validation errors occurred");
+        problemDetails.Title.Should().Be("Erro de validação");
+        problemDetails.Detail.Should().Be("Um ou mais erros de validação ocorreram");
         problemDetails.Instance.Should().Be("/api/test");
 
         var errors = problemDetails.Extensions["errors"] as JsonElement?;
@@ -119,7 +119,7 @@ public class GlobalExceptionHandlerTests
         var problemDetails = await DeserializeProblemDetails();
         problemDetails.Should().NotBeNull();
         problemDetails!.Status.Should().Be(409);
-        problemDetails.Title.Should().Be("Duplicate Value");
+        problemDetails.Title.Should().Be("Valor Duplicado");
         problemDetails.Detail.Should().Contain("email");
         problemDetails.Extensions.Should().ContainKey("constraintName");
         problemDetails.Extensions.Should().ContainKey("columnName");
@@ -137,7 +137,7 @@ public class GlobalExceptionHandlerTests
 
         // Assert
         var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Detail.Should().Contain("this field");
+        problemDetails!.Detail.Should().Contain("este campo");
     }
 
     #endregion
@@ -311,7 +311,7 @@ public class GlobalExceptionHandlerTests
     [Fact]
     public async Task TryHandleAsync_WithDbUpdateException_ShouldProcessAndReturnAppropriateStatus()
     {
-        // Arrange - Create a DbUpdateException without inner exception
+        // Arrange - Cria um DbUpdateException sem exceção interna
         var exception = new DbUpdateException("Database update failed");
 
         // Act
@@ -530,7 +530,7 @@ public class GlobalExceptionHandlerTests
         cts.Cancel();
 
         // Act & Assert
-        // TaskCanceledException is a subclass of OperationCanceledException
+        // TaskCanceledException é uma subclasse de OperationCanceledException
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             await _handler.TryHandleAsync(_httpContext, exception, cts.Token));
         ex.Should().NotBeNull();

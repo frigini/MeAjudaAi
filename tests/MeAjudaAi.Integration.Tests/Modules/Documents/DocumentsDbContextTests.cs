@@ -12,7 +12,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Documents;
 /// Testes de integração para o DocumentsDbContext.
 /// Valida configuração do EF Core, migrations e schema PostgreSQL.
 /// </summary>
-public class DocumentsDbContextTests : ApiTestBase
+public class DocumentsDbContextTests : BaseApiTest
 {
     [Fact]
     public void DocumentsDbContext_ShouldBeRegisteredInDependencyInjection()

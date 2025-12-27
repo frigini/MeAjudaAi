@@ -26,13 +26,13 @@ public sealed class ChangeServiceCategoryCommandHandler(
             var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
 
             if (service is null)
-                return Result.Failure($"Service with ID '{request.ServiceId}' not found.");
+                return Result.Failure(Error.NotFound($"Service with ID '{request.ServiceId}' not found."));
 
             var newCategoryId = ServiceCategoryId.From(request.NewCategoryId);
             var newCategory = await categoryRepository.GetByIdAsync(newCategoryId, cancellationToken);
 
             if (newCategory is null)
-                return Result.Failure($"Category with ID '{request.NewCategoryId}' not found.");
+                return Result.Failure(Error.NotFound($"Category with ID '{request.NewCategoryId}' not found."));
 
             if (!newCategory.IsActive)
                 return Result.Failure("Cannot move service to inactive category.");

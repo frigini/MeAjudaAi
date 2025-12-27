@@ -10,7 +10,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 /// If these tests fail, it indicates a middleware registration or configuration issue.
 /// </summary>
 [Collection("Integration")]
-public sealed class GeographicRestrictionConfigTests : ApiTestBase
+public sealed class GeographicRestrictionConfigTests : BaseApiTest
 {
     protected override bool UseMockGeographicValidation => false;
 

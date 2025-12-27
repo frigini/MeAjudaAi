@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
+using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using Microsoft.Extensions.Logging;
 using Moq;

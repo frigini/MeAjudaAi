@@ -1,15 +1,14 @@
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using MeAjudaAi.Shared.Time;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence.Repositories;
 
-internal sealed class UserRepository(UsersDbContext context, IDateTimeProvider dateTimeProvider) : IUserRepository
+internal sealed class UserRepository(UsersDbContext context, TimeProvider timeProvider) : IUserRepository
 {
     private readonly UsersDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
-    private readonly IDateTimeProvider _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
+    private readonly TimeProvider _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
 
     public async Task<User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default)
     {
@@ -117,7 +116,7 @@ internal sealed class UserRepository(UsersDbContext context, IDateTimeProvider d
         var user = await GetByIdAsync(id, cancellationToken);
         if (user != null)
         {
-            user.MarkAsDeleted(_dateTimeProvider);
+            user.MarkAsDeleted(_timeProvider);
             _context.Users.Update(user);
             await _context.SaveChangesAsync(cancellationToken);
         }

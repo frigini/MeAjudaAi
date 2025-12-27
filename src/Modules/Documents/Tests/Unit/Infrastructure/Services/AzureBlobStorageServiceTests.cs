@@ -1,4 +1,4 @@
-﻿using Azure;
+using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
@@ -77,7 +77,7 @@ public class AzureBlobStorageServiceTests
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Serviço não configurado para gerar SAS tokens");
+            .WithMessage("Service not configured to generate SAS tokens");
     }
 
     [Fact]
@@ -143,7 +143,7 @@ public class AzureBlobStorageServiceTests
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Serviço não configurado para gerar SAS tokens");
+            .WithMessage("Service not configured to generate SAS tokens");
     }
 
     [Fact]
@@ -258,3 +258,4 @@ public class AzureBlobStorageServiceTests
             .WithParameterName("logger");
     }
 }
+

@@ -4,10 +4,31 @@
 -- Usage: Run only in Development environment
 -- ==================================================
 
--- Check if data already exists
+-- Check if data already exists (with error handling for non-existent table)
 DO $$
+DECLARE
+    table_exists BOOLEAN;
+    has_data BOOLEAN := FALSE;
 BEGIN
-    IF EXISTS (SELECT 1 FROM meajudaai_service_catalogs.service_categories LIMIT 1) THEN
+    -- Check if table exists
+    SELECT EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_schema = 'service_catalogs' 
+        AND table_name = 'service_categories'
+    ) INTO table_exists;
+
+    -- If table doesn't exist, skip seeding (migrations not run yet)
+    IF NOT table_exists THEN
+        RAISE NOTICE 'Table service_categories does not exist. Skipping seed...';
+        RETURN;
+    END IF;
+
+    -- Check if data already exists
+    SELECT EXISTS (
+        SELECT 1 FROM service_catalogs.service_categories LIMIT 1
+    ) INTO has_data;
+
+    IF has_data THEN
         RAISE NOTICE 'ServiceCategories already seeded. Skipping...';
         RETURN;
     END IF;
@@ -15,7 +36,7 @@ BEGIN
     RAISE NOTICE 'Seeding ServiceCategories and Services...';
 
     -- Insert Service Categories
-    INSERT INTO meajudaai_service_catalogs.service_categories (id, name, description, is_active, display_order, created_at, updated_at)
+    INSERT INTO service_catalogs.service_categories (id, name, description, is_active, display_order, created_at, updated_at)
     VALUES
         ('10000000-0000-0000-0000-000000000001'::uuid, 'Saúde', 'Serviços de saúde, cuidados médicos e bem-estar', true, 1, NOW(), NOW()),
         ('10000000-0000-0000-0000-000000000002'::uuid, 'Educação', 'Serviços educacionais, reforço escolar e cursos', true, 2, NOW(), NOW()),
@@ -29,7 +50,7 @@ BEGIN
     RAISE NOTICE 'Inserted % service categories', 8;
 
     -- Insert Services
-    INSERT INTO meajudaai_service_catalogs.services (id, name, description, category_id, display_order, is_active, created_at, updated_at)
+    INSERT INTO service_catalogs.services (id, name, description, category_id, display_order, is_active, created_at, updated_at)
     VALUES
         -- Saúde
         ('20000000-0000-0000-0000-000000000001'::uuid, 'Consulta Médica Geral', 'Atendimento médico clínico geral', '10000000-0000-0000-0000-000000000001'::uuid, 1, true, NOW(), NOW()),

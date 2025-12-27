@@ -2,34 +2,45 @@ using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Locations.Infrastructure.Repositories;
-using MeAjudaAi.Shared.Tests.Base;
-using MeAjudaAi.Shared.Tests.Infrastructure;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.EntityFrameworkCore;
+using Testcontainers.PostgreSql;
 using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Integration;
 
-public class AllowedCityRepositoryIntegrationTests : DatabaseTestBase
+public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
 {
+    private readonly PostgreSqlContainer _postgresContainer;
     private AllowedCityRepository _repository = null!;
     private LocationsDbContext _context = null!;
 
-    public AllowedCityRepositoryIntegrationTests() : base(new TestDatabaseOptions
+    public AllowedCityRepositoryIntegrationTests()
     {
-        DatabaseName = "locations_test",
-        Username = "test_user",
-        Password = "test_password",
-        Schema = "locations"
-    })
-    {
+        var options = new TestDatabaseOptions
+        {
+            DatabaseName = "locations_test",
+            Username = "test_user",
+            Password = "test_password",
+            Schema = "locations"
+        };
+
+        _postgresContainer = new PostgreSqlBuilder()
+            .WithImage("postgis/postgis:16-3.4")
+            .WithDatabase(options.DatabaseName)
+            .WithUsername(options.Username)
+            .WithPassword(options.Password)
+            .WithCleanUp(true)
+            .Build();
     }
 
     private async Task InitializeInternalAsync()
     {
-        await base.InitializeAsync();
-
         var options = new DbContextOptionsBuilder<LocationsDbContext>()
-            .UseNpgsql(ConnectionString)
+            .UseNpgsql(_postgresContainer.GetConnectionString())
+            .UseSnakeCaseNamingConvention()
+            .ConfigureWarnings(warnings =>
+                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
             .Options;
 
         _context = new LocationsDbContext(options);
@@ -339,20 +350,16 @@ public class AllowedCityRepositoryIntegrationTests : DatabaseTestBase
         await act.Should().ThrowAsync<DbUpdateException>();
     }
 
-    public override async ValueTask InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
+        await _postgresContainer.StartAsync();
         await InitializeInternalAsync();
     }
 
-    public override async ValueTask DisposeAsync()
-    {
-        await DisposeInternalAsync();
-    }
-
-    private async Task DisposeInternalAsync()
+    public async ValueTask DisposeAsync()
     {
         await _context.DisposeAsync();
-        await base.DisposeAsync();
+        await _postgresContainer.DisposeAsync();
     }
 
     private async Task AddCityAndSaveAsync(AllowedCity city)

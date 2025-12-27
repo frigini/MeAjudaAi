@@ -9,7 +9,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 /// Testes de integração para o DbContext do módulo Catalogs.
 /// Valida configurações do EF Core, relacionamentos e constraints.
 /// </summary>
-public class ServiceCatalogsDbContextTests : ApiTestBase
+public class ServiceCatalogsDbContextTests : BaseApiTest
 {
     [Fact]
     public void ServiceCatalogsDbContext_ShouldBeRegistered()
@@ -21,10 +21,6 @@ public class ServiceCatalogsDbContextTests : ApiTestBase
         // Assert
         dbContext.Should().NotBeNull("ServiceCatalogsDbContext should be registered in DI");
     }
-
-    // NOTE: ServiceCategories_Table_ShouldExist removed - trivial smoke test (just CountAsync >= 0)
-    // NOTE: Services_Table_ShouldExist removed - trivial smoke test (just CountAsync >= 0)
-    // Table existence validated by Database_ShouldAllowBasicOperations and foreign key tests
 
     [Fact]
     public void Services_ShouldHaveForeignKeyToServiceCategories()
@@ -41,8 +37,6 @@ public class ServiceCatalogsDbContextTests : ApiTestBase
         foreignKeys.Should().NotBeNull();
         foreignKeys.Should().NotBeEmpty("Services table should have foreign key constraint to ServiceCategories");
     }
-
-    // NOTE: CatalogsSchema_ShouldExist removed - trivial test, schema validated by all other tests
 
     [Fact]
     public async Task Database_ShouldAllowBasicOperations()

@@ -12,6 +12,7 @@ using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Contracts.Modules.Users;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Users.Application;
@@ -20,6 +21,9 @@ public static class Extensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        // FluentValidation - registra todos os validators do assembly
+        services.AddValidatorsFromAssembly(typeof(Extensions).Assembly);
+
         // Query Handlers - registro manual para garantir disponibilidade
         services.AddScoped<IQueryHandler<GetUsersQuery, Result<PagedResult<UserDto>>>, GetUsersQueryHandler>();
         services.AddScoped<IQueryHandler<GetUserByIdQuery, Result<UserDto>>, GetUserByIdQueryHandler>();

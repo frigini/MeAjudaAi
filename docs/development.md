@@ -326,27 +326,57 @@ O MeAjudaAi segue uma estratégia abrangente de testes baseada na pirâmide de t
         /______________________\
 ```
 
-**Cobertura de Testes E2E**: 103 testes cobrindo **100% dos endpoints** (41/41)
-- ✅ Providers: 14/14 endpoints (100%)
-- ✅ ServiceCatalogs: 17/17 endpoints (100%)
-- ✅ Documents: 4/4 endpoints (100%)
-- ✅ Users: 6/6 endpoints (100%)
+**Cobertura de Testes E2E**: 81 testes em **15 arquivos consolidados** (redução de 21%)
+- ✅ Providers: 10 testes (consolidado: 3→1 arquivo, 6 #regions)
+- ✅ ServiceCatalogs: 14 testes (consolidado: 2→1 arquivo, 7 #regions)
+- ✅ Documents: 10 testes (consolidado: 2→1 arquivo, 6 #regions)
+- ✅ Users: 10 testes (renomeado para padrão `{Module}EndToEndTests`)
+- ✅ Locations: 10 testes (renomeado para padrão `{Module}EndToEndTests`)
+- ✅ Infrastructure: 27 testes middleware (2 arquivos)
 
-**Organização de Testes E2E**:
+**Organização de Testes E2E** (Padrão Consolidado):
 ```text
 tests/MeAjudaAi.E2E.Tests/Modules/
-├── {Module}ModuleTests.cs              # Testes básicos de integração
-├── {Module}LifecycleE2ETests.cs        # Testes de ciclo de vida (CRUD completo)
-└── {Module}{Feature}E2ETests.cs        # Testes de features específicas
+└── {Module}EndToEndTests.cs            # Arquivo único consolidado
 
-Exemplos:
-├── ProvidersModuleTests.cs             # 6 testes - CRUD básico
-├── ProvidersLifecycleE2ETests.cs       # 6 testes - Update, Delete, Status
-├── ProvidersDocumentsE2ETests.cs       # 2 testes - Upload/Delete documentos
-├── DocumentsVerificationE2ETests.cs    # 3 testes - Workflow de verificação
-├── ServiceCatalogsAdvancedE2ETests.cs  # 5 testes - Regras de negócio
-└── UsersLifecycleE2ETests.cs           # 6 testes - Ciclo de vida completo
+Estrutura Interna com #region:
+├── #region Basic CRUD Operations      # Operações básicas
+├── #region [Feature] Operations       # Features específicas
+├── #region Advanced [Scenario]        # Cenários avançados
+└── #region Workflows                  # Workflows completos
+
+Exemplos de Consolidação:
+├── ProvidersEndToEndTests.cs          # 10 testes em 6 regions
+│   ├── #region Basic CRUD Operations
+│   ├── #region Update Operations
+│   ├── #region Delete Operations
+│   ├── #region Verification Status
+│   ├── #region Basic Info Correction
+│   └── #region Document Operations
+│
+├── DocumentsEndToEndTests.cs          # 10 testes em 6 regions
+│   ├── #region Helper Methods
+│   ├── #region Upload and Basic CRUD
+│   ├── #region Provider Documents
+│   ├── #region Workflows
+│   ├── #region Isolation and Cascading
+│   └── #region Verification Workflows
+│
+└── ServiceCatalogsEndToEndTests.cs    # 14 testes em 7 regions
+    ├── #region Basic CRUD Operations
+    ├── #region Category Filtering
+    ├── #region Update and Delete Operations
+    ├── #region Activation Status Changes
+    ├── #region Database Persistence Verification
+    ├── #region Advanced Validation Rules
+    └── #region Advanced Category Change Scenarios
 ```
+
+**Benefícios da Consolidação:**
+- 📉 **Redução de arquivos**: 19→15 arquivos (-21%)
+- 📊 **Organização**: `#region` agrupa testes por cenário de negócio
+- 🎯 **Consistência**: Padrão único `{Module}EndToEndTests.cs`
+- 📖 **Manutenibilidade**: Contexto completo do módulo em um arquivo
 
 ### **1. Padrões de Nomenclatura para Testes**
 ```csharp
@@ -568,11 +598,11 @@ public abstract class IntegrationTestBase : IDisposable
 #### Testing Architectural Rules
 ```csharp
 [Test]
-public void Controllers_Should_OnlyDependOnMediatR()
+public void Endpoints_Should_OnlyDependOnSharedAbstractions()
 {
     var result = Types.InCurrentDomain()
-        .That().ResideInNamespace("MeAjudaAi.*.Controllers")
-        .Should().OnlyDependOn("MediatR", "Microsoft.AspNetCore", "MeAjudaAi.Shared")
+        .That().ResideInNamespace("MeAjudaAi.*.Endpoints")
+        .Should().OnlyDependOn("MeAjudaAi.Shared", "Microsoft.AspNetCore")
         .GetResult();
 
     result.IsSuccessful.Should().BeTrue();
@@ -799,7 +829,7 @@ Estes tipos de teste são executados, mas NÃO contribuem para o relatório de c
 - `tests/MeAjudaAi.Architecture.Tests/` - Testes de arquitetura
 - `tests/MeAjudaAi.Integration.Tests/` - Testes de integração
 - `tests/MeAjudaAi.Shared.Tests/` - Testes do shared
-- `tests/MeAjudaAi.E2E.Tests/` - Testes end-to-end (103 testes, 100% cobertura de endpoints)
+- `tests/MeAjudaAi.E2E.Tests/` - Testes end-to-end (81 testes em 15 arquivos consolidados, 100% cobertura de endpoints)
 
 #### 6. Validação
 
@@ -820,7 +850,6 @@ Após adicionar um novo módulo:
 ### **Documentação Externa**
 - [.NET 10 Documentation](https://docs.microsoft.com/dotnet/)
 - [Entity Framework Core](https://docs.microsoft.com/ef/core/)
-- [MediatR](https://github.com/jbogard/MediatR)
 - [FluentValidation](https://docs.fluentvalidation.net/)
 - [Aspire](https://learn.microsoft.com/dotnet/aspire/)
 

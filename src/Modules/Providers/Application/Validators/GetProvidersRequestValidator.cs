@@ -1,7 +1,7 @@
 using FluentValidation;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Providers.Application.Validators;
 

@@ -130,7 +130,27 @@ public static class Extensions
             {
                 Predicate = check => check.Tags.Contains("external"),  // Only external services, not database
                 ResponseWriter = WriteHealthCheckResponse,
-                AllowCachingResponses = false
+                AllowCachingResponses = false,
+                ResultStatusCodes =
+                {
+                    [HealthStatus.Healthy] = StatusCodes.Status200OK,
+                    [HealthStatus.Degraded] = StatusCodes.Status200OK,
+                    [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+                }
+            });
+
+            // Alias /alive para /health (compatibilidade com testes)
+            app.MapHealthChecks("/alive", new HealthCheckOptions
+            {
+                Predicate = check => check.Tags.Contains("external"),
+                ResponseWriter = WriteHealthCheckResponse,
+                AllowCachingResponses = false,
+                ResultStatusCodes =
+                {
+                    [HealthStatus.Healthy] = StatusCodes.Status200OK,
+                    [HealthStatus.Degraded] = StatusCodes.Status200OK,
+                    [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+                }
             });
 
             app.MapHealthChecks("/health/live", new HealthCheckOptions

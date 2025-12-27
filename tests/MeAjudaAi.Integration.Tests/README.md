@@ -31,10 +31,17 @@ The connection strings in these files use **test-only, localhost credentials**:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Database=meajudaai_test;Username=testuser;Password=test123;Port=5432"
+    "DefaultConnection": "Host=localhost;Database=meajudaai_test;Username=testuser;Password=test123;Port=5432;Include Error Detail=true"
   }
 }
 ```
+
+**PostgreSQL + PostGIS Configuration:**
+
+- **Docker Image**: `postgis/postgis:15-3.4`
+- **PostGIS Extension**: Automatically enabled for geographic data support
+- **NetTopologySuite**: Required for SearchProviders module (GeoPoint fields)
+- **Error Details**: Connection string includes `Include Error Detail=true` for CI diagnostics
 
 **Security Notes:**
 

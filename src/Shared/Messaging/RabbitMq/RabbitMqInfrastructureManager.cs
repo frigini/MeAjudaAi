@@ -1,16 +1,9 @@
 using MeAjudaAi.Shared.Messaging.Strategy;
+using MeAjudaAi.Shared.Messaging.Options;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
 namespace MeAjudaAi.Shared.Messaging.RabbitMq;
-
-public interface IRabbitMqInfrastructureManager
-{
-    Task EnsureInfrastructureAsync();
-    Task CreateQueueAsync(string queueName, bool durable = true);
-    Task CreateExchangeAsync(string exchangeName, string exchangeType = ExchangeType.Topic);
-    Task BindQueueToExchangeAsync(string queueName, string exchangeName, string routingKey = "");
-}
 
 internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, IAsyncDisposable
 {
@@ -35,7 +28,7 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
     {
         try
         {
-            _logger.LogInformation("Criando infraestrutura RabbitMQ...");
+            _logger.LogInformation("Creating RabbitMQ infrastructure...");
 
             // Cria fila padrão
             await CreateQueueAsync(_options.DefaultQueueName);
@@ -57,11 +50,11 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
                 await CreateQueueAsync(queueName);
                 await BindQueueToExchangeAsync(queueName, exchangeName, eventType.Name);
 
-                _logger.LogDebug("Infraestrutura criada para o tipo de evento {EventType}: exchange={Exchange}, queue={Queue}",
+                _logger.LogDebug("Infrastructure created for event type {EventType}: exchange={Exchange}, queue={Queue}",
                     eventType.Name, exchangeName, queueName);
             }
 
-            _logger.LogInformation("Infraestrutura RabbitMQ criada com sucesso");
+            _logger.LogWarning("RabbitMQ infrastructure setup completed (stub implementation - actual infrastructure pending)");
         }
         catch (Exception ex)
         {
@@ -75,21 +68,21 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
     public Task CreateQueueAsync(string queueName, bool durable = true)
     {
         // Implementação RabbitMQ será adicionada quando necessário
-        _logger.LogDebug("Solicitada criação de fila: {QueueName} (durável: {Durable})", queueName, durable);
+        _logger.LogDebug("Queue creation requested: {QueueName} (durable: {Durable})", queueName, durable);
         return Task.CompletedTask;
     }
 
     public Task CreateExchangeAsync(string exchangeName, string exchangeType = ExchangeType.Topic)
     {
         // Implementação RabbitMQ será adicionada quando necessário
-        _logger.LogDebug("Solicitada criação de exchange: {ExchangeName} (tipo: {ExchangeType})", exchangeName, exchangeType);
+        _logger.LogDebug("Exchange creation requested: {ExchangeName} (type: {ExchangeType})", exchangeName, exchangeType);
         return Task.CompletedTask;
     }
 
     public Task BindQueueToExchangeAsync(string queueName, string exchangeName, string routingKey = "")
     {
         // Implementação RabbitMQ será adicionada quando necessário
-        _logger.LogDebug("Solicitada vinculação de fila: {QueueName} para {ExchangeName} com chave '{RoutingKey}'",
+        _logger.LogDebug("Queue binding requested: {QueueName} to {ExchangeName} with routing key '{RoutingKey}'",
             queueName, exchangeName, routingKey);
         return Task.CompletedTask;
     }

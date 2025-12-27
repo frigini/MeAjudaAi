@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using MeAjudaAi.Shared.Constants;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

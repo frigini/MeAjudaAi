@@ -10,4 +10,5 @@ public record CreateUserRequest : Request
     public string FirstName { get; init; } = string.Empty;
     public string LastName { get; init; } = string.Empty;
     public IEnumerable<string>? Roles { get; init; }
+    public string? PhoneNumber { get; init; }
 }

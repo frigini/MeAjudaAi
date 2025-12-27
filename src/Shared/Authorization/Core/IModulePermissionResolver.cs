@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Authorization.ValueObjects;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Shared.Authorization.Core;
 

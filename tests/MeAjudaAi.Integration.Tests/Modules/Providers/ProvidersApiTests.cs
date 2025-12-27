@@ -6,7 +6,7 @@ using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Tests.Auth;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 
@@ -17,10 +17,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 /// <remarks>
 /// Testes de endpoints, autenticação e CRUD são cobertos por ProvidersIntegrationTests.cs
 /// </remarks>
-public class ProvidersApiTests : ApiTestBase
+public class ProvidersApiTests : BaseApiTest
 {
-    // NOTE: ProvidersEndpoint_ShouldBeAccessible removed - low value smoke test
-
     [Fact]
     public async Task ProvidersEndpoint_WithAuthentication_ShouldReturnValidResponse()
     {
@@ -247,8 +245,6 @@ public class ProvidersApiTests : ApiTestBase
                 $"Raw response: {content}");
         }
     }
-
-    // NOTE: GetProviderById_WithNonExistentId is covered by ProvidersIntegrationTests.cs
 
     [Fact]
     public async Task ProvidersEndpoint_WithPaginationParameters_ShouldAcceptThem()

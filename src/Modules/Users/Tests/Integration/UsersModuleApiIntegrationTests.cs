@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Users.Tests.Infrastructure;
 using MeAjudaAi.Shared.Contracts.Modules.Users;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities;
 
 namespace MeAjudaAi.Modules.Users.Tests.Integration.Services;
 

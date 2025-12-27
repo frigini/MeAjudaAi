@@ -10,6 +10,7 @@ namespace MeAjudaAi.Shared.Monitoring;
 internal class MetricsCollectorService(
     BusinessMetrics businessMetrics,
     IServiceScopeFactory serviceScopeFactory,
+    TimeProvider timeProvider,
     ILogger<MetricsCollectorService> logger) : BackgroundService
 {
     private readonly TimeSpan _interval = TimeSpan.FromMinutes(1); // Coleta a cada minuto
@@ -37,7 +38,7 @@ internal class MetricsCollectorService(
 
             try
             {
-                await Task.Delay(_interval, stoppingToken);
+                await timeProvider.Delay(_interval, stoppingToken);
             }
             catch (OperationCanceledException ex)
             {
@@ -101,7 +102,7 @@ internal class MetricsCollectorService(
 
             // Por ora retorna 0 - implementação futura chamará método real do módulo
             // var count = await usersModuleApi.GetActiveUsersCountAsync(cancellationToken);
-            await Task.Delay(1, cancellationToken);
+            await timeProvider.Delay(TimeSpan.FromMilliseconds(1), cancellationToken);
             
             return 0;
         }
@@ -122,7 +123,7 @@ internal class MetricsCollectorService(
         {
             // Implementação futura: injetar HelpRequestRepository
             // e contar solicitações com status Pending
-            await Task.Delay(1, cancellationToken);
+            await timeProvider.Delay(TimeSpan.FromMilliseconds(1), cancellationToken);
             
             // Por ora, retorna 0
             return 0;

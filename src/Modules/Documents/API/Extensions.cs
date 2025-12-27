@@ -20,7 +20,7 @@ public static class Extensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddApplication();
+        services.AddApplication(configuration);
         services.AddInfrastructure(configuration);
 
         // Register module public API for cross-module communication

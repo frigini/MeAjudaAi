@@ -5,8 +5,8 @@ using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Serialization;
-using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
 
@@ -16,7 +16,7 @@ public sealed class NominatimClientTests : IDisposable
 {
     private readonly MockHttpMessageHandler _mockHandler;
     private readonly HttpClient _httpClient;
-    private readonly Mock<IDateTimeProvider> _dateTimeProviderMock;
+    private readonly FakeTimeProvider _timeProvider;
     private readonly NominatimClient _client;
 
     public NominatimClientTests()
@@ -27,10 +27,9 @@ public sealed class NominatimClientTests : IDisposable
             BaseAddress = new Uri("https://nominatim.openstreetmap.org/")
         };
 
-        _dateTimeProviderMock = new Mock<IDateTimeProvider>();
-        _dateTimeProviderMock.Setup(x => x.CurrentDate()).Returns(DateTime.UtcNow);
+        _timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
 
-        _client = new NominatimClient(_httpClient, NullLogger<NominatimClient>.Instance, _dateTimeProviderMock.Object);
+        _client = new NominatimClient(_httpClient, NullLogger<NominatimClient>.Instance, _timeProvider);
     }
 
     public void Dispose()

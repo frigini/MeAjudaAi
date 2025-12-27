@@ -5,7 +5,7 @@ using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Functional;
 using Microsoft.Extensions.Logging;
 
@@ -72,10 +72,26 @@ public sealed class UpdateUserProfileCommandHandler(
             logger.LogInformation("User profile updated successfully for user {UserId} - cache invalidated", command.UserId);
             return Result<UserDto>.Success(user.ToDto());
         }
+        catch (ArgumentException)
+        {
+            // Permitir ArgumentException (erros de validação) propagar para o GlobalExceptionHandler
+            throw;
+        }
+        catch (MeAjudaAi.Shared.Exceptions.ValidationException)
+        {
+            // Permitir ValidationException propagar para o GlobalExceptionHandler
+            throw;
+        }
+        catch (MeAjudaAi.Shared.Exceptions.DomainException)
+        {
+            // Permitir DomainException (violações de regras de negócio) propagar para o GlobalExceptionHandler
+            throw;
+        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error updating user profile for user {UserId}", command.UserId);
-            return Result<UserDto>.Failure($"Failed to update user profile: {ex.Message}");
+            // Captura erros de infraestrutura (banco de dados, cache, etc.) e retorna um resultado de falha
+            logger.LogError(ex, "Unexpected error updating user profile for {UserId}", command.UserId);
+            return Result<UserDto>.Failure("Falha ao atualizar o perfil do usuário devido a um erro inesperado");
         }
     }
 
@@ -105,10 +121,10 @@ public sealed class UpdateUserProfileCommandHandler(
     /// </summary>
     private void ApplyProfileUpdate(UpdateUserProfileCommand command, Domain.Entities.User user)
     {
-        logger.LogDebug("Updating profile for user {UserId}: FirstName={FirstName}, LastName={LastName}",
-            command.UserId, command.FirstName, command.LastName);
+        logger.LogDebug("Updating profile for user {UserId}: FirstName={FirstName}, LastName={LastName}, HasEmail={HasEmail}, HasPhone={HasPhone}",
+            command.UserId, command.FirstName, command.LastName, command.Email != null, command.PhoneNumber != null);
 
-        user.UpdateProfile(command.FirstName, command.LastName);
+        user.UpdateProfile(command.FirstName, command.LastName, command.Email, command.PhoneNumber);
     }
 
     /// <summary>

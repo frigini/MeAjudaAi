@@ -1170,9 +1170,8 @@ public static class UsersModuleServiceCollectionExtensions
         services.AddScoped<IUserProfileService, UserProfileService>();
         services.AddScoped<IUserValidationService, UserValidationService>();
 
-        // Handlers CQRS
-        services.AddMediatR(cfg => 
-            cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommandHandler).Assembly));
+        // Handlers CQRS (registrados via Scrutor em cada módulo)
+        // Consulte ModuleExtensions.AddApplicationModule() para detalhes
 
         // Validators
         services.AddValidatorsFromAssembly(typeof(RegisterUserCommandValidator).Assembly);
@@ -1275,15 +1274,15 @@ public interface IEventBus
 }
 
 /// <summary>
-/// Implementação do Event Bus usando MediatR
+/// Implementação do Event Bus usando sistema próprio de eventos
 /// </summary>
-public sealed class MediatREventBus : IEventBus
+public sealed class DomainEventBus : IEventBus
 {
-    private readonly IMediator _mediator;
+    private readonly IServiceProvider _serviceProvider;
 
-    public MediatREventBus(IMediator mediator)
+    public DomainEventBus(IServiceProvider serviceProvider)
     {
-        _mediator = mediator;
+        _serviceProvider = serviceProvider;
     }
 
     public async Task PublishAsync<T>(T @event, CancellationToken cancellationToken = default) 
@@ -2244,7 +2243,106 @@ Especificação OpenAPI inclui:
     "cache": { "status": "Healthy", "duration": "00:00:00.0087432" }
   }
 }
-```text
+```
+---
+
+## 🚀 C# 14 Features Utilizados
+
+### Extension Members
+
+O projeto utiliza **Extension Members**, um novo recurso do C# 14 que permite declarar não apenas métodos de extensão, mas também **propriedades de extensão**, **membros estáticos estendidos** e **operadores definidos pelo usuário**.
+
+#### Padrão Adotado
+
+**✅ Use Extension Members para**:
+- Extension methods de domínio que se beneficiam de **extension properties**
+- APIs fluentes com propriedades computadas
+- Tipos que precisam de operadores definidos pelo usuário via extensão
+
+**❌ Não use para**:
+- Extensions de configuração DI (IServiceCollection, IApplicationBuilder) - manter padrão tradicional `[FolderName]Extensions.cs`
+- Código legado que funciona bem com sintaxe tradicional
+
+#### Implementação Atual
+
+**EnumExtensions** - Migrado para Extension Members:
+```csharp
+public static class EnumExtensions
+{
+    extension<TEnum>(string value) where TEnum : struct, Enum
+    {
+        public TEnum ToEnum()
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(value));
+
+            if (Enum.TryParse<TEnum>(value, ignoreCase: true, out var result))
+                return result;
+
+            throw new ArgumentException($"Unable to convert '{value}' to enum of type {typeof(TEnum)}.", nameof(value));
+        }
+    }
+}
+
+// Uso
+var status = "Active".ToEnum<EProviderStatus>();
+```
+
+**Benefícios Observados**:
+- ✅ 54/54 testes passando (100% compatibilidade)
+- ✅ Sintaxe mais expressiva
+- ✅ Melhor documentação via properties
+
+---
+
+## 🔧 Configurações e Opções
+
+### Pattern: IOptions<T>
+
+O projeto utiliza o padrão **IOptions** do ASP.NET Core para configurações fortemente tipadas.
+
+#### DocumentUploadOptions
+
+```csharp
+public class DocumentUploadOptions
+{
+    public long MaxFileSizeBytes { get; set; } = 10 * 1024 * 1024; // 10MB
+    public string[] AllowedContentTypes { get; set; } = 
+    [
+        "image/jpeg",
+        "image/png", 
+        "image/jpg",
+        "application/pdf"
+    ];
+}
+```
+
+**Registro**:
+```csharp
+services.Configure<DocumentUploadOptions>(configuration.GetSection("DocumentUpload"));
+```
+
+**Uso em Handler**:
+```csharp
+public class UploadDocumentCommandHandler(
+    IOptions<DocumentUploadOptions> uploadOptions)
+{
+    private readonly DocumentUploadOptions _options = uploadOptions.Value;
+    
+    public async Task HandleAsync(...)
+    {
+        if (command.FileSizeBytes > _options.MaxFileSizeBytes)
+            throw new ArgumentException($"File too large...");
+    }
+}
+```
+
+**Vantagens**:
+- Configuração por ambiente (dev/staging/prod)
+- Tipagem forte
+- Validação em tempo de compilação
+- Facilita testes unitários (mock de IOptions)
+
 ---
 
 📖 **Próximos Passos**: Este documento serve como base para o desenvolvimento. Consulte também a [documentação de infraestrutura](./infrastructure.md) e [guia de CI/CD](./ci-cd.md) para informações complementares.

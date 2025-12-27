@@ -11,7 +11,7 @@ namespace MeAjudaAi.Integration.Tests.Database;
 /// Testes de concorrência otimista usando RowVersion (PostgreSQL xmin).
 /// Valida detecção de conflitos em modificações concorrentes.
 /// </summary>
-public sealed class DbContextConcurrencyTests : ApiTestBase
+public sealed class DbContextConcurrencyTests : BaseApiTest
 {
     [Fact]
     public async Task SaveChangesAsync_WithConcurrentModifications_ShouldThrowConcurrencyException()

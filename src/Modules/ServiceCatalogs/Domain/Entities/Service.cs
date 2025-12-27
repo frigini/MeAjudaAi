@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Events.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Domain;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;

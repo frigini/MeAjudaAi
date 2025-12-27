@@ -50,7 +50,7 @@
     <Using Include="Moq" />
     <Using Include="Bogus" />
     <Using Include="AutoFixture" />
-    <Using Include="MeAjudaAi.Shared.Tests.Base" />
+    <Using Include="MeAjudaAi.Shared.Tests.TestInfrastructure.Base" />
   </ItemGroup>
 
   <ItemGroup>

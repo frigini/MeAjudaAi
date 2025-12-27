@@ -10,7 +10,7 @@ namespace MeAjudaAi.Shared.Tests.Unit.Exceptions;
 [Trait("Component", "Exceptions")]
 public class DomainExceptionTests
 {
-    // Concrete implementation for testing abstract class
+    // Implementação concreta para testar a classe abstrata
     private class TestDomainException : DomainException
     {
         public TestDomainException(string message) : base(message) { }

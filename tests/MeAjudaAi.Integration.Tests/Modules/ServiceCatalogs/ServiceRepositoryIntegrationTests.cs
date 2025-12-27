@@ -8,15 +8,15 @@ using Microsoft.Extensions.DependencyInjection;
 namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 
 /// <summary>
-/// Integration tests for ServiceRepository with real database (TestContainers).
-/// Tests actual persistence logic, EF mappings, and database constraints.
+/// Testes de integração para ServiceRepository com banco de dados real (TestContainers).
+/// Testa lógica de persistência, mapeamentos EF e constraints do banco.
 /// </summary>
-public class ServiceRepositoryIntegrationTests : ApiTestBase
+public class ServiceRepositoryIntegrationTests : BaseApiTest
 {
     private readonly Faker _faker = new("pt_BR");
 
     /// <summary>
-    /// Adds a valid Service via repository and verifies the service is persisted and retrievable by Id.
+    /// Adiciona um Service válido via repositório e verifica que o serviço é persistido e recuperável por Id.
     /// </summary>
     [Fact]
     public async Task AddAsync_WithValidService_ShouldPersistToDatabase()
@@ -40,7 +40,7 @@ public class ServiceRepositoryIntegrationTests : ApiTestBase
             await repository.AddAsync(service);
         }
 
-        // Assert - using fresh scope to force DB round-trip
+        // Assert - usando scope novo para forçar round-trip ao banco
         using var verificationScope = Services.CreateScope();
         var verificationRepository = verificationScope.ServiceProvider.GetRequiredService<IServiceRepository>();
         var retrieved = await verificationRepository.GetByIdAsync(service.Id);
@@ -51,7 +51,7 @@ public class ServiceRepositoryIntegrationTests : ApiTestBase
     }
 
     /// <summary>
-    /// Retrieves a service by name and verifies the correct service is returned.
+    /// Recupera um serviço por nome e verifica que o serviço correto é retornado.
     /// </summary>
     [Fact]
     public async Task GetByNameAsync_WithExistingName_ShouldReturnService()
@@ -106,7 +106,7 @@ public class ServiceRepositoryIntegrationTests : ApiTestBase
     }
 
     /// <summary>
-    /// Retrieves all services and verifies the count matches the expected number.
+    /// Recupera todos os serviços e verifica que a contagem corresponde ao número esperado.
     /// </summary>
     [Fact]
     public async Task GetAllAsync_ShouldReturnAllServices()
@@ -128,14 +128,14 @@ public class ServiceRepositoryIntegrationTests : ApiTestBase
         // Act
         var result = await repository.GetAllAsync();
 
-        // Assert - relaxed to handle concurrent test runs
+        // Assert - relaxado para lidar com testes concorrentes
         result.Should().HaveCountGreaterThanOrEqualTo(initialCount + 2);
         result.Should().Contain(s => s.Id == service1.Id);
         result.Should().Contain(s => s.Id == service2.Id);
     }
 
     /// <summary>
-    /// Checks if a service exists by name and verifies the result is correct.
+    /// Verifica se um serviço existe por nome e confirma que o resultado está correto.
     /// </summary>
     [Fact]
     public async Task ExistsWithNameAsync_WithExistingName_ShouldReturnTrue()

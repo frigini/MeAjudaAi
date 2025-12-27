@@ -330,6 +330,51 @@ public class RateLimitingMiddlewareTests
         _nextCalled.Should().BeTrue();
     }
 
+    [Fact]
+    public async Task InvokeAsync_PatternCacheSizeLimit_ShouldCompileOnDemandWhenLimitReached()
+    {
+        // Arrange
+        var options = CreateDefaultOptions();
+        options.General.WindowInSeconds = 60;
+        options.Anonymous.RequestsPerMinute = 10;
+        
+        // Create 1001 unique endpoint patterns to exceed MaxPatternCacheSize (1000)
+        var endpointLimits = new Dictionary<string, EndpointLimits>();
+        for (int i = 0; i < 1001; i++)
+        {
+            endpointLimits[$"pattern_{i}"] = new EndpointLimits
+            {
+                Pattern = $"/api/test{i}/*",
+                RequestsPerMinute = 10,
+                RequestsPerHour = 100,
+                ApplyToAnonymous = true,
+                ApplyToAuthenticated = true
+            };
+        }
+        options.EndpointLimits = endpointLimits;
+        _optionsMock.Setup(x => x.CurrentValue).Returns(options);
+
+        var middleware = CreateMiddleware();
+
+        // Act - Request all patterns to fill cache and trigger limit
+        // First 1000 patterns should be cached, pattern 1001 should trigger warning
+        for (int i = 0; i < 1001; i++)
+        {
+            var context = CreateHttpContext(path: $"/api/test{i}/data");
+            await middleware.InvokeAsync(context);
+        }
+
+        // Verify warning was logged when cache limit reached (updated message)
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("cache size limit reached")),
+                null,
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.AtLeastOnce);
+    }
+
     // Helper methods
 
     private RateLimitingMiddleware CreateMiddleware()

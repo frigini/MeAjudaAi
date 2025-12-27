@@ -1,16 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    
     <!-- Configurações de Performance para Testes -->
     <VSTestUseMSBuildOutput>false</VSTestUseMSBuildOutput>
     <VSTestTreatNoTestsAsError>false</VSTestTreatNoTestsAsError>
-    
     <!-- Configurações xUnit para Performance -->
     <XunitMethodDisplay>method</XunitMethodDisplay>
     <XunitParallelizeAssembly>true</XunitParallelizeAssembly>
@@ -18,7 +15,6 @@
     <XunitMaxParallelThreads>0</XunitMaxParallelThreads>
     <XunitShadowCopy>false</XunitShadowCopy>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="coverlet.collector">
       <PrivateAssets>all</PrivateAssets>
@@ -33,12 +29,10 @@
     </PackageReference>
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Moq" />
-    
     <!-- Geração de Dados para Teste -->
     <PackageReference Include="Bogus" />
     <PackageReference Include="AutoFixture" />
     <PackageReference Include="AutoFixture.AutoMoq" />
-    
     <!-- Testes de Banco de Dados -->
     <PackageReference Include="Testcontainers.Azurite" />
     <PackageReference Include="Testcontainers.PostgreSql" />
@@ -46,20 +40,19 @@
     <PackageReference Include="Scrutor" />
     <!-- Removed Microsoft.EntityFrameworkCore.InMemory - using real database with TestContainers instead -->
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-    
     <!-- Testes de Integração -->
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
-    
+    <!-- Hangfire para Testes -->
+    <PackageReference Include="Hangfire.InMemory" />
     <!-- Performance e Fixtures para Otimização -->
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\Shared\MeAjudaAi.Shared.csproj" />
     <ProjectReference Include="..\..\src\Bootstrapper\MeAjudaAi.ApiService\MeAjudaAi.ApiService.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Using Include="Xunit" />
     <Using Include="FluentAssertions" />
@@ -67,5 +60,4 @@
     <Using Include="Bogus" />
     <Using Include="AutoFixture" />
   </ItemGroup>
-
 </Project>

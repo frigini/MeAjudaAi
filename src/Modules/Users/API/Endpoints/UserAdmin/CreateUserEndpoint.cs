@@ -6,7 +6,7 @@ using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Attributes;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;
@@ -75,6 +75,6 @@ public class CreateUserEndpoint : BaseEndpoint, IEndpoint
         var result = await commandDispatcher.SendAsync<CreateUserCommand, Result<UserDto>>(
             command, cancellationToken);
 
-        return Handle(result, "CreateUser", new { id = result.Value?.Id });
+        return Handle(result, "GetUser", new { id = result.Value?.Id });
     }
 }

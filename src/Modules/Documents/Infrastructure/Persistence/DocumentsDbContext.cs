@@ -36,7 +36,7 @@ public class DocumentsDbContext : BaseDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("meajudaai_documents");
+        modelBuilder.HasDefaultSchema("documents");
 
         // Aplica configurações do assembly
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

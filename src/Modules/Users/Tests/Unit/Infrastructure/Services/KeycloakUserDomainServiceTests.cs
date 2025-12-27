@@ -50,6 +50,7 @@ public class KeycloakUserDomainServiceTests
             lastName,
             password,
             roles,
+            phoneNumber: null,
             CancellationToken.None);
 
         // Assert
@@ -93,6 +94,7 @@ public class KeycloakUserDomainServiceTests
             lastName,
             password,
             roles,
+            phoneNumber: null,
             CancellationToken.None);
 
         // Assert
@@ -131,6 +133,7 @@ public class KeycloakUserDomainServiceTests
             lastName,
             password,
             roles,
+            phoneNumber: null,
             CancellationToken.None);
 
         // Assert
@@ -204,6 +207,7 @@ public class KeycloakUserDomainServiceTests
             lastName,
             password,
             roles,
+            phoneNumber: null,
             CancellationToken.None);
 
         // Assert
@@ -251,6 +255,7 @@ public class KeycloakUserDomainServiceTests
             lastName,
             password,
             roles,
+            phoneNumber: null,
             CancellationToken.None);
 
         // Assert
@@ -299,6 +304,7 @@ public class KeycloakUserDomainServiceTests
             lastName,
             password,
             roles,
+            phoneNumber: null,
             cancellationToken);
 
         // Assert

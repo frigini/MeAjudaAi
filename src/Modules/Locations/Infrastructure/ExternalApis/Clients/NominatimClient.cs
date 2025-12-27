@@ -3,7 +3,7 @@ using System.Web;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Serialization;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
@@ -16,7 +16,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 /// - Usar caching para reduzir chamadas
 /// Documentação: https://nominatim.org/release-docs/latest/api/Search/
 /// </summary>
-public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClient> logger, IDateTimeProvider dateTimeProvider) : IDisposable
+public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClient> logger, TimeProvider timeProvider) : IDisposable
 {
     private readonly SemaphoreSlim _rateLimiter = new(1, 1); // 1 req/sec
     private DateTime _lastRequestTime = DateTime.MinValue;
@@ -34,7 +34,7 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
             await _rateLimiter.WaitAsync(cancellationToken);
             try
             {
-                var timeSinceLastRequest = dateTimeProvider.CurrentDate() - _lastRequestTime;
+                var timeSinceLastRequest = timeProvider.GetUtcNow().UtcDateTime - _lastRequestTime;
                 if (timeSinceLastRequest < TimeSpan.FromSeconds(1))
                 {
                     var delay = TimeSpan.FromSeconds(1) - timeSinceLastRequest;
@@ -46,7 +46,7 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
 
                 logger.LogInformation("Querying Nominatim for address: {Address}", address);
 
-                _lastRequestTime = dateTimeProvider.CurrentDate();
+                _lastRequestTime = timeProvider.GetUtcNow().UtcDateTime;
                 var response = await httpClient.GetAsync(url, cancellationToken);
 
                 if (!response.IsSuccessStatusCode)

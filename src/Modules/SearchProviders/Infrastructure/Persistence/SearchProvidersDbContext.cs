@@ -29,7 +29,7 @@ public class SearchProvidersDbContext : BaseDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("meajudaai_searchproviders");
+        modelBuilder.HasDefaultSchema("search_providers");
 
         // Habilita extensão PostGIS para recursos geoespaciais
         modelBuilder.HasPostgresExtension("postgis");

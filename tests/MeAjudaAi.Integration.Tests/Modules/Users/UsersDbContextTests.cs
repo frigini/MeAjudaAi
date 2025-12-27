@@ -10,7 +10,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Users;
 /// <summary>
 /// Testes para verificar se o DbContext está funcionando corretamente
 /// </summary>
-public class UserDbContextTests : ApiTestBase
+public class UserDbContextTests : BaseApiTest
 {
     [Fact]
     public async Task CanConnectToDatabase_ShouldWork()
@@ -23,7 +23,4 @@ public class UserDbContextTests : ApiTestBase
         var canConnect = await context.Database.CanConnectAsync();
         canConnect.Should().BeTrue();
     }
-
-    // NOTE: CanSaveAndRetrieveUser removed - duplicates UserRepositoryIntegrationTests.AddAsync_ShouldPersistUser
-    // DbContext tests should focus on schema/configuration, not CRUD operations
 }

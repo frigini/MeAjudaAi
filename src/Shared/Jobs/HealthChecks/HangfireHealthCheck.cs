@@ -61,8 +61,9 @@ public class HangfireHealthCheck(
         if (jobClient == null)
         {
             _logger.LogWarning("Hangfire JobStorage is configured but IBackgroundJobClient is not available");
+            data["error"] = "IBackgroundJobClient is not available";
             return Task.FromResult(HealthCheckResult.Degraded(
-                "Hangfire storage is configured but job client is unavailable",
+                "Hangfire is not operational",
                 data: data));
         }
 

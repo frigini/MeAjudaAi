@@ -19,7 +19,7 @@ public class SearchProvidersDbContextFactory : IDesignTimeDbContextFactory<Searc
 
         optionsBuilder.UseNpgsql(connectionString, npgsqlOptions =>
         {
-            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "meajudaai_searchproviders");
+            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
             npgsqlOptions.UseNetTopologySuite(); // Habilitar suporte PostGIS
         });
 

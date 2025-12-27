@@ -1,8 +1,10 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Tests.Infrastructure;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
+using MeAjudaAi.Shared.Tests.TestInfrastructure;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
@@ -10,7 +12,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
 /// <summary>
 /// Classe base para testes de integração específicos do módulo ServiceCatalogs.
 /// </summary>
-public abstract class ServiceCatalogsIntegrationTestBase : IntegrationTestBase
+public abstract class ServiceCatalogsIntegrationTestBase : BaseIntegrationTest
 {
     /// <summary>
     /// Configurações padrão para testes do módulo ServiceCatalogs

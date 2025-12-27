@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +27,7 @@ public class RequireBasicInfoCorrectionEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     /// <param name="app">Builder de rotas do endpoint</param>
     /// <remarks>
-    /// Configura endpoint POST em "/{id:guid}/require-basic-info-correction" com:
+    /// Configura endpoint POST definido em ApiEndpoints.Providers.RequireBasicInfoCorrection com:
     /// - Autorização AdminOnly (apenas administradores/verificadores podem solicitar correções)
     /// - Validação automática de GUID para o parâmetro ID
     /// - Documentação OpenAPI automática
@@ -34,7 +35,7 @@ public class RequireBasicInfoCorrectionEndpoint : BaseEndpoint, IEndpoint
     /// - Nome único para referência
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("/{id:guid}/require-basic-info-correction", RequireBasicInfoCorrectionAsync)
+        => app.MapPost(ApiEndpoints.Providers.RequireBasicInfoCorrection, RequireBasicInfoCorrectionAsync)
             .WithName("RequireBasicInfoCorrection")
             .WithSummary("Solicitar correção de informações básicas")
             .WithDescription("""

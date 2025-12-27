@@ -8,7 +8,7 @@ using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Geolocation;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 

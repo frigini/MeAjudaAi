@@ -2,6 +2,7 @@ using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Application.Events;
 using MeAjudaAi.Modules.Users.Application.Events;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.ServiceBus;
 using MeAjudaAi.Shared.Messaging.Strategy;
 

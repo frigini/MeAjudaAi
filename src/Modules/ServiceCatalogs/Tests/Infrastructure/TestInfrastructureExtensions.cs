@@ -3,8 +3,9 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Shared.Tests.Extensions;
-using MeAjudaAi.Shared.Tests.Infrastructure;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Tests.TestInfrastructure;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
@@ -36,14 +37,14 @@ public static class TestInfrastructureExtensions
         services.AddSingleton(options);
 
         // Adicionar serviços compartilhados essenciais
-        services.AddSingleton<IDateTimeProvider, TestDateTimeProvider>();
+        services.AddSingleton(TimeProvider.System);
 
         // Usar extensões compartilhadas
         services.AddTestLogging();
         services.AddTestCache(options.Cache);
 
         // Adicionar serviços de cache do Shared
-        services.AddSingleton<MeAjudaAi.Shared.Caching.ICacheService, MeAjudaAi.Shared.Tests.Infrastructure.TestCacheService>();
+        services.AddSingleton<MeAjudaAi.Shared.Caching.ICacheService, MeAjudaAi.Shared.Tests.TestInfrastructure.Services.TestCacheService>();
 
         // Configurar banco de dados específico do módulo ServiceCatalogs
         services.AddDbContext<ServiceCatalogsDbContext>((serviceProvider, dbOptions) =>
@@ -79,12 +80,4 @@ public static class TestInfrastructureExtensions
 
         return services;
     }
-}
-
-/// <summary>
-/// Implementação de IDateTimeProvider para testes
-/// </summary>
-internal class TestDateTimeProvider : IDateTimeProvider
-{
-    public DateTime CurrentDate() => DateTime.UtcNow;
 }

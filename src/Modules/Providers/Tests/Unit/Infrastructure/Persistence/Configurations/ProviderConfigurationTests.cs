@@ -488,7 +488,7 @@ public sealed class ProviderConfigurationTests : IDisposable
 
         // Assert
         documentsType.GetTableName().Should().Be("document");
-        documentsType.GetSchema().Should().Be("meajudaai_providers");
+        documentsType.GetSchema().Should().Be("providers");
     }
 
     [Fact]
@@ -611,7 +611,7 @@ public sealed class ProviderConfigurationTests : IDisposable
 
         // Assert
         qualificationsType.GetTableName().Should().Be("qualification");
-        qualificationsType.GetSchema().Should().Be("meajudaai_providers");
+        qualificationsType.GetSchema().Should().Be("providers");
     }
 
     [Fact]
