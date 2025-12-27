@@ -281,11 +281,14 @@ public sealed class MiddlewareEndToEndTests : IClassFixture<TestContainerFixture
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         
+        var responseBody = await response.Content.ReadAsStringAsync();
+        responseBody.Should().NotBeNullOrWhiteSpace("404 deve retornar corpo com detalhes do erro");
+        
         using var problemDetails = await response.Content.ReadFromJsonAsync<JsonDocument>();
         problemDetails.Should().NotBeNull();
         
         // Validar estrutura ProblemDetails (RFC 7807)
-        problemDetails!.RootElement.TryGetProperty("type", out _).Should().BeTrue("ProblemDetails deve ter propriedade 'type'");
+        problemDetails!.RootElement.TryGetProperty("type", out _).Should().BeTrue($"ProblemDetails deve ter propriedade 'type'. Response: {responseBody}");
         problemDetails.RootElement.TryGetProperty("title", out _).Should().BeTrue("ProblemDetails deve ter propriedade 'title'");
         problemDetails.RootElement.TryGetProperty("status", out var status).Should().BeTrue("ProblemDetails deve ter propriedade 'status'");
         status.GetInt32().Should().Be(404);

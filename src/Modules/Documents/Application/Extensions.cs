@@ -26,6 +26,8 @@ public static class Extensions
         // Command Handlers - registro manual
         services.AddScoped<ICommandHandler<UploadDocumentCommand, UploadDocumentResponse>, UploadDocumentCommandHandler>();
         services.AddScoped<ICommandHandler<RequestVerificationCommand, Result>, RequestVerificationCommandHandler>();
+        services.AddScoped<ICommandHandler<ApproveDocumentCommand, Result>, ApproveDocumentCommandHandler>();
+        services.AddScoped<ICommandHandler<RejectDocumentCommand, Result>, RejectDocumentCommandHandler>();
 
         // Query Handlers - registro manual
         services.AddScoped<IQueryHandler<GetDocumentStatusQuery, DocumentDto?>, GetDocumentStatusQueryHandler>();
