@@ -593,9 +593,9 @@
       },
       "Asp.Versioning.Http": {
         "type": "CentralTransitive",
-        "requested": "[8.1.0, )",
-        "resolved": "8.1.0",
-        "contentHash": "Xu4xF62Cu9JqYi/CTa2TiK5kyHoa4EluPynj/bPFWDmlTIPzuJQbBI5RgFYVRFHjFVvWMoA77acRaFu7i7Wzqg==",
+        "requested": "[8.1.1, )",
+        "resolved": "8.1.1",
+        "contentHash": "1D/Mzq1MSUSQe1eCY6GeEsu+tIlpzoWZxZkhlcw/uvtVoTrwO+BMl0fSj/XX8oZN1DutWTZqHDHgyDRq+IeSdQ==",
         "dependencies": {
           "Asp.Versioning.Abstractions": "8.1.0"
         }
