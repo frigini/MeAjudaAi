@@ -55,7 +55,7 @@ public class ApproveDocumentCommandHandler(
                 _logger.LogWarning(
                     "User {UserId} attempted to approve document {DocumentId} without admin privileges",
                     userId, command.DocumentId);
-                throw new ForbiddenAccessException("Only administrators can approve documents");
+                throw new ForbiddenAccessException("Apenas administradores podem aprovar documentos");
             }
 
             // Verificar se o documento está em estado válido para aprovação

@@ -31,12 +31,12 @@ public class ApproveDocumentCommandHandlerTests
             _mockLogger.Object);
     }
 
-    private void SetupAuthenticatedAdmin()
+    private void SetupAuthenticatedUser(string role)
     {
         var claims = new List<Claim>
         {
             new(AuthConstants.Claims.Subject, Guid.NewGuid().ToString()),
-            new(ClaimTypes.Role, "admin")
+            new(ClaimTypes.Role, role)
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
@@ -44,6 +44,8 @@ public class ApproveDocumentCommandHandlerTests
 
         _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
     }
+
+    private void SetupAuthenticatedAdmin() => SetupAuthenticatedUser("admin");
 
     [Fact]
     public async Task HandleAsync_WithValidDocument_ShouldApproveDocument()
@@ -212,16 +214,7 @@ public class ApproveDocumentCommandHandlerTests
         document.MarkAsPendingVerification();
 
         // Setup system-admin user
-        var claims = new List<Claim>
-        {
-            new(AuthConstants.Claims.Subject, Guid.NewGuid().ToString()),
-            new(ClaimTypes.Role, "system-admin")
-        };
-        var identity = new ClaimsIdentity(claims, "TestAuth");
-        var principal = new ClaimsPrincipal(identity);
-        var httpContext = new DefaultHttpContext { User = principal };
-
-        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
+        SetupAuthenticatedUser("system-admin");
 
         _mockRepository
             .Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
@@ -261,16 +254,7 @@ public class ApproveDocumentCommandHandlerTests
         document.MarkAsPendingVerification();
 
         // Setup non-admin user
-        var claims = new List<Claim>
-        {
-            new(AuthConstants.Claims.Subject, Guid.NewGuid().ToString()),
-            new(ClaimTypes.Role, "provider")
-        };
-        var identity = new ClaimsIdentity(claims, "TestAuth");
-        var principal = new ClaimsPrincipal(identity);
-        var httpContext = new DefaultHttpContext { User = principal };
-
-        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
+        SetupAuthenticatedUser("provider");
 
         _mockRepository
             .Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
@@ -283,7 +267,7 @@ public class ApproveDocumentCommandHandlerTests
 
         // Assert
         await act.Should().ThrowAsync<ForbiddenAccessException>()
-            .WithMessage("Only administrators can approve documents");
+            .WithMessage("Apenas administradores podem aprovar documentos");
 
         _mockRepository.Verify(
             x => x.UpdateAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()),

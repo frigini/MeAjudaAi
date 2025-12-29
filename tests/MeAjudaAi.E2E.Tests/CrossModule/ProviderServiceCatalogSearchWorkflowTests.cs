@@ -154,9 +154,22 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         
         // Associação explícita provider-service para garantir que o provider aparecerá nas buscas
         TestContainerFixture.AuthenticateAsAdmin();
-        var associationResponse = await _fixture.ApiClient.PostAsync(
-            $"/api/v1/providers/{providerId}/services/{serviceId}",
-            null);
+        
+        // DEBUG: Log da URL sendo chamada
+        var serviceAssociationUrl = $"/api/v1/providers/{providerId}/services/{serviceId}";
+        Console.WriteLine($"DEBUG: Calling POST {serviceAssociationUrl}");
+        Console.WriteLine($"DEBUG: ProviderId = {providerId}");
+        Console.WriteLine($"DEBUG: ServiceId = {serviceId}");
+        
+        var associationResponse = await _fixture.ApiClient.PostAsync(serviceAssociationUrl, null);
+        
+        // DEBUG: Log da resposta
+        Console.WriteLine($"DEBUG: Response Status = {associationResponse.StatusCode}");
+        if (!associationResponse.IsSuccessStatusCode)
+        {
+            var errorBody = await associationResponse.Content.ReadAsStringAsync();
+            Console.WriteLine($"DEBUG: Error Body = {errorBody}");
+        }
 
         // Association should succeed - NotFound means endpoint not implemented yet
         associationResponse.StatusCode.Should().BeOneOf(

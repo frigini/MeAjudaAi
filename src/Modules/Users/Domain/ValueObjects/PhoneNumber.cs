@@ -23,7 +23,22 @@ public class PhoneNumber : ValueObject
             throw new ArgumentException("Telefone não pode ser vazio");
         if (string.IsNullOrWhiteSpace(countryCode))
             throw new ArgumentException("Código do país não pode ser vazio");
-        Value = value.Trim();
+        
+        var cleanValue = value.Trim();
+        
+        // Validar comprimento (mínimo 8, máximo 15 dígitos sem formatação)
+        var digitsOnly = new string(cleanValue.Where(char.IsDigit).ToArray());
+        if (digitsOnly.Length < 8 || digitsOnly.Length > 15)
+            throw new ArgumentException("Telefone deve ter entre 8 e 15 dígitos");
+        
+        // Validar formato para Brasil: aceita (XX) XXXXX-XXXX, (XX) XXXX-XXXX, ou apenas dígitos
+        if (countryCode.Trim().Equals("BR", StringComparison.OrdinalIgnoreCase))
+        {
+            if (digitsOnly.Length < 10 || digitsOnly.Length > 11)
+                throw new ArgumentException("Telefone brasileiro deve ter 10 ou 11 dígitos (DDD + número)");
+        }
+        
+        Value = cleanValue;
         CountryCode = countryCode.Trim();
     }
 

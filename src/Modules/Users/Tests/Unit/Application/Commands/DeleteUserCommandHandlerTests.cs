@@ -79,6 +79,10 @@ public class DeleteUserCommandHandlerTests
         _userRepositoryMock.Verify(
             x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()),
             Times.Once);
+
+        _usersCacheServiceMock.Verify(
+            x => x.InvalidateUserAsync(userId, It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]

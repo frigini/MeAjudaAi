@@ -39,6 +39,8 @@ public static class ProvidersModuleEndpoints
     /// - DELETE /{id}/documents/{documentType} - Remover documento
     /// - PUT /{id}/verification-status - Atualizar status
     /// - DELETE /{id} - Excluir prestador
+    /// - POST /{id}/services/{serviceId} - Adicionar serviço ao provider
+    /// - DELETE /{id}/services/{serviceId} - Remover serviço do provider
     /// </remarks>
     public static void MapProvidersEndpoints(this WebApplication app)
     {

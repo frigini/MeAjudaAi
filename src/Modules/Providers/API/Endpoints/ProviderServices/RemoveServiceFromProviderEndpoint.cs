@@ -15,7 +15,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderServices;
 public class RemoveServiceFromProviderEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapDelete("/api/v1/providers/{providerId:guid}/services/{serviceId:guid}", RemoveServiceAsync)
+        => app.MapDelete("/{providerId:guid}/services/{serviceId:guid}", RemoveServiceAsync)
             .WithName("RemoveServiceFromProvider")
             .WithTags("Providers - Services")
             .WithSummary("Remove serviço do provider")

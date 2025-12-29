@@ -15,7 +15,7 @@ public class UsersCacheService(ICacheService cacheService) : IUsersCacheService
 
     /// <summary>
     /// Obtém ou cria cache para usuário por ID
-    /// IMPORTANT: Does NOT cache NULL values to avoid caching "not found" results
+    /// IMPORTANTE: NÃO armazena valores NULL para evitar cache de resultados "não encontrado"
     /// </summary>
     public async Task<UserDto?> GetOrCacheUserByIdAsync(
         Guid userId,

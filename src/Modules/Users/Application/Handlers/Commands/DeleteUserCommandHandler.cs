@@ -83,17 +83,17 @@ internal sealed class DeleteUserCommandHandler(
         }
         catch (ArgumentException)
         {
-            // Allow ArgumentException (validation errors) to propagate to GlobalExceptionHandler
+            // Permite que ArgumentException (erros de validação) propague para GlobalExceptionHandler
             throw;
         }
         catch (MeAjudaAi.Shared.Exceptions.ValidationException)
         {
-            // Allow ValidationException to propagate to GlobalExceptionHandler
+            // Permite que ValidationException propague para GlobalExceptionHandler
             throw;
         }
         catch (MeAjudaAi.Shared.Exceptions.DomainException)
         {
-            // Allow DomainException (business rule violations) to propagate to GlobalExceptionHandler
+            // Permite que DomainException (violações de regras de negócio) propague para GlobalExceptionHandler
             throw;
         }
         catch (Exception ex)

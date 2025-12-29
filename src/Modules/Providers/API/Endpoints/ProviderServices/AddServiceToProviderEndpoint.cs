@@ -15,7 +15,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderServices;
 public class AddServiceToProviderEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("/api/v1/providers/{providerId:guid}/services/{serviceId:guid}", AddServiceAsync)
+        => app.MapPost("/{providerId:guid}/services/{serviceId:guid}", AddServiceAsync)
             .WithName("AddServiceToProvider")
             .WithTags("Providers - Services")
             .WithSummary("Adiciona serviço ao provider")
