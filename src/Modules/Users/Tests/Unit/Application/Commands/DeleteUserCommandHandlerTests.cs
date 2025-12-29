@@ -115,6 +115,10 @@ public class DeleteUserCommandHandlerTests
         _userRepositoryMock.Verify(
             x => x.DeleteAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
             Times.Never);
+
+        _usersCacheServiceMock.Verify(
+            x => x.InvalidateUserAsync(It.IsAny<Guid>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]
@@ -155,6 +159,10 @@ public class DeleteUserCommandHandlerTests
         _userRepositoryMock.Verify(
             x => x.DeleteAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
             Times.Never);
+
+        _usersCacheServiceMock.Verify(
+            x => x.InvalidateUserAsync(It.IsAny<Guid>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]
@@ -191,5 +199,9 @@ public class DeleteUserCommandHandlerTests
         _userRepositoryMock.Verify(
             x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()),
             Times.Once);
+
+        _usersCacheServiceMock.Verify(
+            x => x.InvalidateUserAsync(It.IsAny<Guid>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 }

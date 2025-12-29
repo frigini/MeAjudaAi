@@ -33,7 +33,8 @@ public class PhoneNumber : ValueObject
         if (digitsOnly.Length > 15)
             throw new ArgumentException("Telefone não pode ter mais de 15 dígitos");
         
-        Value = cleanValue;
+        // Armazenar apenas dígitos normalizados para consistência de igualdade
+        Value = digitsOnly;
         CountryCode = countryCode.Trim();
     }
 

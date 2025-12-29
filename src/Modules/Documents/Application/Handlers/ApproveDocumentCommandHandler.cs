@@ -65,7 +65,7 @@ public class ApproveDocumentCommandHandler(
                     "Document {DocumentId} cannot be approved in status {Status}",
                     command.DocumentId, document.Status);
                 return Result.Failure(Error.BadRequest(
-                    $"Document is in {document.Status} status and can only be approved when in PendingVerification status"));
+                    $"O documento está com o status {document.Status} e só pode ser aprovado quando estiver em PendingVerification"));
             }
 
             // Aprovar o documento
@@ -101,7 +101,7 @@ public class ApproveDocumentCommandHandler(
             _logger.LogError(ex, 
                 "Unexpected error approving document {DocumentId}. CorrelationId: {CorrelationId}",
                 command.DocumentId, command.CorrelationId);
-            return Result.Failure(Error.Internal("Failed to approve document. Please try again later."));
+            return Result.Failure(Error.Internal("Falha ao aprovar o documento. Por favor, tente novamente mais tarde."));
         }
     }
 }
