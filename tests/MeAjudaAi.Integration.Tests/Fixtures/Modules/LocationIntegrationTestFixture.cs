@@ -30,6 +30,15 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
         // Adiciona provedor de data/hora
         services.AddSingleton<TimeProvider>(TimeProvider.System);
 
+        // Configura configuração para testes
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Cache:Enabled"] = "true"
+            })
+            .Build();
+        services.AddSingleton<IConfiguration>(configuration);
+
         // Adiciona cache em memória para testes
         services.AddMemoryCache();
         services.AddHybridCache(options =>
@@ -48,7 +57,6 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
         ConfigureHttpClients(HttpMockBuilder);
 
         // Adiciona serviços do módulo Locations
-        var configuration = new ConfigurationBuilder().Build();
         MeAjudaAi.Modules.Locations.API.Extensions.AddLocationsModule(services, configuration);
 
         ServiceProvider = services.BuildServiceProvider();
