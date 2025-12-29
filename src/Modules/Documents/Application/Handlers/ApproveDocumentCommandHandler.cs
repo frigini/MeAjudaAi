@@ -1,5 +1,6 @@
 using System.Text.Json;
 using MeAjudaAi.Modules.Documents.Application.Commands;
+using MeAjudaAi.Modules.Documents.Application.Helpers;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
@@ -42,11 +43,11 @@ public class ApproveDocumentCommandHandler(
             // Verificar autorização - apenas admins podem aprovar documentos
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null)
-                throw new UnauthorizedAccessException("HTTP context not available");
+                throw new UnauthorizedAccessException("Contexto HTTP não disponível");
 
             var user = httpContext.User;
             if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
-                throw new UnauthorizedAccessException("User is not authenticated");
+                throw new UnauthorizedAccessException("Apenas administradores podem aprovar documentos");
 
             var isAdmin = user.IsInRole("admin") || user.IsInRole("system-admin");
             if (!isAdmin)
@@ -65,7 +66,7 @@ public class ApproveDocumentCommandHandler(
                     "Document {DocumentId} cannot be approved in status {Status}",
                     command.DocumentId, document.Status);
                 return Result.Failure(Error.BadRequest(
-                    $"O documento está com o status {document.Status} e só pode ser aprovado quando estiver em PendingVerification"));
+                    $"O documento está com o status {document.Status.ToPortuguese()} e só pode ser aprovado quando estiver em Verificação Pendente"));
             }
 
             // Aprovar o documento

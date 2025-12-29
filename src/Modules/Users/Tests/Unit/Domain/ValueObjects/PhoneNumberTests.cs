@@ -46,6 +46,39 @@ public class PhoneNumberTests
     }
 
     [Theory]
+    [InlineData("1234567")]   // 7 dígitos - abaixo do mínimo
+    [InlineData("12345")]     // 5 dígitos - abaixo do mínimo
+    public void PhoneNumber_WithTooFewDigits_ShouldThrowArgumentException(string value)
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() => new PhoneNumber(value));
+        exception.Message.Should().Be("Telefone deve ter pelo menos 8 dígitos");
+    }
+
+    [Fact]
+    public void PhoneNumber_WithTooManyDigits_ShouldThrowArgumentException()
+    {
+        // Arrange - 16 dígitos
+        const string value = "1234567890123456";
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() => new PhoneNumber(value));
+        exception.Message.Should().Be("Telefone não pode ter mais de 15 dígitos");
+    }
+
+    [Theory]
+    [InlineData("12345678")]         // 8 dígitos - mínimo válido
+    [InlineData("123456789012345")]  // 15 dígitos - máximo válido
+    public void PhoneNumber_AtBoundaryDigitCounts_ShouldCreateSuccessfully(string value)
+    {
+        // Act
+        var phoneNumber = new PhoneNumber(value);
+
+        // Assert
+        phoneNumber.Value.Should().Be(value);
+    }
+
+    [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
@@ -87,6 +120,18 @@ public class PhoneNumberTests
 
         // Assert
         result.Should().Be("BR 11999999999"); // CountryCode + espaço + dígitos (11 dígitos)
+    }
+
+    [Fact]
+    public void PhoneNumbers_WithDifferentFormattingButSameDigits_ShouldBeEqual()
+    {
+        // Arrange
+        var phoneNumber1 = new PhoneNumber("(11) 99999-9999", "BR");
+        var phoneNumber2 = new PhoneNumber("11999999999", "BR");
+
+        // Act & Assert
+        phoneNumber1.Should().Be(phoneNumber2);
+        phoneNumber1.GetHashCode().Should().Be(phoneNumber2.GetHashCode());
     }
 
     [Fact]

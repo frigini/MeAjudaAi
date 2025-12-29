@@ -35,7 +35,7 @@ public class PhoneNumber : ValueObject
         
         // Armazenar apenas dígitos normalizados para consistência de igualdade
         Value = digitsOnly;
-        CountryCode = countryCode.Trim();
+        CountryCode = countryCode.Trim().ToUpperInvariant();
     }
 
     public override string ToString() => $"{CountryCode} {Value}";
