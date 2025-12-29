@@ -1,11 +1,13 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderServices;
 
@@ -50,13 +52,32 @@ public class AddServiceToProviderEndpoint : BaseEndpoint, IEndpoint
         [FromRoute] Guid providerId,
         [FromRoute] Guid serviceId,
         ICommandDispatcher commandDispatcher,
+        ISearchProvidersModuleApi searchProvidersApi,
+        ILogger<AddServiceToProviderEndpoint> logger,
         CancellationToken cancellationToken)
     {
         var command = new AddServiceToProviderCommand(providerId, serviceId);
         var result = await commandDispatcher.SendAsync<AddServiceToProviderCommand, Result>(command, cancellationToken);
 
-        return result.IsSuccess
-            ? Results.NoContent()
-            : Handle(result);
+        if (result.IsFailure)
+            return Handle(result);
+
+        // Pequeno delay para garantir que o commit da transação se propague
+        await Task.Delay(100, cancellationToken);
+
+        // Reindexar provider no módulo de busca de forma síncrona
+        // Isso garante que buscas subsequentes refletem a adição do serviço
+        var indexResult = await searchProvidersApi.IndexProviderAsync(providerId, cancellationToken);
+        
+        if (indexResult.IsFailure)
+        {
+            logger.LogWarning(
+                "Failed to reindex provider {ProviderId} after adding service {ServiceId}: {Error}",
+                providerId, serviceId, indexResult.Error.Message);
+            // Não falhamos a requisição porque o serviço foi adicionado com sucesso
+            // O evento assíncrono vai tentar reindexar novamente
+        }
+
+        return Results.NoContent();
     }
 }
