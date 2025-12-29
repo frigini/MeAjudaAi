@@ -49,6 +49,9 @@ public class RequestVerificationEndpoint : BaseEndpoint, IEndpoint
             return result.Error.StatusCode switch
             {
                 404 => Results.NotFound(new { error = result.Error.Message }),
+                409 => Results.Conflict(new { error = result.Error.Message }),
+                422 => Results.UnprocessableEntity(new { error = result.Error.Message }),
+                >= 500 => Results.Problem(detail: result.Error.Message, statusCode: result.Error.StatusCode),
                 _ => Results.BadRequest(new { error = result.Error.Message })
             };
         }

@@ -128,7 +128,7 @@ public class RejectDocumentCommandHandlerTests
 
         result.IsSuccess.Should().BeFalse();
         result.Error.StatusCode.Should().Be(400);
-        result.Error.Message.Should().Contain("Rejection reason is required");
+        result.Error.Message.Should().Contain("Motivo de recusa é obrigatório");
 
         _mockRepository.Verify(x => x.UpdateAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()), Times.Never);
     }

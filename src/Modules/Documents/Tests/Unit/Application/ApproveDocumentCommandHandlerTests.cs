@@ -82,6 +82,7 @@ public class ApproveDocumentCommandHandlerTests
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
         document.Status.Should().Be(EDocumentStatus.Verified);
+        document.OcrData.Should().Contain("\"notes\"");
         document.OcrData.Should().Contain(verificationNotes);
 
         _mockRepository.Verify(

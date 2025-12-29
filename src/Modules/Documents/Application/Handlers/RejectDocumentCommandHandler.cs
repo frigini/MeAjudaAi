@@ -63,8 +63,18 @@ public class RejectDocumentCommandHandler(
                 _logger.LogWarning(
                     "Document {DocumentId} cannot be rejected in status {Status}",
                     command.DocumentId, document.Status);
+                
+                var statusDescricao = document.Status switch
+                {
+                    EDocumentStatus.PendingVerification => "Verificação Pendente",
+                    EDocumentStatus.Uploaded => "Enviado",
+                    EDocumentStatus.Rejected => "Rejeitado",
+                    EDocumentStatus.Verified => "Verificado",
+                    _ => document.Status.ToString()
+                };
+                
                 return Result.Failure(Error.BadRequest(
-                    $"O documento está com status {document.Status} e só pode ser recusado quando estiver em PendingVerification"));
+                    $"O documento está com status {statusDescricao} e só pode ser recusado quando estiver em Verificação Pendente"));
             }
 
             // Validar motivo de rejeição
@@ -102,7 +112,7 @@ public class RejectDocumentCommandHandler(
             _logger.LogError(ex, 
                 "Unexpected error rejecting document {DocumentId}. CorrelationId: {CorrelationId}",
                 command.DocumentId, command.CorrelationId);
-            return Result.Failure(Error.Internal("Failed to reject document. Please try again later."));
+            return Result.Failure(Error.Internal("Falha ao rejeitar o documento. Por favor, tente novamente mais tarde."));
         }
     }
 }

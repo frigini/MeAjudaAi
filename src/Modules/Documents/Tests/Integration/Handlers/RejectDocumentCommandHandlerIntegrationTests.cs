@@ -204,7 +204,7 @@ public sealed class RejectDocumentCommandHandlerIntegrationTests : IAsyncLifetim
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("Rejection reason is required");
+        result.Error.Message.Should().Contain("Motivo de recusa é obrigatório");
 
         // Verificar que não foi persistido
         _dbContext!.ChangeTracker.Clear();
