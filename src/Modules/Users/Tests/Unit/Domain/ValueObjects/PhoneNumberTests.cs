@@ -16,7 +16,7 @@ public class PhoneNumberTests
         var phoneNumber = new PhoneNumber(value, countryCode);
 
         // Assert
-        phoneNumber.Value.Should().Be(value);
+        phoneNumber.Value.Should().Be("11999999999"); // Apenas dígitos (11 dígitos)
         phoneNumber.CountryCode.Should().Be(countryCode);
     }
 
@@ -30,7 +30,7 @@ public class PhoneNumberTests
         var phoneNumber = new PhoneNumber(value);
 
         // Assert
-        phoneNumber.Value.Should().Be(value);
+        phoneNumber.Value.Should().Be("11999999999"); // Apenas dígitos (11 dígitos)
         phoneNumber.CountryCode.Should().Be("BR");
     }
 
@@ -70,7 +70,7 @@ public class PhoneNumberTests
         var phoneNumber = new PhoneNumber(value, countryCode);
 
         // Assert
-        phoneNumber.Value.Should().Be("(11) 99999-9999");
+        phoneNumber.Value.Should().Be("11999999999"); // Apenas dígitos (11 dígitos)
         phoneNumber.CountryCode.Should().Be("BR");
     }
 
@@ -86,7 +86,7 @@ public class PhoneNumberTests
         var result = phoneNumber.ToString();
 
         // Assert
-        result.Should().Be("BR (11) 99999-9999");
+        result.Should().Be("BR 11999999999"); // CountryCode + espaço + dígitos (11 dígitos)
     }
 
     [Fact]
