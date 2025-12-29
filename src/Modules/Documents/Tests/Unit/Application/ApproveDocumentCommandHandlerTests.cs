@@ -198,6 +198,55 @@ public class ApproveDocumentCommandHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_WithSystemAdminUser_ShouldApproveDocument()
+    {
+        // Arrange
+        var documentId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
+
+        var document = Document.Create(
+            providerId,
+            EDocumentType.IdentityDocument,
+            "identity.pdf",
+            "blob-key-123");
+        document.MarkAsPendingVerification();
+
+        // Setup system-admin user
+        var claims = new List<Claim>
+        {
+            new(AuthConstants.Claims.Subject, Guid.NewGuid().ToString()),
+            new(ClaimTypes.Role, "system-admin")
+        };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        var principal = new ClaimsPrincipal(identity);
+        var httpContext = new DefaultHttpContext { User = principal };
+
+        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
+
+        _mockRepository
+            .Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(document);
+
+        _mockRepository
+            .Setup(x => x.UpdateAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        _mockRepository
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var command = new ApproveDocumentCommand(documentId, null);
+
+        // Act
+        var result = await _handler.HandleAsync(command);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        document.Status.Should().Be(EDocumentStatus.Verified);
+        document.OcrData.Should().BeNull();
+    }
+
+    [Fact]
     public async Task HandleAsync_WithNonAdminUser_ShouldThrowForbiddenAccessException()
     {
         // Arrange
