@@ -8,6 +8,7 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
 
@@ -82,8 +83,11 @@ public class ApproveDocumentCommandHandlerTests
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
         document.Status.Should().Be(EDocumentStatus.Verified);
-        document.OcrData.Should().Contain("\"notes\"");
         document.OcrData.Should().NotBeNullOrEmpty();
+        
+        // Validate JSON structure
+        var ocrJson = JsonSerializer.Deserialize<JsonElement>(document.OcrData!);
+        ocrJson.GetProperty("notes").GetString().Should().Be(verificationNotes);
 
         _mockRepository.Verify(
             x => x.UpdateAsync(It.Is<Document>(d => d.Status == EDocumentStatus.Verified), It.IsAny<CancellationToken>()),
@@ -190,6 +194,7 @@ public class ApproveDocumentCommandHandlerTests
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
         document.Status.Should().Be(EDocumentStatus.Verified);
+        document.OcrData.Should().BeNull();
     }
 
     [Fact]
