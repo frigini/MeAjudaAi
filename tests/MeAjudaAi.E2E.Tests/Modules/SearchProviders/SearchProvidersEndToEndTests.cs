@@ -114,7 +114,8 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
             -23.5605,
             -46.6433
         );
-        await AddServiceToProviderAsync(cleaningProviderId, cleaningServiceId);
+        // Inserir diretamente com ServiceIds ao invés de usar endpoint
+        await InsertSearchableProviderAsync(cleaningProviderId, $"cleaning_provider_{Guid.NewGuid():N}", -23.5605, -46.6433, new[] { cleaningServiceId });
 
         // Provider com serviço de jardinagem
         var gardenProviderId = await CreateProviderAsync(
@@ -122,7 +123,8 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
             -23.5705,
             -46.6533
         );
-        await AddServiceToProviderAsync(gardenProviderId, gardenServiceId);
+        // Inserir diretamente com ServiceIds ao invés de usar endpoint
+        await InsertSearchableProviderAsync(gardenProviderId, $"garden_provider_{Guid.NewGuid():N}", -23.5705, -46.6533, new[] { gardenServiceId });
 
         // Act - Buscar apenas por serviço de limpeza
         var response = await _fixture.ApiClient.GetAsync(
@@ -155,10 +157,12 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         var plumbingServiceId = await CreateServiceAsync(categoryId, "Hidráulica");
 
         var electricianId = await CreateProviderAsync($"electrician_{Guid.NewGuid():N}", -23.5605, -46.6433);
-        await AddServiceToProviderAsync(electricianId, electricalServiceId);
+        // Inserir diretamente com ServiceIds ao invés de usar endpoint
+        await InsertSearchableProviderAsync(electricianId, $"electrician_{Guid.NewGuid():N}", -23.5605, -46.6433, new[] { electricalServiceId });
 
         var plumberId = await CreateProviderAsync($"plumber_{Guid.NewGuid():N}", -23.5705, -46.6533);
-        await AddServiceToProviderAsync(plumberId, plumbingServiceId);
+        // Inserir diretamente com ServiceIds ao invés de usar endpoint
+        await InsertSearchableProviderAsync(plumberId, $"plumber_{Guid.NewGuid():N}", -23.5705, -46.6533, new[] { plumbingServiceId });
 
         // Act - Buscar por ambos os serviços
         var response = await _fixture.ApiClient.GetAsync(
@@ -416,7 +420,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
     /// Insere um provider diretamente na tabela searchable_providers.
     /// Necessário porque o MockMessageBus não processa eventos de integração.
     /// </summary>
-    private async Task InsertSearchableProviderAsync(Guid providerId, string name, double latitude, double longitude)
+    private async Task InsertSearchableProviderAsync(Guid providerId, string name, double latitude, double longitude, Guid[]? serviceIds = null)
     {
         await _fixture.WithServiceScopeAsync(async sp =>
         {
@@ -431,6 +435,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
                 DO UPDATE SET 
                     name = EXCLUDED.name,
                     location = EXCLUDED.location,
+                    service_ids = EXCLUDED.service_ids,
                     updated_at = CURRENT_TIMESTAMP";
             
             await dapper.ExecuteAsync(sql, new
@@ -443,7 +448,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
                 AvgRating = 0.0m,
                 TotalReviews = 0,
                 SubscriptionTier = 0, // Free
-                ServiceIds = new Guid[] {},
+                ServiceIds = serviceIds ?? new Guid[] {},
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             });
