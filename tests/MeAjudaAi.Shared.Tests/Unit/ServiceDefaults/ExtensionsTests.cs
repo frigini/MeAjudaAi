@@ -737,19 +737,37 @@ public class ExtensionsTests
     public async Task MapDefaultEndpoints_InProduction_ShouldNotMapEndpoints()
     {
         // Arrange
-        var builder = CreateWebApplicationBuilder();
-        builder.Environment.EnvironmentName = "Production";
-        builder.Services.AddHealthChecks();
-        var app = builder.Build();
+        var originalIntegrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
+        var originalDotnetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        var originalAspNetCoreEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        
+        try
+        {
+            // Clear all testing environment variables to ensure clean state
+            Environment.SetEnvironmentVariable("INTEGRATION_TESTS", null);
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
+            
+            var builder = CreateWebApplicationBuilder();
+            builder.Environment.EnvironmentName = "Production";
+            builder.Services.AddHealthChecks();
+            var app = builder.Build();
 
-        // Act
-        app.MapDefaultEndpoints();
+            // Act
+            app.MapDefaultEndpoints();
 
-        // Assert
-        await app.StartAsync();
-        var client = app.GetTestClient();
-        var response = await client.GetAsync("/health");
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            // Assert
+            await app.StartAsync();
+            var client = app.GetTestClient();
+            var response = await client.GetAsync("/health");
+            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("INTEGRATION_TESTS", originalIntegrationTests);
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalDotnetEnv);
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalAspNetCoreEnv);
+        }
     }
 
     [Fact]
@@ -940,10 +958,12 @@ public class ExtensionsTests
         // Arrange
         var originalIntegrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
         var originalDotnetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        var originalAspNetCoreEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
         
         try
         {
             Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
             Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "false");
             
             var builder = CreateWebApplicationBuilder();
@@ -964,6 +984,7 @@ public class ExtensionsTests
         {
             Environment.SetEnvironmentVariable("INTEGRATION_TESTS", originalIntegrationTests);
             Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalDotnetEnv);
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalAspNetCoreEnv);
         }
     }
 
