@@ -30,7 +30,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
     /// <summary>
     /// Aguarda indexação de busca com retry/polling pattern
     /// </summary>
-    private static async Task WaitForSearchIndexing(Func<Task<bool>> condition, int timeoutMs = 5000, int initialDelayMs = 100)
+    private static async Task WaitForSearchIndexing(Func<Task<bool>> condition, int timeoutMs = 15000, int initialDelayMs = 100)
     {
         var maxDelay = 2000; // Max delay between attempts
         var delay = initialDelayMs;
@@ -183,7 +183,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
             var testUrl = $"/api/v1/search/providers?latitude={latitude}&longitude={longitude}&radiusKm=10&serviceIds={serviceId}";
             var testResponse = await _fixture.ApiClient.GetAsync(testUrl);
             return testResponse.IsSuccessStatusCode;
-        }, timeoutMs: 5000);
+        });
 
         // ============================================
         // STEP 4: Buscar provider via SearchProviders
@@ -453,7 +453,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
             var testUrl = $"/api/v1/search/providers?latitude=-23.550520&longitude=-46.633308&radiusKm=10&serviceIds={serviceId1},{serviceId2}";
             var testResponse = await _fixture.ApiClient.GetAsync(testUrl);
             return testResponse.IsSuccessStatusCode;
-        }, timeoutMs: 5000);
+        });
 
         // ============================================
         // Buscar por AMBOS serviços

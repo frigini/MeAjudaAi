@@ -26,17 +26,12 @@ public class PhoneNumber : ValueObject
         
         var cleanValue = value.Trim();
         
-        // Validar comprimento (mínimo 8, máximo 15 dígitos sem formatação)
+        // Validar comprimento mínimo e máximo (apenas dígitos)
         var digitsOnly = new string(cleanValue.Where(char.IsDigit).ToArray());
-        if (digitsOnly.Length < 8 || digitsOnly.Length > 15)
-            throw new ArgumentException("Telefone deve ter entre 8 e 15 dígitos");
-        
-        // Validar formato para Brasil: aceita (XX) XXXXX-XXXX, (XX) XXXX-XXXX, ou apenas dígitos
-        if (countryCode.Trim().Equals("BR", StringComparison.OrdinalIgnoreCase))
-        {
-            if (digitsOnly.Length < 10 || digitsOnly.Length > 11)
-                throw new ArgumentException("Telefone brasileiro deve ter 10 ou 11 dígitos (DDD + número)");
-        }
+        if (digitsOnly.Length < 8)
+            throw new ArgumentException("Telefone deve ter pelo menos 8 dígitos");
+        if (digitsOnly.Length > 15)
+            throw new ArgumentException("Telefone não pode ter mais de 15 dígitos");
         
         Value = cleanValue;
         CountryCode = countryCode.Trim();
