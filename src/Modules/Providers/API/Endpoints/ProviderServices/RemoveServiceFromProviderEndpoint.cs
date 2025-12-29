@@ -60,6 +60,10 @@ public class RemoveServiceFromProviderEndpoint : BaseEndpoint, IEndpoint
         if (result.IsFailure)
             return Handle(result);
 
+        logger.LogInformation(
+            "Service {ServiceId} removed from provider {ProviderId}, starting synchronous reindexing",
+            serviceId, providerId);
+
         // Pequeno delay para garantir que o commit da transação se propague
         await Task.Delay(100, cancellationToken);
 
@@ -74,6 +78,12 @@ public class RemoveServiceFromProviderEndpoint : BaseEndpoint, IEndpoint
                 providerId, serviceId, indexResult.Error.Message);
             // Não falhamos a requisição porque o serviço foi removido com sucesso
             // O evento assíncrono vai tentar reindexar novamente
+        }
+        else
+        {
+            logger.LogInformation(
+                "Successfully reindexed provider {ProviderId} after removing service {ServiceId}",
+                providerId, serviceId);
         }
 
         return Results.NoContent();
