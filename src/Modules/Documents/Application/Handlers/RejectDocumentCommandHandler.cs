@@ -64,13 +64,13 @@ public class RejectDocumentCommandHandler(
                     "Document {DocumentId} cannot be rejected in status {Status}",
                     command.DocumentId, document.Status);
                 return Result.Failure(Error.BadRequest(
-                    $"Document is in {document.Status} status and can only be rejected when in PendingVerification status"));
+                    $"O documento está com status {document.Status} e só pode ser recusado quando estiver em PendingVerification"));
             }
 
             // Validar motivo de rejeição
             if (string.IsNullOrWhiteSpace(command.RejectionReason))
             {
-                return Result.Failure(Error.BadRequest("Rejection reason is required"));
+                return Result.Failure(Error.BadRequest("Motivo de recusa é obrigatório"));
             }
 
             // Rejeitar o documento

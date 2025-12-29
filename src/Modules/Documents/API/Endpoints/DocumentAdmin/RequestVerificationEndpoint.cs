@@ -17,7 +17,7 @@ public class RequestVerificationEndpoint : BaseEndpoint, IEndpoint
     /// Configura o mapeamento do endpoint de solicitação de verificação.
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("/{documentId:guid}/verify", RequestVerificationAsync)
+        => app.MapPost("/{documentId:guid}/request-verification", RequestVerificationAsync)
             .WithName("RequestVerification")
             .WithSummary("Solicitar verificação manual")
             .WithDescription("""

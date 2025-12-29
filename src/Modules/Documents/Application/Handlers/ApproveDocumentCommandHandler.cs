@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
@@ -54,7 +55,7 @@ public class ApproveDocumentCommandHandler(
                 _logger.LogWarning(
                     "User {UserId} attempted to approve document {DocumentId} without admin privileges",
                     userId, command.DocumentId);
-                throw new ForbiddenAccessException("Only administrators can approve documents", null!);
+                throw new ForbiddenAccessException("Only administrators can approve documents");
             }
 
             // Verificar se o documento está em estado válido para aprovação
@@ -69,7 +70,7 @@ public class ApproveDocumentCommandHandler(
 
             // Aprovar o documento
             var ocrData = command.VerificationNotes != null 
-                ? $"{{\"notes\": \"{command.VerificationNotes}\"}}" 
+                ? JsonSerializer.Serialize(new { notes = command.VerificationNotes })
                 : null;
             
             document.MarkAsVerified(ocrData);
