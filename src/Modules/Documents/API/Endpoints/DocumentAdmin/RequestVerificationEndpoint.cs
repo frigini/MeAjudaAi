@@ -34,7 +34,10 @@ public class RequestVerificationEndpoint : BaseEndpoint, IEndpoint
                 - Administrador será notificado para análise
                 """)
             .Produces(StatusCodes.Status202Accepted)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status409Conflict)
+            .Produces(StatusCodes.Status422UnprocessableEntity)
+            .ProducesProblem(StatusCodes.Status500InternalServerError);
 
     private static async Task<IResult> RequestVerificationAsync(
         Guid documentId,

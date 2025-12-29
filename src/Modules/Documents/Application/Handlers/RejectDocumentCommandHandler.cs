@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Documents.Application.Commands;
+using MeAjudaAi.Modules.Documents.Application.Helpers;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
@@ -54,7 +55,7 @@ public class RejectDocumentCommandHandler(
                 _logger.LogWarning(
                     "User {UserId} attempted to reject document {DocumentId} without admin privileges",
                     userId, command.DocumentId);
-                throw new ForbiddenAccessException("Only administrators can reject documents", null!);
+                throw new ForbiddenAccessException("Only administrators can reject documents");
             }
 
             // Verificar se o documento está em estado válido para rejeição
@@ -64,14 +65,7 @@ public class RejectDocumentCommandHandler(
                     "Document {DocumentId} cannot be rejected in status {Status}",
                     command.DocumentId, document.Status);
                 
-                var statusDescricao = document.Status switch
-                {
-                    EDocumentStatus.PendingVerification => "Verificação Pendente",
-                    EDocumentStatus.Uploaded => "Enviado",
-                    EDocumentStatus.Rejected => "Rejeitado",
-                    EDocumentStatus.Verified => "Verificado",
-                    _ => document.Status.ToString()
-                };
+                var statusDescricao = document.Status.ToPortuguese();
                 
                 return Result.Failure(Error.BadRequest(
                     $"O documento está com status {statusDescricao} e só pode ser recusado quando estiver em Verificação Pendente"));
