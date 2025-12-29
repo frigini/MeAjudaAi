@@ -282,8 +282,11 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
     {
         // Arrange
         TestContainerFixture.BeforeEachTest();
-        TestContainerFixture.AuthenticateAsAdmin();
-        var providerId = Guid.NewGuid();
+        var adminId = Guid.Parse("00000000-0000-0000-0000-000000000001"); // GUID fixo para admin
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureAdmin(
+            adminId.ToString(), "admin", "admin@test.com");
+        var providerId = adminId; // Usar ID do admin autenticado
 
         // Act - Upload document
         var uploadRequest = new
@@ -311,7 +314,12 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
         var documentId = Guid.Parse(uploadResult.GetProperty("documentId").GetString()!);
 
         // Act - Primeiro solicitar verificação manual
-        await _fixture.PostJsonAsync($"/api/v1/documents/{documentId}/request-verification", new { });
+        var requestVerificationResponse = await _fixture.PostJsonAsync($"/api/v1/documents/{documentId}/request-verification", new { });
+        if (!requestVerificationResponse.IsSuccessStatusCode)
+        {
+            var errorContent = await requestVerificationResponse.Content.ReadAsStringAsync();
+            throw new Exception($"Request verification failed with {requestVerificationResponse.StatusCode}: {errorContent}");
+        }
 
         // Act - Marca como verificado
         var verifyRequest = new
@@ -342,7 +350,11 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
     {
         // Arrange
         TestContainerFixture.BeforeEachTest();
-        var providerId = Guid.NewGuid();
+        var adminId = Guid.Parse("00000000-0000-0000-0000-000000000001"); // GUID fixo para admin
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureAdmin(
+            adminId.ToString(), "admin", "admin@test.com");
+        var providerId = adminId; // Usar ID do admin autenticado
         Guid documentId = Guid.Empty;
 
         await _fixture.WithServiceScopeAsync(async services =>
@@ -359,10 +371,13 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
             documentId = document.Id;
         });
 
-        TestContainerFixture.AuthenticateAsAdmin();
-
         // Act - Primeiro solicitar verificação manual
-        await _fixture.PostJsonAsync($"/api/v1/documents/{documentId}/request-verification", new { });
+        var requestVerificationResponse = await _fixture.PostJsonAsync($"/api/v1/documents/{documentId}/request-verification", new { });
+        if (!requestVerificationResponse.IsSuccessStatusCode)
+        {
+            var errorContent = await requestVerificationResponse.Content.ReadAsStringAsync();
+            throw new Exception($"Request verification failed with {requestVerificationResponse.StatusCode}: {errorContent}");
+        }
 
         // Act - Reject document
         var rejectRequest = new
@@ -372,6 +387,13 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
         };
 
         var rejectResponse = await _fixture.PostJsonAsync($"/api/v1/documents/{documentId}/verify", rejectRequest);
+
+        // Debug: Log error if not successful
+        if (!rejectResponse.IsSuccessStatusCode)
+        {
+            var errorContent = await rejectResponse.Content.ReadAsStringAsync();
+            throw new Exception($"Verify/Reject failed with {rejectResponse.StatusCode}: {errorContent}");
+        }
 
         // Assert (202 Accepted for async operations)
         rejectResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.Accepted);
@@ -392,7 +414,11 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
     {
         // Arrange
         TestContainerFixture.BeforeEachTest();
-        var providerId = Guid.NewGuid();
+        var adminId = Guid.NewGuid(); // GUID único para este teste (evita conflito com outros testes)
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureAdmin(
+            adminId.ToString(), "admin", "admin@test.com");
+        var providerId = adminId; // Usar ID do admin autenticado
         var documentIds = new List<Guid>();
 
         await _fixture.WithServiceScopeAsync(async services =>
@@ -411,8 +437,6 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
             documentIds.Add(doc2.Id);
             documentIds.Add(doc3.Id);
         });
-
-        TestContainerFixture.AuthenticateAsAdmin();
 
         // Act - Solicitar verificação para os documentos
         await _fixture.PostJsonAsync($"/api/v1/documents/{documentIds[0]}/request-verification", new { });
@@ -478,12 +502,15 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task RequestDocumentVerification_Should_UpdateStatus()
     {
         // Arrange
-        TestContainerFixture.AuthenticateAsAdmin();
+        var adminId = Guid.Parse("00000000-0000-0000-0000-000000000001"); // GUID fixo para admin
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureAdmin(
+            adminId.ToString(), "admin", "admin@test.com");
 
         // Create a valid provider first to ensure ProviderId exists
         var createProviderRequest = new
         {
-            UserId = Guid.NewGuid().ToString(),
+            UserId = adminId.ToString(), // Usar admin ID como UserId do provider
             Name = "Test Provider for Document Verification",
             Type = 0, // Individual
             BusinessProfile = new
@@ -776,6 +803,9 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
                 EDocumentType.IdentityDocument,
                 "identity-with-ocr.pdf",
                 "blob-key-ocr.pdf");
+
+            // Colocar em PendingVerification primeiro (necessário para MarkAsVerified)
+            document.MarkAsPendingVerification();
 
             // Simular processamento OCR bem-sucedido
             var mockOcrData = """
