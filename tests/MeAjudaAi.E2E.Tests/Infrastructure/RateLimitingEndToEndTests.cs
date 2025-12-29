@@ -116,14 +116,18 @@ public sealed class RateLimitingEndToEndTests : IClassFixture<TestContainerFixtu
     {
         // Arrange
         TestContainerFixture.BeforeEachTest();
-        TestContainerFixture.AuthenticateAsUser();
-
-        // Act
-        var responses = new List<HttpResponseMessage>();
         TestContainerFixture.AuthenticateAsAdmin();
+
+        // Act - fazer 50 requisições como usuário autenticado
+        var responses = new List<HttpResponseMessage>();
         for (int i = 0; i < 50; i++)
         {
-            responses.Add(await _fixture.ApiClient.GetAsync("/api/v1/service-categories"));
+            var response = await _fixture.ApiClient.GetAsync("/api/v1/service-catalogs/categories");
+            if (i < 3 || !response.IsSuccessStatusCode) // Log first 3 and all errors
+            {
+                Console.WriteLine($"DEBUG: Request {i+1} returned {response.StatusCode}");
+            }
+            responses.Add(response);
         }
 
         // Assert

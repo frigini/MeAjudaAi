@@ -64,10 +64,8 @@ public class RemoveServiceFromProviderEndpoint : BaseEndpoint, IEndpoint
             "Service {ServiceId} removed from provider {ProviderId}, starting synchronous reindexing",
             serviceId, providerId);
 
-        // Pequeno delay para garantir que o commit da transação se propague
-        await Task.Delay(100, cancellationToken);
-
         // Reindexar provider no módulo de busca de forma síncrona
+        // O comando já executou SaveChangesAsync no repositório, então a transação está commitada
         // Isso garante que buscas subsequentes refletem a remoção do serviço
         var indexResult = await searchProvidersApi.IndexProviderAsync(providerId, cancellationToken);
         

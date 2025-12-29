@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Functional;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
@@ -32,10 +33,14 @@ public sealed class ChangeServiceCategoryCommandHandler(
             var newCategory = await categoryRepository.GetByIdAsync(newCategoryId, cancellationToken);
 
             if (newCategory is null)
-                return Result.Failure(Error.NotFound($"Category with ID '{request.NewCategoryId}' not found."));
+                throw new UnprocessableEntityException(
+                    $"Category with ID '{request.NewCategoryId}' not found.",
+                    "ServiceCategory");
 
             if (!newCategory.IsActive)
-                return Result.Failure("Cannot move service to inactive category.");
+                throw new UnprocessableEntityException(
+                    "Cannot move service to inactive category.",
+                    "ServiceCategory");
 
             // Garantir que o nome ainda é único na categoria de destino
             if (await serviceRepository.ExistsWithNameAsync(

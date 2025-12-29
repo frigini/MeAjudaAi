@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Functional;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
@@ -26,10 +27,14 @@ public sealed class CreateServiceCommandHandler(
             // Verificar se a categoria existe e está ativa
             var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
             if (category is null)
-                return Result<ServiceDto>.Failure($"Category with ID '{request.CategoryId}' not found.");
+                throw new UnprocessableEntityException(
+                    $"Category with ID '{request.CategoryId}' not found.",
+                    "ServiceCategory");
 
             if (!category.IsActive)
-                return Result<ServiceDto>.Failure("Cannot create service in inactive category.");
+                throw new UnprocessableEntityException(
+                    "Cannot create service in inactive category.",
+                    "ServiceCategory");
 
             var normalizedName = request.Name?.Trim();
 

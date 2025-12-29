@@ -32,9 +32,15 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             exception = innerBadRequestException;
         }
         
+        // Se InvalidOperationException tiver UnprocessableEntityException como inner, desencapsular
+        if (exception is InvalidOperationException && exception.InnerException is UnprocessableEntityException innerUnprocessableException)
+        {
+            exception = innerUnprocessableException;
+        }
+        
         var (statusCode, title, detail, errors, extensions) = exception switch
         {
-            // Nossa ValidationException customizada
+            // Nossa ValidationException customizada (400 - erros de formato/estrutura)
             ValidationException validationException => (
                 StatusCodes.Status400BadRequest,
                 "Erro de validação",
@@ -44,6 +50,18 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                         g => g.Key,
                         g => g.Select(e => e.ErrorMessage).ToArray()),
                 new Dictionary<string, object?>()),
+
+            // UnprocessableEntityException (422 - erros semânticos/regras de negócio)
+            UnprocessableEntityException unprocessableException => (
+                StatusCodes.Status422UnprocessableEntity,
+                "Unprocessable Entity",
+                unprocessableException.Message,
+                null,
+                new Dictionary<string, object?>
+                {
+                    ["entityName"] = unprocessableException.EntityName,
+                    ["details"] = unprocessableException.Details
+                }),
 
             UniqueConstraintException uniqueException => (
                 StatusCodes.Status409Conflict,

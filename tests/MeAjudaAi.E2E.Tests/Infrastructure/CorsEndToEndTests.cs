@@ -134,24 +134,26 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
         allowedOrigins.Should().NotBeEmpty("CORS headers should be present");
     }
 
-    [Fact(Skip = "Endpoint /api/users/register não existe - precisa usar endpoints corretos do Users module")]
+    [Fact]
     public async Task PostRequest_WithOriginHeader_ShouldAllowCrossOrigin()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
-        var password = "ValidPass123!";
-        var registerRequest = new
+        
+        var createUserRequest = new
         {
-            email = _fixture.Faker.Internet.Email(),
-            password = password,
-            confirmPassword = password,
-            fullName = _fixture.Faker.Name.FullName(),
-            phoneNumber = "+5511987654321"
+            Username = _fixture.Faker.Internet.UserName(),
+            Email = _fixture.Faker.Internet.Email(),
+            FirstName = _fixture.Faker.Name.FirstName(),
+            LastName = _fixture.Faker.Name.LastName(),
+            Password = "ValidPass123!",
+            PhoneNumber = "+5511987654321"
         };
 
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/users/register")
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/users")
         {
-            Content = JsonContent.Create(registerRequest)
+            Content = JsonContent.Create(createUserRequest, options: TestContainerFixture.JsonOptions)
         };
         request.Headers.Add("Origin", "http://localhost:3000");
 
@@ -208,44 +210,16 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
         }
     }
 
-    [Fact(Skip = "Endpoints de autenticação estão desatualizados - usa /api/users/register mas deveria usar endpoints do Users module")]
+    [Fact]
     public async Task AuthenticatedRequest_WithCors_ShouldWorkCorrectly()
     {
-        // Arrange - Registrar e fazer login
+        // Arrange - Autenticar como admin (JWT já configurado via Keycloak)
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
-        
-        var password = "ValidPass123!";
-        var registerRequest = new
-        {
-            email = _fixture.Faker.Internet.Email(),
-            password = password,
-            confirmPassword = password,
-            fullName = _fixture.Faker.Name.FullName(),
-            phoneNumber = "+5511987654321"
-        };
-        
-        await _fixture.ApiClient.PostAsJsonAsync("/api/users/register", registerRequest);
-
-        var loginRequest = new
-        {
-            email = registerRequest.email,
-            password = registerRequest.password
-        };
-
-        var loginResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/users/login", loginRequest);
-        loginResponse.IsSuccessStatusCode.Should().BeTrue("login should succeed");
-        
-        var loginResult = await loginResponse.Content.ReadFromJsonAsync<Dictionary<string, object>>();
-        loginResult.Should().NotBeNull();
-        loginResult.Should().ContainKey("token");
-        var token = loginResult!["token"]?.ToString();
-        token.Should().NotBeNullOrEmpty("login should return a valid token");
 
         // Act - Request autenticado com CORS headers
         var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/users");
         request.Headers.Add("Origin", "http://localhost:3000");
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var response = await _fixture.ApiClient.SendAsync(request);
 
@@ -253,6 +227,7 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
         response.IsSuccessStatusCode.Should().BeTrue(
             "authenticated requests with CORS should work");
 
+        // Verificar que CORS headers estão presentes
         if (response.Headers.Contains("Access-Control-Allow-Origin"))
         {
             response.Headers.GetValues("Access-Control-Allow-Origin").Should().NotBeEmpty();

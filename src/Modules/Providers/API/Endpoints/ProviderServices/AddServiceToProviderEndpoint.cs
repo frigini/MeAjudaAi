@@ -66,10 +66,8 @@ public class AddServiceToProviderEndpoint : BaseEndpoint, IEndpoint
             "Service {ServiceId} added to provider {ProviderId}, starting synchronous reindexing",
             serviceId, providerId);
 
-        // Pequeno delay para garantir que o commit da transação se propague
-        await Task.Delay(100, cancellationToken);
-
         // Reindexar provider no módulo de busca de forma síncrona
+        // O comando já executou SaveChangesAsync no repositório, então a transação está commitada
         // Isso garante que buscas subsequentes refletem a adição do serviço
         var indexResult = await searchProvidersApi.IndexProviderAsync(providerId, cancellationToken);
         

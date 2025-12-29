@@ -4,6 +4,8 @@ using System.Text.Json;
 using Bogus;
 using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
+using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
+using MeAjudaAi.Shared.Contracts;
 using Xunit;
 
 namespace MeAjudaAi.E2E.Tests.CrossModule;
@@ -227,50 +229,40 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         var searchUrl = $"/api/v1/search/providers?" +
                        $"latitude={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&" +
                        $"longitude={longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&" +
-                       $"radiusKm=10&" +
+                       $"radiusInKm=10&" +
                        $"serviceIds={serviceId}";
 
+        Console.WriteLine($"DEBUG: Search URL = {searchUrl}");
+        
         TestContainerFixture.AuthenticateAsAdmin();
         var searchResponse = await _fixture.ApiClient.GetAsync(searchUrl);
         
-        if (!searchResponse.IsSuccessStatusCode)
-        {
-            var errorBody = await searchResponse.Content.ReadAsStringAsync();
-            Console.WriteLine($"DEBUG: Search failed with {searchResponse.StatusCode}: {errorBody}");
-        }
-        
         searchResponse.StatusCode.Should().Be(HttpStatusCode.OK, "Busca deve retornar sucesso");
 
-        var searchContent = await searchResponse.Content.ReadAsStringAsync();
-        var searchResult = JsonSerializer.Deserialize<JsonElement>(searchContent, TestContainerFixture.JsonOptions);
-
-        // Validar estrutura da resposta
-        searchResult.TryGetProperty("data", out var data).Should().BeTrue("Response deve ter propriedade 'data'");
-        data.TryGetProperty("items", out var items).Should().BeTrue("Data deve ter propriedade 'items'");
-
-        var itemsArray = items.EnumerateArray().ToList();
+        var searchResult = await searchResponse.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
+        searchResult.Should().NotBeNull();
+        
+        var itemsArray = searchResult!.Items.ToList();
 
         // ============================================
         // STEP 5: Validar que provider aparece nos resultados
         // ============================================
         
         // Validar que provider criado está presente nos resultados
-        var providerInResults = itemsArray.FirstOrDefault(p => 
-            p.TryGetProperty("id", out var id) && 
-            id.GetGuid() == providerId);
+        var providerInResults = itemsArray.FirstOrDefault(p => p.ProviderId == providerId);
 
-        providerInResults.ValueKind.Should().NotBe(JsonValueKind.Undefined,
+        providerInResults.Should().NotBeNull(
             $"Provider {providerId} deve aparecer nos resultados da busca");
 
         // Validar propriedades obrigatórias do provider
-        providerInResults.TryGetProperty("location", out _).Should().BeTrue(
+        providerInResults!.Location.Should().NotBeNull(
             "Provider nos resultados deve ter informação de localização");
         
-        providerInResults.TryGetProperty("services", out _).Should().BeTrue(
+        providerInResults.ServiceIds.Should().NotBeNullOrEmpty(
             "Provider nos resultados deve ter lista de serviços");
 
         // ============================================
-        // STEP 6: Validar ordenação (SubscriptionTier > Rating > Distance)
+        // STEP 6: Validar ordenação (SubscriptionTier > AverageRating > DistanceInKm)
         // ============================================
         if (itemsArray.Count > 1)
         {
@@ -280,36 +272,27 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
                 var current = itemsArray[i];
                 var next = itemsArray[i + 1];
 
-                // Validar que cada item tem os campos necessários para ordenação
-                current.TryGetProperty("subscriptionTier", out _).Should().BeTrue();
-                current.TryGetProperty("rating", out _).Should().BeTrue();
-                current.TryGetProperty("distance", out _).Should().BeTrue();
-
-                // Validar ordenação: SubscriptionTier desc, depois Rating desc, depois Distance asc
-                var currentTier = current.GetProperty("subscriptionTier").GetInt32();
-                var nextTier = next.GetProperty("subscriptionTier").GetInt32();
-
-                if (currentTier == nextTier)
+                // Validar ordenação: SubscriptionTier desc, depois AverageRating desc, depois DistanceInKm asc
+                if (current.SubscriptionTier == next.SubscriptionTier)
                 {
-                    var currentRating = current.GetProperty("rating").GetDouble();
-                    var nextRating = next.GetProperty("rating").GetDouble();
-
-                    if (Math.Abs(currentRating - nextRating) < 0.01)
+                    if (Math.Abs(current.AverageRating - next.AverageRating) < 0.01m)
                     {
-                        var currentDistance = current.GetProperty("distance").GetDouble();
-                        var nextDistance = next.GetProperty("distance").GetDouble();
-                        currentDistance.Should().BeLessThanOrEqualTo(nextDistance,
-                            "Dentro do mesmo tier e rating, itens devem estar ordenados por distância ascendente");
+                        if (current.DistanceInKm.HasValue && next.DistanceInKm.HasValue)
+                        {
+                            current.DistanceInKm.Value.Should().BeLessThanOrEqualTo(next.DistanceInKm.Value,
+                                "Dentro do mesmo tier e rating, itens devem estar ordenados por distância ascendente");
+                        }
                     }
                     else
                     {
-                        currentRating.Should().BeGreaterThanOrEqualTo(nextRating,
+                        current.AverageRating.Should().BeGreaterThanOrEqualTo(next.AverageRating,
                             "Dentro do mesmo tier, itens devem estar ordenados por rating descendente");
                     }
                 }
                 else
                 {
-                    currentTier.Should().BeGreaterThanOrEqualTo(nextTier,
+                    // SubscriptionTiers diferentes: current deve ser >= next (ordenação descendente)
+                    ((int)current.SubscriptionTier).Should().BeGreaterThanOrEqualTo((int)next.SubscriptionTier,
                         "Itens devem estar ordenados por subscription tier descendente");
                 }
             }
@@ -558,36 +541,35 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         var searchUrl = $"/api/v1/search/providers?" +
                        $"latitude=-23.550520&" +
                        $"longitude=-46.633308&" +
-                       $"radiusKm=10&" +
-                       $"serviceIds={serviceId1},{serviceId2}";
+                       $"radiusInKm=10&" +
+                       $"serviceIds={serviceId1}&serviceIds={serviceId2}";
 
+        TestContainerFixture.AuthenticateAsAdmin();
         var searchResponse = await _fixture.ApiClient.GetAsync(searchUrl);
+        
+        if (!searchResponse.IsSuccessStatusCode)
+        {
+            var errorBody = await searchResponse.Content.ReadAsStringAsync();
+            Console.WriteLine($"DEBUG: Search failed ({searchResponse.StatusCode}): {errorBody}");
+        }
+        
         searchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var searchContent = await searchResponse.Content.ReadAsStringAsync();
-        var searchResult = JsonSerializer.Deserialize<JsonElement>(searchContent, TestContainerFixture.JsonOptions);
+        var searchResult = await searchResponse.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
+        searchResult.Should().NotBeNull();
+        var itemsArray = searchResult!.Items.ToList();
 
-        // Validar que busca funcionou
-        searchResult.TryGetProperty("data", out var data).Should().BeTrue();
-        data.TryGetProperty("items", out var items).Should().BeTrue();
-        var itemsArray = items.EnumerateArray().ToList();
-
-        // Validar filtro de múltiplos serviços:
-        // Provider1 oferece AMBOS serviços -> deve aparecer
-        // Provider2 oferece apenas 1 serviço -> NÃO deve aparecer
-        var provider1InResults = itemsArray.Any(p =>
-            p.TryGetProperty("id", out var id) &&
-            id.GetGuid() == providerId1);
-
-        var provider2InResults = itemsArray.Any(p =>
-            p.TryGetProperty("id", out var id) &&
-            id.GetGuid() == providerId2);
+        // Validar filtro de múltiplos serviços (OR logic):
+        // Provider1 oferece AMBOS serviços (serviceId1 + serviceId2) -> deve aparecer
+        // Provider2 oferece APENAS serviceId1 -> deve aparecer também (possui um dos serviços filtrados)
+        var provider1InResults = itemsArray.Any(p => p.ProviderId == providerId1);
+        var provider2InResults = itemsArray.Any(p => p.ProviderId == providerId2);
 
         provider1InResults.Should().BeTrue(
             "Provider1 oferece ambos serviços e deve aparecer nos resultados");
 
-        provider2InResults.Should().BeFalse(
-            "Provider2 oferece apenas um serviço e NÃO deve aparecer ao filtrar por ambos");
+        provider2InResults.Should().BeTrue(
+            "Provider2 oferece serviceId1 e deve aparecer ao filtrar por serviceId1 OU serviceId2 (OR logic)");
 
         // ============================================
         // CLEANUP

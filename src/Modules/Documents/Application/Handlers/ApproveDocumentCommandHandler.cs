@@ -47,7 +47,7 @@ public class ApproveDocumentCommandHandler(
 
             var user = httpContext.User;
             if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
-                throw new UnauthorizedAccessException("Apenas administradores podem aprovar documentos");
+                throw new UnauthorizedAccessException("É necessário estar autenticado para aprovar documentos");
 
             var isAdmin = user.IsInRole("admin") || user.IsInRole("system-admin");
             if (!isAdmin)

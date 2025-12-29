@@ -618,8 +618,8 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
             TestContainerFixture.JsonOptions);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound,
-            "changing to a non-existent category should return NotFound");
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity,
+            "changing to a non-existent category should return 422 (semantic validation error)");
     }
 
     #endregion

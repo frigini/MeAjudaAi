@@ -108,6 +108,20 @@ public class PhoneNumberTests
     }
 
     [Fact]
+    public void PhoneNumber_WithLowercaseCountryCode_ShouldNormalizeToUppercase()
+    {
+        // Arrange
+        const string value = "11999999999";
+        const string countryCode = "br";
+
+        // Act
+        var phoneNumber = new PhoneNumber(value, countryCode);
+
+        // Assert
+        phoneNumber.CountryCode.Should().Be("BR");
+    }
+
+    [Fact]
     public void ToString_ShouldReturnFormattedPhoneNumber()
     {
         // Arrange

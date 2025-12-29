@@ -132,13 +132,11 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
     /// NOTA: 422 Unprocessable Entity não está implementado no MVP.
     /// Atualmente, todas as validações retornam 400 Bad Request (FluentValidation).
     /// 
-    /// Feature futura: Distinguir validação sintática (400) de semântica (422).
+    /// <summary>
+    /// Valida HTTP 422 Unprocessable Entity para validações semânticas.
     /// Exemplo: formato inválido (400) vs. categoria não existe (422).
-    /// 
-    /// Tracked em: docs/technical-debt.md - Seção "Status Codes HTTP"
-    /// Prioridade: BAIXA - não crítico para MVP
     /// </summary>
-    [Fact(Skip = "Feature futura: 422 não implementado - atualmente usa 400 para todas validações")]
+    [Fact]
     public async Task CreateService_WithNonExistentCategory_ShouldReturn422()
     {
         // Arrange
@@ -146,33 +144,72 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         TestContainerFixture.AuthenticateAsAdmin();
         var request = new
         {
-            name = _fixture.Faker.Commerce.ProductName(),
-            description = _fixture.Faker.Lorem.Sentence(),
-            categoryId = Guid.NewGuid() // Categoria não existe (validação semântica)
+            Name = _fixture.Faker.Commerce.ProductName(),
+            Description = _fixture.Faker.Lorem.Sentence(),
+            CategoryId = Guid.NewGuid(), // Categoria não existe (validação semântica)
+            DisplayOrder = 0
         };
 
         // Act
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/services", request);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", request, TestContainerFixture.JsonOptions);
 
         // Assert
-        // Atualmente retorna 400, mas idealmente deveria retornar 422
-        // para distinguir validação semântica (categoria não existe) de validação de formato
+        // 422 para validação semântica (categoria não existe)
         response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity,
             "semantic validation (non-existent category) should return 422");
     }
 
-    [Fact(Skip = "Feature futura: 422 não implementado - atualmente usa 400 para todas validações")]
+    [Fact]
     public async Task ChangeServiceCategory_WithInvalidTransition_ShouldReturn422()
     {
-        // Arrange - Criar serviço e tentar mudar para categoria que não existe
+        // Arrange - Criar categoria e serviço
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         
-        // Este cenário testaria validação de transição de estado
-        // Exemplo: não pode mudar categoria de serviço se houver pedidos ativos
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
         
-        // Act & Assert
-        // Deveria retornar 422 para regras de negócio complexas
+        // Criar categoria
+        var categoryRequest = new
+        {
+            Name = $"TestCategory_{uniqueId}",
+            Description = "Test category",
+            DisplayOrder = 0
+        };
+        var categoryResponse = await _fixture.ApiClient.PostAsJsonAsync(
+            "/api/v1/service-catalogs/categories", 
+            categoryRequest, 
+            TestContainerFixture.JsonOptions);
+        var categoryLocation = categoryResponse.Headers.Location?.ToString();
+        var categoryId = TestContainerFixture.ExtractIdFromLocation(categoryLocation!);
+
+        // Criar serviço
+        var serviceRequest = new
+        {
+            Name = $"TestService_{uniqueId}",
+            Description = "Test service",
+            CategoryId = categoryId,
+            DisplayOrder = 0
+        };
+        var serviceResponse = await _fixture.ApiClient.PostAsJsonAsync(
+            "/api/v1/service-catalogs/services",
+            serviceRequest,
+            TestContainerFixture.JsonOptions);
+        var serviceLocation = serviceResponse.Headers.Location?.ToString();
+        var serviceId = TestContainerFixture.ExtractIdFromLocation(serviceLocation!);
+        
+        // Act - Tentar mudar para categoria que não existe
+        var changeCategoryRequest = new
+        {
+            NewCategoryId = Guid.NewGuid() // Categoria não existe
+        };
+        var response = await _fixture.ApiClient.PostAsJsonAsync(
+            $"/api/v1/service-catalogs/services/{serviceId}/change-category",
+            changeCategoryRequest,
+            TestContainerFixture.JsonOptions);
+        
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity,
+            "changing to non-existent category should return 422");
     }
 
     #endregion
