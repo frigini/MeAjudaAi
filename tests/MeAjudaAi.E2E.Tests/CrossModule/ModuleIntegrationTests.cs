@@ -60,9 +60,6 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
     public async Task CreateAndUpdateUser_ShouldMaintainConsistency()
     {
         // Arrange
-        TestContainerFixture.BeforeEachTest();
-        TestContainerFixture.AuthenticateAsAdmin(); // CreateUser requer role admin
-
         var uniqueId = Guid.NewGuid().ToString("N")[..8]; // 8 hex chars
         var createUserRequest = new
         {
@@ -75,6 +72,7 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
         };
 
         // Act 1: Create user
+        TestContainerFixture.AuthenticateAsAdmin();
         var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, TestContainerFixture.JsonOptions);
 
         // Assert 1: Usuário criado com sucesso ou já existente
@@ -96,6 +94,8 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
                 LastName = "User"
             };
 
+            // Re-authenticate before PUT to ensure context is preserved
+            TestContainerFixture.AuthenticateAsAdmin();
             var updateResponse = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, TestContainerFixture.JsonOptions);
 
             // Assert 2: Atualização deve ter sucesso ou retornar erro apropriado
@@ -105,6 +105,9 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
                 HttpStatusCode.NotFound
             );
 
+            // Re-authenticate before GET
+            TestContainerFixture.AuthenticateAsAdmin();
+            
             // Act 3: Verifica se o usuário pode ser recuperado
             var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
             

@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
+using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
@@ -19,11 +20,13 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// </remarks>
 /// <param name="userRepository">Repositório para persistência de usuários</param>
 /// <param name="userDomainService">Serviço de domínio para operações complexas de usuário</param>
+/// <param name="usersCacheService">Serviço de cache para invalidação</param>
 /// <param name="dateTimeProvider">Provedor de data/hora para testabilidade</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
 internal sealed class DeleteUserCommandHandler(
     IUserRepository userRepository,
     IUserDomainService userDomainService,
+    IUsersCacheService usersCacheService,
     TimeProvider dateTimeProvider,
     ILogger<DeleteUserCommandHandler> logger
 ) : ICommandHandler<DeleteUserCommand, Result>
@@ -71,6 +74,9 @@ internal sealed class DeleteUserCommandHandler(
 
             // Aplicar exclusão e persistir
             await ApplyDeletionAndPersistAsync(user, cancellationToken);
+
+            // Invalidate cache
+            await usersCacheService.InvalidateUserAsync(command.UserId, user.Email.Value, cancellationToken);
 
             logger.LogInformation("User {UserId} marked as deleted successfully", command.UserId);
             return Result.Success();

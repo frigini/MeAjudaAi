@@ -4,9 +4,8 @@ using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Users.Tests.Builders;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
-using Microsoft.Extensions.Time.Testing;
-
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Time.Testing;
 
 namespace MeAjudaAi.Modules.Users.Tests.Integration.Infrastructure;
 

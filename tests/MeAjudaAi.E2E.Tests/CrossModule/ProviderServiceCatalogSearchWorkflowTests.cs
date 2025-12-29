@@ -149,17 +149,14 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         // ============================================
         // STEP 3: Associar serviço ao provider
         // ============================================
+        // Aguardar um pouco para garantir que provider e service estão committados
+        await Task.Delay(100);
+        
         // Associação explícita provider-service para garantir que o provider aparecerá nas buscas
-        var associationRequest = new
-        {
-            ProviderId = providerId,
-            ServiceId = serviceId
-        };
-
-        var associationResponse = await _fixture.ApiClient.PostAsJsonAsync(
-            $"/api/v1/providers/{providerId}/services",
-            associationRequest,
-            TestContainerFixture.JsonOptions);
+        TestContainerFixture.AuthenticateAsAdmin();
+        var associationResponse = await _fixture.ApiClient.PostAsync(
+            $"/api/v1/providers/{providerId}/services/{serviceId}",
+            null);
 
         // Association should succeed - NotFound means endpoint not implemented yet
         associationResponse.StatusCode.Should().BeOneOf(
@@ -184,6 +181,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
                        $"radiusKm=10&" +
                        $"serviceIds={serviceId}";
 
+        TestContainerFixture.AuthenticateAsAdmin();
         var searchResponse = await _fixture.ApiClient.GetAsync(searchUrl);
         searchResponse.StatusCode.Should().Be(HttpStatusCode.OK, "Busca deve retornar sucesso");
 
@@ -375,17 +373,20 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         }, TestContainerFixture.JsonOptions);
         var providerId1 = TestContainerFixture.ExtractIdFromLocation(provider1Response.Headers.Location!.ToString());
 
+        // Aguardar commits
+        await Task.Delay(100);
+
         // Associar AMBOS serviços ao Provider1
-        var assoc1Service1 = await _fixture.ApiClient.PostAsJsonAsync(
-            $"/api/v1/providers/{providerId1}/services",
-            new { ProviderId = providerId1, ServiceId = serviceId1 },
-            TestContainerFixture.JsonOptions);
+        TestContainerFixture.AuthenticateAsAdmin();
+        var assoc1Service1 = await _fixture.ApiClient.PostAsync(
+            $"/api/v1/providers/{providerId1}/services/{serviceId1}",
+            null);
         assoc1Service1.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.NoContent);
         
-        var assoc1Service2 = await _fixture.ApiClient.PostAsJsonAsync(
-            $"/api/v1/providers/{providerId1}/services",
-            new { ProviderId = providerId1, ServiceId = serviceId2 },
-            TestContainerFixture.JsonOptions);
+        TestContainerFixture.AuthenticateAsAdmin();
+        var assoc1Service2 = await _fixture.ApiClient.PostAsync(
+            $"/api/v1/providers/{providerId1}/services/{serviceId2}",
+            null);
         assoc1Service2.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.NoContent);
 
         // ============================================
@@ -424,11 +425,13 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         }, TestContainerFixture.JsonOptions);
         var providerId2 = TestContainerFixture.ExtractIdFromLocation(provider2Response.Headers.Location!.ToString());
 
+        // Aguardar commits
+        await Task.Delay(100);
+
         // Associar apenas serviceId1 ao Provider2
-        var assoc2Service1 = await _fixture.ApiClient.PostAsJsonAsync(
-            $"/api/v1/providers/{providerId2}/services",
-            new { ProviderId = providerId2, ServiceId = serviceId1 },
-            TestContainerFixture.JsonOptions);
+        var assoc2Service1 = await _fixture.ApiClient.PostAsync(
+            $"/api/v1/providers/{providerId2}/services/{serviceId1}",
+            null);
         assoc2Service1.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.NoContent);
 
         // Aguardar indexação com retry/polling

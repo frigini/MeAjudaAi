@@ -26,6 +26,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task CreateAllowedCity_WithValidData_ShouldCreateAndReturnCityId()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
 
         var request = new

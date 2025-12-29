@@ -31,6 +31,7 @@ bld/
 msbuild.log
 msbuild.err
 msbuild.wrn
+*.binlog
 
 # Visual Studio
 .vs/

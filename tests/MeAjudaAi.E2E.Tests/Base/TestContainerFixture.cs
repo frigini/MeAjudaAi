@@ -138,7 +138,7 @@ public class TestContainerFixture : IAsyncLifetime
                         ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Error",
                         ["RabbitMQ:Enabled"] = "false",
                         ["Keycloak:Enabled"] = "false",
-                        ["Cache:Enabled"] = "false",
+                        ["Cache:Enabled"] = "true", // Enable cache for realistic E2E testing
                         ["Cache:ConnectionString"] = RedisConnectionString,
                         ["AdvancedRateLimit:General:Enabled"] = "false",
                         ["AdvancedRateLimit:Anonymous:RequestsPerMinute"] = "10000",

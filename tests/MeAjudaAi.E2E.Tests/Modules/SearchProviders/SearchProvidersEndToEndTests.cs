@@ -487,7 +487,11 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
 
     private async Task AddServiceToProviderAsync(Guid providerId, Guid serviceId)
     {
-        var response = await _fixture.ApiClient.PutAsync(
+        // Aguardar um pouco para garantir que provider e service estão committados
+        await Task.Delay(100);
+        
+        TestContainerFixture.AuthenticateAsAdmin();
+        var response = await _fixture.ApiClient.PostAsync(
             $"/api/v1/providers/{providerId}/services/{serviceId}",
             null);
         

@@ -120,6 +120,7 @@ public sealed class RateLimitingEndToEndTests : IClassFixture<TestContainerFixtu
 
         // Act
         var responses = new List<HttpResponseMessage>();
+        TestContainerFixture.AuthenticateAsAdmin();
         for (int i = 0; i < 50; i++)
         {
             responses.Add(await _fixture.ApiClient.GetAsync("/api/v1/service-categories"));

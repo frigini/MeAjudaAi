@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Caching;
@@ -7,8 +8,10 @@ namespace MeAjudaAi.Shared.Caching;
 public class HybridCacheService(
     HybridCache hybridCache,
     ILogger<HybridCacheService> logger,
-    CacheMetrics metrics) : ICacheService
+    CacheMetrics metrics,
+    IConfiguration configuration) : ICacheService
 {
+    private bool IsCacheEnabled => configuration.GetValue<bool>("Cache:Enabled", true);
     public async Task<(T? value, bool isCached)> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -120,6 +123,13 @@ public class HybridCacheService(
         IReadOnlyCollection<string>? tags = null,
         CancellationToken cancellationToken = default)
     {
+        // If cache is disabled, bypass and call factory directly
+        if (!IsCacheEnabled)
+        {
+            logger.LogDebug("Cache disabled - bypassing cache for key {Key}", key);
+            return await factory(cancellationToken);
+        }
+
         var stopwatch = Stopwatch.StartNew();
         var factoryCalled = false;
 

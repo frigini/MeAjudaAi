@@ -15,6 +15,7 @@ public class UsersCacheService(ICacheService cacheService) : IUsersCacheService
 
     /// <summary>
     /// Obtém ou cria cache para usuário por ID
+    /// IMPORTANT: Does NOT cache NULL values to avoid caching "not found" results
     /// </summary>
     public async Task<UserDto?> GetOrCacheUserByIdAsync(
         Guid userId,
@@ -24,9 +25,36 @@ public class UsersCacheService(ICacheService cacheService) : IUsersCacheService
         var key = UsersCacheKeys.UserById(userId);
         var tags = CacheTags.GetUserRelatedTags(userId);
 
-        return await cacheService.GetOrCreateAsync(
+        // Try to get from cache first
+        var (cachedValue, isCached) = await cacheService.GetAsync<UserDto>(key, cancellationToken);
+        if (isCached && cachedValue != null)
+        {
+            return cachedValue;
+        }
+
+        // Cache miss - call factory
+        var result = await factory(cancellationToken);
+        
+        // Only cache non-null results (avoid caching "not found")
+        if (result != null)
+        {
+            await cacheService.SetAsync(key, result, DefaultExpiration, tags: tags, cancellationToken: cancellationToken);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Define o cache para um usuário específico
+    /// </summary>
+    public async Task SetUserAsync(UserDto user, CancellationToken cancellationToken = default)
+    {
+        var key = UsersCacheKeys.UserById(user.Id);
+        var tags = CacheTags.GetUserRelatedTags(user.Id, user.Email);
+
+        await cacheService.SetAsync(
             key,
-            factory,
+            user,
             DefaultExpiration,
             tags: tags,
             cancellationToken: cancellationToken);
