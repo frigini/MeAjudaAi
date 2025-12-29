@@ -310,6 +310,9 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
         var uploadResult = JsonSerializer.Deserialize<JsonElement>(uploadContent, TestContainerFixture.JsonOptions);
         var documentId = Guid.Parse(uploadResult.GetProperty("documentId").GetString()!);
 
+        // Act - Primeiro solicitar verificação manual
+        await _fixture.PostJsonAsync($"/api/v1/documents/{documentId}/request-verification", new { });
+
         // Act - Marca como verificado
         var verifyRequest = new
         {
@@ -357,6 +360,9 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
         });
 
         TestContainerFixture.AuthenticateAsAdmin();
+
+        // Act - Primeiro solicitar verificação manual
+        await _fixture.PostJsonAsync($"/api/v1/documents/{documentId}/request-verification", new { });
 
         // Act - Reject document
         var rejectRequest = new
@@ -407,6 +413,10 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
         });
 
         TestContainerFixture.AuthenticateAsAdmin();
+
+        // Act - Solicitar verificação para os documentos
+        await _fixture.PostJsonAsync($"/api/v1/documents/{documentIds[0]}/request-verification", new { });
+        await _fixture.PostJsonAsync($"/api/v1/documents/{documentIds[1]}/request-verification", new { });
 
         // Act - Verify first identity document
         var verify1 = new
@@ -556,7 +566,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
         };
 
         var response = await _fixture.ApiClient.PostAsJsonAsync(
-            $"/api/v1/documents/{documentId}/verify",
+            $"/api/v1/documents/{documentId}/request-verification",
             verificationRequest,
             TestContainerFixture.JsonOptions);
 
@@ -608,7 +618,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
 
         // Act
         var response = await _fixture.ApiClient.PostAsJsonAsync(
-            $"/api/v1/documents/{documentId}/verify",
+            $"/api/v1/documents/{documentId}/request-verification",
             verificationRequest,
             TestContainerFixture.JsonOptions);
 
@@ -631,7 +641,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
 
         // Act
         var response = await _fixture.ApiClient.PostAsJsonAsync(
-            $"/api/v1/documents/{documentId}/verify",
+            $"/api/v1/documents/{documentId}/request-verification",
             invalidRequest,
             TestContainerFixture.JsonOptions);
 
