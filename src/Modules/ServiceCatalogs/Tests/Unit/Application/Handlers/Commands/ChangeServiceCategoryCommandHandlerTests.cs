@@ -78,7 +78,7 @@ public class ChangeServiceCategoryCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("Service").And.Contain("not found");
+        result.Error!.Message.Should().Contain("Serviço").And.Contain("não encontrado");
         _serviceRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -169,7 +169,7 @@ public class ChangeServiceCategoryCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("already exists");
+        result.Error!.Message.Should().Contain("Já existe");
         _serviceRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -185,7 +185,7 @@ public class ChangeServiceCategoryCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("Service ID").And.Contain("cannot be empty");
+        result.Error!.Message.Should().Contain("ID do serviço").And.Contain("não pode ser vazio");
         _serviceRepositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -201,7 +201,7 @@ public class ChangeServiceCategoryCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("category ID").And.Contain("cannot be empty");
+        result.Error!.Message.Should().Contain("ID da nova categoria").And.Contain("não pode ser vazio");
         _serviceRepositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }
