@@ -1,0 +1,41 @@
+@page "/services"
+
+<PageTitle>Services - MeAjudaAi Admin</PageTitle>
+
+<MudText Typo="Typo.h3" Class="mb-4">Service Catalog</MudText>
+
+<MudCard>
+    <MudCardContent>
+        <MudText Typo="Typo.body1">
+            Gerenciamento do catálogo de serviços oferecidos.
+        </MudText>
+        <MudText Typo="Typo.body2" Class="mt-4">
+            Esta página será implementada com:
+        </MudText>
+        <MudStack Spacing="2" Class="mt-2">
+            <MudText>
+                <MudIcon Icon="@Icons.Material.Filled.Category" Size="Size.Small" Class="mr-2" />
+                Listagem de serviços e categorias
+            </MudText>
+            <MudText>
+                <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Small" Class="mr-2" />
+                Criação e edição de novos serviços
+            </MudText>
+            <MudText>
+                <MudIcon Icon="@Icons.Material.Filled.Link" Size="Size.Small" Class="mr-2" />
+                Vinculação de serviços a providers
+            </MudText>
+            <MudText>
+                <MudIcon Icon="@Icons.Material.Filled.Assessment" Size="Size.Small" Class="mr-2" />
+                Relatórios de serviços mais oferecidos/procurados
+            </MudText>
+        </MudStack>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    // Integração com módulo ServiceCatalogs
+    // - ServicesState (catálogo, categorias)
+    // - ServicesActions (CRUD operations)
+    // - ServicesEffects (API integration)
+}

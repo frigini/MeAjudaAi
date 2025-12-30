@@ -1,0 +1,41 @@
+@page "/providers"
+
+<PageTitle>Providers - MeAjudaAi Admin</PageTitle>
+
+<MudText Typo="Typo.h3" Class="mb-4">Providers</MudText>
+
+<MudCard>
+    <MudCardContent>
+        <MudText Typo="Typo.body1">
+            Gerenciamento de providers (prestadores de serviço).
+        </MudText>
+        <MudText Typo="Typo.body2" Class="mt-4">
+            Esta página será implementada com:
+        </MudText>
+        <MudStack Spacing="2" Class="mt-2">
+            <MudText>
+                <MudIcon Icon="@Icons.Material.Filled.List" Size="Size.Small" Class="mr-2" />
+                Listagem de providers com paginação e filtros (tipo, status de verificação, localização)
+            </MudText>
+            <MudText>
+                <MudIcon Icon="@Icons.Material.Filled.Search" Size="Size.Small" Class="mr-2" />
+                Busca por nome, documento (CPF/CNPJ) ou email
+            </MudText>
+            <MudText>
+                <MudIcon Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Class="mr-2" />
+                Visualização detalhada dos dados do provider
+            </MudText>
+            <MudText>
+                <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Size="Size.Small" Class="mr-2" />
+                Ações de verificação e aprovação de providers
+            </MudText>
+        </MudStack>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    // Fluxor state management será implementado aqui
+    // - ProvidersState (lista, filtros, paginação)
+    // - ProvidersActions (carregar, filtrar, selecionar)
+    // - ProvidersEffects (chamadas à API via Refit)
+}

@@ -2,7 +2,7 @@
 
 Uma plataforma abrangente de serviços construída com .NET Aspire, projetada para conectar prestadores de serviços com clientes usando arquitetura monólito modular.
 
-<!-- Last updated: December 19, 2025 - Sprint 5.5 Refactoring & Cleanup -->
+<!-- Last updated: December 30, 2025 - Sprint 5.5 COMPLETED / Sprint 6 Planning -->
 
 ## 🎯 Visão Geral
 

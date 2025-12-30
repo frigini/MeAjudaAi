@@ -1,0 +1,41 @@
+@page "/documents"
+
+<PageTitle>Documents - MeAjudaAi Admin</PageTitle>
+
+<MudText Typo="Typo.h3" Class="mb-4">Documents</MudText>
+
+<MudCard>
+    <MudCardContent>
+        <MudText Typo="Typo.body1">
+            Gerenciamento de documentos dos providers.
+        </MudText>
+        <MudText Typo="Typo.body2" Class="mt-4">
+            Esta página será implementada com:
+        </MudText>
+        <MudStack Spacing="2" Class="mt-2">
+            <MudText>
+                <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Small" Class="mr-2" />
+                Listagem de documentos enviados (RG, CNH, CNPJ, etc.)
+            </MudText>
+            <MudText>
+                <MudIcon Icon="@Icons.Material.Filled.CloudUpload" Size="Size.Small" Class="mr-2" />
+                Upload e processamento via Azure Document Intelligence
+            </MudText>
+            <MudText>
+                <MudIcon Icon="@Icons.Material.Filled.Verified" Size="Size.Small" Class="mr-2" />
+                Validação e aprovação de documentos
+            </MudText>
+            <MudText>
+                <MudIcon Icon="@Icons.Material.Filled.History" Size="Size.Small" Class="mr-2" />
+                Histórico de alterações e versões
+            </MudText>
+        </MudStack>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    // Integração com módulo Documents
+    // - DocumentsState (lista, filtros por tipo/status)
+    // - DocumentsActions (upload, aprovar, rejeitar)
+    // - DocumentsEffects (API calls + Azure storage)
+}
