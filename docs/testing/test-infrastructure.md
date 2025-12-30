@@ -36,6 +36,17 @@ Classe base que fornece:
   - `Testcontainers.Redis`
   - `Microsoft.AspNetCore.Mvc.Testing`
 
+### Imagens Docker
+
+A infraestrutura utiliza as seguintes imagens:
+
+- **PostgreSQL com PostGIS**: `postgis/postgis:15-3.4`
+  - Inclui extensão PostGIS 3.4 para dados geográficos
+  - Necessária para NetTopologySuite/GeoPoint (módulo SearchProviders)
+  - Automaticamente inicializada com `CREATE EXTENSION IF NOT EXISTS postgis`
+  
+- **Redis**: Conforme configuração padrão do TestContainers
+
 ### Variáveis de Ambiente
 
 A infraestrutura sobrescreve automaticamente as configurações para testes:
@@ -262,7 +273,9 @@ public class MeuTeste : TestContainerTestBase
 - **Performance**: 70% mais rápido (32min → 8-10min quando Docker funciona)
 - **Retry Logic**: 3 tentativas com exponential backoff para falhas transientes do Docker
 - **Timeouts**: Aumentados de 1min → 5min para maior confiabilidade
-- **Containers**: PostgreSQL (postgis/postgis:16-3.4), Redis (7-alpine), Azurite
+- **Containers**: PostgreSQL (postgis/postgis:15-3.4), Redis (7-alpine), Azurite
+- **PostGIS**: Extensão habilitada automaticamente para suporte a dados geográficos
+- **Diagnostics**: Connection strings com `Include Error Detail=true` para CI
 - **Overhead**: Reduzido de 6s por teste para 6s por classe
 
 #### Classes Migradas
@@ -295,10 +308,103 @@ public class MeuTeste : TestContainerTestBase
 **Pipeline Status**: ✅ Todos passam na CI/CD (GitHub Actions com Docker nativo)  
 **Local Status**: ❌ Falhando devido a Docker Desktop
 
-Para detalhes completos da arquitetura E2E, consulte: [e2e-architecture-analysis.md](./e2e-architecture-analysis.md)
+## Problemas Comuns e Soluções
+
+### ⚠️ Timeout nos Containers Docker
+
+**Sintoma:**
+```bash
+System.Threading.Tasks.TaskCanceledException: The operation was canceled.
+  at Docker.DotNet.DockerClient.PrivateMakeRequestAsync(...)
+```
+
+**Causas:**
+- Docker Desktop não está rodando
+- Rede Docker configurada incorretamente
+- Imagens não foram baixadas previamente
+- Timeout padrão muito curto
+
+**Soluções:**
+1. Iniciar Docker Desktop e aguardar ficar pronto
+2. Reiniciar WSL2: `wsl --shutdown`
+3. Aumentar timeout em TestContainerFixture
+4. Pré-baixar imagens: `docker pull postgis/postgis:16-3.4`
+
+### ⚠️ Compartilhamento de Estado Entre Testes
+
+**Problema:** Testes podem compartilhar dados e afetar uns aos outros
+
+**Solução:**
+```csharp
+private async Task CleanupDatabaseAsync()
+{
+    await WithServiceScopeAsync(async services =>
+    {
+        var db = services.GetRequiredService<UsersDbContext>();
+        await db.Database.ExecuteSqlRawAsync(@"
+            TRUNCATE TABLE users CASCADE;
+            TRUNCATE TABLE providers CASCADE;
+        ");
+    });
+}
+```
+
+### ⚠️ Desempenho Ruim
+
+**Números Típicos:**
+- Sem otimização: ~32 minutos (19 classes × 6s setup cada)
+- Com IClassFixture: ~8-10 minutos
+
+**Otimizações Aplicadas:**
+1. IClassFixture para compartilhar containers por classe
+2. Retry logic para evitar falhas transientes
+3. Timeouts aumentados para ambientes lentos
+4. Connection pooling no PostgreSQL
 
 ## Referências
 
 - [Testcontainers Documentation](https://dotnet.testcontainers.org/)
 - [WebApplicationFactory](https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests)
 - [xUnit Best Practices](https://xunit.net/docs/getting-started)
+
+---
+
+## Testes de Middleware
+
+### Cobertura de Middlewares (Dez/2024)
+
+**E2E Tests** (comportamento completo):
+- ✅ BusinessMetricsMiddleware
+- ✅ LoggingContextMiddleware (CorrelationId)
+- ✅ SecurityHeadersMiddleware
+- ✅ CompressionSecurityMiddleware
+- ✅ RateLimitingMiddleware
+- ✅ RequestLoggingMiddleware
+
+**Integration Tests** (lógica específica):
+- ✅ GeographicRestrictionMiddleware
+- ✅ SecurityHeadersMiddleware (headers específicos)
+- ✅ CompressionSecurityMiddleware (regras BREACH)
+
+**Arquivos:**
+- `tests/MeAjudaAi.E2E.Tests/Infrastructure/MiddlewareEndToEndTests.cs` (23 testes)
+- `tests/MeAjudaAi.E2E.Tests/Infrastructure/RateLimitingEndToEndTests.cs` (4 testes)
+- `tests/MeAjudaAi.Integration.Tests/Middleware/SecurityHeadersMiddlewareTests.cs` (10 testes)
+- `tests/MeAjudaAi.Integration.Tests/Middleware/CompressionSecurityMiddlewareTests.cs` (6 testes)
+
+### Problemas Corrigidos (Dez/2024)
+
+1. **StaticFilesMiddleware duplicado**
+   - ❌ Estava registrado 2x (UseApiServices + UseApiMiddlewares)
+   - ✅ Removido de UseApiMiddlewares
+
+2. **RequestLoggingMiddleware ordem incorreta**
+   - ❌ Estava DEPOIS de Compression (não via response original)
+   - ✅ Movido para logo APÓS ForwardedHeaders
+
+3. **PermissionOptimizationMiddleware não registrado**
+   - ✅ Já estava registrado via UsePermissionOptimization()
+
+4. **CorrelationId não propagado**
+   - ✅ Já estava sendo propagado via LoggingContextMiddleware
+

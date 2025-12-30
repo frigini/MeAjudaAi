@@ -1,5 +1,5 @@
-using MeAjudaAi.Shared.Constants;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Configuration;

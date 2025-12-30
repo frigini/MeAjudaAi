@@ -176,7 +176,7 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
                 .HasDefaultValue(false);
 
             doc.HasKey("ProviderId", "Id");
-            doc.ToTable("document", "meajudaai_providers");
+            doc.ToTable("document", "providers");
             doc.WithOwner().HasForeignKey("ProviderId");
             doc.Property("ProviderId").HasColumnName("provider_id");
             doc.Property("Id").HasColumnName("id");
@@ -210,7 +210,7 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
                 .HasColumnName("document_number");
 
             qual.HasKey("ProviderId", "Id");
-            qual.ToTable("qualification", "meajudaai_providers");
+            qual.ToTable("qualification", "providers");
             qual.WithOwner().HasForeignKey("ProviderId");
             qual.Property("ProviderId").HasColumnName("provider_id");
             qual.Property("Id").HasColumnName("id");

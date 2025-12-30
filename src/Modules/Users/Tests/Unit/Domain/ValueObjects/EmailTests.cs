@@ -1,6 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.ValueObjects;
 

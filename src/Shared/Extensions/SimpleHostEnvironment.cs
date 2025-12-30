@@ -5,7 +5,7 @@ namespace MeAjudaAi.Shared.Extensions;
 
 /// <summary>
 /// Implementação simples interna de IHostEnvironment para registro de messaging.
-/// Para testes, use MockHostEnvironment de MeAjudaAi.Shared.Tests.Mocks.
+/// Para testes, use MockHostEnvironment de MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.
 /// </summary>
 internal sealed class SimpleHostEnvironment : IHostEnvironment
 {

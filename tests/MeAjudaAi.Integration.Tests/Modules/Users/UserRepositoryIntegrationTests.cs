@@ -4,7 +4,7 @@ using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Users;
@@ -13,7 +13,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Users;
 /// Integration tests for UserRepository with real database (TestContainers).
 /// Tests actual persistence logic, EF mappings, and database constraints.
 /// </summary>
-public class UserRepositoryIntegrationTests : ApiTestBase
+public class UserRepositoryIntegrationTests : BaseApiTest
 {
     private readonly Faker _faker = new("pt_BR");
 

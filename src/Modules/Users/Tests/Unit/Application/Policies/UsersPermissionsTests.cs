@@ -1,7 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Users.Application.Policies;
 using MeAjudaAi.Shared.Authorization.Core;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Policies;
 
