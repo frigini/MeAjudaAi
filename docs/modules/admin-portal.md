@@ -27,7 +27,7 @@ O Admin Portal é uma aplicação Single Page Application (SPA) que permite aos 
 
 ### Estrutura de Projetos
 
-```
+```plaintext
 src/
 ├── Web/
 │   └── MeAjudaAi.Web.Admin/              # Blazor WASM App
@@ -170,7 +170,7 @@ public UserContext UserContext { get; set; }
 builder.Services.AddOidcAuthentication(options =>
 {
     builder.Configuration.Bind("Keycloak", options.ProviderOptions);
-    options.ProviderOptions.Authority = "https://keycloak.meajudaai.com/realms/meajudaai";
+    options.ProviderOptions.Authority = "https://auth.meajudaai.com/realms/meajudaai";
     options.ProviderOptions.ClientId = "meajudaai-admin-portal";
     options.ProviderOptions.ResponseType = "code";
     options.ProviderOptions.DefaultScopes.Add("openid");
@@ -409,7 +409,7 @@ Blazor WASM com **Ahead-of-Time compilation** para melhor performance:
 {
   "ApiBaseUrl": "https://api.meajudaai.com",
   "Keycloak": {
-    "Authority": "https://keycloak.meajudaai.com/realms/meajudaai",
+    "Authority": "https://auth.meajudaai.com/realms/meajudaai",
     "ClientId": "meajudaai-admin-portal",
     "ResponseType": "code"
   },

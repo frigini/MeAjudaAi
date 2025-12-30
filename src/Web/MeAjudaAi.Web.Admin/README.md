@@ -53,7 +53,7 @@ dotnet publish -c Release
 
 ## 🏗️ Estrutura do Projeto
 
-```
+```plaintext
 MeAjudaAi.Web.Admin/
 ├── Pages/                          # Páginas roteáveis (@page)
 │   ├── Home.razor                 # Dashboard com KPIs
@@ -293,11 +293,13 @@ dotnet test --filter Category=E2E
 
 ### appsettings.json
 
+> **Note**: Production Keycloak uses `auth.meajudaai.com` as the canonical domain (not `keycloak.meajudaai.com`).
+
 ```json
 {
   "ApiBaseUrl": "https://api.meajudaai.com",
   "Keycloak": {
-    "Authority": "https://keycloak.meajudaai.com/realms/meajudaai",
+    "Authority": "https://auth.meajudaai.com/realms/meajudaai",
     "ClientId": "meajudaai-admin-portal",
     "ResponseType": "code"
   }
@@ -306,9 +308,11 @@ dotnet test --filter Category=E2E
 
 ### appsettings.Development.json
 
+> **Note**: Development API URL must match AppHost configuration (see `src/Aspire/MeAjudaAi.AppHost/appsettings.Development.json`).
+
 ```json
 {
-  "ApiBaseUrl": "https://localhost:7001",
+  "ApiBaseUrl": "https://localhost:7032",
   "Keycloak": {
     "Authority": "http://localhost:8080/realms/meajudaai",
     "ClientId": "meajudaai-admin-portal-dev"
@@ -327,7 +331,7 @@ Fluxor integra com [Redux DevTools](https://chrome.google.com/webstore/detail/re
 3. Abrir DevTools → Redux tab
 4. Ver actions, state diffs, time-travel debugging
 
-### Browser DevTools
+### DevTools do Navegador
 
 ```bash
 # Executar com debugging habilitado
