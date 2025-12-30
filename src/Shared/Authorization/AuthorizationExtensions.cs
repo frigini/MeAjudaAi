@@ -7,7 +7,7 @@ using MeAjudaAi.Shared.Authorization.Keycloak;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Middleware;
 using MeAjudaAi.Shared.Authorization.Services;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;

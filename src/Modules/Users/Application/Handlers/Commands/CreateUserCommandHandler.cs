@@ -59,11 +59,11 @@ internal sealed class CreateUserCommandHandler(
             ["Operation"] = "CreateUser"
         });
 
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        logger.LogInformation("Starting user creation process for {Email}", command.Email);
-
         try
         {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            logger.LogInformation("Starting user creation process for {Email}", command.Email);
+
             // Verificar duplicidade de email e username
             var uniquenessResult = await ValidateUniquenessAsync(command, cancellationToken);
             if (uniquenessResult.IsFailure)
@@ -83,12 +83,27 @@ internal sealed class CreateUserCommandHandler(
 
             return Result<UserDto>.Success(userResult.Value.ToDto());
         }
+        catch (ArgumentException)
+        {
+            // Permite que ArgumentException (erros de validação) propague para GlobalExceptionHandler
+            throw;
+        }
+        catch (MeAjudaAi.Shared.Exceptions.ValidationException)
+        {
+            // Permite que ValidationException propague para GlobalExceptionHandler
+            throw;
+        }
+        catch (MeAjudaAi.Shared.Exceptions.DomainException)
+        {
+            // Permite que DomainException (violações de regras de negócio) propague para GlobalExceptionHandler
+            throw;
+        }
         catch (Exception ex)
         {
-            stopwatch.Stop();
-            logger.LogError(ex, "Unexpected error creating user for email {Email} after {ElapsedMs}ms",
-                command.Email, stopwatch.ElapsedMilliseconds);
-            return Result<UserDto>.Failure("Failed to create user due to an unexpected error");
+            // Capturar erros de infraestrutura (database, cache, etc.) e logar com detalhes completos
+            logger.LogError(ex, "Unexpected error creating user with email {Email}. ExceptionType: {ExceptionType}, Message: {Message}", 
+                command.Email, ex.GetType().Name, ex.Message);
+            return Result<UserDto>.Failure("Falha ao criar usuário. Tente novamente mais tarde.");
         }
     }
 
@@ -106,7 +121,7 @@ internal sealed class CreateUserCommandHandler(
         if (existingByEmail != null)
         {
             logger.LogWarning("User creation failed: Email {Email} already exists", command.Email);
-            return Result<Unit>.Failure("User with this email already exists");
+            return Result<Unit>.Failure("Usuário com este email já existe");
         }
 
         // Verifica se já existe usuário com o username informado
@@ -116,7 +131,7 @@ internal sealed class CreateUserCommandHandler(
         if (existingByUsername != null)
         {
             logger.LogWarning("User creation failed: Username {Username} already exists", command.Username);
-            return Result<Unit>.Failure("Username already taken");
+            return Result<Unit>.Failure("Nome de usuário já está sendo utilizado");
         }
 
         return Result<Unit>.Success(Unit.Value);
@@ -141,6 +156,7 @@ internal sealed class CreateUserCommandHandler(
             command.LastName,
             command.Password,
             command.Roles,
+            command.PhoneNumber,
             cancellationToken);
 
         logger.LogDebug("User domain service completed in {ElapsedMs}ms",

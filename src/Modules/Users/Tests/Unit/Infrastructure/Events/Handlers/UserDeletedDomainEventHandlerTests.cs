@@ -2,7 +2,7 @@ using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Events.Handlers;

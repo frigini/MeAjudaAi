@@ -1,6 +1,6 @@
 using System.Text.Json;
 using MeAjudaAi.ApiService.Options;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Models;
 using Microsoft.Extensions.Options;

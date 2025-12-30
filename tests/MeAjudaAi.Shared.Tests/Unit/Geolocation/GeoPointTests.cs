@@ -91,30 +91,30 @@ public class GeoPointTests
     [Fact]
     public void DistanceTo_BetweenSaoPauloAndRioDeJaneiro_ShouldReturnApproximately360km()
     {
-        // Arrange - coordinates of São Paulo and Rio de Janeiro
+        // Arrange - coordenadas de São Paulo e Rio de Janeiro
         var saoPaulo = new GeoPoint(-23.5505, -46.6333);
         var rioDeJaneiro = new GeoPoint(-22.9068, -43.1729);
 
         // Act
         var distance = saoPaulo.DistanceTo(rioDeJaneiro);
 
-        // Assert - real distance is approximately 360km
-        distance.Should().BeApproximately(360, 50); // Allow 50km tolerance
+        // Assert - distância real é aproximadamente 360km
+        distance.Should().BeApproximately(360, 50); // Permite tolerância de 50km
     }
 
     [Fact]
     public void DistanceTo_WithVeryClosePoints_ShouldReturnSmallDistance()
     {
-        // Arrange - points 1km apart
+        // Arrange - pontos a 1km de distância
         var point1 = new GeoPoint(-23.5505, -46.6333);
-        var point2 = new GeoPoint(-23.5595, -46.6333); // ~1km north
+        var point2 = new GeoPoint(-23.5595, -46.6333); // ~1km ao norte
 
         // Act
         var distance = point1.DistanceTo(point2);
 
         // Assert
         distance.Should().BeGreaterThan(0);
-        distance.Should().BeLessThan(2); // Less than 2km
+        distance.Should().BeLessThan(2); // Menos de 2km
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public class GeoPointTests
 
         // Assert
         distance.Should().BeGreaterThan(0);
-        distance.Should().BeApproximately(1113, 100); // ~1113km per 10 degrees at equator
+        distance.Should().BeApproximately(1113, 100); // ~1113km por 10 graus no equador
     }
 
     [Fact]
@@ -179,8 +179,8 @@ public class GeoPointTests
     [Theory]
     [InlineData(0, 0)]
     [InlineData(-23.5505, -46.6333)] // São Paulo
-    [InlineData(51.5074, -0.1278)] // London
-    [InlineData(40.7128, -74.0060)] // New York
+    [InlineData(51.5074, -0.1278)] // Londres
+    [InlineData(40.7128, -74.0060)] // Nova York
     [InlineData(-33.8688, 151.2093)] // Sydney
     public void Constructor_WithVariousValidCoordinates_ShouldSucceed(double latitude, double longitude)
     {

@@ -1,4 +1,5 @@
 using DotNet.Testcontainers.Builders;
+using Bogus;
 using MeAjudaAi.ApiService;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Tests.Mocks;
@@ -7,6 +8,7 @@ using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.AspNetCore.Hosting;
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -35,12 +37,13 @@ public class TestContainerFixture : IAsyncLifetime
     public string PostgresConnectionString { get; private set; } = null!;
     public string RedisConnectionString { get; private set; } = null!;
     public string AzuriteConnectionString { get; private set; } = null!;
+    public Faker Faker { get; } = new();
 
     public static System.Text.Json.JsonSerializerOptions JsonOptions => SerializationDefaults.Api;
 
     public async ValueTask InitializeAsync()
     {
-        // Retry logic com exponential backoff para lidar com transient Docker failures
+        // Lógica de retry com exponential backoff para lidar com falhas transitórias do Docker
         const int maxRetries = 3;
         const int baseDelayMs = 2000;
 
@@ -50,7 +53,7 @@ public class TestContainerFixture : IAsyncLifetime
             {
                 await InitializeContainersAsync();
                 await InitializeFactoryAsync();
-                return; // Success
+                return; // Sucesso
             }
             catch (Exception ex) when (attempt < maxRetries)
             {
@@ -66,24 +69,22 @@ public class TestContainerFixture : IAsyncLifetime
 
     private async Task InitializeContainersAsync()
     {
-        // Configurar containers com timeouts aumentados (1min → 5min)
+        // Configurar containers com timeouts aumentados para WSL2/Docker Desktop (Windows)
         _postgresContainer = new PostgreSqlBuilder()
             .WithImage("postgis/postgis:16-3.4")
             .WithDatabase("meajudaai_test")
             .WithUsername("postgres")
             .WithPassword("test123")
             .WithCleanUp(true)
-            .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(5432))
             .Build();
 
         _redisContainer = new RedisBuilder()
             .WithImage("redis:7-alpine")
             .WithCleanUp(true)
-            .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(6379))
             .Build();
 
         _azuriteContainer = new AzuriteBuilder()
-            .WithImage("mcr.microsoft.com/azure-storage/azurite:latest")
+            .WithImage("mcr.microsoft.com/azure-storage/azurite:3.33.0")
             .WithCleanUp(true)
             .Build();
 
@@ -128,6 +129,7 @@ public class TestContainerFixture : IAsyncLifetime
                         ["ConnectionStrings:UsersDb"] = PostgresConnectionString,
                         ["ConnectionStrings:ProvidersDb"] = PostgresConnectionString,
                         ["ConnectionStrings:DocumentsDb"] = PostgresConnectionString,
+                        ["ConnectionStrings:SearchProvidersDb"] = PostgresConnectionString,
                         ["ConnectionStrings:Redis"] = RedisConnectionString,
                         ["Azure:Storage:ConnectionString"] = AzuriteConnectionString,
                         ["Hangfire:Enabled"] = "false",
@@ -136,7 +138,7 @@ public class TestContainerFixture : IAsyncLifetime
                         ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Error",
                         ["RabbitMQ:Enabled"] = "false",
                         ["Keycloak:Enabled"] = "false",
-                        ["Cache:Enabled"] = "false",
+                        ["Cache:Enabled"] = "true", // Enable cache for realistic E2E testing
                         ["Cache:ConnectionString"] = RedisConnectionString,
                         ["AdvancedRateLimit:General:Enabled"] = "false",
                         ["AdvancedRateLimit:Anonymous:RequestsPerMinute"] = "10000",
@@ -173,7 +175,17 @@ public class TestContainerFixture : IAsyncLifetime
                 });
             });
 
-        ApiClient = _factory.CreateClient();
+        // Create API client com handler que propaga contexto de teste
+        var contextPropagationHandler = new TestContextAwareHandler
+        {
+            InnerHandler = _factory.Server.CreateHandler()
+        };
+        
+        ApiClient = new HttpClient(contextPropagationHandler)
+        {
+            BaseAddress = new Uri("http://localhost")
+        };
+        
         Services = _factory.Services;
 
         // Aplicar migrations e seed inicial
@@ -182,6 +194,22 @@ public class TestContainerFixture : IAsyncLifetime
 
     private void ConfigureMockServices(IServiceCollection services)
     {
+        // CRITICAL: Substituir autenticação real por ConfigurableTestAuthenticationHandler
+        // NÃO remover services de autenticação - apenas substituir o scheme padrão
+        
+        // Adicionar/substituir test authentication com ConfigurableTestAuthenticationHandler
+        services.AddAuthentication(MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.SchemeName)
+            .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions,
+                MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler>(
+                MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.SchemeName,
+                _ => { });
+        
+        // Garantir que authorization está configurado
+        if (!services.Any(d => d.ServiceType == typeof(Microsoft.AspNetCore.Authorization.IAuthorizationService)))
+        {
+            services.AddAuthorization();
+        }
+        
         // Mock Keycloak
         var keycloakDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IKeycloakService));
         if (keycloakDescriptor != null)
@@ -202,6 +230,7 @@ public class TestContainerFixture : IAsyncLifetime
         ReconfigureDbContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
+        ReconfigureDbContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
 
         // PostgresOptions para SearchProviders (Dapper)
         var postgresOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(PostgresOptions));
@@ -239,7 +268,7 @@ public class TestContainerFixture : IAsyncLifetime
             {
                 npgsqlOptions.MigrationsAssembly(typeof(TContext).Assembly.FullName);
                 npgsqlOptions.UseNetTopologySuite();
-                npgsqlOptions.CommandTimeout(60); // 1 minuto timeout para queries
+                npgsqlOptions.CommandTimeout(120); // 2 minutos timeout para queries (WSL2 overhead)
             });
             options.EnableSensitiveDataLogging(false);
             options.EnableDetailedErrors(false);
@@ -264,6 +293,7 @@ public class TestContainerFixture : IAsyncLifetime
             await ApplyMigrationForContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services);
             await ApplyMigrationForContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
             await ApplyMigrationForContext<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
+            await ApplyMigrationForContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
 
             Console.WriteLine("✅ Database migrations applied successfully");
         }
@@ -344,5 +374,144 @@ public class TestContainerFixture : IAsyncLifetime
         await Task.WhenAll(stopTasks);
 
         Console.WriteLine("✅ TestContainers disposed successfully");
+    }
+
+    /// <summary>
+    /// Executa ação com scope de serviço para acesso direto ao banco
+    /// </summary>
+    public async Task<T> WithServiceScopeAsync<T>(Func<IServiceProvider, Task<T>> action)
+    {
+        using var scope = Services.CreateScope();
+        return await action(scope.ServiceProvider);
+    }
+
+    /// <summary>
+    /// Executa ação com scope de serviço para acesso direto ao banco
+    /// </summary>
+    public async Task WithServiceScopeAsync(Func<IServiceProvider, Task> action)
+    {
+        using var scope = Services.CreateScope();
+        await action(scope.ServiceProvider);
+    }
+
+    /// <summary>
+    /// Extrai o ID de um recurso do header Location de uma resposta HTTP 201 Created
+    /// </summary>
+    public static Guid ExtractIdFromLocation(string locationHeader)
+    {
+        if (locationHeader.Contains("?id="))
+        {
+            var uri = new Uri(locationHeader, UriKind.RelativeOrAbsolute);
+            var query = uri.Query.TrimStart('?');
+            var idParam = query.Split('&').FirstOrDefault(p => p.StartsWith("id="));
+
+            if (idParam != null)
+            {
+                var idValue = idParam.Split('=')[1];
+                return Guid.Parse(idValue);
+            }
+        }
+
+        var segments = locationHeader.Split('/');
+        return Guid.Parse(segments[^1]);
+    }
+
+    /// <summary>
+    /// Configura autenticação como administrador.
+    /// Cria/reut iliza contexto AsyncLocal automaticamente.
+    /// </summary>
+    public static void AuthenticateAsAdmin()
+    {
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+    }
+
+    /// <summary>
+    /// Configura autenticação como usuário regular.
+    /// Cria/reutiliza contexto AsyncLocal automaticamente.
+    /// </summary>
+    public static void AuthenticateAsUser(string userId = "test-user-id", string username = "testuser")
+    {
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureRegularUser(userId, username);
+    }
+
+    /// <summary>
+    /// Remove autenticação (testes anônimos).
+    /// </summary>
+    public static void AuthenticateAsAnonymous()
+    {
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ClearConfiguration();
+    }
+
+    /// <summary>
+    /// Limpa o estado de autenticação. 
+    /// IMPORTANTE: Chamar no início de cada teste para evitar vazamento de estado entre testes que compartilham fixture.
+    /// </summary>
+    public static void BeforeEachTest()
+    {
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ClearConfiguration();
+    }
+
+#pragma warning disable CA2000 // Dispose objects before losing scope - StringContent is disposed by HttpClient
+    /// <summary>
+    /// Envia POST com JSON serializado
+    /// </summary>
+    public async Task<HttpResponseMessage> PostJsonAsync<T>(string requestUri, T content)
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
+        var stringContent = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
+        return await ApiClient.PostAsync(requestUri, stringContent);
+    }
+
+    /// <summary>
+    /// Envia PUT com JSON serializado
+    /// </summary>
+    public async Task<HttpResponseMessage> PutJsonAsync<T>(string requestUri, T content)
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
+        var stringContent = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
+        return await ApiClient.PutAsync(requestUri, stringContent);
+    }
+#pragma warning restore CA2000
+
+    /// <summary>
+    /// Deserializa JSON da resposta HTTP
+    /// </summary>
+    public static async Task<T?> ReadJsonAsync<T>(HttpResponseMessage response)
+    {
+        var content = await response.Content.ReadAsStringAsync();
+        return System.Text.Json.JsonSerializer.Deserialize<T>(content, JsonOptions);
+    }
+
+    /// <summary>
+    /// Cria um usuário de teste e retorna seu ID
+    /// </summary>
+    public async Task<Guid> CreateTestUserAsync(string? username = null, string? email = null)
+    {
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+        var createRequest = new
+        {
+            Username = username ?? $"testuser_{uniqueId}",
+            Email = email ?? $"testuser_{uniqueId}@example.com",
+            FirstName = "Test",
+            LastName = "User",
+            Password = "Test@123456",
+            PhoneNumber = "+5511999999999"
+        };
+
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
+        if (response.StatusCode != System.Net.HttpStatusCode.Created)
+        {
+            throw new InvalidOperationException($"Failed to create test user. Status: {response.StatusCode}");
+        }
+
+        var locationHeader = response.Headers.Location?.ToString();
+        if (string.IsNullOrEmpty(locationHeader))
+        {
+            throw new InvalidOperationException("Location header not found in create user response");
+        }
+
+        return ExtractIdFromLocation(locationHeader);
     }
 }

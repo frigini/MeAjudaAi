@@ -2,7 +2,7 @@ using System.Linq;
 using System.Security.Claims;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Services;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

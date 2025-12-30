@@ -13,12 +13,9 @@ namespace MeAjudaAi.Integration.Tests.Modules.SearchProviders;
 /// Foca em validações de parâmetros e formato de requisição.
 /// Não testa autenticação/autorização - endpoints de busca são públicos.
 /// </remarks>
-public class SearchProvidersApiTests : ApiTestBase
+public class SearchProvidersApiTests : BaseApiTest
 {
     private const string SearchEndpoint = "/api/v1/search/providers";
-
-    // NOTE: SearchEndpoint_ShouldBeAccessible removed - low value smoke test
-    // Endpoint mapping is validated by all parameter validation tests below
 
     [Fact]
     public async Task Search_WithValidCoordinates_ShouldNotReturnNotFound()
@@ -173,5 +170,91 @@ public class SearchProvidersApiTests : ApiTestBase
         // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
             "Different valid coordinates should be accepted");
+    }
+
+    [Fact]
+    public async Task Search_WithInvalidLatitude_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var invalidLatitude = 91; // Latitude válida: -90 a 90
+        var longitude = -46.6333;
+        var radiusInKm = 10.0;
+
+        // Act
+        var response = await Client.GetAsync(
+            $"{SearchEndpoint}?latitude={invalidLatitude}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+            "Invalid latitude (>90) should return 400 Bad Request");
+    }
+
+    [Fact]
+    public async Task Search_WithInvalidLongitude_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var latitude = -23.5505;
+        var invalidLongitude = 181; // Longitude válida: -180 a 180
+        var radiusInKm = 10.0;
+
+        // Act
+        var response = await Client.GetAsync(
+            $"{SearchEndpoint}?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={invalidLongitude}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+            "Invalid longitude (>180) should return 400 Bad Request");
+    }
+
+    [Fact]
+    public async Task Search_WithNegativeRadius_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var latitude = -23.5505;
+        var longitude = -46.6333;
+        var invalidRadius = -5.0;
+
+        // Act
+        var response = await Client.GetAsync(
+            $"{SearchEndpoint}?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={invalidRadius}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+            "Negative radius should return 400 Bad Request");
+    }
+
+    [Fact]
+    public async Task Search_WithRadiusExceeding500Km_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var latitude = -23.5505;
+        var longitude = -46.6333;
+        var excessiveRadius = 501.0;
+
+        // Act
+        var response = await Client.GetAsync(
+            $"{SearchEndpoint}?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={excessiveRadius}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+            "Radius exceeding 500km should return 400 Bad Request");
+    }
+
+    [Fact]
+    public async Task Search_WithInvalidPageSize_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var latitude = -23.5505;
+        var longitude = -46.6333;
+        var radiusInKm = 10.0;
+        var invalidPageSize = 101; // Assuming max is 100
+
+        // Act
+        var response = await Client.GetAsync(
+            $"{SearchEndpoint}?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&pageSize={invalidPageSize}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+            "Page size exceeding maximum should return 400 Bad Request");
     }
 }

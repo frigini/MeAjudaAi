@@ -159,7 +159,7 @@ public class UserProfileTests
         const string firstName = "João";
         const string lastName = "Silva";
         var phoneNumber1 = new PhoneNumber("(11) 99999-9999");
-        var phoneNumber2 = new PhoneNumber("(11) 88888-8888");
+        var phoneNumber2 = new PhoneNumber("(11) 98888-8888");
 
         var userProfile1 = new UserProfile(firstName, lastName, phoneNumber1);
         var userProfile2 = new UserProfile(firstName, lastName, phoneNumber2);

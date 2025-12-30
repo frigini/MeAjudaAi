@@ -5,7 +5,7 @@ using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;

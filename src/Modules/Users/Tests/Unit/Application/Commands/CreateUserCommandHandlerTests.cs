@@ -65,6 +65,7 @@ public class CreateUserCommandHandlerTests
                 command.LastName,
                 command.Password,
                 command.Roles,
+                phoneNumber: null,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<User>.Success(user));
 
@@ -95,6 +96,7 @@ public class CreateUserCommandHandlerTests
                 command.LastName,
                 command.Password,
                 command.Roles,
+                phoneNumber: null,
                 It.IsAny<CancellationToken>()),
             Times.Once);
         _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -123,6 +125,7 @@ public class CreateUserCommandHandlerTests
                 command.LastName,
                 command.Password,
                 command.Roles,
+                phoneNumber: null,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<User>.Failure(error));
 
@@ -142,6 +145,7 @@ public class CreateUserCommandHandlerTests
                 command.LastName,
                 command.Password,
                 command.Roles,
+                phoneNumber: null,
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -176,7 +180,7 @@ public class CreateUserCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("email already exists");
+        result.Error.Message.Should().Contain("email já existe");
 
         // Verifica que o check de username e o serviço de domínio não foram chamados
         _userRepositoryMock.Verify(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -188,6 +192,7 @@ public class CreateUserCommandHandlerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<IEnumerable<string>>(),
+                phoneNumber: null,
                 It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -226,7 +231,7 @@ public class CreateUserCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Username already taken");
+        result.Error.Message.Should().Contain("já está sendo utilizado");
 
         // Verifica que o serviço de domínio não foi chamado
         _userDomainServiceMock.Verify(
@@ -237,6 +242,7 @@ public class CreateUserCommandHandlerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<IEnumerable<string>>(),
+                phoneNumber: null,
                 It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -264,7 +270,7 @@ public class CreateUserCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Failed to create user");
+        result.Error.Message.Should().Contain("Falha ao criar usuário");
 
         // Verifica que métodos subsequentes não foram chamados
         _userRepositoryMock.Verify(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -276,6 +282,7 @@ public class CreateUserCommandHandlerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<IEnumerable<string>>(),
+                phoneNumber: null,
                 It.IsAny<CancellationToken>()),
             Times.Never);
     }

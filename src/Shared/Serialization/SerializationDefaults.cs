@@ -13,7 +13,7 @@ public static class SerializationDefaults
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Converters =
         {
-            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
+            new StrictEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: true),
             new GeoPointConverter()
         }
     };

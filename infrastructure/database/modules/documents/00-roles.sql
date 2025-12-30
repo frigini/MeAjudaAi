@@ -94,7 +94,7 @@ $$ LANGUAGE plpgsql;
 
 -- Document roles
 COMMENT ON ROLE documents_role IS 'Permission grouping role for documents schema';
-COMMENT ON ROLE documents_owner IS 'Owner role for meajudaai_documents schema objects';
+COMMENT ON ROLE documents_owner IS 'Owner role for documents schema objects';
 COMMENT ON ROLE hangfire_role IS 'Permission role for Hangfire background jobs (hangfire schema)';
 COMMENT ON ROLE meajudaai_app_role IS 'App-wide role for cross-module access';
 COMMENT ON ROLE meajudaai_app_owner IS 'Owner role for application-owned objects';

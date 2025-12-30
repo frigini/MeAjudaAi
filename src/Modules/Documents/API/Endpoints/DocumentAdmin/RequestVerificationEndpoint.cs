@@ -17,7 +17,7 @@ public class RequestVerificationEndpoint : BaseEndpoint, IEndpoint
     /// Configura o mapeamento do endpoint de solicitação de verificação.
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("/{documentId:guid}/verify", RequestVerificationAsync)
+        => app.MapPost("/{documentId:guid}/request-verification", RequestVerificationAsync)
             .WithName("RequestVerification")
             .WithSummary("Solicitar verificação manual")
             .WithDescription("""
@@ -34,7 +34,10 @@ public class RequestVerificationEndpoint : BaseEndpoint, IEndpoint
                 - Administrador será notificado para análise
                 """)
             .Produces(StatusCodes.Status202Accepted)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status409Conflict)
+            .Produces(StatusCodes.Status422UnprocessableEntity)
+            .ProducesProblem(StatusCodes.Status500InternalServerError);
 
     private static async Task<IResult> RequestVerificationAsync(
         Guid documentId,
@@ -49,6 +52,9 @@ public class RequestVerificationEndpoint : BaseEndpoint, IEndpoint
             return result.Error.StatusCode switch
             {
                 404 => Results.NotFound(new { error = result.Error.Message }),
+                409 => Results.Conflict(new { error = result.Error.Message }),
+                422 => Results.UnprocessableEntity(new { error = result.Error.Message }),
+                >= 500 => Results.Problem(detail: result.Error.Message, statusCode: result.Error.StatusCode),
                 _ => Results.BadRequest(new { error = result.Error.Message })
             };
         }

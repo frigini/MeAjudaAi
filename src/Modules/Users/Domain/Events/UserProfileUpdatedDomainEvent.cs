@@ -9,5 +9,7 @@ public record UserProfileUpdatedDomainEvent(
     Guid AggregateId,
     int Version,
     string FirstName,
-    string LastName
+    string LastName,
+    string? Email = null,
+    string? PhoneNumber = null
 ) : DomainEvent(AggregateId, Version);

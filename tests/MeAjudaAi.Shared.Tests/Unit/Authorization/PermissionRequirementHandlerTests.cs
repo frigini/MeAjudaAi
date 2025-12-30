@@ -2,7 +2,7 @@ using System.Security.Claims;
 using FluentAssertions;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Handlers;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using Moq;

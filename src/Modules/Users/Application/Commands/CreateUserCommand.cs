@@ -13,5 +13,6 @@ public sealed record CreateUserCommand(
     string FirstName,
     string LastName,
     string Password,
-    IEnumerable<string> Roles
+    IEnumerable<string> Roles,
+    string? PhoneNumber = null
 ) : Command<Result<UserDto>>;

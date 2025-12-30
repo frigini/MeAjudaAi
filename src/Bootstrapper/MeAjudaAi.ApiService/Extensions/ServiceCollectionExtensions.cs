@@ -3,6 +3,7 @@ using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.ApiService.Services.Authentication;
 using MeAjudaAi.Shared.Authorization.Middleware;
+using MeAjudaAi.Shared.Logging;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -125,7 +126,13 @@ public static class ServiceCollectionExtensions
         // Processa cabeçalhos X-Forwarded-* de proxies reversos (load balancers, nginx, etc.)
         app.UseForwardedHeaders();
 
+        // Logging Context Middleware - adiciona correlation ID aos logs e response headers
+        app.UseLoggingContext();
+
         // Verificação de segurança de compressão (previne CRIME/BREACH)
+        // DEVE estar ANTES de UseResponseCompression() para poder desabilitar compressão
+        // quando necessário. Usa detecção de headers de autenticação pois executa
+        // antes de UseAuthentication().
         app.UseMiddleware<CompressionSecurityMiddleware>();
 
         // Middlewares de performance devem estar no início do pipeline
@@ -152,6 +159,10 @@ public static class ServiceCollectionExtensions
 
         app.UseCors("DefaultPolicy");
         app.UseAuthentication();
+        
+        // Log de requisições (após autenticação para capturar userId dos claims)
+        app.UseMiddleware<RequestLoggingMiddleware>();
+        
         app.UsePermissionOptimization(); // Middleware de otimização após autenticação
         app.UseAuthorization();
 

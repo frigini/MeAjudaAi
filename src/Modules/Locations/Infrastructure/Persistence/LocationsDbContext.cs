@@ -41,9 +41,20 @@ public class LocationsDbContext : BaseDbContext
         base.OnModelCreating(modelBuilder);
     }
 
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        // Define tamanho máximo de 256 caracteres para todas as propriedades string
+        configurationBuilder.Properties<string>().HaveMaxLength(256);
+        
+        base.ConfigureConventions(configurationBuilder);
+    }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         base.OnConfiguring(optionsBuilder);
+        
+        // Usa convenção snake_case para nomes de tabelas e colunas
+        optionsBuilder.UseSnakeCaseNamingConvention();
 
         // Suprime warning de modelo pendente em ambiente de teste
         // Isso é necessário porque ambientes de teste podem ter configurações ligeiramente diferentes
