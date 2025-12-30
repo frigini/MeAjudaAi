@@ -31,9 +31,9 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var request = new
         {
-            CityName = "Belo Horizonte",
+            CityName = "Poços de Caldas",
             StateSigla = "MG",
-            IbgeCode = 3106200,
+            IbgeCode = 3152131,
             IsActive = true
         };
 
@@ -57,9 +57,9 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
             var city = await dbContext.AllowedCities.FirstOrDefaultAsync(c => c.Id == cityId);
 
             city.Should().NotBeNull();
-            city!.CityName.Should().Be("Belo Horizonte");
+            city!.CityName.Should().Be("Poços de Caldas");
             city.StateSigla.Should().Be("MG");
-            city.IbgeCode.Should().Be(3106200);
+            city.IbgeCode.Should().Be(3152131);
             city.IsActive.Should().BeTrue();
             city.CreatedBy.Should().NotBeNullOrWhiteSpace();
         });

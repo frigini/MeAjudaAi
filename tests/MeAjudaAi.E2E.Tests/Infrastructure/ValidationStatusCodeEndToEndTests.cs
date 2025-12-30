@@ -233,7 +233,8 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             PhoneNumber = "+5511999999999"
         };
         
-        await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
+        var firstResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.Created, "first user creation should succeed");
 
         // Act - Try to create again with same email
         var duplicateRequest = new
