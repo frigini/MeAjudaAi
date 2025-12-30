@@ -17,7 +17,7 @@ Plataforma conectando clientes com prestadores de serviços para serviços domé
 - **Versão .NET**: 10.0 LTS
 - **Versão Aspire**: 13.0.2 GA
 - **Cobertura de Testes**: 90.56%
-- **Sprint Atual**: Sprint 3 (iniciada em 10 Dez 2025)
+- **Sprint Atual**: Sprint 6 - Blazor Admin Portal Setup (30 Dez 2025 - 17 Jan 2026)
 
 ## Principais Funcionalidades
 
@@ -31,6 +31,7 @@ Plataforma conectando clientes com prestadores de serviços para serviços domé
 
 ## Stack de Desenvolvimento
 
+### Backend
 - **.NET 10.0** - Framework da aplicação
 - **ASP.NET Core** - APIs Web
 - **Entity Framework Core** - Acesso a dados
@@ -41,11 +42,26 @@ Plataforma conectando clientes com prestadores de serviços para serviços domé
 - **Azure Services** - Infraestrutura em nuvem
 - **.NET Aspire** - Orquestração cloud-native
 
+### Frontend
+- **Blazor WebAssembly (.NET 10)** - SPA framework
+- **MudBlazor 7.21.0+** - Material Design UI components
+- **Fluxor 6.1.0+** - Flux/Redux state management
+- **Refit 9.0.2+** - Typed HTTP client
+- **bUnit** - Component testing
+- **Playwright** - E2E testing
+
 ## Estrutura da Documentação
 
 - **Primeiros Passos** - Configuração e setup de desenvolvimento
 - **Arquitetura** - Design do sistema, padrões e infraestrutura
 - **Módulos** - Documentação específica de domínio
+  - [Providers](modules/providers.md) - Gestão de prestadores de serviço
+  - [Documents](modules/documents.md) - Processamento e validação de documentos
+  - [Service Catalogs](modules/service-catalogs.md) - Catálogo de serviços
+  - [Locations](modules/locations.md) - Geolocalização e endereços
+  - [Search Providers](modules/search-providers.md) - Busca e indexação
+  - [Users](modules/users.md) - Gerenciamento de usuários
+  - [Admin Portal](modules/admin-portal.md) - **Portal administrativo Blazor WASM**
 - **CI/CD** - Automação de build, testes e deploy
 - **Testes** - Estratégias de testes e relatórios de cobertura
 - **Referência** - Roadmap, débito técnico e segurança
