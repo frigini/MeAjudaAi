@@ -160,7 +160,7 @@ public class GlobalExceptionHandlerTests
 
         var problemDetails = await DeserializeProblemDetails();
         problemDetails.Should().NotBeNull();
-        problemDetails!.Title.Should().Be("Required Field Missing");
+        problemDetails!.Title.Should().Be("Campo Obrigatório Ausente");
         problemDetails.Detail.Should().Contain("username");
         problemDetails.Extensions["columnName"].Should().NotBeNull();
     }
@@ -183,8 +183,8 @@ public class GlobalExceptionHandlerTests
         _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
 
         var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Title.Should().Be("Invalid Reference");
-        problemDetails.Detail.Should().Be("The referenced record does not exist");
+        problemDetails!.Title.Should().Be("Referência Inválida");
+        problemDetails.Detail.Should().Be("O registro referenciado não existe");
         problemDetails.Extensions.Should().ContainKey("constraintName");
         problemDetails.Extensions.Should().ContainKey("tableName");
     }
@@ -208,7 +208,7 @@ public class GlobalExceptionHandlerTests
 
         var problemDetails = await DeserializeProblemDetails();
         problemDetails!.Status.Should().Be(404);
-        problemDetails.Title.Should().Be("Resource Not Found");
+        problemDetails.Title.Should().Be("Recurso Não Encontrado");
         problemDetails.Extensions["entityName"].Should().NotBeNull();
         problemDetails.Extensions["entityId"].Should().NotBeNull();
     }
@@ -232,8 +232,8 @@ public class GlobalExceptionHandlerTests
 
         var problemDetails = await DeserializeProblemDetails();
         problemDetails!.Status.Should().Be(401);
-        problemDetails.Title.Should().Be("Unauthorized");
-        problemDetails.Detail.Should().Be("Authentication is required to access this resource");
+        problemDetails.Title.Should().Be("Não Autorizado");
+        problemDetails.Detail.Should().Be("Autenticação é necessária para acessar este recurso");
     }
 
     #endregion
@@ -244,7 +244,7 @@ public class GlobalExceptionHandlerTests
     public async Task TryHandleAsync_WithForbiddenAccessException_ShouldReturn403()
     {
         // Arrange
-        var exception = new ForbiddenAccessException("Insufficient permissions", innerException: null!);
+        var exception = new ForbiddenAccessException("Permissões insuficientes", innerException: null!);
 
         // Act
         var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
@@ -255,8 +255,8 @@ public class GlobalExceptionHandlerTests
 
         var problemDetails = await DeserializeProblemDetails();
         problemDetails!.Status.Should().Be(403);
-        problemDetails.Title.Should().Be("Forbidden");
-        problemDetails.Detail.Should().Be("Insufficient permissions");
+        problemDetails.Title.Should().Be("Acesso Negado");
+        problemDetails.Detail.Should().Be("Permissões insuficientes");
     }
 
     #endregion
@@ -277,7 +277,7 @@ public class GlobalExceptionHandlerTests
         _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
 
         var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Title.Should().Be("Business Rule Violation");
+        problemDetails!.Title.Should().Be("Violação de Regra de Negócio");
         problemDetails.Detail.Should().Be("User must be at least 18 years old");
         problemDetails.Extensions["ruleName"].Should().NotBeNull();
     }
@@ -300,7 +300,7 @@ public class GlobalExceptionHandlerTests
         _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
 
         var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Title.Should().Be("Domain Rule Violation");
+        problemDetails!.Title.Should().Be("Violação de Regra de Domínio");
         problemDetails.Detail.Should().Be("Invalid email format");
     }
 
@@ -322,8 +322,8 @@ public class GlobalExceptionHandlerTests
         _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
 
         var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Title.Should().Be("Database Error");
-        problemDetails.Detail.Should().Be("A database error occurred while processing your request");
+        problemDetails!.Title.Should().Be("Erro de Banco de Dados");
+        problemDetails.Detail.Should().Be("Ocorreu um erro de banco de dados ao processar sua requisição");
     }
 
     #endregion
@@ -345,8 +345,8 @@ public class GlobalExceptionHandlerTests
 
         var problemDetails = await DeserializeProblemDetails();
         problemDetails!.Status.Should().Be(500);
-        problemDetails.Title.Should().Be("Internal Server Error");
-        problemDetails.Detail.Should().Be("An unexpected error occurred while processing your request");
+        problemDetails.Title.Should().Be("Erro Interno do Servidor");
+        problemDetails.Detail.Should().Be("Ocorreu um erro inesperado ao processar sua requisição");
         problemDetails.Extensions.Should().ContainKey("traceId");
         problemDetails.Extensions["traceId"]!.ToString().Should().Be("test-trace-id");
     }

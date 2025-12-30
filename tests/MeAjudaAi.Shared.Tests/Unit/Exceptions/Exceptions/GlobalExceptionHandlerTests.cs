@@ -168,7 +168,7 @@ public class GlobalExceptionHandlerTests
         var responseBody = await reader.ReadToEndAsync();
         var problemDetails = JsonSerializer.Deserialize<JsonElement>(responseBody);
 
-        problemDetails.GetProperty("title").GetString().Should().Be("Resource Not Found");
+        problemDetails.GetProperty("title").GetString().Should().Be("Recurso Não Encontrado");
         problemDetails.GetProperty("detail").GetString().Should().NotBeNullOrEmpty();
     }
 
