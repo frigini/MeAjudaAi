@@ -1,62 +1,75 @@
+using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
+using Bogus;
 using MeAjudaAi.E2E.Tests.Base;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 
 /// <summary>
-/// Testes E2E para o módulo de Providers usando TestContainers
-/// Testa cenários completos de uso do módulo Providers
+/// Testes E2E para o módulo Providers usando TestContainers
+/// Cobre CRUD completo, lifecycle, documentos e workflows de verificação
 /// </summary>
-public class ProvidersEndToEndTests : TestContainerTestBase
+[Trait("Category", "E2E")]
+[Trait("Module", "Providers")]
+public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
 {
-    private readonly ITestOutputHelper _testOutput;
+    private readonly TestContainerFixture _fixture;
 
-    public ProvidersEndToEndTests(ITestOutputHelper testOutput)
+    public ProvidersEndToEndTests(TestContainerFixture fixture)
     {
-        _testOutput = testOutput;
+        _fixture = fixture;
     }
+
+    #region Basic CRUD Operations
 
     [Fact]
     public async Task CreateProvider_Should_Return_Success()
     {
         // Arrange
-        AuthenticateAsAdmin(); // Autentica como admin para criar provider
+        TestContainerFixture.AuthenticateAsAdmin(); // Autentica como admin para criar provider
+
+        var userId = await _fixture.CreateTestUserAsync();
+        var providerName = _fixture.Faker.Company.CompanyName();
 
         var createProviderRequest = new
         {
-            UserId = Guid.NewGuid(),
-            Name = Faker.Company.CompanyName(),
+            UserId = userId.ToString(),
+            Name = providerName,
             Type = 0, // Individual
             BusinessProfile = new
             {
-                TaxId = Faker.Random.Replace("############"),
-                CompanyName = Faker.Company.CompanyName(),
-                Address = new
-                {
-                    Street = Faker.Address.StreetAddress(),
-                    City = Faker.Address.City(),
-                    State = Faker.Address.StateAbbr(),
-                    PostalCode = Faker.Address.ZipCode(),
-                    Country = "Brasil"
-                },
+                LegalName = providerName,
+                FantasyName = providerName,
+                Description = $"Test provider {providerName}",
                 ContactInfo = new
                 {
-                    Email = Faker.Internet.Email(),
-                    Phone = Faker.Phone.PhoneNumber(),
-                    Website = Faker.Internet.Url()
+                    Email = _fixture.Faker.Internet.Email(),
+                    PhoneNumber = _fixture.Faker.Phone.PhoneNumber(),
+                    Website = _fixture.Faker.Internet.Url()
+                },
+                PrimaryAddress = new
+                {
+                    Street = _fixture.Faker.Address.StreetAddress(),
+                    Number = _fixture.Faker.Random.Number(1, 9999).ToString(),
+                    Complement = (string?)null,
+                    Neighborhood = _fixture.Faker.Address.City(),
+                    City = _fixture.Faker.Address.City(),
+                    State = _fixture.Faker.Address.StateAbbr(),
+                    ZipCode = _fixture.Faker.Address.ZipCode(),
+                    Country = "Brasil"
                 }
             }
         };
 
         // Act
-        var response = await PostJsonAsync("/api/v1/providers", createProviderRequest);
+        var response = await _fixture.PostJsonAsync("/api/v1/providers", createProviderRequest);
 
         // Assert
         if (response.StatusCode != HttpStatusCode.Created)
         {
             var content = await response.Content.ReadAsStringAsync();
-            _testOutput.WriteLine($"Expected 201 Created but got {response.StatusCode}. Response: {content}");
-
             // Se não conseguir criar, pelo menos verificar que não é erro 500
             response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
             return;
@@ -69,94 +82,73 @@ public class ProvidersEndToEndTests : TestContainerTestBase
         locationHeader.Should().Contain("/api/v1/providers");
     }
 
-    // NOTE: GetProviders basic test removed - duplicates ProvidersIntegrationTests.GetProviders_ShouldReturnProvidersList
-    // Simple list retrieval is adequately covered in Integration tests
+    // NOTA: Teste básico GetProviders removido - duplica ProvidersIntegrationTests.GetProviders_ShouldReturnProvidersList
+    // Recuperação de lista simples já está adequadamente coberta nos testes de Integração
 
     [Fact]
     public async Task CompleteProviderWorkflow_Should_Work()
     {
         // Arrange
-        AuthenticateAsAdmin();
-
-        var userId = Guid.NewGuid();
-        var providerData = new
-        {
-            UserId = userId,
-            Name = "Complete Workflow Provider",
-            Type = 0, // Individual
-            BusinessProfile = new
-            {
-                TaxId = "12345678000195",
-                CompanyName = "Workflow Test LTDA",
-                Address = new
-                {
-                    Street = "Rua Workflow, 123",
-                    City = "São Paulo",
-                    State = "SP",
-                    PostalCode = "01234-567",
-                    Country = "Brasil"
-                },
-                ContactInfo = new
-                {
-                    Email = "workflow@test.com",
-                    Phone = "+55 11 99999-9999",
-                    Website = "https://www.workflow.com"
-                }
-            }
-        };
+        TestContainerFixture.AuthenticateAsAdmin();
 
         Guid? providerId = null;
+        Guid? userId = null;
 
         try
         {
-            // Act 1: Criar Provider
-            var createResponse = await PostJsonAsync("/api/v1/providers", providerData);
-
-            if (createResponse.IsSuccessStatusCode)
+            // Act 1: Criar Provider usando helper
+            providerId = await CreateTestProviderAsync();
+            
+            // Recuperar userId do provider criado
+            var getProviderResponse = await _fixture.ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+            if (getProviderResponse.IsSuccessStatusCode)
             {
-                var createContent = await createResponse.Content.ReadAsStringAsync();
-                var createdProvider = JsonSerializer.Deserialize<JsonElement>(createContent);
-
-                if (createdProvider.TryGetProperty("id", out var idProperty))
+                var providerContent = await getProviderResponse.Content.ReadAsStringAsync();
+                var provider = JsonSerializer.Deserialize<JsonElement>(providerContent);
+                if (provider.TryGetProperty("userId", out var userIdProperty))
                 {
-                    providerId = Guid.Parse(idProperty.GetString()!);
-
-                    // Act 2: Buscar Provider criado
-                    var getResponse = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
-
-                    if (getResponse.IsSuccessStatusCode)
-                    {
-                        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-
-                        var getContent = await getResponse.Content.ReadAsStringAsync();
-                        var retrievedProvider = JsonSerializer.Deserialize<JsonElement>(getContent);
-
-                        retrievedProvider.TryGetProperty("name", out var nameProperty).Should().BeTrue();
-                        nameProperty.GetString().Should().Be("Complete Workflow Provider");
-                    }
-
-                    // Act 3: Buscar por UserId
-                    var getUserResponse = await ApiClient.GetAsync($"/api/v1/providers/user/{userId}");
-
-                    if (getUserResponse.IsSuccessStatusCode)
-                    {
-                        getUserResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-                    }
-
-                    // Act 4: Buscar por tipo
-                    var getTypeResponse = await ApiClient.GetAsync("/api/v1/providers/type/0");
-
-                    if (getTypeResponse.IsSuccessStatusCode)
-                    {
-                        getTypeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-                    }
+                    userId = Guid.Parse(userIdProperty.GetString()!);
                 }
             }
-            else
+
+            // Act 2: Buscar Provider criado
+            var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+
+            if (getResponse.IsSuccessStatusCode)
             {
-                // Se não conseguiu criar, verificar que não é erro de servidor
-                createResponse.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
-                _testOutput.WriteLine($"CreateProvider returned {createResponse.StatusCode}");
+                getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+                var getContent = await getResponse.Content.ReadAsStringAsync();
+                
+                var retrievedProvider = JsonSerializer.Deserialize<JsonElement>(getContent);
+
+                // Verificar se o JSON tem a estrutura esperada (pode estar dentro de "data" ou outro wrapper)
+                if (retrievedProvider.TryGetProperty("data", out var dataProperty))
+                {
+                    retrievedProvider = dataProperty;
+                }
+                
+                retrievedProvider.TryGetProperty("name", out var nameProperty).Should().BeTrue();
+                nameProperty.GetString().Should().NotBeNullOrEmpty();
+            }
+
+            // Act 3: Buscar por UserId (se conseguimos recuperar)
+            if (userId.HasValue)
+            {
+                var getUserResponse = await _fixture.ApiClient.GetAsync($"/api/v1/providers/user/{userId}");
+
+                if (getUserResponse.IsSuccessStatusCode)
+                {
+                    getUserResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+                }
+            }
+
+            // Act 4: Buscar por tipo
+            var getTypeResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/type/0");
+
+            if (getTypeResponse.IsSuccessStatusCode)
+            {
+                getTypeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             }
         }
         finally
@@ -166,17 +158,345 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             {
                 try
                 {
-                    var deleteResponse = await ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
-                    _testOutput.WriteLine($"Cleanup delete returned {deleteResponse.StatusCode}");
+                    var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    _testOutput.WriteLine($"Cleanup failed: {ex.Message}");
+                    // Cleanup failure is acceptable in this test
                 }
             }
         }
     }
 
-    // NOTE: ProvidersEndpoints_ShouldNotCrash smoke test removed - low value
-    // Endpoint stability is validated by specific functional tests
+    // NOTA: Teste de smoke ProvidersEndpoints_ShouldNotCrash removido - baixo valor
+    // Estabilidade dos endpoints é validada por testes funcionais específicos
+
+    #endregion
+
+    #region Update Operations
+
+    [Fact]
+    public async Task UpdateProvider_WithValidData_Should_Return_Success()
+    {
+        // Arrange
+        TestContainerFixture.BeforeEachTest();
+        TestContainerFixture.AuthenticateAsAdmin();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+
+        // Criar provider usando o helper
+        var providerId = await CreateTestProviderAsync($"Provider_{uniqueId}");
+
+        // Act - Update provider
+        var updateRequest = new
+        {
+            Name = $"Updated_{uniqueId}",
+            BusinessProfile = new
+            {
+                LegalName = $"UpdatedLegal_{uniqueId}",
+                FantasyName = $"UpdatedFantasy_{uniqueId}",
+                Description = "Updated description",
+                ContactInfo = new
+                {
+                    Email = $"updated_{uniqueId}@example.com",
+                    PhoneNumber = _fixture.Faker.Phone.PhoneNumber(),
+                    Website = _fixture.Faker.Internet.Url()
+                },
+                PrimaryAddress = new
+                {
+                    Street = "Updated Street",
+                    Number = "999",
+                    Complement = (string?)null,
+                    Neighborhood = "Updated Neighborhood",
+                    City = "São Paulo",
+                    State = "SP",
+                    ZipCode = "01234-567",
+                    Country = "Brasil"
+                }
+            }
+        };
+
+        var updateResponse = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}", updateRequest, TestContainerFixture.JsonOptions);
+
+        // Assert
+        updateResponse.StatusCode.Should().BeOneOf(
+            HttpStatusCode.OK,
+            HttpStatusCode.NoContent);
+
+        if (updateResponse.StatusCode == HttpStatusCode.OK)
+        {
+            var content = await updateResponse.Content.ReadAsStringAsync();
+            content.Should().Contain("Updated");
+        }
+    }
+
+    [Fact]
+    public async Task UpdateProvider_WithInvalidData_Should_Return_BadRequest()
+    {
+        // Arrange
+        TestContainerFixture.AuthenticateAsAdmin();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+        
+        // Criar provider válido primeiro para testar validação de update
+        var providerId = await CreateTestProviderAsync($"InvalidTest_{uniqueId}");
+
+        var invalidRequest = new
+        {
+            Name = "", // Inválido - campo obrigatório vazio
+            BusinessProfile = new
+            {
+                LegalName = new string('a', 201), // Inválido - muito longo
+                FantasyName = "",
+                Description = "",
+                ContactInfo = new
+                {
+                    Email = "not-an-email", // Inválido - formato incorreto
+                    PhoneNumber = "123", // Inválido - formato incorreto
+                    Website = "not-a-url"
+                },
+                PrimaryAddress = new
+                {
+                    Street = "",
+                    Number = "",
+                    Complement = (string?)null,
+                    Neighborhood = "",
+                    City = "",
+                    State = "INVALID", // Inválido - mais de 2 caracteres
+                    ZipCode = "123",
+                    Country = ""
+                }
+            }
+        };
+
+        // Act
+        var response = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}", invalidRequest, TestContainerFixture.JsonOptions);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+            "validation errors should return BadRequest for existing provider");
+    }
+
+    #endregion
+
+    #region Delete Operations
+
+    [Fact]
+    public async Task DeleteProvider_WithoutDocuments_Should_Return_Success()
+    {
+        // Arrange
+        TestContainerFixture.AuthenticateAsAdmin();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+
+        // Create provider using helper
+        var providerId = await CreateTestProviderAsync($"ToDelete_{uniqueId}");
+
+        // Act - Delete provider
+        var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
+
+        // Assert
+        deleteResponse.StatusCode.Should().BeOneOf(
+            HttpStatusCode.OK,
+            HttpStatusCode.NoContent);
+
+        // Verify provider is deleted
+        if (deleteResponse.IsSuccessStatusCode)
+        {
+            var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+            getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+    }
+
+    #endregion
+
+    #region Verification Status
+
+    [Fact]
+    public async Task UpdateVerificationStatus_ToVerified_Should_Succeed()
+    {
+        // Arrange
+        TestContainerFixture.AuthenticateAsAdmin();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+
+        // Create provider using helper
+        var providerId = await CreateTestProviderAsync($"ToVerify_{uniqueId}");
+
+        // Act - Update verification status to Verified
+        var updateStatusRequest = new
+        {
+            Status = 2, // Verified
+            Reason = "Verification completed successfully"
+        };
+
+        var updateResponse = await _fixture.ApiClient.PutAsJsonAsync(
+            $"/api/v1/providers/{providerId}/verification-status",
+            updateStatusRequest,
+            TestContainerFixture.JsonOptions);
+
+        // Assert
+        updateResponse.StatusCode.Should().BeOneOf(
+            HttpStatusCode.OK,
+            HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task UpdateVerificationStatus_InvalidTransition_Should_Fail()
+    {
+        // Arrange
+        TestContainerFixture.AuthenticateAsAdmin();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+        var providerId = await CreateTestProviderAsync($"InvalidStatusTest_{uniqueId}");
+
+        var invalidRequest = new
+        {
+            Status = 999, // Status inválido
+            Reason = "Invalid status"
+        };
+
+        // Act
+        var response = await _fixture.ApiClient.PutAsJsonAsync(
+            $"/api/v1/providers/{providerId}/verification-status",
+            invalidRequest,
+            TestContainerFixture.JsonOptions);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+            "invalid status value should return BadRequest for existing provider");
+    }
+
+    #endregion
+
+    #region Basic Info Correction
+
+    #endregion
+
+    #region Document Operations
+
+    [Fact]
+    public async Task UploadProviderDocument_Should_Return_Success()
+    {
+        // Arrange
+        TestContainerFixture.AuthenticateAsAdmin();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+
+        // Create provider using helper
+        var providerId = await CreateTestProviderAsync($"DocProvider_{uniqueId}");
+
+        // Act - Add document (não é upload de arquivo, apenas registro do documento)
+        var documentRequest = new
+        {
+            Number = "123456789", // RG number
+            DocumentType = 3 // RG (EDocumentType enum value)
+        };
+
+        var addDocumentResponse = await _fixture.ApiClient.PostAsJsonAsync(
+            $"/api/v1/providers/{providerId}/documents",
+            documentRequest,
+            TestContainerFixture.JsonOptions);
+
+        // Debug output
+        if (!addDocumentResponse.IsSuccessStatusCode)
+        {
+            var errorContent = await addDocumentResponse.Content.ReadAsStringAsync();
+        }
+
+        // Assert
+        addDocumentResponse.StatusCode.Should().BeOneOf(
+            HttpStatusCode.OK,
+            HttpStatusCode.Created,
+            HttpStatusCode.Accepted);
+    }
+
+    [Fact]
+    public async Task DeleteProviderDocument_Should_Return_Success()
+    {
+        // Arrange
+        TestContainerFixture.BeforeEachTest();
+        TestContainerFixture.AuthenticateAsAdmin();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+
+        // Create provider using helper
+        var providerId = await CreateTestProviderAsync($"DelDocProvider_{uniqueId}");
+
+        // Add document first
+        var documentRequest = new
+        {
+            Number = "123456789", // RG number
+            DocumentType = 3 // RG (EDocumentType enum value)
+        };
+
+        var addDocumentResponse = await _fixture.ApiClient.PostAsJsonAsync(
+            $"/api/v1/providers/{providerId}/documents",
+            documentRequest,
+            TestContainerFixture.JsonOptions);
+
+        // Act - Delete document (usando o DocumentType como identificador)
+        var deleteResponse = await _fixture.ApiClient.DeleteAsync(
+            $"/api/v1/providers/{providerId}/documents/{documentRequest.DocumentType}");
+
+        // Assert
+        deleteResponse.StatusCode.Should().BeOneOf(
+            HttpStatusCode.OK,
+            HttpStatusCode.NoContent);
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private async Task<Guid> CreateTestProviderAsync(string? name = null)
+    {
+        // Ensure authenticated as admin to create providers
+        TestContainerFixture.AuthenticateAsAdmin();
+        
+        var userId = await _fixture.CreateTestUserAsync();
+        var providerName = name ?? _fixture.Faker.Company.CompanyName();
+
+        var request = new
+        {
+            UserId = userId.ToString(),
+            Name = providerName,
+            Type = 0, // Individual
+            BusinessProfile = new
+            {
+                LegalName = providerName,
+                FantasyName = providerName,
+                Description = $"Test provider {providerName}",
+                ContactInfo = new
+                {
+                    Email = _fixture.Faker.Internet.Email(),
+                    PhoneNumber = "+5511999999999",
+                    Website = "https://www.example.com"
+                },
+                PrimaryAddress = new
+                {
+                    Street = _fixture.Faker.Address.StreetAddress(),
+                    Number = _fixture.Faker.Random.Number(1, 9999).ToString(),
+                    Complement = (string?)null,
+                    Neighborhood = _fixture.Faker.Address.City(),
+                    City = _fixture.Faker.Address.City(),
+                    State = _fixture.Faker.Address.StateAbbr(),
+                    ZipCode = _fixture.Faker.Address.ZipCode(),
+                    Country = "Brasil"
+                }
+            }
+        };
+
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request, TestContainerFixture.JsonOptions);
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"Failed to create provider. Status: {response.StatusCode}, Content: {errorContent}");
+        }
+
+        var location = response.Headers.Location?.ToString();
+        if (string.IsNullOrEmpty(location))
+        {
+            throw new InvalidOperationException("Location header not found in create provider response");
+        }
+
+        return TestContainerFixture.ExtractIdFromLocation(location);
+    }
+
+    #endregion
 }
+

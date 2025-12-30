@@ -2,7 +2,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Contracts.Modules;
 using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs.DTOs;

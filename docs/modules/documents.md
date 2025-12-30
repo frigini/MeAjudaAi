@@ -299,21 +299,19 @@ public static Document Create(..., IDateTimeProvider dateTimeProvider)
 
 ### 4. Azurite em Testes de Integração
 
-**Sugestão**: Configurar Azurite no `TestContainerTestBase` para eliminar fallback error-tolerant:
+**Status**: ✅ IMPLEMENTADO (19 Dez 2025)
 
-```csharp
-private AzuriteContainer _azuriteContainer;
+**Implementação**:
+- `SimpleDatabaseFixture` agora cria container Azurite (3.33.0) em paralelo com PostgreSQL
+- `ApiTestBase` configura `Azure:Storage:ConnectionString` com Azurite
+- `AddDocumentsTestServices(useAzurite: true)` permite uso de AzureBlobStorageService real
+- Testes de integração agora usam blob storage determinístico (não mock)
 
-public override async Task InitializeAsync() 
-{
-    _azuriteContainer = new AzuriteBuilder().Build();
-    await _azuriteContainer.StartAsync();
-}
-```
-
-**Status**: ✅ TODO criado
-
-**Prioridade**: Alta - melhora confiabilidade de CI/CD
+**Benefícios**:
+- ✅ Testes determinísticos de upload/download/SAS URL generation
+- ✅ Validação completa do fluxo de blob storage em CI/CD
+- ✅ Elimina diferenças de comportamento entre mock e Azure real
+- ✅ 9 testes de integração passando com Azurite
 
 ---
 
@@ -334,7 +332,7 @@ public override async Task InitializeAsync()
 | DocumentId no Repository | ⏸️ Adiado | Baixa | Refatoração cross-module |
 | IDateTimeProvider no Domain | ⏸️ Adiado | Baixa | Time travel testing necessário |
 | DocumentFailedDomainEvent | ⏸️ Adiado | Média | Dashboard de monitoramento |
-| Azurite em E2E tests | ✅ TODO | Alta | Sprint atual |
+| Azurite em Integration tests | ✅ Implementado | N/A | Sprint 5.5 (19 Dez 2025) |
 | Input guards no agregado | ❌ Não implementar | N/A | Se factory ficar público |
 
 ---

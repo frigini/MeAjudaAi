@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
@@ -85,21 +84,37 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
     /// <summary>
     /// Invalida o cache para forçar recriação (útil para testes específicos)
     /// </summary>
-    public static void InvalidateCache(string connectionString, string moduleName)
+    public static async Task InvalidateCacheAsync(string connectionString, string moduleName)
     {
         ArgumentNullException.ThrowIfNull(connectionString);
         ArgumentNullException.ThrowIfNull(moduleName);
 
-        var cacheKey = GetCacheKey(connectionString, moduleName);
-        SchemaCache.TryRemove(cacheKey, out _);
+        await CacheLock.WaitAsync();
+        try
+        {
+            var cacheKey = GetCacheKey(connectionString, moduleName);
+            SchemaCache.TryRemove(cacheKey, out _);
+        }
+        finally
+        {
+            CacheLock.Release();
+        }
     }
 
     /// <summary>
     /// Limpa todo o cache (útil entre test runs)
     /// </summary>
-    public static void ClearCache()
+    public static async Task ClearCacheAsync()
     {
-        SchemaCache.Clear();
+        await CacheLock.WaitAsync();
+        try
+        {
+            SchemaCache.Clear();
+        }
+        finally
+        {
+            CacheLock.Release();
+        }
     }
 
     private Task<string> CalculateCurrentSchemaHashAsync(string connectionString, string moduleName)
@@ -148,84 +163,5 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
         // Usar hash da connection string para não vazar informações sensíveis
         var connHash = connectionString.GetHashCode();
         return $"{moduleName}_{connHash}";
-    }
-}
-
-/// <summary>
-/// Informações sobre um schema em cache
-/// </summary>
-public class DatabaseSchemaInfo
-{
-    public string SchemaHash { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public DateTime? LastSuccessfulInit { get; set; }
-    public string ModuleName { get; set; } = string.Empty;
-    public bool IsInitialized { get; set; }
-}
-
-/// <summary>
-/// Helper para inicialização de banco com cache
-/// </summary>
-public class DatabaseInitializer
-{
-    private readonly DatabaseSchemaCacheService _cacheService;
-    private readonly ILogger<DatabaseInitializer> _logger;
-
-    public DatabaseInitializer(
-        DatabaseSchemaCacheService cacheService,
-        ILogger<DatabaseInitializer> logger)
-    {
-        _cacheService = cacheService;
-        _logger = logger;
-    }
-
-    /// <summary>
-    /// Inicializa o banco de dados apenas se necessário (com base no cache)
-    /// </summary>
-    public async Task<bool> InitializeIfNeededAsync(
-        string connectionString,
-        string moduleName,
-        Func<Task> initializationAction)
-    {
-        ArgumentNullException.ThrowIfNull(connectionString);
-        ArgumentNullException.ThrowIfNull(moduleName);
-        ArgumentNullException.ThrowIfNull(initializationAction);
-
-        var stopwatch = Stopwatch.StartNew();
-
-        try
-        {
-            // Verificar se pode reutilizar schema existente
-            if (await _cacheService.CanReuseSchemaAsync(connectionString, moduleName))
-            {
-                _logger.LogInformation("[OptimizedInit] Schema reutilizado para {Module} em {ElapsedMs}ms",
-                    moduleName, stopwatch.ElapsedMilliseconds);
-                return false; // Não precisou inicializar
-            }
-
-            // Executar inicialização
-            _logger.LogInformation("[OptimizedInit] Inicializando schema para {Module}...", moduleName);
-            await initializationAction();
-
-            // Marcar como inicializado no cache
-            await _cacheService.MarkSchemaAsInitializedAsync(connectionString, moduleName);
-
-            _logger.LogInformation("[OptimizedInit] Schema inicializado para {Module} em {ElapsedMs}ms",
-                moduleName, stopwatch.ElapsedMilliseconds);
-
-            return true; // Inicializou com sucesso
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "[OptimizedInit] Schema initialization failed for {Module}", moduleName);
-
-            // Invalidar cache em caso de erro
-            DatabaseSchemaCacheService.InvalidateCache(connectionString, moduleName);
-            throw;
-        }
-        finally
-        {
-            stopwatch.Stop();
-        }
     }
 }

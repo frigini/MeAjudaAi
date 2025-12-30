@@ -9,7 +9,6 @@ using MeAjudaAi.Modules.Users.API;
 using MeAjudaAi.ServiceDefaults;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Logging;
-using MeAjudaAi.Shared.Logging.Extensions;
 using MeAjudaAi.Shared.Seeding;
 using Serilog;
 using Serilog.Context;

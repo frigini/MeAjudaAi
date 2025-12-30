@@ -1,6 +1,6 @@
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Messaging.Handlers;
-using MeAjudaAi.Shared.Tests.Mocks;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

@@ -5,7 +5,7 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Providers;
@@ -14,7 +14,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 /// Integration tests for ProviderRepository with real database (TestContainers).
 /// Tests actual persistence logic, EF mappings, and database constraints.
 /// </summary>
-public class ProviderRepositoryIntegrationTests : ApiTestBase
+public class ProviderRepositoryIntegrationTests : BaseApiTest
 {
     private readonly Faker _faker = new("pt_BR");
 
@@ -113,7 +113,7 @@ public class ProviderRepositoryIntegrationTests : ApiTestBase
         results.Should().HaveCountGreaterThanOrEqualTo(2);
     }
 
-    // TODO: Fix email constraint issue in database schema
+    // Note: UpdateAsync test not implemented yet - requires investigation of EF Core change tracking
     // [Fact]
     // public async Task UpdateAsync_WithModifiedProvider_ShouldPersistChanges()
 

@@ -2,7 +2,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities;
 using Domain = MeAjudaAi.Modules.ServiceCatalogs.Domain;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;
