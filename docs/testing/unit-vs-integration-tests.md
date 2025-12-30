@@ -172,7 +172,7 @@ public async Task DocumentConfiguration_ShouldStoreEnumsAsIntegers()
     // Verifica no banco
     var connection = context.Database.GetDbConnection();
     var type = await connection.ExecuteScalarAsync<int>(
-        "SELECT document_type FROM meajudaai_documents.documents WHERE id = @id",
+        "SELECT document_type FROM documents.documents WHERE id = @id",
         new { id = document.Id });
     
     type.Should().Be(1); // RG = 1

@@ -2,8 +2,7 @@ using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Domain.Exceptions;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using MeAjudaAi.Shared.Tests.Mocks;
-using MeAjudaAi.Shared.Time;
+using Microsoft.Extensions.Time.Testing;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Domain.Entities;
 
@@ -11,11 +10,11 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Domain.Entities;
 public class UserTests
 {
     // Cria um provedor de data/hora para testes
-    private static IDateTimeProvider CreateMockDateTimeProvider(DateTime? fixedDate = null)
+    private static FakeTimeProvider CreateMockDateTimeProvider(DateTime? fixedDate = null)
     {
         return fixedDate.HasValue
-            ? new MockDateTimeProvider(fixedDate.Value)
-            : new MockDateTimeProvider();
+            ? new FakeTimeProvider(new DateTimeOffset(fixedDate.Value, TimeSpan.Zero))
+            : new FakeTimeProvider(DateTimeOffset.UtcNow);
     }
 
     [Fact]

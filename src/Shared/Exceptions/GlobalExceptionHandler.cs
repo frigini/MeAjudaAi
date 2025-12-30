@@ -14,108 +14,121 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         Exception exception,
         CancellationToken cancellationToken)
     {
+        // Desencapsula exceções conhecidas de InvalidOperationException
+        if (exception is InvalidOperationException { InnerException: { } inner } &&
+            inner is ValidationException or NotFoundException or BadRequestException or UnprocessableEntityException)
+        {
+            exception = inner;
+        }
+        
         var (statusCode, title, detail, errors, extensions) = exception switch
         {
+            // Nossa ValidationException customizada (400 - erros de formato/estrutura)
             ValidationException validationException => (
                 StatusCodes.Status400BadRequest,
-                "Validation Error",
-                "One or more validation errors occurred",
+                "Erro de validação",
+                "Um ou mais erros de validação ocorreram",
                 validationException.Errors.GroupBy(e => e.PropertyName)
                     .ToDictionary(
                         g => g.Key,
                         g => g.Select(e => e.ErrorMessage).ToArray()),
                 new Dictionary<string, object?>()),
 
+            // UnprocessableEntityException (422 - erros semânticos/regras de negócio)
+            UnprocessableEntityException unprocessableException => (
+                StatusCodes.Status422UnprocessableEntity,
+                "Entidade Não Processável",
+                unprocessableException.Message,
+                null,
+                CreateExtensionsWithNonNullValues(
+                    ("entityName", unprocessableException.EntityName),
+                    ("details", unprocessableException.Details))),
+
             UniqueConstraintException uniqueException => (
                 StatusCodes.Status409Conflict,
-                "Duplicate Value",
-                $"The value for {uniqueException.ColumnName ?? "this field"} already exists",
+                "Valor Duplicado",
+                $"O valor para {uniqueException.ColumnName ?? "este campo"} já existe",
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["constraintName"] = uniqueException.ConstraintName,
-                    ["columnName"] = uniqueException.ColumnName
-                }),
+                CreateExtensionsWithNonNullValues(
+                    ("constraintName", uniqueException.ConstraintName),
+                    ("columnName", uniqueException.ColumnName))),
 
             NotNullConstraintException notNullException => (
                 StatusCodes.Status400BadRequest,
-                "Required Field Missing",
-                $"The field {notNullException.ColumnName ?? "this field"} is required",
+                "Campo Obrigatório Ausente",
+                $"O campo {notNullException.ColumnName ?? "este campo"} é obrigatório",
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["columnName"] = notNullException.ColumnName
-                }),
+                CreateExtensionsWithNonNullValues(
+                    ("columnName", notNullException.ColumnName))),
 
             ForeignKeyConstraintException foreignKeyException => (
                 StatusCodes.Status400BadRequest,
-                "Invalid Reference",
-                $"The referenced record does not exist",
+                "Referência Inválida",
+                "O registro referenciado não existe",
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["constraintName"] = foreignKeyException.ConstraintName,
-                    ["tableName"] = foreignKeyException.TableName
-                }),
+                CreateExtensionsWithNonNullValues(
+                    ("constraintName", foreignKeyException.ConstraintName),
+                    ("tableName", foreignKeyException.TableName))),
 
             DbUpdateException dbUpdateException => ProcessDbUpdateException(dbUpdateException),
 
             NotFoundException notFoundException => (
                 StatusCodes.Status404NotFound,
-                "Resource Not Found",
+                "Recurso Não Encontrado",
                 notFoundException.Message,
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["entityName"] = notFoundException.EntityName,
-                    ["entityId"] = notFoundException.EntityId
-                }),
+                CreateExtensionsWithNonNullValues(
+                    ("entityName", notFoundException.EntityName),
+                    ("entityId", notFoundException.EntityId))),
 
             UnauthorizedAccessException => (
                 StatusCodes.Status401Unauthorized,
-                "Unauthorized",
-                "Authentication is required to access this resource",
+                "Não Autorizado",
+                "Autenticação é necessária para acessar este recurso",
                 null,
                 []),
 
             ForbiddenAccessException forbiddenException => (
                 StatusCodes.Status403Forbidden,
-                "Forbidden",
+                "Acesso Negado",
                 forbiddenException.Message,
                 null,
                 []),
 
             BusinessRuleException businessException => (
                 StatusCodes.Status400BadRequest,
-                "Business Rule Violation",
+                "Violação de Regra de Negócio",
                 businessException.Message,
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["ruleName"] = businessException.RuleName
-                }),
+                CreateExtensionsWithNonNullValues(
+                    ("ruleName", businessException.RuleName))),
 
             ArgumentException argumentException => (
                 StatusCodes.Status400BadRequest,
-                "Bad Request",
+                "Erro de validação",
                 argumentException.Message,
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["parameterName"] = argumentException.ParamName
-                }),
+                CreateExtensionsWithNonNullValues(
+                    ("parameterName", argumentException.ParamName))),
 
             DomainException domainException => (
                 StatusCodes.Status400BadRequest,
-                "Domain Rule Violation",
+                "Violação de Regra de Domínio",
                 domainException.Message,
+                null,
+                []),
+
+            BadRequestException badRequestException => (
+                StatusCodes.Status400BadRequest,
+                "Erro de validação",
+                badRequestException.Message,
                 null,
                 []),
 
             _ => (
                 StatusCodes.Status500InternalServerError,
-                "Internal Server Error",
-                "An unexpected error occurred while processing your request",
+                "Erro Interno do Servidor",
+                "Ocorreu um erro inesperado ao processar sua requisição",
                 null,
                 new Dictionary<string, object?>
                 {
@@ -172,48 +185,42 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         {
             return (
                 StatusCodes.Status409Conflict,
-                "Duplicate Value",
-                $"The value for {uniqueException.ColumnName ?? "this field"} already exists",
+                "Valor Duplicado",
+                $"O valor para {uniqueException.ColumnName ?? "este campo"} já existe",
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["constraintName"] = uniqueException.ConstraintName,
-                    ["columnName"] = uniqueException.ColumnName
-                });
+                CreateExtensionsWithNonNullValues(
+                    ("constraintName", uniqueException.ConstraintName),
+                    ("columnName", uniqueException.ColumnName)));
         }
 
         if (processedException is NotNullConstraintException notNullException)
         {
             return (
                 StatusCodes.Status400BadRequest,
-                "Required Field Missing",
-                $"The field {notNullException.ColumnName ?? "this field"} is required",
+                "Campo Obrigatório Ausente",
+                $"O campo {notNullException.ColumnName ?? "este campo"} é obrigatório",
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["columnName"] = notNullException.ColumnName
-                });
+                CreateExtensionsWithNonNullValues(
+                    ("columnName", notNullException.ColumnName)));
         }
 
         if (processedException is ForeignKeyConstraintException foreignKeyException)
         {
             return (
                 StatusCodes.Status400BadRequest,
-                "Invalid Reference",
-                "The referenced record does not exist",
+                "Referência Inválida",
+                "O registro referenciado não existe",
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["constraintName"] = foreignKeyException.ConstraintName,
-                    ["tableName"] = foreignKeyException.TableName
-                });
+                CreateExtensionsWithNonNullValues(
+                    ("constraintName", foreignKeyException.ConstraintName),
+                    ("tableName", foreignKeyException.TableName)));
         }
 
         // Fallback para DbUpdateException genérica
         return (
             StatusCodes.Status400BadRequest,
-            "Database Error",
-            "A database error occurred while processing your request",
+            "Erro de Banco de Dados",
+            "Ocorreu um erro de banco de dados ao processar sua requisição",
             null,
             new Dictionary<string, object?>
             {
@@ -228,7 +235,18 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         403 => "https://tools.ietf.org/html/rfc7231#section-6.5.3",
         404 => "https://tools.ietf.org/html/rfc7231#section-6.5.4",
         409 => "https://tools.ietf.org/html/rfc7231#section-6.5.8",
+        422 => "https://tools.ietf.org/html/rfc4918#section-11.2",
         500 => "https://tools.ietf.org/html/rfc7231#section-6.6.1",
         _ => "https://tools.ietf.org/html/rfc7231"
     };
+
+    /// <summary>
+    /// Cria um dicionário de extensões excluindo valores nulos para respostas mais limpas.
+    /// </summary>
+    private static Dictionary<string, object?> CreateExtensionsWithNonNullValues(params (string key, object? value)[] entries)
+    {
+        return entries
+            .Where(e => e.value != null)
+            .ToDictionary(e => e.key, e => e.value);
+    }
 }

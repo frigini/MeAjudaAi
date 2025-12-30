@@ -4,8 +4,8 @@ using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
-using MeAjudaAi.Shared.Tests.Mocks;
-using MeAjudaAi.Shared.Time;
+using Microsoft.Extensions.Time.Testing;
+
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
@@ -16,14 +16,14 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 public class ChangeUserUsernameCommandHandlerTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
-    private readonly MockDateTimeProvider _dateTimeProvider;
+    private readonly FakeTimeProvider _dateTimeProvider;
     private readonly Mock<ILogger<ChangeUserUsernameCommandHandler>> _loggerMock;
     private readonly ChangeUserUsernameCommandHandler _handler;
 
     public ChangeUserUsernameCommandHandlerTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
-        _dateTimeProvider = new MockDateTimeProvider();
+        _dateTimeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
         _loggerMock = new Mock<ILogger<ChangeUserUsernameCommandHandler>>();
         _handler = new ChangeUserUsernameCommandHandler(_userRepositoryMock.Object, _dateTimeProvider, _loggerMock.Object);
     }
@@ -188,7 +188,7 @@ public class ChangeUserUsernameCommandHandlerTests
 
         // Simular que o usuário mudou o username recentemente através do método ChangeUsername
         // Isso irá definir LastUsernameChangeAt para o momento atual
-        var mockDateTimeProvider = new MockDateTimeProvider();
+        var mockDateTimeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
         recentUser.ChangeUsername("tempusername", mockDateTimeProvider); // Simula mudança recente
 
         _userRepositoryMock
@@ -226,7 +226,7 @@ public class ChangeUserUsernameCommandHandlerTests
             .Build();
 
         // Simular mudança recente
-        var mockDateTimeProvider2 = new MockDateTimeProvider();
+        var mockDateTimeProvider2 = new FakeTimeProvider(DateTimeOffset.UtcNow);
         recentUser.ChangeUsername("tempusername", mockDateTimeProvider2);
 
         _userRepositoryMock

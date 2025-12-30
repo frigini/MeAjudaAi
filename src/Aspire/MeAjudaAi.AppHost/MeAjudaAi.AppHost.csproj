@@ -28,12 +28,12 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Bootstrapper\MeAjudaAi.ApiService\MeAjudaAi.ApiService.csproj" />
     <!-- Module Infrastructure projects - needed for automatic migrations -->
-    <ProjectReference Include="..\..\Modules\Documents\Infrastructure\MeAjudaAi.Modules.Documents.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\Modules\Locations\Infrastructure\MeAjudaAi.Modules.Locations.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\Modules\Providers\Infrastructure\MeAjudaAi.Modules.Providers.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\Modules\SearchProviders\Infrastructure\MeAjudaAi.Modules.SearchProviders.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\Modules\ServiceCatalogs\Infrastructure\MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\Modules\Users\Infrastructure\MeAjudaAi.Modules.Users.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Documents\Infrastructure\MeAjudaAi.Modules.Documents.Infrastructure.csproj" IsAspireProjectResource="false" />
+    <ProjectReference Include="..\..\Modules\Locations\Infrastructure\MeAjudaAi.Modules.Locations.Infrastructure.csproj" IsAspireProjectResource="false" />
+    <ProjectReference Include="..\..\Modules\Providers\Infrastructure\MeAjudaAi.Modules.Providers.Infrastructure.csproj" IsAspireProjectResource="false" />
+    <ProjectReference Include="..\..\Modules\SearchProviders\Infrastructure\MeAjudaAi.Modules.SearchProviders.Infrastructure.csproj" IsAspireProjectResource="false" />
+    <ProjectReference Include="..\..\Modules\ServiceCatalogs\Infrastructure\MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.csproj" IsAspireProjectResource="false" />
+    <ProjectReference Include="..\..\Modules\Users\Infrastructure\MeAjudaAi.Modules.Users.Infrastructure.csproj" IsAspireProjectResource="false" />
   </ItemGroup>
 
 </Project>

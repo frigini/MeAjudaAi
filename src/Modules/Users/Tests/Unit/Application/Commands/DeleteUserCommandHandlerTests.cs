@@ -1,14 +1,15 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Functional;
-using MeAjudaAi.Shared.Tests.Mocks;
-using MeAjudaAi.Shared.Time;
+using Microsoft.Extensions.Time.Testing;
+
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
@@ -17,7 +18,8 @@ public class DeleteUserCommandHandlerTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<IUserDomainService> _userDomainServiceMock;
-    private readonly MockDateTimeProvider _dateTimeProvider;
+    private readonly Mock<IUsersCacheService> _usersCacheServiceMock;
+    private readonly FakeTimeProvider _dateTimeProvider;
     private readonly Mock<ILogger<DeleteUserCommandHandler>> _loggerMock;
     private readonly DeleteUserCommandHandler _handler;
 
@@ -25,9 +27,15 @@ public class DeleteUserCommandHandlerTests
     {
         _userRepositoryMock = new Mock<IUserRepository>();
         _userDomainServiceMock = new Mock<IUserDomainService>();
-        _dateTimeProvider = new MockDateTimeProvider();
+        _usersCacheServiceMock = new Mock<IUsersCacheService>();
+        _dateTimeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
         _loggerMock = new Mock<ILogger<DeleteUserCommandHandler>>();
-        _handler = new DeleteUserCommandHandler(_userRepositoryMock.Object, _userDomainServiceMock.Object, _dateTimeProvider, _loggerMock.Object);
+        _handler = new DeleteUserCommandHandler(
+            _userRepositoryMock.Object,
+            _userDomainServiceMock.Object,
+            _usersCacheServiceMock.Object,
+            _dateTimeProvider,
+            _loggerMock.Object);
     }
 
     [Fact]
@@ -71,6 +79,10 @@ public class DeleteUserCommandHandlerTests
         _userRepositoryMock.Verify(
             x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()),
             Times.Once);
+
+        _usersCacheServiceMock.Verify(
+            x => x.InvalidateUserAsync(userId, It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -102,6 +114,10 @@ public class DeleteUserCommandHandlerTests
 
         _userRepositoryMock.Verify(
             x => x.DeleteAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+
+        _usersCacheServiceMock.Verify(
+            x => x.InvalidateUserAsync(It.IsAny<Guid>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -143,6 +159,10 @@ public class DeleteUserCommandHandlerTests
         _userRepositoryMock.Verify(
             x => x.DeleteAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
             Times.Never);
+
+        _usersCacheServiceMock.Verify(
+            x => x.InvalidateUserAsync(It.IsAny<Guid>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]
@@ -179,5 +199,9 @@ public class DeleteUserCommandHandlerTests
         _userRepositoryMock.Verify(
             x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()),
             Times.Once);
+
+        _usersCacheServiceMock.Verify(
+            x => x.InvalidateUserAsync(It.IsAny<Guid>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 }

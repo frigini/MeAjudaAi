@@ -1,6 +1,7 @@
 using System.Diagnostics.Metrics;
 using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -29,6 +30,15 @@ public class HybridCacheServiceTests : IDisposable
         services.AddMemoryCache();
         services.AddMetrics();
         services.AddLogging();
+        
+        // Add configuration with Cache:Enabled = true for tests
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Cache:Enabled"] = "true"
+            })
+            .Build();
+        services.AddSingleton<IConfiguration>(configuration);
 
         _serviceProvider = services.BuildServiceProvider();
         _hybridCache = _serviceProvider.GetRequiredService<HybridCache>();
@@ -36,7 +46,11 @@ public class HybridCacheServiceTests : IDisposable
         var meterFactory = _serviceProvider.GetRequiredService<IMeterFactory>();
         _cacheMetrics = new CacheMetrics(meterFactory);
 
-        _cacheService = new HybridCacheService(_hybridCache, Mock.Of<ILogger<HybridCacheService>>(), _cacheMetrics);
+        _cacheService = new HybridCacheService(
+            _hybridCache,
+            Mock.Of<ILogger<HybridCacheService>>(),
+            _cacheMetrics,
+            configuration);
     }
 
     public void Dispose()

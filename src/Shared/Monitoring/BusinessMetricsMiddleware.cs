@@ -1,10 +1,25 @@
 using System.Diagnostics;
-using MeAjudaAi.Shared.Constants;
+using System.Text.RegularExpressions;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Monitoring;
+
+/// <summary>
+/// Extension methods para adicionar o middleware de métricas
+/// </summary>
+public static class BusinessMetricsMiddlewareExtensions
+{
+    /// <summary>
+    /// Adiciona middleware de métricas de negócio
+    /// </summary>
+    public static IApplicationBuilder UseBusinessMetrics(this IApplicationBuilder app)
+    {
+        return app.UseMiddleware<BusinessMetricsMiddleware>();
+    }
+}
 
 /// <summary>
 /// Middleware para capturar métricas customizadas de negócio
@@ -14,6 +29,8 @@ internal class BusinessMetricsMiddleware(
     BusinessMetrics businessMetrics,
     ILogger<BusinessMetricsMiddleware> logger)
 {
+    private static readonly Regex IdPattern = new(@"/\d+", RegexOptions.Compiled);
+
     public async Task InvokeAsync(HttpContext context)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -47,31 +64,37 @@ internal class BusinessMetricsMiddleware(
         // Capturar eventos específicos de negócio
         if (path != null)
         {
-            // Registros de usuário
-            if (path.Contains("/users") && method == "POST" && statusCode is >= 200 and < 300)
+            // Registros de usuário (aceita rotas versionadas como /api/v1/users)
+            if ((path == "/api/users" || (path.StartsWith("/api/v") && path.EndsWith("/users"))) && 
+                method == "POST" && statusCode is >= 200 and < 300)
             {
                 businessMetrics.RecordUserRegistration("api");
                 logger.LogInformation("User registration completed via API");
             }
 
-            // Logins
-            if (path.Contains("/auth/login") && method == "POST" && statusCode is >= 200 and < 300)
+            // Logins (aceita rotas versionadas como /api/v1/auth/login)
+            if ((path == "/api/auth/login" || (path.StartsWith("/api/v") && path.EndsWith("/auth/login"))) && 
+                method == "POST" && statusCode is >= 200 and < 300)
             {
-                var userId = context.User?.FindFirst(AuthConstants.Claims.Subject)?.Value ?? "unknown";
-                businessMetrics.RecordUserLogin(userId, "password");
-                logger.LogInformation("User login completed: {UserId}", userId);
+                // User is unauthenticated at login endpoint, so we record as 'anonymous'
+                // To track actual userId, implement post-authentication metric or extract from request body
+                businessMetrics.RecordUserLogin("anonymous", "password");
+                logger.LogInformation("User login completed");
             }
 
-            // Solicitações de ajuda
-            if (path.Contains("/help-requests") && method == "POST" && statusCode is >= 200 and < 300)
+            // Solicitações de ajuda (aceita rotas versionadas como /api/v1/help-requests)
+            if ((path == "/api/help-requests" || (path.StartsWith("/api/v") && path.EndsWith("/help-requests"))) && 
+                method == "POST" && statusCode is >= 200 and < 300)
             {
                 // Extrair categoria e urgência dos headers ou do corpo da requisição se necessário
                 businessMetrics.RecordHelpRequestCreated("general", "normal");
                 logger.LogInformation("Help request created");
             }
 
-            // Conclusão de ajuda
-            if (path.Contains("/help-requests") && path.Contains("/complete") && method == "POST" && statusCode is >= 200 and < 300)
+            // Conclusão de ajuda (aceita rotas versionadas como /api/v1/help-requests/{id}/complete)
+            if (((path.StartsWith("/api/help-requests/") && path.EndsWith("/complete")) || 
+                 (path.StartsWith("/api/v") && path.Contains("/help-requests/") && path.EndsWith("/complete"))) && 
+                method == "POST" && statusCode is >= 200 and < 300)
             {
                 businessMetrics.RecordHelpRequestCompleted("general", elapsed);
                 logger.LogInformation("Help request completed in {ElapsedMs}ms", elapsed.TotalMilliseconds);
@@ -91,8 +114,7 @@ internal class BusinessMetricsMiddleware(
         var path = context.Request.Path.Value ?? "/";
 
         // Substituir IDs numéricos por placeholder
-        var normalizedPath = System.Text.RegularExpressions.Regex.Replace(
-            path, @"/\d+", "/{id}");
+        var normalizedPath = IdPattern.Replace(path, "/{id}");
 
         return normalizedPath;
     }

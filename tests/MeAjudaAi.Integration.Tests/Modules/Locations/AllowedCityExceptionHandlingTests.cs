@@ -11,7 +11,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 /// Integration tests for AllowedCity handlers to validate exception handling.
 /// Tests that domain exceptions are thrown correctly without full HTTP stack.
 /// </summary>
-public class AllowedCityExceptionHandlingTests : ApiTestBase
+public class AllowedCityExceptionHandlingTests : BaseApiTest
 {
     private readonly Faker _faker = new("pt_BR");
 

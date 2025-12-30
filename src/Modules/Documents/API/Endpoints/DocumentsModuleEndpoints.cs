@@ -23,6 +23,7 @@ public static class DocumentsModuleEndpoints
         endpoints.MapEndpoint<UploadDocumentEndpoint>()
             .MapEndpoint<GetDocumentStatusEndpoint>()
             .MapEndpoint<GetProviderDocumentsEndpoint>()
-            .MapEndpoint<RequestVerificationEndpoint>();
+            .MapEndpoint<RequestVerificationEndpoint>()
+            .MapEndpoint<VerifyDocumentEndpoint>();
     }
 }

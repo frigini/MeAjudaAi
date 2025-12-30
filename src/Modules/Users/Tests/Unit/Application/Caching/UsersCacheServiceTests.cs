@@ -36,15 +36,12 @@ public class UsersCacheServiceTests
         );
         Func<CancellationToken, ValueTask<UserDto?>> factory = ct => ValueTask.FromResult<UserDto?>(expectedUser);
 
+        // Setup GetAsync to return cache miss (not cached)
         _cacheServiceMock
-            .Setup(x => x.GetOrCreateAsync(
+            .Setup(x => x.GetAsync<UserDto?>(
                 It.IsAny<string>(),
-                It.IsAny<Func<CancellationToken, ValueTask<UserDto?>>>(),
-                It.IsAny<TimeSpan?>(),
-                It.IsAny<HybridCacheEntryOptions?>(),
-                It.IsAny<IReadOnlyCollection<string>?>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedUser);
+            .ReturnsAsync((default(UserDto), false));
 
         // Act
         var result = await _usersCacheService.GetOrCacheUserByIdAsync(userId, factory, _cancellationToken);
@@ -52,9 +49,14 @@ public class UsersCacheServiceTests
         // Assert
         result.Should().Be(expectedUser);
         _cacheServiceMock.Verify(
-            x => x.GetOrCreateAsync(
+            x => x.GetAsync<UserDto?>(
                 UsersCacheKeys.UserById(userId),
-                It.IsAny<Func<CancellationToken, ValueTask<UserDto?>>>(),
+                _cancellationToken),
+            Times.Once);
+        _cacheServiceMock.Verify(
+            x => x.SetAsync(
+                UsersCacheKeys.UserById(userId),
+                expectedUser,
                 It.IsAny<TimeSpan?>(),
                 It.IsAny<HybridCacheEntryOptions?>(),
                 It.IsAny<IReadOnlyCollection<string>?>(),
@@ -214,14 +216,26 @@ public class UsersCacheServiceTests
         );
         ValueTask<UserDto?> factory(CancellationToken ct) => ValueTask.FromResult<UserDto?>(userData);
 
+        // Setup GetAsync to return cache miss (not cached)
+        _cacheServiceMock
+            .Setup(x => x.GetAsync<UserDto?>(
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((default(UserDto), false));
+
         // Act
         await _usersCacheService.GetOrCacheUserByIdAsync(userId, factory, _cancellationToken);
 
         // Assert
         _cacheServiceMock.Verify(
-            x => x.GetOrCreateAsync(
+            x => x.GetAsync<UserDto?>(
                 UsersCacheKeys.UserById(userId),
-                It.IsAny<Func<CancellationToken, ValueTask<UserDto?>>>(),
+                _cancellationToken),
+            Times.Once);
+        _cacheServiceMock.Verify(
+            x => x.SetAsync(
+                UsersCacheKeys.UserById(userId),
+                userData,
                 It.IsAny<TimeSpan?>(),
                 It.IsAny<HybridCacheEntryOptions?>(),
                 It.IsAny<IReadOnlyCollection<string>?>(),

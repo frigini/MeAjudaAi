@@ -4,7 +4,9 @@ using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Tests.Infrastructure;
 using MeAjudaAi.Shared.Tests.Extensions;
-using MeAjudaAi.Shared.Tests.Infrastructure;
+using MeAjudaAi.Shared.Tests.TestInfrastructure;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -40,7 +42,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
                 DatabaseName = $"providers_test_{_testClassId}",
                 Username = "test_user",
                 Password = "test_password",
-                Schema = "meajudaai_providers",
+                Schema = "providers",
                 UseInMemoryDatabase = false
             },
             Cache = new TestCacheOptions
@@ -68,7 +70,6 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
             .WithDatabase(options.Database.DatabaseName)
             .WithUsername(options.Database.Username)
             .WithPassword(options.Database.Password)
-            .WithPortBinding(0, true) // Porta aleatória
             .Build();
 
         await _container.StartAsync();
