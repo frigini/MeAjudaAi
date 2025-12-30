@@ -70,7 +70,7 @@ public class PhoneNumberTests
 
     [Theory]
     [InlineData("1234567890")]    // 10 dígitos - mínimo válido BR
-    [InlineData("12345678901")]   // 11 dígitos - máximo válido BR
+    [InlineData("11987654321")]   // 11 dígitos - máximo válido BR (celular com 9)
     public void PhoneNumber_AtBoundaryDigitCounts_ShouldCreateSuccessfully(string value)
     {
         // Act
@@ -178,6 +178,8 @@ public class PhoneNumberTests
 
     [Theory]
     [InlineData("01987654321")]  // DDD inválido começando com 0
+    [InlineData("10987654321")]  // DDD inválido: primeiro dígito 1, segundo 0
+    [InlineData("20912345678")]  // DDD inválido: primeiro dígito 2, segundo 0
     public void PhoneNumber_WithInvalidBrazilianDDD_ShouldThrow(string value)
     {
         // Act & Assert

@@ -114,11 +114,12 @@ public class PhoneNumber : ValueObject
     /// </summary>
     private static void ValidateBrazilianPhoneNumber(string digitsOnly)
     {
-        // Validação DDD: primeiro dígito deve estar entre 1-9 (DDDs válidos: 11-99)
-        if (digitsOnly.Length >= 2 && (digitsOnly[0] < '1' || digitsOnly[0] > '9'))
+        // Validação DDD: ambos os dígitos devem estar entre 1-9 (DDDs válidos: 11-99)
+        if (digitsOnly.Length >= 2 && 
+            (digitsOnly[0] < '1' || digitsOnly[0] > '9' || digitsOnly[1] < '1' || digitsOnly[1] > '9'))
         {
             throw new ArgumentException(
-                "DDD inválido. O código de área deve começar com dígito entre 1 e 9 (DDDs válidos: 11 a 99)");
+                "DDD inválido. O código de área deve ter ambos os dígitos entre 1 e 9 (DDDs válidos: 11 a 99)");
         }
         
         // Validação celular: números com 11 dígitos devem ter 9 como terceiro dígito
