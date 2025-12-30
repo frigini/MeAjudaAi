@@ -52,7 +52,8 @@ public class PhoneNumberTests
     {
         // Act & Assert - BR requer 10-11 dígitos
         var exception = Assert.Throws<ArgumentException>(() => new PhoneNumber(value));
-        exception.Message.Should().Be("Telefone brasileiro deve ter 10 ou 11 dígitos (DDD + número)");
+        exception.Message.Should().Contain("Telefone brasileiro inválido");
+        exception.Message.Should().Contain("10 dígitos para fixo ou 11 para celular");
     }
 
     [Fact]
@@ -63,7 +64,8 @@ public class PhoneNumberTests
 
         // Act & Assert - BR aceita no máximo 11 dígitos
         var exception = Assert.Throws<ArgumentException>(() => new PhoneNumber(value));
-        exception.Message.Should().Be("Telefone brasileiro deve ter 10 ou 11 dígitos (DDD + número)");
+        exception.Message.Should().Contain("Telefone brasileiro inválido");
+        exception.Message.Should().Contain("10 dígitos para fixo ou 11 para celular");
     }
 
     [Theory]
@@ -276,7 +278,7 @@ public class PhoneNumberTests
     {
         // Arrange
         var phoneNumber1 = new PhoneNumber("(11) 99999-9999", "BR");
-        var phoneNumber2 = new PhoneNumber("(11) 88888-8888", "BR");
+        var phoneNumber2 = new PhoneNumber("11988888888");
 
         // Act & Assert
         phoneNumber1.Should().NotBe(phoneNumber2);

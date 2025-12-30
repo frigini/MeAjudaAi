@@ -20,6 +20,10 @@ public class PhoneNumber : ValueObject
         if (string.IsNullOrWhiteSpace(value))
             throw new ArgumentException("Telefone não pode ser vazio");
         
+        // Validar countryCode antes de chamar métodos de string
+        if (countryCode is null)
+            throw new ArgumentException("Código do país não pode ser nulo");
+        
         if (string.IsNullOrWhiteSpace(countryCode))
             throw new ArgumentException("Código do país não pode ser vazio");
         
