@@ -2057,7 +2057,7 @@ src/
 - **Framework**: Blazor WebAssembly (.NET 10) com AOT compilation
 - **UI Library**: MudBlazor 7.21.0+ (Material Design)
 - **State Management**: Fluxor 6.1.0+ (Flux/Redux pattern)
-- **API Client**: Refit 8.2.0+ com Polly (retry policies)
+- **API Client**: Refit 9.0.2+ com HttpClientFactory (Polly integration via IHttpClientBuilder)
 - **Autenticação**: Microsoft.AspNetCore.Components.WebAssembly.Authentication (OIDC/Keycloak)
 - **Validação**: FluentValidation (compartilhado backend/frontend)
 - **Testes**: bUnit (componentes) + Playwright (E2E)
@@ -3147,6 +3147,6 @@ LEFT JOIN providers.providers p ON al.actor_id = p.provider_id;
 
 ---
 
-*📅 Última atualização: 19 de Dezembro de 2025 (Sprint 5.5)*  
+*📅 Última atualização: 30 de Dezembro de 2025 (Sprint 6 - Blazor Admin Portal Setup)*  
 *🔄 Roadmap em constante evolução baseado em feedback, métricas e aprendizados*
-*📊 Status atual: Aguardando merge PRs #81 e #82 para iniciar desenvolvimento frontend em Q1 2026*
+*📊 Status atual: Sprint 5.5 CONCLUÍDA | Sprint 6 em andamento (branch blazor-admin-portal-setup)*

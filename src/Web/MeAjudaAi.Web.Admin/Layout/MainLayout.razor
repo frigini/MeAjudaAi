@@ -1,16 +1,19 @@
 ﻿@inherits LayoutComponentBase
-
-<MudThemeProvider />
-<MudPopoverProvider />
-<MudDialogProvider />
-<MudSnackbarProvider />
+@inject ISnackbar Snackbar
 
 <MudLayout>
     <MudAppBar Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" 
+                       Color="Color.Inherit" 
+                       Edge="Edge.Start" 
+                       OnClick="@ToggleDrawer" 
+                       Title="Toggle navigation" />
         <MudText Typo="Typo.h5" Class="ml-3">MeAjudaAi - Admin Portal</MudText>
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.Brightness4" Color="Color.Inherit" OnClick="@ToggleDarkMode" />
+        <MudIconButton Icon="@Icons.Material.Filled.Brightness4" 
+                       Color="Color.Inherit" 
+                       OnClick="@ToggleDarkMode" 
+                       Title="Toggle dark mode" />
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" Elevation="2">
         <MudDrawerHeader>
@@ -27,7 +30,6 @@
 
 @code {
     private bool _drawerOpen = true;
-    private bool _isDarkMode = false;
 
     private void ToggleDrawer()
     {
@@ -36,6 +38,8 @@
 
     private void ToggleDarkMode()
     {
-        _isDarkMode = !_isDarkMode;
+        // TODO: Implement dark mode via Fluxor state management
+        // Dark mode será implementado usando Fluxor para compartilhar estado entre componentes
+        Snackbar.Add("Dark mode coming soon!", Severity.Info);
     }
 }

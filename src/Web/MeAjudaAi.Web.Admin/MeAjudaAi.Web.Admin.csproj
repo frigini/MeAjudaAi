@@ -12,7 +12,14 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" PrivateAssets="all" />
     <PackageReference Include="MudBlazor" />
-    <PackageReference Include="Fluxor.Blazor.Web" />    <PackageReference Include="Fluxor.Blazor.Web.ReduxDevTools" />    <PackageReference Include="Refit.HttpClientFactory" />
+    <PackageReference Include="Fluxor.Blazor.Web" />
+    <PackageReference Include="Fluxor.Blazor.Web.ReduxDevTools" />
+    <PackageReference Include="Refit.HttpClientFactory" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shared\MeAjudaAi.Shared.Contracts\MeAjudaAi.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\Client\MeAjudaAi.Client.Contracts\MeAjudaAi.Client.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

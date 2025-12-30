@@ -1,0 +1,53 @@
+@page "/settings"
+
+<PageTitle>Settings - MeAjudaAi Admin</PageTitle>
+
+<MudText Typo="Typo.h3" Class="mb-4">Settings</MudText>
+
+<MudGrid>
+    <MudItem xs="12" md="6">
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Appearance</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudSwitch @bind-Value="_notificationsEnabled" Color="Color.Primary" Label="Enable notifications" />
+                <MudSelect T="string" Label="Language" @bind-Value="_selectedLanguage" Class="mt-4">
+                    <MudSelectItem Value="@("pt-BR")">Português (Brasil)</MudSelectItem>
+                    <MudSelectItem Value="@("en-US")">English (US)</MudSelectItem>
+                    <MudSelectItem Value="@("es-ES")">Español</MudSelectItem>
+                </MudSelect>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+
+    <MudItem xs="12" md="6">
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">System</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText Typo="Typo.body2">API Version: v1</MudText>
+                <MudText Typo="Typo.body2">Environment: Development</MudText>
+                <MudText Typo="Typo.body2" Class="mt-2">
+                    Configurações de sistema, integrações (Keycloak, Azure, etc.) e preferências do usuário serão implementadas aqui.
+                </MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private bool _notificationsEnabled = true;
+    private string _selectedLanguage = "pt-BR";
+
+    // Configurações de sistema:
+    // - Preferências do usuário (tema, idioma, notificações)
+    // - Configurações de integração (Keycloak, Azure services)
+    // - Logs de auditoria e monitoramento
+    // - Gerenciamento de cache e performance
+}
