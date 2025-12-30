@@ -1,16 +1,26 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Caching;
 
-public class HybridCacheService(
-    HybridCache hybridCache,
+public class HybridCacheService(    HybridCache hybridCache,
     ILogger<HybridCacheService> logger,
-    CacheMetrics metrics) : ICacheService
+    CacheMetrics metrics,
+    IConfiguration configuration) : ICacheService
 {
+    private readonly bool _isCacheEnabled = configuration.GetValue<bool>("Cache:Enabled", true);
+    
     public async Task<(T? value, bool isCached)> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
+        // If cache is disabled, bypass and return cache miss
+        if (!_isCacheEnabled)
+        {
+            logger.LogDebug("Cache disabled - bypassing cache for key {Key}", key);
+            return (default, false);
+        }
+
         var stopwatch = Stopwatch.StartNew();
         var factoryCalled = false;
 
@@ -51,6 +61,13 @@ public class HybridCacheService(
         IReadOnlyCollection<string>? tags = null,
         CancellationToken cancellationToken = default)
     {
+        // If cache is disabled, bypass and do not set
+        if (!_isCacheEnabled)
+        {
+            logger.LogDebug("Cache disabled - bypassing cache for key {Key}", key);
+            return;
+        }
+
         var stopwatch = Stopwatch.StartNew();
 
         try
@@ -72,6 +89,13 @@ public class HybridCacheService(
 
     public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
+        // If cache is disabled, bypass and do not remove
+        if (!_isCacheEnabled)
+        {
+            logger.LogDebug("Cache disabled - bypassing removal for key {Key}", key);
+            return;
+        }
+
         try
         {
             await hybridCache.RemoveAsync(key, cancellationToken);
@@ -84,6 +108,13 @@ public class HybridCacheService(
 
     public async Task RemoveByPatternAsync(string pattern, CancellationToken cancellationToken = default)
     {
+        // If cache is disabled, bypass and do not remove
+        if (!_isCacheEnabled)
+        {
+            logger.LogDebug("Cache disabled - bypassing removal for pattern {Pattern}", pattern);
+            return;
+        }
+
         try
         {
             // TODO(#250): HybridCache only supports tag-based removal, not wildcard pattern matching.
@@ -102,6 +133,13 @@ public class HybridCacheService(
 
     public async Task RemoveByTagAsync(string tag, CancellationToken cancellationToken = default)
     {
+        // If cache is disabled, bypass and do not remove
+        if (!_isCacheEnabled)
+        {
+            logger.LogDebug("Cache disabled - bypassing removal for tag {Tag}", tag);
+            return;
+        }
+
         try
         {
             await hybridCache.RemoveByTagAsync(tag, cancellationToken);
@@ -120,6 +158,13 @@ public class HybridCacheService(
         IReadOnlyCollection<string>? tags = null,
         CancellationToken cancellationToken = default)
     {
+        // If cache is disabled, bypass and call factory directly
+        if (!_isCacheEnabled)
+        {
+            logger.LogDebug("Cache disabled - bypassing cache for key {Key}", key);
+            return await factory(cancellationToken);
+        }
+
         var stopwatch = Stopwatch.StartNew();
         var factoryCalled = false;
 

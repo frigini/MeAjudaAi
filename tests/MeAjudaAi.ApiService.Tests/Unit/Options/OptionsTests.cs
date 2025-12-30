@@ -5,6 +5,21 @@ using MeAjudaAi.ApiService.Options.RateLimit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Options;
 
+/// <summary>
+/// Testes para classes de Options (POCOs de configuração).
+/// 
+/// NOTA: Estes testes validam a estrutura das classes de Options, garantindo que:
+/// 1. As propriedades estão definidas corretamente
+/// 2. Os valores padrão são inicializados
+/// 3. Getters e Setters funcionam adequadamente
+/// 
+/// Embora essas validações sejam testadas indiretamente através dos testes de integração
+/// que usam essas Options, mantemos estes testes unitários por:
+/// - Documentação clara da estrutura esperada de cada Option
+/// - Detecção rápida de mudanças acidentais em propriedades
+/// - Validação de valores padrão sem necessidade de configuração completa
+/// - Facilita refatoração e evolução das classes de Options
+/// </summary>
 [Trait("Category", "Unit")]
 [Trait("Layer", "ApiService")]
 public class OptionsTests

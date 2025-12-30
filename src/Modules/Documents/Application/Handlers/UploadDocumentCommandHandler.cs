@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
+using MeAjudaAi.Modules.Documents.Application.Options;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
@@ -9,6 +10,7 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Jobs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
@@ -19,18 +21,21 @@ namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 /// <param name="blobStorageService">Serviço para operações de armazenamento de blobs.</param>
 /// <param name="backgroundJobService">Serviço para enfileirar jobs em segundo plano.</param>
 /// <param name="httpContextAccessor">Acessor para o contexto HTTP.</param>
+/// <param name="uploadOptions">Opções de configuração para upload de documentos.</param>
 /// <param name="logger">Instância do logger.</param>
 public class UploadDocumentCommandHandler(
     IDocumentRepository documentRepository,
     IBlobStorageService blobStorageService,
     IBackgroundJobService backgroundJobService,
     IHttpContextAccessor httpContextAccessor,
+    IOptions<DocumentUploadOptions> uploadOptions,
     ILogger<UploadDocumentCommandHandler> logger) : ICommandHandler<UploadDocumentCommand, UploadDocumentResponse>
 {
     private readonly IDocumentRepository _documentRepository = documentRepository ?? throw new ArgumentNullException(nameof(documentRepository));
     private readonly IBlobStorageService _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
     private readonly IBackgroundJobService _backgroundJobService = backgroundJobService ?? throw new ArgumentNullException(nameof(backgroundJobService));
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
+    private readonly DocumentUploadOptions _uploadOptions = uploadOptions?.Value ?? throw new ArgumentNullException(nameof(uploadOptions));
     private readonly ILogger<UploadDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<UploadDocumentResponse> HandleAsync(UploadDocumentCommand command, CancellationToken cancellationToken = default)
@@ -74,10 +79,13 @@ public class UploadDocumentCommandHandler(
                 throw new ArgumentException($"Invalid document type: {command.DocumentType}");
             }
 
-            // Validação de tamanho de arquivo
-            if (command.FileSizeBytes > 10 * 1024 * 1024) // 10MB
+            // Validação de tamanho de arquivo (específico por tipo ou global)
+            var maxFileSize = _uploadOptions.GetMaxFileSizeForDocumentType(command.DocumentType);
+            if (command.FileSizeBytes > maxFileSize)
             {
-                throw new ArgumentException("File too large. Maximum: 10MB");
+                var maxSizeMB = maxFileSize / (1024.0 * 1024.0);
+                throw new ArgumentException(
+                    $"File too large for {command.DocumentType}. Maximum: {maxSizeMB:F1}MB");
             }
 
             // Validação null-safe e tolerante a parâmetros de content-type
@@ -87,12 +95,9 @@ public class UploadDocumentCommandHandler(
             }
 
             var mediaType = command.ContentType.Split(';')[0].Trim().ToLowerInvariant();
-            // TODO: Considerar tornar o limite de tamanho e os tipos permitidos configuráveis via appsettings.json
-            //       quando surgirem requisitos diferentes para ambientes de implantação
-            var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/jpg", "application/pdf" };
-            if (!allowedContentTypes.Contains(mediaType))
+            if (!_uploadOptions.AllowedContentTypes.Contains(mediaType))
             {
-                throw new ArgumentException($"File type not allowed: {mediaType}");
+                throw new ArgumentException($"File type not allowed: {mediaType}. Allowed types: {string.Join(", ", _uploadOptions.AllowedContentTypes)}");
             }
 
             // Gera nome único do blob

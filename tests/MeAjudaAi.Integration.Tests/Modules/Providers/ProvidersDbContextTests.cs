@@ -7,7 +7,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 /// <summary>
 /// Testes para verificar se o ProvidersDbContext está funcionando corretamente
 /// </summary>
-public class ProvidersDbContextTests : ApiTestBase
+public class ProvidersDbContextTests : BaseApiTest
 {
     [Fact]
     public async Task CanConnectToDatabase_ShouldWork()

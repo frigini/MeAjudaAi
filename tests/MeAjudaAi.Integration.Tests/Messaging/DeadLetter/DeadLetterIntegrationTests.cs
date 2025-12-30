@@ -1,8 +1,12 @@
 using FluentAssertions;
+using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.DeadLetter;
-using MeAjudaAi.Shared.Tests.Base;
-using MeAjudaAi.Shared.Tests.Infrastructure;
-using MeAjudaAi.Shared.Tests.Mocks;
+using MeAjudaAi.Shared.Messaging.Factories;
+using MeAjudaAi.Shared.Messaging.Options;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
+using MeAjudaAi.Shared.Tests.TestInfrastructure;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
@@ -14,8 +18,23 @@ namespace MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter;
 [Trait("Category", "Integration")]
 [Trait("Layer", "Shared")]
 [Trait("Component", "DeadLetterSystem")]
-public class DeadLetterIntegrationTests : IntegrationTestBase
+public class DeadLetterIntegrationTests : BaseIntegrationTest
 {
+    private static RabbitMqOptions CreateTestRabbitMqOptions()
+    {
+        return new RabbitMqOptions
+        {
+            ConnectionString = "amqp://localhost",
+            DefaultQueueName = "test-queue",
+            Host = "localhost",
+            Port = 5672,
+            Username = "guest",
+            Password = "guest",
+            VirtualHost = "/",
+            DomainQueues = new Dictionary<string, string> { ["Users"] = "users-events-test" }
+        };
+    }
+
     protected override TestInfrastructureOptions GetTestOptions()
     {
         return new TestInfrastructureOptions
@@ -41,46 +60,26 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         services.AddSingleton(configuration);
         services.AddSingleton(CreateHostEnvironment("Development"));
 
-        // CORRIGIR: Adicionar RabbitMqOptions que está faltando no DI
-        services.AddSingleton(new MeAjudaAi.Shared.Messaging.RabbitMq.RabbitMqOptions
-        {
-            ConnectionString = "amqp://localhost",
-            DefaultQueueName = "test-queue",
-            Host = "localhost",
-            Port = 5672,
-            Username = "guest",
-            Password = "guest",
-            VirtualHost = "/",
-            DomainQueues = new Dictionary<string, string> { ["Users"] = "users-events-test" }
-        });
+        // Registra RabbitMqOptions explicitamente para os testes de Dead Letter
+        services.AddSingleton(CreateTestRabbitMqOptions());
     }
+
     [Fact]
-    public void DeadLetterSystem_WithDevelopmentEnvironment_UsesNoOpService()
+    public void DeadLetterSystem_WithTestingEnvironment_UsesNoOpService()
     {
         // Arrange
         var services = new ServiceCollection();
         var configuration = CreateConfiguration();
-        var environment = CreateHostEnvironment("Testing"); // CORRIGIR: Usar Testing em vez de Development para NoOpService
+        var environment = CreateHostEnvironment("Testing"); // Usa ambiente Testing para NoOpService
 
         services.AddLogging();
         services.AddSingleton(configuration);
         services.AddSingleton(environment);
 
-        // CORRIGIR: Adicionar RabbitMqOptions que está faltando no DI
-        services.AddSingleton(new MeAjudaAi.Shared.Messaging.RabbitMq.RabbitMqOptions
-        {
-            ConnectionString = "amqp://localhost",
-            DefaultQueueName = "test-queue",
-            Host = "localhost",
-            Port = 5672,
-            Username = "guest",
-            Password = "guest",
-            VirtualHost = "/",
-            DomainQueues = new Dictionary<string, string> { ["Users"] = "users-events-test" }
-        });
+        services.AddSingleton(CreateTestRabbitMqOptions());
 
         // Act
-        Shared.Messaging.Extensions.DeadLetterExtensions.AddDeadLetterQueue(
+        MessagingExtensions.AddDeadLetterQueue(
             services, configuration);
 
         var serviceProvider = services.BuildServiceProvider();
@@ -103,21 +102,10 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         services.AddSingleton(configuration);
         services.AddSingleton(environment);
 
-        // CORRIGIR: Adicionar RabbitMqOptions que está faltando no DI
-        services.AddSingleton(new MeAjudaAi.Shared.Messaging.RabbitMq.RabbitMqOptions
-        {
-            ConnectionString = "amqp://localhost",
-            DefaultQueueName = "test-queue",
-            Host = "localhost",
-            Port = 5672,
-            Username = "guest",
-            Password = "guest",
-            VirtualHost = "/",
-            DomainQueues = new Dictionary<string, string> { ["Users"] = "users-events-test" }
-        });
+        services.AddSingleton(CreateTestRabbitMqOptions());
 
         // Act
-        Shared.Messaging.Extensions.DeadLetterExtensions.AddDeadLetterQueue(
+        MessagingExtensions.AddDeadLetterQueue(
             services, configuration);
 
         var serviceProvider = services.BuildServiceProvider();
@@ -125,7 +113,7 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         // Assert
         var factory = serviceProvider.GetRequiredService<IDeadLetterServiceFactory>();
         factory.Should().NotBeNull();
-        factory.Should().BeOfType<EnvironmentBasedDeadLetterServiceFactory>();
+        factory.Should().BeOfType<DeadLetterServiceFactory>();
     }
 
     [Fact]
@@ -140,21 +128,10 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         services.AddSingleton(configuration);
         services.AddSingleton(environment);
 
-        // CORRIGIR: Adicionar RabbitMqOptions que está faltando no DI
-        services.AddSingleton(new MeAjudaAi.Shared.Messaging.RabbitMq.RabbitMqOptions
-        {
-            ConnectionString = "amqp://localhost",
-            DefaultQueueName = "test-queue",
-            Host = "localhost",
-            Port = 5672,
-            Username = "guest",
-            Password = "guest",
-            VirtualHost = "/",
-            DomainQueues = new Dictionary<string, string> { ["Users"] = "users-events-test" }
-        });
+        services.AddSingleton(CreateTestRabbitMqOptions());
 
         // Act
-        Shared.Messaging.Extensions.DeadLetterExtensions.AddDeadLetterQueue(
+        MessagingExtensions.AddDeadLetterQueue(
             services, configuration);
 
         var serviceProvider = services.BuildServiceProvider();
@@ -171,7 +148,7 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         shouldRetryPermanent.Should().BeFalse();
     }
 
-    [Fact]
+    [Fact(Skip = "Implementation pending - requires actual retry middleware logic")]
     public void MessageRetryMiddleware_EndToEnd_WorksWithDeadLetterSystem()
     {
         // Arrange
@@ -183,32 +160,19 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         services.AddSingleton(configuration);
         services.AddSingleton(environment);
 
-        // CORRIGIR: Adicionar RabbitMqOptions que está faltando no DI
-        services.AddSingleton(new MeAjudaAi.Shared.Messaging.RabbitMq.RabbitMqOptions
-        {
-            ConnectionString = "amqp://localhost",
-            DefaultQueueName = "test-queue",
-            Host = "localhost",
-            Port = 5672,
-            Username = "guest",
-            Password = "guest",
-            VirtualHost = "/",
-            DomainQueues = new Dictionary<string, string> { ["Users"] = "users-events-test" }
-        });
+        services.AddSingleton(CreateTestRabbitMqOptions());
 
-        Shared.Messaging.Extensions.DeadLetterExtensions.AddDeadLetterQueue(
+        MessagingExtensions.AddDeadLetterQueue(
             services, configuration);
 
         var serviceProvider = services.BuildServiceProvider();
         var message = new TestMessage { Id = "integration-test" };
-        var callCount = 0;
 
-        // Act
-        var result = true; // Simula sucesso para o teste
-
-        // Assert
-        result.Should().BeTrue();
-        callCount.Should().Be(0); // Nenhuma chamada feita ainda
+        // TODO: Implementar lógica end-to-end real para MessageRetryMiddleware
+        // Este teste requer implementar:
+        // 1. Simular falha no processamento da mensagem
+        // 2. Verificar tentativas de retry
+        // 3. Confirmar que a mensagem vai para a fila de dead letter após o número máximo de tentativas
     }
 
     [Fact]

@@ -12,7 +12,7 @@ public class ProviderServiceConfiguration : IEntityTypeConfiguration<ProviderSer
 {
     public void Configure(EntityTypeBuilder<ProviderService> builder)
     {
-        builder.ToTable("provider_services", "meajudaai_providers");
+        builder.ToTable("provider_services", "providers");
 
         // Chave composta: ProviderId + ServiceId
         builder.HasKey(ps => new { ps.ProviderId, ps.ServiceId });

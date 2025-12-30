@@ -4,7 +4,7 @@ using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Documents;
@@ -13,7 +13,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Documents;
 /// Integration tests for DocumentRepository with real database (TestContainers).
 /// Tests actual persistence logic, EF mappings, and database constraints.
 /// </summary>
-public class DocumentRepositoryIntegrationTests : ApiTestBase
+public class DocumentRepositoryIntegrationTests : BaseApiTest
 {
     private readonly Faker _faker = new("pt_BR");
 

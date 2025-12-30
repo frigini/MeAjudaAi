@@ -31,7 +31,7 @@ public class ProvidersDbContext : DbContext
     /// <param name="modelBuilder">Construtor do modelo</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("meajudaai_providers");
+        modelBuilder.HasDefaultSchema("providers");
 
         // Aplica configurações do assembly
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

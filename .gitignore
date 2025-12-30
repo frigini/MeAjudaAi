@@ -31,6 +31,7 @@ bld/
 msbuild.log
 msbuild.err
 msbuild.wrn
+*.binlog
 
 # Visual Studio
 .vs/
@@ -137,6 +138,7 @@ postgres_data/
 legacy-analysis-report.*
 *-analysis-report.html
 *-analysis-report.json
+*QUALITY_ANALYSIS.md
 
 # Archived scripts
 .archive/

@@ -2,7 +2,7 @@ using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Domain.Exceptions;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities;
 
 namespace MeAjudaAi.Modules.Users.Domain.Entities;
 
@@ -43,6 +43,14 @@ public sealed class User : AggregateRoot<UserId>
     /// Sobrenome do usuário.
     /// </summary>
     public string LastName { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// Número de telefone do usuário (opcional).
+    /// </summary>
+    /// <remarks>
+    /// Implementado como value object com validação de formato.
+    /// </remarks>
+    public PhoneNumber? PhoneNumber { get; private set; }
 
     /// <summary>
     /// Identificador único do usuário no Keycloak (sistema de autenticação externo).
@@ -95,11 +103,12 @@ public sealed class User : AggregateRoot<UserId>
     /// <param name="firstName">Primeiro nome</param>
     /// <param name="lastName">Sobrenome</param>
     /// <param name="keycloakId">ID do usuário no Keycloak</param>
+    /// <param name="phoneNumber">Número de telefone (opcional)</param>
     /// <remarks>
     /// Este construtor dispara automaticamente o evento UserRegisteredDomainEvent.
     /// </remarks>
     /// <exception cref="UserDomainException">Thrown when business rules are violated</exception>
-    public User(Username username, Email email, string firstName, string lastName, string keycloakId)
+    public User(Username username, Email email, string firstName, string lastName, string keycloakId, string? phoneNumber = null)
         : base(UserId.New())
     {
         ArgumentNullException.ThrowIfNull(username);
@@ -113,6 +122,12 @@ public sealed class User : AggregateRoot<UserId>
         FirstName = firstName;
         LastName = lastName;
         KeycloakId = keycloakId;
+        
+        // Define PhoneNumber se fornecido
+        if (!string.IsNullOrWhiteSpace(phoneNumber))
+        {
+            PhoneNumber = new PhoneNumber(phoneNumber);
+        }
 
         AddDomainEvent(new UserRegisteredDomainEvent(Id.Value, 1, email.Value, username.Value, firstName, lastName));
     }
@@ -120,8 +135,10 @@ public sealed class User : AggregateRoot<UserId>
     /// <summary>
     /// Atualiza as informações básicas do perfil do usuário (nome e sobrenome).
     /// </summary>
-    /// <param name="firstName">Novo primeiro nome</param>
-    /// <param name="lastName">Novo sobrenome</param>
+    /// <param name="firstName">Novo primeiro nome do usuário</param>
+    /// <param name="lastName">Novo sobrenome do usuário</param>
+    /// <param name="email">Novo email (opcional). Use null para não alterar. String vazia/whitespace será rejeitada.</param>
+    /// <param name="phoneNumber">Novo número de telefone (opcional). Use null para não alterar. String vazia/whitespace será rejeitada.</param>
     /// <remarks>
     /// ⚠️ OPERAÇÃO ESPECÍFICA: Este método atualiza APENAS o nome e sobrenome.
     /// 
@@ -145,39 +162,73 @@ public sealed class User : AggregateRoot<UserId>
     /// - Usuário está deletado
     /// - Nome ou sobrenome são vazios
     /// - Nome ou sobrenome não atendem aos critérios de tamanho (2-100 caracteres)
+    /// - Email ou PhoneNumber são strings vazias/whitespace (use null para não alterar)
     /// </exception>
-    public void UpdateProfile(string firstName, string lastName)
+    public void UpdateProfile(string firstName, string lastName, string? email = null, string? phoneNumber = null)
     {
         ValidateProfileUpdate();
 
-        if (FirstName == firstName && LastName == lastName)
-            return;
+        // Validação defensiva: rejeita strings vazias/whitespace
+        if (email is not null && string.IsNullOrWhiteSpace(email))
+            throw new UserDomainException("Email cannot be empty or whitespace. Use null to leave unchanged.");
+        
+        if (phoneNumber is not null && string.IsNullOrWhiteSpace(phoneNumber))
+            throw new UserDomainException("PhoneNumber cannot be empty or whitespace. Use null to leave unchanged.");
 
+        var hasChanges = FirstName != firstName || LastName != lastName;
+        var emailChanged = false;
+        var phoneChanged = false;
+        
         FirstName = firstName;
         LastName = lastName;
+        
+        if (email != null)
+        {
+            Email = new Email(email);
+            hasChanges = true;
+            emailChanged = true;
+        }
+        
+        if (phoneNumber != null)
+        {
+            PhoneNumber = new PhoneNumber(phoneNumber);
+            hasChanges = true;
+            phoneChanged = true;
+        }
+        
+        if (!hasChanges)
+            return;
+
         MarkAsUpdated();
 
-        AddDomainEvent(new UserProfileUpdatedDomainEvent(Id.Value, 1, firstName, lastName));
+        // Evento de domínio com todas as mudanças (usando valores normalizados do agregado)
+        AddDomainEvent(new UserProfileUpdatedDomainEvent(
+            Id.Value, 
+            1, 
+            firstName, 
+            lastName, 
+            emailChanged ? Email.Value : null, 
+            phoneChanged ? PhoneNumber?.Value : null));
     }
 
     /// <summary>
     /// Marca o usuário como excluído logicamente do sistema.
     /// </summary>
-    /// <param name="dateTimeProvider">Provedor de data/hora para testabilidade</param>
+    /// <param name="timeProvider">Provedor de data/hora para testabilidade</param>
     /// <remarks>
     /// Implementa exclusão lógica (soft delete) em vez de remoção física dos dados.
     /// Dispara o evento UserDeletedDomainEvent quando a exclusão é realizada.
     /// Se o usuário já estiver excluído, o método retorna sem fazer alterações.
     /// </remarks>
-    public void MarkAsDeleted(IDateTimeProvider dateTimeProvider)
+    public void MarkAsDeleted(TimeProvider timeProvider)
     {
-        ArgumentNullException.ThrowIfNull(dateTimeProvider);
+        ArgumentNullException.ThrowIfNull(timeProvider);
 
         if (IsDeleted)
             return;
 
         IsDeleted = true;
-        DeletedAt = dateTimeProvider.CurrentDate();
+        DeletedAt = timeProvider.GetUtcNow().UtcDateTime;
         MarkAsUpdated();
 
         AddDomainEvent(new UserDeletedDomainEvent(Id.Value, 1));
@@ -242,15 +293,15 @@ public sealed class User : AggregateRoot<UserId>
     /// Altera o nome de usuário (username)
     /// </summary>
     /// <param name="newUsername">Novo nome de usuário</param>
-    /// <param name="dateTimeProvider">Provedor de data/hora para testabilidade</param>
+    /// <param name="timeProvider">Provedor de data/hora para testabilidade</param>
     /// <exception cref="UserDomainException">Lançada quando o usuário está deletado</exception>
     /// <remarks>
     /// Este método deve ser usado com cuidado, pois requer sincronização com o Keycloak.
     /// Mudanças de username podem afetar a autenticação e devem ser validadas quanto à unicidade.
     /// </remarks>
-    public void ChangeUsername(string newUsername, IDateTimeProvider dateTimeProvider)
+    public void ChangeUsername(string newUsername, TimeProvider timeProvider)
     {
-        ArgumentNullException.ThrowIfNull(dateTimeProvider);
+        ArgumentNullException.ThrowIfNull(timeProvider);
 
         if (IsDeleted)
             throw UserDomainException.ForInvalidOperation("ChangeUsername", "user is deleted");
@@ -260,7 +311,7 @@ public sealed class User : AggregateRoot<UserId>
 
         var oldUsername = Username;
         Username = newUsername;
-        LastUsernameChangeAt = dateTimeProvider.CurrentDate();
+        LastUsernameChangeAt = timeProvider.GetUtcNow().UtcDateTime;
         MarkAsUpdated();
 
         // Adiciona evento de domínio para sincronização com sistemas externos
@@ -270,17 +321,17 @@ public sealed class User : AggregateRoot<UserId>
     /// <summary>
     /// Verifica se o usuário pode alterar o username baseado em rate limiting.
     /// </summary>
-    /// <param name="dateTimeProvider">Provedor de data/hora para testabilidade</param>
+    /// <param name="timeProvider">Provedor de data/hora para testabilidade</param>
     /// <param name="minimumDaysBetweenChanges">Número mínimo de dias entre mudanças de username</param>
     /// <returns>True se pode alterar, False se deve aguardar</returns>
-    public bool CanChangeUsername(IDateTimeProvider dateTimeProvider, int minimumDaysBetweenChanges = 30)
+    public bool CanChangeUsername(TimeProvider timeProvider, int minimumDaysBetweenChanges = 30)
     {
-        ArgumentNullException.ThrowIfNull(dateTimeProvider);
+        ArgumentNullException.ThrowIfNull(timeProvider);
 
         if (LastUsernameChangeAt == null)
             return true;
 
-        var daysSinceLastChange = (dateTimeProvider.CurrentDate() - LastUsernameChangeAt.Value).TotalDays;
+        var daysSinceLastChange = (timeProvider.GetUtcNow().UtcDateTime - LastUsernameChangeAt.Value).TotalDays;
         return daysSinceLastChange >= minimumDaysBetweenChanges;
     }
 }

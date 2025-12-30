@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
