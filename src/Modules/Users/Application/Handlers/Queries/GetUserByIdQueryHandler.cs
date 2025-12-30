@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
@@ -36,7 +37,7 @@ internal sealed class GetUserByIdQueryHandler(
     /// <returns>
     /// Resultado da operação contendo:
     /// - Sucesso: UserDto com os dados do usuário encontrado
-    /// - Falha: Mensagem "User not found" caso o usuário não exista
+    /// - Falha: Error.NotFound se usuário não existe, Error.Internal para outros erros
     /// </returns>
     /// <remarks>
     /// O processo utiliza cache distribuído para melhorar performance:
@@ -45,6 +46,8 @@ internal sealed class GetUserByIdQueryHandler(
     /// 3. Converte para DTO se encontrado ou retorna erro
     /// 
     /// Utiliza value object UserId para garantir type safety.
+    /// Todas as exceções são capturadas e convertidas em Result.Failure para manter
+    /// um contrato de API consistente baseado no padrão Result.
     /// </remarks>
     public async Task<Result<UserDto>> HandleAsync(
         GetUserByIdQuery query,

@@ -12,11 +12,22 @@ public sealed class DeleteAllowedCityHandler(IAllowedCityRepository repository) 
 {
     public async Task HandleAsync(DeleteAllowedCityCommand command, CancellationToken cancellationToken = default)
     {
-        // Buscar entidade existente
-        var city = await repository.GetByIdAsync(command.Id, cancellationToken)
-            ?? throw new AllowedCityNotFoundException(command.Id);
+        try
+        {
+            // Buscar entidade existente
+            var city = await repository.GetByIdAsync(command.Id, cancellationToken)
+                ?? throw new AllowedCityNotFoundException(command.Id);
 
-        // Deletar
-        await repository.DeleteAsync(city, cancellationToken);
+            // Deletar
+            await repository.DeleteAsync(city, cancellationToken);
+        }
+        catch (AllowedCityNotFoundException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to delete allowed city with ID {command.Id}", ex);
+        }
     }
 }

@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -45,6 +45,27 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasColumnName("email")
             .HasMaxLength(ValidationConstants.UserLimits.EmailMaxLength)
             .IsRequired();
+
+        // PhoneNumber - value object opcional/nullable persistido como owned type em colunas individuais
+        // Colunas: phone_number e phone_country_code (não usa armazenamento JSON)
+        builder.OwnsOne(u => u.PhoneNumber, phone =>
+        {
+            phone.Property(p => p.Value)
+                .HasColumnName("phone_number")
+                .HasMaxLength(20)
+                .IsRequired(false);
+
+            phone.Property(p => p.CountryCode)
+                .HasColumnName("phone_country_code")
+                .HasMaxLength(5)
+                .HasDefaultValue("BR")
+                .IsRequired(false);
+        });
+        
+        // Make the PhoneNumber navigation optional - EF won't create instance if phone_number is null
+        builder.Navigation(u => u.PhoneNumber)
+            .IsRequired(false)
+            .AutoInclude(false);
 
         // Primitive value object
         builder.Property(u => u.FirstName)

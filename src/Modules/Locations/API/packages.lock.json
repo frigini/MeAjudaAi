@@ -409,9 +409,11 @@
       "meajudaai.modules.locations.infrastructure": {
         "type": "Project",
         "dependencies": {
+          "EFCore.NamingConventions": "[10.0.0-rc.2, )",
           "MeAjudaAi.Modules.Locations.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.Domain": "[1.0.0, )",
-          "MeAjudaAi.Shared": "[1.0.0, )"
+          "MeAjudaAi.Shared": "[1.0.0, )",
+          "Microsoft.EntityFrameworkCore.Design": "[10.0.1, )"
         }
       },
       "meajudaai.shared": {
@@ -494,6 +496,16 @@
         "requested": "[2.1.66, )",
         "resolved": "2.1.66",
         "contentHash": "/q77jUgDOS+bzkmk3Vy9SiWMaetTw+NOoPAV0xPBsGVAyljd5S6P+4RUW7R3ZUGGr9lDRyPKgAMj2UAOwvqZYw=="
+      },
+      "EFCore.NamingConventions": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.0-rc.2, )",
+        "resolved": "10.0.0-rc.2",
+        "contentHash": "aEW98rqqGG4DdLcTlJ2zpi6bmnDcftG4NhhpYtXuXyaM07hlLpf043DRBuEa+aWMcLVoTTOgrtcC7dfI/luvYA==",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "10.0.0-rc.2.25502.107",
+          "Microsoft.EntityFrameworkCore.Relational": "10.0.0-rc.2.25502.107"
+        }
       },
       "FluentValidation": {
         "type": "CentralTransitive",

@@ -1,6 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Shared.Events;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Events;
 
@@ -11,7 +11,7 @@ namespace MeAjudaAi.Shared.Tests.Unit.Events;
 [Trait("Component", "Events")]
 public class DomainEventTests
 {
-    // Concrete implementation for testing abstract class
+    // Implementação concreta para testar a classe abstrata
     private record TestDomainEvent(Guid AggregateId, int Version) : DomainEvent(AggregateId, Version);
 
     [Fact]
@@ -126,7 +126,7 @@ public class DomainEventTests
         var event2 = new TestDomainEvent(aggregateId, 1);
 
         // Act & Assert
-        // Records compare by value, but Id and OccurredAt are different
+        // Records comparam por valor, mas Id e OccurredAt são diferentes
         event1.AggregateId.Should().Be(event2.AggregateId);
         event1.Version.Should().Be(event2.Version);
         event1.Id.Should().NotBe(event2.Id);
@@ -140,13 +140,13 @@ public class DomainEventTests
         for (int i = 0; i < 10; i++)
         {
             events.Add(new TestDomainEvent(Guid.NewGuid(), i));
-            Thread.Sleep(1); // Small delay to ensure different timestamps
+            Thread.Sleep(1); // Pequeno delay para garantir timestamps diferentes
         }
 
         // Assert
         var sortedIds = events.Select(e => e.Id).OrderBy(id => id).ToList();
         sortedIds.Should().Equal(events.Select(e => e.Id),
-            "UUID v7 should be sortable by timestamp");
+            "UUID v7 deve ser ordenável por timestamp");
     }
 
     [Fact]

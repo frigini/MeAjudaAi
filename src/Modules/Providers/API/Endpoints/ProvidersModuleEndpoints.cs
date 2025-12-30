@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
+using MeAjudaAi.Modules.Providers.API.Endpoints.ProviderServices;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
 
@@ -38,6 +39,8 @@ public static class ProvidersModuleEndpoints
     /// - DELETE /{id}/documents/{documentType} - Remover documento
     /// - PUT /{id}/verification-status - Atualizar status
     /// - DELETE /{id} - Excluir prestador
+    /// - POST /{id}/services/{serviceId} - Adicionar serviço ao provider
+    /// - DELETE /{id}/services/{serviceId} - Remover serviço do provider
     /// </remarks>
     public static void MapProvidersEndpoints(this WebApplication app)
     {
@@ -60,5 +63,9 @@ public static class ProvidersModuleEndpoints
             .MapEndpoint<UpdateVerificationStatusEndpoint>()
             .MapEndpoint<RequireBasicInfoCorrectionEndpoint>()
             .MapEndpoint<DeleteProviderEndpoint>();
+        
+        // Endpoints de associação de serviços
+        endpoints.MapEndpoint<AddServiceToProviderEndpoint>()
+            .MapEndpoint<RemoveServiceFromProviderEndpoint>();
     }
 }

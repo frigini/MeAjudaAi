@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Functional;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
@@ -17,25 +18,29 @@ public sealed class ChangeServiceCategoryCommandHandler(
         try
         {
             if (request.ServiceId == Guid.Empty)
-                return Result.Failure("Service ID cannot be empty.");
+                return Result.Failure("O ID do serviço não pode ser vazio.");
 
             if (request.NewCategoryId == Guid.Empty)
-                return Result.Failure("New category ID cannot be empty.");
+                return Result.Failure("O ID da nova categoria não pode ser vazio.");
 
             var serviceId = ServiceId.From(request.ServiceId);
             var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
 
             if (service is null)
-                return Result.Failure($"Service with ID '{request.ServiceId}' not found.");
+                return Result.Failure(Error.NotFound($"Serviço com ID '{request.ServiceId}' não encontrado."));
 
             var newCategoryId = ServiceCategoryId.From(request.NewCategoryId);
             var newCategory = await categoryRepository.GetByIdAsync(newCategoryId, cancellationToken);
 
             if (newCategory is null)
-                return Result.Failure($"Category with ID '{request.NewCategoryId}' not found.");
+                throw new UnprocessableEntityException(
+                    $"Categoria com ID '{request.NewCategoryId}' não encontrada.",
+                    "ServiceCategory");
 
             if (!newCategory.IsActive)
-                return Result.Failure("Cannot move service to inactive category.");
+                throw new UnprocessableEntityException(
+                    "Não é possível mover serviço para categoria inativa.",
+                    "ServiceCategory");
 
             // Garantir que o nome ainda é único na categoria de destino
             if (await serviceRepository.ExistsWithNameAsync(
@@ -45,7 +50,7 @@ public sealed class ChangeServiceCategoryCommandHandler(
                     cancellationToken))
             {
                 return Result.Failure(
-                    $"A service with name '{service.Name}' already exists in the target category.");
+                    $"Já existe um serviço com o nome '{service.Name}' na categoria de destino.");
             }
 
             service.ChangeCategory(newCategoryId);

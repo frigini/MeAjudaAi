@@ -50,36 +50,36 @@ public static class Extensions
                 "Please configure one of these connection strings in appsettings.json or environment variables.");
         }
 
-        // Só registrar DbContext se houver connection string
-        if (!string.IsNullOrEmpty(connectionString))
+        // Sempre registrar DbContext (mesmo que connection string seja vazia em testes unitários)
+        // Em E2E tests, a connection string será fornecida via configuração
+        services.AddDbContext<SearchProvidersDbContext>((serviceProvider, options) =>
         {
-            services.AddDbContext<SearchProvidersDbContext>((serviceProvider, options) =>
+            // Se não houver connection string, usar uma default para testes unitários
+            var connStr = !string.IsNullOrEmpty(connectionString) 
+                ? connectionString 
+                : "Host=localhost;Database=meajudaai_test;";
+
+            options.UseNpgsql(connStr, npgsqlOptions =>
             {
-                options.UseNpgsql(connectionString, npgsqlOptions =>
-                {
-                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "meajudaai_searchproviders");
-                    npgsqlOptions.UseNetTopologySuite(); // Habilitar suporte PostGIS/geoespacial
-                });
-
-                options.UseSnakeCaseNamingConvention();
-
-                // Habilitar erros detalhados em desenvolvimento
-                if (configuration.GetValue<bool>("DetailedErrors"))
-                {
-                    options.EnableDetailedErrors();
-                    options.EnableSensitiveDataLogging();
-                }
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
+                npgsqlOptions.UseNetTopologySuite(); // Habilitar suporte PostGIS/geoespacial
             });
 
-            // Registrar Dapper para queries espaciais otimizadas
-            services.AddDapper();
+            options.UseSnakeCaseNamingConvention();
 
-            // Registrar repositórios
-            services.AddScoped<ISearchableProviderRepository, SearchableProviderRepository>();
-        }
+            // Habilitar erros detalhados em desenvolvimento
+            if (configuration.GetValue<bool>("DetailedErrors"))
+            {
+                options.EnableDetailedErrors();
+                options.EnableSensitiveDataLogging();
+            }
+        });
 
-        // Em ambiente de teste sem connection string, registrar mock ou skip
-        // Os testes que precisarem de DbContext devem configurar explicitamente
+        // Registrar Dapper para queries espaciais otimizadas
+        services.AddDapper();
+
+        // Registrar repositórios
+        services.AddScoped<ISearchableProviderRepository, SearchableProviderRepository>();
 
         // Registrar Event Handlers (sempre necessário, independente de connection string)
         services.AddEventHandlers();

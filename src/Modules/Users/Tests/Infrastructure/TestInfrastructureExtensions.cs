@@ -6,8 +6,9 @@ using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Shared.Tests.Extensions;
-using MeAjudaAi.Shared.Tests.Infrastructure;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Tests.TestInfrastructure;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -31,8 +32,8 @@ public static class UsersTestInfrastructureExtensions
 
         services.AddSingleton(options);
 
-        // Adicionar serviços compartilhados essenciais (incluindo IDateTimeProvider)
-        services.AddSingleton<IDateTimeProvider, TestDateTimeProvider>();
+        // Adicionar serviços compartilhados essenciais (incluindo TimeProvider)
+        services.AddSingleton(TimeProvider.System);
 
         // Usar extensões compartilhadas
         services.AddTestLogging();
@@ -40,7 +41,7 @@ public static class UsersTestInfrastructureExtensions
 
         // Adicionar serviços de cache do Shared (incluindo ICacheService)
         // Para testes, usar implementação simples sem dependências complexas
-        services.AddSingleton<MeAjudaAi.Shared.Caching.ICacheService, MeAjudaAi.Shared.Tests.Infrastructure.TestCacheService>();
+        services.AddSingleton<MeAjudaAi.Shared.Caching.ICacheService, MeAjudaAi.Shared.Tests.TestInfrastructure.Services.TestCacheService>();
 
         // Configurar banco de dados específico do módulo Users
         services.AddTestDatabase<UsersDbContext>(
@@ -108,12 +109,4 @@ public static class UsersTestInfrastructureExtensions
 
         return services;
     }
-}
-
-/// <summary>
-/// Implementação de IDateTimeProvider para testes
-/// </summary>
-internal class TestDateTimeProvider : IDateTimeProvider
-{
-    public DateTime CurrentDate() => DateTime.UtcNow;
 }

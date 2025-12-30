@@ -16,6 +16,11 @@ public interface IUsersCacheService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Define o cache para um usuário específico
+    /// </summary>
+    Task SetUserAsync(UserDto user, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Obtém ou cria cache para configurações do sistema de usuários
     /// </summary>
     Task<T> GetOrCacheSystemConfigAsync<T>(

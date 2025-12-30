@@ -2641,6 +2641,12 @@
           "Aspire.Hosting.Redis": "[13.1.0, )",
           "Aspire.Hosting.Seq": "[13.1.0, )",
           "FluentValidation.DependencyInjectionExtensions": "[12.1.1, )",
+          "MeAjudaAi.Modules.Documents.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.Locations.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.Providers.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.SearchProviders.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.Users.Infrastructure": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.1, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0, )"
         }
@@ -2730,9 +2736,11 @@
       "meajudaai.modules.locations.infrastructure": {
         "type": "Project",
         "dependencies": {
+          "EFCore.NamingConventions": "[10.0.0-rc.2, )",
           "MeAjudaAi.Modules.Locations.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.Domain": "[1.0.0, )",
-          "MeAjudaAi.Shared": "[1.0.0, )"
+          "MeAjudaAi.Shared": "[1.0.0, )",
+          "Microsoft.EntityFrameworkCore.Design": "[10.0.1, )"
         }
       },
       "meajudaai.modules.providers.api": {
@@ -2961,11 +2969,13 @@
           "Bogus": "[35.6.5, )",
           "Dapper": "[2.1.66, )",
           "FluentAssertions": "[8.8.0, )",
+          "Hangfire.InMemory": "[1.0.0, )",
           "MeAjudaAi.ApiService": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.AspNetCore.Mvc.Testing": "[10.0.1, )",
           "Microsoft.Extensions.Hosting": "[10.0.1, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.1, )",
+          "Microsoft.Extensions.TimeProvider.Testing": "[10.0.1, )",
           "Microsoft.NET.Test.Sdk": "[18.0.1, )",
           "Moq": "[4.20.72, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0, )",
@@ -3473,6 +3483,15 @@
           "Newtonsoft.Json": "11.0.1"
         }
       },
+      "Hangfire.InMemory": {
+        "type": "CentralTransitive",
+        "requested": "[1.0.0, )",
+        "resolved": "1.0.0",
+        "contentHash": "56H71lfcqn5sN/8Bjj9hOLGTG5HIERLRuMsRJTFpw0Tsq5ck5OUkNvtUw92s7bwD3PRKOo4PkDGqNs9KugaqoQ==",
+        "dependencies": {
+          "Hangfire.Core": "1.8.0"
+        }
+      },
       "Hangfire.PostgreSql": {
         "type": "CentralTransitive",
         "requested": "[1.20.13, )",
@@ -3848,6 +3867,12 @@
           "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.1",
           "Microsoft.Extensions.Primitives": "10.0.1"
         }
+      },
+      "Microsoft.Extensions.TimeProvider.Testing": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.1, )",
+        "resolved": "10.1.0",
+        "contentHash": "wH/CohN2yvYlpyPptNwWVZxlIQ8CkFvcv1eOEZTi/y8FhqVeISLbrraaW0qvVtXRKEeO0EyapNCZzj4HtdRGRw=="
       },
       "Microsoft.FeatureManagement.AspNetCore": {
         "type": "CentralTransitive",

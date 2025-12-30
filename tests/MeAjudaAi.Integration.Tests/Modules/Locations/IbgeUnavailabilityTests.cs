@@ -12,14 +12,11 @@ namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 /// Uses real IGeographicValidationService with WireMock stubs for IBGE API.
 /// </summary>
 [Collection("Integration")]
-public sealed class IbgeUnavailabilityTests : ApiTestBase
+public sealed class IbgeUnavailabilityTests : BaseApiTest
 {
     // Override to use real IBGE service with WireMock stubs instead of mock
     protected override bool UseMockGeographicValidation => false;
 
-    // TODO: Fix middleware simple validation fallback - currently blocks even allowed cities when IBGE fails
-    // Expected: When IBGE unavailable, allow cities in AllowedCities list via simple name matching
-    // Actual: Returns 451 (blocked) for all cities when IBGE fails, even allowed ones
     [Fact]
     public async Task GeographicRestriction_WhenIbgeReturns500_ShouldFallbackToSimpleValidation()
     {
@@ -43,7 +40,6 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
     }
 
-    // TODO: Fix middleware simple validation fallback
     [Fact]
     public async Task GeographicRestriction_WhenIbgeReturnsMalformedJson_ShouldFallbackToSimpleValidation()
     {
@@ -71,7 +67,7 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
     // INVESTIGATION RESULTS:
     // - Feature flag is correctly configured: FeatureManagement:GeographicRestriction = true
     // - Middleware logic is correct: checks IsEnabledAsync before blocking
-    // - Test configuration in ApiTestBase sets GeographicRestriction = true
+    // - Test configuration in BaseApiTest sets GeographicRestriction = true
     // - CI environment may have different configuration overriding test settings
     // - Possible causes:
     //   1. appsettings.Testing.json not being loaded in CI
@@ -116,7 +112,6 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
         json.GetProperty("allowedStates").GetArrayLength().Should().BeGreaterThan(0);
     }
 
-    // TODO: Fix middleware simple validation fallback
     [Fact]
     public async Task GeographicRestriction_WhenIbgeReturnsEmptyArray_ShouldFallbackToSimpleValidation()
     {

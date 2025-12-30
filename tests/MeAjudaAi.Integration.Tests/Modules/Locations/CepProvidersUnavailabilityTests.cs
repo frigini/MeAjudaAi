@@ -13,7 +13,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 /// ViaCEP → BrasilAPI → OpenCEP
 /// </summary>
 [Collection("Integration")]
-public sealed class CepProvidersUnavailabilityTests : ApiTestBase
+public sealed class CepProvidersUnavailabilityTests : BaseApiTest
 {
 
     [Fact]
