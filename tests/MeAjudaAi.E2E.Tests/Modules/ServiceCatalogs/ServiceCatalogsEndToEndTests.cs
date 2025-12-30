@@ -228,7 +228,8 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task Database_Should_Persist_ServiceCategories_Correctly()
     {
         // Arrange
-        var name = _fixture.Faker.Commerce.Department();
+        var uniqueName = $"{_fixture.Faker.Commerce.Department()}-{Guid.NewGuid():N}";
+        var name = uniqueName;
         var description = _fixture.Faker.Lorem.Sentence();
         ServiceCategoryId? categoryId = null;
 
@@ -271,7 +272,9 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
         {
             var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
-            category = ServiceCategory.Create(_fixture.Faker.Commerce.Department(), _fixture.Faker.Lorem.Sentence(), 1);
+            // Append GUID to ensure unique category name
+            var uniqueCategoryName = $"{_fixture.Faker.Commerce.Department()}-{Guid.NewGuid():N}";
+            category = ServiceCategory.Create(uniqueCategoryName, _fixture.Faker.Lorem.Sentence(), 1);
             context.ServiceCategories.Add(category);
             await context.SaveChangesAsync();
 
@@ -634,8 +637,11 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
         {
             var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
+            // Append GUID to ensure unique category names across test runs
+            var uniqueName = $"{_fixture.Faker.Commerce.Department()}-{Guid.NewGuid():N}";
+            
             category = ServiceCategory.Create(
-                _fixture.Faker.Commerce.Department(),
+                uniqueName,
                 _fixture.Faker.Lorem.Sentence(),
                 _fixture.Faker.Random.Int(1, 100)
             );
@@ -655,8 +661,11 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
 
             for (int i = 0; i < count; i++)
             {
+                // Append GUID to ensure unique category names across test runs
+                var uniqueName = $"{_fixture.Faker.Commerce.Department()}-{Guid.NewGuid():N}";
+                
                 var category = ServiceCategory.Create(
-                    _fixture.Faker.Commerce.Department() + $" {i}",
+                    uniqueName,
                     _fixture.Faker.Lorem.Sentence(),
                     i + 1
                 );
