@@ -7,6 +7,13 @@
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
   </PropertyGroup>
 
+  <!-- Exclude MeAjudaAi.Shared.Contracts subdirectory from compilation -->
+  <ItemGroup>
+    <Compile Remove="MeAjudaAi.Shared.Contracts\**" />
+    <EmbeddedResource Remove="MeAjudaAi.Shared.Contracts\**" />
+    <None Remove="MeAjudaAi.Shared.Contracts\**" />
+  </ItemGroup>
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     
