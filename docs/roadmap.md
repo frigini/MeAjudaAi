@@ -7,7 +7,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0-4 ✅ | Sprint 5 ✅ (ANTECIPADO) | Sprint 5.5 ⏳ (19-31 Dez) - Refactor & Cleanup | MVP Target: 31/Março/2026  
+**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 🔄 PLANEJAMENTO | MVP Target: 31/Março/2026  
 **Cobertura de Testes**: 28.2% → **90.56% ALCANÇADO** (Sprint 2 - META SUPERADA EM 55.56pp!)  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MAUI Hybrid
 
@@ -20,11 +20,12 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **11 Dez - 13 Dez**: Sprint 3 Parte 2 - Admin Endpoints & Tools (CONCLUÍDO - MERGED!)
 - ✅ **14 Dez - 18 Dez**: Sprint 4 - Health Checks + Data Seeding + Code Review (CONCLUÍDO - MERGED!)
 - ✅ **Sprint 5**: Tarefas completadas antecipadamente (NSubstitute→Moq, .slnx, UuidGenerator, Design Patterns, Bruno)
-- ⏳ **19 Dez - 31 Dez**: Sprint 5.5 - Refactor & Cleanup (Technical Debt Reduction)
-- ⏳ **Janeiro 2026**: Sprint 6 - Blazor Admin Portal Setup
-- ⏳ **Fevereiro 2026**: Sprint 7 - Blazor Admin Portal Features
-- ⏳ **Fevereiro-Março 2026**: Sprint 8 - Customer App (Web + Mobile)
-- ⏳ **Março 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Refactoring)
+- ✅ **19 Dez - 30 Dez**: Sprint 5.5 - Refactor & Cleanup (CONCLUÍDO - Technical Debt Reduction)
+- 🔄 **30 Dez - 6 Jan**: Planejamento Sprint 6 (Branch criada: blazor-admin-portal-setup)
+- ⏳ **6 Jan - 17 Jan 2026**: Sprint 6 - Blazor Admin Portal Setup
+- ⏳ **20 Jan - 7 Fev 2026**: Sprint 7 - Blazor Admin Portal Features
+- ⏳ **10 Fev - 28 Fev 2026**: Sprint 8 - Customer App (Web + Mobile)
+- ⏳ **3 Mar - 24 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Refactoring)
 - 🎯 **31 de Março de 2026**: MVP Launch (Admin Portal + Customer App)
 - 🔮 **Abril 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
 
@@ -38,9 +39,48 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 ## 🎯 Status Atual
 
-**✅ Fase 1: CONCLUÍDA** (Janeiro 2025)  
-Todos os 6 módulos core implementados, testados e integrados:
-- Users • Providers • Documents • Search & Discovery • Locations • ServiceCatalogs
+**📅 Hoje**: 30 de Dezembro de 2025
+
+**✅ Sprint 5.5 - Refactor & Cleanup - CONCLUÍDA** (19-30 Dez 2025)
+
+**Principais Conquistas**:
+1. **Refatoração MeAjudaAi.Shared.Messaging** ✅
+   - Factories organizados em pasta dedicada (`Messaging/Factories/`)
+   - Services organizados em pasta dedicada (`Messaging/Services/`)
+   - Options organizados em pasta dedicada (`Messaging/Options/`)
+   - 4 arquivos: ServiceBusOptions, MessageBusOptions, RabbitMqOptions, DeadLetterOptions
+   - IMessageBusFactory + MessageBusFactory separados
+   - IDeadLetterServiceFactory + DeadLetterServiceFactory separados
+   - 1245/1245 testes passando
+
+2. **Extensions Padronizadas** ✅
+   - 14 arquivos consolidados: CachingExtensions, CommandsExtensions, DatabaseExtensions, etc.
+   - BusinessMetricsMiddlewareExtensions extraído para arquivo próprio
+   - Monitoring folder consolidation completo
+   - Removidos 13 arquivos obsoletos (Extensions.cs genéricos + subpastas)
+
+3. **Extension Members (C# 14)** ✅
+   - EnumExtensions migrado para nova sintaxe `extension<TEnum>(string value)`
+   - 18/18 testes passando (100% compatibilidade)
+   - Documentado em architecture.md - seção "C# 14 Features Utilizados"
+   - Avaliado DocumentExtensions (não adequado para extension properties)
+
+4. **TODOs Resolvidos** ✅
+   - 12/12 TODOs no código resolvidos ou documentados
+   - Remaining issues movidos para technical-debt.md com priorização
+   - api-reference.md removido (redundante com ReDoc + api-spec.json)
+
+5. **Documentação Atualizada** ✅
+   - architecture.md atualizado com C# 14 features
+   - technical-debt.md atualizado com status atual
+   - roadmap.md atualizado com Sprint 5.5 completion
+   - 0 warnings no build
+
+**🔄 Próxima Etapa: Sprint 6 - Blazor Admin Portal Setup** (6-17 Jan 2026)
+- Branch criada: `blazor-admin-portal-setup` (30 Dez 2025)
+- Planejamento detalhado: `docs/sprint-6-planning.md` ✅
+- Decisões técnicas documentadas (Fluxor, MudBlazor, Refit, OIDC)
+- BDD implementation adiada para Sprint 7-8 (foco em fundação técnica primeiro)
 
 **✅ Fase 1.5: CONCLUÍDA** (21 Nov - 10 Dez 2025)  
 Fundação técnica para escalabilidade e produção:
@@ -245,12 +285,20 @@ Todas as tarefas planejadas já foram implementadas:
 - Migrar métodos de propósito geral (PermissionExtensions, EnumExtensions)
 - Manter padrão atual para DI extensions ([FolderName]Extensions.cs)
 
-**⏳ Fase 2: PLANEJADO** (Janeiro–Março 2026)  
+**⏳ Fase 2: PLANEJAMENTO INICIADO** (Janeiro–Março 2026)  
 Frontend Blazor WASM + MAUI Hybrid:
-- Sprint 6: Blazor Admin Portal Setup (Jan 2026)
-- Sprint 7-8: Customer App (Fev-Mar 2026)
-- Sprint 9: Buffer/Polishing (Mar 2026)
+- Sprint 6: Blazor Admin Portal Setup (6-17 Jan 2026) - 🔄 PLANEJAMENTO
+- Sprint 7-8: Customer App (Fev-Mar 2026) - ⏳ Aguardando Sprint 6
+- Sprint 9: Buffer/Polishing (Mar 2026) - ⏳ Aguardando Sprint 6-8
 - MVP Final: 31 de Março de 2026
+
+**✅ Sprint 5.5 Completed** (19-30 Dez 2025):
+- Refatoração MeAjudaAi.Shared.Messaging (Factories, Services, Options)
+- Extensions padronizadas (14 arquivos consolidados)
+- Extension Members (C# 14) implementado
+- TODOs resolvidos (12/12 concluídos)
+- Dependabot PRs fechados para regeneração
+- 1245/1245 testes passando
 
 **⚠️ Risk Assessment**: Estimativas assumem velocidade consistente. Primeiro projeto Blazor WASM pode revelar complexidades não previstas (integração Keycloak, curva de aprendizado MudBlazor). Sprint 9 reservado como buffer de contingência.
 
@@ -281,8 +329,8 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 3-P2** | 2 semanas | 11 Dez - 13 Dez | Admin Endpoints & Tools | ✅ CONCLUÍDO (13 Dez - MERGED) |
 | **Sprint 4** | 5 dias | 14 Dez - 18 Dez | Health Checks + Data Seeding | ✅ CONCLUÍDO (18 Dez - MERGED!) |
 | **Sprint 5** | - | Sprints 3-4 | Quality Improvements | ✅ CONCLUÍDO ANTECIPADAMENTE |
-| **Sprint 5.5** | 2 semanas | 19 Dez - 31 Dez | Refactor & Cleanup (Technical Debt) | ✅ CONCLUÍDO (19 Dez) |
-| **Sprint 6** | 2 semanas | Jan 6 - 17 | Blazor Admin Portal - Setup & Core | ⏳ Planejado |
+| **Sprint 5.5** | 2 semanas | 19 Dez - 31 Dez | Refactor & Cleanup (Technical Debt) | ✅ CONCLUÍDO (30 Dez 2025) |
+| **Sprint 6** | 2 semanas | Jan 6 - 17 | Blazor Admin Portal - Setup & Core | 🔄 PLANEJAMENTO (30 Dez) |
 | **Sprint 7** | 3 semanas | Jan 20 - Fev 7 | Blazor Admin Portal - Features | ⏳ Planejado |
 | **Sprint 8** | 3 semanas | Fev 10 - 28 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
 | **Sprint 9** | 3 semanas | Mar 3 - 24 | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
@@ -1991,58 +2039,136 @@ src/
 
 ---
 
-### 📅 Sprint 3: Blazor Admin Portal (2 semanas) ⏳ ATUALIZADO
+### 📅 Sprint 6: Blazor Admin Portal Setup (2 semanas) 🔄 PLANEJAMENTO
 
-**Status**: 📋 PLANEJADO PARA Q1 2026  
+**Status**: 🔄 PLANEJAMENTO INICIADO (30 Dez 2025)  
+**Branch**: `blazor-admin-portal-setup`  
+**Período**: 6 - 17 Janeiro 2026
+
 **Pré-requisitos**: 
+- ✅ Sprint 5.5 CONCLUÍDA (19-30 Dez 2025)
 - ✅ Backend APIs prontos (Todos os módulos implementados)
-- ⏳ Aguardando merge PR #81 (Aspire 13.1.0) 
-- ⏳ Aguardando merge PR #82 (FeatureManagement 4.4.0)
-- 📋 Definição de design system e componentes UI
+- ✅ Refatoração técnica completa (Messaging, Extensions, TODOs)
+- ⏳ Dependabot PRs #84-88 (regeneração automática em andamento)
 
-**Contexto**: 
-- Sprint 5.5 atual (19 Dez 2025) focada em correções de package lock files
-- Frontend development iniciará após pipeline verde e merges concluídos
-- Estimativa de início: Janeiro 2026 (Q1 2026)
+**Decisões Técnicas Tomadas**:
 
-**Objetivos**:
-- Portal administrativo para gestão de plataforma
-- CRUD de prestadores, serviços, moderação
-- Dashboard com métricas básicas
-- **Gestão de Restrições Geográficas** (Sprint 1 dependency)
+**Stack Frontend**:
+- **Framework**: Blazor WebAssembly (.NET 10) com AOT compilation
+- **UI Library**: MudBlazor 7.21.0+ (Material Design)
+- **State Management**: Fluxor 6.1.0+ (Flux/Redux pattern)
+- **API Client**: Refit 8.2.0+ com Polly (retry policies)
+- **Autenticação**: Microsoft.AspNetCore.Components.WebAssembly.Authentication (OIDC/Keycloak)
+- **Validação**: FluentValidation (compartilhado backend/frontend)
+- **Testes**: bUnit (componentes) + Playwright (E2E)
 
-**Funcionalidades**:
+**Estrutura de Projetos**:
+```text
+src/Web/
+├── MeAjudaAi.Web.Admin/          # Blazor WASM Admin Portal
+│   ├── Pages/                    # Dashboard, Providers, Documents, etc.
+│   ├── Components/               # UI components reutilizáveis
+│   ├── Features/                 # Fluxor stores (State/Actions/Reducers/Effects)
+│   └── Services/                 # API clients (Refit)
+├── MeAjudaAi.Web.Shared/         # Componentes compartilhados
+└── MeAjudaAi.Web.Customer/       # Sprint 8 (Fev 2026)
 
-#### 1. Autenticação e Autorização
-- [ ] Login via Keycloak (role: Admin required)
+src/Shared/
+├── MeAjudaAi.Shared.Contracts/   # NOVO: Refit interfaces + Request/Response DTOs
+└── MeAjudaAi.Shared.Validators/  # NOVO: FluentValidation compartilhado
+```
+
+**BDD Implementation**: ⏳ ADIADO para Sprint 7-8
+- Motivo: Foco em fundação técnica primeiro (Blazor + Fluxor + MudBlazor)
+- Sprint 6 já tem alta complexidade (setup inicial, aprendizado de stack)
+- BDD será implementado quando houver features complexas para documentar
+- Testes iniciais: bUnit + Playwright E2E básico (sem Gherkin)
+
+**Objetivos da Sprint 6**:
+- ✅ Setup de infraestrutura Blazor (projetos, Aspire, pacotes NuGet)
+- ✅ Autenticação via Keycloak (OIDC)
+- ✅ Layout base com navegação (MudDrawer + MudAppBar)
+- ✅ Primeiro CRUD funcional: Gestão de prestadores (read-only inicial)
+- ✅ Fluxor configurado (Actions → Reducers → Effects)
+- ✅ Integração API funcionando (GET /api/providers)
+
+**Funcionalidades Planejadas**:
+
+#### 1. Autenticação e Autorização (Semana 1 - Dia 3)
+- [ ] Login via Keycloak (role: Admin required) - OIDC
 - [ ] Logout
 - [ ] Tela de acesso negado (403)
+- [ ] Token refresh automático
 
-#### 2. Dashboard Principal
-- [ ] Cards com KPIs: Total Providers, Pending Verifications, Active Services, Total Reviews
-- [ ] Gráfico de registros de prestadores (últimos 30 dias)
-- [ ] Lista de ações pendentes (documentos para verificar, reviews flagged)
+#### 2. Layout e Navegação (Semana 1 - Dia 4-5)
+- [ ] MainLayout.razor com MudLayout
+- [ ] NavMenu.razor com MudDrawer (navegação lateral)
+- [ ] MudAppBar (barra superior)
+- [ ] Tema MudBlazor configurado (cores, tipografia, dark mode)
+- [ ] Componentes base: LoadingSpinner, ErrorBoundary
 
-#### 3. Gestão de Prestadores
-- [ ] **Listagem**: Tabela com filtros (status, cidade, tier, services)
-- [ ] **Detalhes**: Ver perfil completo + documentos + serviços
-- [ ] **Ações**: Aprovar, Rejeitar, Suspender, Reativar
-- [ ] **Histórico**: Audit log de alterações
+#### 3. Gestão de Prestadores (Semana 2 - Dia 1-3) - READ-ONLY
+- [ ] **Backend Integration**: IProvidersApi (Refit) + Fluxor store
+- [ ] **Listagem**: Tabela com MudDataGrid (paginação, filtros, sorting)
+- [ ] **Detalhes**: ProviderCard.razor (perfil básico)
+- [ ] **Loading States**: Skeletons e error handling
 
-#### 4. Gestão de Documentos
-- [ ] **Fila de Verificação**: Listar documentos pendentes (ordered by upload date)
-- [ ] **Visualizador**: Exibir documento no browser (PDF/Image viewer)
-- [ ] **Ações**: Verificar, Rejeitar (com motivo)
-- [ ] **OCR Data**: Exibir dados extraídos (se disponível)
+#### 4. Dashboard Básico (Semana 2 - Dia 4)
+- [ ] Cards com KPIs: Total Providers, Pending Verifications, Active Services
+- [ ] Setup charts básicos (ApexCharts.Blazor ou MudChart)
 
-#### 5. Gestão de Catálogo de Serviços
-- [ ] **Categorias**: CRUD completo com drag-and-drop para reordenar
-- [ ] **Serviços**: CRUD completo com seleção de categoria
-- [ ] **Ativar/Desativar**: Toggle switch para cada item
-- [ ] **Preview**: Exibir hierarquia completa do catálogo
+**FORA DO ESCOPO (Sprint 7+)**:
+- ❌ CRUD completo (create, update, delete providers)
+- ❌ Gestão de documentos (upload, verificação)
+- ❌ Gestão de catálogo de serviços
+- ❌ Gestão de restrições geográficas (database-backed) - Ver seção dedicada abaixo
 
-#### 6. 🆕 Gestão de Restrições Geográficas
-> **⚠️ CRITICAL**: Feature implementada no Sprint 1 Dia 1 requer UI administrativa para produção.
+**Critérios de Aceitação Sprint 6**:
+
+**Must Have (Mínimo Viável)**:
+- [ ] Blazor Admin Portal rodando localmente via Aspire
+- [ ] Login funcional via Keycloak (OIDC)
+- [ ] Layout base com navegação (MudDrawer + MudAppBar)
+- [ ] Página de Providers com listagem (read-only)
+- [ ] Integração API funcionando (GET /api/providers)
+- [ ] Fluxor configurado e funcionando
+- [ ] 3+ testes automatizados (bUnit ou E2E)
+
+**Nice to Have (Desejável)**:
+- [ ] Dashboard com KPIs básicos
+- [ ] Dark mode toggle
+- [ ] Filtros avançados na tabela de providers
+- [ ] Loading skeletons (UX polida)
+- [ ] 10+ testes de cobertura
+
+**Planejamento Detalhado**:
+
+**Semana 1 (6-10 Jan): Fundação**
+- Dia 1-2: Setup projetos (Web.Admin, Web.Shared, Shared.Contracts) + NuGet packages
+- Dia 3: Autenticação Keycloak (OIDC)
+- Dia 4-5: Layout e navegação (MudLayout, MudDrawer, tema)
+
+**Semana 2 (13-17 Jan): Primeiro Feature**
+- Dia 1-2: Providers Feature - Backend (IProvidersApi Refit + Fluxor store)
+- Dia 3: Providers Feature - UI (ProvidersList.razor + MudDataGrid)
+- Dia 4: Dashboard básico (KPIs + charts)
+- Dia 5: Testes (bUnit + Playwright E2E) + code review
+
+**Riscos Identificados**:
+- Curva de aprendizado Blazor WASM (mitigação: documentação oficial + tutoriais)
+- Problemas auth Keycloak (mitigação: testar early, usar exemplos oficiais OIDC)
+- Performance bundle size (mitigação: AOT compilation, lazy loading)
+- Complexidade Fluxor (mitigação: começar simples com 1 feature)
+
+**Resultado Esperado**:
+- ✅ Admin Portal funcional e responsivo
+- ✅ Autenticação completa (login/logout)
+- ✅ Listagem de prestadores funcionando
+- ✅ Fundação técnica sólida para Sprint 7
+
+---
+
+### 🆕 Gestão de Restrições Geográficas (Sprint 7+)
 
 **Contexto**: O middleware `GeographicRestrictionMiddleware` suporta configuração dinâmica via `Microsoft.FeatureManagement`, mas atualmente as cidades/estados permitidos são gerenciados via `appsettings.json` (requer redeploy). Esta seção implementa gestão via banco de dados com UI administrativa.
 
