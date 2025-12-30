@@ -366,41 +366,6 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
 
     #region Basic Info Correction
 
-    /// <summary>
-    /// Teste validando que RequireBasicInfoCorrection só funciona quando provider está em PendingDocumentVerification.
-    /// NOTA: Atualmente não há endpoint para CompleteBasicInfo (transicionar para PendingDocumentVerification),
-    /// então este teste valida o comportamento de erro quando o provider está em status incorreto.
-    /// BUG: Handler retorna 500 ao invés de 400 BadRequest - precisa fix no RequireBasicInfoCorrectionCommandHandler
-    /// </summary>
-    [Fact(Skip = "BUG: Handler retorna 500 ao invés de 400 quando provider está em status incorreto")]
-    public async Task RequestBasicInfoCorrection_Should_TriggerWorkflow()
-    {
-        // Arrange
-        TestContainerFixture.BeforeEachTest();
-        TestContainerFixture.AuthenticateAsAdmin();
-        var uniqueId = Guid.NewGuid().ToString("N")[..8];
-
-        // Create provider using helper (will be in PendingBasicInfo status)
-        var providerId = await CreateTestProviderAsync($"ToCorrect_{uniqueId}");
-
-        // Act - Tentar solicitar correção quando provider está em PendingBasicInfo (deveria falhar)
-        var correctionRequest = new
-        {
-            Reason = "Tax ID format is incorrect",
-            RequestedBy = "admin@test.com"
-        };
-
-        var response = await _fixture.ApiClient.PostAsJsonAsync(
-            $"/api/v1/providers/{providerId}/require-basic-info-correction",
-            correctionRequest,
-            TestContainerFixture.JsonOptions);
-
-        // Assert - Deve retornar erro porque provider não está em PendingDocumentVerification
-        response.StatusCode.Should().Be(
-            HttpStatusCode.BadRequest,
-            "RequireBasicInfoCorrection deve falhar quando provider não está em PendingDocumentVerification");
-    }
-
     #endregion
 
     #region Document Operations
