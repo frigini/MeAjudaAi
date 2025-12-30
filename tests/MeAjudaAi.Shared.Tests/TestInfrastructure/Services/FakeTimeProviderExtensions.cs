@@ -3,12 +3,12 @@ using Microsoft.Extensions.Time.Testing;
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Services;
 
 /// <summary>
-/// Extension methods for FakeTimeProvider to simplify test setup.
+/// Métodos de extensão para FakeTimeProvider para simplificar configuração de testes.
 /// </summary>
 public static class FakeTimeProviderExtensions
 {
     /// <summary>
-    /// Creates a FakeTimeProvider with a fixed UTC date/time.
+    /// Cria um FakeTimeProvider com data/hora UTC fixa.
     /// </summary>
     public static FakeTimeProvider CreateFixed(DateTime utcDateTime)
     {
@@ -16,7 +16,7 @@ public static class FakeTimeProviderExtensions
     }
 
     /// <summary>
-    /// Creates a FakeTimeProvider with current UTC time.
+    /// Cria um FakeTimeProvider com a hora UTC atual.
     /// </summary>
     public static FakeTimeProvider CreateDefault()
     {

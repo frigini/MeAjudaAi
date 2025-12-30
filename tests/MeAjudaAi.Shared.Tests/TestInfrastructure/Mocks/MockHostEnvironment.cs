@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 
 /// <summary>
-/// Mock implementation of IHostEnvironment for testing purposes.
+/// Implementação mock de IHostEnvironment para fins de teste.
 /// </summary>
 public class MockHostEnvironment : IHostEnvironment
 {

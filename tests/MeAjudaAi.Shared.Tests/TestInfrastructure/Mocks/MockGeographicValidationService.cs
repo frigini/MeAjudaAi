@@ -3,8 +3,8 @@ using MeAjudaAi.Shared.Geolocation;
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 
 /// <summary>
-/// Mock implementation of IGeographicValidationService for integration tests.
-/// Validates cities using simple case-insensitive string matching against allowed cities.
+/// Implementação mock de IGeographicValidationService para testes de integração.
+/// Valida cidades usando comparação de string simples (case-insensitive) contra cidades permitidas.
 /// </summary>
 public class MockGeographicValidationService : IGeographicValidationService
 {
@@ -12,7 +12,7 @@ public class MockGeographicValidationService : IGeographicValidationService
     private readonly HashSet<string> _allowedCities;
 
     /// <summary>
-    /// Creates a new mock service with the default pilot cities.
+    /// Cria um novo serviço mock com as cidades piloto padrão.
     /// </summary>
     public MockGeographicValidationService()
     {
@@ -20,7 +20,7 @@ public class MockGeographicValidationService : IGeographicValidationService
     }
 
     /// <summary>
-    /// Creates a new mock service with custom allowed cities.
+    /// Cria um novo serviço mock com cidades permitidas personalizadas.
     /// </summary>
     public MockGeographicValidationService(IEnumerable<string> allowedCities)
     {
@@ -28,12 +28,12 @@ public class MockGeographicValidationService : IGeographicValidationService
     }
 
     /// <summary>
-    /// Validates if a city is in the allowed list using case-insensitive matching.
-    /// Simplified implementation for testing - does not call IBGE API.
+    /// Valida se uma cidade está na lista permitida usando comparação case-insensitive.
+    /// Implementação simplificada para testes - não chama a API do IBGE.
     /// </summary>
-    /// <param name="cityName">Name of the city to validate.</param>
-    /// <param name="stateSigla">Optional state abbreviation (e.g., "MG", "RJ").</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="cityName">Nome da cidade a validar.</param>
+    /// <param name="stateSigla">Sigla opcional do estado (ex: "MG", "RJ").</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
     public Task<bool> ValidateCityAsync(
         string cityName,
         string? stateSigla,
@@ -42,14 +42,14 @@ public class MockGeographicValidationService : IGeographicValidationService
         if (string.IsNullOrWhiteSpace(cityName))
             return Task.FromResult(false);
 
-        // Simple check: city is in allowed list (case-insensitive)
+        // Verificação simples: cidade está na lista permitida (case-insensitive)
         return Task.FromResult(_allowedCities.Contains(cityName));
     }
 
     /// <summary>
-    /// Configures the mock to allow a specific city.
+    /// Configura o mock para permitir uma cidade específica.
     /// </summary>
-    /// <returns>This instance for fluent chaining.</returns>
+    /// <returns>Esta instância para encadeamento fluente.</returns>
     public MockGeographicValidationService AllowCity(string cityName)
     {
         _allowedCities.Add(cityName);
@@ -57,9 +57,9 @@ public class MockGeographicValidationService : IGeographicValidationService
     }
 
     /// <summary>
-    /// Configures the mock to block a specific city.
+    /// Configura o mock para bloquear uma cidade específica.
     /// </summary>
-    /// <returns>This instance for fluent chaining.</returns>
+    /// <returns>Esta instância para encadeamento fluente.</returns>
     public MockGeographicValidationService BlockCity(string cityName)
     {
         _allowedCities.Remove(cityName);
@@ -67,9 +67,9 @@ public class MockGeographicValidationService : IGeographicValidationService
     }
 
     /// <summary>
-    /// Resets the mock to the default pilot cities.
+    /// Reseta o mock para as cidades piloto padrão.
     /// </summary>
-    /// <returns>This instance for fluent chaining.</returns>
+    /// <returns>Esta instância para encadeamento fluente.</returns>
     public MockGeographicValidationService Reset()
     {
         _allowedCities.Clear();

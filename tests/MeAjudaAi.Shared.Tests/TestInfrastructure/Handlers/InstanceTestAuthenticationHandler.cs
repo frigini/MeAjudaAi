@@ -6,8 +6,8 @@ using Microsoft.Extensions.Options;
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 
 /// <summary>
-/// Instance-based authentication handler for tests that eliminates static state issues
-/// Each test factory gets its own isolated authentication configuration
+/// Handler de autenticação baseado em instância para testes que elimina problemas de estado estático.
+/// Cada factory de teste obtém sua própria configuração de autenticação isolada.
 /// </summary>
 public class InstanceTestAuthenticationHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
@@ -21,13 +21,13 @@ public class InstanceTestAuthenticationHandler(
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        // If no user is configured and unauthenticated users aren't allowed, fail authentication
+        // Se nenhum usuário está configurado e usuários não autenticados não são permitidos, falha a autenticação
         if (!_configuration.HasUser && !_configuration.AllowUnauthenticated)
         {
             return Task.FromResult(AuthenticateResult.Fail("No authentication configuration set"));
         }
 
-        // Auto-configure as admin if no configuration and unauthenticated users are allowed
+        // Auto-configura como admin se não há configuração e usuários não autenticados são permitidos
         if (!_configuration.HasUser && _configuration.AllowUnauthenticated)
         {
             _configuration.ConfigureAdmin();
