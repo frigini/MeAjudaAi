@@ -14,28 +14,11 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         Exception exception,
         CancellationToken cancellationToken)
     {
-        // Se InvalidOperationException tiver ValidationException como inner, desencapsular
-        if (exception is InvalidOperationException && exception.InnerException is ValidationException innerValidationException)
+        // Desencapsula exceções conhecidas de InvalidOperationException
+        if (exception is InvalidOperationException { InnerException: { } inner } &&
+            inner is ValidationException or NotFoundException or BadRequestException or UnprocessableEntityException)
         {
-            exception = innerValidationException;
-        }
-        
-        // Se InvalidOperationException tiver NotFoundException como inner, desencapsular
-        if (exception is InvalidOperationException && exception.InnerException is NotFoundException innerNotFoundException)
-        {
-            exception = innerNotFoundException;
-        }
-        
-        // Se InvalidOperationException tiver BadRequestException como inner, desencapsular
-        if (exception is InvalidOperationException && exception.InnerException is BadRequestException innerBadRequestException)
-        {
-            exception = innerBadRequestException;
-        }
-        
-        // Se InvalidOperationException tiver UnprocessableEntityException como inner, desencapsular
-        if (exception is InvalidOperationException && exception.InnerException is UnprocessableEntityException innerUnprocessableException)
-        {
-            exception = innerUnprocessableException;
+            exception = inner;
         }
         
         var (statusCode, title, detail, errors, extensions) = exception switch
@@ -54,7 +37,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             // UnprocessableEntityException (422 - erros semânticos/regras de negócio)
             UnprocessableEntityException unprocessableException => (
                 StatusCodes.Status422UnprocessableEntity,
-                "Unprocessable Entity",
+                "Entidade Não Processável",
                 unprocessableException.Message,
                 null,
                 new Dictionary<string, object?>
@@ -272,6 +255,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         403 => "https://tools.ietf.org/html/rfc7231#section-6.5.3",
         404 => "https://tools.ietf.org/html/rfc7231#section-6.5.4",
         409 => "https://tools.ietf.org/html/rfc7231#section-6.5.8",
+        422 => "https://tools.ietf.org/html/rfc4918#section-11.2",
         500 => "https://tools.ietf.org/html/rfc7231#section-6.6.1",
         _ => "https://tools.ietf.org/html/rfc7231"
     };

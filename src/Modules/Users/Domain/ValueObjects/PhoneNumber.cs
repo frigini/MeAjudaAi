@@ -23,17 +23,34 @@ public class PhoneNumber : ValueObject
             throw new ArgumentException("Código do país não pode ser vazio");
         
         var cleanValue = value.Trim();
+        var cleanCountryCode = countryCode.Trim().ToUpperInvariant();
         
-        // Validar comprimento mínimo e máximo (apenas dígitos)
+        // Validar formato do código do país (ISO alpha-2: exatamente 2 letras ASCII)
+        if (cleanCountryCode.Length != 2 || !cleanCountryCode.All(c => c >= 'A' && c <= 'Z'))
+            throw new ArgumentException($"Código do país '{countryCode}' inválido. Deve ser um código ISO alpha-2 (2 letras)");
+        
+        // Validar comprimento (apenas dígitos)
         var digitsOnly = new string(cleanValue.Where(char.IsDigit).ToArray());
-        if (digitsOnly.Length < 8)
-            throw new ArgumentException("Telefone deve ter pelo menos 8 dígitos");
-        if (digitsOnly.Length > 15)
-            throw new ArgumentException("Telefone não pode ter mais de 15 dígitos");
+        
+        // Validação específica por país
+        if (cleanCountryCode == "BR")
+        {
+            // Brasil: 10-11 dígitos (2 DDD + 8-9 subscriber)
+            if (digitsOnly.Length < 10 || digitsOnly.Length > 11)
+                throw new ArgumentException("Telefone brasileiro deve ter 10 ou 11 dígitos (DDD + número)");
+        }
+        else
+        {
+            // Outros países: 8-15 dígitos
+            if (digitsOnly.Length < 8)
+                throw new ArgumentException("Telefone deve ter pelo menos 8 dígitos");
+            if (digitsOnly.Length > 15)
+                throw new ArgumentException("Telefone não pode ter mais de 15 dígitos");
+        }
         
         // Armazenar apenas dígitos normalizados para consistência de igualdade
         Value = digitsOnly;
-        CountryCode = countryCode.Trim().ToUpperInvariant();
+        CountryCode = cleanCountryCode;
     }
 
     public override string ToString() => $"{CountryCode} {Value}";

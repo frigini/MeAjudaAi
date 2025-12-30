@@ -46,29 +46,29 @@ public class PhoneNumberTests
     }
 
     [Theory]
-    [InlineData("1234567")]   // 7 dígitos - abaixo do mínimo
-    [InlineData("12345")]     // 5 dígitos - abaixo do mínimo
+    [InlineData("123456789")]   // 9 dígitos - abaixo do mínimo BR (10)
+    [InlineData("12345")]       // 5 dígitos - abaixo do mínimo BR (10)
     public void PhoneNumber_WithTooFewDigits_ShouldThrowArgumentException(string value)
     {
-        // Act & Assert
+        // Act & Assert - BR requer 10-11 dígitos
         var exception = Assert.Throws<ArgumentException>(() => new PhoneNumber(value));
-        exception.Message.Should().Be("Telefone deve ter pelo menos 8 dígitos");
+        exception.Message.Should().Be("Telefone brasileiro deve ter 10 ou 11 dígitos (DDD + número)");
     }
 
     [Fact]
     public void PhoneNumber_WithTooManyDigits_ShouldThrowArgumentException()
     {
-        // Arrange - 16 dígitos
-        const string value = "1234567890123456";
+        // Arrange - 12 dígitos (acima do máximo BR de 11)
+        const string value = "123456789012";
 
-        // Act & Assert
+        // Act & Assert - BR aceita no máximo 11 dígitos
         var exception = Assert.Throws<ArgumentException>(() => new PhoneNumber(value));
-        exception.Message.Should().Be("Telefone não pode ter mais de 15 dígitos");
+        exception.Message.Should().Be("Telefone brasileiro deve ter 10 ou 11 dígitos (DDD + número)");
     }
 
     [Theory]
-    [InlineData("12345678")]         // 8 dígitos - mínimo válido
-    [InlineData("123456789012345")]  // 15 dígitos - máximo válido
+    [InlineData("1234567890")]    // 10 dígitos - mínimo válido BR
+    [InlineData("12345678901")]   // 11 dígitos - máximo válido BR
     public void PhoneNumber_AtBoundaryDigitCounts_ShouldCreateSuccessfully(string value)
     {
         // Act

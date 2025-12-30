@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
+using MeAjudaAi.Shared.Exceptions;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
@@ -102,11 +103,11 @@ public class ChangeServiceCategoryCommandHandlerTests
             .ReturnsAsync((ServiceCategory?)null);
 
         // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
+        var act = async () => await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("Category").And.Contain("not found");
+        await act.Should().ThrowAsync<UnprocessableEntityException>()
+            .WithMessage("*não encontrada*");
         _serviceRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -131,11 +132,11 @@ public class ChangeServiceCategoryCommandHandlerTests
             .ReturnsAsync(newCategory);
 
         // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
+        var act = async () => await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("inactive");
+        await act.Should().ThrowAsync<UnprocessableEntityException>()
+            .WithMessage("*inativa*");
         _serviceRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 

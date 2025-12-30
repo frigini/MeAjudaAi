@@ -28,12 +28,12 @@ public sealed class CreateServiceCommandHandler(
             var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
             if (category is null)
                 throw new UnprocessableEntityException(
-                    $"Category with ID '{request.CategoryId}' not found.",
+                    $"Categoria com ID '{request.CategoryId}' não encontrada.",
                     "ServiceCategory");
 
             if (!category.IsActive)
                 throw new UnprocessableEntityException(
-                    "Cannot create service in inactive category.",
+                    "Não é possível criar serviço em categoria inativa.",
                     "ServiceCategory");
 
             var normalizedName = request.Name?.Trim();

@@ -34,12 +34,12 @@ public sealed class ChangeServiceCategoryCommandHandler(
 
             if (newCategory is null)
                 throw new UnprocessableEntityException(
-                    $"Category with ID '{request.NewCategoryId}' not found.",
+                    $"Categoria com ID '{request.NewCategoryId}' não encontrada.",
                     "ServiceCategory");
 
             if (!newCategory.IsActive)
                 throw new UnprocessableEntityException(
-                    "Cannot move service to inactive category.",
+                    "Não é possível mover serviço para categoria inativa.",
                     "ServiceCategory");
 
             // Garantir que o nome ainda é único na categoria de destino
