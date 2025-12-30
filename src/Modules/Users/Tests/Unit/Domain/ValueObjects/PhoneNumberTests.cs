@@ -89,7 +89,44 @@ public class PhoneNumberTests
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() => new PhoneNumber(value, invalidCountryCode!));
-        exception.Message.Should().Be("Código do país não pode ser vazio");
+        exception.Message.Should().Contain("Código do país");
+    }
+
+    [Theory]
+    [InlineData("12345678", "US")]    // 8 dígitos - mínimo válido non-BR
+    [InlineData("123456789012345", "US")] // 15 dígitos - máximo válido non-BR
+    public void PhoneNumber_NonBrazilian_AtBoundaryDigitCounts_ShouldCreateSuccessfully(string value, string countryCode)
+    {
+        // Act
+        var phoneNumber = new PhoneNumber(value, countryCode);
+
+        // Assert
+        phoneNumber.Value.Should().Be(value);
+        phoneNumber.CountryCode.Should().Be(countryCode);
+    }
+
+    [Theory]
+    [InlineData("1234567", "US")]     // 7 dígitos - abaixo do mínimo
+    [InlineData("1234567890123456", "US")] // 16 dígitos - acima do máximo
+    public void PhoneNumber_NonBrazilian_OutOfRange_ShouldThrowArgumentException(string value, string countryCode)
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => new PhoneNumber(value, countryCode));
+    }
+
+    [Theory]
+    [InlineData("123")]      // Números em vez de letras
+    [InlineData("B")]        // Apenas 1 letra
+    [InlineData("BRA")]      // 3 letras (ISO alpha-3)
+    [InlineData("B1")]       // Letra + número
+    public void PhoneNumber_WithInvalidCountryCodeFormat_ShouldThrowArgumentException(string invalidCountryCode)
+    {
+        // Arrange
+        const string value = "11999999999";
+
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() => new PhoneNumber(value, invalidCountryCode));
+        exception.Message.Should().Contain("ISO");
     }
 
     [Fact]

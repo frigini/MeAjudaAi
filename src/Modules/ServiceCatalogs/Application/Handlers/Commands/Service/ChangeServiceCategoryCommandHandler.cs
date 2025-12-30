@@ -27,7 +27,7 @@ public sealed class ChangeServiceCategoryCommandHandler(
             var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
 
             if (service is null)
-                return Result.Failure(Error.NotFound($"Service with ID '{request.ServiceId}' not found."));
+                return Result.Failure(Error.NotFound($"Serviço com ID '{request.ServiceId}' não encontrado."));
 
             var newCategoryId = ServiceCategoryId.From(request.NewCategoryId);
             var newCategory = await categoryRepository.GetByIdAsync(newCategoryId, cancellationToken);
@@ -50,7 +50,7 @@ public sealed class ChangeServiceCategoryCommandHandler(
                     cancellationToken))
             {
                 return Result.Failure(
-                    $"A service with name '{service.Name}' already exists in the target category.");
+                    $"Já existe um serviço com o nome '{service.Name}' na categoria de destino.");
             }
 
             service.ChangeCategory(newCategoryId);

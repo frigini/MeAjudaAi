@@ -40,94 +40,80 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                 "Entidade Não Processável",
                 unprocessableException.Message,
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["entityName"] = unprocessableException.EntityName,
-                    ["details"] = unprocessableException.Details
-                }),
+                CreateExtensionsWithNonNullValues(
+                    ("entityName", unprocessableException.EntityName),
+                    ("details", unprocessableException.Details))),
 
             UniqueConstraintException uniqueException => (
                 StatusCodes.Status409Conflict,
                 "Valor Duplicado",
                 $"O valor para {uniqueException.ColumnName ?? "este campo"} já existe",
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["constraintName"] = uniqueException.ConstraintName,
-                    ["columnName"] = uniqueException.ColumnName
-                }),
+                CreateExtensionsWithNonNullValues(
+                    ("constraintName", uniqueException.ConstraintName),
+                    ("columnName", uniqueException.ColumnName))),
 
             NotNullConstraintException notNullException => (
                 StatusCodes.Status400BadRequest,
-                "Required Field Missing",
-                $"The field {notNullException.ColumnName ?? "this field"} is required",
+                "Campo Obrigatório Ausente",
+                $"O campo {notNullException.ColumnName ?? "este campo"} é obrigatório",
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["columnName"] = notNullException.ColumnName
-                }),
+                CreateExtensionsWithNonNullValues(
+                    ("columnName", notNullException.ColumnName))),
 
             ForeignKeyConstraintException foreignKeyException => (
                 StatusCodes.Status400BadRequest,
-                "Invalid Reference",
-                $"The referenced record does not exist",
+                "Referência Inválida",
+                "O registro referenciado não existe",
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["constraintName"] = foreignKeyException.ConstraintName,
-                    ["tableName"] = foreignKeyException.TableName
-                }),
+                CreateExtensionsWithNonNullValues(
+                    ("constraintName", foreignKeyException.ConstraintName),
+                    ("tableName", foreignKeyException.TableName))),
 
             DbUpdateException dbUpdateException => ProcessDbUpdateException(dbUpdateException),
 
             NotFoundException notFoundException => (
                 StatusCodes.Status404NotFound,
-                "Resource Not Found",
+                "Recurso Não Encontrado",
                 notFoundException.Message,
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["entityName"] = notFoundException.EntityName,
-                    ["entityId"] = notFoundException.EntityId
-                }),
+                CreateExtensionsWithNonNullValues(
+                    ("entityName", notFoundException.EntityName),
+                    ("entityId", notFoundException.EntityId))),
 
             UnauthorizedAccessException => (
                 StatusCodes.Status401Unauthorized,
-                "Unauthorized",
-                "Authentication is required to access this resource",
+                "Não Autorizado",
+                "Autenticação é necessária para acessar este recurso",
                 null,
                 []),
 
             ForbiddenAccessException forbiddenException => (
                 StatusCodes.Status403Forbidden,
-                "Forbidden",
+                "Acesso Negado",
                 forbiddenException.Message,
                 null,
                 []),
 
             BusinessRuleException businessException => (
                 StatusCodes.Status400BadRequest,
-                "Business Rule Violation",
+                "Violação de Regra de Negócio",
                 businessException.Message,
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["ruleName"] = businessException.RuleName
-                }),
+                CreateExtensionsWithNonNullValues(
+                    ("ruleName", businessException.RuleName))),
 
             ArgumentException argumentException => (
                 StatusCodes.Status400BadRequest,
                 "Erro de validação",
                 argumentException.Message,
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["parameterName"] = argumentException.ParamName
-                }),
+                CreateExtensionsWithNonNullValues(
+                    ("parameterName", argumentException.ParamName))),
 
             DomainException domainException => (
                 StatusCodes.Status400BadRequest,
-                "Domain Rule Violation",
+                "Violação de Regra de Domínio",
                 domainException.Message,
                 null,
                 []),
@@ -141,8 +127,8 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
 
             _ => (
                 StatusCodes.Status500InternalServerError,
-                "Internal Server Error",
-                "An unexpected error occurred while processing your request",
+                "Erro Interno do Servidor",
+                "Ocorreu um erro inesperado ao processar sua requisição",
                 null,
                 new Dictionary<string, object?>
                 {
@@ -259,4 +245,14 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         500 => "https://tools.ietf.org/html/rfc7231#section-6.6.1",
         _ => "https://tools.ietf.org/html/rfc7231"
     };
+
+    /// <summary>
+    /// Cria um dicionário de extensões excluindo valores nulos para respostas mais limpas.
+    /// </summary>
+    private static Dictionary<string, object?> CreateExtensionsWithNonNullValues(params (string key, object? value)[] entries)
+    {
+        return entries
+            .Where(e => e.value != null)
+            .ToDictionary(e => e.key, e => e.value);
+    }
 }
