@@ -185,48 +185,42 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         {
             return (
                 StatusCodes.Status409Conflict,
-                "Duplicate Value",
-                $"The value for {uniqueException.ColumnName ?? "this field"} already exists",
+                "Valor Duplicado",
+                $"O valor para {uniqueException.ColumnName ?? "este campo"} já existe",
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["constraintName"] = uniqueException.ConstraintName,
-                    ["columnName"] = uniqueException.ColumnName
-                });
+                CreateExtensionsWithNonNullValues(
+                    ("constraintName", uniqueException.ConstraintName),
+                    ("columnName", uniqueException.ColumnName)));
         }
 
         if (processedException is NotNullConstraintException notNullException)
         {
             return (
                 StatusCodes.Status400BadRequest,
-                "Required Field Missing",
-                $"The field {notNullException.ColumnName ?? "this field"} is required",
+                "Campo Obrigatório Ausente",
+                $"O campo {notNullException.ColumnName ?? "este campo"} é obrigatório",
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["columnName"] = notNullException.ColumnName
-                });
+                CreateExtensionsWithNonNullValues(
+                    ("columnName", notNullException.ColumnName)));
         }
 
         if (processedException is ForeignKeyConstraintException foreignKeyException)
         {
             return (
                 StatusCodes.Status400BadRequest,
-                "Invalid Reference",
-                "The referenced record does not exist",
+                "Referência Inválida",
+                "O registro referenciado não existe",
                 null,
-                new Dictionary<string, object?>
-                {
-                    ["constraintName"] = foreignKeyException.ConstraintName,
-                    ["tableName"] = foreignKeyException.TableName
-                });
+                CreateExtensionsWithNonNullValues(
+                    ("constraintName", foreignKeyException.ConstraintName),
+                    ("tableName", foreignKeyException.TableName)));
         }
 
         // Fallback para DbUpdateException genérica
         return (
             StatusCodes.Status400BadRequest,
-            "Database Error",
-            "A database error occurred while processing your request",
+            "Erro de Banco de Dados",
+            "Ocorreu um erro de banco de dados ao processar sua requisição",
             null,
             new Dictionary<string, object?>
             {

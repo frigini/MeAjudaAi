@@ -129,6 +129,78 @@ public class PhoneNumberTests
         exception.Message.Should().Contain("ISO");
     }
 
+    [Theory]
+    [InlineData("+5511987654321", "11987654321", "BR")]  // Celular brasileiro
+    [InlineData("+551133334444", "1133334444", "BR")]    // Fixo brasileiro
+    public void PhoneNumber_WithBrazilianInternationalFormat_ShouldParseCorrectly(
+        string input, string expectedValue, string expectedCountryCode)
+    {
+        // Act
+        var phoneNumber = new PhoneNumber(input);
+
+        // Assert
+        phoneNumber.Value.Should().Be(expectedValue);
+        phoneNumber.CountryCode.Should().Be(expectedCountryCode);
+    }
+
+    [Theory]
+    [InlineData("+12125551234")]     // Número EUA
+    [InlineData("+447911123456")]    // Número UK
+    public void PhoneNumber_WithNonBrazilianInternationalFormat_ShouldUseGenericCountryCode(string input)
+    {
+        // Act
+        var phoneNumber = new PhoneNumber(input);
+
+        // Assert
+        phoneNumber.CountryCode.Should().Be("XX");
+        phoneNumber.Value.Should().NotBeEmpty();
+    }
+
+    [Theory]
+    [InlineData("+55123")]           // Poucos dígitos após +55
+    [InlineData("+55123456789012")]  // Muitos dígitos após +55
+    public void PhoneNumber_WithInvalidBrazilianInternationalFormat_ShouldThrow(string input)
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => new PhoneNumber(input));
+    }
+
+    [Theory]
+    [InlineData("+1234567")]         // Poucos dígitos totais (7)
+    [InlineData("+1234567890123456")] // Muitos dígitos totais (16)
+    public void PhoneNumber_WithInvalidInternationalFormat_ShouldThrow(string input)
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => new PhoneNumber(input));
+    }
+
+    [Theory]
+    [InlineData("01987654321")]  // DDD inválido começando com 0
+    public void PhoneNumber_WithInvalidBrazilianDDD_ShouldThrow(string value)
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() => new PhoneNumber(value, "BR"));
+        exception.Message.Should().Contain("DDD");
+    }
+
+    [Theory]
+    [InlineData("11887654321")]  // 11 dígitos sem 9 como terceiro dígito
+    public void PhoneNumber_WithInvalidBrazilianMobileFormat_ShouldThrow(string value)
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() => new PhoneNumber(value, "BR"));
+        exception.Message.Should().Contain("Celular brasileiro inválido");
+    }
+
+    [Theory]
+    [InlineData("1198765432")]   // 10 dígitos com 9 como terceiro dígito
+    public void PhoneNumber_WithInvalidBrazilianLandlineFormat_ShouldThrow(string value)
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() => new PhoneNumber(value, "BR"));
+        exception.Message.Should().Contain("Telefone fixo brasileiro inválido");
+    }
+
     [Fact]
     public void PhoneNumber_WithWhitespaceInValue_ShouldTrimValue()
     {

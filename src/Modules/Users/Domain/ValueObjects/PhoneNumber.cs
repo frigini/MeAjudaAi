@@ -20,6 +20,9 @@ public class PhoneNumber : ValueObject
         if (string.IsNullOrWhiteSpace(value))
             throw new ArgumentException("Telefone não pode ser vazio");
         
+        if (string.IsNullOrWhiteSpace(countryCode))
+            throw new ArgumentException("Código do país não pode ser vazio");
+        
         var cleanValue = value.Trim();
         var normalizedCountryCode = countryCode.Trim().ToUpperInvariant();
         
@@ -58,7 +61,10 @@ public class PhoneNumber : ValueObject
             }
             
             Value = allDigits;
-            CountryCode = "XX"; // Genérico para internacionais
+            // DESIGN: Usa "XX" como código genérico para números internacionais não-brasileiros
+            // onde o país específico não é detectado. Isso mantém o formato ISO alpha-2 (2 letras)
+            // mas indica explicitamente que é um número internacional de país não identificado.
+            CountryCode = "XX";
             return;
         }
         

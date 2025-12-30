@@ -18,10 +18,10 @@ public sealed class ChangeServiceCategoryCommandHandler(
         try
         {
             if (request.ServiceId == Guid.Empty)
-                return Result.Failure("Service ID cannot be empty.");
+                return Result.Failure("O ID do serviço não pode ser vazio.");
 
             if (request.NewCategoryId == Guid.Empty)
-                return Result.Failure("New category ID cannot be empty.");
+                return Result.Failure("O ID da nova categoria não pode ser vazio.");
 
             var serviceId = ServiceId.From(request.ServiceId);
             var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
