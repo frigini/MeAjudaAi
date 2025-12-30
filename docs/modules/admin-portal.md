@@ -17,9 +17,9 @@ O Admin Portal é uma aplicação Single Page Application (SPA) que permite aos 
 | Componente | Tecnologia | Versão | Propósito |
 |------------|-----------|--------|-----------|
 | **Framework** | Blazor WebAssembly | .NET 10 | SPA no browser (sem servidor ASP.NET Core) |
-| **UI Library** | MudBlazor | 7.21.0+ | Material Design components |
+| **UI Library** | MudBlazor | 8.0.0+ | Material Design components |
 | **State Management** | Fluxor | 6.1.0+ | Flux/Redux pattern (previsível, testável) |
-| **API Client** | Refit | 9.0.2+ | HTTP client tipado (geração automática) |
+| **API Client** | Refit | 9.0.2 | HTTP client tipado (geração automática) |
 | **Autenticação** | OIDC/Keycloak | - | OpenID Connect via Keycloak |
 | **Validação** | FluentValidation | Shared | Validadores compartilhados backend/frontend |
 | **Testes Componentes** | bUnit | - | Unit tests de componentes Blazor |

@@ -1,17 +1,17 @@
 namespace MeAjudaAi.Shared.Contracts.Modules.SearchProviders.DTOs;
 
 /// <summary>
-/// Geographic location DTO for module API.
+/// DTO de localização geográfica para a API do módulo.
 /// </summary>
 public sealed record ModuleLocationDto
 {
     /// <summary>
-    /// Latitude coordinate. Valid range: -90 to +90 degrees.
+    /// Coordenada de latitude. Intervalo válido: -90 a +90 graus.
     /// </summary>
     public required double Latitude { get; init; }
 
     /// <summary>
-    /// Longitude coordinate. Valid range: -180 to +180 degrees.
+    /// Coordenada de longitude. Intervalo válido: -180 a +180 graus.
     /// </summary>
     public required double Longitude { get; init; }
 }

@@ -3,7 +3,7 @@ using MeAjudaAi.Shared.Contracts.Modules.SearchProviders.Enums;
 namespace MeAjudaAi.Shared.Contracts.Modules.SearchProviders.DTOs;
 
 /// <summary>
-/// Searchable provider DTO for module API.
+/// DTO de prestador pesquisável para a API do módulo.
 /// </summary>
 public sealed record ModuleSearchableProviderDto
 {

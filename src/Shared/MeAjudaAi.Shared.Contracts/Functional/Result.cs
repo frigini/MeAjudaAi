@@ -53,11 +53,11 @@ public class Result
     public static implicit operator Result(Error error) => Failure(error);
 
     /// <summary>
-    /// Matches the result with success or failure actions.
+    /// Executa ação de sucesso ou falha conforme o resultado.
     /// </summary>
-    /// <param name="onSuccess">Action to execute on success. Must not be null.</param>
-    /// <param name="onFailure">Action to execute on failure. Must not be null.</param>
-    /// <exception cref="ArgumentNullException">Thrown when onSuccess or onFailure is null.</exception>
+    /// <param name="onSuccess">Ação a executar em caso de sucesso. Não pode ser nulo.</param>
+    /// <param name="onFailure">Ação a executar em caso de falha. Não pode ser nulo.</param>
+    /// <exception cref="ArgumentNullException">Lançada quando onSuccess ou onFailure é nulo.</exception>
     public void Match(Action onSuccess, Action<Error> onFailure)
     {
         ArgumentNullException.ThrowIfNull(onSuccess);
@@ -70,13 +70,13 @@ public class Result
     }
 
     /// <summary>
-    /// Matches the result with success or failure functions.
+    /// Executa função de sucesso ou falha conforme o resultado.
     /// </summary>
-    /// <typeparam name="TResult">The type of the result</typeparam>
-    /// <param name="onSuccess">Function to execute on success. Must not be null.</param>
-    /// <param name="onFailure">Function to execute on failure. Must not be null.</param>
-    /// <returns>The result of the executed function</returns>
-    /// <exception cref="ArgumentNullException">Thrown when onSuccess or onFailure is null.</exception>
+    /// <typeparam name="TResult">O tipo do resultado</typeparam>
+    /// <param name="onSuccess">Função a executar em caso de sucesso. Não pode ser nulo.</param>
+    /// <param name="onFailure">Função a executar em caso de falha. Não pode ser nulo.</param>
+    /// <returns>O resultado da função executada</returns>
+    /// <exception cref="ArgumentNullException">Lançada quando onSuccess ou onFailure é nulo.</exception>
     public TResult Match<TResult>(Func<TResult> onSuccess, Func<Error, TResult> onFailure)
     {
         ArgumentNullException.ThrowIfNull(onSuccess);

@@ -22,7 +22,7 @@ public interface IServiceCatalogsModuleApi : IModuleApi
     /// Recupera todas as categorias de serviços.
     /// </summary>
     /// <param name="activeOnly">Se verdadeiro, retorna apenas categorias ativas</param>
-    /// <param name="cancellationToken"></param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
     Task<Result<IReadOnlyList<ModuleServiceCategoryDto>>> GetAllServiceCategoriesAsync(
         bool activeOnly = true,
         CancellationToken cancellationToken = default);
@@ -40,7 +40,7 @@ public interface IServiceCatalogsModuleApi : IModuleApi
     /// Recupera todos os serviços.
     /// </summary>
     /// <param name="activeOnly">Se verdadeiro, retorna apenas serviços ativos</param>
-    /// <param name="cancellationToken"></param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
     Task<Result<IReadOnlyList<ModuleServiceListDto>>> GetAllServicesAsync(
         bool activeOnly = true,
         CancellationToken cancellationToken = default);

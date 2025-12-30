@@ -46,7 +46,7 @@ dotnet publish -c Release
 |--------|--------|-----------|
 | `Microsoft.AspNetCore.Components.WebAssembly` | 10.0.1 | Blazor WASM runtime |
 | `Microsoft.AspNetCore.Components.WebAssembly.Authentication` | 10.0.1 | OIDC authentication |
-| `MudBlazor` | 7.21.0+ | Material Design UI |
+| `MudBlazor` | 8.0.0+ | Material Design UI |
 | `Fluxor.Blazor.Web` | 6.1.0 | State management |
 | `Fluxor.Blazor.Web.ReduxDevTools` | 6.1.0 | Redux DevTools (DEBUG only) |
 | `Refit.HttpClientFactory` | 9.0.2 | HTTP client generation |

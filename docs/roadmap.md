@@ -2055,7 +2055,7 @@ src/
 
 **Stack Frontend**:
 - **Framework**: Blazor WebAssembly (.NET 10) com AOT compilation
-- **UI Library**: MudBlazor 7.21.0+ (Material Design)
+- **UI Library**: MudBlazor 8.0.0 (Material Design)
 - **State Management**: Fluxor 6.1.0+ (Flux/Redux pattern)
 - **API Client**: Refit 9.0.2+ com HttpClientFactory (Polly integration via IHttpClientBuilder)
 - **Autenticação**: Microsoft.AspNetCore.Components.WebAssembly.Authentication (OIDC/Keycloak)
@@ -2143,12 +2143,12 @@ src/Shared/
 
 **Planejamento Detalhado**:
 
-**Semana 1 (6-10 Jan): Fundação**
+#### Semana 1 (6-10 Jan): Fundação
 - Dia 1-2: Setup projetos (Web.Admin, Web.Shared, Shared.Contracts) + NuGet packages
 - Dia 3: Autenticação Keycloak (OIDC)
 - Dia 4-5: Layout e navegação (MudLayout, MudDrawer, tema)
 
-**Semana 2 (13-17 Jan): Primeiro Feature**
+#### Semana 2 (13-17 Jan): Primeiro Feature
 - Dia 1-2: Providers Feature - Backend (IProvidersApi Refit + Fluxor store)
 - Dia 3: Providers Feature - UI (ProvidersList.razor + MudDataGrid)
 - Dia 4: Dashboard básico (KPIs + charts)

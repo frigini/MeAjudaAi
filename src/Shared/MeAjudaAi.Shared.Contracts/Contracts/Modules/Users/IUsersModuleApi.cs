@@ -6,7 +6,7 @@ namespace MeAjudaAi.Shared.Contracts.Modules.Users;
 /// <summary>
 /// API pública do módulo Users para consumo por outros módulos
 /// </summary>
-public interface IUsersModuleApi
+public interface IUsersModuleApi : IModuleApi
 {
     /// <summary>
     /// Obtém dados básicos de um usuário por ID

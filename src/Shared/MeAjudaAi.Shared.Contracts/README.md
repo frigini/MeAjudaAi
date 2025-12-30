@@ -52,7 +52,7 @@ Task<Result<ModuleProviderDto?>> GetProviderByIdAsync(Guid id);
 
 ## 📂 Estrutura
 
-```
+```text
 MeAjudaAi.Shared.Contracts/
 ├── Functional/              # Result pattern, Unit, Error
 ├── Modules/                 # Contratos públicos dos módulos
@@ -82,7 +82,7 @@ MeAjudaAi.Shared.Contracts/
 
 ## 🧪 Testes
 
-Este projeto é testado indiretamente através de:
+Este projeto é testado indiretamente por:
 - Testes de integração no backend
 - Testes de componentes no frontend (bUnit)
 - Testes E2E (Playwright)

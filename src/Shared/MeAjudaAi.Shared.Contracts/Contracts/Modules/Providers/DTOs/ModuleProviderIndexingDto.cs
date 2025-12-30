@@ -36,7 +36,7 @@ public sealed record ModuleProviderIndexingDto
     /// <summary>
     /// IDs dos serviços oferecidos pelo provider
     /// </summary>
-    public required Guid[] ServiceIds { get; init; }
+    public required IReadOnlyCollection<Guid> ServiceIds { get; init; }
 
     /// <summary>
     /// Avaliação média (0-5)

@@ -44,7 +44,7 @@ Plataforma conectando clientes com prestadores de serviços para serviços domé
 
 ### Frontend
 - **Blazor WebAssembly (.NET 10)** - SPA framework
-- **MudBlazor 7.21.0+** - Material Design UI components
+  - **MudBlazor 8.0.0** - Material Design UI components
 - **Fluxor 6.1.0+** - Flux/Redux state management
 - **Refit 9.0.2+** - Typed HTTP client
 - **bUnit** - Component testing

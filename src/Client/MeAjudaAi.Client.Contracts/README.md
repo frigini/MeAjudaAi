@@ -22,7 +22,7 @@ Este projeto contém **interfaces Refit** que definem endpoints da API REST do M
 
 ## 📂 Estrutura
 
-```
+```text
 MeAjudaAi.Client.Contracts/
 ├── Api/
 │   ├── IProvidersApi.cs        # GET /api/v1/providers
