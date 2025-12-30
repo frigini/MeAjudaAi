@@ -19,38 +19,113 @@ public class PhoneNumber : ValueObject
     {
         if (string.IsNullOrWhiteSpace(value))
             throw new ArgumentException("Telefone não pode ser vazio");
-        if (string.IsNullOrWhiteSpace(countryCode))
-            throw new ArgumentException("Código do país não pode ser vazio");
         
         var cleanValue = value.Trim();
-        var cleanCountryCode = countryCode.Trim().ToUpperInvariant();
+        var normalizedCountryCode = countryCode.Trim().ToUpperInvariant();
         
-        // Validar formato do código do país (ISO alpha-2: exatamente 2 letras ASCII)
-        if (cleanCountryCode.Length != 2 || !cleanCountryCode.All(c => c >= 'A' && c <= 'Z'))
-            throw new ArgumentException($"Código do país '{countryCode}' inválido. Deve ser um código ISO alpha-2 (2 letras)");
+        // Se começa com '+', é formato internacional - extrair código do país
+        if (cleanValue.StartsWith('+'))
+        {
+            var allDigits = new string(cleanValue[1..].Where(char.IsDigit).ToArray());
+            
+            // Detectar números brasileiros em formato internacional (+55...)
+            if (allDigits.StartsWith("55"))
+            {
+                // Extrair número sem código do país (55)
+                var brazilianNumber = allDigits[2..];
+                
+                // Validar como número brasileiro (deve ter 10-11 dígitos)
+                if (brazilianNumber.Length < 10 || brazilianNumber.Length > 11)
+                {
+                    throw new ArgumentException(
+                        $"Telefone brasileiro inválido. Após o código +55, informe DDD + número (10-11 dígitos). " +
+                        $"Exemplo: +5511987654321. Recebido: +55 + {brazilianNumber.Length} dígitos");
+                }
+                
+                ValidateBrazilianPhoneNumber(brazilianNumber);
+                
+                Value = brazilianNumber;
+                CountryCode = "BR";
+                return;
+            }
+            
+            // Número internacional não-brasileiro (exceção)
+            if (allDigits.Length < 8 || allDigits.Length > 15)
+            {
+                throw new ArgumentException(
+                    "Número internacional inválido. Deve conter entre 8 e 15 dígitos após o '+'. " +
+                    "Para números brasileiros, use +55 seguido de DDD e número");
+            }
+            
+            Value = allDigits;
+            CountryCode = "XX"; // Genérico para internacionais
+            return;
+        }
         
-        // Validar comprimento (apenas dígitos)
+        // Validar formato do código do país (ISO 3166-1 alpha-2: duas letras)
+        if (normalizedCountryCode.Length != 2 || !normalizedCountryCode.All(char.IsLetter))
+        {
+            throw new ArgumentException(
+                $"Código do país inválido: '{countryCode}'. Deve seguir o padrão ISO 3166-1 alpha-2 (duas letras). " +
+                "Exemplo: 'BR' para Brasil");
+        }
+        
+        // Extrair apenas dígitos do valor informado
         var digitsOnly = new string(cleanValue.Where(char.IsDigit).ToArray());
         
-        // Validação específica por país
-        if (cleanCountryCode == "BR")
+        // VALIDAÇÃO BRASILEIRA (foco principal do sistema)
+        if (normalizedCountryCode == "BR")
         {
-            // Brasil: 10-11 dígitos (2 DDD + 8-9 subscriber)
             if (digitsOnly.Length < 10 || digitsOnly.Length > 11)
-                throw new ArgumentException("Telefone brasileiro deve ter 10 ou 11 dígitos (DDD + número)");
+            {
+                throw new ArgumentException(
+                    $"Telefone brasileiro inválido. Informe DDD + número (10 dígitos para fixo ou 11 para celular). " +
+                    $"Exemplo: (11) 98765-4321 ou 11987654321. Recebido: {digitsOnly.Length} dígitos");
+            }
+            
+            ValidateBrazilianPhoneNumber(digitsOnly);
         }
         else
         {
-            // Outros países: 8-15 dígitos
-            if (digitsOnly.Length < 8)
-                throw new ArgumentException("Telefone deve ter pelo menos 8 dígitos");
-            if (digitsOnly.Length > 15)
-                throw new ArgumentException("Telefone não pode ter mais de 15 dígitos");
+            // Para outros países (exceção), validação genérica
+            if (digitsOnly.Length < 8 || digitsOnly.Length > 15)
+            {
+                throw new ArgumentException(
+                    $"Telefone inválido para país {normalizedCountryCode}. Deve conter entre 8 e 15 dígitos");
+            }
         }
         
-        // Armazenar apenas dígitos normalizados para consistência de igualdade
         Value = digitsOnly;
-        CountryCode = cleanCountryCode;
+        CountryCode = normalizedCountryCode;
+    }
+    
+    /// <summary>
+    /// Valida regras específicas para números brasileiros.
+    /// </summary>
+    private static void ValidateBrazilianPhoneNumber(string digitsOnly)
+    {
+        // Validação DDD: primeiro dígito deve estar entre 1-9 (DDDs válidos: 11-99)
+        if (digitsOnly.Length >= 2 && (digitsOnly[0] < '1' || digitsOnly[0] > '9'))
+        {
+            throw new ArgumentException(
+                "DDD inválido. O código de área deve começar com dígito entre 1 e 9 (DDDs válidos: 11 a 99)");
+        }
+        
+        // Validação celular: números com 11 dígitos devem ter 9 como terceiro dígito
+        if (digitsOnly.Length == 11 && digitsOnly[2] != '9')
+        {
+            throw new ArgumentException(
+                "Celular brasileiro inválido. Números com 11 dígitos devem ter 9 como terceiro dígito. " +
+                "Formato esperado: (XX) 9XXXX-XXXX");
+        }
+        
+        // Validação fixo: números com 10 dígitos NÃO devem ter 9 como terceiro dígito
+        if (digitsOnly.Length == 10 && digitsOnly[2] == '9')
+        {
+            throw new ArgumentException(
+                "Telefone fixo brasileiro inválido. Números com 10 dígitos não devem ter 9 como terceiro dígito. " +
+                "Formato esperado: (XX) XXXX-XXXX");
+        }
     }
 
     public override string ToString() => $"{CountryCode} {Value}";
