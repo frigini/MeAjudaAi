@@ -4,7 +4,7 @@ Biblioteca portável de contratos compartilhados entre backend (ASP.NET Core) e 
 
 ## 📦 Propósito
 
-Este projeto contém **apenas tipos portáveis** que podem ser usados tanto no servidor quanto no browser:
+Este projeto contém **apenas tipos portáteis** que podem ser usados tanto no servidor quanto no navegador:
 
 - **DTOs** (Data Transfer Objects) - Modelos de dados para comunicação entre módulos
 - **Result Pattern** - Tipo funcional para tratamento de erros

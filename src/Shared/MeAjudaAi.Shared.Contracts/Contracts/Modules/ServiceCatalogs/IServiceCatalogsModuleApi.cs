@@ -14,6 +14,8 @@ public interface IServiceCatalogsModuleApi : IModuleApi
     /// <summary>
     /// Recupera uma categoria de serviço por ID.
     /// </summary>
+    /// <param name="categoryId">Identificador da categoria de serviço</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
     Task<Result<ModuleServiceCategoryDto?>> GetServiceCategoryByIdAsync(
         Guid categoryId,
         CancellationToken cancellationToken = default);
@@ -32,6 +34,8 @@ public interface IServiceCatalogsModuleApi : IModuleApi
     /// <summary>
     /// Recupera um serviço por ID.
     /// </summary>
+    /// <param name="serviceId">Identificador do serviço</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
     Task<Result<ModuleServiceDto?>> GetServiceByIdAsync(
         Guid serviceId,
         CancellationToken cancellationToken = default);
@@ -48,6 +52,9 @@ public interface IServiceCatalogsModuleApi : IModuleApi
     /// <summary>
     /// Recupera todos os serviços de uma categoria específica.
     /// </summary>
+    /// <param name="categoryId">Identificador da categoria para filtrar serviços</param>
+    /// <param name="activeOnly">Se verdadeiro, retorna apenas serviços ativos</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
     Task<Result<IReadOnlyList<ModuleServiceDto>>> GetServicesByCategoryAsync(
         Guid categoryId,
         bool activeOnly = true,
@@ -56,6 +63,9 @@ public interface IServiceCatalogsModuleApi : IModuleApi
     /// <summary>
     /// Verifica se um serviço existe e está ativo.
     /// </summary>
+    /// <param name="serviceId">Identificador do serviço a verificar</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>Resultado contendo verdadeiro se o serviço existe e está ativo, falso caso contrário</returns>
     Task<Result<bool>> IsServiceActiveAsync(
         Guid serviceId,
         CancellationToken cancellationToken = default);
@@ -63,6 +73,8 @@ public interface IServiceCatalogsModuleApi : IModuleApi
     /// <summary>
     /// Valida se todos os IDs de serviços fornecidos existem e estão ativos.
     /// </summary>
+    /// <param name="serviceIds">Coleção de IDs de serviços a validar. Todos devem existir e estar ativos.</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Resultado contendo o resultado da validação e lista de IDs de serviços inválidos</returns>
     Task<Result<ModuleServiceValidationResultDto>> ValidateServicesAsync(
         IReadOnlyCollection<Guid> serviceIds,
