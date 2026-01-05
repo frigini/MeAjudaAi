@@ -6,7 +6,9 @@ using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Web.Admin.Features.Providers;
 using MeAjudaAi.Web.Admin.Pages;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using Moq;
+using MudBlazor.Services;
 using static MeAjudaAi.Web.Admin.Features.Providers.ProvidersActions;
 
 namespace MeAjudaAi.Web.Admin.Tests.Pages;
@@ -33,6 +35,10 @@ public class ProvidersPageTests : Bunit.TestContext
         Services.AddSingleton(_mockProvidersApi.Object);
         Services.AddSingleton(_mockDispatcher.Object);
         Services.AddSingleton(_mockProvidersState.Object);
+        Services.AddMudServices();
+        
+        // Configurar JSInterop mock para MudBlazor
+        JSInterop.Mode = JSRuntimeMode.Loose;
     }
 
     [Fact]

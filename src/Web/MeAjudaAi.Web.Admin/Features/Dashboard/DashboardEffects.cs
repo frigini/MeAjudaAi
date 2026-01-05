@@ -11,10 +11,12 @@ namespace MeAjudaAi.Web.Admin.Features.Dashboard;
 public class DashboardEffects
 {
     private readonly IProvidersApi _providersApi;
+    private readonly IServiceCatalogsApi _serviceCatalogsApi;
 
-    public DashboardEffects(IProvidersApi providersApi)
+    public DashboardEffects(IProvidersApi providersApi, IServiceCatalogsApi serviceCatalogsApi)
     {
         _providersApi = providersApi;
+        _serviceCatalogsApi = serviceCatalogsApi;
     }
 
     /// <summary>
@@ -50,8 +52,11 @@ public class DashboardEffects
                 ? pendingProvidersResult.Value.Count
                 : 0;
 
-            // Active Services (placeholder - futura implementação quando houver API de Services)
-            var activeServices = 0;
+            // Buscar serviços ativos
+            var servicesResult = await _serviceCatalogsApi.GetAllServicesAsync(activeOnly: true);
+            var activeServices = servicesResult.IsSuccess && servicesResult.Value is not null
+                ? servicesResult.Value.Count
+                : 0;
 
             dispatcher.Dispatch(new LoadDashboardStatsSuccessAction(
                 totalProviders,

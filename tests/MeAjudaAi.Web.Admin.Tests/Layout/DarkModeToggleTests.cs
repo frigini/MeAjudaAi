@@ -4,7 +4,9 @@ using Fluxor;
 using MeAjudaAi.Web.Admin.Features.Theme;
 using MeAjudaAi.Web.Admin.Layout;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using Moq;
+using MudBlazor.Services;
 using static MeAjudaAi.Web.Admin.Features.Theme.ThemeActions;
 
 namespace MeAjudaAi.Web.Admin.Tests.Layout;
@@ -28,6 +30,10 @@ public class DarkModeToggleTests : Bunit.TestContext
         // Registrar serviços necessários
         Services.AddSingleton(_mockDispatcher.Object);
         Services.AddSingleton(_mockThemeState.Object);
+        Services.AddMudServices();
+        
+        // Configurar JSInterop mock para MudBlazor
+        JSInterop.Mode = JSRuntimeMode.Loose;
     }
 
     [Fact]

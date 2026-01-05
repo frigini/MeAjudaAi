@@ -4,6 +4,123 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 
 ---
 
+## 🆕 Sprint 6 - Débitos Técnicos (BAIXA PRIORIDADE)
+
+**Sprint**: Sprint 6 Concluída (30 Dez 2025 - 5 Jan 2026)  
+**Status**: Itens de baixa prioridade, não bloqueiam Sprint 7
+
+### 🎨 Frontend - Warnings de Analyzers (BAIXA)
+
+**Severidade**: BAIXA (code quality)  
+**Sprint**: BACKLOG (não afeta funcionalidade)
+
+**Descrição**: Build do Admin Portal gera 10 warnings de analyzers (SonarLint + MudBlazor):
+
+**Warnings SonarLint**:
+1. **S2094** (6 ocorrências): Empty records em Actions
+   - `DashboardActions.cs`: `LoadDashboardStatsAction` (record vazio)
+   - `ProvidersActions.cs`: `LoadProvidersAction`, `GoToPageAction` (records vazios)
+   - `ThemeActions.cs`: `ToggleDarkModeAction`, `SetDarkModeAction` (records vazios)
+   - **Recomendação**: Converter para `interface` ou adicionar propriedades quando houver parâmetros
+   
+2. **S2953** (1 ocorrência): `App.razor:58` - Método `Dispose()` não implementa `IDisposable`
+   - **Recomendação**: Renomear método ou implementar interface corretamente
+
+3. **S2933** (1 ocorrência): `App.razor:41` - Campo `_theme` deve ser `readonly`
+   - **Recomendação**: Adicionar modificador `readonly`
+
+**Warnings MudBlazor**:
+4. **MUD0002** (3 ocorrências): Atributos com casing incorreto em `MainLayout.razor`
+   - `AriaLabel` → `aria-label` (lowercase)
+   - `Direction` → `direction` (lowercase)
+   - **Recomendação**: Atualizar para lowercase conforme padrão HTML
+
+**Ações Recomendadas** (Sprint 7):
+- [ ] Converter Actions vazias para interfaces (ThemeActions, DashboardActions)
+- [ ] Corrigir Dispose() em App.razor (implementar IDisposable ou renomear)
+- [ ] Adicionar readonly em _theme (App.razor)
+- [ ] Corrigir casing de atributos MudBlazor (MainLayout.razor)
+
+**Impacto**: Nenhum - build continua 100% funcional
+
+---
+
+### 📊 Frontend - Cobertura de Testes (MÉDIA)
+
+**Severidade**: MÉDIA (quality assurance)  
+**Sprint**: Sprint 7 (aumentar cobertura)
+
+**Descrição**: Admin Portal tem apenas 10 testes bUnit criados. Coverage atual é baixo para produção.
+
+**Testes Existentes**:
+1. **ProvidersPageTests** (4 testes):
+   - Dispatch LoadProvidersAction
+   - Loading state display
+   - Error message display
+   - Data grid rendering
+   
+2. **DashboardPageTests** (4 testes):
+   - Dispatch LoadDashboardStatsAction
+   - Loading state display
+   - KPI values display
+   - Error message display
+   
+3. **DarkModeToggleTests** (2 testes):
+   - Toggle dark mode action
+   - Initial state rendering
+
+**Gaps de Cobertura**:
+- ❌ **Authentication flows**: Login/Logout/Callbacks não testados
+- ❌ **Pagination**: GoToPageAction não validado em testes
+- ❌ **API error scenarios**: Apenas erro genérico testado
+- ❌ **MudBlazor interactions**: Clicks, inputs não validados
+- ❌ **Fluxor Effects**: Chamadas API não mockadas completamente
+
+**Ações Recomendadas** (Sprint 7):
+- [ ] Criar 10+ testes adicionais (meta: 30 testes totais)
+- [ ] Testar fluxos de autenticação (Authentication.razor)
+- [ ] Testar paginação (GoToPageAction com diferentes páginas)
+- [ ] Testar interações MudBlazor (button clicks, input changes)
+- [ ] Aumentar coverage de error scenarios (API failures, network errors)
+- [ ] Documentar patterns de teste em `docs/testing/bunit-patterns.md`
+
+**Meta de Coverage**: 70-85% (padrão indústria para frontend)
+
+---
+
+### 🔐 Keycloak Client - Configuração Manual (MÉDIA)
+
+**Severidade**: MÉDIA (developer experience)  
+**Sprint**: Sprint 7 (automação desejável)
+
+**Descrição**: Client `admin-portal` precisa ser criado MANUALMENTE no Keycloak realm `meajudaai`.
+
+**Situação Atual**:
+- ✅ Documentação completa: `docs/keycloak-admin-portal-setup.md`
+- ✅ Passos detalhados (General Settings, Capability config, Login settings)
+- ✅ Exemplo de usuário admin de teste
+- ❌ Processo manual (8-10 passos via Admin Console)
+
+**Problemas**:
+1. **Onboarding lento**: Novo desenvolvedor precisa seguir ~10 passos
+2. **Erro humano**: Fácil esquecer redirect URIs ou roles
+3. **Reprodutibilidade**: Ambiente local pode divergir de dev/staging
+
+**Ações Recomendadas** (Sprint 7):
+- [ ] Criar script de automação: `scripts/setup-keycloak-clients.ps1`
+- [ ] Usar Keycloak Admin REST API para criar client programaticamente
+- [ ] Integrar script em `dotnet run --project src/Aspire/MeAjudaAi.AppHost`
+- [ ] Adicionar validação: verificar se client já existe antes de criar
+- [ ] Documentar script em `docs/keycloak-admin-portal-setup.md`
+
+**Referências**:
+- Keycloak Admin REST API: <https://www.keycloak.org/docs-api/latest/rest-api/index.html>
+- Client Representation: <https://www.keycloak.org/docs-api/latest/rest-api/index.html#ClientRepresentation>
+
+**Impacto**: Developer experience - não bloqueia produção
+
+---
+
 ## 🔄 Sprint 5.5 - Itens Pendentes (BACKLOG)
 
 **Branch**: `feature/refactor-and-cleanup`  

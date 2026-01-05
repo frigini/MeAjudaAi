@@ -142,11 +142,72 @@ DarkModeToggleTests.cs (2 testes):
 - Authentication flow (login/logout)
 ```
 
-### **2. Mock JSInterop** (se testes falharem por MudBlazor):
+### **2. JSInterop Mock Pattern** (CRÍTICO para MudBlazor):
+
+**Problema**: MudBlazor components usam JavaScript interop (modal dialogs, tooltips, etc). Testes sem mock falham.
+
+**Solução Aplicada**:
+
 ```csharp
-// Se MudBlazor precisar de JSRuntime:
-Services.AddSingleton<IJSRuntime>(new MockJSRuntime());
+public class ProvidersPageTests : Bunit.TestContext
+{
+    public ProvidersPageTests()
+    {
+        // Registrar serviços MudBlazor
+        Services.AddMudServices();
+        
+        // CRÍTICO: Configurar JSInterop mock
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        // ↑ Permite MudBlazor funcionar sem browser real
+    }
+
+    [Fact]
+    public void Test_Component_With_MudBlazor()
+    {
+        var cut = RenderComponent<Providers>();
+        // MudDataGrid, MudPagination, etc funcionam normalmente
+    }
+}
 ```
+
+**Modos de JSInterop**:
+- **Loose** (recomendado): Mock retorna valores padrão automaticamente
+- **Strict**: Requer setup manual de cada chamada JS
+- **None**: Lança exceção (útil para debug)
+
+**Quando usar**:
+- ✅ **SEMPRE** em testes com MudBlazor components
+- ✅ Components que chamam `IJSRuntime.InvokeAsync`
+- ✅ Components com `@inject IJSRuntime JS`
+
+**Exemplo Completo**:
+
+```csharp
+using Bunit;
+using Microsoft.JSInterop;
+using MudBlazor.Services;
+
+public class DashboardPageTests : Bunit.TestContext
+{
+    public DashboardPageTests()
+    {
+        // 1. Registrar MudBlazor
+        Services.AddMudServices();
+        
+        // 2. Configurar JSInterop
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        
+        // 3. (Opcional) Setup específico de JS calls
+        // JSInterop.Setup<string>("mudElementRef.focus", _ => true);
+    }
+}
+```
+
+**Referências**:
+- [bUnit JSInterop Documentation](https://bunit.dev/docs/test-doubles/emulating-ijsruntime)
+- [MudBlazor Testing Guide](https://mudblazor.com/getting-started/testing)
+
+---
 
 ### **3. Configurar Coverage Threshold** (`.github/workflows/pr-validation.yml`):
 ```yaml

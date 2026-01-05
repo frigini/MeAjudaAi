@@ -274,6 +274,76 @@ MeAjudaAi/
 - **Validação**: Middleware de restrição geográfica (ex: disponível apenas RJ)
 - **Caching**: Redis para otimizar consultas frequentes
 
+---
+
+## 🎨 Admin Portal (NEW - Sprint 6)
+
+### Blazor WebAssembly + Fluxor + MudBlazor
+
+Portal administrativo moderno para gestão da plataforma MeAjudaAi.
+
+**Stack Tecnológica:**
+- **Blazor WebAssembly**: .NET 10 SPA client-side
+- **MudBlazor 7.21.0**: Material Design UI components
+- **Fluxor 6.1.0**: Redux-pattern state management
+- **Refit 9.0.2**: Type-safe HTTP clients
+- **Keycloak OIDC**: Authentication via Authorization Code flow
+
+**Funcionalidades Implementadas (Sprint 6):**
+- ✅ **Autenticação**: Login/Logout via Keycloak OIDC
+- ✅ **Dashboard**: 3 KPIs (Total Providers, Pending Verifications, Active Services)
+- ✅ **Providers Management**: Listagem paginada (read-only)
+- ✅ **Dark Mode**: Toggle com Fluxor state management
+- ✅ **Portuguese Localization**: UI completa em português
+
+**Como Executar:**
+
+```powershell
+# Via Aspire AppHost (recomendado)
+cd src/Aspire/MeAjudaAi.AppHost
+dotnet run
+
+# Acessar: https://localhost:7281
+# Login: admin.portal / admin123 (após criar client no Keycloak)
+```
+
+**Configuração Keycloak:**
+
+Siga o guia completo em [docs/keycloak-admin-portal-setup.md](docs/keycloak-admin-portal-setup.md) para criar o client `admin-portal` no realm `meajudaai`.
+
+**Testes:**
+
+```powershell
+# Executar testes bUnit
+dotnet test tests/MeAjudaAi.Web.Admin.Tests
+
+# 10 testes: ProvidersPage, Dashboard, DarkMode
+```
+
+**Estrutura:**
+
+```
+src/Web/MeAjudaAi.Web.Admin/
+├── Pages/                # Razor pages (Dashboard, Providers, Authentication)
+├── Features/             # Fluxor stores (Providers, Dashboard, Theme)
+├── Layout/               # MainLayout, NavMenu
+└── wwwroot/              # appsettings.json, static assets
+
+tests/MeAjudaAi.Web.Admin.Tests/
+├── Pages/                # bUnit component tests
+└── Layout/               # Layout component tests
+```
+
+**Próximos Passos (Sprint 7):**
+- CRUD completo de Providers (create, update, delete, verify)
+- Gestão de Documentos (upload, verificação)
+- Gestão de Service Catalogs (categorias + serviços)
+- Gráficos Dashboard (providers por status, evolução temporal)
+
+📖 **Documentação Completa**: [Frontend Architecture](docs/architecture.md#frontend-architecture-sprint-6)
+
+---
+
 ### 🔮 Roadmap - Próximos Módulos
 - **Bookings**: Agendamentos e reservas
 - **Payments**: Processamento de pagamentos (Stripe/PagSeguro)
