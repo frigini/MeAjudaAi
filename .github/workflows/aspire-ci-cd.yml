@@ -36,7 +36,7 @@ jobs:
       - name: Restore AppHost dependencies
         run: |
           echo "🔄 Restoring Aspire AppHost dependencies with --force-evaluate..."
-          dotnet restore src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj --force-evaluate
+          dotnet restore src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj --force-evaluate /p:RestoreLockedMode=false
           echo "✅ Dependencies restored"
 
       - name: Build Aspire AppHost
