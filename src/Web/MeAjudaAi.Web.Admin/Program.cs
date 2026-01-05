@@ -13,29 +13,29 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// API Base URL
+// URL base da API
 var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? builder.HostEnvironment.BaseAddress;
 
-// HTTP Client configuration with authentication
+// Configuração do HttpClient com autenticação
 builder.Services.AddHttpClient("MeAjudaAi.API", client => client.BaseAddress = new Uri(apiBaseUrl))
     .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>()
     .CreateClient("MeAjudaAi.API"));
 
-// Authentication with Keycloak OIDC
+// Autenticação Keycloak OIDC
 builder.Services.AddOidcAuthentication(options =>
 {
     builder.Configuration.Bind("Keycloak", options.ProviderOptions);
     options.UserOptions.RoleClaim = "roles";
 });
 
-// Refit API Clients
+// Clientes Refit
 builder.Services.AddRefitClient<IProvidersApi>()
     .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
     .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
-// MudBlazor
+// Serviços MudBlazor
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
@@ -47,7 +47,7 @@ builder.Services.AddMudServices(config =>
     config.SnackbarConfiguration.ShowTransitionDuration = 500;
 });
 
-// Fluxor State Management
+// Gerenciamento de estado Fluxor
 builder.Services.AddFluxor(options =>
 {
     options.ScanAssemblies(typeof(Program).Assembly);
