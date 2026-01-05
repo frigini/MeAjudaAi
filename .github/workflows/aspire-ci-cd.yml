@@ -59,7 +59,8 @@ jobs:
           FOUND_DCP=false
           for pattern in "${DCP_LOCATIONS[@]}"; do
             if compgen -G "$pattern" > /dev/null; then
-              echo "✅ Found DCP binary: $(echo $pattern)"
+              echo "✅ Found DCP binaries matching: $pattern"
+              compgen -G "$pattern" | head -3
               FOUND_DCP=true
             fi
           done

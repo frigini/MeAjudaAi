@@ -919,7 +919,7 @@ jobs:
         if: ${{ always() && steps.coverage_cobertura_aggregate.outcome != 'success' }}
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          filename: 'coverage/users/*.opencover.xml,coverage/providers/*.opencover.xml,coverage/documents/*.opencover.xml,coverage/servicecatalogs/*.opencover.xml,coverage/locations/*.opencover.xml,coverage/searchproviders/*.opencover.xml,coverage/shared/*.opencover.xml,coverage/apiservice/*.opencover.xml'
+          filename: 'coverage/users/*.opencover.xml,coverage/providers/*.opencover.xml,coverage/documents/*.opencover.xml,coverage/servicecatalogs/*.opencover.xml,coverage/locations/*.opencover.xml,coverage/searchproviders/*.opencover.xml,coverage/shared/*.opencover.xml,coverage/apiservice/*.opencover.xml,coverage/webadmin/*.opencover.xml'
           badge: true
           fail_below_min: false
           format: markdown
@@ -935,7 +935,7 @@ jobs:
         if: ${{ always() && steps.coverage_cobertura_aggregate.outcome != 'success' && steps.coverage_opencover_individual.outcome != 'success' }}
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          filename: 'coverage/users/*.cobertura.xml,coverage/providers/*.cobertura.xml,coverage/documents/*.cobertura.xml,coverage/servicecatalogs/*.cobertura.xml,coverage/locations/*.cobertura.xml,coverage/searchproviders/*.cobertura.xml,coverage/shared/*.cobertura.xml,coverage/apiservice/*.cobertura.xml'
+          filename: 'coverage/users/*.cobertura.xml,coverage/providers/*.cobertura.xml,coverage/documents/*.cobertura.xml,coverage/servicecatalogs/*.cobertura.xml,coverage/locations/*.cobertura.xml,coverage/searchproviders/*.cobertura.xml,coverage/shared/*.cobertura.xml,coverage/apiservice/*.cobertura.xml,coverage/webadmin/*.cobertura.xml'
           badge: true
           fail_below_min: false
           format: markdown
