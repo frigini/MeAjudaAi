@@ -2051,16 +2051,27 @@ src/
 - ✅ Refatoração técnica completa (Messaging, Extensions, TODOs)
 - ✅ Dependabot PRs #84-88 (regeneração automática em andamento)
 
-**Progresso Atual** (5 Jan 2026):
-- ✅ Configuração inicial do projeto Blazor WASM
-- ✅ Integração MudBlazor 8.0.0 + Fluxor 6.1.0
-- ✅ Configuração Refit para IProvidersApi
-- ✅ Implementação Fluxor stores (State/Actions/Reducers/Effects)
-- ✅ Página Providers com MudDataGrid funcionando
-- ✅ Layout base com MudDrawer + MudAppBar
-- ⏳ Autenticação Keycloak (próximo passo)
-- ⏳ Dashboard com KPIs
-- ⏳ Testes bUnit/Playwright
+**Progresso Atual** (5 Jan 2026 - Dia 1 CONCLUÍDO):
+- ✅ Configuração inicial do projeto Blazor WASM (.NET 10)
+- ✅ Integração MudBlazor 8.0.0 + Fluxor 6.1.0 + Refit 9.0.2
+- ✅ Configuração Refit para IProvidersApi com autenticação
+- ✅ Implementação Fluxor stores completos (State/Actions/Reducers/Effects)
+- ✅ Página Providers com MudDataGrid + paginação funcionando
+- ✅ Layout base com MudDrawer + MudAppBar + user menu
+- ✅ **Autenticação Keycloak OIDC completa** (OidcAuthentication + AuthorizeView)
+- ✅ HTTP clients configurados com BaseAddressAuthorizationMessageHandler
+- ✅ Páginas de autenticação (login, logout, callbacks, error states)
+- ✅ Build 100% funcional (apenas 6 warnings de analyzers)
+- ⏳ Dark mode com Fluxor (próximo)
+- ⏳ Dashboard com KPIs (próximo)
+- ⏳ Testes bUnit/xUnit (próximo)
+
+**Decisões Técnicas Tomadas**:
+- **bUnit + xUnit**: bUnit é biblioteca de testes para Blazor que funciona COM xUnit (não substitui)
+- **Arquitetura respeitada**: Verificados contratos existentes em Shared e IProvidersApi
+- **PagedResult correto**: Usado o do Client.Contracts, não do Shared.Contracts
+- **Keycloak Client**: admin-portal (deve ser criado no Keycloak realm meajudaai)
+- **Bug .NET 10**: Desabilitada compressão de static web assets temporariamente
 
 **Decisões Técnicas Tomadas**:
 
