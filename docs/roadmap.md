@@ -89,7 +89,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
    - 10 testes criados (ProvidersPageTests, DashboardPageTests, DarkModeToggleTests)
    - JSInterop mock configurado (JSRuntimeMode.Loose)
    - MudServices registrados em TestContext
-   - CI/CD integration (ci-cd.yml + pr-validation.yml)
+   - CI/CD integration (master-ci-cd.yml + pr-validation.yml)
 
 8. **Localização Portuguesa** ✅
    - Todos comentários inline em português
@@ -2147,7 +2147,7 @@ src/
 - ✅ **Dark mode toggle com Fluxor** (ThemeState + MudThemeProvider)
 - ✅ **10 testes bUnit criados** (ProvidersPage, Dashboard, DarkMode)
 - ✅ JSInterop mock configurado (JSRuntimeMode.Loose)
-- ✅ CI/CD integration (bUnit tests em ci-cd.yml + pr-validation.yml)
+- ✅ CI/CD integration (bUnit tests em master-ci-cd.yml + pr-validation.yml)
 - ✅ **Portuguese localization completa** (comments + UI messages)
 - ✅ Build 100% funcional (10 warnings - analyzers apenas, 0 erros)
 
@@ -2209,7 +2209,7 @@ src/
   - DarkModeToggleTests (2 testes)
 - ✅ JSInterop mock configurado (JSRuntimeMode.Loose)
 - ✅ MudServices registrados em TestContext
-- ✅ CI/CD integration (ci-cd.yml + pr-validation.yml)
+- ✅ CI/CD integration (master-ci-cd.yml + pr-validation.yml)
 - ✅ Documentação: docs/testing/bunit-ci-cd-practices.md
 
 **Critérios de Aceitação - Todos Atendidos** ✅:

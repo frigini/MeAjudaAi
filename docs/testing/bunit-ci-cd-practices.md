@@ -110,7 +110,7 @@ Blazor Components:   70-85%   ← RECOMENDADO
 ## 🔧 Configuração Atual (Aplicada)
 
 ### **Arquivos Modificados**:
-1. ✅ `.github/workflows/ci-cd.yml` → adicionado step "Run frontend component tests"
+1. ✅ `.github/workflows/master-ci-cd.yml` → adicionado step "Run frontend component tests"
 2. ✅ `.github/workflows/pr-validation.yml` → adicionado `WebAdmin` ao array `MODULES`
 3. ✅ `tests/MeAjudaAi.Web.Admin.Tests/` → 10 testes iniciais criados
 
@@ -290,8 +290,8 @@ start coveragereport/index.html
 - [x] Coverage coletado (XPlat Code Coverage)
 - [x] Documentação de boas práticas
 - [x] JSInterop mock configurado
-- [x] Validado ci-cd.yml dotnet test syntax fixes em CI pipeline
+- [x] Validado master-ci-cd.yml dotnet test syntax fixes em CI pipeline
 - [ ] TODO: Configurar threshold (quando tiver mais testes)
 - [ ] TODO: Aumentar coverage para 70%+ (adicionar mais testes)
 
-**Status**: ✅ **CI/CD Integration Complete** — ci-cd.yml dotnet test syntax validated successfully in GitHub Actions (removed --no-build, fixed DataCollectionRunSettings, frontend tests running in dedicated step)
+**Status**: ✅ **CI/CD Integration Complete** — master-ci-cd.yml dotnet test syntax validated successfully in GitHub Actions (removed --no-build, fixed DataCollectionRunSettings, frontend tests running in dedicated step)
