@@ -2,7 +2,7 @@
 
 Uma plataforma abrangente de serviços construída com .NET Aspire, projetada para conectar prestadores de serviços com clientes usando arquitetura monólito modular.
 
-<!-- Last updated: December 30, 2025 - Sprint 5.5 COMPLETED / Sprint 6 Planning -->
+<!-- Last updated: January 5, 2026 - Sprint 6 COMPLETED (Blazor Admin Portal Setup) / Sprint 7 Planning -->
 
 ## 🎯 Visão Geral
 

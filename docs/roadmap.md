@@ -760,22 +760,22 @@ public sealed class Service : AggregateRoot<ServiceId>
 
 **4. API Layer** ✅
 - **Endpoints REST** usando Minimal APIs pattern:
-  - `GET /api/v1/catalogs/categories` - Listar categorias
-  - `GET /api/v1/catalogs/categories/{id}` - Buscar categoria
-  - `POST /api/v1/catalogs/categories` - Criar categoria
-  - `PUT /api/v1/catalogs/categories/{id}` - Atualizar categoria
-  - `POST /api/v1/catalogs/categories/{id}/activate` - Ativar
-  - `POST /api/v1/catalogs/categories/{id}/deactivate` - Desativar
-  - `DELETE /api/v1/catalogs/categories/{id}` - Deletar
-  - `GET /api/v1/catalogs/services` - Listar serviços
-  - `GET /api/v1/catalogs/services/{id}` - Buscar serviço
-  - `GET /api/v1/catalogs/services/category/{categoryId}` - Por categoria
-  - `POST /api/v1/catalogs/services` - Criar serviço
-  - `PUT /api/v1/catalogs/services/{id}` - Atualizar serviço
-  - `POST /api/v1/catalogs/services/{id}/change-category` - Mudar categoria
-  - `POST /api/v1/catalogs/services/{id}/activate` - Ativar
-  - `POST /api/v1/catalogs/services/{id}/deactivate` - Desativar
-  - `DELETE /api/v1/catalogs/services/{id}` - Deletar
+  - `GET /api/v1/service-catalogs/categories` - Listar categorias
+  - `GET /api/v1/service-catalogs/categories/{id}` - Buscar categoria
+  - `POST /api/v1/service-catalogs/categories` - Criar categoria
+  - `PUT /api/v1/service-catalogs/categories/{id}` - Atualizar categoria
+  - `POST /api/v1/service-catalogs/categories/{id}/activate` - Ativar
+  - `POST /api/v1/service-catalogs/categories/{id}/deactivate` - Desativar
+  - `DELETE /api/v1/service-catalogs/categories/{id}` - Deletar
+  - `GET /api/v1/service-catalogs/services` - Listar serviços
+  - `GET /api/v1/service-catalogs/services/{id}` - Buscar serviço
+  - `GET /api/v1/service-catalogs/services/category/{categoryId}` - Por categoria
+  - `POST /api/v1/service-catalogs/services` - Criar serviço
+  - `PUT /api/v1/service-catalogs/services/{id}` - Atualizar serviço
+  - `POST /api/v1/service-catalogs/services/{id}/change-category` - Mudar categoria
+  - `POST /api/v1/service-catalogs/services/{id}/activate` - Ativar
+  - `POST /api/v1/service-catalogs/services/{id}/deactivate` - Desativar
+  - `DELETE /api/v1/service-catalogs/services/{id}` - Deletar
 - **Autorização**: Todos endpoints requerem role Admin
 - **Versionamento**: Sistema unificado via BaseEndpoint
 

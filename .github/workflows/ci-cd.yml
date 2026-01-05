@@ -172,7 +172,6 @@ jobs:
           
           # Define exclude patterns for Blazor WASM generated code
           BLAZOR_EXCLUDE_PATTERNS="**/*.g.cs,**/*.razor.g.cs,**/obj/**,**/bin/**"
-          BLAZOR_EXCLUDE_ASSEMBLIES="[*.Tests*]*,[testhost]*"
 
           echo "▶️ Running Web.Admin component tests (10 tests: Providers, Dashboard, DarkMode)..."
           dotnet test tests/MeAjudaAi.Web.Admin.Tests/MeAjudaAi.Web.Admin.Tests.csproj \

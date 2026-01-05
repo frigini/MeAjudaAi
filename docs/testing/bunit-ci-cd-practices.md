@@ -14,7 +14,7 @@
    - Enterprise and .NET Foundation projects commonly include component tests in their CI/CD pipelines. Recommended practices align with Microsoft's .NET testing guidance.
 
 3. **Benefícios vs Custo**:
-   - ⏱️ **Rápido**: bUnit testa componentes **sem browser** (< 5 segundos)
+   - ⏱️ **Rápido**: bUnit testa componentes **sem navegador** (< 5 segundos)
    - 💰 **Barato**: não precisa Selenium/Playwright (sem containers Chrome)
    - 🎯 **Foco**: testa lógica de UI, não layout visual
 
@@ -68,13 +68,13 @@ MODULES=(
 ## 📊 Threshold de Coverage (Recomendação)
 
 ### **Backend** (você já tem):
-```
+```yaml
 Domain/Application:  80-100%  ✅
 Infrastructure:      60-80%   ✅
 ```
 
 ### **Frontend** (adicionar):
-```
+```yaml
 Blazor Components:   70-85%   ← RECOMENDADO
 - Pages (*.razor):   80%+     (lógica crítica)
 - Fluxor stores:     100%     (unit tests puros)
@@ -97,7 +97,7 @@ Blazor Components:   70-85%   ← RECOMENDADO
 4. ✅ **Binding de State** → dados do Fluxor aparecem na UI
 
 ### **Média Prioridade** (recomendado):
-5. ✅ **Event handlers** → clicks, form submits
+5. ✅ **Event handlers** → clicks, form submits, etc.
 6. ✅ **Navigation** → redirecionamentos corretos
 7. ⚠️ **MudBlazor components** → apenas se customizados
 
@@ -148,7 +148,7 @@ Layout/DarkModeToggleTests.cs (2 testes):
 
 ### **2. JSInterop Mock Pattern** (CRÍTICO para MudBlazor):
 
-**Problema**: MudBlazor components usam JavaScript interop (modal dialogs, tooltips, etc). Testes sem mock falham.
+**Problema**: MudBlazor components usam JavaScript interop (modal dialogs, tooltips, etc.). Testes sem mock falham.
 
 **Solução Aplicada**:
 
@@ -251,7 +251,7 @@ public class DashboardPageTests : Bunit.TestContext
 | **Quando rodar** | Toda PR/push ✅ | Toda PR/push ✅ |
 | **Coverage min** | 80% (Domain/App) | 70-85% (Components) |
 | **Ferramenta** | xUnit | bUnit + xUnit |
-| **Velocidade** | < 30s | < 5s (sem browser!) |
+| **Velocidade** | < 30s | < 5s (sem navegador!) |
 | **Custo CI** | Baixo | Baixo (sem Selenium) |
 | **Falha build?** | SIM ✅ | SIM ✅ |
 
@@ -286,7 +286,7 @@ start coveragereport/index.html
 
 - [x] bUnit adicionado à pipeline CI/CD
 - [x] bUnit adicionado à PR validation
-- [x] Testes criados (6 testes iniciais)
+- [x] Testes criados (10 testes iniciais)
 - [x] Coverage coletado (XPlat Code Coverage)
 - [x] Documentação de boas práticas
 - [x] JSInterop mock configurado
