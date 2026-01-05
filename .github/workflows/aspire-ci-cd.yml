@@ -70,7 +70,7 @@ jobs:
             echo "Searching for Aspire packages..."
             find "$HOME/.nuget/packages" -type d -iname "*aspire*" -maxdepth 1 2>/dev/null || true
             echo "ℹ️  DCP is needed for Aspire deployment but not for build validation"
-            echo "✅ Continuing workflow - AppHost build already validated DCP will be available at runtime"
+            echo "✅ Continuing workflow - DCP will be restored at deployment time"
           else
             echo "✅ Aspire DCP binaries verified and ready for deployment"
           fi
@@ -119,7 +119,7 @@ jobs:
           
           # Generate manifest to validate Aspire configuration
           # This is a dry-run that validates resource definitions without actual deployment
-          dotnet run --project . --publisher manifest \
+          dotnet run --project . -- --publisher manifest \
             --output-path ./aspire-manifest.json || {
             echo "❌ Manifest generation failed - Aspire configuration is invalid"
             exit 1
