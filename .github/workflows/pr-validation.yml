@@ -471,7 +471,7 @@ jobs:
           echo ""
           
           echo "🔍 DEBUG: Verifying coverage files for CodeCoverageSummary..."
-          for module in users providers documents servicecatalogs locations searchproviders shared apiservice; do
+          for module in users providers documents servicecatalogs locations searchproviders shared apiservice webadmin; do
             if [ -f "coverage/${module}/${module}.opencover.xml" ]; then
               echo "  ✅ coverage/${module}/${module}.opencover.xml exists"
               # Show file size and first sequenceCoverage value as sanity check
@@ -742,7 +742,7 @@ jobs:
           # Pre-flight check: verify all expected coverage files exist
           echo "🔍 Pre-flight check: Verifying coverage files..."
           MISSING_FILES=0
-          for module in users providers documents servicecatalogs locations searchproviders shared apiservice; do
+          for module in users providers documents servicecatalogs locations searchproviders shared apiservice webadmin; do
             if ! find "coverage/${module}" -name "*.opencover.xml" -type f | grep -q .; then
               echo "  ⚠️  Warning: No .opencover.xml files found for ${module}"
               MISSING_FILES=$((MISSING_FILES + 1))
@@ -793,10 +793,10 @@ jobs:
         env:
           DOTNET_ROOT: ${{ env.DOTNET_ROOT }}
         with:
-          reports: 'coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml'
+          reports: 'coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml;coverage/webadmin/*.opencover.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml'
           targetdir: 'coverage/aggregate'
           reporttypes: 'Cobertura;JsonSummary'
-          assemblyfilters: '+MeAjudaAi.Modules.Users.*;+MeAjudaAi.Modules.Providers.*;+MeAjudaAi.Modules.Documents.*;+MeAjudaAi.Modules.ServiceCatalogs.*;+MeAjudaAi.Modules.Locations.*;+MeAjudaAi.Modules.SearchProviders.*;+MeAjudaAi.Shared*;+MeAjudaAi.ApiService*'
+          assemblyfilters: '+MeAjudaAi.Modules.Users.*;+MeAjudaAi.Modules.Providers.*;+MeAjudaAi.Modules.Documents.*;+MeAjudaAi.Modules.ServiceCatalogs.*;+MeAjudaAi.Modules.Locations.*;+MeAjudaAi.Modules.SearchProviders.*;+MeAjudaAi.Shared*;+MeAjudaAi.ApiService*;+MeAjudaAi.Web.Admin*'
           classfilters: '-*.Tests;-*.Tests.*;-*Test*;-testhost;-xunit*;-*.Migrations.*;-*.Contracts;-*.Database;-*DbContextFactory;-*.Program;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery'
           filefilters: '-*Migrations*'
           verbosity: 'Info'
@@ -973,8 +973,8 @@ jobs:
           echo "========================"
           echo ""
           
-          # Only analyze coverage from the 8 main modules (exclude Integration/E2E tests)
-          MODULES=("users" "providers" "documents" "servicecatalogs" "locations" "searchproviders" "shared" "apiservice")
+          # Analyze coverage from the 9 main modules (8 backend + 1 frontend, exclude Integration/E2E tests)
+          MODULES=("users" "providers" "documents" "servicecatalogs" "locations" "searchproviders" "shared" "apiservice" "webadmin")
           
           for module in "${MODULES[@]}"; do
             coverage_file="./coverage/${module}/${module}.opencover.xml"

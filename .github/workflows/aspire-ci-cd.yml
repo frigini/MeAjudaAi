@@ -109,6 +109,31 @@ jobs:
           DB_PASSWORD: 'manifest-generation'
           MEAJUDAAI_DB_PASS: 'manifest-generation'
           KEYCLOAK_ADMIN_PASSWORD: 'manifest-generation'
+          ASPNETCORE_ENVIRONMENT: Testing
+        run: |
+          echo "📋 Generating Aspire deployment manifest..."
+          cd src/Aspire/MeAjudaAi.AppHost
+          
+          # Generate manifest to validate Aspire configuration
+          # This is a dry-run that validates resource definitions without actual deployment
+          dotnet run --project . --publisher manifest \
+            --output-path ./aspire-manifest.json || {
+            echo "❌ Manifest generation failed - Aspire configuration is invalid"
+            exit 1
+          }
+          
+          echo "✅ Aspire manifest generated successfully"
+          
+          # Validate manifest structure
+          if [ -f ./aspire-manifest.json ]; then
+            echo "📊 Manifest file size: $(du -h ./aspire-manifest.json | cut -f1)"
+            echo "📦 Resources defined in manifest:"
+            cat ./aspire-manifest.json | grep -oP '"type":\s*"\K[^"]+' | sort -u || echo "  (unable to parse resource types)"
+          else
+            echo "❌ Manifest file not created"
+            exit 1
+          fi
+
       - name: Validate Environment Configuration
         run: |
           echo "🔧 Validating Aspire environment configuration..."
@@ -147,7 +172,7 @@ jobs:
           echo "  ✅ Environment configuration checked"
           echo ""
           echo "Aspire AppHost is ready for deployment."
-          echo "=========================================="yzer warnings)
+          echo "=========================================="
           set -o pipefail
           dotnet format --verify-no-changes \
             --include whitespace style \
