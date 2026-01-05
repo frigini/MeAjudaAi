@@ -567,6 +567,7 @@ jobs:
           echo "▶️ Running Web.Admin component tests (Providers, Dashboard, DarkMode)..."
           dotnet test tests/MeAjudaAi.Web.Admin.Tests/MeAjudaAi.Web.Admin.Tests.csproj \
             --configuration Release \
+            --no-restore \
             --verbosity normal \
             --collect:"XPlat Code Coverage" \
             --results-directory "$FRONTEND_COVERAGE_DIR" \
