@@ -4,24 +4,24 @@
     "net10.0": {
       "Fluxor.Blazor.Web": {
         "type": "Direct",
-        "requested": "[6.1.0, )",
-        "resolved": "6.1.0",
-        "contentHash": "tpbP8uwNQEg8uRkScxFz09a+jhRmyktBusIITLcp9ayET4MWKsqaJMsxTOHidsNF2OYylAnXbujZkFedZtihxQ==",
+        "requested": "[6.9.0, )",
+        "resolved": "6.9.0",
+        "contentHash": "CuqwSi4k/TzVhG8azvEMdWfuwMfMVij8r1966SvXWIdkzAwzyaN7rUSwj4pz+jqcBv+ptTAqJSnxIblx2CKZEw==",
         "dependencies": {
-          "Fluxor": "6.1.0",
-          "Microsoft.AspNetCore.Components.Web": "8.0.8",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.1"
+          "Fluxor": "6.9.0",
+          "Microsoft.AspNetCore.Components.Web": "8.0.0",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0"
         }
       },
       "Fluxor.Blazor.Web.ReduxDevTools": {
         "type": "Direct",
-        "requested": "[6.1.0, )",
-        "resolved": "6.1.0",
-        "contentHash": "a9iCEGmThfRhFyuOzpgzXWepRVGOYymDKFj6p7qHmAmCBi5DucxQDEgRtDDEFK1H33Y38lJMDWDvyf+mwdRJhA==",
+        "requested": "[6.9.0, )",
+        "resolved": "6.9.0",
+        "contentHash": "Y+MggUoTig/RVmJnXpdvBV5wsRqjtmn5Bpdqfxpi3UqmMc7QhBzUkBqxSoaYxZQCyL1sRHZsdNaoGeZGeY1Xqg==",
         "dependencies": {
-          "Fluxor.Blazor.Web": "6.1.0",
-          "Microsoft.AspNetCore.Components.Web": "8.0.8",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.1"
+          "Fluxor.Blazor.Web": "6.9.0",
+          "Microsoft.AspNetCore.Components.Web": "8.0.0",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0"
         }
       },
       "Microsoft.AspNetCore.App.Internal.Assets": {
@@ -106,10 +106,10 @@
       },
       "Fluxor": {
         "type": "Transitive",
-        "resolved": "6.1.0",
-        "contentHash": "yRH9z2oYps/vkmWjQHy3fVxMHl1GimejT1RJiVvChhi1YmflCrav7kHM8TtTqPsz/HKcoSCwEu4P09PDhvuWZA==",
+        "resolved": "6.9.0",
+        "contentHash": "yLULcGjsqVaPBujGKyMVdm1+VXOR5mtV+nxpZ1jZATSbNfUebLIJJAXQL3TGFqx9I9SALqD/ADOUFWTBCkQRyg==",
         "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.1"
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0"
         }
       },
       "Microsoft.AspNetCore.Authorization": {

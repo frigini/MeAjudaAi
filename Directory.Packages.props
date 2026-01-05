@@ -236,11 +236,11 @@
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.17.0.131074" />
     <!-- Blazor UI & State Management -->
     <PackageVersion Include="MudBlazor" Version="7.21.0" />
-    <PackageVersion Include="Fluxor.Blazor.Web" Version="6.1.0" />
-    <PackageVersion Include="Fluxor.Blazor.Web.ReduxDevTools" Version="6.1.0" />
+    <PackageVersion Include="Fluxor.Blazor.Web" Version="6.9.0" />
+    <PackageVersion Include="Fluxor.Blazor.Web.ReduxDevTools" Version="6.9.0" />
     <PackageVersion Include="Refit" Version="9.0.2" />
     <PackageVersion Include="Refit.HttpClientFactory" Version="9.0.2" />
     <!-- Blazor Testing -->
-    <PackageVersion Include="bUnit" Version="1.40.0" />
+    <PackageVersion Include="bUnit" Version="2.4.2" />
   </ItemGroup>
 </Project>

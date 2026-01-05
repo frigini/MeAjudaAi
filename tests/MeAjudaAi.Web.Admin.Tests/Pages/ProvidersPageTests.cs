@@ -16,39 +16,30 @@ namespace MeAjudaAi.Web.Admin.Tests.Pages;
 /// <summary>
 /// Testes para a página Providers.razor usando bUnit
 /// </summary>
-public class ProvidersPageTests : Bunit.TestContext
+public class ProvidersPageTests
 {
-    private readonly Mock<IProvidersApi> _mockProvidersApi;
-    private readonly Mock<IDispatcher> _mockDispatcher;
-    private readonly Mock<IState<ProvidersState>> _mockProvidersState;
-
-    public ProvidersPageTests()
-    {
-        _mockProvidersApi = new Mock<IProvidersApi>();
-        _mockDispatcher = new Mock<IDispatcher>();
-        _mockProvidersState = new Mock<IState<ProvidersState>>();
-
-        // Configurar estado inicial vazio
-        _mockProvidersState.Setup(x => x.Value).Returns(new ProvidersState());
-
-        // Registrar serviços necessários
-        Services.AddSingleton(_mockProvidersApi.Object);
-        Services.AddSingleton(_mockDispatcher.Object);
-        Services.AddSingleton(_mockProvidersState.Object);
-        Services.AddMudServices();
-        
-        // Configurar JSInterop mock para MudBlazor
-        JSInterop.Mode = JSRuntimeMode.Loose;
-    }
-
     [Fact]
     public void Providers_Page_Should_Dispatch_LoadProvidersAction_OnInitialized()
     {
-        // Arrange & Act
-        var cut = RenderComponent<Providers>();
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        var mockProvidersApi = new Mock<IProvidersApi>();
+        var mockDispatcher = new Mock<IDispatcher>();
+        var mockProvidersState = new Mock<IState<ProvidersState>>();
+        
+        mockProvidersState.Setup(x => x.Value).Returns(new ProvidersState());
+        
+        ctx.Services.AddSingleton(mockProvidersApi.Object);
+        ctx.Services.AddSingleton(mockDispatcher.Object);
+        ctx.Services.AddSingleton(mockProvidersState.Object);
+        ctx.Services.AddMudServices();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        // Act
+        var cut = ctx.RenderComponent<Providers>();
 
         // Assert
-        _mockDispatcher.Verify(
+        mockDispatcher.Verify(
             x => x.Dispatch(It.IsAny<LoadProvidersAction>()), 
             Times.Once,
             "LoadProvidersAction deve ser disparada ao inicializar a página");
@@ -58,10 +49,21 @@ public class ProvidersPageTests : Bunit.TestContext
     public void Providers_Page_Should_Show_Loading_Indicator_When_Loading()
     {
         // Arrange
-        _mockProvidersState.Setup(x => x.Value).Returns(new ProvidersState { IsLoading = true });
+        using var ctx = new Bunit.TestContext();
+        var mockProvidersApi = new Mock<IProvidersApi>();
+        var mockDispatcher = new Mock<IDispatcher>();
+        var mockProvidersState = new Mock<IState<ProvidersState>>();
+        
+        mockProvidersState.Setup(x => x.Value).Returns(new ProvidersState { IsLoading = true });
+        
+        ctx.Services.AddSingleton(mockProvidersApi.Object);
+        ctx.Services.AddSingleton(mockDispatcher.Object);
+        ctx.Services.AddSingleton(mockProvidersState.Object);
+        ctx.Services.AddMudServices();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = RenderComponent<Providers>();
+        var cut = ctx.RenderComponent<Providers>();
 
         // Assert
         var progressBars = cut.FindAll(".mud-progress-linear");
@@ -72,14 +74,25 @@ public class ProvidersPageTests : Bunit.TestContext
     public void Providers_Page_Should_Show_Error_Message_When_Error_Exists()
     {
         // Arrange
+        using var ctx = new Bunit.TestContext();
+        var mockProvidersApi = new Mock<IProvidersApi>();
+        var mockDispatcher = new Mock<IDispatcher>();
+        var mockProvidersState = new Mock<IState<ProvidersState>>();
+        
         const string errorMessage = "Erro ao carregar fornecedores";
-        _mockProvidersState.Setup(x => x.Value).Returns(new ProvidersState 
+        mockProvidersState.Setup(x => x.Value).Returns(new ProvidersState 
         { 
             ErrorMessage = errorMessage 
         });
+        
+        ctx.Services.AddSingleton(mockProvidersApi.Object);
+        ctx.Services.AddSingleton(mockDispatcher.Object);
+        ctx.Services.AddSingleton(mockProvidersState.Object);
+        ctx.Services.AddMudServices();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = RenderComponent<Providers>();
+        var cut = ctx.RenderComponent<Providers>();
 
         // Assert
         var alerts = cut.FindAll(".mud-alert");
@@ -91,6 +104,11 @@ public class ProvidersPageTests : Bunit.TestContext
     public void Providers_Page_Should_Display_Providers_In_DataGrid()
     {
         // Arrange
+        using var ctx = new Bunit.TestContext();
+        var mockProvidersApi = new Mock<IProvidersApi>();
+        var mockDispatcher = new Mock<IDispatcher>();
+        var mockProvidersState = new Mock<IState<ProvidersState>>();
+        
         var providers = new List<ModuleProviderDto>
         {
             new()
@@ -108,13 +126,19 @@ public class ProvidersPageTests : Bunit.TestContext
             }
         };
 
-        _mockProvidersState.Setup(x => x.Value).Returns(new ProvidersState 
+        mockProvidersState.Setup(x => x.Value).Returns(new ProvidersState 
         { 
             Providers = providers
         });
+        
+        ctx.Services.AddSingleton(mockProvidersApi.Object);
+        ctx.Services.AddSingleton(mockDispatcher.Object);
+        ctx.Services.AddSingleton(mockProvidersState.Object);
+        ctx.Services.AddMudServices();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = RenderComponent<Providers>();
+        var cut = ctx.RenderComponent<Providers>();
 
         // Assert
         cut.Markup.Should().Contain("Fornecedor Teste", "Provider deve estar renderizado");

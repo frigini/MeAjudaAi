@@ -11,9 +11,7 @@
    - Previne regressões em componentes Blazor
 
 2. **Empresas enterprise fazem**:
-   - GitHub (próprio GitHub Actions tem testes Blazor)
-   - Stack Overflow usa bUnit em seu Blazor admin portal
-   - .NET Foundation projects rodam bUnit em CI
+   - Enterprise and .NET Foundation projects commonly include component tests in their CI/CD pipelines. Recommended practices align with Microsoft's .NET testing guidance.
 
 3. **Benefícios vs Custo**:
    - ⏱️ **Rápido**: bUnit testa componentes **sem browser** (< 5 segundos)
@@ -117,14 +115,14 @@ Blazor Components:   70-85%   ← RECOMENDADO
 3. ✅ `tests/MeAjudaAi.Web.Admin.Tests/` → 6 testes criados
 
 ### **Testes Implementados**:
-```
-ProvidersPageTests.cs (4 testes):
+```text
+Pages/ProvidersPageTests.cs (4 testes):
 ├── ✅ Dispatch LoadProvidersAction on init
 ├── ✅ Show loading indicator
 ├── ✅ Show error messages
 └── ✅ Display providers in DataGrid
 
-DarkModeToggleTests.cs (2 testes):
+Layout/DarkModeToggleTests.cs (2 testes):
 ├── ✅ Dispatch ToggleDarkModeAction on click
 └── ✅ ThemeState initializes with light mode
 ```
@@ -268,7 +266,9 @@ start coveragereport/index.html
 - [x] Testes criados (6 testes iniciais)
 - [x] Coverage coletado (XPlat Code Coverage)
 - [x] Documentação de boas práticas
+- [x] JSInterop mock configurado
+- [ ] **TODO**: Validate ci-cd.yml dotnet test syntax fixes in CI pipeline
 - [ ] TODO: Configurar threshold (quando tiver mais testes)
 - [ ] TODO: Aumentar coverage para 70%+ (adicionar mais testes)
 
-**Status**: 🟢 **PRONTO PARA PRODUÇÃO** (testes rodarão em toda PR a partir de agora)
+**Status**: ⚠️ **NOT READY FOR PRODUCTION** — ci-cd.yml dotnet test syntax was corrected (removed --no-build, fixed DataCollectionRunSettings), pending validation in CI run

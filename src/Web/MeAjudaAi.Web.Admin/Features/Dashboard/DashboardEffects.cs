@@ -1,5 +1,6 @@
 using Fluxor;
 using MeAjudaAi.Client.Contracts.Api;
+using Microsoft.Extensions.Logging;
 using static MeAjudaAi.Web.Admin.Features.Dashboard.DashboardActions;
 
 namespace MeAjudaAi.Web.Admin.Features.Dashboard;
@@ -10,13 +11,21 @@ namespace MeAjudaAi.Web.Admin.Features.Dashboard;
 /// </summary>
 public class DashboardEffects
 {
+    // Status de verificação dos providers (deve corresponder ao enum no backend)
+    private const string PENDING_STATUS = "Pending";
+    
     private readonly IProvidersApi _providersApi;
     private readonly IServiceCatalogsApi _serviceCatalogsApi;
+    private readonly ILogger<DashboardEffects> _logger;
 
-    public DashboardEffects(IProvidersApi providersApi, IServiceCatalogsApi serviceCatalogsApi)
+    public DashboardEffects(
+        IProvidersApi providersApi, 
+        IServiceCatalogsApi serviceCatalogsApi,
+        ILogger<DashboardEffects> logger)
     {
         _providersApi = providersApi;
         _serviceCatalogsApi = serviceCatalogsApi;
+        _logger = logger;
     }
 
     /// <summary>
@@ -46,7 +55,7 @@ public class DashboardEffects
 
             // Buscar providers com verificação pendente
             var pendingProvidersResult = await _providersApi
-                .GetProvidersByVerificationStatusAsync("Pending");
+                .GetProvidersByVerificationStatusAsync(PENDING_STATUS);
 
             var pendingVerifications = pendingProvidersResult.IsSuccess && pendingProvidersResult.Value is not null
                 ? pendingProvidersResult.Value.Count
@@ -65,8 +74,9 @@ public class DashboardEffects
         }
         catch (Exception ex)
         {
-            var userFriendlyMessage = $"Erro ao carregar estatísticas: {ex.Message}";
-            dispatcher.Dispatch(new LoadDashboardStatsFailureAction(userFriendlyMessage));
+            _logger.LogError(ex, "Failed to load dashboard statistics");
+            dispatcher.Dispatch(new LoadDashboardStatsFailureAction(
+                "Erro ao carregar estatísticas, tente novamente mais tarde"));
         }
     }
 }

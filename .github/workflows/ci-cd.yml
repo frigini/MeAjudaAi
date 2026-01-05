@@ -172,10 +172,9 @@ jobs:
 
           echo "▶️ Running Web.Admin component tests..."
           dotnet test tests/MeAjudaAi.Web.Admin.Tests/MeAjudaAi.Web.Admin.Tests.csproj \
-            --configuration Release --no-build --verbosity normal \
+            --configuration Release --verbosity normal \
             --collect:"XPlat Code Coverage" --results-directory TestResults/WebAdmin \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$BLAZOR_EXCLUDE_PATTERNS" \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByAttribute="Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute"
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$BLAZOR_EXCLUDE_PATTERNS" DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByAttribute="Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute"
 
           echo "✅ Frontend component tests completed"
 
