@@ -42,7 +42,7 @@ jobs:
       - name: Build Aspire AppHost
         run: |
           echo "🏗️ Building Aspire AppHost..."
-          dotnet build src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj --configuration Release
+          dotnet build src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj --configuration Release --no-restore
           echo "✅ Aspire AppHost builds successfully"
 
       - name: Verify DCP Binaries (Distributed Application Runtime)
