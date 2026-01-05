@@ -125,14 +125,6 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - Gráficos Dashboard (MudCharts - providers por status, evolução temporal)
 - Aumentar cobertura de testes (30+ testes bUnit)
 
-**✅ Sprint 6 Completed** (30 Dez - 5 Jan 2026)
-- Blazor Admin Portal Setup (fundação técnica completa)
-- 10 testes bUnit implementados (ProvidersPage, Dashboard, DarkMode)
-- Fluxor state management configurado
-- MudBlazor 7.21.0 + componentes base
-- Autenticação OIDC com Keycloak
-- Refit API clients (IProvidersApi, IServiceCatalogsApi)
-
 **Principais Conquistas**:
 1. **Refatoração MeAjudaAi.Shared.Messaging** ✅
    - Factories organizados em pasta dedicada (`Messaging/Factories/`)
