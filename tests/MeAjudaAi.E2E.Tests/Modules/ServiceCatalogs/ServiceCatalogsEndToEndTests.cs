@@ -272,8 +272,8 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
         {
             var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
-            // Append GUID to ensure unique category name
-            var uniqueCategoryName = $"{_fixture.Faker.Commerce.Department()}-{Guid.NewGuid():N}";
+            // Anexar GUID para garantir nome de categoria único
+            var uniqueCategoryName = $"{_fixture.Faker.Commerce.Department()}-{Guid.NewGuid().ToString("N")[..8]}";
             category = ServiceCategory.Create(uniqueCategoryName, _fixture.Faker.Lorem.Sentence(), 1);
             context.ServiceCategories.Add(category);
             await context.SaveChangesAsync();
@@ -637,8 +637,8 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
         {
             var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
-            // Append GUID to ensure unique category names across test runs
-            var uniqueName = $"{_fixture.Faker.Commerce.Department()}-{Guid.NewGuid():N}";
+            // Anexar GUID para garantir nomes de categoria únicos entre execuções de teste
+            var uniqueName = $"{_fixture.Faker.Commerce.Department()}-{Guid.NewGuid().ToString("N")[..8]}";
             
             category = ServiceCategory.Create(
                 uniqueName,
@@ -661,8 +661,8 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
 
             for (int i = 0; i < count; i++)
             {
-                // Append GUID to ensure unique category names across test runs
-                var uniqueName = $"{_fixture.Faker.Commerce.Department()}-{Guid.NewGuid():N}";
+                // Anexar GUID para garantir nomes de categoria únicos entre execuções de teste
+                var uniqueName = $"{_fixture.Faker.Commerce.Department()}-{Guid.NewGuid().ToString("N")[..8]}";
                 
                 var category = ServiceCategory.Create(
                     uniqueName,

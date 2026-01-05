@@ -2039,9 +2039,9 @@ src/
 
 ---
 
-### 📅 Sprint 6: Blazor Admin Portal Setup (2 semanas) 🔄 PLANEJAMENTO
+### 📅 Sprint 6: Blazor Admin Portal Setup (2 semanas) 🔄 EM ANDAMENTO
 
-**Status**: 🔄 PLANEJAMENTO INICIADO (30 Dez 2025)  
+**Status**: 🔄 EM ANDAMENTO (Iniciada 5 Jan 2026)  
 **Branch**: `blazor-admin-portal-setup`  
 **Período**: 6 - 17 Janeiro 2026
 
@@ -2049,7 +2049,18 @@ src/
 - ✅ Sprint 5.5 CONCLUÍDA (19-30 Dez 2025)
 - ✅ Backend APIs prontos (Todos os módulos implementados)
 - ✅ Refatoração técnica completa (Messaging, Extensions, TODOs)
-- ⏳ Dependabot PRs #84-88 (regeneração automática em andamento)
+- ✅ Dependabot PRs #84-88 (regeneração automática em andamento)
+
+**Progresso Atual** (5 Jan 2026):
+- ✅ Configuração inicial do projeto Blazor WASM
+- ✅ Integração MudBlazor 8.0.0 + Fluxor 6.1.0
+- ✅ Configuração Refit para IProvidersApi
+- ✅ Implementação Fluxor stores (State/Actions/Reducers/Effects)
+- ✅ Página Providers com MudDataGrid funcionando
+- ✅ Layout base com MudDrawer + MudAppBar
+- ⏳ Autenticação Keycloak (próximo passo)
+- ⏳ Dashboard com KPIs
+- ⏳ Testes bUnit/Playwright
 
 **Decisões Técnicas Tomadas**:
 

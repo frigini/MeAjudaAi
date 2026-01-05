@@ -1,41 +1,74 @@
 @page "/providers"
+@inherits FluxorComponent
+@inject IState<ProvidersState> ProvidersState
+@inject IDispatcher Dispatcher
 
 <PageTitle>Providers - MeAjudaAi Admin</PageTitle>
 
 <MudText Typo="Typo.h3" Class="mb-4">Providers</MudText>
 
+@if (ProvidersState.Value.IsLoading)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mb-4" />
+}
+
+@if (!string.IsNullOrEmpty(ProvidersState.Value.ErrorMessage))
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">
+        @ProvidersState.Value.ErrorMessage
+    </MudAlert>
+}
+
 <MudCard>
     <MudCardContent>
-        <MudText Typo="Typo.body1">
-            Gerenciamento de providers (prestadores de serviço).
-        </MudText>
-        <MudText Typo="Typo.body2" Class="mt-4">
-            Esta página será implementada com:
-        </MudText>
-        <MudStack Spacing="2" Class="mt-2">
-            <MudText>
-                <MudIcon Icon="@Icons.Material.Filled.List" Size="Size.Small" Class="mr-2" />
-                Listagem de providers com paginação e filtros (tipo, status de verificação, localização)
-            </MudText>
-            <MudText>
-                <MudIcon Icon="@Icons.Material.Filled.Search" Size="Size.Small" Class="mr-2" />
-                Busca por nome, documento (CPF/CNPJ) ou email
-            </MudText>
-            <MudText>
-                <MudIcon Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Class="mr-2" />
-                Visualização detalhada dos dados do provider
-            </MudText>
-            <MudText>
-                <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Size="Size.Small" Class="mr-2" />
-                Ações de verificação e aprovação de providers
-            </MudText>
-        </MudStack>
+        <MudDataGrid T="ModuleProviderDto" 
+                     Items="@ProvidersState.Value.Providers" 
+                     ReadOnly="true"
+                     Dense="true"
+                     Hover="true"
+                     Loading="@ProvidersState.Value.IsLoading">
+            <Columns>
+                <PropertyColumn Property="x => x.Id" Title="ID" />
+                <PropertyColumn Property="x => x.ProviderType" Title="Type" />
+                <PropertyColumn Property="x => x.Name" Title="Name" />
+                <PropertyColumn Property="x => x.Document" Title="Document" />
+                <PropertyColumn Property="x => x.Email" Title="Email" />
+                <PropertyColumn Property="x => x.Phone" Title="Phone" />
+                <PropertyColumn Property="x => x.VerificationStatus" Title="Status">
+                    <CellTemplate>
+                        @if (context.Item.VerificationStatus == "Verified")
+                        {
+                            <MudChip Color="Color.Success" Size="Size.Small">@context.Item.VerificationStatus</MudChip>
+                        }
+                        else
+                        {
+                            <MudChip Color="Color.Warning" Size="Size.Small">@context.Item.VerificationStatus</MudChip>
+                        }
+                    </CellTemplate>
+                </PropertyColumn>
+            </Columns>
+        </MudDataGrid>
     </MudCardContent>
+    <MudCardActions>
+        <MudPagination 
+            Count="@ProvidersState.Value.TotalPages" 
+            Selected="@ProvidersState.Value.CurrentPage"
+            SelectedChanged="@OnPageChanged"
+            ShowFirstButton="true"
+            ShowLastButton="true" />
+    </MudCardActions>
 </MudCard>
 
 @code {
-    // Fluxor state management será implementado aqui
-    // - ProvidersState (lista, filtros, paginação)
-    // - ProvidersActions (carregar, filtrar, selecionar)
-    // - ProvidersEffects (chamadas à API via Refit)
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        // Carregar providers ao inicializar
+        Dispatcher.Dispatch(new LoadProvidersAction());
+    }
+
+    private void OnPageChanged(int page)
+    {
+        Dispatcher.Dispatch(new GoToPageAction(page));
+    }
 }
