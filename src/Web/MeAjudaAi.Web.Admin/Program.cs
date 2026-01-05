@@ -1,6 +1,7 @@
 using Fluxor;
 using Fluxor.Blazor.Web.ReduxDevTools;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MeAjudaAi.Client.Contracts.Api;
 using MeAjudaAi.Web.Admin;
@@ -15,15 +16,24 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 // API Base URL
 var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? builder.HostEnvironment.BaseAddress;
 
-// HTTP Client configuration
-builder.Services.AddScoped(sp => new HttpClient 
-{ 
-    BaseAddress = new Uri(apiBaseUrl) 
+// HTTP Client configuration with authentication
+builder.Services.AddHttpClient("MeAjudaAi.API", client => client.BaseAddress = new Uri(apiBaseUrl))
+    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>()
+    .CreateClient("MeAjudaAi.API"));
+
+// Authentication with Keycloak OIDC
+builder.Services.AddOidcAuthentication(options =>
+{
+    builder.Configuration.Bind("Keycloak", options.ProviderOptions);
+    options.UserOptions.RoleClaim = "roles";
 });
 
 // Refit API Clients
 builder.Services.AddRefitClient<IProvidersApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
+    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
 // MudBlazor
 builder.Services.AddMudServices(config =>

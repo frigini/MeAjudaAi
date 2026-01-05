@@ -1,0 +1,55 @@
+@page "/authentication/{action}"
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+<RemoteAuthenticatorView Action="@Action">
+    <LoggingIn>
+        <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex flex-column justify-center align-center" Style="height: 100vh;">
+            <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+            <MudText Typo="Typo.h6" Class="mt-4">Logging in...</MudText>
+        </MudContainer>
+    </LoggingIn>
+    <CompletingLoggingIn>
+        <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex flex-column justify-center align-center" Style="height: 100vh;">
+            <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+            <MudText Typo="Typo.h6" Class="mt-4">Completing login...</MudText>
+        </MudContainer>
+    </CompletingLoggingIn>
+    <CompletingLogOut>
+        <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex flex-column justify-center align-center" Style="height: 100vh;">
+            <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+            <MudText Typo="Typo.h6" Class="mt-4">Logging out...</MudText>
+        </MudContainer>
+    </CompletingLogOut>
+    <LogOut>
+        <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex flex-column justify-center align-center" Style="height: 100vh;">
+            <MudText Typo="Typo.h6">You have been logged out successfully.</MudText>
+        </MudContainer>
+    </LogOut>
+    <LogInFailed>
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+            <MudAlert Severity="Severity.Error">
+                <MudText Typo="Typo.h5">Authentication Failed</MudText>
+                <MudText Typo="Typo.body1">There was an error trying to log you in. Please try again.</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="mt-4">
+                    Return to Home
+                </MudButton>
+            </MudAlert>
+        </MudContainer>
+    </LogInFailed>
+    <LogOutFailed>
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+            <MudAlert Severity="Severity.Error">
+                <MudText Typo="Typo.h5">Logout Failed</MudText>
+                <MudText Typo="Typo.body1">There was an error trying to log you out. Please try again.</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="mt-4">
+                    Return to Home
+                </MudButton>
+            </MudAlert>
+        </MudContainer>
+    </LogOutFailed>
+</RemoteAuthenticatorView>
+
+@code {
+    [Parameter]
+    public string? Action { get; set; }
+}

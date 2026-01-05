@@ -7,13 +7,25 @@
                        Color="Color.Inherit" 
                        Edge="Edge.Start" 
                        OnClick="@ToggleDrawer" 
-                       Title="Toggle navigation" />
+                       AriaLabel="Toggle navigation" />
         <MudText Typo="Typo.h5" Class="ml-3">MeAjudaAi - Admin Portal</MudText>
         <MudSpacer />
         <MudIconButton Icon="@Icons.Material.Filled.Brightness4" 
                        Color="Color.Inherit" 
                        OnClick="@ToggleDarkMode" 
-                       Title="Toggle dark mode" />
+                       AriaLabel="Toggle dark mode" />
+        <AuthorizeView>
+            <Authorized>
+                <MudMenu Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" Direction="Direction.Bottom" AnchorOrigin="Origin.BottomRight">
+                    <MudMenuItem>@context.User.Identity?.Name</MudMenuItem>
+                    <MudDivider />
+                    <MudMenuItem Icon="@Icons.Material.Filled.Logout" Href="authentication/logout">Logout</MudMenuItem>
+                </MudMenu>
+            </Authorized>
+            <NotAuthorized>
+                <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="authentication/login">Login</MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" Elevation="2">
         <MudDrawerHeader>
