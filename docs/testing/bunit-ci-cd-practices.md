@@ -112,7 +112,7 @@ Blazor Components:   70-85%   ← RECOMENDADO
 ### **Arquivos Modificados**:
 1. ✅ `.github/workflows/ci-cd.yml` → adicionado step "Run frontend component tests"
 2. ✅ `.github/workflows/pr-validation.yml` → adicionado `WebAdmin` ao array `MODULES`
-3. ✅ `tests/MeAjudaAi.Web.Admin.Tests/` → 6 testes criados
+3. ✅ `tests/MeAjudaAi.Web.Admin.Tests/` → 10 testes iniciais criados
 
 ### **Testes Implementados**:
 ```text
@@ -121,6 +121,12 @@ Pages/ProvidersPageTests.cs (4 testes):
 ├── ✅ Show loading indicator
 ├── ✅ Show error messages
 └── ✅ Display providers in DataGrid
+
+Pages/DashboardPageTests.cs (4 testes):
+├── ✅ Dispatch LoadDashboardStatsAction on init
+├── ✅ Display loading state when IsLoading
+├── ✅ Display KPI values when loaded
+└── ✅ Display error message when ErrorMessage is set
 
 Layout/DarkModeToggleTests.cs (2 testes):
 ├── ✅ Dispatch ToggleDarkModeAction on click

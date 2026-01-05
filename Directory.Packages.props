@@ -18,6 +18,15 @@
     <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.14.28" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.14.28" />
     <PackageVersion Include="Microsoft.NET.StringTools" Version="17.14.28" />
+    <!-- ⚠️ COMPATIBILITY WARNING: Npgsql/EFCore 10.x + Hangfire.PostgreSql -->
+    <!-- Hangfire.PostgreSql is built against Npgsql 6.x and may be incompatible with Npgsql 10.x. -->
+    <!-- VALIDATION REQUIRED before merging/deploying: -->
+    <!-- 1. Run full automated test suite (backend unit/integration + bUnit) -->
+    <!-- 2. Deploy to staging and perform smoke tests including Hangfire jobs and dashboard -->
+    <!-- 3. Monitor staging logs for Npgsql/Hangfire exceptions or stack traces -->
+    <!-- 4. If Hangfire job failure rate exceeds 5%, revert to EF Core 9.x / Npgsql 8.x -->
+    <!-- 5. Run targeted compatibility tests for DbContext usage and connection handling -->
+    <!-- 6. Test runtime API changes from Microsoft.AspNetCore.Components.WebAssembly 10.x -->
     <!-- ASP.NET Core -->
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.1" />
