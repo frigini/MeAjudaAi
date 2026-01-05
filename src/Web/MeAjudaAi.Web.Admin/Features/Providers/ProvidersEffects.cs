@@ -39,13 +39,14 @@ public class ProvidersEffects
             }
             else
             {
-                var errorMessage = result.Error?.Message ?? "Failed to load providers";
+                var errorMessage = result.Error?.Message ?? "Falha ao carregar fornecedores";
                 dispatcher.Dispatch(new LoadProvidersFailureAction(errorMessage));
             }
         }
         catch (Exception ex)
         {
-            dispatcher.Dispatch(new LoadProvidersFailureAction(ex.Message));
+            var userFriendlyMessage = $"Erro ao carregar fornecedores: {ex.Message}";
+            dispatcher.Dispatch(new LoadProvidersFailureAction(userFriendlyMessage));
         }
     }
 
@@ -53,7 +54,7 @@ public class ProvidersEffects
     /// Effect para recarregar providers quando a página muda
     /// </summary>
     [EffectMethod]
-    public async Task HandleNextPageAction(NextPageAction action, IDispatcher dispatcher)
+    public void HandleNextPageAction(NextPageAction action, IDispatcher dispatcher)
     {
         // O reducer já incrementou a página, agora recarregar os dados
         // Nota: isso será melhorado para usar o estado atual da página
@@ -64,7 +65,7 @@ public class ProvidersEffects
     /// Effect para recarregar providers quando a página muda
     /// </summary>
     [EffectMethod]
-    public async Task HandlePreviousPageAction(PreviousPageAction action, IDispatcher dispatcher)
+    public void HandlePreviousPageAction(PreviousPageAction action, IDispatcher dispatcher)
     {
         // O reducer já decrementou a página, agora recarregar os dados
         dispatcher.Dispatch(new LoadProvidersAction());
@@ -74,7 +75,7 @@ public class ProvidersEffects
     /// Effect para recarregar providers quando vai para página específica
     /// </summary>
     [EffectMethod]
-    public async Task HandleGoToPageAction(GoToPageAction action, IDispatcher dispatcher)
+    public void HandleGoToPageAction(GoToPageAction action, IDispatcher dispatcher)
     {
         // O reducer já mudou a página, agora recarregar os dados
         dispatcher.Dispatch(new LoadProvidersAction(action.PageNumber));

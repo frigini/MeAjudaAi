@@ -74,7 +74,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
    - architecture.md atualizado com C# 14 features
    - technical-debt.md atualizado com status atual
    - roadmap.md atualizado com Sprint 5.5 completion
-   - 0 warnings no build
+   - 0 warnings in build
 
 **🔄 Próxima Etapa: Sprint 6 - Blazor Admin Portal Setup** (6-17 Jan 2026)
 - Branch criada: `blazor-admin-portal-setup` (30 Dez 2025)
@@ -2077,7 +2077,7 @@ src/
 
 **Stack Frontend**:
 - **Framework**: Blazor WebAssembly (.NET 10) com AOT compilation
-- **UI Library**: MudBlazor 8.0.0 (Material Design)
+- **UI Library**: MudBlazor 7.21.0 (Material Design)
 - **State Management**: Fluxor 6.1.0+ (Flux/Redux pattern)
 - **API Client**: Refit 9.0.2+ com HttpClientFactory (Polly integration via IHttpClientBuilder)
 - **Autenticação**: Microsoft.AspNetCore.Components.WebAssembly.Authentication (OIDC/Keycloak)

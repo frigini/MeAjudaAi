@@ -36,7 +36,7 @@
                 <PropertyColumn Property="x => x.Phone" Title="Phone" />
                 <PropertyColumn Property="x => x.VerificationStatus" Title="Status">
                     <CellTemplate>
-                        @if (context.Item.VerificationStatus == "Verified")
+                        @if (context.Item.VerificationStatus == VERIFIED_STATUS)
                         {
                             <MudChip Color="Color.Success" Size="Size.Small">@context.Item.VerificationStatus</MudChip>
                         }
@@ -60,6 +60,8 @@
 </MudCard>
 
 @code {
+    private const string VERIFIED_STATUS = "Verified";
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
