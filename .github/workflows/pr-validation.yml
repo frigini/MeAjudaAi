@@ -338,6 +338,9 @@ jobs:
             # System/Shared tests (626+ tests - HIGH PRIORITY)
             "Shared:tests/MeAjudaAi.Shared.Tests/:MeAjudaAi.Shared"
             "ApiService:tests/MeAjudaAi.ApiService.Tests/:MeAjudaAi.ApiService"
+
+            # Frontend component tests (bUnit - NEW)
+            "WebAdmin:tests/MeAjudaAi.Web.Admin.Tests/:MeAjudaAi.Web.Admin"
           )
 
           # Source shared utility functions once before module loop
