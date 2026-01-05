@@ -1,0 +1,115 @@
+@page "/"
+@inherits FluxorComponent
+@inject IState<DashboardState> DashboardState
+@inject IDispatcher Dispatcher
+
+<PageTitle>Dashboard - MeAjudaAi Admin</PageTitle>
+
+<MudText Typo="Typo.h3" Class="mb-4">Dashboard</MudText>
+
+@if (DashboardState.Value.IsLoading)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mb-4" />
+}
+
+@if (!string.IsNullOrEmpty(DashboardState.Value.ErrorMessage))
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">
+        @DashboardState.Value.ErrorMessage
+    </MudAlert>
+}
+
+<MudGrid>
+    <!-- Total Providers KPI -->
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard Elevation="2">
+            <MudCardContent>
+                <div class="d-flex justify-space-between align-center mb-2">
+                    <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Primary" Size="Size.Large" />
+                </div>
+                <MudText Typo="Typo.h4">@DashboardState.Value.TotalProviders</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Default">Total de Fornecedores</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+
+    <!-- Pending Verifications KPI -->
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard Elevation="2">
+            <MudCardContent>
+                <div class="d-flex justify-space-between align-center mb-2">
+                    <MudIcon Icon="@Icons.Material.Filled.PendingActions" Color="Color.Warning" Size="Size.Large" />
+                </div>
+                <MudText Typo="Typo.h4">@DashboardState.Value.PendingVerifications</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Default">Verificações Pendentes</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+
+    <!-- Active Services KPI -->
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard Elevation="2">
+            <MudCardContent>
+                <div class="d-flex justify-space-between align-center mb-2">
+                    <MudIcon Icon="@Icons.Material.Filled.HomeRepairService" Color="Color.Success" Size="Size.Large" />
+                </div>
+                <MudText Typo="Typo.h4">@DashboardState.Value.ActiveServices</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Default">Serviços Ativos</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">(Em breve)</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+
+    <!-- Quick Actions -->
+    <MudItem xs="12">
+        <MudCard Elevation="2">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Ações Rápidas</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudStack Row="true" Spacing="2">
+                    <MudButton Variant="Variant.Filled" 
+                               Color="Color.Primary" 
+                               StartIcon="@Icons.Material.Filled.People"
+                               Href="/providers">
+                        Gerenciar Fornecedores
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined" 
+                               Color="Color.Warning" 
+                               StartIcon="@Icons.Material.Filled.VerifiedUser"
+                               Disabled="@(DashboardState.Value.PendingVerifications == 0)">
+                        Verificar Pendentes (@DashboardState.Value.PendingVerifications)
+                    </MudButton>
+                </MudStack>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+
+    <!-- Recent Activity (placeholder) -->
+    <MudItem xs="12">
+        <MudCard Elevation="2">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Atividade Recente</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" Class="mr-2" />
+                    Funcionalidade de atividades recentes será implementada em breve.
+                </MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        // Carregar estatísticas ao inicializar
+        Dispatcher.Dispatch(new LoadDashboardStatsAction());
+    }
+}
