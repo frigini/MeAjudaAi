@@ -215,14 +215,31 @@ public class DashboardPageTests : Bunit.TestContext
 
 ### **3. Configurar Coverage Threshold** (`.github/workflows/pr-validation.yml`):
 ```yaml
-# Adicionar validação:
+# Adicionar validação (robusto para diferentes formatos XML):
 - name: Validate Frontend Coverage
   run: |
-    COVERAGE=$(grep -oP 'Line rate="\K[^"]*' coverage/webadmin.xml)
-    if (( $(echo "$COVERAGE < 0.70" | bc -l) )); then
-      echo "❌ Frontend coverage too low: ${COVERAGE}% (min 70%)"
+    # Descobrir arquivo de cobertura (XPlat Code Coverage ou Cobertura)
+    COVERAGE_FILE=$(find coverage/webadmin -name '*.xml' -type f | head -n 1)
+    
+    if [ -z "$COVERAGE_FILE" ]; then
+      echo "❌ Coverage file not found in coverage/webadmin/"
       exit 1
     fi
+    
+    # Tentar extrair line rate (Cobertura) ou sequenceCoverage (OpenCover)
+    COVERAGE=$(grep -oP 'line-rate="\K[^"]*' "$COVERAGE_FILE" 2>/dev/null || \
+               grep -oP 'sequenceCoverage="\K[^"]*' "$COVERAGE_FILE" 2>/dev/null || echo "0")
+    
+    # Converter porcentagem para decimal se necessário (e.g., 75 -> 0.75)
+    if (( $(echo "$COVERAGE > 1" | bc -l) )); then
+      COVERAGE=$(echo "scale=4; $COVERAGE / 100" | bc)
+    fi
+    
+    if (( $(echo "$COVERAGE < 0.70" | bc -l) )); then
+      echo "❌ Frontend coverage too low: $(echo "$COVERAGE * 100" | bc)% (min 70%)"
+      exit 1
+    fi
+    echo "✅ Frontend coverage: $(echo "$COVERAGE * 100" | bc)%"
 ```
 
 ---

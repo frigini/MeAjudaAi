@@ -125,6 +125,14 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - Gráficos Dashboard (MudCharts - providers por status, evolução temporal)
 - Aumentar cobertura de testes (30+ testes bUnit)
 
+**✅ Sprint 6 Completed** (30 Dez - 5 Jan 2026)
+- Blazor Admin Portal Setup (fundação técnica completa)
+- 10 testes bUnit implementados (ProvidersPage, Dashboard, DarkMode)
+- Fluxor state management configurado
+- MudBlazor 7.21.0 + componentes base
+- Autenticação OIDC com Keycloak
+- Refit API clients (IProvidersApi, IServiceCatalogsApi)
+
 **Principais Conquistas**:
 1. **Refatoração MeAjudaAi.Shared.Messaging** ✅
    - Factories organizados em pasta dedicada (`Messaging/Factories/`)
@@ -158,10 +166,11 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
    - roadmap.md atualizado com Sprint 5.5 completion
    - 0 warnings in build
 
-**🔄 Próxima Etapa: Sprint 6 - Blazor Admin Portal Setup** (6-17 Jan 2026)
-- Branch criada: `blazor-admin-portal-setup` (30 Dez 2025)
+**✅ Sprint 6 Completed** (30 Dez - 5 Jan 2026)
+- Branch: `blazor-admin-portal-setup` (merged 5 Jan 2026)
 - Planejamento detalhado: `docs/sprint-6-planning.md` ✅
 - Decisões técnicas documentadas (Fluxor, MudBlazor, Refit, OIDC)
+- 10 testes bUnit (ProvidersPage, Dashboard, DarkMode)
 - BDD implementation adiada para Sprint 7-8 (foco em fundação técnica primeiro)
 
 **✅ Fase 1.5: CONCLUÍDA** (21 Nov - 10 Dez 2025)  
@@ -367,11 +376,12 @@ Todas as tarefas planejadas já foram implementadas:
 - Migrar métodos de propósito geral (PermissionExtensions, EnumExtensions)
 - Manter padrão atual para DI extensions ([FolderName]Extensions.cs)
 
-**⏳ Fase 2: PLANEJAMENTO INICIADO** (Janeiro–Março 2026)  
+**⏳ Fase 2: EM ANDAMENTO** (Janeiro–Março 2026)  
 Frontend Blazor WASM + MAUI Hybrid:
-- Sprint 6: Blazor Admin Portal Setup (6-17 Jan 2026) - 🔄 PLANEJAMENTO
-- Sprint 7-8: Customer App (Fev-Mar 2026) - ⏳ Aguardando Sprint 6
-- Sprint 9: Buffer/Polishing (Mar 2026) - ⏳ Aguardando Sprint 6-8
+- Sprint 6: Blazor Admin Portal Setup (30 Dez - 5 Jan 2026) - ✅ CONCLUÍDO (5 Jan 2026)
+- Sprint 7: Blazor Admin Portal Features (6-24 Jan 2026) - 🔄 PRÓXIMA
+- Sprint 8: Customer App (Fev-Mar 2026) - ⏳ Aguardando Sprint 7
+- Sprint 9: Buffer/Polishing (Mar 2026) - ⏳ Aguardando Sprint 7-8
 - MVP Final: 31 de Março de 2026
 
 **✅ Sprint 5.5 Completed** (19-30 Dez 2025):
@@ -412,8 +422,8 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 4** | 5 dias | 14 Dez - 18 Dez | Health Checks + Data Seeding | ✅ CONCLUÍDO (18 Dez - MERGED!) |
 | **Sprint 5** | - | Sprints 3-4 | Quality Improvements | ✅ CONCLUÍDO ANTECIPADAMENTE |
 | **Sprint 5.5** | 2 semanas | 19 Dez - 31 Dez | Refactor & Cleanup (Technical Debt) | ✅ CONCLUÍDO (30 Dez 2025) |
-| **Sprint 6** | 2 semanas | Jan 6 - 17 | Blazor Admin Portal - Setup & Core | 🔄 PLANEJAMENTO (30 Dez) |
-| **Sprint 7** | 3 semanas | Jan 20 - Fev 7 | Blazor Admin Portal - Features | ⏳ Planejado |
+| **Sprint 6** | 1 semana | 30 Dez - 5 Jan | Blazor Admin Portal - Setup & Core | ✅ CONCLUÍDO (5 Jan 2026) |
+| **Sprint 7** | 3 semanas | 6 - 24 Jan | Blazor Admin Portal - Features | 🔄 PRÓXIMA |
 | **Sprint 8** | 3 semanas | Fev 10 - 28 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
 | **Sprint 9** | 3 semanas | Mar 3 - 24 | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
 | **MVP Launch** | - | Mar 31 | Final deployment & launch preparation | 🎯 Target |
@@ -3258,6 +3268,6 @@ LEFT JOIN providers.providers p ON al.actor_id = p.provider_id;
 
 ---
 
-*📅 Última atualização: 30 de Dezembro de 2025 (Sprint 6 - Blazor Admin Portal Setup)*  
+*📅 Última atualização: 5 de Janeiro de 2026 (Sprint 6 - Blazor Admin Portal Setup)*  
 *🔄 Roadmap em constante evolução baseado em feedback, métricas e aprendizados*
-*📊 Status atual: Sprint 5.5 CONCLUÍDA | Sprint 6 em andamento (branch blazor-admin-portal-setup)*
+*📊 Status atual: Sprint 6 CONCLUÍDA (5 Jan 2026) | Sprint 7 - Blazor Admin Portal Features (próxima)*

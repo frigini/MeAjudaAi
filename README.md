@@ -322,7 +322,7 @@ dotnet test tests/MeAjudaAi.Web.Admin.Tests
 
 **Estrutura:**
 
-```
+```text
 src/Web/MeAjudaAi.Web.Admin/
 ├── Pages/                # Razor pages (Dashboard, Providers, Authentication)
 ├── Features/             # Fluxor stores (Providers, Dashboard, Theme)

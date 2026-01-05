@@ -11,7 +11,11 @@ namespace MeAjudaAi.Web.Admin.Features.Dashboard;
 /// </summary>
 public class DashboardEffects
 {
-    // Status de verificação dos providers (deve corresponder ao enum no backend)
+    /// <summary>
+    /// Status de verificação "Pending" deve corresponder ao valor de 
+    /// MeAjudaAi.Modules.Providers.Domain.Enums.EVerificationStatus.Pending.
+    /// IMPORTANTE: Se o enum do backend mudar, este valor deve ser atualizado.
+    /// </summary>
     private const string PENDING_STATUS = "Pending";
     
     private readonly IProvidersApi _providersApi;
@@ -57,15 +61,29 @@ public class DashboardEffects
             var pendingProvidersResult = await _providersApi
                 .GetProvidersByVerificationStatusAsync(PENDING_STATUS);
 
-            var pendingVerifications = pendingProvidersResult.IsSuccess && pendingProvidersResult.Value is not null
-                ? pendingProvidersResult.Value.Count
-                : 0;
+            var pendingVerifications = 0;
+            if (pendingProvidersResult.IsSuccess && pendingProvidersResult.Value is not null)
+            {
+                pendingVerifications = pendingProvidersResult.Value.Count;
+            }
+            else
+            {
+                _logger.LogWarning("Failed to load pending providers: {Error}", 
+                    pendingProvidersResult.Error?.Message ?? "Unknown error");
+            }
 
             // Buscar serviços ativos
             var servicesResult = await _serviceCatalogsApi.GetAllServicesAsync(activeOnly: true);
-            var activeServices = servicesResult.IsSuccess && servicesResult.Value is not null
-                ? servicesResult.Value.Count
-                : 0;
+            var activeServices = 0;
+            if (servicesResult.IsSuccess && servicesResult.Value is not null)
+            {
+                activeServices = servicesResult.Value.Count;
+            }
+            else
+            {
+                _logger.LogWarning("Failed to load active services: {Error}", 
+                    servicesResult.Error?.Message ?? "Unknown error");
+            }
 
             dispatcher.Dispatch(new LoadDashboardStatsSuccessAction(
                 totalProviders,
