@@ -158,13 +158,6 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
    - roadmap.md atualizado com Sprint 5.5 completion
    - 0 warnings in build
 
-**✅ Sprint 6 Completed** (30 Dez - 5 Jan 2026)
-- Branch: `blazor-admin-portal-setup` (merged 5 Jan 2026)
-- Planejamento detalhado: `docs/sprint-6-planning.md` ✅
-- Decisões técnicas documentadas (Fluxor, MudBlazor, Refit, OIDC)
-- 10 testes bUnit (ProvidersPage, Dashboard, DarkMode)
-- BDD implementation adiada para Sprint 7-8 (foco em fundação técnica primeiro)
-
 **✅ Fase 1.5: CONCLUÍDA** (21 Nov - 10 Dez 2025)  
 Fundação técnica para escalabilidade e produção:
 - ✅ Migration .NET 10 + Aspire 13 (Sprint 0 - CONCLUÍDO 21 Nov, MERGED to master)
@@ -2123,6 +2116,9 @@ src/
 
 ---
 
+<details>
+<summary><strong>📅 Sprint 6: Blazor Admin Portal Setup - Detailed Post-Mortem & Architecture Review</strong> (click to expand)</summary>
+
 ### 📅 Sprint 6: Blazor Admin Portal Setup ✅ CONCLUÍDA
 
 **Status**: ✅ CONCLUÍDA (30 Dez 2025 - 5 Jan 2026)  
@@ -2278,6 +2274,8 @@ src/
 - ✅ Autenticação completa (login/logout)
 - ✅ Listagem de prestadores funcionando
 - ✅ Fundação técnica sólida para Sprint 7
+
+</details>
 
 ---
 

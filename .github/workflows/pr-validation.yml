@@ -517,7 +517,7 @@ jobs:
           echo "✅ Frontend dependencies restored"
 
       - name: Run Frontend Component Tests (bUnit)
-        if: success() || failure()
+        if: always()
         env:
           ASPNETCORE_ENVIRONMENT: Testing
         run: |
@@ -564,7 +564,7 @@ jobs:
             "$EXCLUDE_BY_ATTRIBUTE" \
             "$INCLUDE_FILTER"
 
-          echo "▶️ Running Web.Admin component tests (10 tests: Providers, Dashboard, DarkMode)..."
+          echo "▶️ Running Web.Admin component tests (Providers, Dashboard, DarkMode)..."
           dotnet test tests/MeAjudaAi.Web.Admin.Tests/MeAjudaAi.Web.Admin.Tests.csproj \
             --configuration Release \
             --verbosity normal \
