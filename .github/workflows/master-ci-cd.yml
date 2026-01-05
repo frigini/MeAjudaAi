@@ -99,10 +99,9 @@ jobs:
         run: |
           set -e  # Exit immediately if any command fails
           
-          # Define exclude patterns for coverage (files and assemblies)
+          # Define exclude patterns for coverage (files only - assemblies excluded via Include in coverlet)
           # Excludes: Migrations, Database, Contracts, OpenApi generated, compiler services, regex generator
           EXCLUDE_PATTERNS="**/Migrations/*.cs,**/Database/*.cs,**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
-          EXCLUDE_ASSEMBLIES="[*.Tests*]*,[*Test*]*,[testhost]*,[*]*.Migrations.*,[*]*.Database,[*]*.Contracts"
 
           echo "================================"
           echo "🧪 BACKEND UNIT TESTS WITH COVERAGE"
@@ -163,7 +162,7 @@ jobs:
           echo "✅ Frontend dependencies restored"
 
       - name: Run frontend component tests (bUnit)
-        if: success() || failure()
+        if: always()
         env:
           ASPNETCORE_ENVIRONMENT: Testing
         run: |

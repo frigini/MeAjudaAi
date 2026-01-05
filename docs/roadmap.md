@@ -416,8 +416,8 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 5.5** | 2 semanas | 19 Dez - 31 Dez | Refactor & Cleanup (Technical Debt) | ✅ CONCLUÍDO (30 Dez 2025) |
 | **Sprint 6** | 1 semana | 30 Dez - 5 Jan | Blazor Admin Portal - Setup & Core | ✅ CONCLUÍDO (5 Jan 2026) |
 | **Sprint 7** | 3 semanas | 6 - 24 Jan | Blazor Admin Portal - Features | 🔄 PRÓXIMA |
-| **Sprint 8** | 3 semanas | Fev 10 - 28 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
-| **Sprint 9** | 3 semanas | Mar 3 - 24 | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
+| **Sprint 8** | 3 semanas | 27 Jan - 14 Fev | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
+| **Sprint 9** | 3 semanas | 17 Fev - 7 Mar | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
 | **MVP Launch** | - | Mar 31 | Final deployment & launch preparation | 🎯 Target |
 
 **MVP Launch Target**: 31 de Março de 2026 🎯
@@ -2063,13 +2063,13 @@ gantt
 
 ## 🎨 Fase 2: Frontend & Experiência
 
-**Status**: 📋 Em Planejamento - Q1 2026
+**Status**: ⏳ Em andamento (Jan–Mar 2026)
 
 ### Objetivo
 Desenvolver aplicações frontend usando Blazor WebAssembly (Web) e MAUI Blazor Hybrid (Mobile), aproveitando fullstack .NET para máxima reutilização de código.
 
-> **📅 Status Atual**: Sprint 5.5 (19 Dez 2025)  
-> Aguardando merge dos PRs #81 (Aspire 13.1.0) e #82 (FeatureManagement 4.4.0) para iniciar desenvolvimento do frontend.
+> **📅 Status Atual**: Sprint 6 concluída (5 Jan 2026)  
+> Próximo foco: Sprint 7 - Blazor Admin Portal Features.
 
 ---
 
