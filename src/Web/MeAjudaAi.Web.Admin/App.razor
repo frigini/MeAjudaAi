@@ -1,5 +1,7 @@
-﻿<Fluxor.Blazor.Web.StoreInitializer />
-<MudThemeProvider />
+﻿@inject IState<ThemeState> ThemeState
+
+<Fluxor.Blazor.Web.StoreInitializer />
+<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -33,3 +35,28 @@
         </Found>
     </Router>
 </CascadingAuthenticationState>
+
+@code {
+    private bool _isDarkMode;
+    private MudTheme _theme = new();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        // Inscrever para mudanças no tema
+        ThemeState.StateChanged += OnThemeStateChanged;
+        _isDarkMode = ThemeState.Value.IsDarkMode;
+    }
+
+    private void OnThemeStateChanged(object? sender, EventArgs e)
+    {
+        _isDarkMode = ThemeState.Value.IsDarkMode;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        ThemeState.StateChanged -= OnThemeStateChanged;
+    }
+}

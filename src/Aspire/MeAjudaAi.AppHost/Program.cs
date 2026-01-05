@@ -172,6 +172,13 @@ internal static class Program
             .WithReference(keycloak.Keycloak)
             .WaitFor(keycloak.Keycloak)
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
+
+        // Admin Portal (Blazor WASM)
+        _ = builder.AddProject<Projects.MeAjudaAi_Web_Admin>("admin-portal")
+            .WithExternalHttpEndpoints()
+            .WithEnvironment("ApiBaseUrl", "https://localhost:7001")
+            .WithEnvironment("Keycloak__Authority", "http://localhost:8080/realms/meajudaai")
+            .WithEnvironment("Keycloak__ClientId", "admin-portal");
     }
 
     private static void ConfigureProductionEnvironment(IDistributedApplicationBuilder builder)
