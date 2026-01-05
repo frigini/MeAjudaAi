@@ -105,7 +105,7 @@ jobs:
           EXCLUDE_ASSEMBLIES="[*.Tests*]*,[*Test*]*,[testhost]*,[*]*.Migrations.*,[*]*.Database,[*]*.Contracts"
 
           echo "================================"
-          echo "🧪 UNIT TESTS WITH COVERAGE"
+          echo "🧪 BACKEND UNIT TESTS WITH COVERAGE"
           echo "================================"
 
           echo "▶️ Running Shared and Architecture tests..."
@@ -162,21 +162,27 @@ jobs:
         run: |
           set -e
           
-          echo "================================"
-          echo "🎨 BLAZOR COMPONENT TESTS (bUnit)"
-          echo "================================"
+          echo "===================================="
+          echo "🎨 FRONTEND COMPONENT TESTS (bUnit)"
+          echo "===================================="
+          echo ""
+          echo "Running Blazor WASM component tests with bUnit framework"
+          echo "Target: MeAjudaAi.Web.Admin (Blazor Admin Portal)"
+          echo ""
           
           # Define exclude patterns for Blazor WASM generated code
           BLAZOR_EXCLUDE_PATTERNS="**/*.g.cs,**/*.razor.g.cs,**/obj/**,**/bin/**"
           BLAZOR_EXCLUDE_ASSEMBLIES="[*.Tests*]*,[testhost]*"
 
-          echo "▶️ Running Web.Admin component tests..."
+          echo "▶️ Running Web.Admin component tests (10 tests: Providers, Dashboard, DarkMode)..."
           dotnet test tests/MeAjudaAi.Web.Admin.Tests/MeAjudaAi.Web.Admin.Tests.csproj \
             --configuration Release --verbosity normal \
             --collect:"XPlat Code Coverage" --results-directory TestResults/WebAdmin \
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$BLAZOR_EXCLUDE_PATTERNS" DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByAttribute="Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute"
 
-          echo "✅ Frontend component tests completed"
+          echo ""
+          echo "✅ Frontend component tests completed successfully"
+          echo "===================================="
 
       - name: Run integration tests
         env:
