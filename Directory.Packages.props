@@ -240,5 +240,7 @@
     <PackageVersion Include="Fluxor.Blazor.Web.ReduxDevTools" Version="6.1.0" />
     <PackageVersion Include="Refit" Version="9.0.2" />
     <PackageVersion Include="Refit.HttpClientFactory" Version="9.0.2" />
+    <!-- Blazor Testing -->
+    <PackageVersion Include="bUnit" Version="1.40.0" />
   </ItemGroup>
 </Project>
