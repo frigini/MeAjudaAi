@@ -155,6 +155,13 @@ jobs:
             --collect:"XPlat Code Coverage" --results-directory TestResults/SearchProviders \
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
 
+      - name: Restore frontend dependencies
+        run: |
+          echo "🔄 Restoring Web.Admin dependencies with --force-evaluate..."
+          dotnet restore src/Web/MeAjudaAi.Web.Admin/MeAjudaAi.Web.Admin.csproj --force-evaluate
+          dotnet restore tests/MeAjudaAi.Web.Admin.Tests/MeAjudaAi.Web.Admin.Tests.csproj --force-evaluate
+          echo "✅ Frontend dependencies restored"
+
       - name: Run frontend component tests (bUnit)
         if: success() || failure()
         env:
