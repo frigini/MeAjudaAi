@@ -86,6 +86,24 @@ public class UpdateProviderProfileRequestValidatorTests
             .WithErrorMessage("Perfil de negócio é obrigatório");
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public async Task Validate_WithEmptyDescription_ShouldNotHaveValidationError(string description)
+    {
+        // Arrange
+        var request = CreateValidRequest() with
+        {
+            BusinessProfile = CreateValidBusinessProfile() with { Description = description }
+        };
+
+        // Act
+        var result = await _validator.TestValidateAsync(request);
+
+        // Assert
+        result.ShouldNotHaveValidationErrorFor(x => x.BusinessProfile!.Description);
+    }
+
     [Fact]
     public async Task Validate_WithDescriptionExceeding500Characters_ShouldHaveValidationError()
     {
@@ -102,6 +120,163 @@ public class UpdateProviderProfileRequestValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.Description)
             .WithErrorMessage("Descrição não pode exceder 500 caracteres");
+    }
+
+    [Fact]
+    public async Task Validate_WithNullPrimaryAddress_ShouldHaveValidationError()
+    {
+        // Arrange
+        var request = CreateValidRequest() with
+        {
+            BusinessProfile = CreateValidBusinessProfile() with { PrimaryAddress = null! }
+        };
+
+        // Act
+        var result = await _validator.TestValidateAsync(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.PrimaryAddress)
+            .WithErrorMessage("Endereço principal é obrigatório");
+    }
+
+    [Fact]
+    public async Task Validate_WithEmptyStreet_ShouldHaveValidationError()
+    {
+        // Arrange
+        var request = CreateValidRequest() with
+        {
+            BusinessProfile = CreateValidBusinessProfile() with
+            {
+                PrimaryAddress = CreateValidAddress() with { Street = "" }
+            }
+        };
+
+        // Act
+        var result = await _validator.TestValidateAsync(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.PrimaryAddress!.Street)
+            .WithErrorMessage("Rua é obrigatória");
+    }
+
+    [Fact]
+    public async Task Validate_WithEmptyNumber_ShouldHaveValidationError()
+    {
+        // Arrange
+        var request = CreateValidRequest() with
+        {
+            BusinessProfile = CreateValidBusinessProfile() with
+            {
+                PrimaryAddress = CreateValidAddress() with { Number = "" }
+            }
+        };
+
+        // Act
+        var result = await _validator.TestValidateAsync(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.PrimaryAddress!.Number)
+            .WithErrorMessage("Número é obrigatório");
+    }
+
+    [Fact]
+    public async Task Validate_WithEmptyNeighborhood_ShouldHaveValidationError()
+    {
+        // Arrange
+        var request = CreateValidRequest() with
+        {
+            BusinessProfile = CreateValidBusinessProfile() with
+            {
+                PrimaryAddress = CreateValidAddress() with { Neighborhood = "" }
+            }
+        };
+
+        // Act
+        var result = await _validator.TestValidateAsync(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.PrimaryAddress!.Neighborhood)
+            .WithErrorMessage("Bairro é obrigatório");
+    }
+
+    [Fact]
+    public async Task Validate_WithEmptyCity_ShouldHaveValidationError()
+    {
+        // Arrange
+        var request = CreateValidRequest() with
+        {
+            BusinessProfile = CreateValidBusinessProfile() with
+            {
+                PrimaryAddress = CreateValidAddress() with { City = "" }
+            }
+        };
+
+        // Act
+        var result = await _validator.TestValidateAsync(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.PrimaryAddress!.City)
+            .WithErrorMessage("Cidade é obrigatória");
+    }
+
+    [Fact]
+    public async Task Validate_WithEmptyState_ShouldHaveValidationError()
+    {
+        // Arrange
+        var request = CreateValidRequest() with
+        {
+            BusinessProfile = CreateValidBusinessProfile() with
+            {
+                PrimaryAddress = CreateValidAddress() with { State = "" }
+            }
+        };
+
+        // Act
+        var result = await _validator.TestValidateAsync(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.PrimaryAddress!.State)
+            .WithErrorMessage("Estado é obrigatório");
+    }
+
+    [Fact]
+    public async Task Validate_WithEmptyZipCode_ShouldHaveValidationError()
+    {
+        // Arrange
+        var request = CreateValidRequest() with
+        {
+            BusinessProfile = CreateValidBusinessProfile() with
+            {
+                PrimaryAddress = CreateValidAddress() with { ZipCode = "" }
+            }
+        };
+
+        // Act
+        var result = await _validator.TestValidateAsync(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.PrimaryAddress!.ZipCode)
+            .WithErrorMessage("CEP é obrigatório");
+    }
+
+    [Fact]
+    public async Task Validate_WithEmptyCountry_ShouldHaveValidationError()
+    {
+        // Arrange
+        var request = CreateValidRequest() with
+        {
+            BusinessProfile = CreateValidBusinessProfile() with
+            {
+                PrimaryAddress = CreateValidAddress() with { Country = "" }
+            }
+        };
+
+        // Act
+        var result = await _validator.TestValidateAsync(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.PrimaryAddress!.Country)
+            .WithErrorMessage("País é obrigatório");
     }
 
     private static UpdateProviderProfileRequest CreateValidRequest()
@@ -124,16 +299,21 @@ public class UpdateProviderProfileRequestValidatorTests
                 PhoneNumber: "11987654321",
                 Website: "https://example.com"
             ),
-            PrimaryAddress: new AddressDto(
-                Street: "Valid Street",
-                Number: "123",
-                Complement: "Apt 456",
-                Neighborhood: "Valid Neighborhood",
-                City: "São Paulo",
-                State: "SP",
-                ZipCode: "01234-567",
-                Country: "Brazil"
-            )
+            PrimaryAddress: CreateValidAddress()
+        );
+    }
+
+    private static AddressDto CreateValidAddress()
+    {
+        return new AddressDto(
+            Street: "Valid Street",
+            Number: "123",
+            Complement: "Apt 456",
+            Neighborhood: "Valid Neighborhood",
+            City: "São Paulo",
+            State: "SP",
+            ZipCode: "01234-567",
+            Country: "Brazil"
         );
     }
 }
