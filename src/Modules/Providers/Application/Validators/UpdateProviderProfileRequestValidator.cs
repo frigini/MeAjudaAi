@@ -24,6 +24,17 @@ public class UpdateProviderProfileRequestValidator : AbstractValidator<UpdatePro
 
         When(x => x.BusinessProfile != null, () =>
         {
+            RuleFor(x => x.BusinessProfile!.LegalName)
+                .NotEmpty()
+                .WithMessage("Razão social é obrigatória")
+                .MaximumLength(200)
+                .WithMessage("Razão social não pode exceder 200 caracteres");
+
+            RuleFor(x => x.BusinessProfile!.FantasyName)
+                .MaximumLength(200)
+                .WithMessage("Nome fantasia não pode exceder 200 caracteres")
+                .When(x => !string.IsNullOrWhiteSpace(x.BusinessProfile?.FantasyName));
+
             RuleFor(x => x.BusinessProfile!.Description)
                 .MaximumLength(500)
                 .WithMessage("Descrição não pode exceder 500 caracteres")

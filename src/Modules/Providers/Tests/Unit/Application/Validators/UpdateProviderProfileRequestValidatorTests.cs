@@ -104,6 +104,79 @@ public class UpdateProviderProfileRequestValidatorTests
         result.ShouldNotHaveValidationErrorFor(x => x.BusinessProfile!.Description);
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public async Task Validate_WithEmptyLegalName_ShouldHaveValidationError(string legalName)
+    {
+        // Arrange
+        var request = CreateValidRequest() with
+        {
+            BusinessProfile = CreateValidBusinessProfile() with { LegalName = legalName! }
+        };
+
+        // Act
+        var result = await _validator.TestValidateAsync(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.LegalName)
+            .WithErrorMessage("Razão social é obrigatória");
+    }
+
+    [Fact]
+    public async Task Validate_WithLegalNameExceeding200Characters_ShouldHaveValidationError()
+    {
+        // Arrange
+        var longLegalName = new string('A', 201);
+        var request = CreateValidRequest() with
+        {
+            BusinessProfile = CreateValidBusinessProfile() with { LegalName = longLegalName }
+        };
+
+        // Act
+        var result = await _validator.TestValidateAsync(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.LegalName)
+            .WithErrorMessage("Razão social não pode exceder 200 caracteres");
+    }
+
+    [Fact]
+    public async Task Validate_WithFantasyNameExceeding200Characters_ShouldHaveValidationError()
+    {
+        // Arrange
+        var longFantasyName = new string('A', 201);
+        var request = CreateValidRequest() with
+        {
+            BusinessProfile = CreateValidBusinessProfile() with { FantasyName = longFantasyName }
+        };
+
+        // Act
+        var result = await _validator.TestValidateAsync(request);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.FantasyName)
+            .WithErrorMessage("Nome fantasia não pode exceder 200 caracteres");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public async Task Validate_WithEmptyFantasyName_ShouldNotHaveValidationError(string fantasyName)
+    {
+        // Arrange
+        var request = CreateValidRequest() with
+        {
+            BusinessProfile = CreateValidBusinessProfile() with { FantasyName = fantasyName }
+        };
+
+        // Act
+        var result = await _validator.TestValidateAsync(request);
+
+        // Assert
+        result.ShouldNotHaveValidationErrorFor(x => x.BusinessProfile!.FantasyName);
+    }
+
     [Fact]
     public async Task Validate_WithDescriptionExceeding500Characters_ShouldHaveValidationError()
     {
