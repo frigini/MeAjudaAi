@@ -25,10 +25,9 @@ public class UpdateProviderProfileRequestValidator : AbstractValidator<UpdatePro
         When(x => x.BusinessProfile != null, () =>
         {
             RuleFor(x => x.BusinessProfile!.Description)
-                .NotEmpty()
-                .WithMessage("BusinessProfile.Description is required")
                 .MaximumLength(500)
-                .WithMessage("BusinessProfile.Description cannot exceed 500 characters");
+                .WithMessage("BusinessProfile.Description cannot exceed 500 characters")
+                .When(x => !string.IsNullOrWhiteSpace(x.BusinessProfile?.Description));
 
             RuleFor(x => x.BusinessProfile!.ContactInfo)
                 .NotNull()
