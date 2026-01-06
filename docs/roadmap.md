@@ -38,11 +38,11 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 ## 🎯 Status Atual
 
-**📅 Hoje**: 5 de Janeiro de 2026
+**📅 Hoje**: 6 de Janeiro de 2026
 
 **✅ Sprint 6 - Blazor Admin Portal Setup - CONCLUÍDA** (30 Dez 2025 - 5 Jan 2026)
 
-**Branch**: `blazor-admin-portal-setup` (merged para master)
+**Branch**: `blazor-admin-portal-setup` (4 commits ahead, pronto para merge)
 
 **Principais Conquistas**:
 1. **Projeto Blazor WASM Configurado** ✅
@@ -107,6 +107,13 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
     - docs/testing/bunit-ci-cd-practices.md (atualizado)
     - Roadmap atualizado com progresso Sprint 6
 
+11. **SDKs Completos para Sprint 7** ✅ (6 Jan 2026)
+    - IDocumentsApi: Upload, verificação, gestão de documentos de providers
+    - ILocationsApi: CRUD de cidades permitidas (AllowedCities)
+    - DTOs criados: ModuleAllowedCityDto, Create/UpdateAllowedCityRequestDto
+    - README melhorado: conceito de SDK, diagrama arquitetural, comparação manual vs SDK
+    - 4/4 SDKs necessários para Admin Portal (Providers, Documents, ServiceCatalogs, Locations)
+
 **Resultado Alcançado**:
 - ✅ Blazor Admin Portal 100% funcional via Aspire
 - ✅ Login/Logout Keycloak funcionando
@@ -116,6 +123,8 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ 10 testes bUnit (build verde)
 - ✅ Portuguese localization completa
 - ✅ 0 erros build (10 warnings - analyzers apenas)
+- ✅ **4 SDKs completos** para Admin Portal (IProvidersApi, IDocumentsApi, IServiceCatalogsApi, ILocationsApi)
+- ✅ **Documentação SDK** melhorada (conceito, arquitetura, exemplos práticos)
 
 **🔄 Próxima Etapa: Sprint 7 - Blazor Admin Portal Features** (6-24 Jan 2026)
 - CRUD completo de Providers (create, update, delete, verify)

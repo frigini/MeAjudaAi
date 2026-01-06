@@ -2501,7 +2501,19 @@ public class ProvidersEffects
 - ✅ **Debug**: Redux DevTools integration
 - ✅ **Time-travel**: Estado histórico para debugging
 
-### **Refit - Type-Safe HTTP Clients**
+### **Refit - Type-Safe HTTP Clients (SDK)**
+
+**MeAjudaAi.Client.Contracts é o SDK oficial .NET** para consumir a API REST, semelhante ao AWS SDK ou Stripe SDK.
+
+**SDKs Disponíveis** (Sprint 6-7):
+
+| Módulo | Interface | Funcionalidades | Status |
+|--------|-----------|-----------------|--------|
+| **Providers** | IProvidersApi | CRUD, verificação, filtros | ✅ Completo |
+| **Documents** | IDocumentsApi | Upload, verificação, status | ✅ Completo |
+| **ServiceCatalogs** | IServiceCatalogsApi | Listagem, categorias | ✅ Completo |
+| **Locations** | ILocationsApi | CRUD AllowedCities | ✅ Completo |
+| **Users** | IUsersApi | (Planejado) | ⏳ Sprint 8+ |
 
 **Definição de API Contracts**:
 
@@ -2520,6 +2532,25 @@ public interface IProvidersApi
         CancellationToken cancellationToken = default);
 }
 
+public interface IDocumentsApi
+{
+    [Multipart]
+    [Post("/api/v1/providers/{providerId}/documents")]
+    Task<Result<ModuleDocumentDto>> UploadDocumentAsync(
+        Guid providerId,
+        [AliasAs("file")] StreamPart file,
+        [AliasAs("documentType")] string documentType,
+        CancellationToken cancellationToken = default);
+}
+
+public interface ILocationsApi
+{
+    [Get("/api/v1/locations/allowed-cities")]
+    Task<Result<IReadOnlyList<ModuleAllowedCityDto>>> GetAllAllowedCitiesAsync(
+        [Query] bool onlyActive = true,
+        CancellationToken cancellationToken = default);
+}
+
 public interface IServiceCatalogsApi
 {
     [Get("/api/v1/service-catalogs/services")]
@@ -2532,14 +2563,28 @@ public interface IServiceCatalogsApi
 **Configuração com Autenticação**:
 
 ```csharp
-// Program.cs
+// Program.cs - Registrar todos os SDKs
 builder.Services.AddRefitClient<IProvidersApi>()
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
+    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+
+builder.Services.AddRefitClient<IDocumentsApi>()
     .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
     .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
 builder.Services.AddRefitClient<IServiceCatalogsApi>()
     .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
     .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+
+builder.Services.AddRefitClient<ILocationsApi>()
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
+    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+```
+
+**Arquitetura Interna do Refit**:
+
+```
+Blazor Component → IProvidersApi (interface) → Refit CodeGen → HttpClient → API
 ```
 
 **Vantagens**:
@@ -2547,6 +2592,10 @@ builder.Services.AddRefitClient<IServiceCatalogsApi>()
 - ✅ Automatic serialization/deserialization
 - ✅ Integration with HttpClientFactory + Polly
 - ✅ Authentication header injection via message handler
+- ✅ **20 linhas de código manual → 2 linhas (interface + atributo)**
+- ✅ Reutilizável entre projetos (Blazor WASM, MAUI, Console)
+
+**Documentação Completa**: `src/Client/MeAjudaAi.Client.Contracts/README.md`
 
 ### **MudBlazor - Material Design Components**
 
