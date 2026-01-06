@@ -210,9 +210,9 @@
       },
       "Rebus.ServiceProvider": {
         "type": "Direct",
-        "requested": "[10.7.0, )",
-        "resolved": "10.7.0",
-        "contentHash": "+7xoUmOckBO8Us8xgvW3w99/LmAlMQai105PutPIhb6Rnh6nz/qZYJ2lY/Ppg42FuJYvUyU0tgdR6FrD3DU8NQ==",
+        "requested": "[10.7.1, )",
+        "resolved": "10.7.1",
+        "contentHash": "koDHuyAY1ECMJa1YhD85xWsMLN7tCd4WpoVs105kPIbpkYN3UOrilr0H9zquJj4tuQJCEhZBFKGr6BHY/j96qQ==",
         "dependencies": {
           "Rebus": "8.9.0"
         }

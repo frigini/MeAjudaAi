@@ -166,7 +166,7 @@
     <PackageVersion Include="Rebus" Version="8.9.0" />
     <PackageVersion Include="Rebus.AzureServiceBus" Version="10.5.1" />
     <PackageVersion Include="Rebus.RabbitMq" Version="10.1.0" />
-    <PackageVersion Include="Rebus.ServiceProvider" Version="10.7.0" />
+    <PackageVersion Include="Rebus.ServiceProvider" Version="10.7.1" />
     <!-- Health Checks -->
     <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
