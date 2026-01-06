@@ -82,19 +82,22 @@ jobs:
           # Check for required resource references in AppHost Program.cs
           APPHOST_FILE="src/Aspire/MeAjudaAi.AppHost/Program.cs"
           
-          REQUIRED_RESOURCES=(
-            "AddPostgres"
-            "AddRedis"
-            "AddRabbitMQ"
-            "AddKeycloak"
+          # Map resource names to actual method names used in AppHost
+          # Note: AddMeAjudaAiPostgreSQL and AddMeAjudaAiKeycloak are custom extensions
+          declare -A REQUIRED_RESOURCES=(
+            ["PostgreSQL"]="AddMeAjudaAiPostgreSQL"
+            ["Redis"]="AddRedis"
+            ["RabbitMQ"]="AddRabbitMQ"
+            ["Keycloak"]="AddMeAjudaAiKeycloak"
           )
           
           MISSING_RESOURCES=()
-          for resource in "${REQUIRED_RESOURCES[@]}"; do
-            if ! grep -q "$resource" "$APPHOST_FILE"; then
-              MISSING_RESOURCES+=("$resource")
+          for resource_name in "${!REQUIRED_RESOURCES[@]}"; do
+            method_name="${REQUIRED_RESOURCES[$resource_name]}"
+            if ! grep -q "$method_name" "$APPHOST_FILE"; then
+              MISSING_RESOURCES+=("$resource_name ($method_name)")
             else
-              echo "✅ Found resource: $resource"
+              echo "✅ Found resource: $resource_name ($method_name)"
             fi
           done
           
