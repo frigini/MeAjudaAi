@@ -12,69 +12,69 @@ public class UpdateProviderProfileRequestValidator : AbstractValidator<UpdatePro
     {
         RuleFor(x => x.Name)
             .NotEmpty()
-            .WithMessage("Name is required")
+            .WithMessage("Nome é obrigatório")
             .MinimumLength(2)
-            .WithMessage("Name must be at least 2 characters long")
+            .WithMessage("Nome deve ter no mínimo 2 caracteres")
             .MaximumLength(100)
-            .WithMessage("Name cannot exceed 100 characters");
+            .WithMessage("Nome não pode exceder 100 caracteres");
 
         RuleFor(x => x.BusinessProfile)
             .NotNull()
-            .WithMessage("BusinessProfile is required");
+            .WithMessage("Perfil de negócio é obrigatório");
 
         When(x => x.BusinessProfile != null, () =>
         {
             RuleFor(x => x.BusinessProfile!.Description)
                 .MaximumLength(500)
-                .WithMessage("BusinessProfile.Description cannot exceed 500 characters")
+                .WithMessage("Descrição não pode exceder 500 caracteres")
                 .When(x => !string.IsNullOrWhiteSpace(x.BusinessProfile?.Description));
 
             RuleFor(x => x.BusinessProfile!.ContactInfo)
                 .NotNull()
-                .WithMessage("BusinessProfile.ContactInfo is required");
+                .WithMessage("Informações de contato são obrigatórias");
 
             When(x => x.BusinessProfile?.ContactInfo != null, () =>
             {
                 RuleFor(x => x.BusinessProfile!.ContactInfo!.Email)
                     .NotEmpty()
-                    .WithMessage("Email is required")
+                    .WithMessage("Email é obrigatório")
                     .EmailAddress()
-                    .WithMessage("Email must be a valid email address");
+                    .WithMessage("Email deve ser um endereço de email válido");
             });
 
             RuleFor(x => x.BusinessProfile!.PrimaryAddress)
                 .NotNull()
-                .WithMessage("BusinessProfile.PrimaryAddress is required");
+                .WithMessage("Endereço principal é obrigatório");
 
             When(x => x.BusinessProfile?.PrimaryAddress != null, () =>
             {
                 RuleFor(x => x.BusinessProfile!.PrimaryAddress!.Street)
                     .NotEmpty()
-                    .WithMessage("PrimaryAddress.Street is required");
+                    .WithMessage("Rua é obrigatória");
 
                 RuleFor(x => x.BusinessProfile!.PrimaryAddress!.Number)
                     .NotEmpty()
-                    .WithMessage("PrimaryAddress.Number is required");
+                    .WithMessage("Número é obrigatório");
 
                 RuleFor(x => x.BusinessProfile!.PrimaryAddress!.Neighborhood)
                     .NotEmpty()
-                    .WithMessage("PrimaryAddress.Neighborhood is required");
+                    .WithMessage("Bairro é obrigatório");
 
                 RuleFor(x => x.BusinessProfile!.PrimaryAddress!.City)
                     .NotEmpty()
-                    .WithMessage("PrimaryAddress.City is required");
+                    .WithMessage("Cidade é obrigatória");
 
                 RuleFor(x => x.BusinessProfile!.PrimaryAddress!.State)
                     .NotEmpty()
-                    .WithMessage("PrimaryAddress.State is required");
+                    .WithMessage("Estado é obrigatório");
 
                 RuleFor(x => x.BusinessProfile!.PrimaryAddress!.ZipCode)
                     .NotEmpty()
-                    .WithMessage("PrimaryAddress.ZipCode is required");
+                    .WithMessage("CEP é obrigatório");
 
                 RuleFor(x => x.BusinessProfile!.PrimaryAddress!.Country)
                     .NotEmpty()
-                    .WithMessage("PrimaryAddress.Country is required");
+                    .WithMessage("País é obrigatório");
             });
         });
     }

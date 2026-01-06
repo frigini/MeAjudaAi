@@ -94,7 +94,7 @@ jobs:
           MISSING_RESOURCES=()
           for resource_name in "${!REQUIRED_RESOURCES[@]}"; do
             method_name="${REQUIRED_RESOURCES[$resource_name]}"
-            if ! grep -q "$method_name" "$APPHOST_FILE"; then
+            if ! grep -qw "$method_name" "$APPHOST_FILE"; then
               MISSING_RESOURCES+=("$resource_name ($method_name)")
             else
               echo "✅ Found resource: $resource_name ($method_name)"

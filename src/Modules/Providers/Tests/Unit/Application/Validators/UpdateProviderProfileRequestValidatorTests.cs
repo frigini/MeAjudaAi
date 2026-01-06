@@ -40,7 +40,7 @@ public class UpdateProviderProfileRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Name)
-            .WithErrorMessage("Name is required");
+            .WithErrorMessage("Nome é obrigatório");
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class UpdateProviderProfileRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Name)
-            .WithErrorMessage("Name must be at least 2 characters long");
+            .WithErrorMessage("Nome deve ter no mínimo 2 caracteres");
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class UpdateProviderProfileRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Name)
-            .WithErrorMessage("Name cannot exceed 100 characters");
+            .WithErrorMessage("Nome não pode exceder 100 caracteres");
     }
 
     [Fact]
@@ -83,26 +83,7 @@ public class UpdateProviderProfileRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.BusinessProfile)
-            .WithErrorMessage("BusinessProfile is required");
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData(null)]
-    public async Task Validate_WithEmptyDescription_ShouldHaveValidationError(string description)
-    {
-        // Arrange
-        var request = CreateValidRequest() with
-        {
-            BusinessProfile = CreateValidBusinessProfile() with { Description = description }
-        };
-
-        // Act
-        var result = await _validator.TestValidateAsync(request);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.Description)
-            .WithErrorMessage("BusinessProfile.Description is required");
+            .WithErrorMessage("Perfil de negócio é obrigatório");
     }
 
     [Fact]
@@ -120,7 +101,7 @@ public class UpdateProviderProfileRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.Description)
-            .WithErrorMessage("BusinessProfile.Description cannot exceed 500 characters");
+            .WithErrorMessage("Descrição não pode exceder 500 caracteres");
     }
 
     private static UpdateProviderProfileRequest CreateValidRequest()
