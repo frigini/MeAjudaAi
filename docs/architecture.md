@@ -2583,7 +2583,7 @@ builder.Services.AddRefitClient<ILocationsApi>()
 
 **Arquitetura Interna do Refit**:
 
-```
+```text
 Blazor Component → IProvidersApi (interface) → Refit CodeGen → HttpClient → API
 ```
 
@@ -2828,7 +2828,7 @@ public class MyComponentTests : Bunit.TestContext
 
 ### **Estrutura de Arquivos**
 
-```
+```text
 src/Web/MeAjudaAi.Web.Admin/
 ├── Pages/                      # Razor pages (rotas)
 │   ├── Dashboard.razor

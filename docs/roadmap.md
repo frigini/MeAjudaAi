@@ -57,6 +57,9 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
    - Login/Logout flows implementados
    - Authentication.razor com 6 estados (LoggingIn, CompletingLoggingIn, etc.)
    - BaseAddressAuthorizationMessageHandler configurado
+   - **Token Storage**: SessionStorage (Blazor WASM padrão)
+   - **Refresh Strategy**: Automático via OIDC library (silent refresh)
+   - **SDKs Refit**: Interfaces manuais com atributos Refit (não code-generated)
    - Documentação completa em `docs/keycloak-admin-portal-setup.md`
 
 3. **Providers Feature (READ-ONLY)** ✅
@@ -133,6 +136,12 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - Gestão de Restrições Geográficas (UI para AllowedCities)
 - Gráficos Dashboard (MudCharts - providers por status, evolução temporal)
 - Aumentar cobertura de testes (30+ testes bUnit)
+
+---
+
+## ✅ Sprint 5.5 - Refactor & Cleanup (19-30 Dez 2025)
+
+**Status**: CONCLUÍDA
 
 **Principais Conquistas**:
 1. **Refatoração MeAjudaAi.Shared.Messaging** ✅

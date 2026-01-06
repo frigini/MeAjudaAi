@@ -87,28 +87,6 @@ public interface IDocumentsApi
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Atualiza o status de verificação de um documento (Admin only).
-    /// </summary>
-    /// <param name="providerId">ID do provider (GUID)</param>
-    /// <param name="documentId">ID do documento (GUID)</param>
-    /// <param name="status">Novo status: "Pending", "Verified", "Rejected"</param>
-    /// <param name="rejectionReason">Motivo da rejeição (obrigatório se status = Rejected)</param>
-    /// <param name="cancellationToken">Token de cancelamento da operação</param>
-    /// <returns>Confirmação da atualização</returns>
-    /// <response code="200">Status atualizado com sucesso</response>
-    /// <response code="400">Transição de status inválida ou motivo de rejeição ausente</response>
-    /// <response code="404">Documento ou provider não encontrado</response>
-    /// <response code="401">Não autenticado</response>
-    /// <response code="403">Sem permissão de administrador</response>
-    [Put("/api/v1/providers/{providerId}/documents/{documentId}/status")]
-    Task<Result<Unit>> UpdateDocumentStatusAsync(
-        Guid providerId,
-        Guid documentId,
-        [Query] string status,
-        [Query] string? rejectionReason = null,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Deleta um documento (Admin only).
     /// </summary>
     /// <param name="providerId">ID do provider (GUID)</param>

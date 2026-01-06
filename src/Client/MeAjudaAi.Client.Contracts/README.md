@@ -21,7 +21,7 @@ Este é o **SDK (Software Development Kit) oficial** do MeAjudaAi, semelhante ao
 
 Este projeto contém **interfaces Refit** que definem endpoints da API REST do MeAjudaAi. Os DTOs são compartilhados de `MeAjudaAi.Shared.Contracts`.
 
-## �️ Arquitetura do SDK
+## 🏗️ Arquitetura do SDK
 
 ### Como funciona internamente?
 
@@ -77,11 +77,11 @@ public class ProvidersApiGenerated : IProvidersApi
 }
 ```
 
-## �🎯 Responsabilidades
+## 🎯 Responsabilidades
 
-- ✅ Interfaces Refit com atributos HTTP (`[Get]`, `[Post]`, etc.)
-- ✅ Documentação XML dos endpoints (HTTP codes, parâmetros, retornos)
-- ✅ Modelos específicos de paginação (`PagedResult<T>`)
+- ✅ Interfaces Refit com atributos HTTP (`[Get]`, `[Post]`, etc.),
+- ✅ Documentação XML dos endpoints (HTTP codes, parâmetros, retornos),
+- ✅ Modelos específicos de paginação (`PagedResult<T>`),
 - ✅ Query parameters e route parameters
 
 ## 🚫 O que NÃO incluir
@@ -211,7 +211,7 @@ public class LoadProvidersEffect : Effect<LoadProvidersAction>
 }
 ```
 
-## � Exemplos Práticos por Módulo
+## 💡 Exemplos Práticos por Módulo
 
 ### IDocumentsApi - Upload de Documento
 ```csharp
