@@ -46,13 +46,13 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 **Objetivos**:
 1. ✅ **CRUD Completo de Providers** (6-7 Jan 2026) - Create, Update, Delete, Verify
-2. 🔄 **Gestão de Documentos** (próxima) - Upload, verificação, rejection workflow
-3. ⏳ **Gestão de Service Catalogs** - CRUD de categorias e serviços
+2. ✅ **Gestão de Documentos** (7 Jan 2026) - Upload, verificação, deletion workflow
+3. 🔄 **Gestão de Service Catalogs** (próxima) - CRUD de categorias e serviços
 4. ⏳ **Gestão de Restrições Geográficas** - UI para AllowedCities com banco de dados
 5. ⏳ **Gráficos Dashboard** - MudCharts com providers por status e evolução temporal
 6. ⏳ **Testes** - Aumentar cobertura para 30+ testes bUnit
 
-**Progresso Atual**: 1/6 features completas (Provider CRUD)
+**Progresso Atual**: 2/6 features completas (Provider CRUD + Documents)
 
 **Detalhamento - Provider CRUD** ✅:
 - IProvidersApi enhanced: CreateProviderAsync, UpdateProviderAsync, DeleteProviderAsync, UpdateVerificationStatusAsync
@@ -64,6 +64,19 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - Portuguese labels + Snackbar notifications
 - Build sucesso (19 warnings Sonar apenas)
 - Commit: cd2be7f6 "feat(admin): complete Provider CRUD operations"
+
+**Detalhamento - Documents Management** ✅:
+- DocumentsState/Actions/Reducers/Effects: Fluxor pattern completo
+- Documents.razor: página com provider selector e listagem de documentos
+- MudDataGrid com status chips coloridos (Verified=Success, Rejected=Error, Pending=Warning, Uploaded=Info)
+- ProviderSelectorDialog: seleção de provider da lista existente
+- UploadDocumentDialog: MudFileUpload com tipos de documento (RG, CNH, CPF, CNPJ, Comprovante, Outros)
+- RequestVerification action via IDocumentsApi.RequestDocumentVerificationAsync
+- DeleteDocument com confirmação MessageBox
+- Real-time status updates via Fluxor Dispatch
+- Portuguese labels + Snackbar notifications
+- Build sucesso (28 warnings Sonar apenas)
+- Commit: e033488d "feat(admin): implement Documents management feature"
 
 ---
 
