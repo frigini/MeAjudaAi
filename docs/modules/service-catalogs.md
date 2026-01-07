@@ -168,29 +168,29 @@ Handlers consolidados em:
 ### **ServiceCategory Endpoints**
 
 ```http
-GET    /api/v1/catalogs/categories              # Listar categorias
-GET    /api/v1/catalogs/categories/{id}         # Buscar categoria
-GET    /api/v1/catalogs/categories/with-counts  # Categorias com contagem de serviços
-POST   /api/v1/catalogs/categories              # Criar categoria [Admin]
-PUT    /api/v1/catalogs/categories/{id}         # Atualizar categoria [Admin]
-DELETE /api/v1/catalogs/categories/{id}         # Deletar categoria [Admin]
-POST   /api/v1/catalogs/categories/{id}/activate   # Ativar [Admin]
-POST   /api/v1/catalogs/categories/{id}/deactivate # Desativar [Admin]
+GET    /api/v1/service-catalogs/categories              # Listar categorias
+GET    /api/v1/service-catalogs/categories/{id}         # Buscar categoria
+GET    /api/v1/service-catalogs/categories/with-counts  # Categorias com contagem de serviços
+POST   /api/v1/service-catalogs/categories              # Criar categoria [Admin]
+PUT    /api/v1/service-catalogs/categories/{id}         # Atualizar categoria [Admin]
+DELETE /api/v1/service-catalogs/categories/{id}         # Deletar categoria [Admin]
+POST   /api/v1/service-catalogs/categories/{id}/activate   # Ativar [Admin]
+POST   /api/v1/service-catalogs/categories/{id}/deactivate # Desativar [Admin]
 ```
 
 ### **Service Endpoints**
 
 ```http
-GET    /api/v1/catalogs/services                     # Listar serviços
-GET    /api/v1/catalogs/services/{id}                # Buscar serviço
-GET    /api/v1/catalogs/services/category/{categoryId} # Por categoria
-POST   /api/v1/catalogs/services                     # Criar serviço [Admin]
-PUT    /api/v1/catalogs/services/{id}                # Atualizar serviço [Admin]
-DELETE /api/v1/catalogs/services/{id}                # Deletar serviço [Admin]
-POST   /api/v1/catalogs/services/{id}/activate       # Ativar [Admin]
-POST   /api/v1/catalogs/services/{id}/deactivate     # Desativar [Admin]
-POST   /api/v1/catalogs/services/{id}/change-category # Mudar categoria [Admin]
-POST   /api/v1/catalogs/services/validate            # Validar batch de serviços
+GET    /api/v1/service-catalogs/services                     # Listar serviços
+GET    /api/v1/service-catalogs/services/{id}                # Buscar serviço
+GET    /api/v1/service-catalogs/services/category/{categoryId} # Por categoria
+POST   /api/v1/service-catalogs/services                     # Criar serviço [Admin]
+PUT    /api/v1/service-catalogs/services/{id}                # Atualizar serviço [Admin]
+DELETE /api/v1/service-catalogs/services/{id}                # Deletar serviço [Admin]
+POST   /api/v1/service-catalogs/services/{id}/activate       # Ativar [Admin]
+POST   /api/v1/service-catalogs/services/{id}/deactivate     # Desativar [Admin]
+POST   /api/v1/service-catalogs/services/{id}/change-category # Mudar categoria [Admin]
+POST   /api/v1/service-catalogs/services/validate            # Validar batch de serviços
 ```
 
 **Autorização:** Todos os endpoints requerem role `Admin`, exceto `GET` e `validate`.

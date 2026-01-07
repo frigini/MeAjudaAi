@@ -406,7 +406,7 @@ secrets:
 
 ## 🐙 Configuração do GitHub Actions
 
-### Workflow Principal (`.github/workflows/ci-cd.yml`)
+### Workflow Principal (`.github/workflows/master-ci-cd.yml`)
 
 ```yaml
 name: CI/CD Pipeline
@@ -757,7 +757,7 @@ Write-Host "✅ Configuração de CI/CD (apenas setup) concluída!" -ForegroundC
 
 #### GitHub Actions Status Badge
 ```markdown
-[![CI/CD Pipeline](https://github.com/frigini/MeAjudaAi/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/frigini/MeAjudaAi/actions/workflows/ci-cd.yml)
+[![CI/CD Pipeline](https://github.com/frigini/MeAjudaAi/actions/workflows/master-ci-cd.yml/badge.svg)](https://github.com/frigini/MeAjudaAi/actions/workflows/master-ci-cd.yml)
 ```
 
 ## 🛡️ Melhores Práticas de Segurança
@@ -919,7 +919,7 @@ on:
 
 ## 2. CI/CD Pipeline
 
-**Arquivo**: `.github/workflows/ci-cd.yml`
+**Arquivo**: `.github/workflows/master-ci-cd.yml`
 
 ### Propósito
 Pipeline completo de **Continuous Integration** e **Continuous Deployment** para master e develop.

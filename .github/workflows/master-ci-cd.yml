@@ -99,13 +99,12 @@ jobs:
         run: |
           set -e  # Exit immediately if any command fails
           
-          # Define exclude patterns for coverage (files and assemblies)
+          # Define exclude patterns for coverage (files only - assemblies excluded via Include in coverlet)
           # Excludes: Migrations, Database, Contracts, OpenApi generated, compiler services, regex generator
           EXCLUDE_PATTERNS="**/Migrations/*.cs,**/Database/*.cs,**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
-          EXCLUDE_ASSEMBLIES="[*.Tests*]*,[*Test*]*,[testhost]*,[*]*.Migrations.*,[*]*.Database,[*]*.Contracts"
 
           echo "================================"
-          echo "🧪 UNIT TESTS WITH COVERAGE"
+          echo "🧪 BACKEND UNIT TESTS WITH COVERAGE"
           echo "================================"
 
           echo "▶️ Running Shared and Architecture tests..."
@@ -154,6 +153,43 @@ jobs:
             --configuration Release --no-build --verbosity normal \
             --collect:"XPlat Code Coverage" --results-directory TestResults/SearchProviders \
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
+
+      - name: Restore frontend dependencies
+        run: |
+          echo "🔄 Restoring Web.Admin dependencies with --force-evaluate..."
+          dotnet restore src/Web/MeAjudaAi.Web.Admin/MeAjudaAi.Web.Admin.csproj --force-evaluate /p:RestoreLockedMode=false
+          dotnet restore tests/MeAjudaAi.Web.Admin.Tests/MeAjudaAi.Web.Admin.Tests.csproj --force-evaluate /p:RestoreLockedMode=false
+          echo "✅ Frontend dependencies restored"
+
+      - name: Run frontend component tests (bUnit)
+        if: always()
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+        run: |
+          set -e
+          
+          echo "===================================="
+          echo "🎨 FRONTEND COMPONENT TESTS (bUnit)"
+          echo "===================================="
+          echo ""
+          echo "Running Blazor WASM component tests with bUnit framework"
+          echo "Target: MeAjudaAi.Web.Admin (Blazor Admin Portal)"
+          echo ""
+          
+          # Define exclude patterns for Blazor WASM generated code
+          BLAZOR_EXCLUDE_PATTERNS="**/*.g.cs,**/*.razor.g.cs,**/obj/**,**/bin/**"
+
+          echo "▶️ Running Web.Admin component tests (10 tests: Providers, Dashboard, DarkMode)..."
+          dotnet test tests/MeAjudaAi.Web.Admin.Tests/MeAjudaAi.Web.Admin.Tests.csproj \
+            --configuration Release --no-restore --verbosity normal \
+            --collect:"XPlat Code Coverage" --results-directory TestResults/WebAdmin \
+            -- \
+              DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$BLAZOR_EXCLUDE_PATTERNS" \
+              DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByAttribute="Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute"
+
+          echo ""
+          echo "✅ Frontend component tests completed successfully"
+          echo "===================================="
 
       - name: Run integration tests
         env:
@@ -205,14 +241,14 @@ jobs:
         env:
           DOTNET_ROOT: ${{ env.DOTNET_ROOT }}
         with:
-          reports: 'TestResults/Shared/**/coverage.cobertura.xml;TestResults/Architecture/**/coverage.cobertura.xml;TestResults/ApiService/**/coverage.cobertura.xml;TestResults/Users/**/coverage.cobertura.xml;TestResults/Documents/**/coverage.cobertura.xml;TestResults/Providers/**/coverage.cobertura.xml;TestResults/ServiceCatalogs/**/coverage.cobertura.xml;TestResults/Locations/**/coverage.cobertura.xml;TestResults/SearchProviders/**/coverage.cobertura.xml'
+          reports: 'TestResults/Shared/**/coverage.cobertura.xml;TestResults/Architecture/**/coverage.cobertura.xml;TestResults/ApiService/**/coverage.cobertura.xml;TestResults/Users/**/coverage.cobertura.xml;TestResults/Documents/**/coverage.cobertura.xml;TestResults/Providers/**/coverage.cobertura.xml;TestResults/ServiceCatalogs/**/coverage.cobertura.xml;TestResults/Locations/**/coverage.cobertura.xml;TestResults/SearchProviders/**/coverage.cobertura.xml;TestResults/WebAdmin/**/coverage.cobertura.xml'
           targetdir: 'TestResults/Coverage'
           reporttypes: 'Html;Cobertura;JsonSummary'
           assemblyfilters: '-*.Tests*;-*Test*;-*.Migrations.*;-*.Database;-*.Contracts'
           classfilters: '-*.Migrations.*;-*.Database.*;-*.Contracts.*;-*.Metrics.*;-*.HealthChecks.*;-*.Jobs.Hangfire*;-*.Jobs.Configuration*;-*Program*;-*AppHost*;-*.ServiceDefaults*;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery'
           verbosity: 'Info'
           tag: '${{ github.run_number }}_${{ github.run_id }}'
-        # Note: Only UNIT test coverage is collected (Integration/E2E excluded for deterministic results)
+        # Note: UNIT test coverage collected (backend + frontend bUnit). Integration/E2E excluded for deterministic results
         # Excluded from coverage: Tests, Migrations, Database, Contracts, Metrics, Health Checks, Jobs, Program, AppHost, Keycloak, Monitoring, NoOp, RabbitMq, ServiceBus, Hangfire, Options, Design-time factories
 
       - name: Upload code coverage

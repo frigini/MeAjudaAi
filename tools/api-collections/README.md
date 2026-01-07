@@ -130,8 +130,8 @@ Cada coleção gerada contém:
   └── ...
 
 📁 ServiceCatalogs
-  ├── 📄 GET /api/v1/catalogs/categories
-  ├── 📄 POST /api/v1/catalogs/services
+  ├── 📄 GET /api/v1/service-catalogs/categories
+  ├── 📄 POST /api/v1/service-catalogs/services
   └── ...
 
 📁 Locations

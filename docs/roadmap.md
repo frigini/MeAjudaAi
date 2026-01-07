@@ -7,9 +7,9 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0-4 ✅ | Sprint 5 ✅ (ANTECIPADO) | Sprint 5.5 ⏳ (19-31 Dez) - Refactor & Cleanup | MVP Target: 31/Março/2026  
-**Cobertura de Testes**: 28.2% → **90.56% ALCANÇADO** (Sprint 2 - META SUPERADA EM 55.56pp!)  
-**Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MAUI Hybrid
+**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ CONCLUÍDO | MVP Target: 31/Março/2026  
+**Cobertura de Testes**: Backend 90.56% | Frontend 10 testes (ProvidersPage, Dashboard, DarkMode)  
+**Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MudBlazor + Fluxor
 
 ### Marcos Principais
 - ✅ **Janeiro 2025**: Fase 1 concluída - 6 módulos core implementados
@@ -20,11 +20,11 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **11 Dez - 13 Dez**: Sprint 3 Parte 2 - Admin Endpoints & Tools (CONCLUÍDO - MERGED!)
 - ✅ **14 Dez - 18 Dez**: Sprint 4 - Health Checks + Data Seeding + Code Review (CONCLUÍDO - MERGED!)
 - ✅ **Sprint 5**: Tarefas completadas antecipadamente (NSubstitute→Moq, .slnx, UuidGenerator, Design Patterns, Bruno)
-- ⏳ **19 Dez - 31 Dez**: Sprint 5.5 - Refactor & Cleanup (Technical Debt Reduction)
-- ⏳ **Janeiro 2026**: Sprint 6 - Blazor Admin Portal Setup
-- ⏳ **Fevereiro 2026**: Sprint 7 - Blazor Admin Portal Features
-- ⏳ **Fevereiro-Março 2026**: Sprint 8 - Customer App (Web + Mobile)
-- ⏳ **Março 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Refactoring)
+- ✅ **19 Dez - 30 Dez**: Sprint 5.5 - Refactor & Cleanup (CONCLUÍDO - Technical Debt Reduction)
+- ✅ **30 Dez - 5 Jan 2026**: Sprint 6 - Blazor Admin Portal Setup (CONCLUÍDO - 5 Jan 2026)
+- ⏳ **6 Jan - 24 Jan 2026**: Sprint 7 - Blazor Admin Portal Features
+- ⏳ **27 Jan - 14 Fev 2026**: Sprint 8 - Customer App (Web + Mobile)
+- ⏳ **17 Fev - 7 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Refactoring)
 - 🎯 **31 de Março de 2026**: MVP Launch (Admin Portal + Customer App)
 - 🔮 **Abril 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
 
@@ -38,9 +38,143 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 ## 🎯 Status Atual
 
-**✅ Fase 1: CONCLUÍDA** (Janeiro 2025)  
-Todos os 6 módulos core implementados, testados e integrados:
-- Users • Providers • Documents • Search & Discovery • Locations • ServiceCatalogs
+**📅 Hoje**: 6 de Janeiro de 2026
+
+### ✅ Sprint 6 - Blazor Admin Portal Setup - CONCLUÍDA (30 Dez 2025 - 5 Jan 2026)
+
+**Branch**: `blazor-admin-portal-setup` (4 commits ahead, pronto para merge)
+
+**Principais Conquistas**:
+1. **Projeto Blazor WASM Configurado** ✅
+   - .NET 10 com target `net10.0-browser`
+   - MudBlazor 7.21.0 (Material Design UI library)
+   - Fluxor 6.1.0 (Redux-pattern state management)
+   - Refit 9.0.2 (Type-safe HTTP clients)
+   - Bug workaround: `CompressionEnabled=false` (static assets .NET 10)
+
+2. **Autenticação Keycloak OIDC Completa** ✅
+   - Microsoft.AspNetCore.Components.WebAssembly.Authentication
+   - Login/Logout flows implementados
+   - Authentication.razor com 6 estados (LoggingIn, CompletingLoggingIn, etc.)
+   - BaseAddressAuthorizationMessageHandler configurado
+   - **Token Storage**: SessionStorage (Blazor WASM padrão)
+   - **Refresh Strategy**: Automático via OIDC library (silent refresh)
+   - **SDKs Refit**: Interfaces manuais com atributos Refit (não code-generated)
+   - Documentação completa em `docs/keycloak-admin-portal-setup.md`
+
+3. **Providers Feature (READ-ONLY)** ✅
+   - Fluxor store completo (State/Actions/Reducers/Effects)
+   - MudDataGrid com paginação server-side
+   - IProvidersApi via Refit com autenticação
+   - PagedResult<T> correto (Client.Contracts.Api)
+   - VERIFIED_STATUS constant (type-safe)
+   - Portuguese error messages
+
+4. **Dashboard com KPIs** ✅
+   - 3 KPIs: Total Providers, Pending Verifications, Active Services
+   - IServiceCatalogsApi integrado (contagem real de serviços)
+   - MudCards com Material icons
+   - Fluxor stores para Dashboard state
+   - Loading states e error handling
+
+5. **Dark Mode com Fluxor** ✅
+   - ThemeState management (IsDarkMode boolean)
+   - Toggle button em MainLayout
+   - MudThemeProvider two-way binding
+
+6. **Layout Base** ✅
+   - MainLayout.razor com MudDrawer + MudAppBar
+   - NavMenu.razor com navegação
+   - User menu com AuthorizeView
+   - Responsive design (Material Design)
+
+7. **Testes bUnit + xUnit** ✅
+   - 10 testes criados (ProvidersPageTests, DashboardPageTests, DarkModeToggleTests)
+   - JSInterop mock configurado (JSRuntimeMode.Loose)
+   - MudServices registrados em TestContext
+   - CI/CD integration (master-ci-cd.yml + pr-validation.yml)
+
+8. **Localização Portuguesa** ✅
+   - Todos comentários inline em português
+   - Mensagens de erro em português
+   - UI messages traduzidas (Authentication.razor)
+   - Projeto language policy compliance
+
+9. **Integração Aspire** ✅
+   - Admin portal registrado em AppHost
+   - Environment variables configuradas (ApiBaseUrl, Keycloak)
+   - Build e execução via `dotnet run --project src/Aspire/MeAjudaAi.AppHost`
+
+10. **Documentação** ✅
+    - docs/keycloak-admin-portal-setup.md (manual configuração)
+    - docs/testing/bunit-ci-cd-practices.md (atualizado)
+    - Roadmap atualizado com progresso Sprint 6
+
+11. **SDKs Completos para Sprint 7** ✅ (6 Jan 2026)
+    - IDocumentsApi: Upload, verificação, gestão de documentos de providers
+    - ILocationsApi: CRUD de cidades permitidas (AllowedCities)
+    - DTOs criados: ModuleAllowedCityDto, Create/UpdateAllowedCityRequestDto
+    - README melhorado: conceito de SDK, diagrama arquitetural, comparação manual vs SDK
+    - 4/4 SDKs necessários para Admin Portal (Providers, Documents, ServiceCatalogs, Locations)
+
+**Resultado Alcançado**:
+- ✅ Blazor Admin Portal 100% funcional via Aspire
+- ✅ Login/Logout Keycloak funcionando
+- ✅ Providers listagem paginada (read-only)
+- ✅ Dashboard com 3 KPIs reais (IServiceCatalogsApi)
+- ✅ Dark mode toggle
+- ✅ 10 testes bUnit (build verde)
+- ✅ Portuguese localization completa
+- ✅ 0 erros build (10 warnings - analyzers apenas)
+- ✅ **4 SDKs completos** para Admin Portal (IProvidersApi, IDocumentsApi, IServiceCatalogsApi, ILocationsApi)
+- ✅ **Documentação SDK** melhorada (conceito, arquitetura, exemplos práticos)
+
+**🔄 Próxima Etapa: Sprint 7 - Blazor Admin Portal Features** (6-24 Jan 2026)
+- CRUD completo de Providers (create, update, delete, verify)
+- Gestão de Documentos (upload, verificação, rejection)
+- Gestão de Service Catalogs (categorias + serviços)
+- Gestão de Restrições Geográficas (UI para AllowedCities)
+- Gráficos Dashboard (MudCharts - providers por status, evolução temporal)
+- Aumentar cobertura de testes (30+ testes bUnit)
+
+---
+
+## ✅ Sprint 5.5 - Refactor & Cleanup (19-30 Dez 2025)
+
+**Status**: CONCLUÍDA
+
+**Principais Conquistas**:
+1. **Refatoração MeAjudaAi.Shared.Messaging** ✅
+   - Factories organizados em pasta dedicada (`Messaging/Factories/`)
+   - Services organizados em pasta dedicada (`Messaging/Services/`)
+   - Options organizados em pasta dedicada (`Messaging/Options/`)
+   - 4 arquivos: ServiceBusOptions, MessageBusOptions, RabbitMqOptions, DeadLetterOptions
+   - IMessageBusFactory + MessageBusFactory separados
+   - IDeadLetterServiceFactory + DeadLetterServiceFactory separados
+   - 1245/1245 testes passando
+
+2. **Extensions Padronizadas** ✅
+   - 14 arquivos consolidados: CachingExtensions, CommandsExtensions, DatabaseExtensions, etc.
+   - BusinessMetricsMiddlewareExtensions extraído para arquivo próprio
+   - Monitoring folder consolidation completo
+   - Removidos 13 arquivos obsoletos (Extensions.cs genéricos + subpastas)
+
+3. **Extension Members (C# 14)** ✅
+   - EnumExtensions migrado para nova sintaxe `extension<TEnum>(string value)`
+   - 18/18 testes passando (100% compatibilidade)
+   - Documentado em architecture.md - seção "C# 14 Features Utilizados"
+   - Avaliado DocumentExtensions (não adequado para extension properties)
+
+4. **TODOs Resolvidos** ✅
+   - 12/12 TODOs no código resolvidos ou documentados
+   - Remaining issues movidos para technical-debt.md com priorização
+   - api-reference.md removido (redundante com ReDoc + api-spec.json)
+
+5. **Documentação Atualizada** ✅
+   - architecture.md atualizado com C# 14 features
+   - technical-debt.md atualizado com status atual
+   - roadmap.md atualizado com Sprint 5.5 completion
+   - 0 warnings in build
 
 **✅ Fase 1.5: CONCLUÍDA** (21 Nov - 10 Dez 2025)  
 Fundação técnica para escalabilidade e produção:
@@ -245,11 +379,20 @@ Todas as tarefas planejadas já foram implementadas:
 - Migrar métodos de propósito geral (PermissionExtensions, EnumExtensions)
 - Manter padrão atual para DI extensions ([FolderName]Extensions.cs)
 
-**⏳ Fase 2: PLANEJADO** (Janeiro–Março 2026)  
+**✅ Sprint 5.5 Completed** (19-30 Dez 2025):
+- Refatoração MeAjudaAi.Shared.Messaging (Factories, Services, Options)
+- Extensions padronizadas (14 arquivos consolidados)
+- Extension Members (C# 14) implementado
+- TODOs resolvidos (12/12 concluídos)
+- Dependabot PRs fechados para regeneração
+- 1245/1245 testes passando
+
+**⏳ Fase 2: EM ANDAMENTO** (Janeiro–Março 2026)  
 Frontend Blazor WASM + MAUI Hybrid:
-- Sprint 6: Blazor Admin Portal Setup (Jan 2026)
-- Sprint 7-8: Customer App (Fev-Mar 2026)
-- Sprint 9: Buffer/Polishing (Mar 2026)
+- Sprint 6: Blazor Admin Portal Setup - ✅ CONCLUÍDO (5 Jan 2026) - [Ver conquistas detalhadas](#-sprint-6---blazor-admin-portal-setup---concluída-30-dez-2025---5-jan-2026)
+- Sprint 7: Blazor Admin Portal Features (6-24 Jan 2026) - 🔄 PRÓXIMA
+- Sprint 8: Customer App (Fev-Mar 2026) - ⏳ Aguardando Sprint 7
+- Sprint 9: Buffer/Polishing (Mar 2026) - ⏳ Aguardando Sprint 7-8
 - MVP Final: 31 de Março de 2026
 
 **⚠️ Risk Assessment**: Estimativas assumem velocidade consistente. Primeiro projeto Blazor WASM pode revelar complexidades não previstas (integração Keycloak, curva de aprendizado MudBlazor). Sprint 9 reservado como buffer de contingência.
@@ -281,11 +424,11 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 3-P2** | 2 semanas | 11 Dez - 13 Dez | Admin Endpoints & Tools | ✅ CONCLUÍDO (13 Dez - MERGED) |
 | **Sprint 4** | 5 dias | 14 Dez - 18 Dez | Health Checks + Data Seeding | ✅ CONCLUÍDO (18 Dez - MERGED!) |
 | **Sprint 5** | - | Sprints 3-4 | Quality Improvements | ✅ CONCLUÍDO ANTECIPADAMENTE |
-| **Sprint 5.5** | 2 semanas | 19 Dez - 31 Dez | Refactor & Cleanup (Technical Debt) | ✅ CONCLUÍDO (19 Dez) |
-| **Sprint 6** | 2 semanas | Jan 6 - 17 | Blazor Admin Portal - Setup & Core | ⏳ Planejado |
-| **Sprint 7** | 3 semanas | Jan 20 - Fev 7 | Blazor Admin Portal - Features | ⏳ Planejado |
-| **Sprint 8** | 3 semanas | Fev 10 - 28 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
-| **Sprint 9** | 3 semanas | Mar 3 - 24 | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
+| **Sprint 5.5** | 2 semanas | 19 Dez - 31 Dez | Refactor & Cleanup (Technical Debt) | ✅ CONCLUÍDO (30 Dez 2025) |
+| **Sprint 6** | 1 semana | 30 Dez - 5 Jan | Blazor Admin Portal - Setup & Core | ✅ CONCLUÍDO (5 Jan 2026) |
+| **Sprint 7** | 3 semanas | 6 - 24 Jan | Blazor Admin Portal - Features | 🔄 PRÓXIMA |
+| **Sprint 8** | 3 semanas | 27 Jan - 14 Fev | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
+| **Sprint 9** | 3 semanas | 17 Fev - 7 Mar | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
 | **MVP Launch** | - | Mar 31 | Final deployment & launch preparation | 🎯 Target |
 
 **MVP Launch Target**: 31 de Março de 2026 🎯
@@ -620,22 +763,22 @@ public sealed class Service : AggregateRoot<ServiceId>
 
 **4. API Layer** ✅
 - **Endpoints REST** usando Minimal APIs pattern:
-  - `GET /api/v1/catalogs/categories` - Listar categorias
-  - `GET /api/v1/catalogs/categories/{id}` - Buscar categoria
-  - `POST /api/v1/catalogs/categories` - Criar categoria
-  - `PUT /api/v1/catalogs/categories/{id}` - Atualizar categoria
-  - `POST /api/v1/catalogs/categories/{id}/activate` - Ativar
-  - `POST /api/v1/catalogs/categories/{id}/deactivate` - Desativar
-  - `DELETE /api/v1/catalogs/categories/{id}` - Deletar
-  - `GET /api/v1/catalogs/services` - Listar serviços
-  - `GET /api/v1/catalogs/services/{id}` - Buscar serviço
-  - `GET /api/v1/catalogs/services/category/{categoryId}` - Por categoria
-  - `POST /api/v1/catalogs/services` - Criar serviço
-  - `PUT /api/v1/catalogs/services/{id}` - Atualizar serviço
-  - `POST /api/v1/catalogs/services/{id}/change-category` - Mudar categoria
-  - `POST /api/v1/catalogs/services/{id}/activate` - Ativar
-  - `POST /api/v1/catalogs/services/{id}/deactivate` - Desativar
-  - `DELETE /api/v1/catalogs/services/{id}` - Deletar
+  - `GET /api/v1/service-catalogs/categories` - Listar categorias
+  - `GET /api/v1/service-catalogs/categories/{id}` - Buscar categoria
+  - `POST /api/v1/service-catalogs/categories` - Criar categoria
+  - `PUT /api/v1/service-catalogs/categories/{id}` - Atualizar categoria
+  - `POST /api/v1/service-catalogs/categories/{id}/activate` - Ativar
+  - `POST /api/v1/service-catalogs/categories/{id}/deactivate` - Desativar
+  - `DELETE /api/v1/service-catalogs/categories/{id}` - Deletar
+  - `GET /api/v1/service-catalogs/services` - Listar serviços
+  - `GET /api/v1/service-catalogs/services/{id}` - Buscar serviço
+  - `GET /api/v1/service-catalogs/services/category/{categoryId}` - Por categoria
+  - `POST /api/v1/service-catalogs/services` - Criar serviço
+  - `PUT /api/v1/service-catalogs/services/{id}` - Atualizar serviço
+  - `POST /api/v1/service-catalogs/services/{id}/change-category` - Mudar categoria
+  - `POST /api/v1/service-catalogs/services/{id}/activate` - Ativar
+  - `POST /api/v1/service-catalogs/services/{id}/deactivate` - Desativar
+  - `DELETE /api/v1/service-catalogs/services/{id}` - Deletar
 - **Autorização**: Todos endpoints requerem role Admin
 - **Versionamento**: Sistema unificado via BaseEndpoint
 
@@ -1931,13 +2074,13 @@ gantt
 
 ## 🎨 Fase 2: Frontend & Experiência
 
-**Status**: 📋 Em Planejamento - Q1 2026
+**Status**: ⏳ Em andamento (Jan–Mar 2026)
 
 ### Objetivo
 Desenvolver aplicações frontend usando Blazor WebAssembly (Web) e MAUI Blazor Hybrid (Mobile), aproveitando fullstack .NET para máxima reutilização de código.
 
-> **📅 Status Atual**: Sprint 5.5 (19 Dez 2025)  
-> Aguardando merge dos PRs #81 (Aspire 13.1.0) e #82 (FeatureManagement 4.4.0) para iniciar desenvolvimento do frontend.
+> **📅 Status Atual**: Sprint 6 concluída (5 Jan 2026)  
+> Próximo foco: Sprint 7 - Blazor Admin Portal Features.
 
 ---
 
@@ -1991,62 +2134,17 @@ src/
 
 ---
 
-### 📅 Sprint 3: Blazor Admin Portal (2 semanas) ⏳ ATUALIZADO
+### 🆕 Gestão de Restrições Geográficas
 
-**Status**: 📋 PLANEJADO PARA Q1 2026  
-**Pré-requisitos**: 
-- ✅ Backend APIs prontos (Todos os módulos implementados)
-- ⏳ Aguardando merge PR #81 (Aspire 13.1.0) 
-- ⏳ Aguardando merge PR #82 (FeatureManagement 4.4.0)
-- 📋 Definição de design system e componentes UI
+**Resumo**: Restrições geográficas podem ser configuradas via `appsettings.json` (Fase 1, MVP atual) ou gerenciadas dinamicamente via Blazor Admin Portal com banco de dados (Fase 2, planejado Sprint 7+). O middleware `GeographicRestrictionMiddleware` valida cidades/estados permitidos usando IBGE API.
 
-**Contexto**: 
-- Sprint 5.5 atual (19 Dez 2025) focada em correções de package lock files
-- Frontend development iniciará após pipeline verde e merges concluídos
-- Estimativa de início: Janeiro 2026 (Q1 2026)
+**Contexto**: O middleware `GeographicRestrictionMiddleware` suporta configuração dinâmica via `Microsoft.FeatureManagement`. Este recurso foi implementado em duas fases:
 
-**Objetivos**:
-- Portal administrativo para gestão de plataforma
-- CRUD de prestadores, serviços, moderação
-- Dashboard com métricas básicas
-- **Gestão de Restrições Geográficas** (Sprint 1 dependency)
+#### ✅ Fase 1: Middleware com appsettings (CONCLUÍDA - Sprint 1 Dia 1, 21 Nov 2025)
 
-**Funcionalidades**:
+**Implementação Atual**: Restrições geográficas baseadas em `appsettings.json` com middleware HTTP e integração IBGE API.
 
-#### 1. Autenticação e Autorização
-- [ ] Login via Keycloak (role: Admin required)
-- [ ] Logout
-- [ ] Tela de acesso negado (403)
-
-#### 2. Dashboard Principal
-- [ ] Cards com KPIs: Total Providers, Pending Verifications, Active Services, Total Reviews
-- [ ] Gráfico de registros de prestadores (últimos 30 dias)
-- [ ] Lista de ações pendentes (documentos para verificar, reviews flagged)
-
-#### 3. Gestão de Prestadores
-- [ ] **Listagem**: Tabela com filtros (status, cidade, tier, services)
-- [ ] **Detalhes**: Ver perfil completo + documentos + serviços
-- [ ] **Ações**: Aprovar, Rejeitar, Suspender, Reativar
-- [ ] **Histórico**: Audit log de alterações
-
-#### 4. Gestão de Documentos
-- [ ] **Fila de Verificação**: Listar documentos pendentes (ordered by upload date)
-- [ ] **Visualizador**: Exibir documento no browser (PDF/Image viewer)
-- [ ] **Ações**: Verificar, Rejeitar (com motivo)
-- [ ] **OCR Data**: Exibir dados extraídos (se disponível)
-
-#### 5. Gestão de Catálogo de Serviços
-- [ ] **Categorias**: CRUD completo com drag-and-drop para reordenar
-- [ ] **Serviços**: CRUD completo com seleção de categoria
-- [ ] **Ativar/Desativar**: Toggle switch para cada item
-- [ ] **Preview**: Exibir hierarquia completa do catálogo
-
-#### 6. 🆕 Gestão de Restrições Geográficas
-> **⚠️ CRITICAL**: Feature implementada no Sprint 1 Dia 1 requer UI administrativa para produção.
-
-**Contexto**: O middleware `GeographicRestrictionMiddleware` suporta configuração dinâmica via `Microsoft.FeatureManagement`, mas atualmente as cidades/estados permitidos são gerenciados via `appsettings.json` (requer redeploy). Esta seção implementa gestão via banco de dados com UI administrativa.
-
-**Decisões de Arquitetura (Sprint 1 Dia 1 - 21 Nov 2025)**:
+**Decisões de Arquitetura**:
 
 1. **Localização de Código** ✅ **ATUALIZADO 21 Nov 2025**
    - ✅ **MOVIDO** `GeographicRestrictionMiddleware` para `ApiService/Middlewares` (específico para API HTTP)
@@ -2102,6 +2200,14 @@ src/
       RateLimitOptions.cs                 (existente)
       CorsOptions.cs                      (existente)
 ```
+
+**Resultado Sprint 1**: Middleware funcional com validação via IBGE API, feature toggle integrado, e lista de cidades configurável via appsettings (requer redeploy para alterações).
+
+---
+
+#### 🔜 Fase 2: Database-Backed + Admin Portal UI (PLANEJADO - Sprint 7+)
+
+**Contexto**: Migrar lista de cidades/estados de `appsettings.json` para banco de dados, permitindo gestão dinâmica via Blazor Admin Portal sem necessidade de redeploy.
 
 **Arquitetura Proposta**:
 ```sql
@@ -2260,7 +2366,7 @@ public class GeographicRestrictionMiddleware
 
 ---
 
-### 📅 Sprint 4: Blazor Customer App (Web + Mobile) (3 semanas) ⏳ ATUALIZADO
+### 📅 Sprint 8: Blazor Customer App (Web + Mobile) (3 semanas) ⏳ ATUALIZADO
 
 **Status**: 📋 PLANEJADO PARA Q1 2026  
 **Dependências**: Sprint 3 (Admin Portal) deve estar completo  
@@ -3021,6 +3127,6 @@ LEFT JOIN providers.providers p ON al.actor_id = p.provider_id;
 
 ---
 
-*📅 Última atualização: 19 de Dezembro de 2025 (Sprint 5.5)*  
+*📅 Última atualização: 5 de Janeiro de 2026 (Sprint 6 - Blazor Admin Portal Setup)*  
 *🔄 Roadmap em constante evolução baseado em feedback, métricas e aprendizados*
-*📊 Status atual: Aguardando merge PRs #81 e #82 para iniciar desenvolvimento frontend em Q1 2026*
+*📊 Status atual: Sprint 6 CONCLUÍDA (5 Jan 2026) | Sprint 7 - Blazor Admin Portal Features (próxima)*

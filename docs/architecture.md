@@ -2345,4 +2345,558 @@ public class UploadDocumentCommandHandler(
 
 ---
 
+## 🎨 Frontend Architecture (Sprint 6+)
+
+### **Blazor WebAssembly + Fluxor + MudBlazor**
+
+O Admin Portal utiliza Blazor WASM com padrão Flux/Redux para state management e Material Design UI.
+
+```mermaid
+graph TB
+    subgraph "🌐 Presentation - Blazor WASM"
+        PAGES[Pages/Razor Components]
+        LAYOUT[Layout Components]
+        AUTH[Authentication.razor]
+    end
+    
+    subgraph "🔄 State Management - Fluxor"
+        STATE[States]
+        ACTIONS[Actions]
+        REDUCERS[Reducers]
+        EFFECTS[Effects]
+    end
+    
+    subgraph "🔌 API Layer - Refit"
+        PROVIDERS_API[IProvidersApi]
+        SERVICES_API[IServiceCatalogsApi]
+        HTTP[HttpClient + Auth]
+    end
+    
+    subgraph "🔐 Authentication - OIDC"
+        KEYCLOAK[Keycloak OIDC]
+        TOKEN[Token Manager]
+    end
+    
+    PAGES --> ACTIONS
+    ACTIONS --> REDUCERS
+    REDUCERS --> STATE
+    STATE --> PAGES
+    ACTIONS --> EFFECTS
+    EFFECTS --> PROVIDERS_API
+    EFFECTS --> SERVICES_API
+    PROVIDERS_API --> HTTP
+    HTTP --> TOKEN
+    TOKEN --> KEYCLOAK
+```
+
+### **Stack Tecnológica**
+
+| Componente | Tecnologia | Versão | Propósito |
+|-----------|-----------|--------|-----------|
+| **Framework** | Blazor WebAssembly | .NET 10 | SPA client-side |
+| **UI Library** | MudBlazor | 7.21.0 | Material Design components |
+| **State Management** | Fluxor | 6.1.0 | Redux-pattern state |
+| **HTTP Client** | Refit | 9.0.2 | Type-safe API clients |
+| **Authentication** | OIDC | WASM.Authentication | Keycloak integration |
+| **Testing** | bUnit + xUnit | 1.40.0 + v3.2.1 | Component tests |
+
+### **Fluxor Pattern - State Management**
+
+**Implementação do Padrão Flux/Redux**:
+
+```csharp
+// 1. STATE (Immutable)
+public record ProvidersState
+{
+    public List<ModuleProviderDto> Providers { get; init; } = [];
+    public bool IsLoading { get; init; }
+    public string? ErrorMessage { get; init; }
+    public int PageNumber { get; init; } = 1;
+    public int PageSize { get; init; } = 20;
+    public int TotalItems { get; init; }
+}
+
+// 2. ACTIONS (Commands)
+public static class ProvidersActions
+{
+    public record LoadProvidersAction;
+    public record LoadProvidersSuccessAction(List<ModuleProviderDto> Providers, int TotalItems);
+    public record LoadProvidersFailureAction(string ErrorMessage);
+    public record GoToPageAction(int PageNumber);
+}
+
+// 3. REDUCERS (Pure Functions)
+public static class ProvidersReducers
+{
+    [ReducerMethod]
+    public static ProvidersState OnLoadProviders(ProvidersState state, LoadProvidersAction _) =>
+        state with { IsLoading = true, ErrorMessage = null };
+
+    [ReducerMethod]
+    public static ProvidersState OnLoadSuccess(ProvidersState state, LoadProvidersSuccessAction action) =>
+        state with
+        {
+            Providers = action.Providers,
+            TotalItems = action.TotalItems,
+            IsLoading = false,
+            ErrorMessage = null
+        };
+
+    [ReducerMethod]
+    public static ProvidersState OnLoadFailure(ProvidersState state, LoadProvidersFailureAction action) =>
+        state with { IsLoading = false, ErrorMessage = action.ErrorMessage };
+
+    [ReducerMethod]
+    public static ProvidersState OnGoToPage(ProvidersState state, GoToPageAction action) =>
+        state with { PageNumber = action.PageNumber };
+}
+
+// 4. EFFECTS (Side Effects - API Calls)
+public class ProvidersEffects
+{
+    private readonly IProvidersApi _providersApi;
+
+    public ProvidersEffects(IProvidersApi providersApi)
+    {
+        _providersApi = providersApi;
+    }
+
+    [EffectMethod]
+    public async Task HandleLoadProviders(LoadProvidersAction _, IDispatcher dispatcher)
+    {
+        try
+        {
+            var result = await _providersApi.GetProvidersAsync(pageNumber: 1, pageSize: 20);
+            
+            if (result.IsSuccess && result.Value is not null)
+            {
+                dispatcher.Dispatch(new LoadProvidersSuccessAction(
+                    result.Value.Items, 
+                    result.Value.TotalItems));
+            }
+            else
+            {
+                dispatcher.Dispatch(new LoadProvidersFailureAction(
+                    result.Error?.Message ?? "Falha ao carregar fornecedores"));
+            }
+        }
+        catch (Exception ex)
+        {
+            dispatcher.Dispatch(new LoadProvidersFailureAction(ex.Message));
+        }
+    }
+}
+```
+
+**Fluxo de Dados Unidirecional**:
+1. **User Interaction** → Componente dispara Action
+2. **Action** → Fluxor enfileira ação
+3. **Reducer** → Cria novo State (immutable)
+4. **Effect** (se aplicável) → Chama API externa
+5. **New State** → UI re-renderiza automaticamente
+
+**Benefícios do Padrão**:
+- ✅ **Previsibilidade**: Estado centralizado e immutable
+- ✅ **Testabilidade**: Reducers são funções puras
+- ✅ **Debug**: Redux DevTools integration
+- ✅ **Time-travel**: Estado histórico para debugging
+
+### **Refit - Type-Safe HTTP Clients (SDK)**
+
+**MeAjudaAi.Client.Contracts é o SDK oficial .NET** para consumir a API REST, semelhante ao AWS SDK ou Stripe SDK.
+
+**SDKs Disponíveis** (Sprint 6-7):
+
+| Módulo | Interface | Funcionalidades | Status |
+|--------|-----------|-----------------|--------|
+| **Providers** | IProvidersApi | CRUD, verificação, filtros | ✅ Completo |
+| **Documents** | IDocumentsApi | Upload, verificação, status | ✅ Completo |
+| **ServiceCatalogs** | IServiceCatalogsApi | Listagem, categorias | ✅ Completo |
+| **Locations** | ILocationsApi | CRUD AllowedCities | ✅ Completo |
+| **Users** | IUsersApi | (Planejado) | ⏳ Sprint 8+ |
+
+**Definição de API Contracts**:
+
+```csharp
+public interface IProvidersApi
+{
+    [Get("/api/v1/providers")]
+    Task<Result<PagedResult<ModuleProviderDto>>> GetProvidersAsync(
+        [Query] int pageNumber = 1,
+        [Query] int pageSize = 20,
+        CancellationToken cancellationToken = default);
+
+    [Get("/api/v1/providers/verification-status/{status}")]
+    Task<Result<List<ModuleProviderDto>>> GetProvidersByVerificationStatusAsync(
+        string status,
+        CancellationToken cancellationToken = default);
+}
+
+public interface IDocumentsApi
+{
+    [Multipart]
+    [Post("/api/v1/providers/{providerId}/documents")]
+    Task<Result<ModuleDocumentDto>> UploadDocumentAsync(
+        Guid providerId,
+        [AliasAs("file")] StreamPart file,
+        [AliasAs("documentType")] string documentType,
+        CancellationToken cancellationToken = default);
+}
+
+public interface ILocationsApi
+{
+    [Get("/api/v1/locations/allowed-cities")]
+    Task<Result<IReadOnlyList<ModuleAllowedCityDto>>> GetAllAllowedCitiesAsync(
+        [Query] bool onlyActive = true,
+        CancellationToken cancellationToken = default);
+}
+
+public interface IServiceCatalogsApi
+{
+    [Get("/api/v1/service-catalogs/services")]
+    Task<Result<IReadOnlyList<ModuleServiceListDto>>> GetAllServicesAsync(
+        [Query] bool activeOnly = true,
+        CancellationToken cancellationToken = default);
+}
+```
+
+**Configuração com Autenticação**:
+
+```csharp
+// Program.cs - Registrar todos os SDKs
+builder.Services.AddRefitClient<IProvidersApi>()
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
+    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+
+builder.Services.AddRefitClient<IDocumentsApi>()
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
+    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+
+builder.Services.AddRefitClient<IServiceCatalogsApi>()
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
+    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+
+builder.Services.AddRefitClient<ILocationsApi>()
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
+    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+```
+
+**Arquitetura Interna do Refit**:
+
+```text
+Blazor Component → IProvidersApi (interface) → Refit CodeGen → HttpClient → API
+```
+
+**Vantagens**:
+- ✅ Type-safe API calls (compile-time validation)
+- ✅ Automatic serialization/deserialization
+- ✅ Integration with HttpClientFactory + Polly
+- ✅ Authentication header injection via message handler
+- ✅ **20 linhas de código manual → 2 linhas (interface + atributo)**
+- ✅ Reutilizável entre projetos (Blazor WASM, MAUI, Console)
+
+**Documentação Completa**: `src/Client/MeAjudaAi.Client.Contracts/README.md`
+
+### **MudBlazor - Material Design Components**
+
+**Componentes Principais Utilizados**:
+
+```razor
+@* Layout Principal *@
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" 
+                       OnClick="@DrawerToggle" 
+                       Color="Color.Inherit" />
+        <MudSpacer />
+        <MudIconButton Icon="@(IsDarkMode ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)" 
+                       OnClick="@ToggleDarkMode" 
+                       Color="Color.Inherit" />
+    </MudAppBar>
+    
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="2">
+        <NavMenu />
+    </MudDrawer>
+    
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@* Data Grid com Paginação *@
+<MudDataGrid Items="@State.Value.Providers" 
+             Loading="@State.Value.IsLoading" 
+             Hover="true" 
+             Dense="true">
+    <Columns>
+        <PropertyColumn Property="x => x.Name" Title="Nome" />
+        <PropertyColumn Property="x => x.Email" Title="Email" />
+        <TemplateColumn Title="Status">
+            <CellTemplate>
+                <MudChip Color="@GetStatusColor(context.Item.VerificationStatus)">
+                    @context.Item.VerificationStatus
+                </MudChip>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>
+
+<MudPagination Count="@TotalPages" 
+               Selected="@State.Value.PageNumber" 
+               SelectedChanged="@OnPageChanged" />
+
+@* KPI Cards *@
+<MudCard>
+    <MudCardHeader>
+        <CardHeaderAvatar>
+            <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Primary" />
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">Total de Fornecedores</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Typo="Typo.h3">@State.Value.TotalProviders</MudText>
+    </MudCardContent>
+</MudCard>
+```
+
+**Configuração de Tema**:
+
+```csharp
+// Program.cs
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
+    config.SnackbarConfiguration.PreventDuplicates = false;
+    config.SnackbarConfiguration.ShowCloseIcon = true;
+    config.SnackbarConfiguration.VisibleStateDuration = 5000;
+});
+
+// App.razor - Dark Mode Binding
+<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="@_theme" />
+
+@code {
+    private bool _isDarkMode;
+    private MudTheme _theme = new MudTheme();
+}
+```
+
+### **Authentication - Keycloak OIDC**
+
+**Configuração OIDC**:
+
+```csharp
+// Program.cs
+builder.Services.AddOidcAuthentication(options =>
+{
+    builder.Configuration.Bind("Keycloak", options.ProviderOptions);
+    options.UserOptions.RoleClaim = "roles";
+});
+
+// appsettings.json
+{
+  "Keycloak": {
+    "Authority": "http://localhost:8080/realms/meajudaai",
+    "ClientId": "admin-portal",
+    "ResponseType": "code",
+    "Scope": "openid profile email roles"
+  }
+}
+```
+
+**Authentication Flow**:
+
+```razor
+@* Authentication.razor *@
+<RemoteAuthenticatorView Action="@Action">
+    <LoggingIn>
+        <MudProgressCircular Indeterminate="true" />
+        <MudText>Entrando...</MudText>
+    </LoggingIn>
+    <CompletingLoggingIn>
+        <MudText>Completando login...</MudText>
+    </CompletingLoggingIn>
+    <LogOut>
+        <MudText>Você saiu com sucesso.</MudText>
+    </LogOut>
+    <LogInFailed>
+        <MudAlert Severity="Severity.Error">
+            <MudText Typo="Typo.h6">Falha na Autenticação</MudText>
+            <MudText>Ocorreu um erro ao tentar fazer login.</MudText>
+        </MudAlert>
+    </LogInFailed>
+</RemoteAuthenticatorView>
+```
+
+**Protected Routes**:
+
+```razor
+@* App.razor *@
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    <RedirectToLogin />
+                </NotAuthorized>
+            </AuthorizeRouteView>
+        </Found>
+    </Router>
+</CascadingAuthenticationState>
+```
+
+### **Component Testing - bUnit**
+
+**Setup de Testes**:
+
+```csharp
+public class ProvidersPageTests : Bunit.TestContext
+{
+    private readonly Mock<IProvidersApi> _mockProvidersApi;
+    private readonly Mock<IDispatcher> _mockDispatcher;
+    private readonly Mock<IState<ProvidersState>> _mockProvidersState;
+
+    public ProvidersPageTests()
+    {
+        _mockProvidersApi = new Mock<IProvidersApi>();
+        _mockDispatcher = new Mock<IDispatcher>();
+        _mockProvidersState = new Mock<IState<ProvidersState>>();
+        
+        // Mock estado inicial
+        _mockProvidersState.Setup(x => x.Value).Returns(new ProvidersState());
+        
+        // Registrar serviços
+        Services.AddSingleton(_mockProvidersApi.Object);
+        Services.AddSingleton(_mockDispatcher.Object);
+        Services.AddSingleton(_mockProvidersState.Object);
+        Services.AddMudServices();
+        
+        // Configurar JSInterop mock (CRÍTICO para MudBlazor)
+        JSInterop.Mode = JSRuntimeMode.Loose;
+    }
+
+    [Fact]
+    public void Providers_Should_Dispatch_LoadAction_OnInitialized()
+    {
+        // Act
+        var cut = RenderComponent<Providers>();
+
+        // Assert
+        _mockDispatcher.Verify(
+            x => x.Dispatch(It.IsAny<LoadProvidersAction>()), 
+            Times.Once);
+    }
+
+    [Fact]
+    public void Providers_Should_Display_Loading_State()
+    {
+        // Arrange
+        _mockProvidersState.Setup(x => x.Value)
+            .Returns(new ProvidersState { IsLoading = true });
+
+        // Act
+        var cut = RenderComponent<Providers>();
+
+        // Assert
+        var progressElements = cut.FindAll(".mud-progress-circular");
+        progressElements.Should().NotBeEmpty();
+    }
+}
+```
+
+**JSInterop Mock Pattern** (CRÍTICO):
+
+```csharp
+// SEMPRE configurar JSInterop.Mode para MudBlazor
+public class MyComponentTests : Bunit.TestContext
+{
+    public MyComponentTests()
+    {
+        Services.AddMudServices();
+        JSInterop.Mode = JSRuntimeMode.Loose; // <-- OBRIGATÓRIO
+    }
+}
+```
+
+**Padrões de Teste bUnit**:
+1. **AAA Pattern**: Arrange → Act → Assert (comentários em inglês)
+2. **Mock States**: Sempre mockar IState<T> para testar renderização
+3. **Mock Dispatcher**: Verificar Actions disparadas
+4. **JSInterop Mock**: Obrigatório para MudBlazor components
+5. **FluentAssertions**: Usar para asserts expressivas
+
+### **Estrutura de Arquivos**
+
+```text
+src/Web/MeAjudaAi.Web.Admin/
+├── Pages/                      # Razor pages (rotas)
+│   ├── Dashboard.razor
+│   ├── Providers.razor
+│   └── Authentication.razor
+├── Features/                   # Fluxor stores por feature
+│   ├── Providers/
+│   │   ├── ProvidersState.cs
+│   │   ├── ProvidersActions.cs
+│   │   ├── ProvidersReducers.cs
+│   │   └── ProvidersEffects.cs
+│   ├── Dashboard/
+│   │   └── ...
+│   └── Theme/
+│       └── ...
+├── Layout/                     # Layout components
+│   ├── MainLayout.razor
+│   └── NavMenu.razor
+├── wwwroot/                    # Static assets
+│   ├── appsettings.json
+│   └── index.html
+├── Program.cs                  # Entry point + DI
+└── App.razor                   # Root component
+
+tests/MeAjudaAi.Web.Admin.Tests/
+├── Pages/
+│   ├── ProvidersPageTests.cs
+│   └── DashboardPageTests.cs
+└── Layout/
+    └── DarkModeToggleTests.cs
+```
+
+### **Best Practices - Frontend**
+
+#### **1. State Management**
+- ✅ Use Fluxor para state compartilhado entre componentes
+- ✅ Mantenha States immutable (record types)
+- ✅ Reducers devem ser funções puras (sem side effects)
+- ✅ Effects para chamadas assíncronas (API calls)
+- ❌ Evite state local quando precisar compartilhar entre páginas
+
+#### **2. API Integration**
+- ✅ Use Refit para type-safe HTTP clients
+- ✅ Defina interfaces em `Client.Contracts.Api`
+- ✅ Configure authentication via `BaseAddressAuthorizationMessageHandler`
+- ✅ Handle errors em Effects com try-catch
+- ❌ Não chame API diretamente em components (use Effects)
+
+#### **3. Component Design**
+- ✅ Componentes pequenos e focados (Single Responsibility)
+- ✅ Use MudBlazor components sempre que possível
+- ✅ Bind state via `IState<T>` em components
+- ✅ Dispatch actions via `IDispatcher`
+- ❌ Evite lógica de negócio em components (mover para Effects)
+
+#### **4. Testing**
+- ✅ Sempre configure JSInterop.Mode = Loose
+- ✅ Mock IState<T> para testar diferentes estados
+- ✅ Verifique Actions disparadas via Mock<IDispatcher>
+- ✅ Use FluentAssertions para asserts
+- ❌ Não teste MudBlazor internals (confiar na biblioteca)
+
+#### **5. Portuguese Localization**
+- ✅ Todas mensagens de erro em português
+- ✅ Comentários inline em português
+- ✅ Labels e tooltips em português
+- ✅ Technical terms podem ficar em inglês (OIDC, Refit, Fluxor)
+
+---
+
 📖 **Próximos Passos**: Este documento serve como base para o desenvolvimento. Consulte também a [documentação de infraestrutura](./infrastructure.md) e [guia de CI/CD](./ci-cd.md) para informações complementares.

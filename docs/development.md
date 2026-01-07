@@ -90,7 +90,7 @@ dotnet run --project src/Aspire/MeAjudaAi.AppHost
 
 ```text
 src/
-├── Modules/                           # Módulos de domínio
+├── Modules/                           # Módulos de domínio (backend)
 │   └── Users/                         # Módulo de usuários
 │       ├── API/                       # Endpoints HTTP
 │       │   ├── UsersEndpoints.cs      # Minimal APIs
@@ -108,11 +108,69 @@ src/
 │           ├── Persistence/           # Entity Framework
 │           ├── Repositories/          # Implementação de repositórios
 │           └── ExternalServices/      # Integrações externas
+├── Web/                              # Aplicações frontend
+│   └── MeAjudaAi.Web.Admin/          # Admin Portal (Blazor WASM)
+│       ├── Pages/                    # Páginas Blazor
+│       ├── Features/                 # Fluxor stores (State management)
+│       ├── Layout/                   # Layouts compartilhados
+│       └── Services/                 # Services e helpers
+├── Client/                           # SDKs para consumir API
+│   └── MeAjudaAi.Client.Contracts/   # Refit interfaces (HTTP client tipado)
+│       ├── Api/                      # Interfaces Refit
+│       │   ├── IProvidersApi.cs      # SDK Providers (CRUD, verificação)
+│       │   ├── IDocumentsApi.cs      # SDK Documents (upload, validação)
+│       │   ├── IServiceCatalogsApi.cs # SDK ServiceCatalogs
+│       │   └── ILocationsApi.cs      # SDK Locations (AllowedCities)
+│       └── Models/                   # Modelos de paginação
 ├── Shared/                           # Componentes compartilhados
-│   └── MeAjudaAi.Shared/             # Primitivos e abstrações
+│   ├── MeAjudaAi.Shared/             # Primitivos e abstrações
+│   └── MeAjudaAi.Shared.Contracts/   # DTOs compartilhados (backend + frontend)
+│       └── Contracts/Modules/        # DTOs por módulo
+│           ├── Providers/DTOs/
+│           ├── Documents/DTOs/
+│           ├── Locations/DTOs/
+│           └── ServiceCatalogs/DTOs/
 └── Bootstrapper/                     # Configuração da aplicação
     └── MeAjudaAi.ApiService/         # API principal
 ```
+
+### **SDKs para Frontend (Client.Contracts)**
+
+O projeto fornece **SDKs .NET tipados** para consumir a API REST, eliminando código HTTP boilerplate:
+
+| SDK | Módulo | Funcionalidades |
+|-----|--------|-----------------|
+| **IProvidersApi** | Providers | CRUD, verificação, filtros |
+| **IDocumentsApi** | Documents | Upload, verificação, status |
+| **IServiceCatalogsApi** | ServiceCatalogs | Listagem serviços/categorias |
+| **ILocationsApi** | Locations | CRUD AllowedCities |
+| **IUsersApi** | Users | ⏳ Planejado (Sprint 8+) |
+
+**Exemplo de uso no Blazor WASM**:
+
+```csharp
+// 1. Registrar SDK no DI (Program.cs)
+builder.Services.AddRefitClient<IProvidersApi>()
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
+    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+
+// 2. Injetar em componente Blazor
+@inject IProvidersApi ProvidersApi
+
+@code {
+    private async Task LoadProvidersAsync()
+    {
+        var result = await ProvidersApi.GetProvidersAsync(pageNumber: 1, pageSize: 20);
+        
+        if (result.IsSuccess)
+            _providers = result.Value.Items;
+        else
+            Snackbar.Add(result.Error.Message, Severity.Error);
+    }
+}
+```
+
+**Documentação completa**: `src/Client/MeAjudaAi.Client.Contracts/README.md`
 
 ## 📋 Padrões de Desenvolvimento
 

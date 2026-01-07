@@ -1,0 +1,62 @@
+﻿@inject IState<ThemeState> ThemeState
+
+<Fluxor.Blazor.Web.StoreInitializer />
+<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    @if (context.User.Identity?.IsAuthenticated != true)
+                    {
+                        <RedirectToLogin />
+                    }
+                    else
+                    {
+                        <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+                            <MudAlert Severity="Severity.Error">
+                                <MudText Typo="Typo.h5">Access Denied</MudText>
+                                <MudText Typo="Typo.body1">You don't have permission to access this page.</MudText>
+                            </MudAlert>
+                        </MudContainer>
+                    }
+                </NotAuthorized>
+                <Authorizing>
+                    <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex justify-center align-center" Style="height: 100vh;">
+                        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+                    </MudContainer>
+                </Authorizing>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
+    </Router>
+</CascadingAuthenticationState>
+
+@code {
+    private bool _isDarkMode;
+    private MudTheme _theme = new();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        // Inscrever para mudanças no tema
+        ThemeState.StateChanged += OnThemeStateChanged;
+        _isDarkMode = ThemeState.Value.IsDarkMode;
+    }
+
+    private void OnThemeStateChanged(object? sender, EventArgs e)
+    {
+        _isDarkMode = ThemeState.Value.IsDarkMode;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        ThemeState.StateChanged -= OnThemeStateChanged;
+    }
+}

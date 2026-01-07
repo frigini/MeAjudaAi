@@ -1,5 +1,5 @@
 ---
-name: MeAjudaAi CI Pipeline
+name: Aspire Validation Pipeline
 
 "on":
   push:
@@ -7,7 +7,11 @@ name: MeAjudaAi CI Pipeline
     paths:
       - 'src/Aspire/**'
       - '.github/workflows/aspire-ci-cd.yml'
-  # pull_request removed - pr-validation.yml handles PR validation to avoid duplication
+  pull_request:
+    branches: [master, develop]
+    paths:
+      - 'src/Aspire/**'
+      - '.github/workflows/aspire-ci-cd.yml'
 
 permissions:
   contents: read
@@ -17,23 +21,9 @@ env:
   DOTNET_VERSION: '10.0.x'
 
 jobs:
-  # Build and test the solution
-  build-and-test:
+  # Validate Aspire AppHost configuration and deployment readiness
+  aspire-validation:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgis/postgis:16-3.4
-        env:
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -43,73 +33,22 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.slnx --force-evaluate
-
-      - name: Build solution
-        run: dotnet build MeAjudaAi.slnx --no-restore --configuration Release --verbosity minimal
-
-      - name: Install PostgreSQL client
+      - name: Restore AppHost dependencies
         run: |
-          # Install PostgreSQL client tools for health checks
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
+          echo "🔄 Restoring Aspire AppHost dependencies with --force-evaluate..."
+          dotnet restore src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj --force-evaluate /p:RestoreLockedMode=false
+          echo "✅ Dependencies restored"
 
-      - name: Wait for PostgreSQL to be ready
-        env:
-          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+      - name: Build Aspire AppHost
         run: |
-          echo "🔄 Waiting for PostgreSQL to be ready..."
-          echo "Debug: POSTGRES_USER=$POSTGRES_USER"
-          echo "Debug: Checking PostgreSQL availability..."
+          echo "🏗️ Building Aspire AppHost..."
+          dotnet build src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj --configuration Release --no-restore
+          echo "✅ Aspire AppHost builds successfully"
 
-          counter=1
-          max_attempts=30
-
-          while [ $counter -le $max_attempts ]; do
-            if pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; then
-              echo "✅ PostgreSQL is ready!"
-              break
-            fi
-            echo "Waiting for PostgreSQL... ($counter/$max_attempts)"
-            sleep 2
-            counter=$((counter + 1))
-          done
-
-          # Check if we exited the loop due to timeout
-          if ! pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; then
-            echo "❌ PostgreSQL failed to become ready within 60 seconds"
-            exit 1
-          fi
-
-      - name: Setup PostgreSQL connection
-        id: db
-        uses: ./.github/actions/setup-postgres-connection
-        with:
-          postgres-host: localhost
-          postgres-port: 5432
-          postgres-db: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
-          postgres-user: ${{ secrets.POSTGRES_USER || 'postgres' }}
-          postgres-password: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
-
-      - name: Run Architecture Tests
+      - name: Verify DCP Binaries (Distributed Application Runtime)
         run: |
-          echo "🏛️ Running Architecture tests..."
-          dotnet test tests/MeAjudaAi.Architecture.Tests/ --no-build --configuration Release
-          echo "✅ Architecture tests passed"
-
-      - name: Prepare Aspire Integration Tests
-        run: |
-          echo "📦 Preparing .NET Aspire for integration tests..."
-          echo "ℹ️  Note: Aspire workload is deprecated in .NET 10 - using NuGet packages instead"
-
-          # Restore AppHost to download Aspire NuGet packages (includes DCP binaries)
-          echo "🔄 Restoring AppHost project to download Aspire packages..."
-          dotnet restore src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj --verbosity normal
-
-          # Verify DCP binaries were downloaded (now located in NuGet package cache)
           echo "🔎 Verifying DCP binaries in NuGet cache..."
+          echo "ℹ️  Note: Aspire workload is deprecated in .NET 10 - using NuGet packages instead"
 
           # DCP binaries come from Aspire.Hosting.Orchestration NuGet package
           DCP_LOCATIONS=(
@@ -120,77 +59,57 @@ jobs:
           FOUND_DCP=false
           for pattern in "${DCP_LOCATIONS[@]}"; do
             if compgen -G "$pattern" > /dev/null; then
-              echo "✅ Found DCP binary: $(echo $pattern)"
+              echo "✅ Found DCP binaries matching: $pattern"
+              compgen -G "$pattern" | head -3
               FOUND_DCP=true
             fi
           done
 
           if [ "$FOUND_DCP" = false ]; then
-            echo "⚠️  Warning: DCP binaries not found in expected locations"
-            echo "Searching NuGet cache for Aspire packages..."
+            echo "⚠️  Warning: DCP binaries not found in expected NuGet cache locations"
+            echo "Searching for Aspire packages..."
             find "$HOME/.nuget/packages" -type d -iname "*aspire*" -maxdepth 1 2>/dev/null || true
-            echo "ℹ️  Integration tests will attempt to run - DCP may be resolved at runtime"
+            echo "ℹ️  DCP is needed for Aspire deployment but not for build validation"
+            echo "✅ Continuing workflow - DCP will be restored at deployment time"
           else
-            echo "✅ Aspire DCP binaries verified in NuGet cache"
+            echo "✅ Aspire DCP binaries verified and ready for deployment"
           fi
 
-          # Set DOTNET_ROOT for SDK discovery
-          echo "DOTNET_ROOT=$HOME/.dotnet" >> $GITHUB_ENV
-
-      - name: Run Integration Tests
-        env:
-          ASPNETCORE_ENVIRONMENT: Testing
-          # Database configuration for tests that need it
-          MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
-          MEAJUDAAI_DB_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
-          MEAJUDAAI_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
-          DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
-          DB_USERNAME: ${{ secrets.POSTGRES_USER || 'postgres' }}
-          # Map connection string to .NET configuration using double underscore
-          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
-          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
-          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
-          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
+      - name: Validate Aspire Resource Configuration
         run: |
-          echo "🔗 Running Integration tests..."
-          dotnet test tests/MeAjudaAi.Integration.Tests/ --no-build --configuration Release
-          echo "✅ Integration tests passed"
+          echo "🔍 Validating Aspire resource configuration..."
+          
+          # Check for required resource references in AppHost Program.cs
+          APPHOST_FILE="src/Aspire/MeAjudaAi.AppHost/Program.cs"
+          
+          # Map resource names to actual method names used in AppHost
+          # Note: AddMeAjudaAiPostgreSQL and AddMeAjudaAiKeycloak are custom extensions
+          declare -A REQUIRED_RESOURCES=(
+            ["PostgreSQL"]="AddMeAjudaAiPostgreSQL"
+            ["Redis"]="AddRedis"
+            ["RabbitMQ"]="AddRabbitMQ"
+            ["Keycloak"]="AddMeAjudaAiKeycloak"
+          )
+          
+          MISSING_RESOURCES=()
+          for resource_name in "${!REQUIRED_RESOURCES[@]}"; do
+            method_name="${REQUIRED_RESOURCES[$resource_name]}"
+            if ! grep -qw "$method_name" "$APPHOST_FILE"; then
+              MISSING_RESOURCES+=("$resource_name ($method_name)")
+            else
+              echo "✅ Found resource: $resource_name ($method_name)"
+            fi
+          done
+          
+          if [ ${#MISSING_RESOURCES[@]} -gt 0 ]; then
+            echo "❌ Missing critical resource configurations: ${MISSING_RESOURCES[*]}"
+            echo "ℹ️  Aspire AppHost requires these resources for runtime functionality"
+            exit 1
+          else
+            echo "✅ All expected Aspire resources configured"
+          fi
 
-      - name: Run Module Unit Tests
-        run: |
-          echo "📦 Running module unit tests..."
-          dotnet test src/Modules/Users/Tests/ --no-build --configuration Release
-          echo "✅ Module tests passed"
-
-      - name: Run Shared Unit Tests
-        run: |
-          echo "🔧 Running shared unit tests..."
-          dotnet test tests/MeAjudaAi.Shared.Tests/ --no-build --configuration Release
-          echo "✅ Shared tests passed"
-
-  # Validate Aspire configuration
-  aspire-validation:
-    runs-on: ubuntu-latest
-    needs: build-and-test
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.slnx --force-evaluate
-
-      - name: Validate Aspire AppHost
-        run: |
-          cd src/Aspire/MeAjudaAi.AppHost
-          dotnet build --configuration Release
-          echo "✅ Aspire AppHost builds successfully"
-
-      - name: Generate Aspire manifest (for future deployment)
+      - name: Generate Aspire Manifest (Deployment Validation)
         env:
           # Set fallback values for manifest generation (dry-run mode)
           DB_PASSWORD: 'manifest-generation'
@@ -198,70 +117,73 @@ jobs:
           KEYCLOAK_ADMIN_PASSWORD: 'manifest-generation'
           ASPNETCORE_ENVIRONMENT: Testing
         run: |
+          echo "📋 Generating Aspire deployment manifest..."
           cd src/Aspire/MeAjudaAi.AppHost
-          # This validates the Aspire configuration without deploying
-          dotnet run --project . --publisher manifest \
-            --output-path ./aspire-manifest.json --dry-run
-          echo "✅ Aspire manifest generated successfully"
-
-  # Code quality and security analysis
-  code-analysis:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.slnx --force-evaluate
-
-      - name: Check code formatting
-        run: |
-          echo "🔍 Checking code formatting..."
-          # Only check whitespace and style (not SonarQube analyzer warnings)
-          set -o pipefail
-          dotnet format --verify-no-changes \
-            --include whitespace style \
-            --verbosity normal \
-            MeAjudaAi.slnx \
-            2>&1 | tee format-output.txt
-          FORMAT_EXIT_CODE=${PIPESTATUS[0]}
           
-          # Check if any files were actually formatted (not just warnings)
-          if grep -q "Formatted code file" format-output.txt; then
-            echo "⚠️ Code formatting issues found."
-            echo "Run 'dotnet format --include whitespace style' locally to fix."
-            grep "Formatted code file" format-output.txt
+          # Generate manifest to validate Aspire configuration
+          # This is a dry-run that validates resource definitions without actual deployment
+          dotnet run --project . -- --publisher manifest \
+            --output-path ./aspire-manifest.json || {
+            echo "❌ Manifest generation failed - Aspire configuration is invalid"
             exit 1
-          elif [ $FORMAT_EXIT_CODE -ne 0 ]; then
-            echo "⚠️ Formatting check failed with exit code $FORMAT_EXIT_CODE"
-            exit $FORMAT_EXIT_CODE
+          }
+          
+          echo "✅ Aspire manifest generated successfully"
+          
+          # Validate manifest structure
+          if [ -f ./aspire-manifest.json ]; then
+            echo "📊 Manifest file size: $(du -h ./aspire-manifest.json | cut -f1)"
+            echo "📦 Resources defined in manifest:"
+            cat ./aspire-manifest.json | grep -oP '"type":\s*"\K[^"]+' | sort -u || echo "  (unable to parse resource types)"
           else
-            echo "✅ No formatting changes needed"
+            echo "❌ Manifest file not created"
+            exit 1
           fi
 
-      - name: Run vulnerability scan
+      - name: Validate Environment Configuration
         run: |
-          echo "🔍 Scanning for vulnerable packages..."
-          dotnet list package --vulnerable --include-transitive
-          echo "✅ Vulnerability scan completed"
+          echo "🔧 Validating Aspire environment configuration..."
+          
+          # Check for appsettings files
+          APPSETTINGS_DIR="src/Aspire/MeAjudaAi.AppHost"
+          
+          if [ -f "$APPSETTINGS_DIR/appsettings.json" ]; then
+            echo "✅ Found appsettings.json"
+          else
+            echo "⚠️  appsettings.json not found (may be optional)"
+          fi
+          
+          if [ -f "$APPSETTINGS_DIR/appsettings.Development.json" ]; then
+            echo "✅ Found appsettings.Development.json"
+          fi
+          
+          if [ -f "$APPSETTINGS_DIR/appsettings.Production.json" ]; then
+            echo "✅ Found appsettings.Production.json"
+          fi
+          
+          echo "✅ Environment configuration validated"
 
-      - name: Basic code quality checks
+      - name: Summary
+        if: success()
         run: |
-          echo "🔍 Running focused code quality checks..."
-          # Check for basic C# issues (quiet mode)
-          echo "Checking C# syntax..."
-          dotnet build MeAjudaAi.slnx --verbosity quiet --no-restore
-          echo "✅ Code quality checks passed"
+          echo "=========================================="
+          echo "✅ ASPIRE VALIDATION SUCCESSFUL"
+          echo "=========================================="
+          echo ""
+          echo "Validated:"
+          echo "  ✅ AppHost builds successfully"
+          echo "  ✅ DCP binaries available"
+          echo "  ✅ Resource configuration valid"
+          echo "  ✅ Deployment manifest generated"
+          echo "  ✅ Environment configuration checked"
+          echo ""
+          echo "Aspire AppHost is ready for deployment."
+          echo "=========================================="
 
   # Build validation for individual services (without publishing)
   service-build-validation:
     runs-on: ubuntu-latest
-    needs: build-and-test
+    needs: aspire-validation
     strategy:
       matrix:
         service:

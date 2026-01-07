@@ -232,7 +232,7 @@ env:
 
 #### Pipeline Executa MAIS Testes
 ```yaml
-# ci-cd.yml - 8 suítes de testes
+# master-ci-cd.yml - 8 suítes de testes
 1. MeAjudaAi.Shared.Tests ✅
 2. MeAjudaAi.Architecture.Tests ✅
 3. MeAjudaAi.Integration.Tests ✅
@@ -656,7 +656,7 @@ Your estimate of 151 coverable lines was **98% accurate** (only 3 lines off)!
 
 ## 🔧 O Que Foi Configurado
 
-### 1. **Pipeline CI/CD** (.github/workflows/ci-cd.yml) ✅
+### 1. **Pipeline CI/CD** (.github/workflows/master-ci-cd.yml) ✅
 
 **ANTES**:
 ```yaml
@@ -818,7 +818,7 @@ Line coverage: ~45-55% (vs 27.9% anterior)
 
 ### ✅ SIM - Já Configurado!
 
-**Arquivo**: `.github/workflows/ci-cd.yml`
+**Arquivo**: `.github/workflows/master-ci-cd.yml`
 
 **Mudanças Aplicadas**:
 - ✅ Todos os `dotnet test` têm `ExcludeByFile`
@@ -879,7 +879,7 @@ Line coverage: ~45-55% (vs 27.9% anterior)
 
 ## 📁 Arquivos Modificados
 
-1. ✅ `.github/workflows/ci-cd.yml` - Pipeline atualizada
+1. ✅ `.github/workflows/master-ci-cd.yml` - Pipeline atualizada
 2. ✅ `dotnet test --collect:"XPlat Code Coverage"` - Comando local
 3. ✅ `docs/testing/coverage-report-explained.md` - Documentação completa
 4. ✅ `docs/testing/coverage-analysis-dec-2025.md` - Análise detalhada
@@ -1296,6 +1296,6 @@ reportgenerator `
 ## 📚 Referências
 
 - Relatório de Coverage Atual: `coverage-github/report/index.html` (gerado via CI/CD)
-- Pipeline CI/CD: `.github/workflows/ci-cd.yml`
+- Pipeline CI/CD: `.github/workflows/master-ci-cd.yml`
 - Configuração Coverlet: `config/coverlet.json`
 - Coverage local: `dotnet test --collect:"XPlat Code Coverage"`
