@@ -1,0 +1,126 @@
+@using MeAjudaAi.Client.Contracts.Api
+@using MeAjudaAi.Shared.Contracts.Contracts.Modules.Locations.DTOs
+@using MudBlazor
+@inject ILocationsApi LocationsApi
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" @bind-IsValid="@isValid">
+            <MudTextField @bind-Value="city"
+                          Label="Cidade"
+                          Required="true"
+                          RequiredError="Nome da cidade é obrigatório"
+                          MaxLength="100" />
+
+            <MudTextField @bind-Value="state"
+                          Label="Estado (UF)"
+                          Required="true"
+                          RequiredError="Estado é obrigatório"
+                          MaxLength="2"
+                          HelperText="Ex: SP, RJ, MG" />
+
+            <MudTextField @bind-Value="country"
+                          Label="País"
+                          Required="true"
+                          RequiredError="País é obrigatório"
+                          MaxLength="50" />
+
+            <MudNumericField @bind-Value="latitude"
+                             Label="Latitude"
+                             Required="true"
+                             RequiredError="Latitude é obrigatória"
+                             Format="F6"
+                             HelperText="Coordenada geográfica (decimal)" />
+
+            <MudNumericField @bind-Value="longitude"
+                             Label="Longitude"
+                             Required="true"
+                             RequiredError="Longitude é obrigatória"
+                             Format="F6"
+                             HelperText="Coordenada geográfica (decimal)" />
+
+            <MudNumericField @bind-Value="serviceRadiusKm"
+                             Label="Raio de Atendimento (km)"
+                             Required="true"
+                             RequiredError="Raio de atendimento é obrigatório"
+                             Min="1"
+                             HelperText="Raio em quilômetros para busca de providers" />
+
+            <MudSwitch @bind-Value="isActive"
+                       Label="Cidade Ativa"
+                       Color="Color.Success" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!isValid || isSubmitting)">
+            @if (isSubmitting)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+            }
+            else
+            {
+                <text>Criar</text>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+
+    private MudForm? form;
+    private bool isValid;
+    private bool isSubmitting;
+
+    private string city = string.Empty;
+    private string state = string.Empty;
+    private string country = "Brasil";
+    private double latitude;
+    private double longitude;
+    private int serviceRadiusKm = 50;
+    private bool isActive = true;
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        if (!isValid || form is null) return;
+
+        isSubmitting = true;
+
+        try
+        {
+            var request = new CreateAllowedCityRequestDto(
+                city,
+                state.ToUpper(),
+                country,
+                latitude,
+                longitude,
+                serviceRadiusKm,
+                isActive
+            );
+
+            var result = await LocationsApi.CreateAllowedCityAsync(request);
+
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Cidade criada com sucesso", Severity.Success);
+                MudDialog?.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                Snackbar.Add($"Erro ao criar cidade: {result.Error}", Severity.Error);
+            }
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+}

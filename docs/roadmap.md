@@ -47,12 +47,12 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 **Objetivos**:
 1. ✅ **CRUD Completo de Providers** (6-7 Jan 2026) - Create, Update, Delete, Verify
 2. ✅ **Gestão de Documentos** (7 Jan 2026) - Upload, verificação, deletion workflow
-3. 🔄 **Gestão de Service Catalogs** (próxima) - CRUD de categorias e serviços
-4. ⏳ **Gestão de Restrições Geográficas** - UI para AllowedCities com banco de dados
+3. ✅ **Gestão de Service Catalogs** (7 Jan 2026) - CRUD de categorias e serviços
+4. 🔄 **Gestão de Restrições Geográficas** (próxima) - UI para AllowedCities com banco de dados
 5. ⏳ **Gráficos Dashboard** - MudCharts com providers por status e evolução temporal
 6. ⏳ **Testes** - Aumentar cobertura para 30+ testes bUnit
 
-**Progresso Atual**: 2/6 features completas (Provider CRUD + Documents)
+**Progresso Atual**: 3/6 features completas (Provider CRUD + Documents + Service Catalogs)
 
 **Detalhamento - Provider CRUD** ✅:
 - IProvidersApi enhanced: CreateProviderAsync, UpdateProviderAsync, DeleteProviderAsync, UpdateVerificationStatusAsync
@@ -77,6 +77,19 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - Portuguese labels + Snackbar notifications
 - Build sucesso (28 warnings Sonar apenas)
 - Commit: e033488d "feat(admin): implement Documents management feature"
+
+**Detalhamento - Service Catalogs** ✅:
+- IServiceCatalogsApi enhanced: 10 métodos (Create, Update, Delete, Activate, Deactivate para Categories e Services)
+- ServiceCatalogsState/Actions/Reducers/Effects: Fluxor pattern completo
+- Categories.razor: full CRUD page com MudDataGrid, status chips, action buttons
+- Services.razor: full CRUD page com category relationship e MudDataGrid
+- CreateCategoryDialog, EditCategoryDialog: forms com Name, Description, DisplayOrder
+- CreateServiceDialog, EditServiceDialog: forms com CategoryId (dropdown), Name, Description, DisplayOrder
+- Activate/Deactivate toggles para ambos
+- Delete confirmations com MessageBox
+- Portuguese labels + Snackbar notifications
+- Build sucesso (37 warnings Sonar/MudBlazor apenas)
+- Commit: bd0c46b3 "feat(admin): implement Service Catalogs CRUD (Categories + Services)"
 
 ---
 
