@@ -62,7 +62,7 @@
     <!-- TESTED: OpenApi 3.0.2 still breaks with SDK 10.0.101 (CS0200: IOpenApiMediaType.Example is read-only) -->
     <!-- The source generator has not been updated yet to support OpenApi 3.x API changes -->
     <!-- Monitor: https://github.com/dotnet/aspnetcore/issues for updates -->
-    <PackageVersion Include="Microsoft.OpenApi" Version="2.3.0" />
+    <PackageVersion Include="Microsoft.OpenApi" Version="2.4.2" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.0" />
     <!-- ========================================================================== -->
