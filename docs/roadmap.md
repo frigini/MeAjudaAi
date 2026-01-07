@@ -21,8 +21,8 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **14 Dez - 18 Dez**: Sprint 4 - Health Checks + Data Seeding + Code Review (CONCLUÍDO - MERGED!)
 - ✅ **Sprint 5**: Tarefas completadas antecipadamente (NSubstitute→Moq, .slnx, UuidGenerator, Design Patterns, Bruno)
 - ✅ **19 Dez - 30 Dez**: Sprint 5.5 - Refactor & Cleanup (CONCLUÍDO - Technical Debt Reduction)
-- ✅ **30 Dez - 5 Jan 2026**: Sprint 6 - Blazor Admin Portal Setup (CONCLUÍDO - 5 Jan 2026)
-- ⏳ **6 Jan - 24 Jan 2026**: Sprint 7 - Blazor Admin Portal Features
+- ✅ **30 Dez - 5 Jan 2026**: Sprint 6 - Blazor Admin Portal Setup (CONCLUÍDO - 5 Jan 2026, MERGED!)
+- 🔄 **6 Jan - 24 Jan 2026**: Sprint 7 - Blazor Admin Portal Features (EM ANDAMENTO - Iniciado 6 Jan 2026)
 - ⏳ **27 Jan - 14 Fev 2026**: Sprint 8 - Customer App (Web + Mobile)
 - ⏳ **17 Fev - 7 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Refactoring)
 - 🎯 **31 de Março de 2026**: MVP Launch (Admin Portal + Customer App)
@@ -40,9 +40,25 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 **📅 Hoje**: 6 de Janeiro de 2026
 
+### 🔄 Sprint 7 - Blazor Admin Portal Features - EM ANDAMENTO (6 Jan - 24 Jan 2026)
+
+**Branch**: `blazor-admin-portal-features`
+
+**Objetivos**:
+1. **CRUD Completo de Providers** - Create, Update, Delete, Verify
+2. **Gestão de Documentos** - Upload, verificação, rejection workflow
+3. **Gestão de Service Catalogs** - CRUD de categorias e serviços
+4. **Gestão de Restrições Geográficas** - UI para AllowedCities com banco de dados
+5. **Gráficos Dashboard** - MudCharts com providers por status e evolução temporal
+6. **Testes** - Aumentar cobertura para 30+ testes bUnit
+
+**Progresso Atual**: Iniciado em 6 Jan 2026
+
+---
+
 ### ✅ Sprint 6 - Blazor Admin Portal Setup - CONCLUÍDA (30 Dez 2025 - 5 Jan 2026)
 
-**Branch**: `blazor-admin-portal-setup` (4 commits ahead, pronto para merge)
+**Status**: MERGED to master (5 Jan 2026)
 
 **Principais Conquistas**:
 1. **Projeto Blazor WASM Configurado** ✅
