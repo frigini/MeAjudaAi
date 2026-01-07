@@ -25,7 +25,7 @@ Este projeto contém **interfaces Refit** que definem endpoints da API REST do M
 
 ### Como funciona internamente?
 
-```
+```text
 ┌─────────────────────────────────────┐
 │  Blazor Component / MAUI Page       │
 │  @inject IProvidersApi _api         │
@@ -147,6 +147,8 @@ builder.Services.AddRefitClient<ILocationsApi>()
     .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
     .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 ```
+
+**Nota**: `BaseAddressAuthorizationMessageHandler` é uma classe **built-in** do pacote `Microsoft.AspNetCore.Components.WebAssembly.Authentication`. Ela é automaticamente registrada no DI quando você configura autenticação OIDC com `.AddOidcAuthentication()`. Não é necessário implementá-la manualmente.
 
 ### 3. Injetar em páginas Blazor
 ```csharp

@@ -2134,11 +2134,15 @@ src/
 
 ---
 
-### 🆕 Gestão de Restrições Geográficas (Sprint 7+)
+### 🆕 Gestão de Restrições Geográficas
 
-**Contexto**: O middleware `GeographicRestrictionMiddleware` suporta configuração dinâmica via `Microsoft.FeatureManagement`, mas atualmente as cidades/estados permitidos são gerenciados via `appsettings.json` (requer redeploy). Esta seção implementa gestão via banco de dados com UI administrativa.
+**Contexto**: O middleware `GeographicRestrictionMiddleware` suporta configuração dinâmica via `Microsoft.FeatureManagement`. Este recurso foi implementado em duas fases:
 
-**Decisões de Arquitetura (Sprint 1 Dia 1 - 21 Nov 2025)**:
+#### ✅ Fase 1: Middleware com appsettings (CONCLUÍDA - Sprint 1 Dia 1, 21 Nov 2025)
+
+**Implementação Atual**: Restrições geográficas baseadas em `appsettings.json` com middleware HTTP e integração IBGE API.
+
+**Decisões de Arquitetura**:
 
 1. **Localização de Código** ✅ **ATUALIZADO 21 Nov 2025**
    - ✅ **MOVIDO** `GeographicRestrictionMiddleware` para `ApiService/Middlewares` (específico para API HTTP)
@@ -2194,6 +2198,14 @@ src/
       RateLimitOptions.cs                 (existente)
       CorsOptions.cs                      (existente)
 ```
+
+**Resultado Sprint 1**: Middleware funcional com validação via IBGE API, feature toggle integrado, e lista de cidades configurável via appsettings (requer redeploy para alterações).
+
+---
+
+#### 🔜 Fase 2: Database-Backed + Admin Portal UI (PLANEJADO - Sprint 7+)
+
+**Contexto**: Migrar lista de cidades/estados de `appsettings.json` para banco de dados, permitindo gestão dinâmica via Blazor Admin Portal sem necessidade de redeploy.
 
 **Arquitetura Proposta**:
 ```sql
@@ -2352,7 +2364,7 @@ public class GeographicRestrictionMiddleware
 
 ---
 
-### 📅 Sprint 4: Blazor Customer App (Web + Mobile) (3 semanas) ⏳ ATUALIZADO
+### 📅 Sprint 8: Blazor Customer App (Web + Mobile) (3 semanas) ⏳ ATUALIZADO
 
 **Status**: 📋 PLANEJADO PARA Q1 2026  
 **Dependências**: Sprint 3 (Admin Portal) deve estar completo  
