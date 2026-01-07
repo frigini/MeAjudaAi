@@ -17,14 +17,19 @@
         {
             <MudAlert Severity="Severity.Error">
                 @ProvidersState.Value.ErrorMessage
+                <MudButton Size="Size.Small" 
+                           OnClick="@(() => Dispatcher.Dispatch(new ProvidersActions.LoadProvidersAction(1, 100)))"
+                           Class="mt-2">
+                    Tentar novamente
+                </MudButton>
             </MudAlert>
         }
         else if (ProvidersState.Value.Providers.Any())
         {
-            <MudList T="string" Clickable="true">
+            <MudList T="Guid" Clickable="true">
                 @foreach (var provider in ProvidersState.Value.Providers)
                 {
-                    <MudListItem T="string" OnClick="@(() => SelectProvider(provider.Id))">
+                    <MudListItem T="Guid" OnClick="@(() => SelectProvider(provider.Id))">
                         <MudStack>
                             <MudText Typo="Typo.body1"><b>@provider.Name</b></MudText>
                             <MudText Typo="Typo.caption">@provider.Email | @provider.Document</MudText>

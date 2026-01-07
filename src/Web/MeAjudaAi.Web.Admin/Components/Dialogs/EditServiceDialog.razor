@@ -15,7 +15,7 @@
                                Required="true"
                                RequiredError="Selecione uma categoria"
                                Variant="Variant.Outlined">
-                        @foreach (var category in ServiceCatalogsState.Value.Categories.Where(c => c.IsActive))
+                        @foreach (var category in ServiceCatalogsState.Value.Categories.Where(c => c.IsActive || c.Id == CategoryId))
                         {
                             <MudSelectItem Value="@category.Id">@category.Name</MudSelectItem>
                         }

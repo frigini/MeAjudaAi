@@ -73,7 +73,7 @@
             }
             else
             {
-                Snackbar.Add($"Erro ao atualizar status: {result.Error.Message}", Severity.Error);
+                Snackbar.Add($"Erro ao atualizar status: {result.Error?.Message ?? "Erro desconhecido ao atualizar status"}", Severity.Error);
             }
         }
         catch (Exception ex)
