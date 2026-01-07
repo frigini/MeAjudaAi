@@ -219,7 +219,7 @@
     <!-- Test Containers -->
     <PackageVersion Include="Testcontainers.Azurite" Version="4.9.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.9.0" />
-    <PackageVersion Include="Testcontainers.Redis" Version="4.9.0" />
+    <PackageVersion Include="Testcontainers.Redis" Version="4.10.0" />
     <PackageVersion Include="Respawn" Version="7.0.0" />
     <!-- Aspire - 13.0.0 stable + preview (Keycloak/Testing) -->
     <!-- Aspire.Hosting.AppHost removido - incluído implicitamente pelo Aspire.AppHost.Sdk 13.0 -->
