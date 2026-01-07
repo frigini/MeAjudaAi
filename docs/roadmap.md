@@ -45,14 +45,25 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 **Branch**: `blazor-admin-portal-features`
 
 **Objetivos**:
-1. **CRUD Completo de Providers** - Create, Update, Delete, Verify
-2. **Gestão de Documentos** - Upload, verificação, rejection workflow
-3. **Gestão de Service Catalogs** - CRUD de categorias e serviços
-4. **Gestão de Restrições Geográficas** - UI para AllowedCities com banco de dados
-5. **Gráficos Dashboard** - MudCharts com providers por status e evolução temporal
-6. **Testes** - Aumentar cobertura para 30+ testes bUnit
+1. ✅ **CRUD Completo de Providers** (6-7 Jan 2026) - Create, Update, Delete, Verify
+2. 🔄 **Gestão de Documentos** (próxima) - Upload, verificação, rejection workflow
+3. ⏳ **Gestão de Service Catalogs** - CRUD de categorias e serviços
+4. ⏳ **Gestão de Restrições Geográficas** - UI para AllowedCities com banco de dados
+5. ⏳ **Gráficos Dashboard** - MudCharts com providers por status e evolução temporal
+6. ⏳ **Testes** - Aumentar cobertura para 30+ testes bUnit
 
-**Progresso Atual**: Iniciado em 6 Jan 2026
+**Progresso Atual**: 1/6 features completas (Provider CRUD)
+
+**Detalhamento - Provider CRUD** ✅:
+- IProvidersApi enhanced: CreateProviderAsync, UpdateProviderAsync, DeleteProviderAsync, UpdateVerificationStatusAsync
+- CreateProviderDialog: formulário completo com validação (ProviderType, Name, FantasyName, Document, Email, Phone, Description, Address)
+- EditProviderDialog: edição simplificada (nome/telefone - aguardando DTO enriquecido do backend)
+- VerifyProviderDialog: mudança de status de verificação (Verified, Rejected, Pending + optional notes)
+- Providers.razor: action buttons (Edit, Delete, Verify) com MessageBox confirmation
+- Result<T> error handling pattern em todas operações
+- Portuguese labels + Snackbar notifications
+- Build sucesso (19 warnings Sonar apenas)
+- Commit: cd2be7f6 "feat(admin): complete Provider CRUD operations"
 
 ---
 
