@@ -134,7 +134,9 @@ public class HangfireAuthorizationFilterTests
         
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
-        var httpContext = new DefaultHttpContext { User = principal };`n        var filter = new HangfireAuthorizationFilter();`n        var context = CreateDashboardContext(httpContext);
+        var httpContext = new DefaultHttpContext { User = principal };
+        var filter = new HangfireAuthorizationFilter();
+        var context = CreateDashboardContext(httpContext);
 
         // Act
         var result = filter.Authorize(context);
