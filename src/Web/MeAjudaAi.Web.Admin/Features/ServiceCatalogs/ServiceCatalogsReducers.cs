@@ -78,7 +78,7 @@ public static class ServiceCatalogsReducers
     {
         var updated = state.Services.Select(s =>
             s.Id == action.ServiceId
-                ? s with { Name = action.Name, Description = action.Description }
+                ? s with { Name = action.Name }
                 : s
         ).ToList();
         return state with { Services = updated };

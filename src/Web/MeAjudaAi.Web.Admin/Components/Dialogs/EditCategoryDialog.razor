@@ -93,12 +93,11 @@
         {
             isSubmitting = true;
 
-            var request = new
-            {
-                Name = name,
-                Description = description,
-                DisplayOrder = displayOrder
-            };
+            var request = new UpdateServiceCatalogCategoryRequestDto(
+                Name: name,
+                Description: description,
+                DisplayOrder: displayOrder
+            );
 
             var result = await ServiceCatalogsApi.UpdateCategoryAsync(CategoryId, request);
 
