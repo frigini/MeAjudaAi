@@ -248,7 +248,7 @@ private async Task CreateCityAsync()
 }
 ```
 
-## �📝 Convenções
+## 📝 Convenções
 
 ### 1. Documentação XML Obrigatória
 ```csharp

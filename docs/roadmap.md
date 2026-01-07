@@ -381,7 +381,7 @@ Todas as tarefas planejadas já foram implementadas:
 
 **⏳ Fase 2: EM ANDAMENTO** (Janeiro–Março 2026)  
 Frontend Blazor WASM + MAUI Hybrid:
-- Sprint 6: Blazor Admin Portal Setup (30 Dez - 5 Jan 2026) - ✅ CONCLUÍDO (5 Jan 2026)
+- Sprint 6: Blazor Admin Portal Setup - ✅ CONCLUÍDO (5 Jan 2026) - [Ver conquistas detalhadas](#-sprint-6---blazor-admin-portal-setup---concluída-30-dez-2025---5-jan-2026)
 - Sprint 7: Blazor Admin Portal Features (6-24 Jan 2026) - 🔄 PRÓXIMA
 - Sprint 8: Customer App (Fev-Mar 2026) - ⏳ Aguardando Sprint 7
 - Sprint 9: Buffer/Polishing (Mar 2026) - ⏳ Aguardando Sprint 7-8
