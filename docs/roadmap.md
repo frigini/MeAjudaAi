@@ -48,11 +48,11 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 1. ✅ **CRUD Completo de Providers** (6-7 Jan 2026) - Create, Update, Delete, Verify
 2. ✅ **Gestão de Documentos** (7 Jan 2026) - Upload, verificação, deletion workflow
 3. ✅ **Gestão de Service Catalogs** (7 Jan 2026) - CRUD de categorias e serviços
-4. 🔄 **Gestão de Restrições Geográficas** (próxima) - UI para AllowedCities com banco de dados
-5. ⏳ **Gráficos Dashboard** - MudCharts com providers por status e evolução temporal
+4. ✅ **Gestão de Restrições Geográficas** (7 Jan 2026) - UI para AllowedCities com banco de dados
+5. 🔄 **Gráficos Dashboard** (próxima) - MudCharts com providers por status e evolução temporal
 6. ⏳ **Testes** - Aumentar cobertura para 30+ testes bUnit
 
-**Progresso Atual**: 3/6 features completas (Provider CRUD + Documents + Service Catalogs)
+**Progresso Atual**: 4/6 features completas (Provider CRUD + Documents + Service Catalogs + Geographic Restrictions)
 
 **Detalhamento - Provider CRUD** ✅:
 - IProvidersApi enhanced: CreateProviderAsync, UpdateProviderAsync, DeleteProviderAsync, UpdateVerificationStatusAsync
@@ -90,6 +90,19 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - Portuguese labels + Snackbar notifications
 - Build sucesso (37 warnings Sonar/MudBlazor apenas)
 - Commit: bd0c46b3 "feat(admin): implement Service Catalogs CRUD (Categories + Services)"
+
+**Detalhamento - Geographic Restrictions** ✅:
+- ILocationsApi já possuía CRUD completo (Create, Update, Delete, GetAll, GetById, GetByState)
+- LocationsState/Actions/Reducers/Effects: Fluxor pattern completo
+- AllowedCities.razor: full CRUD page com MudDataGrid
+- CreateAllowedCityDialog: formulário com City, State, Country, Latitude, Longitude, ServiceRadiusKm, IsActive
+- EditAllowedCityDialog: mesmo formulário para edição
+- MudDataGrid com coordenadas em formato F6 (6 decimais), status chips (Ativa/Inativa)
+- Toggle activation via MudSwitch (updates backend via UpdateAllowedCityAsync)
+- Delete confirmation com MessageBox
+- Portuguese labels + Snackbar notifications
+- Build sucesso (42 warnings Sonar/MudBlazor apenas)
+- Commit: 3317ace3 "feat(admin): implement Geographic Restrictions - AllowedCities UI"
 
 ---
 

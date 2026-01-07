@@ -1,6 +1,9 @@
 @page "/"
 @inherits FluxorComponent
+@using Fluxor
+@using MeAjudaAi.Web.Admin.Features.Providers
 @inject IState<DashboardState> DashboardState
+@inject IState<ProvidersState> ProvidersState
 @inject IDispatcher Dispatcher
 
 <PageTitle>Dashboard - MeAjudaAi Admin</PageTitle>
@@ -87,6 +90,62 @@
         </MudCard>
     </MudItem>
 
+    <!-- Provider Status Chart -->
+    <MudItem xs="12" md="6">
+        <MudCard Elevation="2">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Fornecedores por Status</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (ProvidersState.Value.Providers.Count > 0)
+                {
+                    <MudChart ChartType="ChartType.Donut"
+                              InputData="@providerStatusData"
+                              InputLabels="@providerStatusLabels"
+                              Width="300px"
+                              Height="300px"
+                              LegendPosition="Position.Bottom" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-center">
+                        Nenhum fornecedor cadastrado
+                    </MudText>
+                }
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+
+    <!-- Provider Type Chart -->
+    <MudItem xs="12" md="6">
+        <MudCard Elevation="2">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Fornecedores por Tipo</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (ProvidersState.Value.Providers.Count > 0)
+                {
+                    <MudChart ChartType="ChartType.Pie"
+                              InputData="@providerTypeData"
+                              InputLabels="@providerTypeLabels"
+                              Width="300px"
+                              Height="300px"
+                              LegendPosition="Position.Bottom" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-center">
+                        Nenhum fornecedor cadastrado
+                    </MudText>
+                }
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+
     <!-- Recent Activity (placeholder) -->
     <MudItem xs="12">
         <MudCard Elevation="2">
@@ -106,10 +165,69 @@
 </MudGrid>
 
 @code {
+    private double[] providerStatusData = Array.Empty<double>();
+    private string[] providerStatusLabels = Array.Empty<string>();
+    private double[] providerTypeData = Array.Empty<double>();
+    private string[] providerTypeLabels = Array.Empty<string>();
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
+        
+        // Load providers for chart data
+        if (ProvidersState.Value.Providers.Count == 0)
+        {
+            Dispatcher.Dispatch(new ProvidersActions.LoadProvidersAction());
+        }
+        
         // Carregar estatísticas ao inicializar
         Dispatcher.Dispatch(new LoadDashboardStatsAction());
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        
+        if (!firstRender)
+        {
+            UpdateChartData();
+            StateHasChanged();
+        }
+    }
+
+    private void UpdateChartData()
+    {
+        var providers = ProvidersState.Value.Providers;
+        
+        if (providers.Count == 0)
+            return;
+
+        // Provider Status Chart Data
+        var statusGroups = providers
+            .GroupBy(p => p.VerificationStatus)
+            .OrderBy(g => g.Key)
+            .ToList();
+
+        providerStatusLabels = statusGroups.Select(g => g.Key).ToArray();
+        providerStatusData = statusGroups.Select(g => (double)g.Count()).ToArray();
+
+        // Provider Type Chart Data
+        var typeGroups = providers
+            .GroupBy(p => p.ProviderType)
+            .OrderBy(g => g.Key)
+            .ToList();
+
+        providerTypeLabels = typeGroups.Select(g => GetProviderTypeLabel(g.Key)).ToArray();
+        providerTypeData = typeGroups.Select(g => (double)g.Count()).ToArray();
+    }
+
+    private string GetProviderTypeLabel(string type)
+    {
+        return type switch
+        {
+            "Individual" => "Pessoa Física",
+            "Company" => "Empresa",
+            _ => type
+        };
     }
 }
