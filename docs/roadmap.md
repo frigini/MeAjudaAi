@@ -50,9 +50,9 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 3. ✅ **Gestão de Service Catalogs** (7 Jan 2026) - CRUD de categorias e serviços
 4. ✅ **Gestão de Restrições Geográficas** (7 Jan 2026) - UI para AllowedCities com banco de dados
 5. ✅ **Gráficos Dashboard** (7 Jan 2026) - MudCharts com providers por status e evolução temporal
-6. 🔄 **Testes** (próxima) - Aumentar cobertura para 30+ testes bUnit
+6. ✅ **Testes** (7 Jan 2026) - Aumentar cobertura para 30 testes bUnit
 
-**Progresso Atual**: 5/6 features completas (Provider CRUD + Documents + Service Catalogs + Geographic Restrictions + Dashboard Charts)
+**Progresso Atual**: 6/6 features completas ✅ **SPRINT 7 CONCLUÍDO!**
 
 **Detalhamento - Provider CRUD** ✅:
 - IProvidersApi enhanced: CreateProviderAsync, UpdateProviderAsync, DeleteProviderAsync, UpdateVerificationStatusAsync
@@ -116,6 +116,19 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - MudChart components com Width="300px", Height="300px", LegendPosition.Bottom
 - Build sucesso (43 warnings Sonar/MudBlazor apenas)
 - Commit: 0e0d0d81 "feat(admin): implement Dashboard Charts with MudBlazor"
+
+**Detalhamento - Testes bUnit** ✅:
+- 30 testes bUnit criados (objetivo: 30+) - era 10, adicionados 20 novos
+- CreateProviderDialogTests: 4 testes (form fields, submit button, provider type, MudForm)
+- DocumentsPageTests: 5 testes (provider selector, upload button, loading, document list, error)
+- CategoriesPageTests: 4 testes (load action, create button, list, loading)
+- ServicesPageTests: 3 testes (load actions, create button, list)
+- AllowedCitiesPageTests: 4 testes (load action, create button, list, loading)
+- Todos seguem pattern: Mock IState/IDispatcher/IApi, AddMudServices, JSRuntimeMode.Loose
+- Verificam rendering, state management, user interactions
+- Namespaces corrigidos: Modules.*.DTOs
+- Build sucesso (sem erros de compilação)
+- Commit: 2a082840 "test(admin): increase bUnit test coverage to 30 tests"
 
 ---
 
