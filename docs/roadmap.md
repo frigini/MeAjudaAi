@@ -40,7 +40,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 **📅 Hoje**: 6 de Janeiro de 2026
 
-**✅ Sprint 6 - Blazor Admin Portal Setup - CONCLUÍDA** (30 Dez 2025 - 5 Jan 2026)
+### ✅ Sprint 6 - Blazor Admin Portal Setup - CONCLUÍDA (30 Dez 2025 - 5 Jan 2026)
 
 **Branch**: `blazor-admin-portal-setup` (4 commits ahead, pronto para merge)
 
@@ -379,14 +379,6 @@ Todas as tarefas planejadas já foram implementadas:
 - Migrar métodos de propósito geral (PermissionExtensions, EnumExtensions)
 - Manter padrão atual para DI extensions ([FolderName]Extensions.cs)
 
-**⏳ Fase 2: EM ANDAMENTO** (Janeiro–Março 2026)  
-Frontend Blazor WASM + MAUI Hybrid:
-- Sprint 6: Blazor Admin Portal Setup - ✅ CONCLUÍDO (5 Jan 2026) - [Ver conquistas detalhadas](#-sprint-6---blazor-admin-portal-setup---concluída-30-dez-2025---5-jan-2026)
-- Sprint 7: Blazor Admin Portal Features (6-24 Jan 2026) - 🔄 PRÓXIMA
-- Sprint 8: Customer App (Fev-Mar 2026) - ⏳ Aguardando Sprint 7
-- Sprint 9: Buffer/Polishing (Mar 2026) - ⏳ Aguardando Sprint 7-8
-- MVP Final: 31 de Março de 2026
-
 **✅ Sprint 5.5 Completed** (19-30 Dez 2025):
 - Refatoração MeAjudaAi.Shared.Messaging (Factories, Services, Options)
 - Extensions padronizadas (14 arquivos consolidados)
@@ -394,6 +386,14 @@ Frontend Blazor WASM + MAUI Hybrid:
 - TODOs resolvidos (12/12 concluídos)
 - Dependabot PRs fechados para regeneração
 - 1245/1245 testes passando
+
+**⏳ Fase 2: EM ANDAMENTO** (Janeiro–Março 2026)  
+Frontend Blazor WASM + MAUI Hybrid:
+- Sprint 6: Blazor Admin Portal Setup - ✅ CONCLUÍDO (5 Jan 2026) - [Ver conquistas detalhadas](#-sprint-6---blazor-admin-portal-setup---concluída-30-dez-2025---5-jan-2026)
+- Sprint 7: Blazor Admin Portal Features (6-24 Jan 2026) - 🔄 PRÓXIMA
+- Sprint 8: Customer App (Fev-Mar 2026) - ⏳ Aguardando Sprint 7
+- Sprint 9: Buffer/Polishing (Mar 2026) - ⏳ Aguardando Sprint 7-8
+- MVP Final: 31 de Março de 2026
 
 **⚠️ Risk Assessment**: Estimativas assumem velocidade consistente. Primeiro projeto Blazor WASM pode revelar complexidades não previstas (integração Keycloak, curva de aprendizado MudBlazor). Sprint 9 reservado como buffer de contingência.
 
@@ -2135,6 +2135,8 @@ src/
 ---
 
 ### 🆕 Gestão de Restrições Geográficas
+
+**Resumo**: Restrições geográficas podem ser configuradas via `appsettings.json` (Fase 1, MVP atual) ou gerenciadas dinamicamente via Blazor Admin Portal com banco de dados (Fase 2, planejado Sprint 7+). O middleware `GeographicRestrictionMiddleware` valida cidades/estados permitidos usando IBGE API.
 
 **Contexto**: O middleware `GeographicRestrictionMiddleware` suporta configuração dinâmica via `Microsoft.FeatureManagement`. Este recurso foi implementado em duas fases:
 
