@@ -1,0 +1,65 @@
+@using Fluxor
+@using MeAjudaAi.Web.Admin.Features.Providers
+@inject IState<ProvidersState> ProvidersState
+@inject IDispatcher Dispatcher
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            Selecione um provider para visualizar seus documentos:
+        </MudText>
+
+        @if (ProvidersState.Value.IsLoading)
+        {
+            <MudProgressLinear Indeterminate="true" />
+        }
+        else if (ProvidersState.Value.Providers.Any())
+        {
+            <MudList T="string" Clickable="true">
+                @foreach (var provider in ProvidersState.Value.Providers)
+                {
+                    <MudListItem T="string" OnClick="@(() => SelectProvider(provider.Id))">
+                        <MudStack>
+                            <MudText Typo="Typo.body1"><b>@provider.Name</b></MudText>
+                            <MudText Typo="Typo.caption">@provider.Email | @provider.Document</MudText>
+                        </MudStack>
+                    </MudListItem>
+                    <MudDivider />
+                }
+            </MudList>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Info">
+                Nenhum provider encontrado. Carregue a lista de providers primeiro.
+            </MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // Carrega providers se ainda não foi carregado
+        if (!ProvidersState.Value.Providers.Any() && !ProvidersState.Value.IsLoading)
+        {
+            Dispatcher.Dispatch(new ProvidersActions.LoadProvidersAction(1, 100));
+        }
+    }
+
+    private void SelectProvider(Guid providerId)
+    {
+        MudDialog?.Close(DialogResult.Ok(providerId));
+    }
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+}
