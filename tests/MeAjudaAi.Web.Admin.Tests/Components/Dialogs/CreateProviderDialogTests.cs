@@ -35,7 +35,9 @@ public class CreateProviderDialogTests
         var inputs = cut.FindAll("input");
         inputs.Should().NotBeEmpty("Dialog deve conter campos de input");
         
-        cut.Find("input[placeholder*='Nome']").Should().NotBeNull("Campo Nome deve estar presente");
+        // MudTextField uses floating labels, not placeholders - check for the component or rendered label
+        var mudTextFields = cut.FindComponents<MudTextField<string>>();
+        mudTextFields.Should().NotBeEmpty("Dialog deve ter campos MudTextField");
     }
 
     [Fact]

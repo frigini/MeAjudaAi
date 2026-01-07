@@ -18,7 +18,7 @@
 
     @if (ServiceCatalogsState.Value.HasError)
     {
-        <MudAlert Severity="Severity.Error" Class="mb-4" CloseIconClicked="@(() => Dispatcher.Dispatch(new ServiceCatalogsActions.ClearErrorAction()))">
+        <MudAlert Severity="Severity.Error" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => Dispatcher.Dispatch(new ServiceCatalogsActions.ClearErrorAction()))">
             @ServiceCatalogsState.Value.ErrorMessage
         </MudAlert>
     }

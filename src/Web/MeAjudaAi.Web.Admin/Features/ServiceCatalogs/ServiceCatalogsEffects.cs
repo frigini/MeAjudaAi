@@ -21,15 +21,23 @@ public sealed class ServiceCatalogsEffects
     [EffectMethod]
     public async Task HandleLoadCategoriesAction(ServiceCatalogsActions.LoadCategoriesAction action, IDispatcher dispatcher)
     {
-        var result = await _serviceCatalogsApi.GetAllServiceCategoriesAsync(action.ActiveOnly);
+        try
+        {
+            var result = await _serviceCatalogsApi.GetAllServiceCategoriesAsync(action.ActiveOnly);
 
-        if (result.IsSuccess && result.Value != null)
-        {
-            dispatcher.Dispatch(new ServiceCatalogsActions.LoadCategoriesSuccessAction(result.Value));
+            if (result.IsSuccess && result.Value != null)
+            {
+                dispatcher.Dispatch(new ServiceCatalogsActions.LoadCategoriesSuccessAction(result.Value));
+            }
+            else
+            {
+                var errorMessage = result.Error?.Message ?? "Erro ao carregar categorias";
+                dispatcher.Dispatch(new ServiceCatalogsActions.LoadCategoriesFailureAction(errorMessage));
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var errorMessage = result.Error?.Message ?? "Erro ao carregar categorias";
+            var errorMessage = $"Erro ao carregar categorias: {ex.Message}";
             dispatcher.Dispatch(new ServiceCatalogsActions.LoadCategoriesFailureAction(errorMessage));
         }
     }
@@ -40,15 +48,23 @@ public sealed class ServiceCatalogsEffects
     [EffectMethod]
     public async Task HandleLoadServicesAction(ServiceCatalogsActions.LoadServicesAction action, IDispatcher dispatcher)
     {
-        var result = await _serviceCatalogsApi.GetAllServicesAsync(action.ActiveOnly);
+        try
+        {
+            var result = await _serviceCatalogsApi.GetAllServicesAsync(action.ActiveOnly);
 
-        if (result.IsSuccess && result.Value != null)
-        {
-            dispatcher.Dispatch(new ServiceCatalogsActions.LoadServicesSuccessAction(result.Value));
+            if (result.IsSuccess && result.Value != null)
+            {
+                dispatcher.Dispatch(new ServiceCatalogsActions.LoadServicesSuccessAction(result.Value));
+            }
+            else
+            {
+                var errorMessage = result.Error?.Message ?? "Erro ao carregar serviços";
+                dispatcher.Dispatch(new ServiceCatalogsActions.LoadServicesFailureAction(errorMessage));
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var errorMessage = result.Error?.Message ?? "Erro ao carregar serviços";
+            var errorMessage = $"Erro ao carregar serviços: {ex.Message}";
             dispatcher.Dispatch(new ServiceCatalogsActions.LoadServicesFailureAction(errorMessage));
         }
     }

@@ -60,7 +60,7 @@ public interface IServiceCatalogsApi
     /// <param name="cancellationToken">Token de cancelamento</param>
     [Post("/api/v1/service-catalogs/categories")]
     Task<Result<ModuleServiceCategoryDto>> CreateCategoryAsync(
-        [Body] object request,
+        [Body] CreateServiceCatalogCategoryRequestDto request,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -72,7 +72,7 @@ public interface IServiceCatalogsApi
     [Put("/api/v1/service-catalogs/categories/{categoryId}")]
     Task<Result<Unit>> UpdateCategoryAsync(
         Guid categoryId,
-        [Body] object request,
+        [Body] UpdateServiceCatalogCategoryRequestDto request,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -114,7 +114,7 @@ public interface IServiceCatalogsApi
     /// <param name="cancellationToken">Token de cancelamento</param>
     [Post("/api/v1/service-catalogs/services")]
     Task<Result<ModuleServiceDto>> CreateServiceAsync(
-        [Body] object request,
+        [Body] CreateServiceRequestDto request,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -126,7 +126,7 @@ public interface IServiceCatalogsApi
     [Put("/api/v1/service-catalogs/services/{serviceId}")]
     Task<Result<Unit>> UpdateServiceAsync(
         Guid serviceId,
-        [Body] object request,
+        [Body] UpdateServiceRequestDto request,
         CancellationToken cancellationToken = default);
 
     /// <summary>

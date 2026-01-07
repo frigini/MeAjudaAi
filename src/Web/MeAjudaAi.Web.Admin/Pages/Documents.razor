@@ -19,7 +19,7 @@
 
     @if (DocumentsState.Value.HasError)
     {
-        <MudAlert Severity="Severity.Error" Class="mb-4" CloseIconClicked="@(() => Dispatcher.Dispatch(new DocumentsActions.ClearErrorAction()))">
+        <MudAlert Severity="Severity.Error" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => Dispatcher.Dispatch(new DocumentsActions.ClearErrorAction()))">
             @DocumentsState.Value.ErrorMessage
         </MudAlert>
     }

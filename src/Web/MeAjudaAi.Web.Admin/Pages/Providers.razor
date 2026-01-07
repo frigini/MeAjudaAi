@@ -119,9 +119,9 @@
 
     private async Task OpenVerifyDialog(Guid providerId)
     {
-        var parameters = new DialogParameters
+        var parameters = new DialogParameters<VerifyProviderDialog>
         {
-            { "ProviderId", providerId }
+            { x => x.ProviderId, providerId }
         };
         
         var dialog = await DialogService.ShowAsync<VerifyProviderDialog>("Verificar Provider", parameters);
@@ -160,7 +160,7 @@
             }
             else
             {
-                Snackbar.Add($"Erro ao excluir provider: {result.Error.Message}", Severity.Error);
+                Snackbar.Add($"Erro ao excluir provider: {result.Error?.Message ?? "Erro desconhecido"}", Severity.Error);
             }
         }
         catch (Exception ex)

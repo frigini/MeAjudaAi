@@ -1,4 +1,5 @@
 @using MudBlazor
+@using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs
 @inject IProvidersApi ProvidersApi
 @inject ISnackbar Snackbar
 
@@ -58,11 +59,10 @@
         {
             isSubmitting = true;
             
-            var request = new
-            {
-                VerificationStatus = selectedStatus,
-                Notes = notes
-            };
+            var request = new UpdateVerificationStatusRequestDto(
+                VerificationStatus: selectedStatus,
+                Reason: notes
+            );
 
             var result = await ProvidersApi.UpdateVerificationStatusAsync(ProviderId, request);
             

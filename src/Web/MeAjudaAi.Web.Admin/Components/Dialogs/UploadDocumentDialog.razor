@@ -106,16 +106,25 @@
     {
         if (selectedFile == null) return;
 
+        if (ProviderId == Guid.Empty)
+        {
+            Snackbar.Add("Provider não selecionado.", Severity.Warning);
+            return;
+        }
+
         await form.Validate();
         if (!success) return;
+
+        Stream? stream = null;
+        StreamPart? streamPart = null;
 
         try
         {
             isUploading = true;
 
             // Cria StreamPart para Refit
-            var stream = selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
-            var streamPart = new StreamPart(stream, selectedFile.Name, selectedFile.ContentType);
+            stream = selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
+            streamPart = new StreamPart(stream, selectedFile.Name, selectedFile.ContentType);
 
             var result = await DocumentsApi.UploadDocumentAsync(ProviderId, streamPart, documentType);
 
@@ -136,6 +145,8 @@
         }
         finally
         {
+            streamPart?.Dispose();
+            stream?.Dispose();
             isUploading = false;
         }
     }

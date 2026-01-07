@@ -17,7 +17,7 @@
 
     @if (LocationsState.Value.HasError)
     {
-        <MudAlert Severity="Severity.Error" Class="mb-4" CloseIconClicked="@(() => Dispatcher.Dispatch(new ClearErrorAction()))">
+        <MudAlert Severity="Severity.Error" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => Dispatcher.Dispatch(new ClearErrorAction()))">
             @LocationsState.Value.ErrorMessage
         </MudAlert>
     }

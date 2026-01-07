@@ -14,15 +14,27 @@ public sealed class LocationsEffects(ILocationsApi locationsApi, IDispatcher dis
     [EffectMethod]
     public async Task HandleLoadAllowedCitiesAction(LoadAllowedCitiesAction action, CancellationToken cancellationToken)
     {
-        var result = await locationsApi.GetAllAllowedCitiesAsync(action.OnlyActive, cancellationToken);
+        try
+        {
+            var result = await locationsApi.GetAllAllowedCitiesAsync(action.OnlyActive, cancellationToken);
 
-        if (result.IsSuccess && result.Value is not null)
-        {
-            dispatcher.Dispatch(new LoadAllowedCitiesSuccessAction(result.Value));
+            if (result.IsSuccess && result.Value is not null)
+            {
+                dispatcher.Dispatch(new LoadAllowedCitiesSuccessAction(result.Value));
+            }
+            else
+            {
+                var errorMessage = result.Error?.Message ?? "Erro desconhecido ao carregar cidades permitidas";
+                dispatcher.Dispatch(new LoadAllowedCitiesFailureAction(errorMessage));
+            }
         }
-        else
+        catch (OperationCanceledException)
         {
-            var errorMessage = result.Error?.Message ?? "Erro desconhecido ao carregar cidades permitidas";
+            // Operation was cancelled, no need to dispatch failure
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = $"Erro ao carregar cidades permitidas: {ex.Message}";
             dispatcher.Dispatch(new LoadAllowedCitiesFailureAction(errorMessage));
         }
     }

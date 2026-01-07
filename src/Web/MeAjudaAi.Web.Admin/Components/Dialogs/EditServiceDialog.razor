@@ -1,5 +1,6 @@
 @using Fluxor
 @using MeAjudaAi.Web.Admin.Features.ServiceCatalogs
+@using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs.DTOs
 @inject IState<ServiceCatalogsState> ServiceCatalogsState
 @inject IServiceCatalogsApi ServiceCatalogsApi
 @inject ISnackbar Snackbar
@@ -75,6 +76,12 @@
     [Parameter]
     public Guid CategoryId { get; set; }
 
+    [Parameter]
+    public string? Description { get; set; }
+
+    [Parameter]
+    public int DisplayOrder { get; set; }
+
     [CascadingParameter]
     private IMudDialogInstance? MudDialog { get; set; }
 
@@ -90,6 +97,8 @@
     {
         name = ServiceName;
         categoryId = CategoryId;
+        description = Description;
+        displayOrder = DisplayOrder;
     }
 
     private void Cancel()
@@ -106,12 +115,11 @@
         {
             isSubmitting = true;
 
-            var request = new
-            {
-                Name = name,
-                Description = description,
-                DisplayOrder = displayOrder
-            };
+            var request = new UpdateServiceRequestDto(
+                Name: name,
+                Description: description,
+                DisplayOrder: displayOrder
+            );
 
             var result = await ServiceCatalogsApi.UpdateServiceAsync(ServiceId, request);
 

@@ -1,4 +1,5 @@
 @using MudBlazor
+@using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs
 @inject IProvidersApi ProvidersApi
 @inject ISnackbar Snackbar
 
@@ -8,6 +9,12 @@
         {
             <MudProgressLinear Indeterminate="true" />
             <MudText Typo="Typo.body2" Class="mt-2">Carregando dados do provider...</MudText>
+        }
+        else if (loadError != null)
+        {
+            <MudAlert Severity="Severity.Error">
+                @loadError
+            </MudAlert>
         }
         else if (model != null)
         {
@@ -30,7 +37,7 @@
                                       Variant="Variant.Outlined"
                                       ReadOnly="true"
                                       Disabled="true"
-                                      Helpertext="Email não pode ser alterado" />
+                                      HelperText="Email não pode ser alterado" />
                     </MudItem>
                     
                     <MudItem xs="12">
@@ -77,6 +84,7 @@
     private bool isLoading = true;
     private bool isSubmitting;
     private EditProviderModel? model;
+    private string? loadError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -96,14 +104,12 @@
             }
             else
             {
-                Snackbar.Add("Provider não encontrado", Severity.Error);
-                Cancel();
+                loadError = "Provider não encontrado";
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Erro ao carregar provider: {ex.Message}", Severity.Error);
-            Cancel();
+            loadError = $"Erro ao carregar provider: {ex.Message}";
         }
         finally
         {
@@ -131,12 +137,11 @@
         {
             isSubmitting = true;
             
-            // Simplified update request - only name and phone
-            var request = new
-            {
-                Name = model.Name,
-                Phone = string.IsNullOrWhiteSpace(model.Phone) ? null : model.Phone
-            };
+            var request = new UpdateProviderRequestDto(
+                Name: model.Name,
+                Phone: string.IsNullOrWhiteSpace(model.Phone) ? null : model.Phone,
+                BusinessProfile: null
+            );
 
             var result = await ProvidersApi.UpdateProviderAsync(ProviderId, request);
             
@@ -167,5 +172,4 @@
         public string Email { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
     }
-}
 }

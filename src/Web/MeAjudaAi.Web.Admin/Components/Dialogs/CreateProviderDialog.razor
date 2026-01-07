@@ -1,7 +1,7 @@
 @using MudBlazor
+@using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs
 @inject IProvidersApi ProvidersApi
 @inject ISnackbar Snackbar
-@inject IDialogService DialogService
 
 <MudDialog>
     <DialogContent>
@@ -115,34 +115,31 @@
         {
             isSubmitting = true;
             
-            var request = new
-            {
-                Name = model.Name,
-                Type = model.ProviderType == "Individual" ? 0 : 1, // EProviderType enum
-                BusinessProfile = new
-                {
-                    LegalName = model.Name,
-                    FantasyName = model.FantasyName,
-                    Description = model.Description,
-                    ContactInfo = new
-                    {
-                        Email = model.Email,
-                        PhoneNumber = model.Phone,
-                        Website = (string?)null
-                    },
-                    PrimaryAddress = new
-                    {
-                        Street = model.Address.Street,
-                        Number = model.Address.Number,
-                        Complement = model.Address.Complement,
-                        Neighborhood = model.Address.Neighborhood,
-                        City = model.Address.City,
-                        State = model.Address.State,
-                        ZipCode = model.Address.PostalCode,
-                        Country = "Brasil"
-                    }
-                }
-            };
+            var request = new CreateProviderRequestDto(
+                Name: model.Name,
+                Type: model.ProviderType == "Individual" ? 0 : 1,
+                BusinessProfile: new BusinessProfileDto(
+                    LegalName: model.Name,
+                    FantasyName: model.FantasyName,
+                    Description: model.Description,
+                    ContactInfo: new ContactInfoDto(
+                        Email: model.Email,
+                        PhoneNumber: model.Phone,
+                        Website: null
+                    ),
+                    PrimaryAddress: new PrimaryAddressDto(
+                        Street: model.Address.Street,
+                        Number: model.Address.Number,
+                        Complement: model.Address.Complement,
+                        Neighborhood: model.Address.Neighborhood,
+                        City: model.Address.City,
+                        State: model.Address.State,
+                        ZipCode: model.Address.PostalCode,
+                        Country: "Brasil"
+                    )
+                ),
+                Document: model.Document
+            );
 
             var result = await ProvidersApi.CreateProviderAsync(request);
             
@@ -153,7 +150,7 @@
             }
             else
             {
-                Snackbar.Add($"Erro ao criar provider: {result.Error.Message}", Severity.Error);
+                Snackbar.Add($"Erro ao criar provider: {result.Error?.Message ?? "Erro desconhecido"}", Severity.Error);
             }
         }
         catch (Exception ex)

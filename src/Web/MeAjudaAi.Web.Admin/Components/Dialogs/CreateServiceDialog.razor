@@ -1,5 +1,6 @@
 @using Fluxor
 @using MeAjudaAi.Web.Admin.Features.ServiceCatalogs
+@using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs.DTOs
 @inject IState<ServiceCatalogsState> ServiceCatalogsState
 @inject IServiceCatalogsApi ServiceCatalogsApi
 @inject ISnackbar Snackbar
@@ -87,17 +88,23 @@
         await form.Validate();
         if (!success) return;
 
+        // Validate category selection
+        if (categoryId == Guid.Empty)
+        {
+            Snackbar.Add("Selecione uma categoria", Severity.Warning);
+            return;
+        }
+
         try
         {
             isSubmitting = true;
 
-            var request = new
-            {
-                CategoryId = categoryId,
-                Name = name,
-                Description = description,
-                DisplayOrder = displayOrder
-            };
+            var request = new CreateServiceRequestDto(
+                CategoryId: categoryId,
+                Name: name,
+                Description: description,
+                DisplayOrder: displayOrder
+            );
 
             var result = await ServiceCatalogsApi.CreateServiceAsync(request);
 

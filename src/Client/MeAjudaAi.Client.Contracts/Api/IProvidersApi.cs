@@ -132,7 +132,7 @@ public interface IProvidersApi
     /// <response code="403">Sem permissão para criar providers</response>
     [Post("/api/v1/providers")]
     Task<Result<ModuleProviderDto>> CreateProviderAsync(
-        [Body] object request,
+        [Body] CreateProviderRequestDto request,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -150,7 +150,7 @@ public interface IProvidersApi
     [Put("/api/v1/providers/{id}")]
     Task<Result<Unit>> UpdateProviderAsync(
         Guid id,
-        [Body] object request,
+        [Body] UpdateProviderRequestDto request,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -183,7 +183,7 @@ public interface IProvidersApi
     [Put("/api/v1/providers/{id}/verification-status")]
     Task<Result<Unit>> UpdateVerificationStatusAsync(
         Guid id,
-        [Body] object request,
+        [Body] UpdateVerificationStatusRequestDto request,
         CancellationToken cancellationToken = default);
 }
 
