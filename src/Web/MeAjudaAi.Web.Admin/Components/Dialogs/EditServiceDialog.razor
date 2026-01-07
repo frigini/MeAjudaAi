@@ -117,6 +117,7 @@
             StateHasChanged(); // Force UI update to show loading indicator
 
             var request = new UpdateServiceRequestDto(
+                CategoryId: categoryId,
                 Name: name,
                 Description: description,
                 DisplayOrder: displayOrder
@@ -131,8 +132,14 @@
             }
             else
             {
-                Snackbar.Add($"Erro: {result.Error?.Message}", Severity.Error);
+                Snackbar.Add($"Erro: {result.Error?.Message ?? "Ocorreu um erro ao atualizar o serviço"}", Severity.Error);
             }
+        }
+        catch (Exception ex)
+        {
+            // Log exception for diagnostics (consider adding structured logging here)
+            Console.Error.WriteLine($"Error updating service: {ex}");
+            Snackbar.Add("Erro ao comunicar com o servidor. Tente novamente.", Severity.Error);
         }
         finally
         {

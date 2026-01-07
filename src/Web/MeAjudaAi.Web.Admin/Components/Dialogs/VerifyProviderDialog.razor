@@ -7,9 +7,9 @@
     <DialogContent>
         <MudForm @ref="form" @bind-IsValid="@success">
             <MudSelect @bind-Value="selectedStatus" Label="Status de Verificação" Required="true" Variant="Variant.Outlined">
-                <MudSelectItem Value="@("Verified")">Verificado</MudSelectItem>
-                <MudSelectItem Value="@("Rejected")">Rejeitado</MudSelectItem>
-                <MudSelectItem Value="@("Pending")">Pendente</MudSelectItem>
+                <MudSelectItem Value="@VerificationStatuses.Verified">Verificado</MudSelectItem>
+                <MudSelectItem Value="@VerificationStatuses.Rejected">Rejeitado</MudSelectItem>
+                <MudSelectItem Value="@VerificationStatuses.Pending">Pendente</MudSelectItem>
             </MudSelect>
             
             <MudTextField @bind-Value="notes" Label="Observações (opcional)" Lines="3" Variant="Variant.Outlined" Class="mt-4" />
@@ -32,13 +32,20 @@
 </MudDialog>
 
 @code {
+    private static class VerificationStatuses
+    {
+        public const string Verified = "Verified";
+        public const string Rejected = "Rejected";
+        public const string Pending = "Pending";
+    }
+
     [Parameter] public Guid ProviderId { get; set; }
     [CascadingParameter] private IMudDialogInstance? DialogInstance { get; set; }
 
     private MudForm form = null!;
     private bool success;
     private bool isSubmitting;
-    private string selectedStatus = "Pending"; // Default to Pending for safer UX
+    private string selectedStatus = VerificationStatuses.Pending; // Default to Pending for safer UX
     private string? notes;
 
     private void Cancel()
