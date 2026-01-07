@@ -49,10 +49,10 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 2. ✅ **Gestão de Documentos** (7 Jan 2026) - Upload, verificação, deletion workflow
 3. ✅ **Gestão de Service Catalogs** (7 Jan 2026) - CRUD de categorias e serviços
 4. ✅ **Gestão de Restrições Geográficas** (7 Jan 2026) - UI para AllowedCities com banco de dados
-5. 🔄 **Gráficos Dashboard** (próxima) - MudCharts com providers por status e evolução temporal
-6. ⏳ **Testes** - Aumentar cobertura para 30+ testes bUnit
+5. ✅ **Gráficos Dashboard** (7 Jan 2026) - MudCharts com providers por status e evolução temporal
+6. 🔄 **Testes** (próxima) - Aumentar cobertura para 30+ testes bUnit
 
-**Progresso Atual**: 4/6 features completas (Provider CRUD + Documents + Service Catalogs + Geographic Restrictions)
+**Progresso Atual**: 5/6 features completas (Provider CRUD + Documents + Service Catalogs + Geographic Restrictions + Dashboard Charts)
 
 **Detalhamento - Provider CRUD** ✅:
 - IProvidersApi enhanced: CreateProviderAsync, UpdateProviderAsync, DeleteProviderAsync, UpdateVerificationStatusAsync
@@ -103,6 +103,19 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - Portuguese labels + Snackbar notifications
 - Build sucesso (42 warnings Sonar/MudBlazor apenas)
 - Commit: 3317ace3 "feat(admin): implement Geographic Restrictions - AllowedCities UI"
+
+**Detalhamento - Dashboard Charts** ✅:
+- Dashboard.razor enhanced com 2 charts interativos (MudBlazor built-in charts)
+- Provider Status Donut Chart: agrupa providers por VerificationStatus (Verified, Pending, Rejected)
+- Provider Type Pie Chart: distribuição entre Individual (Pessoa Física) e Company (Empresa)
+- Usa ProvidersState existente (sem novos endpoints de backend)
+- OnAfterRender lifecycle hook para update de dados quando providers carregam
+- UpdateChartData() método com GroupBy LINQ queries
+- Portuguese labels para tipos de provider
+- Empty state messages quando não há providers cadastrados
+- MudChart components com Width="300px", Height="300px", LegendPosition.Bottom
+- Build sucesso (43 warnings Sonar/MudBlazor apenas)
+- Commit: 0e0d0d81 "feat(admin): implement Dashboard Charts with MudBlazor"
 
 ---
 
