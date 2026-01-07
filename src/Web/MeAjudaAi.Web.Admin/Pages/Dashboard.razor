@@ -198,14 +198,22 @@
 
     private void OnProvidersStateChanged(object? sender, EventArgs e)
     {
-        var currentCount = ProvidersState.Value.Providers.Count;
-        
-        // Only update if provider count changed
-        if (currentCount != previousProviderCount && currentCount > 0)
+        try
         {
-            previousProviderCount = currentCount;
-            UpdateChartData();
-            InvokeAsync(StateHasChanged);
+            var currentCount = ProvidersState.Value.Providers.Count;
+            
+            // Only update if provider count changed
+            if (currentCount != previousProviderCount && currentCount > 0)
+            {
+                previousProviderCount = currentCount;
+                UpdateChartData();
+                InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log error and gracefully degrade
+            Console.Error.WriteLine($"Error updating chart data: {ex}");
         }
     }
 
@@ -219,7 +227,10 @@
         // Provider Status Chart Data - semantically ordered
         var statusGroups = providers
             .GroupBy(p => p.VerificationStatus)
-            .OrderBy(g => Array.IndexOf(StatusOrder, g.Key))
+            .OrderBy(g => {
+                var index = Array.IndexOf(StatusOrder, g.Key);
+                return index >= 0 ? index : int.MaxValue; // Unknown values sorted last
+            })
             .ToList();
 
         providerStatusLabels = statusGroups.Select(g => g.Key).ToArray();
@@ -228,7 +239,10 @@
         // Provider Type Chart Data - semantically ordered
         var typeGroups = providers
             .GroupBy(p => p.ProviderType)
-            .OrderBy(g => Array.IndexOf(ProviderTypeOrder, g.Key))
+            .OrderBy(g => {
+                var index = Array.IndexOf(ProviderTypeOrder, g.Key);
+                return index >= 0 ? index : int.MaxValue; // Unknown values sorted last
+            })
             .ToList();
 
         providerTypeLabels = typeGroups.Select(g => GetProviderTypeLabel(g.Key)).ToArray();

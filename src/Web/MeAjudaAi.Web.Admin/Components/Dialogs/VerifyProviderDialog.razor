@@ -38,7 +38,7 @@
     private MudForm form = null!;
     private bool success;
     private bool isSubmitting;
-    private string selectedStatus = "Verified";
+    private string selectedStatus = "Pending"; // Default to Pending for safer UX
     private string? notes;
 
     private void Cancel()
@@ -58,6 +58,7 @@
         try
         {
             isSubmitting = true;
+            StateHasChanged(); // Force UI update to show loading indicator
             
             var request = new UpdateVerificationStatusRequestDto(
                 VerificationStatus: selectedStatus,
@@ -78,11 +79,14 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Erro ao atualizar status: {ex.Message}", Severity.Error);
+            // Log exception for diagnostics (consider adding structured logging here)
+            Console.Error.WriteLine($"Error updating verification status: {ex}");
+            Snackbar.Add("Erro inesperado ao atualizar status. Tente novamente.", Severity.Error);
         }
         finally
         {
             isSubmitting = false;
+            StateHasChanged(); // Ensure UI updates after completion or error
         }
     }
 }

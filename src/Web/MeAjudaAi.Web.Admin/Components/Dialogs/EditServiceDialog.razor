@@ -114,6 +114,7 @@
         try
         {
             isSubmitting = true;
+            StateHasChanged(); // Force UI update to show loading indicator
 
             var request = new UpdateServiceRequestDto(
                 Name: name,
@@ -136,6 +137,7 @@
         finally
         {
             isSubmitting = false;
+            StateHasChanged(); // Ensure UI updates after completion or error
         }
     }
 }
