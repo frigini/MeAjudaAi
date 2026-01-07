@@ -111,6 +111,10 @@
                 Snackbar.Add($"Erro: {result.Error?.Message}", Severity.Error);
             }
         }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao atualizar categoria: {ex.Message}", Severity.Error);
+        }
         finally
         {
             isSubmitting = false;

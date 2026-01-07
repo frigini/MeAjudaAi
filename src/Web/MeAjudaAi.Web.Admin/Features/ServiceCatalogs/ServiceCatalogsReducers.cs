@@ -23,7 +23,7 @@ public static class ServiceCatalogsReducers
 
     [ReducerMethod]
     public static ServiceCatalogsState ReduceAddCategoryAction(ServiceCatalogsState state, ServiceCatalogsActions.AddCategoryAction action)
-        => state with { Categories = state.Categories.Append(action.Category).ToList() };
+        => state with { Categories = [..state.Categories, action.Category] };
 
     [ReducerMethod]
     public static ServiceCatalogsState ReduceRemoveCategoryAction(ServiceCatalogsState state, ServiceCatalogsActions.RemoveCategoryAction action)
@@ -67,7 +67,7 @@ public static class ServiceCatalogsReducers
 
     [ReducerMethod]
     public static ServiceCatalogsState ReduceAddServiceAction(ServiceCatalogsState state, ServiceCatalogsActions.AddServiceAction action)
-        => state with { Services = state.Services.Append(action.Service).ToList() };
+        => state with { Services = [..state.Services, action.Service] };
 
     [ReducerMethod]
     public static ServiceCatalogsState ReduceRemoveServiceAction(ServiceCatalogsState state, ServiceCatalogsActions.RemoveServiceAction action)
@@ -78,7 +78,7 @@ public static class ServiceCatalogsReducers
     {
         var updated = state.Services.Select(s =>
             s.Id == action.ServiceId
-                ? s with { Name = action.Name }
+                ? s with { Name = action.Name, Description = action.Description }
                 : s
         ).ToList();
         return state with { Services = updated };
