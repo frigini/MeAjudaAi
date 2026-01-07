@@ -15,7 +15,11 @@
                 </MudItem>
                 
                 <MudItem xs="12" md="6">
-                    <MudTextField @bind-Value="model.Name" Label="Nome" Required="true" Variant="Variant.Outlined" />
+                    <MudTextField @bind-Value="model.Name" Label="Nome / Razão Social" Required="true" Variant="Variant.Outlined" />
+                </MudItem>
+                
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="model.FantasyName" Label="Nome Fantasia (opcional)" Variant="Variant.Outlined" />
                 </MudItem>
                 
                 <MudItem xs="12" md="6">
@@ -111,14 +115,46 @@
         {
             isSubmitting = true;
             
-            // TODO: Implementar chamada real à API
-            // var request = MapToRequest(model);
-            // var result = await ProvidersApi.CreateProviderAsync(request);
+            var request = new
+            {
+                Name = model.Name,
+                Type = model.ProviderType == "Individual" ? 0 : 1, // EProviderType enum
+                BusinessProfile = new
+                {
+                    LegalName = model.Name,
+                    FantasyName = model.FantasyName,
+                    Description = model.Description,
+                    ContactInfo = new
+                    {
+                        Email = model.Email,
+                        PhoneNumber = model.Phone,
+                        Website = (string?)null
+                    },
+                    PrimaryAddress = new
+                    {
+                        Street = model.Address.Street,
+                        Number = model.Address.Number,
+                        Complement = model.Address.Complement,
+                        Neighborhood = model.Address.Neighborhood,
+                        City = model.Address.City,
+                        State = model.Address.State,
+                        ZipCode = model.Address.PostalCode,
+                        Country = "Brasil"
+                    }
+                }
+            };
+
+            var result = await ProvidersApi.CreateProviderAsync(request);
             
-            await Task.Delay(1000); // Simulação temporária
-            
-            Snackbar.Add("Provider criado com sucesso!", Severity.Success);
-            DialogInstance?.Close(DialogResult.Ok(true));
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Provider criado com sucesso!", Severity.Success);
+                DialogInstance?.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                Snackbar.Add($"Erro ao criar provider: {result.Error.Message}", Severity.Error);
+            }
         }
         catch (Exception ex)
         {
@@ -134,6 +170,7 @@
     {
         public string ProviderType { get; set; } = "Individual";
         public string Name { get; set; } = string.Empty;
+        public string? FantasyName { get; set; }
         public string Document { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;

@@ -3,6 +3,8 @@
 @inject IState<ProvidersState> ProvidersState
 @inject IDispatcher Dispatcher
 @inject IDialogService DialogService
+@inject IProvidersApi ProvidersApi
+@inject ISnackbar Snackbar
 
 <PageTitle>Providers - MeAjudaAi Admin</PageTitle>
 
@@ -52,6 +54,13 @@
                         }
                     </CellTemplate>
                 </PropertyColumn>
+                <TemplateColumn Title="Ações" Sortable="false">
+                    <CellTemplate>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => OpenEditDialog(context.Item.Id))" Title="Editar" />
+                        <MudIconButton Icon="@Icons.Material.Filled.VerifiedUser" Color="Color.Success" Size="Size.Small" OnClick="@(() => OpenVerifyDialog(context.Item.Id))" Title="Verificar" Disabled="@(context.Item.VerificationStatus == VERIFIED_STATUS)" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => OpenDeleteDialog(context.Item.Id))" Title="Excluir" />
+                    </CellTemplate>
+                </TemplateColumn>
             </Columns>
         </MudDataGrid>
     </MudCardContent>
@@ -89,6 +98,74 @@
         {
             // Recarregar lista após criação
             Dispatcher.Dispatch(new LoadProvidersAction());
+        }
+    }
+
+    private async Task OpenEditDialog(Guid providerId)
+    {
+        var parameters = new DialogParameters<EditProviderDialog>
+        {
+            { x => x.ProviderId, providerId }
+        };
+        
+        var dialog = await DialogService.ShowAsync<EditProviderDialog>("Editar Provider", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            Dispatcher.Dispatch(new LoadProvidersAction());
+        }
+    }
+
+    private async Task OpenVerifyDialog(Guid providerId)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ProviderId", providerId }
+        };
+        
+        var dialog = await DialogService.ShowAsync<VerifyProviderDialog>("Verificar Provider", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            Dispatcher.Dispatch(new LoadProvidersAction());
+        }
+    }
+
+    private async Task OpenDeleteDialog(Guid providerId)
+    {
+        var result = await DialogService.ShowMessageBox(
+            "Confirmar Exclusão",
+            "Tem certeza que deseja excluir este provider? Esta ação não pode ser desfeita.",
+            yesText: "Excluir",
+            cancelText: "Cancelar");
+
+        if (result == true)
+        {
+            await DeleteProvider(providerId);
+        }
+    }
+
+    private async Task DeleteProvider(Guid providerId)
+    {
+        try
+        {
+            var result = await ProvidersApi.DeleteProviderAsync(providerId);
+            
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Provider excluído com sucesso!", Severity.Success);
+                Dispatcher.Dispatch(new LoadProvidersAction());
+            }
+            else
+            {
+                Snackbar.Add($"Erro ao excluir provider: {result.Error.Message}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao excluir provider: {ex.Message}", Severity.Error);
         }
     }
 }
