@@ -1,4 +1,4 @@
-@page "/services"
+@page "/categories"
 @using Fluxor
 @using MeAjudaAi.Web.Admin.Features.ServiceCatalogs
 @inherits Fluxor.Blazor.Web.Components.FluxorComponent
@@ -8,12 +8,12 @@
 @inject ISnackbar Snackbar
 @inject IServiceCatalogsApi ServiceCatalogsApi
 
-<PageTitle>Services - MeAjudaAi Admin</PageTitle>
+<PageTitle>Categories - MeAjudaAi Admin</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudText Typo="Typo.h4" Class="mb-4">
-        <MudIcon Icon="@Icons.Material.Filled.MiscellaneousServices" Class="mr-2" />
-        Catálogo de Serviços
+        <MudIcon Icon="@Icons.Material.Filled.Category" Class="mr-2" />
+        Categorias de Serviços
     </MudText>
 
     @if (ServiceCatalogsState.Value.HasError)
@@ -26,36 +26,30 @@
     <MudCard>
         <MudCardHeader>
             <CardHeaderContent>
-                <MudText Typo="Typo.h6">Gerenciar Serviços</MudText>
+                <MudText Typo="Typo.h6">Gerenciar Categorias</MudText>
             </CardHeaderContent>
             <CardHeaderActions>
                 <MudButton Color="Color.Primary" 
                            Variant="Variant.Filled" 
                            StartIcon="@Icons.Material.Filled.Add"
                            OnClick="OpenCreateDialog">
-                    Novo Serviço
+                    Nova Categoria
                 </MudButton>
             </CardHeaderActions>
         </MudCardHeader>
         <MudCardContent>
-            <MudDataGrid Items="@ServiceCatalogsState.Value.Services"
+            <MudDataGrid Items="@ServiceCatalogsState.Value.Categories"
                          Dense="true"
-                         Loading="@ServiceCatalogsState.Value.IsLoadingServices"
+                         Loading="@ServiceCatalogsState.Value.IsLoadingCategories"
                          Hover="true">
                 <Columns>
                     <PropertyColumn Property="x => x.Name" Title="Nome" />
-                    <PropertyColumn Property="x => x.CategoryId" Title="Categoria">
-                        <CellTemplate>
-                            @{
-                                var category = ServiceCatalogsState.Value.Categories.FirstOrDefault(c => c.Id == context.Item.CategoryId);
-                            }
-                            @(category?.Name ?? "N/A")
-                        </CellTemplate>
-                    </PropertyColumn>
+                    <PropertyColumn Property="x => x.Description" Title="Descrição" />
+                    <PropertyColumn Property="x => x.DisplayOrder" Title="Ordem" />
                     <PropertyColumn Property="x => x.IsActive" Title="Status">
                         <CellTemplate>
                             <MudChip Size="Size.Small" Color="@(context.Item.IsActive ? Color.Success : Color.Default)">
-                                @(context.Item.IsActive ? "Ativo" : "Inativo")
+                                @(context.Item.IsActive ? "Ativa" : "Inativa")
                             </MudChip>
                         </CellTemplate>
                     </PropertyColumn>
@@ -86,12 +80,12 @@
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                            Color="Color.Error" 
                                            Size="Size.Small"
-                                           OnClick="@(() => DeleteService(context.Item.Id))" />
+                                           OnClick="@(() => DeleteCategory(context.Item.Id))" />
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>
                 <NoRecordsContent>
-                    <MudText>Nenhum serviço encontrado</MudText>
+                    <MudText>Nenhuma categoria encontrada</MudText>
                 </NoRecordsContent>
             </MudDataGrid>
         </MudCardContent>
@@ -103,11 +97,7 @@
     {
         base.OnInitialized();
         
-        // Carrega serviços e categorias na inicialização
-        if (!ServiceCatalogsState.Value.Services.Any())
-        {
-            Dispatcher.Dispatch(new ServiceCatalogsActions.LoadServicesAction(ActiveOnly: false));
-        }
+        // Carrega categorias na inicialização
         if (!ServiceCatalogsState.Value.Categories.Any())
         {
             Dispatcher.Dispatch(new ServiceCatalogsActions.LoadCategoriesAction(ActiveOnly: false));
@@ -117,47 +107,48 @@
     private async Task OpenCreateDialog()
     {
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<CreateServiceDialog>("Novo Serviço", options);
+        var dialog = await DialogService.ShowAsync<CreateCategoryDialog>("Nova Categoria", options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
         {
-            Dispatcher.Dispatch(new ServiceCatalogsActions.LoadServicesAction(ActiveOnly: false));
+            Dispatcher.Dispatch(new ServiceCatalogsActions.LoadCategoriesAction(ActiveOnly: false));
         }
     }
 
-    private async Task OpenEditDialog(Guid serviceId)
+    private async Task OpenEditDialog(Guid categoryId)
     {
-        var service = ServiceCatalogsState.Value.Services.FirstOrDefault(s => s.Id == serviceId);
-        if (service == null) return;
+        var category = ServiceCatalogsState.Value.Categories.FirstOrDefault(c => c.Id == categoryId);
+        if (category == null) return;
 
         var parameters = new DialogParameters
         {
-            ["ServiceId"] = serviceId,
-            ["ServiceName"] = service.Name,
-            ["CategoryId"] = service.CategoryId
+            ["CategoryId"] = categoryId,
+            ["CategoryName"] = category.Name,
+            ["Description"] = category.Description,
+            ["DisplayOrder"] = category.DisplayOrder
         };
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
 
-        var dialog = await DialogService.ShowAsync<EditServiceDialog>("Editar Serviço", parameters, options);
+        var dialog = await DialogService.ShowAsync<EditCategoryDialog>("Editar Categoria", parameters, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
         {
-            Dispatcher.Dispatch(new ServiceCatalogsActions.LoadServicesAction(ActiveOnly: false));
+            Dispatcher.Dispatch(new ServiceCatalogsActions.LoadCategoriesAction(ActiveOnly: false));
         }
     }
 
-    private async Task ToggleActivation(Guid serviceId, bool activate)
+    private async Task ToggleActivation(Guid categoryId, bool activate)
     {
         var result = activate 
-            ? await ServiceCatalogsApi.ActivateServiceAsync(serviceId)
-            : await ServiceCatalogsApi.DeactivateServiceAsync(serviceId);
+            ? await ServiceCatalogsApi.ActivateCategoryAsync(categoryId)
+            : await ServiceCatalogsApi.DeactivateCategoryAsync(categoryId);
 
         if (result.IsSuccess)
         {
-            Snackbar.Add($"Serviço {(activate ? "ativado" : "desativado")} com sucesso", Severity.Success);
-            Dispatcher.Dispatch(new ServiceCatalogsActions.UpdateServiceActiveStatusAction(serviceId, activate));
+            Snackbar.Add($"Categoria {(activate ? "ativada" : "desativada")} com sucesso", Severity.Success);
+            Dispatcher.Dispatch(new ServiceCatalogsActions.UpdateCategoryActiveStatusAction(categoryId, activate));
         }
         else
         {
@@ -165,21 +156,21 @@
         }
     }
 
-    private async Task DeleteService(Guid serviceId)
+    private async Task DeleteCategory(Guid categoryId)
     {
         bool? confirm = await DialogService.ShowMessageBox(
             "Confirmar Exclusão",
-            "Tem certeza que deseja excluir este serviço? Esta ação não pode ser desfeita.",
+            "Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita.",
             yesText: "Excluir", cancelText: "Cancelar");
 
         if (confirm != true) return;
 
-        var result = await ServiceCatalogsApi.DeleteServiceAsync(serviceId);
+        var result = await ServiceCatalogsApi.DeleteCategoryAsync(categoryId);
 
         if (result.IsSuccess)
         {
-            Snackbar.Add("Serviço excluído com sucesso", Severity.Success);
-            Dispatcher.Dispatch(new ServiceCatalogsActions.RemoveServiceAction(serviceId));
+            Snackbar.Add("Categoria excluída com sucesso", Severity.Success);
+            Dispatcher.Dispatch(new ServiceCatalogsActions.RemoveCategoryAction(categoryId));
         }
         else
         {
@@ -187,4 +178,3 @@
         }
     }
 }
-
