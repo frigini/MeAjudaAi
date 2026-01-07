@@ -1,5 +1,6 @@
 @page "/"
 @inherits FluxorComponent
+@implements IDisposable
 @using Fluxor
 @using MeAjudaAi.Web.Admin.Features.Providers
 @inject IState<DashboardState> DashboardState
@@ -244,9 +245,8 @@
         };
     }
 
-    public override void Dispose()
+    public void Dispose()
     {
         ProvidersState.StateChanged -= OnProvidersStateChanged;
-        base.Dispose();
     }
 }
