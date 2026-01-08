@@ -246,7 +246,7 @@
     <!-- Architecture Testing -->
     <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
     <!-- Code Analysis -->
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.17.0.131074" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.18.0.131500" />
     <!-- Blazor UI & State Management -->
     <PackageVersion Include="MudBlazor" Version="7.21.0" />
     <PackageVersion Include="Fluxor.Blazor.Web" Version="6.9.0" />
