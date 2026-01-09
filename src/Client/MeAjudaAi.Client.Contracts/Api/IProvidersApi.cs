@@ -119,6 +119,72 @@ public interface IProvidersApi
     Task<Result<ModuleProviderDto?>> GetProviderByDocumentAsync(
         string document,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Cria um novo provider.
+    /// </summary>
+    /// <param name="request">Dados do provider a ser criado</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    /// <returns>Provider criado com sucesso</returns>
+    /// <response code="201">Provider criado com sucesso</response>
+    /// <response code="400">Dados inválidos ou provider já existe</response>
+    /// <response code="401">Não autenticado</response>
+    /// <response code="403">Sem permissão para criar providers</response>
+    [Post("/api/v1/providers")]
+    Task<Result<ModuleProviderDto>> CreateProviderAsync(
+        [Body] CreateProviderRequestDto request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Atualiza os dados de um provider existente.
+    /// </summary>
+    /// <param name="id">ID do provider</param>
+    /// <param name="request">Dados atualizados do provider</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    /// <returns>Provider atualizado</returns>
+    /// <response code="200">Provider atualizado com sucesso</response>
+    /// <response code="404">Provider não encontrado</response>
+    /// <response code="400">Dados inválidos</response>
+    /// <response code="401">Não autenticado</response>
+    /// <response code="403">Sem permissão para atualizar este provider</response>
+    [Put("/api/v1/providers/{id}")]
+    Task<Result<Unit>> UpdateProviderAsync(
+        Guid id,
+        [Body] UpdateProviderRequestDto request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Exclui um provider.
+    /// </summary>
+    /// <param name="id">ID do provider a ser excluído</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    /// <returns>Resultado da operação</returns>
+    /// <response code="204">Provider excluído com sucesso</response>
+    /// <response code="404">Provider não encontrado</response>
+    /// <response code="401">Não autenticado</response>
+    /// <response code="403">Sem permissão para excluir providers</response>
+    [Delete("/api/v1/providers/{id}")]
+    Task<Result<Unit>> DeleteProviderAsync(
+        Guid id,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Atualiza o status de verificação de um provider.
+    /// </summary>
+    /// <param name="id">ID do provider</param>
+    /// <param name="request">Novo status de verificação</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    /// <returns>Resultado da operação</returns>
+    /// <response code="200">Status atualizado com sucesso</response>
+    /// <response code="404">Provider não encontrado</response>
+    /// <response code="400">Status inválido</response>
+    /// <response code="401">Não autenticado</response>
+    /// <response code="403">Sem permissão para verificar providers</response>
+    [Put("/api/v1/providers/{id}/verification-status")]
+    Task<Result<Unit>> UpdateVerificationStatusAsync(
+        Guid id,
+        [Body] UpdateVerificationStatusRequestDto request,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>

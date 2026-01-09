@@ -21,8 +21,8 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **14 Dez - 18 Dez**: Sprint 4 - Health Checks + Data Seeding + Code Review (CONCLUÍDO - MERGED!)
 - ✅ **Sprint 5**: Tarefas completadas antecipadamente (NSubstitute→Moq, .slnx, UuidGenerator, Design Patterns, Bruno)
 - ✅ **19 Dez - 30 Dez**: Sprint 5.5 - Refactor & Cleanup (CONCLUÍDO - Technical Debt Reduction)
-- ✅ **30 Dez - 5 Jan 2026**: Sprint 6 - Blazor Admin Portal Setup (CONCLUÍDO - 5 Jan 2026)
-- ⏳ **6 Jan - 24 Jan 2026**: Sprint 7 - Blazor Admin Portal Features
+- ✅ **30 Dez - 5 Jan 2026**: Sprint 6 - Blazor Admin Portal Setup (CONCLUÍDO - 5 Jan 2026, MERGED!)
+- 🔄 **6 Jan - 24 Jan 2026**: Sprint 7 - Blazor Admin Portal Features (EM ANDAMENTO - Iniciado 6 Jan 2026)
 - ⏳ **27 Jan - 14 Fev 2026**: Sprint 8 - Customer App (Web + Mobile)
 - ⏳ **17 Fev - 7 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Refactoring)
 - 🎯 **31 de Março de 2026**: MVP Launch (Admin Portal + Customer App)
@@ -40,9 +40,101 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 **📅 Hoje**: 6 de Janeiro de 2026
 
+### 🔄 Sprint 7 - Blazor Admin Portal Features - EM ANDAMENTO (6 Jan - 24 Jan 2026)
+
+**Branch**: `blazor-admin-portal-features`
+
+**Objetivos**:
+1. ✅ **CRUD Completo de Providers** (6-7 Jan 2026) - Create, Update, Delete, Verify
+2. ✅ **Gestão de Documentos** (7 Jan 2026) - Upload, verificação, deletion workflow
+3. ✅ **Gestão de Service Catalogs** (7 Jan 2026) - CRUD de categorias e serviços
+4. ✅ **Gestão de Restrições Geográficas** (7 Jan 2026) - UI para AllowedCities com banco de dados
+5. ✅ **Gráficos Dashboard** (7 Jan 2026) - MudCharts com providers por status e evolução temporal
+6. ✅ **Testes** (7 Jan 2026) - Aumentar cobertura para 30 testes bUnit
+
+**Progresso Atual**: 6/6 features completas ✅ **SPRINT 7 CONCLUÍDO!**
+
+**Detalhamento - Provider CRUD** ✅:
+- IProvidersApi enhanced: CreateProviderAsync, UpdateProviderAsync, DeleteProviderAsync, UpdateVerificationStatusAsync
+- CreateProviderDialog: formulário completo com validação (ProviderType, Name, FantasyName, Document, Email, Phone, Description, Address)
+- EditProviderDialog: edição simplificada (nome/telefone - aguardando DTO enriquecido do backend)
+- VerifyProviderDialog: mudança de status de verificação (Verified, Rejected, Pending + optional notes)
+- Providers.razor: action buttons (Edit, Delete, Verify) com MessageBox confirmation
+- Result<T> error handling pattern em todas operações
+- Portuguese labels + Snackbar notifications
+- Build sucesso (19 warnings Sonar apenas)
+- Commit: cd2be7f6 "feat(admin): complete Provider CRUD operations"
+
+**Detalhamento - Documents Management** ✅:
+- DocumentsState/Actions/Reducers/Effects: Fluxor pattern completo
+- Documents.razor: página com provider selector e listagem de documentos
+- MudDataGrid com status chips coloridos (Verified=Success, Rejected=Error, Pending=Warning, Uploaded=Info)
+- ProviderSelectorDialog: seleção de provider da lista existente
+- UploadDocumentDialog: MudFileUpload com tipos de documento (RG, CNH, CPF, CNPJ, Comprovante, Outros)
+- RequestVerification action via IDocumentsApi.RequestDocumentVerificationAsync
+- DeleteDocument com confirmação MessageBox
+- Real-time status updates via Fluxor Dispatch
+- Portuguese labels + Snackbar notifications
+- Build sucesso (28 warnings Sonar apenas)
+- Commit: e033488d "feat(admin): implement Documents management feature"
+
+**Detalhamento - Service Catalogs** ✅:
+- IServiceCatalogsApi enhanced: 10 métodos (Create, Update, Delete, Activate, Deactivate para Categories e Services)
+- ServiceCatalogsState/Actions/Reducers/Effects: Fluxor pattern completo
+- Categories.razor: full CRUD page com MudDataGrid, status chips, action buttons
+- Services.razor: full CRUD page com category relationship e MudDataGrid
+- CreateCategoryDialog, EditCategoryDialog: forms com Name, Description, DisplayOrder
+- CreateServiceDialog, EditServiceDialog: forms com CategoryId (dropdown), Name, Description, DisplayOrder
+- Activate/Deactivate toggles para ambos
+- Delete confirmations com MessageBox
+- Portuguese labels + Snackbar notifications
+- Build sucesso (37 warnings Sonar/MudBlazor apenas)
+- Commit: bd0c46b3 "feat(admin): implement Service Catalogs CRUD (Categories + Services)"
+
+**Detalhamento - Geographic Restrictions** ✅:
+- ILocationsApi já possuía CRUD completo (Create, Update, Delete, GetAll, GetById, GetByState)
+- LocationsState/Actions/Reducers/Effects: Fluxor pattern completo
+- AllowedCities.razor: full CRUD page com MudDataGrid
+- CreateAllowedCityDialog: formulário com City, State, Country, Latitude, Longitude, ServiceRadiusKm, IsActive
+- EditAllowedCityDialog: mesmo formulário para edição
+- MudDataGrid com coordenadas em formato F6 (6 decimais), status chips (Ativa/Inativa)
+- Toggle activation via MudSwitch (updates backend via UpdateAllowedCityAsync)
+- Delete confirmation com MessageBox
+- Portuguese labels + Snackbar notifications
+- Build sucesso (42 warnings Sonar/MudBlazor apenas)
+- Commit: 3317ace3 "feat(admin): implement Geographic Restrictions - AllowedCities UI"
+
+**Detalhamento - Dashboard Charts** ✅:
+- Dashboard.razor enhanced com 2 charts interativos (MudBlazor built-in charts)
+- Provider Status Donut Chart: agrupa providers por VerificationStatus (Verified, Pending, Rejected)
+- Provider Type Pie Chart: distribuição entre Individual (Pessoa Física) e Company (Empresa)
+- Usa ProvidersState existente (sem novos endpoints de backend)
+- OnAfterRender lifecycle hook para update de dados quando providers carregam
+- UpdateChartData() método com GroupBy LINQ queries
+- Portuguese labels para tipos de provider
+- Empty state messages quando não há providers cadastrados
+- MudChart components com Width="300px", Height="300px", LegendPosition.Bottom
+- Build sucesso (43 warnings Sonar/MudBlazor apenas)
+- Commit: 0e0d0d81 "feat(admin): implement Dashboard Charts with MudBlazor"
+
+**Detalhamento - Testes bUnit** ✅:
+- 30 testes bUnit criados (objetivo: 30+) - era 10, adicionados 20 novos
+- CreateProviderDialogTests: 4 testes (form fields, submit button, provider type, MudForm)
+- DocumentsPageTests: 5 testes (provider selector, upload button, loading, document list, error)
+- CategoriesPageTests: 4 testes (load action, create button, list, loading)
+- ServicesPageTests: 3 testes (load actions, create button, list)
+- AllowedCitiesPageTests: 4 testes (load action, create button, list, loading)
+- Todos seguem pattern: Mock IState/IDispatcher/IApi, AddMudServices, JSRuntimeMode.Loose
+- Verificam rendering, state management, user interactions
+- Namespaces corrigidos: Modules.*.DTOs
+- Build sucesso (sem erros de compilação)
+- Commit: 2a082840 "test(admin): increase bUnit test coverage to 30 tests"
+
+---
+
 ### ✅ Sprint 6 - Blazor Admin Portal Setup - CONCLUÍDA (30 Dez 2025 - 5 Jan 2026)
 
-**Branch**: `blazor-admin-portal-setup` (4 commits ahead, pronto para merge)
+**Status**: MERGED to master (5 Jan 2026)
 
 **Principais Conquistas**:
 1. **Projeto Blazor WASM Configurado** ✅

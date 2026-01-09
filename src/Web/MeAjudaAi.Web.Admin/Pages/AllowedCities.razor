@@ -1,0 +1,165 @@
+@page "/allowed-cities"
+@using Fluxor
+@using MeAjudaAi.Client.Contracts.Api
+@using MeAjudaAi.Shared.Contracts.Contracts.Modules.Locations.DTOs
+@using MeAjudaAi.Web.Admin.Features.Locations
+@using MudBlazor
+@using static MeAjudaAi.Web.Admin.Features.Locations.LocationsActions
+@inherits Fluxor.Blazor.Web.Components.FluxorComponent
+@inject IState<LocationsState> LocationsState
+@inject IDispatcher Dispatcher
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject ILocationsApi LocationsApi
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">Cidades Permitidas</MudText>
+
+    @if (LocationsState.Value.HasError)
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => Dispatcher.Dispatch(new ClearErrorAction()))">
+            @LocationsState.Value.ErrorMessage
+        </MudAlert>
+    }
+
+    <MudPaper Class="pa-4">
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCreateDialog" Class="mb-4">
+            Nova Cidade
+        </MudButton>
+
+        <MudDataGrid T="ModuleAllowedCityDto"
+                     Items="@LocationsState.Value.AllowedCities"
+                     Loading="@LocationsState.Value.IsLoading"
+                     Dense="true"
+                     Hover="true"
+                     FixedHeader="true"
+                     Height="calc(100vh - 300px)">
+            <Columns>
+                <PropertyColumn Property="x => x.City" Title="Cidade" />
+                <PropertyColumn Property="x => x.State" Title="Estado" />
+                <PropertyColumn Property="x => x.Country" Title="País" />
+                <PropertyColumn Property="x => x.Latitude" Title="Latitude" Format="F6" />
+                <PropertyColumn Property="x => x.Longitude" Title="Longitude" Format="F6" />
+                <PropertyColumn Property="x => x.ServiceRadiusKm" Title="Raio (km)" />
+                <TemplateColumn Title="Status">
+                    <CellTemplate>
+                        <MudChip Size="Size.Small" Color="@(context.Item.IsActive ? Color.Success : Color.Default)">
+                            @(context.Item.IsActive ? "Ativa" : "Inativa")
+                        </MudChip>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Ações" Sortable="false">
+                    <CellTemplate>
+                        <MudTooltip Text="Editar">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" OnClick="@(() => OpenEditDialog(context.Item))" />
+                        </MudTooltip>
+                        <MudTooltip Text="@(context.Item.IsActive ? "Desativar" : "Ativar")">
+                            <MudSwitch T="bool" Checked="@context.Item.IsActive" CheckedChanged="@(async (bool value) => await ToggleActivation(context.Item.Id, value))" Color="Color.Success" />
+                        </MudTooltip>
+                        <MudTooltip Text="Excluir">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteCity(context.Item))" />
+                        </MudTooltip>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        if (LocationsState.Value.AllowedCities.Count == 0)
+        {
+            Dispatcher.Dispatch(new LoadAllowedCitiesAction(OnlyActive: false)); // Load all cities (active + inactive)
+        }
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var dialog = await DialogService.ShowAsync<CreateAllowedCityDialog>("Nova Cidade Permitida");
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            Dispatcher.Dispatch(new LoadAllowedCitiesAction(OnlyActive: false)); // Reload list
+        }
+    }
+
+    private async Task OpenEditDialog(ModuleAllowedCityDto city)
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(EditAllowedCityDialog.CityId), city.Id },
+            { nameof(EditAllowedCityDialog.CityName), city.City },
+            { nameof(EditAllowedCityDialog.State), city.State },
+            { nameof(EditAllowedCityDialog.Country), city.Country },
+            { nameof(EditAllowedCityDialog.Latitude), city.Latitude },
+            { nameof(EditAllowedCityDialog.Longitude), city.Longitude },
+            { nameof(EditAllowedCityDialog.ServiceRadiusKm), city.ServiceRadiusKm },
+            { nameof(EditAllowedCityDialog.IsActive), city.IsActive }
+        };
+
+        var dialog = await DialogService.ShowAsync<EditAllowedCityDialog>("Editar Cidade Permitida", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            Dispatcher.Dispatch(new LoadAllowedCitiesAction(OnlyActive: false)); // Reload list
+        }
+    }
+
+    private async Task ToggleActivation(Guid cityId, bool newActiveStatus)
+    {
+        var city = LocationsState.Value.AllowedCities.FirstOrDefault(c => c.Id == cityId);
+        if (city is null) return;
+
+        // Update via backend (using UpdateAllowedCityAsync)
+        var updateRequest = new UpdateAllowedCityRequestDto(
+            city.City,
+            city.State,
+            city.Country,
+            city.Latitude,
+            city.Longitude,
+            city.ServiceRadiusKm,
+            newActiveStatus
+        );
+
+        var result = await LocationsApi.UpdateAllowedCityAsync(cityId, updateRequest);
+
+        if (result.IsSuccess)
+        {
+            Dispatcher.Dispatch(new UpdateCityActiveStatusAction(cityId, newActiveStatus));
+            Snackbar.Add($"Cidade {(newActiveStatus ? "ativada" : "desativada")} com sucesso", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add($"Erro ao atualizar cidade: {result.Error}", Severity.Error);
+        }
+    }
+
+    private async Task DeleteCity(ModuleAllowedCityDto city)
+    {
+        var confirmed = await DialogService.ShowMessageBox(
+            "Confirmar Exclusão",
+            $"Tem certeza que deseja excluir a cidade '{city.City} - {city.State}'?",
+            yesText: "Excluir",
+            cancelText: "Cancelar");
+
+        if (confirmed != true) return;
+
+        var result = await LocationsApi.DeleteAllowedCityAsync(city.Id);
+
+        if (result.IsSuccess)
+        {
+            Dispatcher.Dispatch(new RemoveAllowedCityAction(city.Id));
+            Snackbar.Add("Cidade excluída com sucesso", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add($"Erro ao excluir cidade: {result.Error}", Severity.Error);
+        }
+    }
+}

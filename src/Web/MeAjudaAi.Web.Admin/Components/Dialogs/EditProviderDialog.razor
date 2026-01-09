@@ -1,0 +1,175 @@
+@using MudBlazor
+@using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs
+@inject IProvidersApi ProvidersApi
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        @if (isLoading)
+        {
+            <MudProgressLinear Indeterminate="true" />
+            <MudText Typo="Typo.body2" Class="mt-2">Carregando dados do provider...</MudText>
+        }
+        else if (loadError != null)
+        {
+            <MudAlert Severity="Severity.Error">
+                @loadError
+            </MudAlert>
+        }
+        else if (model != null)
+        {
+            <MudForm @ref="form" @bind-IsValid="@success">
+                <MudGrid>
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="model.Name" 
+                                      Label="Nome" 
+                                      Required="true" 
+                                      RequiredError="Nome é obrigatório"
+                                      Variant="Variant.Outlined" />
+                    </MudItem>
+                    
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="model.Email" 
+                                      Label="Email" 
+                                      Required="true" 
+                                      RequiredError="Email é obrigatório"
+                                      InputType="InputType.Email" 
+                                      Variant="Variant.Outlined"
+                                      ReadOnly="true"
+                                      Disabled="true"
+                                      HelperText="Email não pode ser alterado" />
+                    </MudItem>
+                    
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="model.Phone" 
+                                      Label="Telefone" 
+                                      Variant="Variant.Outlined" />
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="mt-2">
+                            <b>Nota:</b> Edição completa de perfil, endereço e documentos estará disponível em breve. 
+                            Use esta tela apenas para ajustes rápidos no nome e telefone.
+                        </MudAlert>
+                    </MudItem>
+                </MudGrid>
+            </MudForm>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" 
+                   Variant="Variant.Filled" 
+                   OnClick="Submit" 
+                   Disabled="@(!success || isSubmitting || isLoading)">
+            @if (isSubmitting)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Salvando...</MudText>
+            }
+            else
+            {
+                <MudText>Salvar</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public Guid ProviderId { get; set; }
+    [CascadingParameter] private IMudDialogInstance? DialogInstance { get; set; }
+
+    private MudForm form = null!;
+    private bool success;
+    private bool isLoading = true;
+    private bool isSubmitting;
+    private EditProviderModel? model;
+    private string? loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var result = await ProvidersApi.GetProviderByIdAsync(ProviderId);
+            
+            if (result.IsSuccess && result.Value != null)
+            {
+                var provider = result.Value;
+                model = new EditProviderModel
+                {
+                    Name = provider.Name,
+                    Email = provider.Email,
+                    Phone = provider.Phone ?? string.Empty
+                };
+            }
+            else
+            {
+                loadError = "Provider não encontrado";
+            }
+        }
+        catch (Exception ex)
+        {
+            loadError = $"Erro ao carregar provider: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        DialogInstance?.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        if (model == null) return;
+        
+        await form.Validate();
+
+        if (!success)
+        {
+            return;
+        }
+
+        try
+        {
+            isSubmitting = true;
+            
+            var request = new UpdateProviderRequestDto(
+                Name: model.Name,
+                Phone: string.IsNullOrWhiteSpace(model.Phone) ? null : model.Phone,
+                BusinessProfile: null
+            );
+
+            var result = await ProvidersApi.UpdateProviderAsync(ProviderId, request);
+            
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Provider atualizado com sucesso!", Severity.Success);
+                DialogInstance?.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                var errorMsg = result.Error?.Message ?? "Erro desconhecido";
+                Snackbar.Add($"Erro ao atualizar provider: {errorMsg}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao atualizar provider: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private sealed class EditProviderModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+    }
+}

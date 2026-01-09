@@ -1,0 +1,165 @@
+@using Refit
+@inject IDocumentsApi DocumentsApi
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" @bind-IsValid="@success">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudSelect @bind-Value="documentType" 
+                               Label="Tipo de Documento" 
+                               Required="true"
+                               RequiredError="Selecione o tipo de documento"
+                               Variant="Variant.Outlined">
+                        <MudSelectItem Value="@("RG")">RG - Registro Geral</MudSelectItem>
+                        <MudSelectItem Value="@("CNH")">CNH - Carteira Nacional de Habilitação</MudSelectItem>
+                        <MudSelectItem Value="@("CPF")">CPF - Cadastro de Pessoa Física</MudSelectItem>
+                        <MudSelectItem Value="@("CNPJ")">CNPJ - Cadastro Nacional de Pessoa Jurídica</MudSelectItem>
+                        <MudSelectItem Value="@("ComprovanteResidencia")">Comprovante de Residência</MudSelectItem>
+                        <MudSelectItem Value="@("CertidaoNascimento")">Certidão de Nascimento</MudSelectItem>
+                        <MudSelectItem Value="@("Outros")">Outros</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudFileUpload T="IBrowserFile" 
+                                   @bind-Files="selectedFile" 
+                                   Required="true"
+                                   Accept=".pdf,.jpg,.jpeg,.png"
+                                   MaximumFileCount="1">
+                        <ActivatorContent>
+                            <MudButton Variant="Variant.Outlined"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.CloudUpload"
+                                       FullWidth="true">
+                                Selecionar Arquivo
+                            </MudButton>
+                        </ActivatorContent>
+                        <SelectedTemplate>
+                            @if (context != null)
+                            {
+                                <MudChip T="string"
+                                         Color="Color.Info" 
+                                         Text="@context.Name" 
+                                         OnClose="@(() => ClearFile())" />
+                                <MudText Typo="Typo.caption">
+                                    Tamanho: @FormatFileSize(context.Size)
+                                </MudText>
+                            }
+                        </SelectedTemplate>
+                    </MudFileUpload>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Info" Dense="true">
+                        <b>Formatos aceitos:</b> PDF, JPEG, PNG<br />
+                        <b>Tamanho máximo:</b> 10 MB
+                    </MudAlert>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" 
+                   Variant="Variant.Filled" 
+                   OnClick="Submit" 
+                   Disabled="@(!success || isUploading || selectedFile == null)">
+            @if (isUploading)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Enviando...</MudText>
+            }
+            else
+            {
+                <MudText>Upload</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter]
+    public Guid ProviderId { get; set; }
+
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+
+    private MudForm form = null!;
+    private bool success;
+    private bool isUploading;
+    private IBrowserFile? selectedFile;
+    private string documentType = "RG";
+
+    private void ClearFile()
+    {
+        selectedFile = null;
+    }
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        if (selectedFile == null) return;
+
+        if (ProviderId == Guid.Empty)
+        {
+            Snackbar.Add("Provider não selecionado.", Severity.Warning);
+            return;
+        }
+
+        await form.Validate();
+        if (!success) return;
+
+        Stream? stream = null;
+        StreamPart? streamPart = null;
+
+        try
+        {
+            isUploading = true;
+
+            // Cria StreamPart para Refit
+            stream = selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
+            streamPart = new StreamPart(stream, selectedFile.Name, selectedFile.ContentType);
+
+            var result = await DocumentsApi.UploadDocumentAsync(ProviderId, streamPart, documentType);
+
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Documento enviado com sucesso!", Severity.Success);
+                MudDialog?.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                var errorMsg = result.Error?.Message ?? "Erro desconhecido";
+                Snackbar.Add($"Erro ao enviar documento: {errorMsg}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao enviar arquivo: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            stream?.Dispose();
+            isUploading = false;
+        }
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+}

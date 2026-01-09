@@ -1,0 +1,172 @@
+@using MeAjudaAi.Client.Contracts.Api
+@using MeAjudaAi.Shared.Contracts.Contracts.Modules.Locations.DTOs
+@using MudBlazor
+@inject ILocationsApi LocationsApi
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" @bind-IsValid="@isValid">
+            <MudTextField @bind-Value="city"
+                          Label="Cidade"
+                          Required="true"
+                          RequiredError="Nome da cidade é obrigatório"
+                          MaxLength="100" />
+
+            <MudTextField @bind-Value="state"
+                          Label="Estado (UF)"
+                          Required="true"
+                          RequiredError="Estado é obrigatório"
+                          MaxLength="2"
+                          HelperText="Ex: SP, RJ, MG" />
+
+            <MudTextField @bind-Value="country"
+                          Label="País"
+                          Required="true"
+                          RequiredError="País é obrigatório"
+                          MaxLength="50" />
+
+            <MudNumericField @bind-Value="latitude"
+                             Label="Latitude"
+                             Required="true"
+                             RequiredError="Latitude é obrigatória"
+                             Format="F6"
+                             Min="-90"
+                             Max="90"
+                             ErrorText="Latitude deve estar entre -90 e 90"
+                             HelperText="Coordenada geográfica (decimal)" />
+
+            <MudNumericField @bind-Value="longitude"
+                             Label="Longitude"
+                             Required="true"
+                             RequiredError="Longitude é obrigatória"
+                             Format="F6"
+                             Min="-180"
+                             Max="180"
+                             ErrorText="Longitude deve estar entre -180 e 180"
+                             HelperText="Coordenada geográfica (decimal)" />
+
+            <MudNumericField @bind-Value="serviceRadiusKm"
+                             Label="Raio de Atendimento (km)"
+                             Required="true"
+                             RequiredError="Raio de atendimento é obrigatório"
+                             Min="1"
+                             Max="500"
+                             HelperText="Raio em quilômetros para busca de providers" />
+
+            <MudSwitch @bind-Value="isActive"
+                       Label="Cidade Ativa"
+                       Color="Color.Success" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!isValid || isSubmitting)">
+            @if (isSubmitting)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+            }
+            else
+            {
+                <text>Salvar</text>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public Guid CityId { get; set; }
+
+    [Parameter]
+    public string CityName { get; set; } = string.Empty;
+
+    [Parameter]
+    public string State { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Country { get; set; } = string.Empty;
+
+    [Parameter]
+    public double Latitude { get; set; }
+
+    [Parameter]
+    public double Longitude { get; set; }
+
+    [Parameter]
+    public int ServiceRadiusKm { get; set; }
+
+    [Parameter]
+    public bool IsActive { get; set; }
+
+    private MudForm? form;
+    private bool isValid;
+    private bool isSubmitting;
+
+    private string city = string.Empty;
+    private string state = string.Empty;
+    private string country = string.Empty;
+    private double latitude;
+    private double longitude;
+    private int serviceRadiusKm;
+    private bool isActive;
+
+    protected override void OnInitialized()
+    {
+        city = CityName;
+        state = State;
+        country = Country;
+        latitude = Latitude;
+        longitude = Longitude;
+        serviceRadiusKm = ServiceRadiusKm;
+        isActive = IsActive;
+    }
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        if (!isValid || form is null) return;
+
+        isSubmitting = true;
+
+        try
+        {
+            var request = new UpdateAllowedCityRequestDto(
+                city,
+                state.ToUpper(),
+                country,
+                latitude,
+                longitude,
+                serviceRadiusKm,
+                isActive
+            );
+
+            var result = await LocationsApi.UpdateAllowedCityAsync(CityId, request);
+
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Cidade atualizada com sucesso", Severity.Success);
+                MudDialog?.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                Snackbar.Add($"Erro ao atualizar cidade: {result.Error}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro ao atualizar cidade: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+}

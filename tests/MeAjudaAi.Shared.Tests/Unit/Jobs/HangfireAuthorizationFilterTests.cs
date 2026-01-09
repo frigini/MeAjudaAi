@@ -18,13 +18,6 @@ namespace MeAjudaAi.Shared.Tests.Unit.Jobs;
 [Trait("Component", "Hangfire")]
 public class HangfireAuthorizationFilterTests
 {
-    private readonly HangfireAuthorizationFilter _filter;
-
-    public HangfireAuthorizationFilterTests()
-    {
-        _filter = new HangfireAuthorizationFilter();
-    }
-
     private static AspNetCoreDashboardContext CreateDashboardContext(HttpContext? httpContext = null)
     {
         var context = httpContext ?? new DefaultHttpContext();
@@ -50,10 +43,11 @@ public class HangfireAuthorizationFilterTests
     {
         // Arrange
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
+        var filter = new HangfireAuthorizationFilter();
         var context = CreateDashboardContext();
 
         // Act
-        var result = _filter.Authorize(context);
+        var result = filter.Authorize(context);
 
         // Assert
         result.Should().BeTrue("Development environment should allow unrestricted access");
@@ -70,10 +64,11 @@ public class HangfireAuthorizationFilterTests
     {
         // Arrange
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
+        var filter = new HangfireAuthorizationFilter();
         var context = CreateDashboardContext();
 
         // Act
-        var result = _filter.Authorize(context);
+        var result = filter.Authorize(context);
 
         // Assert
         result.Should().BeTrue("Testing environment should allow unrestricted access");
@@ -88,10 +83,11 @@ public class HangfireAuthorizationFilterTests
         // Arrange - Apenas DOTNET_ENVIRONMENT configurado
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
         Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Development");
+        var filter = new HangfireAuthorizationFilter();
         var context = CreateDashboardContext();
 
         // Act
-        var result = _filter.Authorize(context);
+        var result = filter.Authorize(context);
 
         // Assert
         result.Should().BeTrue("Should respect DOTNET_ENVIRONMENT when ASPNETCORE_ENVIRONMENT is not set");
@@ -111,10 +107,11 @@ public class HangfireAuthorizationFilterTests
         
         var principal = new ClaimsPrincipal(identity.Object);
         var httpContext = new DefaultHttpContext { User = principal };
+        var filter = new HangfireAuthorizationFilter();
         var context = CreateDashboardContext(httpContext);
 
         // Act
-        var result = _filter.Authorize(context);
+        var result = filter.Authorize(context);
 
         // Assert
         result.Should().BeFalse("Production requires authentication");
@@ -138,10 +135,11 @@ public class HangfireAuthorizationFilterTests
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
         var httpContext = new DefaultHttpContext { User = principal };
+        var filter = new HangfireAuthorizationFilter();
         var context = CreateDashboardContext(httpContext);
 
         // Act
-        var result = _filter.Authorize(context);
+        var result = filter.Authorize(context);
 
         // Assert
         result.Should().BeFalse("Production requires SystemAdmin role");
@@ -165,10 +163,11 @@ public class HangfireAuthorizationFilterTests
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
         var httpContext = new DefaultHttpContext { User = principal };
+        var filter = new HangfireAuthorizationFilter();
         var context = CreateDashboardContext(httpContext);
 
         // Act
-        var result = _filter.Authorize(context);
+        var result = filter.Authorize(context);
 
         // Assert
         result.Should().BeTrue("SystemAdmin should have access in production");
@@ -182,10 +181,11 @@ public class HangfireAuthorizationFilterTests
     {
         // Arrange
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
+        var filter = new HangfireAuthorizationFilter();
         var context = CreateDashboardContext(null!);
 
         // Act
-        var result = _filter.Authorize(context);
+        var result = filter.Authorize(context);
 
         // Assert
         result.Should().BeFalse("Null HttpContext should deny access in production");
@@ -200,10 +200,11 @@ public class HangfireAuthorizationFilterTests
         // Arrange
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
         var httpContext = new DefaultHttpContext { User = null! };
+        var filter = new HangfireAuthorizationFilter();
         var context = CreateDashboardContext(httpContext);
 
         // Act
-        var result = _filter.Authorize(context);
+        var result = filter.Authorize(context);
 
         // Assert
         result.Should().BeFalse("Null User should deny access in production");
@@ -223,10 +224,11 @@ public class HangfireAuthorizationFilterTests
         identity.Setup(i => i.IsAuthenticated).Returns(false);
         var principal = new ClaimsPrincipal(identity.Object);
         var httpContext = new DefaultHttpContext { User = principal };
+        var filter = new HangfireAuthorizationFilter();
         var context = CreateDashboardContext(httpContext);
 
         // Act
-        var result = _filter.Authorize(context);
+        var result = filter.Authorize(context);
 
         // Assert
         result.Should().BeFalse("Default environment (Production) should require authentication");
@@ -246,10 +248,11 @@ public class HangfireAuthorizationFilterTests
         var principal = new ClaimsPrincipal(identity.Object);
         
         var httpContext = new DefaultHttpContext { User = principal };
+        var filter = new HangfireAuthorizationFilter();
         var context = CreateDashboardContext(httpContext);
 
         // Act
-        var result = _filter.Authorize(context);
+        var result = filter.Authorize(context);
 
         // Assert
         result.Should().BeFalse($"{environment} environment should require authentication like Production");

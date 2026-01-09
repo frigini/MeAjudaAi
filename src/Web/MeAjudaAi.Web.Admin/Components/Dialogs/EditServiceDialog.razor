@@ -1,0 +1,150 @@
+@using Fluxor
+@using MeAjudaAi.Web.Admin.Features.ServiceCatalogs
+@using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs.DTOs
+@inject IState<ServiceCatalogsState> ServiceCatalogsState
+@inject IServiceCatalogsApi ServiceCatalogsApi
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" @bind-IsValid="@success">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudSelect @bind-Value="categoryId" 
+                               Label="Categoria" 
+                               Required="true"
+                               RequiredError="Selecione uma categoria"
+                               Variant="Variant.Outlined">
+                        @foreach (var category in ServiceCatalogsState.Value.Categories.Where(c => c.IsActive || c.Id == CategoryId))
+                        {
+                            <MudSelectItem Value="@category.Id">@category.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="name" 
+                                  Label="Nome do Serviço" 
+                                  Required="true"
+                                  RequiredError="Nome é obrigatório"
+                                  Variant="Variant.Outlined" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="description" 
+                                  Label="Descrição" 
+                                  Lines="3"
+                                  Variant="Variant.Outlined" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudNumericField @bind-Value="displayOrder" 
+                                     Label="Ordem de Exibição" 
+                                     Min="0"
+                                     Variant="Variant.Outlined"
+                                     HelperText="Número para ordenação (menor = aparece primeiro)" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" 
+                   Variant="Variant.Filled" 
+                   OnClick="Submit" 
+                   Disabled="@(!success || isSubmitting)">
+            @if (isSubmitting)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Salvando...</MudText>
+            }
+            else
+            {
+                <MudText>Salvar</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter]
+    public Guid ServiceId { get; set; }
+
+    [Parameter]
+    public string ServiceName { get; set; } = string.Empty;
+
+    [Parameter]
+    public Guid CategoryId { get; set; }
+
+    [Parameter]
+    public string? Description { get; set; }
+
+    [Parameter]
+    public int DisplayOrder { get; set; }
+
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+
+    private MudForm form = null!;
+    private bool success;
+    private bool isSubmitting;
+    private Guid categoryId = Guid.Empty;
+    private string name = string.Empty;
+    private string? description;
+    private int displayOrder = 0;
+
+    protected override void OnInitialized()
+    {
+        name = ServiceName;
+        categoryId = CategoryId;
+        description = Description;
+        displayOrder = DisplayOrder;
+    }
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (!success) return;
+
+        try
+        {
+            isSubmitting = true;
+            StateHasChanged(); // Force UI update to show loading indicator
+
+            var request = new UpdateServiceRequestDto(
+                CategoryId: categoryId,
+                Name: name,
+                Description: description,
+                DisplayOrder: displayOrder
+            );
+
+            var result = await ServiceCatalogsApi.UpdateServiceAsync(ServiceId, request);
+
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Serviço atualizado com sucesso!", Severity.Success);
+                MudDialog?.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                Snackbar.Add($"Erro: {result.Error?.Message ?? "Ocorreu um erro ao atualizar o serviço"}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log exception for diagnostics (consider adding structured logging here)
+            Console.Error.WriteLine($"Error updating service: {ex}");
+            Snackbar.Add("Erro ao comunicar com o servidor. Tente novamente.", Severity.Error);
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged(); // Ensure UI updates after completion or error
+        }
+    }
+}

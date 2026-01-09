@@ -1,41 +1,211 @@
 @page "/documents"
+@using Fluxor
+@using MeAjudaAi.Web.Admin.Features.Documents
+@using MeAjudaAi.Shared.Contracts.Modules.Documents.DTOs
+@inherits Fluxor.Blazor.Web.Components.FluxorComponent
+@inject IState<DocumentsState> DocumentsState
+@inject IDispatcher Dispatcher
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject IDocumentsApi DocumentsApi
 
 <PageTitle>Documents - MeAjudaAi Admin</PageTitle>
 
-<MudText Typo="Typo.h3" Class="mb-4">Documents</MudText>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">
+        <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
+        Gestão de Documentos
+    </MudText>
 
-<MudCard>
-    <MudCardContent>
-        <MudText Typo="Typo.body1">
-            Gerenciamento de documentos dos providers.
-        </MudText>
-        <MudText Typo="Typo.body2" Class="mt-4">
-            Esta página será implementada com:
-        </MudText>
-        <MudStack Spacing="2" Class="mt-2">
-            <MudText>
-                <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Small" Class="mr-2" />
-                Listagem de documentos enviados (RG, CNH, CNPJ, etc.)
-            </MudText>
-            <MudText>
-                <MudIcon Icon="@Icons.Material.Filled.CloudUpload" Size="Size.Small" Class="mr-2" />
-                Upload e processamento via Azure Document Intelligence
-            </MudText>
-            <MudText>
-                <MudIcon Icon="@Icons.Material.Filled.Verified" Size="Size.Small" Class="mr-2" />
-                Validação e aprovação de documentos
-            </MudText>
-            <MudText>
-                <MudIcon Icon="@Icons.Material.Filled.History" Size="Size.Small" Class="mr-2" />
-                Histórico de alterações e versões
-            </MudText>
-        </MudStack>
-    </MudCardContent>
-</MudCard>
+    @if (DocumentsState.Value.HasError)
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => Dispatcher.Dispatch(new DocumentsActions.ClearErrorAction()))">
+            @DocumentsState.Value.ErrorMessage
+        </MudAlert>
+    }
+
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Documentos por Provider</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudButton Color="Color.Info" 
+                           Variant="Variant.Filled" 
+                           StartIcon="@Icons.Material.Filled.FilterList"
+                           OnClick="OpenProviderSelector">
+                    Selecionar Provider
+                </MudButton>
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent>
+            @if (DocumentsState.Value.SelectedProviderId == null)
+            {
+                <MudAlert Severity="Severity.Info">
+                    Selecione um provider para visualizar seus documentos
+                </MudAlert>
+            }
+            else
+            {
+                <MudStack Row="true" Justify="Justify.SpaceBetween" Class="mb-4">
+                    <MudText Typo="Typo.body1">
+                        Provider ID: <b>@DocumentsState.Value.SelectedProviderId.Value</b>
+                    </MudText>
+                    <MudButton Color="Color.Primary" 
+                               Variant="Variant.Filled" 
+                               StartIcon="@Icons.Material.Filled.CloudUpload"
+                               OnClick="OpenUploadDialog">
+                        Upload Documento
+                    </MudButton>
+                </MudStack>
+
+                <MudDataGrid Items="@DocumentsState.Value.Documents"
+                             Dense="true"
+                             Loading="@DocumentsState.Value.IsLoading"
+                             Hover="true">
+                    <Columns>
+                        <PropertyColumn Property="x => x.DocumentType" Title="Tipo" />
+                        <PropertyColumn Property="x => x.FileName" Title="Arquivo" />
+                        <PropertyColumn Property="x => x.Status" Title="Status">
+                            <CellTemplate>
+                                @{
+                                    var color = context.Item.Status switch
+                                    {
+                                        "Verified" => Color.Success,
+                                        "Rejected" => Color.Error,
+                                        "PendingVerification" => Color.Warning,
+                                        "Uploaded" => Color.Info,
+                                        _ => Color.Default
+                                    };
+                                }
+                                <MudChip Size="Size.Small" Color="@color">@context.Item.Status</MudChip>
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn Property="x => x.UploadedAt" Title="Upload" Format="dd/MM/yyyy HH:mm" />
+                        <PropertyColumn Property="x => x.VerifiedAt" Title="Verificação">
+                            <CellTemplate>
+                                @(context.Item.VerifiedAt?.ToString("dd/MM/yyyy HH:mm") ?? "-")
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <TemplateColumn Title="Ações" Sortable="false">
+                            <CellTemplate>
+                                <MudIconButton Icon="@Icons.Material.Filled.Visibility" 
+                                               Color="Color.Info" 
+                                               Size="Size.Small"
+                                               Title="Visualizar"
+                                               Href="@context.Item.FileUrl"
+                                               Target="_blank" />
+                                
+                                @if (context.Item.Status == "Uploaded" || context.Item.Status == "PendingVerification")
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Filled.VerifiedUser" 
+                                                   Color="Color.Success" 
+                                                   Size="Size.Small"
+                                                   Title="Solicitar Verificação"
+                                                   OnClick="@(() => RequestVerification(context.Item.Id))" />
+                                }
+                                
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                               Color="Color.Error" 
+                                               Size="Size.Small"
+                                               Title="Excluir"
+                                               OnClick="@(() => DeleteDocument(context.Item.Id))" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <NoRecordsContent>
+                        <MudText>Nenhum documento encontrado para este provider</MudText>
+                    </NoRecordsContent>
+                </MudDataGrid>
+            }
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
 
 @code {
-    // Integração com módulo Documents
-    // - DocumentsState (lista, filtros por tipo/status)
-    // - DocumentsActions (upload, aprovar, rejeitar)
-    // - DocumentsEffects (API calls + Azure storage)
+    private async Task OpenProviderSelector()
+    {
+        var parameters = new DialogParameters();
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<ProviderSelectorDialog>("Selecionar Provider", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is Guid providerId)
+        {
+            Dispatcher.Dispatch(new DocumentsActions.LoadDocumentsAction(providerId));
+        }
+    }
+
+    private async Task OpenUploadDialog()
+    {
+        if (DocumentsState.Value.SelectedProviderId == null)
+        {
+            Snackbar.Add("Selecione um provider primeiro", Severity.Warning);
+            return;
+        }
+
+        var parameters = new DialogParameters
+        {
+            ["ProviderId"] = DocumentsState.Value.SelectedProviderId.Value
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<UploadDocumentDialog>("Upload de Documento", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            // Recarrega documentos após upload
+            Dispatcher.Dispatch(new DocumentsActions.LoadDocumentsAction(DocumentsState.Value.SelectedProviderId.Value));
+        }
+    }
+
+    private async Task RequestVerification(Guid documentId)
+    {
+        if (DocumentsState.Value.SelectedProviderId == null) return;
+
+        var result = await DocumentsApi.RequestDocumentVerificationAsync(
+            DocumentsState.Value.SelectedProviderId.Value, 
+            documentId);
+
+        if (result.IsSuccess)
+        {
+            Snackbar.Add("Verificação solicitada com sucesso", Severity.Success);
+            Dispatcher.Dispatch(new DocumentsActions.UpdateDocumentStatusAction(documentId, "PendingVerification"));
+        }
+        else
+        {
+            var errorMessage = result.Error?.Message ?? "Erro ao solicitar verificação";
+            Snackbar.Add($"Erro: {errorMessage}", Severity.Error);
+        }
+    }
+
+    private async Task DeleteDocument(Guid documentId)
+    {
+        if (DocumentsState.Value.SelectedProviderId == null) return;
+
+        bool? confirm = await DialogService.ShowMessageBox(
+            "Confirmar Exclusão",
+            "Tem certeza que deseja excluir este documento? Esta ação não pode ser desfeita.",
+            yesText: "Excluir", cancelText: "Cancelar");
+
+        if (confirm != true) return;
+
+        var result = await DocumentsApi.DeleteDocumentAsync(
+            DocumentsState.Value.SelectedProviderId.Value,
+            documentId);
+
+        if (result.IsSuccess)
+        {
+            Snackbar.Add("Documento excluído com sucesso", Severity.Success);
+            Dispatcher.Dispatch(new DocumentsActions.RemoveDocumentAction(documentId));
+        }
+        else
+        {
+            var errorMessage = result.Error?.Message ?? "Erro ao excluir documento";
+            Snackbar.Add($"Erro: {errorMessage}", Severity.Error);
+        }
+    }
 }
+

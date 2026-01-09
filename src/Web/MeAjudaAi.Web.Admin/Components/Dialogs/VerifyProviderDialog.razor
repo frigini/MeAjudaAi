@@ -1,0 +1,99 @@
+@using MudBlazor
+@using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs
+@inject IProvidersApi ProvidersApi
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" @bind-IsValid="@success">
+            <MudSelect @bind-Value="selectedStatus" Label="Status de Verificação" Required="true" Variant="Variant.Outlined">
+                <MudSelectItem Value="@VerificationStatuses.Verified">Verificado</MudSelectItem>
+                <MudSelectItem Value="@VerificationStatuses.Rejected">Rejeitado</MudSelectItem>
+                <MudSelectItem Value="@VerificationStatuses.Pending">Pendente</MudSelectItem>
+            </MudSelect>
+            
+            <MudTextField @bind-Value="notes" Label="Observações (opcional)" Lines="3" Variant="Variant.Outlined" Class="mt-4" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" Disabled="@(!success || isSubmitting)">
+            @if (isSubmitting)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Atualizando...</MudText>
+            }
+            else
+            {
+                <MudText>Atualizar Status</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private static class VerificationStatuses
+    {
+        public const string Verified = "Verified";
+        public const string Rejected = "Rejected";
+        public const string Pending = "Pending";
+    }
+
+    [Parameter] public Guid ProviderId { get; set; }
+    [CascadingParameter] private IMudDialogInstance? DialogInstance { get; set; }
+
+    private MudForm form = null!;
+    private bool success;
+    private bool isSubmitting;
+    private string selectedStatus = VerificationStatuses.Pending; // Default to Pending for safer UX
+    private string? notes;
+
+    private void Cancel()
+    {
+        DialogInstance?.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+
+        if (!success)
+        {
+            return;
+        }
+
+        try
+        {
+            isSubmitting = true;
+            StateHasChanged(); // Force UI update to show loading indicator
+            
+            var request = new UpdateVerificationStatusRequestDto(
+                VerificationStatus: selectedStatus,
+                Reason: notes
+            );
+
+            var result = await ProvidersApi.UpdateVerificationStatusAsync(ProviderId, request);
+            
+            if (result.IsSuccess)
+            {
+                Snackbar.Add("Status de verificação atualizado com sucesso!", Severity.Success);
+                DialogInstance?.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                Snackbar.Add($"Erro ao atualizar status: {result.Error?.Message ?? "Erro desconhecido ao atualizar status"}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log exception for diagnostics (consider adding structured logging here)
+            Console.Error.WriteLine($"Error updating verification status: {ex}");
+            Snackbar.Add("Erro inesperado ao atualizar status. Tente novamente.", Severity.Error);
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged(); // Ensure UI updates after completion or error
+        }
+    }
+}
