@@ -79,7 +79,7 @@
       },
       "MudBlazor": {
         "type": "Direct",
-        "requested": "[7.21.0, )",
+        "requested": "[8.0.0, )",
         "resolved": "8.0.0",
         "contentHash": "itY10dugofdvLYnJ1VZSzUIiKVqNvnTz4eEMYlHUdrOfsk9xShj7k1EW5H6ssMmkbQzShlLBHlUt+VPFGoEJGw==",
         "dependencies": {
