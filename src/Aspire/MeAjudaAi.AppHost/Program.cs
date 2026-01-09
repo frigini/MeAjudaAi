@@ -8,6 +8,10 @@ internal static class Program
 {
     public static void Main(string[] args)
     {
+        // Configurar caminhos do Aspire para pacotes NuGet locais
+        // Workaround para: https://github.com/dotnet/aspire/issues/6789
+        ConfigureAspireLocalPackages();
+        
         var builder = DistributedApplication.CreateBuilder(args);
 
         var isTestingEnv = EnvironmentHelpers.IsTesting(builder);
@@ -212,5 +216,48 @@ internal static class Program
             .WithReference(keycloak.Keycloak)
             .WaitFor(keycloak.Keycloak)
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
+    }
+
+    /// <summary>
+    /// Configura caminhos do DCP e Dashboard quando usando pacotes NuGet locais.
+    /// Workaround para: https://github.com/dotnet/aspire/issues/6789
+    /// </summary>
+    private static void ConfigureAspireLocalPackages()
+    {
+        // Detectar diretório da solução
+        var baseDir = AppContext.BaseDirectory; // .../src/Aspire/MeAjudaAi.AppHost/bin/Debug/net10.0/
+        var solutionRoot = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", ".."));
+        var packagesDir = Path.Combine(solutionRoot, "packages");
+
+        if (!Directory.Exists(packagesDir))
+        {
+            // Não usando pacotes locais, skip
+            return;
+        }
+
+        const string aspireVersion = "13.1.0";
+
+        var dcpPath = Path.Combine(packagesDir, "aspire.hosting.orchestration.win-x64", aspireVersion, "tools", "dcp.exe");
+        var dashboardDir = Path.Combine(packagesDir, "aspire.dashboard.sdk.win-x64", aspireVersion, "tools");
+        var dashboardPath = Path.Combine(dashboardDir, "Aspire.Dashboard.exe");
+
+        if (File.Exists(dcpPath) && File.Exists(dashboardPath))
+        {
+            // Configurar variáveis de ambiente que o Aspire usa
+            Environment.SetEnvironmentVariable("DCP_CLI_PATH", dcpPath);
+            Environment.SetEnvironmentVariable("DOTNET_ASPIRE_DASHBOARD_PATH", dashboardDir);
+            
+            Console.WriteLine("✅ Aspire local packages configured:");
+            Console.WriteLine($"   DCP: {dcpPath}");
+            Console.WriteLine($"   Dashboard: {dashboardPath}");
+        }
+        else
+        {
+            Console.WriteLine("⚠️  Warning: Aspire binaries not found in local packages");
+            if (!File.Exists(dcpPath))
+                Console.WriteLine($"   Missing: {dcpPath}");
+            if (!File.Exists(dashboardPath))
+                Console.WriteLine($"   Missing: {dashboardPath}");
+        }
     }
 }
