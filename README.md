@@ -2,7 +2,7 @@
 
 Uma plataforma abrangente de serviços construída com .NET Aspire, projetada para conectar prestadores de serviços com clientes usando arquitetura monólito modular.
 
-<!-- Last updated: January 5, 2026 - Sprint 6 COMPLETED (Blazor Admin Portal Setup) / Sprint 7 Planning -->
+<!-- Last updated: January 9, 2026 - Sprint 7.5 COMPLETED (0 warnings, automação, Aspire fix) -->
 
 ## 🎯 Visão Geral
 
@@ -19,10 +19,13 @@ O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implem
 ### 🚀 Tecnologias Principais
 
 - **.NET 10** - Framework principal
-- **.NET Aspire 13** - Orquestração e observabilidade
+- **.NET Aspire 13.1** - Orquestração e observabilidade
+- **Blazor WASM** - Admin Portal SPA
+- **MudBlazor 8.0** - Material Design UI components
+- **Fluxor 6.9** - Redux state management
 - **Entity Framework Core 10** - ORM e persistência
 - **PostgreSQL** - Banco de dados principal
-- **Keycloak** - Autenticação e autorização
+- **Keycloak** - Autenticação OAuth2/OIDC
 - **Redis** - Cache distribuído
 - **RabbitMQ/Azure Service Bus** - Messaging
 - **Docker** - Containerização
@@ -294,56 +297,66 @@ MeAjudaAi/
 
 ---
 
-## 🎨 Admin Portal (NEW - Sprint 6)
+## 🎨 Admin Portal (Sprint 6 + 7)
 
 ### Blazor WebAssembly + Fluxor + MudBlazor
 
-Portal administrativo moderno para gestão da plataforma MeAjudaAi.
+Portal administrativo moderno para gestão completa da plataforma MeAjudaAi.
 
 **Stack Tecnológica:**
 - **Blazor WebAssembly**: .NET 10 SPA client-side
-- **MudBlazor 7.21.0**: Material Design UI components
-- **Fluxor 6.1.0**: Redux-pattern state management
+- **MudBlazor 8.0.0**: Material Design UI components
+- **Fluxor 6.9.0**: Redux-pattern state management
 - **Refit 9.0.2**: Type-safe HTTP clients
 - **Keycloak OIDC**: Authentication via Authorization Code flow
 
-**Funcionalidades Implementadas (Sprint 6):**
-- ✅ **Autenticação**: Login/Logout via Keycloak OIDC
-- ✅ **Dashboard**: 3 KPIs (Total Providers, Pending Verifications, Active Services)
-- ✅ **Providers Management**: Listagem paginada (read-only)
+**Funcionalidades Implementadas:**
+- ✅ **Autenticação**: Login/Logout via Keycloak OIDC (Sprint 6)
+- ✅ **Dashboard**: KPIs + Charts com MudBlazor (Sprints 6-7)
+- ✅ **Providers**: CRUD completo (Create, Update, Delete, Verify) - Sprint 7
+- ✅ **Documents**: Upload, verificação, gestão - Sprint 7
+- ✅ **Service Catalogs**: CRUD de categorias e serviços - Sprint 7
+- ✅ **Geographic Restrictions**: Gestão de cidades permitidas - Sprint 7
 - ✅ **Dark Mode**: Toggle com Fluxor state management
 - ✅ **Portuguese Localization**: UI completa em português
+- ✅ **30 testes bUnit**: Cobertura de componentes principais
 
 **Como Executar:**
 
 ```powershell
 # Via Aspire AppHost (recomendado)
+.\scripts\dev.ps1
+
+# OU diretamente
 cd src/Aspire/MeAjudaAi.AppHost
 dotnet run
 
-# Acessar: https://localhost:7281
-# Login: admin.portal / admin123 (após criar client no Keycloak)
+# Acessar Admin Portal via Aspire Dashboard
+# https://localhost:17063 -> Resources -> admin-portal
 ```
 
 **Configuração Keycloak:**
 
-Siga o guia completo em [docs/keycloak-admin-portal-setup.md](docs/keycloak-admin-portal-setup.md) para criar o client `admin-portal` no realm `meajudaai`.
+⚠️ Necessário criar client `admin-portal` no Keycloak (uma vez apenas).
+
+👉 Siga: [docs/keycloak-admin-portal-setup.md](docs/keycloak-admin-portal-setup.md)
 
 **Testes:**
 
 ```powershell
 # Executar testes bUnit
-dotnet test tests/MeAjudaAi.Web.Admin.Tests
+dotnet test src/Web/MeAjudaAi.Web.Admin.Tests
 
-# 10 testes: ProvidersPage, Dashboard, DarkMode
+# 30 testes: Providers, Documents, Categories, Services, AllowedCities, Dashboard
 ```
 
 **Estrutura:**
 
 ```text
 src/Web/MeAjudaAi.Web.Admin/
-├── Pages/                # Razor pages (Dashboard, Providers, Authentication)
-├── Features/             # Fluxor stores (Providers, Dashboard, Theme)
+├── Pages/                # Razor pages (Dashboard, Providers, Documents, Categories, Services, AllowedCities)
+├── Features/             # Fluxor stores (state management por feature)
+├── Components/           # Dialogs e componentes reutilizáveis
 ├── Layout/               # MainLayout, NavMenu
 └── wwwroot/              # appsettings.json, static assets
 

@@ -3,9 +3,10 @@
     <!-- Configuração manual dos caminhos do Aspire quando usando pacotes NuGet locais -->
     <!-- Workaround para: https://github.com/dotnet/aspire/issues/6789 -->
     
-    <!-- Detectar diretório raiz da solução (3 níveis acima) -->
-    <SolutionDir Condition=" '$(SolutionDir)' == '' ">$([MSBuild]::NormalizeDirectory($(MSBuildProjectDirectory), '..', '..', '..'))</SolutionDir>
-    <PackagesRoot>$([MSBuild]::NormalizeDirectory($(SolutionDir), 'packages'))</PackagesRoot>
+    <!-- Detectar diretório raiz da solução (3 níveis acima do projeto AppHost) -->
+    <!-- MSBuildProjectDirectory = .../src/Aspire/MeAjudaAi.AppHost -->
+    <SolutionRoot>$([MSBuild]::NormalizeDirectory($(MSBuildProjectDirectory), '..', '..', '..'))</SolutionRoot>
+    <PackagesRoot>$([MSBuild]::NormalizeDirectory($(SolutionRoot), 'packages'))</PackagesRoot>
     
     <!-- Versão do Aspire (sincronizada com global.json) -->
     <AspireVersion>13.1.0</AspireVersion>
@@ -25,10 +26,10 @@
   
   <Target Name="ValidateAspirePaths" BeforeTargets="Build">
     <Message Text="Aspire Paths Configuration:" Importance="high" />
+    <Message Text="  SolutionRoot: $(SolutionRoot)" Importance="high" />
+    <Message Text="  PackagesRoot: $(PackagesRoot)" Importance="high" />
     <Message Text="  DcpCliPath: $(DcpCliPath)" Importance="high" />
     <Message Text="  AspireDashboardPath: $(AspireDashboardPath)" Importance="high" />
-    <Message Text="  CliPath: $(CliPath)" Importance="high" />
-    <Message Text="  DashboardPath: $(DashboardPath)" Importance="high" />
     <Error Condition="!Exists('$(DcpCliPath)')" Text="DCP executable not found at: $(DcpCliPath)" />
     <Error Condition="!Exists('$(AspireDashboardPath)')" Text="Aspire Dashboard not found at: $(AspireDashboardPath)" />
   </Target>

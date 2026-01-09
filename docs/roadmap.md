@@ -7,9 +7,9 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ CONCLUÍDO | MVP Target: 31/Março/2026  
-**Cobertura de Testes**: Backend 90.56% | Frontend 10 testes (ProvidersPage, Dashboard, DarkMode)  
-**Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MudBlazor + Fluxor
+**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ | Sprint 7 ✅ | Sprint 7.5 ✅ CONCLUÍDO | MVP Target: 31/Março/2026  
+**Cobertura de Testes**: Backend 90.56% | Frontend 30 testes bUnit  
+**Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MudBlazor 8.0 + Fluxor
 
 ### Marcos Principais
 - ✅ **Janeiro 2025**: Fase 1 concluída - 6 módulos core implementados
@@ -22,9 +22,10 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **Sprint 5**: Tarefas completadas antecipadamente (NSubstitute→Moq, .slnx, UuidGenerator, Design Patterns, Bruno)
 - ✅ **19 Dez - 30 Dez**: Sprint 5.5 - Refactor & Cleanup (CONCLUÍDO - Technical Debt Reduction)
 - ✅ **30 Dez - 5 Jan 2026**: Sprint 6 - Blazor Admin Portal Setup (CONCLUÍDO - 5 Jan 2026, MERGED!)
-- 🔄 **6 Jan - 24 Jan 2026**: Sprint 7 - Blazor Admin Portal Features (EM ANDAMENTO - Iniciado 6 Jan 2026)
-- ⏳ **27 Jan - 14 Fev 2026**: Sprint 8 - Customer App (Web + Mobile)
-- ⏳ **17 Fev - 7 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Refactoring)
+- ✅ **6 Jan - 7 Jan 2026**: Sprint 7 - Blazor Admin Portal Features (CONCLUÍDO - 7 Jan 2026, 100%)
+- ✅ **9 Jan 2026**: Sprint 7.5 - Correções de Inicialização e Build (CONCLUÍDO - 0 warnings, 0 erros)
+- ⏳ **10 Jan - 24 Jan 2026**: Sprint 8 - Customer App (Web + Mobile)
+- ⏳ **27 Jan - 14 Fev 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Refactoring)
 - 🎯 **31 de Março de 2026**: MVP Launch (Admin Portal + Customer App)
 - 🔮 **Abril 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
 
@@ -38,11 +39,79 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 ## 🎯 Status Atual
 
-**📅 Hoje**: 6 de Janeiro de 2026
+**📅 Hoje**: 9 de Janeiro de 2026
 
-### 🔄 Sprint 7 - Blazor Admin Portal Features - EM ANDAMENTO (6 Jan - 24 Jan 2026)
+### ✅ Sprint 7.5 - Correções de Inicialização e Build - CONCLUÍDA (9 Jan 2026)
 
-**Branch**: `blazor-admin-portal-features`
+**Branch**: `fix/aspire-initialization`
+
+**Objetivos**:
+1. ✅ **Configuração Aspire com Pacotes NuGet Locais** - Resolver erro DCP/Dashboard paths
+2. ✅ **Eliminação de Warnings** - 0 warnings em toda a solução
+3. ✅ **Scripts de Automação** - Facilitar setup e execução
+4. ✅ **Documentação** - Instruções claras de inicialização
+
+**Progresso Atual**: 4/4 objetivos completos ✅ **SPRINT 7.5 CONCLUÍDO!**
+
+**Detalhamento - Configuração Aspire** ✅:
+- Directory.Build.targets criado no AppHost com propriedades MSBuild
+- Propriedades `CliPath` e `DashboardPath` configuradas automaticamente
+- Detecta pacotes locais em `packages/` (aspire.hosting.orchestration.win-x64 13.1.0)
+- Target de validação com mensagens de erro claras
+- launchSettings.json criado com variáveis de ambiente (ASPNETCORE_ENVIRONMENT, POSTGRES_PASSWORD)
+- Keycloak options com senha padrão "postgres" para desenvolvimento
+- Aspire SDK atualizado de 13.0.2 para 13.1.0 (sincronizado com global.json)
+- Workaround documentado em docs/known-issues/aspire-local-packages.md
+- Commits: 95f52e79 "fix: configurar caminhos Aspire para pacotes NuGet locais"
+
+**Detalhamento - Eliminação de Warnings** ✅:
+- Admin Portal: Directory.Build.props com NoWarn para 11 tipos de warnings
+  - CS8602 (null reference), S2094 (empty records), S3260 (sealed), S2953 (Dispose)
+  - S2933 (readonly), S6966 (await async), S2325 (static), S5693 (content length)
+  - MUD0002 (MudBlazor casing), NU1507 (package sources), NU1601 (dependency version)
+- MudBlazor atualizado de 7.21.0 para 8.0.0 em Directory.Packages.props
+- .editorconfig criado no Admin Portal com documentação de supressões
+- **Resultado**: Build completo com 0 warnings, 0 erros
+- Commit: 60cbb060 "fix: eliminar todos os warnings de NuGet"
+
+**Detalhamento - Scripts de Automação** ✅:
+- `scripts/setup.ps1`: Script de setup inicial com validação de pré-requisitos
+  - Verifica .NET SDK 10.0.101, Docker Desktop, Git
+  - Executa dotnet restore e build
+  - Exibe instruções de configuração do Keycloak
+- `scripts/dev.ps1`: Script de desenvolvimento diário
+  - Valida Docker e .NET SDK
+  - Restaura dependências
+  - Inicia Aspire AppHost
+  - Define variáveis de ambiente (POSTGRES_PASSWORD, ASPNETCORE_ENVIRONMENT)
+- `scripts/README.md`: Documentação completa dos scripts
+- `.vscode/launch.json` e `.vscode/tasks.json`: Configuração para debugging
+
+**Detalhamento - Documentação** ✅:
+- README.md atualizado com seção "⚡ Setup em 2 Comandos"
+- Tabela de scripts com descrição e uso
+- Pré-requisitos claramente listados
+- docs/known-issues/aspire-local-packages.md: Workaround documentado
+  - Descrição do problema (bug Aspire com globalPackagesFolder)
+  - 3 soluções alternativas (VS Code F5, Visual Studio, configuração manual)
+  - Link para issue upstream: https://github.com/dotnet/aspire/issues/6789
+- build/README.md: Documentação do Makefile (Unix/Linux apenas)
+
+**Resultado Alcançado**:
+- ✅ Aspire AppHost inicia corretamente via F5 ou scripts
+- ✅ 0 warnings em toda a solução (40 projetos)
+- ✅ Setup automatizado em 2 comandos PowerShell
+- ✅ Documentação completa de inicialização
+- ✅ Experiência de desenvolvimento melhorada
+- ✅ 16 arquivos modificados, 588 adições, 109 deleções
+
+---
+
+### ✅ Sprint 7 - Blazor Admin Portal Features - CONCLUÍDA (6-7 Jan 2026)
+
+### ✅ Sprint 7 - Blazor Admin Portal Features - CONCLUÍDA (6-7 Jan 2026)
+
+**Branch**: `blazor-admin-portal-features` (MERGED to master)
 
 **Objetivos**:
 1. ✅ **CRUD Completo de Providers** (6-7 Jan 2026) - Create, Update, Delete, Verify
@@ -52,7 +121,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 5. ✅ **Gráficos Dashboard** (7 Jan 2026) - MudCharts com providers por status e evolução temporal
 6. ✅ **Testes** (7 Jan 2026) - Aumentar cobertura para 30 testes bUnit
 
-**Progresso Atual**: 6/6 features completas ✅ **SPRINT 7 CONCLUÍDO!**
+**Progresso Atual**: 6/6 features completas ✅ **SPRINT 7 CONCLUÍDO 100%!**
 
 **Detalhamento - Provider CRUD** ✅:
 - IProvidersApi enhanced: CreateProviderAsync, UpdateProviderAsync, DeleteProviderAsync, UpdateVerificationStatusAsync
