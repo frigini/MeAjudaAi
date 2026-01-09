@@ -192,8 +192,8 @@
       },
       "Aspire.Dashboard.Sdk.win-x64": {
         "type": "Transitive",
-        "resolved": "13.0.2",
-        "contentHash": "nJaYqX5BvVZC11s1eeBgp200q6s2P9iTjURu5agdBwnDtKLM9rkGOGKpwApUr7LuiAKQO5Zx9Zfk5zfZqg4vUg=="
+        "resolved": "13.1.0",
+        "contentHash": "rrcsI8cankYCiUlj4Ev+os9uKcutUCv+9kvHQt85RiUX/ewXsloFZy0/depKWrzdJkdJuoTbYFRlSe43TKq6aQ=="
       },
       "Aspire.Hosting": {
         "type": "Transitive",
@@ -422,8 +422,8 @@
       },
       "Aspire.Hosting.Orchestration.win-x64": {
         "type": "Transitive",
-        "resolved": "13.0.2",
-        "contentHash": "bHQavGeVzPJYhR+0hlZtG/RN+Fxa/TpNZDvbgbVjGTw0zNqzcZFI+LkeLzM6T7RXHs3pjyDQUYFU4Y4h1mPzLw=="
+        "resolved": "13.1.0",
+        "contentHash": "3w2UahEauTq719LPJ/BCySh31kz26sfjuOkRF5E4VYy1Q3xLRV43+OIGI3C5sy8feUHjrYz+DDq3DQn/2fu+4g=="
       },
       "AspNetCore.HealthChecks.Rabbitmq": {
         "type": "Transitive",
@@ -2616,13 +2616,13 @@
       "meajudaai.apphost": {
         "type": "Project",
         "dependencies": {
-          "Aspire.Dashboard.Sdk.win-x64": "[13.0.2, )",
-          "Aspire.Hosting.AppHost": "[13.0.2, )",
+          "Aspire.Dashboard.Sdk.win-x64": "[13.1.0, )",
+          "Aspire.Hosting.AppHost": "[13.1.0, )",
           "Aspire.Hosting.Azure.AppContainers": "[13.1.0, )",
           "Aspire.Hosting.Azure.PostgreSQL": "[13.1.0, )",
           "Aspire.Hosting.Azure.ServiceBus": "[13.1.0, )",
           "Aspire.Hosting.Keycloak": "[13.0.2-preview.1.25603.5, )",
-          "Aspire.Hosting.Orchestration.win-x64": "[13.0.2, )",
+          "Aspire.Hosting.Orchestration.win-x64": "[13.1.0, )",
           "Aspire.Hosting.PostgreSQL": "[13.1.0, )",
           "Aspire.Hosting.RabbitMQ": "[13.1.0, )",
           "Aspire.Hosting.Redis": "[13.1.0, )",

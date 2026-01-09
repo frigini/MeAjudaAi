@@ -43,11 +43,11 @@ public sealed class MeAjudaAiKeycloakOptions
     public string DatabaseUsername { get; set; } = "postgres";
 
     /// <summary>
-    /// Senha do banco de dados PostgreSQL (OBRIGATÓRIO - configurar via variável de ambiente POSTGRES_PASSWORD)
+    /// Senha do banco de dados PostgreSQL (padrão: "postgres" para desenvolvimento)
+    /// Configurar via variável de ambiente POSTGRES_PASSWORD para produção
     /// </summary>
     public string DatabasePassword { get; set; } =
-        Environment.GetEnvironmentVariable("POSTGRES_PASSWORD")
-        ?? throw new InvalidOperationException("POSTGRES_PASSWORD environment variable must be set for Keycloak database configuration");
+        Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "postgres";
 
     /// <summary>
     /// Hostname para URLs de produção (ex: keycloak.mydomain.com)

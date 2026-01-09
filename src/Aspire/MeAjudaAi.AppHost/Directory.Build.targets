@@ -1,0 +1,35 @@
+<Project>
+  <PropertyGroup>
+    <!-- Configuração manual dos caminhos do Aspire quando usando pacotes NuGet locais -->
+    <!-- Workaround para: https://github.com/dotnet/aspire/issues/6789 -->
+    
+    <!-- Detectar diretório raiz da solução (3 níveis acima) -->
+    <SolutionDir Condition=" '$(SolutionDir)' == '' ">$([MSBuild]::NormalizeDirectory($(MSBuildProjectDirectory), '..', '..', '..'))</SolutionDir>
+    <PackagesRoot>$([MSBuild]::NormalizeDirectory($(SolutionDir), 'packages'))</PackagesRoot>
+    
+    <!-- Versão do Aspire (sincronizada com global.json) -->
+    <AspireVersion>13.1.0</AspireVersion>
+    
+    <!-- DCP (Distributed Control Plane) -->
+    <DcpDir>$([MSBuild]::NormalizeDirectory($(PackagesRoot), 'aspire.hosting.orchestration.win-x64', $(AspireVersion), 'tools'))</DcpDir>
+    <DcpCliPath>$([MSBuild]::NormalizePath($(DcpDir), 'dcp.exe'))</DcpCliPath>
+    
+    <!-- Aspire Dashboard -->
+    <AspireDashboardDir>$([MSBuild]::NormalizeDirectory($(PackagesRoot), 'aspire.dashboard.sdk.win-x64', $(AspireVersion), 'tools'))</AspireDashboardDir>
+    <AspireDashboardPath>$([MSBuild]::NormalizePath($(AspireDashboardDir), 'Aspire.Dashboard.exe'))</AspireDashboardPath>
+    
+    <!-- Propriedades que o Aspire.Hosting valida (sem prefixo Aspire/Dcp) -->
+    <CliPath>$(DcpCliPath)</CliPath>
+    <DashboardPath>$(AspireDashboardDir)</DashboardPath>
+  </PropertyGroup>
+  
+  <Target Name="ValidateAspirePaths" BeforeTargets="Build">
+    <Message Text="Aspire Paths Configuration:" Importance="high" />
+    <Message Text="  DcpCliPath: $(DcpCliPath)" Importance="high" />
+    <Message Text="  AspireDashboardPath: $(AspireDashboardPath)" Importance="high" />
+    <Message Text="  CliPath: $(CliPath)" Importance="high" />
+    <Message Text="  DashboardPath: $(DashboardPath)" Importance="high" />
+    <Error Condition="!Exists('$(DcpCliPath)')" Text="DCP executable not found at: $(DcpCliPath)" />
+    <Error Condition="!Exists('$(AspireDashboardPath)')" Text="Aspire Dashboard not found at: $(AspireDashboardPath)" />
+  </Target>
+</Project>

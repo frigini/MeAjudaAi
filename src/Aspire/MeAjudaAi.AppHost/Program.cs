@@ -12,16 +12,23 @@ internal static class Program
 
         var isTestingEnv = EnvironmentHelpers.IsTesting(builder);
 
+        // Log ambiente detectado para debug
+        var detectedEnv = EnvironmentHelpers.GetEnvironmentName(builder);
+        Console.WriteLine($"🔍 Ambiente detectado: '{detectedEnv}' (IsTesting: {isTestingEnv}, IsDevelopment: {EnvironmentHelpers.IsDevelopment(builder)}, IsProduction: {EnvironmentHelpers.IsProduction(builder)})");
+
         if (isTestingEnv)
         {
+            Console.WriteLine("⚙️  Configurando ambiente de TESTES");
             ConfigureTestingEnvironment(builder);
         }
         else if (EnvironmentHelpers.IsDevelopment(builder))
         {
+            Console.WriteLine("⚙️  Configurando ambiente de DESENVOLVIMENTO");
             ConfigureDevelopmentEnvironment(builder);
         }
         else if (EnvironmentHelpers.IsProduction(builder))
         {
+            Console.WriteLine("⚙️  Configurando ambiente de PRODUÇÃO");
             ConfigureProductionEnvironment(builder);
         }
         else

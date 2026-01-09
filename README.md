@@ -107,24 +107,57 @@ O projeto foi organizado para facilitar navegação e manutenção:
 
 ## 🚀 Início Rápido
 
-### Para Desenvolvedores
+### ⚡ Setup em 2 Comandos (Primeira Vez)
 
-Para instruções detalhadas, consulte o [**Guia de Desenvolvimento Completo**](./docs/development.md).
-
-**Setup via .NET Aspire:**
 ```powershell
-# Execute o AppHost do Aspire
-cd src/Aspire/MeAjudaAi.AppHost
-dotnet run
+# 1. Setup inicial (verificar dependências + build)
+.\scripts\setup.ps1
+
+# 2. Iniciar desenvolvimento
+.\scripts\dev.ps1
 ```
 
-**Ou via Docker Compose:**
+**Pronto!** 🎉 Acesse:
+- **Aspire Dashboard**: https://localhost:17063
+- **Admin Portal**: Veja no dashboard (tab Resources)
+- **API Swagger**: https://localhost:7524/swagger
+- **Keycloak**: http://localhost:8080 (admin/admin)
+
+---
+
+### 🔄 Uso Diário
+
 ```powershell
-cd infrastructure/compose
-docker compose -f environments/development.yml up -d
+# Iniciar desenvolvimento
+.\scripts\dev.ps1
+
+# OU usar Make (se tiver Make instalado)
+make dev
+
+# Executar testes
+dotnet test
+
+# Ver comandos disponíveis
+make help
 ```
 
-### Para Testes
+### 📝 Configuração Necessária (Uma Vez)
+
+⚠️ **Keycloak Client**: O Admin Portal Blazor precisa de configuração manual no Keycloak.
+
+👉 Siga: [docs/keycloak-admin-portal-setup.md](docs/keycloak-admin-portal-setup.md)
+
+---
+
+### 📖 Documentação Completa
+
+- [**Guia de Desenvolvimento**](docs/development.md) - Setup detalhado e workflows
+- [**Arquitetura**](docs/architecture.md) - Design e padrões do sistema
+- [**Documentação Online**](https://frigini.github.io/MeAjudaAi/) - GitHub Pages
+
+---
+
+### 🧪 Para Testes
 
 ```powershell
 # Todos os testes
@@ -132,60 +165,45 @@ dotnet test
 
 # Com relatório de cobertura
 dotnet test --collect:"XPlat Code Coverage"
-```
 
-📖 **[Guia Completo de Desenvolvimento](docs/development.md)**
+# Testes rápidos (make)
+make test
+```
 
 ### Pré-requisitos
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop)
-- [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli) (para deploy em produção)
-- [Git](https://git-scm.com/) para controle de versão
+| Ferramenta | Versão | Link |
+|------------|--------|------|
+| **.NET SDK** | 10.0+ | [Download](https://dotnet.microsoft.com/download/dotnet/10.0) |
+| **Docker Desktop** | Latest | [Download](https://www.docker.com/products/docker-desktop) |
+| **Git** | Latest | [Download](https://git-scm.com/) |
+| Azure CLI (opcional) | Latest | Para deploy em produção |
 
-### ⚙️ Configuração de Ambiente
+✅ **Verificar instalação**: Execute `.\scripts\setup.ps1` que valida tudo automaticamente.
 
-**Para deployments não-desenvolvimento:** Configure as variáveis de ambiente necessárias copiando `infrastructure/.env.example` para `infrastructure/.env` e definindo valores seguros. As seguintes variáveis são obrigatórias:
-- `POSTGRES_PASSWORD` - Senha do banco de dados PostgreSQL
-- `RABBITMQ_USER` e `RABBITMQ_PASS` - Credenciais do RabbitMQ
+### 🛠️ Scripts Disponíveis
 
-### Scripts de Automação
+| Script | Descrição | Uso |
+|--------|-----------|-----|
+| **`scripts/setup.ps1`** | Setup inicial completo | Primeira vez no projeto |
+| **`scripts/dev.ps1`** | Iniciar desenvolvimento | Uso diário |
+| `scripts/ef-migrate.ps1` | Entity Framework migrations | Gerenciar banco de dados |
+| `scripts/seed-dev-data.ps1` | Popular dados de teste | Ambiente de desenvolvimento |
+| `scripts/export-openapi.ps1` | Exportar especificação API | Gerar documentação/clientes |
 
-O projeto inclui scripts automatizados na raiz:
+**Automação CI/CD** (em `infrastructure/automation/`):
+- `setup-cicd.ps1` - Setup completo CI/CD com Azure
+- `setup-ci-only.ps1` - Setup apenas CI sem deploy
 
-| Script | Descrição | Quando usar |
-|--------|-----------|-------------|
-| `setup-cicd.ps1` | Setup completo CI/CD com Azure | Para pipelines com deploy |
-| `setup-ci-only.ps1` | Setup apenas CI sem custos | Para validação de código apenas |
-| `run-local.sh` | Execução local com orquestração | Desenvolvimento local |
+**Makefile** (em `build/Makefile`):
+- `make help` - Ver todos os comandos disponíveis
+- `make dev` - Iniciar desenvolvimento
+- `make test` - Executar testes
+- `make clean` - Limpar artefatos
 
-### Execução Local
+---
 
-#### Opção 1: .NET Aspire (Recomendado)
-
-```bash
-# Clone o repositório
-git clone https://github.com/frigini/MeAjudaAi.git
-cd MeAjudaAi
-
-# Execute o AppHost do Aspire
-cd src/Aspire/MeAjudaAi.AppHost
-dotnet run
-```
-
-#### Opção 2: Docker Compose
-
-```bash
-# PRIMEIRO: Defina as senhas necessárias
-export KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 32)
-export RABBITMQ_PASS=$(openssl rand -base64 32)
-
-# Execute usando Docker Compose
-cd infrastructure/compose
-docker compose -f environments/development.yml up -d
-```
-
-### URLs dos Serviços
+## 🌐 URLs dos Serviços
 
 > **📝 Nota**: As URLs abaixo são baseadas nas configurações em `launchSettings.json` e `docker-compose.yml`. 
 > Para atualizações de portas, consulte:

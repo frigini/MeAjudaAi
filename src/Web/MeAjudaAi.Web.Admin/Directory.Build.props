@@ -1,0 +1,9 @@
+<Project>
+  <!-- Configurações específicas do Blazor Admin Portal -->
+  
+  <PropertyGroup>
+    <!-- Supressão de warnings específicos do projeto Blazor -->
+    <NoWarn>$(NoWarn);CS8602;S2094;S3260;S2953;S2933;S6966;S2325;S5693;MUD0002</NoWarn>
+  </PropertyGroup>
+
+</Project>
