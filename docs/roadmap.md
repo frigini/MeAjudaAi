@@ -3286,6 +3286,6 @@ LEFT JOIN providers.providers p ON al.actor_id = p.provider_id;
 
 ---
 
-*📅 Última atualização: 5 de Janeiro de 2026 (Sprint 6 - Blazor Admin Portal Setup)*  
+*📅 Última atualização: 9 de Janeiro de 2026 (Sprint 7.5 - Correções de Inicialização e Build)*  
 *🔄 Roadmap em constante evolução baseado em feedback, métricas e aprendizados*
 *📊 Status atual: Sprint 6 CONCLUÍDA (5 Jan 2026) | Sprint 7 - Blazor Admin Portal Features (próxima)*

@@ -246,6 +246,9 @@ internal static class Program
         }
 
         // Versão sincronizada com Directory.Build.targets
+        // IMPORTANTE: Esta versão deve corresponder à propriedade AspireVersion em Directory.Build.targets
+        // para garantir consistência entre MSBuild e runtime. Ao atualizar a versão do Aspire,
+        // atualizar ambos os locais simultaneamente.
         const string aspireVersion = "13.1.0";
 
         // Detectar plataforma e arquitetura para RID correto

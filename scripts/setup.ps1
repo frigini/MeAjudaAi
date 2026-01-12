@@ -50,8 +50,8 @@ try {
 # Docker
 Write-Host "  🐳 Docker..." -NoNewline
 try {
-    docker info 2>&1 | Out-Null
-    if ($LASTEXITCODE -eq 0) {
+    $null = docker info 2>&1
+    if ($?) {
         $dockerVersion = (docker --version) -replace "Docker version ", "" -replace ",.*", ""
         Write-Host " ✅ v$dockerVersion" -ForegroundColor Green
     } else {

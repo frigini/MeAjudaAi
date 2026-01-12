@@ -34,7 +34,7 @@ public static class MeAjudaAiKeycloakExtensions
         var isDevelopment = EnvironmentHelpers.IsDevelopment(builder) || EnvironmentHelpers.IsTesting(builder);
         options.Validate(isDevelopment);
 
-        Console.WriteLine($"[Keycloak] Configurando Keycloak para desenvolvimento...");
+        Console.WriteLine($"[Keycloak] Configuring Keycloak for development...");
         Console.WriteLine($"[Keycloak] Database Schema: {options.DatabaseSchema}");
         Console.WriteLine($"[Keycloak] Admin User: {options.AdminUsername}");
 
@@ -127,7 +127,7 @@ public static class MeAjudaAiKeycloakExtensions
         // Validar senha do banco de dados em produção (sempre false para este método)
         options.Validate(isDevelopment: false);
 
-        Console.WriteLine($"[Keycloak] Configurando Keycloak para produção...");
+        Console.WriteLine($"[Keycloak] Configuring Keycloak for production...");
         Console.WriteLine($"[Keycloak] Database Schema: {options.DatabaseSchema}");
 
         var keycloak = builder.AddKeycloak("keycloak")
