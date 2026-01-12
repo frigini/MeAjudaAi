@@ -13,6 +13,7 @@ $ErrorActionPreference = "Stop"
 $env:ASPNETCORE_ENVIRONMENT = "Development"
 $env:DOTNET_ENVIRONMENT = "Development"
 $env:POSTGRES_PASSWORD = "postgres"
+$env:DB_PASSWORD = $env:POSTGRES_PASSWORD  # Program.cs reads DB_PASSWORD
 
 Write-Host "🚀 Iniciando MeAjudaAi - Ambiente de Desenvolvimento" -ForegroundColor Cyan
 Write-Host "=================================================" -ForegroundColor Cyan

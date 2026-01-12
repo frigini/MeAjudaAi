@@ -73,8 +73,8 @@ public static class MeAjudaAiKeycloakExtensions
             keycloak = keycloak.WithHttpEndpoint(targetPort: 8080, name: "keycloak-http");
         }
 
-        Console.WriteLine($"[Keycloak] ✅ Keycloak configurado:");
-        Console.WriteLine($"[Keycloak]    Porta HTTP: 8080");
+        Console.WriteLine($"[Keycloak] ✅ Keycloak configured:");
+        Console.WriteLine($"[Keycloak]    HTTP Port: 8080");
         Console.WriteLine($"[Keycloak]    Schema: {options.DatabaseSchema}");
 
         return new MeAjudaAiKeycloakResult
@@ -92,10 +92,6 @@ public static class MeAjudaAiKeycloakExtensions
         this IDistributedApplicationBuilder builder,
         Action<MeAjudaAiKeycloakOptions>? configure = null)
     {
-        // Registrar parâmetros secretos obrigatórios
-        var keycloakAdminPassword = builder.AddParameter("keycloak-admin-password", secret: true);
-        var postgresPassword = builder.AddParameter("postgres-password", secret: true);
-
         // Verificar se as variáveis de ambiente obrigatórias estão definidas
         var adminPasswordFromEnv = Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_PASSWORD");
         var dbPasswordFromEnv = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
@@ -130,6 +126,10 @@ public static class MeAjudaAiKeycloakExtensions
         Console.WriteLine($"[Keycloak] Configuring Keycloak for production...");
         Console.WriteLine($"[Keycloak] Database Schema: {options.DatabaseSchema}");
 
+        // Registrar parâmetros secretos com valores validados
+        var keycloakAdminPassword = builder.AddParameter("keycloak-admin-password", options.AdminPassword, secret: true);
+        var postgresPassword = builder.AddParameter("postgres-password", options.DatabasePassword, secret: true);
+
         var keycloak = builder.AddKeycloak("keycloak")
             .WithDataVolume()
             // Configurar banco de dados PostgreSQL com schema 'identity'
@@ -155,7 +155,7 @@ public static class MeAjudaAiKeycloakExtensions
         if (!options.ExposeHttpEndpoint)
         {
             if (string.IsNullOrWhiteSpace(resolvedHostname))
-                throw new InvalidOperationException("KEYCLOAK_HOSTNAME (ou options.Hostname) é obrigatório em produção com hostname estrito.");
+                throw new InvalidOperationException("KEYCLOAK_HOSTNAME (or options.Hostname) is required in production with strict hostname.");
             keycloak = keycloak.WithEnvironment("KC_HOSTNAME", resolvedHostname);
         }
 
@@ -182,7 +182,7 @@ public static class MeAjudaAiKeycloakExtensions
             : $"https://{resolvedHostname}";
         var adminUrl = $"{authUrl}/admin";
 
-        Console.WriteLine($"[Keycloak] ✅ Keycloak produção configurado:");
+        Console.WriteLine($"[Keycloak] ✅ Keycloak production configured:");
         Console.WriteLine($"[Keycloak]    Auth URL: {authUrl}");
         Console.WriteLine($"[Keycloak]    Admin URL: {adminUrl}");
         Console.WriteLine($"[Keycloak]    Schema: {options.DatabaseSchema}");

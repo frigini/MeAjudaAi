@@ -249,7 +249,8 @@ internal static class Program
         // IMPORTANTE: Esta versão deve corresponder à propriedade AspireVersion em Directory.Build.targets
         // para garantir consistência entre MSBuild e runtime. Ao atualizar a versão do Aspire,
         // atualizar ambos os locais simultaneamente.
-        const string aspireVersion = "13.1.0";
+        // Pode ser substituída via ASPIRE_VERSION_OVERRIDE para testes/CI sem alterar código.
+        var aspireVersion = Environment.GetEnvironmentVariable("ASPIRE_VERSION_OVERRIDE") ?? "13.1.0";
 
         // Detectar plataforma e arquitetura para RID correto
         var isWindows = OperatingSystem.IsWindows();
