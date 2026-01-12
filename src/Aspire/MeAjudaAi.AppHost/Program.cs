@@ -248,27 +248,28 @@ internal static class Program
         // Versão sincronizada com Directory.Build.targets
         const string aspireVersion = "13.1.0";
 
-        // Detectar plataforma e definir RID e extensão de executável
+        // Detectar plataforma e arquitetura para RID correto
         var isWindows = OperatingSystem.IsWindows();
         var isLinux = OperatingSystem.IsLinux();
         var isMacOS = OperatingSystem.IsMacOS();
+        var isArm64 = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == System.Runtime.InteropServices.Architecture.Arm64;
         
         string rid;
         string exeExtension;
         
         if (isWindows)
         {
-            rid = "win-x64";
+            rid = isArm64 ? "win-arm64" : "win-x64";
             exeExtension = ".exe";
         }
         else if (isLinux)
         {
-            rid = "linux-x64";
+            rid = isArm64 ? "linux-arm64" : "linux-x64";
             exeExtension = "";
         }
         else if (isMacOS)
         {
-            rid = "osx-x64";
+            rid = isArm64 ? "osx-arm64" : "osx-x64";
             exeExtension = "";
         }
         else

@@ -5,16 +5,13 @@
     Configura o ambiente de desenvolvimento do zero
 .PARAMETER DevOnly
     Setup apenas para desenvolvimento (sem Azure/Cloud)
-.PARAMETER Verbose
-    Exibe logs detalhados
 .EXAMPLE
     .\scripts\setup.ps1
     .\scripts\setup.ps1 -DevOnly
 #>
 
 param(
-    [switch]$DevOnly,
-    [switch]$Verbose
+    [switch]$DevOnly
 )
 
 $ErrorActionPreference = "Stop"

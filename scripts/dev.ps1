@@ -3,16 +3,9 @@
     Inicia o ambiente de desenvolvimento do MeAjudaAi
 .DESCRIPTION
     Script para iniciar a aplicação via Aspire AppHost
-.PARAMETER Simple
-    Executa em modo simples sem serviços adicionais
 .EXAMPLE
     .\scripts\dev.ps1
-    .\scripts\dev.ps1 -Simple
 #>
-
-param(
-    [switch]$Simple
-)
 
 $ErrorActionPreference = "Stop"
 
