@@ -68,4 +68,27 @@ public sealed class MeAjudaAiKeycloakOptions
     /// Indica se está em ambiente de teste (configurações otimizadas)
     /// </summary>
     public bool IsTestEnvironment { get; set; }
+
+    /// <summary>
+    /// Valida as configurações do Keycloak e falha rápido em produção se usar senha default
+    /// </summary>
+    /// <param name="isDevelopment">Indica se está em ambiente de desenvolvimento</param>
+    /// <exception cref="InvalidOperationException">Se usar senha default em produção</exception>
+    public void Validate(bool isDevelopment)
+    {
+        // Em ambientes não-desenvolvimento, não permitir senha default
+        if (!isDevelopment && DatabasePassword == "postgres")
+        {
+            throw new InvalidOperationException(
+                "Database password cannot be 'postgres' in production environments. " +
+                "Configure POSTGRES_PASSWORD environment variable with a secure password.");
+        }
+
+        // Verificar se a senha está vazia ou nula em qualquer ambiente
+        if (string.IsNullOrWhiteSpace(DatabasePassword))
+        {
+            throw new InvalidOperationException(
+                "Database password is required. Configure POSTGRES_PASSWORD environment variable.");
+        }
+    }
 }

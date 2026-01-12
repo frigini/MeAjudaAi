@@ -4,7 +4,7 @@
 
 Ao executar `.\scripts\dev.ps1` ou `dotnet run` no AppHost, pode ocorrer o seguinte erro:
 
-```
+```text
 System.AggregateException: One or more errors occurred. 
   (Property CliPath: The path to the DCP executable used for Aspire orchestration is required.; 
    Property DashboardPath: The path to the Aspire Dashboard binaries is missing.)
@@ -16,7 +16,8 @@ Este é um bug conhecido no .NET Aspire 13.x quando os pacotes NuGet são armaze
 
 - O MSBuild corretamente define as propriedades `AspireDashboardPath` e `DcpCliPath`
 - Mas o código runtime do Aspire espera `DashboardPath` e `CliPath` (sem prefixo "Aspire"/"Dcp")
-- Issue rastreada em: https://github.com/dotnet/aspire/issues/6789
+- Estas propriedades runtime são lidas das variáveis de ambiente `DOTNET_ASPIRE_DASHBOARD_PATH` e `DOTNET_DCP_CLI_PATH`
+- Issue rastreada em: [dotnet/aspire#6789](https://github.com/dotnet/aspire/issues/6789)
 
 ## Soluções Alternativas
 
@@ -39,15 +40,15 @@ O VS Code com C# Dev Kit configura corretamente os caminhos necessários.
 Defina as variáveis de ambiente antes de executar:
 
 ```powershell
-$env:DCP_CLI_PATH = "C:\Code\MeAjudaAi\packages\aspire.hosting.orchestration.win-x64\13.1.0\tools\dcp.exe"
-$env:ASPIRE_DASHBOARD_PATH = "C:\Code\MeAjudaAi\packages\aspire.dashboard.sdk.win-x64\13.1.0\tools"
+$env:DOTNET_DCP_CLI_PATH = "C:\Code\MeAjudaAi\packages\aspire.hosting.orchestration.win-x64\13.1.0\tools\dcp.exe"
+$env:DOTNET_ASPIRE_DASHBOARD_PATH = "C:\Code\MeAjudaAi\packages\aspire.dashboard.sdk.win-x64\13.1.0\tools"
 $env:POSTGRES_PASSWORD = "postgres"
 
 cd src\Aspire\MeAjudaAi.AppHost
 dotnet run
 ```
 
-**Nota**: Esta opção pode não funcionar devido à forma como o Aspire valida as propriedades.
+**Nota**: Use `DOTNET_DCP_CLI_PATH` e `DOTNET_ASPIRE_DASHBOARD_PATH` (com prefixo DOTNET_) - estes mapeiam para as propriedades runtime `CliPath` e `DashboardPath` que o AppHost lê, diferentes das propriedades MSBuild `DcpCliPath` e `AspireDashboardPath`.
 
 ## Status
 

@@ -83,3 +83,9 @@ Write-Host ""
 
 Set-Location "$PSScriptRoot\..\src\Aspire\MeAjudaAi.AppHost"
 dotnet run
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "❌ Aspire AppHost exited with code $LASTEXITCODE" -ForegroundColor Red
+    exit $LASTEXITCODE
+}

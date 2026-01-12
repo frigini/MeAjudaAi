@@ -18,21 +18,21 @@ internal static class Program
 
         // Log ambiente detectado para debug
         var detectedEnv = EnvironmentHelpers.GetEnvironmentName(builder);
-        Console.WriteLine($"🔍 Ambiente detectado: '{detectedEnv}' (IsTesting: {isTestingEnv}, IsDevelopment: {EnvironmentHelpers.IsDevelopment(builder)}, IsProduction: {EnvironmentHelpers.IsProduction(builder)})");
+        Console.WriteLine($"🔍 Detected environment: '{detectedEnv}' (IsTesting: {isTestingEnv}, IsDevelopment: {EnvironmentHelpers.IsDevelopment(builder)}, IsProduction: {EnvironmentHelpers.IsProduction(builder)})");
 
         if (isTestingEnv)
         {
-            Console.WriteLine("⚙️  Configurando ambiente de TESTES");
+            Console.WriteLine("⚙️  Configuring TEST environment");
             ConfigureTestingEnvironment(builder);
         }
         else if (EnvironmentHelpers.IsDevelopment(builder))
         {
-            Console.WriteLine("⚙️  Configurando ambiente de DESENVOLVIMENTO");
+            Console.WriteLine("⚙️  Configuring DEVELOPMENT environment");
             ConfigureDevelopmentEnvironment(builder);
         }
         else if (EnvironmentHelpers.IsProduction(builder))
         {
-            Console.WriteLine("⚙️  Configurando ambiente de PRODUÇÃO");
+            Console.WriteLine("⚙️  Configuring PRODUCTION environment");
             ConfigureProductionEnvironment(builder);
         }
         else
@@ -224,32 +224,85 @@ internal static class Program
     /// </summary>
     private static void ConfigureAspireLocalPackages()
     {
-        // Detectar diretório da solução
-        var baseDir = AppContext.BaseDirectory; // .../src/Aspire/MeAjudaAi.AppHost/bin/Debug/net10.0/
-        var solutionRoot = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", ".."));
-        var packagesDir = Path.Combine(solutionRoot, "packages");
-
-        if (!Directory.Exists(packagesDir))
+        // Detectar diretório da solução procurando por global.json ou arquivo .sln
+        var solutionRoot = FindSolutionRoot(AppContext.BaseDirectory);
+        if (solutionRoot == null)
         {
-            // Não usando pacotes locais, skip
+            Console.WriteLine("⚠️  Could not locate solution root, skipping local packages configuration");
             return;
         }
 
+        var packagesDir = Path.Combine(solutionRoot, "packages");
+
+        Console.WriteLine($"🔍 Detecting Aspire packages...");
+        Console.WriteLine($"   Solution root: {solutionRoot}");
+        Console.WriteLine($"   Packages dir: {packagesDir}");
+        Console.WriteLine($"   Exists: {Directory.Exists(packagesDir)}");
+
+        if (!Directory.Exists(packagesDir))
+        {
+            Console.WriteLine("⚠️  Not using local packages, skipping configuration");
+            return;
+        }
+
+        // Versão sincronizada com Directory.Build.targets
         const string aspireVersion = "13.1.0";
 
-        var dcpPath = Path.Combine(packagesDir, "aspire.hosting.orchestration.win-x64", aspireVersion, "tools", "dcp.exe");
-        var dashboardDir = Path.Combine(packagesDir, "aspire.dashboard.sdk.win-x64", aspireVersion, "tools");
-        var dashboardPath = Path.Combine(dashboardDir, "Aspire.Dashboard.exe");
+        // Detectar plataforma e definir RID e extensão de executável
+        var isWindows = OperatingSystem.IsWindows();
+        var isLinux = OperatingSystem.IsLinux();
+        var isMacOS = OperatingSystem.IsMacOS();
+        
+        string rid;
+        string exeExtension;
+        
+        if (isWindows)
+        {
+            rid = "win-x64";
+            exeExtension = ".exe";
+        }
+        else if (isLinux)
+        {
+            rid = "linux-x64";
+            exeExtension = "";
+        }
+        else if (isMacOS)
+        {
+            rid = "osx-x64";
+            exeExtension = "";
+        }
+        else
+        {
+            Console.WriteLine("⚠️  Unknown platform, skipping local packages configuration");
+            return;
+        }
+
+        var dcpPath = Path.Combine(packagesDir, $"aspire.hosting.orchestration.{rid}", aspireVersion, "tools", $"dcp{exeExtension}");
+        var dashboardDir = Path.Combine(packagesDir, $"aspire.dashboard.sdk.{rid}", aspireVersion, "tools");
+        var dashboardPath = Path.Combine(dashboardDir, $"Aspire.Dashboard{exeExtension}");
+
+        Console.WriteLine($"   Platform: {rid}");
+        Console.WriteLine($"   DCP path: {dcpPath}");
+        Console.WriteLine($"   DCP exists: {File.Exists(dcpPath)}");
+        Console.WriteLine($"   Dashboard path: {dashboardPath}");
+        Console.WriteLine($"   Dashboard exists: {File.Exists(dashboardPath)}");
 
         if (File.Exists(dcpPath) && File.Exists(dashboardPath))
         {
-            // Configurar variáveis de ambiente que o Aspire usa
+            // Configurar variáveis de ambiente que o Aspire lê
+            Environment.SetEnvironmentVariable("DOTNET_DCP_CLI_PATH", dcpPath);
             Environment.SetEnvironmentVariable("DCP_CLI_PATH", dcpPath);
+            Environment.SetEnvironmentVariable("Aspire__CliPath", dcpPath);
+            
             Environment.SetEnvironmentVariable("DOTNET_ASPIRE_DASHBOARD_PATH", dashboardDir);
+            Environment.SetEnvironmentVariable("ASPIRE_DASHBOARD_PATH", dashboardDir);
+            Environment.SetEnvironmentVariable("Aspire__DashboardPath", dashboardDir);
             
             Console.WriteLine("✅ Aspire local packages configured:");
             Console.WriteLine($"   DCP: {dcpPath}");
             Console.WriteLine($"   Dashboard: {dashboardPath}");
+            Console.WriteLine($"   Variables set: DOTNET_DCP_CLI_PATH, DCP_CLI_PATH, Aspire__CliPath");
+            Console.WriteLine($"   Variables set: DOTNET_ASPIRE_DASHBOARD_PATH, ASPIRE_DASHBOARD_PATH, Aspire__DashboardPath");
         }
         else
         {
@@ -259,5 +312,26 @@ internal static class Program
             if (!File.Exists(dashboardPath))
                 Console.WriteLine($"   Missing: {dashboardPath}");
         }
+    }
+
+    /// <summary>
+    /// Procura o diretório raiz da solução procurando por global.json ou arquivos .sln/.slnx
+    /// </summary>
+    private static string? FindSolutionRoot(string startDir)
+    {
+        var dir = new DirectoryInfo(startDir);
+        while (dir != null)
+        {
+            // Procurar por global.json (mais confiável para .NET projects)
+            if (File.Exists(Path.Combine(dir.FullName, "global.json")))
+                return dir.FullName;
+            
+            // Ou procurar por arquivos de solução (.sln ou .slnx)
+            if (dir.GetFiles("*.sln").Length > 0 || dir.GetFiles("*.slnx").Length > 0)
+                return dir.FullName;
+            
+            dir = dir.Parent;
+        }
+        return null;
     }
 }

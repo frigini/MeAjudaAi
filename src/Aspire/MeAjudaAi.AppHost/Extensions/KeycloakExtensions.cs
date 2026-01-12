@@ -1,3 +1,4 @@
+using MeAjudaAi.AppHost.Helpers;
 using MeAjudaAi.AppHost.Options;
 using MeAjudaAi.AppHost.Results;
 
@@ -28,6 +29,10 @@ public static class MeAjudaAiKeycloakExtensions
                 "AdminUsername and AdminPassword must be configured for Keycloak. " +
                 "Set via configuration callback or KEYCLOAK_ADMIN/KEYCLOAK_ADMIN_PASSWORD environment variables.");
         }
+
+        // Validar senha do banco de dados em ambientes não-desenvolvimento
+        var isDevelopment = EnvironmentHelpers.IsDevelopment(builder) || EnvironmentHelpers.IsTesting(builder);
+        options.Validate(isDevelopment);
 
         Console.WriteLine($"[Keycloak] Configurando Keycloak para desenvolvimento...");
         Console.WriteLine($"[Keycloak] Database Schema: {options.DatabaseSchema}");
@@ -118,6 +123,9 @@ public static class MeAjudaAiKeycloakExtensions
             DatabasePassword = dbPasswordFromEnv
         };
         configure?.Invoke(options);
+
+        // Validar senha do banco de dados em produção (sempre false para este método)
+        options.Validate(isDevelopment: false);
 
         Console.WriteLine($"[Keycloak] Configurando Keycloak para produção...");
         Console.WriteLine($"[Keycloak] Database Schema: {options.DatabaseSchema}");

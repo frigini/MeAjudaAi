@@ -33,10 +33,17 @@ $missing = @()
 Write-Host "  📦 .NET SDK..." -NoNewline
 try {
     $dotnetVersion = dotnet --version
-    if ($dotnetVersion -ge "10.0.0") {
-        Write-Host " ✅ v$dotnetVersion" -ForegroundColor Green
-    } else {
-        Write-Host " ⚠️  v$dotnetVersion (recomendado 10.0+)" -ForegroundColor Yellow
+    try {
+        $version = [Version]::new($dotnetVersion)
+        $requiredVersion = [Version]::new("10.0.0")
+        if ($version -ge $requiredVersion) {
+            Write-Host " ✅ v$dotnetVersion" -ForegroundColor Green
+        } else {
+            Write-Host " ⚠️  v$dotnetVersion (recomendado 10.0+)" -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host " ⚠️  v$dotnetVersion (não foi possível validar versão)" -ForegroundColor Yellow
+        Write-Host "      Versão detectada mas formato inesperado: $_" -ForegroundColor Yellow
     }
 } catch {
     Write-Host " ❌ Não encontrado" -ForegroundColor Red

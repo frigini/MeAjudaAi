@@ -94,7 +94,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - docs/known-issues/aspire-local-packages.md: Workaround documentado
   - Descrição do problema (bug Aspire com globalPackagesFolder)
   - 3 soluções alternativas (VS Code F5, Visual Studio, configuração manual)
-  - Link para issue upstream: https://github.com/dotnet/aspire/issues/6789
+  - Link para issue upstream: [dotnet/aspire#6789](https://github.com/dotnet/aspire/issues/6789)
 - build/README.md: Documentação do Makefile (Unix/Linux apenas)
 
 **Resultado Alcançado**:
@@ -106,8 +106,6 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ 16 arquivos modificados, 588 adições, 109 deleções
 
 ---
-
-### ✅ Sprint 7 - Blazor Admin Portal Features - CONCLUÍDA (6-7 Jan 2026)
 
 ### ✅ Sprint 7 - Blazor Admin Portal Features - CONCLUÍDA (6-7 Jan 2026)
 
