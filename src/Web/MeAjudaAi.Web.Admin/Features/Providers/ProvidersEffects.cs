@@ -54,30 +54,33 @@ public class ProvidersEffects
     /// Effect para recarregar providers quando a página muda
     /// </summary>
     [EffectMethod]
-    public void HandleNextPageAction(NextPageAction action, IDispatcher dispatcher)
+    public Task HandleNextPageAction(NextPageAction action, IDispatcher dispatcher)
     {
         // O reducer já incrementou a página, agora recarregar os dados
         // Nota: isso será melhorado para usar o estado atual da página
         dispatcher.Dispatch(new LoadProvidersAction());
+        return Task.CompletedTask;
     }
 
     /// <summary>
     /// Effect para recarregar providers quando a página muda
     /// </summary>
     [EffectMethod]
-    public void HandlePreviousPageAction(PreviousPageAction action, IDispatcher dispatcher)
+    public Task HandlePreviousPageAction(PreviousPageAction action, IDispatcher dispatcher)
     {
         // O reducer já decrementou a página, agora recarregar os dados
         dispatcher.Dispatch(new LoadProvidersAction());
+        return Task.CompletedTask;
     }
 
     /// <summary>
     /// Effect para recarregar providers quando vai para página específica
     /// </summary>
     [EffectMethod]
-    public void HandleGoToPageAction(GoToPageAction action, IDispatcher dispatcher)
+    public Task HandleGoToPageAction(GoToPageAction action, IDispatcher dispatcher)
     {
         // O reducer já mudou a página, agora recarregar os dados
         dispatcher.Dispatch(new LoadProvidersAction(action.PageNumber));
+        return Task.CompletedTask;
     }
 }
