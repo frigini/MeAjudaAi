@@ -39,6 +39,14 @@ builder.Services.AddRefitClient<IServiceCatalogsApi>()
     .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
     .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
+builder.Services.AddRefitClient<ILocationsApi>()
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
+    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+
+builder.Services.AddRefitClient<IDocumentsApi>()
+    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
+    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+
 // Serviços MudBlazor
 builder.Services.AddMudServices(config =>
 {
