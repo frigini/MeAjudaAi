@@ -98,36 +98,36 @@ internal class MigrationHostedService : IHostedService
 
         if (isDevelopment)
         {
-            // Valores padrão APENAS para desenvolvimento local
-            // Use .env file ou user secrets para senha
+            // Default values ONLY for local development
+            // Use .env file or user secrets for password
             host ??= "localhost";
             port ??= "5432";
             database ??= "meajudaai";
             username ??= "postgres";
-            // Senha é obrigatória mesmo em dev - use variável de ambiente
+            // Password is required even in dev - use environment variable
             if (string.IsNullOrEmpty(password))
             {
                 _logger.LogWarning(
-                    "POSTGRES_PASSWORD não configurada para o ambiente Development. " +
-                    "Defina a variável de ambiente ou use user secrets.");
+                    "POSTGRES_PASSWORD not configured for Development environment. " +
+                    "Set the environment variable or use user secrets.");
                 return null;
             }
 
             _logger.LogWarning(
-                "Usando valores de conexão padrão para o ambiente Development. " +
-                "Configure variáveis de ambiente para deployments de produção.");
+                "Using default connection values for Development environment. " +
+                "Configure environment variables for production deployments.");
         }
         else
         {
-            // Em ambientes não-dev, EXIGIR configuração explícita
+            // In non-dev environments, REQUIRE explicit configuration
             if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(port) ||
                 string.IsNullOrEmpty(database) || string.IsNullOrEmpty(username) ||
                 string.IsNullOrEmpty(password))
             {
                 _logger.LogError(
-                    "Configuração de conexão ao banco de dados ausente. " +
-                    "Defina as variáveis de ambiente POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER e POSTGRES_PASSWORD.");
-                return null; // Falhar startup para evitar conexão insegura
+                    "Database connection configuration missing. " +
+                    "Set the environment variables POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD.");
+                return null; // Fail startup to prevent insecure connection
             }
         }
 

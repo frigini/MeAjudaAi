@@ -35,9 +35,9 @@ BEGIN
         
         -- Set default search path for location_role
         ALTER ROLE location_role SET search_path = locations, public;
+        
+        -- Document schema purpose
+        COMMENT ON SCHEMA locations IS 'Locations module - CEP lookup, address validation, and geocoding services';
     END IF;
 END;
 $$ LANGUAGE plpgsql;
-
--- Document schema purpose
-COMMENT ON SCHEMA locations IS 'Locations module - CEP lookup, address validation, and geocoding services';

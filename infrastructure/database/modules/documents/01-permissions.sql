@@ -68,7 +68,15 @@ GRANT USAGE ON SCHEMA documents TO hangfire_role;
 -- NOTE: GRANT on specific tables commented out - will be applied after EF Core migrations create the tables
 -- GRANT SELECT ON ALL TABLES IN SCHEMA documents TO hangfire_role;
 -- GRANT UPDATE ON documents.documents TO hangfire_role; -- Only documents table needs UPDATE
-ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT SELECT ON TABLES TO hangfire_role;
+
+-- Grant default privileges only if documents_owner role exists
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'documents_owner') THEN
+        EXECUTE 'ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT SELECT ON TABLES TO hangfire_role';
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 -- Note: Future tables will only get SELECT by default; UPDATE must be explicitly granted
 
 -- ============================

@@ -28,8 +28,14 @@ BEGIN
         ALTER DEFAULT PRIVILEGES FOR ROLE catalogs_owner IN SCHEMA service_catalogs GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO meajudaai_app_role;
         ALTER DEFAULT PRIVILEGES FOR ROLE catalogs_owner IN SCHEMA service_catalogs GRANT USAGE, SELECT ON SEQUENCES TO meajudaai_app_role;
         
+        -- Grant usage on public schema for accessing public objects
+        GRANT USAGE ON SCHEMA public TO catalogs_role;
+        
         -- Set default search path for catalogs_role
         ALTER ROLE catalogs_role SET search_path = service_catalogs, public;
+        
+        -- Document schema purpose
+        COMMENT ON SCHEMA service_catalogs IS 'Service Catalog module - Admin-managed service categories and services';
     END IF;
 END;
 $$ LANGUAGE plpgsql;
@@ -50,6 +56,3 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql;
-
--- Document schema purpose
-COMMENT ON SCHEMA service_catalogs IS 'Service Catalog module - Admin-managed service categories and services';

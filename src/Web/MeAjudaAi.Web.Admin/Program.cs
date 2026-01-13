@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MeAjudaAi.Client.Contracts.Api;
 using MeAjudaAi.Web.Admin;
+using MeAjudaAi.Web.Admin.Extensions;
 using MudBlazor;
 using MudBlazor.Services;
-using Refit;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -30,22 +30,12 @@ builder.Services.AddOidcAuthentication(options =>
     options.UserOptions.RoleClaim = "roles";
 });
 
-// Clientes Refit
-builder.Services.AddRefitClient<IProvidersApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
-    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
-
-builder.Services.AddRefitClient<IServiceCatalogsApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
-    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
-
-builder.Services.AddRefitClient<ILocationsApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
-    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
-
-builder.Services.AddRefitClient<IDocumentsApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
-    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+// Refit API clients
+builder.Services
+    .AddApiClient<IProvidersApi>(apiBaseUrl)
+    .AddApiClient<IServiceCatalogsApi>(apiBaseUrl)
+    .AddApiClient<ILocationsApi>(apiBaseUrl)
+    .AddApiClient<IDocumentsApi>(apiBaseUrl);
 
 // Serviços MudBlazor
 builder.Services.AddMudServices(config =>

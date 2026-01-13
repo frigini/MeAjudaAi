@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Reflection;
 
 namespace MeAjudaAi.ApiService;
@@ -95,58 +94,31 @@ public static class MigrationExtensions
                     "Ensure the module was registered correctly.");
             }
 
-            // Environment-specific strategy
+            // Apply migrations using consolidated logic
             var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
                 ?.Equals("Development", StringComparison.OrdinalIgnoreCase) ?? false;
+            var enableDebugScripts = Environment.GetEnvironmentVariable("ENABLE_MIGRATION_DEBUG_SCRIPTS")
+                ?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
 
-            if (isDevelopment)
+            var migrationsApplied = await ApplyPendingMigrationsAsync(
+                dbContext, 
+                moduleName, 
+                logger, 
+                cancellationToken);
+
+            // Generate debug script only in development when explicitly enabled and migrations were applied
+            if (isDevelopment && enableDebugScripts && migrationsApplied)
             {
-                // DEVELOPMENT: Apply migrations via EF Core (populates __EFMigrationsHistory)
-                logger.LogInformation("🔧 {Module}: Applying migrations in development mode...", moduleName);
-                
-                var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
-                
-                if (pendingMigrations.Any())
+                try
                 {
-                    logger.LogInformation("📦 {Module}: {Count} pending migrations", moduleName, pendingMigrations.Count);
-                    foreach (var migration in pendingMigrations)
-                    {
-                        logger.LogDebug("   - {Migration}", migration);
-                    }
-                    
-                    await dbContext.Database.MigrateAsync(cancellationToken);
-                    logger.LogInformation("✅ {Module}: Migrations applied successfully", moduleName);
-                    
-                    // DEBUGGING: Generate script for inspection (optional)
                     var createScript = dbContext.Database.GenerateCreateScript();
                     var tempFile = Path.Combine(Path.GetTempPath(), $"ef_script_{moduleName}.sql");
                     await File.WriteAllTextAsync(tempFile, createScript, cancellationToken);
                     logger.LogDebug("🔍 {Module}: Reference script saved at: {TempFile}", moduleName, tempFile);
                 }
-                else
+                catch (Exception ex)
                 {
-                    logger.LogInformation("✓ {Module}: No pending migrations", moduleName);
-                }
-            }
-            else
-            {
-                // PRODUCTION: Use appropriate migrations
-                var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
-
-                if (pendingMigrations.Any())
-                {
-                    logger.LogInformation("📦 {Module}: {Count} pending migrations", moduleName, pendingMigrations.Count);
-                    foreach (var migration in pendingMigrations)
-                    {
-                        logger.LogDebug("   - {Migration}", migration);
-                    }
-
-                    await dbContext.Database.MigrateAsync(cancellationToken);
-                    logger.LogInformation("✅ {Module}: Migrations applied successfully", moduleName);
-                }
-                else
-                {
-                    logger.LogInformation("✓ {Module}: No pending migrations", moduleName);
+                    logger.LogWarning(ex, "⚠️ {Module}: Failed to generate debug script", moduleName);
                 }
             }
         }
@@ -157,6 +129,31 @@ public static class MigrationExtensions
                 $"Failed to apply database migrations for module '{moduleName}' (DbContext: {contextType.Name})",
                 ex);
         }
+    }
+
+    private static async Task<bool> ApplyPendingMigrationsAsync(
+        DbContext dbContext,
+        string moduleName,
+        ILogger logger,
+        CancellationToken cancellationToken)
+    {
+        var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
+
+        if (pendingMigrations.Any())
+        {
+            logger.LogInformation("📦 {Module}: {Count} pending migrations", moduleName, pendingMigrations.Count);
+            foreach (var migration in pendingMigrations)
+            {
+                logger.LogDebug("   - {Migration}", migration);
+            }
+
+            await dbContext.Database.MigrateAsync(cancellationToken);
+            logger.LogInformation("✅ {Module}: Migrations applied successfully", moduleName);
+            return true;
+        }
+
+        logger.LogInformation("✓ {Module}: No pending migrations", moduleName);
+        return false;
     }
 
     private static string ExtractModuleName(Type contextType)
