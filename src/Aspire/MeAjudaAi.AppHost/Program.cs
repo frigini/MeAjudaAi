@@ -151,11 +151,9 @@ internal static class Program
             .WaitFor(rabbitMq)
             .WithReference(keycloak.Keycloak)
             .WaitFor(keycloak.Keycloak)
-            .WithHttpsEndpoint(port: 7001, name: "https")
-            .WithHttpEndpoint(port: 7002, name: "http")
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
 
-        // Admin Portal (Blazor WASM) - usa portas fixas do apiservice
+        // Admin Portal (Blazor WASM) - usa portas fixas do apiservice definidas em launchSettings.json
         _ = builder.AddProject<Projects.MeAjudaAi_Web_Admin>("admin-portal")
             .WithExternalHttpEndpoints()
             .WaitFor(apiService)
