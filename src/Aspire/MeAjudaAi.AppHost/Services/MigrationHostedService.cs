@@ -20,7 +20,7 @@ internal class MigrationHostedService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("🔄 Iniciando migrations de todos os módulos...");
+        _logger.LogInformation("🔄 Starting migrations for all modules...");
 
         List<Type> dbContextTypes = new();
 
@@ -28,11 +28,11 @@ internal class MigrationHostedService : IHostedService
         {
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
             
-            // Pula migrations em ambientes de teste - são gerenciados pela infraestrutura de testes
+            // Skip migrations in test environments - they are managed by test infrastructure
             if (environment.Equals("Testing", StringComparison.OrdinalIgnoreCase) || 
                 environment.Equals("Test", StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogInformation("⏭️ Pulando migrations no ambiente {Environment}", environment);
+                _logger.LogInformation("⏭️ Skipping migrations in {Environment} environment", environment);
                 return;
             }
             
@@ -43,34 +43,34 @@ internal class MigrationHostedService : IHostedService
             {
                 if (isDevelopment)
                 {
-                    _logger.LogWarning("⚠️ Connection string não encontrada em Development, pulando migrations");
+                    _logger.LogWarning("⚠️ Connection string not found in Development, skipping migrations");
                     return;
                 }
                 else
                 {
-                    _logger.LogError("❌ Connection string é obrigatória para migrations no ambiente {Environment}. " +
-                        "Configure POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, e POSTGRES_PASSWORD.", environment);
+                    _logger.LogError("❌ Connection string is required for migrations in {Environment} environment. " +
+                        "Configure POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD.", environment);
                     throw new InvalidOperationException(
-                        $"Configuração de conexão ao banco de dados ausente para o ambiente {environment}. " +
-                        "Migrations não podem prosseguir sem uma connection string válida.");
+                        $"Database connection configuration missing for {environment} environment. " +
+                        "Migrations cannot proceed without a valid connection string.");
                 }
             }
 
             dbContextTypes = DiscoverDbContextTypes();
-            _logger.LogInformation("📋 Encontrados {Count} DbContexts para migração", dbContextTypes.Count);
+            _logger.LogInformation("📋 Found {Count} DbContexts for migration", dbContextTypes.Count);
 
             foreach (var contextType in dbContextTypes)
             {
                 await MigrateDbContextAsync(contextType, connectionString, cancellationToken);
             }
 
-            _logger.LogInformation("✅ Todas as migrations foram aplicadas com sucesso!");
+            _logger.LogInformation("✅ All migrations applied successfully!");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Erro ao aplicar migrations para {DbContextCount} módulo(s)", dbContextTypes.Count);
+            _logger.LogError(ex, "❌ Error applying migrations for {DbContextCount} module(s)", dbContextTypes.Count);
             throw new InvalidOperationException(
-                $"Falha ao aplicar migrations do banco de dados para {dbContextTypes.Count} módulo(s)",
+                $"Failed to apply database migrations for {dbContextTypes.Count} module(s)",
                 ex);
         }
     }
@@ -138,7 +138,7 @@ internal class MigrationHostedService : IHostedService
     {
         var dbContextTypes = new List<Type>();
 
-        // Primeiro, tentar carregar assemblies dos módulos dinamicamente
+        // First, try to dynamically load module assemblies
         LoadModuleAssemblies();
 
         var assemblies = AppDomain.CurrentDomain.GetAssemblies()
@@ -147,7 +147,7 @@ internal class MigrationHostedService : IHostedService
 
         if (assemblies.Count == 0)
         {
-            _logger.LogWarning("⚠️ Nenhum assembly de módulo foi encontrado. Migrations não serão aplicadas automaticamente.");
+            _logger.LogWarning("⚠️ No module assemblies found. Migrations will not be applied automatically.");
             return dbContextTypes;
         }
 
@@ -164,12 +164,12 @@ internal class MigrationHostedService : IHostedService
 
                 if (types.Count > 0)
                 {
-                    _logger.LogDebug("✅ Descobertos {Count} DbContext(s) em {Assembly}", types.Count, assembly.GetName().Name);
+                    _logger.LogDebug("✅ Discovered {Count} DbContext(s) in {Assembly}", types.Count, assembly.GetName().Name);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "⚠️ Erro ao descobrir tipos no assembly {AssemblyName}", assembly.FullName);
+                _logger.LogWarning(ex, "⚠️ Error discovering types in assembly {AssemblyName}", assembly.FullName);
             }
         }
 
@@ -184,8 +184,8 @@ internal class MigrationHostedService : IHostedService
             var modulePattern = "MeAjudaAi.Modules.*.Infrastructure.dll";
             var moduleDlls = Directory.GetFiles(baseDirectory, modulePattern, SearchOption.AllDirectories);
 
-            _logger.LogDebug("🔍 Procurando por assemblies de módulos em: {BaseDirectory}", baseDirectory);
-            _logger.LogDebug("📦 Encontrados {Count} DLLs de infraestrutura de módulos", moduleDlls.Length);
+            _logger.LogDebug("🔍 Searching for module assemblies in: {BaseDirectory}", baseDirectory);
+            _logger.LogDebug("📦 Found {Count} module infrastructure DLLs", moduleDlls.Length);
 
             foreach (var dllPath in moduleDlls)
             {
@@ -193,32 +193,32 @@ internal class MigrationHostedService : IHostedService
                 {
                     var assemblyName = AssemblyName.GetAssemblyName(dllPath);
 
-                    // Verificar se já está carregado
+                    // Check if already loaded
                     if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.FullName == assemblyName.FullName))
                     {
-                        _logger.LogDebug("⏭️  Assembly já carregado: {AssemblyName}", assemblyName.Name);
+                        _logger.LogDebug("⏭️  Assembly already loaded: {AssemblyName}", assemblyName.Name);
                         continue;
                     }
 
                     System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(dllPath);
-                    _logger.LogDebug("✅ Assembly carregado: {AssemblyName}", assemblyName.Name);
+                    _logger.LogDebug("✅ Assembly loaded: {AssemblyName}", assemblyName.Name);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "⚠️ Não foi possível carregar assembly: {DllPath}", Path.GetFileName(dllPath));
+                    _logger.LogWarning(ex, "⚠️ Could not load assembly: {DllPath}", Path.GetFileName(dllPath));
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "⚠️ Erro ao tentar carregar assemblies de módulos dinamicamente");
+            _logger.LogWarning(ex, "⚠️ Error attempting to dynamically load module assemblies");
         }
     }
 
     private async Task MigrateDbContextAsync(Type contextType, string connectionString, CancellationToken cancellationToken)
     {
         var moduleName = ExtractModuleName(contextType);
-        _logger.LogInformation("🔧 Aplicando migrations para {Module}...", moduleName);
+        _logger.LogInformation("🔧 Applying migrations for {Module}...", moduleName);
 
         try
         {
@@ -235,7 +235,7 @@ internal class MigrationHostedService : IHostedService
 
             if (options == null)
             {
-                throw new InvalidOperationException($"Não foi possível criar DbContextOptions para {contextType.Name}");
+                throw new InvalidOperationException($"Could not create DbContextOptions for {contextType.Name}");
             }
 
             // Criar instância do DbContext usando o construtor
@@ -244,44 +244,44 @@ internal class MigrationHostedService : IHostedService
             if (dbContext == null)
             {
                 throw new InvalidOperationException(
-                    $"Falha ao criar instância de DbContext do tipo {contextType.Name}. " +
-                    "Certifique-se de que o DbContext tem um construtor público que aceita DbContextOptions.");
+                    $"Failed to create DbContext instance of type {contextType.Name}. " +
+                    "Ensure the DbContext has a public constructor that accepts DbContextOptions.");
             }
 
             using (dbContext)
             {
-                // Aplicar migrations
+                // Apply migrations
                 var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
 
                 if (pendingMigrations.Any())
                 {
-                    _logger.LogInformation("📦 {Module}: {Count} migrations pendentes", moduleName, pendingMigrations.Count);
+                    _logger.LogInformation("📦 {Module}: {Count} pending migrations", moduleName, pendingMigrations.Count);
                     foreach (var migration in pendingMigrations)
                     {
                         _logger.LogDebug("   - {Migration}", migration);
                     }
 
                     await dbContext.Database.MigrateAsync(cancellationToken);
-                    _logger.LogInformation("✅ {Module}: Migrations aplicadas com sucesso", moduleName);
+                    _logger.LogInformation("✅ {Module}: Migrations applied successfully", moduleName);
                 }
                 else
                 {
-                    _logger.LogInformation("✓ {Module}: Nenhuma migration pendente", moduleName);
+                    _logger.LogInformation("✓ {Module}: No pending migrations", moduleName);
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Erro ao aplicar migrations para {Module}", moduleName);
+            _logger.LogError(ex, "❌ Error applying migrations for {Module}", moduleName);
             throw new InvalidOperationException(
-                $"Falha ao aplicar migrations do banco de dados para o módulo '{moduleName}' (DbContext: {contextType.Name})",
+                $"Failed to apply database migrations for module '{moduleName}' (DbContext: {contextType.Name})",
                 ex);
         }
     }
 
     private static string ExtractModuleName(Type contextType)
     {
-        // Extrai nome do módulo do namespace (ex: MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext -> Users)
+        // Extract module name from namespace (e.g., MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext -> Users)
         var namespaceParts = contextType.Namespace?.Split('.') ?? Array.Empty<string>();
         var moduleIndex = Array.IndexOf(namespaceParts, "Modules");
 
@@ -294,7 +294,7 @@ internal class MigrationHostedService : IHostedService
     }
 
     /// <summary>
-    /// Método helper genérico para criar DbContextOptions sem reflection complexa
+    /// Generic helper method to create DbContextOptions without complex reflection
     /// </summary>
     private static DbContextOptions<TContext> CreateDbContextOptions<TContext>(string connectionString, string assemblyName)
         where TContext : DbContext

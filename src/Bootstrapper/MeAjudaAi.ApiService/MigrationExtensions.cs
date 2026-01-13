@@ -16,17 +16,17 @@ public static class MigrationExtensions
     {
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
         
-        logger.LogInformation("🔄 Iniciando migrations de todos os módulos...");
+        logger.LogInformation("🔄 Starting migrations for all modules...");
 
         var dbContextTypes = DiscoverDbContextTypes(logger);
         
         if (dbContextTypes.Count == 0)
         {
-            logger.LogWarning("⚠️ Nenhum DbContext encontrado para migração");
+            logger.LogWarning("⚠️ No DbContext found for migration");
             return;
         }
 
-        logger.LogInformation("📋 Encontrados {Count} DbContexts para migração", dbContextTypes.Count);
+        logger.LogInformation("📋 Found {Count} DbContexts for migration", dbContextTypes.Count);
 
         using var scope = app.Services.CreateScope();
         
@@ -35,7 +35,7 @@ public static class MigrationExtensions
             await MigrateDbContextAsync(scope.ServiceProvider, contextType, logger, cancellationToken);
         }
 
-        logger.LogInformation("✅ Todas as migrations foram aplicadas com sucesso!");
+        logger.LogInformation("✅ All migrations applied successfully!");
     }
 
     private static List<Type> DiscoverDbContextTypes(ILogger logger)
@@ -60,13 +60,13 @@ public static class MigrationExtensions
 
                 if (types.Count > 0)
                 {
-                    logger.LogDebug("✅ Descobertos {Count} DbContext(s) em {Assembly}", 
+                    logger.LogDebug("✅ Discovered {Count} DbContext(s) in {Assembly}", 
                         types.Count, assembly.GetName().Name);
                 }
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "⚠️ Erro ao descobrir tipos no assembly {AssemblyName}", 
+                logger.LogWarning(ex, "⚠️ Error discovering types in assembly {AssemblyName}", 
                     assembly.FullName);
             }
         }
@@ -81,80 +81,80 @@ public static class MigrationExtensions
         CancellationToken cancellationToken)
     {
         var moduleName = ExtractModuleName(contextType);
-        logger.LogInformation("🔧 Aplicando migrations para {Module}...", moduleName);
+        logger.LogInformation("🔧 Applying migrations for {Module}...", moduleName);
 
         try
         {
-            // Obter DbContext do DI container (já tem connection string configurada)
+            // Get DbContext from DI container (already has connection string configured)
             var dbContext = services.GetRequiredService(contextType) as DbContext;
 
             if (dbContext == null)
             {
                 throw new InvalidOperationException(
-                    $"DbContext {contextType.Name} não está registrado no DI container. " +
-                    "Certifique-se de que o módulo foi registrado corretamente.");
+                    $"DbContext {contextType.Name} is not registered in DI container. " +
+                    "Ensure the module was registered correctly.");
             }
 
-            // Estratégia diferenciada por ambiente
+            // Environment-specific strategy
             var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
                 ?.Equals("Development", StringComparison.OrdinalIgnoreCase) ?? false;
 
             if (isDevelopment)
             {
-                // DESENVOLVIMENTO: Aplicar migrations via EF Core (popula __EFMigrationsHistory)
-                logger.LogInformation("🔧 {Module}: Aplicando migrations em modo de desenvolvimento...", moduleName);
+                // DEVELOPMENT: Apply migrations via EF Core (populates __EFMigrationsHistory)
+                logger.LogInformation("🔧 {Module}: Applying migrations in development mode...", moduleName);
                 
                 var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
                 
                 if (pendingMigrations.Any())
                 {
-                    logger.LogInformation("📦 {Module}: {Count} migrations pendentes", moduleName, pendingMigrations.Count);
+                    logger.LogInformation("📦 {Module}: {Count} pending migrations", moduleName, pendingMigrations.Count);
                     foreach (var migration in pendingMigrations)
                     {
                         logger.LogDebug("   - {Migration}", migration);
                     }
                     
                     await dbContext.Database.MigrateAsync(cancellationToken);
-                    logger.LogInformation("✅ {Module}: Migrations aplicadas com sucesso", moduleName);
+                    logger.LogInformation("✅ {Module}: Migrations applied successfully", moduleName);
                     
-                    // DEBUGGING: Gerar script para inspeção (opcional)
+                    // DEBUGGING: Generate script for inspection (optional)
                     var createScript = dbContext.Database.GenerateCreateScript();
                     var tempFile = Path.Combine(Path.GetTempPath(), $"ef_script_{moduleName}.sql");
                     await File.WriteAllTextAsync(tempFile, createScript, cancellationToken);
-                    logger.LogDebug("🔍 {Module}: Script de referência salvo em: {TempFile}", moduleName, tempFile);
+                    logger.LogDebug("🔍 {Module}: Reference script saved at: {TempFile}", moduleName, tempFile);
                 }
                 else
                 {
-                    logger.LogInformation("✓ {Module}: Nenhuma migration pendente", moduleName);
+                    logger.LogInformation("✓ {Module}: No pending migrations", moduleName);
                 }
             }
             else
             {
-                // PRODUÇÃO: Usar migrations apropriadas
+                // PRODUCTION: Use appropriate migrations
                 var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
 
                 if (pendingMigrations.Any())
                 {
-                    logger.LogInformation("📦 {Module}: {Count} migrations pendentes", moduleName, pendingMigrations.Count);
+                    logger.LogInformation("📦 {Module}: {Count} pending migrations", moduleName, pendingMigrations.Count);
                     foreach (var migration in pendingMigrations)
                     {
                         logger.LogDebug("   - {Migration}", migration);
                     }
 
                     await dbContext.Database.MigrateAsync(cancellationToken);
-                    logger.LogInformation("✅ {Module}: Migrations aplicadas com sucesso", moduleName);
+                    logger.LogInformation("✅ {Module}: Migrations applied successfully", moduleName);
                 }
                 else
                 {
-                    logger.LogInformation("✓ {Module}: Nenhuma migration pendente", moduleName);
+                    logger.LogInformation("✓ {Module}: No pending migrations", moduleName);
                 }
             }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "❌ Erro ao aplicar migrations para {Module}", moduleName);
+            logger.LogError(ex, "❌ Error applying migrations for {Module}", moduleName);
             throw new InvalidOperationException(
-                $"Falha ao aplicar migrations do banco de dados para o módulo '{moduleName}' (DbContext: {contextType.Name})",
+                $"Failed to apply database migrations for module '{moduleName}' (DbContext: {contextType.Name})",
                 ex);
         }
     }
