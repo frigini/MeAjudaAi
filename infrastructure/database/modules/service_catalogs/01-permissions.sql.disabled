@@ -2,10 +2,10 @@
 -- Grant permissions for service_catalogs module (service catalog management)
 
 -- Create service_catalogs schema if it doesn't exist
-CREATE SCHEMA IF NOT EXISTS service_catalogs;
+-- CREATE SCHEMA IF NOT EXISTS service_catalogs; -- DISABLED: Schema created by EF Core
 
 -- Set explicit schema ownership
-ALTER SCHEMA service_catalogs OWNER TO catalogs_owner;
+-- ALTER SCHEMA service_catalogs OWNER TO catalogs_owner; -- DISABLED: Set after EF creates schema
 
 GRANT USAGE ON SCHEMA service_catalogs TO catalogs_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA service_catalogs TO catalogs_role;

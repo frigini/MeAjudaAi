@@ -160,9 +160,16 @@ public static class PostgreSqlExtensions
         if (string.IsNullOrWhiteSpace(options.Password))
             throw new InvalidOperationException("POSTGRES_PASSWORD must be provided via env var or options for development.");
 
+        // Criar parameters explícitos para garantir que Aspire use as credenciais corretas nos health checks
+        var postgresUserParam = builder.AddParameter("PostgresUser-Dev", options.Username);
+        var postgresPasswordParam = builder.AddParameter("PostgresPassword-Dev", options.Password, secret: true);
+
         // Setup completo de desenvolvimento com PostGIS para geospatial queries
-        var postgresBuilder = builder.AddPostgres("postgres-local")
-            .WithDataVolume()
+        // NOTA: Sem .WithDataVolume() em desenvolvimento - Docker criará volumes anônimos que serão removidos com containers
+        var postgresBuilder = builder.AddPostgres("postgres-local", 
+                userName: postgresUserParam, 
+                password: postgresPasswordParam, 
+                port: 5432) // Porta fixa para Keycloak poder conectar
             .WithImage("postgis/postgis")
             .WithImageTag("16-3.4") // PostgreSQL 16 with PostGIS 3.4
             .WithEnvironment("POSTGRES_DB", options.MainDatabase)

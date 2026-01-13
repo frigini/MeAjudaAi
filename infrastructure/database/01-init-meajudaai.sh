@@ -11,7 +11,9 @@ echo "🗄️ Initializing MeAjudaAi Database..."
 execute_sql() {
     local file="$1"
     echo "   Executing: $(basename "$file")"
-    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -f "$file"
+    # NOTE: Not using ON_ERROR_STOP for permissions scripts because tables don't exist yet
+    # GRANTs on specific tables will fail but ALTER DEFAULT PRIVILEGES will work
+    psql --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -f "$file" || echo "   ⚠️  Some commands failed (expected for GRANTs on non-existent tables)"
 }
 
 MODULES_DIR="/docker-entrypoint-initdb.d/modules"

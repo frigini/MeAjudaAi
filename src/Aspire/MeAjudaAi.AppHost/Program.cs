@@ -8,10 +8,6 @@ internal static class Program
 {
     public static void Main(string[] args)
     {
-        // Configurar caminhos do Aspire para pacotes NuGet locais
-        // Workaround para: https://github.com/dotnet/aspire/issues/6789
-        ConfigureAspireLocalPackages();
-        
         var builder = DistributedApplication.CreateBuilder(args);
 
         var isTestingEnv = EnvironmentHelpers.IsTesting(builder);
@@ -75,8 +71,9 @@ internal static class Program
             options.Password = testDbPassword;
         });
 
-        // Aplicar migrations automaticamente (Testing também)
-        postgresql.MainDatabase.WithMigrations();
+        // NOTA: Migrations são executadas pelo ApiService após inicialização, não pelo AppHost
+        // O AppHost não tem acesso direto às connection strings gerenciadas pelo Aspire
+        // postgresql.MainDatabase.WithMigrations();
 
         var redis = builder.AddRedis("redis");
 
@@ -121,8 +118,10 @@ internal static class Program
             options.IncludePgAdmin = includePgAdmin;
         });
 
-        // Aplicar migrations automaticamente
-        postgresql.MainDatabase.WithMigrations();
+        // NOTA: Migrations são executadas pelo ApiService após inicialização, não pelo AppHost
+        // O AppHost não tem acesso direto às connection strings gerenciadas pelo Aspire
+        // postgresql.MainDatabase.WithMigrations();
+        // postgresql.MainDatabase.WithMigrations();
 
         var redis = builder.AddRedis("redis");
 
@@ -130,48 +129,19 @@ internal static class Program
 
         var keycloak = builder.AddMeAjudaAiKeycloak(options =>
         {
-            // OBRIGATÓRIO: AdminUsername e AdminPassword
-            options.AdminUsername = builder.Configuration["Keycloak:AdminUsername"]
-                                   ?? Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_USERNAME")
-                                   ?? "admin"; // Fallback apenas para desenvolvimento local
-            
-            var adminPassword = builder.Configuration["Keycloak:AdminPassword"]
-                                ?? Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_PASSWORD");
-            var isKeycloakCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
-            if (string.IsNullOrEmpty(adminPassword))
-            {
-                if (isKeycloakCI)
-                {
-                    Console.Error.WriteLine("ERROR: KEYCLOAK_ADMIN_PASSWORD environment variable is required in CI but not set.");
-                    Console.Error.WriteLine("Please set KEYCLOAK_ADMIN_PASSWORD to the Keycloak admin password in your CI environment.");
-                    Environment.Exit(1);
-                }
-                adminPassword = "admin123"; // Fallback apenas para desenvolvimento local
-            }
-            options.AdminPassword = adminPassword;
-            options.DatabaseHost = builder.Configuration["Keycloak:DatabaseHost"]
-                                  ?? Environment.GetEnvironmentVariable("KEYCLOAK_DB_HOST")
-                                  ?? "postgres-local";
-            options.DatabasePort = builder.Configuration["Keycloak:DatabasePort"]
-                                  ?? Environment.GetEnvironmentVariable("KEYCLOAK_DB_PORT")
-                                  ?? "5432";
-            options.DatabaseName = builder.Configuration["Keycloak:DatabaseName"]
-                                  ?? Environment.GetEnvironmentVariable("KEYCLOAK_DB_NAME")
-                                  ?? mainDatabase;
-            options.DatabaseSchema = builder.Configuration["Keycloak:DatabaseSchema"]
-                                     ?? Environment.GetEnvironmentVariable("KEYCLOAK_DB_SCHEMA")
-                                     ?? "identity";
-            options.DatabaseUsername = builder.Configuration["Keycloak:DatabaseUsername"]
-                                       ?? Environment.GetEnvironmentVariable("KEYCLOAK_DB_USER")
-                                       ?? dbUsername;
-            options.DatabasePassword = builder.Configuration["Keycloak:DatabasePassword"]
-                                       ?? Environment.GetEnvironmentVariable("KEYCLOAK_DB_PASSWORD")
-                                       ?? dbPassword;
-
-            var exposeHttpStr = builder.Configuration["Keycloak:ExposeHttpEndpoint"]
-                               ?? Environment.GetEnvironmentVariable("KEYCLOAK_EXPOSE_HTTP");
-            options.ExposeHttpEndpoint = !bool.TryParse(exposeHttpStr, out var exposeResult) || exposeResult;
+            options.AdminUsername = "admin";
+            options.AdminPassword = "admin123";
+            // Na rede Docker do Aspire, usar o nome do recurso PostgreSQL como hostname
+            options.DatabaseHost = "postgres-local";
+            options.DatabasePort = "5432";
+            options.DatabaseName = mainDatabase;
+            options.DatabaseSchema = "identity";
+            options.DatabaseUsername = dbUsername;
+            options.DatabasePassword = dbPassword;
         });
+
+        // Garantir que Keycloak aguarde o Postgres estar pronto
+        keycloak.Keycloak.WaitFor(postgresql.MainDatabase);
 
         _ = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
             .WithReference(postgresql.MainDatabase, "DefaultConnection")
@@ -218,18 +188,20 @@ internal static class Program
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
     }
 
+    private record AspirePackagesPaths(string DcpPath, string DashboardPath);
+    
     /// <summary>
-    /// Configura caminhos do DCP e Dashboard quando usando pacotes NuGet locais.
-    /// Workaround para: https://github.com/dotnet/aspire/issues/6789
+    /// Detecta e retorna os caminhos dos pacotes locais do Aspire.
+    /// Workaround temporário para: https://github.com/dotnet/aspire/issues/6789
     /// </summary>
-    private static void ConfigureAspireLocalPackages()
+    private static AspirePackagesPaths? GetAspireLocalPackagesPaths()
     {
         // Detectar diretório da solução procurando por global.json ou arquivo .sln
         var solutionRoot = FindSolutionRoot(AppContext.BaseDirectory);
         if (solutionRoot == null)
         {
             Console.WriteLine("⚠️  Could not locate solution root, skipping local packages configuration");
-            return;
+            return null;
         }
 
         var packagesDir = Path.Combine(solutionRoot, "packages");
@@ -242,7 +214,7 @@ internal static class Program
         if (!Directory.Exists(packagesDir))
         {
             Console.WriteLine("⚠️  Not using local packages, skipping configuration");
-            return;
+            return null;
         }
 
         // Versão sincronizada com Directory.Build.targets
@@ -279,7 +251,7 @@ internal static class Program
         else
         {
             Console.WriteLine("⚠️  Unknown platform, skipping local packages configuration");
-            return;
+            return null;
         }
 
         var dcpPath = Path.Combine(packagesDir, $"aspire.hosting.orchestration.{rid}", aspireVersion, "tools", $"dcp{exeExtension}");
@@ -294,20 +266,10 @@ internal static class Program
 
         if (File.Exists(dcpPath) && File.Exists(dashboardPath))
         {
-            // Configurar variáveis de ambiente que o Aspire lê
-            Environment.SetEnvironmentVariable("DOTNET_DCP_CLI_PATH", dcpPath);
-            Environment.SetEnvironmentVariable("DCP_CLI_PATH", dcpPath);
-            Environment.SetEnvironmentVariable("Aspire__CliPath", dcpPath);
-            
-            Environment.SetEnvironmentVariable("DOTNET_ASPIRE_DASHBOARD_PATH", dashboardDir);
-            Environment.SetEnvironmentVariable("ASPIRE_DASHBOARD_PATH", dashboardDir);
-            Environment.SetEnvironmentVariable("Aspire__DashboardPath", dashboardDir);
-            
-            Console.WriteLine("✅ Aspire local packages configured:");
+            Console.WriteLine("✅ Aspire local packages found:");
             Console.WriteLine($"   DCP: {dcpPath}");
             Console.WriteLine($"   Dashboard: {dashboardPath}");
-            Console.WriteLine($"   Variables set: DOTNET_DCP_CLI_PATH, DCP_CLI_PATH, Aspire__CliPath");
-            Console.WriteLine($"   Variables set: DOTNET_ASPIRE_DASHBOARD_PATH, ASPIRE_DASHBOARD_PATH, Aspire__DashboardPath");
+            return new AspirePackagesPaths(dcpPath, dashboardPath);
         }
         else
         {
@@ -316,6 +278,7 @@ internal static class Program
                 Console.WriteLine($"   Missing: {dcpPath}");
             if (!File.Exists(dashboardPath))
                 Console.WriteLine($"   Missing: {dashboardPath}");
+            return null;
         }
     }
 

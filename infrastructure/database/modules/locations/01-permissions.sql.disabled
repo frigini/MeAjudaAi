@@ -2,10 +2,10 @@
 -- Grant permissions for locations module (CEP lookup and geocoding)
 
 -- Create locations schema if it doesn't exist
-CREATE SCHEMA IF NOT EXISTS locations;
+-- CREATE SCHEMA IF NOT EXISTS locations; -- DISABLED: Schema created by EF Core
 
 -- Set explicit schema ownership
-ALTER SCHEMA locations OWNER TO location_owner;
+-- ALTER SCHEMA locations OWNER TO location_owner; -- DISABLED: Set after EF creates schema
 
 -- Lock down PUBLIC access on this schema
 REVOKE ALL ON SCHEMA locations FROM PUBLIC;

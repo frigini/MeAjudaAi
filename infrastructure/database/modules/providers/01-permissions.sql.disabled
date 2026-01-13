@@ -2,10 +2,10 @@
 -- Grant permissions for providers module
 
 -- Create providers schema if it doesn't exist
-CREATE SCHEMA IF NOT EXISTS providers;
+-- CREATE SCHEMA IF NOT EXISTS providers; -- DISABLED: Schema created by EF Core
 
 -- Set explicit schema ownership
-ALTER SCHEMA providers OWNER TO providers_owner;
+-- ALTER SCHEMA providers OWNER TO providers_owner; -- DISABLED: Set after EF creates schema
 
 GRANT USAGE ON SCHEMA providers TO providers_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA providers TO providers_role;

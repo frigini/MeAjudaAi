@@ -168,12 +168,12 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         // Categories com IDs estáveis - usar RETURNING id para capturar IDs reais
         var categories = new[]
         {
-            new { Id = HealthCategoryId, Name = "Saúde", Description = "Serviços relacionados à saúde e bem-estar" },
-            new { Id = EducationCategoryId, Name = "Educação", Description = "Serviços educacionais e de capacitação" },
-            new { Id = SocialCategoryId, Name = "Assistência Social", Description = "Programas de assistência e suporte social" },
-            new { Id = LegalCategoryId, Name = "Jurídico", Description = "Serviços jurídicos e advocatícios" },
-            new { Id = HousingCategoryId, Name = "Habitação", Description = "Moradia e programas habitacionais" },
-            new { Id = FoodCategoryId, Name = "Alimentação", Description = "Programas de segurança alimentar" }
+            new { Id = HealthCategoryId, Name = "Saúde", Description = "Serviços relacionados à saúde e bem-estar", DisplayOrder = 1 },
+            new { Id = EducationCategoryId, Name = "Educação", Description = "Serviços educacionais e de capacitação", DisplayOrder = 2 },
+            new { Id = SocialCategoryId, Name = "Assistência Social", Description = "Programas de assistência e suporte social", DisplayOrder = 3 },
+            new { Id = LegalCategoryId, Name = "Jurídico", Description = "Serviços jurídicos e advocatícios", DisplayOrder = 4 },
+            new { Id = HousingCategoryId, Name = "Habitação", Description = "Moradia e programas habitacionais", DisplayOrder = 5 },
+            new { Id = FoodCategoryId, Name = "Alimentação", Description = "Programas de segurança alimentar", DisplayOrder = 6 }
         };
 
         // Build idMap to capture actual IDs from upsert
@@ -182,13 +182,15 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         {
             // PostgreSQL ON CONFLICT ... RETURNING always returns the id (whether inserted or updated)
             var result = await context.Database.SqlQueryRaw<Guid>(
-                @"INSERT INTO service_catalogs.categories (id, name, description, created_at, updated_at) 
-                  VALUES ({0}, {1}, {2}, {3}, {4})
+                @"INSERT INTO service_catalogs.service_categories (id, name, description, is_active, display_order, created_at, updated_at) 
+                  VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6})
                   ON CONFLICT (name) DO UPDATE 
                     SET description = EXCLUDED.description, 
+                        is_active = EXCLUDED.is_active,
+                        display_order = EXCLUDED.display_order,
                         updated_at = EXCLUDED.updated_at
                   RETURNING id",
-                cat.Id, cat.Name, cat.Description, DateTime.UtcNow, DateTime.UtcNow)
+                cat.Id, cat.Name, cat.Description, true, cat.DisplayOrder, DateTime.UtcNow, DateTime.UtcNow)
                 .ToListAsync(cancellationToken);
 
             if (result.Count > 0)
@@ -199,7 +201,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             {
                 // Fallback: query existing category by name if RETURNING failed
                 var existingId = await context.Database.SqlQueryRaw<Guid>(
-                    "SELECT id FROM service_catalogs.categories WHERE name = {0}",
+                    "SELECT id FROM service_catalogs.service_categories WHERE name = {0}",
                     cat.Name)
                     .FirstOrDefaultAsync(cancellationToken);
 
@@ -221,8 +223,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 Name = "Atendimento Psicológico Gratuito",
                 Description = "Atendimento psicológico individual ou em grupo",
                 CategoryId = idMap.GetValueOrDefault("Saúde", HealthCategoryId),
-                Criteria = "Renda familiar até 3 salários mínimos",
-                Documents = "{\"RG\",\"CPF\",\"Comprovante de residência\",\"Comprovante de renda\"}"
+                DisplayOrder = 1
             },
             new
             {
@@ -230,8 +231,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 Name = "Curso de Informática Básica",
                 Description = "Curso gratuito de informática e inclusão digital",
                 CategoryId = idMap.GetValueOrDefault("Educação", EducationCategoryId),
-                Criteria = "Jovens de 14 a 29 anos",
-                Documents = "{\"RG\",\"CPF\",\"Comprovante de escolaridade\"}"
+                DisplayOrder = 2
             },
             new
             {
@@ -239,8 +239,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 Name = "Cesta Básica",
                 Description = "Distribuição mensal de cestas básicas",
                 CategoryId = idMap.GetValueOrDefault("Alimentação", FoodCategoryId),
-                Criteria = "Famílias em situação de vulnerabilidade",
-                Documents = "{\"Cadastro único\",\"Comprovante de residência\"}"
+                DisplayOrder = 3
             },
             new
             {
@@ -248,18 +247,17 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 Name = "Orientação Jurídica Gratuita",
                 Description = "Atendimento jurídico para questões civis e trabalhistas",
                 CategoryId = idMap.GetValueOrDefault("Jurídico", LegalCategoryId),
-                Criteria = "Renda familiar até 2 salários mínimos",
-                Documents = "{\"RG\",\"CPF\",\"Documentos relacionados ao caso\"}"
+                DisplayOrder = 4
             }
         };
 
         foreach (var svc in services)
         {
             await context.Database.ExecuteSqlRawAsync(
-                @"INSERT INTO service_catalogs.services (id, name, description, category_id, eligibility_criteria, required_documents, created_at, updated_at, is_active) 
-                  VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, true)
+                @"INSERT INTO service_catalogs.services (id, name, description, category_id, is_active, display_order, created_at, updated_at) 
+                  VALUES ({0}, {1}, {2}, {3}, true, {4}, {5}, {6})
                   ON CONFLICT (name) DO NOTHING",
-                [svc.Id, svc.Name, svc.Description, svc.CategoryId, svc.Criteria, svc.Documents, DateTime.UtcNow, DateTime.UtcNow],
+                [svc.Id, svc.Name, svc.Description, svc.CategoryId, svc.DisplayOrder, DateTime.UtcNow, DateTime.UtcNow],
                 cancellationToken);
         }
 
@@ -279,26 +277,26 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
 
         var cities = new[]
         {
-            new { Id = UuidGenerator.NewId(), IbgeCode = "3143906", CityName = "Muriaé", State = "MG" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = "3550308", CityName = "São Paulo", State = "SP" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = "3304557", CityName = "Rio de Janeiro", State = "RJ" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = "3106200", CityName = "Belo Horizonte", State = "MG" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = "4106902", CityName = "Curitiba", State = "PR" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = "4314902", CityName = "Porto Alegre", State = "RS" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = "5300108", CityName = "Brasília", State = "DF" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = "2927408", CityName = "Salvador", State = "BA" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = "2304400", CityName = "Fortaleza", State = "CE" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = "2611606", CityName = "Recife", State = "PE" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = "1302603", CityName = "Manaus", State = "AM" }
+            new { Id = UuidGenerator.NewId(), IbgeCode = 3143906, CityName = "Muriaé", State = "MG" },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 3550308, CityName = "São Paulo", State = "SP" },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 3304557, CityName = "Rio de Janeiro", State = "RJ" },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 3106200, CityName = "Belo Horizonte", State = "MG" },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 4106902, CityName = "Curitiba", State = "PR" },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 4314902, CityName = "Porto Alegre", State = "RS" },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 5300108, CityName = "Brasília", State = "DF" },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 2927408, CityName = "Salvador", State = "BA" },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 2304400, CityName = "Fortaleza", State = "CE" },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 2611606, CityName = "Recife", State = "PE" },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 1302603, CityName = "Manaus", State = "AM" }
         };
 
         foreach (var city in cities)
         {
             await context.Database.ExecuteSqlRawAsync(
-                @"INSERT INTO locations.allowed_cities (id, ibge_code, city_name, state, is_active, created_at, updated_at) 
-                  VALUES ({0}, {1}, {2}, {3}, true, {4}, {5})
-                  ON CONFLICT (ibge_code) DO NOTHING",
-                [city.Id, city.IbgeCode, city.CityName, city.State, DateTime.UtcNow, DateTime.UtcNow],
+                @"INSERT INTO locations.allowed_cities (id, ibge_code, city_name, state_sigla, is_active, created_at, updated_at, created_by, updated_by) 
+                  VALUES ({0}, {1}, {2}, {3}, true, {4}, {5}, {6}, {7})
+                  ON CONFLICT (city_name, state_sigla) DO NOTHING",
+                [city.Id, city.IbgeCode, city.CityName, city.State, DateTime.UtcNow, DateTime.UtcNow, "system", "system"],
                 cancellationToken);
         }
 

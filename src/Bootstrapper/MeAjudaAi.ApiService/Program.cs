@@ -48,6 +48,9 @@ public partial class Program
 
             await ConfigureMiddlewareAsync(app);
 
+            // Aplicar migrations de todos os módulos ANTES de seed
+            await app.ApplyModuleMigrationsAsync();
+
             // Seed dados de desenvolvimento se necessário
             await app.SeedDevelopmentDataIfNeededAsync();
 

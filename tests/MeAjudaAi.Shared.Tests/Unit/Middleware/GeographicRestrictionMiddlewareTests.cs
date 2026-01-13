@@ -308,14 +308,14 @@ public class GeographicRestrictionMiddlewareTests
                 "Muriaé", "MG", It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object, geographicValidationMock.Object);
+        var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object);
 
         _httpContext.Request.Path = "/api/providers";
         _httpContext.Request.Headers["X-User-City"] = "Muriaé";
         _httpContext.Request.Headers["X-User-State"] = "MG";
 
         // Act
-        await middleware.InvokeAsync(_httpContext);
+        await middleware.InvokeAsync(_httpContext, geographicValidationMock.Object);
 
         // Assert
         _nextMock.Verify(next => next(_httpContext), Times.Once);
@@ -336,14 +336,14 @@ public class GeographicRestrictionMiddlewareTests
                 "São Paulo", "SP", It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
-        var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object, geographicValidationMock.Object);
+        var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object);
 
         _httpContext.Request.Path = "/api/providers";
         _httpContext.Request.Headers["X-User-City"] = "São Paulo";
         _httpContext.Request.Headers["X-User-State"] = "SP";
 
         // Act
-        await middleware.InvokeAsync(_httpContext);
+        await middleware.InvokeAsync(_httpContext, geographicValidationMock.Object);
 
         // Assert
         _nextMock.Verify(next => next(_httpContext), Times.Never);
@@ -365,14 +365,14 @@ public class GeographicRestrictionMiddlewareTests
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new HttpRequestException("IBGE API down"));
 
-        var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object, geographicValidationMock.Object);
+        var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object);
 
         _httpContext.Request.Path = "/api/providers";
         _httpContext.Request.Headers["X-User-City"] = "Muriaé";
         _httpContext.Request.Headers["X-User-State"] = "MG";
 
         // Act
-        await middleware.InvokeAsync(_httpContext);
+        await middleware.InvokeAsync(_httpContext, geographicValidationMock.Object);
 
         // Assert (fallback to simple validation - Muriaé is in AllowedCities)
         _nextMock.Verify(next => next(_httpContext), Times.Once);
@@ -397,15 +397,14 @@ public class GeographicRestrictionMiddlewareTests
             _nextMock.Object,
             _loggerMock.Object,
             options,
-            _featureManagerMock.Object,
-            geographicValidationService: null);
+            _featureManagerMock.Object);
 
         _httpContext.Request.Path = "/api/providers";
         _httpContext.Request.Headers["X-User-City"] = "Muriaé";
         _httpContext.Request.Headers["X-User-State"] = "MG";
 
         // Act
-        await middleware.InvokeAsync(_httpContext);
+        await middleware.InvokeAsync(_httpContext, geographicValidationService: null);
 
         // Assert (fallback to simple validation - Muriaé is in AllowedCities)
         _nextMock.Verify(next => next(_httpContext), Times.Once);
@@ -424,14 +423,14 @@ public class GeographicRestrictionMiddlewareTests
                 "mg", It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object, geographicValidationMock.Object);
+        var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object);
 
         _httpContext.Request.Path = "/api/providers";
         _httpContext.Request.Headers["X-User-City"] = "muriaé";
         _httpContext.Request.Headers["X-User-State"] = "mg";
 
         // Act
-        await middleware.InvokeAsync(_httpContext);
+        await middleware.InvokeAsync(_httpContext, geographicValidationMock.Object);
 
         // Assert
         _nextMock.Verify(next => next(_httpContext), Times.Once);
@@ -452,14 +451,14 @@ public class GeographicRestrictionMiddlewareTests
                 "Muriaé", null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object, geographicValidationMock.Object);
+        var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object);
 
         _httpContext.Request.Path = "/api/providers";
         _httpContext.Request.Headers["X-User-City"] = "Muriaé";
         // No state header
 
         // Act
-        await middleware.InvokeAsync(_httpContext);
+        await middleware.InvokeAsync(_httpContext, geographicValidationMock.Object);
 
         // Assert
         _nextMock.Verify(next => next(_httpContext), Times.Once);
@@ -480,14 +479,14 @@ public class GeographicRestrictionMiddlewareTests
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object, geographicValidationMock.Object);
+        var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object);
 
         _httpContext.Request.Path = "/api/providers";
         _httpContext.Request.Headers["X-User-City"] = "Muriaé";
         _httpContext.Request.Headers["X-User-State"] = "MG";
 
         // Act
-        await middleware.InvokeAsync(_httpContext);
+        await middleware.InvokeAsync(_httpContext, geographicValidationMock.Object);
 
         // Assert
         _loggerMock.Verify(
@@ -512,14 +511,14 @@ public class GeographicRestrictionMiddlewareTests
                 "Itaperuna", "RJ", It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object, geographicValidationMock.Object);
+        var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object);
 
         _httpContext.Request.Path = "/api/providers";
         _httpContext.Request.Headers["X-User-City"] = "Itaperuna";
         _httpContext.Request.Headers["X-User-State"] = "RJ";
 
         // Act
-        await middleware.InvokeAsync(_httpContext);
+        await middleware.InvokeAsync(_httpContext, geographicValidationMock.Object);
 
         // Assert (both IBGE and simple validation should agree - Itaperuna is in AllowedCities)
         _nextMock.Verify(next => next(_httpContext), Times.Once);

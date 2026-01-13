@@ -222,75 +222,36 @@ internal class MigrationHostedService : IHostedService
 
         try
         {
-            // Criar DbContextOptionsBuilder dinâmicamente mantendo tipo genérico
-            var optionsBuilderType = typeof(DbContextOptionsBuilder<>).MakeGenericType(contextType);
-            var optionsBuilderInstance = Activator.CreateInstance(optionsBuilderType);
-
-            if (optionsBuilderInstance == null)
-            {
-                throw new InvalidOperationException($"Não foi possível criar DbContextOptionsBuilder para {contextType.Name}");
-            }
-
-            // Configurar PostgreSQL - usar dynamic para simplificar reflexão
-            dynamic optionsBuilderDynamic = optionsBuilderInstance;
-
-            // Nome seguro do assembly: FullName pode ser null para alguns assemblies
+            // Criar DbContextOptions usando o método helper genérico
+            var optionsMethod = typeof(MigrationHostedService)
+                .GetMethod(nameof(CreateDbContextOptions), BindingFlags.NonPublic | BindingFlags.Static)!
+                .MakeGenericMethod(contextType);
+            
             var assemblyName = contextType.Assembly.FullName
                 ?? contextType.Assembly.GetName().Name
                 ?? contextType.Assembly.ToString();
+                
+            var options = optionsMethod.Invoke(null, new object[] { connectionString, assemblyName });
 
-            // Chamar UseNpgsql com connection string
-            Microsoft.EntityFrameworkCore.NpgsqlDbContextOptionsBuilderExtensions.UseNpgsql(
-                optionsBuilderDynamic,
-                connectionString,
-                (Action<Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.NpgsqlDbContextOptionsBuilder>)(npgsqlOptions =>
-                {
-                    npgsqlOptions.MigrationsAssembly(assemblyName);
-                    npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
-                })
-            );
-
-            // Obter Options com tipo correto via reflection
-            var optionsProperty = optionsBuilderType.GetProperty("Options");
-            if (optionsProperty == null)
-            {
-                throw new InvalidOperationException(
-                    $"Não foi possível encontrar a propriedade 'Options' em DbContextOptionsBuilder<{contextType.Name}>. " +
-                    "Isso indica incompatibilidade de versão ou problema de reflexão.");
-            }
-
-            var options = optionsProperty.GetValue(optionsBuilderInstance);
             if (options == null)
             {
-                throw new InvalidOperationException(
-                    $"DbContextOptions para {contextType.Name} está null após configuração. " +
-                    "Certifique-se de que UseNpgsql foi chamado com sucesso.");
+                throw new InvalidOperationException($"Não foi possível criar DbContextOptions para {contextType.Name}");
             }
 
-            // Verificar se construtor existe antes de tentar instanciação
-            var constructor = contextType.GetConstructor(new[] { options.GetType() });
-            if (constructor == null)
+            // Criar instância do DbContext usando o construtor
+            var dbContext = Activator.CreateInstance(contextType, options) as DbContext;
+
+            if (dbContext == null)
             {
                 throw new InvalidOperationException(
-                    $"Nenhum construtor adequado encontrado para {contextType.Name} que aceite {options.GetType().Name}. " +
-                    "Certifique-se de que o DbContext tem um construtor que aceita DbContextOptions.");
+                    $"Falha ao criar instância de DbContext do tipo {contextType.Name}. " +
+                    "Certifique-se de que o DbContext tem um construtor público que aceita DbContextOptions.");
             }
 
-            // Criar instância do DbContext
-            var contextInstance = Activator.CreateInstance(contextType, options);
-            var context = contextInstance as DbContext;
-
-            if (context == null)
-            {
-                throw new InvalidOperationException(
-                    $"Falha ao converter instância criada para DbContext do tipo {contextType.Name}. " +
-                    $"Tipo da instância criada: {contextInstance?.GetType().Name ?? "null"}");
-            }
-
-            using (context)
+            using (dbContext)
             {
                 // Aplicar migrations
-                var pendingMigrations = (await context.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
+                var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
 
                 if (pendingMigrations.Any())
                 {
@@ -300,7 +261,7 @@ internal class MigrationHostedService : IHostedService
                         _logger.LogDebug("   - {Migration}", migration);
                     }
 
-                    await context.Database.MigrateAsync(cancellationToken);
+                    await dbContext.Database.MigrateAsync(cancellationToken);
                     _logger.LogInformation("✅ {Module}: Migrations aplicadas com sucesso", moduleName);
                 }
                 else
@@ -331,4 +292,22 @@ internal class MigrationHostedService : IHostedService
 
         return contextType.Name.Replace("DbContext", "");
     }
+
+    /// <summary>
+    /// Método helper genérico para criar DbContextOptions sem reflection complexa
+    /// </summary>
+    private static DbContextOptions<TContext> CreateDbContextOptions<TContext>(string connectionString, string assemblyName)
+        where TContext : DbContext
+    {
+        var optionsBuilder = new DbContextOptionsBuilder<TContext>();
+        
+        optionsBuilder.UseNpgsql(connectionString, npgsqlOptions =>
+        {
+            npgsqlOptions.MigrationsAssembly(assemblyName);
+            npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
+        });
+
+        return optionsBuilder.Options;
+    }
 }
+

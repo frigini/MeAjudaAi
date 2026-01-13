@@ -37,10 +37,14 @@ public static class MeAjudaAiKeycloakExtensions
         Console.WriteLine($"[Keycloak] Configuring Keycloak for development...");
         Console.WriteLine($"[Keycloak] Database Schema: {options.DatabaseSchema}");
         Console.WriteLine($"[Keycloak] Admin User: {options.AdminUsername}");
+        Console.WriteLine($"[Keycloak] Database Host: {options.DatabaseHost}");
 
-        var keycloak = builder.AddKeycloak("keycloak")
-            .WithDataVolume()
+        // AddKeycloak já configura porta 8080 (HTTP) e 9000 (management) automaticamente
+        // Usar porta fixa para permitir acesso consistente em desenvolvimento
+        // NOTA: Sem .WithDataVolume() em desenvolvimento para sempre iniciar limpo
+        var keycloak = builder.AddKeycloak("keycloak", port: 8080)
             // Configurar banco de dados PostgreSQL com schema 'identity'
+            // Na rede Docker do Aspire, containers se comunicam usando o nome do recurso
             .WithEnvironment("KC_DB", "postgres")
             .WithEnvironment("KC_DB_URL", $"jdbc:postgresql://{options.DatabaseHost}:{options.DatabasePort}/{options.DatabaseName}?currentSchema={options.DatabaseSchema}")
             .WithEnvironment("KC_DB_USERNAME", options.DatabaseUsername)
@@ -56,22 +60,16 @@ public static class MeAjudaAiKeycloakExtensions
             .WithEnvironment("KC_HEALTH_ENABLED", "true")
             .WithEnvironment("KC_METRICS_ENABLED", "true");
 
+        // NOTA: Aspire.Hosting.Keycloak já configura automaticamente 'start-dev' em RunMode e 'start' em PublishMode
+        // Não precisamos chamar WithArgs() manualmente
+
         // Importar realm na inicialização (apenas se especificado)
         if (!string.IsNullOrEmpty(options.ImportRealm))
         {
-            keycloak = keycloak
-                .WithEnvironment("KC_IMPORT", options.ImportRealm)
-                .WithArgs("start-dev", "--import-realm");
-        }
-        else
-        {
-            keycloak = keycloak.WithArgs("start-dev");
+            keycloak = keycloak.WithEnvironment("KC_IMPORT", options.ImportRealm);
         }
 
-        if (options.ExposeHttpEndpoint)
-        {
-            keycloak = keycloak.WithHttpEndpoint(targetPort: 8080, name: "keycloak-http");
-        }
+        // Não adicionar endpoint HTTP duplicado - AddKeycloak() já faz isso
 
         Console.WriteLine($"[Keycloak] ✅ Keycloak configured:");
         Console.WriteLine($"[Keycloak]    HTTP Port: 8080");

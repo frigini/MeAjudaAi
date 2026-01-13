@@ -5,10 +5,10 @@
 CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- Create search_providers schema if it doesn't exist
-CREATE SCHEMA IF NOT EXISTS search_providers;
+-- CREATE SCHEMA IF NOT EXISTS search_providers; -- DISABLED: Schema created by EF Core
 
 -- Set explicit schema ownership
-ALTER SCHEMA search_providers OWNER TO search_owner;
+-- ALTER SCHEMA search_providers OWNER TO search_owner; -- DISABLED: Set after EF creates schema
 
 -- Lock down PUBLIC access on this schema
 REVOKE ALL ON SCHEMA search_providers FROM PUBLIC;
