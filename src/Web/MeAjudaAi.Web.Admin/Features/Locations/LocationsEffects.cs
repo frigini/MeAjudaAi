@@ -8,15 +8,15 @@ namespace MeAjudaAi.Web.Admin.Features.Locations;
 /// Effects Fluxor para operações assíncronas de cidades permitidas.
 /// Executa chamadas à API e dispatcha actions de sucesso/falha.
 /// </summary>
-public sealed class LocationsEffects(ILocationsApi locationsApi, IDispatcher dispatcher)
+public sealed class LocationsEffects(ILocationsApi locationsApi)
 {
     /// <summary>Carrega todas as cidades permitidas do backend</summary>
     [EffectMethod]
-    public async Task HandleLoadAllowedCitiesAction(LoadAllowedCitiesAction action, CancellationToken cancellationToken)
+    public async Task HandleLoadAllowedCitiesAction(LoadAllowedCitiesAction action, IDispatcher dispatcher)
     {
         try
         {
-            var result = await locationsApi.GetAllAllowedCitiesAsync(action.OnlyActive, cancellationToken);
+            var result = await locationsApi.GetAllAllowedCitiesAsync(action.OnlyActive, CancellationToken.None);
 
             if (result.IsSuccess && result.Value is not null)
             {
