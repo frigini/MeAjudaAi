@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using System.Reflection;
 
 namespace MeAjudaAi.ApiService;
 
@@ -13,7 +12,8 @@ public static class MigrationExtensions
     /// </summary>
     public static async Task ApplyModuleMigrationsAsync(this IHost app, CancellationToken cancellationToken = default)
     {
-        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger("MeAjudaAi.Migrations");
         
         logger.LogInformation("🔄 Starting migrations for all modules...");
 

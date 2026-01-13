@@ -98,13 +98,13 @@ internal class MigrationHostedService : IHostedService
 
         if (isDevelopment)
         {
-            // Default values ONLY for local development
-            // Use .env file or user secrets for password
+            // Valores padrão APENAS para desenvolvimento local
+            // Use arquivo .env ou user secrets para a senha
             host ??= "localhost";
             port ??= "5432";
             database ??= "meajudaai";
             username ??= "postgres";
-            // Password is required even in dev - use environment variable
+            // Senha é obrigatória mesmo em dev - use variável de ambiente
             if (string.IsNullOrEmpty(password))
             {
                 _logger.LogWarning(
@@ -119,7 +119,7 @@ internal class MigrationHostedService : IHostedService
         }
         else
         {
-            // In non-dev environments, REQUIRE explicit configuration
+            // Em ambientes não-dev, EXIGIR configuração explícita
             if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(port) ||
                 string.IsNullOrEmpty(database) || string.IsNullOrEmpty(username) ||
                 string.IsNullOrEmpty(password))
@@ -222,25 +222,40 @@ internal class MigrationHostedService : IHostedService
 
         try
         {
-            // Create DbContextOptions directly without reflection
+            // Criar DbContextOptions diretamente via reflexão para manter type safety
             var assemblyName = contextType.Assembly.FullName
                 ?? contextType.Assembly.GetName().Name
                 ?? contextType.Assembly.ToString();
 
-            // Use generic DbContextOptionsBuilder<TContext> to ensure type safety
+            // Usar DbContextOptionsBuilder<TContext> genérico para garantir type safety
             var optionsBuilderType = typeof(DbContextOptionsBuilder<>).MakeGenericType(contextType);
-            var optionsBuilder = Activator.CreateInstance(optionsBuilderType) as DbContextOptionsBuilder
+            var optionsBuilder = Activator.CreateInstance(optionsBuilderType)
                 ?? throw new InvalidOperationException($"Failed to create DbContextOptionsBuilder for {contextType.Name}");
-            optionsBuilder.UseNpgsql(connectionString, npgsqlOptions =>
+            
+            // Configurar PostgreSQL usando método de extensão UseNpgsql
+            var useNpgsqlMethod = typeof(NpgsqlDbContextOptionsBuilderExtensions)
+                .GetMethods()
+                .FirstOrDefault(m => m.Name == "UseNpgsql" && m.GetParameters().Length == 3);
+            
+            if (useNpgsqlMethod == null)
+                throw new InvalidOperationException("UseNpgsql extension method not found");
+            
+            Action<Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly(assemblyName);
                 npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
-            });
+            };
+            
+            useNpgsqlMethod.Invoke(null, new object[] { optionsBuilder, connectionString, npgsqlOptionsAction });
 
-            var options = optionsBuilder.Options;
+            // Acessar Options usando reflexão para manter o tipo genérico DbContextOptions<TContext>
+            var optionsProperty = optionsBuilderType.GetProperty("Options")
+                ?? throw new InvalidOperationException($"Options property not found on {optionsBuilderType.Name}");
+            var options = optionsProperty.GetValue(optionsBuilder)
+                ?? throw new InvalidOperationException($"Failed to get Options from DbContextOptionsBuilder for {contextType.Name}");
 
-            // NOTE: All DbContexts must have a public constructor accepting DbContextOptions.
-            // This is a design constraint enforced across the codebase.
+            // NOTA: Todos os DbContexts devem ter um construtor público aceitando DbContextOptions<TContext>.
+            // Esta é uma restrição de design aplicada em toda a codebase.
             var dbContext = Activator.CreateInstance(contextType, options) as DbContext;
 
             if (dbContext == null)

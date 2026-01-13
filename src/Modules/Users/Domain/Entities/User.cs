@@ -109,6 +109,7 @@ public sealed class User : AggregateRoot<UserId>
     /// <summary>
     /// Helper privado para definir campos backing via reflexão.
     /// </summary>
+#pragma warning disable S3011 // Reflection is acceptable for internal test helpers
     private void SetBaseEntityField<T>(string propertyName, T value)
     {
         var fieldName = $"<{propertyName}>k__BackingField";
@@ -118,26 +119,23 @@ public sealed class User : AggregateRoot<UserId>
             throw new InvalidOperationException($"Could not find backing field for {propertyName}. The compiler-generated field name may have changed.");
         baseField.SetValue(this, value);
     }
+#pragma warning restore S3011
 
     /// <summary>
     /// Helper interno de testes para definir CreatedAt. Acessível apenas a partir de assemblies de teste.
     /// </summary>
-#pragma warning disable S3011 // Reflection is acceptable for internal test helpers
     internal void SetCreatedAtForTesting(DateTime createdAt)
     {
         SetBaseEntityField(nameof(CreatedAt), createdAt);
     }
-#pragma warning restore S3011
 
     /// <summary>
     /// Helper interno de testes para definir UpdatedAt. Acessível apenas a partir de assemblies de teste.
     /// </summary>
-#pragma warning disable S3011 // Reflection is acceptable for internal test helpers
     internal void SetUpdatedAtForTesting(DateTime? updatedAt)
     {
         SetBaseEntityField(nameof(UpdatedAt), updatedAt);
     }
-#pragma warning restore S3011
 
     /// <summary>
     /// Cria um novo usuário no sistema.
