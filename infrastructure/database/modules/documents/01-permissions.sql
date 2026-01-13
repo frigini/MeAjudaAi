@@ -64,7 +64,13 @@ ALTER ROLE hangfire_role SET search_path = hangfire, documents, users, providers
 
 -- Grant hangfire_role read access to documents schema (needed for DocumentVerificationJob)
 -- Following principle of least privilege: only UPDATE on specific table, not all tables
-GRANT USAGE ON SCHEMA documents TO hangfire_role;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'documents') THEN
+        EXECUTE 'GRANT USAGE ON SCHEMA documents TO hangfire_role';
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 -- NOTE: GRANT on specific tables commented out - will be applied after EF Core migrations create the tables
 -- GRANT SELECT ON ALL TABLES IN SCHEMA documents TO hangfire_role;
 -- GRANT UPDATE ON documents.documents TO hangfire_role; -- Only documents table needs UPDATE

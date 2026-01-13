@@ -27,11 +27,17 @@ public static class MigrationExtensions
 
         logger.LogInformation("📋 Found {Count} DbContexts for migration", dbContextTypes.Count);
 
+        // Read environment variables once for all DbContexts
+        var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+            ?.Equals("Development", StringComparison.OrdinalIgnoreCase) ?? false;
+        var enableDebugScripts = Environment.GetEnvironmentVariable("ENABLE_MIGRATION_DEBUG_SCRIPTS")
+            ?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
+
         using var scope = app.Services.CreateScope();
         
         foreach (var contextType in dbContextTypes)
         {
-            await MigrateDbContextAsync(scope.ServiceProvider, contextType, logger, cancellationToken);
+            await MigrateDbContextAsync(scope.ServiceProvider, contextType, logger, isDevelopment, enableDebugScripts, cancellationToken);
         }
 
         logger.LogInformation("✅ All migrations applied successfully!");
@@ -41,9 +47,9 @@ public static class MigrationExtensions
     {
         var dbContextTypes = new List<Type>();
 
+        // Align with MigrationHostedService: filter only by MeAjudaAi.Modules
         var assemblies = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => a.FullName?.Contains("MeAjudaAi.Modules") == true && 
-                       a.FullName?.Contains("Infrastructure") == true)
+            .Where(a => a.FullName?.Contains("MeAjudaAi.Modules") == true)
             .ToList();
 
         foreach (var assembly in assemblies)
@@ -77,6 +83,8 @@ public static class MigrationExtensions
         IServiceProvider services, 
         Type contextType, 
         ILogger logger,
+        bool isDevelopment,
+        bool enableDebugScripts,
         CancellationToken cancellationToken)
     {
         var moduleName = ExtractModuleName(contextType);
@@ -95,11 +103,6 @@ public static class MigrationExtensions
             }
 
             // Apply migrations using consolidated logic
-            var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
-                ?.Equals("Development", StringComparison.OrdinalIgnoreCase) ?? false;
-            var enableDebugScripts = Environment.GetEnvironmentVariable("ENABLE_MIGRATION_DEBUG_SCRIPTS")
-                ?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
-
             var migrationsApplied = await ApplyPendingMigrationsAsync(
                 dbContext, 
                 moduleName, 
@@ -112,6 +115,8 @@ public static class MigrationExtensions
                 try
                 {
                     var createScript = dbContext.Database.GenerateCreateScript();
+                    // NOTE: Debug script files accumulate in temp directory.
+                    // Cleanup is handled by OS temp directory maintenance.
                     var tempFile = Path.Combine(Path.GetTempPath(), $"ef_script_{moduleName}.sql");
                     await File.WriteAllTextAsync(tempFile, createScript, cancellationToken);
                     logger.LogDebug("🔍 {Module}: Reference script saved at: {TempFile}", moduleName, tempFile);

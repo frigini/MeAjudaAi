@@ -99,7 +99,7 @@ public sealed class User : AggregateRoot<UserId>
     private User() { }
 
     /// <summary>
-    /// Internal test helper to set Id. Only accessible from test assemblies.
+    /// Helper interno de testes para definir o Id. Acessível apenas a partir de assemblies de teste.
     /// </summary>
     internal void SetIdForTesting(UserId id)
     {
@@ -107,26 +107,30 @@ public sealed class User : AggregateRoot<UserId>
     }
 
     /// <summary>
-    /// Internal test helper to set CreatedAt. Only accessible from test assemblies.
+    /// Helper interno de testes para definir CreatedAt. Acessível apenas a partir de assemblies de teste.
     /// </summary>
 #pragma warning disable S3011 // Reflection is acceptable for internal test helpers
     internal void SetCreatedAtForTesting(DateTime createdAt)
     {
         var baseField = typeof(BaseEntity).GetField("<CreatedAt>k__BackingField", 
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        baseField?.SetValue(this, createdAt);
+        if (baseField is null)
+            throw new InvalidOperationException("Could not find backing field for CreatedAt. The compiler-generated field name may have changed.");
+        baseField.SetValue(this, createdAt);
     }
 #pragma warning restore S3011
 
     /// <summary>
-    /// Internal test helper to set UpdatedAt. Only accessible from test assemblies.
+    /// Helper interno de testes para definir UpdatedAt. Acessível apenas a partir de assemblies de teste.
     /// </summary>
 #pragma warning disable S3011 // Reflection is acceptable for internal test helpers
     internal void SetUpdatedAtForTesting(DateTime? updatedAt)
     {
         var baseField = typeof(BaseEntity).GetField("<UpdatedAt>k__BackingField", 
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        baseField?.SetValue(this, updatedAt);
+        if (baseField is null)
+            throw new InvalidOperationException("Could not find backing field for UpdatedAt. The compiler-generated field name may have changed.");
+        baseField.SetValue(this, updatedAt);
     }
 #pragma warning restore S3011
 

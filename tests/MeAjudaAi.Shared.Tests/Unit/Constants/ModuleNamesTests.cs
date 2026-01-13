@@ -275,9 +275,6 @@ public class ModuleNamesTests
     [Fact]
     public void IsImplemented_ShouldBeSubsetOfIsValid()
     {
-        // Arrange - Get all possible module names
-        var allModules = ModuleNames.AllModules;
-
         // Assert - Every implemented module should be valid
         foreach (var module in ModuleNames.ImplementedModules)
         {

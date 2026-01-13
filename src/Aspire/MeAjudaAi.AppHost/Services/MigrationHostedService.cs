@@ -227,7 +227,9 @@ internal class MigrationHostedService : IHostedService
                 ?? contextType.Assembly.GetName().Name
                 ?? contextType.Assembly.ToString();
 
-            var optionsBuilder = new DbContextOptionsBuilder();
+            // Use generic DbContextOptionsBuilder<TContext> to ensure type safety
+            var optionsBuilderType = typeof(DbContextOptionsBuilder<>).MakeGenericType(contextType);
+            var optionsBuilder = (DbContextOptionsBuilder)Activator.CreateInstance(optionsBuilderType)!;
             optionsBuilder.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly(assemblyName);
@@ -236,12 +238,8 @@ internal class MigrationHostedService : IHostedService
 
             var options = optionsBuilder.Options;
 
-            if (options == null)
-            {
-                throw new InvalidOperationException($"Could not create DbContextOptions for {contextType.Name}");
-            }
-
-            // Criar instância do DbContext usando o construtor
+            // NOTE: All DbContexts must have a public constructor accepting DbContextOptions.
+            // This is a design constraint enforced across the codebase.
             var dbContext = Activator.CreateInstance(contextType, options) as DbContext;
 
             if (dbContext == null)
