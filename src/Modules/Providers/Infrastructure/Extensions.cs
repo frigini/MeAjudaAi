@@ -66,6 +66,17 @@ public static class Extensions
             // Configurações consistentes para evitar problemas com compiled queries
             .EnableServiceProviderCaching()
             .EnableSensitiveDataLogging(false);
+
+            // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") 
+                            ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            var isDevelopment = string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase);
+            
+            if (isDevelopment)
+            {
+                options.ConfigureWarnings(warnings =>
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            }
         });
 
         // AUTO-MIGRATION: Configura factory para auto-aplicar migrations quando necessário

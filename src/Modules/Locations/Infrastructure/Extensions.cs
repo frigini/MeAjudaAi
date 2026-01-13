@@ -43,6 +43,17 @@ public static class Extensions
 
             options.EnableDetailedErrors();
             options.EnableSensitiveDataLogging(configuration.GetValue<bool>("Logging:EnableSensitiveDataLogging"));
+
+            // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") 
+                            ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            var isDevelopment = string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase);
+            
+            if (isDevelopment)
+            {
+                options.ConfigureWarnings(warnings =>
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            }
         });
 
         // Registrar Func<LocationsDbContext> para uso em migrations (design-time)

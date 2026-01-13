@@ -79,6 +79,17 @@ public static class Extensions
             .EnableServiceProviderCaching()
             .EnableSensitiveDataLogging(false);
 
+            // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") 
+                            ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            var isDevelopment = string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase);
+            
+            if (isDevelopment)
+            {
+                options.ConfigureWarnings(warnings =>
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            }
+
             // Adiciona interceptor de métricas se disponível
             if (metricsInterceptor != null)
             {
