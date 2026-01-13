@@ -300,7 +300,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 cancellationToken);
         }
 
-        _logger.LogInformation("✅ Locations: {Count} cities inserted", cities.Length);
+        _logger.LogInformation("✅ Locations: {Count} cities processed (new inserted, existing ignored)", cities.Length);
     }
 
     /// <summary>

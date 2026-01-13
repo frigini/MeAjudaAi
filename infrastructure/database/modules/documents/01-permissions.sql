@@ -7,26 +7,33 @@
 -- Set explicit schema ownership
 -- ALTER SCHEMA documents OWNER TO documents_owner; -- DISABLED: Set after EF creates schema
 
--- Grant schema usage and permissions for documents_role
-GRANT USAGE ON SCHEMA documents TO documents_role;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA documents TO documents_role;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA documents TO documents_role;
-
--- Set default privileges for future tables and sequences created by documents_owner
-ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO documents_role;
-ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT USAGE, SELECT ON SEQUENCES TO documents_role;
-
--- Set default search path for documents_role
-ALTER ROLE documents_role SET search_path = documents, public;
-
--- Grant cross-schema permissions to app role
-GRANT USAGE ON SCHEMA documents TO meajudaai_app_role;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA documents TO meajudaai_app_role;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA documents TO meajudaai_app_role;
-
--- Set default privileges for app role on objects created by documents_owner
-ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO meajudaai_app_role;
-ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT USAGE, SELECT ON SEQUENCES TO meajudaai_app_role;
+-- Grant permissions only if schema exists (will be created by EF Core)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'documents') THEN
+        -- Grant schema usage and permissions for documents_role
+        GRANT USAGE ON SCHEMA documents TO documents_role;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA documents TO documents_role;
+        GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA documents TO documents_role;
+        
+        -- Grant cross-schema permissions to app role
+        GRANT USAGE ON SCHEMA documents TO meajudaai_app_role;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA documents TO meajudaai_app_role;
+        GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA documents TO meajudaai_app_role;
+        
+        -- Set default privileges for future tables and sequences created by documents_owner
+        ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO documents_role;
+        ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT USAGE, SELECT ON SEQUENCES TO documents_role;
+        
+        -- Set default privileges for app role on objects created by documents_owner
+        ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO meajudaai_app_role;
+        ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT USAGE, SELECT ON SEQUENCES TO meajudaai_app_role;
+        
+        -- Set default search path for documents_role
+        ALTER ROLE documents_role SET search_path = documents, public;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 -- ============================
 -- Hangfire Schema Permissions

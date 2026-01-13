@@ -7,33 +7,40 @@
 -- Set explicit schema ownership
 -- ALTER SCHEMA providers OWNER TO providers_owner; -- DISABLED: Set after EF creates schema
 
-GRANT USAGE ON SCHEMA providers TO providers_role;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA providers TO providers_role;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA providers TO providers_role;
-
--- Set default privileges for future tables and sequences created by providers_owner
-ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO providers_role;
-ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT USAGE, SELECT ON SEQUENCES TO providers_role;
-
--- Set default search path
-ALTER ROLE providers_role SET search_path = providers, public;
-
--- Grant cross-schema permissions to app role
-GRANT USAGE ON SCHEMA providers TO meajudaai_app_role;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA providers TO meajudaai_app_role;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA providers TO meajudaai_app_role;
-
--- Set default privileges for app role on objects created by providers_owner
-ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO meajudaai_app_role;
-ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT USAGE, SELECT ON SEQUENCES TO meajudaai_app_role;
-
--- Grant read-only access to existing tables for catalogs_role (cross-module read access)
-GRANT SELECT ON ALL TABLES IN SCHEMA providers TO catalogs_role;
-GRANT SELECT ON ALL SEQUENCES IN SCHEMA providers TO catalogs_role;
-
--- Set default privileges for catalogs_role on future tables (cross-module read access)
-ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT SELECT ON TABLES TO catalogs_role;
-ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT SELECT ON SEQUENCES TO catalogs_role;
+-- Grant permissions only if schema exists (will be created by EF Core)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'providers') THEN
+        GRANT USAGE ON SCHEMA providers TO providers_role;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA providers TO providers_role;
+        GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA providers TO providers_role;
+        
+        -- Grant cross-schema permissions to app role
+        GRANT USAGE ON SCHEMA providers TO meajudaai_app_role;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA providers TO meajudaai_app_role;
+        GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA providers TO meajudaai_app_role;
+        
+        -- Grant read-only access to existing tables for catalogs_role (cross-module read access)
+        GRANT SELECT ON ALL TABLES IN SCHEMA providers TO catalogs_role;
+        GRANT SELECT ON ALL SEQUENCES IN SCHEMA providers TO catalogs_role;
+        
+        -- Set default privileges for future tables and sequences created by providers_owner
+        ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO providers_role;
+        ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT USAGE, SELECT ON SEQUENCES TO providers_role;
+        
+        -- Set default privileges for app role on objects created by providers_owner
+        ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO meajudaai_app_role;
+        ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT USAGE, SELECT ON SEQUENCES TO meajudaai_app_role;
+        
+        -- Set default privileges for catalogs_role on future tables (cross-module read access)
+        ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT SELECT ON TABLES TO catalogs_role;
+        ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT SELECT ON SEQUENCES TO catalogs_role;
+        
+        -- Set default search path
+        ALTER ROLE providers_role SET search_path = providers, public;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Grant limited permissions on public schema (read-only)
 GRANT USAGE ON SCHEMA public TO providers_role;
