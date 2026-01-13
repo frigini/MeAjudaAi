@@ -238,7 +238,9 @@ public class PermissionArchitectureTests
     {
         // Arrange
         var claimsType = typeof(AuthConstants.Claims);
+#pragma warning disable S3011 // Reflection is required for architecture testing
         var fields = claimsType.GetFields(BindingFlags.Public | BindingFlags.Static);
+#pragma warning restore S3011
 
         // Act & Assert
         foreach (var field in fields)

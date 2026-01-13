@@ -3,6 +3,9 @@ using MeAjudaAi.Modules.Users.Domain.Exceptions;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Utilities;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("MeAjudaAi.Modules.Users.Tests")]
 
 namespace MeAjudaAi.Modules.Users.Domain.Entities;
 
@@ -94,6 +97,38 @@ public sealed class User : AggregateRoot<UserId>
     /// Construtor privado para uso do Entity Framework.
     /// </summary>
     private User() { }
+
+    /// <summary>
+    /// Internal test helper to set Id. Only accessible from test assemblies.
+    /// </summary>
+    internal void SetIdForTesting(UserId id)
+    {
+        Id = id;
+    }
+
+    /// <summary>
+    /// Internal test helper to set CreatedAt. Only accessible from test assemblies.
+    /// </summary>
+#pragma warning disable S3011 // Reflection is acceptable for internal test helpers
+    internal void SetCreatedAtForTesting(DateTime createdAt)
+    {
+        var baseField = typeof(BaseEntity).GetField("<CreatedAt>k__BackingField", 
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        baseField?.SetValue(this, createdAt);
+    }
+#pragma warning restore S3011
+
+    /// <summary>
+    /// Internal test helper to set UpdatedAt. Only accessible from test assemblies.
+    /// </summary>
+#pragma warning disable S3011 // Reflection is acceptable for internal test helpers
+    internal void SetUpdatedAtForTesting(DateTime? updatedAt)
+    {
+        var baseField = typeof(BaseEntity).GetField("<UpdatedAt>k__BackingField", 
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        baseField?.SetValue(this, updatedAt);
+    }
+#pragma warning restore S3011
 
     /// <summary>
     /// Cria um novo usuário no sistema.

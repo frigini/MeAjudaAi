@@ -217,9 +217,11 @@ public class ModuleNamesTests
     public void ModuleNames_AllConstantsShouldBeNotNullOrEmpty()
     {
         // Arrange
+#pragma warning disable S3011 // Reflection is required for constant validation testing
         var constantFields = typeof(ModuleNames)
             .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
             .Where(f => f.IsLiteral && f.FieldType == typeof(string));
+#pragma warning restore S3011
 
         // Act & Assert
         foreach (var field in constantFields)
