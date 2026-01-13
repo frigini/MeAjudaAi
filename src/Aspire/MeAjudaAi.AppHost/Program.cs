@@ -142,7 +142,7 @@ internal static class Program
         // Garantir que Keycloak aguarde o Postgres estar pronto
         keycloak.Keycloak.WaitFor(postgresql.MainDatabase);
 
-        _ = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
+        var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
             .WithReference(postgresql.MainDatabase, "DefaultConnection")
             .WithReference(redis)
             .WaitFor(postgresql.MainDatabase)
@@ -156,8 +156,9 @@ internal static class Program
         // Admin Portal (Blazor WASM)
         _ = builder.AddProject<Projects.MeAjudaAi_Web_Admin>("admin-portal")
             .WithExternalHttpEndpoints()
-            .WithEnvironment("ApiBaseUrl", "https://localhost:7001")
-            .WithEnvironment("Keycloak__Authority", "http://localhost:8080/realms/meajudaai")
+            .WithReference(apiService)
+            .WithReference(keycloak.Keycloak)
+            .WaitFor(apiService)
             .WithEnvironment("Keycloak__ClientId", "admin-portal");
     }
 

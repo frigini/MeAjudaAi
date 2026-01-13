@@ -13,8 +13,11 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// URL base da API
-var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? builder.HostEnvironment.BaseAddress;
+// URL base da API - obtém da configuração injetada pelo Aspire ou fallback para appsettings
+var apiBaseUrl = builder.Configuration["services:apiservice:https:0"] 
+    ?? builder.Configuration["services:apiservice:http:0"]
+    ?? builder.Configuration["ApiBaseUrl"] 
+    ?? builder.HostEnvironment.BaseAddress;
 
 // Configuração do HttpClient com autenticação
 builder.Services.AddHttpClient("MeAjudaAi.API", client => client.BaseAddress = new Uri(apiBaseUrl))
@@ -26,6 +29,15 @@ builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>()
 // Autenticação Keycloak OIDC
 builder.Services.AddOidcAuthentication(options =>
 {
+    // Usar URL do Keycloak injetada pelo Aspire ou fallback para appsettings
+    var keycloakUrl = builder.Configuration["services:keycloak:http:0"] 
+        ?? builder.Configuration["Keycloak:Authority"];
+    
+    if (!string.IsNullOrEmpty(keycloakUrl))
+    {
+        options.ProviderOptions.Authority = $"{keycloakUrl}/realms/meajudaai";
+    }
+    
     builder.Configuration.Bind("Keycloak", options.ProviderOptions);
     options.UserOptions.RoleClaim = "roles";
 });
