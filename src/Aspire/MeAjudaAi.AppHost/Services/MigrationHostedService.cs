@@ -222,16 +222,19 @@ internal class MigrationHostedService : IHostedService
 
         try
         {
-            // Criar DbContextOptions usando o método helper genérico
-            var optionsMethod = typeof(MigrationHostedService)
-                .GetMethod(nameof(CreateDbContextOptions), BindingFlags.NonPublic | BindingFlags.Static)!
-                .MakeGenericMethod(contextType);
-            
+            // Create DbContextOptions directly without reflection
             var assemblyName = contextType.Assembly.FullName
                 ?? contextType.Assembly.GetName().Name
                 ?? contextType.Assembly.ToString();
-                
-            var options = optionsMethod.Invoke(null, new object[] { connectionString, assemblyName });
+
+            var optionsBuilder = new DbContextOptionsBuilder();
+            optionsBuilder.UseNpgsql(connectionString, npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsAssembly(assemblyName);
+                npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
+            });
+
+            var options = optionsBuilder.Options;
 
             if (options == null)
             {
@@ -291,23 +294,6 @@ internal class MigrationHostedService : IHostedService
         }
 
         return contextType.Name.Replace("DbContext", "");
-    }
-
-    /// <summary>
-    /// Generic helper method to create DbContextOptions without complex reflection
-    /// </summary>
-    private static DbContextOptions<TContext> CreateDbContextOptions<TContext>(string connectionString, string assemblyName)
-        where TContext : DbContext
-    {
-        var optionsBuilder = new DbContextOptionsBuilder<TContext>();
-        
-        optionsBuilder.UseNpgsql(connectionString, npgsqlOptions =>
-        {
-            npgsqlOptions.MigrationsAssembly(assemblyName);
-            npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
-        });
-
-        return optionsBuilder.Options;
     }
 }
 
