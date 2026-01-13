@@ -79,7 +79,7 @@ DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'documents')
        AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'hangfire_role') THEN
-        EXECUTE 'GRANT USAGE ON SCHEMA documents TO hangfire_role';
+        GRANT USAGE ON SCHEMA documents TO hangfire_role;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
@@ -93,7 +93,7 @@ BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'documents')
        AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'documents_owner')
        AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'hangfire_role') THEN
-        EXECUTE 'ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT SELECT ON TABLES TO hangfire_role';
+        ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT SELECT ON TABLES TO hangfire_role;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
@@ -107,20 +107,50 @@ $$ LANGUAGE plpgsql;
 CREATE SCHEMA IF NOT EXISTS meajudaai_app;
 
 -- Set explicit schema ownership
-ALTER SCHEMA meajudaai_app OWNER TO meajudaai_app_owner;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'meajudaai_app')
+       AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'meajudaai_app_owner') THEN
+        ALTER SCHEMA meajudaai_app OWNER TO meajudaai_app_owner;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Grant permissions on dedicated application schema
-GRANT USAGE, CREATE ON SCHEMA meajudaai_app TO meajudaai_app_role;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'meajudaai_app')
+       AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'meajudaai_app_role') THEN
+        GRANT USAGE, CREATE ON SCHEMA meajudaai_app TO meajudaai_app_role;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Set search_path for app role (centralized here to avoid conflicts)
 -- NOTE: This must include ALL module schemas to ensure cross-module queries work.
 -- Documents module runs last alphabetically, so this setting takes precedence.
-ALTER ROLE meajudaai_app_role SET search_path = meajudaai_app, documents, users, providers, hangfire, public;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'meajudaai_app_role') THEN
+        ALTER ROLE meajudaai_app_role SET search_path = meajudaai_app, documents, users, providers, hangfire, public;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Grant limited permissions on public schema (read-only)
-GRANT USAGE ON SCHEMA public TO documents_role;
-GRANT USAGE ON SCHEMA public TO hangfire_role;
-GRANT USAGE ON SCHEMA public TO meajudaai_app_role;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'documents_role') THEN
+        GRANT USAGE ON SCHEMA public TO documents_role;
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'hangfire_role') THEN
+        GRANT USAGE ON SCHEMA public TO hangfire_role;
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'meajudaai_app_role') THEN
+        GRANT USAGE ON SCHEMA public TO meajudaai_app_role;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Harden public schema by revoking CREATE from PUBLIC (security best practice)
 REVOKE CREATE ON SCHEMA public FROM PUBLIC;

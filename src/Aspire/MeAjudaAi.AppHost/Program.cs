@@ -71,10 +71,6 @@ internal static class Program
             options.Password = testDbPassword;
         });
 
-        // NOTA: Migrations são executadas pelo ApiService após inicialização, não pelo AppHost
-        // O AppHost não tem acesso direto às connection strings gerenciadas pelo Aspire
-        // postgresql.MainDatabase.WithMigrations();
-
         var redis = builder.AddRedis("redis");
 
         _ = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
