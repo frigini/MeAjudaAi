@@ -28,10 +28,6 @@ public sealed class LocationsEffects(ILocationsApi locationsApi)
                 dispatcher.Dispatch(new LoadAllowedCitiesFailureAction(errorMessage));
             }
         }
-        catch (OperationCanceledException)
-        {
-            // Operation was cancelled, no need to dispatch failure
-        }
         catch (Exception ex)
         {
             var errorMessage = $"Erro ao carregar cidades permitidas: {ex.Message}";
