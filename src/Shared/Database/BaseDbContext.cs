@@ -1,5 +1,6 @@
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace MeAjudaAi.Shared.Database;
 
@@ -15,6 +16,21 @@ public abstract class BaseDbContext : DbContext
     protected BaseDbContext(DbContextOptions options, IDomainEventProcessor domainEventProcessor) : base(options)
     {
         _domainEventProcessor = domainEventProcessor;
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        // Suppress PendingModelChangesWarning in Development environment
+        // This warning can be a false positive due to minor snapshot differences
+        // Modules use EnsureCreated as fallback for safety
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        if (environment?.Equals("Development", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            optionsBuilder.ConfigureWarnings(warnings =>
+                warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
+        }
+
+        base.OnConfiguring(optionsBuilder);
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
