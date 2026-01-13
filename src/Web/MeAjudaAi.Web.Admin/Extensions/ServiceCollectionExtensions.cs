@@ -20,9 +20,14 @@ public static class ServiceCollectionExtensions
         string baseUrl) where TClient : class
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(baseUrl, nameof(baseUrl));
+        
+        if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var uri))
+        {
+            throw new ArgumentException($"The value '{baseUrl}' is not a valid absolute URI.", nameof(baseUrl));
+        }
 
         services.AddRefitClient<TClient>()
-            .ConfigureHttpClient(c => c.BaseAddress = new Uri(baseUrl))
+            .ConfigureHttpClient(c => c.BaseAddress = uri)
             .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
         
         return services;

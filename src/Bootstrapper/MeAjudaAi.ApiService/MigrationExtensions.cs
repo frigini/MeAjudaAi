@@ -27,7 +27,7 @@ public static class MigrationExtensions
 
         logger.LogInformation("📋 Found {Count} DbContexts for migration", dbContextTypes.Count);
 
-        // Read environment variables once for all DbContexts
+        // Lê variáveis de ambiente uma vez para todos os DbContexts
         var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
             ?.Equals("Development", StringComparison.OrdinalIgnoreCase) ?? false;
         var enableDebugScripts = Environment.GetEnvironmentVariable("ENABLE_MIGRATION_DEBUG_SCRIPTS")
@@ -47,7 +47,7 @@ public static class MigrationExtensions
     {
         var dbContextTypes = new List<Type>();
 
-        // Align with MigrationHostedService: filter only by MeAjudaAi.Modules
+        // Alinha com MigrationHostedService: filtra apenas por MeAjudaAi.Modules
         var assemblies = AppDomain.CurrentDomain.GetAssemblies()
             .Where(a => a.FullName?.Contains("MeAjudaAi.Modules") == true)
             .ToList();
@@ -92,31 +92,31 @@ public static class MigrationExtensions
 
         try
         {
-            // Get DbContext from DI container (already has connection string configured)
+            // Obtém DbContext do container DI (já tem a connection string configurada)
             var dbContext = services.GetRequiredService(contextType) as DbContext;
 
             if (dbContext == null)
             {
                 throw new InvalidOperationException(
-                    $"DbContext {contextType.Name} is not registered in DI container. " +
-                    "Ensure the module was registered correctly.");
+                    $"DbContext {contextType.Name} could not be resolved as DbContext. " +
+                    "Ensure the module is registered correctly and derives from DbContext.");
             }
 
-            // Apply migrations using consolidated logic
+            // Aplica migrations usando lógica consolidada
             var migrationsApplied = await ApplyPendingMigrationsAsync(
                 dbContext, 
                 moduleName, 
                 logger, 
                 cancellationToken);
 
-            // Generate debug script only in development when explicitly enabled and migrations were applied
+            // Gera script de debug apenas em desenvolvimento quando explicitamente habilitado e migrations foram aplicadas
             if (isDevelopment && enableDebugScripts && migrationsApplied)
             {
                 try
                 {
                     var createScript = dbContext.Database.GenerateCreateScript();
-                    // NOTE: Debug script files accumulate in temp directory.
-                    // Cleanup is handled by OS temp directory maintenance.
+                    // NOTA: Arquivos de script de debug acumulam no diretório temp.
+                    // Limpeza é tratada pela manutenção do diretório temp do SO.
                     var tempFile = Path.Combine(Path.GetTempPath(), $"ef_script_{moduleName}.sql");
                     await File.WriteAllTextAsync(tempFile, createScript, cancellationToken);
                     logger.LogDebug("🔍 {Module}: Reference script saved at: {TempFile}", moduleName, tempFile);

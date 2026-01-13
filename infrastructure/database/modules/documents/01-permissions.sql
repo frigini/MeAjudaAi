@@ -66,7 +66,8 @@ ALTER ROLE hangfire_role SET search_path = hangfire, documents, users, providers
 -- Following principle of least privilege: only UPDATE on specific table, not all tables
 DO $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'documents') THEN
+    IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'documents')
+       AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'hangfire_role') THEN
         EXECUTE 'GRANT USAGE ON SCHEMA documents TO hangfire_role';
     END IF;
 END;
@@ -78,7 +79,9 @@ $$ LANGUAGE plpgsql;
 -- Grant default privileges only if documents_owner role exists
 DO $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'documents_owner') THEN
+    IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'documents')
+       AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'documents_owner')
+       AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'hangfire_role') THEN
         EXECUTE 'ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT SELECT ON TABLES TO hangfire_role';
     END IF;
 END;

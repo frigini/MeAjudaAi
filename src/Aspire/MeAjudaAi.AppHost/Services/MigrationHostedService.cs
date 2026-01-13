@@ -229,7 +229,8 @@ internal class MigrationHostedService : IHostedService
 
             // Use generic DbContextOptionsBuilder<TContext> to ensure type safety
             var optionsBuilderType = typeof(DbContextOptionsBuilder<>).MakeGenericType(contextType);
-            var optionsBuilder = (DbContextOptionsBuilder)Activator.CreateInstance(optionsBuilderType)!;
+            var optionsBuilder = Activator.CreateInstance(optionsBuilderType) as DbContextOptionsBuilder
+                ?? throw new InvalidOperationException($"Failed to create DbContextOptionsBuilder for {contextType.Name}");
             optionsBuilder.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly(assemblyName);

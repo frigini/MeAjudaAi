@@ -616,7 +616,15 @@ jobs:
           # Remove large packages/tools not needed for tests
           echo "🗑️  Removing unnecessary packages..."
           sudo apt-get clean
-          sudo rm -rf /usr/share/dotnet/sdk/[0-9]* || true  # Keep only current SDK
+          # Remove older SDKs but keep the current version
+          CURRENT_SDK=$(dotnet --version)
+          echo "Keeping SDK version: $CURRENT_SDK"
+          for sdk_dir in /usr/share/dotnet/sdk/*/; do
+            sdk_ver=$(basename "$sdk_dir")
+            if [[ "$sdk_ver" != "$CURRENT_SDK" ]]; then
+              sudo rm -rf "$sdk_dir" || true
+            fi
+          done
           sudo rm -rf /usr/local/lib/android || true
           sudo rm -rf /opt/ghc || true
           sudo rm -rf /usr/local/.ghcup || true
