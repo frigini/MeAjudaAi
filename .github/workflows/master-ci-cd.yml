@@ -191,6 +191,32 @@ jobs:
           echo "✅ Frontend component tests completed successfully"
           echo "===================================="
 
+      - name: Free Disk Space for Integration Tests
+        run: |
+          echo "🧹 Freeing disk space before integration tests..."
+          
+          # Show disk usage before cleanup
+          echo "📊 Disk usage before cleanup:"
+          df -h
+          
+          # Remove Docker images and containers that are not needed
+          echo "🗑️  Removing unused Docker resources..."
+          docker system prune -af --volumes || true
+          
+          # Remove large packages/tools not needed for tests
+          echo "🗑️  Removing unnecessary packages..."
+          sudo apt-get clean
+          sudo rm -rf /usr/share/dotnet/sdk/[0-9]* || true  # Keep only current SDK
+          sudo rm -rf /usr/local/lib/android || true
+          sudo rm -rf /opt/ghc || true
+          sudo rm -rf /usr/local/.ghcup || true
+          
+          # Show disk usage after cleanup
+          echo "📊 Disk usage after cleanup:"
+          df -h
+          
+          echo "✅ Disk space cleanup completed"
+
       - name: Run integration tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
