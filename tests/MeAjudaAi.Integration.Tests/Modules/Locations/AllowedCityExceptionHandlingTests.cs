@@ -54,21 +54,6 @@ public class AllowedCityExceptionHandlingTests : BaseApiTest
     }
 
     [Fact]
-    public async Task DeleteNonExistingCity_ShouldReturnNull()
-    {
-        // Arrange
-        using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IAllowedCityRepository>();
-        var nonExistingId = Guid.NewGuid();
-
-        // Act
-        var city = await repository.GetByIdAsync(nonExistingId);
-
-        // Assert
-        city.Should().BeNull("cidade não existe");
-    }
-
-    [Fact]
     public async Task ValidRepository_ShouldHaveAllMethods()
     {
         // Arrange

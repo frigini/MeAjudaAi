@@ -564,27 +564,6 @@ public abstract class BaseApiTest : IAsyncLifetime
     }
 
     /// <summary>
-    /// Verifica se um DbContext está funcionando corretamente executando uma query de contagem.
-    /// </summary>
-    private static async Task VerifyContextAsync<TContext>(
-        TContext context,
-        string moduleName,
-        Func<Task<int>> countQuery,
-        ILogger? logger) where TContext : DbContext
-    {
-        try
-        {
-            var count = await countQuery();
-            logger?.LogInformation("{Module} database verification successful - Count: {Count}", moduleName, count);
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "{Module} database verification failed", moduleName);
-            throw new InvalidOperationException($"{moduleName} database not initialized correctly", ex);
-        }
-    }
-
-    /// <summary>
     /// Deserializa resposta JSON usando as opções de serialização compartilhadas (com suporte a enums).
     /// </summary>
     protected async Task<T?> ReadJsonAsync<T>(HttpContent content)

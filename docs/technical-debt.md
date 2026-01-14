@@ -6,7 +6,7 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 
 ## ✅ Melhorias Recentes (Sprint 7.6 - Jan 2026)
 
-### ⚡ Otimização de Performance de Testes de Integração - CONCLUÍDA
+### ⚡ Otimização de Desempenho de Testes de Integração - CONCLUÍDA
 
 **Sprint**: Sprint 7.6 (12 Jan 2026)  
 **Severidade**: ALTA (bloqueava testes em CI/CD)  
@@ -27,7 +27,7 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 - ✅ **Backward compatible**: Default RequiredModules = TestModule.All
 
 **Resultados Alcançados**:
-- ✅ **Performance**: 83% faster para testes single-module (10s vs 60s)
+- ✅ **Desempenho**: 83% faster para testes single-module (10s vs 60s)
 - ✅ **Confiabilidade**: Eliminou timeouts e errors 57P01
 - ✅ **Isolamento**: Cada teste carrega apenas módulos necessários
 - ✅ **26 test classes otimizados**: Users (4), Providers (5), Documents (4), ServiceCatalogs (7), Locations (5), SearchProviders (1)
@@ -41,7 +41,7 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 - `AllowedCityExceptionHandlingTests.cs`: Testes renomeados para refletir comportamento real
 
 **Documentação Atualizada**:
-- ✅ [tests/README.md](../tests/MeAjudaAi.Integration.Tests/README.md): Performance optimization guide
+- ✅ [tests/README.md](../tests/MeAjudaAi.Integration.Tests/README.md): Guia de otimização de desempenho
 - ✅ [docs/architecture.md](architecture.md#integration-test-infrastructure): Testing architecture
 - ✅ [docs/development.md](development.md#testes-de-integração): Developer guide
 - ✅ [docs/roadmap.md](roadmap.md#sprint-76): Sprint 7.6 implementation details
