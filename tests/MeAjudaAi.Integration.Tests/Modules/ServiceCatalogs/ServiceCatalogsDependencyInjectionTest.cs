@@ -16,7 +16,9 @@ namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 /// </summary>
 public class ServiceCatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : BaseApiTest
 {
-    protected override TestModule RequiredModules => TestModule.None;
+    // Requires ServiceCatalogs module because Should_Be_Able_To_Resolve_And_Execute_CreateServiceCategoryCommand
+    // executes a command that persists to database
+    protected override TestModule RequiredModules => TestModule.ServiceCatalogs;
 
     [Fact]
     public void Should_Have_CommandDispatcher_Registered()

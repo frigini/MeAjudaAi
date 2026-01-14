@@ -425,10 +425,12 @@ public abstract class BaseApiTest : IAsyncLifetime
         {
             var context = serviceProvider.GetRequiredService<LocationsDbContext>();
             await ApplyMigrationForContextAsync(context, "Locations", logger, "LocationsDbContext");
-            await context.Database.CloseConnectionAsync();
             
             // Seed test data for allowed cities (required for GeographicRestriction tests)
+            // Must be called BEFORE CloseConnectionAsync to use the already-open connection
             await SeedTestDataAsync(context, logger);
+            
+            await context.Database.CloseConnectionAsync();
         }
 
         if (modules.HasFlag(TestModule.SearchProviders))
