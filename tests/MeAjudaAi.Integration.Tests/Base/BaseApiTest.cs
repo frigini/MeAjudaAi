@@ -28,10 +28,26 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Integration.Tests.Base;
 
 /// <summary>
+/// Módulos disponíveis para testes de integração
+/// </summary>
+[Flags]
+public enum TestModule
+{
+    None = 0,
+    Users = 1 << 0,
+    Providers = 1 << 1,
+    Documents = 1 << 2,
+    ServiceCatalogs = 1 << 3,
+    Locations = 1 << 4,
+    SearchProviders = 1 << 5,
+    All = Users | Providers | Documents | ServiceCatalogs | Locations | SearchProviders
+}
+
+/// <summary>
 /// Classe base unificada para testes de integração com suporte a autenticação baseada em instância.
 /// Elimina condições de corrida e instabilidade causadas por estado estático.
 /// Cria containers individuais para máxima compatibilidade com CI.
-/// Suporte completo a 6 módulos: Users, Providers, Documents, ServiceCatalogs, Locations, SearchProviders.
+/// Aplica migrations apenas dos módulos necessários (especificados via RequiredModules).
 /// </summary>
 public abstract class BaseApiTest : IAsyncLifetime
 {
@@ -43,6 +59,13 @@ public abstract class BaseApiTest : IAsyncLifetime
     protected IServiceProvider Services => _factory!.Services;
     protected ITestAuthenticationConfiguration AuthConfig { get; private set; } = null!;
     protected WireMockFixture WireMock => _wireMockFixture ?? throw new InvalidOperationException("WireMock not initialized");
+
+    /// <summary>
+    /// Especifica quais módulos este teste precisa (migrations serão aplicadas apenas para estes).
+    /// Override em classes derivadas para otimizar tempo de inicialização.
+    /// Default: All (comportamento legado para compatibilidade).
+    /// </summary>
+    protected virtual TestModule RequiredModules => TestModule.All;
 
     /// <summary>
     /// HTTP header name for user location (format: "City|State")
@@ -279,22 +302,11 @@ public abstract class BaseApiTest : IAsyncLifetime
         // Obtém a configuração de autenticação da instância do container DI
         AuthConfig = _factory.Services.GetRequiredService<ITestAuthenticationConfiguration>();
 
-        // Aplica migrações do banco de dados para testes
-        // Nota: Todos os módulos usam setup baseado em migrações para consistência com produção
+        // Aplica migrações apenas dos módulos necessários (otimização de performance)
         using var scope = _factory.Services.CreateScope();
-        var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
-        var documentsContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
-        var catalogsContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
-        var locationsContext = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
-        var searchProvidersContext = scope.ServiceProvider.GetRequiredService<SearchProvidersDbContext>();
         var logger = scope.ServiceProvider.GetService<ILogger<BaseApiTest>>();
 
-        // Aplica migrações exatamente como nos testes E2E
-        await ApplyMigrationsAsync(usersContext, providersContext, documentsContext, catalogsContext, locationsContext, searchProvidersContext, logger);
-
-        // Seed test data for allowed cities (required for GeographicRestriction tests)
-        await SeedTestDataAsync(locationsContext, logger);
+        await ApplyRequiredModuleMigrationsAsync(scope.ServiceProvider, logger);
     }
 
     private static async Task SeedTestDataAsync(LocationsDbContext locationsContext, ILogger? logger)
@@ -346,6 +358,130 @@ public abstract class BaseApiTest : IAsyncLifetime
         logger?.LogInformation("✅ Seeded test cities. Total cities in database: {Count}", totalCount);
     }
 
+    /// <summary>
+    /// Aplica migrations apenas dos módulos especificados em RequiredModules.
+    /// Otimiza tempo de inicialização e evita race conditions ao aplicar apenas o necessário.
+    /// </summary>
+    private async Task ApplyRequiredModuleMigrationsAsync(IServiceProvider serviceProvider, ILogger? logger)
+    {
+        var modules = RequiredModules;
+        
+        // Se nenhum módulo especificado, retorna sem fazer nada
+        if (modules == TestModule.None)
+        {
+            logger?.LogInformation("ℹ️ No modules required - skipping migrations");
+            return;
+        }
+
+        logger?.LogInformation("🔄 Applying migrations for modules: {Modules}", modules);
+
+        // Garante estado limpo do banco de dados apenas uma vez
+        DbContext anyContext;
+        if (modules.HasFlag(TestModule.Users))
+            anyContext = serviceProvider.GetRequiredService<UsersDbContext>();
+        else if (modules.HasFlag(TestModule.Documents))
+            anyContext = serviceProvider.GetRequiredService<DocumentsDbContext>();
+        else if (modules.HasFlag(TestModule.Providers))
+            anyContext = serviceProvider.GetRequiredService<ProvidersDbContext>();
+        else if (modules.HasFlag(TestModule.ServiceCatalogs))
+            anyContext = serviceProvider.GetRequiredService<ServiceCatalogsDbContext>();
+        else if (modules.HasFlag(TestModule.Locations))
+            anyContext = serviceProvider.GetRequiredService<LocationsDbContext>();
+        else
+            anyContext = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
+
+        await EnsureCleanDatabaseAsync(anyContext, logger);
+
+        // Aplica migrations dos módulos necessários
+        if (modules.HasFlag(TestModule.Users))
+        {
+            var context = serviceProvider.GetRequiredService<UsersDbContext>();
+            await ApplyMigrationForContextAsync(context, "Users", logger, "UsersDbContext");
+            await context.Database.CloseConnectionAsync();
+        }
+
+        if (modules.HasFlag(TestModule.Providers))
+        {
+            var context = serviceProvider.GetRequiredService<ProvidersDbContext>();
+            await ApplyMigrationForContextAsync(context, "Providers", logger, "ProvidersDbContext");
+            await context.Database.CloseConnectionAsync();
+        }
+
+        if (modules.HasFlag(TestModule.Documents))
+        {
+            var context = serviceProvider.GetRequiredService<DocumentsDbContext>();
+            await ApplyMigrationForContextAsync(context, "Documents", logger, "DocumentsDbContext");
+            await context.Database.CloseConnectionAsync();
+        }
+
+        if (modules.HasFlag(TestModule.ServiceCatalogs))
+        {
+            var context = serviceProvider.GetRequiredService<ServiceCatalogsDbContext>();
+            await ApplyMigrationForContextAsync(context, "ServiceCatalogs", logger, "ServiceCatalogsDbContext");
+            await context.Database.CloseConnectionAsync();
+        }
+
+        if (modules.HasFlag(TestModule.Locations))
+        {
+            var context = serviceProvider.GetRequiredService<LocationsDbContext>();
+            await ApplyMigrationForContextAsync(context, "Locations", logger, "LocationsDbContext");
+            await context.Database.CloseConnectionAsync();
+            
+            // Seed test data for allowed cities (required for GeographicRestriction tests)
+            await SeedTestDataAsync(context, logger);
+        }
+
+        if (modules.HasFlag(TestModule.SearchProviders))
+        {
+            var context = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
+            await ApplyMigrationForContextAsync(context, "SearchProviders", logger, "SearchProvidersDbContext");
+            await context.Database.CloseConnectionAsync();
+        }
+
+        logger?.LogInformation("✅ Migrations applied for required modules");
+    }
+
+    /// <summary>
+    /// Garante que o banco de dados está limpo antes de aplicar migrations.
+    /// </summary>
+    private static async Task EnsureCleanDatabaseAsync(DbContext context, ILogger? logger)
+    {
+        const int maxRetries = 10;
+        var baseDelay = TimeSpan.FromSeconds(1);
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            try
+            {
+                await context.Database.EnsureDeletedAsync();
+                logger?.LogInformation("🧹 Database cleaned (attempt {Attempt})", attempt);
+                break;
+            }
+            catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P03") // database starting up
+            {
+                if (attempt == maxRetries)
+                {
+                    logger?.LogError(ex, "❌ PostgreSQL still initializing after {MaxRetries} attempts", maxRetries);
+                    throw new InvalidOperationException($"PostgreSQL not ready after {maxRetries} attempts", ex);
+                }
+
+                var delay = baseDelay * attempt;
+                logger?.LogWarning("⚠️ PostgreSQL initializing... Attempt {Attempt}/{MaxRetries}. Waiting {Delay}s",
+                    attempt, maxRetries, delay.TotalSeconds);
+                await Task.Delay(delay);
+            }
+            catch (Exception ex)
+            {
+                logger?.LogError(ex, "❌ Failed to clean database: {Message}", ex.Message);
+                throw new InvalidOperationException("Failed to clean database before tests", ex);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Método legado mantido para compatibilidade com testes existentes.
+    /// Novos testes devem usar RequiredModules em vez disso.
+    /// </summary>
     private static async Task ApplyMigrationsAsync(
         UsersDbContext usersContext,
         ProvidersDbContext providersContext,
@@ -391,12 +527,24 @@ public abstract class BaseApiTest : IAsyncLifetime
         }
 
         // Aplica migrações em todos os módulos
+        // IMPORTANT: Each context is disposed immediately after migration to release connections
         await ApplyMigrationForContextAsync(usersContext, "Users", logger, "UsersDbContext primeiro (cria database e schema users)");
+        await usersContext.Database.CloseConnectionAsync();
+        
         await ApplyMigrationForContextAsync(providersContext, "Providers", logger, "ProvidersDbContext (banco já existe, só precisa do schema providers)");
+        await providersContext.Database.CloseConnectionAsync();
+        
         await ApplyMigrationForContextAsync(documentsContext, "Documents", logger, "DocumentsDbContext (banco já existe, só precisa do schema documents)");
+        await documentsContext.Database.CloseConnectionAsync();
+        
         await ApplyMigrationForContextAsync(catalogsContext, "ServiceCatalogs", logger, "ServiceCatalogsDbContext (banco já existe, só precisa do schema service_catalogs)");
+        await catalogsContext.Database.CloseConnectionAsync();
+        
         await ApplyMigrationForContextAsync(locationsContext, "Locations", logger, "LocationsDbContext (banco já existe, só precisa do schema locations)");
+        await locationsContext.Database.CloseConnectionAsync();
+        
         await ApplyMigrationForContextAsync(searchProvidersContext, "SearchProviders", logger, "SearchProvidersDbContext (banco já existe, só precisa do schema search_providers)");
+        await searchProvidersContext.Database.CloseConnectionAsync();
 
         // Verifica se as tabelas existem
         await VerifyContextAsync(usersContext, "Users", () => usersContext.Users.CountAsync(), logger);

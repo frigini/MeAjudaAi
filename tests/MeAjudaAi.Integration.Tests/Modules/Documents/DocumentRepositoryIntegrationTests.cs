@@ -15,6 +15,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.Documents;
 /// </summary>
 public class DocumentRepositoryIntegrationTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.Documents;
+
     private readonly Faker _faker = new("pt_BR");
 
     /// <summary>

@@ -9,6 +9,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 
 public class ServiceCatalogsResponseDebugTests(ITestOutputHelper testOutput) : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.ServiceCatalogs;
+
     [Fact(Skip = "Diagnostic test - enable only when debugging response format issues")]
     [Trait("Category", "Debug")]
     public async Task Debug_CreateServiceCategory_ResponseFormat()

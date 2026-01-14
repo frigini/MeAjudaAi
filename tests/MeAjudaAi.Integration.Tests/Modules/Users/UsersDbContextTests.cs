@@ -12,6 +12,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.Users;
 /// </summary>
 public class UserDbContextTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.Users;
+
     [Fact]
     public async Task CanConnectToDatabase_ShouldWork()
     {

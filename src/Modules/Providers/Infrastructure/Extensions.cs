@@ -11,6 +11,7 @@ using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Modules.Providers.Infrastructure;
 
@@ -68,11 +69,8 @@ public static class Extensions
             .EnableSensitiveDataLogging(false);
 
             // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
-            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") 
-                            ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-            var isDevelopment = string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase);
-            
-            if (isDevelopment)
+            var environment = serviceProvider.GetService<IHostEnvironment>();
+            if (environment?.IsDevelopment() == true)
             {
                 options.ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));

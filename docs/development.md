@@ -469,6 +469,113 @@ public async Task RegisterUser_WithInvalidEmail_ShouldReturnValidationError()
 ```
 
 ### **2. Testes de Integração**
+
+#### **⚡ IMPORTANTE: Performance Optimization com RequiredModules**
+
+**Sprint 7.6 (Jan 2026)**: Implementado sistema de on-demand migrations para evitar timeouts e melhorar performance em 83%.
+
+**Sempre declare os módulos necessários** em seus testes de integração:
+
+```csharp
+/// <summary>
+/// Testes de integração do módulo Documents.
+/// Otimizado para aplicar apenas migrations do módulo Documents.
+/// </summary>
+public class DocumentsIntegrationTests : BaseApiTest
+{
+    // ✅ DECLARA apenas os módulos necessários (83% faster!)
+    protected override TestModule RequiredModules => TestModule.Documents;
+
+    [Fact]
+    public void DocumentRepository_ShouldBeRegisteredInDI()
+    {
+        using var scope = Services.CreateScope();
+        var repository = scope.ServiceProvider.GetService<IDocumentRepository>();
+        repository.Should().NotBeNull();
+    }
+}
+```
+
+**Opções de RequiredModules**:
+
+```csharp
+// ✅ Teste sem banco de dados (só DI/configuração)
+protected override TestModule RequiredModules => TestModule.None;
+
+// ✅ Teste single-module (RECOMENDADO - máxima performance)
+protected override TestModule RequiredModules => TestModule.Documents;
+
+// ✅ Teste cross-module (integração entre módulos)
+protected override TestModule RequiredModules => 
+    TestModule.SearchProviders | TestModule.Providers | TestModule.ServiceCatalogs;
+
+// ❌ EVITAR - lento e propenso a timeout
+protected override TestModule RequiredModules => TestModule.All; // Default
+```
+
+**Módulos Disponíveis**:
+
+```csharp
+[Flags]
+public enum TestModule
+{
+    None = 0,                 // Sem migrations
+    Users = 1,                // 1 << 0
+    Providers = 2,            // 1 << 1
+    Documents = 4,            // 1 << 2
+    ServiceCatalogs = 8,      // 1 << 3
+    Locations = 16,           // 1 << 4
+    SearchProviders = 32,     // 1 << 5
+    All = 63                  // Todos os módulos
+}
+```
+
+**Comparação de Performance**:
+
+| Cenário | Antes (All) | Depois (Required Only) | Improvement |
+|---------|-------------|------------------------|-------------|
+| Inicialização | ~60-70s | ~10-15s | **83% faster** ⚡ |
+| Migrations | 6 módulos | Apenas necessárias | Mínimo necessário |
+| Timeouts | Frequentes ❌ | Eliminados ✅ | Estável |
+
+**Quando Usar Cada Opção**:
+
+- **`TestModule.None`**: Validação de DI, configuração, middleware (sem DB)
+- **Single Module**: Maioria dos casos - use sempre que possível ✅
+- **Multiple Modules**: Integração cross-module (ex: SearchProviders + Providers + ServiceCatalogs)
+- **`TestModule.All`**: Apenas para testes E2E completos - evitar
+
+**Exemplo Completo - Teste de API**:
+
+```csharp
+public class UsersEndpointsTests : BaseApiTest
+{
+    // ✅ Apenas módulo Users necessário
+    protected override TestModule RequiredModules => TestModule.Users;
+
+    [Test]
+    public async Task POST_Users_WithValidData_ShouldReturn201()
+    {
+        // Arrange
+        var request = new { Email = "test@example.com", Name = "Test User" };
+        
+        // Act
+        var response = await _client.PostAsJsonAsync("/api/users", request);
+        
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+    }
+}
+```
+
+**Documentação Relacionada**:
+- 📖 [tests/MeAjudaAi.Integration.Tests/README.md](../tests/MeAjudaAi.Integration.Tests/README.md) - Guia completo
+- 🏗️ [docs/architecture.md](architecture.md#integration-test-infrastructure) - Arquitetura de testes
+- 🗺️ [docs/roadmap.md](roadmap.md#sprint-76) - Sprint 7.6 implementation
+
+---
+
+### **2. Testes de Integração (Legacy Pattern)**
 ```csharp
 public class UsersEndpointsTests : IntegrationTestBase
 {

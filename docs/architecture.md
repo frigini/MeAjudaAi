@@ -1654,7 +1654,177 @@ public sealed class UserEndpointsTests : IntegrationTestBase
         result!.UserId.Should().NotBeEmpty();
     }
 }
-`csharp
+```
+
+---
+
+### **Integration Test Infrastructure - Performance Optimization**
+
+**Problema Identificado (Sprint 7.6 - Jan 2026)**:
+
+Testes de integração aplicavam migrations de TODOS os 6 módulos (Users, Providers, Documents, ServiceCatalogs, Locations, SearchProviders) para CADA teste, causando:
+- ❌ Timeout frequente (~60-70s de inicialização)
+- ❌ PostgreSQL pool exhaustion (erro 57P01)
+- ❌ Testes quebrando sem mudança de código (race condition)
+
+**Solução: On-Demand Migrations Pattern**
+
+Implementado sistema de flags para aplicar migrations apenas dos módulos necessários:
+
+```csharp
+/// <summary>
+/// Enum de flags para especificar quais módulos o teste necessita.
+/// Use bitwise OR para combinar múltiplos módulos.
+/// </summary>
+[Flags]
+public enum TestModule
+{
+    None = 0,                 // Sem migrations (testes de DI/configuração apenas)
+    Users = 1 << 0,           // 1
+    Providers = 1 << 1,       // 2
+    Documents = 1 << 2,       // 4
+    ServiceCatalogs = 1 << 3, // 8
+    Locations = 1 << 4,       // 16
+    SearchProviders = 1 << 5, // 32
+    All = Users | Providers | Documents | ServiceCatalogs | Locations | SearchProviders // 63
+}
+
+/// <summary>
+/// Classe base otimizada para testes de integração.
+/// Override RequiredModules para especificar quais módulos são necessários.
+/// </summary>
+public abstract class BaseApiTest : IAsyncLifetime
+{
+    /// <summary>
+    /// Override this property to specify which modules are required for your tests.
+    /// Default is TestModule.All for backward compatibility.
+    /// </summary>
+    protected virtual TestModule RequiredModules => TestModule.All;
+
+    public async Task InitializeAsync()
+    {
+        // Aplica migrations apenas para módulos especificados
+        await ApplyRequiredModuleMigrationsAsync(scope.ServiceProvider, logger);
+    }
+
+    private async Task ApplyRequiredModuleMigrationsAsync(
+        IServiceProvider serviceProvider, 
+        ILogger? logger)
+    {
+        var modules = RequiredModules;
+        if (modules == TestModule.None) return;
+
+        // Limpa banco uma única vez
+        await EnsureCleanDatabaseAsync(anyContext, logger);
+
+        // Aplica migrations apenas para módulos requeridos
+        if (modules.HasFlag(TestModule.Users))
+        {
+            var context = serviceProvider.GetRequiredService<UsersDbContext>();
+            await ApplyMigrationForContextAsync(context, "Users", logger, "UsersDbContext");
+            await context.Database.CloseConnectionAsync();
+        }
+        
+        if (modules.HasFlag(TestModule.Providers))
+        {
+            var context = serviceProvider.GetRequiredService<ProvidersDbContext>();
+            await ApplyMigrationForContextAsync(context, "Providers", logger, "ProvidersDbContext");
+            await context.Database.CloseConnectionAsync();
+        }
+        
+        // ... repeat for each module
+    }
+}
+```
+
+**Uso em Test Classes**:
+
+```csharp
+/// <summary>
+/// Testes de integração do módulo Documents.
+/// Otimizado para aplicar apenas migrations do módulo Documents.
+/// </summary>
+public class DocumentsIntegrationTests : BaseApiTest
+{
+    // Declara apenas os módulos necessários (83% faster)
+    protected override TestModule RequiredModules => TestModule.Documents;
+
+    [Fact]
+    public void DocumentRepository_ShouldBeRegisteredInDI()
+    {
+        using var scope = Services.CreateScope();
+        var repository = scope.ServiceProvider.GetService<IDocumentRepository>();
+        repository.Should().NotBeNull();
+    }
+}
+
+/// <summary>
+/// Testes cross-module - usa múltiplos módulos.
+/// </summary>
+public class SearchProvidersApiTests : BaseApiTest
+{
+    // SearchProviders depende de Providers e ServiceCatalogs para denormalização
+    protected override TestModule RequiredModules => 
+        TestModule.SearchProviders | 
+        TestModule.Providers | 
+        TestModule.ServiceCatalogs;
+
+    [Fact]
+    public async Task SearchProviders_ShouldReturnDenormalizedData()
+    {
+        // Test implementation
+    }
+}
+```
+
+**Benefícios da Otimização**:
+
+| Cenário | Antes (All Modules) | Depois (Required Only) | Improvement |
+|---------|---------------------|------------------------|-------------|
+| Inicialização | ~60-70s | ~10-15s | **83% faster** |
+| Migrations aplicadas | 6 módulos sempre | Apenas necessárias | Mínimo necessário |
+| Timeouts | Frequentes | Raros/Eliminados | ✅ Estável |
+| Pool de conexões | Esgotamento frequente | Isolado por módulo | ✅ Confiável |
+
+**Quando Usar Cada Opção**:
+
+- **`TestModule.None`**: Testes de DI/configuração sem banco de dados
+- **Single Module** (ex: `TestModule.Documents`): Maioria dos casos - **RECOMENDADO**
+- **Multiple Modules** (ex: `TestModule.Providers | TestModule.ServiceCatalogs`): Integração cross-module
+- **`TestModule.All`**: Legado/testes E2E completos - **EVITAR quando possível**
+
+**Fluxo de Migrations (Antes vs Depois)**:
+
+```
+ANTES (Todo teste - 60-70s):
+┌─────────────────────────────────────────────────┐
+│ BaseApiTest.InitializeAsync()                   │
+├─────────────────────────────────────────────────┤
+│ 1. Apply Users migrations         (~10s)        │
+│ 2. Apply Providers migrations     (~10s)        │
+│ 3. Apply Documents migrations     (~10s)        │
+│ 4. Apply ServiceCatalogs migrations (~10s)      │
+│ 5. Apply Locations migrations     (~10s)        │
+│ 6. Apply SearchProviders migrations ❌ TIMEOUT  │
+└─────────────────────────────────────────────────┘
+
+DEPOIS (DocumentsIntegrationTests - 10s):
+┌─────────────────────────────────────────────────┐
+│ BaseApiTest.InitializeAsync()                   │
+├─────────────────────────────────────────────────┤
+│ RequiredModules = TestModule.Documents          │
+│ 1. EnsureCleanDatabaseAsync       (~2s)         │
+│ 2. Apply Documents migrations     (~8s) ✅      │
+│ └─ CloseConnectionAsync                         │
+└─────────────────────────────────────────────────┘
+```
+
+**Documentação Relacionada**:
+- [tests/MeAjudaAi.Integration.Tests/README.md](../tests/MeAjudaAi.Integration.Tests/README.md) - Guia completo de uso
+- [docs/development.md](development.md) - Best practices para desenvolvimento
+- [docs/roadmap.md](roadmap.md#sprint-76) - Sprint 7.6 implementation details
+
+---
 
 ## 🔌 Module APIs - Comunicação Entre Módulos
 

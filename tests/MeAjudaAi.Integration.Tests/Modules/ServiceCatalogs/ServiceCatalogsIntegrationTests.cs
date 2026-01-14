@@ -12,6 +12,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 /// </summary>
 public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.ServiceCatalogs;
+
     [Fact]
     public async Task CreateServiceCategory_WithValidData_ShouldReturnCreated()
     {

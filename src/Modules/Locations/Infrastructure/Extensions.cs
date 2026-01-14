@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure;
 
@@ -45,9 +46,8 @@ public static class Extensions
             options.EnableSensitiveDataLogging(configuration.GetValue<bool>("Logging:EnableSensitiveDataLogging"));
 
             // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
-            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") 
-                            ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-            var isDevelopment = string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase);
+            var environment = serviceProvider.GetService<IHostEnvironment>();
+            var isDevelopment = environment?.IsDevelopment() == true;
             
             if (isDevelopment)
             {

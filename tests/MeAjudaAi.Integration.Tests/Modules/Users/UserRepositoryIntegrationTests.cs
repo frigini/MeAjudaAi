@@ -15,6 +15,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.Users;
 /// </summary>
 public class UserRepositoryIntegrationTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.Users;
+
     private readonly Faker _faker = new("pt_BR");
 
     /// <summary>

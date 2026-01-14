@@ -67,11 +67,7 @@ public static class Extensions
             .EnableSensitiveDataLogging(false);
 
             // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
-            var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") 
-                         ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-            var isDevelopment = string.Equals(envName, "Development", StringComparison.OrdinalIgnoreCase);
-            
-            if (isDevelopment)
+            if (environment?.IsDevelopment() == true)
             {
                 options.ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));

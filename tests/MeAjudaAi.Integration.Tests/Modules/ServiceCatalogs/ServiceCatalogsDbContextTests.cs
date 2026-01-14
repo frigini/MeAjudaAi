@@ -11,6 +11,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 /// </summary>
 public class ServiceCatalogsDbContextTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.ServiceCatalogs;
+
     [Fact]
     public void ServiceCatalogsDbContext_ShouldBeRegistered()
     {

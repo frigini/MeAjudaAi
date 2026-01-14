@@ -17,6 +17,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.Users;
 /// </remarks>
 public class UsersApiTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.Users;
+
     [Fact]
     public async Task UsersEndpoint_WithAuthentication_ShouldReturnValidResponse()
     {

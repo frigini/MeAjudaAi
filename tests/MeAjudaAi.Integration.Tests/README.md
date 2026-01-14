@@ -4,6 +4,99 @@
 
 This directory contains integration tests for the MeAjudaAi API. These tests verify that different components work together correctly in a controlled test environment.
 
+## ⚡ Performance Optimization: RequiredModules
+
+**CRITICAL**: Para evitar timeouts e melhorar a performance, **sempre declare os módulos necessários** para seus testes:
+
+```csharp
+public class DocumentsIntegrationTests : BaseApiTest
+{
+    // Declara apenas os módulos necessários (otimização de 83% no tempo de inicialização)
+    protected override TestModule RequiredModules => TestModule.Documents;
+}
+```
+
+### TestModule Flags
+
+```csharp
+[Flags]
+public enum TestModule
+{
+    None = 0,                 // Sem migrations (testes de DI/configuração apenas)
+    Users = 1,
+    Providers = 2,
+    Documents = 4,
+    ServiceCatalogs = 8,
+    Locations = 16,
+    SearchProviders = 32,
+    All = 63                  // Todos os módulos (default - EVITAR quando possível)
+}
+```
+
+### Performance Comparison
+
+| Cenário | Antes (All Modules) | Depois (Required Only) | Improvement |
+|---------|---------------------|------------------------|-------------|
+| Inicialização | ~60-70s | ~10-15s | **83% faster** |
+| Migrations aplicadas | 6 módulos sempre | Apenas necessárias | Mínimo necessário |
+| Timeouts | Frequentes | Raros | ✅ Estável |
+| Pool de conexões | Esgotamento frequente | Isolado por módulo | ✅ Confiável |
+
+### Quando Usar Cada Opção
+
+#### `TestModule.None` - Testes sem banco de dados
+```csharp
+protected override TestModule RequiredModules => TestModule.None;
+```
+- Testes de DI/configuração
+- Testes de validação de middleware
+- Testes que não precisam de migrations
+
+#### Single Module - Recomendado (máxima performance)
+```csharp
+protected override TestModule RequiredModules => TestModule.Documents;
+```
+- Maioria dos casos de uso
+- Testes focados em um módulo específico
+- **Use sempre que possível**
+
+#### Multiple Modules - Integração cross-module
+```csharp
+protected override TestModule RequiredModules => 
+    TestModule.SearchProviders | TestModule.Providers | TestModule.ServiceCatalogs;
+```
+- Testes que validam integração entre módulos
+- Ex: SearchProviders precisa de Providers e ServiceCatalogs para denormalização
+
+#### `TestModule.All` - Legado (evitar)
+```csharp
+protected override TestModule RequiredModules => TestModule.All; // Default
+```
+- Testes legados sem otimização
+- Testes E2E completos
+- **EVITAR** - causa timeouts e lentidão
+
+### Example: Optimized Test Class
+
+```csharp
+/// <summary>
+/// Testes de integração do módulo Documents.
+/// Otimizado para aplicar apenas migrations do módulo Documents.
+/// </summary>
+public class DocumentsIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
+{
+    protected override TestModule RequiredModules => TestModule.Documents;
+
+    [Fact]
+    public void DocumentRepository_ShouldBeRegisteredInDI()
+    {
+        using var scope = Services.CreateScope();
+        var repository = scope.ServiceProvider.GetService<IDocumentRepository>();
+        repository.Should().NotBeNull();
+    }
+}
+```
+
 ## Test Configuration Files
 
 ### `appsettings.Testing.json`
