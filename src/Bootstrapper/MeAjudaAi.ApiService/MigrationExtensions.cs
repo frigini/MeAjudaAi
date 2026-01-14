@@ -47,9 +47,11 @@ public static class MigrationExtensions
     {
         var dbContextTypes = new List<Type>();
 
-        // Alinha com MigrationHostedService: filtra apenas por MeAjudaAi.Modules
+        // Filtra apenas assemblies de Infrastructure dos módulos, excluindo Tests
         var assemblies = AppDomain.CurrentDomain.GetAssemblies()
             .Where(a => a.FullName?.Contains("MeAjudaAi.Modules") == true)
+            .Where(a => a.FullName?.Contains(".Infrastructure") == true)
+            .Where(a => !a.FullName?.Contains(".Tests") == true) // Exclui assemblies de teste
             .ToList();
 
         foreach (var assembly in assemblies)

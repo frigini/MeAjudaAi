@@ -252,6 +252,8 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Bas
         categoryDataElement.TryGetProperty("id", out var categoryIdProperty).Should().BeTrue();
         var categoryId = categoryIdProperty.GetString()!;
 
+        string? serviceId = null;
+
         try
         {
             // Act 1: Create Service
@@ -272,7 +274,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Bas
             var createResponseJson = JsonSerializer.Deserialize<JsonElement>(createContent);
             var createdService = GetResponseData(createResponseJson);
             createdService.TryGetProperty("id", out var serviceIdProperty).Should().BeTrue();
-            var serviceId = serviceIdProperty.GetString()!;
+            serviceId = serviceIdProperty.GetString()!;
 
             // Act 2: Update Service
             var updateData = new
@@ -305,13 +307,13 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Bas
             retrievedService.TryGetProperty("description", out var retrievedDescProperty).Should().BeTrue();
             retrievedDescProperty.GetString().Should().Be(updateData.description, "Updated description should be reflected");
 
-            // Act 4: Delete Service
-            var deleteResponse = await Client.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId}");
+            // Act 4: Deactivate Service (recommended instead of delete)
+            var deactivateResponse = await Client.PostAsync($"/api/v1/service-catalogs/services/{serviceId}/deactivate", null);
 
-            // Assert 4: Deletion successful
-            deleteResponse.StatusCode.Should().BeOneOf(
+            // Assert 4: Deactivation successful
+            deactivateResponse.StatusCode.Should().BeOneOf(
                 [HttpStatusCode.OK, HttpStatusCode.NoContent],
-                "Delete should succeed for existing services");
+                "Deactivate should succeed for existing services");
         }
         catch (Exception ex)
         {
@@ -320,6 +322,13 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Bas
         }
         finally
         {
+            // Cleanup service first (if not already deleted by test)
+            var deleteServiceResponse = await Client.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId}");
+            if (!deleteServiceResponse.IsSuccessStatusCode && deleteServiceResponse.StatusCode != HttpStatusCode.NotFound)
+            {
+                testOutput.WriteLine($"Cleanup warning: Could not delete service {serviceId}. Status: {deleteServiceResponse.StatusCode}");
+            }
+
             // Cleanup category
             var deleteCategoryResponse = await Client.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId}");
             if (!deleteCategoryResponse.IsSuccessStatusCode)

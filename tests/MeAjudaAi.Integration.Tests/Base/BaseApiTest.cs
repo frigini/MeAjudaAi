@@ -51,6 +51,9 @@ public enum TestModule
 /// </summary>
 public abstract class BaseApiTest : IAsyncLifetime
 {
+    // Semáforo estático para sincronizar aplicação de migrations entre testes paralelos
+    private static readonly SemaphoreSlim MigrationLock = new(1, 1);
+    
     private SimpleDatabaseFixture? _databaseFixture;
     private WireMockFixture? _wireMockFixture;
     private WebApplicationFactory<Program>? _factory;
@@ -375,72 +378,82 @@ public abstract class BaseApiTest : IAsyncLifetime
 
         logger?.LogInformation("🔄 Applying migrations for modules: {Modules}", modules);
 
-        // Garante estado limpo do banco de dados apenas uma vez
-        DbContext anyContext;
-        if (modules.HasFlag(TestModule.Users))
-            anyContext = serviceProvider.GetRequiredService<UsersDbContext>();
-        else if (modules.HasFlag(TestModule.Documents))
-            anyContext = serviceProvider.GetRequiredService<DocumentsDbContext>();
-        else if (modules.HasFlag(TestModule.Providers))
-            anyContext = serviceProvider.GetRequiredService<ProvidersDbContext>();
-        else if (modules.HasFlag(TestModule.ServiceCatalogs))
-            anyContext = serviceProvider.GetRequiredService<ServiceCatalogsDbContext>();
-        else if (modules.HasFlag(TestModule.Locations))
-            anyContext = serviceProvider.GetRequiredService<LocationsDbContext>();
-        else
-            anyContext = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
-
-        await EnsureCleanDatabaseAsync(anyContext, logger);
-
-        // Aplica migrations dos módulos necessários
-        if (modules.HasFlag(TestModule.Users))
+        // Usa semáforo para garantir que apenas um teste aplique migrations por vez
+        // Evita race conditions e erro "57P01: terminating connection due to administrator command"
+        await MigrationLock.WaitAsync();
+        try
         {
-            var context = serviceProvider.GetRequiredService<UsersDbContext>();
-            await ApplyMigrationForContextAsync(context, "Users", logger, "UsersDbContext");
-            await context.Database.CloseConnectionAsync();
-        }
+            // Garante estado limpo do banco de dados apenas uma vez
+            DbContext anyContext;
+            if (modules.HasFlag(TestModule.Users))
+                anyContext = serviceProvider.GetRequiredService<UsersDbContext>();
+            else if (modules.HasFlag(TestModule.Documents))
+                anyContext = serviceProvider.GetRequiredService<DocumentsDbContext>();
+            else if (modules.HasFlag(TestModule.Providers))
+                anyContext = serviceProvider.GetRequiredService<ProvidersDbContext>();
+            else if (modules.HasFlag(TestModule.ServiceCatalogs))
+                anyContext = serviceProvider.GetRequiredService<ServiceCatalogsDbContext>();
+            else if (modules.HasFlag(TestModule.Locations))
+                anyContext = serviceProvider.GetRequiredService<LocationsDbContext>();
+            else
+                anyContext = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
 
-        if (modules.HasFlag(TestModule.Providers))
+            await EnsureCleanDatabaseAsync(anyContext, logger);
+
+            // Aplica migrations dos módulos necessários
+            if (modules.HasFlag(TestModule.Users))
+            {
+                var context = serviceProvider.GetRequiredService<UsersDbContext>();
+                await ApplyMigrationForContextAsync(context, "Users", logger, "UsersDbContext");
+                await context.Database.CloseConnectionAsync();
+            }
+
+            if (modules.HasFlag(TestModule.Providers))
+            {
+                var context = serviceProvider.GetRequiredService<ProvidersDbContext>();
+                await ApplyMigrationForContextAsync(context, "Providers", logger, "ProvidersDbContext");
+                await context.Database.CloseConnectionAsync();
+            }
+
+            if (modules.HasFlag(TestModule.Documents))
+            {
+                var context = serviceProvider.GetRequiredService<DocumentsDbContext>();
+                await ApplyMigrationForContextAsync(context, "Documents", logger, "DocumentsDbContext");
+                await context.Database.CloseConnectionAsync();
+            }
+
+            if (modules.HasFlag(TestModule.ServiceCatalogs))
+            {
+                var context = serviceProvider.GetRequiredService<ServiceCatalogsDbContext>();
+                await ApplyMigrationForContextAsync(context, "ServiceCatalogs", logger, "ServiceCatalogsDbContext");
+                await context.Database.CloseConnectionAsync();
+            }
+
+            if (modules.HasFlag(TestModule.Locations))
+            {
+                var context = serviceProvider.GetRequiredService<LocationsDbContext>();
+                await ApplyMigrationForContextAsync(context, "Locations", logger, "LocationsDbContext");
+                
+                // Seed test data for allowed cities (required for GeographicRestriction tests)
+                // Must be called BEFORE CloseConnectionAsync to use the already-open connection
+                await SeedTestDataAsync(context, logger);
+                
+                await context.Database.CloseConnectionAsync();
+            }
+
+            if (modules.HasFlag(TestModule.SearchProviders))
+            {
+                var context = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
+                await ApplyMigrationForContextAsync(context, "SearchProviders", logger, "SearchProvidersDbContext");
+                await context.Database.CloseConnectionAsync();
+            }
+
+            logger?.LogInformation("✅ Migrations applied for required modules");
+        }
+        finally
         {
-            var context = serviceProvider.GetRequiredService<ProvidersDbContext>();
-            await ApplyMigrationForContextAsync(context, "Providers", logger, "ProvidersDbContext");
-            await context.Database.CloseConnectionAsync();
+            MigrationLock.Release();
         }
-
-        if (modules.HasFlag(TestModule.Documents))
-        {
-            var context = serviceProvider.GetRequiredService<DocumentsDbContext>();
-            await ApplyMigrationForContextAsync(context, "Documents", logger, "DocumentsDbContext");
-            await context.Database.CloseConnectionAsync();
-        }
-
-        if (modules.HasFlag(TestModule.ServiceCatalogs))
-        {
-            var context = serviceProvider.GetRequiredService<ServiceCatalogsDbContext>();
-            await ApplyMigrationForContextAsync(context, "ServiceCatalogs", logger, "ServiceCatalogsDbContext");
-            await context.Database.CloseConnectionAsync();
-        }
-
-        if (modules.HasFlag(TestModule.Locations))
-        {
-            var context = serviceProvider.GetRequiredService<LocationsDbContext>();
-            await ApplyMigrationForContextAsync(context, "Locations", logger, "LocationsDbContext");
-            
-            // Seed test data for allowed cities (required for GeographicRestriction tests)
-            // Must be called BEFORE CloseConnectionAsync to use the already-open connection
-            await SeedTestDataAsync(context, logger);
-            
-            await context.Database.CloseConnectionAsync();
-        }
-
-        if (modules.HasFlag(TestModule.SearchProviders))
-        {
-            var context = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
-            await ApplyMigrationForContextAsync(context, "SearchProviders", logger, "SearchProvidersDbContext");
-            await context.Database.CloseConnectionAsync();
-        }
-
-        logger?.LogInformation("✅ Migrations applied for required modules");
     }
 
     /// <summary>
@@ -539,6 +552,8 @@ public abstract class BaseApiTest : IAsyncLifetime
 
     /// <summary>
     /// Aplica migrações para um DbContext específico com tratamento de erros padronizado.
+    /// Inclui retry logic para erro "57P01" que ocorre quando PostgreSQL termina conexão
+    /// após instalar extensões (ex: PostGIS no SearchProviders).
     /// </summary>
     private static async Task ApplyMigrationForContextAsync<TContext>(
         TContext context,
@@ -546,21 +561,42 @@ public abstract class BaseApiTest : IAsyncLifetime
         ILogger? logger,
         string? description = null) where TContext : DbContext
     {
-        try
-        {
-            var message = description != null
-                ? $"🔄 Applying {moduleName} module migrations ({description})..."
-                : $"🔄 Applying {moduleName} module migrations...";
-            logger?.LogInformation(message);
+        const int maxRetries = 3;
+        const int delayMs = 1000;
 
-            await context.Database.MigrateAsync();
-            logger?.LogInformation("✅ {Module} database migrations completed successfully", moduleName);
-        }
-        catch (Exception ex)
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
-            logger?.LogError(ex, "❌ Failed to apply {Module} migrations: {Message}", moduleName, ex.Message);
-            throw new InvalidOperationException($"Failed to apply {moduleName} database migrations", ex);
+            try
+            {
+                var message = description != null
+                    ? $"🔄 Applying {moduleName} module migrations ({description})... (attempt {attempt}/{maxRetries})"
+                    : $"🔄 Applying {moduleName} module migrations... (attempt {attempt}/{maxRetries})";
+                logger?.LogInformation(message);
+
+                await context.Database.MigrateAsync();
+                logger?.LogInformation("✅ {Module} database migrations completed successfully", moduleName);
+                return; // Success
+            }
+            catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P01" && attempt < maxRetries)
+            {
+                // 57P01 = "terminating connection due to administrator command"
+                // Ocorre quando Postgres reinicia após instalar extensões (ex: PostGIS)
+                logger?.LogWarning(
+                    "⚠️ PostgreSQL connection terminated (57P01 - extension install). Retrying {Module} migrations... Attempt {Attempt}/{MaxRetries}",
+                    moduleName, attempt, maxRetries);
+                
+                // Aguarda antes de tentar novamente
+                await Task.Delay(delayMs * attempt); // Backoff progressivo
+            }
+            catch (Exception ex)
+            {
+                logger?.LogError(ex, "❌ Failed to apply {Module} migrations: {Message}", moduleName, ex.Message);
+                throw new InvalidOperationException($"Failed to apply {moduleName} database migrations", ex);
+            }
         }
+
+        // Se chegou aqui, todas as tentativas falharam
+        throw new InvalidOperationException($"Failed to apply {moduleName} database migrations after {maxRetries} attempts");
     }
 
     /// <summary>

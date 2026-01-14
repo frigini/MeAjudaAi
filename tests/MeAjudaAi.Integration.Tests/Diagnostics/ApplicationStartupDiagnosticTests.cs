@@ -57,10 +57,15 @@ public class ApplicationStartupDiagnosticTests(ITestOutputHelper testOutput) : I
                         if (_databaseFixture?.ConnectionString != null)
                         {
                             testOutput.WriteLine($"🔧 Using test database: {_databaseFixture.ConnectionString}");
-                            // Override the connection string configuration
+                            // Override ALL connection string configurations
                             config.AddInMemoryCollection(new Dictionary<string, string?>
                             {
-                                ["ConnectionStrings:DefaultConnection"] = _databaseFixture.ConnectionString
+                                ["ConnectionStrings:DefaultConnection"] = _databaseFixture.ConnectionString,
+                                ["ConnectionStrings:UsersDb"] = _databaseFixture.ConnectionString,
+                                ["ConnectionStrings:ProvidersDb"] = _databaseFixture.ConnectionString,
+                                ["ConnectionStrings:ServiceCatalogsDb"] = _databaseFixture.ConnectionString,
+                                ["ConnectionStrings:SearchProvidersDb"] = _databaseFixture.ConnectionString,
+                                ["ConnectionStrings:BookingsDb"] = _databaseFixture.ConnectionString
                             });
                         }
                     });
