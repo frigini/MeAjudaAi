@@ -30,13 +30,15 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 - ✅ **Performance**: 83% faster para testes single-module (10s vs 60s)
 - ✅ **Confiabilidade**: Eliminou timeouts e errors 57P01
 - ✅ **Isolamento**: Cada teste carrega apenas módulos necessários
-- ✅ **5 test classes otimizados**: Documents, Users, Providers, ServiceCatalogs, DocumentsApi
+- ✅ **26 test classes otimizados**: Users (4), Providers (5), Documents (4), ServiceCatalogs (7), Locations (5), SearchProviders (1)
 - ✅ **Test Results**: DocumentRepository_ShouldBeRegisteredInDI agora PASSA em 10s
+- ✅ **Code Quality**: Método legado marcado como [Obsolete], testes renomeados, terminologia em português
 
 **Arquivos Modificados**:
-- `tests/MeAjudaAi.Integration.Tests/Base/BaseApiTest.cs`: Refactoring completo com TestModule pattern
-- `tests/MeAjudaAi.Integration.Tests/README.md`: Guia de uso da otimização
-- 5 test classes com `RequiredModules` override
+- `tests/MeAjudaAi.Integration.Tests/Base/BaseApiTest.cs`: Refactoring completo com TestModule pattern + [Obsolete] em método legado
+- `tests/MeAjudaAi.Integration.Tests/README.md`: Guia de uso com terminologia em português (Desempenho)
+- 26 test classes com `RequiredModules` override
+- `AllowedCityExceptionHandlingTests.cs`: Testes renomeados para refletir comportamento real
 
 **Documentação Atualizada**:
 - ✅ [tests/README.md](../tests/MeAjudaAi.Integration.Tests/README.md): Performance optimization guide
