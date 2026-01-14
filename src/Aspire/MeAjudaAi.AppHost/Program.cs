@@ -149,6 +149,12 @@ internal static class Program
             .WaitFor(keycloak.Keycloak)
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
 
+        // Admin Portal (Blazor WebAssembly)
+        _ = builder.AddProject<Projects.MeAjudaAi_Web_Admin>("admin")
+            .WithReference(apiService)
+            .WithReference(keycloak.Keycloak)
+            .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
+
         // Admin Portal (Blazor WASM) - usa portas fixas do apiservice definidas em launchSettings.json
         _ = builder.AddProject<Projects.MeAjudaAi_Web_Admin>("admin-portal")
             .WithExternalHttpEndpoints()
