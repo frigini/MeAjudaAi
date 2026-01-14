@@ -14,6 +14,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 [Collection("Integration")]
 public sealed class IbgeUnavailabilityTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.None;
+
     // Override to use real IBGE service with WireMock stubs instead of mock
     protected override bool UseMockGeographicValidation => false;
 

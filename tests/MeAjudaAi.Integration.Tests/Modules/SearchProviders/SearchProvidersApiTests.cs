@@ -15,6 +15,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.SearchProviders;
 /// </remarks>
 public class SearchProvidersApiTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.SearchProviders | TestModule.Providers | TestModule.ServiceCatalogs;
+
     private const string SearchEndpoint = "/api/v1/search/providers";
 
     [Fact]

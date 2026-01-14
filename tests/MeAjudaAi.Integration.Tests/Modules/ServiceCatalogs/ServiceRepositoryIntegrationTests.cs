@@ -13,6 +13,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 /// </summary>
 public class ServiceRepositoryIntegrationTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.ServiceCatalogs;
+
     private readonly Faker _faker = new("pt_BR");
 
     /// <summary>

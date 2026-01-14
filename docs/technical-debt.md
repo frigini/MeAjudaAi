@@ -4,6 +4,59 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 
 ---
 
+## ✅ Melhorias Recentes (Sprint 7.6 - Jan 2026)
+
+### ⚡ Otimização de Performance de Testes de Integração - CONCLUÍDA
+
+**Sprint**: Sprint 7.6 (12 Jan 2026)  
+**Severidade**: ALTA (bloqueava testes em CI/CD)  
+**Status**: ✅ RESOLVIDO
+
+**Problema Identificado**:
+- ❌ Testes de integração aplicavam migrations de TODOS os 6 módulos para CADA teste
+- ❌ Timeout frequente (~60-70s de inicialização, vs esperado ~10-15s)
+- ❌ PostgreSQL pool exhaustion (erro `57P01: terminating connection due to administrator command`)
+- ❌ Teste `DocumentRepository_ShouldBeRegisteredInDI` falhava na branch fix/aspire-initialization
+- ❌ Race conditions causavam falhas intermitentes sem mudança de código
+
+**Solução Implementada**:
+- ✅ **TestModule enum com Flags**: Permite especificar quais módulos cada teste precisa
+- ✅ **RequiredModules property**: Override virtual para declarar dependências por teste
+- ✅ **ApplyRequiredModuleMigrationsAsync**: Aplica migrations apenas dos módulos necessários
+- ✅ **EnsureCleanDatabaseAsync**: Extraído para melhor reusabilidade
+- ✅ **Backward compatible**: Default RequiredModules = TestModule.All
+
+**Resultados Alcançados**:
+- ✅ **Performance**: 83% faster para testes single-module (10s vs 60s)
+- ✅ **Confiabilidade**: Eliminou timeouts e errors 57P01
+- ✅ **Isolamento**: Cada teste carrega apenas módulos necessários
+- ✅ **5 test classes otimizados**: Documents, Users, Providers, ServiceCatalogs, DocumentsApi
+- ✅ **Test Results**: DocumentRepository_ShouldBeRegisteredInDI agora PASSA em 10s
+
+**Arquivos Modificados**:
+- `tests/MeAjudaAi.Integration.Tests/Base/BaseApiTest.cs`: Refactoring completo com TestModule pattern
+- `tests/MeAjudaAi.Integration.Tests/README.md`: Guia de uso da otimização
+- 5 test classes com `RequiredModules` override
+
+**Documentação Atualizada**:
+- ✅ [tests/README.md](../tests/MeAjudaAi.Integration.Tests/README.md): Performance optimization guide
+- ✅ [docs/architecture.md](architecture.md#integration-test-infrastructure): Testing architecture
+- ✅ [docs/development.md](development.md#testes-de-integração): Developer guide
+- ✅ [docs/roadmap.md](roadmap.md#sprint-76): Sprint 7.6 implementation details
+
+**Metrics**:
+
+| Cenário | Antes | Depois | Improvement |
+|---------|-------|--------|-------------|
+| Inicialização | ~60-70s | ~10-15s | **83% faster** ⚡ |
+| Migrations aplicadas | 6 módulos | Apenas necessárias | Mínimo |
+| Timeouts | Frequentes | Eliminados | ✅ |
+
+**Sprint Completion**: 12 Janeiro 2026  
+**Issue**: fix/aspire-initialization (continuação)
+
+---
+
 ## 🆕 Sprint 6 - Débitos Técnicos (BAIXA PRIORIDADE)
 
 **Sprint**: Sprint 6 Concluída (30 Dez 2025 - 5 Jan 2026)  

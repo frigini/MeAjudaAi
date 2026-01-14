@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using NetTopologySuite.Geometries;
 
@@ -15,9 +15,10 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Migration
             migrationBuilder.EnsureSchema(
                 name: "search_providers");
 
-            // PostGIS extension is created by SimpleDatabaseFixture in tests
-            // and by infrastructure/database/modules/search_providers/01-permissions.sql in production
-            // Removed: migrationBuilder.AlterDatabase().Annotation("Npgsql:PostgresExtension:postgis", ",,");
+            // PostGIS extension já existe na imagem postgis/postgis  
+            // Removido AlterDatabase().Annotation para evitar erro 57P01
+            // migrationBuilder.AlterDatabase()
+            //     .Annotation("Npgsql:PostgresExtension:postgis", ",,");
 
             migrationBuilder.CreateTable(
                 name: "searchable_providers",

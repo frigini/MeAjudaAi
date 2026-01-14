@@ -23,6 +23,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.Users;
 /// </summary>
 public class UsersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.Users;
+
     [Fact]
     public async Task CreateUser_WithValidData_ShouldReturnCreated()
     {

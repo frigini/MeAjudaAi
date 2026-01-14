@@ -16,6 +16,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.Documents;
 /// </summary>
 public class DocumentsApiTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.Documents;
+
     [Fact]
     public async Task UploadDocument_WithValidRequest_ShouldReturnUploadUrl()
     {

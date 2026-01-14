@@ -9,6 +9,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 /// </summary>
 public class ProvidersDbContextTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.Providers;
+
     [Fact]
     public async Task CanConnectToDatabase_ShouldWork()
     {

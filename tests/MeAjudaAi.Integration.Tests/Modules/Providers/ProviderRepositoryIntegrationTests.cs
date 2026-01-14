@@ -16,6 +16,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 /// </summary>
 public class ProviderRepositoryIntegrationTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.Providers;
+
     private readonly Faker _faker = new("pt_BR");
 
     [Fact]

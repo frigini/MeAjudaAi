@@ -13,6 +13,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 /// </summary>
 public class AllowedCityExceptionHandlingTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.Locations;
+
     private readonly Faker _faker = new("pt_BR");
 
     [Fact]
