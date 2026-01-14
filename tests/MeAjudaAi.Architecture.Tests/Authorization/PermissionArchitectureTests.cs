@@ -239,13 +239,20 @@ public class PermissionArchitectureTests
         // Arrange - Explicit list of all Claims constants
         var claims = new[]
         {
-            AuthConstants.Claims.Sub,
+            AuthConstants.Claims.Subject,
             AuthConstants.Claims.Email,
-            AuthConstants.Claims.Name,
-            AuthConstants.Claims.Role,
-            AuthConstants.Claims.Permissions,
+            AuthConstants.Claims.EmailVerified,
             AuthConstants.Claims.PreferredUsername,
-            AuthConstants.Claims.EmailVerified
+            AuthConstants.Claims.GivenName,
+            AuthConstants.Claims.FamilyName,
+            AuthConstants.Claims.Roles,
+            AuthConstants.Claims.UserId,
+            AuthConstants.Claims.KeycloakId,
+            AuthConstants.Claims.Permission,
+            AuthConstants.Claims.Module,
+            AuthConstants.Claims.TenantId,
+            AuthConstants.Claims.Organization,
+            AuthConstants.Claims.IsSystemAdmin
         };
 
         // Act & Assert
