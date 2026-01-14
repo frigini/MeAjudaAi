@@ -4,7 +4,7 @@ using NetTopologySuite.Geometries;
 
 #nullable disable
 
-namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Migrations
+namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
@@ -15,10 +15,8 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Migration
             migrationBuilder.EnsureSchema(
                 name: "search_providers");
 
-            // PostGIS extension já existe na imagem postgis/postgis  
-            // Removido AlterDatabase().Annotation para evitar erro 57P01
-            // migrationBuilder.AlterDatabase()
-            //     .Annotation("Npgsql:PostgresExtension:postgis", ",,");
+            migrationBuilder.AlterDatabase()
+                .Annotation("Npgsql:PostgresExtension:postgis", ",,");
 
             migrationBuilder.CreateTable(
                 name: "searchable_providers",
