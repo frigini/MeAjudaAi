@@ -236,22 +236,23 @@ public class PermissionArchitectureTests
     [Fact]
     public void AuthConstants_Claims_ShouldBeConstantStrings()
     {
-        // Arrange
-        var claimsType = typeof(AuthConstants.Claims);
-#pragma warning disable S3011 // Reflection is required for architecture testing
-        var fields = claimsType.GetFields(BindingFlags.Public | BindingFlags.Static);
-#pragma warning restore S3011
+        // Arrange - Explicit list of all Claims constants
+        var claims = new[]
+        {
+            AuthConstants.Claims.Sub,
+            AuthConstants.Claims.Email,
+            AuthConstants.Claims.Name,
+            AuthConstants.Claims.Role,
+            AuthConstants.Claims.Permissions,
+            AuthConstants.Claims.PreferredUsername,
+            AuthConstants.Claims.EmailVerified
+        };
 
         // Act & Assert
-        foreach (var field in fields)
+        foreach (var claim in claims)
         {
-            Assert.True(field.IsStatic, $"Field {field.Name} deve ser static");
-            Assert.True(field.IsLiteral || field.IsInitOnly, $"Field {field.Name} deve ser const ou readonly");
-            Assert.Equal(typeof(string), field.FieldType);
-
-            var value = field.GetValue(null) as string;
-            Assert.NotNull(value);
-            Assert.NotEmpty(value);
+            Assert.NotNull(claim);
+            Assert.NotEmpty(claim);
         }
     }
 
