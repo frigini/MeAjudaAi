@@ -323,20 +323,16 @@ public abstract class BaseApiTest : IAsyncLifetime
             new { IbgeCode = 3203205, CityName = "Linhares", State = "ES" }
         };
 
+        var citiesToAdd = new List<MeAjudaAi.Modules.Locations.Domain.Entities.AllowedCity>();
+
         foreach (var city in testCities)
         {
-            try
+            // Check if city already exists to avoid duplicate key errors
+            var exists = await locationsContext.AllowedCities
+                .AnyAsync(c => c.CityName == city.CityName && c.StateSigla == city.State);
+            
+            if (!exists)
             {
-                // Check if city already exists to avoid duplicate key errors
-                var exists = await locationsContext.AllowedCities
-                    .AnyAsync(c => c.CityName == city.CityName && c.StateSigla == city.State);
-                
-                if (exists)
-                {
-                    logger?.LogDebug("City {City}/{State} already exists, skipping", city.CityName, city.State);
-                    continue;
-                }
-
                 // Use EF Core entity instead of raw SQL to avoid case sensitivity issues
                 var allowedCity = new MeAjudaAi.Modules.Locations.Domain.Entities.AllowedCity(
                     city.CityName,
@@ -344,21 +340,23 @@ public abstract class BaseApiTest : IAsyncLifetime
                     "system",
                     city.IbgeCode);
                 
-                locationsContext.AllowedCities.Add(allowedCity);
-                await locationsContext.SaveChangesAsync();
-                
-                logger?.LogDebug("✅ Seeded city {City}/{State} (IBGE: {IbgeCode})", city.CityName, city.State, city.IbgeCode);
+                citiesToAdd.Add(allowedCity);
             }
-            catch (Exception ex)
+            else
             {
-                logger?.LogError(ex, "❌ Failed to seed city {City}/{State}: {Message}", city.CityName, city.State, ex.Message);
-                // Clear the change tracker to recover from errors
-                locationsContext.ChangeTracker.Clear();
+                logger?.LogDebug("City {City}/{State} already exists, skipping", city.CityName, city.State);
             }
         }
 
+        if (citiesToAdd.Count > 0)
+        {
+            locationsContext.AllowedCities.AddRange(citiesToAdd);
+            await locationsContext.SaveChangesAsync();
+            logger?.LogInformation("✅ Seeded {Count} test cities", citiesToAdd.Count);
+        }
+
         var totalCount = await locationsContext.AllowedCities.CountAsync();
-        logger?.LogInformation("✅ Seeded test cities. Total cities in database: {Count}", totalCount);
+        logger?.LogInformation("Total cities in database: {Count}", totalCount);
     }
 
     /// <summary>
@@ -594,9 +592,6 @@ public abstract class BaseApiTest : IAsyncLifetime
                 throw new InvalidOperationException($"Failed to apply {moduleName} database migrations", ex);
             }
         }
-
-        // Se chegou aqui, todas as tentativas falharam
-        throw new InvalidOperationException($"Failed to apply {moduleName} database migrations after {maxRetries} attempts");
     }
 
     /// <summary>

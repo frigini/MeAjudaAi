@@ -323,10 +323,13 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Bas
         finally
         {
             // Cleanup service first (if not already deleted by test)
-            var deleteServiceResponse = await Client.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId}");
-            if (!deleteServiceResponse.IsSuccessStatusCode && deleteServiceResponse.StatusCode != HttpStatusCode.NotFound)
+            if (!string.IsNullOrEmpty(serviceId))
             {
-                testOutput.WriteLine($"Cleanup warning: Could not delete service {serviceId}. Status: {deleteServiceResponse.StatusCode}");
+                var deleteServiceResponse = await Client.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId}");
+                if (!deleteServiceResponse.IsSuccessStatusCode && deleteServiceResponse.StatusCode != HttpStatusCode.NotFound)
+                {
+                    testOutput.WriteLine($"Cleanup warning: Could not delete service {serviceId}. Status: {deleteServiceResponse.StatusCode}");
+                }
             }
 
             // Cleanup category

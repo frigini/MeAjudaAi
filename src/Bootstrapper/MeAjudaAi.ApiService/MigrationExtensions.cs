@@ -51,7 +51,7 @@ public static class MigrationExtensions
         var assemblies = AppDomain.CurrentDomain.GetAssemblies()
             .Where(a => a.FullName?.Contains("MeAjudaAi.Modules") == true)
             .Where(a => a.FullName?.Contains(".Infrastructure") == true)
-            .Where(a => !a.FullName?.Contains(".Tests") == true) // Exclui assemblies de teste
+            .Where(a => a.FullName?.Contains(".Tests") != true) // Exclui assemblies de teste
             .ToList();
 
         foreach (var assembly in assemblies)

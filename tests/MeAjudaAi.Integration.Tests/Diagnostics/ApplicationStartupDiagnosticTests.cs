@@ -57,7 +57,7 @@ public class ApplicationStartupDiagnosticTests(ITestOutputHelper testOutput) : I
                         if (_databaseFixture?.ConnectionString != null)
                         {
                             testOutput.WriteLine($"🔧 Using test database: {_databaseFixture.ConnectionString}");
-                            // Override ALL connection string configurations
+                            // Sobrescreve TODAS as configurações de connection strings
                             config.AddInMemoryCollection(new Dictionary<string, string?>
                             {
                                 ["ConnectionStrings:DefaultConnection"] = _databaseFixture.ConnectionString,
