@@ -18,7 +18,7 @@ public class AllowedCityExceptionHandlingTests : BaseApiTest
     private readonly Faker _faker = new("pt_BR");
 
     [Fact]
-    public async Task UpdateNonExistingCity_ShouldThrowAllowedCityNotFoundException()
+    public async Task GetNonExistingCity_ShouldReturnNull()
     {
         // Arrange
         using var scope = Services.CreateScope();

@@ -4,9 +4,9 @@
 
 This directory contains integration tests for the MeAjudaAi API. These tests verify that different components work together correctly in a controlled test environment.
 
-## ⚡ Performance Optimization: RequiredModules
+## ⚡ Otimização de Desempenho: RequiredModules
 
-**CRITICAL**: Para evitar timeouts e melhorar a performance, **sempre declare os módulos necessários** para seus testes:
+**CRÍTICO**: Para evitar timeouts e melhorar o desempenho, **sempre declare os módulos necessários** para seus testes:
 
 ```csharp
 public class DocumentsIntegrationTests : BaseApiTest
@@ -33,9 +33,9 @@ public enum TestModule
 }
 ```
 
-### Performance Comparison
+### Comparação de Desempenho
 
-| Cenário | Antes (All Modules) | Depois (Required Only) | Improvement |
+| Cenário | Antes (All Modules) | Depois (Required Only) | Melhoria |
 |---------|---------------------|------------------------|-------------|
 | Inicialização | ~60-70s | ~10-15s | **83% faster** |
 | Migrations aplicadas | 6 módulos sempre | Apenas necessárias | Mínimo necessário |
@@ -52,7 +52,7 @@ protected override TestModule RequiredModules => TestModule.None;
 - Testes de validação de middleware
 - Testes que não precisam de migrations
 
-#### Single Module - Recomendado (máxima performance)
+#### Single Module - Recomendado (máximo desempenho)
 ```csharp
 protected override TestModule RequiredModules => TestModule.Documents;
 ```

@@ -484,6 +484,7 @@ public abstract class BaseApiTest : IAsyncLifetime
     /// Método legado mantido para compatibilidade com testes existentes.
     /// Novos testes devem usar RequiredModules em vez disso.
     /// </summary>
+    [Obsolete("Use RequiredModules property instead. This method applies all migrations unconditionally, causing performance issues.")]
     private static async Task ApplyMigrationsAsync(
         UsersDbContext usersContext,
         ProvidersDbContext providersContext,
