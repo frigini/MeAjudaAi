@@ -1,4 +1,5 @@
 @page "/allowed-cities"
+@attribute [Authorize]
 @using Fluxor
 @using MeAjudaAi.Client.Contracts.Api
 @using MeAjudaAi.Shared.Contracts.Contracts.Modules.Locations.DTOs
@@ -17,8 +18,8 @@
 
     @if (LocationsState.Value.HasError)
     {
-        <MudAlert Severity="Severity.Error" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => Dispatcher.Dispatch(new ClearErrorAction()))">
-            @LocationsState.Value.ErrorMessage
+        <MudAlert Severity="Severity.Warning" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => Dispatcher.Dispatch(new ClearErrorAction()))">
+            <MudText Typo="Typo.body1">Nenhuma cidade encontrada ou erro ao carregar dados.</MudText>
         </MudAlert>
     }
 

@@ -20,11 +20,11 @@
                 <MudMenu Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" Direction="Direction.Bottom" AnchorOrigin="Origin.BottomRight">
                     <MudMenuItem>@context.User.Identity?.Name</MudMenuItem>
                     <MudDivider />
-                    <MudMenuItem Icon="@Icons.Material.Filled.Logout" Href="authentication/logout">Logout</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Logout" Href="authentication/logout">Sair</MudMenuItem>
                 </MudMenu>
             </Authorized>
             <NotAuthorized>
-                <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="authentication/login">Login</MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="authentication/login">Entrar</MudButton>
             </NotAuthorized>
         </AuthorizeView>
     </MudAppBar>

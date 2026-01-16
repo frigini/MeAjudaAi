@@ -133,6 +133,8 @@ internal static class Program
             options.DatabaseSchema = "identity";
             options.DatabaseUsername = dbUsername;
             options.DatabasePassword = dbPassword;
+            // Importar realm de desenvolvimento automaticamente
+            options.ImportRealm = "/opt/keycloak/data/import/meajudaai-realm.dev.json";
         });
 
         // Garantir que Keycloak aguarde o Postgres estar pronto
@@ -149,13 +151,7 @@ internal static class Program
             .WaitFor(keycloak.Keycloak)
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
 
-        // Admin Portal (Blazor WebAssembly)
-        _ = builder.AddProject<Projects.MeAjudaAi_Web_Admin>("admin")
-            .WithReference(apiService)
-            .WithReference(keycloak.Keycloak)
-            .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
-
-        // Admin Portal (Blazor WASM) - usa portas fixas do apiservice definidas em launchSettings.json
+        // Admin Portal (Blazor WASM)
         _ = builder.AddProject<Projects.MeAjudaAi_Web_Admin>("admin-portal")
             .WithExternalHttpEndpoints()
             .WaitFor(apiService)

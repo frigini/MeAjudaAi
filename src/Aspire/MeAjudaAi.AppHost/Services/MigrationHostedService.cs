@@ -65,6 +65,9 @@ internal class MigrationHostedService : IHostedService
             }
 
             _logger.LogInformation("✅ All migrations applied successfully!");
+            
+            // Execute seeding after migrations
+            await ExecuteSeedingAsync(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -308,6 +311,68 @@ internal class MigrationHostedService : IHostedService
         }
 
         return contextType.Name.Replace("DbContext", "");
+    }
+
+    private async Task ExecuteSeedingAsync(CancellationToken cancellationToken)
+    {
+        // Only seed in Development environment
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+        if (!environment.Equals("Development", StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.LogInformation("⏭️ Skipping data seeding in {Environment} environment", environment);
+            return;
+        }
+
+        try
+        {
+            _logger.LogInformation("🌱 Executing data seeding for Development environment...");
+            
+            var connectionString = GetConnectionString();
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                _logger.LogWarning("⚠️ Cannot execute seeding: connection string not available");
+                return;
+            }
+
+            // Execute SQL seed scripts
+            await using var connection = new Npgsql.NpgsqlConnection(connectionString);
+            await connection.OpenAsync(cancellationToken);
+
+            // Find and execute seed scripts from infrastructure/database/seeds/
+            var seedScriptsPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "..", "infrastructure", "database", "seeds");
+            var normalizedPath = Path.GetFullPath(seedScriptsPath);
+            
+            if (Directory.Exists(normalizedPath))
+            {
+                var seedFiles = Directory.GetFiles(normalizedPath, "*.sql").OrderBy(f => f).ToList();
+                
+                foreach (var seedFile in seedFiles)
+                {
+                    var fileName = Path.GetFileName(seedFile);
+                    _logger.LogInformation("📜 Executing seed script: {FileName}", fileName);
+                    
+                    var sqlScript = await File.ReadAllTextAsync(seedFile, cancellationToken);
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities - Safe: reading from trusted seed files
+                    await using var command = new Npgsql.NpgsqlCommand(sqlScript, connection);
+#pragma warning restore CA2100
+                    command.CommandTimeout = 120; // 2 minutes timeout for seed scripts
+                    
+                    await command.ExecuteNonQueryAsync(cancellationToken);
+                    _logger.LogInformation("✅ Seed script executed: {FileName}", fileName);
+                }
+                
+                _logger.LogInformation("✅ Data seeding completed successfully! ({Count} scripts)", seedFiles.Count);
+            }
+            else
+            {
+                _logger.LogWarning("⚠️ Seed scripts directory not found: {Path}", normalizedPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error during data seeding");
+            // Don't fail the application if seeding fails in development
+        }
     }
 }
 

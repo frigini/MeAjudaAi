@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+using MeAjudaAi.Web.Admin.Services;
 using Refit;
 
 namespace MeAjudaAi.Web.Admin.Extensions;
@@ -28,7 +28,7 @@ public static class ServiceCollectionExtensions
 
         services.AddRefitClient<TClient>()
             .ConfigureHttpClient(c => c.BaseAddress = uri)
-            .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+            .AddHttpMessageHandler<ApiAuthorizationMessageHandler>();
         
         return services;
     }

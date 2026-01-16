@@ -66,7 +66,38 @@ public static class MeAjudaAiKeycloakExtensions
         // Importar realm na inicialização (apenas se especificado)
         if (!string.IsNullOrEmpty(options.ImportRealm))
         {
-            keycloak = keycloak.WithEnvironment("KC_IMPORT", options.ImportRealm);
+            // Montar volume com o realm para importação
+            // Usar caminho relativo ao diretório do AppHost (onde está o .csproj)
+            var appHostDir = AppContext.BaseDirectory;
+            var realmPath = Path.GetFullPath(Path.Combine(appHostDir, @"..\..\..\..\..\..\infrastructure\keycloak\realms"));
+            
+            // Validar que o path existe
+            if (!Directory.Exists(realmPath))
+            {
+                throw new InvalidOperationException($"Realm directory not found: {realmPath}");
+            }
+            
+            var realmFile = Path.Combine(realmPath, "meajudaai-realm.dev.json");
+            if (!File.Exists(realmFile))
+            {
+                throw new InvalidOperationException($"Realm file not found: {realmFile}");
+            }
+            
+            // Montar tema customizado
+            var themePath = Path.GetFullPath(Path.Combine(appHostDir, @"..\..\..\..\..\..\infrastructure\keycloak\themes"));
+            if (Directory.Exists(themePath))
+            {
+                keycloak = keycloak.WithBindMount(themePath, "/opt/keycloak/themes");
+                Console.WriteLine($"[Keycloak] Theme Path: {themePath}");
+            }
+            
+            keycloak = keycloak
+                .WithBindMount(realmPath, "/opt/keycloak/data/import")
+                .WithEnvironment("KC_IMPORT", options.ImportRealm);
+            
+            Console.WriteLine($"[Keycloak] Import Realm: {options.ImportRealm}");
+            Console.WriteLine($"[Keycloak] Realm Path: {realmPath}");
+            Console.WriteLine($"[Keycloak] Realm File: {realmFile}");
         }
 
         // Não adicionar endpoint HTTP duplicado - AddKeycloak() já faz isso

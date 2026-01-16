@@ -1,4 +1,5 @@
 @page "/services"
+@attribute [Authorize]
 @using Fluxor
 @using MeAjudaAi.Web.Admin.Features.ServiceCatalogs
 @inherits Fluxor.Blazor.Web.Components.FluxorComponent
@@ -8,7 +9,7 @@
 @inject ISnackbar Snackbar
 @inject IServiceCatalogsApi ServiceCatalogsApi
 
-<PageTitle>Services - MeAjudaAi Admin</PageTitle>
+<PageTitle>Serviços - MeAjudaAi Admin</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudText Typo="Typo.h4" Class="mb-4">
@@ -18,8 +19,8 @@
 
     @if (ServiceCatalogsState.Value.HasError)
     {
-        <MudAlert Severity="Severity.Error" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => Dispatcher.Dispatch(new ServiceCatalogsActions.ClearErrorAction()))">
-            @ServiceCatalogsState.Value.ErrorMessage
+        <MudAlert Severity="Severity.Warning" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => Dispatcher.Dispatch(new ServiceCatalogsActions.ClearErrorAction()))">
+            <MudText Typo="Typo.body1">Nenhum serviço encontrado ou erro ao carregar dados.</MudText>
         </MudAlert>
     }
 

@@ -6,10 +6,10 @@ using Xunit;
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 
 /// <summary>
-/// Integration tests for IBGE service unavailability scenarios.
-/// Validates that the geographic restriction middleware properly handles IBGE failures
-/// by falling back to simple validation (city/state name matching).
-/// Uses real IGeographicValidationService with WireMock stubs for IBGE API.
+/// Testes de integração para cenários de indisponibilidade do serviço IBGE.
+/// Valida que o middleware de restrição geográfica trata corretamente falhas do IBGE
+/// fazendo fallback para validação simples (correspondência de nome de cidade/estado).
+/// Usa IGeographicValidationService real com stubs WireMock para a API do IBGE.
 /// </summary>
 [Collection("Integration")]
 public sealed class IbgeUnavailabilityTests : BaseApiTest

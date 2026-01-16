@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MeAjudaAi.Client.Contracts.Api;
 using MeAjudaAi.Web.Admin;
 using MeAjudaAi.Web.Admin.Extensions;
+using MeAjudaAi.Web.Admin.Services;
 using MudBlazor;
 using MudBlazor.Services;
 
@@ -16,9 +17,12 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 // URL base da API
 var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? builder.HostEnvironment.BaseAddress;
 
+// Registrar handler de autenticação customizado
+builder.Services.AddScoped<ApiAuthorizationMessageHandler>();
+
 // Configuração do HttpClient com autenticação
 builder.Services.AddHttpClient("MeAjudaAi.API", client => client.BaseAddress = new Uri(apiBaseUrl))
-    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+    .AddHttpMessageHandler<ApiAuthorizationMessageHandler>();
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>()
     .CreateClient("MeAjudaAi.API"));
