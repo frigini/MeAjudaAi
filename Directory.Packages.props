@@ -173,6 +173,7 @@
     <!-- Validation -->
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageVersion Include="FluentValidation.AspNetCore" Version="12.1.1" />
     <!-- Azure -->
     <PackageVersion Include="Azure.AI.DocumentIntelligence" Version="1.0.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.26.0" />

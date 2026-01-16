@@ -2,6 +2,22 @@
   "version": 2,
   "dependencies": {
     "net10.0": {
+      "FluentValidation": {
+        "type": "Direct",
+        "requested": "[12.1.1, )",
+        "resolved": "12.1.1",
+        "contentHash": "EPpkIe1yh1a0OXyC100oOA8WMbZvqUu5plwhvYcb7oSELfyUZzfxV48BLhvs3kKo4NwG7MGLNgy1RJiYtT8Dpw=="
+      },
+      "FluentValidation.DependencyInjectionExtensions": {
+        "type": "Direct",
+        "requested": "[12.1.1, )",
+        "resolved": "12.1.1",
+        "contentHash": "D0VXh4dtjjX2aQizuaa0g6R8X3U1JaVqJPfGCvLwZX9t/O2h7tkpbitbadQMfwcgSPdDbI2vDxuwRMv/Uf9dHA==",
+        "dependencies": {
+          "FluentValidation": "12.1.1",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "2.1.0"
+        }
+      },
       "Fluxor.Blazor.Web": {
         "type": "Direct",
         "requested": "[6.9.0, )",
@@ -278,12 +294,6 @@
         "dependencies": {
           "FluentValidation": "[12.1.1, )"
         }
-      },
-      "FluentValidation": {
-        "type": "CentralTransitive",
-        "requested": "[12.1.1, )",
-        "resolved": "12.1.1",
-        "contentHash": "EPpkIe1yh1a0OXyC100oOA8WMbZvqUu5plwhvYcb7oSELfyUZzfxV48BLhvs3kKo4NwG7MGLNgy1RJiYtT8Dpw=="
       },
       "Microsoft.Extensions.Configuration": {
         "type": "CentralTransitive",

@@ -1,5 +1,6 @@
 using Fluxor;
 using Fluxor.Blazor.Web.ReduxDevTools;
+using FluentValidation;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -7,6 +8,7 @@ using MeAjudaAi.Client.Contracts.Api;
 using MeAjudaAi.Web.Admin;
 using MeAjudaAi.Web.Admin.Extensions;
 using MeAjudaAi.Web.Admin.Services;
+using MeAjudaAi.Web.Admin.Validators;
 using MudBlazor;
 using MudBlazor.Services;
 
@@ -52,6 +54,9 @@ builder.Services.AddMudServices(config =>
     config.SnackbarConfiguration.HideTransitionDuration = 500;
     config.SnackbarConfiguration.ShowTransitionDuration = 500;
 });
+
+// FluentValidation - Registrar validadores
+builder.Services.AddValidatorsFromAssemblyContaining<CreateProviderRequestDtoValidator>();
 
 // Gerenciamento de estado Fluxor
 builder.Services.AddFluxor(options =>

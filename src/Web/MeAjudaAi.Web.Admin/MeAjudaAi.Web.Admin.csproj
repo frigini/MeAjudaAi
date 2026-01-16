@@ -17,6 +17,8 @@
     <PackageReference Include="Fluxor.Blazor.Web" />
     <PackageReference Include="Fluxor.Blazor.Web.ReduxDevTools" />
     <PackageReference Include="Refit.HttpClientFactory" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
   </ItemGroup>
 
   <ItemGroup>
