@@ -1,6 +1,10 @@
 @inherits LayoutComponentBase
+@using MeAjudaAi.Web.Admin.Components.Accessibility
 @inject IDispatcher Dispatcher
 @inject IState<ThemeState> ThemeState
+
+<SkipToContent />
+<LiveRegionAnnouncer />
 
 <MudLayout>
     <MudAppBar Elevation="1">
@@ -8,35 +12,44 @@
                        Color="Color.Inherit" 
                        Edge="Edge.Start" 
                        OnClick="@ToggleDrawer" 
-                       AriaLabel="Toggle navigation" />
+                       AriaLabel="Alternar menu de navegação" />
         <MudText Typo="Typo.h5" Class="ml-3">MeAjudaAi - Admin Portal</MudText>
         <MudSpacer />
         <ConnectionStatusIndicator />
         <MudIconButton Icon="@(ThemeState.Value.IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" 
                        Color="Color.Inherit" 
                        OnClick="@ToggleDarkMode" 
-                       AriaLabel="Toggle dark mode" />
+                       AriaLabel="@(ThemeState.Value.IsDarkMode ? "Ativar modo claro" : "Ativar modo escuro")" />
         <AuthorizeView>
             <Authorized>
-                <MudMenu Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" Direction="Direction.Bottom" AnchorOrigin="Origin.BottomRight">
+                <MudMenu Icon="@Icons.Material.Filled.AccountCircle" 
+                         Color="Color.Inherit" 
+                         Direction="Direction.Bottom" 
+                         AnchorOrigin="Origin.BottomRight"
+                         AriaLabel="Menu do usuário">
                     <MudMenuItem>@context.User.Identity?.Name</MudMenuItem>
                     <MudDivider />
-                    <MudMenuItem Icon="@Icons.Material.Filled.Logout" Href="authentication/logout">Sair</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Logout" 
+                                 Href="authentication/logout"
+                                 AriaLabel="Sair do sistema">Sair</MudMenuItem>
                 </MudMenu>
             </Authorized>
             <NotAuthorized>
-                <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="authentication/login">Entrar</MudButton>
+                <MudButton Variant="Variant.Text" 
+                           Color="Color.Inherit" 
+                           Href="authentication/login"
+                           AriaLabel="Entrar no sistema">Entrar</MudButton>
             </NotAuthorized>
         </AuthorizeView>
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" Elevation="2">
         <MudDrawerHeader>
-            <MudText Typo="Typo.h6">Navigation</MudText>
+            <MudText Typo="Typo.h6">Navegação</MudText>
         </MudDrawerHeader>
         <NavMenu />
     </MudDrawer>
     <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4" id="main-content" role="main">
             @Body
         </MudContainer>
     </MudMainContent>

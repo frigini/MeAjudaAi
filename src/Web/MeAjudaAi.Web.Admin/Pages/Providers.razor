@@ -15,7 +15,11 @@
 <div class="d-flex justify-space-between align-center mb-4">
     <MudText Typo="Typo.h3">Provedores</MudText>
     <AuthorizeView Policy="@PolicyNames.ProviderManagerPolicy">
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@OpenCreateDialog">
+        <MudButton Variant="Variant.Filled" 
+                   Color="Color.Primary" 
+                   StartIcon="@Icons.Material.Filled.Add" 
+                   OnClick="@OpenCreateDialog"
+                   AriaLabel="Criar novo provedor">
             Novo Provedor
         </MudButton>
     </AuthorizeView>
@@ -60,18 +64,25 @@
                 </PropertyColumn>
                 <TemplateColumn Title="Ações" Sortable="false">
                     <CellTemplate>
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => OpenEditDialog(context.Item.Id))" Title="Editar" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                       Color="Color.Primary" 
+                                       Size="Size.Small" 
+                                       OnClick="@(() => OpenEditDialog(context.Item.Id))" 
+                                       Title="Editar" 
+                                       AriaLabel="@($"Editar provedor {context.Item.Name}")" />
                         <MudIconButton Icon="@Icons.Material.Filled.VerifiedUser" 
                                        Color="Color.Success" 
                                        Size="Size.Small" 
                                        OnClick="@(() => OpenVerifyDialog(context.Item.Id))" 
                                        Title="Verificar" 
+                                       AriaLabel="@($"Verificar provedor {context.Item.Name}")"
                                        Disabled="@(context.Item.VerificationStatus == VerificationStatus.Verified.ToString())" />
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                        Color="Color.Error" 
                                        Size="Size.Small" 
                                        OnClick="@(() => OpenDeleteDialog(context.Item.Id))" 
                                        Title="Excluir" 
+                                       AriaLabel="@($"Excluir provedor {context.Item.Name}")"
                                        Disabled="@(ProvidersState.Value.IsDeleting && ProvidersState.Value.DeletingProviderId == context.Item.Id)" />
                     </CellTemplate>
                 </TemplateColumn>
