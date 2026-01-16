@@ -23,14 +23,14 @@ public class ModuleApiArchitectureTests
             .And()
             .HaveNameEndingWith("ModuleApi")
             .Should()
-            .ResideInNamespace("MeAjudaAi.Shared.Contracts.Modules")
+            .ResideInNamespace("MeAjudaAi.Contracts.Modules")
             .Or()
-            .ResideInNamespaceMatching(@"MeAjudaAi\.Shared\.Contracts\.Modules\.\w+");
+            .ResideInNamespaceMatching(@"MeAjudaAi\.Contracts\.Modules\.\w+");
 
         // Assert
         var violations = result.GetResult().FailingTypes;
         violations?.Should().BeEmpty(
-                because: "Module API interfaces should be in the Shared.Contracts.Modules namespace hierarchy");
+                because: "Module API interfaces should be in the Contracts.Modules namespace hierarchy");
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public class ModuleApiArchitectureTests
         // Arrange & Act
         var result = Types.InAssembly(typeof(IUsersModuleApi).Assembly)
             .That()
-            .ResideInNamespace("MeAjudaAi.Shared.Contracts.Modules")
+            .ResideInNamespace("MeAjudaAi.Contracts.Modules")
             .Should()
             .NotHaveDependencyOnAny("MeAjudaAi.Modules.*.Domain", "MeAjudaAi.Modules.*.Infrastructure");
 
