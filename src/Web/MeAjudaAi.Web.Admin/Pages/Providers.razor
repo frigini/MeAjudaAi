@@ -6,8 +6,6 @@
 @inject IState<ProvidersState> ProvidersState
 @inject IDispatcher Dispatcher
 @inject IDialogService DialogService
-@inject IProvidersApi ProvidersApi
-@inject ISnackbar Snackbar
 @inject ILogger<Providers> Logger
 @inject IPermissionService PermissionService
 
@@ -65,7 +63,12 @@
                     <CellTemplate>
                         <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => OpenEditDialog(context.Item.Id))" Title="Editar" />
                         <MudIconButton Icon="@Icons.Material.Filled.VerifiedUser" Color="Color.Success" Size="Size.Small" OnClick="@(() => OpenVerifyDialog(context.Item.Id))" Title="Verificar" Disabled="@(context.Item.VerificationStatus == VERIFIED_STATUS)" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => OpenDeleteDialog(context.Item.Id))" Title="Excluir" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                       Color="Color.Error" 
+                                       Size="Size.Small" 
+                                       OnClick="@(() => OpenDeleteDialog(context.Item.Id))" 
+                                       Title="Excluir" 
+                                       Disabled="@(ProvidersState.Value.IsDeleting && ProvidersState.Value.DeletingProviderId == context.Item.Id)" />
                     </CellTemplate>
                 </TemplateColumn>
             </Columns>
@@ -153,31 +156,8 @@
 
         if (result == true)
         {
-            await DeleteProvider(providerId);
-        }
-    }
-
-    private async Task DeleteProvider(Guid providerId)
-    {
-        try
-        {
-            var result = await ProvidersApi.DeleteProviderAsync(providerId);
-            
-            if (result.IsSuccess)
-            {
-                Snackbar.Add("Provedor excluído com sucesso!", Severity.Success);
-                Dispatcher.Dispatch(new LoadProvidersAction());
-            }
-            else
-            {
-                Logger.LogError("Failed to delete provider {ProviderId}: {Error}", providerId, result.Error?.Message);
-                Snackbar.Add("Erro ao excluir o provedor. Tente novamente mais tarde.", Severity.Error);
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Exception while deleting provider {ProviderId}", providerId);
-            Snackbar.Add("Erro ao excluir o provedor. Tente novamente mais tarde.", Severity.Error);
+            // Dispatch action - Effect irá lidar com a API call
+            Dispatcher.Dispatch(new DeleteProviderAction(providerId));
         }
     }
 }

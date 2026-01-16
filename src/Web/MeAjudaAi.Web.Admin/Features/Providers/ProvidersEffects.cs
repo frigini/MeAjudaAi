@@ -112,4 +112,43 @@ public class ProvidersEffects
         dispatcher.Dispatch(new LoadProvidersAction(action.PageNumber));
         return Task.CompletedTask;
     }
+
+    /// <summary>
+    /// Effect para deletar provider
+    /// </summary>
+    [EffectMethod]
+    public async Task HandleDeleteProviderAction(DeleteProviderAction action, IDispatcher dispatcher)
+    {
+        // Usa a extensão para tratar erros de API automaticamente
+        var result = await dispatcher.ExecuteApiCallAsync(
+            apiCall: () => _providersApi.DeleteProviderAsync(action.ProviderId),
+            snackbar: _snackbar,
+            operationName: "Deletar provedor",
+            onSuccess: _ =>
+            {
+                _logger.LogInformation(
+                    "Provider {ProviderId} deleted successfully",
+                    action.ProviderId);
+                
+                dispatcher.Dispatch(new DeleteProviderSuccessAction(action.ProviderId));
+                _snackbar.Add("Provedor excluído com sucesso!", Severity.Success);
+                
+                // Recarregar lista após delete
+                dispatcher.Dispatch(new LoadProvidersAction());
+            },
+            onError: ex =>
+            {
+                _logger.LogError(ex, "Failed to delete provider {ProviderId}", action.ProviderId);
+                dispatcher.Dispatch(new DeleteProviderFailureAction(
+                    action.ProviderId,
+                    ex.Message));
+            });
+
+        if (result is null)
+        {
+            dispatcher.Dispatch(new DeleteProviderFailureAction(
+                action.ProviderId,
+                "Falha ao deletar provedor"));
+        }
+    }
 }
