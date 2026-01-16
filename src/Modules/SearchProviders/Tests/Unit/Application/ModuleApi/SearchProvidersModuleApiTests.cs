@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Repositories;
 using MeAjudaAi.Contracts;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Contracts.Modules.SearchProviders;
@@ -69,11 +70,13 @@ public class SearchProvidersModuleApiTests
     public async Task IsAvailableAsync_WhenSearchSucceeds_ShouldReturnTrue()
     {
         // Arrange
-        var pagedResult = new PagedResult<SearchableProviderDto>(
-            new List<SearchableProviderDto>(),
-            0,
-            1,
-            1);
+        var pagedResult = new PagedResult<SearchableProviderDto>
+        {
+            Items = new List<SearchableProviderDto>(),
+            PageNumber = 1,
+            PageSize = 1,
+            TotalItems = 0
+        };
 
         _queryDispatcherMock
             .Setup(x => x.QueryAsync<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>(
@@ -193,7 +196,7 @@ public class SearchProvidersModuleApiTests
         result.Value.Should().NotBeNull();
 
         // Verifica propriedades de ModulePagedSearchResultDto
-        result.Value!.TotalItems.Should().Be(1);
+        result.Value!.TotalCount.Should().Be(1);
         result.Value.PageNumber.Should().Be(1);
         result.Value.PageSize.Should().Be(20);
         result.Value.Items.Should().HaveCount(1);
@@ -263,7 +266,7 @@ public class SearchProvidersModuleApiTests
             DomainEnums.ESubscriptionTier.Gold,
             DomainEnums.ESubscriptionTier.Platinum
         });
-        capturedQuery.PageNumber.Should().Be(2);
+        capturedQuery.Page.Should().Be(2);
         capturedQuery.PageSize.Should().Be(10);
     }
 

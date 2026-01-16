@@ -150,7 +150,7 @@ public class RequestMapperExtensionsTests
 
         // Assert
         query.Should().NotBeNull();
-        query.PageNumber.Should().Be(2);
+        query.Page.Should().Be(2);
         query.PageSize.Should().Be(25);
         query.SearchTerm.Should().Be("john");
     }
@@ -171,7 +171,7 @@ public class RequestMapperExtensionsTests
 
         // Assert
         query.Should().NotBeNull();
-        query.PageNumber.Should().Be(1);
+        query.Page.Should().Be(1);
         query.PageSize.Should().Be(10);
         query.SearchTerm.Should().BeNull();
     }

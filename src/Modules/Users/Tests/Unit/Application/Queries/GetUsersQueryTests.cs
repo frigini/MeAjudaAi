@@ -25,7 +25,7 @@ public class GetUsersQueryTests
 
         // Assert
         query.Should().NotBeNull();
-        query.PageNumber.Should().Be(page);
+        query.Page.Should().Be(page);
         query.PageSize.Should().Be(pageSize);
         query.SearchTerm.Should().Be(searchTerm);
     }
@@ -42,7 +42,7 @@ public class GetUsersQueryTests
 
         // Assert
         query.Should().NotBeNull();
-        query.PageNumber.Should().Be(page);
+        query.Page.Should().Be(page);
         query.PageSize.Should().Be(pageSize);
         query.SearchTerm.Should().BeNull();
     }
@@ -202,7 +202,7 @@ public class GetUsersQueryTests
 
         // Assert
         query.Should().NotBeNull();
-        query.PageNumber.Should().Be(page);
+        query.Page.Should().Be(page);
         query.PageSize.Should().Be(pageSize);
     }
 }
