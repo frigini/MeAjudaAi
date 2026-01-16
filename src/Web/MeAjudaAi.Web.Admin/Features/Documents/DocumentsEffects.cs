@@ -1,5 +1,7 @@
 using Fluxor;
 using MeAjudaAi.Client.Contracts.Api;
+using MeAjudaAi.Web.Admin.Extensions;
+using MudBlazor;
 
 namespace MeAjudaAi.Web.Admin.Features.Documents;
 
@@ -10,10 +12,12 @@ namespace MeAjudaAi.Web.Admin.Features.Documents;
 public sealed class DocumentsEffects
 {
     private readonly IDocumentsApi _documentsApi;
+    private readonly ISnackbar _snackbar;
 
-    public DocumentsEffects(IDocumentsApi documentsApi)
+    public DocumentsEffects(IDocumentsApi documentsApi, ISnackbar snackbar)
     {
         _documentsApi = documentsApi;
+        _snackbar = snackbar;
     }
 
     /// <summary>
@@ -33,5 +37,49 @@ public sealed class DocumentsEffects
             var errorMessage = result.Error?.Message ?? "Erro ao carregar documentos";
             dispatcher.Dispatch(new DocumentsActions.LoadDocumentsFailureAction(errorMessage));
         }
+    }
+
+    /// <summary>
+    /// Effect para excluir documento
+    /// </summary>
+    [EffectMethod]
+    public async Task HandleDeleteDocumentAction(DocumentsActions.DeleteDocumentAction action, IDispatcher dispatcher)
+    {
+        await dispatcher.ExecuteApiCallAsync(
+            apiCall: () => _documentsApi.DeleteDocumentAsync(action.ProviderId, action.DocumentId),
+            snackbar: _snackbar,
+            operationName: "Excluir documento",
+            onSuccess: _ =>
+            {
+                dispatcher.Dispatch(new DocumentsActions.DeleteDocumentSuccessAction(action.DocumentId));
+                _snackbar.Add("Documento excluído com sucesso!", Severity.Success);
+                dispatcher.Dispatch(new DocumentsActions.RemoveDocumentAction(action.DocumentId));
+            },
+            onError: ex =>
+            {
+                dispatcher.Dispatch(new DocumentsActions.DeleteDocumentFailureAction(action.DocumentId, ex.Message));
+            });
+    }
+
+    /// <summary>
+    /// Effect para solicitar verificação de documento
+    /// </summary>
+    [EffectMethod]
+    public async Task HandleRequestVerificationAction(DocumentsActions.RequestVerificationAction action, IDispatcher dispatcher)
+    {
+        await dispatcher.ExecuteApiCallAsync(
+            apiCall: () => _documentsApi.RequestDocumentVerificationAsync(action.ProviderId, action.DocumentId),
+            snackbar: _snackbar,
+            operationName: "Solicitar verificação",
+            onSuccess: _ =>
+            {
+                dispatcher.Dispatch(new DocumentsActions.RequestVerificationSuccessAction(action.DocumentId));
+                _snackbar.Add("Verificação solicitada com sucesso!", Severity.Success);
+                dispatcher.Dispatch(new DocumentsActions.UpdateDocumentStatusAction(action.DocumentId, "PendingVerification"));
+            },
+            onError: ex =>
+            {
+                dispatcher.Dispatch(new DocumentsActions.RequestVerificationFailureAction(action.DocumentId, ex.Message));
+            });
     }
 }

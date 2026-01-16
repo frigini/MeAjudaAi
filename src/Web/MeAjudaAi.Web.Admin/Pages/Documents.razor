@@ -8,8 +8,6 @@
 @inject IState<DocumentsState> DocumentsState
 @inject IDispatcher Dispatcher
 @inject IDialogService DialogService
-@inject ISnackbar Snackbar
-@inject IDocumentsApi DocumentsApi
 
 <PageTitle>Documents - MeAjudaAi Admin</PageTitle>
 
@@ -104,14 +102,16 @@
                                                    Color="Color.Success" 
                                                    Size="Size.Small"
                                                    Title="Solicitar Verificação"
-                                                   OnClick="@(() => RequestVerification(context.Item.Id))" />
+                                                   OnClick="@(() => RequestVerification(context.Item.Id))"
+                                                   Disabled="@(DocumentsState.Value.IsRequestingVerification && DocumentsState.Value.VerifyingDocumentId == context.Item.Id)" />
                                 }
                                 
                                 <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                                Color="Color.Error" 
                                                Size="Size.Small"
                                                Title="Excluir"
-                                               OnClick="@(() => DeleteDocument(context.Item.Id))" />
+                                               OnClick="@(() => DeleteDocument(context.Item.Id))"
+                                               Disabled="@(DocumentsState.Value.IsDeleting && DocumentsState.Value.DeletingDocumentId == context.Item.Id)" />
                             </CellTemplate>
                         </TemplateColumn>
                     </Columns>
@@ -143,7 +143,7 @@
     {
         if (DocumentsState.Value.SelectedProviderId == null)
         {
-            Snackbar.Add("Selecione um provider primeiro", Severity.Warning);
+            // Provider não selecionado - não deveria chegar aqui devido ao @if acima
             return;
         }
 
@@ -167,20 +167,9 @@
     {
         if (DocumentsState.Value.SelectedProviderId == null) return;
 
-        var result = await DocumentsApi.RequestDocumentVerificationAsync(
-            DocumentsState.Value.SelectedProviderId.Value, 
-            documentId);
-
-        if (result.IsSuccess)
-        {
-            Snackbar.Add("Verificação solicitada com sucesso", Severity.Success);
-            Dispatcher.Dispatch(new DocumentsActions.UpdateDocumentStatusAction(documentId, "PendingVerification"));
-        }
-        else
-        {
-            var errorMessage = result.Error?.Message ?? "Erro ao solicitar verificação";
-            Snackbar.Add($"Erro: {errorMessage}", Severity.Error);
-        }
+        Dispatcher.Dispatch(new DocumentsActions.RequestVerificationAction(
+            DocumentsState.Value.SelectedProviderId.Value,
+            documentId));
     }
 
     private async Task DeleteDocument(Guid documentId)
@@ -192,21 +181,11 @@
             "Tem certeza que deseja excluir este documento? Esta ação não pode ser desfeita.",
             yesText: "Excluir", cancelText: "Cancelar");
 
-        if (confirm != true) return;
-
-        var result = await DocumentsApi.DeleteDocumentAsync(
-            DocumentsState.Value.SelectedProviderId.Value,
-            documentId);
-
-        if (result.IsSuccess)
+        if (confirm == true)
         {
-            Snackbar.Add("Documento excluído com sucesso", Severity.Success);
-            Dispatcher.Dispatch(new DocumentsActions.RemoveDocumentAction(documentId));
-        }
-        else
-        {
-            var errorMessage = result.Error?.Message ?? "Erro ao excluir documento";
-            Snackbar.Add($"Erro: {errorMessage}", Severity.Error);
+            Dispatcher.Dispatch(new DocumentsActions.DeleteDocumentAction(
+                DocumentsState.Value.SelectedProviderId.Value,
+                documentId));
         }
     }
 }
