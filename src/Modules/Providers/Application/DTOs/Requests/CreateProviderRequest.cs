@@ -7,8 +7,13 @@ namespace MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 /// <summary>
 /// Request para criação de um novo prestador de serviços.
 /// </summary>
-public record CreateProviderRequest : Request
+public record CreateProviderRequest
 {
+    /// <summary>
+    /// ID do usuário proprietário.
+    /// </summary>
+    public Guid UserId { get; init; }
+
     /// <summary>
     /// Nome do prestador.
     /// </summary>

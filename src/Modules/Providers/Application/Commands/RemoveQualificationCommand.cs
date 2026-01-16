@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Modules.Providers.Application.Commands;
 

@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.ServiceCategory;

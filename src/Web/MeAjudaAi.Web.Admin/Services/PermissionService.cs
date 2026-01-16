@@ -10,6 +10,9 @@ namespace MeAjudaAi.Web.Admin.Services;
 /// </summary>
 public class PermissionService : IPermissionService
 {
+    // Constantes para claims do Keycloak
+    private const string RolesClaim = "roles";
+
     private readonly AuthenticationStateProvider _authenticationStateProvider;
     private readonly IAuthorizationService _authorizationService;
     private readonly ILogger<PermissionService> _logger;
@@ -70,7 +73,7 @@ public class PermissionService : IPermissionService
                 .ToList();
 
             // Verifica a claim personalizada 'roles' do Keycloak
-            var keycloakRoles = user.FindAll("roles")
+            var keycloakRoles = user.FindAll(RolesClaim)
                 .Select(c => c.Value)
                 .ToList();
 
@@ -107,7 +110,7 @@ public class PermissionService : IPermissionService
 
             var userRoles = user.FindAll(ClaimTypes.Role)
                 .Select(c => c.Value)
-                .Concat(user.FindAll("roles").Select(c => c.Value))
+                .Concat(user.FindAll(RolesClaim).Select(c => c.Value))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
@@ -142,7 +145,7 @@ public class PermissionService : IPermissionService
 
             var roles = user.FindAll(ClaimTypes.Role)
                 .Select(c => c.Value)
-                .Concat(user.FindAll("roles").Select(c => c.Value))
+                .Concat(user.FindAll(RolesClaim).Select(c => c.Value))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 

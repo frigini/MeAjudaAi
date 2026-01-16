@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Jobs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

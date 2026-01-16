@@ -3,10 +3,11 @@ using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Contracts;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 
+using MeAjudaAi.Contracts.Models;
 namespace MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 
 /// <summary>
@@ -151,7 +152,12 @@ internal sealed class GetUsersQueryHandler(
         GetUsersQuery query,
         int totalCount)
     {
-        return PagedResult<UserDto>.Create(
-            userDtos, query.Page, query.PageSize, totalCount);
+        return new PagedResult<UserDto>
+        {
+            Items = userDtos,
+            PageNumber = query.Page,
+            PageSize = query.PageSize,
+            TotalItems = totalCount
+        };
     }
 }

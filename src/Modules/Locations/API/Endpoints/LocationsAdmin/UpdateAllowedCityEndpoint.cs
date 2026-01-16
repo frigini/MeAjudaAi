@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
+using MeAjudaAi.Shared.Models;
 namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 
 /// <summary>

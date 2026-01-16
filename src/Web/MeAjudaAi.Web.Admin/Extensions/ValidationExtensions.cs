@@ -322,9 +322,12 @@ public static class ValidationExtensions
             return false;
 
         var extension = Path.GetExtension(fileName).ToLowerInvariant();
-        return allowedExtensions.Any(ext => 
-            ext.Equals(extension, StringComparison.OrdinalIgnoreCase) || 
-            ext.Equals(extension.TrimStart('.'), StringComparison.OrdinalIgnoreCase));
+        var extensionWithoutDot = extension.TrimStart('.');
+        return allowedExtensions.Any(ext =>
+        {
+            var normalizedExt = ext.TrimStart('.').ToLowerInvariant();
+            return normalizedExt == extensionWithoutDot;
+        });
     }
 
     /// <summary>

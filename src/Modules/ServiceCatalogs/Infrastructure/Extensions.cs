@@ -12,7 +12,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

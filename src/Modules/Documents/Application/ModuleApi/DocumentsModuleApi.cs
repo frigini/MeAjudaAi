@@ -4,7 +4,7 @@ using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Documents;
 using MeAjudaAi.Contracts.Modules.Documents.DTOs;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;

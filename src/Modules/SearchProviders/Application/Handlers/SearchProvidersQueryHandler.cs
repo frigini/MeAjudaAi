@@ -3,11 +3,12 @@ using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Modules.SearchProviders.Domain.Repositories;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Contracts;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 
+using MeAjudaAi.Contracts.Models;
 namespace MeAjudaAi.Modules.SearchProviders.Application.Handlers;
 
 /// <summary>
@@ -85,11 +86,13 @@ public sealed class SearchProvidersQueryHandler(
             })
             .ToList();
 
-        var result = PagedResult<SearchableProviderDto>.Create(
-            providerDtos,
-            query.Page,
-            query.PageSize,
-            searchResult.TotalCount);
+        var result = new PagedResult<SearchableProviderDto>
+        {
+            Items = providerDtos,
+            PageNumber = query.Page,
+            PageSize = query.PageSize,
+            TotalItems = searchResult.TotalCount
+        };
 
         return Result<PagedResult<SearchableProviderDto>>.Success(result);
     }

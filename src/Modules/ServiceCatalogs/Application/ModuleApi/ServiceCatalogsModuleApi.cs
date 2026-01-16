@@ -6,7 +6,7 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;

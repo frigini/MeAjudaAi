@@ -34,7 +34,7 @@ Confirm CSP headers are present in HTTP responses.
 
 6. **Check Response Headers:**
 
-```
+```http
 Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; ...
 X-Content-Type-Options: nosniff
 X-Frame-Options: DENY
@@ -534,9 +534,9 @@ public async Task CSP_Should_Block_Malicious_Scripts()
 
 ### Online Tools
 
-- https://csp-evaluator.withgoogle.com/ - Evaluate CSP policy
-- https://securityheaders.com/ - Check all security headers
-- https://observatory.mozilla.org/ - Comprehensive security scan
+- [CSP Evaluator](https://csp-evaluator.withgoogle.com/) - Evaluate CSP policy
+- [Security Headers](https://securityheaders.com/) - Check all security headers
+- [Mozilla Observatory](https://observatory.mozilla.org/) - Comprehensive security scan
 
 ### Command Line
 

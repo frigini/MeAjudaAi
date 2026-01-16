@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Contracts.Modules.Locations.DTOs;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Locations.Application.ModuleApi;

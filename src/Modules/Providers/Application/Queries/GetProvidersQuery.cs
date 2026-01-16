@@ -1,8 +1,9 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Contracts;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 
+using MeAjudaAi.Contracts.Models;
 namespace MeAjudaAi.Modules.Providers.Application.Queries;
 
 /// <summary>

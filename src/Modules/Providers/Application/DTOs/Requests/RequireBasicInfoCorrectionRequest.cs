@@ -5,7 +5,7 @@ namespace MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 /// <summary>
 /// Request para solicitar correção de informações básicas de um prestador de serviços.
 /// </summary>
-public record RequireBasicInfoCorrectionRequest : Request
+public record RequireBasicInfoCorrectionRequest
 {
     /// <summary>
     /// Motivo detalhado da correção necessária (obrigatório).

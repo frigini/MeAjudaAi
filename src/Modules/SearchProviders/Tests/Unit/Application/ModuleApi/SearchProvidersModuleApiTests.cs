@@ -10,7 +10,7 @@ using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
 using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;

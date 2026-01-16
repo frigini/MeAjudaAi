@@ -15,7 +15,7 @@ public static class ContentSecurityPolicyConfiguration
         return string.Join("; ", new[]
         {
             "default-src 'self'",
-            "script-src 'self' 'wasm-unsafe-eval'", // Required for Blazor WASM
+            "script-src 'self' 'wasm-unsafe-eval'", // Necessário para Blazor WASM
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: https:",
@@ -77,7 +77,7 @@ public static class ContentSecurityPolicyConfiguration
             "form-action 'self'",
             "frame-ancestors 'none'",
             "upgrade-insecure-requests",
-            $"report-uri {apiBaseUrl}/api/csp-report" // Optional: CSP violation reporting
+            $"report-uri {apiBaseUrl}/api/csp-report" // Opcional: relatório de violação CSP
         });
     }
 

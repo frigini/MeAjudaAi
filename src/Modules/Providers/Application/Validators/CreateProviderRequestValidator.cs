@@ -14,9 +14,7 @@ public class CreateProviderRequestValidator : AbstractValidator<CreateProviderRe
     {
         RuleFor(x => x.UserId)
             .NotEmpty()
-            .WithMessage("UserId is required")
-            .Must(BeValidGuid)
-            .WithMessage("UserId must be a valid GUID");
+            .WithMessage("UserId is required");
 
         RuleFor(x => x.Name)
             .NotEmpty()

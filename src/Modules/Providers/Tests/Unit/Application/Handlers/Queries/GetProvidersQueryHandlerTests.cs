@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
+using MeAjudaAi.Contracts.Models;
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Queries;
 
 [Trait("Category", "Unit")]

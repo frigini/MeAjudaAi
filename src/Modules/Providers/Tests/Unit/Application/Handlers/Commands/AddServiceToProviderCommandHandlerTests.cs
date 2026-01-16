@@ -7,7 +7,7 @@ using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
 using Moq;
 

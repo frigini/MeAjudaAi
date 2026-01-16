@@ -1,5 +1,5 @@
 using MeAjudaAi.Modules.Users.Domain.Services.Models;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Modules.Users.Domain.Services;
 

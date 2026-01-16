@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Users.Domain.Services.Models;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 

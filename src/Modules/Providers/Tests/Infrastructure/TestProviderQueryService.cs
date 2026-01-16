@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Contracts;
 using Microsoft.EntityFrameworkCore;
 
+using MeAjudaAi.Contracts.Models;
 namespace MeAjudaAi.Modules.Providers.Tests.Infrastructure;
 
 /// <summary>

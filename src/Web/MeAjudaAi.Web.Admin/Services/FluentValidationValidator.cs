@@ -91,20 +91,20 @@ public class FluentValidationValidator<TModel> : ComponentBase, IDisposable
         var segments = propertyPath.Split('.');
         var current = model;
 
-        // Walk the property path to get the leaf owner object
+        // Percorrer o caminho da propriedade para obter o objeto proprietário da folha
         for (var i = 0; i < segments.Length - 1; i++)
         {
             var propertyInfo = current.GetType().GetProperty(segments[i]);
             if (propertyInfo == null)
             {
-                // Fallback to root model if property not found
+                // Fallback para o modelo raiz se a propriedade não for encontrada
                 return new FieldIdentifier(model, propertyPath);
             }
 
             var value = propertyInfo.GetValue(current);
             if (value == null)
             {
-                // Fallback to root model if intermediate value is null
+                // Fallback para o modelo raiz se o valor intermediário for null
                 return new FieldIdentifier(model, propertyPath);
             }
 

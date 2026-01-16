@@ -3,11 +3,13 @@ using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+
+using MeAjudaAi.Shared.Models;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.Service;
 

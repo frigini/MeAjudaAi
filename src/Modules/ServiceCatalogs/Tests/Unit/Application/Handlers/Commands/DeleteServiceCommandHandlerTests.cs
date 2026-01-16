@@ -5,7 +5,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Contracts.Modules.Providers;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 

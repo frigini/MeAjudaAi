@@ -1,5 +1,5 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;

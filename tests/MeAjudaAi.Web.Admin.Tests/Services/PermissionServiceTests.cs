@@ -81,7 +81,7 @@ public class PermissionServiceTests
 
         // Assert
         Assert.False(result);
-        _authServiceMock.Verify(x => x.AuthorizeAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<string>()), Times.Never);
+        _authServiceMock.Verify(x => x.AuthorizeAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<object>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]

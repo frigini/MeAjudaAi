@@ -81,9 +81,6 @@ ValidateConfiguration(clientConfig);
 // PASSO 3: Registrar Serviços com Configuração
 // ====================================
 
-// Registrar configuração do cliente como singleton para injeção
-builder.Services.AddSingleton(clientConfig);
-
 // Registrar handler de autenticação customizado
 builder.Services.AddScoped<ApiAuthorizationMessageHandler>();
 
@@ -101,11 +98,11 @@ builder.Services.AddOidcAuthentication(options =>
     options.ProviderOptions.Authority = clientConfig.Keycloak.Authority;
     options.ProviderOptions.ClientId = clientConfig.Keycloak.ClientId;
     options.ProviderOptions.ResponseType = clientConfig.Keycloak.ResponseType;
-    options.ProviderOptions.DefaultScopes.Clear();
     
     // Adicionar scopes da configuração
     if (!string.IsNullOrWhiteSpace(clientConfig.Keycloak.Scope))
     {
+        options.ProviderOptions.DefaultScopes.Clear();
         foreach (var scope in clientConfig.Keycloak.Scope.Split(' ', StringSplitOptions.RemoveEmptyEntries))
         {
             options.ProviderOptions.DefaultScopes.Add(scope);

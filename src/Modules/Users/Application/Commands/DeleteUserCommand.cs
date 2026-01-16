@@ -1,5 +1,5 @@
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Modules.Users.Application.Commands;
 

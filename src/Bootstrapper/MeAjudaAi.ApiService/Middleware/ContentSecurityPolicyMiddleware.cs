@@ -8,27 +8,30 @@ public class ContentSecurityPolicyMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ContentSecurityPolicyMiddleware> _logger;
+    private readonly IConfiguration _configuration;
     private readonly string _cspPolicy;
 
     public ContentSecurityPolicyMiddleware(
         RequestDelegate next,
         ILogger<ContentSecurityPolicyMiddleware> logger,
+        IConfiguration configuration,
         IWebHostEnvironment environment)
     {
         _next = next;
         _logger = logger;
-        _cspPolicy = BuildCspPolicy(environment);
+        _configuration = configuration;
+        _cspPolicy = BuildCspPolicy(environment, configuration);
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // Add CSP headers
+        // Adicionar headers de CSP
         context.Response.Headers.Append("Content-Security-Policy", _cspPolicy);
         
-        // Add CSP Report-Only for testing (commented out for production)
+        // Adicionar CSP Report-Only para testes (comentado para produção)
         // context.Response.Headers.Append("Content-Security-Policy-Report-Only", _cspPolicy);
 
-        // Add additional security headers
+        // Adicionar headers de segurança adicionais
         context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
         context.Response.Headers.Append("X-Frame-Options", "DENY");
         context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
@@ -40,47 +43,75 @@ public class ContentSecurityPolicyMiddleware
         await _next(context);
     }
 
-    private static string BuildCspPolicy(IWebHostEnvironment environment)
+    private static string BuildCspPolicy(IWebHostEnvironment environment, IConfiguration configuration)
     {
         var isDevelopment = environment.IsDevelopment();
+
+        // Construir connect-src dinamicamente
+        string connectSrc;
+        if (isDevelopment)
+        {
+            // Em desenvolvimento, usar localhost
+            connectSrc = "connect-src 'self' https://localhost:7001 http://localhost:8080 ws://localhost:* wss://localhost:*";
+        }
+        else
+        {
+            // Em produção, usar configurações
+            var keycloakAuthority = configuration["Keycloak:Authority"] ?? "";
+            var apiBaseUrl = configuration["ApiBaseUrl"] ?? "";
+            var websocketUrl = configuration["WebSocketUrl"] ?? "";
+            
+            var origins = new List<string> { "'self'" };
+            
+            if (!string.IsNullOrWhiteSpace(apiBaseUrl))
+                origins.Add(apiBaseUrl);
+            
+            if (!string.IsNullOrWhiteSpace(keycloakAuthority))
+                origins.Add(keycloakAuthority);
+            
+            if (!string.IsNullOrWhiteSpace(websocketUrl))
+                origins.Add(websocketUrl);
+            
+            connectSrc = $"connect-src {string.Join(" ", origins)}";
+        }
 
         // Base policy - muito restritivo
         var policy = new List<string>
         {
-            // Default: block everything not explicitly allowed
+            // Padrão: bloquear tudo que não for explicitamente permitido
             "default-src 'self'",
 
-            // Scripts: allow self and Blazor framework
-            "script-src 'self' 'wasm-unsafe-eval'", // wasm-unsafe-eval required for Blazor WASM
+            // Scripts: permitir self e o runtime do Blazor
+            "script-src 'self' 'wasm-unsafe-eval'", // wasm-unsafe-eval necessário para Blazor WASM
 
-            // Styles: allow self and inline styles (required for MudBlazor)
+            // Estilos: permitir self e estilos inline (necessário para MudBlazor)
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 
-            // Fonts: allow self and Google Fonts
+            // Fonts: permitir self e Google Fonts
             "font-src 'self' https://fonts.gstatic.com data:",
 
-            // Images: allow self and data URIs
+            // Imagens: permitir self e data URIs
             "img-src 'self' data: https:",
 
-            // Connect (AJAX/fetch): allow API and Keycloak
-            "connect-src 'self' https://localhost:7001 http://localhost:8080 ws://localhost:* wss://localhost:*",
+            // Conexões (AJAX/fetch): permitir API e Keycloak - dinâmico
+            connectSrc,
 
-            // Media: block all
+            // Mídia: bloquear tudo
             "media-src 'none'",
 
-            // Objects/Embeds: block all
+            // Objetos/Embeds: bloquear tudo
             "object-src 'none'",
 
-            // Base URI: restrict to self
+            // Base URI: restringir a self
             "base-uri 'self'",
 
-            // Forms: allow self only
+            // Formulários: permitir apenas self
             "form-action 'self'",
 
-            // Frame ancestors: deny (prevent clickjacking)
+            // Ancestrais de frame: negar (prevenir clickjacking)
             "frame-ancestors 'none'",
 
-            // Upgrade insecure requests in production
+            // Atualizar requisições inseguras em produção
             isDevelopment ? "" : "upgrade-insecure-requests"
         };
 

@@ -22,11 +22,13 @@ public static class RequestMapperExtensions
     /// </remarks>
     public static CreateProviderCommand ToCommand(this CreateProviderRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request.BusinessProfile);
+        
         return new CreateProviderCommand(
-            Guid.Parse(request.UserId ?? throw new ArgumentException("UserId is required", nameof(request))),
+            request.UserId,
             request.Name,
             request.Type,
-            request.BusinessProfile ?? throw new ArgumentException("BusinessProfile is required", nameof(request))
+            request.BusinessProfile
         );
     }
 

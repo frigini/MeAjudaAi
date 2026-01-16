@@ -5,7 +5,7 @@ using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Contracts.Modules.Locations;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Tests.Extensions;
 using Microsoft.Extensions.DependencyInjection;

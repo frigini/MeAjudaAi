@@ -2,12 +2,14 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+
+using MeAjudaAi.Shared.Models;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.ServiceCategory;
 
