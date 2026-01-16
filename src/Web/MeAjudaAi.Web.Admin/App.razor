@@ -1,10 +1,12 @@
 @using MeAjudaAi.Web.Admin.Components.Errors
 @using MeAjudaAi.Web.Admin.Features.Errors
 @using Fluxor
+@using System.Globalization
 @inject IState<ThemeState> ThemeState
 @inject IDispatcher Dispatcher
 @inject ILogger<App> Logger
 @inject Services.ErrorLoggingService ErrorLogger
+@inject IJSRuntime JSRuntime
 @implements IDisposable
 
 <Fluxor.Blazor.Web.StoreInitializer />
@@ -60,13 +62,40 @@
     private MudTheme _theme = new();
     private ErrorBoundary? _errorBoundary;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
+        await base.OnInitializedAsync();
         
-        // Inscrever para mudanças no tema
+        // Load preferred language from localStorage
+        await LoadPreferredLanguage();
+        
+        // Subscribe to theme changes
         ThemeState.StateChanged += OnThemeStateChanged;
         _isDarkMode = ThemeState.Value.IsDarkMode;
+    }
+
+    private async Task LoadPreferredLanguage()
+    {
+        try
+        {
+            var preferredLanguage = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "preferredLanguage");
+            
+            if (!string.IsNullOrEmpty(preferredLanguage))
+            {
+                var culture = new CultureInfo(preferredLanguage);
+                CultureInfo.CurrentCulture = culture;
+                CultureInfo.CurrentUICulture = culture;
+                Logger.LogInformation("Loaded preferred language: {Language}", preferredLanguage);
+            }
+            else
+            {
+                Logger.LogInformation("No preferred language found, using default: pt-BR");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to load preferred language from localStorage");
+        }
     }
 
     private void OnThemeStateChanged(object? sender, EventArgs e)

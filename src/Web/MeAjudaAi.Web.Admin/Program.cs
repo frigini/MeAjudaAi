@@ -4,16 +4,19 @@ using FluentValidation;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.Extensions.Localization;
 using MeAjudaAi.Client.Contracts.Api;
 using MeAjudaAi.Contracts.Configuration;
 using MeAjudaAi.Web.Admin;
 using MeAjudaAi.Web.Admin.Authorization;
 using MeAjudaAi.Web.Admin.Extensions;
+using MeAjudaAi.Web.Admin.Resources;
 using MeAjudaAi.Web.Admin.Services;
 using MeAjudaAi.Web.Admin.Services.Resilience;
 using MeAjudaAi.Web.Admin.Validators;
 using MudBlazor;
 using MudBlazor.Services;
+using System.Globalization;
 using System.Net.Http.Json;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -152,8 +155,17 @@ builder.Services.AddScoped<LiveRegionService>();
 builder.Services.AddScoped<ErrorLoggingService>();
 builder.Services.AddScoped<ErrorHandlingService>();
 
-// Configurar localização
-builder.Services.AddScoped<LocalizationService>();
+// ====================================
+// LOCALIZAÇÃO (.resx com IStringLocalizer)
+// ====================================
+builder.Services.AddLocalization(options =>
+{
+    options.ResourcesPath = "Resources";
+});
+
+// Set default culture (will be overridden by localStorage in App.razor)
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("pt-BR");
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("pt-BR");
 
 // Clientes de API (Refit) com políticas Polly de resiliência
 builder.Services

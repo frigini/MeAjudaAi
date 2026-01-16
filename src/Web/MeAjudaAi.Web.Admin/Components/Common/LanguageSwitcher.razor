@@ -1,17 +1,17 @@
 @using System.Globalization
-@using MeAjudaAi.Web.Admin.Services
-@inject LocalizationService LocalizationService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
 
 <MudMenu Icon="@Icons.Material.Filled.Language" 
          Color="Color.Inherit" 
          Dense="true"
          AnchorOrigin="Origin.BottomCenter"
          AriaLabel="Selecionar idioma">
-    @foreach (var culture in LocalizationService.SupportedCultures)
+    @foreach (var culture in SupportedCultures)
     {
         <MudMenuItem OnClick="@(() => ChangeLanguage(culture.Name))">
             <div class="d-flex align-center gap-2">
-                <MudIcon Icon="@(culture.Name == LocalizationService.CurrentCulture.Name ? Icons.Material.Filled.Check : "")" 
+                <MudIcon Icon="@(culture.Name == CultureInfo.CurrentUICulture.Name ? Icons.Material.Filled.Check : "")" 
                          Size="Size.Small" />
                 <MudText>@GetLanguageName(culture)</MudText>
             </div>
@@ -20,9 +20,25 @@
 </MudMenu>
 
 @code {
-    private void ChangeLanguage(string cultureName)
+    private static readonly CultureInfo[] SupportedCultures = 
     {
-        LocalizationService.SetCulture(cultureName);
+        new CultureInfo("pt-BR"),
+        new CultureInfo("en")
+    };
+
+    private async Task ChangeLanguage(string cultureName)
+    {
+        var culture = new CultureInfo(cultureName);
+        
+        // Set current culture
+        CultureInfo.CurrentCulture = culture;
+        CultureInfo.CurrentUICulture = culture;
+        
+        // Persist to localStorage
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "preferredLanguage", cultureName);
+        
+        // Force reload to apply culture change
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
 
     private string GetLanguageName(CultureInfo culture)
@@ -30,7 +46,7 @@
         return culture.Name switch
         {
             "pt-BR" => "Português (Brasil)",
-            "en-US" => "English (US)",
+            "en" => "English",
             _ => culture.DisplayName
         };
     }

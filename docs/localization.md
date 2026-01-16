@@ -1,98 +1,111 @@
-# Localização (i18n)
+# Localização (i18n) - MeAjudaAi Admin Portal
 
-Guia completo de internacionalização e localização do MeAjudaAi Admin Portal.
+Guia completo de internacionalização e localização usando o sistema padrão .NET com arquivos `.resx`.
 
 ## Visão Geral
 
-O sistema suporta múltiplos idiomas através de arquivos `.resx` (Resource Files) e o framework de localização do .NET/Blazor.
+O Admin Portal usa **Microsoft.Extensions.Localization** com arquivos `.resx` (Resource Files) para i18n.
 
 **Idiomas Suportados:**
-- 🇧🇷 Português (Brasil) - `pt-BR` (padrão)
-- 🇺🇸 English (US) - `en-US`
+- 🇧🇷 **Português (Brasil)** - `pt-BR` (padrão)
+- 🇺🇸 **English** - `en`
 
 ## Arquitetura
 
 ```
 src/Web/MeAjudaAi.Web.Admin/
 ├── Resources/
-│   ├── Strings.resx          # Strings em inglês (fallback)
-│   └── Strings.pt-BR.resx    # Strings em português
-├── Services/
-│   └── LocalizationService.cs # Serviço de gerenciamento de idioma
-└── Components/
-    └── Common/
-        └── LanguageSwitcher.razor # Seletor de idioma
+│   ├── Strings.cs              # Anchor class para IStringLocalizer<Strings>
+│   ├── Strings.pt-BR.resx      # Strings em português (padrão)
+│   └── Strings.en.resx         # Strings em inglês
+├── Components/
+│   └── Common/
+│       └── LanguageSwitcher.razor # Seletor de idioma (MudMenu)
+└── App.razor                    # Carrega preferência do localStorage
 ```
 
-### Componentes Principais
+### Migração de LocalizationService Customizado → IStringLocalizer
 
-#### 1. LocalizationService
-Gerencia cultura atual e mudanças de idioma:
-
+**Antes (custom dictionary)**:
 ```csharp
-public class LocalizationService
-{
-    public CultureInfo CurrentCulture { get; }
-    public string CurrentLanguage { get; }
-    public IReadOnlyList<CultureInfo> SupportedCultures { get; }
-    
-    public void SetCulture(string cultureName);
-    public string GetString(string name);
-    public string GetString(string name, params object[] arguments);
-    
-    public event Action? OnCultureChanged;
-}
+// LocalizationService.cs - REMOVIDO
+private readonly Dictionary<string, Dictionary<string, string>> _translations;
+public event Action? OnCultureChanged; // Memory leak risk
 ```
 
-#### 2. Arquivos .resx
-Armazenam strings localizadas com chave-valor:
-
-**Strings.resx (inglês):**
-```xml
-<data name="Common.Save" xml:space="preserve">
-  <value>Save</value>
-</data>
+**Depois (padrão .NET)**:
+```razor
+@inject IStringLocalizer<Strings> Loc
+<MudButton>@Loc["Common_Save"]</MudButton>
 ```
 
-**Strings.pt-BR.resx (português):**
-```xml
-<data name="Common.Save" xml:space="preserve">
-  <value>Salvar</value>
-</data>
-```
-
-#### 3. LanguageSwitcher Component
-Menu dropdown para seleção de idioma na AppBar.
+**Benefícios da Migração**:
+- ✅ Compile-time safety (resource keys validated at build)
+- ✅ No memory leaks (no event subscriptions)
+- ✅ Built-in pluralization support
+- ✅ Tooling support (Visual Studio .resx editor)
+- ✅ Trimming annotations for AOT
+- ✅ Standard .NET localization patterns
 
 ## Uso em Componentes Blazor
 
-### Opção 1: IStringLocalizer (Recomendado)
-Usa injeção de dependência do .NET:
+### IStringLocalizer<Strings> (Padrão)
 
 ```razor
 @using Microsoft.Extensions.Localization
-@inject IStringLocalizer<Resources.Strings> L
+@inject IStringLocalizer<Strings> Loc
 
-<MudButton>@L["Common.Save"]</MudButton>
-<MudText>@L["Providers.Title"]</MudText>
+<MudButton>@Loc["Common_Save"]</MudButton>
+<MudText>@Loc["Providers_Title"]</MudText>
+<MudTextField Label="@Loc["Providers_SearchPlaceholder"]" />
 
-<!-- Com parâmetros -->
-<MudText>@L["Messages.ItemsFound", count]</MudText>
+<!-- Com parâmetros de formatação -->
+<MudText>@Loc["Messages_ItemsFound", count]</MudText>
 ```
 
-### Opção 2: LocalizationService
-Para casos com lógica adicional:
+**Convenções de Nomes**:
+- Usar **underscore** em vez de pontos: `Common_Save` (não `Common.Save`)
+- Resource keys: PascalCase com underscores (`Providers_SearchPlaceholder`)
+- Categorias: prefixo de categoria (`Common_`, `Providers_`, `Validation_`)
 
-```razor
-@inject LocalizationService Localization
+### Mudança de Idioma
 
-<MudButton>@Localization.GetString("Common.Save")</MudButton>
+**LanguageSwitcher.razor**:
+```csharp
+private async Task ChangeLanguage(string cultureName)
+{
+    var culture = new CultureInfo(cultureName);
+    
+    // Set current culture
+    CultureInfo.CurrentCulture = culture;
+    CultureInfo.CurrentUICulture = culture;
+    
+    // Persist to localStorage
+    await JSRuntime.InvokeVoidAsync("localStorage.setItem", 
+        "preferredLanguage", cultureName);
+    
+    // Reload page to apply culture
+    NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+}
+```
 
-@code {
-    protected override void OnInitialized()
+**Carregamento de Preferência (App.razor)**:
+```csharp
+protected override async Task OnInitializedAsync()
+{
+    await LoadPreferredLanguage();
+}
+
+private async Task LoadPreferredLanguage()
+{
+    var preferredLanguage = await JSRuntime.InvokeAsync<string>(
+        "localStorage.getItem", "preferredLanguage");
+    
+    if (!string.IsNullOrEmpty(preferredLanguage))
     {
-        // Escutar mudanças de idioma
-        Localization.OnCultureChanged += StateHasChanged;
+        var culture = new CultureInfo(preferredLanguage);
+        CultureInfo.CurrentCulture = culture;
+        CultureInfo.CurrentUICulture = culture;
     }
 }
 ```

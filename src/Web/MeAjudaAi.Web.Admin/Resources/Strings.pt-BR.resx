@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Common -->
+  <data name="Common_Loading" xml:space="preserve">
+    <value>Carregando...</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Salvar</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Common_Delete" xml:space="preserve">
+    <value>Excluir</value>
+  </data>
+  <data name="Common_Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="Common_Search" xml:space="preserve">
+    <value>Pesquisar</value>
+  </data>
+  <data name="Common_Filter" xml:space="preserve">
+    <value>Filtrar</value>
+  </data>
+  <data name="Common_Actions" xml:space="preserve">
+    <value>Ações</value>
+  </data>
+  <data name="Common_Yes" xml:space="preserve">
+    <value>Sim</value>
+  </data>
+  <data name="Common_No" xml:space="preserve">
+    <value>Não</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Fechar</value>
+  </data>
+  <data name="Common_Refresh" xml:space="preserve">
+    <value>Atualizar</value>
+  </data>
+  
+  <!-- Navigation -->
+  <data name="Nav_Dashboard" xml:space="preserve">
+    <value>Painel</value>
+  </data>
+  <data name="Nav_Providers" xml:space="preserve">
+    <value>Provedores</value>
+  </data>
+  <data name="Nav_Documents" xml:space="preserve">
+    <value>Documentos</value>
+  </data>
+  <data name="Nav_Profile" xml:space="preserve">
+    <value>Perfil</value>
+  </data>
+  <data name="Nav_Logout" xml:space="preserve">
+    <value>Sair</value>
+  </data>
+  
+  <!-- Providers -->
+  <data name="Providers_Title" xml:space="preserve">
+    <value>Provedores</value>
+  </data>
+  <data name="Providers_SearchPlaceholder" xml:space="preserve">
+    <value>Pesquisar por nome, documento ou contato...</value>
+  </data>
+  <data name="Providers_Name" xml:space="preserve">
+    <value>Nome</value>
+  </data>
+  <data name="Providers_Document" xml:space="preserve">
+    <value>Documento</value>
+  </data>
+  <data name="Providers_Contact" xml:space="preserve">
+    <value>Contato</value>
+  </data>
+  <data name="Providers_Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Providers_CreatedAt" xml:space="preserve">
+    <value>Criado em</value>
+  </data>
+  <data name="Providers_Active" xml:space="preserve">
+    <value>Ativo</value>
+  </data>
+  <data name="Providers_Inactive" xml:space="preserve">
+    <value>Inativo</value>
+  </data>
+  
+  <!-- Validation -->
+  <data name="Validation_Required" xml:space="preserve">
+    <value>Este campo é obrigatório</value>
+  </data>
+  <data name="Validation_InvalidEmail" xml:space="preserve">
+    <value>Endereço de e-mail inválido</value>
+  </data>
+  <data name="Validation_InvalidPhone" xml:space="preserve">
+    <value>Número de telefone inválido</value>
+  </data>
+  <data name="Validation_InvalidDocument" xml:space="preserve">
+    <value>Número de documento inválido</value>
+  </data>
+  
+  <!-- Success -->
+  <data name="Success_SavedSuccessfully" xml:space="preserve">
+    <value>Salvo com sucesso</value>
+  </data>
+  <data name="Success_DeletedSuccessfully" xml:space="preserve">
+    <value>Excluído com sucesso</value>
+  </data>
+  <data name="Success_UpdatedSuccessfully" xml:space="preserve">
+    <value>Atualizado com sucesso</value>
+  </data>
+  
+  <!-- Error -->
+  <data name="Error_GenericError" xml:space="preserve">
+    <value>Ocorreu um erro. Por favor, tente novamente.</value>
+  </data>
+  <data name="Error_NetworkError" xml:space="preserve">
+    <value>Erro de conexão. Verifique sua internet.</value>
+  </data>
+  <data name="Error_Unauthorized" xml:space="preserve">
+    <value>Você não tem permissão para esta ação.</value>
+  </data>
+</root>
