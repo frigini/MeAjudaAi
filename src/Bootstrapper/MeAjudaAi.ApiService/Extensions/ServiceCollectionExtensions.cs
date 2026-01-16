@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using MeAjudaAi.ApiService.Endpoints;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.ApiService.Services.Authentication;
@@ -165,6 +166,9 @@ public static class ServiceCollectionExtensions
         
         app.UsePermissionOptimization(); // Middleware de otimização após autenticação
         app.UseAuthorization();
+
+        // Map Configuration Endpoints (deve ser após UseAuthorization)
+        app.MapConfigurationEndpoints();
 
         // Health Checks UI removido - usar Aspire Dashboard (http://localhost:15888)
         // Para visualizar health checks, acesse o Aspire Dashboard que oferece:

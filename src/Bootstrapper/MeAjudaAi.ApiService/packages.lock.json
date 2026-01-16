@@ -928,6 +928,12 @@
           "Serilog.Sinks.Seq": "[9.0.0, )"
         }
       },
+      "meajudaai.shared.contracts": {
+        "type": "Project",
+        "dependencies": {
+          "FluentValidation": "[12.1.1, )"
+        }
+      },
       "Asp.Versioning.Http": {
         "type": "CentralTransitive",
         "requested": "[8.1.1, )",

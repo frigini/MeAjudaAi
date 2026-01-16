@@ -1700,6 +1700,7 @@
           "MeAjudaAi.Modules.Users.API": "[1.0.0, )",
           "MeAjudaAi.ServiceDefaults": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
+          "MeAjudaAi.Shared.Contracts": "[1.0.0, )",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.1, )",
           "Serilog.AspNetCore": "[10.0.0, )",
           "Serilog.Sinks.Seq": "[9.0.0, )",
@@ -2039,6 +2040,12 @@
           "Serilog.Settings.Configuration": "[10.0.0, )",
           "Serilog.Sinks.Console": "[6.1.1, )",
           "Serilog.Sinks.Seq": "[9.0.0, )"
+        }
+      },
+      "meajudaai.shared.contracts": {
+        "type": "Project",
+        "dependencies": {
+          "FluentValidation": "[12.1.1, )"
         }
       },
       "meajudaai.shared.tests": {
