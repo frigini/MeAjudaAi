@@ -1,0 +1,37 @@
+@using System.Globalization
+@using MeAjudaAi.Web.Admin.Services
+@inject LocalizationService LocalizationService
+
+<MudMenu Icon="@Icons.Material.Filled.Language" 
+         Color="Color.Inherit" 
+         Dense="true"
+         AnchorOrigin="Origin.BottomCenter"
+         AriaLabel="Selecionar idioma">
+    @foreach (var culture in LocalizationService.SupportedCultures)
+    {
+        <MudMenuItem OnClick="@(() => ChangeLanguage(culture.Name))">
+            <div class="d-flex align-center gap-2">
+                <MudIcon Icon="@(culture.Name == LocalizationService.CurrentCulture.Name ? Icons.Material.Filled.Check : "")" 
+                         Size="Size.Small" />
+                <MudText>@GetLanguageName(culture)</MudText>
+            </div>
+        </MudMenuItem>
+    }
+</MudMenu>
+
+@code {
+    private void ChangeLanguage(string cultureName)
+    {
+        LocalizationService.SetCulture(cultureName);
+    }
+
+    private string GetLanguageName(CultureInfo culture)
+    {
+        return culture.Name switch
+        {
+            "pt-BR" => "Português (Brasil)",
+            "en-US" => "English (US)",
+            _ => culture.DisplayName
+        };
+    }
+}

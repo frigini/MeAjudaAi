@@ -1,5 +1,6 @@
 @inherits LayoutComponentBase
 @using MeAjudaAi.Web.Admin.Components.Accessibility
+@using MeAjudaAi.Web.Admin.Components.Common
 @inject IDispatcher Dispatcher
 @inject IState<ThemeState> ThemeState
 
@@ -20,6 +21,7 @@
                        Color="Color.Inherit" 
                        OnClick="@ToggleDarkMode" 
                        AriaLabel="@(ThemeState.Value.IsDarkMode ? "Ativar modo claro" : "Ativar modo escuro")" />
+        <LanguageSwitcher />
         <AuthorizeView>
             <Authorized>
                 <MudMenu Icon="@Icons.Material.Filled.AccountCircle" 

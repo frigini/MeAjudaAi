@@ -152,6 +152,9 @@ builder.Services.AddScoped<LiveRegionService>();
 builder.Services.AddScoped<ErrorLoggingService>();
 builder.Services.AddScoped<ErrorHandlingService>();
 
+// Configurar localização
+builder.Services.AddScoped<LocalizationService>();
+
 // Clientes de API (Refit) com políticas Polly de resiliência
 builder.Services
     .AddApiClient<IProvidersApi>(clientConfig.ApiBaseUrl)
