@@ -1,4 +1,5 @@
 ﻿@inject IState<ThemeState> ThemeState
+@implements IDisposable
 
 <Fluxor.Blazor.Web.StoreInitializer />
 <MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme" />
