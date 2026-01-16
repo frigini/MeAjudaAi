@@ -6,6 +6,7 @@ using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Contracts;
+using MeAjudaAi.Contracts.Models;
 using Xunit;
 
 namespace MeAjudaAi.E2E.Tests.CrossModule;
