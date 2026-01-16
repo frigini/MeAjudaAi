@@ -74,10 +74,12 @@ public sealed class TestProviderQueryService : IProviderQueryService
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        return new PagedResult<Provider>(
-            providers,
-            totalCount,
-            page,
-            pageSize);
+        return new PagedResult<Provider>
+        {
+            Items = providers,
+            PageNumber = page,
+            PageSize = pageSize,
+            TotalItems = totalCount
+        };
     }
 }

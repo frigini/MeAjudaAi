@@ -65,8 +65,8 @@ public class SearchProvidersQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Items.Should().HaveCount(3);
-        result.Value.TotalCount.Should().Be(3);
-        result.Value.Page.Should().Be(1);
+        result.Value.TotalItems.Should().Be(3);
+        result.Value.PageNumber.Should().Be(1);
         result.Value.PageSize.Should().Be(20);
         result.Value.TotalPages.Should().Be(1);
     }
@@ -236,7 +236,7 @@ public class SearchProvidersQueryHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value!.Page.Should().Be(2);
+        result.Value!.PageNumber.Should().Be(2);
         result.Value.TotalPages.Should().Be(3); // 25 / 10 = 3
         result.Value.HasPreviousPage.Should().BeTrue();
         result.Value.HasNextPage.Should().BeTrue();
@@ -269,7 +269,7 @@ public class SearchProvidersQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value!.Items.Should().BeEmpty();
-        result.Value.TotalCount.Should().Be(0);
+        result.Value.TotalItems.Should().Be(0);
     }
 
     [Fact]

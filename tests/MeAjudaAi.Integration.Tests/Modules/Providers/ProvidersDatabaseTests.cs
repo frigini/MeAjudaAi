@@ -63,6 +63,6 @@ public class ProvidersDatabaseTests : BaseApiTest
         // Assert
         result.Should().NotBeNull();
         result.Items.Should().NotBeNull();
-        result.TotalCount.Should().BeGreaterThanOrEqualTo(0);
+        result.TotalItems.Should().BeGreaterThanOrEqualTo(0);
     }
 }

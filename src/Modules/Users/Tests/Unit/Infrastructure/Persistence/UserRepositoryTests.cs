@@ -245,7 +245,7 @@ public class UserRepositoryTests
 
         // Assert
         result.Users.Should().HaveCount(3);
-        result.TotalCount.Should().Be(5);
+        result.TotalItems.Should().Be(5);
     }
 
     [Fact]
@@ -263,7 +263,7 @@ public class UserRepositoryTests
 
         // Assert
         result.Users.Should().BeEmpty();
-        result.TotalCount.Should().Be(0);
+        result.TotalItems.Should().Be(0);
     }
 
     [Fact]
@@ -287,7 +287,7 @@ public class UserRepositoryTests
 
         // Assert
         result.Users.Should().HaveCount(2);
-        result.TotalCount.Should().Be(2);
+        result.TotalItems.Should().Be(2);
     }
 
     [Fact]

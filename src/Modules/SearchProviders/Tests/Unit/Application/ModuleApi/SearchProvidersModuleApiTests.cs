@@ -168,7 +168,13 @@ public class SearchProvidersModuleApiTests
             }
         };
 
-        var pagedResult = new PagedResult<SearchableProviderDto>(providers, 1, 20, providers.Count);
+        var pagedResult = new PagedResult<SearchableProviderDto>
+        {
+            Items = providers,
+            PageNumber = 1,
+            PageSize = 20,
+            TotalItems = providers.Count
+        };
 
         _queryDispatcherMock
             .Setup(x => x.QueryAsync<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>(
@@ -187,7 +193,7 @@ public class SearchProvidersModuleApiTests
         result.Value.Should().NotBeNull();
 
         // Verifica propriedades de ModulePagedSearchResultDto
-        result.Value!.TotalCount.Should().Be(1);
+        result.Value!.TotalItems.Should().Be(1);
         result.Value.PageNumber.Should().Be(1);
         result.Value.PageSize.Should().Be(20);
         result.Value.Items.Should().HaveCount(1);
@@ -217,7 +223,13 @@ public class SearchProvidersModuleApiTests
         // Arrange
         var serviceIds = new[] { Guid.NewGuid(), Guid.NewGuid() };
         var tiers = new[] { ESubscriptionTier.Gold, ESubscriptionTier.Platinum };
-        var pagedResult = new PagedResult<SearchableProviderDto>(new List<SearchableProviderDto>(), 0, 1, 10);
+        var pagedResult = new PagedResult<SearchableProviderDto>
+        {
+            Items = new List<SearchableProviderDto>(),
+            PageNumber = 1,
+            PageSize = 10,
+            TotalItems = 0
+        };
 
         SearchProvidersQuery? capturedQuery = null;
         _queryDispatcherMock
@@ -251,7 +263,7 @@ public class SearchProvidersModuleApiTests
             DomainEnums.ESubscriptionTier.Gold,
             DomainEnums.ESubscriptionTier.Platinum
         });
-        capturedQuery.Page.Should().Be(2);
+        capturedQuery.PageNumber.Should().Be(2);
         capturedQuery.PageSize.Should().Be(10);
     }
 
@@ -277,7 +289,13 @@ public class SearchProvidersModuleApiTests
     public async Task SearchProvidersAsync_WithNullOptionalParameters_ShouldSucceed()
     {
         // Arrange
-        var pagedResult = new PagedResult<SearchableProviderDto>(new List<SearchableProviderDto>(), 0, 1, 20);
+        var pagedResult = new PagedResult<SearchableProviderDto>
+        {
+            Items = new List<SearchableProviderDto>(),
+            PageNumber = 1,
+            PageSize = 20,
+            TotalItems = 0
+        };
 
         _queryDispatcherMock
             .Setup(x => x.QueryAsync<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>(

@@ -31,7 +31,7 @@ public class SearchResultTests
         // Assert
         result.Providers.Should().HaveCount(3);
         result.DistancesInKm.Should().HaveCount(3);
-        result.TotalCount.Should().Be(totalCount);
+        result.TotalItems.Should().Be(totalCount);
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public class SearchResultTests
         // Assert
         result.Providers.Should().BeEmpty();
         result.DistancesInKm.Should().BeEmpty();
-        result.TotalCount.Should().Be(0);
+        result.TotalItems.Should().Be(0);
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public class SearchResultTests
 
         // Assert
         hasMore.Should().BeTrue();
-        result.Providers.Count.Should().BeLessThan(result.TotalCount);
+        result.Providers.Count.Should().BeLessThan(result.TotalItems);
     }
 
     private IReadOnlyList<SearchableProvider> CreateProviders(int count)

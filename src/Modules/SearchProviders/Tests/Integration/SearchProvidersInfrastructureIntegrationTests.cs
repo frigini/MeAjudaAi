@@ -31,7 +31,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         // Assert
         result.Should().NotBeNull();
         result.Providers.Should().BeEmpty();
-        result.TotalCount.Should().Be(0);
+        result.TotalItems.Should().Be(0);
     }
 
     [Fact]
@@ -104,10 +104,10 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
 
         // Assert
         page1.Providers.Should().HaveCount(10);
-        page1.TotalCount.Should().Be(15);
+        page1.TotalItems.Should().Be(15);
 
         page2.Providers.Should().HaveCount(5); // Only 5 remaining
-        page2.TotalCount.Should().Be(15);
+        page2.TotalItems.Should().Be(15);
 
         // Ensure no overlap between pages
         var page1Ids = page1.Providers.Select(p => p.Id).ToHashSet();
@@ -406,7 +406,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         results.Should().AllSatisfy(result =>
         {
             result.Providers.Should().HaveCount(10);
-            result.TotalCount.Should().Be(10);
+            result.TotalItems.Should().Be(10);
         });
     }
 }
