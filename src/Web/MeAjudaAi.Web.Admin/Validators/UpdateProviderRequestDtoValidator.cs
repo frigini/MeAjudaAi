@@ -112,10 +112,12 @@ public class ContactInfoUpdateDtoValidator : AbstractValidator<ContactInfoUpdate
         When(x => !string.IsNullOrWhiteSpace(x.Website), () =>
         {
             RuleFor(x => x.Website)
-                .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _))
-                .WithMessage("Website deve ser uma URL válida")
+                .Must(url => Uri.TryCreate(url, UriKind.Absolute, out var uri) && 
+                             (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+                .WithMessage("Website deve ser uma URL válida (http ou https)")
                 .MaximumLength(200)
-                .WithMessage("Website deve ter no máximo 200 caracteres");
+                .WithMessage("Website deve ter no máximo 200 caracteres")
+                .NoXss();
         });
     }
 }

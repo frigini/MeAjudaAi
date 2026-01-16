@@ -109,7 +109,7 @@ builder.Services.AddOidcAuthentication(options =>
     options.UserOptions.RoleClaim = "roles";
 });
 
-// Refit API clients usando URL do backend
+// Clientes de API (Refit)
 builder.Services
     .AddApiClient<IProvidersApi>(clientConfig.ApiBaseUrl)
     .AddApiClient<IServiceCatalogsApi>(clientConfig.ApiBaseUrl)

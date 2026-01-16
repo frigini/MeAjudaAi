@@ -47,7 +47,7 @@ public class FluentValidationValidator<TModel> : ComponentBase, IDisposable
 
         foreach (var error in validationResult.Errors)
         {
-            var fieldIdentifier = new FieldIdentifier(CurrentEditContext.Model, error.PropertyName);
+            var fieldIdentifier = ResolveFieldIdentifier(CurrentEditContext.Model, error.PropertyName);
             _validationMessageStore?.Add(fieldIdentifier, error.ErrorMessage);
         }
 
@@ -59,11 +59,16 @@ public class FluentValidationValidator<TModel> : ComponentBase, IDisposable
         if (_validator == null || CurrentEditContext?.Model is not TModel model)
             return;
 
-        var propertyName = e.FieldIdentifier.FieldName;
         _validationMessageStore?.Clear(e.FieldIdentifier);
 
         var validationResult = _validator.Validate(model);
-        var errors = validationResult.Errors.Where(x => x.PropertyName == propertyName);
+        
+        // Match errors for this field, handling nested properties
+        var errors = validationResult.Errors.Where(error =>
+        {
+            var errorFieldIdentifier = ResolveFieldIdentifier(CurrentEditContext.Model, error.PropertyName);
+            return errorFieldIdentifier.Equals(e.FieldIdentifier);
+        });
 
         foreach (var error in errors)
         {
@@ -71,6 +76,44 @@ public class FluentValidationValidator<TModel> : ComponentBase, IDisposable
         }
 
         CurrentEditContext.NotifyValidationStateChanged();
+    }
+
+    /// <summary>
+    /// Resolve dotted property paths (e.g., "BusinessProfile.LegalName") to proper FieldIdentifier.
+    /// </summary>
+    private FieldIdentifier ResolveFieldIdentifier(object model, string propertyPath)
+    {
+        if (string.IsNullOrEmpty(propertyPath) || !propertyPath.Contains('.'))
+        {
+            return new FieldIdentifier(model, propertyPath);
+        }
+
+        var segments = propertyPath.Split('.');
+        var current = model;
+
+        // Walk the property path to get the leaf owner object
+        for (var i = 0; i < segments.Length - 1; i++)
+        {
+            var propertyInfo = current.GetType().GetProperty(segments[i]);
+            if (propertyInfo == null)
+            {
+                // Fallback to root model if property not found
+                return new FieldIdentifier(model, propertyPath);
+            }
+
+            var value = propertyInfo.GetValue(current);
+            if (value == null)
+            {
+                // Fallback to root model if intermediate value is null
+                return new FieldIdentifier(model, propertyPath);
+            }
+
+            current = value;
+        }
+
+        // Return FieldIdentifier with the leaf owner and simple property name
+        var leafPropertyName = segments[^1];
+        return new FieldIdentifier(current, leafPropertyName);
     }
 
     public void Dispose()

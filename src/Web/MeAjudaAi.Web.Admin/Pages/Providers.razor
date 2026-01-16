@@ -165,13 +165,13 @@
             }
             else
             {
-                Logger.LogError("Falha ao excluir provedor {ProviderId}: {Error}", providerId, result.Error?.Message);
+                Logger.LogError("Failed to delete provider {ProviderId}: {Error}", providerId, result.Error?.Message);
                 Snackbar.Add("Erro ao excluir o provedor. Tente novamente mais tarde.", Severity.Error);
             }
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Exceção ao excluir provedor {ProviderId}", providerId);
+            Logger.LogError(ex, "Exception while deleting provider {ProviderId}", providerId);
             Snackbar.Add("Erro ao excluir o provedor. Tente novamente mais tarde.", Severity.Error);
         }
     }

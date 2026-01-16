@@ -1,6 +1,7 @@
 @using FluentValidation
 @using Microsoft.AspNetCore.Components.Forms
 @typeparam TModel
+@implements IDisposable
 
 @code {
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;

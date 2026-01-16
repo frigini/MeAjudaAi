@@ -76,19 +76,16 @@ public class UploadDocumentDtoValidator : AbstractValidator<UploadDocumentDto>
             .WithMessage("Tipo de documento inválido");
     }
 
-    private static bool IsValidDocumentType(string type)
+    private static readonly string[] ValidDocumentTypes =
     {
-        var validTypes = new[]
-        {
-            "RG",
-            "CNH",
-            "CPF",
-            "CNPJ",
-            "ComprovanteResidencia",
-            "CertidaoNascimento",
-            "Outros"
-        };
+        "RG",
+        "CNH",
+        "CPF",
+        "CNPJ",
+        "ComprovanteResidencia",
+        "CertidaoNascimento",
+        "Outros"
+    };
 
-        return validTypes.Contains(type);
-    }
+    private static bool IsValidDocumentType(string type) => ValidDocumentTypes.Contains(type);
 }

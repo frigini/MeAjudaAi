@@ -240,7 +240,7 @@ model.Description = ValidationExtensions.SanitizeInput(model.Description);
 | **CPF** | 11 digits, checksum validation | 000.000.000-00 |
 | **CNPJ** | 14 digits, checksum validation | 00.000.000/0000-00 |
 | **Phone** | 10-11 digits, area code validation | (00) 00000-0000 |
-| **Email** | RFC 5322, max 100 chars | user@example.com |
+| **Email** | RFC 5322, max 100 chars | `user@example.com` |
 | **CEP** | 8 digits | 00000-000 |
 | **State** | 2 uppercase letters (UF) | SP, RJ, MG |
 | **File** | PDF/JPG/PNG, max 10MB | .pdf, .jpg, .png |
@@ -278,9 +278,10 @@ model.Description = ValidationExtensions.SanitizeInput(model.Description);
    }
    ```
 
-3. **Localization** (Optional)
-   - Translate error messages to PT-BR
-   - Use resource files for multi-language support
+3. **Additional Languages** (Future)
+   - Error messages are already in Portuguese (PT-BR) per project standards
+   - For multi-language support, add resource files and localization middleware
+   - Current validators use hardcoded Portuguese messages for user-facing errors
 
 4. **Async Validators** (Future)
    - Database uniqueness checks (email, document)

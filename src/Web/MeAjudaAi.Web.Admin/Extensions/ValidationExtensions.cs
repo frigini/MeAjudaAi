@@ -42,23 +42,23 @@ public static class ValidationExtensions
         // Valida primeiro dígito verificador
         var sum = 0;
         for (var i = 0; i < 9; i++)
-            sum += int.Parse(cpf[i].ToString()) * (10 - i);
+            sum += (cpf[i] - '0') * (10 - i);
         
         var remainder = sum % 11;
         var digit1 = remainder < 2 ? 0 : 11 - remainder;
         
-        if (int.Parse(cpf[9].ToString()) != digit1)
+        if ((cpf[9] - '0') != digit1)
             return false;
 
         // Valida segundo dígito verificador
         sum = 0;
         for (var i = 0; i < 10; i++)
-            sum += int.Parse(cpf[i].ToString()) * (11 - i);
+            sum += (cpf[i] - '0') * (11 - i);
         
         remainder = sum % 11;
         var digit2 = remainder < 2 ? 0 : 11 - remainder;
         
-        return int.Parse(cpf[10].ToString()) == digit2;
+        return (cpf[10] - '0') == digit2;
     }
 
     #endregion
@@ -98,24 +98,24 @@ public static class ValidationExtensions
         var weights1 = new[] { 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
         var sum = 0;
         for (var i = 0; i < 12; i++)
-            sum += int.Parse(cnpj[i].ToString()) * weights1[i];
+            sum += (cnpj[i] - '0') * weights1[i];
 
         var remainder = sum % 11;
         var digit1 = remainder < 2 ? 0 : 11 - remainder;
 
-        if (int.Parse(cnpj[12].ToString()) != digit1)
+        if ((cnpj[12] - '0') != digit1)
             return false;
 
         // Valida segundo dígito verificador
         var weights2 = new[] { 6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
         sum = 0;
         for (var i = 0; i < 13; i++)
-            sum += int.Parse(cnpj[i].ToString()) * weights2[i];
+            sum += (cnpj[i] - '0') * weights2[i];
 
         remainder = sum % 11;
         var digit2 = remainder < 2 ? 0 : 11 - remainder;
 
-        return int.Parse(cnpj[13].ToString()) == digit2;
+        return (cnpj[13] - '0') == digit2;
     }
 
     #endregion
@@ -235,6 +235,17 @@ public static class ValidationExtensions
 
     #region XSS Sanitization
 
+    private static readonly Regex[] DangerousPatterns =
+    {
+        new Regex(@"<script[\s\S]*?>[\s\S]*?</script>", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+        new Regex(@"javascript\s*:", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+        new Regex(@"data\s*:", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+        new Regex(@"on\w+\s*=", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+        new Regex(@"<iframe", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+        new Regex(@"<embed", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+        new Regex(@"<object", RegexOptions.IgnoreCase | RegexOptions.Compiled)
+    };
+
     /// <summary>
     /// Remove caracteres potencialmente perigosos para prevenir XSS.
     /// Remove: &lt;, &gt;, &lt;script&gt;, tags HTML, javascript:
@@ -275,18 +286,7 @@ public static class ValidationExtensions
         if (string.IsNullOrWhiteSpace(text))
             return false;
 
-        var dangerousPatterns = new[]
-        {
-            @"<script[\s\S]*?>[\s\S]*?</script>",
-            @"javascript\s*:",
-            @"on\w+\s*=",
-            @"<iframe",
-            @"<embed",
-            @"<object"
-        };
-
-        return dangerousPatterns.Any(pattern => 
-            Regex.IsMatch(text, pattern, RegexOptions.IgnoreCase));
+        return DangerousPatterns.Any(regex => regex.IsMatch(text));
     }
 
     #endregion
