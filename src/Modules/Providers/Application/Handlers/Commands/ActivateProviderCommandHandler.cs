@@ -2,8 +2,8 @@ using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Contracts.Modules;
-using MeAjudaAi.Shared.Contracts.Modules.Documents;
+using MeAjudaAi.Contracts.Modules;
+using MeAjudaAi.Contracts.Modules.Documents;
 using MeAjudaAi.Shared.Functional;
 using Microsoft.Extensions.Logging;
 

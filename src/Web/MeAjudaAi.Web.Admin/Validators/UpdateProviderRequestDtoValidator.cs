@@ -1,5 +1,5 @@
 using FluentValidation;
-using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs;
+using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Web.Admin.Extensions;
 
 namespace MeAjudaAi.Web.Admin.Validators;

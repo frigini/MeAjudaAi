@@ -2,7 +2,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;
 using Microsoft.AspNetCore.Builder;

@@ -8,7 +8,7 @@ using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Locations.Infrastructure.Repositories;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Contracts.Modules.Locations;
+using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Builder;

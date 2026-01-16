@@ -1,5 +1,5 @@
-using MeAjudaAi.Shared.Contracts.Functional;
-using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs.DTOs;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
 using Refit;
 
 namespace MeAjudaAi.Client.Contracts.Api;

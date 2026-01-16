@@ -5,7 +5,7 @@ using MeAjudaAi.Modules.Documents.Application.ModuleApi;
 using MeAjudaAi.Modules.Documents.Application.Options;
 using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Contracts.Modules.Documents;
+using MeAjudaAi.Contracts.Modules.Documents;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Configuration;

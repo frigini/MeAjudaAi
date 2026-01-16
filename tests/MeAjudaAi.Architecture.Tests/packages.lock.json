@@ -930,6 +930,7 @@
           "AspNetCore.HealthChecks.Npgsql": "[9.0.0, )",
           "AspNetCore.HealthChecks.Redis": "[9.0.0, )",
           "AspNetCore.HealthChecks.UI.Client": "[9.0.0, )",
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Providers.API": "[1.0.0, )",
@@ -938,12 +939,17 @@
           "MeAjudaAi.Modules.Users.API": "[1.0.0, )",
           "MeAjudaAi.ServiceDefaults": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "MeAjudaAi.Shared.Contracts": "[1.0.0, )",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.1, )",
           "Serilog.AspNetCore": "[10.0.0, )",
           "Serilog.Sinks.Seq": "[9.0.0, )",
           "Swashbuckle.AspNetCore": "[10.1.0, )",
           "Swashbuckle.AspNetCore.Annotations": "[10.1.0, )"
+        }
+      },
+      "meajudaai.contracts": {
+        "type": "Project",
+        "dependencies": {
+          "FluentValidation": "[12.1.1, )"
         }
       },
       "meajudaai.modules.documents.api": {
@@ -1190,6 +1196,7 @@
           "Hangfire.AspNetCore": "[1.8.22, )",
           "Hangfire.Core": "[1.8.22, )",
           "Hangfire.PostgreSql": "[1.20.13, )",
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "Microsoft.AspNetCore.OpenApi": "[10.0.1, )",
           "Microsoft.EntityFrameworkCore": "[10.0.1, )",
           "Microsoft.EntityFrameworkCore.Design": "[10.0.1, )",
@@ -1211,12 +1218,6 @@
           "Serilog.Settings.Configuration": "[10.0.0, )",
           "Serilog.Sinks.Console": "[6.1.1, )",
           "Serilog.Sinks.Seq": "[9.0.0, )"
-        }
-      },
-      "meajudaai.shared.contracts": {
-        "type": "Project",
-        "dependencies": {
-          "FluentValidation": "[12.1.1, )"
         }
       },
       "Asp.Versioning.Http": {

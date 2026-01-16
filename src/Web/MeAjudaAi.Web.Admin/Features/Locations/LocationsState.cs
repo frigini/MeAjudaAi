@@ -1,5 +1,5 @@
 using Fluxor;
-using MeAjudaAi.Shared.Contracts.Contracts.Modules.Locations.DTOs;
+using MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs;
 
 namespace MeAjudaAi.Web.Admin.Features.Locations;
 

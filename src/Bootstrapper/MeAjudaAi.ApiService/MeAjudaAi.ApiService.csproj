@@ -33,7 +33,7 @@
     <ProjectReference Include="..\..\Modules\ServiceCatalogs\API\MeAjudaAi.Modules.ServiceCatalogs.API.csproj" />
     <ProjectReference Include="..\..\Modules\Users\API\MeAjudaAi.Modules.Users.API.csproj" />
     <ProjectReference Include="..\..\Shared\MeAjudaAi.Shared.csproj" />
-    <ProjectReference Include="..\..\Shared\MeAjudaAi.Shared.Contracts\MeAjudaAi.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\Contracts\MeAjudaAi.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

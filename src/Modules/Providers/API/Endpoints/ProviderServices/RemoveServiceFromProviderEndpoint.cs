@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
+using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;
 using Microsoft.AspNetCore.Builder;

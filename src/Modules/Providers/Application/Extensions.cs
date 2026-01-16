@@ -6,7 +6,7 @@ using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.ModuleApi;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;

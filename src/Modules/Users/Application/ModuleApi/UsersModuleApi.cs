@@ -1,8 +1,8 @@
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Shared.Contracts.Modules;
-using MeAjudaAi.Shared.Contracts.Modules.Users;
-using MeAjudaAi.Shared.Contracts.Modules.Users.DTOs;
+using MeAjudaAi.Contracts.Modules;
+using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Contracts.Modules.Users.DTOs;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;

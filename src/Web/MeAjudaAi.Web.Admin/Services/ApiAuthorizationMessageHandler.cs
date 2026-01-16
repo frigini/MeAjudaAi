@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
-using MeAjudaAi.Shared.Contracts.Configuration;
+using MeAjudaAi.Contracts.Configuration;
 
 namespace MeAjudaAi.Web.Admin.Services;
 

@@ -308,11 +308,11 @@
       "meajudaai.client.contracts": {
         "type": "Project",
         "dependencies": {
-          "MeAjudaAi.Shared.Contracts": "[1.0.0, )",
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "Refit": "[9.0.2, )"
         }
       },
-      "meajudaai.shared.contracts": {
+      "meajudaai.contracts": {
         "type": "Project",
         "dependencies": {
           "FluentValidation": "[12.1.1, )"

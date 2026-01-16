@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 
 namespace MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 

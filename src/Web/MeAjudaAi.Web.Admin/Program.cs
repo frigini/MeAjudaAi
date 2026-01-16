@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MeAjudaAi.Client.Contracts.Api;
-using MeAjudaAi.Shared.Contracts.Configuration;
+using MeAjudaAi.Contracts.Configuration;
 using MeAjudaAi.Web.Admin;
 using MeAjudaAi.Web.Admin.Authorization;
 using MeAjudaAi.Web.Admin.Extensions;

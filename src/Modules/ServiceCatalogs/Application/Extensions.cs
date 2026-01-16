@@ -1,5 +1,5 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.ModuleApi;
-using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
+using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application;

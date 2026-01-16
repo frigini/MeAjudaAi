@@ -1,5 +1,5 @@
 using Fluxor;
-using MeAjudaAi.Shared.Contracts.Modules.Documents.DTOs;
+using MeAjudaAi.Contracts.Modules.Documents.DTOs;
 
 namespace MeAjudaAi.Web.Admin.Features.Documents;
 

@@ -1,5 +1,5 @@
 using MeAjudaAi.Modules.Users.Application.DTOs;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 

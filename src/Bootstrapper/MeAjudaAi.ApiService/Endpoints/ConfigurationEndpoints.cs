@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using MeAjudaAi.Shared.Contracts.Configuration;
+using MeAjudaAi.Contracts.Configuration;
 
 namespace MeAjudaAi.ApiService.Endpoints;
 

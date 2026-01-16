@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Shared\MeAjudaAi.Shared.Contracts\MeAjudaAi.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\Contracts\MeAjudaAi.Contracts.csproj" />
     <ProjectReference Include="..\..\Client\MeAjudaAi.Client.Contracts\MeAjudaAi.Client.Contracts.csproj" />
   </ItemGroup>
 

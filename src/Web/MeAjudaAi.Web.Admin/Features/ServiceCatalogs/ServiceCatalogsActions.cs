@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs.DTOs;
+using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
 
 namespace MeAjudaAi.Web.Admin.Features.ServiceCatalogs;
 

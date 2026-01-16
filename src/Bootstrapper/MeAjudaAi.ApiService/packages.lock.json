@@ -670,6 +670,12 @@
         "resolved": "9.0.0",
         "contentHash": "U9msthvnH2Fsw7xwAvIhNHOdnIjOQTwOc8Vd0oGOsiRcGMGoBFlUD6qtYawRUoQdKH9ysxesZ9juFElt1Jw/7A=="
       },
+      "meajudaai.contracts": {
+        "type": "Project",
+        "dependencies": {
+          "FluentValidation": "[12.1.1, )"
+        }
+      },
       "meajudaai.modules.documents.api": {
         "type": "Project",
         "dependencies": {
@@ -905,6 +911,7 @@
           "Hangfire.AspNetCore": "[1.8.22, )",
           "Hangfire.Core": "[1.8.22, )",
           "Hangfire.PostgreSql": "[1.20.13, )",
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "Microsoft.AspNetCore.OpenApi": "[10.0.1, )",
           "Microsoft.EntityFrameworkCore": "[10.0.1, )",
           "Microsoft.EntityFrameworkCore.Design": "[10.0.1, )",
@@ -926,12 +933,6 @@
           "Serilog.Settings.Configuration": "[10.0.0, )",
           "Serilog.Sinks.Console": "[6.1.1, )",
           "Serilog.Sinks.Seq": "[9.0.0, )"
-        }
-      },
-      "meajudaai.shared.contracts": {
-        "type": "Project",
-        "dependencies": {
-          "FluentValidation": "[12.1.1, )"
         }
       },
       "Asp.Versioning.Http": {

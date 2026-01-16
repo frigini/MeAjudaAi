@@ -4,7 +4,7 @@ using MeAjudaAi.Modules.Providers.Application.ModuleApi;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
-using MeAjudaAi.Shared.Contracts.Modules.Locations;
+using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Tests.Extensions;

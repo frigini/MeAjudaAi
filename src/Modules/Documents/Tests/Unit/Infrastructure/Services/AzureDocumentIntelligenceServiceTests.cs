@@ -1,4 +1,4 @@
-﻿using Azure.AI.DocumentIntelligence;
+using Azure.AI.DocumentIntelligence;
 using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Application.Constants;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;

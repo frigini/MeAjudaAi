@@ -1,5 +1,5 @@
 using System.Net.Http.Json;
-using MeAjudaAi.Shared.Contracts.Configuration;
+using MeAjudaAi.Contracts.Configuration;
 
 namespace MeAjudaAi.Web.Admin.Services;
 

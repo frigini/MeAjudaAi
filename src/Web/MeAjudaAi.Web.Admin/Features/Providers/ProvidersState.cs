@@ -1,5 +1,5 @@
 using Fluxor;
-using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs;
+using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 
 namespace MeAjudaAi.Web.Admin.Features.Providers;
 

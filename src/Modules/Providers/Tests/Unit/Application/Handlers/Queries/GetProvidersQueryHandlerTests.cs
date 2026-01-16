@@ -4,7 +4,7 @@ using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;

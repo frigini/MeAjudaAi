@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Modules.Documents.Domain.Entities;
+using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Events;
 

@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Mediator;
 
 namespace MeAjudaAi.Shared.Commands;

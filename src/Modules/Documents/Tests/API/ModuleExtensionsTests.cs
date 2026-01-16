@@ -1,7 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Documents.API;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Contracts.Modules.Documents;
+using MeAjudaAi.Contracts.Modules.Documents;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Routing;

@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
+using MeAjudaAi.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using Microsoft.Extensions.Logging;

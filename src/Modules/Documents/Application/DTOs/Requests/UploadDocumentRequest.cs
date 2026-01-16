@@ -1,5 +1,5 @@
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 
 namespace MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
 
