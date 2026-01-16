@@ -1,5 +1,7 @@
 using Fluxor;
 using MeAjudaAi.Client.Contracts.Api;
+using MeAjudaAi.Web.Admin.Authorization;
+using MeAjudaAi.Web.Admin.Services;
 using static MeAjudaAi.Web.Admin.Features.Providers.ProvidersActions;
 
 namespace MeAjudaAi.Web.Admin.Features.Providers;
@@ -11,10 +13,17 @@ namespace MeAjudaAi.Web.Admin.Features.Providers;
 public class ProvidersEffects
 {
     private readonly IProvidersApi _providersApi;
+    private readonly IPermissionService _permissionService;
+    private readonly ILogger<ProvidersEffects> _logger;
 
-    public ProvidersEffects(IProvidersApi providersApi)
+    public ProvidersEffects(
+        IProvidersApi providersApi,
+        IPermissionService permissionService,
+        ILogger<ProvidersEffects> logger)
     {
         _providersApi = providersApi;
+        _permissionService = permissionService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -25,6 +34,15 @@ public class ProvidersEffects
     {
         try
         {
+            // Verify user has permission to view providers
+            var hasPermission = await _permissionService.HasPermissionAsync(PolicyNames.ProviderManagerPolicy);
+            if (!hasPermission)
+            {
+                _logger.LogWarning("User attempted to load providers without proper authorization");
+                dispatcher.Dispatch(new LoadProvidersFailureAction("Acesso negado: você não tem permissão para visualizar provedores"));
+                return;
+            }
+
             var result = await _providersApi.GetProvidersAsync(
                 action.PageNumber, 
                 action.PageSize);

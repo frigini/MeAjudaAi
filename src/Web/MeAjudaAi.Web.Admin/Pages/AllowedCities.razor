@@ -1,5 +1,6 @@
 @page "/allowed-cities"
-@attribute [Authorize]
+@attribute [Authorize(Policy = PolicyNames.AdminPolicy)]
+@using MeAjudaAi.Web.Admin.Authorization
 @using Fluxor
 @using MeAjudaAi.Client.Contracts.Api
 @using MeAjudaAi.Shared.Contracts.Contracts.Modules.Locations.DTOs

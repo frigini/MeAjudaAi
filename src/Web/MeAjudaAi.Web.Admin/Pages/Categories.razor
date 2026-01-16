@@ -1,5 +1,6 @@
 @page "/categories"
-@attribute [Authorize]
+@attribute [Authorize(Policy = PolicyNames.CatalogManagerPolicy)]
+@using MeAjudaAi.Web.Admin.Authorization
 @using Fluxor
 @using MeAjudaAi.Web.Admin.Features.ServiceCatalogs
 @inherits Fluxor.Blazor.Web.Components.FluxorComponent

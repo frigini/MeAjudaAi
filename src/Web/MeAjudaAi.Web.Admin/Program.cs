@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MeAjudaAi.Client.Contracts.Api;
 using MeAjudaAi.Shared.Contracts.Configuration;
 using MeAjudaAi.Web.Admin;
+using MeAjudaAi.Web.Admin.Authorization;
 using MeAjudaAi.Web.Admin.Extensions;
 using MeAjudaAi.Web.Admin.Services;
 using MeAjudaAi.Web.Admin.Validators;
@@ -108,6 +109,33 @@ builder.Services.AddOidcAuthentication(options =>
     options.ProviderOptions.PostLogoutRedirectUri = clientConfig.Keycloak.PostLogoutRedirectUri;
     options.UserOptions.RoleClaim = "roles";
 });
+
+// Autorização com políticas baseadas em roles
+builder.Services.AddAuthorizationCore(options =>
+{
+    // Política de Admin - requer role "admin"
+    options.AddPolicy(PolicyNames.AdminPolicy, policy =>
+        policy.RequireRole(RoleNames.Admin));
+
+    // Política de Gerente de Provedores - requer "provider-manager" ou "admin"
+    options.AddPolicy(PolicyNames.ProviderManagerPolicy, policy =>
+        policy.RequireRole(RoleNames.ProviderManager, RoleNames.Admin));
+
+    // Política de Revisor de Documentos - requer "document-reviewer" ou "admin"
+    options.AddPolicy(PolicyNames.DocumentReviewerPolicy, policy =>
+        policy.RequireRole(RoleNames.DocumentReviewer, RoleNames.Admin));
+
+    // Política de Gerente de Catálogo - requer "catalog-manager" ou "admin"
+    options.AddPolicy(PolicyNames.CatalogManagerPolicy, policy =>
+        policy.RequireRole(RoleNames.CatalogManager, RoleNames.Admin));
+
+    // Política de Visualizador - qualquer usuário autenticado
+    options.AddPolicy(PolicyNames.ViewerPolicy, policy =>
+        policy.RequireAuthenticatedUser());
+});
+
+// Registrar serviço de permissões
+builder.Services.AddScoped<IPermissionService, PermissionService>();
 
 // Clientes de API (Refit)
 builder.Services

@@ -1,0 +1,65 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@using MeAjudaAi.Web.Admin.Services
+@inject IPermissionService PermissionService
+
+@if (_hasPermission)
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter]
+    public string? Policy { get; set; }
+
+    [Parameter]
+    public string[]? Roles { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? NotAuthorized { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationState { get; set; }
+
+    private bool _hasPermission;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await CheckPermissionAsync();
+    }
+
+    private async Task CheckPermissionAsync()
+    {
+        if (AuthenticationState == null)
+        {
+            _hasPermission = false;
+            return;
+        }
+
+        var authState = await AuthenticationState;
+        if (!authState.User.Identity?.IsAuthenticated ?? true)
+        {
+            _hasPermission = false;
+            return;
+        }
+
+        // Check by policy
+        if (!string.IsNullOrEmpty(Policy))
+        {
+            _hasPermission = await PermissionService.HasPermissionAsync(Policy);
+            return;
+        }
+
+        // Check by roles
+        if (Roles != null && Roles.Length > 0)
+        {
+            _hasPermission = await PermissionService.HasAnyRoleAsync(Roles);
+            return;
+        }
+
+        // If no policy or roles specified, just check authentication
+        _hasPermission = true;
+    }
+}

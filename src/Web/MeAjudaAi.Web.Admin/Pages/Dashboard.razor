@@ -1,5 +1,6 @@
 @page "/"
-@attribute [Authorize]
+@attribute [Authorize(Policy = PolicyNames.ViewerPolicy)]
+@using MeAjudaAi.Web.Admin.Authorization
 @inherits FluxorComponent
 @implements IDisposable
 @using Fluxor

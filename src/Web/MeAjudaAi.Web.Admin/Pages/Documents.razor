@@ -1,5 +1,6 @@
 @page "/documents"
-@attribute [Authorize]
+@attribute [Authorize(Policy = PolicyNames.DocumentReviewerPolicy)]
+@using MeAjudaAi.Web.Admin.Authorization
 @using Fluxor
 @using MeAjudaAi.Web.Admin.Features.Documents
 @using MeAjudaAi.Shared.Contracts.Modules.Documents.DTOs

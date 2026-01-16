@@ -1,5 +1,7 @@
 @page "/providers"
-@attribute [Authorize]
+@attribute [Authorize(Policy = PolicyNames.ProviderManagerPolicy)]
+@using MeAjudaAi.Web.Admin.Authorization
+@using MeAjudaAi.Web.Admin.Services
 @inherits FluxorComponent
 @inject IState<ProvidersState> ProvidersState
 @inject IDispatcher Dispatcher
@@ -7,14 +9,17 @@
 @inject IProvidersApi ProvidersApi
 @inject ISnackbar Snackbar
 @inject ILogger<Providers> Logger
+@inject IPermissionService PermissionService
 
 <PageTitle>Provedores - MeAjudaAi Admin</PageTitle>
 
 <div class="d-flex justify-space-between align-center mb-4">
     <MudText Typo="Typo.h3">Provedores</MudText>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@OpenCreateDialog">
-        Novo Provedor
-    </MudButton>
+    <AuthorizeView Policy="@PolicyNames.ProviderManagerPolicy">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@OpenCreateDialog">
+            Novo Provedor
+        </MudButton>
+    </AuthorizeView>
 </div>
 
 @if (ProvidersState.Value.IsLoading)
