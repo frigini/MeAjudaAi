@@ -14,7 +14,7 @@ public class ApiAuthorizationMessageHandler : AuthorizationMessageHandler
         : base(provider, navigationManager)
     {
         var apiBaseUrl = configuration["ApiBaseUrl"] 
-            ?? throw new InvalidOperationException("ApiBaseUrl not configured");
+            ?? navigationManager.BaseUri;
 
         ConfigureHandler(
             authorizedUrls: new[] { apiBaseUrl },

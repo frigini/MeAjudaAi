@@ -69,7 +69,7 @@ public static class MeAjudaAiKeycloakExtensions
             // Montar volume com o realm para importação
             // Usar caminho relativo ao diretório do AppHost (onde está o .csproj)
             var appHostDir = AppContext.BaseDirectory;
-            var realmPath = Path.GetFullPath(Path.Combine(appHostDir, @"..\..\..\..\..\..\infrastructure\keycloak\realms"));
+            var realmPath = Path.GetFullPath(Path.Combine(appHostDir, "..", "..", "..", "..", "..", "..", "infrastructure", "keycloak", "realms"));
             
             // Validar que o path existe
             if (!Directory.Exists(realmPath))
@@ -84,7 +84,7 @@ public static class MeAjudaAiKeycloakExtensions
             }
             
             // Montar tema customizado
-            var themePath = Path.GetFullPath(Path.Combine(appHostDir, @"..\..\..\..\..\..\infrastructure\keycloak\themes"));
+            var themePath = Path.GetFullPath(Path.Combine(appHostDir, "..", "..", "..", "..", "..", "..", "infrastructure", "keycloak", "themes"));
             if (Directory.Exists(themePath))
             {
                 keycloak = keycloak.WithBindMount(themePath, "/opt/keycloak/themes");
@@ -191,7 +191,17 @@ public static class MeAjudaAiKeycloakExtensions
         // Importar realm na inicialização (apenas se especificado)
         if (!string.IsNullOrEmpty(options.ImportRealm))
         {
+            // Mount realm file for import
+            var appHostDir = AppContext.BaseDirectory;
+            var realmPath = Path.GetFullPath(Path.Combine(appHostDir, "..", "..", "..", "..", "..", "..", "infrastructure", "keycloak", "realms"));
+            
+            if (!Directory.Exists(realmPath))
+            {
+                throw new InvalidOperationException($"Realm directory not found: {realmPath}");
+            }
+            
             keycloak = keycloak
+                .WithBindMount(realmPath, "/opt/keycloak/data/import")
                 .WithEnvironment("KC_IMPORT", options.ImportRealm)
                 .WithArgs("start", "--import-realm", "--optimized");
         }

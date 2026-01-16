@@ -4,7 +4,7 @@ Este diretório contém o tema customizado para o Keycloak que faz a tela de log
 
 ## 📁 Estrutura
 
-```
+```text
 meajudaai/
 ├── login/          # Tema de login (principal)
 ├── account/        # Tema da área de conta do usuário

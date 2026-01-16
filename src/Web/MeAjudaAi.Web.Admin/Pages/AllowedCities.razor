@@ -18,8 +18,14 @@
 
     @if (LocationsState.Value.HasError)
     {
-        <MudAlert Severity="Severity.Warning" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => Dispatcher.Dispatch(new ClearErrorAction()))">
-            <MudText Typo="Typo.body1">Nenhuma cidade encontrada ou erro ao carregar dados.</MudText>
+        <MudAlert Severity="Severity.Error" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => Dispatcher.Dispatch(new ClearErrorAction()))">
+            <MudText Typo="Typo.body1">Erro ao carregar cidades. Tente novamente mais tarde.</MudText>
+        </MudAlert>
+    }
+    else if (!LocationsState.Value.IsLoading && !LocationsState.Value.AllowedCities.Any())
+    {
+        <MudAlert Severity="Severity.Info" Class="mb-4">
+            <MudText Typo="Typo.body1">Nenhuma cidade cadastrada.</MudText>
         </MudAlert>
     }
 

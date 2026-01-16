@@ -28,7 +28,7 @@ internal class MigrationHostedService : IHostedService
         {
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
             
-            // Skip migrations in test environments - they are managed by test infrastructure
+            // Pular migrations em ambientes de teste - são gerenciadas pela infraestrutura de testes
             if (environment.Equals("Testing", StringComparison.OrdinalIgnoreCase) || 
                 environment.Equals("Test", StringComparison.OrdinalIgnoreCase))
             {
@@ -66,7 +66,7 @@ internal class MigrationHostedService : IHostedService
 
             _logger.LogInformation("✅ All migrations applied successfully!");
             
-            // Execute seeding after migrations
+            // Executar seeding após migrations
             await ExecuteSeedingAsync(cancellationToken);
         }
         catch (Exception ex)
@@ -141,7 +141,7 @@ internal class MigrationHostedService : IHostedService
     {
         var dbContextTypes = new List<Type>();
 
-        // First, try to dynamically load module assemblies
+        // Primeiro, tentar carregar assemblies de módulos dinamicamente
         LoadModuleAssemblies();
 
         var assemblies = AppDomain.CurrentDomain.GetAssemblies()
@@ -196,7 +196,7 @@ internal class MigrationHostedService : IHostedService
                 {
                     var assemblyName = AssemblyName.GetAssemblyName(dllPath);
 
-                    // Check if already loaded
+                    // Verificar se já foi carregado
                     if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.FullName == assemblyName.FullName))
                     {
                         _logger.LogDebug("⏭️  Assembly already loaded: {AssemblyName}", assemblyName.Name);
@@ -238,7 +238,10 @@ internal class MigrationHostedService : IHostedService
             // Configurar PostgreSQL usando método de extensão UseNpgsql
             var useNpgsqlMethod = typeof(NpgsqlDbContextOptionsBuilderExtensions)
                 .GetMethods()
-                .FirstOrDefault(m => m.Name == "UseNpgsql" && m.GetParameters().Length == 3);
+                .FirstOrDefault(m => 
+                    m.Name == "UseNpgsql" && 
+                    m.GetParameters().Length == 3 &&
+                    m.GetParameters()[1].ParameterType == typeof(string));
             
             if (useNpgsqlMethod == null)
                 throw new InvalidOperationException("UseNpgsql extension method not found");
@@ -270,7 +273,7 @@ internal class MigrationHostedService : IHostedService
 
             using (dbContext)
             {
-                // Apply migrations
+                // Aplicar migrations
                 var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
 
                 if (pendingMigrations.Any())
@@ -301,7 +304,7 @@ internal class MigrationHostedService : IHostedService
 
     private static string ExtractModuleName(Type contextType)
     {
-        // Extract module name from namespace (e.g., MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext -> Users)
+        // Extrair nome do módulo do namespace (ex: MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext -> Users)
         var namespaceParts = contextType.Namespace?.Split('.') ?? Array.Empty<string>();
         var moduleIndex = Array.IndexOf(namespaceParts, "Modules");
 
@@ -315,7 +318,7 @@ internal class MigrationHostedService : IHostedService
 
     private async Task ExecuteSeedingAsync(CancellationToken cancellationToken)
     {
-        // Only seed in Development environment
+        // Executar seeding apenas em ambiente Development
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
         if (!environment.Equals("Development", StringComparison.OrdinalIgnoreCase))
         {
@@ -334,11 +337,11 @@ internal class MigrationHostedService : IHostedService
                 return;
             }
 
-            // Execute SQL seed scripts
+            // Executar scripts SQL de seeding
             await using var connection = new Npgsql.NpgsqlConnection(connectionString);
             await connection.OpenAsync(cancellationToken);
 
-            // Find and execute seed scripts from infrastructure/database/seeds/
+            // Encontrar e executar scripts de seed em infrastructure/database/seeds/
             var seedScriptsPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "..", "infrastructure", "database", "seeds");
             var normalizedPath = Path.GetFullPath(seedScriptsPath);
             

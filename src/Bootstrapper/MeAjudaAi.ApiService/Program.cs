@@ -55,9 +55,7 @@ public partial class Program
                 await app.ApplyModuleMigrationsAsync();
             }
 
-            // Seed dados de desenvolvimento se necessário
-            // DESABILITADO: Agora usando SQL seed scripts via MigrationHostedService
-            // await app.SeedDevelopmentDataIfNeededAsync();
+            // Seed de dados: usando SQL scripts via MigrationHostedService
 
             LogStartupComplete(app);
 

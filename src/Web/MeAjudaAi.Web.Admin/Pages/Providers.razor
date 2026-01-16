@@ -164,12 +164,14 @@
             }
             else
             {
-                Snackbar.Add($"Erro ao excluir provedor: {result.Error?.Message ?? "Erro desconhecido"}", Severity.Error);
+                Logger.LogError("Falha ao excluir provedor {ProviderId}: {Error}", providerId, result.Error?.Message);
+                Snackbar.Add("Erro ao excluir o provedor. Tente novamente mais tarde.", Severity.Error);
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Erro ao excluir provedor: {ex.Message}", Severity.Error);
+            Logger.LogError(ex, "Exceção ao excluir provedor {ProviderId}", providerId);
+            Snackbar.Add("Erro ao excluir o provedor. Tente novamente mais tarde.", Severity.Error);
         }
     }
 }

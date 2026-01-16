@@ -61,15 +61,25 @@ html {
     text-indent: -9999px;
     overflow: hidden;
     
-    /* Mostrar logo - layout vertical */
+    /* Mostrar logo - responsivo */
     display: block;
-    width: 900px;
-    height: 360px;
+    max-width: 900px;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2.5 / 1;
     margin: 0 auto;
     background-image: url('../img/logo.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
+}
+
+@media (max-width: 480px) {
+    #kc-header-wrapper {
+        max-width: 100%;
+        padding: 0 1rem;
+        aspect-ratio: 2.5 / 1;
+    }
 }
 
 /* ============================================
