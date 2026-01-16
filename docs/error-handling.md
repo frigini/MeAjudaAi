@@ -2,16 +2,82 @@
 
 ## Overview
 
-This guide documents the standardized error handling system implemented in the Admin Portal, including error code mapping, retry mechanisms, correlation IDs, and user-friendly error messages.
+This guide documents the standardized error handling system implemented in the Admin Portal, including error code mapping, correlation IDs, user-friendly error messages, and resilience patterns.
 
 ## Architecture
 
+### Resilience Layers
+
+The Admin Portal uses a **two-layer resilience architecture**:
+
+1. **Transport Layer (Polly Policies)** - HttpClient level
+   - ✅ Retry logic (3 attempts: 2s → 4s → 8s backoff)
+   - ✅ Circuit breaker (opens after 5 failures, 30s break)
+   - ✅ Timeout (30s for normal, 2min for uploads)
+   - ✅ Handles network errors and transient HTTP failures (5xx, 408)
+
+2. **Business Logic Layer (ErrorHandlingService)** - Application level
+   - ✅ Error mapping (HTTP status → Portuguese messages)
+   - ✅ Correlation tracking (Activity.Current.Id)
+   - ✅ Structured logging
+   - ❌ NO retry (handled by Polly at HttpClient level)
+
 ### Error Handling Services
 
-1. **ErrorHandlingService** - Maps backend error codes to Portuguese messages, implements retry logic
+1. **ErrorHandlingService** - Maps backend error codes to Portuguese messages, correlation tracking
 2. **ErrorLoggingService** - Logs errors with correlation IDs and stack traces
 3. **ErrorBoundary** - Catches component render errors globally
 4. **LiveRegionService** - Announces errors to screen readers
+
+## Resilience Policy Details
+
+### Polly Policies (HttpClient Level)
+
+**GetCombinedPolicy()** - Default for API clients:
+```csharp
+// 1. Retry Policy: 3 attempts with exponential backoff
+//    - Attempt 1: immediate
+//    - Attempt 2: wait 2 seconds
+//    - Attempt 3: wait 4 seconds
+//    - Attempt 4: wait 8 seconds
+//    Total: up to 14 seconds + request time
+
+// 2. Circuit Breaker: Opens after 5 consecutive failures
+//    - Break duration: 30 seconds
+//    - Half-open state: tests with single request
+
+// 3. Timeout: 30 seconds per request
+//    - Applied per attempt (not total time)
+
+// Handled errors:
+// - HTTP 5xx (Server errors)
+// - HTTP 408 (Request timeout)
+// - Network exceptions (HttpRequestException)
+// - Polly timeout exceptions
+```
+
+**GetUploadPolicy()** - For file uploads:
+```csharp
+// 1. NO retry (prevents duplicate uploads)
+// 2. Circuit Breaker: Same as GetCombinedPolicy (5 failures, 30s break)
+// 3. Timeout: 2 minutes (extended for large files)
+```
+
+### ErrorHandlingService (Business Logic Level)
+
+**ExecuteWithErrorHandlingAsync()** - Error mapping and correlation:
+```csharp
+// 1. Correlation tracking (Activity.Current.Id)
+// 2. Structured logging with context
+// 3. HTTP status → Portuguese messages
+// 4. NO retry (Polly handles at HttpClient level)
+
+// Benefits of single retry layer:
+// ✅ Exactly 3 total attempts (not 9 with double stacking)
+// ✅ Retry at transport level (network, timeout, 5xx)
+// ✅ Error mapping at business level (user-friendly messages)
+// ✅ Clear separation of concerns
+```
 
 ## Error Code Mapping
 
@@ -71,11 +137,11 @@ public async Task HandleLoadProvidersAction(LoadProvidersAction action, IDispatc
 [EffectMethod]
 public async Task HandleLoadProvidersAction(LoadProvidersAction action, IDispatcher dispatcher)
 {
-    // Automatic retry for transient failures (3 attempts with exponential backoff)
-    var result = await _errorHandler.ExecuteWithRetryAsync(
-        action: () => _providersApi.GetProvidersAsync(action.PageNumber, action.PageSize),
-        operation: "Carregar provedores",
-        maxAttempts: 3);
+    // Polly handles retry at HttpClient level (3 attempts with exponential backoff)
+    // ErrorHandlingService provides error mapping and correlation tracking
+    var result = await _errorHandler.ExecuteWithErrorHandlingAsync(
+        () => _providersApi.GetProvidersAsync(action.PageNumber, action.PageSize),
+        "carregar provedores");
 
     if (result.IsSuccess)
     {
@@ -92,45 +158,13 @@ public async Task HandleLoadProvidersAction(LoadProvidersAction action, IDispatc
 
 **Benefits**:
 - ✅ User-friendly Portuguese messages
-- ✅ Automatic retry for transient failures
+- ✅ Automatic retry via Polly (transport level)
 - ✅ Correlation IDs for error tracking
 - ✅ Screen reader announcements
 - ✅ Consistent error UX across app
+- ✅ Exactly 3 attempts (not 9 with double stacking)
 
-### 2. Retry Logic with Exponential Backoff
-
-⚠️ **CRITICAL: Retry Safety Policy**
-
-**By default, only idempotent operations (GET, HEAD, OPTIONS) will retry to prevent duplicate writes, double payments, and data corruption.**
-
-```csharp
-// ✅ SAFE: GET operations retry automatically
-var result = await _errorHandler.ExecuteWithRetryAsync(
-    () => _providersApi.GetProvidersAsync(pageNumber, pageSize),
-    "carregar provedores",
-    HttpMethod.Get,  // Idempotent - safe to retry
-    maxAttempts: 3);
-
-// ❌ UNSAFE: POST operations do NOT retry by default
-var result = await _errorHandler.ExecuteWithRetryAsync(
-    () => _providersApi.CreateProviderAsync(request),
-    "criar provedor",
-    HttpMethod.Post,  // Non-idempotent - NO retry to prevent duplicates
-    maxAttempts: 3);
-
-// ⚠️ EXPLICIT OPT-IN: Force retry for non-idempotent (use with caution!)
-var result = await _errorHandler.ExecuteWithRetryAsync(
-    () => _providersApi.DeleteProviderAsync(providerId),
-    "excluir provedor",
-    HttpMethod.Delete,
-    maxAttempts: 3,
-    allowRetryForNonIdempotent: true);  // Explicit opt-in required
-```
-
-**Idempotent Methods** (safe to retry):
-- ✅ GET - Read operations
-- ✅ HEAD - Metadata only
-- ✅ OPTIONS - Capability checks
+### 2. Error Mapping with Correlation Tracking
 
 **Non-Idempotent Methods** (NO retry by default):
 - ❌ POST - Create operations (duplicate resources)
@@ -165,61 +199,72 @@ var result = await _errorHandler.ExecuteWithRetryAsync(
 ### 3. Manual Error Mapping
 
 ```csharp
-// Get user-friendly message from error code
-var message = _errorHandler.GetUserFriendlyMessage("PROVIDER_NOT_FOUND");
-// Returns: "Provedor não encontrado."
+// Display user-friendly message for API error
+var result = await _errorHandler.ExecuteWithErrorHandlingAsync(
+    () => _api.GetDataAsync(),
+    "carregar dados");
 
-// With fallback for unknown codes
-var message = _errorHandler.GetUserFriendlyMessage("CUSTOM_ERROR", "Technical error message");
-// Returns: "Ocorreu um erro inesperado. Nossa equipe foi notificada."
+if (!result.IsSuccess)
+{
+    var message = _errorHandler.HandleApiError(result, "carregar dados");
+    _snackbar.Add(message, Severity.Error);
+    // Returns: "Recurso não encontrado." (for 404)
+}
 ```
 
-### 4. HTTP Status Code Mapping
+### 3. HTTP Status Code Mapping
 
 ```csharp
-var message = _errorHandler.GetMessageFromHttpStatus(404);
+var message = _errorHandler.GetUserFriendlyMessage(404);
 // Returns: "Recurso não encontrado."
 
-var message = _errorHandler.GetMessageFromHttpStatus(500);
-// Returns: "Erro interno do servidor."
+var message = _errorHandler.GetUserFriendlyMessage(500);
+// Returns: "Erro interno do servidor. Nossa equipe foi notificada."
+
+var message = _errorHandler.GetUserFriendlyMessage(503, "Backend custom message");
+// Returns: "Backend custom message" (backend message takes priority)
 ```
 
-### 5. Display Error to User
+### 4. Display Error to User
 
 ```csharp
-// With error code
-_errorHandler.DisplayError("Falha ao salvar", "PROVIDER_001");
-// Screen reader announces: "Falha ao salvar (Código: PROVIDER_001)"
-
-// Without error code
-_errorHandler.DisplayError("Operação cancelada");
-// Screen reader announces: "Operação cancelada"
+// Error message automatically shown via Snackbar
+var errorMessage = _errorHandler.HandleApiError(result, "salvar provedor");
+_snackbar.Add(errorMessage, Severity.Error);
+// Also announces to screen readers via LiveRegionService
 ```
 
 ## Correlation IDs
 
-Every error is logged with a unique correlation ID for tracking across frontend and backend.
+Every error is logged with a unique correlation ID (Activity.Current.Id) for tracking across frontend and backend.
 
 **Frontend Logging**:
 ```csharp
-_logger.LogWarning(
-    "API error during {Operation}. CorrelationId: {CorrelationId}. ErrorCode: {ErrorCode}",
-    "Carregar provedores",
-    correlationId,
-    errorCode);
+_logger.LogError(
+    "Operação '{Operation}' falhou com status {StatusCode}: {ErrorMessage} [CorrelationId: {CorrelationId}]",
+    "carregar provedores",
+    statusCode,
+    errorMessage,
+    correlationId);
 ```
 
 **Example Log Output**:
 ```
-warn: MeAjudaAi.Web.Admin.Services.ErrorHandlingService[0]
-      API error during Carregar provedores. CorrelationId: 7f8a3b2c1d9e4f5a6b7c8d9e0f1a2b3c. ErrorCode: TIMEOUT
+error: MeAjudaAi.Web.Admin.Services.ErrorHandlingService[0]
+       Operação 'carregar provedores' falhou com status 503: Service Unavailable [CorrelationId: 00-7f8a3b2c1d9e4f5a6b7c8d9e0f1a2b3c-1a2b3c4d5e6f7a8b-01]
 ```
 
-**User-Facing Error UI**:
+**Polly Retry Logging**:
+```
+warn: MeAjudaAi.Web.Admin.Services.Resilience.PollyPolicies[0]
+      ⚠️ Retry 1/3 after 2s delay. Request: https://api.meajudaai.com/providers?page=1. Reason: 503
+```
+
+**User-Facing Error UI** (in ErrorBoundaryContent):
 ```razor
 <MudAlert Severity="Severity.Info">
-    <b>ID do Erro:</b> 7f8a3b2c1d9e4f5a6b7c8d9e0f1a2b3c
-    <small>Por favor, informe este código ao suporte técnico.</small>
+    <b>ID de Rastreamento:</b> @ErrorState.CorrelationId
+    <small>Informe este código ao suporte técnico.</small>
 </MudAlert>
 ```
 
@@ -252,59 +297,90 @@ warn: MeAjudaAi.Web.Admin.Services.ErrorHandlingService[0]
 ```csharp
 // In Effect test
 var mockApi = new Mock<IProvidersApi>();
+## Testing Error Handling
+
+### Simulate Network Error
+
+```csharp
+// In Effect test
+var mockApi = new Mock<IProvidersApi>();
 mockApi.Setup(x => x.GetProvidersAsync(It.IsAny<int>(), It.IsAny<int>()))
        .ThrowsAsync(new HttpRequestException("Network error"));
 
-// ErrorHandlingService will retry 3 times
+// Polly will retry 3 times at HttpClient level
+// ErrorHandlingService maps to: "Erro de conexão. Verifique sua internet."
 ```
 
-### Simulate Backend Error Code
+### Simulate Backend Error
 
 ```csharp
 mockApi.Setup(x => x.CreateProviderAsync(It.IsAny<CreateProviderRequest>()))
-       .ReturnsAsync(Response<Guid>.Failure(
-           ErrorInfo.Create("PROVIDER_ALREADY_EXISTS", "Provider exists")));
+       .ReturnsAsync(Result<Guid>.Failure(
+           Error.Conflict("Provider already exists")));
 
-// ErrorHandlingService maps to: "Já existe um provedor com este documento."
+// No retry for 409 Conflict (not transient)
+// ErrorHandlingService maps to: "Conflito. O recurso já existe ou foi modificado."
 ```
 
 ### Test Retry Logic
 
 ```csharp
+// Simulate transient error that resolves after 2 attempts
 var attempt = 0;
 mockApi.Setup(x => x.GetProvidersAsync(It.IsAny<int>(), It.IsAny<int>()))
        .ReturnsAsync(() =>
        {
            attempt++;
            if (attempt < 3)
-               return Response<PagedResult<ModuleProviderDto>>.Failure(
-                   ErrorInfo.Create("TIMEOUT", "Request timeout"));
+               return Result<PagedResult<ProviderDto>>.Failure(
+                   Error.ServiceUnavailable("Service temporarily unavailable"));
            
-           return Response<PagedResult<ModuleProviderDto>>.Success(pagedResult);
+           return Result<PagedResult<ProviderDto>>.Success(pagedResult);
        });
 
-// Succeeds on 3rd attempt after 2 retries (1s + 2s delays)
+// Polly retries 2 times (attempt 1 fails, attempt 2 fails, attempt 3 succeeds)
+// Total backoff: 2s + 4s = 6 seconds
 ```
+
+## Architecture Decision: Single Retry Layer
+
+**Problem**: Previously had double-retry stacking:
+- Polly retry (3 attempts) × ErrorHandlingService retry (3 attempts) = **9 total attempts**
+- Excessive backend load, slow UX, unnecessary network traffic
+
+**Solution**: Moved all retry logic to Polly (HttpClient level):
+- ✅ Retry at transport level (network errors, timeouts, 5xx)
+- ✅ Circuit breaker for fail-fast behavior
+- ✅ ErrorHandlingService handles only error mapping + correlation tracking
+- ✅ **Exactly 3 total attempts** (not 9)
+
+**Benefits**:
+- Clear separation of concerns
+- Standard Polly patterns
+- Better performance (fewer retries)
+- Easier to test and debug
 
 ## Best Practices
 
 ### DO:
-✅ Use ErrorHandlingService in all Effects  
-✅ Map backend error codes to Portuguese messages  
-✅ Enable retry for transient failures  
-✅ Include correlation IDs in logs  
-✅ Announce errors to screen readers  
-✅ Provide recovery options (retry, reload)  
+✅ Use ErrorHandlingService.ExecuteWithErrorHandlingAsync in all Effects  
+✅ Let Polly handle retry at HttpClient level (3 attempts)  
+✅ Map HTTP status codes to Portuguese messages  
+✅ Include correlation IDs (Activity.Current.Id) in logs  
+✅ Announce errors to screen readers via LiveRegionService  
+✅ Provide recovery options (ErrorBoundary.Recover())  
 ✅ Log technical details for debugging  
+✅ Trust Polly for transient error detection (5xx, 408, network)
 
 ### DON'T:
 ❌ Show technical error messages to users  
-❌ Retry validation errors  
+❌ Implement retry logic in business layer (Polly handles it)  
 ❌ Ignore correlation IDs  
 ❌ Hardcode error messages in components  
 ❌ Skip error logging  
-❌ Block UI during retries  
-❌ Retry indefinitely  
+❌ Block UI during retries (Polly handles async)  
+❌ Retry non-transient errors (400, 404, 409)  
+❌ Stack multiple retry layers (causes 9× attempts)  
 
 ## Error Message Guidelines
 

@@ -52,11 +52,10 @@ public class ProvidersEffects
         }
 
         // Use retry logic for transient failures (GET is safe to retry)
-        var result = await _errorHandler.ExecuteWithRetryAsync(
+        // Polly handles retry at HttpClient level (3 attempts with exponential backoff)
+        var result = await _errorHandler.ExecuteWithErrorHandlingAsync(
             () => _providersApi.GetProvidersAsync(action.PageNumber, action.PageSize),
-            "carregar provedores",
-            HttpMethod.Get,  // GET operations are safe to retry (idempotent)
-            maxAttempts: 3);
+            "carregar provedores");
 
         if (result.IsSuccess)
         {

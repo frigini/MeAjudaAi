@@ -68,176 +68,71 @@ public class ErrorHandlingService
     }
 
     /// <summary>
-    /// Determina se deve tentar novamente baseado no código de status HTTP e método HTTP.
-    /// </summary>
-    /// <param name="statusCode">Código de status HTTP</param>
-    /// <param name="attemptCount">Número de tentativas já realizadas</param>
-    /// <param name="httpMethod">Método HTTP da requisição</param>
-    /// <param name="allowRetryForNonIdempotent">Se true, permite retry para métodos não-idempotentes (POST/PUT/DELETE)</param>
-    /// <returns>True se deve tentar novamente</returns>
-    private bool ShouldRetry(int statusCode, int attemptCount, HttpMethod httpMethod, bool allowRetryForNonIdempotent)
-    {
-        // Nunca faz retry para conflitos (409) - indica recurso já existe ou foi modificado
-        if (statusCode == 409)
-        {
-            return false;
-        }
-
-        // Só faz retry para erros transientes (5xx e 408 timeout)
-        var isTransientError = statusCode >= 500 || statusCode == 408;
-        
-        if (!isTransientError || attemptCount >= 3)
-        {
-            return false;
-        }
-
-        // Verifica se método HTTP é seguro para retry (idempotente)
-        if (allowRetryForNonIdempotent)
-        {
-            // Retry explicitamente permitido para métodos não-idempotentes
-            return true;
-        }
-
-        // Apenas métodos idempotentes podem fazer retry por padrão (seguro contra escritas duplicadas)
-        return httpMethod == HttpMethod.Get || 
-               httpMethod == HttpMethod.Head || 
-               httpMethod == HttpMethod.Options;
-    }
-
-    /// <summary>
-    /// Calcula delay para retry com exponential backoff.
-    /// </summary>
-    /// <param name="attemptCount">Número da tentativa</param>
-    /// <returns>Delay em milissegundos</returns>
-    private int GetRetryDelay(int attemptCount)
-    {
-        // Exponential backoff: 2^attempt * 1000ms
-        // Attempt 0: 1 segundo
-        // Attempt 1: 2 segundos
-        // Attempt 2: 4 segundos
-        return (int)Math.Pow(2, attemptCount) * 1000;
-    }
-
-    /// <summary>
-    /// Executa operação com retry automático em caso de erros transientes.
-    /// IMPORTANTE: Por padrão, apenas métodos idempotentes (GET, HEAD, OPTIONS) fazem retry para evitar escritas duplicadas.
-    /// Para métodos não-idempotentes (POST, PUT, DELETE), defina allowRetryForNonIdempotent = true explicitamente.
+    /// Executa operação de API com tratamento padronizado de erros e correlation tracking.
+    /// Retry logic é tratado pelo Polly no HttpClient (3 tentativas com exponential backoff).
+    /// Este método foca em error mapping e logging com correlation IDs.
     /// </summary>
     /// <typeparam name="T">Tipo de retorno</typeparam>
     /// <param name="apiCall">Função que executa a chamada à API</param>
     /// <param name="operation">Nome da operação (para logging)</param>
-    /// <param name="httpMethod">Método HTTP da requisição (GET, POST, PUT, DELETE, etc.)</param>
-    /// <param name="maxAttempts">Número máximo de tentativas (padrão: 3)</param>
-    /// <param name="allowRetryForNonIdempotent">Se true, permite retry para POST/PUT/DELETE (use com cautela!)</param>
     /// <returns>Resultado da operação</returns>
     /// <remarks>
-    /// POLÍTICA DE RETRY:
-    /// - GET, HEAD, OPTIONS: Retry automático em erros 5xx e 408 (até 3 tentativas)
-    /// - POST, PUT, DELETE: NÃO faz retry por padrão (previne escritas duplicadas)
-    /// - HTTP 409 Conflict: NUNCA faz retry (recurso já existe ou foi modificado)
-    /// - Exponential backoff: 1s → 2s → 4s entre tentativas
+    /// ARQUITETURA DE RESILIÊNCIA:
+    /// - Retry Logic: Tratado pelo Polly no HttpClient (PollyPolicies.GetCombinedPolicy)
+    ///   * 3 tentativas com exponential backoff: 2s → 4s → 8s
+    ///   * Apenas para erros transientes (5xx, 408 timeout, network errors)
+    ///   * Circuit breaker: abre após 5 falhas consecutivas
+    /// - Error Mapping: Convertido neste método (HTTP status → mensagens amigáveis)
+    /// - Correlation Tracking: Activity.Current.Id para rastreamento end-to-end
     /// 
     /// EXEMPLOS:
-    /// - LoadProviders (GET): ExecuteWithRetryAsync(..., HttpMethod.Get) ✅ Safe retry
-    /// - CreateProvider (POST): ExecuteWithRetryAsync(..., HttpMethod.Post) ❌ No retry by default
-    /// - DeleteProvider (DELETE): ExecuteWithRetryAsync(..., HttpMethod.Delete, allowRetryForNonIdempotent: false) ❌ No retry
+    /// - LoadProviders (GET): await ExecuteWithErrorHandlingAsync(() => api.Get(...), "carregar provedores")
+    /// - CreateProvider (POST): await ExecuteWithErrorHandlingAsync(() => api.Post(...), "criar provedor")
+    /// - UpdateProvider (PUT): await ExecuteWithErrorHandlingAsync(() => api.Put(...), "atualizar provedor")
     /// </remarks>
-    public async Task<Result<T>> ExecuteWithRetryAsync<T>(
+    public async Task<Result<T>> ExecuteWithErrorHandlingAsync<T>(
         Func<Task<Result<T>>> apiCall,
-        string operation,
-        HttpMethod httpMethod,
-        int maxAttempts = 3,
-        bool allowRetryForNonIdempotent = false)
+        string operation)
     {
-        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        var correlationId = Activity.Current?.Id ?? Guid.NewGuid().ToString();
+
+        try
         {
-            try
+            var result = await apiCall();
+
+            if (result.IsSuccess)
             {
-                var result = await apiCall();
-
-                if (result.IsSuccess)
-                {
-                    if (attempt > 0)
-                    {
-                        _logger.LogInformation(
-                            "Operação '{Operation}' ({HttpMethod}) bem-sucedida após {Attempts} tentativas",
-                            operation, httpMethod.Method, attempt + 1);
-                    }
-                    return result;
-                }
-
-                var statusCode = result.Error?.StatusCode ?? 500;
-
-                if (ShouldRetry(statusCode, attempt, httpMethod, allowRetryForNonIdempotent))
-                {
-                    var delay = GetRetryDelay(attempt);
-
-                    _logger.LogWarning(
-                        "Tentativa {Attempt} falhou para operação '{Operation}' ({HttpMethod}) com status {StatusCode}. Tentando novamente em {Delay}ms...",
-                        attempt + 1, operation, httpMethod.Method, statusCode, delay);
-
-                    await Task.Delay(delay);
-                    continue;
-                }
-
-                // Se não deve fazer retry, registra erro e retorna
-                var reason = statusCode == 409 
-                    ? "conflito detectado (409) - retry não permitido" 
-                    : !IsIdempotentMethod(httpMethod) && !allowRetryForNonIdempotent
-                        ? $"método {httpMethod.Method} não-idempotente - retry não permitido"
-                        : "erro não transiente ou tentativas excedidas";
-
-                _logger.LogError(
-                    "Operação '{Operation}' ({HttpMethod}) falhou após {Attempts} tentativas com status {StatusCode}: {ErrorMessage}. Motivo: {Reason}",
-                    operation, httpMethod.Method, attempt + 1, statusCode, result.Error?.Message, reason);
-
+                _logger.LogInformation(
+                    "Operação '{Operation}' bem-sucedida [CorrelationId: {CorrelationId}]",
+                    operation, correlationId);
                 return result;
             }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex,
-                    "Exceção de rede na tentativa {Attempt} da operação '{Operation}' ({HttpMethod})",
-                    attempt + 1, operation, httpMethod.Method);
 
-                // Apenas faz retry de exceções de rede para métodos idempotentes
-                if (attempt < maxAttempts - 1 && (IsIdempotentMethod(httpMethod) || allowRetryForNonIdempotent))
-                {
-                    var delay = GetRetryDelay(attempt);
-                    await Task.Delay(delay);
-                    continue;
-                }
+            var statusCode = result.Error?.StatusCode ?? 500;
+            var errorMessage = result.Error?.Message ?? "Erro desconhecido";
 
-                // Retorna erro de network após esgotar tentativas
-                return Result<T>.Failure(Error.Internal("Erro de conexão. Verifique sua internet."));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Exceção inesperada na tentativa {Attempt} da operação '{Operation}' ({HttpMethod})",
-                    attempt + 1, operation, httpMethod.Method);
+            _logger.LogError(
+                "Operação '{Operation}' falhou com status {StatusCode}: {ErrorMessage} [CorrelationId: {CorrelationId}]",
+                operation, statusCode, errorMessage, correlationId);
 
-                // Para exceções não transientes, não faz retry
-                return Result<T>.Failure(Error.Internal($"Erro inesperado: {ex.Message}"));
-            }
+            return result;
         }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex,
+                "Exceção de rede na operação '{Operation}' [CorrelationId: {CorrelationId}]",
+                operation, correlationId);
 
-        // Nunca deve chegar aqui, mas para segurança
-        return Result<T>.Failure(Error.Internal("Operação falhou após todas as tentativas"));
-    }
+            return Result<T>.Failure(Error.Internal("Erro de conexão. Verifique sua internet."));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Exceção inesperada na operação '{Operation}' [CorrelationId: {CorrelationId}]",
+                operation, correlationId);
 
-    /// <summary>
-    /// Verifica se o método HTTP é idempotente (seguro para retry).
-    /// </summary>
-    /// <param name="method">Método HTTP</param>
-    /// <returns>True se idempotente (GET, HEAD, OPTIONS, PUT)</returns>
-    private bool IsIdempotentMethod(HttpMethod method)
-    {
-        // GET, HEAD, OPTIONS: sempre idempotentes
-        // PUT: tecnicamente idempotente (mesma operação múltiplas vezes = mesmo resultado)
-        // POST, DELETE, PATCH: não-idempotentes
-        return method == HttpMethod.Get || 
-               method == HttpMethod.Head || 
-               method == HttpMethod.Options;
+            return Result<T>.Failure(Error.Internal($"Erro inesperado: {ex.Message}"));
+        }
     }
 
     /// <summary>
