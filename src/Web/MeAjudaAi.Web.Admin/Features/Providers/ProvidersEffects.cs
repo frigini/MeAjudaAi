@@ -40,6 +40,8 @@ public class ProvidersEffects
     [EffectMethod]
     public async Task HandleLoadProvidersAction(LoadProvidersAction action, IDispatcher dispatcher)
     {
+        using var cts = new CancellationTokenSource();
+        
         // Verifica permissões antes de fazer a chamada
         var hasPermission = await _permissionService.HasPermissionAsync(PolicyNames.ProviderManagerPolicy);
         if (!hasPermission)
@@ -54,8 +56,9 @@ public class ProvidersEffects
         // Use retry logic for transient failures (GET is safe to retry)
         // Polly handles retry at HttpClient level (3 attempts with exponential backoff)
         var result = await _errorHandler.ExecuteWithErrorHandlingAsync(
-            () => _providersApi.GetProvidersAsync(action.PageNumber, action.PageSize),
-            "carregar provedores");
+            ct => _providersApi.GetProvidersAsync(action.PageNumber, action.PageSize),
+            "carregar provedores",
+            cts.Token);
 
         if (result.IsSuccess)
         {

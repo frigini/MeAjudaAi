@@ -10,11 +10,16 @@ public class ErrorLoggingService
 {
     private readonly ILogger<ErrorLoggingService> _logger;
     private readonly LiveRegionService _liveRegion;
+    private readonly ICorrelationIdProvider _correlationIdProvider;
 
-    public ErrorLoggingService(ILogger<ErrorLoggingService> logger, LiveRegionService liveRegion)
+    public ErrorLoggingService(
+        ILogger<ErrorLoggingService> logger, 
+        LiveRegionService liveRegion,
+        ICorrelationIdProvider correlationIdProvider)
     {
         _logger = logger;
         _liveRegion = liveRegion;
+        _correlationIdProvider = correlationIdProvider;
     }
 
     /// <summary>
@@ -22,7 +27,7 @@ public class ErrorLoggingService
     /// </summary>
     public void LogComponentError(Exception exception, string? componentName = null)
     {
-        var correlationId = Guid.NewGuid().ToString("N");
+        var correlationId = _correlationIdProvider.GetOrCreate();
         var stackTrace = new StackTrace(exception, true);
         
         _logger.LogError(exception,
@@ -42,7 +47,7 @@ public class ErrorLoggingService
     /// </summary>
     public void LogUnhandledError(Exception exception, string context = "Application")
     {
-        var correlationId = Guid.NewGuid().ToString("N");
+        var correlationId = _correlationIdProvider.GetOrCreate();
         
         _logger.LogCritical(exception,
             "Unhandled error in {Context}. CorrelationId: {CorrelationId}. " +
@@ -60,7 +65,7 @@ public class ErrorLoggingService
     /// </summary>
     public void LogApiError(string endpoint, int? statusCode, string errorMessage)
     {
-        var correlationId = Guid.NewGuid().ToString("N");
+        var correlationId = _correlationIdProvider.GetOrCreate();
         
         _logger.LogWarning(
             "API error on {Endpoint}. CorrelationId: {CorrelationId}. " +

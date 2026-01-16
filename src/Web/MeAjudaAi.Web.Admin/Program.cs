@@ -152,6 +152,7 @@ builder.Services.AddScoped<IPermissionService, PermissionService>();
 
 // Registrar serviços de acessibilidade e error handling
 builder.Services.AddScoped<LiveRegionService>();
+builder.Services.AddScoped<ICorrelationIdProvider, CorrelationIdProvider>();
 builder.Services.AddScoped<ErrorLoggingService>();
 builder.Services.AddScoped<ErrorHandlingService>();
 

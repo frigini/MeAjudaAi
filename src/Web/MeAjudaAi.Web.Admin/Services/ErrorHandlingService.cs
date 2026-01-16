@@ -17,10 +17,14 @@ public record ErrorInfo(string Message, string CorrelationId, int StatusCode = 4
 public class ErrorHandlingService
 {
     private readonly ILogger<ErrorHandlingService> _logger;
+    private readonly ICorrelationIdProvider _correlationIdProvider;
 
-    public ErrorHandlingService(ILogger<ErrorHandlingService> logger)
+    public ErrorHandlingService(
+        ILogger<ErrorHandlingService> logger,
+        ICorrelationIdProvider correlationIdProvider)
     {
         _logger = logger;
+        _correlationIdProvider = correlationIdProvider;
     }
 
     /// <summary>
@@ -37,7 +41,7 @@ public class ErrorHandlingService
             return string.Empty;
         }
 
-        var correlationId = Activity.Current?.Id ?? Guid.NewGuid().ToString();
+        var correlationId = _correlationIdProvider.GetOrCreate();
         var errorMessage = result.Error?.Message ?? "Erro desconhecido";
         var statusCode = result.Error?.StatusCode ?? 500;
 
@@ -75,6 +79,7 @@ public class ErrorHandlingService
     /// <typeparam name="T">Tipo de retorno</typeparam>
     /// <param name="apiCall">Função que executa a chamada à API</param>
     /// <param name="operation">Nome da operação (para logging)</param>
+    /// <param name="cancellationToken">Token para cancelamento da operação</param>
     /// <returns>Resultado da operação</returns>
     /// <remarks>
     /// ARQUITETURA DE RESILIÊNCIA:
@@ -84,21 +89,26 @@ public class ErrorHandlingService
     ///   * Circuit breaker: abre após 5 falhas consecutivas
     /// - Error Mapping: Convertido neste método (HTTP status → mensagens amigáveis)
     /// - Correlation Tracking: Activity.Current.Id para rastreamento end-to-end
+    /// - Cancellation Support: Verifica CancellationToken antes de executar
     /// 
     /// EXEMPLOS:
-    /// - LoadProviders (GET): await ExecuteWithErrorHandlingAsync(() => api.Get(...), "carregar provedores")
-    /// - CreateProvider (POST): await ExecuteWithErrorHandlingAsync(() => api.Post(...), "criar provedor")
-    /// - UpdateProvider (PUT): await ExecuteWithErrorHandlingAsync(() => api.Put(...), "atualizar provedor")
+    /// - LoadProviders (GET): await ExecuteWithErrorHandlingAsync(() => api.Get(...), "carregar provedores", ct)
+    /// - CreateProvider (POST): await ExecuteWithErrorHandlingAsync(() => api.Post(...), "criar provedor", ct)
+    /// - UpdateProvider (PUT): await ExecuteWithErrorHandlingAsync(() => api.Put(...), "atualizar provedor", ct)
     /// </remarks>
     public async Task<Result<T>> ExecuteWithErrorHandlingAsync<T>(
-        Func<Task<Result<T>>> apiCall,
-        string operation)
+        Func<CancellationToken, Task<Result<T>>> apiCall,
+        string operation,
+        CancellationToken cancellationToken = default)
     {
-        var correlationId = Activity.Current?.Id ?? Guid.NewGuid().ToString();
+        var correlationId = _correlationIdProvider.GetOrCreate();
 
         try
         {
-            var result = await apiCall();
+            // Check cancellation before executing
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var result = await apiCall(cancellationToken);
 
             if (result.IsSuccess)
             {
@@ -116,6 +126,14 @@ public class ErrorHandlingService
                 operation, statusCode, errorMessage, correlationId);
 
             return result;
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation(
+                "Operação '{Operation}' cancelada [CorrelationId: {CorrelationId}]",
+                operation, correlationId);
+            
+            throw; // Re-throw to let caller handle cancellation
         }
         catch (HttpRequestException ex)
         {
