@@ -18,17 +18,20 @@ public class ProvidersEffects
     private readonly IPermissionService _permissionService;
     private readonly ISnackbar _snackbar;
     private readonly ILogger<ProvidersEffects> _logger;
+    private readonly ErrorHandlingService _errorHandler;
 
     public ProvidersEffects(
         IProvidersApi providersApi,
         IPermissionService permissionService,
         ISnackbar snackbar,
-        ILogger<ProvidersEffects> logger)
+        ILogger<ProvidersEffects> logger,
+        ErrorHandlingService errorHandler)
     {
         _providersApi = providersApi;
         _permissionService = permissionService;
         _snackbar = snackbar;
         _logger = logger;
+        _errorHandler = errorHandler;
     }
 
     /// <summary>
@@ -41,41 +44,38 @@ public class ProvidersEffects
         var hasPermission = await _permissionService.HasPermissionAsync(PolicyNames.ProviderManagerPolicy);
         if (!hasPermission)
         {
+            var errorMessage = _errorHandler.GetUserFriendlyMessage(403, "Você não tem permissão para acessar provedores");
             _logger.LogWarning("User attempted to load providers without proper authorization");
-            _snackbar.Add("Acesso negado: você não tem permissão para visualizar provedores", Severity.Error);
-            dispatcher.Dispatch(new LoadProvidersFailureAction("Acesso negado"));
+            _snackbar.Add(errorMessage, Severity.Error);
+            dispatcher.Dispatch(new LoadProvidersFailureAction(errorMessage));
             return;
         }
 
-        // Usa a extensão para tratar erros de API automaticamente
-        var result = await dispatcher.ExecuteApiCallAsync(
-            apiCall: () => _providersApi.GetProvidersAsync(action.PageNumber, action.PageSize),
-            snackbar: _snackbar,
-            operationName: "Carregar provedores",
-            onSuccess: pagedResult =>
-            {
-                dispatcher.Dispatch(new LoadProvidersSuccessAction(
-                    pagedResult.Value.Items,
-                    pagedResult.Value.TotalItems,
-                    pagedResult.Value.PageNumber,
-                    pagedResult.Value.PageSize));
-                
-                _logger.LogInformation(
-                    "Successfully loaded {Count} providers (page {Page}/{TotalPages})",
-                    pagedResult.Value.Items.Count,
-                    pagedResult.Value.PageNumber,
-                    pagedResult.Value.TotalPages);
-            },
-            onError: ex =>
-            {
-                _logger.LogError(ex, "Failed to load providers");
-                dispatcher.Dispatch(new LoadProvidersFailureAction(ex.Message));
-            });
+        // Use retry logic for transient failures
+        var result = await _errorHandler.ExecuteWithRetryAsync(
+            () => _providersApi.GetProvidersAsync(action.PageNumber, action.PageSize),
+            "carregar provedores",
+            3);
 
-        // Se o resultado foi nulo (erro), dispatch da action de falha já foi feito no onError
-        if (result is null)
+        if (result.IsSuccess)
         {
-            dispatcher.Dispatch(new LoadProvidersFailureAction("Falha ao carregar provedores"));
+            dispatcher.Dispatch(new LoadProvidersSuccessAction(
+                result.Value.Items,
+                result.Value.TotalItems,
+                result.Value.PageNumber,
+                result.Value.PageSize));
+            
+            _logger.LogInformation(
+                "Successfully loaded {Count} providers (page {Page}/{TotalPages})",
+                result.Value.Items.Count,
+                result.Value.PageNumber,
+                result.Value.TotalPages);
+        }
+        else
+        {
+            var errorMessage = _errorHandler.HandleApiError(result, "carregar provedores");
+            _snackbar.Add(errorMessage, Severity.Error);
+            dispatcher.Dispatch(new LoadProvidersFailureAction(errorMessage));
         }
     }
 

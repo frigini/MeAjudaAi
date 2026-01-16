@@ -150,6 +150,7 @@ builder.Services.AddScoped<IPermissionService, PermissionService>();
 // Registrar serviços de acessibilidade e error handling
 builder.Services.AddScoped<LiveRegionService>();
 builder.Services.AddScoped<ErrorLoggingService>();
+builder.Services.AddScoped<ErrorHandlingService>();
 
 // Clientes de API (Refit) com políticas Polly de resiliência
 builder.Services
