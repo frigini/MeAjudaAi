@@ -10,6 +10,7 @@ using MeAjudaAi.Web.Admin;
 using MeAjudaAi.Web.Admin.Authorization;
 using MeAjudaAi.Web.Admin.Extensions;
 using MeAjudaAi.Web.Admin.Services;
+using MeAjudaAi.Web.Admin.Services.Resilience;
 using MeAjudaAi.Web.Admin.Validators;
 using MudBlazor;
 using MudBlazor.Services;
@@ -81,6 +82,12 @@ ValidateConfiguration(clientConfig);
 // PASSO 3: Registrar Serviços com Configuração
 // ====================================
 
+// Registrar serviço de status de conexão (singleton para compartilhar estado)
+builder.Services.AddSingleton<IConnectionStatusService, ConnectionStatusService>();
+
+// Registrar handlers de resiliência
+builder.Services.AddScoped<PollyLoggingHandler>();
+
 // Registrar handler de autenticação customizado
 builder.Services.AddScoped<ApiAuthorizationMessageHandler>();
 
@@ -140,12 +147,12 @@ builder.Services.AddAuthorizationCore(options =>
 // Registrar serviço de permissões
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 
-// Clientes de API (Refit)
+// Clientes de API (Refit) com políticas Polly de resiliência
 builder.Services
     .AddApiClient<IProvidersApi>(clientConfig.ApiBaseUrl)
     .AddApiClient<IServiceCatalogsApi>(clientConfig.ApiBaseUrl)
     .AddApiClient<ILocationsApi>(clientConfig.ApiBaseUrl)
-    .AddApiClient<IDocumentsApi>(clientConfig.ApiBaseUrl);
+    .AddApiClient<IDocumentsApi>(clientConfig.ApiBaseUrl, useUploadPolicy: true); // Upload usa política sem retry
 
 // Registrar ClientConfiguration como singleton para uso em componentes
 builder.Services.AddSingleton(clientConfig);

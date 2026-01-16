@@ -20,6 +20,9 @@
     <PackageReference Include="Refit.HttpClientFactory" />
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" />
+    <PackageReference Include="Polly" />
+    <PackageReference Include="Polly.Extensions.Http" />
   </ItemGroup>
 
   <ItemGroup>

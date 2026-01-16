@@ -1,0 +1,66 @@
+@using MeAjudaAi.Web.Admin.Services.Resilience
+@implements IDisposable
+@inject IConnectionStatusService ConnectionStatusService
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="connection-status-indicator">
+    @if (_currentStatus == ConnectionStatus.Connected)
+    {
+        <MudIcon Icon="@Icons.Material.Filled.CloudDone" 
+                 Size="Size.Small" 
+                 Color="Color.Success"
+                 Title="Conectado" />
+    }
+    else if (_currentStatus == ConnectionStatus.Reconnecting)
+    {
+        <MudIcon Icon="@Icons.Material.Filled.CloudSync" 
+                 Size="Size.Small" 
+                 Color="Color.Warning"
+                 Title="Reconectando..." 
+                 Class="rotating" />
+        <MudText Typo="Typo.caption" Color="Color.Warning">Reconectando...</MudText>
+    }
+    else if (_currentStatus == ConnectionStatus.Disconnected)
+    {
+        <MudIcon Icon="@Icons.Material.Filled.CloudOff" 
+                 Size="Size.Small" 
+                 Color="Color.Error"
+                 Title="Desconectado" />
+        <MudText Typo="Typo.caption" Color="Color.Error">Sem conexão</MudText>
+    }
+</MudStack>
+
+<style>
+    .connection-status-indicator {
+        padding: 4px 8px;
+    }
+
+    @@keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .rotating {
+        animation: rotate 2s linear infinite;
+    }
+</style>
+
+@code {
+    private ConnectionStatus _currentStatus;
+
+    protected override void OnInitialized()
+    {
+        _currentStatus = ConnectionStatusService.CurrentStatus;
+        ConnectionStatusService.StatusChanged += OnStatusChanged;
+    }
+
+    private void OnStatusChanged(object? sender, ConnectionStatus status)
+    {
+        _currentStatus = status;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        ConnectionStatusService.StatusChanged -= OnStatusChanged;
+    }
+}

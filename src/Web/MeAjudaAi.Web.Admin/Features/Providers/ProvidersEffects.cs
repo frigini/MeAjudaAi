@@ -1,7 +1,9 @@
 using Fluxor;
 using MeAjudaAi.Client.Contracts.Api;
 using MeAjudaAi.Web.Admin.Authorization;
+using MeAjudaAi.Web.Admin.Extensions;
 using MeAjudaAi.Web.Admin.Services;
+using MudBlazor;
 using static MeAjudaAi.Web.Admin.Features.Providers.ProvidersActions;
 
 namespace MeAjudaAi.Web.Admin.Features.Providers;
@@ -14,15 +16,18 @@ public class ProvidersEffects
 {
     private readonly IProvidersApi _providersApi;
     private readonly IPermissionService _permissionService;
+    private readonly ISnackbar _snackbar;
     private readonly ILogger<ProvidersEffects> _logger;
 
     public ProvidersEffects(
         IProvidersApi providersApi,
         IPermissionService permissionService,
+        ISnackbar snackbar,
         ILogger<ProvidersEffects> logger)
     {
         _providersApi = providersApi;
         _permissionService = permissionService;
+        _snackbar = snackbar;
         _logger = logger;
     }
 
@@ -32,39 +37,45 @@ public class ProvidersEffects
     [EffectMethod]
     public async Task HandleLoadProvidersAction(LoadProvidersAction action, IDispatcher dispatcher)
     {
-        try
+        // Verifica permissões antes de fazer a chamada
+        var hasPermission = await _permissionService.HasPermissionAsync(PolicyNames.ProviderManagerPolicy);
+        if (!hasPermission)
         {
-            // Verifica se o usuário tem permissão para ver os provedores
-            var hasPermission = await _permissionService.HasPermissionAsync(PolicyNames.ProviderManagerPolicy);
-            if (!hasPermission)
-            {
-                _logger.LogWarning("User attempted to load providers without proper authorization");
-                dispatcher.Dispatch(new LoadProvidersFailureAction("Acesso negado: você não tem permissão para visualizar provedores"));
-                return;
-            }
+            _logger.LogWarning("User attempted to load providers without proper authorization");
+            _snackbar.Add("Acesso negado: você não tem permissão para visualizar provedores", Severity.Error);
+            dispatcher.Dispatch(new LoadProvidersFailureAction("Acesso negado"));
+            return;
+        }
 
-            var result = await _providersApi.GetProvidersAsync(
-                action.PageNumber, 
-                action.PageSize);
-
-            if (result.IsSuccess && result.Value is not null)
+        // Usa a extensão para tratar erros de API automaticamente
+        var result = await dispatcher.ExecuteApiCallAsync(
+            apiCall: () => _providersApi.GetProvidersAsync(action.PageNumber, action.PageSize),
+            snackbar: _snackbar,
+            operationName: "Carregar provedores",
+            onSuccess: pagedResult =>
             {
                 dispatcher.Dispatch(new LoadProvidersSuccessAction(
-                    result.Value.Items,
-                    result.Value.TotalItems,
-                    result.Value.PageNumber,
-                    result.Value.PageSize));
-            }
-            else
+                    pagedResult.Value.Items,
+                    pagedResult.Value.TotalItems,
+                    pagedResult.Value.PageNumber,
+                    pagedResult.Value.PageSize));
+                
+                _logger.LogInformation(
+                    "Successfully loaded {Count} providers (page {Page}/{TotalPages})",
+                    pagedResult.Value.Items.Count,
+                    pagedResult.Value.PageNumber,
+                    pagedResult.Value.TotalPages);
+            },
+            onError: ex =>
             {
-                _logger.LogError("Failed to load providers: {Error}", result.Error?.Message);
-                dispatcher.Dispatch(new LoadProvidersFailureAction("Falha ao carregar fornecedores. Tente novamente mais tarde."));
-            }
-        }
-        catch (Exception ex)
+                _logger.LogError(ex, "Failed to load providers");
+                dispatcher.Dispatch(new LoadProvidersFailureAction(ex.Message));
+            });
+
+        // Se o resultado foi nulo (erro), dispatch da action de falha já foi feito no onError
+        if (result is null)
         {
-            _logger.LogError(ex, "Exception while loading providers");
-            dispatcher.Dispatch(new LoadProvidersFailureAction("Erro ao carregar fornecedores. Tente novamente mais tarde."));
+            dispatcher.Dispatch(new LoadProvidersFailureAction("Falha ao carregar provedores"));
         }
     }
 

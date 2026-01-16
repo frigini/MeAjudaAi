@@ -11,6 +11,7 @@
                        AriaLabel="Toggle navigation" />
         <MudText Typo="Typo.h5" Class="ml-3">MeAjudaAi - Admin Portal</MudText>
         <MudSpacer />
+        <ConnectionStatusIndicator />
         <MudIconButton Icon="@(ThemeState.Value.IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" 
                        Color="Color.Inherit" 
                        OnClick="@ToggleDarkMode" 
