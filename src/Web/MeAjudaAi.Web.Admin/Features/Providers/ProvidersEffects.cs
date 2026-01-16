@@ -51,11 +51,12 @@ public class ProvidersEffects
             return;
         }
 
-        // Use retry logic for transient failures
+        // Use retry logic for transient failures (GET is safe to retry)
         var result = await _errorHandler.ExecuteWithRetryAsync(
             () => _providersApi.GetProvidersAsync(action.PageNumber, action.PageSize),
             "carregar provedores",
-            3);
+            HttpMethod.Get,  // GET operations are safe to retry (idempotent)
+            maxAttempts: 3);
 
         if (result.IsSuccess)
         {

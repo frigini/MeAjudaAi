@@ -99,12 +99,44 @@ public async Task HandleLoadProvidersAction(LoadProvidersAction action, IDispatc
 
 ### 2. Retry Logic with Exponential Backoff
 
+⚠️ **CRITICAL: Retry Safety Policy**
+
+**By default, only idempotent operations (GET, HEAD, OPTIONS) will retry to prevent duplicate writes, double payments, and data corruption.**
+
 ```csharp
+// ✅ SAFE: GET operations retry automatically
 var result = await _errorHandler.ExecuteWithRetryAsync(
-    action: () => _providersApi.CreateProviderAsync(request),
-    operation: "Criar provedor",
+    () => _providersApi.GetProvidersAsync(pageNumber, pageSize),
+    "carregar provedores",
+    HttpMethod.Get,  // Idempotent - safe to retry
     maxAttempts: 3);
+
+// ❌ UNSAFE: POST operations do NOT retry by default
+var result = await _errorHandler.ExecuteWithRetryAsync(
+    () => _providersApi.CreateProviderAsync(request),
+    "criar provedor",
+    HttpMethod.Post,  // Non-idempotent - NO retry to prevent duplicates
+    maxAttempts: 3);
+
+// ⚠️ EXPLICIT OPT-IN: Force retry for non-idempotent (use with caution!)
+var result = await _errorHandler.ExecuteWithRetryAsync(
+    () => _providersApi.DeleteProviderAsync(providerId),
+    "excluir provedor",
+    HttpMethod.Delete,
+    maxAttempts: 3,
+    allowRetryForNonIdempotent: true);  // Explicit opt-in required
 ```
+
+**Idempotent Methods** (safe to retry):
+- ✅ GET - Read operations
+- ✅ HEAD - Metadata only
+- ✅ OPTIONS - Capability checks
+
+**Non-Idempotent Methods** (NO retry by default):
+- ❌ POST - Create operations (duplicate resources)
+- ❌ PUT - Update operations (conflicting updates)
+- ❌ DELETE - Delete operations (404 on retry)
+- ❌ PATCH - Partial updates (conflicting changes)
 
 **Retry Strategy**:
 - **Attempt 1**: Immediate (0s delay)
@@ -112,13 +144,23 @@ var result = await _errorHandler.ExecuteWithRetryAsync(
 - **Attempt 3**: 2s delay (2^1 seconds)
 - **Attempt 4**: 4s delay (2^2 seconds)
 
-Only retries transient errors:
-- NETWORK_ERROR
-- TIMEOUT
-- SERVICE_UNAVAILABLE
-- SERVER_ERROR
+**Only retries transient errors**:
+- 5xx Server Errors (500, 502, 503, 504)
+- 408 Request Timeout
 
-Non-retryable errors (validation, not found, etc.) fail immediately.
+**NEVER retries**:
+- 409 Conflict (resource already exists or was modified)
+- 400 Bad Request (validation errors)
+- 401 Unauthorized (authentication required)
+- 403 Forbidden (insufficient permissions)
+- 404 Not Found (resource doesn't exist)
+- 422 Unprocessable Entity (business rule violation)
+
+**Non-retryable errors fail immediately to prevent:**
+- Duplicate resource creation (POST retry → 2 users created)
+- Double payments (POST retry → charged twice)
+- Data corruption (PUT retry → conflicting updates)
+- Unexpected state (DELETE retry → 404 on second attempt)
 
 ### 3. Manual Error Mapping
 
