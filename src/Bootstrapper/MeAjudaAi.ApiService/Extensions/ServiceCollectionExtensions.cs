@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using MeAjudaAi.ApiService.Endpoints;
+using MeAjudaAi.ApiService.Middleware;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.ApiService.Services.Authentication;
@@ -123,6 +124,9 @@ public static class ServiceCollectionExtensions
         // Exception handling DEVE estar no início do pipeline
         app.UseExceptionHandler();
 
+        // Content Security Policy - adicionar no início para proteger todas as respostas
+        app.UseContentSecurityPolicy();
+
         // ForwardedHeaders deve ser o primeiro para popular corretamente RemoteIpAddress para rate limiting
         // Processa cabeçalhos X-Forwarded-* de proxies reversos (load balancers, nginx, etc.)
         app.UseForwardedHeaders();
@@ -169,6 +173,9 @@ public static class ServiceCollectionExtensions
 
         // Map Configuration Endpoints (deve ser após UseAuthorization)
         app.MapConfigurationEndpoints();
+        
+        // Map CSP Report Endpoint (deve ser anônimo)
+        app.MapCspReportEndpoints();
 
         // Health Checks UI removido - usar Aspire Dashboard (http://localhost:15888)
         // Para visualizar health checks, acesse o Aspire Dashboard que oferece:
