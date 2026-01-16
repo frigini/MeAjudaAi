@@ -278,10 +278,11 @@ model.Description = ValidationExtensions.SanitizeInput(model.Description);
    }
    ```
 
-3. **Additional Languages** (Future)
-   - Error messages are already in Portuguese (PT-BR) per project standards
-   - For multi-language support, add resource files and localization middleware
-   - Current validators use hardcoded Portuguese messages for user-facing errors
+3. **Localization Requirements**
+   - All user-facing validation messages **must be in Portuguese (PT-BR)** - this is a project requirement
+   - Error messages are already implemented in PT-BR in all validators
+   - For multi-language support in the future, use resource files (.resx) with localization middleware
+   - Current implementation uses hardcoded PT-BR strings per project standards
 
 4. **Async Validators** (Future)
    - Database uniqueness checks (email, document)

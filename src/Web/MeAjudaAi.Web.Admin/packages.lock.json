@@ -40,6 +40,16 @@
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0"
         }
       },
+      "HtmlSanitizer": {
+        "type": "Direct",
+        "requested": "[8.1.870, )",
+        "resolved": "8.1.870",
+        "contentHash": "bQWYaKg8PrlgnhM9sPALl0UorpjWQkPTQiSTVyvm8imqF9lCLqBmtC0adUDi8xUYcdg6SJC+aHCw1MOjcg+Wnw==",
+        "dependencies": {
+          "AngleSharp": "[0.17.1]",
+          "AngleSharp.Css": "[0.17.0]"
+        }
+      },
       "Microsoft.AspNetCore.App.Internal.Assets": {
         "type": "Direct",
         "requested": "[10.0.1, )",
@@ -112,6 +122,19 @@
         "dependencies": {
           "Microsoft.Extensions.Http": "9.0.3",
           "Refit": "9.0.2"
+        }
+      },
+      "AngleSharp": {
+        "type": "Transitive",
+        "resolved": "0.17.1",
+        "contentHash": "5MPI4bbixlwxb0W/smOMeIR+QlxMy5/5jD+WnIAw4pBC+7AhLPe5bS3cLgQMJyvd6q0A48sG+uYOt/ep406GLA=="
+      },
+      "AngleSharp.Css": {
+        "type": "Transitive",
+        "resolved": "0.17.0",
+        "contentHash": "bg0AcugmX6BFEi/DHG61QrwRU8iuiX4H8LZehdIzYdqOM/dgb3BsCTzNIcc1XADn4+xfQEdVwJYTSwUxroL4vg==",
+        "dependencies": {
+          "AngleSharp": "[0.17.0, 0.18.0)"
         }
       },
       "Fluxor": {

@@ -116,8 +116,8 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IApplicationBuilder UseApiServices(
-        this IApplicationBuilder app,
+    public static WebApplication UseApiServices(
+        this WebApplication app,
         IWebHostEnvironment environment)
     {
         // Exception handling DEVE estar no início do pipeline

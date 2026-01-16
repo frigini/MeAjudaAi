@@ -144,7 +144,7 @@ public static class InputSanitizer
     /// </summary>
     public static EventCallback<string> CreateSanitizedCallback(object? receiver, Action<string> setter)
     {
-        return EventCallback.Factory.Create<string>(receiver, (value) =>
+        return EventCallback.Factory.Create<string>(receiver ?? new object(), (value) =>
         {
             setter(Sanitize(value));
         });

@@ -6,7 +6,7 @@ The MeAjudaAi.Web.Admin Blazor WASM application uses a **secure configuration pa
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────┐
 │  Blazor WASM App    │
 │  (Browser)          │
@@ -243,7 +243,7 @@ Program.cs validates received configuration:
 
 **Error Messages:**
 
-```
+```text
 ❌❌❌ CONFIGURATION VALIDATION FAILED ❌❌❌
 
 ❌ Keycloak Authority is missing
@@ -298,7 +298,7 @@ Please check your backend configuration and ensure all required settings are pro
    ```
 
 4. Check browser console for config messages:
-   ```
+   ```text
    🔧 Fetching configuration from: https://localhost:7001/api/configuration/client
    ✅ Configuration loaded successfully
       API Base URL: https://localhost:7001

@@ -186,6 +186,7 @@ public class PrimaryAddressDtoValidator : AbstractValidator<PrimaryAddressDto>
         RuleFor(x => x.Country)
             .NotEmpty()
             .WithMessage("País é obrigatório")
+            .NoXss()
             .MinimumLength(2)
             .WithMessage("País deve ter no mínimo 2 caracteres")
             .MaximumLength(100)

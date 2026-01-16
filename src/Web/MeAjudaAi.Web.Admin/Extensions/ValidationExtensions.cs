@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using FluentValidation;
+using Ganss.Xss;
 
 namespace MeAjudaAi.Web.Admin.Extensions;
 
@@ -235,58 +236,65 @@ public static class ValidationExtensions
 
     #region XSS Sanitization
 
-    private static readonly Regex[] DangerousPatterns =
+    private static readonly HtmlSanitizer _htmlSanitizer = CreateHtmlSanitizer();
+
+    private static HtmlSanitizer CreateHtmlSanitizer()
     {
-        new Regex(@"<script[\s\S]*?>[\s\S]*?</script>", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-        new Regex(@"javascript\s*:", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-        new Regex(@"data\s*:", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-        new Regex(@"on\w+\s*=", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-        new Regex(@"<iframe", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-        new Regex(@"<embed", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-        new Regex(@"<object", RegexOptions.IgnoreCase | RegexOptions.Compiled)
-    };
+        var sanitizer = new HtmlSanitizer();
+        
+        // Configuração restritiva - limpar quase tudo, permitir apenas formatação básica de texto
+        sanitizer.AllowedTags.Clear();
+        sanitizer.AllowedTags.Add("b");
+        sanitizer.AllowedTags.Add("i");
+        sanitizer.AllowedTags.Add("u");
+        sanitizer.AllowedTags.Add("em");
+        sanitizer.AllowedTags.Add("strong");
+        sanitizer.AllowedTags.Add("br");
+        sanitizer.AllowedTags.Add("p");
+        
+        sanitizer.AllowedAttributes.Clear();
+        sanitizer.AllowedCssProperties.Clear();
+        
+        // Bloqueia javascript:, data:, etc - permite apenas http/https
+        sanitizer.AllowedSchemes.Clear();
+        sanitizer.AllowedSchemes.Add("http");
+        sanitizer.AllowedSchemes.Add("https");
+        
+        sanitizer.AllowDataAttributes = false;
+        
+        return sanitizer;
+    }
 
     /// <summary>
-    /// Remove caracteres potencialmente perigosos para prevenir XSS.
-    /// Remove: &lt;, &gt;, &lt;script&gt;, tags HTML, javascript:
+    /// Remove caracteres potencialmente perigosos para prevenir XSS usando HtmlSanitizer.
+    /// Usa allowlist de tags/atributos permitidos ao invés de blacklist de padrões perigosos.
     /// </summary>
     public static string SanitizeInput(string? input)
     {
         if (string.IsNullOrWhiteSpace(input))
             return string.Empty;
 
-        // Remove tags HTML
-        var sanitized = Regex.Replace(input, @"<[^>]*>", string.Empty);
-
-        // Remove javascript: e data: URIs
-        sanitized = Regex.Replace(sanitized, @"javascript\s*:", string.Empty, RegexOptions.IgnoreCase);
-        sanitized = Regex.Replace(sanitized, @"data\s*:", string.Empty, RegexOptions.IgnoreCase);
-
-        // Remove event handlers (onclick, onerror, etc)
-        sanitized = Regex.Replace(sanitized, @"on\w+\s*=", string.Empty, RegexOptions.IgnoreCase);
-
-        return sanitized.Trim();
+        return _htmlSanitizer.Sanitize(input).Trim();
     }
 
     /// <summary>
     /// Valida que o texto não contém scripts ou HTML potencialmente perigoso.
+    /// Falha se o conteúdo sanitizado for diferente do original (indica tentativa de XSS).
     /// </summary>
     public static IRuleBuilderOptions<T, string?> NoXss<T>(this IRuleBuilder<T, string?> ruleBuilder)
     {
         return ruleBuilder
-            .Must(text => !ContainsDangerousContent(text))
+            .Must(text =>
+            {
+                if (string.IsNullOrWhiteSpace(text))
+                    return true;
+
+                var sanitized = _htmlSanitizer.Sanitize(text);
+                
+                // Se o conteúdo sanitizado for diferente do original, contém código perigoso
+                return sanitized == text;
+            })
             .WithMessage("O texto contém caracteres ou código não permitido");
-    }
-
-    /// <summary>
-    /// Verifica se o texto contém conteúdo potencialmente perigoso.
-    /// </summary>
-    private static bool ContainsDangerousContent(string? text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-            return false;
-
-        return DangerousPatterns.Any(regex => regex.IsMatch(text));
     }
 
     #endregion

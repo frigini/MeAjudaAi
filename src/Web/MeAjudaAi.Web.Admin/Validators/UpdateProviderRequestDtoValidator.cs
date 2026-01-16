@@ -33,7 +33,7 @@ public class UpdateProviderRequestDtoValidator : AbstractValidator<UpdateProvide
         When(x => x.BusinessProfile != null, () =>
         {
             RuleFor(x => x.BusinessProfile)
-                .SetValidator(new BusinessProfileUpdateDtoValidator()!);
+                .SetValidator(new BusinessProfileUpdateDtoValidator());
         });
     }
 }
@@ -76,13 +76,13 @@ public class BusinessProfileUpdateDtoValidator : AbstractValidator<BusinessProfi
         When(x => x.ContactInfo != null, () =>
         {
             RuleFor(x => x.ContactInfo)
-                .SetValidator(new ContactInfoUpdateDtoValidator()!);
+                .SetValidator(new ContactInfoUpdateDtoValidator());
         });
 
         When(x => x.PrimaryAddress != null, () =>
         {
             RuleFor(x => x.PrimaryAddress)
-                .SetValidator(new PrimaryAddressUpdateDtoValidator()!);
+                .SetValidator(new PrimaryAddressUpdateDtoValidator());
         });
     }
 }

@@ -13,8 +13,7 @@ public static class ConfigurationEndpoints
     public static IEndpointRouteBuilder MapConfigurationEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/configuration")
-            .WithTags("Configuration")
-            .WithOpenApi();
+            .WithTags("Configuration");
 
         group.MapGet("/client", GetClientConfiguration)
             .WithName("GetClientConfiguration")
