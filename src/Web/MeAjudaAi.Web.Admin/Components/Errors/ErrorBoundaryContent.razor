@@ -1,0 +1,114 @@
+@using Fluxor
+@using MeAjudaAi.Web.Admin.Features.Errors
+@inject IState<ErrorState> ErrorState
+@inject IDispatcher Dispatcher
+@inject NavigationManager Navigation
+
+@if (ErrorState.Value.ShowErrorUI)
+{
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+        <MudPaper Elevation="3" Class="pa-6">
+            <MudStack Spacing="4">
+                <MudStack Row="true" Justify="Justify.Center" AlignItems="AlignItems.Center">
+                    <MudIcon Icon="@Icons.Material.Filled.Error" Color="Color.Error" Size="Size.Large" />
+                    <MudText Typo="Typo.h4" Color="Color.Error">Oops! Algo deu errado</MudText>
+                </MudStack>
+
+                <MudDivider />
+
+                <MudText Typo="Typo.body1" Align="Align.Center">
+                    @ErrorState.Value.UserMessage
+                </MudText>
+
+                @if (!string.IsNullOrEmpty(ErrorState.Value.CorrelationId))
+                {
+                    <MudAlert Severity="Severity.Info" Dense="true">
+                        <b>ID do Erro:</b> @ErrorState.Value.CorrelationId
+                        <br />
+                        <small>Por favor, informe este código ao suporte técnico.</small>
+                    </MudAlert>
+                }
+
+                @if (!string.IsNullOrEmpty(ErrorState.Value.ComponentName))
+                {
+                    <MudText Typo="Typo.caption" Align="Align.Center" Color="Color.Secondary">
+                        Componente: @ErrorState.Value.ComponentName
+                    </MudText>
+                }
+
+                <MudStack Row="true" Justify="Justify.Center" Spacing="2">
+                    @if (ErrorState.Value.IsRecoverable)
+                    {
+                        <MudButton Variant="Variant.Filled" 
+                                   Color="Color.Primary" 
+                                   StartIcon="@Icons.Material.Filled.Refresh"
+                                   OnClick="Retry">
+                            Tentar Novamente
+                        </MudButton>
+                    }
+                    
+                    <MudButton Variant="Variant.Outlined" 
+                               Color="Color.Primary" 
+                               StartIcon="@Icons.Material.Filled.Home"
+                               OnClick="GoHome">
+                        Ir para Home
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Text" 
+                               Color="Color.Secondary" 
+                               StartIcon="@Icons.Material.Filled.Refresh"
+                               OnClick="ReloadPage">
+                        Recarregar Página
+                    </MudButton>
+                </MudStack>
+
+                @if (_showTechnicalDetails && !string.IsNullOrEmpty(ErrorState.Value.TechnicalDetails))
+                {
+                    <MudExpansionPanels>
+                        <MudExpansionPanel Text="Detalhes Técnicos (Desenvolvedor)">
+                            <MudText Typo="Typo.caption" Style="white-space: pre-wrap; font-family: monospace;">
+                                @ErrorState.Value.TechnicalDetails
+                            </MudText>
+                        </MudExpansionPanel>
+                    </MudExpansionPanels>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Text" 
+                               Size="Size.Small"
+                               OnClick="@(() => _showTechnicalDetails = true)">
+                        Mostrar Detalhes Técnicos
+                    </MudButton>
+                }
+
+                @if (ErrorState.Value.OccurredAt.HasValue)
+                {
+                    <MudText Typo="Typo.caption" Align="Align.Center" Color="Color.Secondary">
+                        Ocorrido em: @ErrorState.Value.OccurredAt.Value.ToString("dd/MM/yyyy HH:mm:ss")
+                    </MudText>
+                }
+            </MudStack>
+        </MudPaper>
+    </MudContainer>
+}
+
+@code {
+    private bool _showTechnicalDetails = false;
+
+    private void Retry()
+    {
+        Dispatcher.Dispatch(new RetryAfterErrorAction());
+        Dispatcher.Dispatch(new ClearGlobalErrorAction());
+    }
+
+    private void GoHome()
+    {
+        Dispatcher.Dispatch(new ClearGlobalErrorAction());
+        Navigation.NavigateTo("/");
+    }
+
+    private void ReloadPage()
+    {
+        Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+    }
+}

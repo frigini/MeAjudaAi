@@ -147,8 +147,9 @@ builder.Services.AddAuthorizationCore(options =>
 // Registrar serviço de permissões
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 
-// Registrar serviço de acessibilidade
+// Registrar serviços de acessibilidade e error handling
 builder.Services.AddScoped<LiveRegionService>();
+builder.Services.AddScoped<ErrorLoggingService>();
 
 // Clientes de API (Refit) com políticas Polly de resiliência
 builder.Services
