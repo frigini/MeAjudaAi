@@ -2,6 +2,7 @@ using System.Security.Claims;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 
@@ -22,7 +23,8 @@ public class BaseEndpointTests
         public static new IResult HandlePaged<T>(Result<IEnumerable<T>> result, int total, int page, int size)
             => BaseEndpoint.HandlePaged(result, total, page, size);
 
-
+        public static new IResult HandlePagedResult<T>(Result<PagedResult<T>> result)
+            => BaseEndpoint.HandlePagedResult(result);
 
         public static new IResult HandleNoContent<T>(Result<T> result)
             => BaseEndpoint.HandleNoContent(result);
@@ -181,7 +183,13 @@ public class BaseEndpointTests
     {
         // Arrange
         var items = new List<string> { "item1", "item2" };
-        var pagedResult = new PagedResult<string>(items, 1, 5, 10);
+        var pagedResult = new PagedResult<string>
+        {
+            Items = items,
+            PageNumber = 1,
+            PageSize = 5,
+            TotalItems = 10
+        };
         var successResult = Result<PagedResult<string>>.Success(pagedResult);
 
         // Act

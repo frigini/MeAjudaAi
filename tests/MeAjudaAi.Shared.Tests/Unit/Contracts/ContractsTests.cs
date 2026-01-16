@@ -1,7 +1,21 @@
 using FluentAssertions;
 using MeAjudaAi.Contracts;
+using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Contracts;
+
+// Test helper classes
+public abstract record Request
+{
+    public string? UserId { get; init; }
+}
+
+public record TestPagedRequest : Request
+{
+    public int PageSize { get; init; } = 10;
+    public int PageNumber { get; init; } = 1;
+}
 
 public class ResponseTests
 {

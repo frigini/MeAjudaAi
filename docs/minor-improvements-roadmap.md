@@ -3,15 +3,17 @@
 ## Overview
 Este documento lista melhorias menores sugeridas para as partes 1-5 das implementações do Blazor Admin Portal. Algumas são implementações rápidas, outras requerem planejamento de sprint futuro.
 
+**Status Geral**: Sprint 6 concluída, reorganização para sprints futuras (7+)
+
 ---
 
 ## ✅ Part 1: FluentValidation (Completed)
 
-### Suggestion 1: Async Validators for CPF/CNPJ Uniqueness ⏳ Future Sprint
+### Suggestion 1: Async Validators for CPF/CNPJ Uniqueness ⏳ Backlog
 
-**Status**: Planejado para implementação com integração API Receita Federal  
-**Prioridade**: Média  
-**Sprint Estimado**: 7-8 (com validação de prestadores)
+**Status**: Postergado - Dependente de integração API Receita Federal  
+**Prioridade**: Baixa (não crítico para MVP)  
+**Sprint Estimado**: Backlog (quando integração externa for priorizada)
 
 #### Contexto
 Atualmente a validação de CPF/CNPJ é apenas sintática (dígitos verificadores). Para produção, precisamos verificar:
@@ -114,11 +116,11 @@ Os testes já cobrem todos os edge cases necessários:
 
 ## 🔧 Part 2: Centralized Configuration
 
-### Suggestion 1: Configuration Refresh Capability ⏳ Future Sprint
+### Suggestion 1: Configuration Refresh Capability ⏳ Backlog
 
-**Status**: Planejado para Sprint 6 (Melhorias de DevEx)  
+**Status**: Postergado - Não crítico, complexidade alta vs benefício  
 **Prioridade**: Baixa  
-**Complexidade**: Média
+**Sprint Estimado**: Backlog (DevEx improvements)
 
 #### Contexto
 Atualmente a configuração é buscada apenas no startup do Blazor WASM. Para ambientes de desenvolvimento/staging, seria útil recarregar configuração sem full refresh.
@@ -327,11 +329,11 @@ See [docs/deployment/environment-variables.md](docs/deployment/environment-varia
 
 ## 🔐 Part 4: Authorization & Fluxor
 
-### Suggestion 1: Integration Tests for Authorization ⏳ Sprint 6
+### Suggestion 1: Integration Tests for Authorization ⏳ Backlog
 
-**Status**: Planejado  
-**Prioridade**: Alta  
-**Complexidade**: Média-Alta
+**Status**: Postergado - Baixa prioridade vs esforço  
+**Prioridade**: Baixa (testes E2E cobrem casos principais)  
+**Sprint Estimado**: Backlog
 
 #### Implementação Proposta
 
@@ -435,11 +437,11 @@ public async Task RegularUser_CannotAccessProvidersList()
 
 ## 🛡️ Part 5: Security Headers & CSP
 
-### Suggestion 1: Nonce-based CSP ⏳ Sprint 7
+### Suggestion 1: Nonce-based CSP ⏳ Backlog
 
-**Status**: Planejado  
-**Prioridade**: Média  
-**Complexidade**: Alta
+**Status**: Postergado - Incompatível com Blazor WASM, requer Server-Side Rendering  
+**Prioridade**: Baixa  
+**Sprint Estimado**: Backlog (quando migrar para Blazor Server ou .NET 10 SSR)
 
 #### Contexto
 Atualmente usamos `'unsafe-inline'` para styles do MudBlazor. Para produção, nonce-based CSP é mais seguro.

@@ -20,6 +20,15 @@ public sealed record Response<T>
     /// </summary>
     public string? Message { get; init; }
 
+    /// <summary>
+    /// Indica se a resposta representa sucesso (status code 2xx)
+    /// </summary>
+    public bool IsSuccess => StatusCode >= 200 && StatusCode < 300;
+
+    public Response() : this(default, 200, null)
+    {
+    }
+
     public Response(T? data, int statusCode = 200, string? message = null)
     {
         Data = data;
