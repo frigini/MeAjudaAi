@@ -75,7 +75,7 @@ public sealed class DocumentsEffects
             {
                 dispatcher.Dispatch(new DocumentsActions.RequestVerificationSuccessAction(action.DocumentId));
                 _snackbar.Add("Verificação solicitada com sucesso!", Severity.Success);
-                dispatcher.Dispatch(new DocumentsActions.UpdateDocumentStatusAction(action.DocumentId, "PendingVerification"));
+                dispatcher.Dispatch(new DocumentsActions.UpdateDocumentStatusAction(action.DocumentId, Constants.DocumentStatus.ToDisplayName(Constants.DocumentStatus.PendingVerification)));
             },
             onError: ex =>
             {

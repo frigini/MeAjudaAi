@@ -1,6 +1,7 @@
 @page "/providers"
 @attribute [Authorize(Policy = PolicyNames.ProviderManagerPolicy)]
 @using MeAjudaAi.Web.Admin.Authorization
+@using MeAjudaAi.Web.Admin.Constants
 @using MeAjudaAi.Web.Admin.Services
 @inherits FluxorComponent
 @inject IState<ProvidersState> ProvidersState
@@ -49,20 +50,23 @@
                 <PropertyColumn Property="x => x.Phone" Title="Telefone" />
                 <PropertyColumn Property="x => x.VerificationStatus" Title="Status">
                     <CellTemplate>
-                        @if (context.Item.VerificationStatus == VERIFIED_STATUS)
-                        {
-                            <MudChip Color="Color.Success" Size="Size.Small">Verificado</MudChip>
+                        @{
+                            var statusInt = int.TryParse(context.Item.VerificationStatus, out int s) ? s : 0;
                         }
-                        else
-                        {
-                            <MudChip Color="Color.Warning" Size="Size.Small">Pendente</MudChip>
-                        }
+                        <MudChip Color="@VerificationStatus.ToColor(statusInt)" Size="Size.Small">
+                            @VerificationStatus.ToDisplayName(statusInt)
+                        </MudChip>
                     </CellTemplate>
                 </PropertyColumn>
                 <TemplateColumn Title="Ações" Sortable="false">
                     <CellTemplate>
                         <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => OpenEditDialog(context.Item.Id))" Title="Editar" />
-                        <MudIconButton Icon="@Icons.Material.Filled.VerifiedUser" Color="Color.Success" Size="Size.Small" OnClick="@(() => OpenVerifyDialog(context.Item.Id))" Title="Verificar" Disabled="@(context.Item.VerificationStatus == VERIFIED_STATUS)" />
+                        <MudIconButton Icon="@Icons.Material.Filled.VerifiedUser" 
+                                       Color="Color.Success" 
+                                       Size="Size.Small" 
+                                       OnClick="@(() => OpenVerifyDialog(context.Item.Id))" 
+                                       Title="Verificar" 
+                                       Disabled="@(context.Item.VerificationStatus == VerificationStatus.Verified.ToString())" />
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                        Color="Color.Error" 
                                        Size="Size.Small" 
@@ -88,8 +92,6 @@
 </MudCard>
 
 @code {
-    private const string VERIFIED_STATUS = "Verified";
-
     protected override void OnInitialized()
     {
         base.OnInitialized();

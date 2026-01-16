@@ -1,6 +1,7 @@
 @page "/"
 @attribute [Authorize(Policy = PolicyNames.ViewerPolicy)]
 @using MeAjudaAi.Web.Admin.Authorization
+@using MeAjudaAi.Web.Admin.Constants
 @inherits FluxorComponent
 @implements IDisposable
 @using Fluxor
@@ -168,8 +169,16 @@
 </MudGrid>
 
 @code {
-    private static readonly string[] StatusOrder = { "Pending", "Verified", "Rejected" };
-    private static readonly string[] ProviderTypeOrder = { "Individual", "Company" };
+    // Order arrays using constant values
+    private static readonly string[] StatusOrder = { 
+        VerificationStatus.Pending.ToString(), 
+        VerificationStatus.Verified.ToString(), 
+        VerificationStatus.Rejected.ToString() 
+    };
+    private static readonly string[] ProviderTypeOrder = { 
+        ProviderType.Individual.ToString(), 
+        ProviderType.Company.ToString() 
+    };
 
     private double[] providerStatusData = Array.Empty<double>();
     private string[] providerStatusLabels = Array.Empty<string>();
@@ -235,7 +244,11 @@
             })
             .ToList();
 
-        providerStatusLabels = statusGroups.Select(g => g.Key).ToArray();
+        providerStatusLabels = statusGroups.Select(g => {
+            if (int.TryParse(g.Key, out int status))
+                return VerificationStatus.ToDisplayName(status);
+            return g.Key;
+        }).ToArray();
         providerStatusData = statusGroups.Select(g => (double)g.Count()).ToArray();
 
         // Provider Type Chart Data - semantically ordered
@@ -247,18 +260,12 @@
             })
             .ToList();
 
-        providerTypeLabels = typeGroups.Select(g => GetProviderTypeLabel(g.Key)).ToArray();
+        providerTypeLabels = typeGroups.Select(g => {
+            if (int.TryParse(g.Key, out int type))
+                return ProviderType.ToDisplayName(type);
+            return g.Key;
+        }).ToArray();
         providerTypeData = typeGroups.Select(g => (double)g.Count()).ToArray();
-    }
-
-    private string GetProviderTypeLabel(string type)
-    {
-        return type switch
-        {
-            "Individual" => "Pessoa Física",
-            "Company" => "Empresa",
-            _ => type
-        };
     }
 
     public void Dispose()

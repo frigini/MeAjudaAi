@@ -1,6 +1,7 @@
 @page "/categories"
 @attribute [Authorize(Policy = PolicyNames.CatalogManagerPolicy)]
 @using MeAjudaAi.Web.Admin.Authorization
+@using MeAjudaAi.Web.Admin.Constants
 @using Fluxor
 @using MeAjudaAi.Web.Admin.Features.ServiceCatalogs
 @inherits Fluxor.Blazor.Web.Components.FluxorComponent
@@ -48,8 +49,8 @@
                     <PropertyColumn Property="x => x.DisplayOrder" Title="Ordem" />
                     <PropertyColumn Property="x => x.IsActive" Title="Status">
                         <CellTemplate>
-                            <MudChip Size="Size.Small" Color="@(context.Item.IsActive ? Color.Success : Color.Default)">
-                                @(context.Item.IsActive ? "Ativa" : "Inativa")
+                            <MudChip Size="Size.Small" Color="@ActivationStatus.ToColor(context.Item.IsActive)">
+                                @ActivationStatus.ToDisplayName(context.Item.IsActive)
                             </MudChip>
                         </CellTemplate>
                     </PropertyColumn>
