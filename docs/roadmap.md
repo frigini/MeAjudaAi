@@ -907,6 +907,123 @@ if (result.IsFailure) {
 
 ---
 
+### ⏭️ Part 13 - Unit Tests (Frontend) - BACKLOG
+
+**Status**: SKIPPED durante Parts 10-15 (escopo muito grande)  
+**Prioridade**: Alta (recomendado antes do MVP)  
+**Estimativa**: 3-5 dias de sprint dedicado
+
+**Contexto**: A Part 13 foi intencionalmente pulada durante a implementação das Parts 10-15 (melhorias menores) por ser muito extensa e merecer um sprint dedicado. Testes unitários frontend são críticos para manutenibilidade e confiança no código, mas requerem setup completo de infraestrutura de testes.
+
+**Escopo Planejado**:
+
+**1. Infraestrutura de Testes** (1 dia):
+- Criar projeto `MeAjudaAi.Web.Admin.Tests`
+- Adicionar pacotes: bUnit, Moq, FluentAssertions, xUnit
+- Configurar test host e service mocks
+- Setup de TestContext base reutilizável
+
+**2. Testes de Fluxor State Management** (1-2 dias):
+- **Reducers**: 15+ testes para state mutations
+  * ProvidersReducers: LoadSuccess, LoadFailure, SetFilters, SetSorting
+  * DocumentsReducers: UploadSuccess, VerificationUpdate
+  * ServiceCatalogsReducers: CRUD operations
+  * LocationsReducers: LoadCities, FilterByState
+  * ErrorReducers: SetGlobalError, ClearError, RetryAfterError
+- **Actions**: Verificar payloads corretos
+- **Features**: Initial state validation
+
+**3. Testes de Effects** (1 dia):
+- Mock de IProvidersApi, IDocumentsApi, IServiceCatalogsApi
+- Test de retry logic em ErrorHandlingService
+- Verificar dispatches corretos (Success/Failure actions)
+- Test de autorização e permissões
+
+**4. Testes de Componentes** (1-2 dias):
+- **Pages**: 
+  * Providers.razor: rendering, search, pagination
+  * Documents.razor: upload, verification workflow
+  * ServiceCatalogs.razor: category/service CRUD
+  * Dashboard.razor: charts rendering
+- **Dialogs**:
+  * CreateProviderDialog: form validation
+  * EditProviderDialog: data binding
+  * UploadDocumentDialog: file upload mock
+  * VerifyProviderDialog: status change
+- **Shared Components**:
+  * LanguageSwitcher: culture change
+  * LiveRegionAnnouncer: accessibility
+  * ErrorBoundaryContent: error recovery
+
+**5. Testes de Serviços** (0.5 dia):
+- LocalizationService: culture switching, string retrieval
+- ErrorHandlingService: retry logic, status code mapping
+- LiveRegionService: announcement queue
+- ErrorLoggingService: correlation IDs
+- PermissionService: policy checks
+
+**Meta de Cobertura**:
+- **Reducers**: >95% (lógica pura, fácil de testar)
+- **Effects**: >80% (com mocks de APIs)
+- **Components**: >70% (rendering e interações básicas)
+- **Services**: >90% (lógica de negócio)
+- **Geral**: >80% code coverage
+
+**Benefícios Esperados**:
+- ✅ Confidence em refactorings futuros
+- ✅ Documentação viva do comportamento esperado
+- ✅ Detecção precoce de regressões
+- ✅ Facilita onboarding de novos devs
+- ✅ Reduz bugs em produção
+
+**Ferramentas e Patterns**:
+```csharp
+// Exemplo de teste de Reducer
+[Fact]
+public void LoadProvidersSuccessAction_Should_UpdateState()
+{
+    // Arrange
+    var initialState = new ProvidersState(isLoading: true, providers: []);
+    var providers = new List<ModuleProviderDto> { /* mock data */ };
+    var action = new LoadProvidersSuccessAction(providers, totalItems: 10, pageNumber: 1, pageSize: 10);
+    
+    // Act
+    var newState = ProvidersReducers.OnLoadProvidersSuccess(initialState, action);
+    
+    // Assert
+    newState.IsLoading.Should().BeFalse();
+    newState.Providers.Should().HaveCount(1);
+    newState.TotalItems.Should().Be(10);
+}
+
+// Exemplo de teste de Component
+[Fact]
+public void LanguageSwitcher_Should_ChangeCulture()
+{
+    // Arrange
+    using var ctx = new TestContext();
+    ctx.Services.AddScoped<LocalizationService>();
+    var component = ctx.RenderComponent<LanguageSwitcher>();
+    
+    // Act
+    var enButton = component.Find("button[data-lang='en-US']");
+    enButton.Click();
+    
+    // Assert
+    var localization = ctx.Services.GetRequiredService<LocalizationService>();
+    localization.CurrentCulture.Name.Should().Be("en-US");
+}
+```
+
+**Priorização Sugerida**:
+1. **Crítico (antes do MVP)**: Reducers + Effects + ErrorHandlingService
+2. **Importante (pré-MVP)**: Componentes principais (Providers, Documents)
+3. **Nice-to-have (pós-MVP)**: Componentes de UI (dialogs, shared)
+
+**Recomendação**: Implementar em **Sprint 8.5** (entre Customer App e Buffer) ou dedicar 1 semana do Sprint 9 (Buffer) para esta tarefa. Frontend tests são investimento de longo prazo essencial para manutenibilidade.
+
+---
+
 ### ✅ Sprint 7 - Blazor Admin Portal Features - CONCLUÍDA (6-7 Jan 2026)
 
 **Branch**: `blazor-admin-portal-features` (MERGED to master)
