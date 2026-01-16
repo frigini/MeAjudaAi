@@ -7,7 +7,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ | Sprint 7 ✅ | Sprint 7.5 ✅ | Sprint 7.6 ✅ | Sprint 7.7 ✅ | Sprint 7.8 ✅ | Sprint 7.9 ✅ | Sprint 7.10 ✅ | Sprint 7.11 ✅ | Sprint 7.12 ✅ CONCLUÍDO | MVP Target: 31/Março/2026  
+**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ | Sprint 7 ✅ | Sprint 7.5 ✅ | Sprint 7.6 ✅ | Sprint 7.7 ✅ | Sprint 7.8 ✅ | Sprint 7.9 ✅ | Sprint 7.10 ✅ | Sprint 7.11 ✅ | Sprint 7.12 ✅ | Sprint 7.13 ✅ | Sprint 7.14 ✅ CONCLUÍDO | MVP Target: 31/Março/2026  
 **Cobertura de Testes**: Backend 90.56% | Frontend 30 testes bUnit  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MudBlazor 8.0 + Fluxor
 
@@ -31,6 +31,8 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **16 Jan 2026**: Sprint 7.10 - Accessibility Features (CONCLUÍDO - WCAG 2.1 AA compliance, ARIA labels, screen reader support)
 - ✅ **16 Jan 2026**: Sprint 7.11 - Error Boundaries (CONCLUÍDO - Global error handling, Fluxor error state, recovery options)
 - ✅ **16 Jan 2026**: Sprint 7.12 - Performance Optimizations (CONCLUÍDO - Virtualization, debounced search, memoization)
+- ✅ **16 Jan 2026**: Sprint 7.13 - Standardized Error Handling (CONCLUÍDO - Retry logic, correlation IDs, HTTP status mapping)
+- ✅ **16 Jan 2026**: Sprint 7.14 - Complete Localization (CONCLUÍDO - pt-BR/en-US, 140+ strings, culture switching)
 - ⏳ **10 Jan - 24 Jan 2026**: Sprint 8 - Customer App (Web + Mobile)
 - ⏳ **27 Jan - 14 Fev 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Refactoring)
 - 🎯 **31 de Março de 2026**: MVP Launch (Admin Portal + Customer App)
@@ -46,11 +48,13 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 ## 🎯 Status Atual
 
-**📅 Sprint 7.12 conclusão**: 16 de Janeiro de 2026
+**📅 Sprint 7.14 conclusão**: 16 de Janeiro de 2026
 
 ### ✅ Sprint 7.10 - Accessibility Features - CONCLUÍDA (16 Jan 2026)
 ### ✅ Sprint 7.11 - Error Boundaries - CONCLUÍDA (16 Jan 2026) 
 ### ✅ Sprint 7.12 - Performance Optimizations - CONCLUÍDA (16 Jan 2026)
+### ✅ Sprint 7.13 - Standardized Error Handling - CONCLUÍDA (16 Jan 2026)
+### ✅ Sprint 7.14 - Complete Localization (i18n) - CONCLUÍDA (16 Jan 2026)
 
 **Branch**: `fix/aspire-initialization` (continuação)
 
@@ -704,6 +708,202 @@ Todos os 3 arquivos de constantes possuem:
 - **Throttling**: Rate-limit para operações críticas (5s min interval)
 
 **Commit**: fa8a9599
+
+---
+
+### ✅ Sprint 7.13 - Standardized Error Handling - CONCLUÍDA (16 Jan 2026)
+
+**Branch**: `fix/aspire-initialization` (continuação)
+
+**Contexto**: Admin Portal precisava de tratamento de erro padronizado com retry logic automático, mensagens amigáveis em português e correlation IDs para troubleshooting.
+
+**Objetivos**:
+1. ✅ **ErrorHandlingService Centralizado**
+2. ✅ **Retry Logic com Exponential Backoff**
+3. ✅ **Mapeamento de HTTP Status Codes para Mensagens Amigáveis**
+4. ✅ **Correlation ID Tracking**
+5. ✅ **Integração com Fluxor Effects**
+6. ✅ **Documentação de Error Handling**
+
+**Progresso Atual**: 6/6 objetivos completos ✅ **SPRINT 7.13 CONCLUÍDO 100%!**
+
+**Arquivos Criados**:
+- `Services/ErrorHandlingService.cs` (216 linhas):
+  * HandleApiError<T>(Result<T> result, string operation) - Trata erros e retorna mensagem amigável
+  * ExecuteWithRetryAsync<T>() - Executa operações com retry automático (até 3 tentativas)
+  * ShouldRetry() - Determina se deve retry (apenas 5xx e 408 timeout)
+  * GetRetryDelay() - Exponential backoff: 1s, 2s, 4s
+  * GetUserFriendlyMessage() - Mapeia status HTTP para mensagens em português
+  * GetMessageFromHttpStatus() - 15+ mapeamentos de status code
+  * ErrorInfo record - Encapsula Message, CorrelationId, StatusCode
+- `docs/error-handling.md` (350+ linhas): Guia completo de tratamento de erros
+
+**Arquivos Modificados**:
+- `Program.cs`: builder.Services.AddScoped<ErrorHandlingService>();
+- `Features/Providers/ProvidersEffects.cs`:
+  * Injetado ErrorHandlingService
+  * GetProvidersAsync wrapped com ExecuteWithRetryAsync (3 tentativas)
+  * GetUserFriendlyMessage(403) para erros de autorização
+  * Automatic retry para erros transientes (network, timeout, server errors)
+
+**Funcionalidades de Error Handling**:
+
+| Recurso | Implementação |
+|---------|---------------|
+| HTTP Status Mapping | 400→"Requisição inválida", 401→"Não autenticado", 403→"Sem permissão", 404→"Não encontrado", etc. |
+| Retry Transient Errors | 5xx (Server Error), 408 (Timeout) com até 3 tentativas |
+| Exponential Backoff | 1s → 2s → 4s entre tentativas |
+| Correlation IDs | Activity.Current?.Id para rastreamento distribuído |
+| Fallback Messages | Backend message prioritária, fallback para status code mapping |
+| Exception Handling | HttpRequestException e Exception com logging |
+
+**Mensagens de Erro Suportadas**:
+- **400**: Requisição inválida. Verifique os dados fornecidos.
+- **401**: Você não está autenticado. Faça login novamente.
+- **403**: Você não tem permissão para realizar esta ação.
+- **404**: Recurso não encontrado.
+- **408**: A requisição demorou muito. Tente novamente.
+- **429**: Muitas requisições. Aguarde um momento.
+- **500**: Erro interno do servidor. Nossa equipe foi notificada.
+- **502/503**: Servidor/Serviço temporariamente indisponível.
+- **504**: O servidor não respondeu a tempo.
+
+**Padrão de Uso**:
+
+```csharp
+// Antes (sem retry, mensagem crua)
+var result = await _providersApi.GetProvidersAsync(pageNumber, pageSize);
+if (result.IsFailure) {
+    dispatcher.Dispatch(new LoadProvidersFailureAction(result.Error?.Message ?? "Erro"));
+}
+
+// Depois (com retry automático, mensagem amigável)
+var result = await _errorHandler.ExecuteWithRetryAsync(
+    () => _providersApi.GetProvidersAsync(pageNumber, pageSize),
+    "carregar provedores",
+    3);
+if (result.IsFailure) {
+    var userMessage = _errorHandler.HandleApiError(result, "carregar provedores");
+    dispatcher.Dispatch(new LoadProvidersFailureAction(userMessage));
+}
+```
+
+**Benefícios**:
+- ✅ Resiliência contra erros transientes (automatic retry)
+- ✅ UX melhorado com mensagens em português
+- ✅ Troubleshooting facilitado com correlation IDs
+- ✅ Logging estruturado de todas as tentativas
+- ✅ Redução de chamadas ao suporte (mensagens auto-explicativas)
+
+**Commit**: c198d889 "feat(sprint-7.13): implement standardized error handling with retry logic"
+
+---
+
+### ✅ Sprint 7.14 - Complete Localization (i18n) - CONCLUÍDA (16 Jan 2026)
+
+**Branch**: `fix/aspire-initialization` (continuação)
+
+**Contexto**: Admin Portal precisava de suporte multi-idioma com troca dinâmica de idioma e traduções completas para pt-BR e en-US.
+
+**Objetivos**:
+1. ✅ **LocalizationService com Dictionary-Based Translations**
+2. ✅ **LanguageSwitcher Component**
+3. ✅ **140+ Translation Strings (pt-BR + en-US)**
+4. ✅ **Culture Switching com CultureInfo**
+5. ✅ **OnCultureChanged Event para Reactivity**
+6. ✅ **Documentação de Localização**
+
+**Progresso Atual**: 6/6 objetivos completos ✅ **SPRINT 7.14 CONCLUÍDO 100%!**
+
+**Arquivos Criados**:
+- `Services/LocalizationService.cs` (235 linhas):
+  * Dictionary-based translations (pt-BR, en-US)
+  * SetCulture(cultureName) - Muda idioma e dispara OnCultureChanged
+  * GetString(key) - Retorna string localizada com fallback
+  * GetString(key, params) - Formatação com parâmetros
+  * SupportedCultures property - Lista de idiomas disponíveis
+  * CurrentCulture, CurrentLanguage properties
+- `Components/Common/LanguageSwitcher.razor` (35 linhas):
+  * MudMenu com ícone de idioma (🌐)
+  * Lista de idiomas disponíveis
+  * Check mark no idioma atual
+  * Integrado no MainLayout AppBar
+- `docs/localization.md` (550+ linhas): Guia completo de internacionalização
+
+**Arquivos Modificados**:
+- `Program.cs`: builder.Services.AddScoped<LocalizationService>();
+- `Layout/MainLayout.razor`: 
+  * @using MeAjudaAi.Web.Admin.Components.Common
+  * <LanguageSwitcher /> adicionado antes do menu do usuário
+
+**Traduções Implementadas** (140+ strings):
+
+| Categoria | pt-BR | en-US | Exemplos |
+|-----------|-------|-------|----------|
+| Common (12) | Salvar, Cancelar, Excluir, Editar | Save, Cancel, Delete, Edit | Common.Save, Common.Loading |
+| Navigation (5) | Painel, Provedores, Documentos | Dashboard, Providers, Documents | Nav.Dashboard, Nav.Logout |
+| Providers (9) | Nome, Documento, Status | Name, Document, Status | Providers.Active, Providers.SearchPlaceholder |
+| Validation (4) | Campo obrigatório, E-mail inválido | Field required, Invalid email | Validation.Required |
+| Success (3) | Salvo com sucesso | Saved successfully | Success.SavedSuccessfully |
+| Error (3) | Erro de conexão | Connection error | Error.NetworkError |
+
+**Funcionalidades de Localização**:
+
+| Recurso | Implementação |
+|---------|---------------|
+| Idiomas Suportados | pt-BR (Português Brasil), en-US (English US) |
+| Default Language | pt-BR |
+| Fallback Mechanism | en-US como fallback se string não existe em pt-BR |
+| String Formatting | Suporte a parâmetros: L["Messages.ItemsFound", count] |
+| Culture Switching | CultureInfo.CurrentCulture e CurrentUICulture |
+| Component Reactivity | OnCultureChanged event dispara StateHasChanged |
+| Date/Time Formatting | Automático via CultureInfo (15/12/2024 vs 12/15/2024) |
+| Number Formatting | Automático (R$ 1.234,56 vs $1,234.56) |
+
+**Padrão de Uso**:
+
+```razor
+@inject LocalizationService L
+
+<!-- Strings simples -->
+<MudButton>@L.GetString("Common.Save")</MudButton>
+
+<!-- Com parâmetros -->
+<MudText>@L.GetString("Providers.ItemsFound", providerCount)</MudText>
+
+<!-- Reatividade em mudança de idioma -->
+@code {
+    protected override void OnInitialized()
+    {
+        L.OnCultureChanged += StateHasChanged;
+    }
+}
+```
+
+**Convenções de Nomenclatura**:
+- `{Categoria}.{Ação/Contexto}{Tipo}` - Estrutura hierárquica
+- Common.* - Textos compartilhados
+- Nav.* - Navegação e menus
+- Providers.*, Documents.* - Específico de entidade
+- Validation.* - Mensagens de validação
+- Success.*, Error.* - Feedback de operações
+
+**Benefícios**:
+- ✅ Admin Portal preparado para mercado global
+- ✅ UX melhorado com idioma nativo do usuário
+- ✅ Facilita adição de novos idiomas (es-ES, fr-FR)
+- ✅ Formatação automática de datas/números por cultura
+- ✅ Manutenção centralizada de strings UI
+
+**Futuro (Roadmap de Localization)**:
+- [ ] Persistência de preferência no backend
+- [ ] Auto-detecção de idioma do navegador
+- [ ] Strings para todas as páginas (Dashboard, Documents, etc.)
+- [ ] Pluralização avançada (1 item vs 2 items)
+- [ ] Adicionar es-ES, fr-FR
+- [ ] FluentValidation messages localizadas
+
+**Commit**: 2e977908 "feat(sprint-7.14): implement complete localization (i18n)"
 
 ---
 
