@@ -3,12 +3,14 @@
 @using MeAjudaAi.Web.Admin.Authorization
 @using MeAjudaAi.Web.Admin.Constants
 @using MeAjudaAi.Web.Admin.Services
+@using MeAjudaAi.Web.Admin.Helpers
 @inherits FluxorComponent
 @inject IState<ProvidersState> ProvidersState
 @inject IDispatcher Dispatcher
 @inject IDialogService DialogService
 @inject ILogger<Providers> Logger
 @inject IPermissionService PermissionService
+@implements IDisposable
 
 <PageTitle>Provedores - MeAjudaAi Admin</PageTitle>
 
@@ -38,12 +40,30 @@
 }
 
 <MudCard>
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudTextField @bind-Value="_searchTerm"
+                          Label="Pesquisar provedores"
+                          Variant="Variant.Outlined"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Immediate="true"
+                          DebounceInterval="300"
+                          OnDebounceIntervalElapsed="OnSearchChanged"
+                          Clearable="true"
+                          AriaLabel="Pesquisar provedores por nome, email ou documento"
+                          Class="mb-4" />
+        </CardHeaderContent>
+    </MudCardHeader>
     <MudCardContent>
         <MudDataGrid T="ModuleProviderDto" 
-                     Items="@ProvidersState.Value.Providers" 
+                     Items="@_filteredProviders" 
                      ReadOnly="true"
                      Dense="true"
                      Hover="true"
+                     Virtualize="true"
+                     FixedHeader="true"
+                     Height="calc(100vh - 400px)"
                      Loading="@ProvidersState.Value.IsLoading">
             <Columns>
                 <PropertyColumn Property="x => x.Id" Title="ID" />
@@ -103,11 +123,56 @@
 </MudCard>
 
 @code {
+    private string _searchTerm = string.Empty;
+    private IEnumerable<ModuleProviderDto> _filteredProviders = [];
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
         // Carregar providers ao inicializar
         Dispatcher.Dispatch(new LoadProvidersAction());
+        UpdateFilteredProviders();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        
+        if (!firstRender)
+        {
+            UpdateFilteredProviders();
+        }
+    }
+
+    private void OnSearchChanged()
+    {
+        // Debouncing is handled by MudTextField's DebounceInterval property
+        UpdateFilteredProviders();
+        StateHasChanged();
+    }
+
+    private void UpdateFilteredProviders()
+    {
+        // Use memoization to cache filtered results
+        var cacheKey = $"providers_filtered_{_searchTerm}_{ProvidersState.Value.Providers.Count()}";
+        
+        _filteredProviders = PerformanceHelper.Memoize(cacheKey, () =>
+        {
+            var providers = ProvidersState.Value.Providers;
+
+            if (string.IsNullOrWhiteSpace(_searchTerm))
+            {
+                return providers;
+            }
+
+            var searchLower = _searchTerm.ToLowerInvariant();
+            return providers.Where(p =>
+                (p.Name?.Contains(searchLower, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+                (p.Email?.Contains(searchLower, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+                (p.Document?.Contains(searchLower, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+                (p.Phone?.Contains(searchLower, StringComparison.InvariantCultureIgnoreCase) ?? false)
+            ).ToList();
+        }, TimeSpan.FromSeconds(30));
     }
 
     private void OnPageChanged(int page)
@@ -172,5 +237,11 @@
             // Dispatch action - Effect irá lidar com a API call
             Dispatcher.Dispatch(new DeleteProviderAction(providerId));
         }
+    }
+
+    public void Dispose()
+    {
+        // Clear memoization cache when component is disposed
+        PerformanceHelper.ClearMemoizationCache();
     }
 }
