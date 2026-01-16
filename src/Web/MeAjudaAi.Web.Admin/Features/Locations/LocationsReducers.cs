@@ -77,4 +77,62 @@ public static class LocationsReducers
     [ReducerMethod]
     public static LocationsState ReduceClearErrorAction(LocationsState state, ClearErrorAction _)
         => state with { ErrorMessage = null };
+
+    // ========== DELETE OPERATIONS ==========
+
+    [ReducerMethod]
+    public static LocationsState ReduceDeleteAllowedCityAction(LocationsState state, DeleteAllowedCityAction action)
+        => state with
+        {
+            IsDeletingCity = true,
+            DeletingCityId = action.CityId,
+            ErrorMessage = null
+        };
+
+    [ReducerMethod]
+    public static LocationsState ReduceDeleteAllowedCitySuccessAction(LocationsState state, DeleteAllowedCitySuccessAction _)
+        => state with
+        {
+            IsDeletingCity = false,
+            DeletingCityId = null,
+            ErrorMessage = null
+        };
+
+    [ReducerMethod]
+    public static LocationsState ReduceDeleteAllowedCityFailureAction(LocationsState state, DeleteAllowedCityFailureAction action)
+        => state with
+        {
+            IsDeletingCity = false,
+            DeletingCityId = null,
+            ErrorMessage = action.ErrorMessage
+        };
+
+    // ========== TOGGLE OPERATIONS ==========
+
+    [ReducerMethod]
+    public static LocationsState ReduceToggleCityActivationAction(LocationsState state, ToggleCityActivationAction action)
+        => state with
+        {
+            IsTogglingCity = true,
+            TogglingCityId = action.CityId,
+            ErrorMessage = null
+        };
+
+    [ReducerMethod]
+    public static LocationsState ReduceToggleCityActivationSuccessAction(LocationsState state, ToggleCityActivationSuccessAction _)
+        => state with
+        {
+            IsTogglingCity = false,
+            TogglingCityId = null,
+            ErrorMessage = null
+        };
+
+    [ReducerMethod]
+    public static LocationsState ReduceToggleCityActivationFailureAction(LocationsState state, ToggleCityActivationFailureAction action)
+        => state with
+        {
+            IsTogglingCity = false,
+            TogglingCityId = null,
+            ErrorMessage = action.ErrorMessage
+        };
 }

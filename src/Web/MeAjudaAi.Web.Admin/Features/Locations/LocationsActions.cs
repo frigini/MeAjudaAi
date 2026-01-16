@@ -42,4 +42,26 @@ public static class LocationsActions
 
     /// <summary>Limpa mensagens de erro</summary>
     public sealed record ClearErrorAction;
+
+    // ========== DELETE OPERATIONS ==========
+
+    /// <summary>Solicita exclusão de cidade permitida</summary>
+    public sealed record DeleteAllowedCityAction(Guid CityId);
+
+    /// <summary>Sucesso ao excluir cidade</summary>
+    public sealed record DeleteAllowedCitySuccessAction(Guid CityId);
+
+    /// <summary>Falha ao excluir cidade</summary>
+    public sealed record DeleteAllowedCityFailureAction(Guid CityId, string ErrorMessage);
+
+    // ========== TOGGLE OPERATIONS ==========
+
+    /// <summary>Solicita alteração de status de ativação de cidade</summary>
+    public sealed record ToggleCityActivationAction(Guid CityId, bool Activate, ModuleAllowedCityDto City);
+
+    /// <summary>Sucesso ao alterar status de ativação</summary>
+    public sealed record ToggleCityActivationSuccessAction(Guid CityId, bool IsActive);
+
+    /// <summary>Falha ao alterar status de ativação</summary>
+    public sealed record ToggleCityActivationFailureAction(Guid CityId, string ErrorMessage);
 }

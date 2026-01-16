@@ -11,8 +11,6 @@
 @inject IState<LocationsState> LocationsState
 @inject IDispatcher Dispatcher
 @inject IDialogService DialogService
-@inject ISnackbar Snackbar
-@inject ILocationsApi LocationsApi
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudText Typo="Typo.h4" Class="mb-4">Cidades Permitidas</MudText>
@@ -62,10 +60,18 @@
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" OnClick="@(() => OpenEditDialog(context.Item))" />
                         </MudTooltip>
                         <MudTooltip Text="@(context.Item.IsActive ? "Desativar" : "Ativar")">
-                            <MudSwitch T="bool" Checked="@context.Item.IsActive" CheckedChanged="@(async (bool value) => await ToggleActivation(context.Item.Id, value))" Color="Color.Success" />
+                            <MudSwitch T="bool" 
+                                       Checked="@context.Item.IsActive" 
+                                       CheckedChanged="@(async (bool value) => await ToggleActivation(context.Item.Id, value))" 
+                                       Color="Color.Success"
+                                       Disabled="@(LocationsState.Value.IsTogglingCity && LocationsState.Value.TogglingCityId == context.Item.Id)" />
                         </MudTooltip>
                         <MudTooltip Text="Excluir">
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteCity(context.Item))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                           Size="Size.Small" 
+                                           Color="Color.Error" 
+                                           OnClick="@(() => DeleteCity(context.Item))"
+                                           Disabled="@(LocationsState.Value.IsDeletingCity && LocationsState.Value.DeletingCityId == context.Item.Id)" />
                         </MudTooltip>
                     </CellTemplate>
                 </TemplateColumn>
@@ -124,28 +130,7 @@
         var city = LocationsState.Value.AllowedCities.FirstOrDefault(c => c.Id == cityId);
         if (city is null) return;
 
-        // Update via backend (using UpdateAllowedCityAsync)
-        var updateRequest = new UpdateAllowedCityRequestDto(
-            city.City,
-            city.State,
-            city.Country,
-            city.Latitude,
-            city.Longitude,
-            city.ServiceRadiusKm,
-            newActiveStatus
-        );
-
-        var result = await LocationsApi.UpdateAllowedCityAsync(cityId, updateRequest);
-
-        if (result.IsSuccess)
-        {
-            Dispatcher.Dispatch(new UpdateCityActiveStatusAction(cityId, newActiveStatus));
-            Snackbar.Add($"Cidade {(newActiveStatus ? "ativada" : "desativada")} com sucesso", Severity.Success);
-        }
-        else
-        {
-            Snackbar.Add($"Erro ao atualizar cidade: {result.Error}", Severity.Error);
-        }
+        Dispatcher.Dispatch(new ToggleCityActivationAction(cityId, newActiveStatus, city));
     }
 
     private async Task DeleteCity(ModuleAllowedCityDto city)
@@ -156,18 +141,9 @@
             yesText: "Excluir",
             cancelText: "Cancelar");
 
-        if (confirmed != true) return;
-
-        var result = await LocationsApi.DeleteAllowedCityAsync(city.Id);
-
-        if (result.IsSuccess)
+        if (confirmed == true)
         {
-            Dispatcher.Dispatch(new RemoveAllowedCityAction(city.Id));
-            Snackbar.Add("Cidade excluída com sucesso", Severity.Success);
-        }
-        else
-        {
-            Snackbar.Add($"Erro ao excluir cidade: {result.Error}", Severity.Error);
+            Dispatcher.Dispatch(new DeleteAllowedCityAction(city.Id));
         }
     }
 }

@@ -21,4 +21,16 @@ public sealed record LocationsState
 
     /// <summary>Indica se há erro ativo</summary>
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
+
+    /// <summary>Indica se está excluindo uma cidade</summary>
+    public bool IsDeletingCity { get; init; }
+
+    /// <summary>ID da cidade sendo excluída</summary>
+    public Guid? DeletingCityId { get; init; }
+
+    /// <summary>Indica se está alternando status de cidade</summary>
+    public bool IsTogglingCity { get; init; }
+
+    /// <summary>ID da cidade tendo status alternado</summary>
+    public Guid? TogglingCityId { get; init; }
 }
