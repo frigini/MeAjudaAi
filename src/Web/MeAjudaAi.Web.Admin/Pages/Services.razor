@@ -7,8 +7,6 @@
 @inject IState<ServiceCatalogsState> ServiceCatalogsState
 @inject IDispatcher Dispatcher
 @inject IDialogService DialogService
-@inject ISnackbar Snackbar
-@inject IServiceCatalogsApi ServiceCatalogsApi
 
 <PageTitle>Serviços - MeAjudaAi Admin</PageTitle>
 
@@ -74,7 +72,8 @@
                                                Color="Color.Warning" 
                                                Size="Size.Small"
                                                Title="Desativar"
-                                               OnClick="@(() => ToggleActivation(context.Item.Id, false))" />
+                                               OnClick="@(() => ToggleActivation(context.Item.Id, false))"
+                                               Disabled="@(ServiceCatalogsState.Value.IsTogglingService && ServiceCatalogsState.Value.TogglingServiceId == context.Item.Id)" />
                             }
                             else
                             {
@@ -82,13 +81,15 @@
                                                Color="Color.Success" 
                                                Size="Size.Small"
                                                Title="Ativar"
-                                               OnClick="@(() => ToggleActivation(context.Item.Id, true))" />
+                                               OnClick="@(() => ToggleActivation(context.Item.Id, true))"
+                                               Disabled="@(ServiceCatalogsState.Value.IsTogglingService && ServiceCatalogsState.Value.TogglingServiceId == context.Item.Id)" />
                             }
                             
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                            Color="Color.Error" 
                                            Size="Size.Small"
-                                           OnClick="@(() => DeleteService(context.Item.Id))" />
+                                           OnClick="@(() => DeleteService(context.Item.Id))"
+                                           Disabled="@(ServiceCatalogsState.Value.IsDeletingService && ServiceCatalogsState.Value.DeletingServiceId == context.Item.Id)" />
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>
@@ -152,19 +153,7 @@
 
     private async Task ToggleActivation(Guid serviceId, bool activate)
     {
-        var result = activate 
-            ? await ServiceCatalogsApi.ActivateServiceAsync(serviceId)
-            : await ServiceCatalogsApi.DeactivateServiceAsync(serviceId);
-
-        if (result.IsSuccess)
-        {
-            Snackbar.Add($"Serviço {(activate ? "ativado" : "desativado")} com sucesso", Severity.Success);
-            Dispatcher.Dispatch(new ServiceCatalogsActions.UpdateServiceActiveStatusAction(serviceId, activate));
-        }
-        else
-        {
-            Snackbar.Add($"Erro: {result.Error?.Message}", Severity.Error);
-        }
+        Dispatcher.Dispatch(new ServiceCatalogsActions.ToggleServiceActivationAction(serviceId, activate));
     }
 
     private async Task DeleteService(Guid serviceId)
@@ -174,18 +163,9 @@
             "Tem certeza que deseja excluir este serviço? Esta ação não pode ser desfeita.",
             yesText: "Excluir", cancelText: "Cancelar");
 
-        if (confirm != true) return;
-
-        var result = await ServiceCatalogsApi.DeleteServiceAsync(serviceId);
-
-        if (result.IsSuccess)
+        if (confirm == true)
         {
-            Snackbar.Add("Serviço excluído com sucesso", Severity.Success);
-            Dispatcher.Dispatch(new ServiceCatalogsActions.RemoveServiceAction(serviceId));
-        }
-        else
-        {
-            Snackbar.Add($"Erro: {result.Error?.Message}", Severity.Error);
+            Dispatcher.Dispatch(new ServiceCatalogsActions.DeleteServiceAction(serviceId));
         }
     }
 }

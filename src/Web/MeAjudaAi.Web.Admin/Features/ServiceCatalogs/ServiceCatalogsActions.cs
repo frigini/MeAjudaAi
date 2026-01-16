@@ -119,4 +119,38 @@ public static class ServiceCatalogsActions
     /// Falha ao alterar status de ativação
     /// </summary>
     public sealed record ToggleCategoryActivationFailureAction(Guid CategoryId, string ErrorMessage);
+
+    // ========== SERVICE DELETE OPERATIONS ==========
+
+    /// <summary>
+    /// Solicita exclusão de serviço
+    /// </summary>
+    public sealed record DeleteServiceAction(Guid ServiceId);
+
+    /// <summary>
+    /// Sucesso ao excluir serviço
+    /// </summary>
+    public sealed record DeleteServiceSuccessAction(Guid ServiceId);
+
+    /// <summary>
+    /// Falha ao excluir serviço
+    /// </summary>
+    public sealed record DeleteServiceFailureAction(Guid ServiceId, string ErrorMessage);
+
+    // ========== SERVICE TOGGLE OPERATIONS ==========
+
+    /// <summary>
+    /// Solicita alteração de status de ativação de serviço
+    /// </summary>
+    public sealed record ToggleServiceActivationAction(Guid ServiceId, bool Activate);
+
+    /// <summary>
+    /// Sucesso ao alterar status de ativação de serviço
+    /// </summary>
+    public sealed record ToggleServiceActivationSuccessAction(Guid ServiceId, bool IsActive);
+
+    /// <summary>
+    /// Falha ao alterar status de ativação de serviço
+    /// </summary>
+    public sealed record ToggleServiceActivationFailureAction(Guid ServiceId, string ErrorMessage);
 }

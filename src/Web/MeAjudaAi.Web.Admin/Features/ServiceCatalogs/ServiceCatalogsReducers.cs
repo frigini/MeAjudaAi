@@ -158,4 +158,62 @@ public static class ServiceCatalogsReducers
             TogglingCategoryId = null,
             ErrorMessage = action.ErrorMessage
         };
+
+    // ========== SERVICE DELETE OPERATIONS ==========
+
+    [ReducerMethod]
+    public static ServiceCatalogsState ReduceDeleteServiceAction(ServiceCatalogsState state, ServiceCatalogsActions.DeleteServiceAction action)
+        => state with
+        {
+            IsDeletingService = true,
+            DeletingServiceId = action.ServiceId,
+            ErrorMessage = null
+        };
+
+    [ReducerMethod]
+    public static ServiceCatalogsState ReduceDeleteServiceSuccessAction(ServiceCatalogsState state, ServiceCatalogsActions.DeleteServiceSuccessAction _)
+        => state with
+        {
+            IsDeletingService = false,
+            DeletingServiceId = null,
+            ErrorMessage = null
+        };
+
+    [ReducerMethod]
+    public static ServiceCatalogsState ReduceDeleteServiceFailureAction(ServiceCatalogsState state, ServiceCatalogsActions.DeleteServiceFailureAction action)
+        => state with
+        {
+            IsDeletingService = false,
+            DeletingServiceId = null,
+            ErrorMessage = action.ErrorMessage
+        };
+
+    // ========== SERVICE TOGGLE OPERATIONS ==========
+
+    [ReducerMethod]
+    public static ServiceCatalogsState ReduceToggleServiceActivationAction(ServiceCatalogsState state, ServiceCatalogsActions.ToggleServiceActivationAction action)
+        => state with
+        {
+            IsTogglingService = true,
+            TogglingServiceId = action.ServiceId,
+            ErrorMessage = null
+        };
+
+    [ReducerMethod]
+    public static ServiceCatalogsState ReduceToggleServiceActivationSuccessAction(ServiceCatalogsState state, ServiceCatalogsActions.ToggleServiceActivationSuccessAction _)
+        => state with
+        {
+            IsTogglingService = false,
+            TogglingServiceId = null,
+            ErrorMessage = null
+        };
+
+    [ReducerMethod]
+    public static ServiceCatalogsState ReduceToggleServiceActivationFailureAction(ServiceCatalogsState state, ServiceCatalogsActions.ToggleServiceActivationFailureAction action)
+        => state with
+        {
+            IsTogglingService = false,
+            TogglingServiceId = null,
+            ErrorMessage = action.ErrorMessage
+        };
 }

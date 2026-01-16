@@ -58,4 +58,24 @@ public sealed record ServiceCatalogsState
     /// ID da categoria tendo status alternado
     /// </summary>
     public Guid? TogglingCategoryId { get; init; }
+
+    /// <summary>
+    /// Indica se está excluindo um serviço
+    /// </summary>
+    public bool IsDeletingService { get; init; }
+
+    /// <summary>
+    /// ID do serviço sendo excluído
+    /// </summary>
+    public Guid? DeletingServiceId { get; init; }
+
+    /// <summary>
+    /// Indica se está alternando status de serviço
+    /// </summary>
+    public bool IsTogglingService { get; init; }
+
+    /// <summary>
+    /// ID do serviço tendo status alternado
+    /// </summary>
+    public Guid? TogglingServiceId { get; init; }
 }

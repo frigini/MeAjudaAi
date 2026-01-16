@@ -118,4 +118,50 @@ public sealed class ServiceCatalogsEffects
                 dispatcher.Dispatch(new ServiceCatalogsActions.ToggleCategoryActivationFailureAction(action.CategoryId, ex.Message));
             });
     }
+
+    /// <summary>
+    /// Effect para excluir serviço
+    /// </summary>
+    [EffectMethod]
+    public async Task HandleDeleteServiceAction(ServiceCatalogsActions.DeleteServiceAction action, IDispatcher dispatcher)
+    {
+        await dispatcher.ExecuteApiCallAsync(
+            apiCall: () => _serviceCatalogsApi.DeleteServiceAsync(action.ServiceId),
+            snackbar: _snackbar,
+            operationName: "Excluir serviço",
+            onSuccess: _ =>
+            {
+                dispatcher.Dispatch(new ServiceCatalogsActions.DeleteServiceSuccessAction(action.ServiceId));
+                _snackbar.Add("Serviço excluído com sucesso!", Severity.Success);
+                dispatcher.Dispatch(new ServiceCatalogsActions.RemoveServiceAction(action.ServiceId));
+            },
+            onError: ex =>
+            {
+                dispatcher.Dispatch(new ServiceCatalogsActions.DeleteServiceFailureAction(action.ServiceId, ex.Message));
+            });
+    }
+
+    /// <summary>
+    /// Effect para alternar ativação de serviço
+    /// </summary>
+    [EffectMethod]
+    public async Task HandleToggleServiceActivationAction(ServiceCatalogsActions.ToggleServiceActivationAction action, IDispatcher dispatcher)
+    {
+        await dispatcher.ExecuteApiCallAsync(
+            apiCall: () => action.Activate
+                ? _serviceCatalogsApi.ActivateServiceAsync(action.ServiceId)
+                : _serviceCatalogsApi.DeactivateServiceAsync(action.ServiceId),
+            snackbar: _snackbar,
+            operationName: action.Activate ? "Ativar serviço" : "Desativar serviço",
+            onSuccess: _ =>
+            {
+                dispatcher.Dispatch(new ServiceCatalogsActions.ToggleServiceActivationSuccessAction(action.ServiceId, action.Activate));
+                _snackbar.Add($"Serviço {(action.Activate ? "ativado" : "desativado")} com sucesso!", Severity.Success);
+                dispatcher.Dispatch(new ServiceCatalogsActions.UpdateServiceActiveStatusAction(action.ServiceId, action.Activate));
+            },
+            onError: ex =>
+            {
+                dispatcher.Dispatch(new ServiceCatalogsActions.ToggleServiceActivationFailureAction(action.ServiceId, ex.Message));
+            });
+    }
 }
