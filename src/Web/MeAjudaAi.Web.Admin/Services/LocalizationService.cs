@@ -3,14 +3,42 @@ using System.Globalization;
 namespace MeAjudaAi.Web.Admin.Services;
 
 /// <summary>
+/// Disposable subscription for OnCultureChanged event.
+/// Automatically unsubscribes when disposed to prevent memory leaks.
+/// </summary>
+public sealed class LocalizationSubscription : IDisposable
+{
+    private readonly LocalizationService _service;
+    private readonly Action _handler;
+    private bool _disposed;
+
+    internal LocalizationSubscription(LocalizationService service, Action handler)
+    {
+        _service = service ?? throw new ArgumentNullException(nameof(service));
+        _handler = handler ?? throw new ArgumentNullException(nameof(handler));
+        _service.OnCultureChanged += _handler;
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _service.OnCultureChanged -= _handler;
+            _disposed = true;
+        }
+    }
+}
+
+/// <summary>
 /// Serviço de localização para gerenciar idiomas da aplicação.
+/// Utiliza padrão de subscription com IDisposable para prevenir memory leaks.
 /// </summary>
 public class LocalizationService
 {
     private CultureInfo _currentCulture;
     private readonly Dictionary<string, Dictionary<string, string>> _translations;
     
-    public event Action? OnCultureChanged;
+    internal event Action? OnCultureChanged;
 
     public LocalizationService()
     {
@@ -56,6 +84,21 @@ public class LocalizationService
         CultureInfo.CurrentUICulture = culture;
 
         OnCultureChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Subscribe to culture change events with automatic cleanup via IDisposable.
+    /// Use within 'using' statement or dispose manually to prevent memory leaks.
+    /// </summary>
+    /// <param name="handler">Action to invoke when culture changes</param>
+    /// <returns>Disposable subscription that unsubscribes when disposed</returns>
+    /// <example>
+    /// using var subscription = _localization.Subscribe(StateHasChanged);
+    /// // Automatically unsubscribes on disposal
+    /// </example>
+    public LocalizationSubscription Subscribe(Action handler)
+    {
+        return new LocalizationSubscription(this, handler);
     }
 
     /// <summary>
