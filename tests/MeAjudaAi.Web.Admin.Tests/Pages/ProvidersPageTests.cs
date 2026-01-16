@@ -2,7 +2,7 @@ using Bunit;
 using FluentAssertions;
 using Fluxor;
 using MeAjudaAi.Client.Contracts.Api;
-using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs;
+using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Web.Admin.Features.Providers;
 using MeAjudaAi.Web.Admin.Pages;
 using Microsoft.Extensions.DependencyInjection;

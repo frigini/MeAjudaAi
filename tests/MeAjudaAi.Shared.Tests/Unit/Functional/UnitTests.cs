@@ -7,8 +7,8 @@ public class UnitTests
     public void Value_ShouldReturnSingletonInstance()
     {
         // Act
-        var unit1 = MeAjudaAi.Shared.Functional.Unit.Value;
-        var unit2 = MeAjudaAi.Shared.Functional.Unit.Value;
+        var unit1 = MeAjudaAi.Contracts.Functional.Unit.Value;
+        var unit2 = MeAjudaAi.Contracts.Functional.Unit.Value;
 
         // Assert
         unit1.Should().Be(unit2);
@@ -18,8 +18,8 @@ public class UnitTests
     public void Equals_WithSameInstance_ShouldReturnTrue()
     {
         // Arrange
-        var unit1 = MeAjudaAi.Shared.Functional.Unit.Value;
-        var unit2 = MeAjudaAi.Shared.Functional.Unit.Value;
+        var unit1 = MeAjudaAi.Contracts.Functional.Unit.Value;
+        var unit2 = MeAjudaAi.Contracts.Functional.Unit.Value;
 
         // Act & Assert
         unit1.Equals(unit2).Should().BeTrue();
@@ -31,7 +31,7 @@ public class UnitTests
     public void Equals_WithNull_ShouldReturnFalse()
     {
         // Arrange
-        var unit = MeAjudaAi.Shared.Functional.Unit.Value;
+        var unit = MeAjudaAi.Contracts.Functional.Unit.Value;
 
         // Act & Assert
         unit.Equals(null).Should().BeFalse();
@@ -41,7 +41,7 @@ public class UnitTests
     public void Equals_WithDifferentType_ShouldReturnFalse()
     {
         // Arrange
-        var unit = MeAjudaAi.Shared.Functional.Unit.Value;
+        var unit = MeAjudaAi.Contracts.Functional.Unit.Value;
         var other = "string";
 
         // Act & Assert
@@ -52,8 +52,8 @@ public class UnitTests
     public void GetHashCode_ShouldReturnConsistentValue()
     {
         // Arrange
-        var unit1 = MeAjudaAi.Shared.Functional.Unit.Value;
-        var unit2 = MeAjudaAi.Shared.Functional.Unit.Value;
+        var unit1 = MeAjudaAi.Contracts.Functional.Unit.Value;
+        var unit2 = MeAjudaAi.Contracts.Functional.Unit.Value;
 
         // Act & Assert
         unit1.GetHashCode().Should().Be(unit2.GetHashCode());
@@ -64,7 +64,7 @@ public class UnitTests
     public void ToString_ShouldReturnParentheses()
     {
         // Arrange
-        var unit = MeAjudaAi.Shared.Functional.Unit.Value;
+        var unit = MeAjudaAi.Contracts.Functional.Unit.Value;
 
         // Act
         var result = unit.ToString();
@@ -77,19 +77,19 @@ public class UnitTests
     public void Constructor_ShouldCreateUnitInstance()
     {
         // Act
-        var unit = new MeAjudaAi.Shared.Functional.Unit();
+        var unit = new MeAjudaAi.Contracts.Functional.Unit();
 
         // Assert
         unit.Should().NotBeNull();
-        unit.Equals(MeAjudaAi.Shared.Functional.Unit.Value).Should().BeTrue();
+        unit.Equals(MeAjudaAi.Contracts.Functional.Unit.Value).Should().BeTrue();
     }
 
     [Fact]
     public void OperatorEquality_ShouldAlwaysReturnTrue()
     {
         // Arrange
-        var unit1 = MeAjudaAi.Shared.Functional.Unit.Value;
-        var unit2 = new MeAjudaAi.Shared.Functional.Unit();
+        var unit1 = MeAjudaAi.Contracts.Functional.Unit.Value;
+        var unit2 = new MeAjudaAi.Contracts.Functional.Unit();
 
         // Act & Assert
         (unit1 == unit2).Should().BeTrue();
@@ -99,8 +99,8 @@ public class UnitTests
     public void OperatorInequality_ShouldAlwaysReturnFalse()
     {
         // Arrange
-        var unit1 = MeAjudaAi.Shared.Functional.Unit.Value;
-        var unit2 = new MeAjudaAi.Shared.Functional.Unit();
+        var unit1 = MeAjudaAi.Contracts.Functional.Unit.Value;
+        var unit2 = new MeAjudaAi.Contracts.Functional.Unit();
 
         // Act & Assert
         (unit1 != unit2).Should().BeFalse();

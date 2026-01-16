@@ -5,7 +5,7 @@ using Bogus;
 using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 using Xunit;
 
 namespace MeAjudaAi.E2E.Tests.CrossModule;

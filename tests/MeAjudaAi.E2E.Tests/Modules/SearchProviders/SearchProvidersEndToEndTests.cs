@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

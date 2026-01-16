@@ -5,7 +5,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.E2E.Tests.Modules.ServiceCatalogs;

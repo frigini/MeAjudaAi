@@ -1,6 +1,6 @@
 using System.Text.Json;
 using FluentAssertions;
-using MeAjudaAi.Shared.Contracts.Modules.Users.DTOs;
+using MeAjudaAi.Contracts.Modules.Users.DTOs;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Contracts.DTOs;
 

@@ -2,7 +2,7 @@ using System.Net;
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Shared.Caching;
-using MeAjudaAi.Shared.Contracts.Modules.Locations;
+using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Http;
 using MeAjudaAi.Shared.Utilities;

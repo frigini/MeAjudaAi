@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Functional;
 

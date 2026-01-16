@@ -1,7 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Integration.Tests.Infrastructure;
-using MeAjudaAi.Shared.Contracts.Modules.Locations;
+using MeAjudaAi.Contracts.Modules.Locations;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 

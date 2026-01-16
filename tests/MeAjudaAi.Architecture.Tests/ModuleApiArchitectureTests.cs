@@ -1,13 +1,13 @@
 using System.Reflection;
-using MeAjudaAi.Shared.Contracts.Modules;
-using MeAjudaAi.Shared.Contracts.Modules.Documents;
-using MeAjudaAi.Shared.Contracts.Modules.Locations;
-using MeAjudaAi.Shared.Contracts.Modules.Providers;
-using MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
-using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
-using MeAjudaAi.Shared.Contracts.Modules.Users;
-using MeAjudaAi.Shared.Contracts.Modules.Users.DTOs;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Modules;
+using MeAjudaAi.Contracts.Modules.Documents;
+using MeAjudaAi.Contracts.Modules.Locations;
+using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Contracts.Modules.SearchProviders;
+using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
+using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Contracts.Modules.Users.DTOs;
+using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Architecture.Tests;
 

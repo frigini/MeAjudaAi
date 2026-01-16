@@ -1,6 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Shared.Extensions;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Extensions;
 
