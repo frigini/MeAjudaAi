@@ -19,8 +19,8 @@
             <Router AppAssembly="@typeof(App).Assembly">
                 <Found Context="routeData">
                     <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-                        <NotAuthorized>
-                            @if (context.User.Identity?.IsAuthenticated != true)
+                        <NotAuthorized Context="authContext">
+                            @if (authContext.User.Identity?.IsAuthenticated != true)
                             {
                                 <RedirectToLogin />
                             }
@@ -73,6 +73,15 @@
     {
         _isDarkMode = ThemeState.Value.IsDarkMode;
         StateHasChanged();
+    }
+
+    /// <summary>
+    /// Recupera o ErrorBoundary do estado de erro.
+    /// Chamado pelo ErrorBoundaryContent quando usuário clica em "Tentar Novamente".
+    /// </summary>
+    public void RecoverFromError()
+    {
+        _errorBoundary?.Recover();
     }
 
     public void Dispose()

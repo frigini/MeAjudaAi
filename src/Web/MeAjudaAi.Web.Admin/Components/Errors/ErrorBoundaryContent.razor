@@ -4,6 +4,9 @@
 @inject IDispatcher Dispatcher
 @inject NavigationManager Navigation
 
+@* Inject App to call RecoverFromError *@
+@inject App AppInstance
+
 @if (ErrorState.Value.ShowErrorUI)
 {
     <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
@@ -97,8 +100,12 @@
 
     private void Retry()
     {
+        // Dispatch retry action to Fluxor state
         Dispatcher.Dispatch(new RetryAfterErrorAction());
         Dispatcher.Dispatch(new ClearGlobalErrorAction());
+        
+        // Recover ErrorBoundary to re-render component tree
+        AppInstance.RecoverFromError();
     }
 
     private void GoHome()
