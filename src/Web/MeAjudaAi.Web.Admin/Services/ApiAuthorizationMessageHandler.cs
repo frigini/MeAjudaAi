@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+using MeAjudaAi.Shared.Contracts.Configuration;
 
 namespace MeAjudaAi.Web.Admin.Services;
 
@@ -10,14 +11,11 @@ public class ApiAuthorizationMessageHandler : AuthorizationMessageHandler
 {
     public ApiAuthorizationMessageHandler(IAccessTokenProvider provider,
         NavigationManager navigationManager,
-        IConfiguration configuration)
+        ClientConfiguration clientConfiguration)
         : base(provider, navigationManager)
     {
-        var apiBaseUrl = configuration["ApiBaseUrl"] 
-            ?? navigationManager.BaseUri;
-
         ConfigureHandler(
-            authorizedUrls: new[] { apiBaseUrl },
+            authorizedUrls: new[] { clientConfiguration.ApiBaseUrl },
             scopes: new[] { "openid", "profile", "email" });
     }
 }

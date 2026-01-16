@@ -20,10 +20,10 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // ====================================
-// STEP 1: Fetch Configuration from Backend
+// PASSO 1: Buscar Configuração do Backend
 // ====================================
-// Create temporary HttpClient to fetch configuration
-// Use fallback API URL from local config or default
+// Criar HttpClient temporário para buscar configuração
+// Usar URL da API de fallback da configuração local ou padrão
 var temporaryApiUrl = builder.Configuration["ApiBaseUrl"] ?? builder.HostEnvironment.BaseAddress;
 
 using var tempClient = new HttpClient { BaseAddress = new Uri(temporaryApiUrl) };
@@ -73,13 +73,16 @@ catch (Exception ex)
 }
 
 // ====================================
-// STEP 2: Validate Configuration
+// PASSO 2: Validar Configuração
 // ====================================
 ValidateConfiguration(clientConfig);
 
 // ====================================
-// STEP 3: Register Services with Configuration
+// PASSO 3: Registrar Serviços com Configuração
 // ====================================
+
+// Registrar configuração do cliente como singleton para injeção
+builder.Services.AddSingleton(clientConfig);
 
 // Registrar handler de autenticação customizado
 builder.Services.AddScoped<ApiAuthorizationMessageHandler>();
@@ -100,10 +103,13 @@ builder.Services.AddOidcAuthentication(options =>
     options.ProviderOptions.ResponseType = clientConfig.Keycloak.ResponseType;
     options.ProviderOptions.DefaultScopes.Clear();
     
-    // Add scopes from configuration
-    foreach (var scope in clientConfig.Keycloak.Scope.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+    // Adicionar scopes da configuração
+    if (!string.IsNullOrWhiteSpace(clientConfig.Keycloak.Scope))
     {
-        options.ProviderOptions.DefaultScopes.Add(scope);
+        foreach (var scope in clientConfig.Keycloak.Scope.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+        {
+            options.ProviderOptions.DefaultScopes.Add(scope);
+        }
     }
     
     options.ProviderOptions.PostLogoutRedirectUri = clientConfig.Keycloak.PostLogoutRedirectUri;
@@ -178,7 +184,7 @@ Console.WriteLine("🚀 Starting MeAjudaAi Admin Portal");
 await builder.Build().RunAsync();
 
 // ====================================
-// Helper Methods
+// Métodos Auxiliares
 // ====================================
 
 static void ValidateConfiguration(ClientConfiguration config)

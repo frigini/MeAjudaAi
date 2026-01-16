@@ -34,7 +34,7 @@ public class ProvidersEffects
     {
         try
         {
-            // Verify user has permission to view providers
+            // Verifica se o usuário tem permissão para ver os provedores
             var hasPermission = await _permissionService.HasPermissionAsync(PolicyNames.ProviderManagerPolicy);
             if (!hasPermission)
             {
@@ -57,14 +57,14 @@ public class ProvidersEffects
             }
             else
             {
-                var errorMessage = result.Error?.Message ?? "Falha ao carregar fornecedores";
-                dispatcher.Dispatch(new LoadProvidersFailureAction(errorMessage));
+                _logger.LogError("Failed to load providers: {Error}", result.Error?.Message);
+                dispatcher.Dispatch(new LoadProvidersFailureAction("Falha ao carregar fornecedores. Tente novamente mais tarde."));
             }
         }
         catch (Exception ex)
         {
-            var userFriendlyMessage = $"Erro ao carregar fornecedores: {ex.Message}";
-            dispatcher.Dispatch(new LoadProvidersFailureAction(userFriendlyMessage));
+            _logger.LogError(ex, "Exception while loading providers");
+            dispatcher.Dispatch(new LoadProvidersFailureAction("Erro ao carregar fornecedores. Tente novamente mais tarde."));
         }
     }
 

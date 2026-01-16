@@ -274,6 +274,14 @@ Please check your backend configuration and ensure all required settings are pro
    - ✅ Safe: Returns only public client config, no secrets
    - ✅ Protected: Validated and controlled by backend
 
+### 🔒 Production Hardening Recommendations
+
+**Rate Limiting & DDoS Protection:**
+- ⚠️ **Rate Limiting**: Apply rate limiting (e.g., 100 requests/minute per IP) to prevent DDoS and reconnaissance attacks
+- ⚠️ **Caching**: Set appropriate `Cache-Control` headers (e.g., `public, max-age=300`) to reduce backend load
+- ⚠️ **Monitoring**: Set up alerts for abnormal access patterns (traffic spikes, unusual geographic sources)
+- ⚠️ **CDN/WAF**: Consider placing endpoint behind a CDN with WAF rules for additional protection
+
 ---
 
 ## Testing
@@ -435,6 +443,6 @@ wwwroot/appsettings.json:
 
 ## See Also
 
-- [ASP.NET Core Configuration](https://docs.microsoft.com/aspnet/core/fundamentals/configuration/)
-- [Blazor WASM Security](https://docs.microsoft.com/aspnet/core/blazor/security/webassembly/)
-- [Keycloak OIDC](https://www.keycloak.org/docs/latest/securing_apps/#_oidc)
+- [ASP.NET Core Configuration](https://learn.microsoft.com/aspnet/core/fundamentals/configuration/)
+- [Blazor WASM Security](https://learn.microsoft.com/aspnet/core/blazor/security/webassembly/)
+- [Keycloak OIDC](https://www.keycloak.org/securing-apps/oidc-layers)

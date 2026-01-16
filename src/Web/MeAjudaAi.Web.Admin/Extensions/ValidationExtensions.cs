@@ -289,10 +289,10 @@ public static class ValidationExtensions
                 if (string.IsNullOrWhiteSpace(text))
                     return true;
 
-                var sanitized = _htmlSanitizer.Sanitize(text);
+                var sanitized = _htmlSanitizer.Sanitize(text).Trim();
                 
                 // Se o conteúdo sanitizado for diferente do original, contém código perigoso
-                return sanitized == text;
+                return string.Equals(sanitized, text.Trim(), StringComparison.Ordinal);
             })
             .WithMessage("O texto contém caracteres ou código não permitido");
     }

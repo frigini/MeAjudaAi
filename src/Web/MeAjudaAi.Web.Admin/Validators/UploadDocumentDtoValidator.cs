@@ -12,12 +12,12 @@ public class UploadDocumentValidator : AbstractValidator<IBrowserFile>
 {
     private const long MaxFileSize = 10 * 1024 * 1024; // 10 MB
     private static readonly string[] AllowedExtensions = { ".pdf", ".jpg", ".jpeg", ".png" };
-    private static readonly string[] AllowedContentTypes = 
-    { 
-        "application/pdf", 
-        "image/jpeg", 
-        "image/jpg", 
-        "image/png" 
+    private static readonly HashSet<string> AllowedContentTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "application/pdf",
+        "image/jpeg",
+        "image/jpg",
+        "image/png"
     };
 
     public UploadDocumentValidator()
@@ -37,7 +37,7 @@ public class UploadDocumentValidator : AbstractValidator<IBrowserFile>
         RuleFor(x => x.ContentType)
             .NotEmpty()
             .WithMessage("Tipo de conteúdo é obrigatório")
-            .Must(contentType => AllowedContentTypes.Contains(contentType.ToLowerInvariant()))
+            .Must(contentType => AllowedContentTypes.Contains(contentType.Trim()))
             .WithMessage($"Tipo de arquivo não permitido. Tipos aceitos: {string.Join(", ", AllowedContentTypes)}");
     }
 }
@@ -76,7 +76,7 @@ public class UploadDocumentDtoValidator : AbstractValidator<UploadDocumentDto>
             .WithMessage("Tipo de documento inválido");
     }
 
-    private static readonly string[] ValidDocumentTypes =
+    private static readonly HashSet<string> ValidDocumentTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         "RG",
         "CNH",
@@ -87,5 +87,5 @@ public class UploadDocumentDtoValidator : AbstractValidator<UploadDocumentDto>
         "Outros"
     };
 
-    private static bool IsValidDocumentType(string type) => ValidDocumentTypes.Contains(type);
+    private static bool IsValidDocumentType(string type) => ValidDocumentTypes.Contains(type.Trim());
 }

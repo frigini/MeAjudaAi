@@ -37,7 +37,7 @@ public class PermissionServiceTests
         _authStateProviderMock.Setup(x => x.GetAuthenticationStateAsync())
             .ReturnsAsync(authState);
 
-        _authServiceMock.Setup(x => x.AuthorizeAsync(user, PolicyNames.AdminPolicy))
+        _authServiceMock.Setup(x => x.AuthorizeAsync(user, null, PolicyNames.AdminPolicy))
             .ReturnsAsync(AuthorizationResult.Success());
 
         // Act
@@ -45,7 +45,7 @@ public class PermissionServiceTests
 
         // Assert
         Assert.True(result);
-        _authServiceMock.Verify(x => x.AuthorizeAsync(user, PolicyNames.AdminPolicy), Times.Once);
+        _authServiceMock.Verify(x => x.AuthorizeAsync(user, null, PolicyNames.AdminPolicy), Times.Once);
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class PermissionServiceTests
         _authStateProviderMock.Setup(x => x.GetAuthenticationStateAsync())
             .ReturnsAsync(authState);
 
-        _authServiceMock.Setup(x => x.AuthorizeAsync(user, PolicyNames.AdminPolicy))
+        _authServiceMock.Setup(x => x.AuthorizeAsync(user, null, PolicyNames.AdminPolicy))
             .ReturnsAsync(AuthorizationResult.Failed());
 
         // Act

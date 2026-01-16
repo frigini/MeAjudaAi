@@ -69,7 +69,7 @@ public class PermissionService : IPermissionService
                 .Select(c => c.Value)
                 .ToList();
 
-            // Check custom "roles" claim from Keycloak
+            // Verifica a claim personalizada 'roles' do Keycloak
             var keycloakRoles = user.FindAll("roles")
                 .Select(c => c.Value)
                 .ToList();

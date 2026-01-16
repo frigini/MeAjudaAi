@@ -171,7 +171,7 @@ public static class ServiceCollectionExtensions
         app.UsePermissionOptimization(); // Middleware de otimização após autenticação
         app.UseAuthorization();
 
-        // Map Configuration Endpoints (deve ser após UseAuthorization)
+        // Mapear endpoints de configuração (deve ser chamado após UseAuthorization)
         app.MapConfigurationEndpoints();
         
         // Map CSP Report Endpoint (deve ser anônimo)

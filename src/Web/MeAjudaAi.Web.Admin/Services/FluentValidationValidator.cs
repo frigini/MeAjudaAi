@@ -63,7 +63,7 @@ public class FluentValidationValidator<TModel> : ComponentBase, IDisposable
 
         var validationResult = _validator.Validate(model);
         
-        // Match errors for this field, handling nested properties
+        // Corresponde erros para este campo, tratando propriedades aninhadas
         var errors = validationResult.Errors.Where(error =>
         {
             var errorFieldIdentifier = ResolveFieldIdentifier(CurrentEditContext.Model, error.PropertyName);

@@ -40,9 +40,8 @@ Reusable validation and sanitization helpers:
 - ✅ `ValidCep()` - Brazilian ZIP code validation (8 digits)
 
 **Security:**
-- ✅ `NoXss()` - XSS attack prevention validator
-- ✅ `SanitizeInput()` - Removes HTML tags, JavaScript URIs, event handlers
-- ✅ `ContainsDangerousContent()` - Detects <script>, <iframe>, javascript:, etc.
+- ✅ `NoXss()` - XSS attack prevention validator (rejects input if sanitized differs from original)
+- ✅ `SanitizeInput()` - Allowlist-based HTML sanitizer using HtmlSanitizer; preserves permitted tags (b, i, strong, em, br, p) and safe attributes while stripping scripts, event handlers, and dangerous content
 
 **File Validation:**
 - ✅ `ValidFileType()` - File extension whitelist validation
