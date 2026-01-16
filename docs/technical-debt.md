@@ -801,3 +801,83 @@ Na próxima sprint, padronizar todos os records em:
    - Incluir caminho do arquivo e números de linha para navegação fácil
    - Manter descrições específicas e acionáveis
 - Roadmap: Adicionado em "Média Prioridade (6-12 meses - Fase 2)"
+---
+
+## 🔮 Melhorias Futuras (Backlog)
+
+### 🧪 Testing & Quality Assurance
+
+**Severidade**: MÉDIA  
+**Sprint**: Backlog (não bloqueante)
+
+**Unit Tests - Memory Management**:
+- [ ] Add unit tests for LocalizationSubscription disposal
+- [ ] Add unit tests for PerformanceHelper LRU eviction
+- [ ] Create unit tests for .resx resource loading
+
+**Production Monitoring**:
+- [ ] Memory profiling in production environment
+- [ ] Monitor cache hit rates and eviction frequency
+
+**Origem**: Sprint 7.16 (Memory Leak Fixes) e Sprint 7.17 (Localization Migration)
+
+---
+
+### 🌐 Localization (i18n) Enhancements
+
+**Severidade**: MÉDIA  
+**Sprint**: Backlog (expansão gradual)
+
+**Hardcoded Strings Migration**:
+- [ ] Migrate ErrorHandlingService hardcoded strings to .resx (48 mensagens de erro)
+- [ ] Integrate FluentValidation with localized error messages
+- [ ] Add more resource strings (currently only 48 base strings)
+
+**Advanced Localization Features**:
+- [ ] Add pluralization examples (ICU MessageFormat)
+- [ ] Add date/time localization (DateTimeFormatInfo)
+- [ ] Add number formatting localization (NumberFormatInfo)
+
+**Impacto**: Melhora experiência do usuário para expansão internacional
+
+**Origem**: Sprint 7.17 (Localization Migration)
+
+---
+
+### ⚡ Error Handling & Resilience
+
+**Severidade**: MÉDIA  
+**Sprint**: Backlog (otimização)
+
+**Cancellation Token Propagation**:
+- [ ] Update ExecuteApiCallAsync extension method to accept CancellationToken
+- [ ] Apply cancellation pattern to ServiceCatalogsEffects
+- [ ] Apply cancellation pattern to DocumentsEffects
+- [ ] Apply cancellation pattern to LocationsEffects
+- [ ] Add per-component CancellationTokenSource that cancels on Dispose()
+- [ ] Implement navigation-triggered cancellation in routing layer
+
+**Benefícios**:
+- Previne requisições zombie após navegação
+- Melhora responsividade da aplicação
+- Reduz carga no backend
+
+**Status Atual**: ExecuteWithErrorHandlingAsync já suporta CancellationToken (Sprint 7.18)
+
+**Origem**: Sprint 7.18 (Correlation ID & Cancellation Support)
+
+---
+
+### 🎨 UI/UX Improvements
+
+**Severidade**: BAIXA  
+**Sprint**: Backlog
+
+**Brand Color Scheme**:
+- [ ] Apply login page color scheme (blue, cream, orange, white) to entire Admin Portal
+- [ ] Update MudBlazor theme with brand colors
+- [ ] Standardize component styling across portal
+
+**Impacto**: Consistência visual com identidade da marca
+
+**Origem**: Sprint 7.19 (User Request - Jan 16, 2026)

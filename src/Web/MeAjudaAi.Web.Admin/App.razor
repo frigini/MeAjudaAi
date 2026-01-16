@@ -1,5 +1,6 @@
 @using MeAjudaAi.Web.Admin.Components.Errors
 @using MeAjudaAi.Web.Admin.Features.Errors
+@using MeAjudaAi.Web.Admin.Themes
 @using Fluxor
 @using System.Globalization
 @inject IState<ThemeState> ThemeState
@@ -10,7 +11,7 @@
 @implements IDisposable
 
 <Fluxor.Blazor.Web.StoreInitializer />
-<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme" />
+<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="@BrandTheme.Theme" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -59,7 +60,6 @@
 
 @code {
     private bool _isDarkMode;
-    private MudTheme _theme = new();
     private ErrorBoundary? _errorBoundary;
 
     protected override async Task OnInitializedAsync()
