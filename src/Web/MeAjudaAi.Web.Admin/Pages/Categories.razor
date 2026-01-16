@@ -7,8 +7,6 @@
 @inject IState<ServiceCatalogsState> ServiceCatalogsState
 @inject IDispatcher Dispatcher
 @inject IDialogService DialogService
-@inject ISnackbar Snackbar
-@inject IServiceCatalogsApi ServiceCatalogsApi
 
 <PageTitle>Categorias - MeAjudaAi Admin</PageTitle>
 
@@ -68,7 +66,8 @@
                                                Color="Color.Warning" 
                                                Size="Size.Small"
                                                Title="Desativar"
-                                               OnClick="@(() => ToggleActivation(context.Item.Id, false))" />
+                                               OnClick="@(() => ToggleActivation(context.Item.Id, false))"
+                                               Disabled="@(ServiceCatalogsState.Value.IsTogglingCategory && ServiceCatalogsState.Value.TogglingCategoryId == context.Item.Id)" />
                             }
                             else
                             {
@@ -76,13 +75,15 @@
                                                Color="Color.Success" 
                                                Size="Size.Small"
                                                Title="Ativar"
-                                               OnClick="@(() => ToggleActivation(context.Item.Id, true))" />
+                                               OnClick="@(() => ToggleActivation(context.Item.Id, true))"
+                                               Disabled="@(ServiceCatalogsState.Value.IsTogglingCategory && ServiceCatalogsState.Value.TogglingCategoryId == context.Item.Id)" />
                             }
                             
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                            Color="Color.Error" 
                                            Size="Size.Small"
-                                           OnClick="@(() => DeleteCategory(context.Item.Id))" />
+                                           OnClick="@(() => DeleteCategory(context.Item.Id))"
+                                           Disabled="@(ServiceCatalogsState.Value.IsDeletingCategory && ServiceCatalogsState.Value.DeletingCategoryId == context.Item.Id)" />
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>
@@ -143,19 +144,7 @@
 
     private async Task ToggleActivation(Guid categoryId, bool activate)
     {
-        var result = activate 
-            ? await ServiceCatalogsApi.ActivateCategoryAsync(categoryId)
-            : await ServiceCatalogsApi.DeactivateCategoryAsync(categoryId);
-
-        if (result.IsSuccess)
-        {
-            Snackbar.Add($"Categoria {(activate ? "ativada" : "desativada")} com sucesso", Severity.Success);
-            Dispatcher.Dispatch(new ServiceCatalogsActions.UpdateCategoryActiveStatusAction(categoryId, activate));
-        }
-        else
-        {
-            Snackbar.Add($"Erro: {result.Error?.Message}", Severity.Error);
-        }
+        Dispatcher.Dispatch(new ServiceCatalogsActions.ToggleCategoryActivationAction(categoryId, activate));
     }
 
     private async Task DeleteCategory(Guid categoryId)
@@ -165,18 +154,9 @@
             "Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita.",
             yesText: "Excluir", cancelText: "Cancelar");
 
-        if (confirm != true) return;
-
-        var result = await ServiceCatalogsApi.DeleteCategoryAsync(categoryId);
-
-        if (result.IsSuccess)
+        if (confirm == true)
         {
-            Snackbar.Add("Categoria excluída com sucesso", Severity.Success);
-            Dispatcher.Dispatch(new ServiceCatalogsActions.RemoveCategoryAction(categoryId));
-        }
-        else
-        {
-            Snackbar.Add($"Erro: {result.Error?.Message}", Severity.Error);
+            Dispatcher.Dispatch(new ServiceCatalogsActions.DeleteCategoryAction(categoryId));
         }
     }
 }

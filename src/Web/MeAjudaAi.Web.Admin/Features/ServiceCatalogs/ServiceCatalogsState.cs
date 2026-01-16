@@ -38,4 +38,24 @@ public sealed record ServiceCatalogsState
     /// Indica se houve erro
     /// </summary>
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
+
+    /// <summary>
+    /// Indica se está excluindo uma categoria
+    /// </summary>
+    public bool IsDeletingCategory { get; init; }
+
+    /// <summary>
+    /// ID da categoria sendo excluída
+    /// </summary>
+    public Guid? DeletingCategoryId { get; init; }
+
+    /// <summary>
+    /// Indica se está alternando status de categoria
+    /// </summary>
+    public bool IsTogglingCategory { get; init; }
+
+    /// <summary>
+    /// ID da categoria tendo status alternado
+    /// </summary>
+    public Guid? TogglingCategoryId { get; init; }
 }

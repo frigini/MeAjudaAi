@@ -85,4 +85,38 @@ public static class ServiceCatalogsActions
     /// Limpa erro atual
     /// </summary>
     public sealed record ClearErrorAction;
+
+    // ========== CATEGORY DELETE OPERATIONS ==========
+
+    /// <summary>
+    /// Solicita exclusão de categoria
+    /// </summary>
+    public sealed record DeleteCategoryAction(Guid CategoryId);
+
+    /// <summary>
+    /// Sucesso ao excluir categoria
+    /// </summary>
+    public sealed record DeleteCategorySuccessAction(Guid CategoryId);
+
+    /// <summary>
+    /// Falha ao excluir categoria
+    /// </summary>
+    public sealed record DeleteCategoryFailureAction(Guid CategoryId, string ErrorMessage);
+
+    // ========== CATEGORY TOGGLE OPERATIONS ==========
+
+    /// <summary>
+    /// Solicita alteração de status de ativação de categoria
+    /// </summary>
+    public sealed record ToggleCategoryActivationAction(Guid CategoryId, bool Activate);
+
+    /// <summary>
+    /// Sucesso ao alterar status de ativação
+    /// </summary>
+    public sealed record ToggleCategoryActivationSuccessAction(Guid CategoryId, bool IsActive);
+
+    /// <summary>
+    /// Falha ao alterar status de ativação
+    /// </summary>
+    public sealed record ToggleCategoryActivationFailureAction(Guid CategoryId, string ErrorMessage);
 }

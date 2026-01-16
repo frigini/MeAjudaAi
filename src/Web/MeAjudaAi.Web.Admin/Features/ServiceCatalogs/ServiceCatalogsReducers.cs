@@ -100,4 +100,62 @@ public static class ServiceCatalogsReducers
     [ReducerMethod]
     public static ServiceCatalogsState ReduceClearErrorAction(ServiceCatalogsState state, ServiceCatalogsActions.ClearErrorAction _)
         => state with { ErrorMessage = null };
+
+    // ========== CATEGORY DELETE OPERATIONS ==========
+
+    [ReducerMethod]
+    public static ServiceCatalogsState ReduceDeleteCategoryAction(ServiceCatalogsState state, ServiceCatalogsActions.DeleteCategoryAction action)
+        => state with
+        {
+            IsDeletingCategory = true,
+            DeletingCategoryId = action.CategoryId,
+            ErrorMessage = null
+        };
+
+    [ReducerMethod]
+    public static ServiceCatalogsState ReduceDeleteCategorySuccessAction(ServiceCatalogsState state, ServiceCatalogsActions.DeleteCategorySuccessAction _)
+        => state with
+        {
+            IsDeletingCategory = false,
+            DeletingCategoryId = null,
+            ErrorMessage = null
+        };
+
+    [ReducerMethod]
+    public static ServiceCatalogsState ReduceDeleteCategoryFailureAction(ServiceCatalogsState state, ServiceCatalogsActions.DeleteCategoryFailureAction action)
+        => state with
+        {
+            IsDeletingCategory = false,
+            DeletingCategoryId = null,
+            ErrorMessage = action.ErrorMessage
+        };
+
+    // ========== CATEGORY TOGGLE OPERATIONS ==========
+
+    [ReducerMethod]
+    public static ServiceCatalogsState ReduceToggleCategoryActivationAction(ServiceCatalogsState state, ServiceCatalogsActions.ToggleCategoryActivationAction action)
+        => state with
+        {
+            IsTogglingCategory = true,
+            TogglingCategoryId = action.CategoryId,
+            ErrorMessage = null
+        };
+
+    [ReducerMethod]
+    public static ServiceCatalogsState ReduceToggleCategoryActivationSuccessAction(ServiceCatalogsState state, ServiceCatalogsActions.ToggleCategoryActivationSuccessAction _)
+        => state with
+        {
+            IsTogglingCategory = false,
+            TogglingCategoryId = null,
+            ErrorMessage = null
+        };
+
+    [ReducerMethod]
+    public static ServiceCatalogsState ReduceToggleCategoryActivationFailureAction(ServiceCatalogsState state, ServiceCatalogsActions.ToggleCategoryActivationFailureAction action)
+        => state with
+        {
+            IsTogglingCategory = false,
+            TogglingCategoryId = null,
+            ErrorMessage = action.ErrorMessage
+        };
 }
