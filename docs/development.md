@@ -570,8 +570,8 @@ public class UsersEndpointsTests : BaseApiTest
 
 **Documentação Relacionada**:
 - 📖 [tests/MeAjudaAi.Integration.Tests/README.md](../tests/MeAjudaAi.Integration.Tests/README.md) - Guia completo
-- 🏗️ [docs/architecture.md](architecture.md#integration-test-infrastructure) - Arquitetura de testes
-- 🗺️ [docs/roadmap.md](roadmap.md#sprint-76) - Sprint 7.6 implementation
+- 🏗️ [docs/architecture.md](architecture.md) - Architecture and testing patterns
+- 🗺️ [docs/roadmap.md](roadmap.md) - Project roadmap
 
 ---
 

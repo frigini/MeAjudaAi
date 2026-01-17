@@ -114,7 +114,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
   - Descrição do problema (bug Aspire com globalPackagesFolder)
   - 3 soluções alternativas (VS Code F5, Visual Studio, configuração manual)
   - Link para issue upstream: [dotnet/aspire#6789](https://github.com/dotnet/aspire/issues/6789)
-- build/README.md: Documentação do Makefile (Unix/Linux apenas)
+- Scripts de build: Unix/Linux Makefile e PowerShell scripts (ver `build/` directory)
 
 **Resultado Alcançado**:
 - ✅ Aspire AppHost inicia corretamente via F5 ou scripts

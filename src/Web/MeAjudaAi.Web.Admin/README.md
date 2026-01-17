@@ -40,6 +40,8 @@ dotnet publish -c Release
 # Output: bin/Release/net10.0/publish/wwwroot/
 ```
 
+**Documentação:** Ver [docs/modules/admin-portal.md](../../../docs/modules/admin-portal.md) para arquitetura completa.
+
 ## 📦 Dependências
 
 | Pacote | Versão | Propósito |

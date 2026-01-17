@@ -371,7 +371,7 @@ tests/MeAjudaAi.Web.Admin.Tests/
 - Gestão de Service Catalogs (categorias + serviços)
 - Gráficos Dashboard (providers por status, evolução temporal)
 
-📖 **Documentação Completa**: [Frontend Architecture](docs/architecture.md#frontend-architecture-sprint-6)
+📖 **Documentação Completa**: [Frontend Architecture](docs/architecture.md)
 
 ---
 
@@ -561,7 +561,6 @@ azd provision
 - [**Arquitetura e Padrões**](docs/architecture.md) - Decisões arquiteturais
 - [**Guia de Desenvolvimento**](docs/development.md) - Convenções e práticas
 - [**CI/CD**](docs/ci-cd.md) - Pipeline de integração contínua
-- [**Diretrizes de Desenvolvimento**](docs/development-guidelines.md) - Padrões e boas práticas
 
 ## 🤝 Contribuição
 

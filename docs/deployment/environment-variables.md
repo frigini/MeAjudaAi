@@ -482,6 +482,4 @@ Console.WriteLine($"ApiBaseUrl from config: {clientConfig.ApiBaseUrl}");
 
 ## Exemplos Completos por Ambiente
 
-- [Azure App Service](../infrastructure/azure/app-service-config.bicep)
-- [Kubernetes](../infrastructure/k8s/admin-portal-deployment.yaml)
-- [Docker Compose](../infrastructure/compose/docker-compose.production.yml)
+Ver [infrastructure/README.md](../../infrastructure/README.md) para exemplos de configuração completa por ambiente (Azure, Kubernetes, Docker Compose).
