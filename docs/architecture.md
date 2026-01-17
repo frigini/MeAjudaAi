@@ -1822,7 +1822,7 @@ DEPOIS (DocumentsIntegrationTests - 10s):
 **Documentação Relacionada**:
 - [tests/MeAjudaAi.Integration.Tests/README.md](../tests/MeAjudaAi.Integration.Tests/README.md) - Guia completo de uso
 - [docs/development.md](development.md) - Best practices para desenvolvimento
-- [docs/roadmap.md](roadmap.md) - Project roadmap
+- [Project roadmap](roadmap.md)
 
 ---
 

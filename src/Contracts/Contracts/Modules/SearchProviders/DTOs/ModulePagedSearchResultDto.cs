@@ -1,8 +1,12 @@
 namespace MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
 
 /// <summary>
-/// Paginated search result DTO for module API.
+/// Representa um resultado de pesquisa paginada para a API de módulos.
 /// </summary>
+/// <param name="Items">Lista de ModuleSearchableProviderDto retornados na página atual.</param>
+/// <param name="TotalCount">Número total de itens correspondentes à pesquisa.</param>
+/// <param name="PageNumber">Número da página atual.</param>
+/// <param name="PageSize">Tamanho da página (quantidade de itens por página).</param>
 public sealed record ModulePagedSearchResultDto(
     IReadOnlyList<ModuleSearchableProviderDto> Items,
     int TotalCount,

@@ -65,6 +65,16 @@ public sealed class SearchProvidersQueryHandler(
 
         // Mapeia para DTOs usando distâncias pré-computadas do repositório
         // Distância é calculada uma vez no repositório (filter/sort/cache) para evitar cálculos redundantes
+        if (searchResult.DistancesInKm.Count != searchResult.Providers.Count)
+        {
+            logger.LogError(
+                "Distance/provider count mismatch (Distances: {DistancesCount}, Providers: {ProvidersCount})",
+                searchResult.DistancesInKm.Count,
+                searchResult.Providers.Count);
+            return Result<PagedResult<SearchableProviderDto>>.Failure(
+                Error.Internal("As distâncias retornadas não correspondem ao número de prestadores."));
+        }
+        
         var providerDtos = searchResult.Providers
             .Select((p, index) => new SearchableProviderDto(
                 ProviderId: p.ProviderId,
