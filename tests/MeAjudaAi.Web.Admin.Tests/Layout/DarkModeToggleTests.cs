@@ -44,20 +44,16 @@ public class DarkModeToggleTests : Bunit.BunitContext
 
         // Encontrar botões que podem ser o dark mode toggle
         var buttons = cut.FindAll("button");
-        buttons.Should().NotBeEmpty("Deve haver botões no layout");
+        buttons.Should().HaveCountGreaterThanOrEqualTo(2, "o botão de dark mode deve existir no AppBar");
 
-        // Act
-        // Simular clique no botão de dark mode (segundo botão no AppBar)
-        if (buttons.Count >= 2)
-        {
-            buttons[1].Click();
+        // Act - Clicar no segundo botão (toggle dark mode)
+        buttons[1].Click();
 
-            // Assert
-            _mockDispatcher.Verify(
-                x => x.Dispatch(It.IsAny<ToggleDarkModeAction>()), 
-                Times.AtLeastOnce,
-                "ToggleDarkModeAction deve ser disparada ao clicar no botão");
-        }
+        // Assert
+        _mockDispatcher.Verify(
+            x => x.Dispatch(It.IsAny<ToggleDarkModeAction>()), 
+            Times.AtLeastOnce,
+            "ToggleDarkModeAction deve ser disparada ao clicar no botão");
     }
 
     [Fact]

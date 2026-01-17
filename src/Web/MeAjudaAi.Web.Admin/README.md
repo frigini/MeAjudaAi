@@ -4,15 +4,15 @@ Portal administrativo Blazor WebAssembly para gerenciamento da plataforma MeAjud
 
 ## 📑 Índice
 
-- [Quick Start](#-quick-start)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [State Management (Fluxor)](#-state-management-fluxor)
-- [Sistema de Resiliência (Polly)](#-sistema-de-resiliência-polly)
-- [Validação (FluentValidation)](#-validação-fluentvalidation)
-- [Componentes MudBlazor](#-componentes-mudblazor)
-- [Configuração](#-configuração)
-- [Testes](#-testes)
-- [Debugging](#-debugging)
+- [Quick Start](#quick-start)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [State Management (Fluxor)](#state-management-fluxor)
+- [Sistema de Resiliência (Polly)](#sistema-de-resiliência-polly)
+- [Validação (FluentValidation)](#validação-fluentvalidation)
+- [Componentes MudBlazor](#componentes-mudblazor)
+- [Configuração](#configuração)
+- [Testes](#testes)
+- [Debugging](#debugging)
 
 ---
 

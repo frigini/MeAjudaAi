@@ -96,7 +96,9 @@ public class ConfigurationService(HttpClient httpClient, ILogger<ConfigurationSe
         if (errors.Any())
         {
             var errorMessage = "Configuration validation failed:\n" + string.Join("\n", errors.Select(e => $"  - {e}"));
-            logger.LogError(errorMessage);
+            logger.LogError(
+                "Configuration validation failed. Errors: {ValidationErrors}",
+                errors);
             throw new InvalidOperationException(errorMessage);
         }
     }

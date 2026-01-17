@@ -73,11 +73,11 @@ public class PrimaryAddressUpdateDtoValidator : AbstractValidator<PrimaryAddress
         When(x => !string.IsNullOrWhiteSpace(x.Country), () =>
         {
             RuleFor(x => x.Country)
-                .NoXss()
                 .MinimumLength(2)
                 .WithMessage("País deve ter no mínimo 2 caracteres")
                 .MaximumLength(100)
-                .WithMessage("País deve ter no máximo 100 caracteres");
+                .WithMessage("País deve ter no máximo 100 caracteres")
+                .NoXss();
         });
     }
 }

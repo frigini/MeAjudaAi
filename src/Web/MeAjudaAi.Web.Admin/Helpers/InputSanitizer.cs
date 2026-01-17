@@ -28,6 +28,8 @@ public static class InputSanitizer
     /// <returns>EventCallback configurado para sanitização automática</returns>
     public static EventCallback<string> CreateSanitizedCallback(object? receiver, Action<string> setter)
     {
+        ArgumentNullException.ThrowIfNull(setter);
+
         return EventCallback.Factory.Create<string>(receiver ?? new object(), (value) =>
         {
             setter(Sanitize(value));

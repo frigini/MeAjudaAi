@@ -16,7 +16,6 @@ public class UploadDocumentValidator : AbstractValidator<IBrowserFile>
     {
         "application/pdf",
         "image/jpeg",
-        "image/jpg",
         "image/png"
     };
 

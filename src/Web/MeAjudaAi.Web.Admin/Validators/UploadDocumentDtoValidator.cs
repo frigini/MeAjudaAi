@@ -16,7 +16,7 @@ public class UploadDocumentDtoValidator : AbstractValidator<UploadDocumentDto>
 
         RuleFor(x => x.File)
             .NotNull()
-            .WithMessage("Arquivo é obrigatório")
+            .WithMessage("É obrigatório selecionar um arquivo")
             .SetValidator(new UploadDocumentValidator()!);
 
         RuleFor(x => x.DocumentType)

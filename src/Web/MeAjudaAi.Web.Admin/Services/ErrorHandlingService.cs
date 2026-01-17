@@ -140,7 +140,7 @@ public class ErrorHandlingService(
                 "Unexpected exception in operation '{Operation}' [CorrelationId: {CorrelationId}]",
                 operation, correlationId);
 
-            return Result<T>.Failure(Error.Internal($"Erro inesperado: {ex.Message}"));
+            return Result<T>.Failure(Error.Internal("Ocorreu um erro inesperado. Tente novamente."));
         }
     }
 

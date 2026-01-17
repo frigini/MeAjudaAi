@@ -36,13 +36,13 @@ public class PrimaryAddressDtoValidator : AbstractValidator<PrimaryAddressDto>
                 .NoXss();
         });
 
-        When(x => !string.IsNullOrWhiteSpace(x.Neighborhood), () =>
-        {
-            RuleFor(x => x.Neighborhood)
-                .MaximumLength(100)
-                .WithMessage("Bairro deve ter no máximo 100 caracteres")
-                .NoXss();
-        });
+        // Bairro é obrigatório
+        RuleFor(x => x.Neighborhood)
+            .NotEmpty()
+            .WithMessage("Bairro é obrigatório")
+            .MaximumLength(100)
+            .WithMessage("Bairro deve ter no máximo 100 caracteres")
+            .NoXss();
 
         RuleFor(x => x.City)
             .NotEmpty()
