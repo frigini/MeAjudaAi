@@ -10,7 +10,7 @@ namespace MeAjudaAi.Web.Admin.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Registra um cliente de API Refit com configuração padrão (endereço base, handler de autenticação e políticas Polly).
+    /// Registra um cliente de API Refit com configuração padrão (endereço base, handler de autenticação e políticas de resiliência).
     /// </summary>
     /// <typeparam name="TClient">O tipo da interface Refit a ser registrada.</typeparam>
     /// <param name="services">A coleção de serviços.</param>
@@ -34,23 +34,34 @@ public static class ServiceCollectionExtensions
             .AddHttpMessageHandler<ApiAuthorizationMessageHandler>()
             .AddHttpMessageHandler<PollyLoggingHandler>();
 
-        // Adiciona políticas Polly baseadas no tipo de operação
+        // Adiciona políticas de resiliência baseadas no tipo de operação
         if (useUploadPolicy)
         {
-            // Política para uploads: sem retry, timeout estendido
-            httpClientBuilder.AddPolicyHandler((serviceProvider, request) =>
+            // Política para uploads: sem retry, timeout estendido, circuit breaker
+            httpClientBuilder.AddStandardResilienceHandler(options =>
             {
-                var logger = serviceProvider.GetRequiredService<ILogger<TClient>>();
-                return PollyPolicies.GetUploadPolicy(logger);
+                // Desabilita retry para uploads (evita duplicação)
+                options.Retry.MaxRetryAttempts = 0;
+                
+                // Configura circuit breaker e timeout com logging
+                var loggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
+                var logger = loggerFactory.CreateLogger<TClient>();
+                
+                ResiliencePolicies.ConfigureCircuitBreaker(options.CircuitBreaker, logger);
+                ResiliencePolicies.ConfigureUploadTimeout(options.TotalRequestTimeout);
             });
         }
         else
         {
             // Política padrão: retry + circuit breaker + timeout
-            httpClientBuilder.AddPolicyHandler((serviceProvider, request) =>
+            httpClientBuilder.AddStandardResilienceHandler(options =>
             {
-                var logger = serviceProvider.GetRequiredService<ILogger<TClient>>();
-                return PollyPolicies.GetCombinedPolicy(logger);
+                var loggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
+                var logger = loggerFactory.CreateLogger<TClient>();
+                
+                ResiliencePolicies.ConfigureRetry(options.Retry, logger);
+                ResiliencePolicies.ConfigureCircuitBreaker(options.CircuitBreaker, logger);
+                ResiliencePolicies.ConfigureTimeout(options.TotalRequestTimeout);
             });
         }
         
