@@ -37,7 +37,7 @@ public class ErrorHandlingService
     {
         if (result.IsSuccess)
         {
-            _logger.LogWarning("HandleApiError chamado para resultado bem-sucedido na operação: {Operation}", operation);
+            _logger.LogWarning("HandleApiError called for successful result in operation: {Operation}", operation);
             return string.Empty;
         }
 
@@ -46,7 +46,7 @@ public class ErrorHandlingService
         var statusCode = result.Error?.StatusCode ?? 500;
 
         _logger.LogError(
-            "Erro na operação '{Operation}': {StatusCode} - {ErrorMessage} [CorrelationId: {CorrelationId}]",
+            "Error in operation '{Operation}': {StatusCode} - {ErrorMessage} [CorrelationId: {CorrelationId}]",
             operation, statusCode, errorMessage, correlationId);
 
         // Retorna mensagem do backend (já deve ser amigável) ou mapeia por status code
@@ -113,7 +113,7 @@ public class ErrorHandlingService
             if (result.IsSuccess)
             {
                 _logger.LogInformation(
-                    "Operação '{Operation}' bem-sucedida [CorrelationId: {CorrelationId}]",
+                    "Operation '{Operation}' succeeded [CorrelationId: {CorrelationId}]",
                     operation, correlationId);
                 return result;
             }
@@ -122,7 +122,7 @@ public class ErrorHandlingService
             var errorMessage = result.Error?.Message ?? "Erro desconhecido";
 
             _logger.LogError(
-                "Operação '{Operation}' falhou com status {StatusCode}: {ErrorMessage} [CorrelationId: {CorrelationId}]",
+                "Operation '{Operation}' failed with status {StatusCode}: {ErrorMessage} [CorrelationId: {CorrelationId}]",
                 operation, statusCode, errorMessage, correlationId);
 
             return result;
@@ -130,7 +130,7 @@ public class ErrorHandlingService
         catch (OperationCanceledException)
         {
             _logger.LogInformation(
-                "Operação '{Operation}' cancelada [CorrelationId: {CorrelationId}]",
+                "Operation '{Operation}' canceled [CorrelationId: {CorrelationId}]",
                 operation, correlationId);
             
             throw; // Re-throw to let caller handle cancellation
@@ -138,7 +138,7 @@ public class ErrorHandlingService
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex,
-                "Exceção de rede na operação '{Operation}' [CorrelationId: {CorrelationId}]",
+                "Network exception in operation '{Operation}' [CorrelationId: {CorrelationId}]",
                 operation, correlationId);
 
             return Result<T>.Failure(Error.Internal("Erro de conexão. Verifique sua internet."));
@@ -146,7 +146,7 @@ public class ErrorHandlingService
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "Exceção inesperada na operação '{Operation}' [CorrelationId: {CorrelationId}]",
+                "Unexpected exception in operation '{Operation}' [CorrelationId: {CorrelationId}]",
                 operation, correlationId);
 
             return Result<T>.Failure(Error.Internal($"Erro inesperado: {ex.Message}"));

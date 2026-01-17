@@ -278,11 +278,11 @@ public sealed class ProvidersModuleApi(
     }
 
     /// <summary>
-    /// Gets provider data prepared for search indexing, including coordinates obtained via geocoding.
+    /// Obtém dados do provedor preparados para indexação de busca, incluindo coordenadas obtidas via geocodificação.
     /// </summary>
-    /// <param name="providerId">The unique identifier of the provider to index.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Provider indexing DTO with geocoded location, or null if provider not found, or failure if geocoding fails.</returns>
+    /// <param name="providerId">O identificador único do provedor a ser indexado.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <returns>DTO de indexação do provedor com localização geocodificada, ou null se provedor não encontrado, ou falha se geocodificação falhar.</returns>
     public async Task<Result<ModuleProviderIndexingDto?>> GetProviderForIndexingAsync(
         Guid providerId,
         CancellationToken cancellationToken = default)

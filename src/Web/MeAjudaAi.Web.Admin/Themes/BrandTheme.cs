@@ -9,7 +9,7 @@ namespace MeAjudaAi.Web.Admin.Themes;
 public static class BrandTheme
 {
     /// <summary>
-    /// Gets the MeAjudaAi brand theme with custom color palette.
+    /// Obtém o tema da marca MeAjudaAi com paleta de cores customizada.
     /// </summary>
     public static MudTheme Theme => new()
     {

@@ -3,14 +3,14 @@ using System.Diagnostics;
 namespace MeAjudaAi.Web.Admin.Services;
 
 /// <summary>
-/// Provides correlation IDs for distributed tracing.
+/// Fornece IDs de correlação para rastreamento distribuído.
 /// </summary>
 public interface ICorrelationIdProvider
 {
     /// <summary>
-    /// Gets or creates a correlation ID.
-    /// Prefers Activity.Current?.Id for distributed tracing, falls back to new GUID.
+    /// Obtém ou cria um ID de correlação.
+    /// Prefere Activity.Current?.Id para rastreamento distribuído, usa novo GUID como fallback.
     /// </summary>
-    /// <returns>Correlation ID string</returns>
+    /// <returns>String do ID de correlação</returns>
     string GetOrCreate();
 }

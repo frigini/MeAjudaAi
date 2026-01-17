@@ -341,12 +341,12 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     // Helper methods usando serialização compartilhada
 #pragma warning disable CA2000 // Dispose StringContent - handled by HttpClient
     /// <summary>
-    /// Sends a POST request with JSON content to the specified URI.
+    /// Envia uma requisição POST com conteúdo JSON para o URI especificado.
     /// </summary>
-    /// <typeparam name="T">The type of the content to serialize.</typeparam>
-    /// <param name="requestUri">The URI to send the request to.</param>
-    /// <param name="content">The content to serialize and send.</param>
-    /// <returns>The HTTP response message.</returns>
+    /// <typeparam name="T">O tipo do conteúdo a ser serializado.</typeparam>
+    /// <param name="requestUri">O URI para enviar a requisição.</param>
+    /// <param name="content">O conteúdo a ser serializado e enviado.</param>
+    /// <returns>A mensagem de resposta HTTP.</returns>
     protected async Task<HttpResponseMessage> PostJsonAsync<T>(string requestUri, T content)
     {
         var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
@@ -355,12 +355,12 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     }
 
     /// <summary>
-    /// Sends a PUT request with JSON content to the specified URI.
+    /// Envia uma requisição PUT com conteúdo JSON para o URI especificado.
     /// </summary>
-    /// <typeparam name="T">The type of the content to serialize.</typeparam>
-    /// <param name="requestUri">The URI to send the request to.</param>
-    /// <param name="content">The content to serialize and send.</param>
-    /// <returns>The HTTP response message.</returns>
+    /// <typeparam name="T">O tipo do conteúdo a ser serializado.</typeparam>
+    /// <param name="requestUri">O URI para enviar a requisição.</param>
+    /// <param name="content">O conteúdo a ser serializado e enviado.</param>
+    /// <returns>A mensagem de resposta HTTP.</returns>
     protected async Task<HttpResponseMessage> PutJsonAsync<T>(string requestUri, T content)
     {
         var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
@@ -370,11 +370,11 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 #pragma warning restore CA2000
 
     /// <summary>
-    /// Deserializes JSON content from an HTTP response.
+    /// Desserializa conteúdo JSON de uma resposta HTTP.
     /// </summary>
-    /// <typeparam name="T">The type to deserialize to.</typeparam>
-    /// <param name="response">The HTTP response containing JSON content.</param>
-    /// <returns>The deserialized object, or null if deserialization fails.</returns>
+    /// <typeparam name="T">O tipo para desserializar.</typeparam>
+    /// <param name="response">A resposta HTTP contendo conteúdo JSON.</param>
+    /// <returns>O objeto desserializado, ou null se a desserialização falhar.</returns>
     protected static async Task<T?> ReadJsonAsync<T>(HttpResponseMessage response)
     {
         var content = await response.Content.ReadAsStringAsync();
@@ -446,22 +446,22 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     }
 
     /// <summary>
-    /// Sends a POST request with JSON content to the specified URI.
+    /// Envia uma requisição POST com conteúdo JSON para o URI especificado.
     /// </summary>
-    /// <typeparam name="T">The type of the content to serialize.</typeparam>
-    /// <param name="requestUri">The URI to send the request to.</param>
-    /// <param name="content">The content to serialize and send.</param>
-    /// <returns>The HTTP response message.</returns>
+    /// <typeparam name="T">O tipo do conteúdo a ser serializado.</typeparam>
+    /// <param name="requestUri">O URI para enviar a requisição.</param>
+    /// <param name="content">O conteúdo a ser serializado e enviado.</param>
+    /// <returns>A mensagem de resposta HTTP.</returns>
     protected async Task<HttpResponseMessage> PostJsonAsync<T>(Uri requestUri, T content)
         => await PostJsonAsync(requestUri.ToString(), content);
 
     /// <summary>
-    /// Sends a PUT request with JSON content to the specified URI.
+    /// Envia uma requisição PUT com conteúdo JSON para o URI especificado.
     /// </summary>
-    /// <typeparam name="T">The type of the content to serialize.</typeparam>
-    /// <param name="requestUri">The URI to send the request to.</param>
-    /// <param name="content">The content to serialize and send.</param>
-    /// <returns>The HTTP response message.</returns>
+    /// <typeparam name="T">O tipo do conteúdo a ser serializado.</typeparam>
+    /// <param name="requestUri">O URI para enviar a requisição.</param>
+    /// <param name="content">O conteúdo a ser serializado e enviado.</param>
+    /// <returns>A mensagem de resposta HTTP.</returns>
     protected async Task<HttpResponseMessage> PutJsonAsync<T>(Uri requestUri, T content)
         => await PutJsonAsync(requestUri.ToString(), content);
 

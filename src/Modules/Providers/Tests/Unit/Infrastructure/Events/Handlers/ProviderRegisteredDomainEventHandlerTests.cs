@@ -22,7 +22,7 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
     private readonly ProviderRegisteredDomainEventHandler _handler;
 
     /// <summary>
-    /// Initializes the message bus mock, in-memory ProvidersDbContext, and the ProviderRegisteredDomainEventHandler under test with NullLogger.
+    /// Inicializa o mock do message bus, ProvidersDbContext em memória, e o ProviderRegisteredDomainEventHandler sob teste com NullLogger.
     /// </summary>
     public ProviderRegisteredDomainEventHandlerTests()
     {
