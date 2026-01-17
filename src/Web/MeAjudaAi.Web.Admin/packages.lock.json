@@ -81,9 +81,9 @@
       },
       "Microsoft.AspNetCore.Components.WebAssembly.DevServer": {
         "type": "Direct",
-        "requested": "[10.0.1, )",
-        "resolved": "10.0.1",
-        "contentHash": "dTjRnvy1wJc7PbSbfJ2NNkNBLkSZ3ywSZjiImGLC7mYrqyndAn9cVtCMEFYl037gxSim71TOHLqqmE/UrB1dxA=="
+        "requested": "[10.0.2, )",
+        "resolved": "10.0.2",
+        "contentHash": "PxZuemv+NCofS6Mivh9Ke2krvILyTTZMUDaZnzG+VkhpGxqPaCjSSUhZN9AxJwvRxpmpTEDylwCarzq5nOlo8w=="
       },
       "Microsoft.DotNet.HotReload.WebAssembly.Browser": {
         "type": "Direct",
