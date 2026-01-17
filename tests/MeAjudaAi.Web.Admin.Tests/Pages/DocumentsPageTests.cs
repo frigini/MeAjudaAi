@@ -55,8 +55,7 @@ public class DocumentsPageTests
         var testProviderId = Guid.NewGuid();
         mockDocumentsState.Setup(x => x.Value).Returns(new DocumentsState 
         { 
-            SelectedProviderId = testProviderId,
-            SelectedProviderName = "Test Provider"
+            SelectedProviderId = testProviderId
         });
         
         ctx.Services.AddSingleton(mockDocumentsApi.Object);
@@ -113,6 +112,7 @@ public class DocumentsPageTests
             ProviderId = Guid.NewGuid(),
             DocumentType = "RG",
             FileName = "test.pdf",
+            FileUrl = "https://example.com/test.pdf",
             Status = "Uploaded",
             UploadedAt = DateTime.UtcNow
         };

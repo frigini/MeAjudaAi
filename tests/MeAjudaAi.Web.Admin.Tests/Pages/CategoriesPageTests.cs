@@ -83,10 +83,8 @@ public class CategoriesPageTests
             Guid.NewGuid(),
             "Limpeza",
             "Serviços de limpeza residencial",
-            1,
             true,
-            DateTime.UtcNow,
-            DateTime.UtcNow
+            1
         );
         
         mockState.Setup(x => x.Value).Returns(new ServiceCatalogsState 

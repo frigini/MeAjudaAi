@@ -111,19 +111,18 @@ public class ProvidersPageTests
         
         var providers = new List<ModuleProviderDto>
         {
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Name = "Fornecedor Teste",
-                Email = "teste@exemplo.com",
-                Document = "12345678901",
-                Phone = "11999999999",
-                ProviderType = "Individual",
-                VerificationStatus = "Verified",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                IsActive = true
-            }
+            new(
+                Id: Guid.NewGuid(),
+                Name: "Fornecedor Teste",
+                Email: "teste@exemplo.com",
+                Document: "12345678901",
+                ProviderType: "Individual",
+                VerificationStatus: "Verified",
+                CreatedAt: DateTime.UtcNow,
+                UpdatedAt: DateTime.UtcNow,
+                IsActive: true,
+                Phone: "11999999999"
+            )
         };
 
         mockProvidersState.Setup(x => x.Value).Returns(new ProvidersState 
