@@ -20,8 +20,10 @@ public static class LiveRegionHelper
     /// <param name="entityName">Nome da entidade carregada</param>
     /// <param name="count">Quantidade de itens carregados</param>
     /// <returns>Mensagem de anúncio</returns>
-    public static string LoadingCompleted(string entityName, int count) => 
-        $"{count} {entityName} carregado(s) com sucesso.";
+    public static string LoadingCompleted(string entityName, int count) =>
+        count == 1
+            ? $"{count} {entityName} carregado com sucesso."
+            : $"{count} {entityName} carregados com sucesso.";
     
     /// <summary>
     /// Anuncia criação bem-sucedida.
@@ -60,8 +62,10 @@ public static class LiveRegionHelper
     /// </summary>
     /// <param name="errorCount">Quantidade de erros</param>
     /// <returns>Mensagem de anúncio</returns>
-    public static string ValidationError(int errorCount) => 
-        $"{errorCount} erro(s) de validação encontrado(s).";
+    public static string ValidationError(int errorCount) =>
+        errorCount == 1
+            ? $"{errorCount} erro de validação encontrado."
+            : $"{errorCount} erros de validação encontrados.";
     
     /// <summary>
     /// Anuncia mudança de página.
@@ -77,8 +81,10 @@ public static class LiveRegionHelper
     /// </summary>
     /// <param name="resultCount">Quantidade de resultados encontrados</param>
     /// <returns>Mensagem de anúncio</returns>
-    public static string FilterApplied(int resultCount) => 
-        $"Filtro aplicado. {resultCount} resultado(s) encontrado(s).";
+    public static string FilterApplied(int resultCount) =>
+        resultCount == 1
+            ? $"Filtro aplicado. {resultCount} resultado encontrado."
+            : $"Filtro aplicado. {resultCount} resultados encontrados.";
     
     /// <summary>
     /// Anuncia mudança de seleção.

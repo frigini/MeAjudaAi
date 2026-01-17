@@ -128,10 +128,10 @@ O projeto foi organizado para facilitar navegação e manutenção:
 ```
 
 **Pronto!** 🎉 Acesse:
-- **Aspire Dashboard**: https://localhost:17063/
-- **Admin Portal**: https://localhost:7032/ (via Aspire)
-- **API**: https://localhost:7524/ (Swagger: /swagger)
-- **Keycloak**: http://localhost:8080/ (admin/senha gerada)
+- **Aspire Dashboard**: [https://localhost:17063/](https://localhost:17063/)
+- **Admin Portal**: [https://localhost:7032/](https://localhost:7032/) (via Aspire)
+- **API**: [https://localhost:7524/](https://localhost:7524/) (Swagger: /swagger)
+- **Keycloak**: [http://localhost:8080/](http://localhost:8080/) (admin/senha gerada)
 
 ### 🔄 Uso Diário
 
@@ -209,13 +209,13 @@ dotnet test tests/MeAjudaAi.Modules.Users.Tests/
 
 | Serviço | URL | Credenciais | Configuração |
 |---------|-----|-------------|-------------|
-| **Aspire Dashboard** | https://localhost:17063/ | - | `AppHost/launchSettings.json` |
-| **Admin Portal** | https://localhost:7032/ | admin.portal/admin123 | Via Aspire (auto-start) |
-| **API** | https://localhost:7524/swagger | - | `ApiService/launchSettings.json` |
-| **Keycloak** | http://localhost:8080/ | admin/[console logs] | `compose/development.yml` |
+| **Aspire Dashboard** | [https://localhost:17063/](https://localhost:17063/) | - | `AppHost/launchSettings.json` |
+| **Admin Portal** | [https://localhost:7032/](https://localhost:7032/) | admin.portal/admin123 | Via Aspire (auto-start) |
+| **API** | [https://localhost:7524/swagger](https://localhost:7524/swagger) | - | `ApiService/launchSettings.json` |
+| **Keycloak** | [http://localhost:8080/](http://localhost:8080/) | admin/[console logs] | `compose/development.yml` |
 | **PostgreSQL** | localhost:5432 | postgres/[gerada] | Docker Compose |
 | **Redis** | localhost:6379 | - | Docker Compose |
-| **RabbitMQ** | http://localhost:15672/ | meajudaai/[gerada] | Docker Compose |
+| **RabbitMQ** | [http://localhost:15672/](http://localhost:15672/) | meajudaai/[gerada] | Docker Compose |
 
 
 

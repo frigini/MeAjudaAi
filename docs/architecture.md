@@ -1183,7 +1183,7 @@ public static class UsersModuleServiceCollectionExtensions
         return services;
     }
 }
-`csharp
+```
 
 ### **Configuração no Program.cs**
 
@@ -1218,7 +1218,7 @@ public class Program
         app.Run();
     }
 }
-`yaml
+```
 
 ## 📡 Event-Driven Architecture
 
@@ -1257,7 +1257,7 @@ public abstract class AggregateRoot<TId> : Entity<TId> where TId : EntityId
         _domainEvents.Clear();
     }
 }
-`csharp
+```
 
 ### **Implementação do Event Bus**
 
@@ -1299,7 +1299,7 @@ public sealed class DomainEventBus : IEventBus
         }
     }
 }
-`sql
+```
 
 ### **Event Handlers**
 
@@ -1338,7 +1338,7 @@ public sealed class SendWelcomeEmailHandler
         }
     }
 }
-`csharp
+```
 
 ## 🛡️ Padrões de Segurança
 
@@ -1414,7 +1414,7 @@ public sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUse
             .WithMessage("Tipo de usuário inválido");
     }
 }
-`csharp
+```
 
 ## 🔄 Padrões de Resilência
 
@@ -1448,7 +1448,7 @@ public static class RetryPolicies
             retryCount: 2,
             sleepDurationProvider: _ => TimeSpan.FromMilliseconds(500));
 }
-`yaml
+```
 
 ### **Circuit Breaker Pattern**
 
@@ -1472,7 +1472,7 @@ public static class CircuitBreakerPolicies
                 // Log circuit breaker closed
             });
 }
-`csharp
+```
 
 ## 📊 Observabilidade e Monitoramento
 
@@ -1545,7 +1545,7 @@ public sealed class UserMetrics
             new KeyValuePair<string, object?>("user_type", userType.ToString()));
     }
 }
-`csharp
+```
 
 ## 🧪 Padrões de Teste
 
@@ -1599,7 +1599,7 @@ public sealed class UserTests : DomainTestBase
             .Which.Should().BeOfType<UserRegisteredDomainEvent>();
     }
 }
-`yaml
+```
 
 ### **Integration Tests**
 
