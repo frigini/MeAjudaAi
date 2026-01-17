@@ -17,9 +17,11 @@ public static class PerformanceHelper
     /// Número máximo de timestamps de throttle antes da limpeza.
     /// </summary>
     private const int MaxThrottleSize = 100;
+    
     /// <summary>
     /// Mede o tempo de execução de uma ação.
     /// </summary>
+    public static async Task<(T Result, TimeSpan Duration)> MeasureAsync<T>(Func<Task<T>> action)
     {
         var stopwatch = Stopwatch.StartNew();
         var result = await action();
@@ -30,6 +32,7 @@ public static class PerformanceHelper
     /// <summary>
     /// Mede o tempo de execução de uma ação.
     /// </summary>
+    public static (T Result, TimeSpan Duration) Measure<T>(Func<T> action)
     {
         var stopwatch = Stopwatch.StartNew();
         var result = action();
