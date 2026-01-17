@@ -111,11 +111,13 @@ public class ErrorHandlingService(
             }
 
             var statusCode = result.Error?.StatusCode ?? 500;
-            var errorMessage = result.Error?.Message ?? "Erro desconhecido";
+            var backendMessage = result.Error?.Message;
+            var userMessage = backendMessage ?? "Erro desconhecido";
+            var logMessage = backendMessage ?? "Unknown error";
 
             logger.LogError(
                 "Operation '{Operation}' failed with status {StatusCode}: {ErrorMessage} [CorrelationId: {CorrelationId}]",
-                operation, statusCode, errorMessage, correlationId);
+                operation, statusCode, logMessage, correlationId);
 
             return result;
         }

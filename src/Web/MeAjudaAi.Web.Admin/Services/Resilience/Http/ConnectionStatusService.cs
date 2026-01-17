@@ -8,6 +8,7 @@ namespace MeAjudaAi.Web.Admin.Services.Resilience.Http;
 /// </summary>
 public class ConnectionStatusService : IConnectionStatusService
 {
+    private readonly object _lock = new();
     private ConnectionStatus _currentStatus = ConnectionStatus.Connected;
 
     /// <inheritdoc />
@@ -19,10 +20,13 @@ public class ConnectionStatusService : IConnectionStatusService
     /// <inheritdoc />
     public void UpdateStatus(ConnectionStatus status)
     {
-        if (_currentStatus != status)
+        lock (_lock)
         {
-            _currentStatus = status;
-            StatusChanged?.Invoke(this, status);
+            if (_currentStatus != status)
+            {
+                _currentStatus = status;
+                StatusChanged?.Invoke(this, status);
+            }
         }
     }
 }

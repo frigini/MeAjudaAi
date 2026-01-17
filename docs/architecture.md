@@ -1378,7 +1378,7 @@ public sealed class RequirePermissionAttribute : AuthorizeAttribute, IAuthorizat
         Policy = $"RequirePermission:{permission}";
     }
 }
-`	ext
+```
 
 ### **Validation Pattern**
 
@@ -2291,7 +2291,7 @@ src/Shared/API.Collections/
         ├── CreateUser.bru
         ├── GetUsers.bru
         └── UpdateUser.bru
-`$([System.Environment]::NewLine)
+```
 
 - 🤝 **Compartilhamento fácil** com QA, PO, clientes
 - 🔄 **Geração automática** via OpenAPI
@@ -2302,7 +2302,7 @@ src/Shared/API.Collections/
 
 #### **Comandos Disponíveis**
 
-`ash
+```bash
 
 # Gerar todas as collections
 cd tools/api-collections
@@ -2370,7 +2370,7 @@ options.OperationFilter<ApiVersionOperationFilter>();
 ### **Exportação OpenAPI para Clientes REST**
 
 #### **Comando Único**
-`ash
+```bash
 
 # Gera especificação OpenAPI completa
 .\scripts\export-openapi.ps1 -OutputPath "api/api-spec.json"

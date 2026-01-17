@@ -59,7 +59,7 @@ dotnet publish -c Release  # Com AOT compilation
 
 ## 🏗️ Estrutura do Projeto
 
-```
+```text
 MeAjudaAi.Web.Admin/
 ├── Features/              # Fluxor stores (State + Actions + Reducers + Effects)
 │   ├── Providers/

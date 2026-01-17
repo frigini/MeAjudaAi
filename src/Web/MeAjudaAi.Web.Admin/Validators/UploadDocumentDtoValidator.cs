@@ -17,6 +17,8 @@ public class UploadDocumentDtoValidator : AbstractValidator<UploadDocumentDto>
         RuleFor(x => x.File)
             .NotNull()
             .WithMessage("É obrigatório selecionar um arquivo")
+            // FluentValidation requer IValidator<IBrowserFile?> mas UploadDocumentValidator é IValidator<IBrowserFile>
+            // O ! é necessário para conversão de tipos (nullability mismatch)
             .SetValidator(new UploadDocumentValidator()!);
 
         RuleFor(x => x.DocumentType)

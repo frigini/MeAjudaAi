@@ -272,7 +272,7 @@ dotnet test tests/MeAjudaAi.Modules.Users.Tests/
 - ✅ Restrições Geográficas (cidades permitidas)
 - ✅ Dark Mode com Fluxor state management
 - ✅ Localização completa em português
-- ✅ 30 testes bUnit (componentes principais)
+- ✅ 43 testes bUnit (componentes principais)
 
 **Como Executar:**
 

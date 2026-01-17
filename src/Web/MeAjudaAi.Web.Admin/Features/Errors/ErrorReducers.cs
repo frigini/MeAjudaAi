@@ -36,7 +36,7 @@ public static class ErrorReducers
     [ReducerMethod]
     public static ErrorState OnRetryAfterError(ErrorState state, RetryAfterErrorAction action)
     {
-        // Clear error to allow retry
+        // Limpa o erro para permitir nova tentativa
         return new ErrorState();
     }
 }
