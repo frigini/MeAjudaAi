@@ -21,13 +21,13 @@ O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implem
 - **.NET 10.0.2** - Framework principal
 - **.NET Aspire 13.1** - Orquestração e observabilidade
 - **Blazor WebAssembly 10.0.2** - Admin Portal SPA
-- **MudBlazor 8.5.1** - Material Design UI components
-- **Fluxor 6.10.0** - Redux state management
+- **MudBlazor 8.15.0** - Material Design UI components
+- **Fluxor 6.9.0** - Redux state management
 - **Entity Framework Core 10.0.2** - ORM e persistência
 - **PostgreSQL 16** - Banco de dados principal
-- **Keycloak 26.0.7** - Autenticação OAuth2/OIDC
+- **Keycloak 26.0.2** - Autenticação OAuth2/OIDC
 - **Redis 7** - Cache distribuído
-- **RabbitMQ 4** / **Azure Service Bus** - Messaging
+- **RabbitMQ 3** / **Azure Service Bus** - Messaging
 - **Docker** - Containerização
 - **Azure** - Hospedagem em nuvem
 
