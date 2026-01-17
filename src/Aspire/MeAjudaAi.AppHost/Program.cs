@@ -40,10 +40,10 @@ internal static class Program
             Environment.Exit(1);
         }
 
-        var app = builder.Build();
+        builder.Build().Run();
+    }
 
-        // Setup automático do Keycloak em desenvolvimento
-        builder.Build().RunnfigureTestingEnvironment(IDistributedApplicationBuilder builder)
+    private static void ConfigureTestingEnvironment(IDistributedApplicationBuilder builder)
     {
         var testDbName = Environment.GetEnvironmentVariable("MEAJUDAAI_DB") ?? "meajudaai";
         var testDbUser = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_USER") ?? "postgres";

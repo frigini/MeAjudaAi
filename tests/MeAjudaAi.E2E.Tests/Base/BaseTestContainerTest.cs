@@ -50,21 +50,18 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     public virtual async ValueTask InitializeAsync()
     {
         // Configurar containers com configuração mais robusta
-        _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgis/postgis:16-3.4") // Mesma imagem usada em CI/CD e compose
+        _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4") // Mesma imagem usada em CI/CD e compose
             .WithDatabase("meajudaai_test")
             .WithUsername("postgres")
             .WithPassword("test123")
             .WithCleanUp(true)
             .Build();
 
-        _redisContainer = new RedisBuilder()
-            .WithImage("redis:7-alpine")
+        _redisContainer = new RedisBuilder("redis:7-alpine")
             .WithCleanUp(true)
             .Build();
 
-        _azuriteContainer = new AzuriteBuilder()
-            .WithImage("mcr.microsoft.com/azure-storage/azurite:3.34.0")
+        _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.34.0")
             .WithCleanUp(true)
             .Build();
 

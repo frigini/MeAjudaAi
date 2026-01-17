@@ -27,8 +27,7 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
     {
         // Cria container PostgreSQL com PostGIS para suporte a dados geográficos
         // PostGIS é necessário para SearchProviders (NetTopologySuite)
-        _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgis/postgis:15-3.4")
+        _postgresContainer = new PostgreSqlBuilder("postgis/postgis:15-3.4")
             .WithDatabase("meajudaai_test")
             .WithUsername("postgres")
             .WithPassword("test123")

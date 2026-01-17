@@ -65,8 +65,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         // Criar container PostgreSQL isolado para esta classe de teste
         var options = GetTestOptions();
 
-        _container = new PostgreSqlBuilder()
-            .WithImage(options.Database.PostgresImage)
+        _container = new PostgreSqlBuilder(options.Database.PostgresImage)
             .WithDatabase(options.Database.DatabaseName)
             .WithUsername(options.Database.Username)
             .WithPassword(options.Database.Password)

@@ -33,8 +33,7 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         // Criar container PostgreSQL com PostGIS
-        _container = new PostgreSqlBuilder()
-            .WithImage("postgis/postgis:16-3.4") // Imagem com PostGIS
+        _container = new PostgreSqlBuilder("postgis/postgis:16-3.4") // Imagem com PostGIS
             .WithDatabase($"search_test_{_testClassId}")
             .WithUsername("test_user")
             .WithPassword("test_password")

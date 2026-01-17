@@ -78,8 +78,7 @@ public static class SharedTestContainers
 
             // PostgreSQL com PostGIS para suportar queries geoespaciais nos testes
             // Usando postgis/postgis:16-3.4 (mesma versão do CI/CD para garantir consistência)
-            _postgreSqlContainer = new PostgreSqlBuilder()
-                .WithImage("postgis/postgis:16-3.4") // Mesma versão do CI/CD
+            _postgreSqlContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4") // Mesma versão do CI/CD
                 .WithDatabase(_databaseOptions.DatabaseName)
                 .WithUsername(_databaseOptions.Username)
                 .WithPassword(_databaseOptions.Password)
@@ -88,8 +87,7 @@ public static class SharedTestContainers
             // Azurite (Azure Storage Emulator) para testes de blob storage/documents
             // Expõe serviços Blob, Queue e Table
             // Pinned to 3.33.0 for stability - matches production CI/CD environment
-            _azuriteContainer = new AzuriteBuilder()
-                .WithImage("mcr.microsoft.com/azure-storage/azurite:3.33.0")
+            _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.33.0")
                 .Build();
 
             _isInitialized = true;

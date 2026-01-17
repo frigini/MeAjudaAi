@@ -36,8 +36,7 @@ public sealed class RejectDocumentCommandHandlerIntegrationTests : IAsyncLifetim
 
     public RejectDocumentCommandHandlerIntegrationTests()
     {
-        _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgres:15-alpine")
+        _postgresContainer = new PostgreSqlBuilder("postgres:15-alpine")
             .WithDatabase("documents_test")
             .WithUsername("postgres")
             .WithPassword("postgres")
