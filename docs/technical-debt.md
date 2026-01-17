@@ -12,7 +12,7 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 ### 🎨 Frontend - Warnings de Analyzers (BAIXA)
 
 **Severidade**: BAIXA (code quality)  
-**Sprint**: Sprint 8 (planejado)
+**Sprint**: Sprint 7.16 (planejado)
 
 **Descrição**: Build do Admin Portal gera warnings de analyzers (SonarLint + MudBlazor):
 
@@ -42,7 +42,7 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 ### 📊 Frontend - Cobertura de Testes (MÉDIA)
 
 **Severidade**: MÉDIA (quality assurance)  
-**Sprint**: Sprint 8 (aumentar cobertura)
+**Sprint**: Sprint 7.16 (aumentar cobertura)
 
 **Descrição**: Admin Portal tem apenas 10 testes bUnit criados. Coverage atual é baixo para produção.
 
@@ -58,7 +58,7 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 - ❌ **MudBlazor interactions**: Clicks, inputs não validados
 - ❌ **Fluxor Effects**: Chamadas API não mockadas completamente
 
-**Ações Recomendadas** (Sprint 8):
+**Ações Recomendadas** (Sprint 7.16):
 - [ ] Criar 20+ testes adicionais (meta: 30-40 testes totais)
 - [ ] Testar fluxos de autenticação
 - [ ] Testar paginação
@@ -72,7 +72,7 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 ### 🔐 Keycloak Client - Configuração Manual (MÉDIA)
 
 **Severidade**: MÉDIA (developer experience)  
-**Sprint**: Sprint 8 (automação desejável)
+**Sprint**: Sprint 7.16 (automação desejável)
 
 **Descrição**: Client `admin-portal` precisa ser criado MANUALMENTE no Keycloak realm `meajudaai`.
 
@@ -85,7 +85,7 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 2. **Erro humano**: Fácil esquecer redirect URIs ou roles
 3. **Reprodutibilidade**: Ambiente local pode divergir de dev/staging
 
-**Ações Recomendadas** (Sprint 8):
+**Ações Recomendadas** (Sprint 7.16):
 - [ ] Criar script de automação: `scripts/setup-keycloak-clients.ps1`
 - [ ] Usar Keycloak Admin REST API para criar client programaticamente
 - [ ] Integrar script em `dotnet run --project src/Aspire/MeAjudaAi.AppHost`
@@ -184,7 +184,7 @@ Hangfire.PostgreSql 1.20.13 foi compilado contra Npgsql 6.x, mas o projeto está
 Microsoft.OpenApi 3.x é incompatível com os source generators do ASP.NET Core 10.0. Erro confirmado em teste realizado em 16/01/2026 com SDK 10.0.102.
 
 **Erro Encontrado**:
-```
+```text
 error CS0200: Property or indexer 'IOpenApiMediaType.Example' cannot be assigned to -- it is read only
 ```
 
@@ -240,7 +240,7 @@ public sealed record ModuleLocationDto
 - DTOs simples → Positional Records
 - Value Objects com validação → Property-based Records
 
-**Ação Sugerida** (Sprint 8 ou posterior):
+**Ação Sugerida** (Sprint 7.16):
 - [ ] Padronizar records em `src/Shared/Contracts/**/*.cs`
 - [ ] Padronizar records em `src/Modules/**/Domain/**/*.cs`
 
