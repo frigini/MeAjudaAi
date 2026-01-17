@@ -4,7 +4,7 @@ using MeAjudaAi.Web.Admin.Services;
 namespace MeAjudaAi.Web.Admin.Features.Errors;
 
 /// <summary>
-/// Reducers for error state
+/// Reducers para estado de erros.
 /// </summary>
 public static class ErrorReducers
 {
