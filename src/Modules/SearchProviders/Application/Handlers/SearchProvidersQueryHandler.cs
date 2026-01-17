@@ -66,24 +66,20 @@ public sealed class SearchProvidersQueryHandler(
         // Mapeia para DTOs usando distâncias pré-computadas do repositório
         // Distância é calculada uma vez no repositório (filter/sort/cache) para evitar cálculos redundantes
         var providerDtos = searchResult.Providers
-            .Select((p, index) => new SearchableProviderDto
-            {
-                ProviderId = p.ProviderId,
-                Name = p.Name,
-                Description = p.Description,
-                Location = new LocationDto
-                {
-                    Latitude = p.Location.Latitude,
-                    Longitude = p.Location.Longitude
-                },
-                AverageRating = p.AverageRating,
-                TotalReviews = p.TotalReviews,
-                SubscriptionTier = p.SubscriptionTier,
-                ServiceIds = p.ServiceIds,
-                DistanceInKm = searchResult.DistancesInKm[index],
-                City = p.City,
-                State = p.State
-            })
+            .Select((p, index) => new SearchableProviderDto(
+                ProviderId: p.ProviderId,
+                Name: p.Name,
+                Location: new LocationDto(
+                    Latitude: p.Location.Latitude,
+                    Longitude: p.Location.Longitude),
+                AverageRating: p.AverageRating,
+                TotalReviews: p.TotalReviews,
+                SubscriptionTier: p.SubscriptionTier,
+                ServiceIds: p.ServiceIds,
+                Description: p.Description,
+                DistanceInKm: searchResult.DistancesInKm[index],
+                City: p.City,
+                State: p.State))
             .ToList();
 
         var result = new PagedResult<SearchableProviderDto>

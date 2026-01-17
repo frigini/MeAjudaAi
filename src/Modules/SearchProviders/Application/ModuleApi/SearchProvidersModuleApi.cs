@@ -107,30 +107,25 @@ public sealed class SearchProvidersModuleApi(
         }
 
         // Mapear DTOs internos para DTOs do módulo
-        var moduleResult = new ModulePagedSearchResultDto
-        {
-            Items = result.Value!.Items.Select(p => new ModuleSearchableProviderDto
-            {
-                ProviderId = p.ProviderId,
-                Name = p.Name,
-                Description = p.Description,
-                Location = new ModuleLocationDto
-                {
-                    Latitude = p.Location.Latitude,
-                    Longitude = p.Location.Longitude
-                },
-                AverageRating = p.AverageRating,
-                TotalReviews = p.TotalReviews,
-                SubscriptionTier = ToModuleTier(p.SubscriptionTier),
-                ServiceIds = p.ServiceIds,
-                DistanceInKm = p.DistanceInKm,
-                City = p.City,
-                State = p.State
-            }).ToList(),
-            TotalCount = result.Value.TotalItems,
-            PageNumber = result.Value.PageNumber,
-            PageSize = result.Value.PageSize
-        };
+        var moduleResult = new ModulePagedSearchResultDto(
+            Items: result.Value!.Items.Select(p => new ModuleSearchableProviderDto(
+                ProviderId: p.ProviderId,
+                Name: p.Name,
+                Location: new ModuleLocationDto(
+                    Latitude: p.Location.Latitude,
+                    Longitude: p.Location.Longitude),
+                AverageRating: p.AverageRating,
+                TotalReviews: p.TotalReviews,
+                SubscriptionTier: ToModuleTier(p.SubscriptionTier),
+                ServiceIds: p.ServiceIds,
+                Description: p.Description,
+                DistanceInKm: p.DistanceInKm,
+                City: p.City,
+                State: p.State))
+            .ToList(),
+            TotalCount: result.Value.TotalItems,
+            PageNumber: result.Value.PageNumber,
+            PageSize: result.Value.PageSize);
 
         return Result<ModulePagedSearchResultDto>.Success(moduleResult);
     }

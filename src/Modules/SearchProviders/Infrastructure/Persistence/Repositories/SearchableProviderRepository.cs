@@ -75,12 +75,10 @@ public sealed class SearchableProviderRepository(
         // Validar raio antes de executar query no banco
         if (radiusInKm <= 0)
         {
-            return new SearchResult
-            {
-                Providers = [],
-                DistancesInKm = [],
-                TotalCount = 0
-            };
+            return new SearchResult(
+                Providers: [],
+                DistancesInKm: [],
+                TotalCount: 0);
         }
 
         // Usar Dapper com PostGIS nativo para máxima performance espacial
@@ -124,12 +122,10 @@ public sealed class SearchableProviderRepository(
         var providers = resultList.Select(MapToEntity).ToList();
         var distances = resultList.Select(r => r.DistanceKm).ToList();
 
-        return new SearchResult
-        {
-            Providers = providers,
-            DistancesInKm = distances,
-            TotalCount = totalCount
-        };
+        return new SearchResult(
+            Providers: providers,
+            DistancesInKm: distances,
+            TotalCount: totalCount);
     }
 
     private static string BuildSpatialSearchSql(
