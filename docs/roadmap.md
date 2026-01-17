@@ -7,7 +7,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ | Sprint 7 ✅ | Sprint 7.5 ✅ | Sprint 7.6 ✅ | Sprint 7.7 ✅ | Sprint 7.8 ✅ | Sprint 7.9 ✅ | Sprint 7.10 ✅ | Sprint 7.11 ✅ | Sprint 7.12 ✅ | Sprint 7.13 ✅ | Sprint 7.14 ✅ CONCLUÍDO | MVP Target: 31/Março/2026  
+**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ | Sprint 7-7.15 ✅ CONCLUÍDO | MVP Target: 31/Março/2026  
 **Cobertura de Testes**: Backend 90.56% | Frontend 30 testes bUnit  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MudBlazor 8.0 + Fluxor
 
@@ -33,10 +33,11 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **16 Jan 2026**: Sprint 7.12 - Performance Optimizations (CONCLUÍDO - Virtualization, debounced search, memoization)
 - ✅ **16 Jan 2026**: Sprint 7.13 - Standardized Error Handling (CONCLUÍDO - Retry logic, correlation IDs, HTTP status mapping)
 - ✅ **16 Jan 2026**: Sprint 7.14 - Complete Localization (CONCLUÍDO - pt-BR/en-US, 140+ strings, culture switching)
-- ⏳ **10 Jan - 24 Jan 2026**: Sprint 8 - Customer App (Web + Mobile)
-- ⏳ **27 Jan - 14 Fev 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Refactoring)
-- 🎯 **31 de Março de 2026**: MVP Launch (Admin Portal + Customer App)
-- 🔮 **Abril 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
+- ✅ **16 Jan 2026**: Sprint 7.15 - Package Updates & Resilience Migration (CONCLUÍDO - .NET 10.0.2, deprecated packages removed)
+- ⏳ **17 Jan - 31 Jan 2026**: Sprint 8 - Customer App (Web + Mobile) + Quality Improvements
+- ⏳ **3 Fev - 14 Fev 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
+- 🎯 **17 de Fevereiro de 2026**: MVP Launch (Admin Portal + Customer App)
+- 🔮 **Fevereiro 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
 
 ## ⚠️ Notas de Risco
 
@@ -904,6 +905,165 @@ if (result.IsFailure) {
 - [ ] FluentValidation messages localizadas
 
 **Commit**: 2e977908 "feat(sprint-7.14): implement complete localization (i18n)"
+
+---
+
+### ✅ Sprint 7.15 - Package Updates & Resilience Migration (16 Jan 2026)
+
+**Status**: CONCLUÍDA (16 Jan 2026)  
+**Duração**: 1 dia  
+**Commits**: b370b328, 949b6d3c
+
+**Contexto**: Atualização de rotina de pacotes NuGet revelou deprecação do Polly.Extensions.Http, necessitando migração para Microsoft.Extensions.Http.Resilience (nova API oficial do .NET 10).
+
+#### 📦 Atualizações de Pacotes (39 packages)
+
+**ASP.NET Core 10.0.2**:
+- Microsoft.AspNetCore.Authentication.JwtBearer
+- Microsoft.AspNetCore.OpenApi
+- Microsoft.AspNetCore.TestHost
+- Microsoft.AspNetCore.Components.WebAssembly
+- Microsoft.AspNetCore.Components.WebAssembly.Authentication
+- Microsoft.AspNetCore.Components.WebAssembly.DevServer
+- Microsoft.Extensions.Http (10.2.0)
+- Microsoft.Extensions.Http.Resilience (10.2.0) - **NOVO**
+
+**Entity Framework Core 10.0.2**:
+- Microsoft.EntityFrameworkCore
+- Microsoft.EntityFrameworkCore.Design
+- Microsoft.EntityFrameworkCore.InMemory
+- Microsoft.EntityFrameworkCore.Relational
+- Npgsql.EntityFrameworkCore.PostgreSQL (10.0.0)
+
+**Ferramentas Build (18.0.2)** - Breaking Change:
+- Microsoft.Build (17.14.28 → 18.0.2)
+- Microsoft.Build.Framework (requerido por EF Core Design 10.0.2)
+- Microsoft.Build.Locator
+- Microsoft.Build.Tasks.Core
+- Microsoft.Build.Utilities.Core
+- **Resolução**: Removido pin CVE (CVE-2024-38095 corrigido na 18.0+)
+
+**Azure Storage 12.27.0**:
+- Azure.Storage.Blobs (12.27.0)
+- Azure.Storage.Common (12.25.0 → 12.26.0 - conflito resolvido)
+
+**Outras Atualizações**:
+- System.IO.Hashing (9.0.10 → 10.0.1)
+- Microsoft.CodeAnalysis.Analyzers (3.11.0 → 3.14.0)
+- Refit (9.0.2 → 9.1.2)
+- AngleSharp, AngleSharp.Css (1.2.0 → 1.3.0)
+- ... (total 39 packages)
+
+**Decisão Microsoft.OpenApi**:
+- Testado 3.1.3: **INCOMPATÍVEL** (CS0200 com source generators .NET 10)
+- Mantido 2.3.0: **ESTÁVEL** (funciona perfeitamente)
+- Confirmado 16/01/2026 com SDK 10.0.102
+
+#### 🔄 Migração Polly.Extensions.Http → Microsoft.Extensions.Http.Resilience
+
+**Pacote Removido**:
+```xml
+<!-- Directory.Packages.props -->
+<PackageVersion Include="Polly.Extensions.Http" Version="3.0.0" Remove="true" />
+```
+
+**Novo Pacote**:
+```xml
+<PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.2.0" />
+```
+
+**Refatoração de Código**:
+
+1. **`PollyPolicies.cs` → `ResiliencePolicies.cs`** (renomeado):
+   ```csharp
+   // ANTES (Polly.Extensions.Http)
+   public static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+   {
+       return HttpPolicyExtensions
+           .HandleTransientHttpError()
+           .WaitAndRetryAsync(3, retryAttempt => 
+               TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+   }
+
+   // DEPOIS (Microsoft.Extensions.Http.Resilience)
+   public static void ConfigureRetry(HttpRetryStrategyOptions options)
+   {
+       options.MaxRetryAttempts = 3;
+       options.Delay = TimeSpan.FromSeconds(2);
+       options.BackoffType = DelayBackoffType.Exponential;
+       options.ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
+           .HandleResult(response => 
+               response.StatusCode >= HttpStatusCode.InternalServerError ||
+               response.StatusCode == HttpStatusCode.RequestTimeout);
+   }
+   ```
+
+2. **`ServiceCollectionExtensions.cs`**:
+   ```csharp
+   // ANTES
+   client.AddPolicyHandler(PollyPolicies.GetRetryPolicy())
+         .AddPolicyHandler(PollyPolicies.GetCircuitBreakerPolicy())
+         .AddPolicyHandler(PollyPolicies.GetTimeoutPolicy());
+
+   // DEPOIS
+   client.AddStandardResilienceHandler(options =>
+   {
+       ResiliencePolicies.ConfigureRetry(options.Retry);
+       ResiliencePolicies.ConfigureCircuitBreaker(options.CircuitBreaker);
+       ResiliencePolicies.ConfigureTimeout(options.TotalRequestTimeout);
+   });
+
+   // Upload timeout separado (sem retry)
+   client.AddStandardResilienceHandler(options =>
+   {
+       options.Retry.MaxRetryAttempts = 0; // Disable retry for uploads
+       ResiliencePolicies.ConfigureUploadTimeout(options.TotalRequestTimeout);
+   });
+   ```
+
+**Políticas Configuradas**:
+- **Retry**: 3 tentativas, backoff exponencial (2s, 4s, 8s)
+- **Circuit Breaker**: 50% failure ratio, 5 throughput mínimo, 30s break duration
+- **Timeout**: 30s padrão, 120s para uploads
+
+**Arquivos Impactados**:
+- `Directory.Packages.props` (remoção + adição de pacote)
+- `src/MeAjudaAi.Web.Admin/Infrastructure/Http/ResiliencePolicies.cs` (renomeado e refatorado)
+- `src/MeAjudaAi.Web.Admin/Infrastructure/Extensions/ServiceCollectionExtensions.cs` (nova API)
+
+#### ✅ Resultados
+
+**Build Status**:
+- ✅ 0 erros de compilação
+- ✅ 10 warnings pré-existentes (analyzers - não relacionados)
+- ✅ Todos os 1245 testes passando
+
+**Comportamento Mantido**:
+- ✅ Retry logic idêntico
+- ✅ Circuit breaker configuração equivalente
+- ✅ Timeouts diferenciados (standard vs upload)
+- ✅ HTTP resilience sem quebras
+
+**Compatibilidade**:
+- ✅ .NET 10.0.2 LTS (suporte até Nov 2028)
+- ✅ EF Core 10.0.2
+- ✅ Microsoft.Build 18.0.2 (última stable)
+- ✅ Npgsql 10.x + Hangfire.PostgreSql 1.20.13
+
+**Technical Debt Removido**:
+- ✅ Deprecated package eliminado (Polly.Extensions.Http)
+- ✅ Migração para API oficial Microsoft (.NET 10)
+- ✅ CVE pin removido (Microsoft.Build CVE-2024-38095)
+
+**Lições Aprendidas**:
+- Microsoft.OpenApi 3.1.3 incompatível com source generators .NET 10 (CS0200 read-only property)
+- Microsoft.Build breaking change (17.x → 18.x) necessário para EF Core Design 10.0.2
+- AddStandardResilienceHandler simplifica configuração (3 chamadas → 1 com options)
+- Upload timeout requer retry desabilitado (MaxRetryAttempts = 0)
+
+**Commits**:
+- `b370b328`: "chore: update 39 nuget packages to latest stable versions"
+- `949b6d3c`: "refactor: migrate from Polly.Extensions.Http to Microsoft.Extensions.Http.Resilience"
 
 ---
 
@@ -3442,23 +3602,21 @@ public class GeographicRestrictionMiddleware
 
 ---
 
-### 📅 Sprint 8: Blazor Customer App (Web + Mobile) (3 semanas) ⏳ ATUALIZADO
+### 📅 Sprint 8: Customer App (Web + Mobile) + Quality Improvements (3 semanas) ⏳ ATUALIZADO
 
-**Status**: 📋 PLANEJADO PARA Q1 2026  
-**Dependências**: Sprint 3 (Admin Portal) deve estar completo  
-**Estimativa de início**: Fevereiro 2026
+**Status**: 📋 PLANEJADO PARA 17 Jan - 31 Jan 2026  
+**Dependências**: Sprint 7.15 concluído ✅  
+**Duração**: 3 semanas (Customer App em paralelo com melhorias de qualidade)
 
-**Objetivos**:
-- App para clientes (web + mobile)
-- Busca de prestadores
-- Gestão de perfil
-- Histórico de interações
+**Objetivos Principais**:
+1. App para clientes (web + mobile) - **Prioridade MÁXIMA**
+2. Melhorias de qualidade técnica (warnings, testes, automação) - **Paralelo**
 
-**Funcionalidades**:
+---
 
-#### 1. Blazor WASM (Web) - Semana 1-2
+#### 📱 **Track 1: Customer App** (Prioridade MÁXIMA - Semanas 1-3)
 
-**Home & Busca**:
+**Home & Busca** (Semana 1):
 - [ ] **Landing Page**: Hero section + busca rápida
 - [ ] **Busca Geolocalizada**: Campo de endereço/CEP + raio + serviços
 - [ ] **Mapa Interativo**: Exibir prestadores no mapa (Leaflet.Blazor)
@@ -3466,30 +3624,24 @@ public class GeographicRestrictionMiddleware
 - [ ] **Filtros**: Rating mínimo, tier, disponibilidade
 - [ ] **Ordenação**: Distância, Rating, Tier
 
-**Perfil de Prestador**:
+**Perfil de Prestador** (Semana 1-2):
 - [ ] **Visualização**: Foto, nome, descrição, serviços, rating, reviews
 - [ ] **Contato**: Botão WhatsApp, telefone, email (MVP: links externos)
 - [ ] **Galeria**: Fotos do trabalho (se disponível)
 - [ ] **Reviews**: Listar avaliações de outros clientes (read-only, write em Fase 3)
 
-**Meu Perfil**:
+**Meu Perfil** (Semana 2):
 - [ ] **Editar**: Nome, foto, telefone, endereço
 - [ ] **Histórico**: Prestadores contatados (tracking básico)
 - [ ] **Configurações**: Preferências de notificações (stub para futuro)
 
-#### 2. MAUI Blazor Hybrid (Mobile) - Semana 3
-
-**Diferenças do Web**:
+**MAUI Blazor Hybrid (Mobile)** (Semana 3):
 - [ ] **Geolocalização Nativa**: Usar GPS do device para busca automática
 - [ ] **Câmera**: Permitir upload de foto de perfil via câmera
 - [ ] **Notificações Push**: Stub para futuro (ex: prestador aceitou contato)
 - [ ] **Deep Linking**: Abrir prestador via link compartilhado
 - [ ] **Offline Mode**: Cache de última busca realizada
-
-**Compartilhamento de Código**:
-- [ ] Razor Components compartilhados entre Web e Mobile
-- [ ] Services layer compartilhado (ISearchService, IProviderService)
-- [ ] DTOs e Validators compartilhados via Shared.DTOs
+- [ ] **Compartilhamento de Código**: 70%+ Razor Components compartilhados entre Web e Mobile
 
 **Tecnologias Mobile**:
 - **Framework**: .NET MAUI 10 + Blazor Hybrid
@@ -3497,11 +3649,154 @@ public class GeographicRestrictionMiddleware
 - **Maps**: MAUI Community Toolkit Maps
 - **Storage**: Preferences API + Secure Storage
 
-**Resultado Esperado**:
+---
+
+#### 🔧 **Track 2: Quality Improvements** (Paralelo - Semanas 1-3, ~2-3 dias total)
+
+**Context**: Itens removidos de technical-debt.md por serem implementáveis durante Sprint 8.
+
+##### 1. Frontend Analyzer Warnings (~1 dia)
+
+**Objetivo**: Resolver 4 tipos de warnings do SonarAnalyzer.CSharp suprimidos em `.editorconfig`.
+
+**Warnings Ativos**:
+- **S2094**: Empty records (3 ocorrências: ProviderState.cs, DocumentsState.cs, ServiceCatalogsState.cs)
+- **S2953**: Dispose pattern (Components com Fluxor subscriptions)
+- **S2933**: Readonly fields (stores e services injetados)
+- **MUD0002**: MudBlazor naming conventions (componentes personalizados)
+
+**Estratégia**:
+```csharp
+// ANTES (S2094 - empty record)
+public sealed record ProviderState { }
+
+// OPÇÃO 1: Adicionar propriedade útil
+public sealed record ProviderState
+{
+    public bool IsInitialized { get; init; }
+}
+
+// OPÇÃO 2: Justificar supressão (se realmente necessário vazio)
+#pragma warning disable S2094 // Empty state por design (Redux pattern)
+public sealed record ProviderState { }
+#pragma warning restore S2094
+```
+
+**Tarefas**:
+- [ ] Revisar cada warning individualmente
+- [ ] Implementar correção ou justificar supressão
+- [ ] Documentar decisões em commit message
+- [ ] Remover regras do `.editorconfig` após correção
+
+**Arquivos Impactados**:
+- `src/MeAjudaAi.Web.Admin/Fluxor/Features/*/State.cs` (S2094)
+- `src/MeAjudaAi.Web.Admin/Pages/*.razor` (S2953, S2933)
+- `src/MeAjudaAi.Web.Admin/Components/**/*.razor` (MUD0002)
+
+**Benefício**: Build com 0 warnings, código mais idiomático e manutenível.
+
+---
+
+##### 2. Frontend Test Coverage Increase (~1-2 dias)
+
+**Context**: Atualmente 10 testes bUnit (ProvidersPageTests, DashboardPageTests, DarkModeToggleTests).
+
+**Meta**: Atingir 30-40 testes (cobertura ~40-50% de componentes críticos).
+
+**Prioridade de Testes**:
+
+**Alta Prioridade (15-20 testes)**:
+- **Fluxor State Management** (5 testes):
+  * ProvidersReducers: LoadSuccess, LoadFailure, SetFilters
+  * DocumentsReducers: UploadSuccess, VerificationUpdate
+- **Components** (10 testes):
+  * Providers.razor: rendering, search, pagination
+  * Documents.razor: upload workflow
+  * CreateProviderDialog: form validation
+  * EditProviderDialog: data binding
+  * LanguageSwitcher: culture change
+- **Services** (5 testes):
+  * LocalizationService: culture switching, string retrieval
+  * ErrorHandlingService: retry logic
+
+**Média Prioridade (5-10 testes)**:
+- **Effects** (3 testes):
+  * Mock de IProvidersApi.GetPagedProvidersAsync
+  * Verificar dispatches corretos (Success/Failure)
+- **Accessibility** (2 testes):
+  * LiveRegionAnnouncer: announcement queue
+  * ErrorBoundaryContent: error recovery
+
+**Setup**:
+- Criar `TestContext` base reutilizável
+- Mock de JSRuntime configurado (JSRuntimeMode.Loose)
+- MudServices registrados
+- Fluxor store configurado para testes
+
+**Tecnologias**:
+- bUnit 1.29.5
+- Moq 4.20.72
+- FluentAssertions 7.0.0
+
+**Benefício**: Maior confiança em refatorações, detecção precoce de regressões.
+
+---
+
+##### 3. Keycloak Client Automation (~0.5 dia)
+
+**Objetivo**: Automatizar setup de clientes Keycloak (evitar 15 passos manuais).
+
+**Script**: `infrastructure/keycloak/setup-keycloak-clients.ps1`
+
+**Funcionalidades**:
+```powershell
+# Configurar clientes Admin Portal + Customer App automaticamente
+.\setup-keycloak-clients.ps1 -KeycloakUrl "http://localhost:9090" -AdminPassword "admin"
+
+# Tarefas do script:
+# 1. Validar Keycloak está rodando (HTTP health check)
+# 2. Obter token admin via REST API
+# 3. Criar realm "MeAjudaAi" (se não existir)
+# 4. Criar cliente "meajudaai-admin" (OIDC, PKCE flow)
+# 5. Criar cliente "meajudaai-customer" (OIDC, PKCE flow)
+# 6. Configurar Redirect URIs (http://localhost:7030/*, https://admin.meajudaai.com.br/*)
+# 7. Criar roles "admin", "customer"
+# 8. Criar usuário demo (admin@meajudaai.com.br / password)
+# 9. Exibir resumo de configuração
+```
+
+**API Keycloak Admin REST**:
+- Endpoint: `POST /auth/admin/realms/{realm}/clients`
+- Autenticação: Bearer token (obtido via admin credentials)
+- Payload: JSON com configuração do cliente
+
+**Benefícios**:
+- ✅ Onboarding de novos desenvolvedores em 1 comando
+- ✅ Ambientes de teste automatizados
+- ✅ Documentação como código (script é a fonte da verdade)
+
+**Arquivo**: `infrastructure/keycloak/setup-keycloak-clients.ps1` (novo)  
+**Documentação**: Atualizar `docs/keycloak-admin-portal-setup.md` com seção "Automated Setup"
+
+---
+
+#### 📊 Resultado Esperado Sprint 8
+
+**Customer App**:
 - ✅ Customer App (Web) publicado
 - ✅ Customer App (Mobile) disponível em TestFlight (iOS) e Google Play Beta (Android)
 - ✅ 70%+ código compartilhado entre Web e Mobile
 - ✅ UX otimizada para mobile (gestures, navegação nativa)
+
+**Quality Improvements**:
+- ✅ 0 analyzer warnings no Admin Portal (S2094, S2953, S2933, MUD0002 resolvidos)
+- ✅ 30-40 testes bUnit (10 → 30+, +200% cobertura)
+- ✅ Keycloak client automation script (setup em 1 comando)
+
+**Timeline**:
+- **Semana 1** (17-24 Jan): Customer App Home + Busca + Warnings fix
+- **Semana 2** (24-31 Jan): Customer App Perfil + Mobile + Testes
+- **Semana 3** (31 Jan): Polishing + Keycloak script + Deployment
 
 ---
 
