@@ -7,7 +7,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ | Sprint 7 ✅ | Sprint 7.5 ✅ | Sprint 7.6 ✅ | Sprint 7.7 ✅ | Sprint 7.8 ✅ | Sprint 7.9 ✅ | Sprint 7.10 ✅ | Sprint 7.11 ✅ | Sprint 7.12 ✅ | Sprint 7.13 ✅ | Sprint 7.14 ✅ CONCLUÍDO | MVP Target: 31/Março/2026  
+**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ | Sprint 7-7.15 ✅ CONCLUÍDO | MVP Target: 31/Março/2026  
 **Cobertura de Testes**: Backend 90.56% | Frontend 30 testes bUnit  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MudBlazor 8.0 + Fluxor
 
@@ -33,10 +33,12 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **16 Jan 2026**: Sprint 7.12 - Performance Optimizations (CONCLUÍDO - Virtualization, debounced search, memoization)
 - ✅ **16 Jan 2026**: Sprint 7.13 - Standardized Error Handling (CONCLUÍDO - Retry logic, correlation IDs, HTTP status mapping)
 - ✅ **16 Jan 2026**: Sprint 7.14 - Complete Localization (CONCLUÍDO - pt-BR/en-US, 140+ strings, culture switching)
-- ⏳ **10 Jan - 24 Jan 2026**: Sprint 8 - Customer App (Web + Mobile)
-- ⏳ **27 Jan - 14 Fev 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Refactoring)
-- 🎯 **31 de Março de 2026**: MVP Launch (Admin Portal + Customer App)
-- 🔮 **Abril 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
+- ✅ **16 Jan 2026**: Sprint 7.15 - Package Updates & Resilience Migration (CONCLUÍDO - .NET 10.0.2, deprecated packages removed)
+- ⏳ **17-21 Jan 2026**: Sprint 7.16 - Technical Debt Sprint (Keycloak automation, warnings, tests, records)
+- ⏳ **22 Jan - 4 Fev 2026**: Sprint 8 - Customer App (Web + Mobile)
+- ⏳ **5-14 Fev 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
+- 🎯 **17 Fevereiro 2026**: MVP Launch (Admin Portal + Customer App)
+- 🔮 **Fevereiro 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
 
 ## ⚠️ Notas de Risco
 
@@ -907,6 +909,382 @@ if (result.IsFailure) {
 
 ---
 
+### ✅ Sprint 7.15 - Package Updates & Resilience Migration (16 Jan 2026)
+
+**Status**: CONCLUÍDA (16 Jan 2026)  
+**Duração**: 1 dia  
+**Commits**: b370b328, 949b6d3c
+
+**Contexto**: Atualização de rotina de pacotes NuGet revelou deprecação do Polly.Extensions.Http, necessitando migração para Microsoft.Extensions.Http.Resilience (nova API oficial do .NET 10).
+
+#### 📦 Atualizações de Pacotes (39 packages)
+
+**ASP.NET Core 10.0.2**:
+- Microsoft.AspNetCore.Authentication.JwtBearer
+- Microsoft.AspNetCore.OpenApi
+- Microsoft.AspNetCore.TestHost
+- Microsoft.AspNetCore.Components.WebAssembly
+- Microsoft.AspNetCore.Components.WebAssembly.Authentication
+- Microsoft.AspNetCore.Components.WebAssembly.DevServer
+- Microsoft.Extensions.Http (10.2.0)
+- Microsoft.Extensions.Http.Resilience (10.2.0) - **NOVO**
+
+**Entity Framework Core 10.0.2**:
+- Microsoft.EntityFrameworkCore
+- Microsoft.EntityFrameworkCore.Design
+- Microsoft.EntityFrameworkCore.InMemory
+- Microsoft.EntityFrameworkCore.Relational
+- Npgsql.EntityFrameworkCore.PostgreSQL (10.0.0)
+
+**Ferramentas Build (18.0.2)** - Breaking Change:
+- Microsoft.Build (17.14.28 → 18.0.2)
+- Microsoft.Build.Framework (requerido por EF Core Design 10.0.2)
+- Microsoft.Build.Locator
+- Microsoft.Build.Tasks.Core
+- Microsoft.Build.Utilities.Core
+- **Resolução**: Removido pin CVE (CVE-2024-38095 corrigido na 18.0+)
+
+**Azure Storage 12.27.0**:
+- Azure.Storage.Blobs (12.27.0)
+- Azure.Storage.Common (12.25.0 → 12.26.0 - conflito resolvido)
+
+**Outras Atualizações**:
+- System.IO.Hashing (9.0.10 → 10.0.1)
+- Microsoft.CodeAnalysis.Analyzers (3.11.0 → 3.14.0)
+- Refit (9.0.2 → 9.1.2)
+- AngleSharp, AngleSharp.Css (1.2.0 → 1.3.0)
+- ... (total 39 packages)
+
+**Decisão Microsoft.OpenApi**:
+- Testado 3.1.3: **INCOMPATÍVEL** (CS0200 com source generators .NET 10)
+- Mantido 2.3.0: **ESTÁVEL** (funciona perfeitamente)
+- Confirmado 16/01/2026 com SDK 10.0.102
+
+#### 🔄 Migração Polly.Extensions.Http → Microsoft.Extensions.Http.Resilience
+
+**Pacote Removido**:
+```xml
+<!-- Directory.Packages.props -->
+<PackageVersion Include="Polly.Extensions.Http" Version="3.0.0" Remove="true" />
+```
+
+**Novo Pacote**:
+```xml
+<PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.2.0" />
+```
+
+**Refatoração de Código**:
+
+1. **`PollyPolicies.cs` → `ResiliencePolicies.cs`** (renomeado):
+   ```csharp
+   // ANTES (Polly.Extensions.Http)
+   public static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+   {
+       return HttpPolicyExtensions
+           .HandleTransientHttpError()
+           .WaitAndRetryAsync(3, retryAttempt => 
+               TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+   }
+
+   // DEPOIS (Microsoft.Extensions.Http.Resilience)
+   public static void ConfigureRetry(HttpRetryStrategyOptions options)
+   {
+       options.MaxRetryAttempts = 3;
+       options.Delay = TimeSpan.FromSeconds(2);
+       options.BackoffType = DelayBackoffType.Exponential;
+       options.ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
+           .HandleResult(response => 
+               response.StatusCode >= HttpStatusCode.InternalServerError ||
+               response.StatusCode == HttpStatusCode.RequestTimeout);
+   }
+   ```
+
+2. **`ServiceCollectionExtensions.cs`**:
+   ```csharp
+   // ANTES
+   client.AddPolicyHandler(PollyPolicies.GetRetryPolicy())
+         .AddPolicyHandler(PollyPolicies.GetCircuitBreakerPolicy())
+         .AddPolicyHandler(PollyPolicies.GetTimeoutPolicy());
+
+   // DEPOIS
+   client.AddStandardResilienceHandler(options =>
+   {
+       ResiliencePolicies.ConfigureRetry(options.Retry);
+       ResiliencePolicies.ConfigureCircuitBreaker(options.CircuitBreaker);
+       ResiliencePolicies.ConfigureTimeout(options.TotalRequestTimeout);
+   });
+
+   // Upload timeout separado (sem retry)
+   client.AddStandardResilienceHandler(options =>
+   {
+       options.Retry.MaxRetryAttempts = 0; // Disable retry for uploads
+       ResiliencePolicies.ConfigureUploadTimeout(options.TotalRequestTimeout);
+   });
+   ```
+
+**Políticas Configuradas**:
+- **Retry**: 3 tentativas, backoff exponencial (2s, 4s, 8s)
+- **Circuit Breaker**: 50% failure ratio, 5 throughput mínimo, 30s break duration
+- **Timeout**: 30s padrão, 120s para uploads
+
+**Arquivos Impactados**:
+- `Directory.Packages.props` (remoção + adição de pacote)
+- `src/MeAjudaAi.Web.Admin/Infrastructure/Http/ResiliencePolicies.cs` (renomeado e refatorado)
+- `src/MeAjudaAi.Web.Admin/Infrastructure/Extensions/ServiceCollectionExtensions.cs` (nova API)
+
+#### ✅ Resultados
+
+**Build Status**:
+- ✅ 0 erros de compilação
+- ✅ 10 warnings pré-existentes (analyzers - não relacionados)
+- ✅ Todos os 1245 testes passando
+
+**Comportamento Mantido**:
+- ✅ Retry logic idêntico
+- ✅ Circuit breaker configuração equivalente
+- ✅ Timeouts diferenciados (standard vs upload)
+- ✅ HTTP resilience sem quebras
+
+**Compatibilidade**:
+- ✅ .NET 10.0.2 LTS (suporte até Nov 2028)
+- ✅ EF Core 10.0.2
+- ✅ Microsoft.Build 18.0.2 (última stable)
+- ✅ Npgsql 10.x + Hangfire.PostgreSql 1.20.13
+
+**Technical Debt Removido**:
+- ✅ Deprecated package eliminado (Polly.Extensions.Http)
+- ✅ Migração para API oficial Microsoft (.NET 10)
+- ✅ CVE pin removido (Microsoft.Build CVE-2024-38095)
+
+**Lições Aprendidas**:
+- Microsoft.OpenApi 3.1.3 incompatível com source generators .NET 10 (CS0200 read-only property)
+- Microsoft.Build breaking change (17.x → 18.x) necessário para EF Core Design 10.0.2
+- AddStandardResilienceHandler simplifica configuração (3 chamadas → 1 com options)
+- Upload timeout requer retry desabilitado (MaxRetryAttempts = 0)
+
+**Commits**:
+- `b370b328`: "chore: update 39 nuget packages to latest stable versions"
+- `949b6d3c`: "refactor: migrate from Polly.Extensions.Http to Microsoft.Extensions.Http.Resilience"
+
+---
+
+### ⏳ Sprint 7.16 - Technical Debt Sprint (17-21 Jan 2026)
+
+**Status**: ⏳ EM ANDAMENTO (17 Jan 2026)  
+**Duração**: 1 semana (5 dias úteis)  
+**Objetivo**: Reduzir débito técnico ANTES de iniciar Customer App
+
+**Justificativa**: 
+- Customer App adicionará ~5000+ linhas de código novo
+- Melhor resolver débitos do Admin Portal ANTES de replicar patterns
+- Keycloak automation é BLOQUEADOR para Customer App (precisa de novo cliente OIDC)
+- Quality improvements estabelecem padrões para Customer App
+
+---
+
+#### 📋 Tarefas Planejadas
+
+##### 1. 🔐 Keycloak Client Automation (Dia 1-2, ~1 dia) - **BLOQUEADOR**
+
+**Prioridade**: CRÍTICA - Customer App precisa de cliente OIDC "meajudaai-customer"
+
+**Entregáveis**:
+- [ ] Script `infrastructure/keycloak/setup-keycloak-clients.ps1`
+  * Valida Keycloak rodando (HTTP health check)
+  * Obtém token admin via REST API
+  * Cria realm "MeAjudaAi" (se não existir)
+  * Cria clientes "meajudaai-admin" e "meajudaai-customer" (OIDC, PKCE)
+  * Configura Redirect URIs (localhost + produção)
+  * Cria roles "admin", "customer"
+  * Cria usuários demo (admin@meajudaai.com.br, customer@meajudaai.com.br)
+  * Exibe resumo de configuração
+- [ ] Atualizar `docs/keycloak-admin-portal-setup.md` com seção "Automated Setup"
+- [ ] Integrar script em `scripts/dev.ps1` (opcional - chamar setup-keycloak-clients.ps1)
+
+**API Keycloak Admin REST**:
+- Endpoint: `POST /auth/admin/realms/{realm}/clients`
+- Autenticação: Bearer token
+
+**Benefícios**:
+- ✅ Customer App pronto para desenvolvimento (cliente configurado)
+- ✅ Onboarding em 1 comando: `.\setup-keycloak-clients.ps1`
+- ✅ Elimina 15 passos manuais documentados
+
+---
+
+##### 2. 🎨 Frontend Analyzer Warnings (Dia 2-3, ~1 dia)
+
+**Prioridade**: ALTA - Code quality antes de expandir codebase
+
+**Warnings a Resolver**:
+
+**S2094 - Empty Records (6 ocorrências)**:
+```csharp
+// ANTES
+public sealed record LoadProvidersAction { }
+
+// DEPOIS - Opção 1: Adicionar propriedade útil
+public sealed record LoadProvidersAction
+{
+    public bool ForceRefresh { get; init; }
+}
+
+// DEPOIS - Opção 2: Justificar supressão
+#pragma warning disable S2094 // Empty action by design (Redux pattern)
+public sealed record LoadProvidersAction { }
+#pragma warning restore S2094
+```
+
+**S2953 - Dispose Pattern (1 ocorrência)**:
+```csharp
+// ANTES: App.razor
+public void Dispose() { ... }
+
+// DEPOIS
+public class App : IDisposable
+{
+    public void Dispose() { ... }
+}
+```
+
+**S2933 - Readonly Fields (1 ocorrência)**:
+```csharp
+// ANTES
+private MudTheme _theme = new();
+
+// DEPOIS
+private readonly MudTheme _theme = new();
+```
+
+**MUD0002 - Casing (3 ocorrências)**:
+```razor
+<!-- ANTES -->
+<MudDrawer AriaLabel="Navigation" />
+
+<!-- DEPOIS -->
+<MudDrawer aria-label="Navigation" />
+```
+
+**Entregáveis**:
+- [ ] Resolver todos os 11 warnings (ou justificar supressões)
+- [ ] Remover regras do `.editorconfig` após correção
+- [ ] Build com **0 warnings**
+
+---
+
+##### 3. 📊 Frontend Test Coverage (Dia 3-5, ~1-2 dias)
+
+**Prioridade**: ALTA - Confiança em Admin Portal antes de Customer App
+
+**Meta**: 10 → 30-40 testes bUnit
+
+**Testes Novos (20-30 testes)**:
+
+**Fluxor State Management (8 testes)**:
+- `ProvidersReducers`: LoadSuccess, LoadFailure, SetFilters, SetSorting
+- `DocumentsReducers`: UploadSuccess, VerificationUpdate
+- `ServiceCatalogsReducers`: CreateSuccess, UpdateSuccess
+
+**Components (12 testes)**:
+- `Providers.razor`: rendering, search, pagination (3 testes)
+- `Documents.razor`: upload workflow, verification (3 testes)
+- `CreateProviderDialog`: form validation, submit (2 testes)
+- `EditProviderDialog`: data binding, update (2 testes)
+- `LanguageSwitcher`: culture change, persistence (2 testes)
+
+**Services (5 testes)**:
+- `LocalizationService`: SetCulture, GetString, fallback
+- `ErrorHandlingService`: retry logic, status mapping
+
+**Effects (3 testes)**:
+- Mock `IProvidersApi.GetPagedProvidersAsync`
+- Verificar dispatches Success/Failure
+- Testar error handling
+
+**Infraestrutura**:
+- Criar `TestContext` base reutilizável
+- Configurar `JSRuntimeMode.Loose`
+- Registrar `MudServices` e `Fluxor`
+
+**Entregáveis**:
+- [ ] 30-40 testes bUnit (3x aumento)
+- [ ] Cobertura ~40-50% de componentes críticos
+- [ ] CI/CD passing (master-ci-cd.yml)
+
+---
+
+##### 4. 📝 Records Standardization (Dia 5, ~0.5 dia)
+
+**Prioridade**: MÉDIA - Padronização importante
+
+**Objetivo**: Padronizar uso de `record class` vs `record` vs `class` no projeto.
+
+**Auditoria**:
+```powershell
+# Buscar todos os records no projeto
+Get-ChildItem -Recurse -Include *.cs | Select-String "record "
+```
+
+**Padrões a Estabelecer**:
+- DTOs: `public record <Name>Dto` (imutável)
+- Requests: `public sealed record <Name>Request` (imutável)
+- Responses: `public sealed record <Name>Response` (imutável)
+- Fluxor Actions: `public sealed record <Name>Action` (imutável)
+- Fluxor State: `public sealed record <Name>State` (imutável)
+- Entities: `public class <Name>` (mutável, EF Core)
+
+**Entregáveis**:
+- [ ] Documentar padrão em `docs/architecture.md` seção "C# Coding Standards"
+- [ ] Converter records inconsistentes (se necessário)
+- [ ] Adicionar analyzer rule para enforcement futuro
+
+---
+
+##### 5. 🧪 SearchProviders E2E Tests (OPCIONAL - se tempo sobrar)
+
+**Prioridade**: MÉDIA - Pode ser movido para Sprint 9 (Buffer)
+
+**Objetivo**: Testar busca geolocalizada end-to-end.
+
+**Entregáveis**:
+- [ ] Teste: Buscar providers por serviço + raio (2km, 5km, 10km)
+- [ ] Teste: Validar ordenação por distância
+- [ ] Teste: Validar restrição geográfica (AllowedCities)
+- [ ] Teste: Performance (<500ms para 1000 providers)
+
+**Estimativa**: 1-2 dias (se sobrar tempo)
+
+---
+
+#### 📊 Resultado Esperado Sprint 7.16
+
+**Débito Técnico Reduzido**:
+- ✅ Keycloak automation completo (bloqueador removido)
+- ✅ 0 warnings no Admin Portal (S2094, S2953, S2933, MUD0002)
+- ✅ 30-40 testes bUnit (confiança 3x maior)
+- ✅ Records padronizados (consistência)
+- ⚠️ SearchProviders E2E (se tempo permitir)
+
+**Quality Metrics**:
+- **Build**: 0 errors, 0 warnings
+- **Tests**: 1245 backend + 30-40 frontend = **1275-1285 testes**
+- **Coverage**: Backend 90.56% | Frontend ~40-50%
+- **Technical Debt**: Reduzido de 313 linhas → ~150 linhas
+
+**Pronto para Customer App**:
+- ✅ Keycloak configurado (cliente meajudaai-customer)
+- ✅ Admin Portal com qualidade máxima (patterns estabelecidos)
+- ✅ Test infrastructure robusta (replicável no Customer App)
+- ✅ Zero distrações (débito técnico minimizado)
+
+**Commits Estimados**:
+- `feat(sprint-7.16): add Keycloak client automation script`
+- `fix(sprint-7.16): resolve all frontend analyzer warnings`
+- `test(sprint-7.16): increase bUnit coverage to 30-40 tests`
+- `refactor(sprint-7.16): standardize record usage across project`
+
+---
+
 ### ⏭️ Part 13 - Unit Tests (Frontend) - BACKLOG
 
 **Status**: SKIPPED durante Parts 10-15 (escopo muito grande)  
@@ -1466,10 +1844,12 @@ Todas as tarefas planejadas já foram implementadas:
 **⏳ Fase 2: EM ANDAMENTO** (Janeiro–Março 2026)  
 Frontend Blazor WASM + MAUI Hybrid:
 - Sprint 6: Blazor Admin Portal Setup - ✅ CONCLUÍDO (5 Jan 2026) - [Ver conquistas detalhadas](#-sprint-6---blazor-admin-portal-setup---concluída-30-dez-2025---5-jan-2026)
-- Sprint 7: Blazor Admin Portal Features (6-24 Jan 2026) - 🔄 PRÓXIMA
-- Sprint 8: Customer App (Fev-Mar 2026) - ⏳ Aguardando Sprint 7
-- Sprint 9: Buffer/Polishing (Mar 2026) - ⏳ Aguardando Sprint 7-8
-- MVP Final: 31 de Março de 2026
+- Sprint 7: Blazor Admin Portal Features (6-24 Jan 2026) - ✅ CONCLUÍDO
+- Sprint 7.16: Technical Debt Sprint (17-21 Jan 2026) - ⏳ EM ANDAMENTO
+- Sprint 8: Customer App (22 Jan - 4 Fev 2026) - ⏳ Planejado
+- Sprint 9: Buffer/Polishing (5-14 Fev 2026) - ⏳ Planejado
+- MVP Final: 17 de Fevereiro de 2026
+- _Nota: Data de MVP atualizada de 31 de Março para 17 de Fevereiro de 2026 após otimizações de Sprint 7 (Parts 10-15) e redução de débito técnico em Sprint 7.16_
 
 **⚠️ Risk Assessment**: Estimativas assumem velocidade consistente. Primeiro projeto Blazor WASM pode revelar complexidades não previstas (integração Keycloak, curva de aprendizado MudBlazor). Sprint 9 reservado como buffer de contingência.
 
@@ -1502,14 +1882,16 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 5** | - | Sprints 3-4 | Quality Improvements | ✅ CONCLUÍDO ANTECIPADAMENTE |
 | **Sprint 5.5** | 2 semanas | 19 Dez - 31 Dez | Refactor & Cleanup (Technical Debt) | ✅ CONCLUÍDO (30 Dez 2025) |
 | **Sprint 6** | 1 semana | 30 Dez - 5 Jan | Blazor Admin Portal - Setup & Core | ✅ CONCLUÍDO (5 Jan 2026) |
-| **Sprint 7** | 3 semanas | 6 - 24 Jan | Blazor Admin Portal - Features | 🔄 PRÓXIMA |
-| **Sprint 8** | 3 semanas | 27 Jan - 14 Fev | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
-| **Sprint 9** | 3 semanas | 17 Fev - 7 Mar | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
-| **MVP Launch** | - | Mar 31 | Final deployment & launch preparation | 🎯 Target |
+| **Sprint 7** | 3 semanas | 6 - 24 Jan | Blazor Admin Portal - Features | ✅ CONCLUÍDO |
+| **Sprint 7.16** | 1 semana | 17-21 Jan | Technical Debt Sprint | ⏳ EM ANDAMENTO |
+| **Sprint 8** | 2 semanas | 22 Jan - 4 Fev | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
+| **Sprint 9** | 10 dias | 5-14 Fev | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
+| **MVP Launch** | - | 17 Fev | Final deployment & launch preparation | 🎯 Target |
 
-**MVP Launch Target**: 31 de Março de 2026 🎯
+**MVP Launch Target**: 17 de Fevereiro de 2026 🎯  
+_Atualizado de 31 de Março após otimizações de Sprint 7 (Parts 10-15) e redução de débito técnico em Sprint 7.16_
 
-**Post-MVP (Fase 3+)**: Reviews, Assinaturas, Agendamentos (Abril 2026+)
+**Post-MVP (Fase 3+)**: Reviews, Assinaturas, Agendamentos (Fevereiro 2026+)
 
 ---
 
@@ -2168,7 +2550,7 @@ Para receber notificações quando novas versões estáveis forem lançadas, con
    - **Risco**: Breaking changes em Npgsql 10.x não validados pelo mantenedor
    - **Mitigação Atual**: Testes de integração (marcados como Skip no CI/CD)
    - **Monitoramento**: 
-     - GitHub Issues: <https://github.com/frankhommers/Hangfire.PostgreSql/issues>
+     - GitHub Issues: [Hangfire.PostgreSql Issues](https://github.com/frankhommers/Hangfire.PostgreSql/issues)
      - Alternativas: Hangfire.Pro.Redis (pago), Hangfire.SqlServer (outro DB)
    - **Prazo**: Validar localmente ANTES de deploy para produção
 
@@ -3442,23 +3824,19 @@ public class GeographicRestrictionMiddleware
 
 ---
 
-### 📅 Sprint 8: Blazor Customer App (Web + Mobile) (3 semanas) ⏳ ATUALIZADO
+### 📅 Sprint 8: Customer App (Web + Mobile) (2 semanas) ⏳ ATUALIZADO
 
-**Status**: 📋 PLANEJADO PARA Q1 2026  
-**Dependências**: Sprint 3 (Admin Portal) deve estar completo  
-**Estimativa de início**: Fevereiro 2026
+**Status**: 📋 PLANEJADO PARA 22 Jan - 4 Fev 2026  
+**Dependências**: Sprint 7.16 concluído ✅  
+**Duração**: 2 semanas (foco 100% em Customer App)
 
-**Objetivos**:
-- App para clientes (web + mobile)
-- Busca de prestadores
-- Gestão de perfil
-- Histórico de interações
+**Contexto**: Sprint 7.16 removeu débitos técnicos e bloqueadores (Keycloak automation, warnings, tests, records). Sprint 8 pode focar 100% em Customer App com base sólida estabelecida.
 
-**Funcionalidades**:
+---
 
-#### 1. Blazor WASM (Web) - Semana 1-2
+#### 📱 Customer App Development
 
-**Home & Busca**:
+**Home & Busca** (Semana 1):
 - [ ] **Landing Page**: Hero section + busca rápida
 - [ ] **Busca Geolocalizada**: Campo de endereço/CEP + raio + serviços
 - [ ] **Mapa Interativo**: Exibir prestadores no mapa (Leaflet.Blazor)
@@ -3466,30 +3844,24 @@ public class GeographicRestrictionMiddleware
 - [ ] **Filtros**: Rating mínimo, tier, disponibilidade
 - [ ] **Ordenação**: Distância, Rating, Tier
 
-**Perfil de Prestador**:
+**Perfil de Prestador** (Semana 1-2):
 - [ ] **Visualização**: Foto, nome, descrição, serviços, rating, reviews
 - [ ] **Contato**: Botão WhatsApp, telefone, email (MVP: links externos)
 - [ ] **Galeria**: Fotos do trabalho (se disponível)
 - [ ] **Reviews**: Listar avaliações de outros clientes (read-only, write em Fase 3)
 
-**Meu Perfil**:
+**Meu Perfil** (Semana 2):
 - [ ] **Editar**: Nome, foto, telefone, endereço
 - [ ] **Histórico**: Prestadores contatados (tracking básico)
 - [ ] **Configurações**: Preferências de notificações (stub para futuro)
 
-#### 2. MAUI Blazor Hybrid (Mobile) - Semana 3
-
-**Diferenças do Web**:
+**MAUI Blazor Hybrid (Mobile)** (Semana 3):
 - [ ] **Geolocalização Nativa**: Usar GPS do device para busca automática
 - [ ] **Câmera**: Permitir upload de foto de perfil via câmera
 - [ ] **Notificações Push**: Stub para futuro (ex: prestador aceitou contato)
 - [ ] **Deep Linking**: Abrir prestador via link compartilhado
 - [ ] **Offline Mode**: Cache de última busca realizada
-
-**Compartilhamento de Código**:
-- [ ] Razor Components compartilhados entre Web e Mobile
-- [ ] Services layer compartilhado (ISearchService, IProviderService)
-- [ ] DTOs e Validators compartilhados via Shared.DTOs
+- [ ] **Compartilhamento de Código**: 70%+ Razor Components compartilhados entre Web e Mobile
 
 **Tecnologias Mobile**:
 - **Framework**: .NET MAUI 10 + Blazor Hybrid
@@ -3497,11 +3869,20 @@ public class GeographicRestrictionMiddleware
 - **Maps**: MAUI Community Toolkit Maps
 - **Storage**: Preferences API + Secure Storage
 
-**Resultado Esperado**:
+---
+
+#### � Resultado Esperado Sprint 8
+
 - ✅ Customer App (Web) publicado
 - ✅ Customer App (Mobile) disponível em TestFlight (iOS) e Google Play Beta (Android)
 - ✅ 70%+ código compartilhado entre Web e Mobile
 - ✅ UX otimizada para mobile (gestures, navegação nativa)
+- ✅ Autenticação Keycloak OIDC (cliente meajudaai-customer configurado em Sprint 7.16)
+- ✅ 20+ testes bUnit para Customer App (patterns de Sprint 7.16)
+
+**Timeline**:
+- **Semana 1** (22-29 Jan): Home + Busca Geolocalizada + Perfil Prestador
+- **Semana 2** (29 Jan - 4 Fev): Meu Perfil + MAUI Mobile + Deployment
 
 ---
 
@@ -3532,14 +3913,15 @@ Tarefas técnicas que devem ser aplicadas em todos os módulos para consistênci
 ```csharp
 private static void EnsureDatabaseMigrations(WebApplication app)
 {
-    // Pular em ambientes de teste
-    if (app.Environment.IsEnvironment("Test") || app.Environment.IsEnvironment("Testing"))
-    {
-        return;
-    }
+    Keycloak client automation script (setup em 1 comando) - **DAY 1**
+- ✅ 0 analyzer warnings no Admin Portal (S2094, S2953, S2933, MUD0002 resolvidos)
+- ✅ 30-40 testes bUnit (10 → 30+, +200% cobertura)
 
-    // Controle via variável de ambiente
-    var applyMigrations = Environment.GetEnvironmentVariable("APPLY_MIGRATIONS");
+**Timeline**:
+- **Dia 1** (17 Jan): Keycloak automation script - **CRITICAL PATH**
+- **Semana 1** (17-24 Jan): Customer App Home + Busca + Warnings fix
+- **Semana 2** (24-31 Jan): Customer App Perfil + Mobile + Testes
+- **Semana 3** (31 Jan): PolishingVariable("APPLY_MIGRATIONS");
     if (!string.IsNullOrEmpty(applyMigrations) && 
         bool.TryParse(applyMigrations, out var shouldApply) && !shouldApply)
     {
@@ -3755,7 +4137,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - ✅ Segurança e performance hardened
 - ✅ Documentação completa para usuários e desenvolvedores
 - ✅ Monitoring e observabilidade configurados
-- 🎯 **PRONTO PARA LAUNCH EM 31 DE MARÇO DE 2026**
+- 🎯 **PRONTO PARA LAUNCH EM 17 DE FEVEREIRO DE 2026**
 
 > **⚠️ CRITICAL**: Se Sprint 9 não for suficiente para completar todos os itens, considerar delay do MVP launch ou reduzir escopo (mover features não-críticas para post-MVP). A qualidade e estabilidade do MVP são mais importantes que a data de lançamento.
 
