@@ -1185,7 +1185,7 @@
         "dependencies": {
           "Azure.AI.DocumentIntelligence": "[1.0.0, )",
           "Azure.Storage.Blobs": "[12.26.0, )",
-          "EFCore.NamingConventions": "[10.0.0-rc.2, )",
+          "EFCore.NamingConventions": "[10.0.0, )",
           "MeAjudaAi.Modules.Documents.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -1220,7 +1220,7 @@
       "meajudaai.modules.locations.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "EFCore.NamingConventions": "[10.0.0-rc.2, )",
+          "EFCore.NamingConventions": "[10.0.0, )",
           "MeAjudaAi.Modules.Locations.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )"
@@ -1255,7 +1255,7 @@
       "meajudaai.modules.providers.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "EFCore.NamingConventions": "[10.0.0-rc.2, )",
+          "EFCore.NamingConventions": "[10.0.0, )",
           "MeAjudaAi.Modules.Providers.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Providers.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )"
@@ -1288,7 +1288,7 @@
       "meajudaai.modules.searchproviders.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "EFCore.NamingConventions": "[10.0.0-rc.2, )",
+          "EFCore.NamingConventions": "[10.0.0, )",
           "MeAjudaAi.Modules.SearchProviders.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.SearchProviders.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -1325,7 +1325,7 @@
       "meajudaai.modules.servicecatalogs.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "EFCore.NamingConventions": "[10.0.0-rc.2, )",
+          "EFCore.NamingConventions": "[10.0.0, )",
           "MeAjudaAi.Modules.ServiceCatalogs.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.ServiceCatalogs.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )"
@@ -1359,7 +1359,7 @@
       "meajudaai.modules.users.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "EFCore.NamingConventions": "[10.0.0-rc.2, )",
+          "EFCore.NamingConventions": "[10.0.0, )",
           "MeAjudaAi.Modules.Users.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Users.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -1587,13 +1587,13 @@
       },
       "EFCore.NamingConventions": {
         "type": "CentralTransitive",
-        "requested": "[10.0.0-rc.2, )",
-        "resolved": "10.0.0-rc.2",
-        "contentHash": "aEW98rqqGG4DdLcTlJ2zpi6bmnDcftG4NhhpYtXuXyaM07hlLpf043DRBuEa+aWMcLVoTTOgrtcC7dfI/luvYA==",
+        "requested": "[10.0.0, )",
+        "resolved": "10.0.0",
+        "contentHash": "gEJLy60tsQaPT69vkNFtyYKd2WcBcPB71vE2IKqAuJfP4UrC3gh4DAMR9+TpUpxGCQyRQ3IOO4SzIb+KfjTw6Q==",
         "dependencies": {
-          "Microsoft.EntityFrameworkCore": "10.0.0-rc.2.25502.107",
-          "Microsoft.EntityFrameworkCore.Relational": "10.0.0-rc.2.25502.107",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.0-rc.2.25502.107"
+          "Microsoft.EntityFrameworkCore": "[10.0.1, 11.0.0)",
+          "Microsoft.EntityFrameworkCore.Relational": "[10.0.1, 11.0.0)",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.1"
         }
       },
       "FluentValidation": {

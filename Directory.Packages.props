@@ -58,7 +58,7 @@
     <!-- Version 10.0.0 stable does not exist yet (awaiting release) -->
     <!-- Monitoring: See .github/ISSUE_TEMPLATE/efcore-naming-conventions-stable-monitoring.md -->
     <!-- Risk: RC + stable mix may cause TypeLoadException, but tests currently pass -->
-    <PackageVersion Include="EFCore.NamingConventions" Version="10.0.0-rc.2" />
+    <PackageVersion Include="EFCore.NamingConventions" Version="10.0.0" />
     <!-- Microsoft.OpenApi: Keep at 2.3.0 for compatibility with ASP.NET Core OpenApi source generators -->
     <!-- TESTED: OpenApi 3.0.2 still breaks with SDK 10.0.101 (CS0200: IOpenApiMediaType.Example is read-only) -->
     <!-- The source generator has not been updated yet to support OpenApi 3.x API changes -->

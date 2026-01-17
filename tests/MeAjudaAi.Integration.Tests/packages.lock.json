@@ -190,10 +190,10 @@
           "Microsoft.Extensions.Primitives": "8.0.0"
         }
       },
-      "Aspire.Dashboard.Sdk.win-x64": {
+      "Aspire.Dashboard.Sdk.linux-x64": {
         "type": "Transitive",
         "resolved": "13.1.0",
-        "contentHash": "rrcsI8cankYCiUlj4Ev+os9uKcutUCv+9kvHQt85RiUX/ewXsloFZy0/depKWrzdJkdJuoTbYFRlSe43TKq6aQ=="
+        "contentHash": "gIvMR7NdVGw+mUpK9qZsGuuYfDp4CHvBDLlykSSP9pCh5XGlMgDNR3uOMfvKVlqH1hAsOuecvxEcfQ9kjufrWw=="
       },
       "Aspire.Hosting": {
         "type": "Transitive",
@@ -420,10 +420,10 @@
           "System.IO.Hashing": "9.0.10"
         }
       },
-      "Aspire.Hosting.Orchestration.win-x64": {
+      "Aspire.Hosting.Orchestration.linux-x64": {
         "type": "Transitive",
         "resolved": "13.1.0",
-        "contentHash": "3w2UahEauTq719LPJ/BCySh31kz26sfjuOkRF5E4VYy1Q3xLRV43+OIGI3C5sy8feUHjrYz+DDq3DQn/2fu+4g=="
+        "contentHash": "V8u8ukncoflImciXeHG03x1pWbOiR4z1bIl2lwOKgdy7/JshFrlEaabaNuGmAIZFdWEM/fsc/hVDjecQyHF2aQ=="
       },
       "AspNetCore.HealthChecks.Rabbitmq": {
         "type": "Transitive",
@@ -2617,13 +2617,13 @@
       "meajudaai.apphost": {
         "type": "Project",
         "dependencies": {
-          "Aspire.Dashboard.Sdk.win-x64": "[13.1.0, )",
+          "Aspire.Dashboard.Sdk.linux-x64": "[13.1.0, )",
           "Aspire.Hosting.AppHost": "[13.1.0, )",
           "Aspire.Hosting.Azure.AppContainers": "[13.1.0, )",
           "Aspire.Hosting.Azure.PostgreSQL": "[13.1.0, )",
           "Aspire.Hosting.Azure.ServiceBus": "[13.1.0, )",
           "Aspire.Hosting.Keycloak": "[13.1.0-preview.1.25616.3, )",
-          "Aspire.Hosting.Orchestration.win-x64": "[13.1.0, )",
+          "Aspire.Hosting.Orchestration.linux-x64": "[13.1.0, )",
           "Aspire.Hosting.PostgreSQL": "[13.1.0, )",
           "Aspire.Hosting.RabbitMQ": "[13.1.0, )",
           "Aspire.Hosting.Redis": "[13.1.0, )",
@@ -2674,7 +2674,7 @@
         "dependencies": {
           "Azure.AI.DocumentIntelligence": "[1.0.0, )",
           "Azure.Storage.Blobs": "[12.26.0, )",
-          "EFCore.NamingConventions": "[10.0.0-rc.2, )",
+          "EFCore.NamingConventions": "[10.0.0, )",
           "MeAjudaAi.Modules.Documents.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -2730,7 +2730,7 @@
       "meajudaai.modules.locations.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "EFCore.NamingConventions": "[10.0.0-rc.2, )",
+          "EFCore.NamingConventions": "[10.0.0, )",
           "MeAjudaAi.Modules.Locations.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )"
@@ -2765,7 +2765,7 @@
       "meajudaai.modules.providers.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "EFCore.NamingConventions": "[10.0.0-rc.2, )",
+          "EFCore.NamingConventions": "[10.0.0, )",
           "MeAjudaAi.Modules.Providers.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Providers.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )"
@@ -2798,7 +2798,7 @@
       "meajudaai.modules.searchproviders.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "EFCore.NamingConventions": "[10.0.0-rc.2, )",
+          "EFCore.NamingConventions": "[10.0.0, )",
           "MeAjudaAi.Modules.SearchProviders.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.SearchProviders.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -2835,7 +2835,7 @@
       "meajudaai.modules.servicecatalogs.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "EFCore.NamingConventions": "[10.0.0-rc.2, )",
+          "EFCore.NamingConventions": "[10.0.0, )",
           "MeAjudaAi.Modules.ServiceCatalogs.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.ServiceCatalogs.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )"
@@ -2869,7 +2869,7 @@
       "meajudaai.modules.users.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "EFCore.NamingConventions": "[10.0.0-rc.2, )",
+          "EFCore.NamingConventions": "[10.0.0, )",
           "MeAjudaAi.Modules.Users.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Users.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
@@ -3435,13 +3435,13 @@
       },
       "EFCore.NamingConventions": {
         "type": "CentralTransitive",
-        "requested": "[10.0.0-rc.2, )",
-        "resolved": "10.0.0-rc.2",
-        "contentHash": "aEW98rqqGG4DdLcTlJ2zpi6bmnDcftG4NhhpYtXuXyaM07hlLpf043DRBuEa+aWMcLVoTTOgrtcC7dfI/luvYA==",
+        "requested": "[10.0.0, )",
+        "resolved": "10.0.0",
+        "contentHash": "gEJLy60tsQaPT69vkNFtyYKd2WcBcPB71vE2IKqAuJfP4UrC3gh4DAMR9+TpUpxGCQyRQ3IOO4SzIb+KfjTw6Q==",
         "dependencies": {
-          "Microsoft.EntityFrameworkCore": "10.0.0-rc.2.25502.107",
-          "Microsoft.EntityFrameworkCore.Relational": "10.0.0-rc.2.25502.107",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.0-rc.2.25502.107"
+          "Microsoft.EntityFrameworkCore": "[10.0.1, 11.0.0)",
+          "Microsoft.EntityFrameworkCore.Relational": "[10.0.1, 11.0.0)",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.1"
         }
       },
       "FluentValidation": {
