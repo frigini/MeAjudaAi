@@ -34,9 +34,10 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **16 Jan 2026**: Sprint 7.13 - Standardized Error Handling (CONCLUÍDO - Retry logic, correlation IDs, HTTP status mapping)
 - ✅ **16 Jan 2026**: Sprint 7.14 - Complete Localization (CONCLUÍDO - pt-BR/en-US, 140+ strings, culture switching)
 - ✅ **16 Jan 2026**: Sprint 7.15 - Package Updates & Resilience Migration (CONCLUÍDO - .NET 10.0.2, deprecated packages removed)
-- ⏳ **17 Jan - 31 Jan 2026**: Sprint 8 - Customer App (Web + Mobile) + Quality Improvements
-- ⏳ **3 Fev - 14 Fev 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
-- 🎯 **17 de Fevereiro de 2026**: MVP Launch (Admin Portal + Customer App)
+- ⏳ **17-21 Jan 2026**: Sprint 7.16 - Technical Debt Sprint (Keycloak automation, warnings, tests, records)
+- ⏳ **22 Jan - 4 Fev 2026**: Sprint 8 - Customer App (Web + Mobile)
+- ⏳ **5-14 Fev 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
+- 🎯 **17 Fevereiro 2026**: MVP Launch (Admin Portal + Customer App)
 - 🔮 **Fevereiro 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
 
 ## ⚠️ Notas de Risco
@@ -1064,6 +1065,440 @@ if (result.IsFailure) {
 **Commits**:
 - `b370b328`: "chore: update 39 nuget packages to latest stable versions"
 - `949b6d3c`: "refactor: migrate from Polly.Extensions.Http to Microsoft.Extensions.Http.Resilience"
+
+---
+
+### ⏳ Sprint 7.16 - Technical Debt Sprint (17-21 Jan 2026)
+
+**Status**: ⏳ EM ANDAMENTO (17 Jan 2026)  
+**Duração**: 1 semana (5 dias úteis)  
+**Objetivo**: Reduzir débito técnico ANTES de iniciar Customer App
+
+**Justificativa**: 
+- Customer App adicionará ~5000+ linhas de código novo
+- Melhor resolver débitos do Admin Portal ANTES de replicar patterns
+- Keycloak automation é BLOQUEADOR para Customer App (precisa de novo cliente OIDC)
+- Quality improvements estabelecem padrões para Customer App
+
+---
+
+#### 📋 Tarefas Planejadas
+
+##### 1. 🔐 Keycloak Client Automation (Dia 1-2, ~1 dia) - **BLOQUEADOR**
+
+**Prioridade**: CRÍTICA - Customer App precisa de cliente OIDC "meajudaai-customer"
+
+**Entregáveis**:
+- [ ] Script `infrastructure/keycloak/setup-keycloak-clients.ps1`
+  * Valida Keycloak rodando (HTTP health check)
+  * Obtém token admin via REST API
+  * Cria realm "MeAjudaAi" (se não existir)
+  * Cria clientes "meajudaai-admin" e "meajudaai-customer" (OIDC, PKCE)
+  * Configura Redirect URIs (localhost + produção)
+  * Cria roles "admin", "customer"
+  * Cria usuários demo (admin@meajudaai.com.br, customer@meajudaai.com.br)
+  * Exibe resumo de configuração
+- [ ] Atualizar `docs/keycloak-admin-portal-setup.md` com seção "Automated Setup"
+- [ ] Integrar script em `scripts/dev.ps1` (opcional - chamar setup-keycloak-clients.ps1)
+
+**API Keycloak Admin REST**:
+- Endpoint: `POST /auth/admin/realms/{realm}/clients`
+- Autenticação: Bearer token
+
+**Benefícios**:
+- ✅ Customer App pronto para desenvolvimento (cliente configurado)
+- ✅ Onboarding em 1 comando: `.\setup-keycloak-clients.ps1`
+- ✅ Elimina 15 passos manuais documentados
+
+---
+
+##### 2. 🎨 Frontend Analyzer Warnings (Dia 2-3, ~1 dia)
+
+**Prioridade**: ALTA - Code quality antes de expandir codebase
+
+**Warnings a Resolver**:
+
+**S2094 - Empty Records (6 ocorrências)**:
+```csharp
+// ANTES
+public sealed record LoadProvidersAction { }
+
+// DEPOIS - Opção 1: Adicionar propriedade útil
+public sealed record LoadProvidersAction
+{
+    public bool ForceRefresh { get; init; }
+}
+
+// DEPOIS - Opção 2: Justificar supressão
+#pragma warning disable S2094 // Empty action by design (Redux pattern)
+public sealed record LoadProvidersAction { }
+#pragma warning restore S2094
+```
+
+**S2953 - Dispose Pattern (1 ocorrência)**:
+```csharp
+// ANTES: App.razor
+public void Dispose() { ... }
+
+// DEPOIS
+public class App : IDisposable
+{
+    public void Dispose() { ... }
+}
+```
+
+**S2933 - Readonly Fields (1 ocorrência)**:
+```csharp
+// ANTES
+private MudTheme _theme = new();
+
+// DEPOIS
+private readonly MudTheme _theme = new();
+```
+
+**MUD0002 - Casing (3 ocorrências)**:
+```razor
+<!-- ANTES -->
+<MudDrawer AriaLabel="Navigation" />
+
+<!-- DEPOIS -->
+<MudDrawer aria-label="Navigation" />
+```
+
+**Entregáveis**:
+- [ ] Resolver todos os 11 warnings (ou justificar supressões)
+- [ ] Remover regras do `.editorconfig` após correção
+- [ ] Build com **0 warnings**
+
+---
+
+##### 3. 📊 Frontend Test Coverage (Dia 3-5, ~1-2 dias)
+
+**Prioridade**: ALTA - Confiança em Admin Portal antes de Customer App
+
+**Meta**: 10 → 30-40 testes bUnit
+
+**Testes Novos (20-30 testes)**:
+
+**Fluxor State Management (8 testes)**:
+- `ProvidersReducers`: LoadSuccess, LoadFailure, SetFilters, SetSorting
+- `DocumentsReducers`: UploadSuccess, VerificationUpdate
+- `ServiceCatalogsReducers`: CreateSuccess, UpdateSuccess
+
+**Components (12 testes)**:
+- `Providers.razor`: rendering, search, pagination (3 testes)
+- `Documents.razor`: upload workflow, verification (3 testes)
+- `CreateProviderDialog`: form validation, submit (2 testes)
+- `EditProviderDialog`: data binding, update (2 testes)
+- `LanguageSwitcher`: culture change, persistence (2 testes)
+
+**Services (5 testes)**:
+- `LocalizationService`: SetCulture, GetString, fallback
+- `ErrorHandlingService`: retry logic, status mapping
+
+**Effects (3 testes)**:
+- Mock `IProvidersApi.GetPagedProvidersAsync`
+- Verificar dispatches Success/Failure
+- Testar error handling
+
+**Infraestrutura**:
+- Criar `TestContext` base reutilizável
+- Configurar `JSRuntimeMode.Loose`
+- Registrar `MudServices` e `Fluxor`
+
+**Entregáveis**:
+- [ ] 30-40 testes bUnit (3x aumento)
+- [ ] Cobertura ~40-50% de componentes críticos
+- [ ] CI/CD passing (master-ci-cd.yml)
+
+---
+
+##### 4. 📝 Records Standardization (Dia 5, ~0.5 dia)
+
+**Prioridade**: MÉDIA - Padronização importante
+
+**Objetivo**: Padronizar uso de `record class` vs `record` vs `class` no projeto.
+
+**Auditoria**:
+```powershell
+# Buscar todos os records no projeto
+Get-ChildItem -Recurse -Include *.cs | Select-String "record "
+```
+
+**Padrões a Estabelecer**:
+- DTOs: `public record <Name>Dto` (imutável)
+- Requests: `public sealed record <Name>Request` (imutável)
+- Responses: `public sealed record <Name>Response` (imutável)
+- Fluxor Actions: `public sealed record <Name>Action` (imutável)
+- Fluxor State: `public sealed record <Name>State` (imutável)
+- Entities: `public class <Name>` (mutável, EF Core)
+
+**Entregáveis**:
+- [ ] Documentar padrão em `docs/architecture.md` seção "C# Coding Standards"
+- [ ] Converter records inconsistentes (se necessário)
+- [ ] Adicionar analyzer rule para enforcement futuro
+
+---
+
+##### 5. 🧪 SearchProviders E2E Tests (OPCIONAL - se tempo sobrar)
+
+**Prioridade**: MÉDIA - Pode ser movido para Sprint 9 (Buffer)
+
+**Objetivo**: Testar busca geolocalizada end-to-end.
+
+**Entregáveis**:
+- [ ] Teste: Buscar providers por serviço + raio (2km, 5km, 10km)
+- [ ] Teste: Validar ordenação por distância
+- [ ] Teste: Validar restrição geográfica (AllowedCities)
+- [ ] Teste: Performance (<500ms para 1000 providers)
+
+**Estimativa**: 1-2 dias (se sobrar tempo)
+
+---
+
+#### 📊 Resultado Esperado Sprint 7.16
+
+**Débito Técnico Reduzido**:
+- ✅ Keycloak automation completo (bloqueador removido)
+- ✅ 0 warnings no Admin Portal (S2094, S2953, S2933, MUD0002)
+- ✅ 30-40 testes bUnit (confiança 3x maior)
+- ✅ Records padronizados (consistência)
+- ⚠️ SearchProviders E2E (se tempo permitir)
+
+**Quality Metrics**:
+- **Build**: 0 errors, 0 warnings
+- **Tests**: 1245 backend + 30-40 frontend = **1275-1285 testes**
+- **Coverage**: Backend 90.56% | Frontend ~40-50%
+- **Technical Debt**: Reduzido de 313 linhas → ~150 linhas
+
+**Pronto para Customer App**:
+- ✅ Keycloak configurado (cliente meajudaai-customer)
+- ✅ Admin Portal com qualidade máxima (patterns estabelecidos)
+- ✅ Test infrastructure robusta (replicável no Customer App)
+- ✅ Zero distrações (débito técnico minimizado)
+
+**Commits Estimados**:
+- `feat(sprint-7.16): add Keycloak client automation script`
+- `fix(sprint-7.16): resolve all frontend analyzer warnings`
+- `test(sprint-7.16): increase bUnit coverage to 30-40 tests`
+- `refactor(sprint-7.16): standardize record usage across project`
+
+---
+
+### ⏳ Sprint 7.16 - Technical Debt Sprint (17-21 Jan 2026)
+
+**Status**: ⏳ EM ANDAMENTO (17 Jan 2026)  
+**Duração**: 1 semana (5 dias úteis)  
+**Objetivo**: Reduzir débito técnico ANTES de iniciar Customer App
+
+**Justificativa**: 
+- Customer App adicionará ~5000+ linhas de código novo
+- Melhor resolver débitos do Admin Portal ANTES de replicar patterns
+- Keycloak automation é BLOQUEADOR para Customer App (precisa de novo cliente OIDC)
+- Quality improvements estabelecem padrões para Customer App
+
+---
+
+#### 📋 Tarefas Planejadas
+
+##### 1. 🔐 Keycloak Client Automation (Dia 1-2, ~1 dia) - **BLOQUEADOR**
+
+**Prioridade**: CRÍTICA - Customer App precisa de cliente OIDC "meajudaai-customer"
+
+**Entregáveis**:
+- [ ] Script `infrastructure/keycloak/setup-keycloak-clients.ps1`
+  * Valida Keycloak rodando (HTTP health check)
+  * Obtém token admin via REST API
+  * Cria realm "MeAjudaAi" (se não existir)
+  * Cria clientes "meajudaai-admin" e "meajudaai-customer" (OIDC, PKCE)
+  * Configura Redirect URIs (localhost + produção)
+  * Cria roles "admin", "customer"
+  * Cria usuários demo (admin@meajudaai.com.br, customer@meajudaai.com.br)
+  * Exibe resumo de configuração
+- [ ] Atualizar `docs/keycloak-admin-portal-setup.md` com seção "Automated Setup"
+- [ ] Integrar script em `scripts/dev.ps1` (opcional - chamar setup-keycloak-clients.ps1)
+
+**API Keycloak Admin REST**:
+- Endpoint: `POST /auth/admin/realms/{realm}/clients`
+- Autenticação: Bearer token
+
+**Benefícios**:
+- ✅ Customer App pronto para desenvolvimento (cliente configurado)
+- ✅ Onboarding em 1 comando: `.\setup-keycloak-clients.ps1`
+- ✅ Elimina 15 passos manuais documentados
+
+---
+
+##### 2. 🎨 Frontend Analyzer Warnings (Dia 2-3, ~1 dia)
+
+**Prioridade**: ALTA - Code quality antes de expandir codebase
+
+**Warnings a Resolver**:
+
+**S2094 - Empty Records (6 ocorrências)**:
+```csharp
+// ANTES
+public sealed record LoadProvidersAction { }
+
+// DEPOIS - Opção 1: Adicionar propriedade útil
+public sealed record LoadProvidersAction
+{
+    public bool ForceRefresh { get; init; }
+}
+
+// DEPOIS - Opção 2: Justificar supressão
+#pragma warning disable S2094 // Empty action by design (Redux pattern)
+public sealed record LoadProvidersAction { }
+#pragma warning restore S2094
+```
+
+**S2953 - Dispose Pattern (1 ocorrência)**:
+```csharp
+// ANTES: App.razor
+public void Dispose() { ... }
+
+// DEPOIS
+public class App : IDisposable
+{
+    public void Dispose() { ... }
+}
+```
+
+**S2933 - Readonly Fields (1 ocorrência)**:
+```csharp
+// ANTES
+private MudTheme _theme = new();
+
+// DEPOIS
+private readonly MudTheme _theme = new();
+```
+
+**MUD0002 - Casing (3 ocorrências)**:
+```razor
+<!-- ANTES -->
+<MudDrawer AriaLabel="Navigation" />
+
+<!-- DEPOIS -->
+<MudDrawer aria-label="Navigation" />
+```
+
+**Entregáveis**:
+- [ ] Resolver todos os 11 warnings (ou justificar supressões)
+- [ ] Remover regras do `.editorconfig` após correção
+- [ ] Build com **0 warnings**
+
+---
+
+##### 3. 📊 Frontend Test Coverage (Dia 3-5, ~1-2 dias)
+
+**Prioridade**: ALTA - Confiança em Admin Portal antes de Customer App
+
+**Meta**: 10 → 30-40 testes bUnit
+
+**Testes Novos (20-30 testes)**:
+
+**Fluxor State Management (8 testes)**:
+- `ProvidersReducers`: LoadSuccess, LoadFailure, SetFilters, SetSorting
+- `DocumentsReducers`: UploadSuccess, VerificationUpdate
+- `ServiceCatalogsReducers`: CreateSuccess, UpdateSuccess
+
+**Components (12 testes)**:
+- `Providers.razor`: rendering, search, pagination (3 testes)
+- `Documents.razor`: upload workflow, verification (3 testes)
+- `CreateProviderDialog`: form validation, submit (2 testes)
+- `EditProviderDialog`: data binding, update (2 testes)
+- `LanguageSwitcher`: culture change, persistence (2 testes)
+
+**Services (5 testes)**:
+- `LocalizationService`: SetCulture, GetString, fallback
+- `ErrorHandlingService`: retry logic, status mapping
+
+**Effects (3 testes)**:
+- Mock `IProvidersApi.GetPagedProvidersAsync`
+- Verificar dispatches Success/Failure
+- Testar error handling
+
+**Infraestrutura**:
+- Criar `TestContext` base reutilizável
+- Configurar `JSRuntimeMode.Loose`
+- Registrar `MudServices` e `Fluxor`
+
+**Entregáveis**:
+- [ ] 30-40 testes bUnit (3x aumento)
+- [ ] Cobertura ~40-50% de componentes críticos
+- [ ] CI/CD passing (master-ci-cd.yml)
+
+---
+
+##### 4. 📝 Records Standardization (Dia 5, ~0.5 dia)
+
+**Prioridade**: MÉDIA - Padronização importante
+
+**Objetivo**: Padronizar uso de `record class` vs `record` vs `class` no projeto.
+
+**Auditoria**:
+```powershell
+# Buscar todos os records no projeto
+Get-ChildItem -Recurse -Include *.cs | Select-String "record "
+```
+
+**Padrões a Estabelecer**:
+- DTOs: `public record <Name>Dto` (imutável)
+- Requests: `public sealed record <Name>Request` (imutável)
+- Responses: `public sealed record <Name>Response` (imutável)
+- Fluxor Actions: `public sealed record <Name>Action` (imutável)
+- Fluxor State: `public sealed record <Name>State` (imutável)
+- Entities: `public class <Name>` (mutável, EF Core)
+
+**Entregáveis**:
+- [ ] Documentar padrão em `docs/architecture.md` seção "C# Coding Standards"
+- [ ] Converter records inconsistentes (se necessário)
+- [ ] Adicionar analyzer rule para enforcement futuro
+
+---
+
+##### 5. 🧪 SearchProviders E2E Tests (OPCIONAL - se tempo sobrar)
+
+**Prioridade**: MÉDIA - Pode ser movido para Sprint 9 (Buffer)
+
+**Objetivo**: Testar busca geolocalizada end-to-end.
+
+**Entregáveis**:
+- [ ] Teste: Buscar providers por serviço + raio (2km, 5km, 10km)
+- [ ] Teste: Validar ordenação por distância
+- [ ] Teste: Validar restrição geográfica (AllowedCities)
+- [ ] Teste: Performance (<500ms para 1000 providers)
+
+**Estimativa**: 1-2 dias (se sobrar tempo)
+
+---
+
+#### 📊 Resultado Esperado Sprint 7.16
+
+**Débito Técnico Reduzido**:
+- ✅ Keycloak automation completo (bloqueador removido)
+- ✅ 0 warnings no Admin Portal (S2094, S2953, S2933, MUD0002)
+- ✅ 30-40 testes bUnit (confiança 3x maior)
+- ✅ Records padronizados (consistência)
+- ⚠️ SearchProviders E2E (se tempo permitir)
+
+**Quality Metrics**:
+- **Build**: 0 errors, 0 warnings
+- **Tests**: 1245 backend + 30-40 frontend = **1275-1285 testes**
+- **Coverage**: Backend 90.56% | Frontend ~40-50%
+- **Technical Debt**: Reduzido de 313 linhas → ~150 linhas
+
+**Pronto para Customer App**:
+- ✅ Keycloak configurado (cliente meajudaai-customer)
+- ✅ Admin Portal com qualidade máxima (patterns estabelecidos)
+- ✅ Test infrastructure robusta (replicável no Customer App)
+- ✅ Zero distrações (débito técnico minimizado)
+
+**Commits Estimados**:
+- `feat(sprint-7.16): add Keycloak client automation script`
+- `fix(sprint-7.16): resolve all frontend analyzer warnings`
+- `test(sprint-7.16): increase bUnit coverage to 30-40 tests`
+- `refactor(sprint-7.16): standardize record usage across project`
 
 ---
 
@@ -3602,19 +4037,17 @@ public class GeographicRestrictionMiddleware
 
 ---
 
-### 📅 Sprint 8: Customer App (Web + Mobile) + Quality Improvements (3 semanas) ⏳ ATUALIZADO
+### 📅 Sprint 8: Customer App (Web + Mobile) (2 semanas) ⏳ ATUALIZADO
 
-**Status**: 📋 PLANEJADO PARA 17 Jan - 31 Jan 2026  
-**Dependências**: Sprint 7.15 concluído ✅  
-**Duração**: 3 semanas (Customer App em paralelo com melhorias de qualidade)
+**Status**: 📋 PLANEJADO PARA 22 Jan - 4 Fev 2026  
+**Dependências**: Sprint 7.16 concluído ✅  
+**Duração**: 2 semanas (foco 100% em Customer App)
 
-**Objetivos Principais**:
-1. App para clientes (web + mobile) - **Prioridade MÁXIMA**
-2. Melhorias de qualidade técnica (warnings, testes, automação) - **Paralelo**
+**Contexto**: Sprint 7.16 removeu débitos técnicos e bloqueadores (Keycloak automation, warnings, tests, records). Sprint 8 pode focar 100% em Customer App com base sólida estabelecida.
 
 ---
 
-#### 📱 **Track 1: Customer App** (Prioridade MÁXIMA - Semanas 1-3)
+#### 📱 Customer App Development
 
 **Home & Busca** (Semana 1):
 - [ ] **Landing Page**: Hero section + busca rápida
@@ -3651,152 +4084,18 @@ public class GeographicRestrictionMiddleware
 
 ---
 
-#### 🔧 **Track 2: Quality Improvements** (Paralelo - Semanas 1-3, ~2-3 dias total)
+#### � Resultado Esperado Sprint 8
 
-**Context**: Itens removidos de technical-debt.md por serem implementáveis durante Sprint 8.
-
-##### 1. Frontend Analyzer Warnings (~1 dia)
-
-**Objetivo**: Resolver 4 tipos de warnings do SonarAnalyzer.CSharp suprimidos em `.editorconfig`.
-
-**Warnings Ativos**:
-- **S2094**: Empty records (3 ocorrências: ProviderState.cs, DocumentsState.cs, ServiceCatalogsState.cs)
-- **S2953**: Dispose pattern (Components com Fluxor subscriptions)
-- **S2933**: Readonly fields (stores e services injetados)
-- **MUD0002**: MudBlazor naming conventions (componentes personalizados)
-
-**Estratégia**:
-```csharp
-// ANTES (S2094 - empty record)
-public sealed record ProviderState { }
-
-// OPÇÃO 1: Adicionar propriedade útil
-public sealed record ProviderState
-{
-    public bool IsInitialized { get; init; }
-}
-
-// OPÇÃO 2: Justificar supressão (se realmente necessário vazio)
-#pragma warning disable S2094 // Empty state por design (Redux pattern)
-public sealed record ProviderState { }
-#pragma warning restore S2094
-```
-
-**Tarefas**:
-- [ ] Revisar cada warning individualmente
-- [ ] Implementar correção ou justificar supressão
-- [ ] Documentar decisões em commit message
-- [ ] Remover regras do `.editorconfig` após correção
-
-**Arquivos Impactados**:
-- `src/MeAjudaAi.Web.Admin/Fluxor/Features/*/State.cs` (S2094)
-- `src/MeAjudaAi.Web.Admin/Pages/*.razor` (S2953, S2933)
-- `src/MeAjudaAi.Web.Admin/Components/**/*.razor` (MUD0002)
-
-**Benefício**: Build com 0 warnings, código mais idiomático e manutenível.
-
----
-
-##### 2. Frontend Test Coverage Increase (~1-2 dias)
-
-**Context**: Atualmente 10 testes bUnit (ProvidersPageTests, DashboardPageTests, DarkModeToggleTests).
-
-**Meta**: Atingir 30-40 testes (cobertura ~40-50% de componentes críticos).
-
-**Prioridade de Testes**:
-
-**Alta Prioridade (15-20 testes)**:
-- **Fluxor State Management** (5 testes):
-  * ProvidersReducers: LoadSuccess, LoadFailure, SetFilters
-  * DocumentsReducers: UploadSuccess, VerificationUpdate
-- **Components** (10 testes):
-  * Providers.razor: rendering, search, pagination
-  * Documents.razor: upload workflow
-  * CreateProviderDialog: form validation
-  * EditProviderDialog: data binding
-  * LanguageSwitcher: culture change
-- **Services** (5 testes):
-  * LocalizationService: culture switching, string retrieval
-  * ErrorHandlingService: retry logic
-
-**Média Prioridade (5-10 testes)**:
-- **Effects** (3 testes):
-  * Mock de IProvidersApi.GetPagedProvidersAsync
-  * Verificar dispatches corretos (Success/Failure)
-- **Accessibility** (2 testes):
-  * LiveRegionAnnouncer: announcement queue
-  * ErrorBoundaryContent: error recovery
-
-**Setup**:
-- Criar `TestContext` base reutilizável
-- Mock de JSRuntime configurado (JSRuntimeMode.Loose)
-- MudServices registrados
-- Fluxor store configurado para testes
-
-**Tecnologias**:
-- bUnit 1.29.5
-- Moq 4.20.72
-- FluentAssertions 7.0.0
-
-**Benefício**: Maior confiança em refatorações, detecção precoce de regressões.
-
----
-
-##### 3. Keycloak Client Automation (~0.5 dia)
-
-**Objetivo**: Automatizar setup de clientes Keycloak (evitar 15 passos manuais).
-
-**Script**: `infrastructure/keycloak/setup-keycloak-clients.ps1`
-
-**Funcionalidades**:
-```powershell
-# Configurar clientes Admin Portal + Customer App automaticamente
-.\setup-keycloak-clients.ps1 -KeycloakUrl "http://localhost:9090" -AdminPassword "admin"
-
-# Tarefas do script:
-# 1. Validar Keycloak está rodando (HTTP health check)
-# 2. Obter token admin via REST API
-# 3. Criar realm "MeAjudaAi" (se não existir)
-# 4. Criar cliente "meajudaai-admin" (OIDC, PKCE flow)
-# 5. Criar cliente "meajudaai-customer" (OIDC, PKCE flow)
-# 6. Configurar Redirect URIs (http://localhost:7030/*, https://admin.meajudaai.com.br/*)
-# 7. Criar roles "admin", "customer"
-# 8. Criar usuário demo (admin@meajudaai.com.br / password)
-# 9. Exibir resumo de configuração
-```
-
-**API Keycloak Admin REST**:
-- Endpoint: `POST /auth/admin/realms/{realm}/clients`
-- Autenticação: Bearer token (obtido via admin credentials)
-- Payload: JSON com configuração do cliente
-
-**Benefícios**:
-- ✅ Onboarding de novos desenvolvedores em 1 comando
-- ✅ Ambientes de teste automatizados
-- ✅ Documentação como código (script é a fonte da verdade)
-
-**Arquivo**: `infrastructure/keycloak/setup-keycloak-clients.ps1` (novo)  
-**Documentação**: Atualizar `docs/keycloak-admin-portal-setup.md` com seção "Automated Setup"
-
----
-
-#### 📊 Resultado Esperado Sprint 8
-
-**Customer App**:
 - ✅ Customer App (Web) publicado
 - ✅ Customer App (Mobile) disponível em TestFlight (iOS) e Google Play Beta (Android)
 - ✅ 70%+ código compartilhado entre Web e Mobile
 - ✅ UX otimizada para mobile (gestures, navegação nativa)
-
-**Quality Improvements**:
-- ✅ 0 analyzer warnings no Admin Portal (S2094, S2953, S2933, MUD0002 resolvidos)
-- ✅ 30-40 testes bUnit (10 → 30+, +200% cobertura)
-- ✅ Keycloak client automation script (setup em 1 comando)
+- ✅ Autenticação Keycloak OIDC (cliente meajudaai-customer configurado em Sprint 7.16)
+- ✅ 20+ testes bUnit para Customer App (patterns de Sprint 7.16)
 
 **Timeline**:
-- **Semana 1** (17-24 Jan): Customer App Home + Busca + Warnings fix
-- **Semana 2** (24-31 Jan): Customer App Perfil + Mobile + Testes
-- **Semana 3** (31 Jan): Polishing + Keycloak script + Deployment
+- **Semana 1** (22-29 Jan): Home + Busca Geolocalizada + Perfil Prestador
+- **Semana 2** (29 Jan - 4 Fev): Meu Perfil + MAUI Mobile + Deployment
 
 ---
 
@@ -3827,14 +4126,15 @@ Tarefas técnicas que devem ser aplicadas em todos os módulos para consistênci
 ```csharp
 private static void EnsureDatabaseMigrations(WebApplication app)
 {
-    // Pular em ambientes de teste
-    if (app.Environment.IsEnvironment("Test") || app.Environment.IsEnvironment("Testing"))
-    {
-        return;
-    }
+    Keycloak client automation script (setup em 1 comando) - **DAY 1**
+- ✅ 0 analyzer warnings no Admin Portal (S2094, S2953, S2933, MUD0002 resolvidos)
+- ✅ 30-40 testes bUnit (10 → 30+, +200% cobertura)
 
-    // Controle via variável de ambiente
-    var applyMigrations = Environment.GetEnvironmentVariable("APPLY_MIGRATIONS");
+**Timeline**:
+- **Dia 1** (17 Jan): Keycloak automation script - **CRITICAL PATH**
+- **Semana 1** (17-24 Jan): Customer App Home + Busca + Warnings fix
+- **Semana 2** (24-31 Jan): Customer App Perfil + Mobile + Testes
+- **Semana 3** (31 Jan): PolishingVariable("APPLY_MIGRATIONS");
     if (!string.IsNullOrEmpty(applyMigrations) && 
         bool.TryParse(applyMigrations, out var shouldApply) && !shouldApply)
     {
