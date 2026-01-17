@@ -169,7 +169,7 @@
 </MudGrid>
 
 @code {
-    // Order arrays using constant values
+    // Arrays ordenados usando valores constantes
     private static readonly string[] StatusOrder = { 
         VerificationStatus.Pending.ToString(), 
         VerificationStatus.Verified.ToString(), 
@@ -190,7 +190,7 @@
     {
         base.OnInitialized();
         
-        // Load providers for chart data
+        // Carrega providers para dados do gráfico
         if (ProvidersState.Value.Providers.Count == 0)
         {
             Dispatcher.Dispatch(new ProvidersActions.LoadProvidersAction());
@@ -203,7 +203,7 @@
         // Carregar estatísticas ao inicializar
         Dispatcher.Dispatch(new LoadDashboardStatsAction());
         
-        // Subscribe to state changes
+        // Inscreve-se às mudanças de estado
         ProvidersState.StateChanged += OnProvidersStateChanged;
     }
 
@@ -213,7 +213,7 @@
         {
             var currentCount = ProvidersState.Value.Providers.Count;
             
-            // Only update if provider count changed
+            // Atualiza apenas se a contagem de providers mudou
             if (currentCount != previousProviderCount && currentCount > 0)
             {
                 previousProviderCount = currentCount;
@@ -223,7 +223,7 @@
         }
         catch (Exception ex)
         {
-            // Log error and gracefully degrade
+            // Loga erro e degrada graciosamente
             Console.Error.WriteLine($"Error updating chart data: {ex}");
         }
     }
