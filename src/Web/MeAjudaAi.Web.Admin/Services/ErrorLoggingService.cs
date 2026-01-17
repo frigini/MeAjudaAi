@@ -38,8 +38,9 @@ public class ErrorLoggingService
             exception.Message,
             stackTrace.ToString());
 
-        // TODO: Send to monitoring service (Sentry, Application Insights)
-        // await SendToMonitoringService(exception, correlationId);
+        // NOTA: ILogger já envia para Application Insights via telemetria do ASP.NET Core
+        // Integração adicional com serviços de monitoramento (Sentry, etc.) será implementada
+        // em sprint futura de acordo com requisitos de infraestrutura
     }
 
     /// <summary>
