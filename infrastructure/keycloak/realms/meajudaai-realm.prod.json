@@ -1,7 +1,7 @@
 {
   "id": "meajudaai",
   "realm": "meajudaai",
-  "displayName": "MeAjudaAi",
+  "displayName": "MeAjudaAi Production",
   "enabled": true,
   "sslRequired": "all",
   "registrationAllowed": false,
@@ -9,6 +9,8 @@
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
   "editUsernameAllowed": false,
+  "rememberMe": true,
+  "verifyEmail": true,
   "bruteForceProtected": true,
   "permanentLockout": false,
   "maxFailureWaitSeconds": 900,
@@ -16,10 +18,14 @@
   "waitIncrementSeconds": 60,
   "quickLoginCheckMilliSeconds": 1000,
   "maxDeltaTimeSeconds": 43200,
-  "failureFactor": 30,
-  "passwordPolicy": "length(12) and digits(2) and lowerCase(2) and upperCase(2) and specialChars(2)",
-  "loginTheme": "meajudaai",
-  "accountTheme": "keycloak.v2",
+  "failureFactor": 10,
+  "accessTokenLifespan": 900,
+  "accessTokenLifespanForImplicitFlow": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "offlineSessionIdleTimeout": 2592000,
+  "loginTheme": "keycloak",
+  "accountTheme": "keycloak",
   "emailTheme": "keycloak",
   "internationalizationEnabled": true,
   "supportedLocales": ["pt-BR", "en"],
@@ -27,48 +33,67 @@
   "roles": {
     "realm": [
       {
-        "name": "customer",
-        "description": "Customer role for regular users"
-      },
-      {
-        "name": "service-provider",
-        "description": "Service provider role for professionals"
-      },
-      {
         "name": "admin",
-        "description": "Administrator role"
+        "description": "Administrador total da plataforma"
       },
       {
-        "name": "super-admin",
-        "description": "Super administrator role"
+        "name": "operator",
+        "description": "Operador com leitura/escrita limitada"
+      },
+      {
+        "name": "viewer",
+        "description": "Visualizador somente leitura"
+      },
+      {
+        "name": "customer",
+        "description": "Cliente da plataforma"
       }
     ]
   },
   "clients": [
     {
-      "clientId": "meajudaai-api",
-      "name": "MeAjudaAi API Client",
-      "enabled": true,
-      "clientAuthenticatorType": "client-secret",
-      "standardFlowEnabled": true,
-      "directAccessGrantsEnabled": true,
-      "serviceAccountsEnabled": true,
-      "publicClient": false,
-      "protocol": "openid-connect",
-      "attributes": {
-        "access.token.lifespan": "1800"
-      }
-    },
-    {
-      "clientId": "meajudaai-web",
-      "name": "MeAjudaAi Web Client",
+      "clientId": "admin-portal",
+      "name": "Admin Portal - Blazor WebAssembly",
+      "description": "MeAjudaAi Admin Portal OIDC Client",
       "enabled": true,
       "publicClient": true,
       "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
       "protocol": "openid-connect",
-      "redirectUris": [],
-      "webOrigins": []
+      "redirectUris": [
+        "https://admin.meajudaai.com.br/*"
+      ],
+      "webOrigins": [
+        "https://admin.meajudaai.com.br"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "customer-app",
+      "name": "Customer App - Web + Mobile",
+      "description": "MeAjudaAi Customer App OIDC Client",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "redirectUris": [
+        "https://app.meajudaai.com.br/*",
+        "meajudaai://callback"
+      ],
+      "webOrigins": [
+        "https://app.meajudaai.com.br"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
     }
-  ]
+  ],
+  "users": []
 }

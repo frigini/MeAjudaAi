@@ -4,11 +4,13 @@
   "displayName": "MeAjudaAi Development",
   "enabled": true,
   "sslRequired": "external",
-  "registrationAllowed": true,
+  "registrationAllowed": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
   "editUsernameAllowed": false,
+  "rememberMe": true,
+  "verifyEmail": false,
   "bruteForceProtected": true,
   "permanentLockout": false,
   "maxFailureWaitSeconds": 900,
@@ -17,8 +19,13 @@
   "quickLoginCheckMilliSeconds": 1000,
   "maxDeltaTimeSeconds": 43200,
   "failureFactor": 30,
-  "loginTheme": "meajudaai",
-  "accountTheme": "keycloak.v2",
+  "accessTokenLifespan": 1800,
+  "accessTokenLifespanForImplicitFlow": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "offlineSessionIdleTimeout": 2592000,
+  "loginTheme": "keycloak",
+  "accountTheme": "keycloak",
   "emailTheme": "keycloak",
   "internationalizationEnabled": true,
   "supportedLocales": ["pt-BR", "en"],
@@ -26,134 +33,109 @@
   "roles": {
     "realm": [
       {
-        "name": "customer",
-        "description": "Customer role for regular users"
-      },
-      {
-        "name": "service-provider",
-        "description": "Service provider role for professionals"
-      },
-      {
         "name": "admin",
-        "description": "Administrator role"
+        "description": "Administrador total da plataforma"
       },
       {
-        "name": "super-admin",
-        "description": "Super administrator role"
+        "name": "operator",
+        "description": "Operador com leitura/escrita limitada"
+      },
+      {
+        "name": "viewer",
+        "description": "Visualizador somente leitura"
+      },
+      {
+        "name": "customer",
+        "description": "Cliente da plataforma"
       }
     ]
   },
   "clients": [
     {
-      "clientId": "meajudaai-api",
-      "name": "MeAjudaAi API Client",
+      "clientId": "admin-portal",
+      "name": "Admin Portal - Blazor WebAssembly",
+      "description": "MeAjudaAi Admin Portal OIDC Client",
       "enabled": true,
-      "clientAuthenticatorType": "client-secret",
+      "publicClient": true,
       "standardFlowEnabled": true,
-      "directAccessGrantsEnabled": true,
-      "serviceAccountsEnabled": true,
-      "publicClient": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
       "protocol": "openid-connect",
+      "redirectUris": [
+        "https://localhost:7032/*",
+        "https://localhost:7281/*",
+        "https://admin.meajudaai.com.br/*"
+      ],
+      "webOrigins": [
+        "https://localhost:7032",
+        "https://localhost:7281",
+        "https://admin.meajudaai.com.br"
+      ],
       "attributes": {
-        "access.token.lifespan": "1800"
+        "pkce.code.challenge.method": "S256"
       }
     },
     {
-      "clientId": "meajudaai-web",
-      "name": "MeAjudaAi Web Client",
+      "clientId": "customer-app",
+      "name": "Customer App - Web + Mobile",
+      "description": "MeAjudaAi Customer App OIDC Client",
       "enabled": true,
       "publicClient": true,
       "standardFlowEnabled": true,
-      "directAccessGrantsEnabled": false,
-      "protocol": "openid-connect",
-      "redirectUris": [
-        "http://localhost:3000/*",
-        "http://localhost:5000/*"
-      ],
-      "webOrigins": [
-        "http://localhost:3000",
-        "http://localhost:5000"
-      ]
-    },
-    {
-      "clientId": "admin-portal",
-      "name": "MeAjudaAi Admin Portal",
-      "description": "Portal administrativo para gestão da plataforma MeAjudaAi",
-      "enabled": true,
-      "publicClient": true,
-      "standardFlowEnabled": true,
-      "directAccessGrantsEnabled": false,
       "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
       "protocol": "openid-connect",
       "redirectUris": [
-        "http://localhost:5165/*",
-        "http://localhost:5165/authentication/login-callback",
-        "http://localhost:5165/authentication/logout-callback",
-        "https://localhost:7281/*",
-        "https://localhost:7281/authentication/login-callback",
-        "https://localhost:7281/authentication/logout-callback"
+        "https://localhost:7282/*",
+        "https://app.meajudaai.com.br/*",
+        "meajudaai://callback"
       ],
       "webOrigins": [
-        "http://localhost:5165",
-        "https://localhost:7281"
+        "https://localhost:7282",
+        "https://app.meajudaai.com.br"
       ],
       "attributes": {
-        "access.token.lifespan": "1800",
         "pkce.code.challenge.method": "S256"
       }
     }
   ],
   "users": [
     {
-      "username": "admin",
+      "username": "admin.portal",
       "enabled": true,
       "firstName": "Admin",
-      "lastName": "User",
+      "lastName": "Portal",
       "email": "admin@meajudaai.dev",
+      "emailVerified": true,
       "credentials": [
         {
           "type": "password",
-          "value": "dev_admin_123",
+          "value": "admin123",
           "temporary": false
         }
       ],
       "realmRoles": [
-        "admin",
-        "super-admin"
+        "admin"
       ]
     },
     {
-      "username": "customer1",
+      "username": "customer.demo",
       "enabled": true,
-      "firstName": "João",
-      "lastName": "Silva",
-      "email": "joao@dev.example.com",
+      "firstName": "Customer",
+      "lastName": "Demo",
+      "email": "customer@meajudaai.dev",
+      "emailVerified": true,
       "credentials": [
         {
           "type": "password",
-          "value": "dev_customer_123",
+          "value": "customer123",
           "temporary": false
         }
       ],
       "realmRoles": [
         "customer"
-      ]
-    },
-    {
-      "username": "provider1",
-      "enabled": true,
-      "firstName": "Maria",
-      "lastName": "Santos",
-      "email": "maria@dev.example.com",
-      "credentials": [
-        {
-          "type": "password",
-          "value": "dev_provider_123",
-          "temporary": false
-        }
-      ],
-      "realmRoles": [
-        "service-provider"
       ]
     }
   ]
