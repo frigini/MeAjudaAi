@@ -1,0 +1,53 @@
+@using System.Globalization
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<MudMenu Icon="@Icons.Material.Filled.Language" 
+         Color="Color.Inherit" 
+         Dense="true"
+         AnchorOrigin="Origin.BottomCenter"
+         AriaLabel="Selecionar idioma">
+    @foreach (var culture in SupportedCultures)
+    {
+        <MudMenuItem OnClick="@(() => ChangeLanguage(culture.Name))">
+            <div class="d-flex align-center gap-2">
+                <MudIcon Icon="@(culture.Name == CultureInfo.CurrentUICulture.Name ? Icons.Material.Filled.Check : "")" 
+                         Size="Size.Small" />
+                <MudText>@GetLanguageName(culture)</MudText>
+            </div>
+        </MudMenuItem>
+    }
+</MudMenu>
+
+@code {
+    private static readonly CultureInfo[] SupportedCultures = 
+    {
+        new CultureInfo("pt-BR"),
+        new CultureInfo("en")
+    };
+
+    private async Task ChangeLanguage(string cultureName)
+    {
+        var culture = new CultureInfo(cultureName);
+        
+        // Set current culture
+        CultureInfo.CurrentCulture = culture;
+        CultureInfo.CurrentUICulture = culture;
+        
+        // Persist to localStorage
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "preferredLanguage", cultureName);
+        
+        // Force reload to apply culture change
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+
+    private string GetLanguageName(CultureInfo culture)
+    {
+        return culture.Name switch
+        {
+            "pt-BR" => "Português (Brasil)",
+            "en" => "English",
+            _ => culture.DisplayName
+        };
+    }
+}

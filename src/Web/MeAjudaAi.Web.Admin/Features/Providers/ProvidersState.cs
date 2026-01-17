@@ -1,5 +1,5 @@
 using Fluxor;
-using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs;
+using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 
 namespace MeAjudaAi.Web.Admin.Features.Providers;
 
@@ -54,4 +54,14 @@ public record ProvidersState
     /// Indica se tem próxima página
     /// </summary>
     public bool HasNextPage => CurrentPage < TotalPages;
+
+    /// <summary>
+    /// Indica se uma operação de delete está em andamento
+    /// </summary>
+    public bool IsDeleting { get; init; }
+
+    /// <summary>
+    /// ID do provider sendo deletado (para desabilitar botão específico)
+    /// </summary>
+    public Guid? DeletingProviderId { get; init; }
 }

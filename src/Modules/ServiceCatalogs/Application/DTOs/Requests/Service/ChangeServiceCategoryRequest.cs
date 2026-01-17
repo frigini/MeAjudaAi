@@ -1,8 +1,8 @@
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.Service;
 
-public sealed record ChangeServiceCategoryRequest : Request
+public sealed record ChangeServiceCategoryRequest
 {
     public Guid NewCategoryId { get; init; }
 }

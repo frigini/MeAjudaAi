@@ -159,6 +159,35 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("ProviderId");
 
+                            b1.OwnsOne("MeAjudaAi.Modules.Providers.Domain.ValueObjects.ContactInfo", "ContactInfo", b2 =>
+                                {
+                                    b2.Property<Guid>("BusinessProfileProviderId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<string>("Email")
+                                        .IsRequired()
+                                        .HasMaxLength(255)
+                                        .HasColumnType("character varying(255)")
+                                        .HasColumnName("email");
+
+                                    b2.Property<string>("PhoneNumber")
+                                        .HasMaxLength(20)
+                                        .HasColumnType("character varying(20)")
+                                        .HasColumnName("phone_number");
+
+                                    b2.Property<string>("Website")
+                                        .HasMaxLength(255)
+                                        .HasColumnType("character varying(255)")
+                                        .HasColumnName("website");
+
+                                    b2.HasKey("BusinessProfileProviderId");
+
+                                    b2.ToTable("providers", "providers");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("BusinessProfileProviderId");
+                                });
+
                             b1.OwnsOne("MeAjudaAi.Modules.Providers.Domain.ValueObjects.Address", "PrimaryAddress", b2 =>
                                 {
                                     b2.Property<Guid>("BusinessProfileProviderId")
@@ -210,35 +239,6 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                                         .HasMaxLength(20)
                                         .HasColumnType("character varying(20)")
                                         .HasColumnName("zip_code");
-
-                                    b2.HasKey("BusinessProfileProviderId");
-
-                                    b2.ToTable("providers", "providers");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("BusinessProfileProviderId");
-                                });
-
-                            b1.OwnsOne("MeAjudaAi.Modules.Providers.Domain.ValueObjects.ContactInfo", "ContactInfo", b2 =>
-                                {
-                                    b2.Property<Guid>("BusinessProfileProviderId")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<string>("Email")
-                                        .IsRequired()
-                                        .HasMaxLength(255)
-                                        .HasColumnType("character varying(255)")
-                                        .HasColumnName("email");
-
-                                    b2.Property<string>("PhoneNumber")
-                                        .HasMaxLength(20)
-                                        .HasColumnType("character varying(20)")
-                                        .HasColumnName("phone_number");
-
-                                    b2.Property<string>("Website")
-                                        .HasMaxLength(255)
-                                        .HasColumnType("character varying(255)")
-                                        .HasColumnName("website");
 
                                     b2.HasKey("BusinessProfileProviderId");
 

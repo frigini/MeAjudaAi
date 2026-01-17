@@ -4,6 +4,61 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 
 ---
 
+## ✅ Melhorias Recentes (Sprint 7.6 - Jan 2026)
+
+### ⚡ Otimização de Desempenho de Testes de Integração - CONCLUÍDA
+
+**Sprint**: Sprint 7.6 (12 Jan 2026)  
+**Severidade**: ALTA (bloqueava testes em CI/CD)  
+**Status**: ✅ RESOLVIDO
+
+**Problema Identificado**:
+- ❌ Testes de integração aplicavam migrations de TODOS os 6 módulos para CADA teste
+- ❌ Timeout frequente (~60-70s de inicialização, vs esperado ~10-15s)
+- ❌ PostgreSQL pool exhaustion (erro `57P01: terminating connection due to administrator command`)
+- ❌ Teste `DocumentRepository_ShouldBeRegisteredInDI` falhava na branch fix/aspire-initialization
+- ❌ Race conditions causavam falhas intermitentes sem mudança de código
+
+**Solução Implementada**:
+- ✅ **TestModule enum com Flags**: Permite especificar quais módulos cada teste precisa
+- ✅ **RequiredModules property**: Override virtual para declarar dependências por teste
+- ✅ **ApplyRequiredModuleMigrationsAsync**: Aplica migrations apenas dos módulos necessários
+- ✅ **EnsureCleanDatabaseAsync**: Extraído para melhor reusabilidade
+- ✅ **Backward compatible**: Default RequiredModules = TestModule.All
+
+**Resultados Alcançados**:
+- ✅ **Desempenho**: 83% faster para testes single-module (10s vs 60s)
+- ✅ **Confiabilidade**: Eliminou timeouts e errors 57P01
+- ✅ **Isolamento**: Cada teste carrega apenas módulos necessários
+- ✅ **26 test classes otimizados**: Users (4), Providers (5), Documents (4), ServiceCatalogs (7), Locations (5), SearchProviders (1)
+- ✅ **Test Results**: DocumentRepository_ShouldBeRegisteredInDI agora PASSA em 10s
+- ✅ **Code Quality**: Método legado marcado como [Obsolete], testes renomeados, terminologia em português
+
+**Arquivos Modificados**:
+- `tests/MeAjudaAi.Integration.Tests/Base/BaseApiTest.cs`: Refactoring completo com TestModule pattern + [Obsolete] em método legado
+- `tests/MeAjudaAi.Integration.Tests/README.md`: Guia de uso com terminologia em português (Desempenho)
+- 26 test classes com `RequiredModules` override
+- `AllowedCityExceptionHandlingTests.cs`: Testes renomeados para refletir comportamento real
+
+**Documentação Atualizada**:
+- ✅ [tests/README.md](../tests/MeAjudaAi.Integration.Tests/README.md): Guia de otimização de desempenho
+- ✅ [docs/architecture.md](architecture.md#integration-test-infrastructure): Testing architecture
+- ✅ [docs/development.md](development.md#testes-de-integração): Developer guide
+- ✅ [docs/roadmap.md](roadmap.md#sprint-76): Sprint 7.6 implementation details
+
+**Metrics**:
+
+| Cenário | Antes | Depois | Improvement |
+|---------|-------|--------|-------------|
+| Inicialização | ~60-70s | ~10-15s | **83% faster** ⚡ |
+| Migrations aplicadas | 6 módulos | Apenas necessárias | Mínimo |
+| Timeouts | Frequentes | Eliminados | ✅ |
+
+**Sprint Completion**: 12 Janeiro 2026  
+**Issue**: fix/aspire-initialization (continuação)
+
+---
+
 ## 🆕 Sprint 6 - Débitos Técnicos (BAIXA PRIORIDADE)
 
 **Sprint**: Sprint 6 Concluída (30 Dez 2025 - 5 Jan 2026)  
@@ -746,3 +801,83 @@ Na próxima sprint, padronizar todos os records em:
    - Incluir caminho do arquivo e números de linha para navegação fácil
    - Manter descrições específicas e acionáveis
 - Roadmap: Adicionado em "Média Prioridade (6-12 meses - Fase 2)"
+---
+
+## 🔮 Melhorias Futuras (Backlog)
+
+### 🧪 Testing & Quality Assurance
+
+**Severidade**: MÉDIA  
+**Sprint**: Backlog (não bloqueante)
+
+**Unit Tests - Memory Management**:
+- [ ] Add unit tests for LocalizationSubscription disposal
+- [ ] Add unit tests for PerformanceHelper LRU eviction
+- [ ] Create unit tests for .resx resource loading
+
+**Production Monitoring**:
+- [ ] Memory profiling in production environment
+- [ ] Monitor cache hit rates and eviction frequency
+
+**Origem**: Sprint 7.16 (Memory Leak Fixes) e Sprint 7.17 (Localization Migration)
+
+---
+
+### 🌐 Localization (i18n) Enhancements
+
+**Severidade**: MÉDIA  
+**Sprint**: Backlog (expansão gradual)
+
+**Hardcoded Strings Migration**:
+- [ ] Migrate ErrorHandlingService hardcoded strings to .resx (48 mensagens de erro)
+- [ ] Integrate FluentValidation with localized error messages
+- [ ] Add more resource strings (currently only 48 base strings)
+
+**Advanced Localization Features**:
+- [ ] Add pluralization examples (ICU MessageFormat)
+- [ ] Add date/time localization (DateTimeFormatInfo)
+- [ ] Add number formatting localization (NumberFormatInfo)
+
+**Impacto**: Melhora experiência do usuário para expansão internacional
+
+**Origem**: Sprint 7.17 (Localization Migration)
+
+---
+
+### ⚡ Error Handling & Resilience
+
+**Severidade**: MÉDIA  
+**Sprint**: Backlog (otimização)
+
+**Cancellation Token Propagation**:
+- [ ] Update ExecuteApiCallAsync extension method to accept CancellationToken
+- [ ] Apply cancellation pattern to ServiceCatalogsEffects
+- [ ] Apply cancellation pattern to DocumentsEffects
+- [ ] Apply cancellation pattern to LocationsEffects
+- [ ] Add per-component CancellationTokenSource that cancels on Dispose()
+- [ ] Implement navigation-triggered cancellation in routing layer
+
+**Benefícios**:
+- Previne requisições zombie após navegação
+- Melhora responsividade da aplicação
+- Reduz carga no backend
+
+**Status Atual**: ExecuteWithErrorHandlingAsync já suporta CancellationToken (Sprint 7.18)
+
+**Origem**: Sprint 7.18 (Correlation ID & Cancellation Support)
+
+---
+
+### 🎨 UI/UX Improvements
+
+**Severidade**: BAIXA  
+**Sprint**: Backlog
+
+**Brand Color Scheme**:
+- [ ] Apply login page color scheme (blue, cream, orange, white) to entire Admin Portal
+- [ ] Update MudBlazor theme with brand colors
+- [ ] Standardize component styling across portal
+
+**Impacto**: Consistência visual com identidade da marca
+
+**Origem**: Sprint 7.19 (User Request - Jan 16, 2026)

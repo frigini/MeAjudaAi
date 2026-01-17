@@ -6,7 +6,7 @@ using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;

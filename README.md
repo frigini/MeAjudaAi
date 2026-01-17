@@ -2,7 +2,7 @@
 
 Uma plataforma abrangente de serviços construída com .NET Aspire, projetada para conectar prestadores de serviços com clientes usando arquitetura monólito modular.
 
-<!-- Last updated: January 5, 2026 - Sprint 6 COMPLETED (Blazor Admin Portal Setup) / Sprint 7 Planning -->
+<!-- Last updated: January 9, 2026 - Sprint 7.5 COMPLETED (0 warnings, automação, Aspire fix) -->
 
 ## 🎯 Visão Geral
 
@@ -19,10 +19,13 @@ O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implem
 ### 🚀 Tecnologias Principais
 
 - **.NET 10** - Framework principal
-- **.NET Aspire 13** - Orquestração e observabilidade
+- **.NET Aspire 13.1** - Orquestração e observabilidade
+- **Blazor WASM** - Admin Portal SPA
+- **MudBlazor 8.0** - Material Design UI components
+- **Fluxor 6.9** - Redux state management
 - **Entity Framework Core 10** - ORM e persistência
 - **PostgreSQL** - Banco de dados principal
-- **Keycloak** - Autenticação e autorização
+- **Keycloak** - Autenticação OAuth2/OIDC
 - **Redis** - Cache distribuído
 - **RabbitMQ/Azure Service Bus** - Messaging
 - **Docker** - Containerização
@@ -107,24 +110,57 @@ O projeto foi organizado para facilitar navegação e manutenção:
 
 ## 🚀 Início Rápido
 
-### Para Desenvolvedores
+### ⚡ Setup em 2 Comandos (Primeira Vez)
 
-Para instruções detalhadas, consulte o [**Guia de Desenvolvimento Completo**](./docs/development.md).
-
-**Setup via .NET Aspire:**
 ```powershell
-# Execute o AppHost do Aspire
-cd src/Aspire/MeAjudaAi.AppHost
-dotnet run
+# 1. Setup inicial (verificar dependências + build)
+.\scripts\setup.ps1
+
+# 2. Iniciar desenvolvimento
+.\scripts\dev.ps1
 ```
 
-**Ou via Docker Compose:**
+**Pronto!** 🎉 Acesse:
+- **Aspire Dashboard**: https://localhost:17063
+- **Admin Portal**: Veja no dashboard (tab Resources)
+- **API Swagger**: https://localhost:7524/swagger
+- **Keycloak**: http://localhost:8080 (admin/admin)
+
+---
+
+### 🔄 Uso Diário
+
 ```powershell
-cd infrastructure/compose
-docker compose -f environments/development.yml up -d
+# Iniciar desenvolvimento
+.\scripts\dev.ps1
+
+# OU usar Make (se tiver Make instalado)
+make dev
+
+# Executar testes
+dotnet test
+
+# Ver comandos disponíveis
+make help
 ```
 
-### Para Testes
+### 📝 Configuração Necessária (Uma Vez)
+
+⚠️ **Keycloak Client**: O Admin Portal Blazor precisa de configuração manual no Keycloak.
+
+👉 Siga: [docs/keycloak-admin-portal-setup.md](docs/keycloak-admin-portal-setup.md)
+
+---
+
+### 📖 Documentação Completa
+
+- [**Guia de Desenvolvimento**](docs/development.md) - Setup detalhado e workflows
+- [**Arquitetura**](docs/architecture.md) - Design e padrões do sistema
+- [**Documentação Online**](https://frigini.github.io/MeAjudaAi/) - GitHub Pages
+
+---
+
+### 🧪 Para Testes
 
 ```powershell
 # Todos os testes
@@ -132,60 +168,45 @@ dotnet test
 
 # Com relatório de cobertura
 dotnet test --collect:"XPlat Code Coverage"
-```
 
-📖 **[Guia Completo de Desenvolvimento](docs/development.md)**
+# Testes rápidos (make)
+make test
+```
 
 ### Pré-requisitos
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop)
-- [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli) (para deploy em produção)
-- [Git](https://git-scm.com/) para controle de versão
+| Ferramenta | Versão | Link |
+|------------|--------|------|
+| **.NET SDK** | 10.0+ | [Download](https://dotnet.microsoft.com/download/dotnet/10.0) |
+| **Docker Desktop** | Latest | [Download](https://www.docker.com/products/docker-desktop) |
+| **Git** | Latest | [Download](https://git-scm.com/) |
+| Azure CLI (opcional) | Latest | Para deploy em produção |
 
-### ⚙️ Configuração de Ambiente
+✅ **Verificar instalação**: Execute `.\scripts\setup.ps1` que valida tudo automaticamente.
 
-**Para deployments não-desenvolvimento:** Configure as variáveis de ambiente necessárias copiando `infrastructure/.env.example` para `infrastructure/.env` e definindo valores seguros. As seguintes variáveis são obrigatórias:
-- `POSTGRES_PASSWORD` - Senha do banco de dados PostgreSQL
-- `RABBITMQ_USER` e `RABBITMQ_PASS` - Credenciais do RabbitMQ
+### 🛠️ Scripts Disponíveis
 
-### Scripts de Automação
+| Script | Descrição | Uso |
+|--------|-----------|-----|
+| **`scripts/setup.ps1`** | Setup inicial completo | Primeira vez no projeto |
+| **`scripts/dev.ps1`** | Iniciar desenvolvimento | Uso diário |
+| `scripts/ef-migrate.ps1` | Entity Framework migrations | Gerenciar banco de dados |
+| `scripts/seed-dev-data.ps1` | Popular dados de teste | Ambiente de desenvolvimento |
+| `scripts/export-openapi.ps1` | Exportar especificação API | Gerar documentação/clientes |
 
-O projeto inclui scripts automatizados na raiz:
+**Automação CI/CD** (em `infrastructure/automation/`):
+- `setup-cicd.ps1` - Setup completo CI/CD com Azure
+- `setup-ci-only.ps1` - Setup apenas CI sem deploy
 
-| Script | Descrição | Quando usar |
-|--------|-----------|-------------|
-| `setup-cicd.ps1` | Setup completo CI/CD com Azure | Para pipelines com deploy |
-| `setup-ci-only.ps1` | Setup apenas CI sem custos | Para validação de código apenas |
-| `run-local.sh` | Execução local com orquestração | Desenvolvimento local |
+**Makefile** (em `build/Makefile`):
+- `make help` - Ver todos os comandos disponíveis
+- `make dev` - Iniciar desenvolvimento
+- `make test` - Executar testes
+- `make clean` - Limpar artefatos
 
-### Execução Local
+---
 
-#### Opção 1: .NET Aspire (Recomendado)
-
-```bash
-# Clone o repositório
-git clone https://github.com/frigini/MeAjudaAi.git
-cd MeAjudaAi
-
-# Execute o AppHost do Aspire
-cd src/Aspire/MeAjudaAi.AppHost
-dotnet run
-```
-
-#### Opção 2: Docker Compose
-
-```bash
-# PRIMEIRO: Defina as senhas necessárias
-export KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 32)
-export RABBITMQ_PASS=$(openssl rand -base64 32)
-
-# Execute usando Docker Compose
-cd infrastructure/compose
-docker compose -f environments/development.yml up -d
-```
-
-### URLs dos Serviços
+## 🌐 URLs dos Serviços
 
 > **📝 Nota**: As URLs abaixo são baseadas nas configurações em `launchSettings.json` e `docker-compose.yml`. 
 > Para atualizações de portas, consulte:
@@ -276,56 +297,66 @@ MeAjudaAi/
 
 ---
 
-## 🎨 Admin Portal (NEW - Sprint 6)
+## 🎨 Admin Portal (Sprint 6 + 7)
 
 ### Blazor WebAssembly + Fluxor + MudBlazor
 
-Portal administrativo moderno para gestão da plataforma MeAjudaAi.
+Portal administrativo moderno para gestão completa da plataforma MeAjudaAi.
 
 **Stack Tecnológica:**
 - **Blazor WebAssembly**: .NET 10 SPA client-side
-- **MudBlazor 7.21.0**: Material Design UI components
-- **Fluxor 6.1.0**: Redux-pattern state management
+- **MudBlazor 8.0.0**: Material Design UI components
+- **Fluxor 6.9.0**: Redux-pattern state management
 - **Refit 9.0.2**: Type-safe HTTP clients
 - **Keycloak OIDC**: Authentication via Authorization Code flow
 
-**Funcionalidades Implementadas (Sprint 6):**
-- ✅ **Autenticação**: Login/Logout via Keycloak OIDC
-- ✅ **Dashboard**: 3 KPIs (Total Providers, Pending Verifications, Active Services)
-- ✅ **Providers Management**: Listagem paginada (read-only)
+**Funcionalidades Implementadas:**
+- ✅ **Autenticação**: Login/Logout via Keycloak OIDC (Sprint 6)
+- ✅ **Dashboard**: KPIs + Charts com MudBlazor (Sprints 6-7)
+- ✅ **Providers**: CRUD completo (Create, Update, Delete, Verify) - Sprint 7
+- ✅ **Documents**: Upload, verificação, gestão - Sprint 7
+- ✅ **Service Catalogs**: CRUD de categorias e serviços - Sprint 7
+- ✅ **Geographic Restrictions**: Gestão de cidades permitidas - Sprint 7
 - ✅ **Dark Mode**: Toggle com Fluxor state management
 - ✅ **Portuguese Localization**: UI completa em português
+- ✅ **30 testes bUnit**: Cobertura de componentes principais
 
 **Como Executar:**
 
 ```powershell
 # Via Aspire AppHost (recomendado)
+.\scripts\dev.ps1
+
+# OU diretamente
 cd src/Aspire/MeAjudaAi.AppHost
 dotnet run
 
-# Acessar: https://localhost:7281
-# Login: admin.portal / admin123 (após criar client no Keycloak)
+# Acessar Admin Portal via Aspire Dashboard
+# https://localhost:17063 -> Resources -> admin-portal
 ```
 
 **Configuração Keycloak:**
 
-Siga o guia completo em [docs/keycloak-admin-portal-setup.md](docs/keycloak-admin-portal-setup.md) para criar o client `admin-portal` no realm `meajudaai`.
+⚠️ Necessário criar client `admin-portal` no Keycloak (uma vez apenas).
+
+👉 Siga: [docs/keycloak-admin-portal-setup.md](docs/keycloak-admin-portal-setup.md)
 
 **Testes:**
 
 ```powershell
 # Executar testes bUnit
-dotnet test tests/MeAjudaAi.Web.Admin.Tests
+dotnet test src/Web/MeAjudaAi.Web.Admin.Tests
 
-# 10 testes: ProvidersPage, Dashboard, DarkMode
+# 30 testes: Providers, Documents, Categories, Services, AllowedCities, Dashboard
 ```
 
 **Estrutura:**
 
 ```text
 src/Web/MeAjudaAi.Web.Admin/
-├── Pages/                # Razor pages (Dashboard, Providers, Authentication)
-├── Features/             # Fluxor stores (Providers, Dashboard, Theme)
+├── Pages/                # Razor pages (Dashboard, Providers, Documents, Categories, Services, AllowedCities)
+├── Features/             # Fluxor stores (state management por feature)
+├── Components/           # Dialogs e componentes reutilizáveis
 ├── Layout/               # MainLayout, NavMenu
 └── wwwroot/              # appsettings.json, static assets
 

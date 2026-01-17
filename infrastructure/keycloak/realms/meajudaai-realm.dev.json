@@ -17,6 +17,12 @@
   "quickLoginCheckMilliSeconds": 1000,
   "maxDeltaTimeSeconds": 43200,
   "failureFactor": 30,
+  "loginTheme": "meajudaai",
+  "accountTheme": "keycloak.v2",
+  "emailTheme": "keycloak",
+  "internationalizationEnabled": true,
+  "supportedLocales": ["pt-BR", "en"],
+  "defaultLocale": "pt-BR",
   "roles": {
     "realm": [
       {
@@ -68,6 +74,33 @@
         "http://localhost:3000",
         "http://localhost:5000"
       ]
+    },
+    {
+      "clientId": "admin-portal",
+      "name": "MeAjudaAi Admin Portal",
+      "description": "Portal administrativo para gestão da plataforma MeAjudaAi",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "protocol": "openid-connect",
+      "redirectUris": [
+        "http://localhost:5165/*",
+        "http://localhost:5165/authentication/login-callback",
+        "http://localhost:5165/authentication/logout-callback",
+        "https://localhost:7281/*",
+        "https://localhost:7281/authentication/login-callback",
+        "https://localhost:7281/authentication/logout-callback"
+      ],
+      "webOrigins": [
+        "http://localhost:5165",
+        "https://localhost:7281"
+      ],
+      "attributes": {
+        "access.token.lifespan": "1800",
+        "pkce.code.challenge.method": "S256"
+      }
     }
   ],
   "users": [

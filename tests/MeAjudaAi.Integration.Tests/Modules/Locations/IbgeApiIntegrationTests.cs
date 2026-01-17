@@ -14,6 +14,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 [Trait("Module", "Locations")]
 public sealed class IbgeApiIntegrationTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.Locations;
+
     private IIbgeClient IbgeClient => Services.GetRequiredService<IIbgeClient>();
 
     #region GetMunicipioByNameAsync Tests
@@ -41,27 +43,6 @@ public sealed class IbgeApiIntegrationTests : BaseApiTest
         result.Microrregiao!.Mesorregiao!.UF.Should().NotBeNull();
         result.Microrregiao!.Mesorregiao!.UF!.Nome.Should().Be("Minas Gerais");
         result.Microrregiao!.Mesorregiao!.UF!.Regiao.Should().NotBeNull();
-        result.Microrregiao!.Mesorregiao!.UF!.Regiao!.Nome.Should().Be("Sudeste");
-    }
-
-    [Fact(Skip = "Intermittent WireMock connection issues in CI - other IBGE tests cover this functionality")]
-    public async Task GetMunicipioByNameAsync_Itaperuna_ShouldReturnValidMunicipio()
-    {
-        // Arrange
-        const string cityName = "Itaperuna";
-
-        // Act
-        var result = await IbgeClient.GetMunicipioByNameAsync(cityName);
-
-        // Assert
-        result.Should().NotBeNull("Itaperuna deve existir no WireMock stub");
-        result!.Nome.Should().Be("Itaperuna");
-        result.Id.Should().Be(3302205, "Código IBGE de Itaperuna-RJ no stub");
-
-        var ufSigla = result.GetEstadoSigla();
-        ufSigla.Should().Be("RJ");
-
-        result.Microrregiao!.Mesorregiao!.UF!.Nome.Should().Be("Rio de Janeiro");
         result.Microrregiao!.Mesorregiao!.UF!.Regiao!.Nome.Should().Be("Sudeste");
     }
 

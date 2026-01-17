@@ -1,5 +1,5 @@
 using System.Reflection;
-using MeAjudaAi.Shared.Contracts.Modules;
+using MeAjudaAi.Contracts.Modules;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Shared.Modules;

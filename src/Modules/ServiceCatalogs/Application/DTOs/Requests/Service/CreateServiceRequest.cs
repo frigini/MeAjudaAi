@@ -1,8 +1,8 @@
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.Service;
 
-public sealed record CreateServiceRequest : Request
+public sealed record CreateServiceRequest
 {
     public Guid CategoryId { get; init; }
     public string Name { get; init; } = string.Empty;

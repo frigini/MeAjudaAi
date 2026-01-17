@@ -4,7 +4,7 @@ using MeAjudaAi.Shared.Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using FunctionalUnit = MeAjudaAi.Shared.Functional.Unit;
+using FunctionalUnit = MeAjudaAi.Contracts.Functional.Unit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Commands;
 

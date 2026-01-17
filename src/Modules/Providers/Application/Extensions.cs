@@ -6,9 +6,10 @@ using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.ModuleApi;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Extensions;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -43,7 +44,7 @@ public static class Extensions
         services.AddScoped<ICommandHandler<RemoveServiceFromProviderCommand, Result>, RemoveServiceFromProviderCommandHandler>();
 
         // Module API - registro da API pública para comunicação entre módulos
-        services.AddScoped<MeAjudaAi.Shared.Contracts.Modules.Providers.IProvidersModuleApi,
+        services.AddScoped<MeAjudaAi.Contracts.Modules.Providers.IProvidersModuleApi,
             MeAjudaAi.Modules.Providers.Application.ModuleApi.ProvidersModuleApi>();
 
         // Validators - registro dos validadores FluentValidation

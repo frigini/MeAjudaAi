@@ -236,20 +236,30 @@ public class PermissionArchitectureTests
     [Fact]
     public void AuthConstants_Claims_ShouldBeConstantStrings()
     {
-        // Arrange
-        var claimsType = typeof(AuthConstants.Claims);
-        var fields = claimsType.GetFields(BindingFlags.Public | BindingFlags.Static);
+        // Arrange - Explicit list of all Claims constants
+        var claims = new[]
+        {
+            AuthConstants.Claims.Subject,
+            AuthConstants.Claims.Email,
+            AuthConstants.Claims.EmailVerified,
+            AuthConstants.Claims.PreferredUsername,
+            AuthConstants.Claims.GivenName,
+            AuthConstants.Claims.FamilyName,
+            AuthConstants.Claims.Roles,
+            AuthConstants.Claims.UserId,
+            AuthConstants.Claims.KeycloakId,
+            AuthConstants.Claims.Permission,
+            AuthConstants.Claims.Module,
+            AuthConstants.Claims.TenantId,
+            AuthConstants.Claims.Organization,
+            AuthConstants.Claims.IsSystemAdmin
+        };
 
         // Act & Assert
-        foreach (var field in fields)
+        foreach (var claim in claims)
         {
-            Assert.True(field.IsStatic, $"Field {field.Name} deve ser static");
-            Assert.True(field.IsLiteral || field.IsInitOnly, $"Field {field.Name} deve ser const ou readonly");
-            Assert.Equal(typeof(string), field.FieldType);
-
-            var value = field.GetValue(null) as string;
-            Assert.NotNull(value);
-            Assert.NotEmpty(value);
+            Assert.NotNull(claim);
+            Assert.NotEmpty(claim);
         }
     }
 

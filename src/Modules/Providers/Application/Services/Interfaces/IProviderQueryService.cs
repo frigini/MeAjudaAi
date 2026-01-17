@@ -1,7 +1,8 @@
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 
+using MeAjudaAi.Contracts.Models;
 namespace MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
 
 /// <summary>

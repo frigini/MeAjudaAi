@@ -14,7 +14,7 @@ public class NamingConventionTests
     private static readonly IEnumerable<Assembly> AllApplicationAssemblies = ModuleDiscoveryHelper.GetAllApplicationAssemblies();
     private static readonly IEnumerable<Assembly> AllInfrastructureAssemblies = ModuleDiscoveryHelper.GetAllInfrastructureAssemblies();
     private static readonly IEnumerable<Assembly> AllApiAssemblies = ModuleDiscoveryHelper.GetAllApiAssemblies();
-    private static readonly Assembly SharedAssembly = typeof(MeAjudaAi.Shared.Functional.Result).Assembly;
+    private static readonly Assembly SharedAssembly = typeof(MeAjudaAi.Contracts.Functional.Result).Assembly;
 
     [Fact]
     public void Domain_Events_ShouldHaveCorrectSuffix()

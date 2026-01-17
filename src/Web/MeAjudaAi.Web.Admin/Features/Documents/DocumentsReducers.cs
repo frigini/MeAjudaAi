@@ -85,4 +85,78 @@ public static class DocumentsReducers
 
         return state with { Documents = updatedDocs };
     }
+
+    // Delete Document Reducers
+    /// <summary>
+    /// Reducer para início de exclusão
+    /// </summary>
+    [ReducerMethod]
+    public static DocumentsState ReduceDeleteDocumentAction(DocumentsState state, DocumentsActions.DeleteDocumentAction action)
+        => state with
+        {
+            IsDeleting = true,
+            DeletingDocumentId = action.DocumentId,
+            ErrorMessage = null
+        };
+
+    /// <summary>
+    /// Reducer para sucesso na exclusão
+    /// </summary>
+    [ReducerMethod]
+    public static DocumentsState ReduceDeleteDocumentSuccessAction(DocumentsState state, DocumentsActions.DeleteDocumentSuccessAction action)
+        => state with
+        {
+            IsDeleting = false,
+            DeletingDocumentId = null,
+            ErrorMessage = null
+        };
+
+    /// <summary>
+    /// Reducer para falha na exclusão
+    /// </summary>
+    [ReducerMethod]
+    public static DocumentsState ReduceDeleteDocumentFailureAction(DocumentsState state, DocumentsActions.DeleteDocumentFailureAction action)
+        => state with
+        {
+            IsDeleting = false,
+            DeletingDocumentId = null,
+            ErrorMessage = action.ErrorMessage
+        };
+
+    // Request Verification Reducers
+    /// <summary>
+    /// Reducer para início de solicitação de verificação
+    /// </summary>
+    [ReducerMethod]
+    public static DocumentsState ReduceRequestVerificationAction(DocumentsState state, DocumentsActions.RequestVerificationAction action)
+        => state with
+        {
+            IsRequestingVerification = true,
+            VerifyingDocumentId = action.DocumentId,
+            ErrorMessage = null
+        };
+
+    /// <summary>
+    /// Reducer para sucesso na solicitação de verificação
+    /// </summary>
+    [ReducerMethod]
+    public static DocumentsState ReduceRequestVerificationSuccessAction(DocumentsState state, DocumentsActions.RequestVerificationSuccessAction action)
+        => state with
+        {
+            IsRequestingVerification = false,
+            VerifyingDocumentId = null,
+            ErrorMessage = null
+        };
+
+    /// <summary>
+    /// Reducer para falha na solicitação de verificação
+    /// </summary>
+    [ReducerMethod]
+    public static DocumentsState ReduceRequestVerificationFailureAction(DocumentsState state, DocumentsActions.RequestVerificationFailureAction action)
+        => state with
+        {
+            IsRequestingVerification = false,
+            VerifyingDocumentId = null,
+            ErrorMessage = action.ErrorMessage
+        };
 }

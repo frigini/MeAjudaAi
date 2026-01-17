@@ -67,6 +67,13 @@ public static class Extensions
 
             options.UseSnakeCaseNamingConvention();
 
+            // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
+            if (environment.IsDevelopment())
+            {
+                options.ConfigureWarnings(warnings =>
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            }
+
             // Habilitar erros detalhados em desenvolvimento
             if (configuration.GetValue<bool>("DetailedErrors"))
             {

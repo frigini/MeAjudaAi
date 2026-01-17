@@ -1,6 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
-using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
+using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Utilities;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;

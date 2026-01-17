@@ -3,11 +3,12 @@ using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Shared.Contracts;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 
+using MeAjudaAi.Contracts.Models;
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 
 /// <summary>
@@ -53,15 +54,17 @@ public class GetProvidersQueryHandler(
             // Converte para DTOs usando o mapper existente
             var providerDtos = providers.Items.Select(ProviderMapper.ToDto).ToList();
 
-            var result = new PagedResult<ProviderDto>(
-                providerDtos,
-                query.Page,
-                query.PageSize,
-                providers.TotalCount);
+            var result = new PagedResult<ProviderDto>
+            {
+                Items = providerDtos,
+                PageNumber = query.Page,
+                PageSize = query.PageSize,
+                TotalItems = providers.TotalItems
+            };
 
             logger.LogInformation(
                 "Busca de prestadores concluída - Total: {Total}, Página atual: {Page}/{TotalPages}",
-                result.TotalCount, result.Page, result.TotalPages);
+                result.TotalItems, result.PageNumber, result.TotalPages);
 
             return Result<PagedResult<ProviderDto>>.Success(result);
         }

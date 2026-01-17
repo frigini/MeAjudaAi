@@ -1,13 +1,13 @@
 using System.Reflection;
-using MeAjudaAi.Shared.Contracts.Modules;
-using MeAjudaAi.Shared.Contracts.Modules.Documents;
-using MeAjudaAi.Shared.Contracts.Modules.Locations;
-using MeAjudaAi.Shared.Contracts.Modules.Providers;
-using MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
-using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
-using MeAjudaAi.Shared.Contracts.Modules.Users;
-using MeAjudaAi.Shared.Contracts.Modules.Users.DTOs;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Modules;
+using MeAjudaAi.Contracts.Modules.Documents;
+using MeAjudaAi.Contracts.Modules.Locations;
+using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Contracts.Modules.SearchProviders;
+using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
+using MeAjudaAi.Contracts.Modules.Users;
+using MeAjudaAi.Contracts.Modules.Users.DTOs;
+using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Architecture.Tests;
 
@@ -23,14 +23,14 @@ public class ModuleApiArchitectureTests
             .And()
             .HaveNameEndingWith("ModuleApi")
             .Should()
-            .ResideInNamespace("MeAjudaAi.Shared.Contracts.Modules")
+            .ResideInNamespace("MeAjudaAi.Contracts.Modules")
             .Or()
-            .ResideInNamespaceMatching(@"MeAjudaAi\.Shared\.Contracts\.Modules\.\w+");
+            .ResideInNamespaceMatching(@"MeAjudaAi\.Contracts\.Modules\.\w+");
 
         // Assert
         var violations = result.GetResult().FailingTypes;
         violations?.Should().BeEmpty(
-                because: "Module API interfaces should be in the Shared.Contracts.Modules namespace hierarchy");
+                because: "Module API interfaces should be in the Contracts.Modules namespace hierarchy");
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public class ModuleApiArchitectureTests
         // Arrange & Act
         var result = Types.InAssembly(typeof(IUsersModuleApi).Assembly)
             .That()
-            .ResideInNamespace("MeAjudaAi.Shared.Contracts.Modules")
+            .ResideInNamespace("MeAjudaAi.Contracts.Modules")
             .Should()
             .NotHaveDependencyOnAny("MeAjudaAi.Modules.*.Domain", "MeAjudaAi.Modules.*.Infrastructure");
 

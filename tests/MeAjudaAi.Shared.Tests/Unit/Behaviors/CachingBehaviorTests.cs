@@ -1,6 +1,6 @@
 using MeAjudaAi.Shared.Behaviors;
 using MeAjudaAi.Shared.Caching;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Mediator;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Caching.Hybrid;

@@ -19,6 +19,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 /// </summary>
 public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.Providers;
+
     [Fact]
     public async Task CreateProvider_WithValidData_ShouldReturnCreated()
     {

@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 
 namespace MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 
@@ -9,7 +9,7 @@ namespace MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 /// Para deixar Email ou PhoneNumber inalterados, envie null.
 /// Strings vazias ou whitespace resultarão em erro de validação de domínio.
 /// </remarks>
-public record UpdateUserProfileRequest : Request
+public record UpdateUserProfileRequest
 {
     /// <summary>
     /// Primeiro nome do usuário (obrigatório).

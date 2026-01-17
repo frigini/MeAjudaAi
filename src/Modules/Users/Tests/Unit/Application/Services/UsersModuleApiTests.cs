@@ -4,7 +4,7 @@ using MeAjudaAi.Modules.Users.Application.ModuleApi;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Application.Services;
 using MeAjudaAi.Shared.Utilities.Constants;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.DependencyInjection;

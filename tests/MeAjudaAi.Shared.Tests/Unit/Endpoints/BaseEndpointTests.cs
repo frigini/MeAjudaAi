@@ -1,7 +1,8 @@
 using System.Security.Claims;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 
@@ -182,7 +183,13 @@ public class BaseEndpointTests
     {
         // Arrange
         var items = new List<string> { "item1", "item2" };
-        var pagedResult = new PagedResult<string>(items, 1, 5, 10);
+        var pagedResult = new PagedResult<string>
+        {
+            Items = items,
+            PageNumber = 1,
+            PageSize = 5,
+            TotalItems = 10
+        };
         var successResult = Result<PagedResult<string>>.Success(pagedResult);
 
         // Act

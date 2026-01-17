@@ -186,10 +186,11 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         // Criar provider usando o helper
         var providerId = await CreateTestProviderAsync($"Provider_{uniqueId}");
 
-        // Act - Update provider
+        // Act - Update provider (usando UpdateProviderRequestDto simplificado)
         var updateRequest = new
         {
             Name = $"Updated_{uniqueId}",
+            Phone = _fixture.Faker.Phone.PhoneNumber(),
             BusinessProfile = new
             {
                 LegalName = $"UpdatedLegal_{uniqueId}",

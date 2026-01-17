@@ -1,12 +1,12 @@
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 
 namespace MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 
 /// <summary>
 /// Request para adição de documento a um prestador de serviços.
 /// </summary>
-public record AddDocumentRequest : Request
+public record AddDocumentRequest
 {
     /// <summary>
     /// Número do documento.

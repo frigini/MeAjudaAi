@@ -4,11 +4,12 @@ using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
+using MeAjudaAi.Contracts.Models;
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Queries;
 
 [Trait("Category", "Unit")]
@@ -35,7 +36,13 @@ public class GetProvidersQueryHandlerTests
             new ProviderBuilder().Build()
         };
 
-        var pagedProviders = new PagedResult<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(providers, 1, 10, 2);
+        var pagedProviders = new PagedResult<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>
+        {
+            Items = providers,
+            PageNumber = 1,
+            PageSize = 10,
+            TotalItems = 2
+        };
 
         _providerQueryServiceMock
             .Setup(x => x.GetProvidersAsync(
@@ -56,9 +63,9 @@ public class GetProvidersQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Items.Should().HaveCount(2);
-        result.Value.Page.Should().Be(1);
+        result.Value.PageNumber.Should().Be(1);
         result.Value.PageSize.Should().Be(10);
-        result.Value.TotalCount.Should().Be(2);
+        result.Value.TotalItems.Should().Be(2);
 
         _providerQueryServiceMock.Verify(
             x => x.GetProvidersAsync(1, 10, null, null, null, It.IsAny<CancellationToken>()),
@@ -82,7 +89,13 @@ public class GetProvidersQueryHandlerTests
                 .Build()
         };
 
-        var pagedProviders = new PagedResult<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(providers, 1, 10, 1);
+        var pagedProviders = new PagedResult<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>
+        {
+            Items = providers,
+            PageNumber = 1,
+            PageSize = 10,
+            TotalItems = 1
+        };
 
         _providerQueryServiceMock
             .Setup(x => x.GetProvidersAsync(
@@ -113,8 +126,13 @@ public class GetProvidersQueryHandlerTests
     public async Task HandleAsync_WithEmptyResult_ShouldReturnEmptyPagedResult()
     {
         // Arrange
-        var pagedProviders = new PagedResult<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(
-            new List<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(), 1, 10, 0);
+        var pagedProviders = new PagedResult<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>
+        {
+            Items = new List<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(),
+            PageNumber = 1,
+            PageSize = 10,
+            TotalItems = 0
+        };
 
         _providerQueryServiceMock
             .Setup(x => x.GetProvidersAsync(
@@ -135,7 +153,7 @@ public class GetProvidersQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Items.Should().BeEmpty();
-        result.Value.TotalCount.Should().Be(0);
+        result.Value.TotalItems.Should().Be(0);
     }
 
     [Fact]

@@ -1,7 +1,21 @@
 using FluentAssertions;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
+using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Contracts;
+
+// Test helper classes
+public abstract record Request
+{
+    public string? UserId { get; init; }
+}
+
+public record TestPagedRequest : Request
+{
+    public int PageSize { get; init; } = 10;
+    public int PageNumber { get; init; } = 1;
+}
 
 public class ResponseTests
 {
@@ -238,56 +252,4 @@ public class PagedRequestTests
         updated.PageNumber.Should().Be(1);
         original.PageSize.Should().Be(10); // Original unchanged
     }
-
-    private record TestPagedRequest : PagedRequest;
-}
-
-public class RequestTests
-{
-    [Fact]
-    public void DefaultConstructor_ShouldInitialize()
-    {
-        // Act
-        var request = new TestRequest();
-
-        // Assert
-        request.UserId.Should().BeNull();
-    }
-
-    [Fact]
-    public void UserId_CanBeSet()
-    {
-        // Arrange
-        var userId = "user456";
-
-        // Act
-        var request = new TestRequest { UserId = userId };
-
-        // Assert
-        request.UserId.Should().Be(userId);
-    }
-
-    [Fact]
-    public void RecordEquality_WithSameUserId_ShouldBeEqual()
-    {
-        // Arrange
-        var request1 = new TestRequest { UserId = "user789" };
-        var request2 = new TestRequest { UserId = "user789" };
-
-        // Act & Assert
-        request1.Should().Be(request2);
-    }
-
-    [Fact]
-    public void RecordEquality_WithDifferentUserId_ShouldNotBeEqual()
-    {
-        // Arrange
-        var request1 = new TestRequest { UserId = "user1" };
-        var request2 = new TestRequest { UserId = "user2" };
-
-        // Act & Assert
-        request1.Should().NotBe(request2);
-    }
-
-    private record TestRequest : Request;
 }

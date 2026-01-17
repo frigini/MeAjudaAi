@@ -1,58 +1,116 @@
-﻿@inject IState<ThemeState> ThemeState
+@using MeAjudaAi.Web.Admin.Components.Errors
+@using MeAjudaAi.Web.Admin.Features.Errors
+@using MeAjudaAi.Web.Admin.Themes
+@using Fluxor
+@using System.Globalization
+@inject IState<ThemeState> ThemeState
+@inject IDispatcher Dispatcher
+@inject ILogger<App> Logger
+@inject Services.ErrorLoggingService ErrorLogger
+@inject IJSRuntime JSRuntime
+@implements IDisposable
 
 <Fluxor.Blazor.Web.StoreInitializer />
-<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme" />
+<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="@BrandTheme.Theme" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <CascadingAuthenticationState>
-    <Router AppAssembly="@typeof(App).Assembly">
-        <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-                <NotAuthorized>
-                    @if (context.User.Identity?.IsAuthenticated != true)
-                    {
-                        <RedirectToLogin />
-                    }
-                    else
-                    {
-                        <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
-                            <MudAlert Severity="Severity.Error">
-                                <MudText Typo="Typo.h5">Access Denied</MudText>
-                                <MudText Typo="Typo.body1">You don't have permission to access this page.</MudText>
-                            </MudAlert>
-                        </MudContainer>
-                    }
-                </NotAuthorized>
-                <Authorizing>
-                    <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex justify-center align-center" Style="height: 100vh;">
-                        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
-                    </MudContainer>
-                </Authorizing>
-            </AuthorizeRouteView>
-            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-        </Found>
-    </Router>
+    <ErrorBoundary @ref="_errorBoundary">
+        <ChildContent>
+            <Router AppAssembly="@typeof(App).Assembly">
+                <Found Context="routeData">
+                    <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                        <NotAuthorized Context="authContext">
+                            @if (authContext.User.Identity?.IsAuthenticated != true)
+                            {
+                                <RedirectToLogin />
+                            }
+                            else
+                            {
+                                <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+                                    <MudAlert Severity="Severity.Error">
+                                        <MudText Typo="Typo.h5">Acesso Negado</MudText>
+                                        <MudText Typo="Typo.body1">Você não tem permissão para acessar esta página.</MudText>
+                                    </MudAlert>
+                                </MudContainer>
+                            }
+                        </NotAuthorized>
+                        <Authorizing>
+                            <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex justify-center align-center" Style="height: 100vh;">
+                                <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+                            </MudContainer>
+                        </Authorizing>
+                    </AuthorizeRouteView>
+                    <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+                </Found>
+            </Router>
+        </ChildContent>
+        <ErrorContent Context="error">
+            @{
+                // Log error and dispatch to Fluxor state
+                ErrorLogger.LogComponentError(error, "App");
+                Dispatcher.Dispatch(new SetGlobalErrorAction(error, "Application Root", IsRecoverable: true));
+            }
+            <ErrorBoundaryContent />
+        </ErrorContent>
+    </ErrorBoundary>
 </CascadingAuthenticationState>
 
 @code {
     private bool _isDarkMode;
-    private MudTheme _theme = new();
+    private ErrorBoundary? _errorBoundary;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
+        await base.OnInitializedAsync();
         
-        // Inscrever para mudanças no tema
+        // Load preferred language from localStorage
+        await LoadPreferredLanguage();
+        
+        // Subscribe to theme changes
         ThemeState.StateChanged += OnThemeStateChanged;
         _isDarkMode = ThemeState.Value.IsDarkMode;
+    }
+
+    private async Task LoadPreferredLanguage()
+    {
+        try
+        {
+            var preferredLanguage = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "preferredLanguage");
+            
+            if (!string.IsNullOrEmpty(preferredLanguage))
+            {
+                var culture = new CultureInfo(preferredLanguage);
+                CultureInfo.CurrentCulture = culture;
+                CultureInfo.CurrentUICulture = culture;
+                Logger.LogInformation("Loaded preferred language: {Language}", preferredLanguage);
+            }
+            else
+            {
+                Logger.LogInformation("No preferred language found, using default: pt-BR");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to load preferred language from localStorage");
+        }
     }
 
     private void OnThemeStateChanged(object? sender, EventArgs e)
     {
         _isDarkMode = ThemeState.Value.IsDarkMode;
         StateHasChanged();
+    }
+
+    /// <summary>
+    /// Recupera o ErrorBoundary do estado de erro.
+    /// Chamado pelo ErrorBoundaryContent quando usuário clica em "Tentar Novamente".
+    /// </summary>
+    public void RecoverFromError()
+    {
+        _errorBoundary?.Recover();
     }
 
     public void Dispose()

@@ -20,7 +20,7 @@ internal class MigrationHostedService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("🔄 Iniciando migrations de todos os módulos...");
+        _logger.LogInformation("🔄 Starting migrations for all modules...");
 
         List<Type> dbContextTypes = new();
 
@@ -28,11 +28,11 @@ internal class MigrationHostedService : IHostedService
         {
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
             
-            // Pula migrations em ambientes de teste - são gerenciados pela infraestrutura de testes
+            // Pular migrations em ambientes de teste - são gerenciadas pela infraestrutura de testes
             if (environment.Equals("Testing", StringComparison.OrdinalIgnoreCase) || 
                 environment.Equals("Test", StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogInformation("⏭️ Pulando migrations no ambiente {Environment}", environment);
+                _logger.LogInformation("⏭️ Skipping migrations in {Environment} environment", environment);
                 return;
             }
             
@@ -43,34 +43,37 @@ internal class MigrationHostedService : IHostedService
             {
                 if (isDevelopment)
                 {
-                    _logger.LogWarning("⚠️ Connection string não encontrada em Development, pulando migrations");
+                    _logger.LogWarning("⚠️ Connection string not found in Development, skipping migrations");
                     return;
                 }
                 else
                 {
-                    _logger.LogError("❌ Connection string é obrigatória para migrations no ambiente {Environment}. " +
-                        "Configure POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, e POSTGRES_PASSWORD.", environment);
+                    _logger.LogError("❌ Connection string is required for migrations in {Environment} environment. " +
+                        "Configure POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD.", environment);
                     throw new InvalidOperationException(
-                        $"Configuração de conexão ao banco de dados ausente para o ambiente {environment}. " +
-                        "Migrations não podem prosseguir sem uma connection string válida.");
+                        $"Database connection configuration missing for {environment} environment. " +
+                        "Migrations cannot proceed without a valid connection string.");
                 }
             }
 
             dbContextTypes = DiscoverDbContextTypes();
-            _logger.LogInformation("📋 Encontrados {Count} DbContexts para migração", dbContextTypes.Count);
+            _logger.LogInformation("📋 Found {Count} DbContexts for migration", dbContextTypes.Count);
 
             foreach (var contextType in dbContextTypes)
             {
                 await MigrateDbContextAsync(contextType, connectionString, cancellationToken);
             }
 
-            _logger.LogInformation("✅ Todas as migrations foram aplicadas com sucesso!");
+            _logger.LogInformation("✅ All migrations applied successfully!");
+            
+            // Executar seeding após migrations
+            await ExecuteSeedingAsync(cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Erro ao aplicar migrations para {DbContextCount} módulo(s)", dbContextTypes.Count);
+            _logger.LogError(ex, "❌ Error applying migrations for {DbContextCount} module(s)", dbContextTypes.Count);
             throw new InvalidOperationException(
-                $"Falha ao aplicar migrations do banco de dados para {dbContextTypes.Count} módulo(s)",
+                $"Failed to apply database migrations for {dbContextTypes.Count} module(s)",
                 ex);
         }
     }
@@ -99,7 +102,7 @@ internal class MigrationHostedService : IHostedService
         if (isDevelopment)
         {
             // Valores padrão APENAS para desenvolvimento local
-            // Use .env file ou user secrets para senha
+            // Use arquivo .env ou user secrets para a senha
             host ??= "localhost";
             port ??= "5432";
             database ??= "meajudaai";
@@ -108,14 +111,14 @@ internal class MigrationHostedService : IHostedService
             if (string.IsNullOrEmpty(password))
             {
                 _logger.LogWarning(
-                    "POSTGRES_PASSWORD não configurada para o ambiente Development. " +
-                    "Defina a variável de ambiente ou use user secrets.");
+                    "POSTGRES_PASSWORD not configured for Development environment. " +
+                    "Set the environment variable or use user secrets.");
                 return null;
             }
 
             _logger.LogWarning(
-                "Usando valores de conexão padrão para o ambiente Development. " +
-                "Configure variáveis de ambiente para deployments de produção.");
+                "Using default connection values for Development environment. " +
+                "Configure environment variables for production deployments.");
         }
         else
         {
@@ -125,9 +128,9 @@ internal class MigrationHostedService : IHostedService
                 string.IsNullOrEmpty(password))
             {
                 _logger.LogError(
-                    "Configuração de conexão ao banco de dados ausente. " +
-                    "Defina as variáveis de ambiente POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER e POSTGRES_PASSWORD.");
-                return null; // Falhar startup para evitar conexão insegura
+                    "Database connection configuration missing. " +
+                    "Set the environment variables POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD.");
+                return null; // Fail startup to prevent insecure connection
             }
         }
 
@@ -138,7 +141,7 @@ internal class MigrationHostedService : IHostedService
     {
         var dbContextTypes = new List<Type>();
 
-        // Primeiro, tentar carregar assemblies dos módulos dinamicamente
+        // Primeiro, tentar carregar assemblies de módulos dinamicamente
         LoadModuleAssemblies();
 
         var assemblies = AppDomain.CurrentDomain.GetAssemblies()
@@ -147,7 +150,7 @@ internal class MigrationHostedService : IHostedService
 
         if (assemblies.Count == 0)
         {
-            _logger.LogWarning("⚠️ Nenhum assembly de módulo foi encontrado. Migrations não serão aplicadas automaticamente.");
+            _logger.LogWarning("⚠️ No module assemblies found. Migrations will not be applied automatically.");
             return dbContextTypes;
         }
 
@@ -164,12 +167,12 @@ internal class MigrationHostedService : IHostedService
 
                 if (types.Count > 0)
                 {
-                    _logger.LogDebug("✅ Descobertos {Count} DbContext(s) em {Assembly}", types.Count, assembly.GetName().Name);
+                    _logger.LogDebug("✅ Discovered {Count} DbContext(s) in {Assembly}", types.Count, assembly.GetName().Name);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "⚠️ Erro ao descobrir tipos no assembly {AssemblyName}", assembly.FullName);
+                _logger.LogWarning(ex, "⚠️ Error discovering types in assembly {AssemblyName}", assembly.FullName);
             }
         }
 
@@ -184,8 +187,8 @@ internal class MigrationHostedService : IHostedService
             var modulePattern = "MeAjudaAi.Modules.*.Infrastructure.dll";
             var moduleDlls = Directory.GetFiles(baseDirectory, modulePattern, SearchOption.AllDirectories);
 
-            _logger.LogDebug("🔍 Procurando por assemblies de módulos em: {BaseDirectory}", baseDirectory);
-            _logger.LogDebug("📦 Encontrados {Count} DLLs de infraestrutura de módulos", moduleDlls.Length);
+            _logger.LogDebug("🔍 Searching for module assemblies in: {BaseDirectory}", baseDirectory);
+            _logger.LogDebug("📦 Found {Count} module infrastructure DLLs", moduleDlls.Length);
 
             foreach (var dllPath in moduleDlls)
             {
@@ -193,134 +196,115 @@ internal class MigrationHostedService : IHostedService
                 {
                     var assemblyName = AssemblyName.GetAssemblyName(dllPath);
 
-                    // Verificar se já está carregado
+                    // Verificar se já foi carregado
                     if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.FullName == assemblyName.FullName))
                     {
-                        _logger.LogDebug("⏭️  Assembly já carregado: {AssemblyName}", assemblyName.Name);
+                        _logger.LogDebug("⏭️  Assembly already loaded: {AssemblyName}", assemblyName.Name);
                         continue;
                     }
 
                     System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(dllPath);
-                    _logger.LogDebug("✅ Assembly carregado: {AssemblyName}", assemblyName.Name);
+                    _logger.LogDebug("✅ Assembly loaded: {AssemblyName}", assemblyName.Name);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "⚠️ Não foi possível carregar assembly: {DllPath}", Path.GetFileName(dllPath));
+                    _logger.LogWarning(ex, "⚠️ Could not load assembly: {DllPath}", Path.GetFileName(dllPath));
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "⚠️ Erro ao tentar carregar assemblies de módulos dinamicamente");
+            _logger.LogWarning(ex, "⚠️ Error attempting to dynamically load module assemblies");
         }
     }
 
     private async Task MigrateDbContextAsync(Type contextType, string connectionString, CancellationToken cancellationToken)
     {
         var moduleName = ExtractModuleName(contextType);
-        _logger.LogInformation("🔧 Aplicando migrations para {Module}...", moduleName);
+        _logger.LogInformation("🔧 Applying migrations for {Module}...", moduleName);
 
         try
         {
-            // Criar DbContextOptionsBuilder dinâmicamente mantendo tipo genérico
-            var optionsBuilderType = typeof(DbContextOptionsBuilder<>).MakeGenericType(contextType);
-            var optionsBuilderInstance = Activator.CreateInstance(optionsBuilderType);
-
-            if (optionsBuilderInstance == null)
-            {
-                throw new InvalidOperationException($"Não foi possível criar DbContextOptionsBuilder para {contextType.Name}");
-            }
-
-            // Configurar PostgreSQL - usar dynamic para simplificar reflexão
-            dynamic optionsBuilderDynamic = optionsBuilderInstance;
-
-            // Nome seguro do assembly: FullName pode ser null para alguns assemblies
+            // Criar DbContextOptions diretamente via reflexão para manter type safety
             var assemblyName = contextType.Assembly.FullName
                 ?? contextType.Assembly.GetName().Name
                 ?? contextType.Assembly.ToString();
 
-            // Chamar UseNpgsql com connection string
-            Microsoft.EntityFrameworkCore.NpgsqlDbContextOptionsBuilderExtensions.UseNpgsql(
-                optionsBuilderDynamic,
-                connectionString,
-                (Action<Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.NpgsqlDbContextOptionsBuilder>)(npgsqlOptions =>
-                {
-                    npgsqlOptions.MigrationsAssembly(assemblyName);
-                    npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
-                })
-            );
+            // Usar DbContextOptionsBuilder<TContext> genérico para garantir type safety
+            var optionsBuilderType = typeof(DbContextOptionsBuilder<>).MakeGenericType(contextType);
+            var optionsBuilder = Activator.CreateInstance(optionsBuilderType)
+                ?? throw new InvalidOperationException($"Failed to create DbContextOptionsBuilder for {contextType.Name}");
+            
+            // Configurar PostgreSQL usando método de extensão UseNpgsql
+            var useNpgsqlMethod = typeof(NpgsqlDbContextOptionsBuilderExtensions)
+                .GetMethods()
+                .FirstOrDefault(m => 
+                    m.Name == "UseNpgsql" && 
+                    m.GetParameters().Length == 3 &&
+                    m.GetParameters()[1].ParameterType == typeof(string));
+            
+            if (useNpgsqlMethod == null)
+                throw new InvalidOperationException("UseNpgsql extension method not found");
+            
+            Action<Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsAssembly(assemblyName);
+                npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
+            };
+            
+            useNpgsqlMethod.Invoke(null, new object[] { optionsBuilder, connectionString, npgsqlOptionsAction });
 
-            // Obter Options com tipo correto via reflection
-            var optionsProperty = optionsBuilderType.GetProperty("Options");
-            if (optionsProperty == null)
+            // Acessar Options usando reflexão para manter o tipo genérico DbContextOptions<TContext>
+            var optionsProperty = optionsBuilderType.GetProperty("Options")
+                ?? throw new InvalidOperationException($"Options property not found on {optionsBuilderType.Name}");
+            var options = optionsProperty.GetValue(optionsBuilder)
+                ?? throw new InvalidOperationException($"Failed to get Options from DbContextOptionsBuilder for {contextType.Name}");
+
+            // NOTA: Todos os DbContexts devem ter um construtor público aceitando DbContextOptions<TContext>.
+            // Esta é uma restrição de design aplicada em toda a codebase.
+            var dbContext = Activator.CreateInstance(contextType, options) as DbContext;
+
+            if (dbContext == null)
             {
                 throw new InvalidOperationException(
-                    $"Não foi possível encontrar a propriedade 'Options' em DbContextOptionsBuilder<{contextType.Name}>. " +
-                    "Isso indica incompatibilidade de versão ou problema de reflexão.");
+                    $"Failed to create DbContext instance of type {contextType.Name}. " +
+                    "Ensure the DbContext has a public constructor that accepts DbContextOptions.");
             }
 
-            var options = optionsProperty.GetValue(optionsBuilderInstance);
-            if (options == null)
-            {
-                throw new InvalidOperationException(
-                    $"DbContextOptions para {contextType.Name} está null após configuração. " +
-                    "Certifique-se de que UseNpgsql foi chamado com sucesso.");
-            }
-
-            // Verificar se construtor existe antes de tentar instanciação
-            var constructor = contextType.GetConstructor(new[] { options.GetType() });
-            if (constructor == null)
-            {
-                throw new InvalidOperationException(
-                    $"Nenhum construtor adequado encontrado para {contextType.Name} que aceite {options.GetType().Name}. " +
-                    "Certifique-se de que o DbContext tem um construtor que aceita DbContextOptions.");
-            }
-
-            // Criar instância do DbContext
-            var contextInstance = Activator.CreateInstance(contextType, options);
-            var context = contextInstance as DbContext;
-
-            if (context == null)
-            {
-                throw new InvalidOperationException(
-                    $"Falha ao converter instância criada para DbContext do tipo {contextType.Name}. " +
-                    $"Tipo da instância criada: {contextInstance?.GetType().Name ?? "null"}");
-            }
-
-            using (context)
+            using (dbContext)
             {
                 // Aplicar migrations
-                var pendingMigrations = (await context.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
+                var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
 
                 if (pendingMigrations.Any())
                 {
-                    _logger.LogInformation("📦 {Module}: {Count} migrations pendentes", moduleName, pendingMigrations.Count);
+                    _logger.LogInformation("📦 {Module}: {Count} pending migrations", moduleName, pendingMigrations.Count);
                     foreach (var migration in pendingMigrations)
                     {
                         _logger.LogDebug("   - {Migration}", migration);
                     }
 
-                    await context.Database.MigrateAsync(cancellationToken);
-                    _logger.LogInformation("✅ {Module}: Migrations aplicadas com sucesso", moduleName);
+                    await dbContext.Database.MigrateAsync(cancellationToken);
+                    _logger.LogInformation("✅ {Module}: Migrations applied successfully", moduleName);
                 }
                 else
                 {
-                    _logger.LogInformation("✓ {Module}: Nenhuma migration pendente", moduleName);
+                    _logger.LogInformation("✓ {Module}: No pending migrations", moduleName);
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Erro ao aplicar migrations para {Module}", moduleName);
+            _logger.LogError(ex, "❌ Error applying migrations for {Module}", moduleName);
             throw new InvalidOperationException(
-                $"Falha ao aplicar migrations do banco de dados para o módulo '{moduleName}' (DbContext: {contextType.Name})",
+                $"Failed to apply database migrations for module '{moduleName}' (DbContext: {contextType.Name})",
                 ex);
         }
     }
 
     private static string ExtractModuleName(Type contextType)
     {
-        // Extrai nome do módulo do namespace (ex: MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext -> Users)
+        // Extrair nome do módulo do namespace (ex: MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext -> Users)
         var namespaceParts = contextType.Namespace?.Split('.') ?? Array.Empty<string>();
         var moduleIndex = Array.IndexOf(namespaceParts, "Modules");
 
@@ -331,4 +315,67 @@ internal class MigrationHostedService : IHostedService
 
         return contextType.Name.Replace("DbContext", "");
     }
+
+    private async Task ExecuteSeedingAsync(CancellationToken cancellationToken)
+    {
+        // Executar seeding apenas em ambiente Development
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+        if (!environment.Equals("Development", StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.LogInformation("⏭️ Skipping data seeding in {Environment} environment", environment);
+            return;
+        }
+
+        try
+        {
+            _logger.LogInformation("🌱 Executing data seeding for Development environment...");
+            
+            var connectionString = GetConnectionString();
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                _logger.LogWarning("⚠️ Cannot execute seeding: connection string not available");
+                return;
+            }
+
+            // Executar scripts SQL de seeding
+            await using var connection = new Npgsql.NpgsqlConnection(connectionString);
+            await connection.OpenAsync(cancellationToken);
+
+            // Encontrar e executar scripts de seed em infrastructure/database/seeds/
+            var seedScriptsPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "..", "infrastructure", "database", "seeds");
+            var normalizedPath = Path.GetFullPath(seedScriptsPath);
+            
+            if (Directory.Exists(normalizedPath))
+            {
+                var seedFiles = Directory.GetFiles(normalizedPath, "*.sql").OrderBy(f => f).ToList();
+                
+                foreach (var seedFile in seedFiles)
+                {
+                    var fileName = Path.GetFileName(seedFile);
+                    _logger.LogInformation("📜 Executing seed script: {FileName}", fileName);
+                    
+                    var sqlScript = await File.ReadAllTextAsync(seedFile, cancellationToken);
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities - Safe: reading from trusted seed files
+                    await using var command = new Npgsql.NpgsqlCommand(sqlScript, connection);
+#pragma warning restore CA2100
+                    command.CommandTimeout = 120; // 2 minutes timeout for seed scripts
+                    
+                    await command.ExecuteNonQueryAsync(cancellationToken);
+                    _logger.LogInformation("✅ Seed script executed: {FileName}", fileName);
+                }
+                
+                _logger.LogInformation("✅ Data seeding completed successfully! ({Count} scripts)", seedFiles.Count);
+            }
+            else
+            {
+                _logger.LogWarning("⚠️ Seed scripts directory not found: {Path}", normalizedPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error during data seeding");
+            // Don't fail the application if seeding fails in development
+        }
+    }
 }
+

@@ -146,8 +146,8 @@
       },
       "Aspire.Dashboard.Sdk.win-x64": {
         "type": "Transitive",
-        "resolved": "13.0.2",
-        "contentHash": "nJaYqX5BvVZC11s1eeBgp200q6s2P9iTjURu5agdBwnDtKLM9rkGOGKpwApUr7LuiAKQO5Zx9Zfk5zfZqg4vUg=="
+        "resolved": "13.1.0",
+        "contentHash": "rrcsI8cankYCiUlj4Ev+os9uKcutUCv+9kvHQt85RiUX/ewXsloFZy0/depKWrzdJkdJuoTbYFRlSe43TKq6aQ=="
       },
       "Aspire.Hosting": {
         "type": "Transitive",
@@ -376,8 +376,8 @@
       },
       "Aspire.Hosting.Orchestration.win-x64": {
         "type": "Transitive",
-        "resolved": "13.0.2",
-        "contentHash": "bHQavGeVzPJYhR+0hlZtG/RN+Fxa/TpNZDvbgbVjGTw0zNqzcZFI+LkeLzM6T7RXHs3pjyDQUYFU4Y4h1mPzLw=="
+        "resolved": "13.1.0",
+        "contentHash": "3w2UahEauTq719LPJ/BCySh31kz26sfjuOkRF5E4VYy1Q3xLRV43+OIGI3C5sy8feUHjrYz+DDq3DQn/2fu+4g=="
       },
       "AspNetCore.HealthChecks.Rabbitmq": {
         "type": "Transitive",
@@ -1692,6 +1692,7 @@
           "AspNetCore.HealthChecks.Npgsql": "[9.0.0, )",
           "AspNetCore.HealthChecks.Redis": "[9.0.0, )",
           "AspNetCore.HealthChecks.UI.Client": "[9.0.0, )",
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Providers.API": "[1.0.0, )",
@@ -1710,13 +1711,13 @@
       "meajudaai.apphost": {
         "type": "Project",
         "dependencies": {
-          "Aspire.Dashboard.Sdk.win-x64": "[13.0.2, )",
-          "Aspire.Hosting.AppHost": "[13.0.2, )",
+          "Aspire.Dashboard.Sdk.win-x64": "[13.1.0, )",
+          "Aspire.Hosting.AppHost": "[13.1.0, )",
           "Aspire.Hosting.Azure.AppContainers": "[13.1.0, )",
           "Aspire.Hosting.Azure.PostgreSQL": "[13.1.0, )",
           "Aspire.Hosting.Azure.ServiceBus": "[13.1.0, )",
-          "Aspire.Hosting.Keycloak": "[13.0.2-preview.1.25603.5, )",
-          "Aspire.Hosting.Orchestration.win-x64": "[13.0.2, )",
+          "Aspire.Hosting.Keycloak": "[13.1.0-preview.1.25616.3, )",
+          "Aspire.Hosting.Orchestration.win-x64": "[13.1.0, )",
           "Aspire.Hosting.PostgreSQL": "[13.1.0, )",
           "Aspire.Hosting.RabbitMQ": "[13.1.0, )",
           "Aspire.Hosting.Redis": "[13.1.0, )",
@@ -1730,6 +1731,12 @@
           "MeAjudaAi.Modules.Users.Infrastructure": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.1, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0, )"
+        }
+      },
+      "meajudaai.contracts": {
+        "type": "Project",
+        "dependencies": {
+          "FluentValidation": "[12.1.1, )"
         }
       },
       "meajudaai.modules.documents.api": {
@@ -2018,6 +2025,7 @@
           "Hangfire.AspNetCore": "[1.8.22, )",
           "Hangfire.Core": "[1.8.22, )",
           "Hangfire.PostgreSql": "[1.20.13, )",
+          "MeAjudaAi.Contracts": "[1.0.0, )",
           "Microsoft.AspNetCore.OpenApi": "[10.0.1, )",
           "Microsoft.EntityFrameworkCore": "[10.0.1, )",
           "Microsoft.EntityFrameworkCore.Design": "[10.0.1, )",
@@ -2229,12 +2237,12 @@
       },
       "Aspire.Hosting.Keycloak": {
         "type": "CentralTransitive",
-        "requested": "[13.0.2-preview.1.25603.5, )",
-        "resolved": "13.0.2-preview.1.25603.5",
-        "contentHash": "PMyNu3UAe52PYHloX1o1GXymJGNKnv57lF9zh/3xVuXbaMzbEguBGFpKb2Vvt1LhwRzSybna+LMHCnN0Gj59yg==",
+        "requested": "[13.1.0-preview.1.25616.3, )",
+        "resolved": "13.1.0-preview.1.25616.3",
+        "contentHash": "t5vArEs7xSUb8wm/AeUog8rCj4wminWCZJK4fqftC/a7jly0NWoCTPjys8OLP8wicCpOODcz0OSQ7fmqL94YxQ==",
         "dependencies": {
           "AspNetCore.HealthChecks.Uris": "9.0.0",
-          "Aspire.Hosting": "13.0.2",
+          "Aspire.Hosting": "13.1.0",
           "Google.Protobuf": "3.33.0",
           "Grpc.AspNetCore": "2.71.0",
           "Grpc.Net.ClientFactory": "2.71.0",
@@ -2246,6 +2254,7 @@
           "Microsoft.Extensions.Configuration.Binder": "8.0.2",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2",
           "Microsoft.Extensions.Diagnostics.HealthChecks": "8.0.22",
+          "Microsoft.Extensions.FileSystemGlobbing": "10.0.1",
           "Microsoft.Extensions.Hosting": "8.0.1",
           "Microsoft.Extensions.Hosting.Abstractions": "8.0.1",
           "Microsoft.Extensions.Http": "8.0.1",

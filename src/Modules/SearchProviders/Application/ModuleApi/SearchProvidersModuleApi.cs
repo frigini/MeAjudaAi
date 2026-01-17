@@ -3,13 +3,14 @@ using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Repositories;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
-using MeAjudaAi.Shared.Contracts;
-using MeAjudaAi.Shared.Contracts.Modules;
-using MeAjudaAi.Shared.Contracts.Modules.Providers;
-using MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
-using MeAjudaAi.Shared.Contracts.Modules.SearchProviders.DTOs;
-using MeAjudaAi.Shared.Contracts.Modules.SearchProviders.Enums;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts;
+using MeAjudaAi.Contracts.Modules;
+using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Contracts.Modules.SearchProviders;
+using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
+using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
@@ -126,8 +127,8 @@ public sealed class SearchProvidersModuleApi(
                 City = p.City,
                 State = p.State
             }).ToList(),
-            TotalCount = result.Value.TotalCount,
-            PageNumber = result.Value.Page,
+            TotalCount = result.Value.TotalItems,
+            PageNumber = result.Value.PageNumber,
             PageSize = result.Value.PageSize
         };
 
@@ -170,7 +171,7 @@ public sealed class SearchProvidersModuleApi(
                 existing.UpdateLocation(location);
                 existing.UpdateRating(providerData.AverageRating, providerData.TotalReviews);
                 existing.UpdateSubscriptionTier(ToDomainTier(providerData.SubscriptionTier));
-                existing.UpdateServices(providerData.ServiceIds);
+                existing.UpdateServices(providerData.ServiceIds.ToArray());
 
                 if (providerData.IsActive)
                     existing.Activate();
@@ -196,7 +197,7 @@ public sealed class SearchProvidersModuleApi(
 
                 // Atualizar dados adicionais
                 searchableProvider.UpdateRating(providerData.AverageRating, providerData.TotalReviews);
-                searchableProvider.UpdateServices(providerData.ServiceIds);
+                searchableProvider.UpdateServices(providerData.ServiceIds.ToArray());
 
                 if (!providerData.IsActive)
                     searchableProvider.Deactivate();

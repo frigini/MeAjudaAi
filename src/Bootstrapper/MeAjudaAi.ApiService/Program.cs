@@ -48,8 +48,14 @@ public partial class Program
 
             await ConfigureMiddlewareAsync(app);
 
-            // Seed dados de desenvolvimento se necessário
-            await app.SeedDevelopmentDataIfNeededAsync();
+            // Aplicar migrations de todos os módulos ANTES de seed
+            // Pular em ambiente de Testing pois os testes controlam suas próprias migrations
+            if (!app.Environment.IsEnvironment("Testing"))
+            {
+                await app.ApplyModuleMigrationsAsync();
+            }
+
+            // Seed de dados: usando SQL scripts via MigrationHostedService
 
             LogStartupComplete(app);
 

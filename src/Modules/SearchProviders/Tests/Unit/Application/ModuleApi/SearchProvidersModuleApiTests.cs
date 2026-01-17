@@ -4,13 +4,14 @@ using MeAjudaAi.Modules.SearchProviders.Application.ModuleApi;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Repositories;
-using MeAjudaAi.Shared.Contracts;
-using MeAjudaAi.Shared.Contracts.Modules.Providers;
-using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs;
-using MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
-using MeAjudaAi.Shared.Contracts.Modules.SearchProviders.DTOs;
-using MeAjudaAi.Shared.Contracts.Modules.SearchProviders.Enums;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts;
+using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Contracts.Modules.Providers.DTOs;
+using MeAjudaAi.Contracts.Modules.SearchProviders;
+using MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
+using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
@@ -69,11 +70,13 @@ public class SearchProvidersModuleApiTests
     public async Task IsAvailableAsync_WhenSearchSucceeds_ShouldReturnTrue()
     {
         // Arrange
-        var pagedResult = new PagedResult<SearchableProviderDto>(
-            new List<SearchableProviderDto>(),
-            0,
-            1,
-            1);
+        var pagedResult = new PagedResult<SearchableProviderDto>
+        {
+            Items = new List<SearchableProviderDto>(),
+            PageNumber = 1,
+            PageSize = 1,
+            TotalItems = 0
+        };
 
         _queryDispatcherMock
             .Setup(x => x.QueryAsync<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>(
@@ -168,7 +171,13 @@ public class SearchProvidersModuleApiTests
             }
         };
 
-        var pagedResult = new PagedResult<SearchableProviderDto>(providers, 1, 20, providers.Count);
+        var pagedResult = new PagedResult<SearchableProviderDto>
+        {
+            Items = providers,
+            PageNumber = 1,
+            PageSize = 20,
+            TotalItems = providers.Count
+        };
 
         _queryDispatcherMock
             .Setup(x => x.QueryAsync<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>(
@@ -217,7 +226,13 @@ public class SearchProvidersModuleApiTests
         // Arrange
         var serviceIds = new[] { Guid.NewGuid(), Guid.NewGuid() };
         var tiers = new[] { ESubscriptionTier.Gold, ESubscriptionTier.Platinum };
-        var pagedResult = new PagedResult<SearchableProviderDto>(new List<SearchableProviderDto>(), 0, 1, 10);
+        var pagedResult = new PagedResult<SearchableProviderDto>
+        {
+            Items = new List<SearchableProviderDto>(),
+            PageNumber = 1,
+            PageSize = 10,
+            TotalItems = 0
+        };
 
         SearchProvidersQuery? capturedQuery = null;
         _queryDispatcherMock
@@ -277,7 +292,13 @@ public class SearchProvidersModuleApiTests
     public async Task SearchProvidersAsync_WithNullOptionalParameters_ShouldSucceed()
     {
         // Arrange
-        var pagedResult = new PagedResult<SearchableProviderDto>(new List<SearchableProviderDto>(), 0, 1, 20);
+        var pagedResult = new PagedResult<SearchableProviderDto>
+        {
+            Items = new List<SearchableProviderDto>(),
+            PageNumber = 1,
+            PageSize = 20,
+            TotalItems = 0
+        };
 
         _queryDispatcherMock
             .Setup(x => x.QueryAsync<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>(

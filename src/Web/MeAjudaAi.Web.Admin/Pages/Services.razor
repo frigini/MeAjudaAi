@@ -1,14 +1,15 @@
 @page "/services"
+@attribute [Authorize(Policy = PolicyNames.CatalogManagerPolicy)]
+@using MeAjudaAi.Web.Admin.Authorization
+@using MeAjudaAi.Web.Admin.Constants
 @using Fluxor
 @using MeAjudaAi.Web.Admin.Features.ServiceCatalogs
 @inherits Fluxor.Blazor.Web.Components.FluxorComponent
 @inject IState<ServiceCatalogsState> ServiceCatalogsState
 @inject IDispatcher Dispatcher
 @inject IDialogService DialogService
-@inject ISnackbar Snackbar
-@inject IServiceCatalogsApi ServiceCatalogsApi
 
-<PageTitle>Services - MeAjudaAi Admin</PageTitle>
+<PageTitle>Serviços - MeAjudaAi Admin</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudText Typo="Typo.h4" Class="mb-4">
@@ -18,8 +19,8 @@
 
     @if (ServiceCatalogsState.Value.HasError)
     {
-        <MudAlert Severity="Severity.Error" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => Dispatcher.Dispatch(new ServiceCatalogsActions.ClearErrorAction()))">
-            @ServiceCatalogsState.Value.ErrorMessage
+        <MudAlert Severity="Severity.Warning" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => Dispatcher.Dispatch(new ServiceCatalogsActions.ClearErrorAction()))">
+            <MudText Typo="Typo.body1">Nenhum serviço encontrado ou erro ao carregar dados.</MudText>
         </MudAlert>
     }
 
@@ -54,8 +55,8 @@
                     </PropertyColumn>
                     <PropertyColumn Property="x => x.IsActive" Title="Status">
                         <CellTemplate>
-                            <MudChip Size="Size.Small" Color="@(context.Item.IsActive ? Color.Success : Color.Default)">
-                                @(context.Item.IsActive ? "Ativo" : "Inativo")
+                            <MudChip Size="Size.Small" Color="@ActivationStatus.ToColor(context.Item.IsActive)">
+                                @ActivationStatus.ToDisplayName(context.Item.IsActive)
                             </MudChip>
                         </CellTemplate>
                     </PropertyColumn>
@@ -72,7 +73,8 @@
                                                Color="Color.Warning" 
                                                Size="Size.Small"
                                                Title="Desativar"
-                                               OnClick="@(() => ToggleActivation(context.Item.Id, false))" />
+                                               OnClick="@(() => ToggleActivation(context.Item.Id, false))"
+                                               Disabled="@(ServiceCatalogsState.Value.IsTogglingService && ServiceCatalogsState.Value.TogglingServiceId == context.Item.Id)" />
                             }
                             else
                             {
@@ -80,13 +82,15 @@
                                                Color="Color.Success" 
                                                Size="Size.Small"
                                                Title="Ativar"
-                                               OnClick="@(() => ToggleActivation(context.Item.Id, true))" />
+                                               OnClick="@(() => ToggleActivation(context.Item.Id, true))"
+                                               Disabled="@(ServiceCatalogsState.Value.IsTogglingService && ServiceCatalogsState.Value.TogglingServiceId == context.Item.Id)" />
                             }
                             
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                            Color="Color.Error" 
                                            Size="Size.Small"
-                                           OnClick="@(() => DeleteService(context.Item.Id))" />
+                                           OnClick="@(() => DeleteService(context.Item.Id))"
+                                           Disabled="@(ServiceCatalogsState.Value.IsDeletingService && ServiceCatalogsState.Value.DeletingServiceId == context.Item.Id)" />
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>
@@ -150,19 +154,7 @@
 
     private async Task ToggleActivation(Guid serviceId, bool activate)
     {
-        var result = activate 
-            ? await ServiceCatalogsApi.ActivateServiceAsync(serviceId)
-            : await ServiceCatalogsApi.DeactivateServiceAsync(serviceId);
-
-        if (result.IsSuccess)
-        {
-            Snackbar.Add($"Serviço {(activate ? "ativado" : "desativado")} com sucesso", Severity.Success);
-            Dispatcher.Dispatch(new ServiceCatalogsActions.UpdateServiceActiveStatusAction(serviceId, activate));
-        }
-        else
-        {
-            Snackbar.Add($"Erro: {result.Error?.Message}", Severity.Error);
-        }
+        Dispatcher.Dispatch(new ServiceCatalogsActions.ToggleServiceActivationAction(serviceId, activate));
     }
 
     private async Task DeleteService(Guid serviceId)
@@ -172,18 +164,9 @@
             "Tem certeza que deseja excluir este serviço? Esta ação não pode ser desfeita.",
             yesText: "Excluir", cancelText: "Cancelar");
 
-        if (confirm != true) return;
-
-        var result = await ServiceCatalogsApi.DeleteServiceAsync(serviceId);
-
-        if (result.IsSuccess)
+        if (confirm == true)
         {
-            Snackbar.Add("Serviço excluído com sucesso", Severity.Success);
-            Dispatcher.Dispatch(new ServiceCatalogsActions.RemoveServiceAction(serviceId));
-        }
-        else
-        {
-            Snackbar.Add($"Erro: {result.Error?.Message}", Severity.Error);
+            Dispatcher.Dispatch(new ServiceCatalogsActions.DeleteServiceAction(serviceId));
         }
     }
 }

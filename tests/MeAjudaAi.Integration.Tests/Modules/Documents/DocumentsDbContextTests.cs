@@ -14,6 +14,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.Documents;
 /// </summary>
 public class DocumentsDbContextTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.Documents;
+
     [Fact]
     public void DocumentsDbContext_ShouldBeRegisteredInDependencyInjection()
     {

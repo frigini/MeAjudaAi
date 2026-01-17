@@ -1,12 +1,12 @@
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 
 namespace MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 
 /// <summary>
 /// Request para atualização do status de verificação de um prestador de serviços.
 /// </summary>
-public record UpdateVerificationStatusRequest : Request
+public record UpdateVerificationStatusRequest
 {
     /// <summary>
     /// Novo status de verificação.

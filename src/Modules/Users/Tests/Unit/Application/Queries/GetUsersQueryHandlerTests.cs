@@ -42,8 +42,8 @@ public class GetUsersQueryHandlerTests
         var pagedResult = result.Value;
         pagedResult.Should().NotBeNull();
         pagedResult.Items.Should().HaveCount(5);
-        pagedResult.TotalCount.Should().Be(totalCount);
-        pagedResult.Page.Should().Be(query.Page);
+        pagedResult.TotalItems.Should().Be(totalCount);
+        pagedResult.PageNumber.Should().Be(query.Page);
         pagedResult.PageSize.Should().Be(query.PageSize);
         pagedResult.TotalPages.Should().Be(3); // 25 / 10 = 3 páginas
 
@@ -74,8 +74,8 @@ public class GetUsersQueryHandlerTests
         var pagedResult = result.Value;
         pagedResult.Should().NotBeNull();
         pagedResult.Items.Should().BeEmpty();
-        pagedResult.TotalCount.Should().Be(0);
-        pagedResult.Page.Should().Be(query.Page);
+        pagedResult.TotalItems.Should().Be(0);
+        pagedResult.PageNumber.Should().Be(query.Page);
         pagedResult.PageSize.Should().Be(query.PageSize);
         pagedResult.TotalPages.Should().Be(0);
     }
@@ -145,7 +145,7 @@ public class GetUsersQueryHandlerTests
 
         var pagedResult = result.Value;
         pagedResult.Items.Should().HaveCount(50);
-        pagedResult.TotalCount.Should().Be(totalCount);
+        pagedResult.TotalItems.Should().Be(totalCount);
         pagedResult.TotalPages.Should().Be(2); // 150 / 100 = 2 páginas
     }
 

@@ -1,5 +1,6 @@
 @using MudBlazor
-@using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs
+@using MeAjudaAi.Contracts.Modules.Providers.DTOs
+@using MeAjudaAi.Web.Admin.Constants
 @inject IProvidersApi ProvidersApi
 @inject ISnackbar Snackbar
 
@@ -8,9 +9,9 @@
         <MudForm @ref="form" @bind-IsValid="@success">
             <MudGrid>
                 <MudItem xs="12">
-                    <MudSelect @bind-Value="model.ProviderType" Label="Tipo de Provider" Required="true" Variant="Variant.Outlined">
-                        <MudSelectItem Value="@("Individual")">Individual</MudSelectItem>
-                        <MudSelectItem Value="@("Business")">Business</MudSelectItem>
+                    <MudSelect @bind-Value="model.ProviderTypeValue" Label="Tipo de Provider" Required="true" Variant="Variant.Outlined" ToStringFunc="@(v => ProviderType.ToDisplayName(v))">
+                        <MudSelectItem Value="@ProviderType.Individual">@ProviderType.ToDisplayName(ProviderType.Individual)</MudSelectItem>
+                        <MudSelectItem Value="@ProviderType.Company">@ProviderType.ToDisplayName(ProviderType.Company)</MudSelectItem>
                     </MudSelect>
                 </MudItem>
                 
@@ -117,7 +118,7 @@
             
             var request = new CreateProviderRequestDto(
                 Name: model.Name,
-                Type: model.ProviderType == "Individual" ? 0 : 1,
+                Type: model.ProviderTypeValue,
                 BusinessProfile: new BusinessProfileDto(
                     LegalName: model.Name,
                     FantasyName: model.FantasyName,
@@ -165,7 +166,7 @@
 
     private class CreateProviderModel
     {
-        public string ProviderType { get; set; } = "Individual";
+        public int ProviderTypeValue { get; set; } = ProviderType.Individual;
         public string Name { get; set; } = string.Empty;
         public string? FantasyName { get; set; }
         public string Document { get; set; } = string.Empty;

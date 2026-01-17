@@ -41,7 +41,7 @@ public class ProviderQueryServiceTests : IDisposable
 
         // Assert
         result.Items.Should().HaveCount(2);
-        result.TotalCount.Should().Be(2);
+        result.TotalItems.Should().Be(2);
         result.Items.Should().NotContain(p => p.Id == deletedProvider.Id);
     }
 
@@ -102,7 +102,7 @@ public class ProviderQueryServiceTests : IDisposable
         page1.Items.Should().HaveCount(10);
         page2.Items.Should().HaveCount(10);
         page3.Items.Should().HaveCount(5);
-        page1.TotalCount.Should().Be(25);
+        page1.TotalItems.Should().Be(25);
     }
 
     [Fact]

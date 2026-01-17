@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs.DTOs;
+using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
 
 namespace MeAjudaAi.Web.Admin.Features.ServiceCatalogs;
 
@@ -85,4 +85,72 @@ public static class ServiceCatalogsActions
     /// Limpa erro atual
     /// </summary>
     public sealed record ClearErrorAction;
+
+    // ========== CATEGORY DELETE OPERATIONS ==========
+
+    /// <summary>
+    /// Solicita exclusão de categoria
+    /// </summary>
+    public sealed record DeleteCategoryAction(Guid CategoryId);
+
+    /// <summary>
+    /// Sucesso ao excluir categoria
+    /// </summary>
+    public sealed record DeleteCategorySuccessAction(Guid CategoryId);
+
+    /// <summary>
+    /// Falha ao excluir categoria
+    /// </summary>
+    public sealed record DeleteCategoryFailureAction(Guid CategoryId, string ErrorMessage);
+
+    // ========== CATEGORY TOGGLE OPERATIONS ==========
+
+    /// <summary>
+    /// Solicita alteração de status de ativação de categoria
+    /// </summary>
+    public sealed record ToggleCategoryActivationAction(Guid CategoryId, bool Activate);
+
+    /// <summary>
+    /// Sucesso ao alterar status de ativação
+    /// </summary>
+    public sealed record ToggleCategoryActivationSuccessAction(Guid CategoryId, bool IsActive);
+
+    /// <summary>
+    /// Falha ao alterar status de ativação
+    /// </summary>
+    public sealed record ToggleCategoryActivationFailureAction(Guid CategoryId, string ErrorMessage);
+
+    // ========== SERVICE DELETE OPERATIONS ==========
+
+    /// <summary>
+    /// Solicita exclusão de serviço
+    /// </summary>
+    public sealed record DeleteServiceAction(Guid ServiceId);
+
+    /// <summary>
+    /// Sucesso ao excluir serviço
+    /// </summary>
+    public sealed record DeleteServiceSuccessAction(Guid ServiceId);
+
+    /// <summary>
+    /// Falha ao excluir serviço
+    /// </summary>
+    public sealed record DeleteServiceFailureAction(Guid ServiceId, string ErrorMessage);
+
+    // ========== SERVICE TOGGLE OPERATIONS ==========
+
+    /// <summary>
+    /// Solicita alteração de status de ativação de serviço
+    /// </summary>
+    public sealed record ToggleServiceActivationAction(Guid ServiceId, bool Activate);
+
+    /// <summary>
+    /// Sucesso ao alterar status de ativação de serviço
+    /// </summary>
+    public sealed record ToggleServiceActivationSuccessAction(Guid ServiceId, bool IsActive);
+
+    /// <summary>
+    /// Falha ao alterar status de ativação de serviço
+    /// </summary>
+    public sealed record ToggleServiceActivationFailureAction(Guid ServiceId, string ErrorMessage);
 }

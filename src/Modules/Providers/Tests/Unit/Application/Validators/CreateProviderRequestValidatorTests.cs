@@ -28,13 +28,11 @@ public class CreateProviderRequestValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData(null)]
-    public async Task Validate_WithEmptyUserId_ShouldHaveValidationError(string? userId)
+    [Fact]
+    public async Task Validate_WithEmptyGuidUserId_ShouldHaveValidationError()
     {
         // Arrange
-        var request = CreateValidRequest() with { UserId = userId! };
+        var request = CreateValidRequest() with { UserId = Guid.Empty };
 
         // Act
         var result = await _validator.TestValidateAsync(request);
@@ -42,20 +40,6 @@ public class CreateProviderRequestValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.UserId)
             .WithErrorMessage("UserId is required");
-    }
-
-    [Fact]
-    public async Task Validate_WithInvalidGuidUserId_ShouldHaveValidationError()
-    {
-        // Arrange
-        var request = CreateValidRequest() with { UserId = "invalid-guid" };
-
-        // Act
-        var result = await _validator.TestValidateAsync(request);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.UserId)
-            .WithErrorMessage("UserId must be a valid GUID");
     }
 
     [Theory]
@@ -338,7 +322,7 @@ public class CreateProviderRequestValidatorTests
     {
         return new CreateProviderRequest
         {
-            UserId = Guid.NewGuid().ToString(),
+            UserId = Guid.NewGuid(),
             Name = "Valid Provider Name",
             Type = EProviderType.Individual,
             BusinessProfile = CreateValidBusinessProfile()

@@ -1,0 +1,47 @@
+<Project>
+  <PropertyGroup>
+    <!-- Configuração manual dos caminhos do Aspire quando usando pacotes NuGet locais -->
+    <!-- Workaround para: https://github.com/dotnet/aspire/issues/6789 -->
+    
+    <!-- Detectar diretório raiz da solução (3 níveis acima do projeto AppHost) -->
+    <!-- MSBuildProjectDirectory = .../src/Aspire/MeAjudaAi.AppHost -->
+    <SolutionRoot>$([MSBuild]::NormalizeDirectory($(MSBuildProjectDirectory), '..', '..', '..'))</SolutionRoot>
+    <PackagesRoot>$([MSBuild]::NormalizeDirectory($(SolutionRoot), 'packages'))</PackagesRoot>
+    
+    <!-- Versão do Aspire (sincronizada com global.json) -->
+    <AspireVersion>13.1.0</AspireVersion>
+    
+    <!-- Detectar plataforma e definir RID e extensão de executável -->
+    <!-- Usar $(OS) para Windows, senão detectar via RuntimeInformation ou assumir linux-x64 -->
+    <AspireRid Condition="'$(AspireRid)' == '' AND '$(OS)' == 'Windows_NT'">win-x64</AspireRid>
+    <AspireRid Condition="'$(AspireRid)' == '' AND '$(OS)' != 'Windows_NT' AND '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">osx-x64</AspireRid>
+    <!-- Fallback para Linux se não for Windows nem macOS -->
+    <AspireRid Condition="'$(AspireRid)' == ''">linux-x64</AspireRid>
+    
+    <AspireExeExtension Condition="'$(OS)' == 'Windows_NT'">.exe</AspireExeExtension>
+    <AspireExeExtension Condition="'$(OS)' != 'Windows_NT'"></AspireExeExtension>
+    
+    <!-- DCP (Distributed Control Plane) -->
+    <DcpDir>$([MSBuild]::NormalizeDirectory($(PackagesRoot), 'aspire.hosting.orchestration.$(AspireRid)', $(AspireVersion), 'tools'))</DcpDir>
+    <DcpCliPath>$([MSBuild]::NormalizePath($(DcpDir), 'dcp$(AspireExeExtension)'))</DcpCliPath>
+    
+    <!-- Aspire Dashboard -->
+    <AspireDashboardDir>$([MSBuild]::NormalizeDirectory($(PackagesRoot), 'aspire.dashboard.sdk.$(AspireRid)', $(AspireVersion), 'tools'))</AspireDashboardDir>
+    <AspireDashboardPath>$([MSBuild]::NormalizePath($(AspireDashboardDir), 'Aspire.Dashboard$(AspireExeExtension)'))</AspireDashboardPath>
+    
+    <!-- Propriedades que o Aspire.Hosting valida (sem prefixo Aspire/Dcp) -->
+    <CliPath>$(DcpCliPath)</CliPath>
+    <DashboardPath>$(AspireDashboardDir)</DashboardPath>
+  </PropertyGroup>
+  
+  <Target Name="ValidateAspirePaths" BeforeTargets="Build" Condition="Exists('$(PackagesRoot)')">
+    <Message Text="Aspire Paths Configuration:" Importance="high" />
+    <Message Text="  SolutionRoot: $(SolutionRoot)" Importance="high" />
+    <Message Text="  PackagesRoot: $(PackagesRoot)" Importance="high" />
+    <Message Text="  AspireRid: $(AspireRid)" Importance="high" />
+    <Message Text="  DcpCliPath: $(DcpCliPath)" Importance="high" />
+    <Message Text="  AspireDashboardPath: $(AspireDashboardPath)" Importance="high" />
+    <Warning Condition="!Exists('$(DcpCliPath)')" Text="DCP executable not found at: $(DcpCliPath). Local Aspire packages may not be configured." />
+    <Warning Condition="!Exists('$(AspireDashboardPath)')" Text="Aspire Dashboard not found at: $(AspireDashboardPath). Local Aspire packages may not be configured." />
+  </Target>
+</Project>

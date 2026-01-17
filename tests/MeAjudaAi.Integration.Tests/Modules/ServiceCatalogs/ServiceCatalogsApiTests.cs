@@ -15,6 +15,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 /// </remarks>
 public class ServiceCatalogsApiTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.ServiceCatalogs;
+
     [Fact]
     public async Task ServiceCategoriesEndpoint_WithAuthentication_ShouldReturnValidResponse()
     {

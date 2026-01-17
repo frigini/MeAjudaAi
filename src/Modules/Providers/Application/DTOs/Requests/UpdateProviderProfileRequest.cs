@@ -1,11 +1,11 @@
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 
 namespace MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 
 /// <summary>
 /// Request para atualização do perfil de um prestador de serviços.
 /// </summary>
-public record UpdateProviderProfileRequest : Request
+public record UpdateProviderProfileRequest
 {
     /// <summary>
     /// Nome do prestador.

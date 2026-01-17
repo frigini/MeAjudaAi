@@ -1,18 +1,30 @@
 @page "/providers"
+@attribute [Authorize(Policy = PolicyNames.ProviderManagerPolicy)]
+@using MeAjudaAi.Web.Admin.Authorization
+@using MeAjudaAi.Web.Admin.Constants
+@using MeAjudaAi.Web.Admin.Services
+@using MeAjudaAi.Web.Admin.Helpers
 @inherits FluxorComponent
 @inject IState<ProvidersState> ProvidersState
 @inject IDispatcher Dispatcher
 @inject IDialogService DialogService
-@inject IProvidersApi ProvidersApi
-@inject ISnackbar Snackbar
+@inject ILogger<Providers> Logger
+@inject IPermissionService PermissionService
+@implements IDisposable
 
-<PageTitle>Providers - MeAjudaAi Admin</PageTitle>
+<PageTitle>Provedores - MeAjudaAi Admin</PageTitle>
 
 <div class="d-flex justify-space-between align-center mb-4">
-    <MudText Typo="Typo.h3">Providers</MudText>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@OpenCreateDialog">
-        Novo Provider
-    </MudButton>
+    <MudText Typo="Typo.h3">Provedores</MudText>
+    <AuthorizeView Policy="@PolicyNames.ProviderManagerPolicy">
+        <MudButton Variant="Variant.Filled" 
+                   Color="Color.Primary" 
+                   StartIcon="@Icons.Material.Filled.Add" 
+                   OnClick="@OpenCreateDialog"
+                   AriaLabel="Criar novo provedor">
+            Novo Provedor
+        </MudButton>
+    </AuthorizeView>
 </div>
 
 @if (ProvidersState.Value.IsLoading)
@@ -22,46 +34,82 @@
 
 @if (!string.IsNullOrEmpty(ProvidersState.Value.ErrorMessage))
 {
-    <MudAlert Severity="Severity.Error" Class="mb-4">
-        @ProvidersState.Value.ErrorMessage
+    <MudAlert Severity="Severity.Warning" Class="mb-4">
+        <MudText Typo="Typo.body1">Nenhum provedor encontrado ou erro ao carregar dados.</MudText>
     </MudAlert>
 }
 
 <MudCard>
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudTextField @bind-Value="_searchTerm"
+                          Label="Pesquisar provedores"
+                          Variant="Variant.Outlined"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Immediate="true"
+                          DebounceInterval="300"
+                          OnDebounceIntervalElapsed="OnSearchChanged"
+                          Clearable="true"
+                          AriaLabel="Pesquisar provedores por nome, email ou documento"
+                          Class="mb-4" />
+        </CardHeaderContent>
+    </MudCardHeader>
     <MudCardContent>
         <MudDataGrid T="ModuleProviderDto" 
-                     Items="@ProvidersState.Value.Providers" 
+                     Items="@_filteredProviders" 
                      ReadOnly="true"
                      Dense="true"
                      Hover="true"
+                     Virtualize="true"
+                     FixedHeader="true"
+                     Height="calc(100vh - 400px)"
                      Loading="@ProvidersState.Value.IsLoading">
             <Columns>
                 <PropertyColumn Property="x => x.Id" Title="ID" />
-                <PropertyColumn Property="x => x.ProviderType" Title="Type" />
-                <PropertyColumn Property="x => x.Name" Title="Name" />
-                <PropertyColumn Property="x => x.Document" Title="Document" />
-                <PropertyColumn Property="x => x.Email" Title="Email" />
-                <PropertyColumn Property="x => x.Phone" Title="Phone" />
+                <PropertyColumn Property="x => x.ProviderType" Title="Tipo" />
+                <PropertyColumn Property="x => x.Name" Title="Nome" />
+                <PropertyColumn Property="x => x.Document" Title="Documento" />
+                <PropertyColumn Property="x => x.Email" Title="E-mail" />
+                <PropertyColumn Property="x => x.Phone" Title="Telefone" />
                 <PropertyColumn Property="x => x.VerificationStatus" Title="Status">
                     <CellTemplate>
-                        @if (context.Item.VerificationStatus == VERIFIED_STATUS)
-                        {
-                            <MudChip Color="Color.Success" Size="Size.Small">@context.Item.VerificationStatus</MudChip>
+                        @{
+                            var statusInt = int.TryParse(context.Item.VerificationStatus, out int s) ? s : 0;
                         }
-                        else
-                        {
-                            <MudChip Color="Color.Warning" Size="Size.Small">@context.Item.VerificationStatus</MudChip>
-                        }
+                        <MudChip Color="@VerificationStatus.ToColor(statusInt)" Size="Size.Small">
+                            @VerificationStatus.ToDisplayName(statusInt)
+                        </MudChip>
                     </CellTemplate>
                 </PropertyColumn>
                 <TemplateColumn Title="Ações" Sortable="false">
                     <CellTemplate>
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => OpenEditDialog(context.Item.Id))" Title="Editar" />
-                        <MudIconButton Icon="@Icons.Material.Filled.VerifiedUser" Color="Color.Success" Size="Size.Small" OnClick="@(() => OpenVerifyDialog(context.Item.Id))" Title="Verificar" Disabled="@(context.Item.VerificationStatus == VERIFIED_STATUS)" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => OpenDeleteDialog(context.Item.Id))" Title="Excluir" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                       Color="Color.Primary" 
+                                       Size="Size.Small" 
+                                       OnClick="@(() => OpenEditDialog(context.Item.Id))" 
+                                       Title="Editar" 
+                                       AriaLabel="@($"Editar provedor {context.Item.Name}")" />
+                        <MudIconButton Icon="@Icons.Material.Filled.VerifiedUser" 
+                                       Color="Color.Success" 
+                                       Size="Size.Small" 
+                                       OnClick="@(() => OpenVerifyDialog(context.Item.Id))" 
+                                       Title="Verificar" 
+                                       AriaLabel="@($"Verificar provedor {context.Item.Name}")"
+                                       Disabled="@(context.Item.VerificationStatus == VerificationStatus.Verified.ToString())" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                       Color="Color.Error" 
+                                       Size="Size.Small" 
+                                       OnClick="@(() => OpenDeleteDialog(context.Item.Id))" 
+                                       Title="Excluir" 
+                                       AriaLabel="@($"Excluir provedor {context.Item.Name}")"
+                                       Disabled="@(ProvidersState.Value.IsDeleting && ProvidersState.Value.DeletingProviderId == context.Item.Id)" />
                     </CellTemplate>
                 </TemplateColumn>
             </Columns>
+            <NoRecordsContent>
+                <MudText>Nenhum provedor cadastrado</MudText>
+            </NoRecordsContent>
         </MudDataGrid>
     </MudCardContent>
     <MudCardActions>
@@ -75,13 +123,56 @@
 </MudCard>
 
 @code {
-    private const string VERIFIED_STATUS = "Verified";
+    private string _searchTerm = string.Empty;
+    private IEnumerable<ModuleProviderDto> _filteredProviders = [];
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
         // Carregar providers ao inicializar
         Dispatcher.Dispatch(new LoadProvidersAction());
+        UpdateFilteredProviders();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        
+        if (!firstRender)
+        {
+            UpdateFilteredProviders();
+        }
+    }
+
+    private void OnSearchChanged()
+    {
+        // Debouncing is handled by MudTextField's DebounceInterval property
+        UpdateFilteredProviders();
+        StateHasChanged();
+    }
+
+    private void UpdateFilteredProviders()
+    {
+        // Use memoization to cache filtered results
+        var cacheKey = $"providers_filtered_{_searchTerm}_{ProvidersState.Value.Providers.Count()}";
+        
+        _filteredProviders = PerformanceHelper.Memoize(cacheKey, () =>
+        {
+            var providers = ProvidersState.Value.Providers;
+
+            if (string.IsNullOrWhiteSpace(_searchTerm))
+            {
+                return providers;
+            }
+
+            var searchLower = _searchTerm.ToLowerInvariant();
+            return providers.Where(p =>
+                (p.Name?.Contains(searchLower, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+                (p.Email?.Contains(searchLower, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+                (p.Document?.Contains(searchLower, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+                (p.Phone?.Contains(searchLower, StringComparison.InvariantCultureIgnoreCase) ?? false)
+            ).ToList();
+        }, TimeSpan.FromSeconds(30));
     }
 
     private void OnPageChanged(int page)
@@ -91,7 +182,7 @@
 
     private async Task OpenCreateDialog()
     {
-        var dialog = await DialogService.ShowAsync<CreateProviderDialog>("Novo Provider");
+        var dialog = await DialogService.ShowAsync<CreateProviderDialog>("Novo Provedor");
         var result = await dialog.Result;
 
         if (!result.Canceled)
@@ -108,7 +199,7 @@
             { x => x.ProviderId, providerId }
         };
         
-        var dialog = await DialogService.ShowAsync<EditProviderDialog>("Editar Provider", parameters);
+        var dialog = await DialogService.ShowAsync<EditProviderDialog>("Editar Provedor", parameters);
         var result = await dialog.Result;
 
         if (!result.Canceled)
@@ -124,7 +215,7 @@
             { x => x.ProviderId, providerId }
         };
         
-        var dialog = await DialogService.ShowAsync<VerifyProviderDialog>("Verificar Provider", parameters);
+        var dialog = await DialogService.ShowAsync<VerifyProviderDialog>("Verificar Provedor", parameters);
         var result = await dialog.Result;
 
         if (!result.Canceled)
@@ -137,35 +228,20 @@
     {
         var result = await DialogService.ShowMessageBox(
             "Confirmar Exclusão",
-            "Tem certeza que deseja excluir este provider? Esta ação não pode ser desfeita.",
+            "Tem certeza que deseja excluir este provedor? Esta ação não pode ser desfeita.",
             yesText: "Excluir",
             cancelText: "Cancelar");
 
         if (result == true)
         {
-            await DeleteProvider(providerId);
+            // Dispatch action - Effect irá lidar com a API call
+            Dispatcher.Dispatch(new DeleteProviderAction(providerId));
         }
     }
 
-    private async Task DeleteProvider(Guid providerId)
+    public void Dispose()
     {
-        try
-        {
-            var result = await ProvidersApi.DeleteProviderAsync(providerId);
-            
-            if (result.IsSuccess)
-            {
-                Snackbar.Add("Provider excluído com sucesso!", Severity.Success);
-                Dispatcher.Dispatch(new LoadProvidersAction());
-            }
-            else
-            {
-                Snackbar.Add($"Erro ao excluir provider: {result.Error?.Message ?? "Erro desconhecido"}", Severity.Error);
-            }
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Erro ao excluir provider: {ex.Message}", Severity.Error);
-        }
+        // Clear memoization cache when component is disposed
+        PerformanceHelper.ClearMemoizationCache();
     }
 }

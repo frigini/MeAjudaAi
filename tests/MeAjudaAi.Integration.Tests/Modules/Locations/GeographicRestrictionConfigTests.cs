@@ -12,6 +12,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 [Collection("Integration")]
 public sealed class GeographicRestrictionConfigTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.None;
     protected override bool UseMockGeographicValidation => false;
 
     [Fact]

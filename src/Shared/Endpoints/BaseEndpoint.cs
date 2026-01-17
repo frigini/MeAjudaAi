@@ -1,6 +1,8 @@
 using Asp.Versioning;
-using MeAjudaAi.Shared.Contracts;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Shared.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;

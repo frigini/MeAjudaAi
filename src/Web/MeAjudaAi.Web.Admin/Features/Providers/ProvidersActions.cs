@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs;
+using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 
 namespace MeAjudaAi.Web.Admin.Features.Providers;
 
@@ -41,4 +41,19 @@ public static class ProvidersActions
     /// Action para ir para uma página específica
     /// </summary>
     public record GoToPageAction(int PageNumber);
+
+    /// <summary>
+    /// Action para deletar um provider
+    /// </summary>
+    public record DeleteProviderAction(Guid ProviderId);
+
+    /// <summary>
+    /// Action disparada quando provider é deletado com sucesso
+    /// </summary>
+    public record DeleteProviderSuccessAction(Guid ProviderId);
+
+    /// <summary>
+    /// Action disparada quando falha ao deletar provider
+    /// </summary>
+    public record DeleteProviderFailureAction(Guid ProviderId, string ErrorMessage);
 }

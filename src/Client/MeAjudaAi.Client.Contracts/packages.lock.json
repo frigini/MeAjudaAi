@@ -14,7 +14,7 @@
         "resolved": "10.18.0.131500",
         "contentHash": "Rbad71/k5e8MfG81i03Yh2YQQgovIdmyhWcLRevrcW4h9i1DUB3kKX9O1QiOGXcULLjkTdRAXdR8A8XtinL3Pg=="
       },
-      "meajudaai.shared.contracts": {
+      "meajudaai.contracts": {
         "type": "Project",
         "dependencies": {
           "FluentValidation": "[12.1.1, )"

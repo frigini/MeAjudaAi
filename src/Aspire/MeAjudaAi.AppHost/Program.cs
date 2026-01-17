@@ -12,16 +12,23 @@ internal static class Program
 
         var isTestingEnv = EnvironmentHelpers.IsTesting(builder);
 
+        // Log ambiente detectado para debug
+        var detectedEnv = EnvironmentHelpers.GetEnvironmentName(builder);
+        Console.WriteLine($"🔍 Detected environment: '{detectedEnv}' (IsTesting: {isTestingEnv}, IsDevelopment: {EnvironmentHelpers.IsDevelopment(builder)}, IsProduction: {EnvironmentHelpers.IsProduction(builder)})");
+
         if (isTestingEnv)
         {
+            Console.WriteLine("⚙️  Configuring TEST environment");
             ConfigureTestingEnvironment(builder);
         }
         else if (EnvironmentHelpers.IsDevelopment(builder))
         {
+            Console.WriteLine("⚙️  Configuring DEVELOPMENT environment");
             ConfigureDevelopmentEnvironment(builder);
         }
         else if (EnvironmentHelpers.IsProduction(builder))
         {
+            Console.WriteLine("⚙️  Configuring PRODUCTION environment");
             ConfigureProductionEnvironment(builder);
         }
         else
@@ -63,9 +70,6 @@ internal static class Program
             options.Username = testDbUser;
             options.Password = testDbPassword;
         });
-
-        // Aplicar migrations automaticamente (Testing também)
-        postgresql.MainDatabase.WithMigrations();
 
         var redis = builder.AddRedis("redis");
 
@@ -110,8 +114,9 @@ internal static class Program
             options.IncludePgAdmin = includePgAdmin;
         });
 
-        // Aplicar migrations automaticamente
-        postgresql.MainDatabase.WithMigrations();
+        // NOTA: Migrations são executadas pelo ApiService após inicialização, não pelo AppHost
+        // O AppHost não tem acesso direto às connection strings gerenciadas pelo Aspire
+        // postgresql.MainDatabase.WithMigrations();
 
         var redis = builder.AddRedis("redis");
 
@@ -119,50 +124,23 @@ internal static class Program
 
         var keycloak = builder.AddMeAjudaAiKeycloak(options =>
         {
-            // OBRIGATÓRIO: AdminUsername e AdminPassword
-            options.AdminUsername = builder.Configuration["Keycloak:AdminUsername"]
-                                   ?? Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_USERNAME")
-                                   ?? "admin"; // Fallback apenas para desenvolvimento local
-            
-            var adminPassword = builder.Configuration["Keycloak:AdminPassword"]
-                                ?? Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_PASSWORD");
-            var isKeycloakCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
-            if (string.IsNullOrEmpty(adminPassword))
-            {
-                if (isKeycloakCI)
-                {
-                    Console.Error.WriteLine("ERROR: KEYCLOAK_ADMIN_PASSWORD environment variable is required in CI but not set.");
-                    Console.Error.WriteLine("Please set KEYCLOAK_ADMIN_PASSWORD to the Keycloak admin password in your CI environment.");
-                    Environment.Exit(1);
-                }
-                adminPassword = "admin123"; // Fallback apenas para desenvolvimento local
-            }
-            options.AdminPassword = adminPassword;
-            options.DatabaseHost = builder.Configuration["Keycloak:DatabaseHost"]
-                                  ?? Environment.GetEnvironmentVariable("KEYCLOAK_DB_HOST")
-                                  ?? "postgres-local";
-            options.DatabasePort = builder.Configuration["Keycloak:DatabasePort"]
-                                  ?? Environment.GetEnvironmentVariable("KEYCLOAK_DB_PORT")
-                                  ?? "5432";
-            options.DatabaseName = builder.Configuration["Keycloak:DatabaseName"]
-                                  ?? Environment.GetEnvironmentVariable("KEYCLOAK_DB_NAME")
-                                  ?? mainDatabase;
-            options.DatabaseSchema = builder.Configuration["Keycloak:DatabaseSchema"]
-                                     ?? Environment.GetEnvironmentVariable("KEYCLOAK_DB_SCHEMA")
-                                     ?? "identity";
-            options.DatabaseUsername = builder.Configuration["Keycloak:DatabaseUsername"]
-                                       ?? Environment.GetEnvironmentVariable("KEYCLOAK_DB_USER")
-                                       ?? dbUsername;
-            options.DatabasePassword = builder.Configuration["Keycloak:DatabasePassword"]
-                                       ?? Environment.GetEnvironmentVariable("KEYCLOAK_DB_PASSWORD")
-                                       ?? dbPassword;
-
-            var exposeHttpStr = builder.Configuration["Keycloak:ExposeHttpEndpoint"]
-                               ?? Environment.GetEnvironmentVariable("KEYCLOAK_EXPOSE_HTTP");
-            options.ExposeHttpEndpoint = !bool.TryParse(exposeHttpStr, out var exposeResult) || exposeResult;
+            options.AdminUsername = "admin";
+            options.AdminPassword = "admin123";
+            // Na rede Docker do Aspire, usar o nome do recurso PostgreSQL como hostname
+            options.DatabaseHost = "postgres-local";
+            options.DatabasePort = "5432";
+            options.DatabaseName = mainDatabase;
+            options.DatabaseSchema = "identity";
+            options.DatabaseUsername = dbUsername;
+            options.DatabasePassword = dbPassword;
+            // Importar realm de desenvolvimento automaticamente
+            options.ImportRealm = "/opt/keycloak/data/import/meajudaai-realm.dev.json";
         });
 
-        _ = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
+        // Garantir que Keycloak aguarde o Postgres estar pronto
+        keycloak.Keycloak.WaitFor(postgresql.MainDatabase);
+
+        var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
             .WithReference(postgresql.MainDatabase, "DefaultConnection")
             .WithReference(redis)
             .WaitFor(postgresql.MainDatabase)
@@ -176,9 +154,8 @@ internal static class Program
         // Admin Portal (Blazor WASM)
         _ = builder.AddProject<Projects.MeAjudaAi_Web_Admin>("admin-portal")
             .WithExternalHttpEndpoints()
-            .WithEnvironment("ApiBaseUrl", "https://localhost:7001")
-            .WithEnvironment("Keycloak__Authority", "http://localhost:8080/realms/meajudaai")
-            .WithEnvironment("Keycloak__ClientId", "admin-portal");
+            .WaitFor(apiService)
+            .WaitFor(keycloak.Keycloak);
     }
 
     private static void ConfigureProductionEnvironment(IDistributedApplicationBuilder builder)

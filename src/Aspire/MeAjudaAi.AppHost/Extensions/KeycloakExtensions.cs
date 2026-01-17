@@ -1,3 +1,4 @@
+using MeAjudaAi.AppHost.Helpers;
 using MeAjudaAi.AppHost.Options;
 using MeAjudaAi.AppHost.Results;
 
@@ -29,13 +30,21 @@ public static class MeAjudaAiKeycloakExtensions
                 "Set via configuration callback or KEYCLOAK_ADMIN/KEYCLOAK_ADMIN_PASSWORD environment variables.");
         }
 
-        Console.WriteLine($"[Keycloak] Configurando Keycloak para desenvolvimento...");
+        // Validar senha do banco de dados em ambientes não-desenvolvimento
+        var isDevelopment = EnvironmentHelpers.IsDevelopment(builder) || EnvironmentHelpers.IsTesting(builder);
+        options.Validate(isDevelopment);
+
+        Console.WriteLine($"[Keycloak] Configuring Keycloak for development...");
         Console.WriteLine($"[Keycloak] Database Schema: {options.DatabaseSchema}");
         Console.WriteLine($"[Keycloak] Admin User: {options.AdminUsername}");
+        Console.WriteLine($"[Keycloak] Database Host: {options.DatabaseHost}");
 
-        var keycloak = builder.AddKeycloak("keycloak")
-            .WithDataVolume()
+        // AddKeycloak já configura porta 8080 (HTTP) e 9000 (management) automaticamente
+        // Usar porta fixa para permitir acesso consistente em desenvolvimento
+        // NOTA: Sem .WithDataVolume() em desenvolvimento para sempre iniciar limpo
+        var keycloak = builder.AddKeycloak("keycloak", port: 8080)
             // Configurar banco de dados PostgreSQL com schema 'identity'
+            // Na rede Docker do Aspire, containers se comunicam usando o nome do recurso
             .WithEnvironment("KC_DB", "postgres")
             .WithEnvironment("KC_DB_URL", $"jdbc:postgresql://{options.DatabaseHost}:{options.DatabasePort}/{options.DatabaseName}?currentSchema={options.DatabaseSchema}")
             .WithEnvironment("KC_DB_USERNAME", options.DatabaseUsername)
@@ -51,25 +60,50 @@ public static class MeAjudaAiKeycloakExtensions
             .WithEnvironment("KC_HEALTH_ENABLED", "true")
             .WithEnvironment("KC_METRICS_ENABLED", "true");
 
+        // NOTA: Aspire.Hosting.Keycloak já configura automaticamente 'start-dev' em RunMode e 'start' em PublishMode
+        // Não precisamos chamar WithArgs() manualmente
+
         // Importar realm na inicialização (apenas se especificado)
         if (!string.IsNullOrEmpty(options.ImportRealm))
         {
+            // Montar volume com o realm para importação
+            // Usar caminho relativo ao diretório do AppHost (onde está o .csproj)
+            var appHostDir = AppContext.BaseDirectory;
+            var realmPath = Path.GetFullPath(Path.Combine(appHostDir, "..", "..", "..", "..", "..", "..", "infrastructure", "keycloak", "realms"));
+            
+            // Validar que o path existe
+            if (!Directory.Exists(realmPath))
+            {
+                throw new InvalidOperationException($"Realm directory not found: {realmPath}");
+            }
+            
+            var realmFile = Path.Combine(realmPath, "meajudaai-realm.dev.json");
+            if (!File.Exists(realmFile))
+            {
+                throw new InvalidOperationException($"Realm file not found: {realmFile}");
+            }
+            
+            // Montar tema customizado
+            var themePath = Path.GetFullPath(Path.Combine(appHostDir, "..", "..", "..", "..", "..", "..", "infrastructure", "keycloak", "themes"));
+            if (Directory.Exists(themePath))
+            {
+                keycloak = keycloak.WithBindMount(themePath, "/opt/keycloak/themes");
+                Console.WriteLine($"[Keycloak] Theme Path: {themePath}");
+            }
+            
             keycloak = keycloak
-                .WithEnvironment("KC_IMPORT", options.ImportRealm)
-                .WithArgs("start-dev", "--import-realm");
-        }
-        else
-        {
-            keycloak = keycloak.WithArgs("start-dev");
-        }
-
-        if (options.ExposeHttpEndpoint)
-        {
-            keycloak = keycloak.WithHttpEndpoint(targetPort: 8080, name: "keycloak-http");
+                .WithBindMount(realmPath, "/opt/keycloak/data/import")
+                .WithEnvironment("KC_IMPORT", options.ImportRealm);
+            
+            Console.WriteLine($"[Keycloak] Import Realm: {options.ImportRealm}");
+            Console.WriteLine($"[Keycloak] Realm Path: {realmPath}");
+            Console.WriteLine($"[Keycloak] Realm File: {realmFile}");
         }
 
-        Console.WriteLine($"[Keycloak] ✅ Keycloak configurado:");
-        Console.WriteLine($"[Keycloak]    Porta HTTP: 8080");
+        // Não adicionar endpoint HTTP duplicado - AddKeycloak() já faz isso
+
+        Console.WriteLine($"[Keycloak] ✅ Keycloak configured:");
+        Console.WriteLine($"[Keycloak]    HTTP Port: 8080");
         Console.WriteLine($"[Keycloak]    Schema: {options.DatabaseSchema}");
 
         return new MeAjudaAiKeycloakResult
@@ -87,10 +121,6 @@ public static class MeAjudaAiKeycloakExtensions
         this IDistributedApplicationBuilder builder,
         Action<MeAjudaAiKeycloakOptions>? configure = null)
     {
-        // Registrar parâmetros secretos obrigatórios
-        var keycloakAdminPassword = builder.AddParameter("keycloak-admin-password", secret: true);
-        var postgresPassword = builder.AddParameter("postgres-password", secret: true);
-
         // Verificar se as variáveis de ambiente obrigatórias estão definidas
         var adminPasswordFromEnv = Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_PASSWORD");
         var dbPasswordFromEnv = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
@@ -119,8 +149,15 @@ public static class MeAjudaAiKeycloakExtensions
         };
         configure?.Invoke(options);
 
-        Console.WriteLine($"[Keycloak] Configurando Keycloak para produção...");
+        // Validar senha do banco de dados em produção (sempre false para este método)
+        options.Validate(isDevelopment: false);
+
+        Console.WriteLine($"[Keycloak] Configuring Keycloak for production...");
         Console.WriteLine($"[Keycloak] Database Schema: {options.DatabaseSchema}");
+
+        // Registrar parâmetros secretos com valores validados
+        var keycloakAdminPassword = builder.AddParameter("keycloak-admin-password", options.AdminPassword, secret: true);
+        var postgresPassword = builder.AddParameter("postgres-password", options.DatabasePassword, secret: true);
 
         var keycloak = builder.AddKeycloak("keycloak")
             .WithDataVolume()
@@ -147,14 +184,24 @@ public static class MeAjudaAiKeycloakExtensions
         if (!options.ExposeHttpEndpoint)
         {
             if (string.IsNullOrWhiteSpace(resolvedHostname))
-                throw new InvalidOperationException("KEYCLOAK_HOSTNAME (ou options.Hostname) é obrigatório em produção com hostname estrito.");
+                throw new InvalidOperationException("KEYCLOAK_HOSTNAME (or options.Hostname) is required in production with strict hostname.");
             keycloak = keycloak.WithEnvironment("KC_HOSTNAME", resolvedHostname);
         }
 
         // Importar realm na inicialização (apenas se especificado)
         if (!string.IsNullOrEmpty(options.ImportRealm))
         {
+            // Mount realm file for import
+            var appHostDir = AppContext.BaseDirectory;
+            var realmPath = Path.GetFullPath(Path.Combine(appHostDir, "..", "..", "..", "..", "..", "..", "infrastructure", "keycloak", "realms"));
+            
+            if (!Directory.Exists(realmPath))
+            {
+                throw new InvalidOperationException($"Realm directory not found: {realmPath}");
+            }
+            
             keycloak = keycloak
+                .WithBindMount(realmPath, "/opt/keycloak/data/import")
                 .WithEnvironment("KC_IMPORT", options.ImportRealm)
                 .WithArgs("start", "--import-realm", "--optimized");
         }
@@ -174,7 +221,7 @@ public static class MeAjudaAiKeycloakExtensions
             : $"https://{resolvedHostname}";
         var adminUrl = $"{authUrl}/admin";
 
-        Console.WriteLine($"[Keycloak] ✅ Keycloak produção configurado:");
+        Console.WriteLine($"[Keycloak] ✅ Keycloak production configured:");
         Console.WriteLine($"[Keycloak]    Auth URL: {authUrl}");
         Console.WriteLine($"[Keycloak]    Admin URL: {adminUrl}");
         Console.WriteLine($"[Keycloak]    Schema: {options.DatabaseSchema}");

@@ -14,6 +14,12 @@ namespace MeAjudaAi.Integration.Tests.Modules.Documents;
 /// </summary>
 public class DocumentsIntegrationTests : BaseApiTest
 {
+    /// <summary>
+    /// Este teste precisa apenas do módulo Documents (não precisa de migrations).
+    /// Otimização: aplica apenas migrations do Documents.
+    /// </summary>
+    protected override TestModule RequiredModules => TestModule.Documents;
+
     [Fact]
     public void DocumentRepository_ShouldBeRegisteredInDI()
     {

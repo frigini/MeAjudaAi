@@ -1,7 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Integration.Tests.Infrastructure;
-using MeAjudaAi.Shared.Contracts.Modules.Locations;
+using MeAjudaAi.Contracts.Modules.Locations;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -15,6 +15,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 [Collection("Integration")]
 public sealed class CepProvidersUnavailabilityTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.None;
 
     [Fact]
     public async Task LookupCep_WhenViaCepReturns500_ShouldFallbackToBrasilApi()

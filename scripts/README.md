@@ -4,6 +4,59 @@ Scripts PowerShell essenciais para desenvolvimento e operações da aplicação.
 
 ---
 
+## ⚡ Scripts Principais (Uso Diário)
+
+### 🚀 `dev.ps1` - Iniciar Desenvolvimento
+**Descrição:** Inicia o ambiente de desenvolvimento completo via Aspire AppHost.
+
+**Uso:**
+```powershell
+# Iniciar desenvolvimento (modo normal)
+.\scripts\dev.ps1
+
+# Modo simples (sem serviços adicionais)
+.\scripts\dev.ps1 -Simple
+```
+
+**O que faz:**
+- ✅ Verifica Docker e .NET SDK
+- ✅ Restaura dependências NuGet
+- ✅ Inicia Aspire AppHost
+- ✅ Levanta todos os containers (PostgreSQL, Redis, Keycloak, RabbitMQ)
+- ✅ Inicia API Backend e Admin Portal Blazor
+
+**URLs após execução:**
+- Aspire Dashboard: https://localhost:17063
+- API Backend: https://localhost:7524/swagger
+- Admin Portal: Veja no Aspire Dashboard
+- Keycloak: http://localhost:8080
+
+---
+
+### ⚙️ `setup.ps1` - Setup Inicial
+**Descrição:** Configura o ambiente de desenvolvimento do zero (executar uma vez).
+
+**Uso:**
+```powershell
+# Setup completo
+.\scripts\setup.ps1
+
+# Setup apenas para desenvolvimento (sem Azure/Cloud)
+.\scripts\setup.ps1 -DevOnly
+
+# Com logs detalhados
+.\scripts\setup.ps1 -Verbose
+```
+
+**O que faz:**
+- ✅ Verifica pré-requisitos (.NET, Docker, Git)
+- ✅ Restaura dependências NuGet
+- ✅ Compila a solução
+- ✅ Exibe instruções para configurar Keycloak
+- ✅ Lista próximos passos
+
+---
+
 ## 📋 Scripts Disponíveis
 
 ### 🗄️ Banco de Dados e Migrations

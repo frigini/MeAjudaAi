@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.ServiceCategory;
 
-public sealed record UpdateServiceCategoryRequest : Request
+public sealed record UpdateServiceCategoryRequest
 {
     [Required]
     [MaxLength(100)]

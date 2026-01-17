@@ -6,14 +6,16 @@ using Xunit;
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 
 /// <summary>
-/// Integration tests for IBGE service unavailability scenarios.
-/// Validates that the geographic restriction middleware properly handles IBGE failures
-/// by falling back to simple validation (city/state name matching).
-/// Uses real IGeographicValidationService with WireMock stubs for IBGE API.
+/// Testes de integração para cenários de indisponibilidade do serviço IBGE.
+/// Valida que o middleware de restrição geográfica trata corretamente falhas do IBGE
+/// fazendo fallback para validação simples (correspondência de nome de cidade/estado).
+/// Usa IGeographicValidationService real com stubs WireMock para a API do IBGE.
 /// </summary>
 [Collection("Integration")]
 public sealed class IbgeUnavailabilityTests : BaseApiTest
 {
+    protected override TestModule RequiredModules => TestModule.Locations | TestModule.Providers;
+
     // Override to use real IBGE service with WireMock stubs instead of mock
     protected override bool UseMockGeographicValidation => false;
 
@@ -97,10 +99,6 @@ public sealed class IbgeUnavailabilityTests : BaseApiTest
         var content = await response.Content.ReadAsStringAsync();
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.UnavailableForLegalReasons,
             $"Expected 451 but got {(int)response.StatusCode}. Response body: {content}");
-
-        // Only validate payload structure if status code is correct
-        if (response.StatusCode != System.Net.HttpStatusCode.UnavailableForLegalReasons)
-            return;
 
         // Verify error payload structure
         var json = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);

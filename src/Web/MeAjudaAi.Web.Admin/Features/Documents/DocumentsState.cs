@@ -1,5 +1,5 @@
 using Fluxor;
-using MeAjudaAi.Shared.Contracts.Modules.Documents.DTOs;
+using MeAjudaAi.Contracts.Modules.Documents.DTOs;
 
 namespace MeAjudaAi.Web.Admin.Features.Documents;
 
@@ -34,4 +34,24 @@ public sealed record DocumentsState
     /// Indica se houve erro
     /// </summary>
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
+
+    /// <summary>
+    /// Indica se está excluindo um documento
+    /// </summary>
+    public bool IsDeleting { get; init; }
+
+    /// <summary>
+    /// ID do documento sendo excluído
+    /// </summary>
+    public Guid? DeletingDocumentId { get; init; }
+
+    /// <summary>
+    /// Indica se está solicitando verificação
+    /// </summary>
+    public bool IsRequestingVerification { get; init; }
+
+    /// <summary>
+    /// ID do documento sendo verificado
+    /// </summary>
+    public Guid? VerifyingDocumentId { get; init; }
 }

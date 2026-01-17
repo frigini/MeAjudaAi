@@ -88,4 +88,46 @@ public static class ProvidersReducers
 
         return state with { CurrentPage = action.PageNumber };
     }
+
+    /// <summary>
+    /// Reducer para DeleteProviderAction: marca estado como deletando
+    /// </summary>
+    [ReducerMethod]
+    public static ProvidersState ReduceDeleteProviderAction(ProvidersState state, DeleteProviderAction action)
+    {
+        return state with
+        {
+            IsDeleting = true,
+            DeletingProviderId = action.ProviderId,
+            ErrorMessage = null
+        };
+    }
+
+    /// <summary>
+    /// Reducer para DeleteProviderSuccessAction: limpa estado de deleção
+    /// </summary>
+    [ReducerMethod]
+    public static ProvidersState ReduceDeleteProviderSuccessAction(ProvidersState state, DeleteProviderSuccessAction action)
+    {
+        return state with
+        {
+            IsDeleting = false,
+            DeletingProviderId = null,
+            ErrorMessage = null
+        };
+    }
+
+    /// <summary>
+    /// Reducer para DeleteProviderFailureAction: armazena erro e limpa estado de deleção
+    /// </summary>
+    [ReducerMethod]
+    public static ProvidersState ReduceDeleteProviderFailureAction(ProvidersState state, DeleteProviderFailureAction action)
+    {
+        return state with
+        {
+            IsDeleting = false,
+            DeletingProviderId = null,
+            ErrorMessage = action.ErrorMessage
+        };
+    }
 }

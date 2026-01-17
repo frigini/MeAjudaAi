@@ -1,14 +1,15 @@
 @page "/categories"
+@attribute [Authorize(Policy = PolicyNames.CatalogManagerPolicy)]
+@using MeAjudaAi.Web.Admin.Authorization
+@using MeAjudaAi.Web.Admin.Constants
 @using Fluxor
 @using MeAjudaAi.Web.Admin.Features.ServiceCatalogs
 @inherits Fluxor.Blazor.Web.Components.FluxorComponent
 @inject IState<ServiceCatalogsState> ServiceCatalogsState
 @inject IDispatcher Dispatcher
 @inject IDialogService DialogService
-@inject ISnackbar Snackbar
-@inject IServiceCatalogsApi ServiceCatalogsApi
 
-<PageTitle>Categories - MeAjudaAi Admin</PageTitle>
+<PageTitle>Categorias - MeAjudaAi Admin</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudText Typo="Typo.h4" Class="mb-4">
@@ -18,8 +19,8 @@
 
     @if (ServiceCatalogsState.Value.HasError)
     {
-        <MudAlert Severity="Severity.Error" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => Dispatcher.Dispatch(new ServiceCatalogsActions.ClearErrorAction()))">
-            @ServiceCatalogsState.Value.ErrorMessage
+        <MudAlert Severity="Severity.Warning" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => Dispatcher.Dispatch(new ServiceCatalogsActions.ClearErrorAction()))">
+            <MudText Typo="Typo.body1">Nenhuma categoria encontrada ou erro ao carregar dados.</MudText>
         </MudAlert>
     }
 
@@ -48,8 +49,8 @@
                     <PropertyColumn Property="x => x.DisplayOrder" Title="Ordem" />
                     <PropertyColumn Property="x => x.IsActive" Title="Status">
                         <CellTemplate>
-                            <MudChip Size="Size.Small" Color="@(context.Item.IsActive ? Color.Success : Color.Default)">
-                                @(context.Item.IsActive ? "Ativa" : "Inativa")
+                            <MudChip Size="Size.Small" Color="@ActivationStatus.ToColor(context.Item.IsActive)">
+                                @ActivationStatus.ToDisplayName(context.Item.IsActive)
                             </MudChip>
                         </CellTemplate>
                     </PropertyColumn>
@@ -66,7 +67,8 @@
                                                Color="Color.Warning" 
                                                Size="Size.Small"
                                                Title="Desativar"
-                                               OnClick="@(() => ToggleActivation(context.Item.Id, false))" />
+                                               OnClick="@(() => ToggleActivation(context.Item.Id, false))"
+                                               Disabled="@(ServiceCatalogsState.Value.IsTogglingCategory && ServiceCatalogsState.Value.TogglingCategoryId == context.Item.Id)" />
                             }
                             else
                             {
@@ -74,13 +76,15 @@
                                                Color="Color.Success" 
                                                Size="Size.Small"
                                                Title="Ativar"
-                                               OnClick="@(() => ToggleActivation(context.Item.Id, true))" />
+                                               OnClick="@(() => ToggleActivation(context.Item.Id, true))"
+                                               Disabled="@(ServiceCatalogsState.Value.IsTogglingCategory && ServiceCatalogsState.Value.TogglingCategoryId == context.Item.Id)" />
                             }
                             
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                            Color="Color.Error" 
                                            Size="Size.Small"
-                                           OnClick="@(() => DeleteCategory(context.Item.Id))" />
+                                           OnClick="@(() => DeleteCategory(context.Item.Id))"
+                                           Disabled="@(ServiceCatalogsState.Value.IsDeletingCategory && ServiceCatalogsState.Value.DeletingCategoryId == context.Item.Id)" />
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>
@@ -141,19 +145,7 @@
 
     private async Task ToggleActivation(Guid categoryId, bool activate)
     {
-        var result = activate 
-            ? await ServiceCatalogsApi.ActivateCategoryAsync(categoryId)
-            : await ServiceCatalogsApi.DeactivateCategoryAsync(categoryId);
-
-        if (result.IsSuccess)
-        {
-            Snackbar.Add($"Categoria {(activate ? "ativada" : "desativada")} com sucesso", Severity.Success);
-            Dispatcher.Dispatch(new ServiceCatalogsActions.UpdateCategoryActiveStatusAction(categoryId, activate));
-        }
-        else
-        {
-            Snackbar.Add($"Erro: {result.Error?.Message}", Severity.Error);
-        }
+        Dispatcher.Dispatch(new ServiceCatalogsActions.ToggleCategoryActivationAction(categoryId, activate));
     }
 
     private async Task DeleteCategory(Guid categoryId)
@@ -163,18 +155,9 @@
             "Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita.",
             yesText: "Excluir", cancelText: "Cancelar");
 
-        if (confirm != true) return;
-
-        var result = await ServiceCatalogsApi.DeleteCategoryAsync(categoryId);
-
-        if (result.IsSuccess)
+        if (confirm == true)
         {
-            Snackbar.Add("Categoria excluída com sucesso", Severity.Success);
-            Dispatcher.Dispatch(new ServiceCatalogsActions.RemoveCategoryAction(categoryId));
-        }
-        else
-        {
-            Snackbar.Add($"Erro: {result.Error?.Message}", Severity.Error);
+            Dispatcher.Dispatch(new ServiceCatalogsActions.DeleteCategoryAction(categoryId));
         }
     }
 }

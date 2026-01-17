@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Contracts.Modules.Documents.DTOs;
+using MeAjudaAi.Contracts.Modules.Documents.DTOs;
 
 namespace MeAjudaAi.Web.Admin.Features.Documents;
 
@@ -41,4 +41,36 @@ public static class DocumentsActions
     /// Atualiza status de documento (pós-verify)
     /// </summary>
     public sealed record UpdateDocumentStatusAction(Guid DocumentId, string NewStatus);
+
+    // Delete Document Actions
+    /// <summary>
+    /// Solicita exclusão de documento
+    /// </summary>
+    public sealed record DeleteDocumentAction(Guid ProviderId, Guid DocumentId);
+
+    /// <summary>
+    /// Sucesso ao excluir documento
+    /// </summary>
+    public sealed record DeleteDocumentSuccessAction(Guid DocumentId);
+
+    /// <summary>
+    /// Falha ao excluir documento
+    /// </summary>
+    public sealed record DeleteDocumentFailureAction(Guid DocumentId, string ErrorMessage);
+
+    // Request Verification Actions
+    /// <summary>
+    /// Solicita verificação de documento
+    /// </summary>
+    public sealed record RequestVerificationAction(Guid ProviderId, Guid DocumentId);
+
+    /// <summary>
+    /// Sucesso ao solicitar verificação
+    /// </summary>
+    public sealed record RequestVerificationSuccessAction(Guid DocumentId);
+
+    /// <summary>
+    /// Falha ao solicitar verificação
+    /// </summary>
+    public sealed record RequestVerificationFailureAction(Guid DocumentId, string ErrorMessage);
 }

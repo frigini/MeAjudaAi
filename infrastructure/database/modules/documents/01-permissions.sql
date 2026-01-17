@@ -2,31 +2,41 @@
 -- Grant permissions for documents module
 
 -- Create documents schema if it doesn't exist
-CREATE SCHEMA IF NOT EXISTS documents;
+-- CREATE SCHEMA IF NOT EXISTS documents; -- DISABLED: Schema created by EF Core
 
 -- Set explicit schema ownership
-ALTER SCHEMA documents OWNER TO documents_owner;
+-- ALTER SCHEMA documents OWNER TO documents_owner; -- DISABLED: Set after EF creates schema
 
--- Grant schema usage and permissions for documents_role
-GRANT USAGE ON SCHEMA documents TO documents_role;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA documents TO documents_role;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA documents TO documents_role;
-
--- Set default privileges for future tables and sequences created by documents_owner
-ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO documents_role;
-ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT USAGE, SELECT ON SEQUENCES TO documents_role;
-
--- Set default search path for documents_role
-ALTER ROLE documents_role SET search_path = documents, public;
-
--- Grant cross-schema permissions to app role
-GRANT USAGE ON SCHEMA documents TO meajudaai_app_role;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA documents TO meajudaai_app_role;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA documents TO meajudaai_app_role;
-
--- Set default privileges for app role on objects created by documents_owner
-ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO meajudaai_app_role;
-ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT USAGE, SELECT ON SEQUENCES TO meajudaai_app_role;
+-- Grant permissions only if schema exists (will be created by EF Core)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'documents')
+       AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'documents_role')
+       AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'meajudaai_app_role')
+       AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'documents_owner') THEN
+        -- Grant schema usage and permissions for documents_role
+        GRANT USAGE ON SCHEMA documents TO documents_role;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA documents TO documents_role;
+        GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA documents TO documents_role;
+        
+        -- Grant cross-schema permissions to app role
+        GRANT USAGE ON SCHEMA documents TO meajudaai_app_role;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA documents TO meajudaai_app_role;
+        GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA documents TO meajudaai_app_role;
+        
+        -- Set default privileges for future tables and sequences created by documents_owner
+        ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO documents_role;
+        ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT USAGE, SELECT ON SEQUENCES TO documents_role;
+        
+        -- Set default privileges for app role on objects created by documents_owner
+        ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO meajudaai_app_role;
+        ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT USAGE, SELECT ON SEQUENCES TO meajudaai_app_role;
+        
+        -- Set default search path for documents_role
+        ALTER ROLE documents_role SET search_path = documents, public;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 -- ============================
 -- Hangfire Schema Permissions
@@ -35,32 +45,58 @@ ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT USAG
 -- Create hangfire schema if it doesn't exist (for background jobs storage)
 CREATE SCHEMA IF NOT EXISTS hangfire;
 
--- Set explicit schema ownership
-ALTER SCHEMA hangfire OWNER TO meajudaai_app_owner;
-
--- Grant schema permissions to hangfire_role (USAGE only - objects are created by migrations)
-GRANT USAGE ON SCHEMA hangfire TO hangfire_role;
-
--- Grant permissions on all existing tables and sequences in hangfire schema
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA hangfire TO hangfire_role;
-GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA hangfire TO hangfire_role;
-
--- Set default privileges for future objects in hangfire schema
-ALTER DEFAULT PRIVILEGES FOR ROLE meajudaai_app_owner IN SCHEMA hangfire GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO hangfire_role;
-ALTER DEFAULT PRIVILEGES FOR ROLE meajudaai_app_owner IN SCHEMA hangfire GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO hangfire_role;
-
--- Allow hangfire to create functions (needed for Hangfire internal operations)
-ALTER DEFAULT PRIVILEGES FOR ROLE meajudaai_app_owner IN SCHEMA hangfire GRANT EXECUTE ON FUNCTIONS TO hangfire_role;
-
--- Set search path for hangfire_role
-ALTER ROLE hangfire_role SET search_path = hangfire, documents, users, providers, public;
+-- Grant hangfire permissions only if roles exist
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'meajudaai_app_owner')
+       AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'hangfire_role') THEN
+        -- Set explicit schema ownership
+        ALTER SCHEMA hangfire OWNER TO meajudaai_app_owner;
+        
+        -- Grant schema permissions to hangfire_role (USAGE only - objects are created by migrations)
+        GRANT USAGE ON SCHEMA hangfire TO hangfire_role;
+        
+        -- Grant permissions on all existing tables and sequences in hangfire schema
+        GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA hangfire TO hangfire_role;
+        GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA hangfire TO hangfire_role;
+        
+        -- Set default privileges for future objects in hangfire schema
+        ALTER DEFAULT PRIVILEGES FOR ROLE meajudaai_app_owner IN SCHEMA hangfire GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO hangfire_role;
+        ALTER DEFAULT PRIVILEGES FOR ROLE meajudaai_app_owner IN SCHEMA hangfire GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO hangfire_role;
+        
+        -- Allow hangfire to create functions (needed for Hangfire internal operations)
+        ALTER DEFAULT PRIVILEGES FOR ROLE meajudaai_app_owner IN SCHEMA hangfire GRANT EXECUTE ON FUNCTIONS TO hangfire_role;
+        
+        -- Set search path for hangfire_role
+        ALTER ROLE hangfire_role SET search_path = hangfire, documents, users, providers, public;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Grant hangfire_role read access to documents schema (needed for DocumentVerificationJob)
 -- Following principle of least privilege: only UPDATE on specific table, not all tables
-GRANT USAGE ON SCHEMA documents TO hangfire_role;
-GRANT SELECT ON ALL TABLES IN SCHEMA documents TO hangfire_role;
-GRANT UPDATE ON documents.documents TO hangfire_role; -- Only documents table needs UPDATE
-ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT SELECT ON TABLES TO hangfire_role;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'documents')
+       AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'hangfire_role') THEN
+        GRANT USAGE ON SCHEMA documents TO hangfire_role;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+-- NOTE: GRANT on specific tables commented out - will be applied after EF Core migrations create the tables
+-- GRANT SELECT ON ALL TABLES IN SCHEMA documents TO hangfire_role;
+-- GRANT UPDATE ON documents.documents TO hangfire_role; -- Only documents table needs UPDATE
+
+-- Grant default privileges only if documents_owner role exists
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'documents')
+       AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'documents_owner')
+       AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'hangfire_role') THEN
+        ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT SELECT ON TABLES TO hangfire_role;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 -- Note: Future tables will only get SELECT by default; UPDATE must be explicitly granted
 
 -- ============================
@@ -71,20 +107,50 @@ ALTER DEFAULT PRIVILEGES FOR ROLE documents_owner IN SCHEMA documents GRANT SELE
 CREATE SCHEMA IF NOT EXISTS meajudaai_app;
 
 -- Set explicit schema ownership
-ALTER SCHEMA meajudaai_app OWNER TO meajudaai_app_owner;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'meajudaai_app')
+       AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'meajudaai_app_owner') THEN
+        ALTER SCHEMA meajudaai_app OWNER TO meajudaai_app_owner;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Grant permissions on dedicated application schema
-GRANT USAGE, CREATE ON SCHEMA meajudaai_app TO meajudaai_app_role;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'meajudaai_app')
+       AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'meajudaai_app_role') THEN
+        GRANT USAGE, CREATE ON SCHEMA meajudaai_app TO meajudaai_app_role;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Set search_path for app role (centralized here to avoid conflicts)
 -- NOTE: This must include ALL module schemas to ensure cross-module queries work.
 -- Documents module runs last alphabetically, so this setting takes precedence.
-ALTER ROLE meajudaai_app_role SET search_path = meajudaai_app, documents, users, providers, hangfire, public;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'meajudaai_app_role') THEN
+        ALTER ROLE meajudaai_app_role SET search_path = meajudaai_app, documents, users, providers, hangfire, public;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Grant limited permissions on public schema (read-only)
-GRANT USAGE ON SCHEMA public TO documents_role;
-GRANT USAGE ON SCHEMA public TO hangfire_role;
-GRANT USAGE ON SCHEMA public TO meajudaai_app_role;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'documents_role') THEN
+        GRANT USAGE ON SCHEMA public TO documents_role;
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'hangfire_role') THEN
+        GRANT USAGE ON SCHEMA public TO hangfire_role;
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'meajudaai_app_role') THEN
+        GRANT USAGE ON SCHEMA public TO meajudaai_app_role;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Harden public schema by revoking CREATE from PUBLIC (security best practice)
 REVOKE CREATE ON SCHEMA public FROM PUBLIC;

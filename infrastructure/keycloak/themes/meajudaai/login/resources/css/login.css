@@ -1,0 +1,397 @@
+/* ============================================
+   MeAjudaAi - Tema Keycloak Customizado
+   Cores: Azul #3D5A80, Laranja #E07A5F, Creme #F4F1DE
+   Baseado no LOGO 03
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap');
+
+:root {
+    --primary-blue: #3D5A80;
+    --primary-blue-dark: #2E4057;
+    --secondary-orange: #E07A5F;
+    --secondary-orange-dark: #C66850;
+    --background-cream: #F4F1DE;
+    --text-dark: #3D5A80;
+    --text-light: #FFFFFF;
+    --border-color: #CED4DA;
+    --error-red: #DC2626;
+    --success-green: #10B981;
+    --border-radius: 8px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* ============================================
+   BACKGROUND & LAYOUT
+   ============================================ */
+body {
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%) !important;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+html {
+    background: var(--primary-blue) !important;
+}
+
+.login-pf-page {
+    background: transparent !important;
+}
+
+/* ============================================
+   HEADER - LOGO "ME AJUDA AÍ"
+   ============================================ */
+#kc-header {
+    text-align: center;
+    padding: 0;
+    margin-bottom: 0;
+}
+
+#kc-header-wrapper {
+    /* Esconder texto original */
+    font-size: 0;
+    text-indent: -9999px;
+    overflow: hidden;
+    
+    /* Mostrar logo - responsivo */
+    display: block;
+    max-width: 900px;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2.5 / 1;
+    margin: 0 auto;
+    background-image: url('../img/logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+@media (max-width: 480px) {
+    #kc-header-wrapper {
+        max-width: 100%;
+        padding: 0 1rem;
+        aspect-ratio: 2.5 / 1;
+    }
+}
+
+/* ============================================
+   CARD PRINCIPAL
+   ============================================ */
+.login-pf-page .card-pf,
+#kc-content-wrapper {
+    background-color: var(--background-cream);
+    border-radius: var(--border-radius);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    padding: 48px 40px;
+    max-width: 450px;
+    margin: 0 auto;
+    animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   TÍTULO DO FORMULÁRIO
+   ============================================ */
+#kc-form-login h1,
+#kc-page-title {
+    color: var(--text-dark);
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 32px 0;
+    text-align: center;
+}
+
+/* ============================================
+   LABELS E INPUTS
+   ============================================ */
+.pf-c-form__label,
+label {
+    color: var(--text-dark);
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.pf-c-form-control,
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 16px;
+    font-family: 'Roboto', sans-serif;
+    background-color: #FFFFFF;
+    color: var(--text-dark);
+    transition: all 0.3s ease;
+}
+
+.pf-c-form-control:focus,
+input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 4px rgba(71, 85, 105, 0.1);
+}
+
+.pf-c-form__group {
+    margin-bottom: 24px;
+}
+
+/* ============================================
+   BOTÃO PRINCIPAL - LARANJA
+   ============================================ */
+.pf-c-button.pf-m-primary,
+#kc-login,
+button[type="submit"] {
+    width: 100%;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, var(--secondary-orange) 0%, var(--secondary-orange-dark) 100%);
+    color: var(--text-light);
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 8px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.pf-c-button.pf-m-primary:hover,
+#kc-login:hover,
+button[type="submit"]:hover {
+    background: linear-gradient(135deg, var(--secondary-orange-dark) 0%, var(--secondary-orange) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(230, 126, 34, 0.4);
+}
+
+.pf-c-button.pf-m-primary:active,
+#kc-login:active {
+    transform: translateY(0);
+}
+
+/* ============================================
+   LINKS
+   ============================================ */
+a,
+.pf-c-button.pf-m-link {
+    color: var(--primary-blue);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+a:hover,
+.pf-c-button.pf-m-link:hover {
+    color: var(--secondary-orange);
+    text-decoration: underline;
+}
+
+#kc-form-options {
+    margin: 20px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+
+#kc-form-options a {
+    color: var(--primary-blue);
+}
+
+/* ============================================
+   CHECKBOX "LEMBRAR-ME"
+   ============================================ */
+.pf-c-check__label {
+    color: var(--text-dark);
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.pf-c-check__input:checked {
+    background-color: var(--secondary-orange);
+    border-color: var(--secondary-orange);
+}
+
+/* ============================================
+   ALERTAS E MENSAGENS
+   ============================================ */
+.pf-c-alert,
+.alert {
+    padding: 14px 16px;
+    border-radius: var(--border-radius);
+    margin-bottom: 24px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.pf-c-alert.pf-m-danger,
+.alert-error {
+    background-color: #FEE2E2;
+    border-left: 4px solid var(--error-red);
+    color: #991B1B;
+}
+
+.pf-c-alert.pf-m-success,
+.alert-success {
+    background-color: #D1FAE5;
+    border-left: 4px solid var(--success-green);
+    color: #065F46;
+}
+
+.pf-c-alert.pf-m-warning,
+.alert-warning {
+    background-color: #FEF3C7;
+    border-left: 4px solid #F59E0B;
+    color: #92400E;
+}
+
+.pf-c-alert.pf-m-info,
+.alert-info {
+    background-color: #DBEAFE;
+    border-left: 4px solid #2563EB;
+    color: #1E3A8A;
+}
+
+/* ============================================
+   REGISTRO - "NOVO USUÁRIO?"
+   ============================================ */
+#kc-registration {
+    text-align: center;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+}
+
+#kc-registration span {
+    color: var(--text-dark);
+    font-size: 14px;
+}
+
+#kc-registration a {
+    color: var(--secondary-orange);
+    font-weight: 600;
+    margin-left: 6px;
+}
+
+/* ============================================
+   BOTÃO MOSTRAR/ESCONDER SENHA
+   ============================================ */
+.pf-c-button.pf-m-control {
+    background: transparent;
+    border: none;
+    color: var(--primary-blue);
+    padding: 8px;
+}
+
+.pf-c-button.pf-m-control:hover {
+    color: var(--secondary-orange);
+    background: transparent;
+}
+
+/* ============================================
+   INFO WRAPPER (LINKS ADICIONAIS)
+   ============================================ */
+#kc-info-wrapper {
+    margin-top: 24px;
+    text-align: center;
+}
+
+#kc-info-wrapper a {
+    display: inline-block;
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+/* ============================================
+   RESPONSIVIDADE
+   ============================================ */
+@media (max-width: 768px) {
+    #kc-content-wrapper,
+    .login-pf-page .card-pf {
+        padding: 32px 24px;
+        margin: 20px;
+        max-width: calc(100% - 40px);
+    }
+    
+    #kc-header-wrapper {
+        font-size: 24px;
+    }
+    
+    #kc-form-login h1,
+    #kc-page-title {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    #kc-content-wrapper,
+    .login-pf-page .card-pf {
+        padding: 24px 20px;
+    }
+}
+
+/* ============================================
+   SOCIAL PROVIDERS (se habilitado)
+   ============================================ */
+#social-providers {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+}
+
+#social-providers .social-link {
+    display: block;
+    width: 100%;
+    padding: 12px 24px;
+    margin-bottom: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background-color: #FFFFFF;
+    color: var(--text-dark);
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+#social-providers .social-link:hover {
+    border-color: var(--primary-blue);
+    background-color: rgba(71, 85, 105, 0.05);
+}
+
+/* ============================================
+   AJUSTES FINAIS
+   ============================================ */
+.login-pf-page .container {
+    padding-top: 0;
+    padding-bottom: 40px;
+}
+
+#kc-locale {
+    display: none !important;
+}
+
+#kc-locale-dropdown {
+    display: none !important;
+}

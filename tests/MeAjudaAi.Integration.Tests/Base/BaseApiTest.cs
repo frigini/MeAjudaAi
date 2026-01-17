@@ -28,13 +28,32 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Integration.Tests.Base;
 
 /// <summary>
+/// Módulos disponíveis para testes de integração
+/// </summary>
+[Flags]
+public enum TestModule
+{
+    None = 0,
+    Users = 1 << 0,
+    Providers = 1 << 1,
+    Documents = 1 << 2,
+    ServiceCatalogs = 1 << 3,
+    Locations = 1 << 4,
+    SearchProviders = 1 << 5,
+    All = Users | Providers | Documents | ServiceCatalogs | Locations | SearchProviders
+}
+
+/// <summary>
 /// Classe base unificada para testes de integração com suporte a autenticação baseada em instância.
 /// Elimina condições de corrida e instabilidade causadas por estado estático.
 /// Cria containers individuais para máxima compatibilidade com CI.
-/// Suporte completo a 6 módulos: Users, Providers, Documents, ServiceCatalogs, Locations, SearchProviders.
+/// Aplica migrations apenas dos módulos necessários (especificados via RequiredModules).
 /// </summary>
 public abstract class BaseApiTest : IAsyncLifetime
 {
+    // Semáforo estático para sincronizar aplicação de migrations entre testes paralelos
+    private static readonly SemaphoreSlim MigrationLock = new(1, 1);
+    
     private SimpleDatabaseFixture? _databaseFixture;
     private WireMockFixture? _wireMockFixture;
     private WebApplicationFactory<Program>? _factory;
@@ -43,6 +62,13 @@ public abstract class BaseApiTest : IAsyncLifetime
     protected IServiceProvider Services => _factory!.Services;
     protected ITestAuthenticationConfiguration AuthConfig { get; private set; } = null!;
     protected WireMockFixture WireMock => _wireMockFixture ?? throw new InvalidOperationException("WireMock not initialized");
+
+    /// <summary>
+    /// Especifica quais módulos este teste precisa (migrations serão aplicadas apenas para estes).
+    /// Override em classes derivadas para otimizar tempo de inicialização.
+    /// Default: All (comportamento legado para compatibilidade).
+    /// </summary>
+    protected virtual TestModule RequiredModules => TestModule.All;
 
     /// <summary>
     /// HTTP header name for user location (format: "City|State")
@@ -279,22 +305,11 @@ public abstract class BaseApiTest : IAsyncLifetime
         // Obtém a configuração de autenticação da instância do container DI
         AuthConfig = _factory.Services.GetRequiredService<ITestAuthenticationConfiguration>();
 
-        // Aplica migrações do banco de dados para testes
-        // Nota: Todos os módulos usam setup baseado em migrações para consistência com produção
+        // Aplica migrações apenas dos módulos necessários (otimização de performance)
         using var scope = _factory.Services.CreateScope();
-        var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
-        var documentsContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
-        var catalogsContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
-        var locationsContext = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
-        var searchProvidersContext = scope.ServiceProvider.GetRequiredService<SearchProvidersDbContext>();
         var logger = scope.ServiceProvider.GetService<ILogger<BaseApiTest>>();
 
-        // Aplica migrações exatamente como nos testes E2E
-        await ApplyMigrationsAsync(usersContext, providersContext, documentsContext, catalogsContext, locationsContext, searchProvidersContext, logger);
-
-        // Seed test data for allowed cities (required for GeographicRestriction tests)
-        await SeedTestDataAsync(locationsContext, logger);
+        await ApplyRequiredModuleMigrationsAsync(scope.ServiceProvider, logger);
     }
 
     private static async Task SeedTestDataAsync(LocationsDbContext locationsContext, ILogger? logger)
@@ -308,20 +323,16 @@ public abstract class BaseApiTest : IAsyncLifetime
             new { IbgeCode = 3203205, CityName = "Linhares", State = "ES" }
         };
 
+        var citiesToAdd = new List<MeAjudaAi.Modules.Locations.Domain.Entities.AllowedCity>();
+
         foreach (var city in testCities)
         {
-            try
+            // Check if city already exists to avoid duplicate key errors
+            var exists = await locationsContext.AllowedCities
+                .AnyAsync(c => c.CityName == city.CityName && c.StateSigla == city.State);
+            
+            if (!exists)
             {
-                // Check if city already exists to avoid duplicate key errors
-                var exists = await locationsContext.AllowedCities
-                    .AnyAsync(c => c.CityName == city.CityName && c.StateSigla == city.State);
-                
-                if (exists)
-                {
-                    logger?.LogDebug("City {City}/{State} already exists, skipping", city.CityName, city.State);
-                    continue;
-                }
-
                 // Use EF Core entity instead of raw SQL to avoid case sensitivity issues
                 var allowedCity = new MeAjudaAi.Modules.Locations.Domain.Entities.AllowedCity(
                     city.CityName,
@@ -329,34 +340,125 @@ public abstract class BaseApiTest : IAsyncLifetime
                     "system",
                     city.IbgeCode);
                 
-                locationsContext.AllowedCities.Add(allowedCity);
-                await locationsContext.SaveChangesAsync();
-                
-                logger?.LogDebug("✅ Seeded city {City}/{State} (IBGE: {IbgeCode})", city.CityName, city.State, city.IbgeCode);
+                citiesToAdd.Add(allowedCity);
             }
-            catch (Exception ex)
+            else
             {
-                logger?.LogError(ex, "❌ Failed to seed city {City}/{State}: {Message}", city.CityName, city.State, ex.Message);
-                // Clear the change tracker to recover from errors
-                locationsContext.ChangeTracker.Clear();
+                logger?.LogDebug("City {City}/{State} already exists, skipping", city.CityName, city.State);
             }
         }
 
+        if (citiesToAdd.Count > 0)
+        {
+            locationsContext.AllowedCities.AddRange(citiesToAdd);
+            await locationsContext.SaveChangesAsync();
+            logger?.LogInformation("✅ Seeded {Count} test cities", citiesToAdd.Count);
+        }
+
         var totalCount = await locationsContext.AllowedCities.CountAsync();
-        logger?.LogInformation("✅ Seeded test cities. Total cities in database: {Count}", totalCount);
+        logger?.LogInformation("Total cities in database: {Count}", totalCount);
     }
 
-    private static async Task ApplyMigrationsAsync(
-        UsersDbContext usersContext,
-        ProvidersDbContext providersContext,
-        DocumentsDbContext documentsContext,
-        ServiceCatalogsDbContext catalogsContext,
-        LocationsDbContext locationsContext,
-        SearchProvidersDbContext searchProvidersContext,
-        ILogger? logger)
+    /// <summary>
+    /// Aplica migrations apenas dos módulos especificados em RequiredModules.
+    /// Otimiza tempo de inicialização e evita race conditions ao aplicar apenas o necessário.
+    /// </summary>
+    private async Task ApplyRequiredModuleMigrationsAsync(IServiceProvider serviceProvider, ILogger? logger)
     {
-        // Garante estado limpo do banco de dados (como nos testes E2E)
-        // Com retry para evitar race condition "database system is starting up"
+        var modules = RequiredModules;
+        
+        // Se nenhum módulo especificado, retorna sem fazer nada
+        if (modules == TestModule.None)
+        {
+            logger?.LogInformation("ℹ️ No modules required - skipping migrations");
+            return;
+        }
+
+        logger?.LogInformation("🔄 Applying migrations for modules: {Modules}", modules);
+
+        // Usa semáforo para garantir que apenas um teste aplique migrations por vez
+        // Evita race conditions e erro "57P01: terminating connection due to administrator command"
+        await MigrationLock.WaitAsync();
+        try
+        {
+            // Garante estado limpo do banco de dados apenas uma vez
+            DbContext anyContext;
+            if (modules.HasFlag(TestModule.Users))
+                anyContext = serviceProvider.GetRequiredService<UsersDbContext>();
+            else if (modules.HasFlag(TestModule.Documents))
+                anyContext = serviceProvider.GetRequiredService<DocumentsDbContext>();
+            else if (modules.HasFlag(TestModule.Providers))
+                anyContext = serviceProvider.GetRequiredService<ProvidersDbContext>();
+            else if (modules.HasFlag(TestModule.ServiceCatalogs))
+                anyContext = serviceProvider.GetRequiredService<ServiceCatalogsDbContext>();
+            else if (modules.HasFlag(TestModule.Locations))
+                anyContext = serviceProvider.GetRequiredService<LocationsDbContext>();
+            else
+                anyContext = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
+
+            await EnsureCleanDatabaseAsync(anyContext, logger);
+
+            // Aplica migrations dos módulos necessários
+            if (modules.HasFlag(TestModule.Users))
+            {
+                var context = serviceProvider.GetRequiredService<UsersDbContext>();
+                await ApplyMigrationForContextAsync(context, "Users", logger, "UsersDbContext");
+                await context.Database.CloseConnectionAsync();
+            }
+
+            if (modules.HasFlag(TestModule.Providers))
+            {
+                var context = serviceProvider.GetRequiredService<ProvidersDbContext>();
+                await ApplyMigrationForContextAsync(context, "Providers", logger, "ProvidersDbContext");
+                await context.Database.CloseConnectionAsync();
+            }
+
+            if (modules.HasFlag(TestModule.Documents))
+            {
+                var context = serviceProvider.GetRequiredService<DocumentsDbContext>();
+                await ApplyMigrationForContextAsync(context, "Documents", logger, "DocumentsDbContext");
+                await context.Database.CloseConnectionAsync();
+            }
+
+            if (modules.HasFlag(TestModule.ServiceCatalogs))
+            {
+                var context = serviceProvider.GetRequiredService<ServiceCatalogsDbContext>();
+                await ApplyMigrationForContextAsync(context, "ServiceCatalogs", logger, "ServiceCatalogsDbContext");
+                await context.Database.CloseConnectionAsync();
+            }
+
+            if (modules.HasFlag(TestModule.Locations))
+            {
+                var context = serviceProvider.GetRequiredService<LocationsDbContext>();
+                await ApplyMigrationForContextAsync(context, "Locations", logger, "LocationsDbContext");
+                
+                // Seed test data for allowed cities (required for GeographicRestriction tests)
+                // Must be called BEFORE CloseConnectionAsync to use the already-open connection
+                await SeedTestDataAsync(context, logger);
+                
+                await context.Database.CloseConnectionAsync();
+            }
+
+            if (modules.HasFlag(TestModule.SearchProviders))
+            {
+                var context = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
+                await ApplyMigrationForContextAsync(context, "SearchProviders", logger, "SearchProvidersDbContext");
+                await context.Database.CloseConnectionAsync();
+            }
+
+            logger?.LogInformation("✅ Migrations applied for required modules");
+        }
+        finally
+        {
+            MigrationLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Garante que o banco de dados está limpo antes de aplicar migrations.
+    /// </summary>
+    private static async Task EnsureCleanDatabaseAsync(DbContext context, ILogger? logger)
+    {
         const int maxRetries = 10;
         var baseDelay = TimeSpan.FromSeconds(1);
 
@@ -364,47 +466,29 @@ public abstract class BaseApiTest : IAsyncLifetime
         {
             try
             {
-                await usersContext.Database.EnsureDeletedAsync();
-                logger?.LogInformation("🧹 Existing database cleaned (attempt {Attempt})", attempt);
-                break; // Sucesso, sai do loop
+                await context.Database.EnsureDeletedAsync();
+                logger?.LogInformation("🧹 Database cleaned (attempt {Attempt})", attempt);
+                break;
             }
-            catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P03") // 57P03 = database starting up
+            catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P03") // database starting up
             {
                 if (attempt == maxRetries)
                 {
                     logger?.LogError(ex, "❌ PostgreSQL still initializing after {MaxRetries} attempts", maxRetries);
-                    var totalWaitTime = maxRetries * (maxRetries + 1) / 2; // Sum: 1+2+3+...+10 = 55 seconds
-                    throw new InvalidOperationException($"PostgreSQL not ready after {maxRetries} attempts (~{totalWaitTime} seconds)", ex);
+                    throw new InvalidOperationException($"PostgreSQL not ready after {maxRetries} attempts", ex);
                 }
 
-                var delay = baseDelay * attempt; // Linear backoff: 1s, 2s, 3s, etc.
-                logger?.LogWarning(
-                    "⚠️ PostgreSQL initializing... Attempt {Attempt}/{MaxRetries}. Waiting {Delay}s",
+                var delay = baseDelay * attempt;
+                logger?.LogWarning("⚠️ PostgreSQL initializing... Attempt {Attempt}/{MaxRetries}. Waiting {Delay}s",
                     attempt, maxRetries, delay.TotalSeconds);
                 await Task.Delay(delay);
             }
             catch (Exception ex)
             {
-                logger?.LogError(ex, "❌ Critical failure cleaning existing database: {Message}", ex.Message);
+                logger?.LogError(ex, "❌ Failed to clean database: {Message}", ex.Message);
                 throw new InvalidOperationException("Failed to clean database before tests", ex);
             }
         }
-
-        // Aplica migrações em todos os módulos
-        await ApplyMigrationForContextAsync(usersContext, "Users", logger, "UsersDbContext primeiro (cria database e schema users)");
-        await ApplyMigrationForContextAsync(providersContext, "Providers", logger, "ProvidersDbContext (banco já existe, só precisa do schema providers)");
-        await ApplyMigrationForContextAsync(documentsContext, "Documents", logger, "DocumentsDbContext (banco já existe, só precisa do schema documents)");
-        await ApplyMigrationForContextAsync(catalogsContext, "ServiceCatalogs", logger, "ServiceCatalogsDbContext (banco já existe, só precisa do schema service_catalogs)");
-        await ApplyMigrationForContextAsync(locationsContext, "Locations", logger, "LocationsDbContext (banco já existe, só precisa do schema locations)");
-        await ApplyMigrationForContextAsync(searchProvidersContext, "SearchProviders", logger, "SearchProvidersDbContext (banco já existe, só precisa do schema search_providers)");
-
-        // Verifica se as tabelas existem
-        await VerifyContextAsync(usersContext, "Users", () => usersContext.Users.CountAsync(), logger);
-        await VerifyContextAsync(providersContext, "Providers", () => providersContext.Providers.CountAsync(), logger);
-        await VerifyContextAsync(documentsContext, "Documents", () => documentsContext.Documents.CountAsync(), logger);
-        await VerifyContextAsync(catalogsContext, "ServiceCatalogs", () => catalogsContext.ServiceCategories.CountAsync(), logger);
-        await VerifyContextAsync(locationsContext, "Locations", () => locationsContext.AllowedCities.CountAsync(), logger);
-        await VerifyContextAsync(searchProvidersContext, "SearchProviders", () => searchProvidersContext.SearchableProviders.CountAsync(), logger);
     }
 
     public async ValueTask DisposeAsync()
@@ -466,6 +550,8 @@ public abstract class BaseApiTest : IAsyncLifetime
 
     /// <summary>
     /// Aplica migrações para um DbContext específico com tratamento de erros padronizado.
+    /// Inclui retry logic para erro "57P01" que ocorre quando PostgreSQL termina conexão
+    /// após instalar extensões (ex: PostGIS no SearchProviders).
     /// </summary>
     private static async Task ApplyMigrationForContextAsync<TContext>(
         TContext context,
@@ -473,41 +559,38 @@ public abstract class BaseApiTest : IAsyncLifetime
         ILogger? logger,
         string? description = null) where TContext : DbContext
     {
-        try
-        {
-            var message = description != null
-                ? $"🔄 Applying {moduleName} module migrations ({description})..."
-                : $"🔄 Applying {moduleName} module migrations...";
-            logger?.LogInformation(message);
+        const int maxRetries = 3;
+        const int delayMs = 1000;
 
-            await context.Database.MigrateAsync();
-            logger?.LogInformation("✅ {Module} database migrations completed successfully", moduleName);
-        }
-        catch (Exception ex)
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
-            logger?.LogError(ex, "❌ Failed to apply {Module} migrations: {Message}", moduleName, ex.Message);
-            throw new InvalidOperationException($"Failed to apply {moduleName} database migrations", ex);
-        }
-    }
+            try
+            {
+                var message = description != null
+                    ? $"🔄 Applying {moduleName} module migrations ({description})... (attempt {attempt}/{maxRetries})"
+                    : $"🔄 Applying {moduleName} module migrations... (attempt {attempt}/{maxRetries})";
+                logger?.LogInformation(message);
 
-    /// <summary>
-    /// Verifica se um DbContext está funcionando corretamente executando uma query de contagem.
-    /// </summary>
-    private static async Task VerifyContextAsync<TContext>(
-        TContext context,
-        string moduleName,
-        Func<Task<int>> countQuery,
-        ILogger? logger) where TContext : DbContext
-    {
-        try
-        {
-            var count = await countQuery();
-            logger?.LogInformation("{Module} database verification successful - Count: {Count}", moduleName, count);
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "{Module} database verification failed", moduleName);
-            throw new InvalidOperationException($"{moduleName} database not initialized correctly", ex);
+                await context.Database.MigrateAsync();
+                logger?.LogInformation("✅ {Module} database migrations completed successfully", moduleName);
+                return; // Success
+            }
+            catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P01" && attempt < maxRetries)
+            {
+                // 57P01 = "terminating connection due to administrator command"
+                // Ocorre quando Postgres reinicia após instalar extensões (ex: PostGIS)
+                logger?.LogWarning(
+                    "⚠️ PostgreSQL connection terminated (57P01 - extension install). Retrying {Module} migrations... Attempt {Attempt}/{MaxRetries}",
+                    moduleName, attempt, maxRetries);
+                
+                // Aguarda antes de tentar novamente
+                await Task.Delay(delayMs * attempt); // Backoff progressivo
+            }
+            catch (Exception ex)
+            {
+                logger?.LogError(ex, "❌ Failed to apply {Module} migrations: {Message}", moduleName, ex.Message);
+                throw new InvalidOperationException($"Failed to apply {moduleName} database migrations", ex);
+            }
         }
     }
 

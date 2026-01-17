@@ -1,14 +1,19 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 
 namespace MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 
 /// <summary>
 /// Request para criação de um novo prestador de serviços.
 /// </summary>
-public record CreateProviderRequest : Request
+public record CreateProviderRequest
 {
+    /// <summary>
+    /// ID do usuário proprietário.
+    /// </summary>
+    public Guid UserId { get; init; }
+
     /// <summary>
     /// Nome do prestador.
     /// </summary>

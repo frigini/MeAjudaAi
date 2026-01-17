@@ -12,7 +12,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -65,6 +65,13 @@ public static class Extensions
             .UseSnakeCaseNamingConvention()
             .EnableServiceProviderCaching()
             .EnableSensitiveDataLogging(false);
+
+            // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
+            if (environment?.IsDevelopment() == true)
+            {
+                options.ConfigureWarnings(warnings =>
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            }
         });
 
         // Registra repositórios

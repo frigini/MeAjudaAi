@@ -29,11 +29,10 @@ public class UserBuilder : BaseBuilder<User>
                     _keycloakId ?? f.Random.Guid().ToString()
                 );
 
-                // Se um ID específico foi definido, define através de reflexão
+                // Se um ID específico foi definido, usa helper interno
                 if (_id.HasValue)
                 {
-                    var idField = typeof(User).GetField("_id", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    idField?.SetValue(user, new UserId(_id.Value));
+                    user.SetIdForTesting(new UserId(_id.Value));
                 }
 
                 return user;
@@ -119,39 +118,13 @@ public class UserBuilder : BaseBuilder<User>
 
     public UserBuilder WithCreatedAt(DateTime createdAt)
     {
-        WithCustomAction(user =>
-        {
-            var createdAtProperty = typeof(User).GetProperty("CreatedAt", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-            if (createdAtProperty != null && createdAtProperty.CanWrite)
-            {
-                createdAtProperty.SetValue(user, createdAt);
-            }
-            else
-            {
-                // Se a propriedade não é writable, tenta usar reflection no campo backing
-                var createdAtField = typeof(User).BaseType?.GetField("<CreatedAt>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                createdAtField?.SetValue(user, createdAt);
-            }
-        });
+        WithCustomAction(user => user.SetCreatedAtForTesting(createdAt));
         return this;
     }
 
     public UserBuilder WithUpdatedAt(DateTime? updatedAt)
     {
-        WithCustomAction(user =>
-        {
-            var updatedAtProperty = typeof(User).GetProperty("UpdatedAt", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-            if (updatedAtProperty != null && updatedAtProperty.CanWrite)
-            {
-                updatedAtProperty.SetValue(user, updatedAt);
-            }
-            else
-            {
-                // Se a propriedade não é writable, tenta usar reflection no campo backing
-                var updatedAtField = typeof(User).BaseType?.GetField("<UpdatedAt>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                updatedAtField?.SetValue(user, updatedAt);
-            }
-        });
+        WithCustomAction(user => user.SetUpdatedAtForTesting(updatedAt));
         return this;
     }
 }

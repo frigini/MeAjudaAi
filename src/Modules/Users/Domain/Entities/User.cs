@@ -3,6 +3,9 @@ using MeAjudaAi.Modules.Users.Domain.Exceptions;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Utilities;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("MeAjudaAi.Modules.Users.Tests")]
 
 namespace MeAjudaAi.Modules.Users.Domain.Entities;
 
@@ -94,6 +97,30 @@ public sealed class User : AggregateRoot<UserId>
     /// Construtor privado para uso do Entity Framework.
     /// </summary>
     private User() { }
+
+    /// <summary>
+    /// Helper interno de testes para definir o Id. Acessível apenas a partir de assemblies de teste.
+    /// </summary>
+    internal void SetIdForTesting(UserId id)
+    {
+        Id = id;
+    }
+
+    /// <summary>
+    /// Helper interno de testes para definir CreatedAt. Acessível apenas a partir de assemblies de teste.
+    /// </summary>
+    internal void SetCreatedAtForTesting(DateTime createdAt)
+    {
+        CreatedAt = createdAt;
+    }
+
+    /// <summary>
+    /// Helper interno de testes para definir UpdatedAt. Acessível apenas a partir de assemblies de teste.
+    /// </summary>
+    internal void SetUpdatedAtForTesting(DateTime? updatedAt)
+    {
+        UpdatedAt = updatedAt;
+    }
 
     /// <summary>
     /// Cria um novo usuário no sistema.

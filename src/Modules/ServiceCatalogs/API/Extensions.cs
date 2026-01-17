@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints;
 using MeAjudaAi.Modules.ServiceCatalogs.Application;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure;
-using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
+using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

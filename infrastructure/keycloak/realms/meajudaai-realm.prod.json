@@ -18,6 +18,12 @@
   "maxDeltaTimeSeconds": 43200,
   "failureFactor": 30,
   "passwordPolicy": "length(12) and digits(2) and lowerCase(2) and upperCase(2) and specialChars(2)",
+  "loginTheme": "meajudaai",
+  "accountTheme": "keycloak.v2",
+  "emailTheme": "keycloak",
+  "internationalizationEnabled": true,
+  "supportedLocales": ["pt-BR", "en"],
+  "defaultLocale": "pt-BR",
   "roles": {
     "realm": [
       {

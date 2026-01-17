@@ -1,0 +1,74 @@
+@using FluentValidation
+@using Microsoft.AspNetCore.Components.Forms
+@typeparam TModel
+@implements IDisposable
+
+@code {
+    [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
+    [CascadingParameter] private EditContext? CurrentEditContext { get; set; }
+
+    private ValidationMessageStore? _validationMessageStore;
+    private IValidator<TModel>? _validator;
+
+    protected override void OnInitialized()
+    {
+        if (CurrentEditContext == null)
+        {
+            throw new InvalidOperationException(
+                $"{nameof(FluentValidator<TModel>)} requires a cascading parameter " +
+                $"of type {nameof(EditContext)}.");
+        }
+
+        _validationMessageStore = new ValidationMessageStore(CurrentEditContext);
+        _validator = ServiceProvider.GetService<IValidator<TModel>>();
+
+        CurrentEditContext.OnValidationRequested += OnValidationRequested;
+        CurrentEditContext.OnFieldChanged += OnFieldChanged;
+    }
+
+    private void OnValidationRequested(object? sender, ValidationRequestedEventArgs e)
+    {
+        _validationMessageStore?.Clear();
+
+        if (_validator == null || CurrentEditContext?.Model is not TModel model)
+            return;
+
+        var validationResult = _validator.Validate(model);
+
+        foreach (var error in validationResult.Errors)
+        {
+            var fieldIdentifier = new FieldIdentifier(CurrentEditContext.Model, error.PropertyName);
+            _validationMessageStore?.Add(fieldIdentifier, error.ErrorMessage);
+        }
+
+        CurrentEditContext.NotifyValidationStateChanged();
+    }
+
+    private void OnFieldChanged(object? sender, FieldChangedEventArgs e)
+    {
+        if (_validator == null || CurrentEditContext?.Model is not TModel model)
+            return;
+
+        var propertyName = e.FieldIdentifier.FieldName;
+        _validationMessageStore?.Clear(e.FieldIdentifier);
+
+        var validationResult = _validator.Validate(model);
+        var errors = validationResult.Errors.Where(x => x.PropertyName == propertyName);
+
+        foreach (var error in errors)
+        {
+            _validationMessageStore?.Add(e.FieldIdentifier, error.ErrorMessage);
+        }
+
+        CurrentEditContext.NotifyValidationStateChanged();
+    }
+
+    public void Dispose()
+    {
+        if (CurrentEditContext != null)
+        {
+            CurrentEditContext.OnValidationRequested -= OnValidationRequested;
+            CurrentEditContext.OnFieldChanged -= OnFieldChanged;
+        }
+    }
+}

@@ -1,7 +1,10 @@
 @page "/allowed-cities"
+@attribute [Authorize(Policy = PolicyNames.AdminPolicy)]
+@using MeAjudaAi.Web.Admin.Authorization
+@using MeAjudaAi.Web.Admin.Constants
 @using Fluxor
 @using MeAjudaAi.Client.Contracts.Api
-@using MeAjudaAi.Shared.Contracts.Contracts.Modules.Locations.DTOs
+@using MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs
 @using MeAjudaAi.Web.Admin.Features.Locations
 @using MudBlazor
 @using static MeAjudaAi.Web.Admin.Features.Locations.LocationsActions
@@ -9,8 +12,6 @@
 @inject IState<LocationsState> LocationsState
 @inject IDispatcher Dispatcher
 @inject IDialogService DialogService
-@inject ISnackbar Snackbar
-@inject ILocationsApi LocationsApi
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudText Typo="Typo.h4" Class="mb-4">Cidades Permitidas</MudText>
@@ -18,7 +19,13 @@
     @if (LocationsState.Value.HasError)
     {
         <MudAlert Severity="Severity.Error" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => Dispatcher.Dispatch(new ClearErrorAction()))">
-            @LocationsState.Value.ErrorMessage
+            <MudText Typo="Typo.body1">Erro ao carregar cidades. Tente novamente mais tarde.</MudText>
+        </MudAlert>
+    }
+    else if (!LocationsState.Value.IsLoading && !LocationsState.Value.AllowedCities.Any())
+    {
+        <MudAlert Severity="Severity.Info" Class="mb-4">
+            <MudText Typo="Typo.body1">Nenhuma cidade cadastrada.</MudText>
         </MudAlert>
     }
 
@@ -43,8 +50,8 @@
                 <PropertyColumn Property="x => x.ServiceRadiusKm" Title="Raio (km)" />
                 <TemplateColumn Title="Status">
                     <CellTemplate>
-                        <MudChip Size="Size.Small" Color="@(context.Item.IsActive ? Color.Success : Color.Default)">
-                            @(context.Item.IsActive ? "Ativa" : "Inativa")
+                        <MudChip Size="Size.Small" Color="@ActivationStatus.ToColor(context.Item.IsActive)">
+                            @ActivationStatus.ToDisplayName(context.Item.IsActive)
                         </MudChip>
                     </CellTemplate>
                 </TemplateColumn>
@@ -54,10 +61,18 @@
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" OnClick="@(() => OpenEditDialog(context.Item))" />
                         </MudTooltip>
                         <MudTooltip Text="@(context.Item.IsActive ? "Desativar" : "Ativar")">
-                            <MudSwitch T="bool" Checked="@context.Item.IsActive" CheckedChanged="@(async (bool value) => await ToggleActivation(context.Item.Id, value))" Color="Color.Success" />
+                            <MudSwitch T="bool" 
+                                       Checked="@context.Item.IsActive" 
+                                       CheckedChanged="@(async (bool value) => await ToggleActivation(context.Item.Id, value))" 
+                                       Color="Color.Success"
+                                       Disabled="@(LocationsState.Value.IsTogglingCity && LocationsState.Value.TogglingCityId == context.Item.Id)" />
                         </MudTooltip>
                         <MudTooltip Text="Excluir">
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteCity(context.Item))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                           Size="Size.Small" 
+                                           Color="Color.Error" 
+                                           OnClick="@(() => DeleteCity(context.Item))"
+                                           Disabled="@(LocationsState.Value.IsDeletingCity && LocationsState.Value.DeletingCityId == context.Item.Id)" />
                         </MudTooltip>
                     </CellTemplate>
                 </TemplateColumn>
@@ -116,28 +131,7 @@
         var city = LocationsState.Value.AllowedCities.FirstOrDefault(c => c.Id == cityId);
         if (city is null) return;
 
-        // Update via backend (using UpdateAllowedCityAsync)
-        var updateRequest = new UpdateAllowedCityRequestDto(
-            city.City,
-            city.State,
-            city.Country,
-            city.Latitude,
-            city.Longitude,
-            city.ServiceRadiusKm,
-            newActiveStatus
-        );
-
-        var result = await LocationsApi.UpdateAllowedCityAsync(cityId, updateRequest);
-
-        if (result.IsSuccess)
-        {
-            Dispatcher.Dispatch(new UpdateCityActiveStatusAction(cityId, newActiveStatus));
-            Snackbar.Add($"Cidade {(newActiveStatus ? "ativada" : "desativada")} com sucesso", Severity.Success);
-        }
-        else
-        {
-            Snackbar.Add($"Erro ao atualizar cidade: {result.Error}", Severity.Error);
-        }
+        Dispatcher.Dispatch(new ToggleCityActivationAction(cityId, newActiveStatus, city));
     }
 
     private async Task DeleteCity(ModuleAllowedCityDto city)
@@ -148,18 +142,9 @@
             yesText: "Excluir",
             cancelText: "Cancelar");
 
-        if (confirmed != true) return;
-
-        var result = await LocationsApi.DeleteAllowedCityAsync(city.Id);
-
-        if (result.IsSuccess)
+        if (confirmed == true)
         {
-            Dispatcher.Dispatch(new RemoveAllowedCityAction(city.Id));
-            Snackbar.Add("Cidade excluída com sucesso", Severity.Success);
-        }
-        else
-        {
-            Snackbar.Add($"Erro ao excluir cidade: {result.Error}", Severity.Error);
+            Dispatcher.Dispatch(new DeleteAllowedCityAction(city.Id));
         }
     }
 }

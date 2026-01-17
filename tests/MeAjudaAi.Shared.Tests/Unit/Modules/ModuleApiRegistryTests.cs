@@ -1,5 +1,5 @@
 using FluentAssertions;
-using MeAjudaAi.Shared.Contracts.Modules;
+using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Shared.Modules;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;

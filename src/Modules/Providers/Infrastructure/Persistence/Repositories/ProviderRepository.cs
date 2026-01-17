@@ -2,7 +2,8 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
+using MeAjudaAi.Contracts.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Repositories;
@@ -164,11 +165,13 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        return new PagedResult<Provider>(
-            providers,
-            page,
-            pageSize,
-            totalCount);
+        return new PagedResult<Provider>
+        {
+            Items = providers,
+            PageNumber = page,
+            PageSize = pageSize,
+            TotalItems = totalCount
+        };
     }
 
     /// <summary>

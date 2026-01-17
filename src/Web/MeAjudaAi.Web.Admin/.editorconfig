@@ -1,0 +1,53 @@
+# EditorConfig - Configuração para Blazor Admin Portal
+# Suprime warnings conhecidos e configura análise de código
+
+# Este arquivo tem precedência sobre Directory.Build.props para este projeto
+root = true
+
+[*.{cs,razor}]
+
+# Nullable reference types (habilitar progressivamente)
+nullable = enable
+
+# ========================================
+# Supressões de Warnings - Blazor/Razor
+# ========================================
+
+# CS8602: Dereference of a possibly null reference
+# Contexto: MudBlazor components garantem não-nulidade via binding
+dotnet_diagnostic.CS8602.severity = none
+
+# S2094: Empty records in Fluxor Actions
+# Contexto: Marker records são padrão válido em Flux/Redux
+dotnet_diagnostic.S2094.severity = none
+
+# S3260: Private classes should be sealed
+# Contexto: Razor component code-behind classes
+dotnet_diagnostic.S3260.severity = none
+
+# S2953: Dispose method naming
+# Contexto: Blazor component lifecycle método Dispose()
+dotnet_diagnostic.S2953.severity = none
+
+# S2933: readonly fields
+# Contexto: Campos inicializados em OnInitialized do Blazor
+dotnet_diagnostic.S2933.severity = none
+
+# S6966: Await async operations
+# Contexto: Fire-and-forget intentional em alguns casos de UI
+dotnet_diagnostic.S6966.severity = suggestion
+
+# S2325: Static methods
+# Contexto: Helper methods precisam acessar estado do componente
+dotnet_diagnostic.S2325.severity = suggestion
+
+# S5693: Content length validation
+# Contexto: Upload de arquivos com limite configurado
+dotnet_diagnostic.S5693.severity = suggestion
+
+# MUD0002: MudBlazor attribute casing
+# Contexto: MudBlazor usa PascalCase por convenção do framework
+dotnet_diagnostic.MUD0002.severity = none
+
+# Nullable reference types (habilitar progressivamente)
+#nullable enable

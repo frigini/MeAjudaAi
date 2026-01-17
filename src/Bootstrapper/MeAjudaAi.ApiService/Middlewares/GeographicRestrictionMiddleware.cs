@@ -17,10 +17,9 @@ public class GeographicRestrictionMiddleware(
     RequestDelegate next,
     ILogger<GeographicRestrictionMiddleware> logger,
     IOptionsMonitor<GeographicRestrictionOptions> options,
-    IFeatureManager featureManager,
-    IGeographicValidationService? geographicValidationService = null)
+    IFeatureManager featureManager)
 {
-    public async Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(HttpContext context, IGeographicValidationService? geographicValidationService = null)
     {
         // Verificar se feature está habilitada (Microsoft.FeatureManagement)
         var isFeatureEnabled = await featureManager.IsEnabledAsync(FeatureFlags.GeographicRestriction);
@@ -46,7 +45,7 @@ public class GeographicRestrictionMiddleware(
         var (city, state) = ExtractLocation(context);
 
         // Validar se cidade/estado está permitido
-        var isAllowed = await IsLocationAllowedAsync(city, state, context.RequestAborted);
+        var isAllowed = await IsLocationAllowedAsync(city, state, geographicValidationService, context.RequestAborted);
         if (!isAllowed)
         {
             logger.LogWarning(
@@ -138,7 +137,7 @@ public class GeographicRestrictionMiddleware(
         return (null, null);
     }
 
-    private async Task<bool> IsLocationAllowedAsync(string? city, string? state, CancellationToken cancellationToken)
+    private async Task<bool> IsLocationAllowedAsync(string? city, string? state, IGeographicValidationService? geographicValidationService, CancellationToken cancellationToken)
     {
         // Se não conseguiu detectar localização, permitir (fail-open)
         // Produção deve ter GeoIP obrigatório

@@ -1,8 +1,8 @@
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.Service;
 
-public sealed record ValidateServicesRequest : Request
+public sealed record ValidateServicesRequest
 {
     public IReadOnlyCollection<Guid> ServiceIds { get; init; } = Array.Empty<Guid>();
 }

@@ -12,6 +12,7 @@ using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure;
 
@@ -78,6 +79,14 @@ public static class Extensions
             // Configurações consistentes para evitar problemas com compiled queries
             .EnableServiceProviderCaching()
             .EnableSensitiveDataLogging(false);
+
+            // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
+            var environment = serviceProvider.GetService<IHostEnvironment>();
+            if (environment?.IsDevelopment() == true)
+            {
+                options.ConfigureWarnings(warnings =>
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            }
 
             // Adiciona interceptor de métricas se disponível
             if (metricsInterceptor != null)

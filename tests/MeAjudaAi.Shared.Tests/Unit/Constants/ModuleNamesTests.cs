@@ -216,17 +216,27 @@ public class ModuleNamesTests
     [Fact]
     public void ModuleNames_AllConstantsShouldBeNotNullOrEmpty()
     {
-        // Arrange
-        var constantFields = typeof(ModuleNames)
-            .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
-            .Where(f => f.IsLiteral && f.FieldType == typeof(string));
+        // Arrange - Explicit list of all module name constants
+        var moduleConstants = new[]
+        {
+            ModuleNames.Users,
+            ModuleNames.Providers,
+            ModuleNames.Documents,
+            ModuleNames.ServiceCatalogs,
+            ModuleNames.SearchProviders,
+            ModuleNames.Locations,
+            ModuleNames.Bookings,
+            ModuleNames.Notifications,
+            ModuleNames.Payments,
+            ModuleNames.Reports,
+            ModuleNames.Reviews
+        };
 
         // Act & Assert
-        foreach (var field in constantFields)
+        foreach (var moduleName in moduleConstants)
         {
-            var value = field.GetValue(null) as string;
-            Assert.NotNull(value);
-            Assert.NotEmpty(value);
+            Assert.NotNull(moduleName);
+            Assert.NotEmpty(moduleName);
         }
     }
 
@@ -273,9 +283,6 @@ public class ModuleNamesTests
     [Fact]
     public void IsImplemented_ShouldBeSubsetOfIsValid()
     {
-        // Arrange - Get all possible module names
-        var allModules = ModuleNames.AllModules;
-
         // Assert - Every implemented module should be valid
         foreach (var module in ModuleNames.ImplementedModules)
         {

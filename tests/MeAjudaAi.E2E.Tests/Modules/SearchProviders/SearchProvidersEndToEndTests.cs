@@ -3,7 +3,8 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
+using MeAjudaAi.Contracts.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -308,11 +309,11 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         page1Result.Should().NotBeNull();
         page2Result.Should().NotBeNull();
         
-        page1Result!.Page.Should().Be(1);
+        page1Result!.PageNumber.Should().Be(1);
         page1Result.PageSize.Should().Be(pageSize);
         page1Result.Items.Count().Should().BeLessThanOrEqualTo(pageSize);
         
-        page2Result!.Page.Should().Be(2);
+        page2Result!.PageNumber.Should().Be(2);
         page2Result.PageSize.Should().Be(pageSize);
 
         // Páginas diferentes devem ter providers diferentes

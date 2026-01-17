@@ -1,12 +1,12 @@
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Contracts;
 
 namespace MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
 
 /// <summary>
 /// Request para geração de URL de upload de documento.
 /// </summary>
-public record UploadDocumentRequest : Request
+public record UploadDocumentRequest
 {
     /// <summary>
     /// ID do prestador que está enviando o documento.

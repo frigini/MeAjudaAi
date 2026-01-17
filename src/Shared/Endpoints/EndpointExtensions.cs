@@ -1,5 +1,7 @@
-using MeAjudaAi.Shared.Contracts;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Contracts;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Shared.Models;
 using Microsoft.AspNetCore.Http;
 
 namespace MeAjudaAi.Shared.Endpoints;
@@ -66,8 +68,8 @@ public static class EndpointExtensions
             var pagedData = result.Value;
             var pagedResponse = new PagedResponse<IEnumerable<T>>(
                 pagedData.Items,          // dados
-                pagedData.TotalCount,     // totalCount
-                pagedData.Page,           // página atual
+                pagedData.TotalItems,     // totalCount
+                pagedData.PageNumber,     // página atual
                 pagedData.PageSize        // tamanho da página
             );
 

@@ -41,7 +41,7 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
         // Assert
         result.Should().NotBeNull();
         result.Items.Should().HaveCount(2);
-        result.TotalCount.Should().Be(2);
+        result.TotalItems.Should().Be(2);
         result.Items.Should().Contain(p => p.Name == "Test Provider 1");
         result.Items.Should().Contain(p => p.Name == "Test Provider 2");
     }
@@ -97,8 +97,8 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
         // Assert
         result.Should().NotBeNull();
         result.Items.Should().HaveCount(2);
-        result.TotalCount.Should().Be(5);
-        result.Page.Should().Be(2);
+        result.TotalItems.Should().Be(5);
+        result.PageNumber.Should().Be(2);
         result.PageSize.Should().Be(2);
         result.TotalPages.Should().Be(3);
     }
@@ -117,7 +117,7 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
         // Assert - o banco deve estar vazio
         resultWithoutFilter.Should().NotBeNull();
         resultWithoutFilter.Items.Should().BeEmpty();
-        resultWithoutFilter.TotalCount.Should().Be(0);
+        resultWithoutFilter.TotalItems.Should().Be(0);
         resultWithoutFilter.TotalPages.Should().Be(0);
 
         // Act - Agora com filtro único que não existe
@@ -130,7 +130,7 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
         // Assert
         result.Should().NotBeNull();
         result.Items.Should().BeEmpty();
-        result.TotalCount.Should().Be(0);
+        result.TotalItems.Should().Be(0);
         result.TotalPages.Should().Be(0);
     }
 
