@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Web.Admin.Services.Interfaces;
 
 namespace MeAjudaAi.Web.Admin.Services;
 

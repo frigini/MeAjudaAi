@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using MeAjudaAi.Web.Admin.Authorization;
+using MeAjudaAi.Web.Admin.Services.Interfaces;
 using System.Security.Claims;
 
 namespace MeAjudaAi.Web.Admin.Services;

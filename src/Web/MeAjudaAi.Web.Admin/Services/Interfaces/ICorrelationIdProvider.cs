@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Web.Admin.Services;
+namespace MeAjudaAi.Web.Admin.Services.Interfaces;
 
 /// <summary>
 /// Fornece IDs de correlação para rastreamento distribuído.

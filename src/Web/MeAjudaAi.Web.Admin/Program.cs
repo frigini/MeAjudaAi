@@ -7,6 +7,7 @@ using MeAjudaAi.Web.Admin;
 using MeAjudaAi.Web.Admin.Authorization;
 using MeAjudaAi.Web.Admin.Extensions;
 using MeAjudaAi.Web.Admin.Services;
+using MeAjudaAi.Web.Admin.Services.Interfaces;
 using MeAjudaAi.Web.Admin.Services.Resilience;
 using MeAjudaAi.Web.Admin.Validators;
 using Microsoft.AspNetCore.Components.Web;

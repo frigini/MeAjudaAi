@@ -1,19 +1,8 @@
 using System.Net.Http.Json;
 using MeAjudaAi.Contracts.Configuration;
+using MeAjudaAi.Web.Admin.Services.Interfaces;
 
 namespace MeAjudaAi.Web.Admin.Services;
-
-/// <summary>
-/// Serviço para buscar configuração do backend ao iniciar o aplicativo.
-/// Permite configuração dinâmica sem expor informações sensíveis no wwwroot.
-/// </summary>
-public interface IConfigurationService
-{
-    /// <summary>
-    /// Obtém a configuração do cliente a partir do backend.
-    /// </summary>
-    Task<ClientConfiguration> GetClientConfigurationAsync(CancellationToken cancellationToken = default);
-}
 
 /// <summary>
 /// Implementação do serviço de configuração que busca do endpoint /api/configuration/client.

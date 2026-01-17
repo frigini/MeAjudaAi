@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Web.Admin.Services;
+namespace MeAjudaAi.Web.Admin.Services.Interfaces;
 
 /// <summary>
 /// Serviço para verificar permissões do usuário atual.
