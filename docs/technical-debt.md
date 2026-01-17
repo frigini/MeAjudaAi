@@ -214,11 +214,11 @@ error CS0200: Property or indexer 'IOpenApiMediaType.Example' cannot be assigned
 
 ---
 
-## 📋 Padronização de Records (BAIXA PRIORIDADE)
+## 📋 Padronização de Records
 
 **Arquivo**: Múltiplos arquivos em `src/Shared/Contracts/**` e `src/Modules/**/Domain/**`  
-**Severidade**: BAIXA (manutenibilidade)  
-**Sprint**: BACKLOG
+**Severidade**: MÉDIA (padronização importante)  
+**Sprint**: Sprint 7.16 (Dia 5, ~0.5 dia)
 
 **Descrição**: Existem dois padrões de sintaxe para records no projeto:
 
