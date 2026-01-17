@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Web.Admin.Constants;
+namespace MeAjudaAi.Web.Admin.Constants.Modules.Providers;
 
 /// <summary>
 /// Constantes relacionadas a tipos de prestadores de serviços.

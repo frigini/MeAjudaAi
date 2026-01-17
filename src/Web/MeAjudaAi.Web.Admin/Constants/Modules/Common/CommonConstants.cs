@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Web.Admin.Constants;
+namespace MeAjudaAi.Web.Admin.Constants.Modules.Common;
 
 /// <summary>
 /// Constantes para status de ativação de recursos (categorias, serviços, cidades).

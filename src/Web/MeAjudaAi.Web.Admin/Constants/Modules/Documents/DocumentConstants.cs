@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Web.Admin.Constants;
+namespace MeAjudaAi.Web.Admin.Constants.Modules.Documents;
 
 /// <summary>
 /// Constantes para status de documentos no processo de verificação.

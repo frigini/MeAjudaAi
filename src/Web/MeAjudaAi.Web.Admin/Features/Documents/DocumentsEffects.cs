@@ -1,5 +1,6 @@
 using Fluxor;
 using MeAjudaAi.Client.Contracts.Api;
+using MeAjudaAi.Web.Admin.Constants.Modules.Documents;
 using MeAjudaAi.Web.Admin.Extensions;
 using MudBlazor;
 
@@ -73,7 +74,7 @@ public sealed class DocumentsEffects
             {
                 dispatcher.Dispatch(new DocumentsActions.RequestVerificationSuccessAction(action.DocumentId));
                 _snackbar.Add("Verificação solicitada com sucesso!", Severity.Success);
-                dispatcher.Dispatch(new DocumentsActions.UpdateDocumentStatusAction(action.DocumentId, Constants.DocumentStatus.ToDisplayName(Constants.DocumentStatus.PendingVerification)));
+                dispatcher.Dispatch(new DocumentsActions.UpdateDocumentStatusAction(action.DocumentId, DocumentStatus.ToDisplayName(DocumentStatus.PendingVerification)));
             },
             onError: ex =>
             {
