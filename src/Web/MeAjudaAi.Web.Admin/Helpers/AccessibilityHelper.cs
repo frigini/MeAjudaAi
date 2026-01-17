@@ -1,12 +1,12 @@
 namespace MeAjudaAi.Web.Admin.Helpers;
 
 /// <summary>
-/// Helper class for accessibility features and WCAG 2.1 AA compliance
+/// Classe helper para recursos de acessibilidade e conformidade com WCAG 2.1 AA.
 /// </summary>
 public static class AccessibilityHelper
 {
     /// <summary>
-    /// ARIA labels for common actions in Portuguese
+    /// Labels ARIA para ações comuns em português.
     /// </summary>
     public static class AriaLabels
     {
@@ -38,7 +38,7 @@ public static class AccessibilityHelper
     }
 
     /// <summary>
-    /// ARIA live region announcements for state changes
+    /// Anúncios ARIA live region para mudanças de estado.
     /// </summary>
     public static class LiveRegionAnnouncements
     {
@@ -74,7 +74,7 @@ public static class AccessibilityHelper
     }
 
     /// <summary>
-    /// Role attributes for semantic HTML
+    /// Atributos de role para HTML semântico.
     /// </summary>
     public static class Roles
     {
@@ -92,7 +92,7 @@ public static class AccessibilityHelper
     }
 
     /// <summary>
-    /// Keyboard shortcuts documentation
+    /// Documentação de atalhos de teclado.
     /// </summary>
     public static class KeyboardShortcuts
     {
@@ -107,7 +107,7 @@ public static class AccessibilityHelper
     }
 
     /// <summary>
-    /// Get ARIA label for common CRUD actions
+    /// Obtém label ARIA para ações CRUD comuns.
     /// </summary>
     public static string GetActionLabel(string action, string? itemName = null)
     {
@@ -129,7 +129,7 @@ public static class AccessibilityHelper
     }
 
     /// <summary>
-    /// Check if color contrast meets WCAG AA standards (4.5:1 for normal text)
+    /// Verifica se o contraste de cores atende aos padrões WCAG AA (4.5:1 para texto normal).
     /// </summary>
     public static bool IsContrastSufficient(string backgroundColor, string foregroundColor)
     {
@@ -139,7 +139,7 @@ public static class AccessibilityHelper
     }
 
     /// <summary>
-    /// Get recommended focus order for dialog elements
+    /// Obtém ordem de foco recomendada para elementos de diálogo.
     /// </summary>
     public static int GetFocusOrder(string elementType)
     {

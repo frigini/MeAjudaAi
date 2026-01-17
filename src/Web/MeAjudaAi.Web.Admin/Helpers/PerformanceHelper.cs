@@ -4,23 +4,22 @@ using System.Diagnostics;
 namespace MeAjudaAi.Web.Admin.Helpers;
 
 /// <summary>
-/// Performance monitoring and optimization utilities with bounded caches to prevent memory leaks.
+/// Utilitários de monitoramento e otimização de performance com caches limitados para prevenir vazamentos de memória.
 /// </summary>
 public static class PerformanceHelper
 {
     /// <summary>
-    /// Maximum number of cached items before LRU eviction kicks in.
+    /// Número máximo de itens em cache antes da remoção LRU entrar em ação.
     /// </summary>
     private const int MaxCacheSize = 500;
 
     /// <summary>
-    /// Maximum number of throttle timestamps before cleanup.
+    /// Número máximo de timestamps de throttle antes da limpeza.
     /// </summary>
     private const int MaxThrottleSize = 100;
     /// <summary>
-    /// Measure execution time of an action
+    /// Mede o tempo de execução de uma ação.
     /// </summary>
-    public static async Task<(T Result, TimeSpan Duration)> MeasureAsync<T>(Func<Task<T>> action)
     {
         var stopwatch = Stopwatch.StartNew();
         var result = await action();
@@ -29,9 +28,8 @@ public static class PerformanceHelper
     }
 
     /// <summary>
-    /// Measure execution time of an action
+    /// Mede o tempo de execução de uma ação.
     /// </summary>
-    public static (T Result, TimeSpan Duration) Measure<T>(Func<T> action)
     {
         var stopwatch = Stopwatch.StartNew();
         var result = action();
@@ -40,8 +38,8 @@ public static class PerformanceHelper
     }
 
     /// <summary>
-    /// Memoization cache for expensive computed properties.
-    /// Thread-safe with LRU eviction when max size (500) is reached.
+    /// Cache de memoização para propriedades computadas com custo alto.
+    /// Thread-safe com remoção LRU quando tamanho máximo (500) é atingido.
     /// </summary>
     private static readonly ConcurrentDictionary<string, CacheEntry> MemoizationCache = new();
     private static readonly TimeSpan DefaultCacheDuration = TimeSpan.FromMinutes(5);
@@ -49,8 +47,8 @@ public static class PerformanceHelper
     private record CacheEntry(object Value, DateTime CachedAt, DateTime LastAccessedAt);
 
     /// <summary>
-    /// Memoize a function result with cache key and optional expiration.
-    /// Thread-safe with automatic eviction when cache exceeds 500 entries.
+    /// Memoriza resultado de função com chave de cache e expiração opcional.
+    /// Thread-safe com remoção automática quando cache excede 500 entradas.
     /// </summary>
     public static T Memoize<T>(string cacheKey, Func<T> factory, TimeSpan? cacheDuration = null) where T : notnull
     {
@@ -83,7 +81,7 @@ public static class PerformanceHelper
     }
 
     /// <summary>
-    /// Evict least recently used entries when cache exceeds max size.
+    /// Remove entradas menos recentemente usadas quando cache excede tamanho máximo.
     /// </summary>
     private static void EvictLRUIfNeeded(ConcurrentDictionary<string, CacheEntry> cache, int maxSize)
     {
@@ -104,8 +102,8 @@ public static class PerformanceHelper
     }
 
     /// <summary>
-    /// Clear memoization cache for specific key or all.
-    /// Thread-safe operation.
+    /// Limpa cache de memoização para chave específica ou todas.
+    /// Operação thread-safe.
     /// </summary>
     public static void ClearMemoizationCache(string? cacheKey = null)
     {
@@ -120,7 +118,7 @@ public static class PerformanceHelper
     }
 
     /// <summary>
-    /// Batch process items to prevent UI blocking
+    /// Processa itens em lotes para prevenir bloqueio da UI.
     /// </summary>
     public static async Task ProcessInBatchesAsync<T>(
         IEnumerable<T> items, 
@@ -145,8 +143,8 @@ public static class PerformanceHelper
     }
 
     /// <summary>
-    /// Throttle function execution to prevent excessive calls.
-    /// Thread-safe with automatic cleanup when exceeding 100 entries.
+    /// Limita execução de função para prevenir chamadas excessivas.
+    /// Thread-safe com limpeza automática ao exceder 100 entradas.
     /// </summary>
     private static readonly ConcurrentDictionary<string, DateTime> ThrottleTimestamps = new();
 

@@ -3,7 +3,7 @@ using System.Diagnostics;
 namespace MeAjudaAi.Web.Admin.Services;
 
 /// <summary>
-/// Service for logging errors with correlation IDs and stack traces
+/// Serviço para registro de erros com IDs de correlação e stack traces.
 /// </summary>
 public class ErrorLoggingService
 {
@@ -22,7 +22,7 @@ public class ErrorLoggingService
     }
 
     /// <summary>
-    /// Log component render error with full context
+    /// Registra erro de renderização de componente com contexto completo.
     /// </summary>
     public void LogComponentError(Exception exception, string? componentName = null)
     {
@@ -42,7 +42,7 @@ public class ErrorLoggingService
     }
 
     /// <summary>
-    /// Log unhandled error
+    /// Registra erro não tratado.
     /// </summary>
     public void LogUnhandledError(Exception exception, string context = "Application")
     {
@@ -60,7 +60,7 @@ public class ErrorLoggingService
     }
 
     /// <summary>
-    /// Log and announce API error
+    /// Registra e anuncia erro de API.
     /// </summary>
     public void LogApiError(string endpoint, int? statusCode, string errorMessage)
     {
@@ -78,7 +78,7 @@ public class ErrorLoggingService
     }
 
     /// <summary>
-    /// Log validation error
+    /// Registra erro de validação.
     /// </summary>
     public void LogValidationError(string fieldName, string errorMessage)
     {
@@ -91,7 +91,7 @@ public class ErrorLoggingService
     }
 
     /// <summary>
-    /// Get user-friendly error message based on exception type
+    /// Obtém mensagem amigável para o usuário com base no tipo de exceção.
     /// </summary>
     public static string GetUserFriendlyMessage(Exception exception)
     {
