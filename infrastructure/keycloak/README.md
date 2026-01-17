@@ -2,26 +2,17 @@
 
 Este diretório contém configurações do Keycloak para autenticação OIDC da plataforma MeAjudaAi.
 
-## 🚀 Quick Start
+## 🚀 Setup Automatizado
 
-### Setup Automatizado (Recomendado)
+**A configuração do Keycloak é feita automaticamente pelo código!**
 
-```powershell
-# Executar script de automação
-.\infrastructure\keycloak\setup-keycloak-clients.ps1
+Quando você executa `.\scripts\dev.ps1`, o AppHost configura automaticamente:
+- ✅ Realm `meajudaai`
+- ✅ Clients OIDC: `admin-portal` e `customer-app`
+- ✅ Roles: admin, customer, operator, viewer
+- ✅ Usuários demo para desenvolvimento
 
-# Com configurações customizadas
-.\infrastructure\keycloak\setup-keycloak-clients.ps1 `
-    -KeycloakUrl "http://localhost:9090" `
-    -AdminPassword "mypassword"
-```
-
-**O que o script faz:**
-- ✅ Valida se Keycloak está rodando
-- ✅ Cria realm `meajudaai` (se não existir)
-- ✅ Configura clients OIDC: `admin-portal` e `customer-app`
-- ✅ Cria roles: admin, customer, operator, viewer
-- ✅ Cria usuários demo para desenvolvimento
+**Código:** [`src/Aspire/MeAjudaAi.AppHost/Extensions/KeycloakSetupService.cs`](../../src/Aspire/MeAjudaAi.AppHost/Extensions/KeycloakSetupService.cs)
 
 **Documentação completa:** [`docs/keycloak-admin-portal-setup.md`](../../docs/keycloak-admin-portal-setup.md)
 
@@ -31,7 +22,6 @@ Este diretório contém configurações do Keycloak para autenticação OIDC da 
 
 ```
 keycloak/
-├── setup-keycloak-clients.ps1  # Script de automação (NOVO!)
 ├── README.md                     # Este arquivo
 ├── realms/                       # Realm configurations (JSON exports)
 │   ├── meajudaai-realm.dev.json  # Development realm
