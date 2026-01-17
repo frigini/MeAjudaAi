@@ -15,7 +15,7 @@ public class ApiAuthorizationMessageHandler : AuthorizationMessageHandler
         : base(provider, navigationManager)
     {
         ConfigureHandler(
-            authorizedUrls: new[] { clientConfiguration.ApiBaseUrl },
-            scopes: new[] { "openid", "profile", "email" });
+            authorizedUrls: [clientConfiguration.ApiBaseUrl],
+            scopes: ["openid", "profile", "email"]);
     }
 }

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Web.Admin.Services;
@@ -14,18 +13,10 @@ public record ErrorInfo(string Message, string CorrelationId, int StatusCode = 4
 /// <summary>
 /// Serviço para tratamento padronizado de erros com retry logic e mensagens amigáveis.
 /// </summary>
-public class ErrorHandlingService
+public class ErrorHandlingService(
+    ILogger<ErrorHandlingService> logger,
+    ICorrelationIdProvider correlationIdProvider)
 {
-    private readonly ILogger<ErrorHandlingService> _logger;
-    private readonly ICorrelationIdProvider _correlationIdProvider;
-
-    public ErrorHandlingService(
-        ILogger<ErrorHandlingService> logger,
-        ICorrelationIdProvider correlationIdProvider)
-    {
-        _logger = logger;
-        _correlationIdProvider = correlationIdProvider;
-    }
 
     /// <summary>
     /// Trata erro de API e retorna mensagem amigável.
@@ -37,15 +28,15 @@ public class ErrorHandlingService
     {
         if (result.IsSuccess)
         {
-            _logger.LogWarning("HandleApiError called for successful result in operation: {Operation}", operation);
+            logger.LogWarning("HandleApiError called for successful result in operation: {Operation}", operation);
             return string.Empty;
         }
 
-        var correlationId = _correlationIdProvider.GetOrCreate();
+        var correlationId = correlationIdProvider.GetOrCreate();
         var errorMessage = result.Error?.Message ?? "Erro desconhecido";
         var statusCode = result.Error?.StatusCode ?? 500;
 
-        _logger.LogError(
+        logger.LogError(
             "Error in operation '{Operation}': {StatusCode} - {ErrorMessage} [CorrelationId: {CorrelationId}]",
             operation, statusCode, errorMessage, correlationId);
 
@@ -101,7 +92,7 @@ public class ErrorHandlingService
         string operation,
         CancellationToken cancellationToken = default)
     {
-        var correlationId = _correlationIdProvider.GetOrCreate();
+        var correlationId = correlationIdProvider.GetOrCreate();
 
         try
         {
@@ -112,7 +103,7 @@ public class ErrorHandlingService
 
             if (result.IsSuccess)
             {
-                _logger.LogInformation(
+                logger.LogInformation(
                     "Operation '{Operation}' succeeded [CorrelationId: {CorrelationId}]",
                     operation, correlationId);
                 return result;
@@ -121,7 +112,7 @@ public class ErrorHandlingService
             var statusCode = result.Error?.StatusCode ?? 500;
             var errorMessage = result.Error?.Message ?? "Erro desconhecido";
 
-            _logger.LogError(
+            logger.LogError(
                 "Operation '{Operation}' failed with status {StatusCode}: {ErrorMessage} [CorrelationId: {CorrelationId}]",
                 operation, statusCode, errorMessage, correlationId);
 
@@ -129,7 +120,7 @@ public class ErrorHandlingService
         }
         catch (OperationCanceledException)
         {
-            _logger.LogInformation(
+            logger.LogInformation(
                 "Operation '{Operation}' canceled [CorrelationId: {CorrelationId}]",
                 operation, correlationId);
             
@@ -137,7 +128,7 @@ public class ErrorHandlingService
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex,
+            logger.LogError(ex,
                 "Network exception in operation '{Operation}' [CorrelationId: {CorrelationId}]",
                 operation, correlationId);
 
@@ -145,7 +136,7 @@ public class ErrorHandlingService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex,
+            logger.LogError(ex,
                 "Unexpected exception in operation '{Operation}' [CorrelationId: {CorrelationId}]",
                 operation, correlationId);
 

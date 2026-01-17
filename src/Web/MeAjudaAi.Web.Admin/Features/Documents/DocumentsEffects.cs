@@ -45,9 +45,8 @@ public sealed class DocumentsEffects
     [EffectMethod]
     public async Task HandleDeleteDocumentAction(DocumentsActions.DeleteDocumentAction action, IDispatcher dispatcher)
     {
-        await dispatcher.ExecuteApiCallAsync(
+        await _snackbar.ExecuteApiCallAsync(
             apiCall: () => _documentsApi.DeleteDocumentAsync(action.ProviderId, action.DocumentId),
-            snackbar: _snackbar,
             operationName: "Excluir documento",
             onSuccess: _ =>
             {
@@ -67,9 +66,8 @@ public sealed class DocumentsEffects
     [EffectMethod]
     public async Task HandleRequestVerificationAction(DocumentsActions.RequestVerificationAction action, IDispatcher dispatcher)
     {
-        await dispatcher.ExecuteApiCallAsync(
+        await _snackbar.ExecuteApiCallAsync(
             apiCall: () => _documentsApi.RequestDocumentVerificationAsync(action.ProviderId, action.DocumentId),
-            snackbar: _snackbar,
             operationName: "Solicitar verificação",
             onSuccess: _ =>
             {

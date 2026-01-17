@@ -79,9 +79,8 @@ public sealed class ServiceCatalogsEffects
     [EffectMethod]
     public async Task HandleDeleteCategoryAction(ServiceCatalogsActions.DeleteCategoryAction action, IDispatcher dispatcher)
     {
-        await dispatcher.ExecuteApiCallAsync(
+        await _snackbar.ExecuteApiCallAsync(
             apiCall: () => _serviceCatalogsApi.DeleteCategoryAsync(action.CategoryId),
-            snackbar: _snackbar,
             operationName: "Excluir categoria",
             onSuccess: _ =>
             {
@@ -101,11 +100,10 @@ public sealed class ServiceCatalogsEffects
     [EffectMethod]
     public async Task HandleToggleCategoryActivationAction(ServiceCatalogsActions.ToggleCategoryActivationAction action, IDispatcher dispatcher)
     {
-        await dispatcher.ExecuteApiCallAsync(
+        await _snackbar.ExecuteApiCallAsync(
             apiCall: () => action.Activate
                 ? _serviceCatalogsApi.ActivateCategoryAsync(action.CategoryId)
                 : _serviceCatalogsApi.DeactivateCategoryAsync(action.CategoryId),
-            snackbar: _snackbar,
             operationName: action.Activate ? "Ativar categoria" : "Desativar categoria",
             onSuccess: _ =>
             {
@@ -125,9 +123,8 @@ public sealed class ServiceCatalogsEffects
     [EffectMethod]
     public async Task HandleDeleteServiceAction(ServiceCatalogsActions.DeleteServiceAction action, IDispatcher dispatcher)
     {
-        await dispatcher.ExecuteApiCallAsync(
+        await _snackbar.ExecuteApiCallAsync(
             apiCall: () => _serviceCatalogsApi.DeleteServiceAsync(action.ServiceId),
-            snackbar: _snackbar,
             operationName: "Excluir serviço",
             onSuccess: _ =>
             {
@@ -147,11 +144,10 @@ public sealed class ServiceCatalogsEffects
     [EffectMethod]
     public async Task HandleToggleServiceActivationAction(ServiceCatalogsActions.ToggleServiceActivationAction action, IDispatcher dispatcher)
     {
-        await dispatcher.ExecuteApiCallAsync(
+        await _snackbar.ExecuteApiCallAsync(
             apiCall: () => action.Activate
                 ? _serviceCatalogsApi.ActivateServiceAsync(action.ServiceId)
                 : _serviceCatalogsApi.DeactivateServiceAsync(action.ServiceId),
-            snackbar: _snackbar,
             operationName: action.Activate ? "Ativar serviço" : "Desativar serviço",
             onSuccess: _ =>
             {

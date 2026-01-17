@@ -123,9 +123,8 @@ public class ProvidersEffects
     public async Task HandleDeleteProviderAction(DeleteProviderAction action, IDispatcher dispatcher)
     {
         // Usa a extensão para tratar erros de API automaticamente
-        var result = await dispatcher.ExecuteApiCallAsync(
+        var result = await _snackbar.ExecuteApiCallAsync(
             apiCall: () => _providersApi.DeleteProviderAsync(action.ProviderId),
-            snackbar: _snackbar,
             operationName: "Deletar provedor",
             onSuccess: _ =>
             {

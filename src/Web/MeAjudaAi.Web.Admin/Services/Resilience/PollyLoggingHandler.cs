@@ -6,19 +6,10 @@ namespace MeAjudaAi.Web.Admin.Services.Resilience;
 /// <summary>
 /// Handler para logar e rastrear exceções do Polly
 /// </summary>
-public class PollyLoggingHandler : DelegatingHandler
+public class PollyLoggingHandler(
+    ILogger<PollyLoggingHandler> logger,
+    IConnectionStatusService connectionStatus) : DelegatingHandler
 {
-    private readonly ILogger<PollyLoggingHandler> _logger;
-    private readonly IConnectionStatusService _connectionStatus;
-
-    public PollyLoggingHandler(
-        ILogger<PollyLoggingHandler> logger,
-        IConnectionStatusService connectionStatus)
-    {
-        _logger = logger;
-        _connectionStatus = connectionStatus;
-    }
-
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken)
@@ -35,20 +26,20 @@ public class PollyLoggingHandler : DelegatingHandler
 
             // Restaura status se sucesso após falhas
             if (response.IsSuccessStatusCode && 
-                _connectionStatus.CurrentStatus != ConnectionStatus.Connected)
+                connectionStatus.CurrentStatus != ConnectionStatus.Connected)
             {
-                _connectionStatus.UpdateStatus(ConnectionStatus.Connected);
+                connectionStatus.UpdateStatus(ConnectionStatus.Connected);
             }
 
             return response;
         }
         catch (BrokenCircuitException ex)
         {
-            _logger.LogError(ex, 
+            logger.LogError(ex, 
                 "🔴 Circuit breaker is open - API unavailable. Request: {RequestUri}",
                 request.RequestUri);
             
-            _connectionStatus.UpdateStatus(ConnectionStatus.Disconnected);
+            connectionStatus.UpdateStatus(ConnectionStatus.Disconnected);
             
             // Retorna resposta 503 Service Unavailable
             return new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
@@ -61,11 +52,11 @@ public class PollyLoggingHandler : DelegatingHandler
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, 
+            logger.LogError(ex, 
                 "❌ Unexpected error during HTTP request: {RequestUri}",
                 request.RequestUri);
             
-            _connectionStatus.UpdateStatus(ConnectionStatus.Reconnecting);
+            connectionStatus.UpdateStatus(ConnectionStatus.Reconnecting);
             throw;
         }
     }

@@ -18,17 +18,9 @@ public interface IConfigurationService
 /// <summary>
 /// Implementação do serviço de configuração que busca do endpoint /api/configuration/client.
 /// </summary>
-public class ConfigurationService : IConfigurationService
+public class ConfigurationService(HttpClient httpClient, ILogger<ConfigurationService> logger) : IConfigurationService
 {
-    private readonly HttpClient _httpClient;
-    private readonly ILogger<ConfigurationService> _logger;
     private ClientConfiguration? _cachedConfiguration;
-
-    public ConfigurationService(HttpClient httpClient, ILogger<ConfigurationService> logger)
-    {
-        _httpClient = httpClient;
-        _logger = logger;
-    }
 
     public async Task<ClientConfiguration> GetClientConfigurationAsync(CancellationToken cancellationToken = default)
     {
@@ -38,9 +30,9 @@ public class ConfigurationService : IConfigurationService
 
         try
         {
-            _logger.LogInformation("Fetching client configuration from backend...");
+            logger.LogInformation("Fetching client configuration from backend...");
 
-            var response = await _httpClient.GetAsync("/api/configuration/client", cancellationToken);
+            var response = await httpClient.GetAsync("/api/configuration/client", cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -55,22 +47,22 @@ public class ConfigurationService : IConfigurationService
 
             ValidateConfiguration(_cachedConfiguration);
 
-            _logger.LogInformation("Client configuration loaded successfully from backend");
-            _logger.LogDebug("API Base URL: {ApiBaseUrl}", _cachedConfiguration.ApiBaseUrl);
-            _logger.LogDebug("Keycloak Authority: {Authority}", _cachedConfiguration.Keycloak.Authority);
+            logger.LogInformation("Client configuration loaded successfully from backend");
+            logger.LogDebug("API Base URL: {ApiBaseUrl}", _cachedConfiguration.ApiBaseUrl);
+            logger.LogDebug("Keycloak Authority: {Authority}", _cachedConfiguration.Keycloak.Authority);
 
             return _cachedConfiguration;
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Network error fetching configuration from backend");
+            logger.LogError(ex, "Network error fetching configuration from backend");
             throw new InvalidOperationException(
                 "Cannot connect to the backend API to fetch configuration. " +
                 "Please ensure the API is running and accessible.", ex);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error fetching configuration");
+            logger.LogError(ex, "Unexpected error fetching configuration");
             throw new InvalidOperationException(
                 "Failed to load application configuration from backend.", ex);
         }
@@ -104,7 +96,7 @@ public class ConfigurationService : IConfigurationService
         if (errors.Any())
         {
             var errorMessage = "Configuration validation failed:\n" + string.Join("\n", errors.Select(e => $"  - {e}"));
-            _logger.LogError(errorMessage);
+            logger.LogError(errorMessage);
             throw new InvalidOperationException(errorMessage);
         }
     }

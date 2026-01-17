@@ -51,9 +51,8 @@ public sealed class LocationsEffects
     [EffectMethod]
     public async Task HandleDeleteAllowedCityAction(DeleteAllowedCityAction action, IDispatcher dispatcher)
     {
-        await dispatcher.ExecuteApiCallAsync(
+        await _snackbar.ExecuteApiCallAsync(
             apiCall: () => _locationsApi.DeleteAllowedCityAsync(action.CityId),
-            snackbar: _snackbar,
             operationName: "Excluir cidade",
             onSuccess: _ =>
             {
@@ -81,9 +80,8 @@ public sealed class LocationsEffects
             action.Activate
         );
 
-        await dispatcher.ExecuteApiCallAsync(
+        await _snackbar.ExecuteApiCallAsync(
             apiCall: () => _locationsApi.UpdateAllowedCityAsync(action.CityId, updateRequest),
-            snackbar: _snackbar,
             operationName: action.Activate ? "Ativar cidade" : "Desativar cidade",
             onSuccess: _ =>
             {

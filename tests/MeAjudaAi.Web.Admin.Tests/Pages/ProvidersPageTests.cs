@@ -22,7 +22,7 @@ public class ProvidersPageTests
     public void Providers_Page_Should_Dispatch_LoadProvidersAction_OnInitialized()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockProvidersApi = new Mock<IProvidersApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockProvidersState = new Mock<IState<ProvidersState>>();
@@ -36,7 +36,7 @@ public class ProvidersPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<Providers>();
+        var cut = ctx.Render<Providers>();
 
         // Assert
         mockDispatcher.Verify(
@@ -49,7 +49,7 @@ public class ProvidersPageTests
     public void Providers_Page_Should_Show_Loading_Indicator_When_Loading()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockProvidersApi = new Mock<IProvidersApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockProvidersState = new Mock<IState<ProvidersState>>();
@@ -63,7 +63,7 @@ public class ProvidersPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<Providers>();
+        var cut = ctx.Render<Providers>();
 
         // Assert
         var progressBars = cut.FindAll(".mud-progress-linear");
@@ -74,7 +74,7 @@ public class ProvidersPageTests
     public void Providers_Page_Should_Show_Error_Message_When_Error_Exists()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockProvidersApi = new Mock<IProvidersApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockProvidersState = new Mock<IState<ProvidersState>>();
@@ -92,7 +92,7 @@ public class ProvidersPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<Providers>();
+        var cut = ctx.Render<Providers>();
 
         // Assert
         var alerts = cut.FindAll(".mud-alert");
@@ -104,7 +104,7 @@ public class ProvidersPageTests
     public void Providers_Page_Should_Display_Providers_In_DataGrid()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockProvidersApi = new Mock<IProvidersApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockProvidersState = new Mock<IState<ProvidersState>>();
@@ -138,7 +138,7 @@ public class ProvidersPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<Providers>();
+        var cut = ctx.Render<Providers>();
 
         // Assert
         cut.Markup.Should().Contain("Fornecedor Teste", "Provider deve estar renderizado");

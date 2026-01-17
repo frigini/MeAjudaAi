@@ -7,17 +7,25 @@ using System.Net;
 namespace MeAjudaAi.Web.Admin.Extensions;
 
 /// <summary>
-/// Extensões para lidar com erros de API nos efeitos do Fluxor
+/// Extensões para lidar com erros de API nos efeitos do Fluxor.
+/// Fornece métodos auxiliares para execução de chamadas API com tratamento automático de erros,
+/// notificações de snackbar e callbacks personalizados.
 /// </summary>
 public static class FluxorEffectExtensions
 {
     /// <summary>
-    /// Executa uma ação de API com tratamento de erros e notificações
+    /// Executa uma ação de API com tratamento automático de erros e notificações.
     /// </summary>
+    /// <typeparam name="TResult">Tipo do resultado retornado pela chamada API</typeparam>
+    /// <param name="snackbar">Serviço MudBlazor para exibição de notificações</param>
+    /// <param name="apiCall">Função que executa a chamada API</param>
+    /// <param name="operationName">Nome da operação para mensagens de erro mais descritivas (opcional)</param>
+    /// <param name="onSuccess">Callback executado após sucesso (opcional)</param>
+    /// <param name="onError">Callback executado após erro (opcional)</param>
+    /// <returns>Resultado da API ou default(TResult) em caso de erro</returns>
     public static async Task<TResult?> ExecuteApiCallAsync<TResult>(
-        this IDispatcher dispatcher,
+        this ISnackbar snackbar,
         Func<Task<TResult>> apiCall,
-        ISnackbar snackbar,
         string? operationName = null,
         Action<TResult>? onSuccess = null,
         Action<Exception>? onError = null)
@@ -85,12 +93,17 @@ public static class FluxorEffectExtensions
     }
 
     /// <summary>
-    /// Executa uma ação de API void com tratamento de erros
+    /// Executa uma ação de API void com tratamento automático de erros e notificações.
     /// </summary>
+    /// <param name="snackbar">Serviço MudBlazor para exibição de notificações</param>
+    /// <param name="apiCall">Função que executa a chamada API</param>
+    /// <param name="operationName">Nome da operação para mensagens de erro mais descritivas (opcional)</param>
+    /// <param name="onSuccess">Callback executado após sucesso (opcional)</param>
+    /// <param name="onError">Callback executado após erro (opcional)</param>
+    /// <returns>true se a operação foi bem-sucedida, false caso contrário</returns>
     public static async Task<bool> ExecuteApiCallAsync(
-        this IDispatcher dispatcher,
+        this ISnackbar snackbar,
         Func<Task> apiCall,
-        ISnackbar snackbar,
         string? operationName = null,
         Action? onSuccess = null,
         Action<Exception>? onError = null)

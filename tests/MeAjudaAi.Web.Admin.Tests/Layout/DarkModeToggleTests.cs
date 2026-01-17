@@ -14,7 +14,7 @@ namespace MeAjudaAi.Web.Admin.Tests.Layout;
 /// <summary>
 /// Testes para o dark mode toggle no MainLayout.razor usando bUnit
 /// </summary>
-public class DarkModeToggleTests : Bunit.TestContext
+public class DarkModeToggleTests : Bunit.BunitContext
 {
     private readonly Mock<IDispatcher> _mockDispatcher;
     private readonly Mock<IState<ThemeState>> _mockThemeState;
@@ -40,7 +40,7 @@ public class DarkModeToggleTests : Bunit.TestContext
     public void MainLayout_Should_Dispatch_ToggleDarkModeAction_When_Button_Clicked()
     {
         // Arrange
-        var cut = RenderComponent<MainLayout>();
+        var cut = Render<MainLayout>();
 
         // Encontrar botões que podem ser o dark mode toggle
         var buttons = cut.FindAll("button");

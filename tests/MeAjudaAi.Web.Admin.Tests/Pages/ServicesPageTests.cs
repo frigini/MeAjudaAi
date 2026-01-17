@@ -22,7 +22,7 @@ public class ServicesPageTests
     public void Services_Page_Should_Dispatch_LoadActions_OnInitialized()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockServiceCatalogsApi = new Mock<IServiceCatalogsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<ServiceCatalogsState>>();
@@ -36,7 +36,7 @@ public class ServicesPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<Services>();
+        var cut = ctx.Render<Services>();
 
         // Assert
         mockDispatcher.Verify(
@@ -53,7 +53,7 @@ public class ServicesPageTests
     public void Services_Page_Should_Show_Create_Button()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockServiceCatalogsApi = new Mock<IServiceCatalogsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<ServiceCatalogsState>>();
@@ -67,7 +67,7 @@ public class ServicesPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<Services>();
+        var cut = ctx.Render<Services>();
 
         // Assert
         var markup = cut.Markup;
@@ -78,7 +78,7 @@ public class ServicesPageTests
     public void Services_Page_Should_Display_Services_List()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockServiceCatalogsApi = new Mock<IServiceCatalogsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<ServiceCatalogsState>>();
@@ -118,7 +118,7 @@ public class ServicesPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<Services>();
+        var cut = ctx.Render<Services>();
 
         // Assert
         var markup = cut.Markup;

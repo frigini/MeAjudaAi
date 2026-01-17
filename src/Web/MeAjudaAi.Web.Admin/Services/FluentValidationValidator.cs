@@ -125,28 +125,3 @@ public class FluentValidationValidator<TModel> : ComponentBase, IDisposable
         }
     }
 }
-
-/// <summary>
-/// Helper para sanitizar inputs de formulários.
-/// </summary>
-public static class InputSanitizer
-{
-    /// <summary>
-    /// Sanitiza string para prevenir XSS.
-    /// </summary>
-    public static string Sanitize(string? input)
-    {
-        return ValidationExtensions.SanitizeInput(input);
-    }
-
-    /// <summary>
-    /// Cria um callback para sanitizar automaticamente ao digitar.
-    /// </summary>
-    public static EventCallback<string> CreateSanitizedCallback(object? receiver, Action<string> setter)
-    {
-        return EventCallback.Factory.Create<string>(receiver ?? new object(), (value) =>
-        {
-            setter(Sanitize(value));
-        });
-    }
-}

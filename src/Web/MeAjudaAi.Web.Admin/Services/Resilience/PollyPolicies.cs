@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
-using Polly.CircuitBreaker;
-using Polly.Retry;
 using Polly.Timeout;
 
 namespace MeAjudaAi.Web.Admin.Services.Resilience;

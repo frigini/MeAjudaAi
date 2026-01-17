@@ -22,7 +22,7 @@ public class AllowedCitiesPageTests
     public void AllowedCities_Page_Should_Dispatch_LoadAction_OnInitialized()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockLocationsApi = new Mock<ILocationsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<LocationsState>>();
@@ -36,7 +36,7 @@ public class AllowedCitiesPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<AllowedCities>();
+        var cut = ctx.Render<AllowedCities>();
 
         // Assert
         mockDispatcher.Verify(
@@ -49,7 +49,7 @@ public class AllowedCitiesPageTests
     public void AllowedCities_Page_Should_Show_Create_Button()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockLocationsApi = new Mock<ILocationsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<LocationsState>>();
@@ -63,7 +63,7 @@ public class AllowedCitiesPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<AllowedCities>();
+        var cut = ctx.Render<AllowedCities>();
 
         // Assert
         var markup = cut.Markup;
@@ -74,7 +74,7 @@ public class AllowedCitiesPageTests
     public void AllowedCities_Page_Should_Display_Cities_List()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockLocationsApi = new Mock<ILocationsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<LocationsState>>();
@@ -104,7 +104,7 @@ public class AllowedCitiesPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<AllowedCities>();
+        var cut = ctx.Render<AllowedCities>();
 
         // Assert
         var markup = cut.Markup;
@@ -116,7 +116,7 @@ public class AllowedCitiesPageTests
     public void AllowedCities_Page_Should_Show_Loading_Indicator()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockLocationsApi = new Mock<ILocationsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<LocationsState>>();
@@ -130,7 +130,7 @@ public class AllowedCitiesPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<AllowedCities>();
+        var cut = ctx.Render<AllowedCities>();
 
         // Assert
         var markup = cut.Markup;

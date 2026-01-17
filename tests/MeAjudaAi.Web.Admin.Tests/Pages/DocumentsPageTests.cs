@@ -22,7 +22,7 @@ public class DocumentsPageTests
     public void Documents_Page_Should_Show_Provider_Selector()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockDocumentsApi = new Mock<IDocumentsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockDocumentsState = new Mock<IState<DocumentsState>>();
@@ -36,7 +36,7 @@ public class DocumentsPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<Documents>();
+        var cut = ctx.Render<Documents>();
 
         // Assert
         var markup = cut.Markup;
@@ -47,7 +47,7 @@ public class DocumentsPageTests
     public void Documents_Page_Should_Show_Upload_Button_When_Provider_Selected()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockDocumentsApi = new Mock<IDocumentsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockDocumentsState = new Mock<IState<DocumentsState>>();
@@ -66,7 +66,7 @@ public class DocumentsPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<Documents>();
+        var cut = ctx.Render<Documents>();
 
         // Assert
         var markup = cut.Markup;
@@ -77,7 +77,7 @@ public class DocumentsPageTests
     public void Documents_Page_Should_Show_Loading_Indicator_When_Loading()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockDocumentsApi = new Mock<IDocumentsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockDocumentsState = new Mock<IState<DocumentsState>>();
@@ -91,7 +91,7 @@ public class DocumentsPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<Documents>();
+        var cut = ctx.Render<Documents>();
 
         // Assert
         var progressBars = cut.FindAll(".mud-progress-linear");
@@ -102,7 +102,7 @@ public class DocumentsPageTests
     public void Documents_Page_Should_Display_Document_List()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockDocumentsApi = new Mock<IDocumentsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockDocumentsState = new Mock<IState<DocumentsState>>();
@@ -129,7 +129,7 @@ public class DocumentsPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<Documents>();
+        var cut = ctx.Render<Documents>();
 
         // Assert
         var markup = cut.Markup;
@@ -141,7 +141,7 @@ public class DocumentsPageTests
     public void Documents_Page_Should_Show_Error_Message_When_Error_Exists()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockDocumentsApi = new Mock<IDocumentsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockDocumentsState = new Mock<IState<DocumentsState>>();
@@ -158,7 +158,7 @@ public class DocumentsPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<Documents>();
+        var cut = ctx.Render<Documents>();
 
         // Assert
         var alerts = cut.FindAll(".mud-alert");

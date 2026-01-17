@@ -2,6 +2,20 @@
 
 Portal administrativo Blazor WebAssembly para gerenciamento da plataforma MeAjudaAi.
 
+## 📑 Índice
+
+- [Quick Start](#-quick-start)
+- [Estrutura do Projeto](#-estrutura-do-projeto)
+- [State Management (Fluxor)](#-state-management-fluxor)
+- [Sistema de Resiliência (Polly)](#-sistema-de-resiliência-polly)
+- [Validação (FluentValidation)](#-validação-fluentvalidation)
+- [Componentes MudBlazor](#-componentes-mudblazor)
+- [Configuração](#-configuração)
+- [Testes](#-testes)
+- [Debugging](#-debugging)
+
+---
+
 ## 🚀 Quick Start
 
 ### Pré-requisitos
@@ -13,245 +27,121 @@ Portal administrativo Blazor WebAssembly para gerenciamento da plataforma MeAjud
 ### Executar localmente
 
 ```bash
-# 1. Navegar para o diretório do projeto
 cd src/Web/MeAjudaAi.Web.Admin
-
-# 2. Restaurar dependências
 dotnet restore
-
-# 3. Executar (Development Server)
-dotnet run
-
-# Ou usar o watch mode para hot reload
-dotnet watch run
+dotnet watch run  # Hot reload habilitado
 ```
 
-Acesse: `https://localhost:5001` (porta pode variar)
+Acesse: `https://localhost:5001`
 
 ### Build para produção
 
 ```bash
-# Build Release
-dotnet build -c Release
-
-# Build com AOT Compilation (mais lento, melhor performance)
-dotnet publish -c Release
-
-# Output: bin/Release/net10.0/publish/wwwroot/
+dotnet publish -c Release  # Com AOT compilation
 ```
 
-**Documentação:** Ver [docs/modules/admin-portal.md](../../../docs/modules/admin-portal.md) para arquitetura completa.
+**Documentação Completa:** [docs/modules/admin-portal.md](../../../docs/modules/admin-portal.md)
 
-## 📦 Dependências
+---
+
+## 📦 Dependências Principais
 
 | Pacote | Versão | Propósito |
 |--------|--------|-----------|
 | `Microsoft.AspNetCore.Components.WebAssembly` | 10.0.1 | Blazor WASM runtime |
-| `Microsoft.AspNetCore.Components.WebAssembly.Authentication` | 10.0.1 | OIDC authentication |
-| `MudBlazor` | 8.0.0+ | Material Design UI |
-| `Fluxor.Blazor.Web` | 6.1.0 | State management |
-| `Fluxor.Blazor.Web.ReduxDevTools` | 6.1.0 | Redux DevTools (DEBUG only) |
-| `Refit.HttpClientFactory` | 9.0.2 | HTTP client generation |
+| `MudBlazor` | 8.15.0 | Material Design UI components |
+| `Fluxor.Blazor.Web` | 6.9.0 | State management (Redux pattern) |
+| `Refit` | 9.0.2 | Type-safe HTTP clients |
+| `FluentValidation` | 11.0.0+ | Form validation com regras brasileiras |
+| `Polly` | 8.0.0+ | Resilience (retry, circuit breaker, timeout) |
+
+---
 
 ## 🏗️ Estrutura do Projeto
 
-```plaintext
+```
 MeAjudaAi.Web.Admin/
-├── Pages/                          # Páginas roteáveis (@page)
-│   ├── Home.razor                 # Dashboard com KPIs
-│   ├── Providers.razor            # Listagem/CRUD de providers
-│   ├── Documents.razor            # Gerenciamento de documentos
-│   ├── Services.razor             # Catálogo de serviços
-│   ├── Settings.razor             # Configurações do sistema
-│   ├── Counter.razor              # Template example (remover)
-│   ├── Weather.razor              # Template example (remover)
-│   └── NotFound.razor             # Página 404
-│
-├── Layout/                         # Layouts compartilhados
-│   ├── MainLayout.razor           # Layout principal (AppBar + Drawer)
-│   ├── MainLayout.razor.css       # Estilos do layout
-│   ├── NavMenu.razor              # Menu lateral de navegação
-│   └── NavMenu.razor.css          # Estilos do menu
-│
-├── Features/                       # Fluxor stores (PLANEJADO)
+├── Features/              # Fluxor stores (State + Actions + Reducers + Effects)
 │   ├── Providers/
-│   │   ├── ProvidersState.cs
-│   │   ├── ProvidersActions.cs
-│   │   ├── ProvidersReducers.cs
-│   │   └── ProvidersEffects.cs
-│   └── Dashboard/
-│
-├── Components/                     # Componentes reutilizáveis (PLANEJADO)
-│   ├── ProviderCard.razor
-│   ├── DocumentUploader.razor
-│   └── KpiCard.razor
-│
-├── wwwroot/                        # Assets estáticos
-│   ├── css/
-│   │   └── app.css                # Estilos globais
-│   ├── lib/                       # Bibliotecas JavaScript (Bootstrap - remover)
-│   ├── favicon.png                # Favicon
-│   ├── icon-192.png               # PWA icon
-│   └── index.html                 # HTML host page
-│
-├── App.razor                       # Componente raiz (Router + Providers)
-├── _Imports.razor                  # Global using statements
-├── Program.cs                      # Entry point + DI configuration
-└── MeAjudaAi.Web.Admin.csproj     # Project file
+│   ├── Documents/
+│   ├── ServiceCatalogs/
+│   └── Errors/
+├── Components/            # Componentes reutilizáveis
+│   └── Dialogs/          # Modais (Create, Edit, Verify, etc)
+├── Pages/                 # Páginas roteáveis (@page)
+├── Services/              # Services (logging, resilience, permissions)
+│   └── Resilience/       # Polly policies e handlers
+├── Validators/            # FluentValidation validators
+├── DTOs/                  # Data Transfer Objects
+├── Constants/             # Constantes (status, tipos, etc)
+├── Helpers/               # Helpers (acessibilidade, performance)
+├── Layout/                # MainLayout, NavMenu
+└── wwwroot/               # Assets estáticos (CSS, icons)
 ```
 
-## 🎨 Componentes MudBlazor
+---
 
-### Exemplo: MudDataGrid com Paginação
+## 🔄 State Management (Fluxor)
 
-```razor
-@page "/providers"
-@inject IProvidersApi ProvidersApi
+O projeto usa **Fluxor** (implementação Redux para Blazor) com padrão unidirecional de dados.
 
-<MudDataGrid T="ModuleProviderDto" 
-             ServerData="LoadServerData"
-             Filterable="true" 
-             SortMode="SortMode.Multiple">
-    <Columns>
-        <PropertyColumn Property="x => x.Name" Title="Nome" />
-        <PropertyColumn Property="x => x.Email" Title="Email" />
-        <PropertyColumn Property="x => x.VerificationStatus" Title="Status">
-            <CellTemplate>
-                <MudChip Color="GetStatusColor(context.Item.VerificationStatus)">
-                    @context.Item.VerificationStatus
-                </MudChip>
-            </CellTemplate>
-        </PropertyColumn>
-        <TemplateColumn Title="Ações" Sortable="false">
-            <CellTemplate>
-                <MudIconButton Icon="@Icons.Material.Filled.Visibility" 
-                               Size="Size.Small"
-                               OnClick="@(() => ViewDetails(context.Item.Id))" />
-            </CellTemplate>
-        </TemplateColumn>
-    </Columns>
-</MudDataGrid>
-
-@code {
-    private async Task<GridData<ModuleProviderDto>> LoadServerData(GridState<ModuleProviderDto> state)
-    {
-        var result = await ProvidersApi.GetProvidersAsync(
-            state.Page + 1, 
-            state.PageSize);
-
-        if (result.IsSuccess)
-        {
-            return new GridData<ModuleProviderDto>
-            {
-                Items = result.Value.Items,
-                TotalItems = result.Value.TotalItems
-            };
-        }
-
-        return new GridData<ModuleProviderDto>();
-    }
-}
-```
-
-## 🔄 State Management com Fluxor
-
-### 1. Definir State
+### Anatomia de um Feature
 
 ```csharp
-// Features/Providers/ProvidersState.cs
+// 1. State (imutável)
 public record ProvidersState
 {
-    public IReadOnlyList<ModuleProviderDto> Providers { get; init; } = [];
+    public IReadOnlyList<ProviderDto> Items { get; init; } = [];
     public bool IsLoading { get; init; }
     public string? ErrorMessage { get; init; }
 }
-```
 
-### 2. Definir Actions
+// 2. Actions (eventos)
+public record LoadProvidersAction(int Page = 1, int PageSize = 20);
+public record LoadProvidersSuccessAction(PagedResult<ProviderDto> Result);
+public record LoadProvidersFailureAction(string Error);
 
-```csharp
-// Features/Providers/ProvidersActions.cs
-public record LoadProvidersAction(int PageNumber = 1, int PageSize = 20);
-public record LoadProvidersSuccessAction(PagedResult<ModuleProviderDto> Result);
-public record LoadProvidersFailureAction(string ErrorMessage);
-```
-
-### 3. Definir Reducers
-
-```csharp
-// Features/Providers/ProvidersReducers.cs
+// 3. Reducers (transformações puras)
 public static class ProvidersReducers
 {
     [ReducerMethod]
-    public static ProvidersState Reduce(ProvidersState state, LoadProvidersAction action) =>
-        state with { IsLoading = true };
+    public static ProvidersState OnLoad(ProvidersState state, LoadProvidersAction _) =>
+        state with { IsLoading = true, ErrorMessage = null };
 
     [ReducerMethod]
-    public static ProvidersState Reduce(ProvidersState state, LoadProvidersSuccessAction action) =>
-        state with 
-        { 
-            Providers = action.Result.Items,
-            IsLoading = false,
-            ErrorMessage = null
-        };
-
-    [ReducerMethod]
-    public static ProvidersState Reduce(ProvidersState state, LoadProvidersFailureAction action) =>
-        state with 
-        { 
-            IsLoading = false,
-            ErrorMessage = action.ErrorMessage
-        };
+    public static ProvidersState OnSuccess(ProvidersState state, LoadProvidersSuccessAction action) =>
+        state with { Items = action.Result.Items, IsLoading = false };
 }
-```
 
-### 4. Definir Effects (side effects)
-
-```csharp
-// Features/Providers/ProvidersEffects.cs
+// 4. Effects (side effects assíncronos)
 public class ProvidersEffects
 {
-    private readonly IProvidersApi _api;
-
-    public ProvidersEffects(IProvidersApi api)
-    {
-        _api = api;
-    }
-
     [EffectMethod]
-    public async Task HandleLoadProviders(LoadProvidersAction action, IDispatcher dispatcher)
+    public async Task HandleLoad(LoadProvidersAction action, IDispatcher dispatcher)
     {
-        var result = await _api.GetProvidersAsync(action.PageNumber, action.PageSize);
-
+        var result = await _api.GetProvidersAsync(action.Page, action.PageSize);
+        
         if (result.IsSuccess)
-        {
             dispatcher.Dispatch(new LoadProvidersSuccessAction(result.Value));
-        }
         else
-        {
             dispatcher.Dispatch(new LoadProvidersFailureAction(result.Error.Message));
-        }
     }
 }
 ```
 
-### 5. Usar no componente
+### Uso em Componentes
 
 ```razor
-@inject IState<ProvidersState> ProvidersState
+@inject IState<ProvidersState> State
 @inject IDispatcher Dispatcher
 
-@if (ProvidersState.Value.IsLoading)
+@if (State.Value.IsLoading)
 {
     <MudProgressCircular Indeterminate="true" />
 }
-else if (!string.IsNullOrEmpty(ProvidersState.Value.ErrorMessage))
-{
-    <MudAlert Severity="Severity.Error">@ProvidersState.Value.ErrorMessage</MudAlert>
-}
 else
 {
-    @foreach (var provider in ProvidersState.Value.Providers)
+    @foreach (var provider in State.Value.Items)
     {
         <ProviderCard Provider="@provider" />
     }
@@ -265,37 +155,199 @@ else
 }
 ```
 
-## 🧪 Testes
+**Redux DevTools:** Extensão Chrome disponível em modo DEBUG para time-travel debugging.
 
-### bUnit - Testes de Componentes
+---
 
-```bash
-# Criar projeto de testes
-dotnet new bunit -n MeAjudaAi.Web.Admin.Tests
+## 🛡️ Sistema de Resiliência (Polly)
 
-# Adicionar referência
-dotnet add reference ../MeAjudaAi.Web.Admin/MeAjudaAi.Web.Admin.csproj
+Todas as chamadas HTTP usam políticas Polly para garantir robustez contra falhas transitórias.
 
-# Executar testes
-dotnet test
+### Políticas Implementadas
+
+1. **Retry Policy** (3 tentativas com backoff exponencial: 2s, 4s, 8s)
+   - Erros HTTP 5xx, 408 (Timeout)
+   
+2. **Circuit Breaker** (abre após 5 falhas consecutivas, aguarda 30s)
+   - Estados: `Closed` → `Open` → `Half-Open` → `Closed`
+   - Previne sobrecarga do servidor
+   
+3. **Timeout Policy**
+   - Operações normais: 30s
+   - Uploads: 2min (sem retry para evitar duplicação)
+
+### Indicador Visual de Status
+
+O `ConnectionStatusIndicator.razor` no AppBar mostra:
+- ✅ **Verde (Cloud Done)**: Conectado
+- 🟡 **Amarelo (Cloud Sync)**: Reconectando
+- 🔴 **Vermelho (Cloud Off)**: Sem conexão
+
+### Uso em Effects
+
+```csharp
+[EffectMethod]
+public async Task HandleLoad(LoadAction action, IDispatcher dispatcher)
+{
+    await dispatcher.ExecuteApiCallAsync(
+        apiCall: () => _api.GetDataAsync(),
+        snackbar: _snackbar,
+        operationName: "Carregar dados",
+        onSuccess: data => dispatcher.Dispatch(new LoadSuccessAction(data)),
+        onError: ex => dispatcher.Dispatch(new LoadFailureAction(ex.Message))
+    );
+    // Retry, circuit breaker, timeout e notificações são automáticos
+}
 ```
 
-### Playwright - Testes E2E
+**Benefícios:**
+- ✅ Auto-recuperação transparente
+- ✅ Mensagens de erro amigáveis
+- ✅ Logs detalhados para diagnóstico
+- ✅ Proteção contra sobrecarga do servidor
 
-```bash
-# Instalar Playwright
-dotnet add package Microsoft.Playwright
-pwsh bin/Debug/net10.0/playwright.ps1 install
+---
 
-# Executar testes E2E
-dotnet test --filter Category=E2E
+## ✅ Validação (FluentValidation)
+
+Validações client-side com regras específicas para dados brasileiros.
+
+### Validadores Disponíveis
+
+**Criar Provider:**
+```csharp
+public class CreateProviderRequestDtoValidator : AbstractValidator<CreateProviderRequestDto>
+{
+    public CreateProviderRequestDtoValidator()
+    {
+        RuleFor(x => x.Document)
+            .NotEmpty()
+            .ValidCpfOrCnpj();  // Valida checksum de CPF/CNPJ
+
+        RuleFor(x => x.Email)
+            .NotEmpty()
+            .ValidEmail();
+
+        RuleFor(x => x.Phone)
+            .ValidBrazilianPhone();  // (00) 00000-0000 ou (00) 0000-0000
+
+        RuleFor(x => x.Name)
+            .NotEmpty()
+            .NoXss();  // Previne XSS
+    }
+}
 ```
 
-## 📝 Configuração
+**Upload de Documentos:**
+```csharp
+public class UploadDocumentValidator : AbstractValidator<IBrowserFile>
+{
+    public UploadDocumentValidator()
+    {
+        RuleFor(x => x.Name)
+            .ValidFileType(new[] { ".pdf", ".jpg", ".jpeg", ".png" })
+            .NoXss();
 
-### appsettings.json
+        RuleFor(x => x.Size)
+            .MaxFileSize(10 * 1024 * 1024);  // 10 MB
 
-> **Note**: Production Keycloak uses `auth.meajudaai.com` as the canonical domain (not `keycloak.meajudaai.com`).
+        RuleFor(x => x.ContentType)
+            .Must(ct => AllowedTypes.Contains(ct));
+    }
+}
+```
+
+### Extensions Reutilizáveis
+
+```csharp
+// Extensions/ValidationExtensions.cs
+.ValidCpf()           // Valida CPF com dígitos verificadores
+.ValidCnpj()          // Valida CNPJ com dígitos verificadores
+.ValidCpfOrCnpj()     // Aceita CPF ou CNPJ
+.ValidBrazilianPhone() // Valida telefone brasileiro
+.ValidCep()           // Valida CEP (00000-000)
+.NoXss()              // Remove HTML, scripts, event handlers
+.SanitizeInput()      // Sanitiza string
+.ValidFileType()      // Valida extensão de arquivo
+.MaxFileSize()        // Valida tamanho de arquivo
+```
+
+### Uso em Formulários MudBlazor
+
+```razor
+@inject IValidator<CreateProviderRequestDto> Validator
+
+<MudForm Model="@model" Validation="@(ValidateField)">
+    <MudTextField @bind-Value="model.Name" 
+                  For="@(() => model.Name)"
+                  Label="Nome" />
+    
+    <MudTextField @bind-Value="model.Document" 
+                  For="@(() => model.Document)"
+                  Label="CPF/CNPJ" />
+</MudForm>
+
+@code {
+    private CreateProviderRequestDto model = new();
+    
+    private IEnumerable<string> ValidateField(object value)
+    {
+        var result = Validator.Validate(model);
+        return result.Errors.Select(e => e.ErrorMessage);
+    }
+}
+```
+
+---
+
+## 🎨 Componentes MudBlazor
+
+### MudDataGrid com Paginação Server-Side
+
+```razor
+<MudDataGrid T="ProviderDto" 
+             ServerData="LoadServerData"
+             Filterable="true" 
+             SortMode="SortMode.Multiple">
+    <Columns>
+        <PropertyColumn Property="x => x.Name" Title="Nome" />
+        <PropertyColumn Property="x => x.VerificationStatus">
+            <CellTemplate>
+                <MudChip Color="@GetStatusColor(context.Item.VerificationStatus)">
+                    @VerificationStatus.ToDisplayName(context.Item.VerificationStatus)
+                </MudChip>
+            </CellTemplate>
+        </PropertyColumn>
+    </Columns>
+</MudDataGrid>
+```
+
+### MudDialog Reutilizável
+
+```razor
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Criar Provider</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="form" Model="@model">
+            <!-- Campos -->
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Salvar</MudButton>
+    </DialogActions>
+</MudDialog>
+```
+
+**Referência Completa:** [MudBlazor Components](https://mudblazor.com/components/list)
+
+---
+
+## ⚙️ Configuração
+
+### appsettings.json (Produção)
 
 ```json
 {
@@ -310,8 +362,6 @@ dotnet test --filter Category=E2E
 
 ### appsettings.Development.json
 
-> **Note**: Development API URL must match AppHost configuration (see `src/Aspire/MeAjudaAi.AppHost/appsettings.Development.json`).
-
 ```json
 {
   "ApiBaseUrl": "https://localhost:7032",
@@ -322,50 +372,85 @@ dotnet test --filter Category=E2E
 }
 ```
 
+**Nota:** API URL deve corresponder ao `AppHost` configurado em `src/Aspire/MeAjudaAi.AppHost/`.
+
+---
+
+## 🧪 Testes
+
+### bUnit (Testes de Componentes)
+
+```bash
+dotnet new bunit -n MeAjudaAi.Web.Admin.Tests
+dotnet test
+```
+
+### Playwright (Testes E2E)
+
+```bash
+dotnet add package Microsoft.Playwright
+pwsh bin/Debug/net10.0/playwright.ps1 install
+dotnet test --filter Category=E2E
+```
+
+**Cobertura Atual:** 43 testes bUnit (componentes, reducers, effects, services)
+
+---
+
 ## 🐛 Debugging
 
 ### Redux DevTools
 
-Fluxor integra com [Redux DevTools](https://chrome.google.com/webstore/detail/redux-devtools/):
-
-1. Instalar extensão do Chrome
-2. Executar app em modo DEBUG
+1. Instalar [extensão Chrome](https://chrome.google.com/webstore/detail/redux-devtools/)
+2. Executar em modo DEBUG: `dotnet run --configuration Debug`
 3. Abrir DevTools → Redux tab
 4. Ver actions, state diffs, time-travel debugging
 
-### DevTools do Navegador
+### Browser DevTools
 
-```bash
-# Executar com debugging habilitado
-dotnet run --configuration Debug
+- **Sources:** Definir breakpoints em arquivos `.razor` e `.cs`
+- **Console:** Logs do aplicativo e erros JavaScript
+- **Network:** Inspecionar requisições HTTP e respostas
 
-# Abrir Chrome DevTools (F12)
-# Sources → Definir breakpoints em arquivos .razor/.cs
-```
+---
 
 ## 📚 Documentação Adicional
 
-- [Admin Portal - Documentação Completa](../../docs/modules/admin-portal.md)
+- [Admin Portal - Arquitetura Completa](../../../docs/modules/admin-portal.md)
 - [MudBlazor Components](https://mudblazor.com/components/list)
 - [Fluxor Documentation](https://github.com/mrpmorris/Fluxor)
-- [Blazor WebAssembly](https://learn.microsoft.com/en-us/aspnet/core/blazor/)
+- [Polly Documentation](https://www.pollydocs.org/)
+- [FluentValidation Documentation](https://docs.fluentvalidation.net/)
+
+---
 
 ## 🗺️ Roadmap
 
-### ✅ Sprint 6 - Week 1 (COMPLETED)
-- ✅ Criar projeto Blazor WASM
-- ✅ Integrar MudBlazor UI library
-- ✅ Configurar Fluxor state management
-- ✅ Criar layout base (AppBar + Drawer)
-- ✅ Criar páginas placeholder (Providers, Documents, Services, Settings)
+### ✅ Sprint 6 - Setup (CONCLUÍDO)
+- ✅ Projeto Blazor WASM criado
+- ✅ MudBlazor integrado
+- ✅ Fluxor configurado
+- ✅ Layout base (AppBar + Drawer + NavMenu)
 
-### 🔄 Sprint 6 - Week 2 (IN PROGRESS)
-- [ ] Implementar Fluxor stores (Providers, Dashboard)
-- [ ] Configurar Keycloak OIDC authentication
-- [ ] Criar Dashboard com KPIs (total providers, pending verifications, etc.)
-- [ ] Implementar Providers list com MudDataGrid
+### ✅ Sprint 7 - Features (CONCLUÍDO)
+- ✅ CRUD completo de Providers
+- ✅ Gestão de Documentos
+- ✅ Catálogo de Serviços
+- ✅ Dashboard com gráficos
+- ✅ Sistema de Resiliência (Polly)
+- ✅ FluentValidation integrado
 
-### ⏳ Sprint 6 - Week 3 (PLANNED)
-- [ ] Testes bUnit para componentes
-- [ ] Testes E2E Playwright
-- [ ] Documentação Storybook-like para componentes
+### ✅ Sprint 7.16 - Technical Debt (CONCLUÍDO)
+- ✅ Keycloak automation
+- ✅ 0 warnings no build
+- ✅ 43 testes bUnit
+- ✅ Records padronizados
+
+### ⏳ Sprint 8 - Customer App (22 Jan - 4 Fev 2026)
+- [ ] Blazor WASM Customer App
+- [ ] MAUI Hybrid Mobile App
+
+---
+
+**Última Atualização:** 17 de Janeiro de 2026  
+**Status:** ✅ Production-ready (Admin Portal)
