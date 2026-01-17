@@ -3,13 +3,13 @@ using FluentAssertions;
 using Fluxor;
 using MeAjudaAi.Client.Contracts.Api;
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
-using MeAjudaAi.Web.Admin.Features.Providers;
+using MeAjudaAi.Web.Admin.Features.Modules.Providers;
 using MeAjudaAi.Web.Admin.Pages;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using Moq;
 using MudBlazor.Services;
-using static MeAjudaAi.Web.Admin.Features.Providers.ProvidersActions;
+using static MeAjudaAi.Web.Admin.Features.Modules.Providers.ProvidersActions;
 
 namespace MeAjudaAi.Web.Admin.Tests.Pages;
 

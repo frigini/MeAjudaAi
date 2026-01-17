@@ -1,7 +1,7 @@
 using Fluxor;
 using MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs;
 
-namespace MeAjudaAi.Web.Admin.Features.Locations;
+namespace MeAjudaAi.Web.Admin.Features.Modules.Locations;
 
 /// <summary>
 /// Estado Fluxor para gerenciamento de cidades permitidas (geographic restrictions).

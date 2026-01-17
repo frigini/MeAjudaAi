@@ -3,7 +3,7 @@ using MeAjudaAi.Client.Contracts.Api;
 using MeAjudaAi.Web.Admin.Extensions;
 using MudBlazor;
 
-namespace MeAjudaAi.Web.Admin.Features.ServiceCatalogs;
+namespace MeAjudaAi.Web.Admin.Features.Modules.ServiceCatalogs;
 
 /// <summary>
 /// Effects para operações assíncronas de catálogo de serviços

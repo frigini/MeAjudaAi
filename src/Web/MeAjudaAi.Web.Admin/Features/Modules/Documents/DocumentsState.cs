@@ -1,7 +1,7 @@
 using Fluxor;
 using MeAjudaAi.Contracts.Modules.Documents.DTOs;
 
-namespace MeAjudaAi.Web.Admin.Features.Documents;
+namespace MeAjudaAi.Web.Admin.Features.Modules.Documents;
 
 /// <summary>
 /// Estado global para gestão de documentos de providers.

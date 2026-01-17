@@ -3,9 +3,9 @@ using MeAjudaAi.Client.Contracts.Api;
 using MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Web.Admin.Extensions;
 using MudBlazor;
-using static MeAjudaAi.Web.Admin.Features.Locations.LocationsActions;
+using static MeAjudaAi.Web.Admin.Features.Modules.Locations.LocationsActions;
 
-namespace MeAjudaAi.Web.Admin.Features.Locations;
+namespace MeAjudaAi.Web.Admin.Features.Modules.Locations;
 
 /// <summary>
 /// Effects Fluxor para operações assíncronas de cidades permitidas.

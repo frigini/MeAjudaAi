@@ -4,7 +4,7 @@ using MeAjudaAi.Web.Admin.Constants.Modules.Documents;
 using MeAjudaAi.Web.Admin.Extensions;
 using MudBlazor;
 
-namespace MeAjudaAi.Web.Admin.Features.Documents;
+namespace MeAjudaAi.Web.Admin.Features.Modules.Documents;
 
 /// <summary>
 /// Effects para operações assíncronas de documentos.

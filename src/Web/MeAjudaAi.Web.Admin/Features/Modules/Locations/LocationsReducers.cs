@@ -1,7 +1,7 @@
 using Fluxor;
-using static MeAjudaAi.Web.Admin.Features.Locations.LocationsActions;
+using static MeAjudaAi.Web.Admin.Features.Modules.Locations.LocationsActions;
 
-namespace MeAjudaAi.Web.Admin.Features.Locations;
+namespace MeAjudaAi.Web.Admin.Features.Modules.Locations;
 
 /// <summary>
 /// Reducers Fluxor para gerenciamento de estado de cidades permitidas.

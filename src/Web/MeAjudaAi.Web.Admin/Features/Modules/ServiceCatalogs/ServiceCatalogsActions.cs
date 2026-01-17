@@ -1,6 +1,6 @@
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
 
-namespace MeAjudaAi.Web.Admin.Features.ServiceCatalogs;
+namespace MeAjudaAi.Web.Admin.Features.Modules.ServiceCatalogs;
 
 /// <summary>
 /// Actions para gerenciamento de catálogo de serviços

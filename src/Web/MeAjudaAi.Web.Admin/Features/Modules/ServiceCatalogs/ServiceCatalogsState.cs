@@ -1,7 +1,7 @@
 using Fluxor;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
 
-namespace MeAjudaAi.Web.Admin.Features.ServiceCatalogs;
+namespace MeAjudaAi.Web.Admin.Features.Modules.ServiceCatalogs;
 
 /// <summary>
 /// Estado global para gestão de catálogo de serviços (categorias e serviços).

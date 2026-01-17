@@ -1,6 +1,6 @@
 using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 
-namespace MeAjudaAi.Web.Admin.Features.Providers;
+namespace MeAjudaAi.Web.Admin.Features.Modules.Providers;
 
 /// <summary>
 /// Actions do Fluxor para a feature de Providers.

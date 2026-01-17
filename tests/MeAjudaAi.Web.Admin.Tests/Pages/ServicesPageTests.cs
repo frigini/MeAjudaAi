@@ -3,12 +3,12 @@ using FluentAssertions;
 using Fluxor;
 using MeAjudaAi.Client.Contracts.Api;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
-using MeAjudaAi.Web.Admin.Features.ServiceCatalogs;
+using MeAjudaAi.Web.Admin.Features.Modules.ServiceCatalogs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using Moq;
 using MudBlazor.Services;
-using static MeAjudaAi.Web.Admin.Features.ServiceCatalogs.ServiceCatalogsActions;
+using static MeAjudaAi.Web.Admin.Features.Modules.ServiceCatalogs.ServiceCatalogsActions;
 using ServicesPage = MeAjudaAi.Web.Admin.Pages.Services;
 
 namespace MeAjudaAi.Web.Admin.Tests.Pages;

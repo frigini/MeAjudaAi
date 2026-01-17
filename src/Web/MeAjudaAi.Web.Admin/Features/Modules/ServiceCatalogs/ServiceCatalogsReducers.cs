@@ -1,6 +1,6 @@
 using Fluxor;
 
-namespace MeAjudaAi.Web.Admin.Features.ServiceCatalogs;
+namespace MeAjudaAi.Web.Admin.Features.Modules.ServiceCatalogs;
 
 /// <summary>
 /// Reducers para estado de catálogo de serviços

@@ -1,6 +1,6 @@
 using Fluxor;
 
-namespace MeAjudaAi.Web.Admin.Features.Documents;
+namespace MeAjudaAi.Web.Admin.Features.Modules.Documents;
 
 /// <summary>
 /// Reducers para estado de documentos.

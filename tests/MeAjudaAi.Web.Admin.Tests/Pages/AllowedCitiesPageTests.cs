@@ -3,13 +3,13 @@ using FluentAssertions;
 using Fluxor;
 using MeAjudaAi.Client.Contracts.Api;
 using MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs;
-using MeAjudaAi.Web.Admin.Features.Locations;
+using MeAjudaAi.Web.Admin.Features.Modules.Locations;
 using MeAjudaAi.Web.Admin.Pages;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using Moq;
 using MudBlazor.Services;
-using static MeAjudaAi.Web.Admin.Features.Locations.LocationsActions;
+using static MeAjudaAi.Web.Admin.Features.Modules.Locations.LocationsActions;
 
 namespace MeAjudaAi.Web.Admin.Tests.Pages;
 

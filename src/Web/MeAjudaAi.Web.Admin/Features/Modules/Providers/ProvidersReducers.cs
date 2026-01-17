@@ -1,7 +1,7 @@
 using Fluxor;
-using static MeAjudaAi.Web.Admin.Features.Providers.ProvidersActions;
+using static MeAjudaAi.Web.Admin.Features.Modules.Providers.ProvidersActions;
 
-namespace MeAjudaAi.Web.Admin.Features.Providers;
+namespace MeAjudaAi.Web.Admin.Features.Modules.Providers;
 
 /// <summary>
 /// Reducers do Fluxor para a feature de Providers.
