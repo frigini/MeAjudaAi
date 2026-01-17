@@ -71,7 +71,7 @@ Após o merge para `master`, a documentação será publicada automaticamente em
 
 O projeto foi organizado para facilitar navegação e manutenção:
 
-```
+```text
 📦 MeAjudaAi/
 ├── 📁 api/              # Especificações OpenAPI (api-spec.json)
 ├── 📁 automation/       # Automações de repositório (.github workflows)
@@ -297,7 +297,7 @@ dotnet test tests/MeAjudaAi.Modules.Users.Tests/
 ### 🆔 UUID v7 Implementation
 - **Migração completa** de UUID v4 para UUID v7 (.NET 10)
 - **Performance melhorada** com ordenação temporal nativa
-- **Compatibilidade PostgreSQL 18** para melhor indexação
+- **Compatibilidade PostgreSQL 16+** para melhor indexação
 - **UuidGenerator centralizado** em `MeAjudaAi.Shared.Time`
 
 ### 🔌 Module APIs Pattern  

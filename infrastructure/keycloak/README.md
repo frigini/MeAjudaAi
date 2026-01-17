@@ -20,7 +20,7 @@ Quando você executa `.\scripts\dev.ps1`, o AppHost configura automaticamente:
 
 ## 📁 Estrutura de Arquivos
 
-```
+```text
 keycloak/
 ├── README.md                     # Este arquivo
 ├── realms/                       # Realm configurations (JSON exports)

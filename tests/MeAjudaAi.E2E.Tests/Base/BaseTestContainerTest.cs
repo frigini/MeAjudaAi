@@ -322,15 +322,15 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             var searchContext = scope.ServiceProvider.GetService<SearchProvidersDbContext>();
             if (searchContext == null)
             {
-                throw new InvalidOperationException("SearchProvidersDbContext NÃO está registrado no DI!");
+                throw new InvalidOperationException("SearchProvidersDbContext is not registered in DI.");
             }
             
             await searchContext.Database.MigrateAsync();
         }
         catch (Exception ex)
         {
-            // Re-lançar para não mascarar o problema
-            throw new Exception($"Falha ao aplicar migrations do SearchProviders: {ex.Message}", ex);
+            // Re-throw to avoid masking the issue
+            throw new Exception($"Failed to apply SearchProviders migrations: {ex.Message}", ex);
         }
 
         // Para LocationsDbContext, só aplicar migrações (o banco já existe, só precisamos do schema locations)

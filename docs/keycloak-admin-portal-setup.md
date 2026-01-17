@@ -45,7 +45,7 @@ public async Task<bool> EnsureKeycloakConfiguredAsync()
 
 ### Verificar Configuração
 
-1. Acesse http://localhost:8080/
+1. Acesse [http://localhost:8080/](http://localhost:8080/)
 2. Login: `admin` / `admin123`
 3. Verifique:
    - Realm: **meajudaai**
@@ -54,15 +54,9 @@ public async Task<bool> EnsureKeycloakConfiguredAsync()
 
 **Nada precisa ser feito manualmente!** 🎉
 
----
-
-✅ **Usuários Demo**
-- **admin.portal** / `admin123` (role: admin)
-- **customer.demo** / `customer123` (role: customer)
-
 ### Saída Esperada
 
-```
+```text
 ╔════════════════════════════════════════════════════════════════╗
 ║      Keycloak Client Automation - MeAjudaAi Platform          ║
 ╚════════════════════════════════════════════════════════════════╝
