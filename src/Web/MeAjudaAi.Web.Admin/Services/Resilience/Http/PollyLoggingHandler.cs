@@ -1,7 +1,8 @@
+using MeAjudaAi.Web.Admin.Services.Resilience.Interfaces;
 using Polly.CircuitBreaker;
 using System.Net;
 
-namespace MeAjudaAi.Web.Admin.Services.Resilience;
+namespace MeAjudaAi.Web.Admin.Services.Resilience.Http;
 
 /// <summary>
 /// Handler para logar e rastrear exceções do Polly

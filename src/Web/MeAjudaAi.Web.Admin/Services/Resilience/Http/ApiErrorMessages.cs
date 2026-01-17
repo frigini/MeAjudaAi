@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace MeAjudaAi.Web.Admin.Services.Resilience;
+namespace MeAjudaAi.Web.Admin.Services.Resilience.Http;
 
 /// <summary>
 /// Mensagens de erro amigáveis para diferentes cenários de falha da API

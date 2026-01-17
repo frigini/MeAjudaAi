@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Web.Admin.Services.Resilience;
+namespace MeAjudaAi.Web.Admin.Services.Resilience.Http;
 
 /// <summary>
 /// Status da conexão com a API.

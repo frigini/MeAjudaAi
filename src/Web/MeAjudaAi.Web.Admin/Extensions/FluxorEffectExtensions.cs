@@ -1,4 +1,4 @@
-using MeAjudaAi.Web.Admin.Services.Resilience;
+using MeAjudaAi.Web.Admin.Services.Resilience.Http;
 using MudBlazor;
 using Polly.CircuitBreaker;
 using System.Net;

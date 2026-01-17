@@ -1,5 +1,5 @@
 using MeAjudaAi.Web.Admin.Services;
-using MeAjudaAi.Web.Admin.Services.Resilience;
+using MeAjudaAi.Web.Admin.Services.Resilience.Http;
 using Refit;
 
 namespace MeAjudaAi.Web.Admin.Extensions;

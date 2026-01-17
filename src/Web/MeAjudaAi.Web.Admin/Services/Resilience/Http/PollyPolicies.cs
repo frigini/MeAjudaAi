@@ -2,7 +2,7 @@ using Microsoft.Extensions.Http.Resilience;
 using Polly;
 using Polly.Timeout;
 
-namespace MeAjudaAi.Web.Admin.Services.Resilience;
+namespace MeAjudaAi.Web.Admin.Services.Resilience.Http;
 
 /// <summary>
 /// Políticas de resiliência usando Microsoft.Extensions.Http.Resilience

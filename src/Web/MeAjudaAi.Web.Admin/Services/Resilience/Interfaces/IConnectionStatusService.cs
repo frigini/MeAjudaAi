@@ -1,4 +1,6 @@
-namespace MeAjudaAi.Web.Admin.Services.Resilience;
+using MeAjudaAi.Web.Admin.Services.Resilience.Http;
+
+namespace MeAjudaAi.Web.Admin.Services.Resilience.Interfaces;
 
 /// <summary>
 /// Serviço para rastrear o status da conexão com a API.

@@ -1,4 +1,6 @@
-namespace MeAjudaAi.Web.Admin.Services.Resilience;
+using MeAjudaAi.Web.Admin.Services.Resilience.Interfaces;
+
+namespace MeAjudaAi.Web.Admin.Services.Resilience.Http;
 
 /// <summary>
 /// Implementação do serviço de status de conexão.
