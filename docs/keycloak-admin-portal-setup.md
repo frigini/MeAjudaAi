@@ -2,40 +2,17 @@
 
 ## 🚀 Setup Automatizado (Recomendado)
 
-### Pré-requisitos
-- PowerShell 7+ instalado
-- Keycloak rodando (Docker ou Aspire)
-- Acesso de administrador ao Keycloak
+**A configuração do Keycloak é feita automaticamente pelo código!**
 
-### Executar Script de Automação
+Quando você executa `.\scripts\dev.ps1`, o **AppHost** configura automaticamente:
 
-```powershell
-# Opção 1: Configuração padrão (localhost:8080, admin/admin)
-.\infrastructure\keycloak\setup-keycloak-clients.ps1
-
-# Opção 2: Configuração customizada
-.\infrastructure\keycloak\setup-keycloak-clients.ps1 `
-    -KeycloakUrl "http://localhost:9090" `
-    -AdminUsername "admin" `
-    -AdminPassword "mypassword" `
-    -RealmName "meajudaai"
-```
-
-### O que o script faz automaticamente
-
-✅ **Validação**
-- Verifica se Keycloak está rodando (`/health/ready`)
-- Obtém token de administrador via Keycloak Admin API
-
-✅ **Realm**
-- Cria realm `meajudaai` (se não existir)
-- Configura políticas de segurança (brute force protection, SSL, token lifespans)
+✅ **Realm** - `meajudaai` com políticas de segurança
 
 ✅ **Clients OIDC**
 - **admin-portal**: Portal administrativo Blazor WASM
-  - Redirect URIs: `https://localhost:7281/*`, `https://admin.meajudaai.com.br/*`
+  - Redirect URIs: `https://localhost:7032/*`, `https://admin.meajudaai.com.br/*`
   - PKCE habilitado (S256)
-  - Public client (Client authentication OFF)
+  - Public client
   
 - **customer-app**: Aplicativo do cliente (Web + Mobile)
   - Redirect URIs: `https://localhost:7282/*`, `https://app.meajudaai.com.br/*`, `meajudaai://callback`
@@ -47,6 +24,37 @@
 - `operator` - Operador com leitura/escrita limitada
 - `viewer` - Visualizador somente leitura
 - `customer` - Cliente da plataforma
+
+✅ **Usuários Demo**
+- **admin.portal** / admin123 (role: admin)
+- **customer.demo** / customer123 (role: customer)
+
+### Como Funciona
+
+O serviço `KeycloakSetupService` executa automaticamente no startup (apenas em desenvolvimento):
+
+```csharp
+// src/Aspire/MeAjudaAi.AppHost/Extensions/KeycloakSetupService.cs
+public async Task<bool> EnsureKeycloakConfiguredAsync()
+{
+    // Aguarda Keycloak estar pronto
+    // Cria realm, clients, roles e usuários automaticamente
+    // É idempotente - pode rodar múltiplas vezes
+}
+```
+
+### Verificar Configuração
+
+1. Acesse http://localhost:8080/
+2. Login: `admin` / `admin123`
+3. Verifique:
+   - Realm: **meajudaai**
+   - Clients: **admin-portal**, **customer-app**
+   - Roles e usuários demo
+
+**Nada precisa ser feito manualmente!** 🎉
+
+---
 
 ✅ **Usuários Demo**
 - **admin.portal** / `admin123` (role: admin)

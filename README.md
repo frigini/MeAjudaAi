@@ -148,12 +148,12 @@ dotnet run --project src/Aspire/MeAjudaAi.AppHost
 
 ### 🔧 Configuração Keycloak (Automatizada)
 
-```powershell
-# Setup automatizado de clients OIDC (admin-portal + customer-app)
-.\infrastructure\keycloak\setup-keycloak-clients.ps1
+**Configuração totalmente automática!** O AppHost configura Keycloak no startup:
 
-# Cria realm, clients, roles e usuários demo automaticamente
-```
+- ✅ Realm `meajudaai` criado automaticamente
+- ✅ Clients OIDC (admin-portal + customer-app)
+- ✅ Roles (admin, customer, operator, viewer)
+- ✅ Usuários demo: admin.portal/admin123, customer.demo/customer123
 
 👉 Detalhes: [docs/keycloak-admin-portal-setup.md](docs/keycloak-admin-portal-setup.md)
 

@@ -1,12 +1,15 @@
 using Aspire.Hosting;
 using MeAjudaAi.AppHost.Extensions;
 using MeAjudaAi.AppHost.Helpers;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.AppHost;
 
 internal static class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = DistributedApplication.CreateBuilder(args);
 
@@ -40,7 +43,25 @@ internal static class Program
             Environment.Exit(1);
         }
 
-        builder.Build().Run();
+        var app = builder.Build();
+
+        // Setup automático do Keycloak em desenvolvimento
+        if (EnvironmentHelpers.IsDevelopment(builder))
+        {
+            _ = Task.Run(async () =>
+            {
+                // Aguardar um pouco para Keycloak iniciar
+                await Task.Delay(TimeSpan.FromSeconds(10));
+                
+                var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger<KeycloakSetupService>();
+                var environment = app.Services.GetRequiredService<IHostEnvironment>();
+                var setupService = new KeycloakSetupService(logger, environment);
+                
+                await setupService.EnsureKeycloakConfiguredAsync();
+            });
+        }
+
+        await app.RunAsync();
     }
 
     private static void ConfigureTestingEnvironment(IDistributedApplicationBuilder builder)
