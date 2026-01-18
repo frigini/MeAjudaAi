@@ -528,41 +528,9 @@ jobs:
           echo "Running Blazor WASM component tests with bUnit framework"
           echo "Target: MeAjudaAi.Web.Admin (Blazor Admin Portal)"
           echo ""
-
-          # Source shared utility functions for coverage
-          RUNSETTINGS_SCRIPT="./.github/scripts/generate-runsettings.sh"
-          if [ ! -f "$RUNSETTINGS_SCRIPT" ] || [ ! -r "$RUNSETTINGS_SCRIPT" ]; then
-            echo "❌ ERROR: Required script not found: $RUNSETTINGS_SCRIPT"
-            exit 1
-          fi
-          if ! source "$RUNSETTINGS_SCRIPT"; then
-            echo "❌ ERROR: Failed to source $RUNSETTINGS_SCRIPT"
-            exit 1
-          fi
-
-          # Create output directory for frontend tests
-          FRONTEND_COVERAGE_DIR="./coverage/webadmin"
-          mkdir -p "$FRONTEND_COVERAGE_DIR"
-
-          # Define coverage filters for Blazor WASM
-          INCLUDE_FILTER="[MeAjudaAi.Web.Admin]*"
-          EXCLUDE_FILTER="[*.Tests*]*,[testhost]*"
-          EXCLUDE_BY_FILE="**/*.g.cs,**/*.razor.g.cs,**/obj/**,**/bin/**,**/wwwroot/**"
-          EXCLUDE_BY_ATTRIBUTE="Obsolete,GeneratedCode,CompilerGenerated"
-
-          echo "  Include: $INCLUDE_FILTER"
-          echo "  Exclude: $EXCLUDE_FILTER"
-          echo "  ExcludeByFile: $EXCLUDE_BY_FILE"
+          echo "⚠️  Note: Coverage NOT collected for Blazor WASM (unreliable due to generated code)"
+          echo "Focus: Maximum test coverage of components, not code coverage metrics"
           echo ""
-
-          # Create runsettings file for frontend tests
-          FRONTEND_RUNSETTINGS="/tmp/webadmin.runsettings"
-          generate_runsettings \
-            "$FRONTEND_RUNSETTINGS" \
-            "$EXCLUDE_FILTER" \
-            "$EXCLUDE_BY_FILE" \
-            "$EXCLUDE_BY_ATTRIBUTE" \
-            "$INCLUDE_FILTER"
 
           echo "▶️ Running Web.Admin component tests (Providers, Dashboard, DarkMode)..."
           dotnet test tests/MeAjudaAi.Web.Admin.Tests/MeAjudaAi.Web.Admin.Tests.csproj \
@@ -570,31 +538,12 @@ jobs:
             --no-restore \
             --no-build \
             --verbosity normal \
-            --collect:"XPlat Code Coverage" \
-            --results-directory "$FRONTEND_COVERAGE_DIR" \
-            --logger "trx;LogFileName=webadmin-test-results.trx" \
-            --settings "$FRONTEND_RUNSETTINGS"
+            --logger "trx;LogFileName=webadmin-test-results.trx"
 
           FRONTEND_EXIT_CODE=$?
           if [ $FRONTEND_EXIT_CODE -ne 0 ]; then
             echo "❌ Frontend component tests failed with exit code $FRONTEND_EXIT_CODE"
             exit $FRONTEND_EXIT_CODE
-          fi
-
-          # Find and rename coverage file
-          COVERAGE_FILE=$(find "$FRONTEND_COVERAGE_DIR" -type f \
-            \( -name "coverage.opencover.xml" -o -name "coverage.cobertura.xml" \) \
-            -print -quit)
-          
-          if [ -f "$COVERAGE_FILE" ]; then
-            echo "✅ Found coverage file: $COVERAGE_FILE"
-            if [[ "$COVERAGE_FILE" == *"cobertura"* ]]; then
-              cp "$COVERAGE_FILE" "$FRONTEND_COVERAGE_DIR/webadmin.cobertura.xml"
-            else
-              cp "$COVERAGE_FILE" "$FRONTEND_COVERAGE_DIR/webadmin.opencover.xml"
-            fi
-          else
-            echo "⚠️  Coverage file not found - coverage data may be incomplete"
           fi
 
           echo ""
@@ -820,14 +769,15 @@ jobs:
         env:
           DOTNET_ROOT: ${{ env.DOTNET_ROOT }}
         with:
-          reports: 'coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml;coverage/webadmin/*.opencover.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml'
+          reports: 'coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml'
           targetdir: 'coverage/aggregate'
           reporttypes: 'Cobertura;JsonSummary'
-          assemblyfilters: '+MeAjudaAi.Modules.Users.*;+MeAjudaAi.Modules.Providers.*;+MeAjudaAi.Modules.Documents.*;+MeAjudaAi.Modules.ServiceCatalogs.*;+MeAjudaAi.Modules.Locations.*;+MeAjudaAi.Modules.SearchProviders.*;+MeAjudaAi.Shared*;+MeAjudaAi.ApiService*;+MeAjudaAi.Web.Admin*'
+          assemblyfilters: '+MeAjudaAi.Modules.Users.*;+MeAjudaAi.Modules.Providers.*;+MeAjudaAi.Modules.Documents.*;+MeAjudaAi.Modules.ServiceCatalogs.*;+MeAjudaAi.Modules.Locations.*;+MeAjudaAi.Modules.SearchProviders.*;+MeAjudaAi.Shared*;+MeAjudaAi.ApiService*'
           classfilters: '-*.Tests;-*.Tests.*;-*Test*;-testhost;-xunit*;-*.Migrations.*;-*.Contracts;-*.Database;-*DbContextFactory;-*.Program;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery'
           filefilters: '-*Migrations*'
           verbosity: 'Info'
           tag: '${{ github.run_number }}_${{ github.run_id }}'
+        # Note: Backend coverage only. Frontend bUnit tests run separately without coverage (unreliable for Blazor WASM).
 
       - name: Display coverage summary
         run: |

@@ -1275,8 +1275,8 @@ Get-ChildItem -Recurse -Include *.cs | Select-String "record "
 
 **Quality Metrics**:
 - **Build**: 0 errors, 0 warnings
-- **Tests**: 1245 backend + 30-40 frontend = **1275-1285 testes**
-- **Coverage**: Backend 90.56% | Frontend ~40-50%
+- **Tests**: 1245 backend + 43 frontend bUnit = **1288 testes**
+- **Coverage**: Backend 90.56% (frontend bUnit sem métrica - foco em quantidade de testes)
 - **Technical Debt**: Reduzido de 313 linhas → ~150 linhas
 
 **Pronto para Customer App**:
@@ -1823,6 +1823,9 @@ Todas as tarefas planejadas já foram implementadas:
 - [ ] Integrar ao CI/CD pipeline
 - [ ] Criar documentação executável com Gherkin
 - **Benefício**: Testes de aceitação legíveis para stakeholders e documentação viva do sistema
+- **Timing**: Implementação prevista APÓS desenvolvimento do Customer App (Sprint 8+)
+- **Escopo**: Testes end-to-end de fluxos completos (Frontend → Backend → APIs terceiras)
+- **Foco**: Fluxos críticos de usuário utilizados por Admin Portal e Customer App
 
 **Critérios de Aceitação**:
 - [x] Todos os 12 TODOs no código resolvidos ou documentados ✅
