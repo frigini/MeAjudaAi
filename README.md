@@ -297,7 +297,7 @@ dotnet test tests/MeAjudaAi.Modules.Users.Tests/
 ### 🆔 UUID v7 Implementation
 - **Migração completa** de UUID v4 para UUID v7 (.NET 10)
 - **Performance melhorada** com ordenação temporal nativa
-- **Compatibilidade PostgreSQL 16+** para melhor indexação
+- **Compatibilidade PostgreSQL 16** para melhor indexação
 - **UuidGenerator centralizado** em `MeAjudaAi.Shared.Time`
 
 ### 🔌 Module APIs Pattern  

@@ -76,7 +76,7 @@
 
 ### `/build/` (2 scripts ativos)
 
-**Documentação:** Ver seção Makefile abaixo
+**Documentação:** Consulte [build/README.md](../build/README.md)
 
 - `dotnet-install.sh` - Instalação customizada do .NET SDK
 - `Makefile` - Comandos make para build/test/deploy

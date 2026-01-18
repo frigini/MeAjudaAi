@@ -53,4 +53,4 @@ Textos de branding:
 
 ## 📖 Documentação Completa
 
-Ver: [Keycloak Documentation](https://www.keycloak.org/docs/latest/server_development/#_themes)
+Ver: [Keycloak UI Customization - Themes](https://www.keycloak.org/ui-customization/themes)
