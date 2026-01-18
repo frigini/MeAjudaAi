@@ -696,4 +696,4 @@ images:
 
 ## Exemplos Completos por Ambiente
 
-Ver [infrastructure/README.md](../../infrastructure/README.md) para exemplos de configuração completa por ambiente (Azure, Kubernetes, Docker Compose).
+Ver seções acima para configuração Kubernetes ou [infrastructure/README.md](../../infrastructure/README.md) para exemplos de Azure e Docker Compose.

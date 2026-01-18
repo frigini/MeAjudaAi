@@ -7,10 +7,10 @@ Portal administrativo Blazor WebAssembly para gerenciamento da plataforma MeAjud
 - [Quick Start](#quick-start)
 - [Estrutura do Projeto](#estrutura-do-projeto)
 - [State Management (Fluxor)](#state-management-fluxor)
-- [Sistema de Resiliência (Polly)](#sistema-de-resiliência-polly)
-- [Validação (FluentValidation)](#validação-fluentvalidation)
+- [Sistema de Resiliência (Polly)](#sistema-de-resiliencia-polly)
+- [Validação (FluentValidation)](#validacao-fluentvalidation)
 - [Componentes MudBlazor](#componentes-mudblazor)
-- [Configuração](#configuração)
+- [Configuração](#configuracao)
 - [Testes](#testes)
 - [Debugging](#debugging)
 
@@ -440,7 +440,7 @@ dotnet test --filter Category=E2E
 - ✅ Sistema de Resiliência (Polly)
 - ✅ FluentValidation integrado
 
-### ✅ Sprint 7.16 - Technical Debt (CONCLUÍDO)
+### ✅ Sprint 7.16 - Technical Debt (🔄 EM PROGRESSO)
 - ✅ Keycloak automation
 - ✅ 0 warnings no build
 - ✅ 43 testes bUnit

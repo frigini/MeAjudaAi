@@ -2416,7 +2416,7 @@ Especificação OpenAPI inclui:
 ```
 ---
 
-## � C# Records Standardization
+## 📋 C# Records Standardization
 
 ### **Positional Records vs Nominal Records**
 

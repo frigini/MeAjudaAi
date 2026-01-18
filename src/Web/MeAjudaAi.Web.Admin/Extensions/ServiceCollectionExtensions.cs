@@ -1,5 +1,6 @@
 using MeAjudaAi.Web.Admin.Services;
 using MeAjudaAi.Web.Admin.Services.Resilience.Http;
+using Microsoft.Extensions.Logging.Abstractions;
 using Refit;
 
 namespace MeAjudaAi.Web.Admin.Extensions;
@@ -43,11 +44,9 @@ public static class ServiceCollectionExtensions
                 // Desabilita retry para uploads (evita duplicação)
                 options.Retry.MaxRetryAttempts = 0;
                 
-                // Configura circuit breaker e timeout com logging
-                var loggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
-                var logger = loggerFactory.CreateLogger<TClient>();
-                
-                ResiliencePolicies.ConfigureCircuitBreaker(options.CircuitBreaker, logger);
+                // Configura circuit breaker e timeout
+                // Nota: Logging acontece via PollyLoggingHandler (evita BuildServiceProvider)
+                ResiliencePolicies.ConfigureCircuitBreaker(options.CircuitBreaker, NullLogger.Instance);
                 ResiliencePolicies.ConfigureUploadTimeout(options.TotalRequestTimeout);
             });
         }
@@ -56,11 +55,9 @@ public static class ServiceCollectionExtensions
             // Política padrão: retry + circuit breaker + timeout
             httpClientBuilder.AddStandardResilienceHandler(options =>
             {
-                var loggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
-                var logger = loggerFactory.CreateLogger<TClient>();
-                
-                ResiliencePolicies.ConfigureRetry(options.Retry, logger);
-                ResiliencePolicies.ConfigureCircuitBreaker(options.CircuitBreaker, logger);
+                // Nota: Logging acontece via PollyLoggingHandler (evita BuildServiceProvider)
+                ResiliencePolicies.ConfigureRetry(options.Retry, NullLogger.Instance);
+                ResiliencePolicies.ConfigureCircuitBreaker(options.CircuitBreaker, NullLogger.Instance);
                 ResiliencePolicies.ConfigureTimeout(options.TotalRequestTimeout);
             });
         }

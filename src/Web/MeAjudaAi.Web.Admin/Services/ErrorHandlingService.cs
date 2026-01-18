@@ -34,15 +34,17 @@ public class ErrorHandlingService(
         }
 
         var correlationId = correlationIdProvider.GetOrCreate();
-        var errorMessage = result.Error?.Message ?? "Erro desconhecido";
+        var backendMessage = result.Error?.Message;
+        var userMessage = backendMessage ?? "Erro desconhecido";
+        var logMessage = backendMessage ?? "Unknown error";
         var statusCode = result.Error?.StatusCode ?? 500;
 
         logger.LogError(
-            "Error in operation '{Operation}': {StatusCode} - {ErrorMessage} [CorrelationId: {CorrelationId}]",
-            operation, statusCode, errorMessage, correlationId);
+            "API operation failed: {Operation} | Status: {StatusCode} | RawError: {RawError} | CorrelationId: {CorrelationId}",
+            operation, statusCode, logMessage, correlationId);
 
         // Retorna mensagem do backend (já deve ser amigável) ou mapeia por status code
-        return GetUserFriendlyMessage(statusCode, errorMessage);
+        return GetUserFriendlyMessage(statusCode, userMessage);
     }
 
     /// <summary>

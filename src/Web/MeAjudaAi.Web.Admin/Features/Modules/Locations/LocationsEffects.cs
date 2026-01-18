@@ -62,7 +62,8 @@ public sealed class LocationsEffects
             },
             onError: ex =>
             {
-                dispatcher.Dispatch(new DeleteAllowedCityFailureAction(action.CityId, ex.Message));
+                var userMessage = "Erro ao excluir cidade. Tente novamente.";
+                dispatcher.Dispatch(new DeleteAllowedCityFailureAction(action.CityId, userMessage));
             });
     }
 

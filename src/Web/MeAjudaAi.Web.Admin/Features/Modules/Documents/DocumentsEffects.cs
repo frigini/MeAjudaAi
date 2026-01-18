@@ -57,7 +57,8 @@ public sealed class DocumentsEffects
             },
             onError: ex =>
             {
-                dispatcher.Dispatch(new DocumentsActions.DeleteDocumentFailureAction(action.DocumentId, ex.Message));
+                var userMessage = "Erro ao excluir documento. Tente novamente.";
+                dispatcher.Dispatch(new DocumentsActions.DeleteDocumentFailureAction(action.DocumentId, userMessage));
             });
     }
 

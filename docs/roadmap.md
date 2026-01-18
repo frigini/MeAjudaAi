@@ -1894,7 +1894,7 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 5.5** | 2 semanas | 19 Dez - 31 Dez | Refactor & Cleanup (Technical Debt) | ✅ CONCLUÍDO (30 Dez 2025) |
 | **Sprint 6** | 1 semana | 30 Dez - 5 Jan | Blazor Admin Portal - Setup & Core | ✅ CONCLUÍDO (5 Jan 2026) |
 | **Sprint 7** | 3 semanas | 6 - 24 Jan | Blazor Admin Portal - Features | ✅ CONCLUÍDO |
-| **Sprint 7.16** | 1 semana | 17-21 Jan | Technical Debt Sprint | ✅ COMPLETA |
+| **Sprint 7.16** | 1 semana | 17-21 Jan | Technical Debt Sprint | 🔄 EM PROGRESSO |
 | **Sprint 8** | 2 semanas | 22 Jan - 4 Fev | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
 | **Sprint 9** | 10 dias | 5-14 Fev | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
 | **MVP Launch** | - | 17 Fev | Final deployment & launch preparation | 🎯 Target |
