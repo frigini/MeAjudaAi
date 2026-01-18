@@ -27,8 +27,7 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
     {
         // Cria container PostgreSQL com PostGIS para suporte a dados geográficos
         // PostGIS é necessário para SearchProviders (NetTopologySuite)
-        _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgis/postgis:15-3.4")
+        _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
             .WithDatabase("meajudaai_test")
             .WithUsername("postgres")
             .WithPassword("test123")
@@ -36,7 +35,7 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
             .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(5432))
             .WithStartupCallback((container, ct) =>
             {
-                Console.WriteLine($"[SEED-FIXTURE] Started PostgreSQL container {container.Id[..12]} on port {container.GetMappedPublicPort(5432)}");
+                Console.WriteLine($"[MIGRATION-FIXTURE] Started PostgreSQL container {container.Id[..12]} on port {container.GetMappedPublicPort(5432)}");
                 return Task.CompletedTask;
             })
             .Build();
@@ -138,14 +137,14 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
         // Executa scripts de seed SQL
         await ExecuteSeedScripts(connectionString);
         
-        Console.WriteLine("[MIGRATION-FIXTURE] Migrations e seeds executados com sucesso");
+        Console.WriteLine("[MIGRATION-FIXTURE] Migrations and seeds executed successfully");
     }
 
     public async ValueTask DisposeAsync()
     {
         if (_postgresContainer != null)
         {
-            Console.WriteLine($"[SEED-FIXTURE] Stopping PostgreSQL container {_postgresContainer.Id[..12]}");
+            Console.WriteLine($"[MIGRATION-FIXTURE] Stopping PostgreSQL container {_postgresContainer.Id[..12]}");
             await _postgresContainer.StopAsync();
             await _postgresContainer.DisposeAsync();
         }
@@ -172,7 +171,7 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
             var isCI = Environment.GetEnvironmentVariable("CI")?.ToLowerInvariant() is "true" or "1";
             var attemptedPaths = string.Join(", ", searchPaths.Select(Path.GetFullPath));
             
-            Console.Error.WriteLine($"[MIGRATION-FIXTURE] Diretório de seeds não encontrado. Tentativas: {attemptedPaths}");
+            Console.Error.WriteLine($"[MIGRATION-FIXTURE] Seeds directory not found. Attempted paths: {attemptedPaths}");
             
             if (isCI)
             {
@@ -180,7 +179,7 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
                     $"Seeds directory not found in CI environment. Attempted paths: {attemptedPaths}");
             }
             
-            Console.WriteLine("[MIGRATION-FIXTURE] Continuando sem seeds (ambiente de desenvolvimento local)");
+            Console.WriteLine("[MIGRATION-FIXTURE] Continuing without seeds (local development environment)");
             return;
         }
 
@@ -188,7 +187,7 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
         
         if (seedFiles.Length == 0)
         {
-            Console.WriteLine($"[MIGRATION-FIXTURE] Nenhum arquivo .sql encontrado em {seedsPath}");
+            Console.WriteLine($"[MIGRATION-FIXTURE] No .sql files found in {seedsPath}");
             return;
         }
 
@@ -204,7 +203,7 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
 #pragma warning restore CA2100
             await command.ExecuteNonQueryAsync();
             
-            Console.WriteLine($"[MIGRATION-FIXTURE] Seed executado: {Path.GetFileName(seedFile)}");
+            Console.WriteLine($"[MIGRATION-FIXTURE] Seed executed: {Path.GetFileName(seedFile)}");
         }
     }
 

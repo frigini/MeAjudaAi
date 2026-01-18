@@ -14,7 +14,7 @@ namespace MeAjudaAi.Web.Admin.Tests.Layout;
 /// <summary>
 /// Testes para o dark mode toggle no MainLayout.razor usando bUnit
 /// </summary>
-public class DarkModeToggleTests : Bunit.TestContext
+public class DarkModeToggleTests : Bunit.BunitContext
 {
     private readonly Mock<IDispatcher> _mockDispatcher;
     private readonly Mock<IState<ThemeState>> _mockThemeState;
@@ -40,24 +40,20 @@ public class DarkModeToggleTests : Bunit.TestContext
     public void MainLayout_Should_Dispatch_ToggleDarkModeAction_When_Button_Clicked()
     {
         // Arrange
-        var cut = RenderComponent<MainLayout>();
+        var cut = Render<MainLayout>();
 
         // Encontrar botões que podem ser o dark mode toggle
         var buttons = cut.FindAll("button");
-        buttons.Should().NotBeEmpty("Deve haver botões no layout");
+        buttons.Should().HaveCountGreaterThanOrEqualTo(2, "o botão de dark mode deve existir no AppBar");
 
-        // Act
-        // Simular clique no botão de dark mode (segundo botão no AppBar)
-        if (buttons.Count >= 2)
-        {
-            buttons[1].Click();
+        // Act - Clicar no segundo botão (toggle dark mode)
+        buttons[1].Click();
 
-            // Assert
-            _mockDispatcher.Verify(
-                x => x.Dispatch(It.IsAny<ToggleDarkModeAction>()), 
-                Times.AtLeastOnce,
-                "ToggleDarkModeAction deve ser disparada ao clicar no botão");
-        }
+        // Assert
+        _mockDispatcher.Verify(
+            x => x.Dispatch(It.IsAny<ToggleDarkModeAction>()), 
+            Times.AtLeastOnce,
+            "ToggleDarkModeAction deve ser disparada ao clicar no botão");
     }
 
     [Fact]

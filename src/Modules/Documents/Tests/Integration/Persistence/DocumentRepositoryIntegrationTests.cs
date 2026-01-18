@@ -25,8 +25,7 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
 
     public DocumentRepositoryIntegrationTests()
     {
-        _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgres:15-alpine")
+        _postgresContainer = new PostgreSqlBuilder("postgres:15-alpine")
             .WithDatabase("documents_test")
             .WithUsername("postgres")
             .WithPassword("postgres")

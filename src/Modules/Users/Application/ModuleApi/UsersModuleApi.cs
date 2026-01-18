@@ -21,7 +21,7 @@ public sealed class UsersModuleApi(
     IQueryHandler<GetUserByUsernameQuery, Result<UserDto>> getUserByUsernameHandler,
     IQueryHandler<GetUsersByIdsQuery, Result<IReadOnlyList<UserDto>>> getUsersByIdsHandler,
     IServiceProvider serviceProvider,
-    ILogger<UsersModuleApi> logger) : IUsersModuleApi, IModuleApi
+    ILogger<UsersModuleApi> logger) : IUsersModuleApi
 {
     private static class ModuleMetadata
     {

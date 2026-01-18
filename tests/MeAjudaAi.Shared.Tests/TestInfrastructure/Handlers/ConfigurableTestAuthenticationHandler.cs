@@ -19,18 +19,18 @@ public class ConfigurableTestAuthenticationHandler(
     UrlEncoder encoder) : BaseTestAuthenticationHandler(options, logger, encoder)
 {
     /// <summary>
-    /// Authentication scheme name used by the configurable test handler.
+    /// Nome do esquema de autenticação usado pelo handler de teste configurável.
     /// </summary>
     /// <remarks>
-    /// This scheme name is registered with ASP.NET Core authentication services during test setup.
-    /// It identifies the authentication handler that processes test authentication requests.
+    /// Este nome de esquema é registrado com os serviços de autenticação do ASP.NET Core durante a configuração de testes.
+    /// Ele identifica o handler de autenticação que processa as requisições de autenticação de teste.
     /// </remarks>
     /// <seealso cref="GetAuthenticationScheme"/>
     /// <seealso cref="TestContextHeader"/>
     public const string SchemeName = "TestConfigurable";
 
     /// <summary>
-    /// HTTP header name used to transmit the test context ID for per-test authentication isolation.
+    /// Nome do cabeçalho HTTP usado para transmitir o ID de contexto de teste para isolamento de autenticação por teste.
     /// </summary>
     public const string TestContextHeader = "X-Test-Context-Id";
 

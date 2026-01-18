@@ -278,11 +278,11 @@ public sealed class ProvidersModuleApi(
     }
 
     /// <summary>
-    /// Gets provider data prepared for search indexing, including coordinates obtained via geocoding.
+    /// Obtém dados do provedor preparados para indexação de busca, incluindo coordenadas obtidas via geocodificação.
     /// </summary>
-    /// <param name="providerId">The unique identifier of the provider to index.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Provider indexing DTO with geocoded location, or null if provider not found, or failure if geocoding fails.</returns>
+    /// <param name="providerId">O identificador único do provedor a ser indexado.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <returns>DTO de indexação do provedor com localização geocodificada, ou null se provedor não encontrado, ou falha se geocodificação falhar.</returns>
     public async Task<Result<ModuleProviderIndexingDto?>> GetProviderForIndexingAsync(
         Guid providerId,
         CancellationToken cancellationToken = default)
@@ -329,21 +329,19 @@ public sealed class ProvidersModuleApi(
         var subscriptionTier = ESubscriptionTier.Free;
 
         // 6. Criar DTO de indexação
-        var indexingDto = new ModuleProviderIndexingDto
-        {
-            ProviderId = providerEntity.Id.Value,
-            Name = providerEntity.Name,
-            Description = providerEntity.BusinessProfile.Description,
-            Latitude = coordinates.Latitude,
-            Longitude = coordinates.Longitude,
-            ServiceIds = serviceIds,
-            AverageRating = averageRating,
-            TotalReviews = totalReviews,
-            SubscriptionTier = subscriptionTier,
-            City = address.City,
-            State = address.State,
-            IsActive = providerEntity.VerificationStatus == EVerificationStatus.Verified && !providerEntity.IsDeleted
-        };
+        var indexingDto = new ModuleProviderIndexingDto(
+            ProviderId: providerEntity.Id.Value,
+            Name: providerEntity.Name,
+            Latitude: coordinates.Latitude,
+            Longitude: coordinates.Longitude,
+            ServiceIds: serviceIds,
+            AverageRating: averageRating,
+            TotalReviews: totalReviews,
+            SubscriptionTier: subscriptionTier,
+            IsActive: providerEntity.VerificationStatus == EVerificationStatus.Verified && !providerEntity.IsDeleted,
+            Description: providerEntity.BusinessProfile.Description,
+            City: address.City,
+            State: address.State);
 
         logger.LogInformation(
             "Successfully prepared indexing data for provider {ProviderId} at ({Lat}, {Lon})",
@@ -357,19 +355,17 @@ public sealed class ProvidersModuleApi(
     /// </summary>
     private static ModuleProviderDto MapToModuleDto(ProviderDto providerDto)
     {
-        return new ModuleProviderDto
-        {
-            Id = providerDto.Id,
-            Name = providerDto.Name,
-            Email = providerDto.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
-            Document = GetMainDocument(providerDto)?.Number ?? string.Empty,
-            Phone = providerDto.BusinessProfile?.ContactInfo?.PhoneNumber,
-            ProviderType = providerDto.Type.ToString(),
-            VerificationStatus = providerDto.VerificationStatus.ToString(),
-            CreatedAt = providerDto.CreatedAt,
-            UpdatedAt = providerDto.UpdatedAt ?? providerDto.CreatedAt,
-            IsActive = !providerDto.IsDeleted
-        };
+        return new ModuleProviderDto(
+            Id: providerDto.Id,
+            Name: providerDto.Name,
+            Email: providerDto.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
+            Document: GetMainDocument(providerDto)?.Number ?? string.Empty,
+            ProviderType: providerDto.Type.ToString(),
+            VerificationStatus: providerDto.VerificationStatus.ToString(),
+            CreatedAt: providerDto.CreatedAt,
+            UpdatedAt: providerDto.UpdatedAt ?? providerDto.CreatedAt,
+            IsActive: !providerDto.IsDeleted,
+            Phone: providerDto.BusinessProfile?.ContactInfo?.PhoneNumber);
     }
 
     /// <summary>
@@ -377,15 +373,13 @@ public sealed class ProvidersModuleApi(
     /// </summary>
     private static ModuleProviderBasicDto MapToModuleBasicDto(ProviderDto providerDto)
     {
-        return new ModuleProviderBasicDto
-        {
-            Id = providerDto.Id,
-            Name = providerDto.Name,
-            Email = providerDto.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
-            ProviderType = providerDto.Type.ToString(),
-            VerificationStatus = providerDto.VerificationStatus.ToString(),
-            IsActive = !providerDto.IsDeleted
-        };
+        return new ModuleProviderBasicDto(
+            Id: providerDto.Id,
+            Name: providerDto.Name,
+            Email: providerDto.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
+            ProviderType: providerDto.Type.ToString(),
+            VerificationStatus: providerDto.VerificationStatus.ToString(),
+            IsActive: !providerDto.IsDeleted);
     }
 
     /// <summary>

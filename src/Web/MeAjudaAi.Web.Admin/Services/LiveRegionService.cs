@@ -1,19 +1,19 @@
 namespace MeAjudaAi.Web.Admin.Services;
 
 /// <summary>
-/// Service for managing ARIA live region announcements for screen readers
+/// Serviço para gerenciar anúncios de região ARIA live para leitores de tela
 /// </summary>
 public class LiveRegionService
 {
     /// <summary>
-    /// Event triggered when a new announcement should be made
+    /// Evento disparado quando um novo anúncio deve ser feito
     /// </summary>
     public static event Action<string>? OnAnnouncement;
 
     /// <summary>
-    /// Announce a message to screen readers
+    /// Anuncia uma mensagem para leitores de tela
     /// </summary>
-    /// <param name="message">The message to announce</param>
+    /// <param name="message">A mensagem a ser anunciada</param>
     public void Announce(string message)
     {
         if (!string.IsNullOrWhiteSpace(message))
@@ -23,7 +23,7 @@ public class LiveRegionService
     }
 
     /// <summary>
-    /// Announce loading started
+    /// Anuncia início de carregamento
     /// </summary>
     public void AnnounceLoadingStarted(string entityName)
     {
@@ -31,7 +31,7 @@ public class LiveRegionService
     }
 
     /// <summary>
-    /// Announce loading completed
+    /// Anuncia conclusão de carregamento
     /// </summary>
     public void AnnounceLoadingCompleted(string entityName, int count)
     {
@@ -39,7 +39,7 @@ public class LiveRegionService
     }
 
     /// <summary>
-    /// Announce success operation
+    /// Anuncia operação bem-sucedida
     /// </summary>
     public void AnnounceSuccess(string operation, string entityName)
     {
@@ -55,7 +55,7 @@ public class LiveRegionService
     }
 
     /// <summary>
-    /// Announce error
+    /// Anuncia erro
     /// </summary>
     public void AnnounceError(string errorMessage)
     {
@@ -63,7 +63,7 @@ public class LiveRegionService
     }
 
     /// <summary>
-    /// Announce validation errors
+    /// Anuncia erros de validação
     /// </summary>
     public void AnnounceValidationErrors(int errorCount)
     {
@@ -71,7 +71,7 @@ public class LiveRegionService
     }
 
     /// <summary>
-    /// Announce page change
+    /// Anuncia mudança de página
     /// </summary>
     public void AnnouncePageChange(int pageNumber, int totalPages)
     {

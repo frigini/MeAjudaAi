@@ -19,6 +19,8 @@ Este projeto contém **apenas tipos portáteis** que podem ser usados tanto no s
 - ❌ Azure SDKs com dependências nativas
 - ❌ Qualquer código que dependa de servidor HTTP
 
+**Documentação:** Ver [docs/architecture.md](../../docs/architecture.md) para detalhes sobre modular monolith e result pattern.
+
 ## ✅ O que pode incluir
 
 - ✅ FluentValidation (validadores compartilhados)

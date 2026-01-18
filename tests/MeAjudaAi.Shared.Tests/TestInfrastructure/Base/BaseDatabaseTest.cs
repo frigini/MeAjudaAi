@@ -22,8 +22,7 @@ public abstract class BaseDatabaseTest : IAsyncLifetime
     {
         _databaseOptions = databaseOptions ?? GetDefaultDatabaseOptions();
 
-        _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgres:17.5")
+        _postgresContainer = new PostgreSqlBuilder("postgres:17.5")
             .WithDatabase(_databaseOptions.DatabaseName)
             .WithUsername(_databaseOptions.Username)
             .WithPassword(_databaseOptions.Password)

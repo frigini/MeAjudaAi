@@ -25,8 +25,7 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
             Schema = "locations"
         };
 
-        _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgis/postgis:16-3.4")
+        _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
             .WithDatabase(options.DatabaseName)
             .WithUsername(options.Username)
             .WithPassword(options.Password)

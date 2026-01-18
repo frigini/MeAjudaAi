@@ -1,18 +1,19 @@
 using System.Diagnostics;
+using MeAjudaAi.Web.Admin.Services.Interfaces;
 
 namespace MeAjudaAi.Web.Admin.Services;
 
 /// <summary>
-/// Default implementation of correlation ID provider.
-/// Uses Activity-based tracing when available for distributed correlation.
+/// Implementação padrão do provedor de ID de correlação.
+/// Usa rastreamento baseado em Activity quando disponível para correlação distribuída.
 /// </summary>
 public class CorrelationIdProvider : ICorrelationIdProvider
 {
     /// <summary>
-    /// Gets or creates a correlation ID.
-    /// Prefers Activity.Current?.Id for distributed tracing, falls back to new GUID.
+    /// Obtém ou cria um ID de correlação.
+    /// Prefere Activity.Current?.Id para rastreamento distribuído, usa novo GUID como fallback.
     /// </summary>
-    /// <returns>Correlation ID string</returns>
+    /// <returns>String do ID de correlação</returns>
     public string GetOrCreate()
     {
         // Prefer Activity.Current?.Id for distributed tracing

@@ -1,8 +1,9 @@
 @page "/providers"
 @attribute [Authorize(Policy = PolicyNames.ProviderManagerPolicy)]
 @using MeAjudaAi.Web.Admin.Authorization
-@using MeAjudaAi.Web.Admin.Constants
+@using MeAjudaAi.Web.Admin.Constants.Modules.Providers
 @using MeAjudaAi.Web.Admin.Services
+@using MeAjudaAi.Web.Admin.Services.Interfaces
 @using MeAjudaAi.Web.Admin.Helpers
 @inherits FluxorComponent
 @inject IState<ProvidersState> ProvidersState
@@ -146,14 +147,14 @@
 
     private void OnSearchChanged()
     {
-        // Debouncing is handled by MudTextField's DebounceInterval property
+        // Debouncing é tratado pela propriedade DebounceInterval do MudTextField
         UpdateFilteredProviders();
         StateHasChanged();
     }
 
     private void UpdateFilteredProviders()
     {
-        // Use memoization to cache filtered results
+        // Usa memoization para cachear resultados filtrados
         var cacheKey = $"providers_filtered_{_searchTerm}_{ProvidersState.Value.Providers.Count()}";
         
         _filteredProviders = PerformanceHelper.Memoize(cacheKey, () =>
@@ -234,14 +235,14 @@
 
         if (result == true)
         {
-            // Dispatch action - Effect irá lidar com a API call
+            // Dispatcha ação - Effect irá lidar com a chamada da API
             Dispatcher.Dispatch(new DeleteProviderAction(providerId));
         }
     }
 
     public void Dispose()
     {
-        // Clear memoization cache when component is disposed
+        // Limpa cache de memoization quando componente é descartado
         PerformanceHelper.ClearMemoizationCache();
     }
 }

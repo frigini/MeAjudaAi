@@ -1,5 +1,118 @@
 # Keycloak Client Setup - Admin Portal
 
+## 🚀 Setup Automatizado (Recomendado)
+
+**A configuração do Keycloak é feita automaticamente pelo código!**
+
+Quando você executa `.\scripts\dev.ps1`, o **AppHost** configura automaticamente:
+
+✅ **Realm** - `meajudaai` com políticas de segurança
+
+✅ **Clients OIDC**
+- **admin-portal**: Portal administrativo Blazor WASM
+  - Redirect URIs: `https://localhost:7032/*`, `https://admin.meajudaai.com.br/*`
+  - PKCE habilitado (S256)
+  - Public client
+  
+- **customer-app**: Aplicativo do cliente (Web + Mobile)
+  - Redirect URIs: `https://localhost:7282/*`, `https://app.meajudaai.com.br/*`, `meajudaai://callback`
+  - PKCE habilitado (S256)
+  - Suporte deep linking mobile
+
+✅ **Roles**
+- `admin` - Administrador total da plataforma
+- `operator` - Operador com leitura/escrita limitada
+- `viewer` - Visualizador somente leitura
+- `customer` - Cliente da plataforma
+
+✅ **Usuários Demo**
+- **admin.portal** / admin123 (role: admin)
+- **customer.demo** / customer123 (role: customer)
+
+### Como Funciona
+
+O serviço `KeycloakSetupService` executa automaticamente no startup (apenas em desenvolvimento):
+
+```csharp
+// src/Aspire/MeAjudaAi.AppHost/Extensions/KeycloakSetupService.cs
+public async Task<bool> EnsureKeycloakConfiguredAsync()
+{
+    // Aguarda Keycloak estar pronto
+    // Cria realm, clients, roles e usuários automaticamente
+    // É idempotente - pode rodar múltiplas vezes
+}
+```
+
+### Verificar Configuração
+
+1. Acesse [http://localhost:8080/](http://localhost:8080/)
+2. Login: `admin` / `admin123`
+3. Verifique:
+   - Realm: **meajudaai**
+   - Clients: **admin-portal**, **customer-app**
+   - Roles e usuários demo
+
+**Nada precisa ser feito manualmente!** 🎉
+
+### Saída Esperada
+
+```text
+╔════════════════════════════════════════════════════════════════╗
+║      Keycloak Client Automation - MeAjudaAi Platform          ║
+╚════════════════════════════════════════════════════════════════╝
+
+➜ Validando se Keycloak está rodando...
+✓ Keycloak está rodando em http://localhost:8080
+
+➜ Obtendo token de administrador...
+✓ Token obtido com sucesso
+
+➜ Criando realm 'meajudaai'...
+✓ Realm 'meajudaai' criado
+
+──────────────────────────────────────────────────────────────
+ Criando Clients OIDC
+──────────────────────────────────────────────────────────────
+
+➜ Criando client 'admin-portal'...
+✓ Client 'admin-portal' criado
+
+➜ Criando client 'customer-app'...
+✓ Client 'customer-app' criado
+
+...
+
+╔════════════════════════════════════════════════════════════════╗
+║                  Configuração Concluída! ✓                     ║
+╚════════════════════════════════════════════════════════════════╝
+```
+
+### Troubleshooting Script
+
+**Erro: "Keycloak não está acessível"**
+- Certifique-se de que o Keycloak está rodando:
+  ```powershell
+  # Via Aspire
+  dotnet run --project src/Aspire/MeAjudaAi.AppHost
+  
+  # Via Docker Compose
+  docker-compose up -d keycloak
+  ```
+
+**Erro: "Falha ao obter token de administrador"**
+- Verifique as credenciais: `-AdminUsername` e `-AdminPassword`
+- Padrão: `admin` / `admin` (configurado em `docker-compose.yml`)
+
+**Avisos: "já existe"**
+- Normal! O script é idempotente (pode rodar múltiplas vezes)
+- Não sobrescreve configurações existentes
+
+---
+
+## 📝 Setup Manual (Avançado)
+
+> **Nota**: O setup manual só é necessário se você precisar de configurações customizadas além do padrão. Para 99% dos casos, use o [Setup Automatizado](#-setup-automatizado-recomendado) acima.
+
 ## Pré-requisitos
 - Keycloak rodando em `http://localhost:8080`
 - Realm `meajudaai` criado e configurado

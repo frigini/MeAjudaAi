@@ -6,25 +6,25 @@ using WireMock.Settings;
 namespace MeAjudaAi.Integration.Tests.Infrastructure;
 
 /// <summary>
-/// Fixture for WireMock HTTP server used to mock external APIs in integration tests.
-/// Provides stubs for ViaCep, BrasilApi, OpenCep, Nominatim, and IBGE APIs.
+/// Fixture para servidor HTTP WireMock usado para simular APIs externas em testes de integração.
+/// Fornece stubs para APIs ViaCep, BrasilApi, OpenCep, Nominatim e IBGE.
 /// </summary>
 public class WireMockFixture : IAsyncDisposable
 {
     private WireMockServer? _server;
 
     /// <summary>
-    /// Gets the WireMock server instance.
+    /// Obtém a instância do servidor WireMock.
     /// </summary>
     public WireMockServer Server => _server ?? throw new InvalidOperationException("WireMock server not started. Call StartAsync() first.");
 
     /// <summary>
-    /// Gets the base URL for the mock server.
+    /// Obtém a URL base para o servidor mock.
     /// </summary>
     public string BaseUrl => Server.Url!;
 
     /// <summary>
-    /// Starts the WireMock server and configures all API stubs.
+    /// Inicia o servidor WireMock e configura todos os stubs de API.
     /// </summary>
     public Task StartAsync()
     {

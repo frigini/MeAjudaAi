@@ -3,13 +3,13 @@ using FluentAssertions;
 using Fluxor;
 using MeAjudaAi.Client.Contracts.Api;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
-using MeAjudaAi.Web.Admin.Features.ServiceCatalogs;
+using MeAjudaAi.Web.Admin.Features.Modules.ServiceCatalogs;
 using MeAjudaAi.Web.Admin.Pages;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using Moq;
 using MudBlazor.Services;
-using static MeAjudaAi.Web.Admin.Features.ServiceCatalogs.ServiceCatalogsActions;
+using static MeAjudaAi.Web.Admin.Features.Modules.ServiceCatalogs.ServiceCatalogsActions;
 
 namespace MeAjudaAi.Web.Admin.Tests.Pages;
 
@@ -22,7 +22,7 @@ public class CategoriesPageTests
     public void Categories_Page_Should_Dispatch_LoadCategoriesAction_OnInitialized()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockServiceCatalogsApi = new Mock<IServiceCatalogsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<ServiceCatalogsState>>();
@@ -36,7 +36,7 @@ public class CategoriesPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<Categories>();
+        var cut = ctx.Render<Categories>();
 
         // Assert
         mockDispatcher.Verify(
@@ -49,7 +49,7 @@ public class CategoriesPageTests
     public void Categories_Page_Should_Show_Create_Button()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockServiceCatalogsApi = new Mock<IServiceCatalogsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<ServiceCatalogsState>>();
@@ -63,7 +63,7 @@ public class CategoriesPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<Categories>();
+        var cut = ctx.Render<Categories>();
 
         // Assert
         var markup = cut.Markup;
@@ -74,7 +74,7 @@ public class CategoriesPageTests
     public void Categories_Page_Should_Display_Categories_List()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockServiceCatalogsApi = new Mock<IServiceCatalogsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<ServiceCatalogsState>>();
@@ -83,10 +83,8 @@ public class CategoriesPageTests
             Guid.NewGuid(),
             "Limpeza",
             "Serviços de limpeza residencial",
-            1,
             true,
-            DateTime.UtcNow,
-            DateTime.UtcNow
+            1
         );
         
         mockState.Setup(x => x.Value).Returns(new ServiceCatalogsState 
@@ -101,7 +99,7 @@ public class CategoriesPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<Categories>();
+        var cut = ctx.Render<Categories>();
 
         // Assert
         var markup = cut.Markup;
@@ -112,7 +110,7 @@ public class CategoriesPageTests
     public void Categories_Page_Should_Show_Loading_Indicator_When_Loading()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockServiceCatalogsApi = new Mock<IServiceCatalogsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<ServiceCatalogsState>>();
@@ -126,7 +124,7 @@ public class CategoriesPageTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<Categories>();
+        var cut = ctx.Render<Categories>();
 
         // Assert
         var markup = cut.Markup;

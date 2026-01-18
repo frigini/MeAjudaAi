@@ -1,9 +1,9 @@
 @page "/categories"
 @attribute [Authorize(Policy = PolicyNames.CatalogManagerPolicy)]
 @using MeAjudaAi.Web.Admin.Authorization
-@using MeAjudaAi.Web.Admin.Constants
+@using MeAjudaAi.Web.Admin.Constants.Modules.Common
 @using Fluxor
-@using MeAjudaAi.Web.Admin.Features.ServiceCatalogs
+@using MeAjudaAi.Web.Admin.Features.Modules.ServiceCatalogs
 @inherits Fluxor.Blazor.Web.Components.FluxorComponent
 @inject IState<ServiceCatalogsState> ServiceCatalogsState
 @inject IDispatcher Dispatcher
@@ -143,7 +143,7 @@
         }
     }
 
-    private async Task ToggleActivation(Guid categoryId, bool activate)
+    private void ToggleActivation(Guid categoryId, bool activate)
     {
         Dispatcher.Dispatch(new ServiceCatalogsActions.ToggleCategoryActivationAction(categoryId, activate));
     }

@@ -1,7 +1,7 @@
 namespace MeAjudaAi.Web.Admin.Features.Errors;
 
 /// <summary>
-/// Global error state for Fluxor
+/// Estado global de erros para Fluxor.
 /// </summary>
 public record ErrorState
 {

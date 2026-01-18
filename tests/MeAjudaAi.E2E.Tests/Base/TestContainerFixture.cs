@@ -70,21 +70,18 @@ public class TestContainerFixture : IAsyncLifetime
     private async Task InitializeContainersAsync()
     {
         // Configurar containers com timeouts aumentados para WSL2/Docker Desktop (Windows)
-        _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgis/postgis:16-3.4")
+        _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
             .WithDatabase("meajudaai_test")
             .WithUsername("postgres")
             .WithPassword("test123")
             .WithCleanUp(true)
             .Build();
 
-        _redisContainer = new RedisBuilder()
-            .WithImage("redis:7-alpine")
+        _redisContainer = new RedisBuilder("redis:7-alpine")
             .WithCleanUp(true)
             .Build();
 
-        _azuriteContainer = new AzuriteBuilder()
-            .WithImage("mcr.microsoft.com/azure-storage/azurite:3.33.0")
+        _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.33.0")
             .WithCleanUp(true)
             .Build();
 

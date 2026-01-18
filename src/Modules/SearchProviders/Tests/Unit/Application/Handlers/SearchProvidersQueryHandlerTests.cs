@@ -56,7 +56,10 @@ public class SearchProvidersQueryHandlerTests
                 0,
                 query.PageSize,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SearchResult { Providers = providers, DistancesInKm = distances, TotalCount = 3 });
+            .ReturnsAsync(new SearchResult(
+                Providers: providers,
+                DistancesInKm: distances,
+                TotalCount: 3));
 
         // Act
         var result = await _sut.HandleAsync(query, CancellationToken.None);
@@ -114,7 +117,10 @@ public class SearchProvidersQueryHandlerTests
                 It.IsAny<int>(),
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SearchResult { Providers = providers, DistancesInKm = distances, TotalCount = 2 });
+            .ReturnsAsync(new SearchResult(
+                Providers: providers,
+                DistancesInKm: distances,
+                TotalCount: 2));
 
         // Act
         var result = await _sut.HandleAsync(query, CancellationToken.None);
@@ -155,7 +161,10 @@ public class SearchProvidersQueryHandlerTests
                 It.IsAny<int>(),
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SearchResult { Providers = providers, DistancesInKm = distances, TotalCount = 1 });
+            .ReturnsAsync(new SearchResult(
+                Providers: providers,
+                DistancesInKm: distances,
+                TotalCount: 1));
 
         // Act
         var result = await _sut.HandleAsync(query, CancellationToken.None);
@@ -196,7 +205,10 @@ public class SearchProvidersQueryHandlerTests
                 It.IsAny<int>(),
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SearchResult { Providers = providers, DistancesInKm = distances, TotalCount = 2 });
+            .ReturnsAsync(new SearchResult(
+                Providers: providers,
+                DistancesInKm: distances,
+                TotalCount: 2));
 
         // Act
         var result = await _sut.HandleAsync(query, CancellationToken.None);
@@ -229,7 +241,10 @@ public class SearchProvidersQueryHandlerTests
                 10, // skip = (2-1) * 10 = 10
                 10,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SearchResult { Providers = providers, DistancesInKm = distances, TotalCount = 25 }); // Total 25 items
+            .ReturnsAsync(new SearchResult(
+                Providers: providers,
+                DistancesInKm: distances,
+                TotalCount: 25)); // Total 25 items
 
         // Act
         var result = await _sut.HandleAsync(query, CancellationToken.None);
@@ -261,7 +276,10 @@ public class SearchProvidersQueryHandlerTests
                 It.IsAny<int>(),
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SearchResult { Providers = new List<SearchableProvider>(), DistancesInKm = new List<double>(), TotalCount = 0 });
+            .ReturnsAsync(new SearchResult(
+                Providers: new List<SearchableProvider>(),
+                DistancesInKm: new List<double>(),
+                TotalCount: 0));
 
         // Act
         var result = await _sut.HandleAsync(query, CancellationToken.None);
@@ -299,7 +317,10 @@ public class SearchProvidersQueryHandlerTests
                 It.IsAny<int>(),
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SearchResult { Providers = new List<SearchableProvider> { provider }, DistancesInKm = new List<double> { distance }, TotalCount = 1 });
+            .ReturnsAsync(new SearchResult(
+                Providers: new List<SearchableProvider> { provider },
+                DistancesInKm: new List<double> { distance },
+                TotalCount: 1));
 
         // Act
         var result = await _sut.HandleAsync(query, CancellationToken.None);

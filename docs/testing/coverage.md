@@ -246,7 +246,7 @@ env:
 #### Local Falha em E2E
 - **Problema**: Docker Desktop com `InternalServerError`
 - **Impacto**: -10-12pp coverage (E2E tests não rodam)
-- **Solução**: Ver [test-infrastructure.md - Bloqueios Conhecidos](./test-infrastructure.md#implementado-otimizacao-iclassfixture)
+- **Solução**: Ver [test-infrastructure.md - Bloqueios Conhecidos](./test-infrastructure.md)
 
 ### Como Replicar Coverage da Pipeline Localmente
 

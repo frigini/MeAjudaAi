@@ -21,12 +21,10 @@ public class SearchResultTests
         var totalCount = 10;
 
         // Act
-        var result = new SearchResult
-        {
-            Providers = providers,
-            DistancesInKm = distances,
-            TotalCount = totalCount
-        };
+        var result = new SearchResult(
+            Providers: providers,
+            DistancesInKm: distances,
+            TotalCount: totalCount);
 
         // Assert
         result.Providers.Should().HaveCount(3);
@@ -41,12 +39,10 @@ public class SearchResultTests
         var providers = CreateProviders(5);
         var distances = Enumerable.Range(0, 5).Select(i => (double)i).ToList();
 
-        var result = new SearchResult
-        {
-            Providers = providers,
-            DistancesInKm = distances,
-            TotalCount = 10
-        };
+        var result = new SearchResult(
+            Providers: providers,
+            DistancesInKm: distances,
+            TotalCount: 10);
 
         // Act
         var hasMore = result.HasMore;
@@ -62,12 +58,10 @@ public class SearchResultTests
         var providers = CreateProviders(5);
         var distances = Enumerable.Range(0, 5).Select(i => (double)i).ToList();
 
-        var result = new SearchResult
-        {
-            Providers = providers,
-            DistancesInKm = distances,
-            TotalCount = 5
-        };
+        var result = new SearchResult(
+            Providers: providers,
+            DistancesInKm: distances,
+            TotalCount: 5);
 
         // Act
         var hasMore = result.HasMore;
@@ -80,12 +74,10 @@ public class SearchResultTests
     public void HasMore_WhenNoProviders_ShouldReturnFalse()
     {
         // Arrange
-        var result = new SearchResult
-        {
-            Providers = new List<SearchableProvider>(),
-            DistancesInKm = new List<double>(),
-            TotalCount = 0
-        };
+        var result = new SearchResult(
+            Providers: new List<SearchableProvider>(),
+            DistancesInKm: new List<double>(),
+            TotalCount: 0);
 
         // Act
         var hasMore = result.HasMore;
@@ -98,12 +90,10 @@ public class SearchResultTests
     public void SearchResult_WithEmptyProviders_ShouldAllowEmptyLists()
     {
         // Act
-        var result = new SearchResult
-        {
-            Providers = new List<SearchableProvider>(),
-            DistancesInKm = new List<double>(),
-            TotalCount = 0
-        };
+        var result = new SearchResult(
+            Providers: new List<SearchableProvider>(),
+            DistancesInKm: new List<double>(),
+            TotalCount: 0);
 
         // Assert
         result.Providers.Should().BeEmpty();
@@ -119,12 +109,10 @@ public class SearchResultTests
         var distances = new List<double> { 1.5, 2.3, 3.7 };
 
         // Act
-        var result = new SearchResult
-        {
-            Providers = providers,
-            DistancesInKm = distances,
-            TotalCount = 3
-        };
+        var result = new SearchResult(
+            Providers: providers,
+            DistancesInKm: distances,
+            TotalCount: 3);
 
         // Assert
         result.Providers.Should().HaveCount(result.DistancesInKm.Count);
@@ -137,19 +125,15 @@ public class SearchResultTests
         var providers = CreateProviders(2);
         var distances = new List<double> { 1.0, 2.0 };
 
-        var result1 = new SearchResult
-        {
-            Providers = providers,
-            DistancesInKm = distances,
-            TotalCount = 5
-        };
+        var result1 = new SearchResult(
+            Providers: providers,
+            DistancesInKm: distances,
+            TotalCount: 5);
 
-        var result2 = new SearchResult
-        {
-            Providers = providers,
-            DistancesInKm = distances,
-            TotalCount = 5
-        };
+        var result2 = new SearchResult(
+            Providers: providers,
+            DistancesInKm: distances,
+            TotalCount: 5);
 
         // Act & Assert
         result1.Should().Be(result2);
@@ -162,12 +146,10 @@ public class SearchResultTests
         var providers = CreateProviders(2);
         var distances = new List<double> { 1.0, 2.0 };
 
-        var result = new SearchResult
-        {
-            Providers = providers,
-            DistancesInKm = distances,
-            TotalCount = 5
-        };
+        var result = new SearchResult(
+            Providers: providers,
+            DistancesInKm: distances,
+            TotalCount: 5);
 
         // Assert
         result.Providers.Should().BeAssignableTo<IReadOnlyList<SearchableProvider>>();
@@ -181,12 +163,10 @@ public class SearchResultTests
         var providers = CreateProviders(10);
         var distances = Enumerable.Range(0, 10).Select(i => (double)i).ToList();
 
-        var result = new SearchResult
-        {
-            Providers = providers,
-            DistancesInKm = distances,
-            TotalCount = 25
-        };
+        var result = new SearchResult(
+            Providers: providers,
+            DistancesInKm: distances,
+            TotalCount: 25);
 
         // Act
         var hasMore = result.HasMore;

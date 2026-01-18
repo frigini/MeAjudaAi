@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using MeAjudaAi.Web.Admin.Authorization;
+using MeAjudaAi.Web.Admin.Services.Interfaces;
 using System.Security.Claims;
 
 namespace MeAjudaAi.Web.Admin.Services;
@@ -8,41 +9,30 @@ namespace MeAjudaAi.Web.Admin.Services;
 /// <summary>
 /// Implementação do serviço de verificação de permissões.
 /// </summary>
-public class PermissionService : IPermissionService
+public class PermissionService(
+    AuthenticationStateProvider authenticationStateProvider,
+    IAuthorizationService authorizationService,
+    ILogger<PermissionService> logger) : IPermissionService
 {
     // Constantes para claims do Keycloak
     private const string RolesClaim = "roles";
-
-    private readonly AuthenticationStateProvider _authenticationStateProvider;
-    private readonly IAuthorizationService _authorizationService;
-    private readonly ILogger<PermissionService> _logger;
-
-    public PermissionService(
-        AuthenticationStateProvider authenticationStateProvider,
-        IAuthorizationService authorizationService,
-        ILogger<PermissionService> logger)
-    {
-        _authenticationStateProvider = authenticationStateProvider;
-        _authorizationService = authorizationService;
-        _logger = logger;
-    }
 
     public async Task<bool> HasPermissionAsync(string policyName)
     {
         try
         {
-            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            var authState = await authenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
 
             if (!user.Identity?.IsAuthenticated ?? true)
             {
-                _logger.LogDebug("User is not authenticated");
+                logger.LogDebug("User is not authenticated");
                 return false;
             }
 
-            var result = await _authorizationService.AuthorizeAsync(user, policyName);
+            var result = await authorizationService.AuthorizeAsync(user, policyName);
             
-            _logger.LogDebug(
+            logger.LogDebug(
                 "Permission check for policy {PolicyName}: {Result}", 
                 policyName, 
                 result.Succeeded);
@@ -51,7 +41,7 @@ public class PermissionService : IPermissionService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error checking permission for policy {PolicyName}", policyName);
+            logger.LogError(ex, "Error checking permission for policy {PolicyName}", policyName);
             return false;
         }
     }
@@ -60,7 +50,7 @@ public class PermissionService : IPermissionService
     {
         try
         {
-            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            var authState = await authenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
 
             if (!user.Identity?.IsAuthenticated ?? true)
@@ -81,7 +71,7 @@ public class PermissionService : IPermissionService
 
             var hasRole = roles.Any(role => userRoles.Contains(role, StringComparer.OrdinalIgnoreCase));
 
-            _logger.LogDebug(
+            logger.LogDebug(
                 "Role check - Required: [{RequiredRoles}], User has: [{UserRoles}], Result: {Result}",
                 string.Join(", ", roles),
                 string.Join(", ", userRoles),
@@ -91,7 +81,7 @@ public class PermissionService : IPermissionService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error checking roles {Roles}", string.Join(", ", roles));
+            logger.LogError(ex, "Error checking roles {Roles}", string.Join(", ", roles));
             return false;
         }
     }
@@ -100,7 +90,7 @@ public class PermissionService : IPermissionService
     {
         try
         {
-            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            var authState = await authenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
 
             if (!user.Identity?.IsAuthenticated ?? true)
@@ -116,7 +106,7 @@ public class PermissionService : IPermissionService
 
             var hasAllRoles = roles.All(role => userRoles.Contains(role, StringComparer.OrdinalIgnoreCase));
 
-            _logger.LogDebug(
+            logger.LogDebug(
                 "All roles check - Required: [{RequiredRoles}], User has: [{UserRoles}], Result: {Result}",
                 string.Join(", ", roles),
                 string.Join(", ", userRoles),
@@ -126,7 +116,7 @@ public class PermissionService : IPermissionService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error checking all roles {Roles}", string.Join(", ", roles));
+            logger.LogError(ex, "Error checking all roles {Roles}", string.Join(", ", roles));
             return false;
         }
     }
@@ -135,7 +125,7 @@ public class PermissionService : IPermissionService
     {
         try
         {
-            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            var authState = await authenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
 
             if (!user.Identity?.IsAuthenticated ?? true)
@@ -149,13 +139,13 @@ public class PermissionService : IPermissionService
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
-            _logger.LogDebug("User roles: [{Roles}]", string.Join(", ", roles));
+            logger.LogDebug("User roles: [{Roles}]", string.Join(", ", roles));
 
             return roles;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting user roles");
+            logger.LogError(ex, "Error getting user roles");
             return Enumerable.Empty<string>();
         }
     }

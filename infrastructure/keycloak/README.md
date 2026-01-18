@@ -1,6 +1,38 @@
 # Keycloak Configuration
 
-This directory contains the Keycloak realm configuration for MeAjudaAi with environment-specific security.
+Este diretório contém configurações do Keycloak para autenticação OIDC da plataforma MeAjudaAi.
+
+## 🚀 Setup Automatizado
+
+**A configuração do Keycloak é feita automaticamente pelo código!**
+
+Quando você executa `.\scripts\dev.ps1`, o AppHost configura automaticamente:
+- ✅ Realm `meajudaai`
+- ✅ Clients OIDC: `admin-portal` e `customer-app`
+- ✅ Roles: admin, customer, operator, viewer
+- ✅ Usuários demo para desenvolvimento
+
+**Código:** [`src/Aspire/MeAjudaAi.AppHost/Extensions/KeycloakSetupService.cs`](../../src/Aspire/MeAjudaAi.AppHost/Extensions/KeycloakSetupService.cs)
+
+**Documentação completa:** [`docs/keycloak-admin-portal-setup.md`](../../docs/keycloak-admin-portal-setup.md)
+
+---
+
+## 📁 Estrutura de Arquivos
+
+```text
+keycloak/
+├── README.md                     # Este arquivo
+├── realms/                       # Realm configurations (JSON exports)
+│   ├── meajudaai-realm.dev.json  # Development realm
+│   └── meajudaai-realm.prod.json # Production realm
+├── scripts/                      # Helper scripts
+│   ├── keycloak-init-dev.sh      # Development initialization
+│   └── keycloak-init-prod.sh     # Production initialization
+└── themes/                       # Custom Keycloak themes (optional)
+```
+
+---
 
 ## 🔒 Security Architecture
 

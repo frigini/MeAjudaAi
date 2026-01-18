@@ -3,7 +3,7 @@ using Fluxor;
 namespace MeAjudaAi.Web.Admin.Features.Errors;
 
 /// <summary>
-/// Feature state for global errors
+/// Feature state para erros globais.
 /// </summary>
 public class ErrorFeature : Feature<ErrorState>
 {
