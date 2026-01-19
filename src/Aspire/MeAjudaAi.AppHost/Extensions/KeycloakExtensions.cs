@@ -43,7 +43,9 @@ public static class MeAjudaAiKeycloakExtensions
         // Usar porta fixa para permitir acesso consistente em desenvolvimento
         // NOTA: Sem .WithDataVolume() em desenvolvimento para sempre iniciar limpo
         // NOTA: Keycloak pode aparecer como Unhealthy ~20-30s até completar inicialização do banco e import de realms
-        // NOTA: Aspire.Hosting.Keycloak já adiciona .WithHttpHealthCheck(endpointName: "management", path: "/health/ready") automaticamente
+        // ⚠️ LIMITAÇÃO: Aspire.Hosting.Keycloak NÃO suporta health checks (docs oficiais confirmam)
+        //    WaitFor(keycloak) só espera container Running, não Keycloak HTTP ready
+        //    Por isso removemos .WaitFor() no Program.cs - serviços iniciam sem esperar Keycloak
         var keycloak = builder.AddKeycloak("keycloak", port: 8080)
             // Configurar banco de dados PostgreSQL com schema 'identity'
             // Na rede Docker do Aspire, containers se comunicam usando o nome do recurso
