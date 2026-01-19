@@ -42,6 +42,7 @@ public static class MeAjudaAiKeycloakExtensions
         // AddKeycloak já configura porta 8080 (HTTP) e 9000 (management) automaticamente
         // Usar porta fixa para permitir acesso consistente em desenvolvimento
         // NOTA: Sem .WithDataVolume() em desenvolvimento para sempre iniciar limpo
+        // NOTA: Health check não configurado - endpoint /health/ready está apenas em HTTPS porta 9000
         var keycloak = builder.AddKeycloak("keycloak", port: 8080)
             // Configurar banco de dados PostgreSQL com schema 'identity'
             // Na rede Docker do Aspire, containers se comunicam usando o nome do recurso

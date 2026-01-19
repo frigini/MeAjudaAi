@@ -237,7 +237,10 @@
     <PackageVersion Include="Aspire.Hosting.Keycloak" Version="13.1.0-preview.1.25616.3" />
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.1.0" />
     <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="13.1.0" />
-    <PackageVersion Include="Aspire.Hosting.Redis" Version="13.1.0" />
+    <!-- Aspire.Hosting.Redis: DOWNGRADE para 13.0.2 devido a bug em 13.1.0 -->
+    <!-- 13.1.0 força TLS no Redis causando erros de health check em desenvolvimento -->
+    <!-- Ref: https://github.com/dotnet/aspire/issues/7891 -->
+    <PackageVersion Include="Aspire.Hosting.Redis" Version="13.0.2" />
     <PackageVersion Include="Aspire.Hosting.Seq" Version="13.1.0" />
     <PackageVersion Include="Aspire.Npgsql" Version="13.1.0" />
     <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.0.2" />
