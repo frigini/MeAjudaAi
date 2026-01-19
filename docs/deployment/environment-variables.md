@@ -481,7 +481,8 @@ Console.WriteLine($"ApiBaseUrl from config: {clientConfig.ApiBaseUrl}");
 - [Docker Environment Variables](https://docs.docker.com/compose/environment-variables/)
 
 ---
----
+
+```yaml
 apiVersion: v1
 kind: Secret
 metadata:

@@ -45,8 +45,7 @@ public static class ServiceCollectionExtensions
                 options.Retry.MaxRetryAttempts = 0;
                 
                 // Configura circuit breaker e timeout
-                // Nota: NullLogger usado aqui descarta eventos de política (OnOpened, OnClosed, etc.)
-                // PollyLoggingHandler registra apenas requisições HTTP, não eventos internos da política
+                // Logger injetado via ConfigurePrimaryHttpMessageHandler abaixo
                 ResiliencePolicies.ConfigureCircuitBreaker(options.CircuitBreaker, NullLogger.Instance);
                 ResiliencePolicies.ConfigureUploadTimeout(options.TotalRequestTimeout);
             });
@@ -56,13 +55,20 @@ public static class ServiceCollectionExtensions
             // Política padrão: retry + circuit breaker + timeout
             httpClientBuilder.AddStandardResilienceHandler(options =>
             {
-                // Nota: NullLogger usado aqui descarta eventos de política (OnRetry, OnOpened, OnClosed, etc.)
-                // PollyLoggingHandler registra apenas requisições HTTP, não eventos internos da política
+                // Logger injetado via ConfigurePrimaryHttpMessageHandler abaixo
                 ResiliencePolicies.ConfigureRetry(options.Retry, NullLogger.Instance);
                 ResiliencePolicies.ConfigureCircuitBreaker(options.CircuitBreaker, NullLogger.Instance);
                 ResiliencePolicies.ConfigureTimeout(options.TotalRequestTimeout);
             });
         }
+
+        // TODO: Migrar logging de eventos Polly (OnRetry, OnOpened, etc.) para usar ILogger do DI
+        // LIMITATION: AddStandardResilienceHandler não suporta injeção de IServiceProvider
+        // OPTIONS:
+        //   1. Usar ConfigurePrimaryHttpMessageHandler com factory que recebe IServiceProvider
+        //   2. Aguardar suporte em versão futura do Microsoft.Extensions.Http.Resilience
+        //   3. Implementar custom DelegatingHandler que envolve policies manualmente
+        // CURRENT: PollyLoggingHandler registra requisições HTTP (não eventos de política)
         
         return services;
     }

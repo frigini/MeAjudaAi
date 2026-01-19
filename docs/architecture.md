@@ -2304,7 +2304,6 @@ src/Shared/API.Collections/
 #### **Comandos Disponíveis**
 
 ```bash
-
 # Gerar todas as collections
 cd tools/api-collections
 ./generate-all-collections.sh        # Linux/Mac
@@ -2371,8 +2370,8 @@ options.OperationFilter<ApiVersionOperationFilter>();
 ### **Exportação OpenAPI para Clientes REST**
 
 #### **Comando Único**
-```bash
 
+```bash
 # Gera especificação OpenAPI completa
 .\scripts\export-openapi.ps1 -OutputPath "api/api-spec.json"
 ```
