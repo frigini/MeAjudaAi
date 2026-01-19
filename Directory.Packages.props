@@ -204,7 +204,7 @@
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
     <!-- Testing Framework -->
     <!-- Using xUnit v3 only -->
-    <PackageVersion Include="WireMock.Net" Version="1.23.0" />
+    <PackageVersion Include="WireMock.Net" Version="1.24.0" />
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
