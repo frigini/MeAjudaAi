@@ -169,15 +169,15 @@
 </MudGrid>
 
 @code {
-    // Arrays ordenados usando nomes de enum
-    private static readonly string[] StatusOrder = { 
-        nameof(VerificationStatus.Pending),
-        nameof(VerificationStatus.Verified),
-        nameof(VerificationStatus.Rejected)
+    // Arrays ordenados usando valores numéricos dos enums para comparação correta
+    private static readonly int[] StatusOrderInts = { 
+        (int)VerificationStatus.Pending,
+        (int)VerificationStatus.Verified,
+        (int)VerificationStatus.Rejected
     };
-    private static readonly string[] ProviderTypeOrder = { 
-        nameof(ProviderType.Individual),
-        nameof(ProviderType.Company)
+    private static readonly int[] ProviderTypeOrderInts = { 
+        (int)ProviderType.Individual,
+        (int)ProviderType.Company
     };
 
     private double[] providerStatusData = Array.Empty<double>();
@@ -235,8 +235,13 @@
         var statusGroups = providers
             .GroupBy(p => p.VerificationStatus)
             .OrderBy(g => {
-                var index = Array.IndexOf(StatusOrder, g.Key);
-                return index >= 0 ? index : int.MaxValue; // Unknown values sorted last
+                // g.Key é string numérica ("0", "1", "2"), converte para int antes de buscar
+                if (int.TryParse(g.Key, out int statusValue))
+                {
+                    var index = Array.IndexOf(StatusOrderInts, statusValue);
+                    return index >= 0 ? index : int.MaxValue;
+                }
+                return int.MaxValue; // Unknown values sorted last
             })
             .ToList();
 
@@ -251,8 +256,13 @@
         var typeGroups = providers
             .GroupBy(p => p.ProviderType)
             .OrderBy(g => {
-                var index = Array.IndexOf(ProviderTypeOrder, g.Key);
-                return index >= 0 ? index : int.MaxValue; // Unknown values sorted last
+                // g.Key é string numérica ("0", "1"), converte para int antes de buscar
+                if (int.TryParse(g.Key, out int typeValue))
+                {
+                    var index = Array.IndexOf(ProviderTypeOrderInts, typeValue);
+                    return index >= 0 ? index : int.MaxValue;
+                }
+                return int.MaxValue; // Unknown values sorted last
             })
             .ToList();
 

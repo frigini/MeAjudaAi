@@ -481,21 +481,6 @@ Console.WriteLine($"ApiBaseUrl from config: {clientConfig.ApiBaseUrl}");
 - [Docker Environment Variables](https://docs.docker.com/compose/environment-variables/)
 
 ---
-
-### ☸️ Kubernetes
-
-**Deployment with ConfigMap and Secret:**
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: admin-portal-config
-  namespace: meajudaai
-data:
-  ApiBaseUrl: "https://api.meajudaai.com"
-  Keycloak__Authority: "https://auth.meajudaai.com/realms/meajudaai"
-  Keycloak__ClientId: "admin-portal"
-  Features__EnableReduxDevTools: "false"
 ---
 apiVersion: v1
 kind: Secret

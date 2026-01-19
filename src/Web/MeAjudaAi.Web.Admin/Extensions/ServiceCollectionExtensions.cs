@@ -45,7 +45,8 @@ public static class ServiceCollectionExtensions
                 options.Retry.MaxRetryAttempts = 0;
                 
                 // Configura circuit breaker e timeout
-                // Nota: Logging acontece via PollyLoggingHandler (evita BuildServiceProvider)
+                // Nota: NullLogger usado aqui descarta eventos de política (OnOpened, OnClosed, etc.)
+                // PollyLoggingHandler registra apenas requisições HTTP, não eventos internos da política
                 ResiliencePolicies.ConfigureCircuitBreaker(options.CircuitBreaker, NullLogger.Instance);
                 ResiliencePolicies.ConfigureUploadTimeout(options.TotalRequestTimeout);
             });
@@ -55,7 +56,8 @@ public static class ServiceCollectionExtensions
             // Política padrão: retry + circuit breaker + timeout
             httpClientBuilder.AddStandardResilienceHandler(options =>
             {
-                // Nota: Logging acontece via PollyLoggingHandler (evita BuildServiceProvider)
+                // Nota: NullLogger usado aqui descarta eventos de política (OnRetry, OnOpened, OnClosed, etc.)
+                // PollyLoggingHandler registra apenas requisições HTTP, não eventos internos da política
                 ResiliencePolicies.ConfigureRetry(options.Retry, NullLogger.Instance);
                 ResiliencePolicies.ConfigureCircuitBreaker(options.CircuitBreaker, NullLogger.Instance);
                 ResiliencePolicies.ConfigureTimeout(options.TotalRequestTimeout);

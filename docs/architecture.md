@@ -736,7 +736,8 @@ public class UsersContext
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<UserPreferences> UserPreferences { get; set; }
 }
-```bash
+```
+
 **Conceitos do Domínio**:
 - **User**: Agregado raiz para dados básicos de identidade
 - **UserProfile**: Perfil detalhado (experiência, habilidades, localização)
@@ -2677,7 +2678,7 @@ Ao revisar PRs, verificar:
 
 ---
 
-## �🚀 C# 14 Features Utilizados
+## 🚀 C# 14 Features Utilizados
 
 ### Extension Members
 

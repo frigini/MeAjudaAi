@@ -35,16 +35,14 @@ public class ErrorHandlingService(
 
         var correlationId = correlationIdProvider.GetOrCreate();
         var backendMessage = result.Error?.Message;
-        var userMessage = backendMessage ?? "Erro desconhecido";
-        var logMessage = backendMessage ?? "Unknown error";
         var statusCode = result.Error?.StatusCode ?? 500;
 
         logger.LogError(
-            "API operation failed: {Operation} | Status: {StatusCode} | RawError: {RawError} | CorrelationId: {CorrelationId}",
-            operation, statusCode, logMessage, correlationId);
+            "API operation failed: Operation={Operation}, StatusCode={StatusCode}, CorrelationId={CorrelationId}",
+            operation, statusCode, correlationId);
 
-        // Retorna mensagem do backend (já deve ser amigável) ou mapeia por status code
-        return GetUserFriendlyMessage(statusCode, userMessage);
+        // Passa nullable backendMessage para permitir mapeamento por status code quando backend não retorna mensagem
+        return GetUserFriendlyMessage(statusCode, backendMessage);
     }
 
     /// <summary>
@@ -114,12 +112,10 @@ public class ErrorHandlingService(
 
             var statusCode = result.Error?.StatusCode ?? 500;
             var backendMessage = result.Error?.Message;
-            var userMessage = backendMessage ?? "Erro desconhecido";
-            var logMessage = backendMessage ?? "Unknown error";
 
             logger.LogError(
-                "Operation '{Operation}' failed with status {StatusCode}: {ErrorMessage} [CorrelationId: {CorrelationId}]",
-                operation, statusCode, logMessage, correlationId);
+                "Operation '{Operation}' failed: StatusCode={StatusCode}, CorrelationId={CorrelationId}",
+                operation, statusCode, correlationId);
 
             return result;
         }
