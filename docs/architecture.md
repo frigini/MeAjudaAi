@@ -591,7 +591,7 @@ public class GeographicRestrictionMiddleware(
         if (string.IsNullOrEmpty(city) || string.IsNullOrEmpty(state))
         {
             context.Response.StatusCode = 400;
-            await context.Response.WriteAsJsonAsync(new { error = "City and State required" });
+            await context.Response.WriteAsJsonAsync(new { error = "Cidade e estado são obrigatórios" });
             return;
         }
 
@@ -601,7 +601,7 @@ public class GeographicRestrictionMiddleware(
         if (!isAllowed.IsSuccess || !isAllowed.Value)
         {
             context.Response.StatusCode = 403;
-            await context.Response.WriteAsJsonAsync(new { error = "City not allowed" });
+            await context.Response.WriteAsJsonAsync(new { error = "Cidade não atendida" });
             return;
         }
 
@@ -1488,25 +1488,25 @@ public static partial class UserLogMessages
     [LoggerMessage(
         EventId = 1001,
         Level = LogLevel.Information,
-        Message = "Usuário {UserId} registrado com sucesso (Email: {Email}, Type: {UserType})")]
+        Message = "User {UserId} registered successfully (Email: {Email}, Type: {UserType})")]
     public static partial void UserRegistered(
         this ILogger logger, string userId, string email, string userType);
 
     [LoggerMessage(
         EventId = 1002,
         Level = LogLevel.Warning,
-        Message = "Tentativa de registro de usuário duplicado (ExternalId: {ExternalId})")]
+        Message = "Duplicate user registration attempt (ExternalId: {ExternalId})")]
     public static partial void DuplicateUserRegistration(
         this ILogger logger, string externalId);
 
     [LoggerMessage(
         EventId = 1003,
         Level = LogLevel.Error,
-        Message = "Erro ao registrar usuário (ExternalId: {ExternalId})")]
+        Message = "User registration failed (ExternalId: {ExternalId})")]
     public static partial void UserRegistrationFailed(
         this ILogger logger, string externalId, Exception exception);
 }
-`	ext
+```
 
 ### **Métricas Personalizadas**
 
@@ -2656,7 +2656,7 @@ public record IntegrationEventBase(...);
 ```
 
 **Benefícios do `sealed`**:
-- ✅ **Performance**: JIT optimizations
+- ✅ **Desempenho**: JIT optimizations
 - ✅ **Intenção clara**: "Este record não deve ser herdado"
 - ✅ **Segurança**: Evita modificações não intencionadas
 

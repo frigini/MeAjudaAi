@@ -675,7 +675,7 @@ images:
 ```
 
 > **⚠️ Secrets Management**: Em produção, use ferramentas como [Sealed Secrets](https://github.com/bitnami-labs/sealed-secrets), [External Secrets Operator](https://external-secrets.io/), ou integração com Azure Key Vault / AWS Secrets Manager.
-
+>
 > **📊 Resource Limits**: Ajuste `requests` e `limits` com base no perfil de uso. Monitore com Prometheus/Grafana para otimizar.
 
 ---

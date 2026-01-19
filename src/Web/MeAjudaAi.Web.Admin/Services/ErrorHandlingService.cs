@@ -113,14 +113,12 @@ public class ErrorHandlingService(
             var statusCode = result.Error?.StatusCode ?? 500;
             var backendMessage = result.Error?.Message;
 
-            // Se backend não retornou mensagem, logar com mensagem padrão por status code
-            var logMessage = string.IsNullOrWhiteSpace(backendMessage)
-                ? GetUserFriendlyMessage(statusCode, null)
-                : backendMessage;
+            // Log English summary; backend message may be in Portuguese (user-facing)
+            var hasBackendMessage = !string.IsNullOrWhiteSpace(backendMessage);
 
             logger.LogError(
-                "Operation '{Operation}' failed: StatusCode={StatusCode}, Message={Message}, CorrelationId={CorrelationId}",
-                operation, statusCode, logMessage, correlationId);
+                "Operation '{Operation}' failed: StatusCode={StatusCode}, HasBackendMessage={HasBackendMessage}, CorrelationId={CorrelationId}",
+                operation, statusCode, hasBackendMessage, correlationId);
 
             return result;
         }
