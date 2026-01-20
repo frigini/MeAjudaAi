@@ -12,7 +12,7 @@
 **Frontend (Blazor WASM)**:
 - Autenticação via `AddOidcAuthentication()`
 - Obtém tokens via Authorization Code Flow + PKCE
-- Refresh tokens automático
+- Refresh tokens automáticos
 
 **Consistência**: ✅
 - Ambos leem roles do claim `"roles"`
@@ -80,7 +80,7 @@ public const string Customer = "customer";
 ### 1. Validação Frontend/Backend (Intencional)
 
 **Frontend** - FluentValidation em DTOs:
-```
+```text
 Web.Admin/Validators/
 ├── CreateProviderRequestDtoValidator.cs
 ├── UpdateProviderRequestDtoValidator.cs
@@ -90,7 +90,7 @@ Web.Admin/Validators/
 ```
 
 **Backend** - FluentValidation em Commands/Requests:
-```
+```text
 Modules/*/Application/Validators/
 ├── CreateProviderCommandValidator.cs
 ├── UpdateProviderProfileRequestValidator.cs

@@ -29,8 +29,52 @@ keycloak/
 ├── scripts/                      # Helper scripts
 │   ├── keycloak-init-dev.sh      # Development initialization
 │   └── keycloak-init-prod.sh     # Production initialization
-└── themes/                       # Custom Keycloak themes (optional)
+└── themes/                       # Custom Keycloak themes
+    └── meajudaai/                # MeAjudaAi custom theme
 ```
+
+---
+
+## ⚙️ Realm Configuration Details
+
+### Development Realm (`meajudaai-realm.dev.json`)
+
+**Configurações**:
+- `verifyEmail: false` - Email não verificado (facilita desenvolvimento)
+- `users`: Contém usuário seed `admin.portal` (senha: `admin123`)
+- Redirect URIs: localhost + domínio de produção
+- Web Origins: localhost + domínio de produção
+
+⚠️ **Importante**: As origens de produção (`https://admin.meajudaai.com.br`) estão incluídas no realm dev para facilitar testes de integração com ambientes híbridos. Se não forem necessárias, remover para reduzir superfície de ataque.
+
+### Production Realm (`meajudaai-realm.prod.json`)
+
+**Configurações**:
+- `verifyEmail: true` - ⚠️ **REQUER SMTP configurado**
+- `accessTokenLifespan: 900` (15 min)
+- `ssoSessionIdleTimeout: 1800` (30 min)
+- `ssoSessionMaxLifespan: 36000` (10h)
+- `users: []` - ⚠️ **SEM USUÁRIOS SEED**
+
+⚠️ **Checklist de Deployment de Produção**:
+
+1. **SMTP Configuration** (obrigatório para `verifyEmail: true`):
+   ```bash
+   KC_SMTP_HOST=smtp.example.com
+   KC_SMTP_PORT=587
+   KC_SMTP_FROM=noreply@meajudaai.com.br
+   KC_SMTP_USER=...
+   KC_SMTP_PASSWORD=...
+   ```
+
+2. **Usuário Administrativo Inicial**:
+   - Garantir mecanismo de provisionamento antes do rollout
+   - Opções: Admin Console, variáveis de ambiente, ou script de bootstrap
+   - Ver seção "Production Environment" abaixo
+
+3. **Validação de Session Lifespans**:
+   - Valores atuais refletem balance entre segurança e UX
+   - Ajustar conforme requisitos específicos de negócio
 
 ---
 
