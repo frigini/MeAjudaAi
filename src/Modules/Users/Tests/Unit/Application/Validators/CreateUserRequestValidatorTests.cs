@@ -228,7 +228,7 @@ public class CreateUserRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Password)
-              .WithErrorMessage("Password is required");
+              .WithErrorMessage(ValidationMessages.Required.Password);
     }
 
     [Theory]
@@ -251,7 +251,7 @@ public class CreateUserRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Password)
-              .WithErrorMessage("Password must be at least 8 characters long");
+              .WithErrorMessage(ValidationMessages.Length.PasswordTooShort);
     }
 
     [Theory]
@@ -276,7 +276,7 @@ public class CreateUserRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Password)
-              .WithErrorMessage("Password must contain at least one lowercase letter, one uppercase letter and one number");
+              .WithErrorMessage(ValidationMessages.InvalidFormat.Password);
     }
 
     [Theory]
