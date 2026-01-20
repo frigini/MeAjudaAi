@@ -12,15 +12,16 @@ public class UserRolesTests
     public void AllRoles_ShouldContainAllDefinedRoles()
     {
         // Assert
-        UserRoles.AllRoles.Should().HaveCount(6);
+        UserRoles.AllRoles.Should().HaveCount(7);
         UserRoles.AllRoles.Should().Contain(new[]
         {
-            UserRoles.User,
             UserRoles.Admin,
-            UserRoles.SuperAdmin,
-            UserRoles.ServiceProvider,
-            UserRoles.Customer,
-            UserRoles.Moderator
+            UserRoles.ProviderManager,
+            UserRoles.DocumentReviewer,
+            UserRoles.CatalogManager,
+            UserRoles.Operator,
+            UserRoles.Viewer,
+            UserRoles.Customer
         });
     }
 
@@ -28,37 +29,36 @@ public class UserRolesTests
     public void AdminRoles_ShouldContainOnlyAdminRoles()
     {
         // Assert
-        UserRoles.AdminRoles.Should().HaveCount(2);
+        UserRoles.AdminRoles.Should().HaveCount(5);
         UserRoles.AdminRoles.Should().Contain(new[]
         {
             UserRoles.Admin,
-            UserRoles.SuperAdmin
+            UserRoles.ProviderManager,
+            UserRoles.DocumentReviewer,
+            UserRoles.CatalogManager,
+            UserRoles.Operator
         });
     }
 
     [Fact]
-    public void BasicRoles_ShouldContainOnlyBasicRoles()
+    public void CustomerRoles_ShouldContainCustomerRole()
     {
         // Assert
-        UserRoles.BasicRoles.Should().HaveCount(3);
-        UserRoles.BasicRoles.Should().Contain(new[]
-        {
-            UserRoles.User,
-            UserRoles.Customer,
-            UserRoles.ServiceProvider
-        });
+        UserRoles.CustomerRoles.Should().HaveCount(1);
+        UserRoles.CustomerRoles.Should().Contain(UserRoles.Customer);
     }
 
     [Fact]
     public void RoleConstants_ShouldHaveExpectedValues()
     {
         // Assert
-        UserRoles.User.Should().Be("user");
         UserRoles.Admin.Should().Be("admin");
-        UserRoles.SuperAdmin.Should().Be("super-admin");
-        UserRoles.ServiceProvider.Should().Be("service-provider");
+        UserRoles.ProviderManager.Should().Be("provider-manager");
+        UserRoles.DocumentReviewer.Should().Be("document-reviewer");
+        UserRoles.CatalogManager.Should().Be("catalog-manager");
+        UserRoles.Operator.Should().Be("operator");
+        UserRoles.Viewer.Should().Be("viewer");
         UserRoles.Customer.Should().Be("customer");
-        UserRoles.Moderator.Should().Be("moderator");
     }
 
     #endregion
@@ -66,12 +66,13 @@ public class UserRolesTests
     #region IsValidRole Tests
 
     [Theory]
-    [InlineData("user")]
     [InlineData("admin")]
-    [InlineData("super-admin")]
-    [InlineData("service-provider")]
+    [InlineData("provider-manager")]
+    [InlineData("document-reviewer")]
+    [InlineData("catalog-manager")]
+    [InlineData("operator")]
+    [InlineData("viewer")]
     [InlineData("customer")]
-    [InlineData("moderator")]
     public void IsValidRole_WithValidRole_ShouldReturnTrue(string role)
     {
         // Act
@@ -82,10 +83,10 @@ public class UserRolesTests
     }
 
     [Theory]
-    [InlineData("USER")]
     [InlineData("ADMIN")]
-    [InlineData("Super-Admin")]
-    [InlineData("SERVICE-PROVIDER")]
+    [InlineData("Provider-Manager")]
+    [InlineData("DOCUMENT-REVIEWER")]
+    [InlineData("Catalog-Manager")]
     public void IsValidRole_WithValidRoleDifferentCase_ShouldReturnTrue(string role)
     {
         // Act
@@ -127,7 +128,10 @@ public class UserRolesTests
 
     [Theory]
     [InlineData("admin")]
-    [InlineData("super-admin")]
+    [InlineData("provider-manager")]
+    [InlineData("document-reviewer")]
+    [InlineData("catalog-manager")]
+    [InlineData("operator")]
     public void IsAdminRole_WithAdminRole_ShouldReturnTrue(string role)
     {
         // Act
@@ -139,8 +143,8 @@ public class UserRolesTests
 
     [Theory]
     [InlineData("ADMIN")]
-    [InlineData("Super-Admin")]
-    [InlineData("SUPER-ADMIN")]
+    [InlineData("Provider-Manager")]
+    [InlineData("DOCUMENT-REVIEWER")]
     public void IsAdminRole_WithAdminRoleDifferentCase_ShouldReturnTrue(string role)
     {
         // Act
@@ -151,10 +155,8 @@ public class UserRolesTests
     }
 
     [Theory]
-    [InlineData("user")]
     [InlineData("customer")]
-    [InlineData("service-provider")]
-    [InlineData("moderator")]
+    [InlineData("viewer")]
     public void IsAdminRole_WithNonAdminRole_ShouldReturnFalse(string role)
     {
         // Act
@@ -196,20 +198,6 @@ public class UserRolesTests
     {
         // Assert
         UserRoles.AdminRoles.Should().BeSubsetOf(UserRoles.AllRoles);
-    }
-
-    [Fact]
-    public void BasicRoles_ShouldBeSubsetOfAllRoles()
-    {
-        // Assert
-        UserRoles.BasicRoles.Should().BeSubsetOf(UserRoles.AllRoles);
-    }
-
-    [Fact]
-    public void AdminRoles_ShouldNotOverlapWithBasicRoles()
-    {
-        // Assert
-        UserRoles.AdminRoles.Should().NotIntersectWith(UserRoles.BasicRoles);
     }
 
     #endregion

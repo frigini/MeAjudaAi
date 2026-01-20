@@ -65,12 +65,12 @@ public static class ServiceCollectionExtensions
         }
 
         // TODO: Migrar logging de eventos Polly (OnRetry, OnOpened, etc.) para usar ILogger do DI
-        // LIMITATION: AddStandardResilienceHandler não suporta injeção de IServiceProvider
-        // OPTIONS:
+        // LIMITAÇÃO: AddStandardResilienceHandler não suporta injeção de IServiceProvider
+        // OPÇÕES:
         //   1. Usar ConfigurePrimaryHttpMessageHandler com factory que recebe IServiceProvider
         //   2. Aguardar suporte em versão futura do Microsoft.Extensions.Http.Resilience
         //   3. Implementar custom DelegatingHandler que envolve policies manualmente
-        // CURRENT: PollyLoggingHandler registra requisições HTTP (não eventos de política)
+        // ATUAL: PollyLoggingHandler registra requisições HTTP (não eventos de política)
         
         return services;
     }

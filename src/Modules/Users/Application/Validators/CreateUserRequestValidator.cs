@@ -92,7 +92,7 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
                 .NotEmpty()
                 .WithMessage("Role cannot be empty")
                 .Must(role => UserRoles.IsValidRole(role))
-                .WithMessage($"Invalid role. Valid roles: {string.Join(", ", UserRoles.BasicRoles)}");
+                .WithMessage($"Invalid role. Valid roles: {string.Join(", ", UserRoles.CustomerRoles)}");
         });
     }
 }

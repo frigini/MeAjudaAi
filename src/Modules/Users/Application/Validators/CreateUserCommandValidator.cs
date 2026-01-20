@@ -64,7 +64,7 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
                 .NotEmpty()
                 .WithMessage(ValidationMessages.Required.Role)
                 .Must(role => UserRoles.IsValidRole(role))
-                .WithMessage(string.Format(ValidationMessages.InvalidFormat.Role, string.Join(", ", UserRoles.BasicRoles)));
+                .WithMessage(string.Format(ValidationMessages.InvalidFormat.Role, string.Join(", ", UserRoles.CustomerRoles)));
         });
 
         // Validação de PhoneNumber (campo opcional)
