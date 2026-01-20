@@ -24,9 +24,9 @@
   "ssoSessionIdleTimeout": 1800,
   "ssoSessionMaxLifespan": 36000,
   "offlineSessionIdleTimeout": 2592000,
-  "loginTheme": "keycloak",
-  "accountTheme": "keycloak",
-  "emailTheme": "keycloak",
+  "loginTheme": "meajudaai",
+  "accountTheme": "meajudaai",
+  "emailTheme": "meajudaai",
   "internationalizationEnabled": true,
   "supportedLocales": ["pt-BR", "en"],
   "defaultLocale": "pt-BR",
@@ -63,11 +63,13 @@
       "serviceAccountsEnabled": false,
       "protocol": "openid-connect",
       "redirectUris": [
+        "http://localhost:5165/*",
         "https://localhost:7032/*",
         "https://localhost:7281/*",
         "https://admin.meajudaai.com.br/*"
       ],
       "webOrigins": [
+        "http://localhost:5165",
         "https://localhost:7032",
         "https://localhost:7281",
         "https://admin.meajudaai.com.br"
