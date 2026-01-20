@@ -24,9 +24,9 @@
   "ssoSessionIdleTimeout": 1800,
   "ssoSessionMaxLifespan": 36000,
   "offlineSessionIdleTimeout": 2592000,
-  "loginTheme": "keycloak",
-  "accountTheme": "keycloak",
-  "emailTheme": "keycloak",
+  "loginTheme": "meajudaai",
+  "accountTheme": "meajudaai",
+  "emailTheme": "meajudaai",
   "internationalizationEnabled": true,
   "supportedLocales": ["pt-BR", "en"],
   "defaultLocale": "pt-BR",
@@ -35,6 +35,18 @@
       {
         "name": "admin",
         "description": "Administrador total da plataforma"
+      },
+      {
+        "name": "provider-manager",
+        "description": "Gerente de provedores - pode criar, editar e deletar provedores"
+      },
+      {
+        "name": "document-reviewer",
+        "description": "Revisor de documentos - pode revisar e aprovar documentos"
+      },
+      {
+        "name": "catalog-manager",
+        "description": "Gerente de catálogo - pode gerenciar serviços e categorias"
       },
       {
         "name": "operator",
