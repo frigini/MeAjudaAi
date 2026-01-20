@@ -200,5 +200,12 @@ public class UserRolesTests
         UserRoles.AdminRoles.Should().BeSubsetOf(UserRoles.AllRoles);
     }
 
+    [Fact]
+    public void CustomerRoles_ShouldBeSubsetOfAllRoles()
+    {
+        // Assert
+        UserRoles.CustomerRoles.Should().BeSubsetOf(UserRoles.AllRoles);
+    }
+
     #endregion
 }

@@ -45,6 +45,20 @@ keycloak/
 - Redirect URIs: localhost + domínio de produção
 - Web Origins: localhost + domínio de produção
 
+🔴 **AVISO CRÍTICO DE SEGURANÇA - Usuário Seed**:
+
+O usuário `admin.portal` com senha `admin123` é **EXCLUSIVAMENTE PARA DESENVOLVIMENTO LOCAL**.
+
+**Ações Obrigatórias**:
+1. **Alterar a senha imediatamente** no primeiro login em qualquer ambiente acessível
+2. **Remover o usuário seed** antes de deployment em staging/produção
+3. **NUNCA aplicar** o realm dev (`meajudaai-realm.dev.json`) em ambientes expostos
+4. **Rotacionar credenciais/segredos** se o realm dev for acidentalmente exposto
+
+**Como remover o seed**:
+- Produção: Use `meajudaai-realm.prod.json` (não contém usuários seed)
+- Staging: Remova a seção `"users": [...]` do realm antes de importar
+
 ⚠️ **Importante**: As origens de produção (`https://admin.meajudaai.com.br`) estão incluídas no realm dev para facilitar testes de integração com ambientes híbridos. Se não forem necessárias, remover para reduzir superfície de ataque.
 
 ### Production Realm (`meajudaai-realm.prod.json`)

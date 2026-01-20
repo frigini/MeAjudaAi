@@ -77,22 +77,21 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
             .WithMessage(ValidationMessages.InvalidFormat.LastName)
             .When(x => !string.IsNullOrWhiteSpace(x.LastName));
 
-        // Manter validação de password original (não está nas constantes)
         RuleFor(x => x.Password)
             .NotEmpty()
-            .WithMessage("Password is required")
-            .MinimumLength(8)
-            .WithMessage("Password must be at least 8 characters long")
-            .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)")
-            .WithMessage("Password must contain at least one lowercase letter, one uppercase letter and one number");
+            .WithMessage(ValidationMessages.Required.Password)
+            .MinimumLength(ValidationConstants.PasswordLimits.MinLength)
+            .WithMessage(ValidationMessages.Length.PasswordTooShort)
+            .Matches(ValidationConstants.Patterns.Password)
+            .WithMessage(ValidationMessages.InvalidFormat.Password);
 
         When(x => x.Roles != null, () =>
         {
             RuleForEach(x => x.Roles)
                 .NotEmpty()
-                .WithMessage("Role cannot be empty")
+                .WithMessage(ValidationMessages.Required.Role)
                 .Must(role => UserRoles.IsValidRole(role))
-                .WithMessage($"Invalid role. Valid roles: {string.Join(", ", UserRoles.CustomerRoles)}");
+                .WithMessage(string.Format(ValidationMessages.InvalidFormat.Role, string.Join(", ", UserRoles.AllRoles)));
         });
     }
 }
