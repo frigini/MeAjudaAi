@@ -19,7 +19,7 @@ public static class ContentSecurityPolicyConfiguration
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: https:",
-            "connect-src 'self' https://localhost:7001 http://localhost:8080 ws://localhost:* wss://localhost:*",
+            "connect-src 'self' https://localhost:* http://localhost:* ws://localhost:* wss://localhost:*", // Permitir qualquer porta localhost para Aspire
             "media-src 'none'",
             "object-src 'none'",
             "base-uri 'self'",
