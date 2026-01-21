@@ -130,6 +130,26 @@ public class ErrorHandlingService(
             
             throw; // Re-throw to let caller handle cancellation
         }
+        catch (Refit.ApiException apiEx)
+        {
+            // Preserva o status code original da API (especialmente 401 para race condition)
+            var statusCode = (int)apiEx.StatusCode;
+            
+            logger.LogError(apiEx,
+                "Unexpected exception in operation '{Operation}' [CorrelationId: {CorrelationId}]",
+                operation, correlationId);
+
+            // Cria erro com statusCode original preservado
+            var error = statusCode switch
+            {
+                401 => Error.Unauthorized("Você não está autenticado. Faça login novamente."),
+                403 => Error.Forbidden("Você não tem permissão para realizar esta ação."),
+                404 => Error.NotFound("Recurso não encontrado."),
+                _ => Error.Internal(GetMessageFromHttpStatus(statusCode))
+            };
+
+            return Result<T>.Failure(error);
+        }
         catch (HttpRequestException ex)
         {
             logger.LogError(ex,

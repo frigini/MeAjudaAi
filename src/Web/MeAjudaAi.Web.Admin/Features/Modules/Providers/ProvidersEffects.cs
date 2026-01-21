@@ -78,7 +78,13 @@ public class ProvidersEffects
         else
         {
             var errorMessage = _errorHandler.HandleApiError(result, "carregar provedores");
-            _snackbar.Add(errorMessage, Severity.Error);
+            
+            // Suprime toast para 401 (race condition esperado durante inicialização)
+            if (result.Error?.StatusCode != 401)
+            {
+                _snackbar.Add(errorMessage, Severity.Error);
+            }
+            
             dispatcher.Dispatch(new LoadProvidersFailureAction(errorMessage));
         }
     }

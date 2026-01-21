@@ -20,6 +20,7 @@ public static class ContentSecurityPolicyConfiguration
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: https:",
             "connect-src 'self' https://localhost:* http://localhost:* ws://localhost:* wss://localhost:*", // Permitir qualquer porta localhost para Aspire
+            "frame-src http://localhost:*", // Permitir iframes do Keycloak
             "media-src 'none'",
             "object-src 'none'",
             "base-uri 'self'",
