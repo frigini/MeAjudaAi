@@ -4,6 +4,7 @@ using Fluxor.Blazor.Web.ReduxDevTools;
 using MeAjudaAi.Client.Contracts.Api;
 using MeAjudaAi.Contracts.Configuration;
 using MeAjudaAi.Web.Admin;
+using MeAjudaAi.Web.Admin.Authentication;
 using MeAjudaAi.Web.Admin.Authorization;
 using MeAjudaAi.Web.Admin.Extensions;
 using MeAjudaAi.Web.Admin.Services;
@@ -119,8 +120,9 @@ builder.Services.AddOidcAuthentication(options =>
     }
     
     options.ProviderOptions.PostLogoutRedirectUri = clientConfig.Keycloak.PostLogoutRedirectUri;
-    options.UserOptions.RoleClaim = "roles";
-});
+    options.UserOptions.RoleClaim = "role"; // Mudado para "role" pois vamos converter para ClaimTypes.Role
+})
+.AddAccountClaimsPrincipalFactory<CustomAccountClaimsPrincipalFactory>();
 
 // Autorização com políticas baseadas em roles
 builder.Services.AddAuthorizationCore(options =>

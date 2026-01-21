@@ -86,8 +86,10 @@
         "https://localhost:7281",
         "https://admin.meajudaai.com.br"
       ],
+      "frontchannelLogout": true,
       "attributes": {
-        "pkce.code.challenge.method": "S256"
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:5165/*"
       },
       "protocolMappers": [
         {
@@ -96,8 +98,9 @@
           "protocolMapper": "oidc-usermodel-realm-role-mapper",
           "consentRequired": false,
           "config": {
-            "user.attribute": "foo",
             "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true",
             "claim.name": "roles",
             "jsonType.label": "String",
             "multivalued": "true"
