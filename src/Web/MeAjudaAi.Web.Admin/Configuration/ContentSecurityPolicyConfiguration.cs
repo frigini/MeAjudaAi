@@ -15,7 +15,7 @@ public static class ContentSecurityPolicyConfiguration
         return string.Join("; ", new[]
         {
             "default-src 'self'",
-            "script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval'", // Necessário para Blazor WASM e Fluxor
+            "script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval' 'unsafe-inline'", // Necessário para Blazor WASM, Fluxor e scripts inline
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: https:",
