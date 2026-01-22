@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using System.Text.Json;
-using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication.Internal;
 
@@ -33,14 +32,20 @@ public class CustomAccountClaimsPrincipalFactory : AccountClaimsPrincipalFactory
                 ClaimTypes.Role); // Define explicitamente o tipo de claim para roles
 
             // Procurar todos os claims de roles (pode ser "roles" ou "role")
-            var rolesClaims = newIdentity.FindAll(c => c.Type == AuthConstants.Claims.Roles || c.Type == "role").ToList();
+            var rolesClaims = newIdentity.FindAll(c => c.Type == "roles" || c.Type == "role").ToList();
 
             foreach (var rolesClaim in rolesClaims)
             {
                 // Remover o claim original de roles
                 newIdentity.RemoveClaim(rolesClaim);
 
-                var rolesValue = rolesClaim.Value;
+                var rolesValue = rolesClaim.Value?.Trim();
+
+                // Skip if rolesValue is null, empty, or whitespace
+                if (string.IsNullOrWhiteSpace(rolesValue))
+                {
+                    continue;
+                }
 
                 // Se for um array JSON (começa com [), fazer parse
                 if (rolesValue.StartsWith('['))
@@ -52,25 +57,33 @@ public class CustomAccountClaimsPrincipalFactory : AccountClaimsPrincipalFactory
                         {
                             foreach (var role in roles)
                             {
-                                // Adicionar cada role como um claim individual do tipo "role"
-                                // ClaimTypes.Role = http://schemas.microsoft.com/ws/2008/06/identity/claims/role
-                                if (!string.IsNullOrWhiteSpace(role))
+                                // Trim and skip null/empty/whitespace entries
+                                var trimmedRole = role?.Trim();
+                                if (!string.IsNullOrWhiteSpace(trimmedRole))
                                 {
-                                    newIdentity.AddClaim(new Claim(ClaimTypes.Role, role));
+                                    // Adicionar cada role como um claim individual do tipo "role"
+                                    // ClaimTypes.Role = http://schemas.microsoft.com/ws/2008/06/identity/claims/role
+                                    newIdentity.AddClaim(new Claim(ClaimTypes.Role, trimmedRole));
                                 }
                             }
                         }
                     }
                     catch (JsonException)
                     {
-                        // Se falhar o parse, adicionar como está
-                        newIdentity.AddClaim(new Claim(ClaimTypes.Role, rolesValue));
+                        // Se falhar o parse, adicionar como está (apenas se não for vazio)
+                        if (!string.IsNullOrWhiteSpace(rolesValue))
+                        {
+                            newIdentity.AddClaim(new Claim(ClaimTypes.Role, rolesValue));
+                        }
                     }
                 }
                 else
                 {
-                    // Se não for array, adicionar diretamente
-                    newIdentity.AddClaim(new Claim(ClaimTypes.Role, rolesValue));
+                    // Se não for array, adicionar diretamente (apenas se não for vazio)
+                    if (!string.IsNullOrWhiteSpace(rolesValue))
+                    {
+                        newIdentity.AddClaim(new Claim(ClaimTypes.Role, rolesValue));
+                    }
                 }
             }
 
