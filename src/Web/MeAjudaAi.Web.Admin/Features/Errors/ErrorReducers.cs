@@ -4,7 +4,7 @@ using MeAjudaAi.Web.Admin.Services;
 namespace MeAjudaAi.Web.Admin.Features.Errors;
 
 /// <summary>
-/// Reducers for error state
+/// Reducers para estado de erros.
 /// </summary>
 public static class ErrorReducers
 {
@@ -36,7 +36,7 @@ public static class ErrorReducers
     [ReducerMethod]
     public static ErrorState OnRetryAfterError(ErrorState state, RetryAfterErrorAction action)
     {
-        // Clear error to allow retry
+        // Limpa o erro para permitir nova tentativa
         return new ErrorState();
     }
 }

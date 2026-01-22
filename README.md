@@ -2,7 +2,7 @@
 
 Uma plataforma abrangente de serviços construída com .NET Aspire, projetada para conectar prestadores de serviços com clientes usando arquitetura monólito modular.
 
-<!-- Last updated: January 9, 2026 - Sprint 7.5 COMPLETED (0 warnings, automação, Aspire fix) -->
+<!-- Atualizado: 17 Janeiro 2026 - Sprint 7.16 em andamento (Keycloak Automation + Technical Debt) -->
 
 ## 🎯 Visão Geral
 
@@ -18,16 +18,16 @@ O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implem
 
 ### 🚀 Tecnologias Principais
 
-- **.NET 10** - Framework principal
+- **.NET 10.0.2** - Framework principal
 - **.NET Aspire 13.1** - Orquestração e observabilidade
-- **Blazor WASM** - Admin Portal SPA
-- **MudBlazor 8.0** - Material Design UI components
-- **Fluxor 6.9** - Redux state management
-- **Entity Framework Core 10** - ORM e persistência
-- **PostgreSQL** - Banco de dados principal
-- **Keycloak** - Autenticação OAuth2/OIDC
-- **Redis** - Cache distribuído
-- **RabbitMQ/Azure Service Bus** - Messaging
+- **Blazor WebAssembly 10.0.2** - Admin Portal SPA
+- **MudBlazor 8.15.0** - Material Design UI components
+- **Fluxor 6.9.0** - Redux state management
+- **Entity Framework Core 10.0.2** - ORM e persistência
+- **PostgreSQL 16** - Banco de dados principal
+- **Keycloak 26.0.2** - Autenticação OAuth2/OIDC
+- **Redis 7** - Cache distribuído
+- **RabbitMQ 3** / **Azure Service Bus** - Messaging
 - **Docker** - Containerização
 - **Azure** - Hospedagem em nuvem
 
@@ -56,44 +56,54 @@ Após o merge para `master`, a documentação será publicada automaticamente em
 
 ### Estrutura da Documentação
 
-- **Primeiros Passos** - Setup de desenvolvimento e configuração
-- **Arquitetura** - Design do sistema, padrões e infraestrutura
-- **Módulos** - Documentação específica de cada módulo de domínio
-- **CI/CD** - Pipelines, workflows e automação
-- **Testes** - Estratégias, guias e relatórios de cobertura
-- **Referência da API** - Endpoints REST documentados
+- **Primeiros Passos**: [development.md](docs/development.md) - Setup de desenvolvimento e configuração
+- **Arquitetura**: [architecture.md](docs/architecture.md) - Design do sistema, padrões DDD/CQRS
+- **Infraestrutura**: [infrastructure.md](docs/infrastructure.md) - Docker, Azure, deployment
+- **Módulos**: [docs/modules/](docs/modules/) - Documentação por módulo de domínio
+- **Autenticação**: [authentication-and-authorization.md](docs/authentication-and-authorization.md) - Keycloak OIDC
+- **CI/CD**: [ci-cd.md](docs/ci-cd.md) - Pipelines GitHub Actions
+- **Testes**: [docs/testing/](docs/testing/) - Estratégias, guias e cobertura
+- **API**: [api-automation.md](docs/api-automation.md) - Geração de clientes REST
+- **Segurança**: [docs/security/](docs/security/) - CSP, vulnerabilidades, configuração segura
+- **Roadmap**: [roadmap.md](docs/roadmap.md) - Sprints e planejamento
 
 ## 📦 Estrutura do Projeto
 
 O projeto foi organizado para facilitar navegação e manutenção:
 
-```
+```text
 📦 MeAjudaAi/
-├── 📁 api/              # Especificações de API (OpenAPI)
-├── 📁 build/           # Scripts de build e Makefile
+├── 📁 api/              # Especificações OpenAPI (api-spec.json)
+├── 📁 automation/       # Automações de repositório (.github workflows)
+├── 📁 build/           # Scripts Unix (Makefile, dotnet-install.sh)
 ├── 📁 config/          # Configurações de ferramentas
-│   ├── .editorconfig  # Estilo de código
-│   ├── .yamllint.yml  # Lint de YAML
 │   ├── coverage.runsettings  # Configuração de coverage
-│   └── coverlet.json  # Exclusões de cobertura
-├── 📁 docs/            # Documentação técnica (MkDocs)
-│   ├── api-reference.md    # Referência da API REST
-│   ├── architecture.md     # Arquitetura do sistema
-│   ├── database.md        # Estratégia de banco de dados
-│   ├── logging.md         # Logging e observabilidade
-│   ├── messaging.md       # Message bus e eventos
-│   ├── modules/          # Documentação por módulo
-│   └── testing/          # Guias de testes
-├── 📁 infrastructure/  # IaC e configurações de infraestrutura
-│   ├── automation/     # Scripts de setup CI/CD
-│   ├── compose/        # Docker Compose configs
-│   ├── database/       # Database init scripts + seeds
-│   └── keycloak/       # Keycloak configuration
-├── 📁 scripts/         # Scripts de desenvolvimento
+│   ├── coverlet.json        # Exclusões de cobertura
+│   └── lychee.toml         # Link checker config
+├── 📁 docs/            # Documentação técnica (MkDocs Material)
+│   ├── architecture.md      # Arquitetura DDD/CQRS
+│   ├── development.md       # Guia de desenvolvimento
+│   ├── infrastructure.md    # Setup Docker/Azure
+│   ├── modules/            # Docs por módulo de domínio
+│   ├── testing/            # Estratégias de testes
+│   ├── security/           # CSP, vulnerabilidades
+│   └── roadmap.md          # Planejamento de sprints
+├── 📁 infrastructure/  # Infraestrutura como código
+│   ├── automation/     # Scripts CI/CD Azure
+│   ├── compose/        # Docker Compose (dev/test)
+│   ├── database/       # Init scripts + seeds SQL
+│   ├── keycloak/       # Keycloak realms + setup automatizado
+│   └── rabbitmq/       # RabbitMQ definitions
+├── 📁 scripts/         # Scripts PowerShell de desenvolvimento
 ├── 📁 src/             # Código fonte da aplicação
-├── 📁 tests/           # Testes automatizados
+│   ├── Aspire/         # .NET Aspire AppHost
+│   ├── Bootstrapper/   # API Service entry point
+│   ├── Modules/        # Módulos de domínio (DDD)
+│   ├── Shared/         # Contratos e abstrações
+│   └── Web/            # Admin Portal Blazor WASM
+├── 📁 tests/           # Testes automatizados (xUnit v3)
 └── 📁 tools/           # Ferramentas de desenvolvimento
-    └── api-collections/     # Gerador de coleções Bruno/Postman
+    └── api-collections/  # Gerador Bruno/Postman collections
 ```
 
 ### Diretórios Principais
@@ -110,23 +120,18 @@ O projeto foi organizado para facilitar navegação e manutenção:
 
 ## 🚀 Início Rápido
 
-### ⚡ Setup em 2 Comandos (Primeira Vez)
+### ⚡ Setup Automatizado (Primeira Vez)
 
 ```powershell
-# 1. Setup inicial (verificar dependências + build)
-.\scripts\setup.ps1
-
-# 2. Iniciar desenvolvimento
+# 1. Iniciar desenvolvimento (detecta primeira execução e faz setup automático)
 .\scripts\dev.ps1
 ```
 
 **Pronto!** 🎉 Acesse:
-- **Aspire Dashboard**: https://localhost:17063
-- **Admin Portal**: Veja no dashboard (tab Resources)
-- **API Swagger**: https://localhost:7524/swagger
-- **Keycloak**: http://localhost:8080 (admin/admin)
-
----
+- **Aspire Dashboard**: [https://localhost:17063/](https://localhost:17063/)
+- **Admin Portal**: [https://localhost:7032/](https://localhost:7032/) (via Aspire)
+- **API**: [https://localhost:7524/](https://localhost:7524/) (Swagger: /swagger)
+- **Keycloak**: [http://localhost:8080/](http://localhost:8080/) (admin/senha gerada)
 
 ### 🔄 Uso Diário
 
@@ -134,43 +139,35 @@ O projeto foi organizado para facilitar navegação e manutenção:
 # Iniciar desenvolvimento
 .\scripts\dev.ps1
 
-# OU usar Make (se tiver Make instalado)
-make dev
-
 # Executar testes
 dotnet test
 
-# Ver comandos disponíveis
-make help
+# Ver logs da aplicação
+dotnet run --project src/Aspire/MeAjudaAi.AppHost
 ```
 
-### 📝 Configuração Necessária (Uma Vez)
+### 🔧 Configuração Keycloak (Automatizada)
 
-⚠️ **Keycloak Client**: O Admin Portal Blazor precisa de configuração manual no Keycloak.
+**Configuração totalmente automática!** O AppHost configura Keycloak no startup:
 
-👉 Siga: [docs/keycloak-admin-portal-setup.md](docs/keycloak-admin-portal-setup.md)
+- ✅ Realm `meajudaai` criado automaticamente
+- ✅ Clients OIDC (admin-portal + customer-app)
+- ✅ Roles (admin, customer, operator, viewer)
+- ✅ Usuários demo: admin.portal/admin123, customer.demo/customer123
 
----
+👉 Detalhes: [docs/keycloak-admin-portal-setup.md](docs/keycloak-admin-portal-setup.md)
 
-### 📖 Documentação Completa
-
-- [**Guia de Desenvolvimento**](docs/development.md) - Setup detalhado e workflows
-- [**Arquitetura**](docs/architecture.md) - Design e padrões do sistema
-- [**Documentação Online**](https://frigini.github.io/MeAjudaAi/) - GitHub Pages
-
----
-
-### 🧪 Para Testes
+### 🧪 Executar Testes
 
 ```powershell
-# Todos os testes
+# Todos os testes (unit + integration)
 dotnet test
 
-# Com relatório de cobertura
-dotnet test --collect:"XPlat Code Coverage"
+# Com cobertura de código
+dotnet test /p:CollectCoverage=true
 
-# Testes rápidos (make)
-make test
+# Testes de um módulo específico
+dotnet test tests/MeAjudaAi.Modules.Users.Tests/
 ```
 
 ### Pré-requisitos
@@ -206,56 +203,21 @@ make test
 
 ---
 
-## 🌐 URLs dos Serviços
+## 🌐 URLs dos Serviços (Desenvolvimento)
 
-> **📝 Nota**: As URLs abaixo são baseadas nas configurações em `launchSettings.json` e `docker-compose.yml`. 
-> Para atualizações de portas, consulte:
-> - **Aspire Dashboard**: `src/Aspire/MeAjudaAi.AppHost/Properties/launchSettings.json`
-> - **API Service**: `src/Bootstrapper/MeAjudaAi.ApiService/Properties/launchSettings.json`
-> - **Infraestrutura**: `infrastructure/compose/environments/development.yml`
+> ⚠️ **Ambiente local**: Credenciais/portas abaixo são valores de desenvolvimento. **Não reutilize em produção.**
 
-> ⚠️ **Somente desenvolvimento**: credenciais/portas abaixo são valores locais de exemplo. Não reutilize em produção.
+| Serviço | URL | Credenciais | Configuração |
+|---------|-----|-------------|-------------|
+| **Aspire Dashboard** | [https://localhost:17063/](https://localhost:17063/) | - | `AppHost/launchSettings.json` |
+| **Admin Portal** | [https://localhost:7032/](https://localhost:7032/) | admin.portal/admin123 | Via Aspire (auto-start) |
+| **API** | [https://localhost:7524/swagger](https://localhost:7524/swagger) | - | `ApiService/launchSettings.json` |
+| **Keycloak** | [http://localhost:8080/](http://localhost:8080/) | admin/[console logs] | `compose/development.yml` |
+| **PostgreSQL** | localhost:5432 | postgres/[gerada] | Docker Compose |
+| **Redis** | localhost:6379 | - | Docker Compose |
+| **RabbitMQ** | [http://localhost:15672/](http://localhost:15672/) | meajudaai/[gerada] | Docker Compose |
 
-| Serviço | URL | Credenciais |
-|---------|-----|-------------|
-| **Aspire Dashboard** | [https://localhost:17063](https://localhost:17063)<br/>[http://localhost:15297](http://localhost:15297) | - |
-| **API Service** | [https://localhost:7524](https://localhost:7524)<br/>[http://localhost:5545](http://localhost:5545) | - |
-| **Keycloak Admin** | [http://localhost:8080](http://localhost:8080) | admin/[senha gerada] |
-| **PostgreSQL** | localhost:5432 | postgres/dev123 |
-| **Redis** | localhost:6379 | - |
-| **RabbitMQ Management** | [http://localhost:15672](http://localhost:15672) | meajudaai/[senha gerada] |
 
-## 📁 Estrutura do Projeto
-
-```text
-MeAjudaAi/
-├── src/
-│   ├── Aspire/                     # Orquestração .NET Aspire
-│   │   ├── MeAjudaAi.AppHost/      # Host da aplicação
-│   │   └── MeAjudaAi.ServiceDefaults/ # Configurações compartilhadas
-│   ├── Bootstrapper/               # API service bootstrapper
-│   │   └── MeAjudaAi.ApiService/   # Ponto de entrada da API
-│   ├── Modules/                    # Módulos de domínio (Clean Architecture + DDD)
-│   │   ├── Users/                  # Gestão de usuários e autenticação
-│   │   │   ├── API/                # Endpoints (Minimal APIs)
-│   │   │   ├── Application/        # Use cases, CQRS handlers, DTOs
-│   │   │   ├── Domain/             # Entidades, agregados, eventos de domínio
-│   │   │   ├── Infrastructure/     # EF Core, repositórios, event handlers
-│   │   │   └── Tests/              # Testes unitários e de integração
-│   │   ├── Providers/              # Prestadores de serviços e verificação
-│   │   ├── Documents/              # Processamento de documentos com AI
-│   │   ├── ServiceCatalogs/        # Catálogo de serviços e categorias
-│   │   ├── SearchProviders/        # Busca geoespacial de prestadores (PostGIS)
-│   │   └── Locations/              # Integração com API IBGE (CEP, cidades)
-│   └── Shared/                     # Componentes compartilhados
-│       └── MeAjudaAi.Shared/       # Abstrações, contratos, utilidades
-├── tests/                          # Testes de integração
-├── infrastructure/                 # Infraestrutura e deployment
-│   ├── compose/                    # Docker Compose
-│   ├── keycloak/                   # Configuração Keycloak
-│   └── database/                   # Scripts de banco de dados
-└── docs/                          # Documentação
-```
 
 ## 🧩 Módulos do Sistema
 
@@ -297,81 +259,30 @@ MeAjudaAi/
 
 ---
 
-## 🎨 Admin Portal (Sprint 6 + 7)
+## 🎨 Admin Portal
 
-### Blazor WebAssembly + Fluxor + MudBlazor
+**Portal administrativo** Blazor WebAssembly para gestão completa da plataforma.
 
-Portal administrativo moderno para gestão completa da plataforma MeAjudaAi.
-
-**Stack Tecnológica:**
-- **Blazor WebAssembly**: .NET 10 SPA client-side
-- **MudBlazor 8.0.0**: Material Design UI components
-- **Fluxor 6.9.0**: Redux-pattern state management
-- **Refit 9.0.2**: Type-safe HTTP clients
-- **Keycloak OIDC**: Authentication via Authorization Code flow
-
-**Funcionalidades Implementadas:**
-- ✅ **Autenticação**: Login/Logout via Keycloak OIDC (Sprint 6)
-- ✅ **Dashboard**: KPIs + Charts com MudBlazor (Sprints 6-7)
-- ✅ **Providers**: CRUD completo (Create, Update, Delete, Verify) - Sprint 7
-- ✅ **Documents**: Upload, verificação, gestão - Sprint 7
-- ✅ **Service Catalogs**: CRUD de categorias e serviços - Sprint 7
-- ✅ **Geographic Restrictions**: Gestão de cidades permitidas - Sprint 7
-- ✅ **Dark Mode**: Toggle com Fluxor state management
-- ✅ **Portuguese Localization**: UI completa em português
-- ✅ **30 testes bUnit**: Cobertura de componentes principais
+**Funcionalidades:**
+- ✅ Autenticação via Keycloak OIDC (Authorization Code + PKCE)
+- ✅ Dashboard com KPIs e gráficos interativos
+- ✅ Gestão de Providers (CRUD completo + verificação)
+- ✅ Gestão de Documentos (upload, OCR, verificação)
+- ✅ Gestão de Service Catalogs (categorias + serviços)
+- ✅ Restrições Geográficas (cidades permitidas)
+- ✅ Dark Mode com Fluxor state management
+- ✅ Localização completa em português
+- ✅ 43 testes bUnit (componentes principais)
 
 **Como Executar:**
 
 ```powershell
-# Via Aspire AppHost (recomendado)
+# Via Aspire (recomendado)
 .\scripts\dev.ps1
-
-# OU diretamente
-cd src/Aspire/MeAjudaAi.AppHost
-dotnet run
-
-# Acessar Admin Portal via Aspire Dashboard
-# https://localhost:17063 -> Resources -> admin-portal
+# Acessar: https://localhost:7032/
 ```
 
-**Configuração Keycloak:**
-
-⚠️ Necessário criar client `admin-portal` no Keycloak (uma vez apenas).
-
-👉 Siga: [docs/keycloak-admin-portal-setup.md](docs/keycloak-admin-portal-setup.md)
-
-**Testes:**
-
-```powershell
-# Executar testes bUnit
-dotnet test src/Web/MeAjudaAi.Web.Admin.Tests
-
-# 30 testes: Providers, Documents, Categories, Services, AllowedCities, Dashboard
-```
-
-**Estrutura:**
-
-```text
-src/Web/MeAjudaAi.Web.Admin/
-├── Pages/                # Razor pages (Dashboard, Providers, Documents, Categories, Services, AllowedCities)
-├── Features/             # Fluxor stores (state management por feature)
-├── Components/           # Dialogs e componentes reutilizáveis
-├── Layout/               # MainLayout, NavMenu
-└── wwwroot/              # appsettings.json, static assets
-
-tests/MeAjudaAi.Web.Admin.Tests/
-├── Pages/                # bUnit component tests
-└── Layout/               # Layout component tests
-```
-
-**Próximos Passos (Sprint 7):**
-- CRUD completo de Providers (create, update, delete, verify)
-- Gestão de Documentos (upload, verificação)
-- Gestão de Service Catalogs (categorias + serviços)
-- Gráficos Dashboard (providers por status, evolução temporal)
-
-📖 **Documentação Completa**: [Frontend Architecture](docs/architecture.md#frontend-architecture-sprint-6)
+📖 **Documentação**: [docs/architecture.md](docs/architecture.md) | [docs/modules/admin-portal.md](docs/modules/admin-portal.md)
 
 ---
 
@@ -386,7 +297,7 @@ tests/MeAjudaAi.Web.Admin.Tests/
 ### 🆔 UUID v7 Implementation
 - **Migração completa** de UUID v4 para UUID v7 (.NET 10)
 - **Performance melhorada** com ordenação temporal nativa
-- **Compatibilidade PostgreSQL 18** para melhor indexação
+- **Compatibilidade PostgreSQL 16** para melhor indexação
 - **UuidGenerator centralizado** em `MeAjudaAi.Shared.Time`
 
 ### 🔌 Module APIs Pattern  
@@ -411,49 +322,24 @@ public class OrderValidationService
 
 ## 🛠️ Desenvolvimento
 
-### Executar Testes
-
-```bash
-# Todos os testes
-dotnet test
-
-# Testes com cobertura
-dotnet test --collect:"XPlat Code Coverage"
-
-# Testes de um módulo específico
-dotnet test src/Modules/Users/Tests/
-```
-
 ### Padrões de Código
 
-- **Commands/Queries**: Implementar padrão CQRS
-- **Domain Events**: Eventos de domínio para comunicação interna
-- **Integration Events**: Eventos para comunicação entre módulos
-- **Value Objects**: Para conceitos de domínio imutáveis
-- **Aggregates**: Para consistência transacional
+- **CQRS**: Commands/Queries separados para write/read
+- **Domain Events**: Comunicação interna no módulo
+- **Integration Events**: Comunicação entre módulos via message bus
+- **Value Objects**: Conceitos imutáveis (Email, CPF, Address)
+- **Aggregates**: Consistência transacional (Provider, User, Document)
+- **Result Pattern**: Tratamento de erros funcional (sem exceptions)
 
-#### Implementação de Eventos - Módulo Providers
-
-O módulo Providers implementa um sistema completo de eventos para comunicação inter-modular:
-
-**Domain Events:**
-- `ProviderRegisteredDomainEvent` - Novo prestador cadastrado
-- `ProviderDeletedDomainEvent` - Prestador removido do sistema
-- `ProviderVerificationStatusUpdatedDomainEvent` - Status de verificação alterado
-- `ProviderProfileUpdatedDomainEvent` - Perfil do prestador atualizado
-
-**Integration Events:**
-- Conversão automática via Domain Event Handlers
-- Publicação em message bus para outros módulos
-- Suporte completo a event sourcing e auditoria
-
-### Estrutura de Commits
+### Commits Convencionais
 
 ```bash
-feat(users): adicionar endpoint de criação de usuário
-fix(auth): corrigir validação de token JWT
-docs(readme): atualizar guia de instalação
-test(users): adicionar testes de integração
+feat(module): adicionar nova funcionalidade
+fix(module): corrigir bug
+docs: atualizar documentação
+test(module): adicionar/atualizar testes
+refactor(module): refatorar código
+perf(module): melhoria de performance
 ```
 
 ## 🔧 Configuração de CI/CD
@@ -561,128 +447,72 @@ azd provision
 - [**Arquitetura e Padrões**](docs/architecture.md) - Decisões arquiteturais
 - [**Guia de Desenvolvimento**](docs/development.md) - Convenções e práticas
 - [**CI/CD**](docs/ci-cd.md) - Pipeline de integração contínua
-- [**Diretrizes de Desenvolvimento**](docs/development-guidelines.md) - Padrões e boas práticas
+
+## 🔒 Segurança
+
+- **Autenticação**: Keycloak OAuth2/OIDC com RBAC
+- **Autorização**: Policy-based por endpoint
+- **Database**: Isolamento por schema com roles dedicados
+- **API**: Rate limiting e validação de requests
+- **Secrets**: Azure Key Vault (produção) + User Secrets (dev)
+- **CSP**: Content Security Policy configurado
+- **Vulnerabilidades**: Auditoria automatizada de pacotes NuGet
+
+## 🚢 Deploy
+
+### Desenvolvimento Local
+```powershell
+.\scripts\dev.ps1  # Aspire orchestration
+```
+
+### Produção (Azure Container Apps)
+```bash
+azd auth login
+azd up  # Provisiona infraestrutura + deploy
+```
+
+**Recursos provisionados**: Container Apps, PostgreSQL Flexible Server, Service Bus, Container Registry, Key Vault, Application Insights.
+
+💰 **Custo estimado**: ~$10-30 USD/mês por ambiente.
+
+## 🆘 Troubleshooting
+
+**Pipeline não executa no PR:**
+- Verifique secret `AZURE_CREDENTIALS` em Settings > Secrets
+- Confirme que a branch é `master` ou `develop`
+
+**Keycloak não inicia:**
+- Execute `docker logs keycloak` para ver logs
+- Verifique porta 8080 disponível: `netstat -ano | findstr :8080`
+
+**Testes falhando:**
+- Limpe containers: `docker compose -f infrastructure/compose/environments/testing.yml down -v`
+- Rebuild: `dotnet build --no-incremental`
+
+### Links Úteis
+
+- 📚 [Documentação Online](https://frigini.github.io/MeAjudaAi/)
+- 🏗️ [Infraestrutura](infrastructure/README.md)
+- 🔄 [CI/CD](docs/ci-cd.md)
+- 🐛 [Issues](https://github.com/frigini/MeAjudaAi/issues)
 
 ## 🤝 Contribuição
 
 1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'feat: adicionar AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+2. Crie uma branch: `git checkout -b feature/MinhaFeature`
+3. Commit: `git commit -m 'feat(module): adicionar MinhaFeature'`
+4. Push: `git push origin feature/MinhaFeature`
+5. Abra um Pull Request para `develop`
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
+MIT License - veja [LICENSE](LICENSE) para detalhes.
 
 ## 📞 Contato
 
 - **Desenvolvedor**: [frigini](https://github.com/frigini)
-- **Projeto**: [MeAjudaAi](https://github.com/frigini/MeAjudaAi)
+- **Repositório**: [github.com/frigini/MeAjudaAi](https://github.com/frigini/MeAjudaAi)
 
 ---
 
 ⭐ Se este projeto te ajudou, considere dar uma estrela!
-
-### Aplicar migrations (módulo específico)
-
-```bash
-dotnet ef database update --context UsersDbContext
-```
-
-### Adding New Modules
-1. Create module structure following Users module pattern
-2. Add new schema and role in `infrastructure/database/schemas/`
-3. Configure dedicated connection string in appsettings
-4. Register module services in `Program.cs`
-
-## 🔒 Security Features
-
-- **Authentication**: Keycloak integration with role-based access
-- **Authorization**: Policy-based authorization per endpoint
-- **Database**: Role-based access control per schema
-- **API**: Rate limiting and request validation
-- **Secrets**: Azure Key Vault integration for production
-
-## 🚢 Deployment Environments
-
-### Development
-- **Local**: `dotnet run` (Aspire orchestration)
-- **Database**: PostgreSQL container with auto-schema setup
-- **Authentication**: Local Keycloak with realm auto-import
-
-### Production
-- **Platform**: Azure Container Apps
-- **Database**: Azure PostgreSQL Flexible Server
-- **Authentication**: Azure-hosted Keycloak
-- **Monitoring**: Application Insights + OpenTelemetry
-
-## 🧪 Testing Strategy
-
-- **Unit Tests**: Domain logic and business rules
-- **Integration Tests**: API endpoints and database operations with TestContainers
-- **Module Tests**: Cross-boundary communication via events
-- **E2E Tests**: Full user scenarios via API
-
-### Testing Infrastructure
-
-```bash
-# Start testing services (separate from development)
-cd infrastructure/compose
-docker compose -f environments/testing.yml up -d
-
-# Test services run on alternate ports:
-# - PostgreSQL: localhost:5433 (postgres/test123)
-# - Keycloak: localhost:8081 (admin/admin) - version pinned for reproducibility
-# - Redis: localhost:6380 (no auth)
-```
-
-**Reproducible Testing**: All service versions are pinned (no `:latest` tags) to ensure consistent test results across different environments and time periods.
-
-**TestContainers**: Integration tests use TestContainers with:
-- **PostgreSQL + PostGIS**: `postgis/postgis:15-3.4` for geographic data support
-- **Redis**: For cache and distributed lock testing
-- **Automatic cleanup**: Containers are disposed after each test class
-
-**Test Organization** (Sprint 5.5 - Dec 2025)
-- `MeAjudaAi.Shared.Tests/TestInfrastructure/`: 8 organized subfolders (Base, Builders, Configuration, Containers, Fixtures, Handlers, Mocks, Options, Services)
-- Module-specific tests moved to individual modules (Documents, Providers, ServiceCatalogs, Users)
-- Comprehensive AAA pattern and translated documentation
-
-## 📈 Monitoring & Observability
-
-- **Metrics**: OpenTelemetry with Prometheus
-- **Logging**: Structured logging with Serilog
-- **Tracing**: Distributed tracing across modules
-- **Health Checks**: Custom health checks per module
-
-## 🆘 Troubleshooting
-
-### Problemas Comuns
-
-**"Pipeline não executa no PR"**
-- ✅ Verifique se o secret `AZURE_CREDENTIALS` está configurado
-- ✅ Confirme que a branch é `master` ou `develop`
-
-**"Azure deployment failed"**
-- ✅ Execute `az login` para verificar autenticação
-- ✅ Verifique se o Service Principal tem permissões `Contributor`
-
-**"Docker containers conflicting"**
-- ✅ Execute `make clean-docker` (via `./build/Makefile`) para limpar containers
-- ✅ Use `docker system prune -a` para limpeza completa
-
-### Links Úteis
-
-- 📚 [Documentação Técnica](https://frigini.github.io/MeAjudaAi/)
-- 🏗️ [Guia de Infraestrutura](infrastructure/README.md)
-- 🔄 [Setup de CI/CD Detalhado](docs/ci-cd.md)
-- 🐛 [Issues e Bugs](https://github.com/frigini/MeAjudaAi/issues)
-
-## 🤝 Contributing
-
-1. Create a feature branch from `develop`
-2. Follow existing patterns and naming conventions
-3. Add tests for new functionality
-4. Update documentation as needed
-5. Open PR to `develop` branch

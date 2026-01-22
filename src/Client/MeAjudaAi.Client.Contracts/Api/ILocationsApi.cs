@@ -23,7 +23,7 @@ public interface ILocationsApi
     /// <returns>Lista de cidades ordenadas por estado e nome</returns>
     /// <response code="200">Lista retornada com sucesso</response>
     /// <response code="401">Não autenticado</response>
-    [Get("/api/v1/locations/allowed-cities")]
+    [Get("/api/v1/admin/allowed-cities")]
     Task<Result<IReadOnlyList<ModuleAllowedCityDto>>> GetAllAllowedCitiesAsync(
         [Query] bool onlyActive = true,
         CancellationToken cancellationToken = default);
@@ -37,7 +37,7 @@ public interface ILocationsApi
     /// <response code="200">Cidade encontrada</response>
     /// <response code="404">Cidade não encontrada</response>
     /// <response code="401">Não autenticado</response>
-    [Get("/api/v1/locations/allowed-cities/{id}")]
+    [Get("/api/v1/admin/allowed-cities/{id}")]
     Task<Result<ModuleAllowedCityDto>> GetAllowedCityByIdAsync(
         Guid id,
         CancellationToken cancellationToken = default);
@@ -52,7 +52,7 @@ public interface ILocationsApi
     /// <response code="400">Dados inválidos ou cidade duplicada (nome + estado)</response>
     /// <response code="401">Não autenticado</response>
     /// <response code="403">Sem permissão de administrador</response>
-    [Post("/api/v1/locations/allowed-cities")]
+    [Post("/api/v1/admin/allowed-cities")]
     Task<Result<Guid>> CreateAllowedCityAsync(
         [Body] CreateAllowedCityRequestDto request,
         CancellationToken cancellationToken = default);
@@ -69,7 +69,7 @@ public interface ILocationsApi
     /// <response code="404">Cidade não encontrada</response>
     /// <response code="401">Não autenticado</response>
     /// <response code="403">Sem permissão de administrador</response>
-    [Put("/api/v1/locations/allowed-cities/{id}")]
+    [Put("/api/v1/admin/allowed-cities/{id}")]
     Task<Result<Unit>> UpdateAllowedCityAsync(
         Guid id,
         [Body] UpdateAllowedCityRequestDto request,
@@ -85,7 +85,7 @@ public interface ILocationsApi
     /// <response code="404">Cidade não encontrada</response>
     /// <response code="401">Não autenticado</response>
     /// <response code="403">Sem permissão de administrador</response>
-    [Delete("/api/v1/locations/allowed-cities/{id}")]
+    [Delete("/api/v1/admin/allowed-cities/{id}")]
     Task<Result<Unit>> DeleteAllowedCityAsync(
         Guid id,
         CancellationToken cancellationToken = default);
@@ -99,7 +99,7 @@ public interface ILocationsApi
     /// <response code="200">Lista retornada com sucesso</response>
     /// <response code="400">Sigla de estado inválida</response>
     /// <response code="401">Não autenticado</response>
-    [Get("/api/v1/locations/allowed-cities/state/{state}")]
+    [Get("/api/v1/admin/allowed-cities/state/{state}")]
     Task<Result<IReadOnlyList<ModuleAllowedCityDto>>> GetAllowedCitiesByStateAsync(
         string state,
         CancellationToken cancellationToken = default);

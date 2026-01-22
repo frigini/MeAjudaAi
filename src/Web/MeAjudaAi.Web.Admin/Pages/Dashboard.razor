@@ -1,11 +1,11 @@
 @page "/"
 @attribute [Authorize(Policy = PolicyNames.ViewerPolicy)]
 @using MeAjudaAi.Web.Admin.Authorization
-@using MeAjudaAi.Web.Admin.Constants
+@using MeAjudaAi.Web.Admin.Constants.Modules.Providers
 @inherits FluxorComponent
 @implements IDisposable
 @using Fluxor
-@using MeAjudaAi.Web.Admin.Features.Providers
+@using MeAjudaAi.Web.Admin.Features.Modules.Providers
 @inject IState<DashboardState> DashboardState
 @inject IState<ProvidersState> ProvidersState
 @inject IDispatcher Dispatcher
@@ -169,28 +169,27 @@
 </MudGrid>
 
 @code {
-    // Order arrays using constant values
-    private static readonly string[] StatusOrder = { 
-        VerificationStatus.Pending.ToString(), 
-        VerificationStatus.Verified.ToString(), 
-        VerificationStatus.Rejected.ToString() 
+    // Arrays ordenados usando valores numéricos dos enums para comparação correta
+    private static readonly int[] StatusOrderInts = { 
+        (int)VerificationStatus.Pending,
+        (int)VerificationStatus.Verified,
+        (int)VerificationStatus.Rejected
     };
-    private static readonly string[] ProviderTypeOrder = { 
-        ProviderType.Individual.ToString(), 
-        ProviderType.Company.ToString() 
+    private static readonly int[] ProviderTypeOrderInts = { 
+        (int)ProviderType.Individual,
+        (int)ProviderType.Company
     };
 
     private double[] providerStatusData = Array.Empty<double>();
     private string[] providerStatusLabels = Array.Empty<string>();
     private double[] providerTypeData = Array.Empty<double>();
     private string[] providerTypeLabels = Array.Empty<string>();
-    private int previousProviderCount = 0;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
         
-        // Load providers for chart data
+        // Carrega providers para dados do gráfico
         if (ProvidersState.Value.Providers.Count == 0)
         {
             Dispatcher.Dispatch(new ProvidersActions.LoadProvidersAction());
@@ -203,7 +202,7 @@
         // Carregar estatísticas ao inicializar
         Dispatcher.Dispatch(new LoadDashboardStatsAction());
         
-        // Subscribe to state changes
+        // Inscreve-se às mudanças de estado
         ProvidersState.StateChanged += OnProvidersStateChanged;
     }
 
@@ -211,19 +210,16 @@
     {
         try
         {
-            var currentCount = ProvidersState.Value.Providers.Count;
-            
-            // Only update if provider count changed
-            if (currentCount != previousProviderCount && currentCount > 0)
+            // Atualiza sempre que houver providers (captura mudanças de status/tipo)
+            if (ProvidersState.Value.Providers.Count > 0)
             {
-                previousProviderCount = currentCount;
                 UpdateChartData();
                 InvokeAsync(StateHasChanged);
             }
         }
         catch (Exception ex)
         {
-            // Log error and gracefully degrade
+            // Loga erro e degrada graciosamente
             Console.Error.WriteLine($"Error updating chart data: {ex}");
         }
     }
@@ -239,8 +235,13 @@
         var statusGroups = providers
             .GroupBy(p => p.VerificationStatus)
             .OrderBy(g => {
-                var index = Array.IndexOf(StatusOrder, g.Key);
-                return index >= 0 ? index : int.MaxValue; // Unknown values sorted last
+                // g.Key é string numérica ("0", "1", "2"), converte para int antes de buscar
+                if (int.TryParse(g.Key, out int statusValue))
+                {
+                    var index = Array.IndexOf(StatusOrderInts, statusValue);
+                    return index >= 0 ? index : int.MaxValue;
+                }
+                return int.MaxValue; // Unknown values sorted last
             })
             .ToList();
 
@@ -255,8 +256,13 @@
         var typeGroups = providers
             .GroupBy(p => p.ProviderType)
             .OrderBy(g => {
-                var index = Array.IndexOf(ProviderTypeOrder, g.Key);
-                return index >= 0 ? index : int.MaxValue; // Unknown values sorted last
+                // g.Key é string numérica ("0", "1"), converte para int antes de buscar
+                if (int.TryParse(g.Key, out int typeValue))
+                {
+                    var index = Array.IndexOf(ProviderTypeOrderInts, typeValue);
+                    return index >= 0 ? index : int.MaxValue;
+                }
+                return int.MaxValue; // Unknown values sorted last
             })
             .ToList();
 

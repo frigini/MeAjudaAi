@@ -19,7 +19,7 @@ public class CreateProviderDialogTests
     public void CreateProviderDialog_Should_Render_Form_Fields()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockProvidersApi = new Mock<IProvidersApi>();
         var mockSnackbar = new Mock<ISnackbar>();
         
@@ -29,7 +29,7 @@ public class CreateProviderDialogTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<CreateProviderDialog>();
+        var cut = ctx.Render<CreateProviderDialog>();
 
         // Assert
         var inputs = cut.FindAll("input");
@@ -44,7 +44,7 @@ public class CreateProviderDialogTests
     public void CreateProviderDialog_Should_Have_Submit_Button()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockProvidersApi = new Mock<IProvidersApi>();
         var mockSnackbar = new Mock<ISnackbar>();
         
@@ -54,7 +54,7 @@ public class CreateProviderDialogTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<CreateProviderDialog>();
+        var cut = ctx.Render<CreateProviderDialog>();
 
         // Assert
         var buttons = cut.FindAll("button");
@@ -66,7 +66,7 @@ public class CreateProviderDialogTests
     public void CreateProviderDialog_Should_Show_Provider_Type_Selection()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockProvidersApi = new Mock<IProvidersApi>();
         var mockSnackbar = new Mock<ISnackbar>();
         
@@ -76,7 +76,7 @@ public class CreateProviderDialogTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<CreateProviderDialog>();
+        var cut = ctx.Render<CreateProviderDialog>();
 
         // Assert
         var markup = cut.Markup;
@@ -87,7 +87,7 @@ public class CreateProviderDialogTests
     public void CreateProviderDialog_Should_Have_MudForm_Component()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         var mockProvidersApi = new Mock<IProvidersApi>();
         var mockSnackbar = new Mock<ISnackbar>();
         
@@ -97,7 +97,7 @@ public class CreateProviderDialogTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
-        var cut = ctx.RenderComponent<CreateProviderDialog>();
+        var cut = ctx.Render<CreateProviderDialog>();
 
         // Assert
         var forms = cut.FindAll("form");

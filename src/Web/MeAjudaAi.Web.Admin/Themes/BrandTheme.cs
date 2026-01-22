@@ -3,13 +3,13 @@ using MudBlazor;
 namespace MeAjudaAi.Web.Admin.Themes;
 
 /// <summary>
-/// Brand theme for MeAjudaAi Admin Portal.
-/// Color scheme: Blue (primary), Cream, Orange (secondary), White
+/// Tema da marca MeAjudaAi para o Admin Portal.
+/// Paleta de cores: Azul (primária), Creme, Laranja (secundária), Branco
 /// </summary>
 public static class BrandTheme
 {
     /// <summary>
-    /// Gets the MeAjudaAi brand theme with custom color palette.
+    /// Obtém o tema da marca MeAjudaAi com paleta de cores customizada.
     /// </summary>
     public static MudTheme Theme => new()
     {

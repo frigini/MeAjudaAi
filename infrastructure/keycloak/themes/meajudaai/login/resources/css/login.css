@@ -63,11 +63,10 @@ html {
     
     /* Mostrar logo - responsivo */
     display: block;
-    max-width: 900px;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 2.5 / 1;
-    margin: 0 auto;
+    max-width: 100%;
+    width: 90%;
+    height: 400px;
+    margin: 0 auto -80px auto;
     background-image: url('../img/logo.png');
     background-size: contain;
     background-repeat: no-repeat;
@@ -78,7 +77,9 @@ html {
     #kc-header-wrapper {
         max-width: 100%;
         padding: 0 1rem;
+        height: auto;
         aspect-ratio: 2.5 / 1;
+        margin-bottom: -40px;
     }
 }
 

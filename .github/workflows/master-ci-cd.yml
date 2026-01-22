@@ -175,17 +175,13 @@ jobs:
           echo "Running Blazor WASM component tests with bUnit framework"
           echo "Target: MeAjudaAi.Web.Admin (Blazor Admin Portal)"
           echo ""
-          
-          # Define exclude patterns for Blazor WASM generated code
-          BLAZOR_EXCLUDE_PATTERNS="**/*.g.cs,**/*.razor.g.cs,**/obj/**,**/bin/**"
+          echo "⚠️  Note: Coverage NOT collected for Blazor WASM (unreliable due to generated code)"
+          echo "Focus: Maximum test coverage of components, not code coverage metrics"
+          echo ""
 
-          echo "▶️ Running Web.Admin component tests (10 tests: Providers, Dashboard, DarkMode)..."
+          echo "▶️ Running Web.Admin component tests (43 tests: Pages, Dialogs, Components)..."
           dotnet test tests/MeAjudaAi.Web.Admin.Tests/MeAjudaAi.Web.Admin.Tests.csproj \
-            --configuration Release --no-restore --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/WebAdmin \
-            -- \
-              DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$BLAZOR_EXCLUDE_PATTERNS" \
-              DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByAttribute="Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute"
+            --configuration Release --no-restore --verbosity normal
 
           echo ""
           echo "✅ Frontend component tests completed successfully"
@@ -266,14 +262,14 @@ jobs:
         env:
           DOTNET_ROOT: ${{ env.DOTNET_ROOT }}
         with:
-          reports: 'TestResults/Shared/**/coverage.cobertura.xml;TestResults/Architecture/**/coverage.cobertura.xml;TestResults/ApiService/**/coverage.cobertura.xml;TestResults/Users/**/coverage.cobertura.xml;TestResults/Documents/**/coverage.cobertura.xml;TestResults/Providers/**/coverage.cobertura.xml;TestResults/ServiceCatalogs/**/coverage.cobertura.xml;TestResults/Locations/**/coverage.cobertura.xml;TestResults/SearchProviders/**/coverage.cobertura.xml;TestResults/WebAdmin/**/coverage.cobertura.xml'
+          reports: 'TestResults/Shared/**/coverage.cobertura.xml;TestResults/Architecture/**/coverage.cobertura.xml;TestResults/ApiService/**/coverage.cobertura.xml;TestResults/Users/**/coverage.cobertura.xml;TestResults/Documents/**/coverage.cobertura.xml;TestResults/Providers/**/coverage.cobertura.xml;TestResults/ServiceCatalogs/**/coverage.cobertura.xml;TestResults/Locations/**/coverage.cobertura.xml;TestResults/SearchProviders/**/coverage.cobertura.xml'
           targetdir: 'TestResults/Coverage'
           reporttypes: 'Html;Cobertura;JsonSummary'
           assemblyfilters: '-*.Tests*;-*Test*;-*.Migrations.*;-*.Database;-*.Contracts'
           classfilters: '-*.Migrations.*;-*.Database.*;-*.Contracts.*;-*.Metrics.*;-*.HealthChecks.*;-*.Jobs.Hangfire*;-*.Jobs.Configuration*;-*Program*;-*AppHost*;-*.ServiceDefaults*;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery'
           verbosity: 'Info'
           tag: '${{ github.run_number }}_${{ github.run_id }}'
-        # Note: UNIT test coverage collected (backend + frontend bUnit). Integration/E2E excluded for deterministic results
+        # Note: UNIT test coverage for backend only. Frontend bUnit tests run separately without coverage (unreliable for Blazor WASM).
         # Excluded from coverage: Tests, Migrations, Database, Contracts, Metrics, Health Checks, Jobs, Program, AppHost, Keycloak, Monitoring, NoOp, RabbitMq, ServiceBus, Hangfire, Options, Design-time factories
 
       - name: Upload code coverage

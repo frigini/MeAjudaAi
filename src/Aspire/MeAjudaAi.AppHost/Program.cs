@@ -148,14 +148,16 @@ internal static class Program
             .WithReference(rabbitMq)
             .WaitFor(rabbitMq)
             .WithReference(keycloak.Keycloak)
-            .WaitFor(keycloak.Keycloak)
+            // NOTA: Keycloak health check removido devido a bug em Aspire.Hosting.Keycloak 13.1.0-preview
+            // Health endpoint está em HTTPS na porta 9000 mas Aspire tenta HTTP, causando falha permanente
+            // Serviços devem implementar retry interno para aguardar Keycloak ficar disponível
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
 
         // Admin Portal (Blazor WASM)
         _ = builder.AddProject<Projects.MeAjudaAi_Web_Admin>("admin-portal")
             .WithExternalHttpEndpoints()
-            .WaitFor(apiService)
-            .WaitFor(keycloak.Keycloak);
+            .WaitFor(apiService);
+            // NOTA: Keycloak WaitFor removido - veja comentário no apiService acima
     }
 
     private static void ConfigureProductionEnvironment(IDistributedApplicationBuilder builder)
@@ -180,7 +182,7 @@ internal static class Program
             .WithReference(serviceBus)
             .WaitFor(serviceBus)
             .WithReference(keycloak.Keycloak)
-            .WaitFor(keycloak.Keycloak)
+            // NOTA: Keycloak WaitFor removido - veja comentário no ConfigureDevelopmentEnvironment
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
     }
 }

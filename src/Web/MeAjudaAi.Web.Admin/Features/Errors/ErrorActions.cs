@@ -1,16 +1,16 @@
 namespace MeAjudaAi.Web.Admin.Features.Errors;
 
 /// <summary>
-/// Set global error action
+/// Ação para definir erro global.
 /// </summary>
 public record SetGlobalErrorAction(Exception Exception, string? ComponentName = null, bool IsRecoverable = false);
 
 /// <summary>
-/// Clear global error action
+/// Ação para limpar erro global.
 /// </summary>
 public record ClearGlobalErrorAction();
 
 /// <summary>
-/// Retry after error action
+/// Ação para tentar novamente após erro.
 /// </summary>
 public record RetryAfterErrorAction();

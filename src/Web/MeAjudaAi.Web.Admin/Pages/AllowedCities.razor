@@ -1,13 +1,13 @@
 @page "/allowed-cities"
 @attribute [Authorize(Policy = PolicyNames.AdminPolicy)]
 @using MeAjudaAi.Web.Admin.Authorization
-@using MeAjudaAi.Web.Admin.Constants
+@using MeAjudaAi.Web.Admin.Constants.Modules.Common
 @using Fluxor
 @using MeAjudaAi.Client.Contracts.Api
 @using MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs
-@using MeAjudaAi.Web.Admin.Features.Locations
+@using MeAjudaAi.Web.Admin.Features.Modules.Locations
 @using MudBlazor
-@using static MeAjudaAi.Web.Admin.Features.Locations.LocationsActions
+@using static MeAjudaAi.Web.Admin.Features.Modules.Locations.LocationsActions
 @inherits Fluxor.Blazor.Web.Components.FluxorComponent
 @inject IState<LocationsState> LocationsState
 @inject IDispatcher Dispatcher

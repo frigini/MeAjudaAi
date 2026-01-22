@@ -9,6 +9,10 @@ using Xunit;
 
 namespace MeAjudaAi.Web.Admin.Tests.Services;
 
+/// <summary>
+/// Testes unitários para o serviço de permissões.
+/// Valida autorização, verificação de roles e políticas de segurança.
+/// </summary>
 public class PermissionServiceTests
 {
     private readonly Mock<AuthenticationStateProvider> _authStateProviderMock;
@@ -31,7 +35,7 @@ public class PermissionServiceTests
     [Fact]
     public async Task HasPermissionAsync_WithValidPolicy_ReturnsTrue()
     {
-        // Arrange
+        // Arrange - Usuário autenticado com política válida
         var user = CreateAuthenticatedUser(RoleNames.Admin);
         var authState = new AuthenticationState(user);
         _authStateProviderMock.Setup(x => x.GetAuthenticationStateAsync())
@@ -51,7 +55,7 @@ public class PermissionServiceTests
     [Fact]
     public async Task HasPermissionAsync_WithInvalidPolicy_ReturnsFalse()
     {
-        // Arrange
+        // Arrange - Usuário com role insuficiente para a política
         var user = CreateAuthenticatedUser(RoleNames.Viewer);
         var authState = new AuthenticationState(user);
         _authStateProviderMock.Setup(x => x.GetAuthenticationStateAsync())
@@ -70,7 +74,7 @@ public class PermissionServiceTests
     [Fact]
     public async Task HasPermissionAsync_WithUnauthenticatedUser_ReturnsFalse()
     {
-        // Arrange
+        // Arrange - Usuário não autenticado
         var user = new ClaimsPrincipal(new ClaimsIdentity()); // Not authenticated
         var authState = new AuthenticationState(user);
         _authStateProviderMock.Setup(x => x.GetAuthenticationStateAsync())
@@ -87,7 +91,7 @@ public class PermissionServiceTests
     [Fact]
     public async Task HasAnyRoleAsync_WithMatchingRole_ReturnsTrue()
     {
-        // Arrange
+        // Arrange - Usuário com role esperada
         var user = CreateAuthenticatedUser(RoleNames.Admin, RoleNames.ProviderManager);
         var authState = new AuthenticationState(user);
         _authStateProviderMock.Setup(x => x.GetAuthenticationStateAsync())
@@ -103,7 +107,7 @@ public class PermissionServiceTests
     [Fact]
     public async Task HasAnyRoleAsync_WithMultipleRolesOneMatches_ReturnsTrue()
     {
-        // Arrange
+        // Arrange - Usuário com uma das roles esperadas
         var user = CreateAuthenticatedUser(RoleNames.ProviderManager);
         var authState = new AuthenticationState(user);
         _authStateProviderMock.Setup(x => x.GetAuthenticationStateAsync())
@@ -119,7 +123,7 @@ public class PermissionServiceTests
     [Fact]
     public async Task HasAnyRoleAsync_WithNoMatchingRole_ReturnsFalse()
     {
-        // Arrange
+        // Arrange - Usuário sem nenhuma das roles esperadas
         var user = CreateAuthenticatedUser(RoleNames.Viewer);
         var authState = new AuthenticationState(user);
         _authStateProviderMock.Setup(x => x.GetAuthenticationStateAsync())
@@ -135,7 +139,7 @@ public class PermissionServiceTests
     [Fact]
     public async Task HasAllRolesAsync_WithAllRoles_ReturnsTrue()
     {
-        // Arrange
+        // Arrange - Usuário com todas as roles esperadas
         var user = CreateAuthenticatedUser(RoleNames.Admin, RoleNames.ProviderManager);
         var authState = new AuthenticationState(user);
         _authStateProviderMock.Setup(x => x.GetAuthenticationStateAsync())
@@ -151,7 +155,7 @@ public class PermissionServiceTests
     [Fact]
     public async Task HasAllRolesAsync_WithMissingRole_ReturnsFalse()
     {
-        // Arrange
+        // Arrange - Usuário com apenas uma das roles esperadas
         var user = CreateAuthenticatedUser(RoleNames.Admin);
         var authState = new AuthenticationState(user);
         _authStateProviderMock.Setup(x => x.GetAuthenticationStateAsync())
@@ -167,7 +171,7 @@ public class PermissionServiceTests
     [Fact]
     public async Task GetUserRolesAsync_ReturnsAllUserRoles()
     {
-        // Arrange
+        // Arrange - Usuário com múltiplas roles
         var user = CreateAuthenticatedUser(RoleNames.Admin, RoleNames.ProviderManager);
         var authState = new AuthenticationState(user);
         _authStateProviderMock.Setup(x => x.GetAuthenticationStateAsync())
@@ -185,7 +189,7 @@ public class PermissionServiceTests
     [Fact]
     public async Task GetUserRolesAsync_WithUnauthenticatedUser_ReturnsEmpty()
     {
-        // Arrange
+        // Arrange - Usuário não autenticado
         var user = new ClaimsPrincipal(new ClaimsIdentity());
         var authState = new AuthenticationState(user);
         _authStateProviderMock.Setup(x => x.GetAuthenticationStateAsync())
@@ -201,7 +205,7 @@ public class PermissionServiceTests
     [Fact]
     public async Task IsAdminAsync_WithAdminRole_ReturnsTrue()
     {
-        // Arrange
+        // Arrange - Usuário com role de administrador
         var user = CreateAuthenticatedUser(RoleNames.Admin);
         var authState = new AuthenticationState(user);
         _authStateProviderMock.Setup(x => x.GetAuthenticationStateAsync())
@@ -217,7 +221,7 @@ public class PermissionServiceTests
     [Fact]
     public async Task IsAdminAsync_WithoutAdminRole_ReturnsFalse()
     {
-        // Arrange
+        // Arrange - Usuário sem role de administrador
         var user = CreateAuthenticatedUser(RoleNames.Viewer);
         var authState = new AuthenticationState(user);
         _authStateProviderMock.Setup(x => x.GetAuthenticationStateAsync())
@@ -236,7 +240,7 @@ public class PermissionServiceTests
     [InlineData(RoleNames.DocumentReviewer)]
     public async Task HasAnyRoleAsync_IsCaseInsensitive(string role)
     {
-        // Arrange
+        // Arrange - Verificação case-insensitive de roles
         var user = CreateAuthenticatedUser(role.ToUpper());
         var authState = new AuthenticationState(user);
         _authStateProviderMock.Setup(x => x.GetAuthenticationStateAsync())
@@ -249,6 +253,10 @@ public class PermissionServiceTests
         Assert.True(result);
     }
 
+    /// <summary>
+    /// Cria um usuário autenticado com as roles especificadas para uso nos testes.
+    /// Usa formato Keycloak (claim "roles") para simular autenticação OIDC.
+    /// </summary>
     private static ClaimsPrincipal CreateAuthenticatedUser(params string[] roles)
     {
         var claims = new List<Claim>

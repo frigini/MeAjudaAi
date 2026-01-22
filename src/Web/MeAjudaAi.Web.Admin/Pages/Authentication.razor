@@ -1,5 +1,6 @@
 @page "/authentication/{action}"
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@layout EmptyLayout
 
 <RemoteAuthenticatorView Action="@Action">
     <LoggingIn>
@@ -38,9 +39,9 @@
     </LogInFailed>
     <LogOutFailed>
         <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
-            <MudAlert Severity="Severity.Error">
-                <MudText Typo="Typo.h5">Falha ao Sair</MudText>
-                <MudText Typo="Typo.body1">Ocorreu um erro ao tentar fazer logout. Por favor, tente novamente.</MudText>
+            <MudAlert Severity="Severity.Success">
+                <MudText Typo="Typo.h5">Logout Realizado</MudText>
+                <MudText Typo="Typo.body1">Você foi desconectado com sucesso.</MudText>
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="mt-4">
                     Voltar ao Início
                 </MudButton>

@@ -1,15 +1,19 @@
-using MudBlazor;
+using MeAjudaAi.Web.Admin.Helpers.Accessibility;
 
 namespace MeAjudaAi.Web.Admin.Helpers;
 
 /// <summary>
-/// Helper class for accessibility features and WCAG 2.1 AA compliance
+/// Classe helper para recursos de acessibilidade e conformidade com WCAG 2.1 AA.
+/// OBSOLETO: Use os helpers específicos em MeAjudaAi.Web.Admin.Helpers.Accessibility
+/// (AriaHelper, LiveRegionHelper, KeyboardNavigationHelper, ColorContrastHelper).
 /// </summary>
+[Obsolete("Use AriaHelper, LiveRegionHelper, KeyboardNavigationHelper ou ColorContrastHelper em vez desta classe. Será removido na v2.0.")]
 public static class AccessibilityHelper
 {
     /// <summary>
-    /// ARIA labels for common actions in Portuguese
+    /// Labels ARIA para ações comuns em português.
     /// </summary>
+    [Obsolete("Use AriaHelper.Labels")]
     public static class AriaLabels
     {
         public const string Create = "Criar novo item";
@@ -40,44 +44,27 @@ public static class AccessibilityHelper
     }
 
     /// <summary>
-    /// ARIA live region announcements for state changes
+    /// Anúncios ARIA live region para mudanças de estado.
     /// </summary>
+    [Obsolete("Use LiveRegionHelper")]
     public static class LiveRegionAnnouncements
     {
-        public static string LoadingStarted(string entityName) => 
-            $"Carregando {entityName}...";
-        
-        public static string LoadingCompleted(string entityName, int count) => 
-            $"{count} {entityName} carregado(s) com sucesso.";
-        
-        public static string CreatedSuccess(string entityName) => 
-            $"{entityName} criado com sucesso.";
-        
-        public static string UpdatedSuccess(string entityName) => 
-            $"{entityName} atualizado com sucesso.";
-        
-        public static string DeletedSuccess(string entityName) => 
-            $"{entityName} excluído com sucesso.";
-        
-        public static string ErrorOccurred(string message) => 
-            $"Erro: {message}";
-        
-        public static string ValidationError(int errorCount) => 
-            $"{errorCount} erro(s) de validação encontrado(s).";
-        
-        public static string PageChanged(int pageNumber, int totalPages) => 
-            $"Navegado para página {pageNumber} de {totalPages}.";
-        
-        public static string FilterApplied(int resultCount) => 
-            $"Filtro aplicado. {resultCount} resultado(s) encontrado(s).";
-        
-        public static string SelectionChanged(string itemName) => 
-            $"{itemName} selecionado.";
+        public static string LoadingStarted(string entityName) => LiveRegionHelper.LoadingStarted(entityName);
+        public static string LoadingCompleted(string entityName, int count) => LiveRegionHelper.LoadingCompleted(entityName, count);
+        public static string CreatedSuccess(string entityName) => LiveRegionHelper.CreatedSuccess(entityName);
+        public static string UpdatedSuccess(string entityName) => LiveRegionHelper.UpdatedSuccess(entityName);
+        public static string DeletedSuccess(string entityName) => LiveRegionHelper.DeletedSuccess(entityName);
+        public static string ErrorOccurred(string message) => LiveRegionHelper.ErrorOccurred(message);
+        public static string ValidationError(int errorCount) => LiveRegionHelper.ValidationError(errorCount);
+        public static string PageChanged(int pageNumber, int totalPages) => LiveRegionHelper.PageChanged(pageNumber, totalPages);
+        public static string FilterApplied(int resultCount) => LiveRegionHelper.FilterApplied(resultCount);
+        public static string SelectionChanged(string itemName) => LiveRegionHelper.SelectionChanged(itemName);
     }
 
     /// <summary>
-    /// Role attributes for semantic HTML
+    /// Atributos de role para HTML semântico.
     /// </summary>
+    [Obsolete("Use AriaHelper.Roles")]
     public static class Roles
     {
         public const string Navigation = "navigation";
@@ -94,8 +81,9 @@ public static class AccessibilityHelper
     }
 
     /// <summary>
-    /// Keyboard shortcuts documentation
+    /// Documentação de atalhos de teclado.
     /// </summary>
+    [Obsolete("Use KeyboardNavigationHelper.Shortcuts")]
     public static class KeyboardShortcuts
     {
         public const string TabDescription = "Tab: Navegar entre elementos";
@@ -109,67 +97,30 @@ public static class AccessibilityHelper
     }
 
     /// <summary>
-    /// Get ARIA label for common CRUD actions
+    /// Obtém label ARIA para ações CRUD comuns.
     /// </summary>
-    public static string GetActionLabel(string action, string? itemName = null)
-    {
-        var label = action.ToLowerInvariant() switch
-        {
-            "create" or "add" => AriaLabels.Create,
-            "edit" or "update" => AriaLabels.Edit,
-            "delete" or "remove" => AriaLabels.Delete,
-            "view" or "details" => AriaLabels.View,
-            "verify" => AriaLabels.Verify,
-            "activate" => AriaLabels.Activate,
-            "deactivate" or "disable" => AriaLabels.Deactivate,
-            "upload" => AriaLabels.Upload,
-            "download" => AriaLabels.Download,
-            _ => action
-        };
-
-        return itemName != null ? $"{label}: {itemName}" : label;
-    }
+    [Obsolete("Use AriaHelper.GetActionLabel")]
+    public static string GetActionLabel(string action, string? itemName = null) =>
+        AriaHelper.GetActionLabel(action, itemName);
 
     /// <summary>
-    /// Check if color contrast meets WCAG AA standards (4.5:1 for normal text)
+    /// Verifica se o contraste de cores atende aos padrões WCAG AA (4.5:1 para texto normal).
     /// </summary>
-    public static bool IsContrastSufficient(string backgroundColor, string foregroundColor)
-    {
-        // This is a simplified check - full implementation would calculate actual contrast ratio
-        // MudBlazor's default theme already meets WCAG AA standards
-        return true;
-    }
+    [Obsolete("Use ColorContrastHelper.IsContrastSufficient")]
+    public static bool IsContrastSufficient(string backgroundColor, string foregroundColor) =>
+        ColorContrastHelper.IsContrastSufficient(backgroundColor, foregroundColor);
 
     /// <summary>
-    /// Get recommended focus order for dialog elements
+    /// Obtém ordem de foco recomendada para elementos de diálogo.
     /// </summary>
-    public static int GetFocusOrder(string elementType)
-    {
-        return elementType.ToLowerInvariant() switch
-        {
-            "title" => 1,
-            "close-button" => 2,
-            "first-input" => 3,
-            "other-inputs" => 4,
-            "cancel-button" => 5,
-            "submit-button" => 6,
-            _ => 0
-        };
-    }
+    [Obsolete("Use KeyboardNavigationHelper.GetFocusOrder")]
+    public static int GetFocusOrder(string elementType) =>
+        KeyboardNavigationHelper.GetFocusOrder(elementType);
 
     /// <summary>
     /// Get ARIA description for status values
     /// </summary>
-    public static string GetStatusDescription(string status)
-    {
-        return status.ToLowerInvariant() switch
-        {
-            "verified" or "verificado" => "Status: Verificado. Provedor aprovado.",
-            "pending" or "pendente" => "Status: Pendente. Aguardando verificação.",
-            "rejected" or "rejeitado" => "Status: Rejeitado. Provedor não aprovado.",
-            "active" or "ativo" or "ativa" => "Status: Ativo. Item habilitado.",
-            "inactive" or "inativo" or "inativa" => "Status: Inativo. Item desabilitado.",
-            _ => $"Status: {status}"
-        };
-    }
+    [Obsolete("Use AriaHelper.GetStatusDescription")]
+    public static string GetStatusDescription(string status) =>
+        AriaHelper.GetStatusDescription(status);
 }

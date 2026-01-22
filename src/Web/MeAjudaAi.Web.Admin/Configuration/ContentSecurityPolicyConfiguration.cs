@@ -15,11 +15,12 @@ public static class ContentSecurityPolicyConfiguration
         return string.Join("; ", new[]
         {
             "default-src 'self'",
-            "script-src 'self' 'wasm-unsafe-eval'", // Necessário para Blazor WASM
+            "script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval' 'unsafe-inline'", // Necessário para Blazor WASM, Fluxor e scripts inline
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: https:",
-            "connect-src 'self' https://localhost:7001 http://localhost:8080 ws://localhost:* wss://localhost:*",
+            "connect-src 'self' https://localhost:* http://localhost:* ws://localhost:* wss://localhost:*", // Permitir qualquer porta localhost para Aspire
+            "frame-src http://localhost:* https://localhost:*", // Permitir iframes do Keycloak
             "media-src 'none'",
             "object-src 'none'",
             "base-uri 'self'",

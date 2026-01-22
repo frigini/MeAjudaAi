@@ -195,7 +195,7 @@ Localizados em `infrastructure/` - documentados em [infrastructure/SCRIPTS.md](.
 Localizados em `infrastructure/automation/` - documentados em [infrastructure/automation/README.md](../infrastructure/automation/README.md)
 
 ### Build Scripts
-Localizados em `build/` - documentados em [build/README.md](../build/README.md)
+Localizados em `build/` - scripts Unix/Linux para build automation
 
 ---
 

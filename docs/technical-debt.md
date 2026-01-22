@@ -44,12 +44,18 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 **Severidade**: MÉDIA (quality assurance)  
 **Sprint**: Sprint 7.16 (aumentar cobertura)
 
-**Descrição**: Admin Portal tem apenas 10 testes bUnit criados. Coverage atual é baixo para produção.
+**Descrição**: Admin Portal tem 43 testes bUnit criados. Meta é maximizar quantidade de testes (não coverage percentual).
 
-**Testes Existentes**:
+**Decisão Técnica**: Coverage percentual NÃO é coletado para Blazor WASM devido a:
+- Muito código gerado automaticamente (`.g.cs`, `.razor.g.cs`)
+- Métricas não confiáveis para componentes compilados para WebAssembly
+- **Foco**: Quantidade e qualidade de testes, não percentual de linhas
+
+**Testes Existentes** (43 testes):
 1. **ProvidersPageTests** (4 testes)
 2. **DashboardPageTests** (4 testes)
 3. **DarkModeToggleTests** (2 testes)
+4. **+ 33 outros testes** de Pages, Dialogs, Components
 
 **Gaps de Cobertura**:
 - ❌ **Authentication flows**: Login/Logout/Callbacks não testados
@@ -59,13 +65,15 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 - ❌ **Fluxor Effects**: Chamadas API não mockadas completamente
 
 **Ações Recomendadas** (Sprint 7.16):
-- [ ] Criar 20+ testes adicionais (meta: 30-40 testes totais)
+- [ ] Criar 20+ testes adicionais (meta: 60+ testes totais)
 - [ ] Testar fluxos de autenticação
 - [ ] Testar paginação
 - [ ] Testar interações MudBlazor
 - [ ] Aumentar coverage de error scenarios
 
-**Meta de Coverage**: 70-85% (padrão indústria para frontend)
+**Meta**: 60-80+ testes bUnit (quantidade), não coverage percentual
+
+**BDD Futuro**: Após Customer App, implementar SpecFlow + Playwright para testes end-to-end de fluxos completos (Frontend → Backend → APIs terceiras).
 
 ---
 

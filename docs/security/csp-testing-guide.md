@@ -30,7 +30,7 @@ Content-Security-Policy:
   frame-ancestors 'none';
 ```
 
-> ⚠️ **Nota**: `'unsafe-inline'` é usado temporariamente para MudBlazor styles. Ver [minor-improvements-roadmap.md](../minor-improvements-roadmap.md#part-5-implement-nonce-based-csp) para migração futura.
+> ⚠️ **Nota**: `'unsafe-inline'` é usado temporariamente para MudBlazor styles. Migração para nonce-based CSP planejada para futuras iterações.
 
 ---
 
@@ -436,7 +436,7 @@ Para ambiente de produção, configurar monitoramento contínuo de violations:
 
 ### 1. CSP Report-URI
 
-Ver [docs/minor-improvements-roadmap.md](../minor-improvements-roadmap.md#suggestion-2-csp-violation-monitoring-⏳-sprint-6) para implementação completa.
+Implementação de CSP violation monitoring planejada para futuras iterações.
 
 **Resumo**:
 ```csharp
@@ -533,4 +533,4 @@ font-src 'self' https://fonts.gstatic.com;
 4. ⏳ Adicionar monitoramento no Application Insights
 5. ⏳ Migrar para nonce-based CSP (Sprint 7)
 
-Ver [docs/minor-improvements-roadmap.md](../minor-improvements-roadmap.md) para roadmap completo.
+Ver [docs/roadmap.md](../roadmap.md) para roadmap completo.

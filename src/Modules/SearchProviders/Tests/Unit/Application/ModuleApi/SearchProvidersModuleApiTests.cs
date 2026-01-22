@@ -155,20 +155,20 @@ public class SearchProvidersModuleApiTests
         var providerId = Guid.NewGuid();
         var providers = new List<SearchableProviderDto>
         {
-            new()
-            {
-                ProviderId = providerId,
-                Name = "Provider 1",
-                Description = "Test provider",
-                Location = new LocationDto { Latitude = -23.5, Longitude = -46.6 },
-                AverageRating = 4.5m,
-                TotalReviews = 10,
-                SubscriptionTier = DomainEnums.ESubscriptionTier.Gold,
-                ServiceIds = new[] { serviceId },
-                DistanceInKm = 1.5,
-                City = "São Paulo",
-                State = "SP"
-            }
+            new(
+                ProviderId: providerId,
+                Name: "Provider 1",
+                Location: new LocationDto(
+                    Latitude: -23.5,
+                    Longitude: -46.6),
+                AverageRating: 4.5m,
+                TotalReviews: 10,
+                SubscriptionTier: DomainEnums.ESubscriptionTier.Gold,
+                ServiceIds: new[] { serviceId },
+                Description: "Test provider",
+                DistanceInKm: 1.5,
+                City: "São Paulo",
+                State: "SP")
         };
 
         var pagedResult = new PagedResult<SearchableProviderDto>
@@ -323,21 +323,19 @@ public class SearchProvidersModuleApiTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var providerData = new ModuleProviderIndexingDto
-        {
-            ProviderId = providerId,
-            Name = "New Provider",
-            Description = "Test description",
-            Latitude = -23.561414,
-            Longitude = -46.656559,
-            City = "São Paulo",
-            State = "SP",
-            AverageRating = 4.5m,
-            TotalReviews = 10,
-            SubscriptionTier = ESubscriptionTier.Gold,
-            ServiceIds = new[] { Guid.NewGuid() },
-            IsActive = true
-        };
+        var providerData = new ModuleProviderIndexingDto(
+            ProviderId: providerId,
+            Name: "New Provider",
+            Latitude: -23.561414,
+            Longitude: -46.656559,
+            ServiceIds: new[] { Guid.NewGuid() },
+            AverageRating: 4.5m,
+            TotalReviews: 10,
+            SubscriptionTier: ESubscriptionTier.Gold,
+            IsActive: true,
+            Description: "Test description",
+            City: "São Paulo",
+            State: "SP");
 
         _providersApiMock
             .Setup(x => x.GetProviderForIndexingAsync(providerId, It.IsAny<CancellationToken>()))
@@ -370,21 +368,19 @@ public class SearchProvidersModuleApiTests
             "Old City",
             "OC");
 
-        var updatedData = new ModuleProviderIndexingDto
-        {
-            ProviderId = providerId,
-            Name = "Updated Provider",
-            Description = "Updated description",
-            Latitude = -23.561414,
-            Longitude = -46.656559,
-            City = "São Paulo",
-            State = "SP",
-            AverageRating = 4.8m,
-            TotalReviews = 25,
-            SubscriptionTier = ESubscriptionTier.Platinum,
-            ServiceIds = new[] { Guid.NewGuid(), Guid.NewGuid() },
-            IsActive = true
-        };
+        var updatedData = new ModuleProviderIndexingDto(
+            ProviderId: providerId,
+            Name: "Updated Provider",
+            Latitude: -23.561414,
+            Longitude: -46.656559,
+            ServiceIds: new[] { Guid.NewGuid(), Guid.NewGuid() },
+            AverageRating: 4.8m,
+            TotalReviews: 25,
+            SubscriptionTier: ESubscriptionTier.Platinum,
+            IsActive: true,
+            Description: "Updated description",
+            City: "São Paulo",
+            State: "SP");
 
         _providersApiMock
             .Setup(x => x.GetProviderForIndexingAsync(providerId, It.IsAny<CancellationToken>()))
@@ -445,21 +441,19 @@ public class SearchProvidersModuleApiTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var providerData = new ModuleProviderIndexingDto
-        {
-            ProviderId = providerId,
-            Name = "Inactive Provider",
-            Description = "Test",
-            Latitude = -23.5,
-            Longitude = -46.6,
-            City = "São Paulo",
-            State = "SP",
-            AverageRating = 0,
-            TotalReviews = 0,
-            SubscriptionTier = ESubscriptionTier.Free,
-            ServiceIds = Array.Empty<Guid>(),
-            IsActive = false
-        };
+        var providerData = new ModuleProviderIndexingDto(
+            ProviderId: providerId,
+            Name: "Inactive Provider",
+            Latitude: -23.5,
+            Longitude: -46.6,
+            ServiceIds: Array.Empty<Guid>(),
+            AverageRating: 0,
+            TotalReviews: 0,
+            SubscriptionTier: ESubscriptionTier.Free,
+            IsActive: false,
+            Description: "Test",
+            City: "São Paulo",
+            State: "SP");
 
         _providersApiMock
             .Setup(x => x.GetProviderForIndexingAsync(providerId, It.IsAny<CancellationToken>()))

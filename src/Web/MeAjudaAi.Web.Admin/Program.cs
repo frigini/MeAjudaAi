@@ -1,19 +1,19 @@
+using FluentValidation;
 using Fluxor;
 using Fluxor.Blazor.Web.ReduxDevTools;
-using FluentValidation;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
-using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Microsoft.Extensions.Localization;
 using MeAjudaAi.Client.Contracts.Api;
 using MeAjudaAi.Contracts.Configuration;
 using MeAjudaAi.Web.Admin;
+using MeAjudaAi.Web.Admin.Authentication;
 using MeAjudaAi.Web.Admin.Authorization;
 using MeAjudaAi.Web.Admin.Extensions;
-using MeAjudaAi.Web.Admin.Resources;
 using MeAjudaAi.Web.Admin.Services;
-using MeAjudaAi.Web.Admin.Services.Resilience;
+using MeAjudaAi.Web.Admin.Services.Interfaces;
+using MeAjudaAi.Web.Admin.Services.Resilience.Http;
+using MeAjudaAi.Web.Admin.Services.Resilience.Interfaces;
 using MeAjudaAi.Web.Admin.Validators;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;
 using MudBlazor.Services;
 using System.Globalization;
@@ -120,8 +120,9 @@ builder.Services.AddOidcAuthentication(options =>
     }
     
     options.ProviderOptions.PostLogoutRedirectUri = clientConfig.Keycloak.PostLogoutRedirectUri;
-    options.UserOptions.RoleClaim = "roles";
-});
+    options.UserOptions.RoleClaim = "role"; // Mudado para "role" pois vamos converter para ClaimTypes.Role
+})
+.AddAccountClaimsPrincipalFactory<CustomAccountClaimsPrincipalFactory>();
 
 // Autorização com políticas baseadas em roles
 builder.Services.AddAuthorizationCore(options =>

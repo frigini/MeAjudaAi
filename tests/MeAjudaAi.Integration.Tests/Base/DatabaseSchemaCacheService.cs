@@ -48,7 +48,7 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
                 ModuleName = moduleName
             };
 
-            logger.LogInformation("[SchemaCache] Schema atualizado no cache para módulo {Module}", moduleName);
+            logger.LogInformation("[SchemaCache] Schema updated in cache for module {Module}", moduleName);
             return false;
         }
         finally

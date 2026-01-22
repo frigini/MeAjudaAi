@@ -38,9 +38,12 @@
                             }
                         </NotAuthorized>
                         <Authorizing>
-                            <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex justify-center align-center" Style="height: 100vh;">
-                                <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
-                            </MudContainer>
+                            <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f5f5f5;">
+                                <div style="text-align: center;">
+                                    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+                                    <MudText Typo="Typo.h6" Class="mt-4">Carregando...</MudText>
+                                </div>
+                            </div>
                         </Authorizing>
                     </AuthorizeRouteView>
                     <FocusOnNavigate RouteData="@routeData" Selector="h1" />

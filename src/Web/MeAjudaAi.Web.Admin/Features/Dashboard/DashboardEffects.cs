@@ -49,6 +49,13 @@ public class DashboardEffects
 
             if (!allProvidersResult.IsSuccess || allProvidersResult.Value is null)
             {
+                // Silencia erro 401 (race condition esperado durante inicialização)
+                if (allProvidersResult.Error?.StatusCode == 401)
+                {
+                    dispatcher.Dispatch(new LoadDashboardStatsFailureAction("Autenticação necessária"));
+                    return;
+                }
+                
                 var errorMessage = allProvidersResult.Error?.Message 
                     ?? "Falha ao carregar estatísticas do dashboard";
                 dispatcher.Dispatch(new LoadDashboardStatsFailureAction(errorMessage));

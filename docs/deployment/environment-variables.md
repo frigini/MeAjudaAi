@@ -480,8 +480,206 @@ Console.WriteLine($"ApiBaseUrl from config: {clientConfig.ApiBaseUrl}");
 - [Kubernetes ConfigMaps](https://kubernetes.io/docs/concepts/configuration/configmap/)
 - [Docker Environment Variables](https://docs.docker.com/compose/environment-variables/)
 
+---
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: admin-portal-secrets
+  namespace: meajudaai
+type: Opaque
+stringData:
+  Keycloak__PostLogoutRedirectUri: "https://admin.meajudaai.com"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-portal
+  namespace: meajudaai
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: admin-portal
+  template:
+    metadata:
+      labels:
+        app: admin-portal
+    spec:
+      containers:
+      - name: admin-portal
+        image: meajudaai/admin-portal:latest
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: admin-portal-config
+        - secretRef:
+            name: admin-portal-secrets
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-portal
+  namespace: meajudaai
+spec:
+  selector:
+    app: admin-portal
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: admin-portal-ingress
+  namespace: meajudaai
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - admin.meajudaai.com
+    secretName: admin-portal-tls
+  rules:
+  - host: admin.meajudaai.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: admin-portal
+            port:
+              number: 80
+```
+
+**Helm Chart (values.yaml):**
+```yaml
+replicaCount: 3
+
+image:
+  repository: meajudaai/admin-portal
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+env:
+  ApiBaseUrl: "https://api.meajudaai.com"
+  Keycloak:
+    Authority: "https://auth.meajudaai.com/realms/meajudaai"
+    ClientId: "admin-portal"
+    PostLogoutRedirectUri: "https://admin.meajudaai.com"
+  Features:
+    EnableReduxDevTools: false
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "250m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: admin.meajudaai.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: admin-portal-tls
+      hosts:
+        - admin.meajudaai.com
+```
+
+**kubectl Commands:**
+```bash
+# Apply configurations
+kubectl apply -f admin-portal-deployment.yaml
+
+# Update environment variables
+kubectl set env deployment/admin-portal -n meajudaai \
+  ApiBaseUrl=https://api.meajudaai.com \
+  Keycloak__Authority=https://auth.meajudaai.com/realms/meajudaai
+
+# Rolling update
+kubectl rollout restart deployment/admin-portal -n meajudaai
+
+# Check rollout status
+kubectl rollout status deployment/admin-portal -n meajudaai
+
+# View logs
+kubectl logs -f deployment/admin-portal -n meajudaai
+```
+
+**Kustomize Overlay (overlays/production/kustomization.yaml):**
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: meajudaai
+
+resources:
+  - ../../base
+
+configMapGenerator:
+  - name: admin-portal-config
+    behavior: merge
+    literals:
+      - ApiBaseUrl=https://api.meajudaai.com
+      - Keycloak__Authority=https://auth.meajudaai.com/realms/meajudaai
+      - Keycloak__ClientId=admin-portal-prod
+      - Features__EnableReduxDevTools=false
+
+secretGenerator:
+  - name: admin-portal-secrets
+    behavior: merge
+    literals:
+      - Keycloak__PostLogoutRedirectUri=https://admin.meajudaai.com
+
+replicas:
+  - name: admin-portal
+    count: 3
+
+images:
+  - name: meajudaai/admin-portal
+    newTag: v1.0.0
+```
+
+> **⚠️ Secrets Management**: Em produção, use ferramentas como [Sealed Secrets](https://github.com/bitnami-labs/sealed-secrets), [External Secrets Operator](https://external-secrets.io/), ou integração com Azure Key Vault / AWS Secrets Manager.
+>
+> **📊 Resource Limits**: Ajuste `requests` e `limits` com base no perfil de uso. Monitore com Prometheus/Grafana para otimizar.
+
+---
+
 ## Exemplos Completos por Ambiente
 
-- [Azure App Service](../infrastructure/azure/app-service-config.bicep)
-- [Kubernetes](../infrastructure/k8s/admin-portal-deployment.yaml)
-- [Docker Compose](../infrastructure/compose/docker-compose.production.yml)
+Ver seções acima para configuração Kubernetes ou [infrastructure/README.md](../../infrastructure/README.md) para exemplos de Azure e Docker Compose.

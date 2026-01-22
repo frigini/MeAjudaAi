@@ -591,7 +591,7 @@ public class GeographicRestrictionMiddleware(
         if (string.IsNullOrEmpty(city) || string.IsNullOrEmpty(state))
         {
             context.Response.StatusCode = 400;
-            await context.Response.WriteAsJsonAsync(new { error = "City and State required" });
+            await context.Response.WriteAsJsonAsync(new { error = "Cidade e estado são obrigatórios" });
             return;
         }
 
@@ -601,7 +601,7 @@ public class GeographicRestrictionMiddleware(
         if (!isAllowed.IsSuccess || !isAllowed.Value)
         {
             context.Response.StatusCode = 403;
-            await context.Response.WriteAsJsonAsync(new { error = "City not allowed" });
+            await context.Response.WriteAsJsonAsync(new { error = "Cidade não atendida" });
             return;
         }
 
@@ -736,7 +736,8 @@ public class UsersContext
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<UserPreferences> UserPreferences { get; set; }
 }
-```bash
+```
+
 **Conceitos do Domínio**:
 - **User**: Agregado raiz para dados básicos de identidade
 - **UserProfile**: Perfil detalhado (experiência, habilidades, localização)
@@ -1183,7 +1184,7 @@ public static class UsersModuleServiceCollectionExtensions
         return services;
     }
 }
-`csharp
+```
 
 ### **Configuração no Program.cs**
 
@@ -1218,7 +1219,7 @@ public class Program
         app.Run();
     }
 }
-`yaml
+```
 
 ## 📡 Event-Driven Architecture
 
@@ -1257,7 +1258,7 @@ public abstract class AggregateRoot<TId> : Entity<TId> where TId : EntityId
         _domainEvents.Clear();
     }
 }
-`csharp
+```
 
 ### **Implementação do Event Bus**
 
@@ -1299,7 +1300,7 @@ public sealed class DomainEventBus : IEventBus
         }
     }
 }
-`sql
+```
 
 ### **Event Handlers**
 
@@ -1338,7 +1339,7 @@ public sealed class SendWelcomeEmailHandler
         }
     }
 }
-`csharp
+```
 
 ## 🛡️ Padrões de Segurança
 
@@ -1378,7 +1379,7 @@ public sealed class RequirePermissionAttribute : AuthorizeAttribute, IAuthorizat
         Policy = $"RequirePermission:{permission}";
     }
 }
-`	ext
+```
 
 ### **Validation Pattern**
 
@@ -1414,7 +1415,7 @@ public sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUse
             .WithMessage("Tipo de usuário inválido");
     }
 }
-`csharp
+```
 
 ## 🔄 Padrões de Resilência
 
@@ -1448,7 +1449,7 @@ public static class RetryPolicies
             retryCount: 2,
             sleepDurationProvider: _ => TimeSpan.FromMilliseconds(500));
 }
-`yaml
+```
 
 ### **Circuit Breaker Pattern**
 
@@ -1472,7 +1473,7 @@ public static class CircuitBreakerPolicies
                 // Log circuit breaker closed
             });
 }
-`csharp
+```
 
 ## 📊 Observabilidade e Monitoramento
 
@@ -1487,25 +1488,25 @@ public static partial class UserLogMessages
     [LoggerMessage(
         EventId = 1001,
         Level = LogLevel.Information,
-        Message = "Usuário {UserId} registrado com sucesso (Email: {Email}, Type: {UserType})")]
+        Message = "User {UserId} registered successfully (Email: {Email}, Type: {UserType})")]
     public static partial void UserRegistered(
         this ILogger logger, string userId, string email, string userType);
 
     [LoggerMessage(
         EventId = 1002,
         Level = LogLevel.Warning,
-        Message = "Tentativa de registro de usuário duplicado (ExternalId: {ExternalId})")]
+        Message = "Duplicate user registration attempt (ExternalId: {ExternalId})")]
     public static partial void DuplicateUserRegistration(
         this ILogger logger, string externalId);
 
     [LoggerMessage(
         EventId = 1003,
         Level = LogLevel.Error,
-        Message = "Erro ao registrar usuário (ExternalId: {ExternalId})")]
+        Message = "User registration failed (ExternalId: {ExternalId})")]
     public static partial void UserRegistrationFailed(
         this ILogger logger, string externalId, Exception exception);
 }
-`	ext
+```
 
 ### **Métricas Personalizadas**
 
@@ -1545,7 +1546,7 @@ public sealed class UserMetrics
             new KeyValuePair<string, object?>("user_type", userType.ToString()));
     }
 }
-`csharp
+```
 
 ## 🧪 Padrões de Teste
 
@@ -1599,7 +1600,7 @@ public sealed class UserTests : DomainTestBase
             .Which.Should().BeOfType<UserRegisteredDomainEvent>();
     }
 }
-`yaml
+```
 
 ### **Integration Tests**
 
@@ -1822,7 +1823,7 @@ DEPOIS (DocumentsIntegrationTests - 10s):
 **Documentação Relacionada**:
 - [tests/MeAjudaAi.Integration.Tests/README.md](../tests/MeAjudaAi.Integration.Tests/README.md) - Guia completo de uso
 - [docs/development.md](development.md) - Best practices para desenvolvimento
-- [docs/roadmap.md](roadmap.md#sprint-76) - Sprint 7.6 implementation details
+- [Project roadmap](roadmap.md)
 
 ---
 
@@ -2291,7 +2292,7 @@ src/Shared/API.Collections/
         ├── CreateUser.bru
         ├── GetUsers.bru
         └── UpdateUser.bru
-`$([System.Environment]::NewLine)
+```
 
 - 🤝 **Compartilhamento fácil** com QA, PO, clientes
 - 🔄 **Geração automática** via OpenAPI
@@ -2302,8 +2303,7 @@ src/Shared/API.Collections/
 
 #### **Comandos Disponíveis**
 
-`ash
-
+```bash
 # Gerar todas as collections
 cd tools/api-collections
 ./generate-all-collections.sh        # Linux/Mac
@@ -2370,8 +2370,8 @@ options.OperationFilter<ApiVersionOperationFilter>();
 ### **Exportação OpenAPI para Clientes REST**
 
 #### **Comando Único**
-`ash
 
+```bash
 # Gera especificação OpenAPI completa
 .\scripts\export-openapi.ps1 -OutputPath "api/api-spec.json"
 ```
@@ -2414,6 +2414,267 @@ Especificação OpenAPI inclui:
   }
 }
 ```
+---
+
+## 📋 C# Records Standardization
+
+### **Positional Records vs Nominal Records**
+
+O projeto C# 10+ suporta dois estilos de declaração de records:
+
+#### **1. Positional Records (Construtor Primário)** - **PADRÃO RECOMENDADO**
+
+```csharp
+// ✅ RECOMENDADO: Conciso, imutável, parâmetros explícitos
+public sealed record AllowedCityDto(
+    Guid Id,
+    string CityName,
+    string StateSigla,
+    int? IbgeCode,
+    bool IsActive,
+    DateTime CreatedAt,
+    DateTime? UpdatedAt,
+    string CreatedBy,
+    string? UpdatedBy);
+```
+
+**Características**:
+- ✅ Sintaxe concisa
+- ✅ Todos parâmetros obrigatórios na construção
+- ✅ Ideal para DTOs de resposta (dados completos)
+- ✅ Pattern matching simplificado
+- ✅ `with` expressions para cópias parciais
+
+**Uso com `with`**:
+```csharp
+var updatedCity = existingCity with { IsActive = false };
+```
+
+#### **2. Nominal Records (Propriedades Init)** - **CASOS ESPECÍFICOS**
+
+```csharp
+// ⚠️ APENAS PARA: Requests com valores padrão, States, Configurations
+public record GetUsersRequest
+{
+    public string? SearchTerm { get; init; }
+    public int PageNumber { get; init; } = 1;    // Valor padrão
+    public int PageSize { get; init; } = 20;     // Valor padrão
+    public bool OnlyActive { get; init; } = true;
+}
+```
+
+**Características**:
+- ✅ Valores padrão úteis
+- ✅ Construção parcial (propriedades opcionais)
+- ✅ Ideal para Request DTOs e configuration objects
+- ⚠️ Mais verboso que positional
+
+---
+
+### **Análise do Projeto Atual**
+
+**Estatísticas** (199 records totais):
+- **158 Positional Records** (79%) - `public sealed record Dto(...)`
+- **41 Nominal Records** (21%) - `public record Request { ... init; }`
+
+**Distribuição por Categoria**:
+
+| Categoria | Padrão | Quantidade | Justificativa |
+|-----------|--------|------------|---------------|
+| **DTOs de Resposta** | Positional | ~100 | Dados completos conhecidos |
+| **Commands/Queries** | Positional | ~50 | Parâmetros explícitos |
+| **Domain Events** | Positional | ~20 | Payload imutável |
+| **Request DTOs** | Nominal | ~15 | Valores padrão (pagination) |
+| **Fluxor States** | Nominal | ~7 | Valores padrão + `with` |
+| **Configurations** | Nominal | ~4 | Valores padrão de config |
+| **Integration Events** | Positional | ~3 | Payload imutável |
+
+---
+
+### **Decisões de Padronização**
+
+#### **SEMPRE use Positional Records para:**
+
+1. **DTOs de Resposta/Visualização**
+```csharp
+public sealed record UserDto(
+    Guid Id,
+    string Username,
+    string Email,
+    DateTime CreatedAt);
+```
+
+2. **Commands/Queries (CQRS)**
+```csharp
+public sealed record CreateUserCommand(
+    string Username,
+    string Email) : ICommand<Result<Guid>>;
+
+public sealed record GetUserByIdQuery(Guid UserId) : IQuery<Result<UserDto>>;
+```
+
+3. **Domain Events**
+```csharp
+public sealed record UserRegisteredDomainEvent(
+    Guid UserId,
+    string Email,
+    DateTime OccurredAt) : IDomainEvent;
+```
+
+4. **Integration Events**
+```csharp
+public sealed record UserRegisteredIntegrationEvent(
+    Guid UserId,
+    string Email,
+    DateTime RegisteredAt) : IIntegrationEvent;
+```
+
+5. **Value Objects**
+```csharp
+public sealed record Email(string Value)
+{
+    public static Email From(string value) => new(value);
+}
+```
+
+#### **Use Nominal Records APENAS para:**
+
+1. **Request DTOs com Valores Padrão**
+```csharp
+public record GetProvidersRequest
+{
+    public string? SearchTerm { get; init; }
+    public int PageNumber { get; init; } = 1;
+    public int PageSize { get; init; } = 20;
+    public bool OnlyActive { get; init; } = true;
+}
+```
+
+2. **Fluxor State (State Management)**
+```csharp
+public sealed record ProvidersState
+{
+    public List<ProviderDto> Providers { get; init; } = [];
+    public bool IsLoading { get; init; }
+    public string? ErrorMessage { get; init; }
+    public int PageNumber { get; init; } = 1;
+    public int PageSize { get; init; } = 20;
+}
+```
+
+3. **Configuration Objects**
+```csharp
+public sealed record ClientConfiguration
+{
+    public string ApiBaseUrl { get; init; } = "https://localhost:7001";
+    public int TimeoutSeconds { get; init; } = 30;
+    public bool EnableRetry { get; init; } = true;
+}
+```
+
+---
+
+### **Migration Checklist**
+
+**Categorias que PODEM ser convertidas para Positional** (15 records):
+
+✅ **Response DTOs**:
+- `ValidateServicesResponse` → `public sealed record ValidateServicesResponse(...)`
+- `SearchableProviderDto` → `public sealed record SearchableProviderDto(...)`
+- `LocationDto` → `public sealed record LocationDto(...)`
+- `SearchResult` → `public sealed record SearchResult(...)`
+- `ModuleProviderIndexingDto` → Converter
+- `ModuleProviderDto` → Converter
+- `DocumentStatusCountDto` → Converter
+- `ModuleDocumentDto` → Converter
+- `ModuleLocationDto` → Converter
+- `ModulePagedSearchResultDto` → Converter
+- `ModuleSearchableProviderDto` → Converter
+
+✅ **Model DTOs**:
+- `ModuleProviderBasicDto` → Converter
+- `ModuleDocumentStatusDto` → Converter
+
+⚠️ **MANTER Nominal (Valores Padrão/Config)**:
+- `GeoPoint` (config object)
+- `ExternalResources` (config)
+- `FeatureFlags` (config)
+- `UserDeletedIntegrationEvent` (empty by design)
+- **Todos Request DTOs** (`CreateUserRequest`, `UpdateProviderProfileRequest`, etc.)
+- **Todos Fluxor States** (`ErrorState`, `ThemeState`, `ServiceCatalogsState`, etc.)
+
+---
+
+### **Exemplo de Conversão**
+
+**ANTES (Nominal)**:
+```csharp
+public sealed record SearchableProviderDto
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string? Description { get; init; }
+    public LocationDto Location { get; init; } = null!;
+    public List<Guid> ServiceIds { get; init; } = [];
+}
+```
+
+**DEPOIS (Positional)**:
+```csharp
+public sealed record SearchableProviderDto(
+    Guid Id,
+    string Name,
+    string? Description,
+    LocationDto Location,
+    IReadOnlyList<Guid> ServiceIds);
+```
+
+**Benefícios da Conversão**:
+- 🔽 **6 linhas → 6 palavras** (87% redução)
+- ✅ **Parâmetros obrigatórios** (compile-time safety)
+- ✅ **Imutabilidade garantida** (IReadOnlyList)
+- ✅ **Pattern matching** simplificado
+
+---
+
+### **Padrões de Naming e sealed**
+
+#### **sealed modifier**
+
+```csharp
+// ✅ SEMPRE use sealed em records (exceto base classes)
+public sealed record UserDto(...);
+public sealed record CreateUserCommand(...) : ICommand<Result>;
+
+// ❌ NÃO use sealed em:
+// 1. Base records para herança (raros)
+public record BaseResponse(bool Success, string Message);
+public sealed record ErrorResponse(string ErrorCode) : BaseResponse(false, ErrorCode);
+
+// 2. Integration events (podem ser estendidos por consumidores externos)
+public record IntegrationEventBase(...);
+```
+
+**Benefícios do `sealed`**:
+- ✅ **Desempenho**: JIT optimizations
+- ✅ **Intenção clara**: "Este record não deve ser herdado"
+- ✅ **Segurança**: Evita modificações não intencionadas
+
+---
+
+### **Checklist de Code Review**
+
+Ao revisar PRs, verificar:
+
+- [ ] DTOs de resposta usam positional records
+- [ ] Commands/Queries usam positional records
+- [ ] Domain/Integration events usam positional records
+- [ ] Request DTOs com valores padrão usam nominal records
+- [ ] Fluxor States usam nominal records (com `= []`, `= 1`, etc.)
+- [ ] Records usam `sealed` (exceto base classes)
+- [ ] Positional records usam IReadOnlyList/IReadOnlyCollection ao invés de List
+- [ ] Propriedades nullable bem definidas (`string?` vs `string`)
+
 ---
 
 ## 🚀 C# 14 Features Utilizados

@@ -114,7 +114,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
   - Descrição do problema (bug Aspire com globalPackagesFolder)
   - 3 soluções alternativas (VS Code F5, Visual Studio, configuração manual)
   - Link para issue upstream: [dotnet/aspire#6789](https://github.com/dotnet/aspire/issues/6789)
-- build/README.md: Documentação do Makefile (Unix/Linux apenas)
+- Scripts de build: Unix/Linux Makefile e PowerShell scripts (ver `build/` directory)
 
 **Resultado Alcançado**:
 - ✅ Aspire AppHost inicia corretamente via F5 ou scripts
@@ -1068,9 +1068,9 @@ if (result.IsFailure) {
 
 ---
 
-### ⏳ Sprint 7.16 - Technical Debt Sprint (17-21 Jan 2026)
+### 🔄 Sprint 7.16 - Technical Debt Sprint (17-21 Jan 2026)
 
-**Status**: ⏳ EM ANDAMENTO (17 Jan 2026)  
+**Status**: 🔄 EM PROGRESSO (17-21 Jan 2026)  
 **Duração**: 1 semana (5 dias úteis)  
 **Objetivo**: Reduzir débito técnico ANTES de iniciar Customer App
 
@@ -1240,19 +1240,27 @@ Get-ChildItem -Recurse -Include *.cs | Select-String "record "
 
 ---
 
-##### 5. 🧪 SearchProviders E2E Tests (OPCIONAL - se tempo sobrar)
+##### 5. 🧪 SearchProviders E2E Tests ⚪ MOVIDO PARA SPRINT 9
 
-**Prioridade**: MÉDIA - Pode ser movido para Sprint 9 (Buffer)
+**Prioridade**: MÉDIA - MOVIDO PARA SPRINT 9 (Buffer)
 
 **Objetivo**: Testar busca geolocalizada end-to-end.
 
-**Entregáveis**:
+**Status**: ⚪ MOVIDO PARA SPRINT 9 - Task opcional, não crítica para Customer App
+
+**Justificativa da Movimentação**:
+- Sprint 7.16 completou 4/4 tarefas obrigatórias (Keycloak, Warnings, Tests, Records)
+- E2E tests marcados como OPCIONAL desde o planejamento
+- Não bloqueiam Sprint 8 (Customer App)
+- Melhor executar com calma no Sprint 9 (Buffer) sem pressão de deadline
+
+**Entregáveis** (serão executados no Sprint 9):
 - [ ] Teste: Buscar providers por serviço + raio (2km, 5km, 10km)
 - [ ] Teste: Validar ordenação por distância
 - [ ] Teste: Validar restrição geográfica (AllowedCities)
 - [ ] Teste: Performance (<500ms para 1000 providers)
 
-**Estimativa**: 1-2 dias (se sobrar tempo)
+**Estimativa**: 1-2 dias (Sprint 9)
 
 ---
 
@@ -1263,12 +1271,12 @@ Get-ChildItem -Recurse -Include *.cs | Select-String "record "
 - ✅ 0 warnings no Admin Portal (S2094, S2953, S2933, MUD0002)
 - ✅ 30-40 testes bUnit (confiança 3x maior)
 - ✅ Records padronizados (consistência)
-- ⚠️ SearchProviders E2E (se tempo permitir)
+- ⚪ SearchProviders E2E (MOVIDO para Sprint 9 - não crítico)
 
 **Quality Metrics**:
 - **Build**: 0 errors, 0 warnings
-- **Tests**: 1245 backend + 30-40 frontend = **1275-1285 testes**
-- **Coverage**: Backend 90.56% | Frontend ~40-50%
+- **Tests**: 1245 backend + 43 frontend bUnit = **1288 testes**
+- **Coverage**: Backend 90.56% (frontend bUnit sem métrica - foco em quantidade de testes)
 - **Technical Debt**: Reduzido de 313 linhas → ~150 linhas
 
 **Pronto para Customer App**:
@@ -1815,6 +1823,9 @@ Todas as tarefas planejadas já foram implementadas:
 - [ ] Integrar ao CI/CD pipeline
 - [ ] Criar documentação executável com Gherkin
 - **Benefício**: Testes de aceitação legíveis para stakeholders e documentação viva do sistema
+- **Timing**: Implementação prevista APÓS desenvolvimento do Customer App (Sprint 8+)
+- **Escopo**: Testes end-to-end de fluxos completos (Frontend → Backend → APIs terceiras)
+- **Foco**: Fluxos críticos de usuário utilizados por Admin Portal e Customer App
 
 **Critérios de Aceitação**:
 - [x] Todos os 12 TODOs no código resolvidos ou documentados ✅
@@ -1845,7 +1856,7 @@ Todas as tarefas planejadas já foram implementadas:
 Frontend Blazor WASM + MAUI Hybrid:
 - Sprint 6: Blazor Admin Portal Setup - ✅ CONCLUÍDO (5 Jan 2026) - [Ver conquistas detalhadas](#-sprint-6---blazor-admin-portal-setup---concluída-30-dez-2025---5-jan-2026)
 - Sprint 7: Blazor Admin Portal Features (6-24 Jan 2026) - ✅ CONCLUÍDO
-- Sprint 7.16: Technical Debt Sprint (17-21 Jan 2026) - ⏳ EM ANDAMENTO
+- Sprint 7.16: Technical Debt Sprint (17-21 Jan 2026) - 🔄 EM PROGRESSO (Task 5 movida p/ Sprint 9)
 - Sprint 8: Customer App (22 Jan - 4 Fev 2026) - ⏳ Planejado
 - Sprint 9: Buffer/Polishing (5-14 Fev 2026) - ⏳ Planejado
 - MVP Final: 17 de Fevereiro de 2026
@@ -1883,7 +1894,7 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 5.5** | 2 semanas | 19 Dez - 31 Dez | Refactor & Cleanup (Technical Debt) | ✅ CONCLUÍDO (30 Dez 2025) |
 | **Sprint 6** | 1 semana | 30 Dez - 5 Jan | Blazor Admin Portal - Setup & Core | ✅ CONCLUÍDO (5 Jan 2026) |
 | **Sprint 7** | 3 semanas | 6 - 24 Jan | Blazor Admin Portal - Features | ✅ CONCLUÍDO |
-| **Sprint 7.16** | 1 semana | 17-21 Jan | Technical Debt Sprint | ⏳ EM ANDAMENTO |
+| **Sprint 7.16** | 1 semana | 17-21 Jan | Technical Debt Sprint | 🔄 EM PROGRESSO |
 | **Sprint 8** | 2 semanas | 22 Jan - 4 Fev | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
 | **Sprint 9** | 10 dias | 5-14 Fev | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
 | **MVP Launch** | - | 17 Fev | Final deployment & launch preparation | 🎯 Target |
@@ -4106,6 +4117,34 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - [ ] Completar funcionalidades parciais de Sprints 6-8
 - [ ] Resolver todos os TODOs/FIXMEs adicionados durante implementação
 - [ ] Fechar issues abertas durante desenvolvimento frontend
+
+#### 1.1. 🧪 SearchProviders E2E Tests (Movido da Sprint 7.16)
+**Prioridade**: MÉDIA - Technical Debt da Sprint 7.16  
+**Estimativa**: 1-2 dias
+
+**Objetivo**: Testar busca geolocalizada end-to-end.
+
+**Contexto**: Task 5 da Sprint 7.16 foi marcada como OPCIONAL e movida para Sprint 9 para permitir execução com qualidade sem pressão de deadline. Sprint 7.16 completou 4/4 tarefas obrigatórias.
+
+**Entregáveis**:
+- [ ] Teste E2E: Buscar providers por serviço + raio (2km, 5km, 10km)
+- [ ] Teste E2E: Validar ordenação por distância crescente
+- [ ] Teste E2E: Validar restrição geográfica (AllowedCities) - providers fora da cidade não aparecem
+- [ ] Teste E2E: Performance (<500ms para 1000 providers em raio de 10km)
+- [ ] Teste E2E: Cenário sem resultados (nenhum provider no raio)
+- [ ] Teste E2E: Validar paginação de resultados (10, 20, 50 items por página)
+
+**Infraestrutura**:
+- Usar `TestcontainersFixture` com PostGIS 16-3.4
+- Seed database com providers em localizações conhecidas (lat/lon)
+- Usar `HttpClient` para chamar endpoint `/api/search-providers/search`
+- Validar JSON response com FluentAssertions
+
+**Critérios de Aceitação**:
+- ✅ 6 testes E2E passando com 100% de cobertura dos cenários
+- ✅ Performance validada (95th percentile < 500ms)
+- ✅ Documentação em `docs/testing/e2e-tests.md`
+- ✅ CI/CD executando testes E2E na pipeline
 
 #### 2. UX/UI Improvements
 - [ ] **Loading States**: Skeletons em todas cargas assíncronas

@@ -15,7 +15,7 @@ namespace MeAjudaAi.Web.Admin.Tests.Pages;
 /// <summary>
 /// Testes para a página Dashboard.razor usando bUnit
 /// </summary>
-public class DashboardPageTests : Bunit.TestContext
+public class DashboardPageTests : Bunit.BunitContext
 {
     private readonly Mock<IProvidersApi> _mockProvidersApi;
     private readonly Mock<IServiceCatalogsApi> _mockServiceCatalogsApi;
@@ -47,7 +47,7 @@ public class DashboardPageTests : Bunit.TestContext
     public void Dashboard_Should_Dispatch_LoadDashboardStatsAction_OnInitialized()
     {
         // Arrange & Act
-        var cut = RenderComponent<Dashboard>();
+        var cut = Render<Dashboard>();
 
         // Assert
         _mockDispatcher.Verify(
@@ -66,7 +66,7 @@ public class DashboardPageTests : Bunit.TestContext
         });
 
         // Act
-        var cut = RenderComponent<Dashboard>();
+        var cut = Render<Dashboard>();
 
         // Assert
         var progressElements = cut.FindAll(".mud-progress-circular");
@@ -86,7 +86,7 @@ public class DashboardPageTests : Bunit.TestContext
         });
 
         // Act
-        var cut = RenderComponent<Dashboard>();
+        var cut = Render<Dashboard>();
 
         // Assert
         var markup = cut.Markup;
@@ -107,7 +107,7 @@ public class DashboardPageTests : Bunit.TestContext
         });
 
         // Act
-        var cut = RenderComponent<Dashboard>();
+        var cut = Render<Dashboard>();
 
         // Assert
         var markup = cut.Markup;

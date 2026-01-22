@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Web.Admin.Services.Interfaces;
 
 namespace MeAjudaAi.Web.Admin.Services;
 
@@ -14,18 +14,10 @@ public record ErrorInfo(string Message, string CorrelationId, int StatusCode = 4
 /// <summary>
 /// Serviço para tratamento padronizado de erros com retry logic e mensagens amigáveis.
 /// </summary>
-public class ErrorHandlingService
+public class ErrorHandlingService(
+    ILogger<ErrorHandlingService> logger,
+    ICorrelationIdProvider correlationIdProvider)
 {
-    private readonly ILogger<ErrorHandlingService> _logger;
-    private readonly ICorrelationIdProvider _correlationIdProvider;
-
-    public ErrorHandlingService(
-        ILogger<ErrorHandlingService> logger,
-        ICorrelationIdProvider correlationIdProvider)
-    {
-        _logger = logger;
-        _correlationIdProvider = correlationIdProvider;
-    }
 
     /// <summary>
     /// Trata erro de API e retorna mensagem amigável.
@@ -37,20 +29,20 @@ public class ErrorHandlingService
     {
         if (result.IsSuccess)
         {
-            _logger.LogWarning("HandleApiError chamado para resultado bem-sucedido na operação: {Operation}", operation);
+            logger.LogWarning("HandleApiError called for successful result in operation: {Operation}", operation);
             return string.Empty;
         }
 
-        var correlationId = _correlationIdProvider.GetOrCreate();
-        var errorMessage = result.Error?.Message ?? "Erro desconhecido";
+        var correlationId = correlationIdProvider.GetOrCreate();
+        var backendMessage = result.Error?.Message;
         var statusCode = result.Error?.StatusCode ?? 500;
 
-        _logger.LogError(
-            "Erro na operação '{Operation}': {StatusCode} - {ErrorMessage} [CorrelationId: {CorrelationId}]",
-            operation, statusCode, errorMessage, correlationId);
+        logger.LogError(
+            "API operation failed: Operation={Operation}, StatusCode={StatusCode}, CorrelationId={CorrelationId}",
+            operation, statusCode, correlationId);
 
-        // Retorna mensagem do backend (já deve ser amigável) ou mapeia por status code
-        return GetUserFriendlyMessage(statusCode, errorMessage);
+        // Passa nullable backendMessage para permitir mapeamento por status code quando backend não retorna mensagem
+        return GetUserFriendlyMessage(statusCode, backendMessage);
     }
 
     /// <summary>
@@ -101,7 +93,7 @@ public class ErrorHandlingService
         string operation,
         CancellationToken cancellationToken = default)
     {
-        var correlationId = _correlationIdProvider.GetOrCreate();
+        var correlationId = correlationIdProvider.GetOrCreate();
 
         try
         {
@@ -112,44 +104,74 @@ public class ErrorHandlingService
 
             if (result.IsSuccess)
             {
-                _logger.LogInformation(
-                    "Operação '{Operation}' bem-sucedida [CorrelationId: {CorrelationId}]",
+                logger.LogInformation(
+                    "Operation '{Operation}' succeeded [CorrelationId: {CorrelationId}]",
                     operation, correlationId);
                 return result;
             }
 
             var statusCode = result.Error?.StatusCode ?? 500;
-            var errorMessage = result.Error?.Message ?? "Erro desconhecido";
+            var backendMessage = result.Error?.Message;
 
-            _logger.LogError(
-                "Operação '{Operation}' falhou com status {StatusCode}: {ErrorMessage} [CorrelationId: {CorrelationId}]",
-                operation, statusCode, errorMessage, correlationId);
+            // Log English summary; backend message may be in Portuguese (user-facing)
+            var hasBackendMessage = !string.IsNullOrWhiteSpace(backendMessage);
+
+            logger.LogError(
+                "Operation '{Operation}' failed: StatusCode={StatusCode}, HasBackendMessage={HasBackendMessage}, CorrelationId={CorrelationId}",
+                operation, statusCode, hasBackendMessage, correlationId);
+
+            // Apply user-friendly mapping when backend message is missing
+            if (!hasBackendMessage)
+            {
+                var friendlyMessage = GetMessageFromHttpStatus(statusCode);
+                return Result<T>.Failure(new Error(friendlyMessage, statusCode));
+            }
 
             return result;
         }
         catch (OperationCanceledException)
         {
-            _logger.LogInformation(
-                "Operação '{Operation}' cancelada [CorrelationId: {CorrelationId}]",
+            logger.LogInformation(
+                "Operation '{Operation}' canceled [CorrelationId: {CorrelationId}]",
                 operation, correlationId);
             
             throw; // Re-throw to let caller handle cancellation
         }
+        catch (Refit.ApiException apiEx)
+        {
+            var statusCode = (int)apiEx.StatusCode;
+            
+            logger.LogError(apiEx,
+                "API exception in operation '{Operation}': StatusCode={StatusCode} [CorrelationId: {CorrelationId}]",
+                operation, statusCode, correlationId);
+
+            // Reusa GetMessageFromHttpStatus para obter mensagens consistentes
+            var message = GetMessageFromHttpStatus(statusCode);
+            var error = statusCode switch
+            {
+                401 => Error.Unauthorized(message),
+                403 => Error.Forbidden(message),
+                404 => Error.NotFound(message),
+                _ => Error.Internal(message)
+            };
+
+            return Result<T>.Failure(error);
+        }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex,
-                "Exceção de rede na operação '{Operation}' [CorrelationId: {CorrelationId}]",
+            logger.LogError(ex,
+                "Network exception in operation '{Operation}' [CorrelationId: {CorrelationId}]",
                 operation, correlationId);
 
             return Result<T>.Failure(Error.Internal("Erro de conexão. Verifique sua internet."));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex,
-                "Exceção inesperada na operação '{Operation}' [CorrelationId: {CorrelationId}]",
+            logger.LogError(ex,
+                "Unexpected exception in operation '{Operation}' [CorrelationId: {CorrelationId}]",
                 operation, correlationId);
 
-            return Result<T>.Failure(Error.Internal($"Erro inesperado: {ex.Message}"));
+            return Result<T>.Failure(Error.Internal("Ocorreu um erro inesperado. Tente novamente."));
         }
     }
 
