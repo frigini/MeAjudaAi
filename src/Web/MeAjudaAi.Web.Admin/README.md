@@ -2,7 +2,7 @@
 
 Portal administrativo Blazor WebAssembly para gerenciamento da plataforma MeAjudaAi.
 
-## 📑 Índice
+## Índice
 
 - [Quick Start](#quick-start)
 - [Estrutura do Projeto](#estrutura-do-projeto)
@@ -16,7 +16,7 @@ Portal administrativo Blazor WebAssembly para gerenciamento da plataforma MeAjud
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Pré-requisitos
 
@@ -44,7 +44,7 @@ dotnet publish -c Release  # Com AOT compilation
 
 ---
 
-## 📦 Dependências Principais
+## Dependências Principais
 
 | Pacote | Versão | Propósito |
 |--------|--------|-----------|
@@ -57,7 +57,7 @@ dotnet publish -c Release  # Com AOT compilation
 
 ---
 
-## 🏗️ Estrutura do Projeto
+## Estrutura do Projeto
 
 ```text
 MeAjudaAi.Web.Admin/
@@ -81,7 +81,7 @@ MeAjudaAi.Web.Admin/
 
 ---
 
-## 🔄 State Management - Fluxor
+## State Management - Fluxor
 
 O projeto usa **Fluxor** (implementação Redux para Blazor) com padrão unidirecional de dados.
 
@@ -159,7 +159,7 @@ else
 
 ---
 
-## 🛡️ Sistema de Resiliência - Polly
+## Sistema de Resiliência - Polly
 
 Todas as chamadas HTTP usam políticas Polly para garantir robustez contra falhas transitórias.
 
@@ -208,7 +208,7 @@ public async Task HandleLoad(LoadAction action, IDispatcher dispatcher)
 
 ---
 
-## ✅ Validação - FluentValidation
+## Validação - FluentValidation
 
 Validações client-side com regras específicas para dados brasileiros.
 
@@ -300,7 +300,7 @@ public class UploadDocumentValidator : AbstractValidator<IBrowserFile>
 
 ---
 
-## 🎨 Componentes - MudBlazor
+## Componentes - MudBlazor
 
 ### MudDataGrid com Paginação Server-Side
 
@@ -345,7 +345,7 @@ public class UploadDocumentValidator : AbstractValidator<IBrowserFile>
 
 ---
 
-## ⚙️ Configuração
+## Configuração
 
 ### appsettings.json - Produção
 
@@ -376,7 +376,7 @@ public class UploadDocumentValidator : AbstractValidator<IBrowserFile>
 
 ---
 
-## 🧪 Testes
+## Testes
 
 ### bUnit (Testes de Componentes)
 
@@ -397,7 +397,7 @@ dotnet test --filter Category=E2E
 
 ---
 
-## 🐛 Debugging
+## Debugging
 
 ### Redux DevTools
 

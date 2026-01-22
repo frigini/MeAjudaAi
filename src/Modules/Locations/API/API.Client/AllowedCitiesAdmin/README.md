@@ -2,7 +2,7 @@
 
 Coleção de requests Bruno para testar os endpoints Admin de gerenciamento de cidades permitidas (Geographic Restrictions).
 
-## 📋 Endpoints Disponíveis
+## Endpoints Disponíveis
 
 | Request | Método | Endpoint | Descrição |
 |---------|--------|----------|-----------|
@@ -12,7 +12,7 @@ Coleção de requests Bruno para testar os endpoints Admin de gerenciamento de c
 | Update Allowed City | PUT | `/api/v1/locations/admin/allowed-cities/{id}` | Atualiza cidade existente |
 | Delete Allowed City | DELETE | `/api/v1/locations/admin/allowed-cities/{id}` | Remove cidade (soft delete) |
 
-## 🔐 Autenticação
+## Autenticação
 
 Todos os endpoints requerem:
 - **Bearer Token** válido (JWT)
@@ -37,7 +37,7 @@ Copie o `access_token` e configure na variável `{{accessToken}}`.
 
 **Documentação:** Ver [docs/modules/locations.md](../../../../../docs/modules/locations.md) para detalhes sobre o módulo de geolocalização.
 
-## 🌐 Variáveis de Ambiente
+## Variáveis de Ambiente
 
 Configure as seguintes variáveis no Bruno:
 
@@ -58,7 +58,7 @@ realmName = meajudaai
 accessToken = <seu-token-aqui>
 ```
 
-## 🧪 Fluxo de Teste Sugerido
+## Fluxo de Teste Sugerido
 
 ### 1. Setup Inicial
 ```bash
@@ -114,7 +114,7 @@ curl http://localhost:5000/health
 - Valide: 204 No Content
 - Execute `GetAllowedCityById.bru` novamente → deve retornar 404
 
-## ✅ Validações de Status Codes
+## Validações de Status Codes
 
 | Cenário | Método | Esperado |
 |---------|--------|----------|
@@ -131,7 +131,7 @@ curl http://localhost:5000/health
 | Qualquer operação sem token | ANY | 401 Unauthorized |
 | Qualquer operação sem role Admin | ANY | 403 Forbidden |
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### 401 Unauthorized
 - Verifique se `{{accessToken}}` está configurado
@@ -149,15 +149,15 @@ curl http://localhost:5000/health
 - Já existe cidade com mesmo `cityName` + `stateSigla`
 - Use nomes diferentes ou DELETE a cidade existente primeiro
 
-## 📚 Recursos Adicionais
+## Recursos Adicionais
 
 - **Swagger UI**: `http://localhost:5000/swagger`
-- **Architecture Docs**: `docs/architecture.md`
-- **API Spec**: `api/api-spec.json`
-- **E2E Tests**: `tests/MeAjudaAi.E2E.Tests/Modules/Locations/AllowedCitiesEndToEndTests.cs`
+- **Module Documentation**: [docs/modules/locations.md](../../../../../docs/modules/locations.md)
+- **Architecture**: [docs/architecture.md](../../../../../docs/architecture.md)
+- **Development Guide**: [docs/development.md](../../../../../docs/development.md)
 
-## 🔗 Links Relacionados
+## Links Relacionados
 
-- [Locations Module Documentation](../../../../docs/modules/locations.md)
-- [Geographic Restriction Architecture](../../../../docs/architecture.md#geographic-restriction)
-- [Sprint 3 Parte 2 Roadmap](../../../../docs/roadmap.md#sprint-3-parte-2)
+- [Locations Module Documentation](../../../../../docs/modules/locations.md)
+- [Architecture Documentation](../../../../../docs/architecture.md)
+- [Roadmap](../../../../../docs/roadmap.md)
