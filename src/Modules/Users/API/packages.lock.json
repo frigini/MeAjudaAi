@@ -826,9 +826,9 @@
       },
       "Microsoft.OpenApi": {
         "type": "CentralTransitive",
-        "requested": "[2.3.0, )",
-        "resolved": "2.3.0",
-        "contentHash": "5RZpjyt0JMmoc/aEgY9c1vE5pusdDGvkPl9qKIy9KFbRiIXD+w7gBJxX+unSjzzOcfgRoYxnO4okZyqDAL2WEw=="
+        "requested": "[2.6.0, )",
+        "resolved": "2.6.0",
+        "contentHash": "cOdLonx4SP0ick3ImTvuvfLt/834pR1ScKwiuKUu1dURq9i7MncBP1d4G+j9rxzg+JnAo4AmFubY4wSawUu7sQ=="
       },
       "Npgsql.EntityFrameworkCore.PostgreSQL": {
         "type": "CentralTransitive",
