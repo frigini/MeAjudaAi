@@ -367,7 +367,7 @@
       "meajudaai.modules.locations.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "EFCore.NamingConventions": "[10.0.0, )",
+          "EFCore.NamingConventions": "[10.0.1, )",
           "MeAjudaAi.Modules.Locations.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )"
@@ -398,8 +398,8 @@
           "RabbitMQ.Client": "[7.2.0, )",
           "Rebus": "[8.9.0, )",
           "Rebus.AzureServiceBus": "[10.5.1, )",
-          "Rebus.RabbitMq": "[10.1.0, )",
-          "Rebus.ServiceProvider": "[10.7.1, )",
+          "Rebus.RabbitMq": "[10.1.1, )",
+          "Rebus.ServiceProvider": "[10.7.2, )",
           "Scrutor": "[7.0.0, )",
           "Serilog": "[4.3.0, )",
           "Serilog.AspNetCore": "[10.0.0, )",
@@ -457,9 +457,9 @@
       },
       "EFCore.NamingConventions": {
         "type": "CentralTransitive",
-        "requested": "[10.0.0, )",
-        "resolved": "10.0.0",
-        "contentHash": "gEJLy60tsQaPT69vkNFtyYKd2WcBcPB71vE2IKqAuJfP4UrC3gh4DAMR9+TpUpxGCQyRQ3IOO4SzIb+KfjTw6Q==",
+        "requested": "[10.0.1, )",
+        "resolved": "10.0.1",
+        "contentHash": "Xs5k8XfNKPkkQSkGmZkmDI1je0prLTdxse+s8PgTFZxyBrlrTLzTBUTVJtQKSsbvu4y+luAv8DdtO5SALJE++A==",
         "dependencies": {
           "Microsoft.EntityFrameworkCore": "[10.0.1, 11.0.0)",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.1, 11.0.0)"
@@ -626,9 +626,9 @@
       },
       "Rebus.RabbitMq": {
         "type": "CentralTransitive",
-        "requested": "[10.1.0, )",
-        "resolved": "10.1.0",
-        "contentHash": "T6xmwQe3nCKiFoTWJfdkgXWN5PFiSgCqjhrBYcQDmyDyrwbfhMPY8Pw8iDWl/wDftaQ3KdTvCBgAdNRv6PwsNA==",
+        "requested": "[10.1.1, )",
+        "resolved": "10.1.1",
+        "contentHash": "66pUp4hfaYWfQEDOiVcuZQnPF4XFHyJ5KCfwCm18e3Dnr936Iog48KrN8Mp8QyRQ2tiNpzdjSATQLKEZpSk11A==",
         "dependencies": {
           "RabbitMq.Client": "7.1.2",
           "rebus": "8.9.0"
@@ -636,9 +636,9 @@
       },
       "Rebus.ServiceProvider": {
         "type": "CentralTransitive",
-        "requested": "[10.7.1, )",
-        "resolved": "10.7.1",
-        "contentHash": "koDHuyAY1ECMJa1YhD85xWsMLN7tCd4WpoVs105kPIbpkYN3UOrilr0H9zquJj4tuQJCEhZBFKGr6BHY/j96qQ==",
+        "requested": "[10.7.2, )",
+        "resolved": "10.7.2",
+        "contentHash": "Qa8sKt1i9Fy/zCw5GwAUsfT+lt4BvkIgYh8sRJ6fvqJWoedS//pfcyiKUUb0wL3C5Wrpi3U+vRud5DCbMHaFIw==",
         "dependencies": {
           "Rebus": "8.9.0"
         }

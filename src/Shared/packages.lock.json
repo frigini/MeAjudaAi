@@ -198,9 +198,9 @@
       },
       "Rebus.RabbitMq": {
         "type": "Direct",
-        "requested": "[10.1.0, )",
-        "resolved": "10.1.0",
-        "contentHash": "T6xmwQe3nCKiFoTWJfdkgXWN5PFiSgCqjhrBYcQDmyDyrwbfhMPY8Pw8iDWl/wDftaQ3KdTvCBgAdNRv6PwsNA==",
+        "requested": "[10.1.1, )",
+        "resolved": "10.1.1",
+        "contentHash": "66pUp4hfaYWfQEDOiVcuZQnPF4XFHyJ5KCfwCm18e3Dnr936Iog48KrN8Mp8QyRQ2tiNpzdjSATQLKEZpSk11A==",
         "dependencies": {
           "RabbitMq.Client": "7.1.2",
           "rebus": "8.9.0"
@@ -208,9 +208,9 @@
       },
       "Rebus.ServiceProvider": {
         "type": "Direct",
-        "requested": "[10.7.1, )",
-        "resolved": "10.7.1",
-        "contentHash": "koDHuyAY1ECMJa1YhD85xWsMLN7tCd4WpoVs105kPIbpkYN3UOrilr0H9zquJj4tuQJCEhZBFKGr6BHY/j96qQ==",
+        "requested": "[10.7.2, )",
+        "resolved": "10.7.2",
+        "contentHash": "Qa8sKt1i9Fy/zCw5GwAUsfT+lt4BvkIgYh8sRJ6fvqJWoedS//pfcyiKUUb0wL3C5Wrpi3U+vRud5DCbMHaFIw==",
         "dependencies": {
           "Rebus": "8.9.0"
         }
