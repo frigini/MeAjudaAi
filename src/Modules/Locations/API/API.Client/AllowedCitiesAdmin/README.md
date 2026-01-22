@@ -35,7 +35,7 @@ Body:
 
 Copie o `access_token` e configure na variável `{{accessToken}}`.
 
-**Documentação:** Ver [docs/modules/locations.md](../../../../../docs/modules/locations.md) para detalhes sobre o módulo de geolocalização.
+**Documentação:** Ver [docs/modules/locations.md](../../../../../../docs/modules/locations.md) para detalhes sobre o módulo de geolocalização.
 
 ## Variáveis de Ambiente
 
@@ -152,12 +152,12 @@ curl http://localhost:5000/health
 ## Recursos Adicionais
 
 - **Swagger UI**: `http://localhost:5000/swagger`
-- **Module Documentation**: [docs/modules/locations.md](../../../../../docs/modules/locations.md)
-- **Architecture**: [docs/architecture.md](../../../../../docs/architecture.md)
-- **Development Guide**: [docs/development.md](../../../../../docs/development.md)
+- **Module Documentation**: [docs/modules/locations.md](../../../../../../docs/modules/locations.md)
+- **Architecture**: [docs/architecture.md](../../../../../../docs/architecture.md)
+- **Development Guide**: [docs/development.md](../../../../../../docs/development.md)
 
 ## Links Relacionados
 
-- [Locations Module Documentation](../../../../../docs/modules/locations.md)
-- [Architecture Documentation](../../../../../docs/architecture.md)
-- [Roadmap](../../../../../docs/roadmap.md)
+- [Locations Module Documentation](../../../../../../docs/modules/locations.md)
+- [Architecture Documentation](../../../../../../docs/architecture.md)
+- [Roadmap](../../../../../../docs/roadmap.md)
