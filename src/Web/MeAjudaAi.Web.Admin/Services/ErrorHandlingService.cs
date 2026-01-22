@@ -120,6 +120,13 @@ public class ErrorHandlingService(
                 "Operation '{Operation}' failed: StatusCode={StatusCode}, HasBackendMessage={HasBackendMessage}, CorrelationId={CorrelationId}",
                 operation, statusCode, hasBackendMessage, correlationId);
 
+            // Apply user-friendly mapping when backend message is missing
+            if (!hasBackendMessage)
+            {
+                var friendlyMessage = GetMessageFromHttpStatus(statusCode);
+                return Result<T>.Failure(new Error(friendlyMessage, statusCode));
+            }
+
             return result;
         }
         catch (OperationCanceledException)

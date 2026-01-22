@@ -52,6 +52,7 @@ public class DashboardEffects
                 // Silencia erro 401 (race condition esperado durante inicialização)
                 if (allProvidersResult.Error?.StatusCode == 401)
                 {
+                    dispatcher.Dispatch(new LoadDashboardStatsFailureAction("Autenticação necessária"));
                     return;
                 }
                 

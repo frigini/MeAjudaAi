@@ -16,11 +16,9 @@ public class ApiAuthorizationMessageHandler : AuthorizationMessageHandler
         : base(provider, navigationManager)
     {
         // Configurar para aceitar localhost com qualquer porta (Aspire usa portas dinâmicas)
-        var apiUri = new Uri(clientConfiguration.ApiBaseUrl);
-        var baseUrl = $"{apiUri.Scheme}://{apiUri.Host}";
-        
+        // Usa a URL completa incluindo a porta para que Uri.IsBaseOf funcione corretamente
         ConfigureHandler(
-            authorizedUrls: [baseUrl],
+            authorizedUrls: [clientConfiguration.ApiBaseUrl],
             scopes: ["openid", "profile", "email"]);
     }
 }

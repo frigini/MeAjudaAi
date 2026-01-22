@@ -31,10 +31,10 @@ public class CustomAccountClaimsPrincipalFactory : AccountClaimsPrincipalFactory
                 identity.NameClaimType,
                 ClaimTypes.Role); // Define explicitamente o tipo de claim para roles
 
-            // Procurar claim de roles (pode ser "roles" ou "role")
-            var rolesClaim = newIdentity.FindFirst(c => c.Type == "roles" || c.Type == "role");
+            // Procurar todos os claims de roles (pode ser "roles" ou "role")
+            var rolesClaims = newIdentity.FindAll(c => c.Type == "roles" || c.Type == "role").ToList();
 
-            if (rolesClaim != null)
+            foreach (var rolesClaim in rolesClaims)
             {
                 // Remover o claim original de roles
                 newIdentity.RemoveClaim(rolesClaim);

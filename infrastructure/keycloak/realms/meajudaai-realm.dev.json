@@ -89,7 +89,7 @@
       "frontchannelLogout": true,
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:5165/*"
+        "post.logout.redirect.uris": "+"
       },
       "protocolMappers": [
         {
@@ -145,7 +145,7 @@
         {
           "type": "password",
           "value": "admin123",
-          "temporary": false
+          "temporary": true
         }
       ],
       "realmRoles": [
@@ -168,7 +168,7 @@
         {
           "type": "password",
           "value": "customer123",
-          "temporary": false
+          "temporary": true
         }
       ],
       "realmRoles": [

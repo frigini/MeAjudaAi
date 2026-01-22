@@ -152,12 +152,5 @@ public class ProvidersEffects
                     action.ProviderId,
                     ex.Message));
             });
-
-        if (result is null)
-        {
-            dispatcher.Dispatch(new DeleteProviderFailureAction(
-                action.ProviderId,
-                "Falha ao deletar provedor"));
-        }
     }
 }
