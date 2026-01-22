@@ -25,7 +25,7 @@
 | `export-openapi.ps1` | PowerShell | Export especificação OpenAPI | ✅ Ativo | ✅ Sim |
 | `seed-dev-data.ps1` | PowerShell | Seed dados de desenvolvimento | ✅ Ativo | ✅ Sim |
 
-**Documentação:** [scripts/README.md](../scripts/README.md)
+**Documentação:** [scripts/README.md](../scripts/README.md) - Todos os scripts estão documentados
 
 ---
 

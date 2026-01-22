@@ -35,7 +35,7 @@ Body:
 
 Copie o `access_token` e configure na variável `{{accessToken}}`.
 
-**Documentação:** Ver [docs/modules/locations.md](../../../../../docs/modules/locations.md) para detalhes sobre o módulo.
+**Documentação:** Ver [docs/modules/locations.md](../../../../../docs/modules/locations.md) para detalhes sobre o módulo de geolocalização.
 
 ## 🌐 Variáveis de Ambiente
 

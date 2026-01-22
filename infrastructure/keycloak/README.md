@@ -12,7 +12,7 @@ Quando você executa `.\scripts\dev.ps1`, o AppHost configura automaticamente:
 - ✅ Roles: admin, customer, operator, viewer
 - ✅ Usuários demo para desenvolvimento
 
-**Código:** [`src/Aspire/MeAjudaAi.AppHost/Extensions/KeycloakSetupService.cs`](../../src/Aspire/MeAjudaAi.AppHost/Extensions/KeycloakSetupService.cs)
+**Código:** [`src/Aspire/MeAjudaAi.AppHost/Extensions/KeycloakExtensions.cs`](../../src/Aspire/MeAjudaAi.AppHost/Extensions/KeycloakExtensions.cs)
 
 **Documentação completa:** [`docs/keycloak-admin-portal-setup.md`](../../docs/keycloak-admin-portal-setup.md)
 

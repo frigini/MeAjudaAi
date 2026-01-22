@@ -6,11 +6,11 @@ Portal administrativo Blazor WebAssembly para gerenciamento da plataforma MeAjud
 
 - [Quick Start](#quick-start)
 - [Estrutura do Projeto](#estrutura-do-projeto)
-- [State Management (Fluxor)](#state-management-fluxor)
-- [Sistema de Resiliência (Polly)](#sistema-de-resiliencia-polly)
-- [Validação (FluentValidation)](#validacao-fluentvalidation)
-- [Componentes MudBlazor](#componentes-mudblazor)
-- [Configuração](#configuracao)
+- [State Management - Fluxor](#state-management---fluxor)
+- [Sistema de Resiliência - Polly](#sistema-de-resiliência---polly)
+- [Validação - FluentValidation](#validação---fluentvalidation)
+- [Componentes - MudBlazor](#componentes---mudblazor)
+- [Configuração](#configuração)
 - [Testes](#testes)
 - [Debugging](#debugging)
 
@@ -81,7 +81,7 @@ MeAjudaAi.Web.Admin/
 
 ---
 
-## 🔄 State Management (Fluxor)
+## 🔄 State Management - Fluxor
 
 O projeto usa **Fluxor** (implementação Redux para Blazor) com padrão unidirecional de dados.
 
@@ -159,7 +159,7 @@ else
 
 ---
 
-## 🛡️ Sistema de Resiliência (Polly)
+## 🛡️ Sistema de Resiliência - Polly
 
 Todas as chamadas HTTP usam políticas Polly para garantir robustez contra falhas transitórias.
 
@@ -208,7 +208,7 @@ public async Task HandleLoad(LoadAction action, IDispatcher dispatcher)
 
 ---
 
-## ✅ Validação (FluentValidation)
+## ✅ Validação - FluentValidation
 
 Validações client-side com regras específicas para dados brasileiros.
 
@@ -300,7 +300,7 @@ public class UploadDocumentValidator : AbstractValidator<IBrowserFile>
 
 ---
 
-## 🎨 Componentes MudBlazor
+## 🎨 Componentes - MudBlazor
 
 ### MudDataGrid com Paginação Server-Side
 
@@ -347,7 +347,7 @@ public class UploadDocumentValidator : AbstractValidator<IBrowserFile>
 
 ## ⚙️ Configuração
 
-### appsettings.json (Produção)
+### appsettings.json - Produção
 
 ```json
 {

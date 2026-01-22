@@ -91,6 +91,6 @@ Este projeto é testado indiretamente por:
 
 ## 📚 Referências
 
-- [Result Pattern no C#](../../../docs/architecture.md#result-pattern)
-- [Modular Monolith Architecture](../../../docs/architecture.md#modular-monolith)
-- [Blazor WASM Setup](../../../docs/modules/admin-portal.md)
+- [Arquitetura da Aplicação](../../docs/architecture.md)
+- [Admin Portal](../../docs/modules/admin-portal.md)
+- [Desenvolvimento](../../docs/development.md)
