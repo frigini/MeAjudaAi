@@ -57,7 +57,7 @@ public class ProvidersEffects
         // Polly handles retry at HttpClient level (3 attempts with exponential backoff)
         var result = await _errorHandler.ExecuteWithErrorHandlingAsync(
             ct => _providersApi.GetProvidersAsync(action.PageNumber, action.PageSize, ct),
-            "carregar provedores");
+            "Load providers");
 
         if (result.IsSuccess)
         {
@@ -81,6 +81,10 @@ public class ProvidersEffects
             if (result.Error?.StatusCode != 401)
             {
                 _snackbar.Add(errorMessage, Severity.Error);
+            }
+            else
+            {
+                _logger.LogDebug("Suppressing providers snackbar for 401 during initialization");
             }
             
             dispatcher.Dispatch(new LoadProvidersFailureAction(errorMessage));
