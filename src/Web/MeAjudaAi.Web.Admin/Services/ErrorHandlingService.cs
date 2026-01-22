@@ -139,20 +139,20 @@ public class ErrorHandlingService(
         }
         catch (Refit.ApiException apiEx)
         {
-            // Preserva o status code original da API (especialmente 401 para race condition)
             var statusCode = (int)apiEx.StatusCode;
             
             logger.LogError(apiEx,
-                "Unexpected exception in operation '{Operation}' [CorrelationId: {CorrelationId}]",
-                operation, correlationId);
+                "API exception in operation '{Operation}': StatusCode={StatusCode} [CorrelationId: {CorrelationId}]",
+                operation, statusCode, correlationId);
 
-            // Cria erro com statusCode original preservado
+            // Reusa GetMessageFromHttpStatus para obter mensagens consistentes
+            var message = GetMessageFromHttpStatus(statusCode);
             var error = statusCode switch
             {
-                401 => Error.Unauthorized("Você não está autenticado. Faça login novamente."),
-                403 => Error.Forbidden("Você não tem permissão para realizar esta ação."),
-                404 => Error.NotFound("Recurso não encontrado."),
-                _ => Error.Internal(GetMessageFromHttpStatus(statusCode))
+                401 => Error.Unauthorized(message),
+                403 => Error.Forbidden(message),
+                404 => Error.NotFound(message),
+                _ => Error.Internal(message)
             };
 
             return Result<T>.Failure(error);

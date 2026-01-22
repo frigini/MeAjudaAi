@@ -41,7 +41,6 @@ public class ProvidersEffects
     [EffectMethod]
     public async Task HandleLoadProvidersAction(LoadProvidersAction action, IDispatcher dispatcher)
     {
-        using var cts = new CancellationTokenSource();
         
         // Verifica permissões antes de fazer a chamada
         var hasPermission = await _permissionService.HasPermissionAsync(PolicyNames.ProviderManagerPolicy);
@@ -58,8 +57,7 @@ public class ProvidersEffects
         // Polly handles retry at HttpClient level (3 attempts with exponential backoff)
         var result = await _errorHandler.ExecuteWithErrorHandlingAsync(
             ct => _providersApi.GetProvidersAsync(action.PageNumber, action.PageSize),
-            "carregar provedores",
-            cts.Token);
+            "carregar provedores");
 
         if (result.IsSuccess)
         {
@@ -130,7 +128,7 @@ public class ProvidersEffects
     public async Task HandleDeleteProviderAction(DeleteProviderAction action, IDispatcher dispatcher)
     {
         // Usa a extensão para tratar erros de API automaticamente
-        var result = await _snackbar.ExecuteApiCallAsync(
+        await _snackbar.ExecuteApiCallAsync(
             apiCall: () => _providersApi.DeleteProviderAsync(action.ProviderId),
             operationName: "Deletar provedor",
             onSuccess: _ =>

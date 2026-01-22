@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication.Internal;
 
@@ -32,7 +33,7 @@ public class CustomAccountClaimsPrincipalFactory : AccountClaimsPrincipalFactory
                 ClaimTypes.Role); // Define explicitamente o tipo de claim para roles
 
             // Procurar todos os claims de roles (pode ser "roles" ou "role")
-            var rolesClaims = newIdentity.FindAll(c => c.Type == "roles" || c.Type == "role").ToList();
+            var rolesClaims = newIdentity.FindAll(c => c.Type == AuthConstants.Claims.Roles || c.Type == "role").ToList();
 
             foreach (var rolesClaim in rolesClaims)
             {
@@ -53,7 +54,10 @@ public class CustomAccountClaimsPrincipalFactory : AccountClaimsPrincipalFactory
                             {
                                 // Adicionar cada role como um claim individual do tipo "role"
                                 // ClaimTypes.Role = http://schemas.microsoft.com/ws/2008/06/identity/claims/role
-                                newIdentity.AddClaim(new Claim(ClaimTypes.Role, role));
+                                if (!string.IsNullOrWhiteSpace(role))
+                                {
+                                    newIdentity.AddClaim(new Claim(ClaimTypes.Role, role));
+                                }
                             }
                         }
                     }
