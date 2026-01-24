@@ -302,15 +302,17 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         return keycloakRole.ToLowerInvariant() switch
         {
             // Roles de sistema
-            "meajudaai-system-admin" => new[]
+            "admin" or "meajudaai-system-admin" => new[]
             {
                 EPermission.AdminSystem,
                 EPermission.AdminUsers,
                 EPermission.AdminReports,
                 EPermission.UsersRead, EPermission.UsersCreate, EPermission.UsersUpdate, EPermission.UsersDelete, EPermission.UsersList,
-                EPermission.ProvidersRead, EPermission.ProvidersCreate, EPermission.ProvidersUpdate, EPermission.ProvidersDelete,
-                EPermission.OrdersRead, EPermission.OrdersCreate, EPermission.OrdersUpdate, EPermission.OrdersDelete,
-                EPermission.ReportsView, EPermission.ReportsExport, EPermission.ReportsCreate
+                EPermission.ProvidersRead, EPermission.ProvidersCreate, EPermission.ProvidersUpdate, EPermission.ProvidersDelete, EPermission.ProvidersList, EPermission.ProvidersApprove,
+                EPermission.OrdersRead, EPermission.OrdersCreate, EPermission.OrdersUpdate, EPermission.OrdersDelete, EPermission.OrdersList, EPermission.OrdersFulfill, EPermission.OrdersCancel,
+                EPermission.ReportsView, EPermission.ReportsExport, EPermission.ReportsCreate, EPermission.ReportsAdmin,
+                EPermission.ServiceCatalogsRead, EPermission.ServiceCatalogsManage,
+                EPermission.LocationsRead, EPermission.LocationsManage
             },
 
             // Roles de administração de usuários

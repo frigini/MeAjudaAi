@@ -1,7 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Contracts;
-using MeAjudaAi.Shared.Models;
 using MeAjudaAi.Contracts.Models;
+
 
 namespace MeAjudaAi.Shared.Tests.Unit.Contracts;
 

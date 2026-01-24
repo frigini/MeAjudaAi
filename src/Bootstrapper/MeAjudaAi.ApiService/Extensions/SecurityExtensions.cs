@@ -307,6 +307,7 @@ public static class SecurityExtensions
                     {
                         var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerHandler>>();
                         logger.LogWarning("JWT authentication failed: {Exception}", context.Exception.Message);
+                        context.Response.Headers.Append("X-Debug-Auth-Failure", context.Exception.Message.Replace(Environment.NewLine, " "));
                         return Task.CompletedTask;
                     },
                     OnChallenge = context =>
