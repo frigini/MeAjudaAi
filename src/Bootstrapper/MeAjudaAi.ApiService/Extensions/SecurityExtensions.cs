@@ -310,11 +310,11 @@ public static class SecurityExtensions
                         logger.LogWarning("JWT authentication failed: {Exception}", context.Exception.Message);
                         
                         var env = context.HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>();
-                        // Only emit debug header in non-production environments
+                        // Emite header de debug apenas em ambientes não-produção
                         if (!env.IsProduction())
                         {
                             var sanitizedMessage = $"{context.Exception.GetType().Name}: {context.Exception.Message.Length} chars";
-                            // Or better: truncated message to avoid leaking too much internal state, but helpful for debugging
+                            // Mensagem completa apenas em desenvolvimento para facilitar debugging
                             if (env.IsDevelopment())
                             {
                                 sanitizedMessage = $"{context.Exception.GetType().Name}: {context.Exception.Message.Replace(Environment.NewLine, " ")}";

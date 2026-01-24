@@ -165,8 +165,11 @@ public static class ServiceCollectionExtensions
         app.UseCors("DefaultPolicy");
         app.UseAuthentication();
         
-        // Debug Middleware for Authorization issues
-        app.UseMiddleware<InspectAuthMiddleware>();
+        // Debug Middleware para diagnóstico de autorização (apenas em desenvolvimento)
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseMiddleware<InspectAuthMiddleware>();
+        }
 
         // Log de requisições (após autenticação para capturar userId dos claims)
         app.UseMiddleware<RequestLoggingMiddleware>();

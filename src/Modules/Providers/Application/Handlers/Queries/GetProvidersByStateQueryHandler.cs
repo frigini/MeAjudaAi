@@ -20,7 +20,7 @@ public sealed class GetProvidersByStateQueryHandler(
             if (string.IsNullOrWhiteSpace(query.State))
             {
                 logger.LogWarning("Invalid state parameter: state cannot be null or empty");
-                return Result<IReadOnlyList<ProviderDto>>.Failure("State parameter is required");
+                return Result<IReadOnlyList<ProviderDto>>.Failure("O parâmetro de estado é obrigatório");
             }
 
             logger.LogInformation("Getting providers by state {State}", query.State);
