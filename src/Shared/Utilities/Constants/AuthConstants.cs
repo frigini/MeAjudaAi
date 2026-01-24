@@ -53,5 +53,6 @@ public static class AuthConstants
         public const string Bearer = "Bearer";
         public const string RequestId = "X-Request-Id";
         public const string CorrelationId = "X-Correlation-Id";
+        public const string DebugAuthFailure = "X-Debug-Auth-Failure";
     }
 }

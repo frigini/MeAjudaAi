@@ -307,7 +307,20 @@ public static class SecurityExtensions
                     {
                         var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerHandler>>();
                         logger.LogWarning("JWT authentication failed: {Exception}", context.Exception.Message);
-                        context.Response.Headers.Append("X-Debug-Auth-Failure", context.Exception.Message.Replace(Environment.NewLine, " "));
+                        
+                        var env = context.HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>();
+                        // Only emit debug header in non-production environments
+                        if (!env.IsProduction())
+                        {
+                            var sanitizedMessage = $"{context.Exception.GetType().Name}: {context.Exception.Message.Length} chars";
+                            // Or better: truncated message to avoid leaking too much internal state, but helpful for debugging
+                            if (env.IsDevelopment())
+                            {
+                                sanitizedMessage = $"{context.Exception.GetType().Name}: {context.Exception.Message.Replace(Environment.NewLine, " ")}";
+                            }
+                            context.Response.Headers.Append(AuthConstants.Headers.DebugAuthFailure, sanitizedMessage);
+                        }
+                        
                         return Task.CompletedTask;
                     },
                     OnChallenge = context =>
