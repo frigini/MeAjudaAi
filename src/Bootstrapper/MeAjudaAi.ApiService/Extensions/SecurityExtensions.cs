@@ -5,6 +5,7 @@ using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.ApiService.Services.HostedServices;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;

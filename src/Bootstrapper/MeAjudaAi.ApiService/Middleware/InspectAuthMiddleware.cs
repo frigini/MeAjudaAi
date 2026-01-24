@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.AspNetCore.Http;
 
 namespace MeAjudaAi.ApiService.Middleware;
 
