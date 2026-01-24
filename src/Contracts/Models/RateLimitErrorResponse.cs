@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Models;
+namespace MeAjudaAi.Contracts.Models;
 
 /// <summary>
 /// Modelo para erros de rate limiting.

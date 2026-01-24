@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace MeAjudaAi.Shared.Models;
+namespace MeAjudaAi.Contracts.Models;
 
 /// <summary>
 /// Representa a localização detectada do usuário.

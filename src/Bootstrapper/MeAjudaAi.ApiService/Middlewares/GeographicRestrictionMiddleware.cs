@@ -2,7 +2,7 @@ using System.Text.Json;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Geolocation;
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 

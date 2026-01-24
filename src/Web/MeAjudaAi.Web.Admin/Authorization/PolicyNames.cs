@@ -30,6 +30,12 @@ public static class PolicyNames
     public const string CatalogManagerPolicy = "CatalogManagerPolicy";
 
     /// <summary>
+    /// Política para gerenciamento de cidades permitidas.
+    /// Requer permissão "locations:manage".
+    /// </summary>
+    public const string LocationsManagerPolicy = "LocationsManagerPolicy";
+
+    /// <summary>
     /// Política para visualização de dados (acesso de leitura).
     /// Requer qualquer role autenticada.
     /// </summary>

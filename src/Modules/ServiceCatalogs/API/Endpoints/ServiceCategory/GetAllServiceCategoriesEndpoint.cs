@@ -1,15 +1,15 @@
-using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
-using MeAjudaAi.Contracts;
-using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.ServiceCategory;
 
@@ -35,7 +35,8 @@ public class GetAllServiceCategoriesEndpoint : BaseEndpoint, IEndpoint
                 - Administração do catálogo de categorias
                 - Seleção de categoria ao criar serviço
                 """)
-            .Produces<Response<IReadOnlyList<ServiceCategoryDto>>>(StatusCodes.Status200OK);
+            .Produces<Response<IReadOnlyList<ServiceCategoryDto>>>(StatusCodes.Status200OK)
+            .RequirePermission(EPermission.ServiceCatalogsRead);
 
     private static async Task<IResult> GetAllAsync(
         [AsParameters] GetAllCategoriesQuery query,

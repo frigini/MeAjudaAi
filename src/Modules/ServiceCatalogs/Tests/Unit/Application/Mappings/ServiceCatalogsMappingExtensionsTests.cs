@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Mappings;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Contracts.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Mappings;
 

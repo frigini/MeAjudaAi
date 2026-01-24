@@ -109,6 +109,10 @@ builder.Services.AddOidcAuthentication(options =>
     options.ProviderOptions.ClientId = clientConfig.Keycloak.ClientId;
     options.ProviderOptions.ResponseType = clientConfig.Keycloak.ResponseType;
     
+    // Adicionar configurações avançadas do OIDC para melhorar compatibilidade
+    // Estas configurações ajudam a lidar com provedores que não seguem completamente a spec OIDC
+    options.ProviderOptions.MetadataUrl = $"{clientConfig.Keycloak.Authority}/.well-known/openid-configuration";
+    
     // Adicionar scopes da configuração
     if (!string.IsNullOrWhiteSpace(clientConfig.Keycloak.Scope))
     {
@@ -124,6 +128,7 @@ builder.Services.AddOidcAuthentication(options =>
 })
 .AddAccountClaimsPrincipalFactory<CustomAccountClaimsPrincipalFactory>();
 
+// builder.Services.AddPermissionBasedAuthorization(builder.Configuration);
 // Autorização com políticas baseadas em roles
 builder.Services.AddAuthorizationCore(options =>
 {
@@ -141,15 +146,22 @@ builder.Services.AddAuthorizationCore(options =>
 
     // Política de Gerente de Catálogo - requer "catalog-manager" ou "admin"
     options.AddPolicy(PolicyNames.CatalogManagerPolicy, policy =>
-        policy.RequireRole(RoleNames.CatalogManager, RoleNames.Admin));
+        policy.RequireRole("catalog-manager", RoleNames.Admin));
 
     // Política de Visualizador - qualquer usuário autenticado
     options.AddPolicy(PolicyNames.ViewerPolicy, policy =>
         policy.RequireAuthenticatedUser());
+
+    // Política de Gerente de Localidades - requer "locations-manager" ou "admin"
+    options.AddPolicy(PolicyNames.LocationsManagerPolicy, policy =>
+        policy.RequireRole("locations-manager", RoleNames.Admin));
 });
 
 // Registrar serviço de permissões
 builder.Services.AddScoped<IPermissionService, PermissionService>();
+
+// Registrar serviços de diagnóstico e debug
+builder.Services.AddScoped<OidcDebugService>();
 
 // Registrar serviços de acessibilidade e error handling
 builder.Services.AddScoped<LiveRegionService>();

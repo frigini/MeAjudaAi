@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Utilities.Constants;
+namespace MeAjudaAi.Contracts.Utilities.Constants;
 
 /// <summary>
 /// Mensagens de validação padronizadas utilizadas no sistema

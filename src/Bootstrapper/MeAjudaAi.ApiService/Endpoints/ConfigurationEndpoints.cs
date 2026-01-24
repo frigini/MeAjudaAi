@@ -41,9 +41,20 @@ public static class ConfigurationEndpoints
         // Normalizar URL (remover trailing slash)
         apiBaseUrl = apiBaseUrl.TrimEnd('/');
 
-        // Configuração do Keycloak
-        var keycloakAuthority = configuration["Keycloak:Authority"] 
-            ?? throw new InvalidOperationException("Keycloak:Authority não configurado");
+        // Configuração do Keycloak - suportar tanto o novo formato (BaseUrl + Realm) quanto o legado (Authority)
+        var keycloakAuthority = configuration["Keycloak:Authority"];
+        
+        if (string.IsNullOrWhiteSpace(keycloakAuthority))
+        {
+            // Construir Authority a partir de BaseUrl e Realm
+            var keycloakBaseUrl = configuration["Keycloak:BaseUrl"] 
+                ?? throw new InvalidOperationException("Keycloak:BaseUrl ou Keycloak:Authority deve estar configurado");
+            
+            var keycloakRealm = configuration["Keycloak:Realm"] 
+                ?? "meajudaai"; // Valor padrão
+
+            keycloakAuthority = $"{keycloakBaseUrl.TrimEnd('/')}/realms/{keycloakRealm}";
+        }
 
         var keycloakClientId = configuration["Keycloak:ClientId"] 
             ?? throw new InvalidOperationException("Keycloak:ClientId não configurado");

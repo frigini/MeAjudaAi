@@ -365,6 +365,20 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
                 EPermission.ReportsView
             },
 
+            // Roles de gerenciamento de catálogo de serviços
+            "meajudaai-catalog-manager" => new[]
+            {
+                EPermission.ServiceCatalogsRead,
+                EPermission.ServiceCatalogsManage
+            },
+
+            // Roles de gerenciamento de localidades
+            "meajudaai-location-manager" => new[]
+            {
+                EPermission.LocationsRead,
+                EPermission.LocationsManage
+            },
+
             // Role desconhecida
             _ => Array.Empty<EPermission>()
         };

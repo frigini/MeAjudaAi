@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace MeAjudaAi.Shared.Models;
+namespace MeAjudaAi.Contracts.Models;
 
 /// <summary>
 /// Modelo para erros de restrição geográfica (HTTP 451 - Unavailable For Legal Reasons).
