@@ -25,7 +25,7 @@ public sealed class GetProvidersByVerificationStatusQueryHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting providers by verification status {Status}", query.Status);
-            return Result<IReadOnlyList<ProviderDto>>.Failure("An error occurred while retrieving providers");
+            return Result<IReadOnlyList<ProviderDto>>.Failure("Ocorreu um erro ao recuperar os prestadores");
         }
     }
 }

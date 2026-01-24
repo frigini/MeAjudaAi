@@ -26,6 +26,11 @@ public static class RoleNames
     public const string CatalogManager = "catalog-manager";
 
     /// <summary>
+    /// Gerente de localidades - pode gerenciar cidades permitidas.
+    /// </summary>
+    public const string LocationsManager = "locations-manager";
+
+    /// <summary>
     /// Visualizador - acesso somente leitura.
     /// </summary>
     public const string Viewer = "viewer";

@@ -146,7 +146,7 @@ builder.Services.AddAuthorizationCore(options =>
 
     // Política de Gerente de Catálogo - requer "catalog-manager" ou "admin"
     options.AddPolicy(PolicyNames.CatalogManagerPolicy, policy =>
-        policy.RequireRole("catalog-manager", RoleNames.Admin));
+        policy.RequireRole(RoleNames.CatalogManager, RoleNames.Admin));
 
     // Política de Visualizador - qualquer usuário autenticado
     options.AddPolicy(PolicyNames.ViewerPolicy, policy =>
@@ -154,7 +154,7 @@ builder.Services.AddAuthorizationCore(options =>
 
     // Política de Gerente de Localidades - requer "locations-manager" ou "admin"
     options.AddPolicy(PolicyNames.LocationsManagerPolicy, policy =>
-        policy.RequireRole("locations-manager", RoleNames.Admin));
+        policy.RequireRole(RoleNames.LocationsManager, RoleNames.Admin));
 });
 
 // Registrar serviço de permissões

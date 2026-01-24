@@ -42,18 +42,24 @@ public static class ConfigurationEndpoints
         apiBaseUrl = apiBaseUrl.TrimEnd('/');
 
         // Configuração do Keycloak - suportar tanto o novo formato (BaseUrl + Realm) quanto o legado (Authority)
-        var keycloakAuthority = configuration["Keycloak:Authority"];
+        var keycloakAuthority = configuration["Keycloak:Authority"]?.TrimEnd('/');
         
         if (string.IsNullOrWhiteSpace(keycloakAuthority))
         {
             // Construir Authority a partir de BaseUrl e Realm
-            var keycloakBaseUrl = configuration["Keycloak:BaseUrl"] 
-                ?? throw new InvalidOperationException("Keycloak:BaseUrl ou Keycloak:Authority deve estar configurado");
+            var keycloakBaseUrl = configuration["Keycloak:BaseUrl"];
+            if (string.IsNullOrWhiteSpace(keycloakBaseUrl))
+                throw new InvalidOperationException("Keycloak:BaseUrl ou Keycloak:Authority deve estar configurado");
             
-            var keycloakRealm = configuration["Keycloak:Realm"] 
-                ?? "meajudaai"; // Valor padrão
+            keycloakBaseUrl = keycloakBaseUrl.TrimEnd('/');
+            
+            var keycloakRealm = configuration["Keycloak:Realm"];
+            if (string.IsNullOrWhiteSpace(keycloakRealm))
+                keycloakRealm = "meajudaai"; // Valor padrão
+            
+            keycloakRealm = keycloakRealm.Trim('/');
 
-            keycloakAuthority = $"{keycloakBaseUrl.TrimEnd('/')}/realms/{keycloakRealm}";
+            keycloakAuthority = $"{keycloakBaseUrl}/realms/{keycloakRealm}";
         }
 
         var keycloakClientId = configuration["Keycloak:ClientId"] 

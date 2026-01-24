@@ -41,7 +41,7 @@ public sealed class GetProviderByUserIdQueryHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting provider by user ID {UserId}", query.UserId);
-            return Result<ProviderDto?>.Failure("Error getting provider");
+            return Result<ProviderDto?>.Failure("Erro ao buscar prestador");
         }
     }
 }

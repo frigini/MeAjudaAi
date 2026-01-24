@@ -31,7 +31,7 @@ public static class PolicyNames
 
     /// <summary>
     /// Política para gerenciamento de cidades permitidas.
-    /// Requer permissão "locations:manage".
+    /// Requer role "locations-manager" ou "admin".
     /// </summary>
     public const string LocationsManagerPolicy = "LocationsManagerPolicy";
 
