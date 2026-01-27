@@ -145,7 +145,7 @@ public class GetProvidersByIdsQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("error occurred");
+        result.Error!.Message.Should().Contain("erro ao recuperar");
 
         _providerRepositoryMock.Verify(
             x => x.GetByIdsAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()),
