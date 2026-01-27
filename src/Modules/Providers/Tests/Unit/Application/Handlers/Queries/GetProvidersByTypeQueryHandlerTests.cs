@@ -98,7 +98,7 @@ public class GetProvidersByTypeQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("error occurred");
+        result.Error!.Message.Should().Contain("erro ao recuperar");
 
         _providerRepositoryMock.Verify(
             x => x.GetByTypeAsync(providerType, It.IsAny<CancellationToken>()),

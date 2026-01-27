@@ -64,7 +64,7 @@ public class GetProvidersByStateQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("required");
+        result.Error!.Message.Should().Contain("obrigatório");
 
         _providerRepositoryMock.Verify(
             x => x.GetByStateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
@@ -83,7 +83,7 @@ public class GetProvidersByStateQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("required");
+        result.Error!.Message.Should().Contain("obrigatório");
 
         _providerRepositoryMock.Verify(
             x => x.GetByStateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
@@ -102,7 +102,7 @@ public class GetProvidersByStateQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("required");
+        result.Error!.Message.Should().Contain("obrigatório");
 
         _providerRepositoryMock.Verify(
             x => x.GetByStateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
@@ -152,7 +152,7 @@ public class GetProvidersByStateQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("error occurred");
+        result.Error!.Message.Should().Contain("erro ao recuperar");
 
         _providerRepositoryMock.Verify(
             x => x.GetByStateAsync(state, It.IsAny<CancellationToken>()),

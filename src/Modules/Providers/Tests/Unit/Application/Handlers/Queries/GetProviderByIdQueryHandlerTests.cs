@@ -95,6 +95,6 @@ public class GetProviderByIdQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("Error getting provider");
+        result.Error!.Message.Should().Contain("Erro ao buscar prestador");
     }
 }
