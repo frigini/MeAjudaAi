@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.ValueObjects;
+using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
@@ -55,16 +56,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     /// <summary>
     /// Masks a user ID for logging purposes to avoid exposing PII.
     /// </summary>
-    private static string MaskUserId(string userId)
-    {
-        if (string.IsNullOrWhiteSpace(userId))
-            return "[EMPTY]";
-
-        if (userId.Length <= 6)
-            return $"{userId[0]}***{userId[^1]}";
-
-        return $"{userId[..3]}***{userId[^3..]}";
-    }
+    private static string MaskUserId(string userId) => PiiMaskingHelper.MaskUserId(userId);
 
     public async Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(UserId userId, CancellationToken cancellationToken = default)
     {

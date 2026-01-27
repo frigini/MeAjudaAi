@@ -1,5 +1,5 @@
 using MeAjudaAi.Shared.Authorization.Core;
-using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Authorization.Keycloak;
@@ -62,14 +62,5 @@ public sealed class KeycloakPermissionProvider(
     /// <summary>
     /// Mascara o ID do usuário para logging (evita exposição de PII).
     /// </summary>
-    private static string MaskUserId(string userId)
-    {
-        if (string.IsNullOrWhiteSpace(userId))
-            return "[EMPTY]";
-
-        if (userId.Length <= 6)
-            return $"{userId[0]}***{userId[^1]}";
-
-        return $"{userId[..3]}***{userId[^3..]}";
-    }
+    private static string MaskUserId(string userId) => PiiMaskingHelper.MaskUserId(userId);
 }

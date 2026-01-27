@@ -34,7 +34,7 @@ public sealed class GetProviderByIdQueryHandler(
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", query.ProviderId);
-                return Result<ProviderDto?>.Failure(Error.NotFound("Provider not found"));
+                return Result<ProviderDto?>.Failure(Error.NotFound("Prestador não encontrado"));
             }
 
             logger.LogInformation("Provider {ProviderId} found successfully", query.ProviderId);

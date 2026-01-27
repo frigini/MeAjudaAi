@@ -6,30 +6,30 @@ namespace MeAjudaAi.Shared.Utilities.Constants;
 /// </summary>
 public static class RoleConstants
 {
-    // System/Admin roles
+    // Roles de sistema/admin
     public const string Admin = "admin";
     public const string SystemAdmin = "meajudaai-system-admin";
 
-    // User roles
+    // Roles de usuários
     public const string UserAdmin = "meajudaai-user-admin";
     public const string UserOperator = "meajudaai-user-operator";
     public const string User = "meajudaai-user";
 
-    // Provider roles
+    // Roles de prestadores
     public const string ProviderAdmin = "meajudaai-provider-admin";
     public const string Provider = "meajudaai-provider";
 
-    // Order roles
+    // Roles de pedidos
     public const string OrderAdmin = "meajudaai-order-admin";
     public const string OrderOperator = "meajudaai-order-operator";
 
-    // Report roles
+    // Roles de relatórios
     public const string ReportAdmin = "meajudaai-report-admin";
     public const string ReportViewer = "meajudaai-report-viewer";
 
-    // Catalog roles
+    // Roles de catálogo
     public const string CatalogManager = "meajudaai-catalog-manager";
 
-    // Location roles
+    // Roles de localização
     public const string LocationManager = "meajudaai-location-manager";
 }

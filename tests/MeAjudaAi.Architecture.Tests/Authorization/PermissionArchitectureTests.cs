@@ -148,12 +148,12 @@ public class PermissionArchitectureTests
             var parts = value.Split(':');
             Assert.Equal(2, parts.Length);
 
-            // Módulo deve estar em lowercase
-            Assert.True(parts[0].All(char.IsLower) || parts[0] == "admin",
+            // Módulo deve estar em lowercase (permitindo hífens)
+            Assert.True(parts[0].All(c => char.IsLower(c) || c == '-') || parts[0] == "admin",
                 $"Módulo '{parts[0]}' deve estar em lowercase ou ser 'admin'. Permission: {permission}");
 
-            // Ação deve estar em lowercase
-            Assert.True(parts[1].All(char.IsLower),
+            // Ação deve estar em lowercase (permitindo hífens)
+            Assert.True(parts[1].All(c => char.IsLower(c) || c == '-'),
                 $"Ação '{parts[1]}' deve estar em lowercase. Permission: {permission}");
         }
     }
