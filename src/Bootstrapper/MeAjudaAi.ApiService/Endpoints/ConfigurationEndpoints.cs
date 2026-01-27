@@ -46,6 +46,13 @@ public static class ConfigurationEndpoints
         
         if (string.IsNullOrWhiteSpace(keycloakAuthority))
         {
+
+
+
+
+
+        
+        
             // Construir Authority a partir de BaseUrl e Realm
             var keycloakBaseUrl = configuration["Keycloak:BaseUrl"];
             if (string.IsNullOrWhiteSpace(keycloakBaseUrl))

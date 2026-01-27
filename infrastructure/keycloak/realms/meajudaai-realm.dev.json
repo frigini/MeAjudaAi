@@ -28,33 +28,64 @@
   "accountTheme": "meajudaai",
   "emailTheme": "meajudaai",
   "internationalizationEnabled": true,
-  "supportedLocales": ["pt-BR", "en"],
+  "supportedLocales": [
+    "pt-BR",
+    "en"
+  ],
   "defaultLocale": "pt-BR",
   "roles": {
     "realm": [
       {
         "name": "admin",
-        "description": "Administrador total da plataforma"
+        "description": "Administrador total da plataforma - todas as permissões"
       },
       {
-        "name": "provider-manager",
-        "description": "Gerente de provedores - pode criar, editar e deletar provedores"
+        "name": "meajudaai-system-admin",
+        "description": "Administrador do sistema - todas as permissões"
       },
       {
-        "name": "document-reviewer",
-        "description": "Revisor de documentos - pode revisar e aprovar documentos"
+        "name": "meajudaai-user-admin",
+        "description": "Administrador de usuários - gerenciar usuários"
       },
       {
-        "name": "catalog-manager",
-        "description": "Gerente de catálogo - pode gerenciar serviços e categorias"
+        "name": "meajudaai-user-operator",
+        "description": "Operador de usuários - leitura e atualização"
       },
       {
-        "name": "operator",
-        "description": "Operador com leitura/escrita limitada"
+        "name": "meajudaai-user",
+        "description": "Usuário básico - perfil próprio"
       },
       {
-        "name": "viewer",
-        "description": "Visualizador somente leitura"
+        "name": "meajudaai-provider-admin",
+        "description": "Administrador de prestadores - CRUD completo"
+      },
+      {
+        "name": "meajudaai-provider",
+        "description": "Prestador - apenas leitura"
+      },
+      {
+        "name": "meajudaai-order-admin",
+        "description": "Administrador de pedidos - CRUD completo"
+      },
+      {
+        "name": "meajudaai-order-operator",
+        "description": "Operador de pedidos - leitura e atualização"
+      },
+      {
+        "name": "meajudaai-report-admin",
+        "description": "Administrador de relatórios - criar e exportar"
+      },
+      {
+        "name": "meajudaai-report-viewer",
+        "description": "Visualizador de relatórios - apenas visualizar"
+      },
+      {
+        "name": "meajudaai-catalog-manager",
+        "description": "Gerente de catálogo - gerenciar serviços e categorias"
+      },
+      {
+        "name": "meajudaai-location-manager",
+        "description": "Gerente de localidades - gerenciar cidades e estados"
       },
       {
         "name": "customer",
@@ -149,9 +180,38 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "meajudaai-api-service",
+      "name": "MeAjudaAi API Service Account",
+      "description": "Service account for API to access Keycloak Admin API",
+      "enabled": true,
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect",
+      "secret": "meajudaai-api-secret-dev-2024",
+      "attributes": {
+        "access.token.lifespan": "3600"
+      },
+      "authorizationServicesEnabled": false
     }
   ],
   "users": [
+    {
+      "username": "service-account-meajudaai-api-service",
+      "enabled": true,
+      "serviceAccountClientId": "meajudaai-api-service",
+      "clientRoles": {
+        "realm-management": [
+          "view-users",
+          "query-users",
+          "view-realm"
+        ]
+      }
+    },
     {
       "username": "admin.portal",
       "enabled": true,
@@ -168,11 +228,13 @@
       ],
       "realmRoles": [
         "admin",
-        "provider-manager",
-        "document-reviewer",
-        "catalog-manager",
-        "operator",
-        "viewer"
+        "meajudaai-system-admin",
+        "meajudaai-user-admin",
+        "meajudaai-provider-admin",
+        "meajudaai-order-admin",
+        "meajudaai-report-admin",
+        "meajudaai-catalog-manager",
+        "meajudaai-location-manager"
       ]
     },
     {

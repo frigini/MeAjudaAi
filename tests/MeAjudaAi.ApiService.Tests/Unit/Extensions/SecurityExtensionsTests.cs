@@ -699,8 +699,11 @@ public class SecurityExtensionsTests
     [Fact]
     public void AddAuthorizationPolicies_WithNullServices_ShouldThrowArgumentNullException()
     {
+        // Arrange
+        var configuration = CreateConfiguration(new Dictionary<string, string?>());
+
         // Act & Assert
-        var action = () => SecurityExtensions.AddAuthorizationPolicies(null!);
+        var action = () => SecurityExtensions.AddAuthorizationPolicies(null!, configuration);
         action.Should().Throw<ArgumentNullException>();
     }
 
@@ -711,9 +714,18 @@ public class SecurityExtensionsTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddAuthorization();
+        var settings = new Dictionary<string, string?>
+        {
+            ["Keycloak:BaseUrl"] = "https://keycloak.example.com",
+            ["Keycloak:Realm"] = "test-realm",
+            ["Keycloak:ClientId"] = "test-client"
+        };
+        var configuration = CreateConfiguration(settings);
+        services.AddSingleton<IConfiguration>(configuration);
+        services.AddHttpClient(); // Required for KeycloakPermissionResolver
 
         // Act
-        services.AddAuthorizationPolicies();
+        services.AddAuthorizationPolicies(configuration);
 
         // Assert
         var provider = services.BuildServiceProvider();

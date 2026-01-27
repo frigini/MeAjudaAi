@@ -64,7 +64,7 @@ public static class ServiceCollectionExtensions
         {
             options.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor |
                                       Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
-            
+
             // Limpa redes e proxies padrão - será configurado por ambiente
             options.KnownIPNetworks.Clear();
             options.KnownProxies.Clear();
@@ -94,7 +94,7 @@ public static class ServiceCollectionExtensions
         }
 
         // Adiciona serviços de autorização
-        services.AddAuthorizationPolicies();
+        services.AddAuthorizationPolicies(configuration);
 
         // Adiciona suporte a ProblemDetails para respostas de erro padronizadas
         services.AddProblemDetails();
@@ -106,7 +106,7 @@ public static class ServiceCollectionExtensions
 
         // Health Checks customizados
         services.AddMeAjudaAiHealthChecks();
-        
+
         // Health Checks UI removido - usar Aspire Dashboard (http://localhost:15888)
         // A Aspire Dashboard fornece visualização avançada de health checks, métricas, traces e logs
         // em uma interface unificada e moderna, tornando o Health Checks UI redundante
@@ -164,7 +164,7 @@ public static class ServiceCollectionExtensions
 
         app.UseCors("DefaultPolicy");
         app.UseAuthentication();
-        
+
         // Debug Middleware para diagnóstico de autorização (apenas em desenvolvimento)
         if (app.Environment.IsDevelopment())
         {
@@ -173,13 +173,13 @@ public static class ServiceCollectionExtensions
 
         // Log de requisições (após autenticação para capturar userId dos claims)
         app.UseMiddleware<RequestLoggingMiddleware>();
-        
+
         app.UsePermissionOptimization(); // Middleware de otimização após autenticação
         app.UseAuthorization();
 
         // Mapear endpoints de configuração (deve ser chamado após UseAuthorization)
         app.MapConfigurationEndpoints();
-        
+
         // Map CSP Report Endpoint (deve ser anônimo)
         app.MapCspReportEndpoints();
 

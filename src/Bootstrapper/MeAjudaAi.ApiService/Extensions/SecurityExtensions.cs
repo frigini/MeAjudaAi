@@ -308,7 +308,7 @@ public static class SecurityExtensions
                     {
                         var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerHandler>>();
                         logger.LogWarning("JWT authentication failed: {Exception}", context.Exception.Message);
-                        
+
                         var env = context.HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>();
                         // Emite header de debug apenas em ambientes não-produção
                         if (!env.IsProduction())
@@ -321,7 +321,7 @@ public static class SecurityExtensions
                             }
                             context.Response.Headers.Append(AuthConstants.Headers.DebugAuthFailure, sanitizedMessage);
                         }
-                        
+
                         return Task.CompletedTask;
                     },
                     OnChallenge = context =>
@@ -365,12 +365,18 @@ public static class SecurityExtensions
     /// <summary>
     /// Configura políticas de autorização baseadas em permissões type-safe
     /// </summary>
-    public static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services)
+    public static IServiceCollection AddAuthorizationPolicies(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
 
         // Sistema de permissões type-safe (único e centralizado)
         services.AddPermissionBasedAuthorization();
+
+        // Adiciona resolução de permissões do Keycloak
+        services.AddKeycloakPermissionResolver(configuration);
 
         // Adiciona políticas especiais que precisam de handlers customizados
         services.AddAuthorizationBuilder()

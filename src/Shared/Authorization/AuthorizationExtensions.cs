@@ -87,6 +87,10 @@ public static class AuthorizationExtensions
 
         // Registra o resolvedor de permissões do Keycloak
         services.AddScoped<IKeycloakPermissionResolver, KeycloakPermissionResolver>();
+        
+        // Registra o provider de permissões que permite ao PermissionService
+        // obter permissões resolvidas do Keycloak
+        services.AddScoped<IPermissionProvider, KeycloakPermissionProvider>();
 
         // Configura opções do Keycloak a partir da configuração
         services.AddOptions<KeycloakPermissionOptions>()
