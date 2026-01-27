@@ -10,7 +10,7 @@ public static class PiiMaskingHelper
     /// </summary>
     /// <param name="userId">ID do usuário a ser mascarado</param>
     /// <returns>ID mascarado no formato "abc***xyz"</returns>
-    public static string MaskUserId(string userId)
+    public static string MaskUserId(string? userId)
     {
         if (string.IsNullOrWhiteSpace(userId))
             return "[EMPTY]";
