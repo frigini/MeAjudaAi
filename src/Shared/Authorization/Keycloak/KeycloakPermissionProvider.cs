@@ -13,11 +13,16 @@ public sealed class KeycloakPermissionProvider(
     ILogger<KeycloakPermissionProvider> logger) : IPermissionProvider
 {
     /// <inheritdoc/>
-    public string ModuleName => ModuleNames.Users;
+    /// <remarks>
+    /// Retorna "*" (wildcard) para indicar que este provider fornece permissões
+    /// para todos os módulos, não apenas Users. Isso permite que permissões
+    /// do Keycloak sejam aplicadas cross-module.
+    /// </remarks>
+    public string ModuleName => "*";
 
     /// <inheritdoc/>
     public async Task<IReadOnlyList<EPermission>> GetUserPermissionsAsync(
-        string userId, 
+        string userId,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(userId))
@@ -28,14 +33,21 @@ public sealed class KeycloakPermissionProvider(
 
         try
         {
-            var permissions = await keycloakResolver.ResolvePermissionsAsync(userId, cancellationToken);
-            
+            // Null guard: garante que nunca retornamos null
+            var permissions = await keycloakResolver.ResolvePermissionsAsync(userId, cancellationToken)
+                ?? Array.Empty<EPermission>();
+
             logger.LogDebug(
                 "Resolved {PermissionCount} permissions from Keycloak for user {UserId}",
-                permissions.Count, 
+                permissions.Count,
                 MaskUserId(userId));
-            
+
             return permissions;
+        }
+        catch (OperationCanceledException)
+        {
+            // Propaga cancelação para o caller
+            throw;
         }
         catch (Exception ex)
         {

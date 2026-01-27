@@ -192,7 +192,6 @@
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "protocol": "openid-connect",
-      "secret": "meajudaai-api-secret-dev-2024",
       "attributes": {
         "access.token.lifespan": "3600"
       },
@@ -219,13 +218,6 @@
       "lastName": "Portal",
       "email": "admin@meajudaai.dev",
       "emailVerified": true,
-      "credentials": [
-        {
-          "type": "password",
-          "value": "admin123",
-          "temporary": true
-        }
-      ],
       "realmRoles": [
         "admin",
         "meajudaai-system-admin",
@@ -244,13 +236,6 @@
       "lastName": "Demo",
       "email": "customer@meajudaai.dev",
       "emailVerified": true,
-      "credentials": [
-        {
-          "type": "password",
-          "value": "customer123",
-          "temporary": true
-        }
-      ],
       "realmRoles": [
         "customer"
       ]

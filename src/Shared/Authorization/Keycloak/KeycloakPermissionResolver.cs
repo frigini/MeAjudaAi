@@ -299,10 +299,13 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(keycloakRole);
 
-        return keycloakRole.ToLowerInvariant() switch
+        var normalizedRole = keycloakRole.ToLowerInvariant();
+
+        return normalizedRole switch
         {
             // Roles de sistema
-            "admin" or "meajudaai-system-admin" => new[]
+            var r when r == RoleConstants.Admin.ToLowerInvariant() ||
+                       r == RoleConstants.SystemAdmin.ToLowerInvariant() => new[]
             {
                 EPermission.AdminSystem,
                 EPermission.AdminUsers,
@@ -316,66 +319,66 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
             },
 
             // Roles de administração de usuários
-            "meajudaai-user-admin" => new[]
+            var r when r == RoleConstants.UserAdmin.ToLowerInvariant() => new[]
             {
                 EPermission.AdminUsers,
                 EPermission.UsersRead, EPermission.UsersCreate, EPermission.UsersUpdate, EPermission.UsersList
             },
 
             // Roles de operação de usuários
-            "meajudaai-user-operator" => new[]
+            var r when r == RoleConstants.UserOperator.ToLowerInvariant() => new[]
             {
                 EPermission.UsersRead, EPermission.UsersUpdate, EPermission.UsersList
             },
 
             // Usuário básico
-            "meajudaai-user" => new[]
+            var r when r == RoleConstants.User.ToLowerInvariant() => new[]
             {
                 EPermission.UsersRead, EPermission.UsersProfile
             },
 
             // Roles de prestadores
-            "meajudaai-provider-admin" => new[]
+            var r when r == RoleConstants.ProviderAdmin.ToLowerInvariant() => new[]
             {
                 EPermission.ProvidersRead, EPermission.ProvidersCreate, EPermission.ProvidersUpdate, EPermission.ProvidersDelete
             },
 
-            "meajudaai-provider" => new[]
+            var r when r == RoleConstants.Provider.ToLowerInvariant() => new[]
             {
                 EPermission.ProvidersRead
             },
 
             // Roles de pedidos
-            "meajudaai-order-admin" => new[]
+            var r when r == RoleConstants.OrderAdmin.ToLowerInvariant() => new[]
             {
                 EPermission.OrdersRead, EPermission.OrdersCreate, EPermission.OrdersUpdate, EPermission.OrdersDelete
             },
 
-            "meajudaai-order-operator" => new[]
+            var r when r == RoleConstants.OrderOperator.ToLowerInvariant() => new[]
             {
                 EPermission.OrdersRead, EPermission.OrdersUpdate
             },
 
             // Roles de relatórios
-            "meajudaai-report-admin" => new[]
+            var r when r == RoleConstants.ReportAdmin.ToLowerInvariant() => new[]
             {
                 EPermission.ReportsView, EPermission.ReportsExport, EPermission.ReportsCreate
             },
 
-            "meajudaai-report-viewer" => new[]
+            var r when r == RoleConstants.ReportViewer.ToLowerInvariant() => new[]
             {
                 EPermission.ReportsView
             },
 
             // Roles de gerenciamento de catálogo de serviços
-            "meajudaai-catalog-manager" => new[]
+            var r when r == RoleConstants.CatalogManager.ToLowerInvariant() => new[]
             {
                 EPermission.ServiceCatalogsRead,
                 EPermission.ServiceCatalogsManage
             },
 
             // Roles de gerenciamento de localidades
-            "meajudaai-location-manager" => new[]
+            var r when r == RoleConstants.LocationManager.ToLowerInvariant() => new[]
             {
                 EPermission.LocationsRead,
                 EPermission.LocationsManage
