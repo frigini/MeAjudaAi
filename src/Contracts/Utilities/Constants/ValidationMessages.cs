@@ -93,4 +93,12 @@ public static class ValidationMessages
         /// </summary>
         public const string UnknownCategoryName = "Desconhecida";
     }
+
+    /// <summary>
+    /// Mensagens para o módulo Providers
+    /// </summary>
+    public static class Providers
+    {
+        public const string ErrorRetrievingProviders = "Ocorreu um erro ao recuperar os prestadores";
+    }
 }

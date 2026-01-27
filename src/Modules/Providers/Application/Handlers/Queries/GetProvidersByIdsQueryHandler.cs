@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 
@@ -35,7 +36,7 @@ public sealed class GetProvidersByIdsQueryHandler(
         {
             logger.LogError(ex, "Error retrieving providers by IDs: {ProviderIds}",
                 string.Join(", ", query.ProviderIds));
-            return Result<IReadOnlyList<ProviderDto>>.Failure("Ocorreu um erro ao recuperar os prestadores");
+            return Result<IReadOnlyList<ProviderDto>>.Failure(ValidationMessages.Providers.ErrorRetrievingProviders);
         }
     }
 }

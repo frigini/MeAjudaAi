@@ -1,4 +1,5 @@
 using FluentAssertions;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
@@ -152,7 +153,7 @@ public class GetProvidersByStateQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("erro ao recuperar");
+        result.Error!.Message.Should().Be(ValidationMessages.Providers.ErrorRetrievingProviders);
 
         _providerRepositoryMock.Verify(
             x => x.GetByStateAsync(state, It.IsAny<CancellationToken>()),

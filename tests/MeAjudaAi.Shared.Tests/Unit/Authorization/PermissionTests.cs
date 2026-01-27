@@ -124,7 +124,7 @@ public class PermissionTests
     {
         // Arrange
         var allPermissions = Enum.GetValues<EPermission>();
-        var validModules = new[] { "system", "users", "providers", "orders", "reports", "admin" };
+        var validModules = new[] { "system", "users", "providers", "orders", "reports", "admin", "service-catalogs" };
 
         // Act & Assert
         foreach (var permission in allPermissions)
