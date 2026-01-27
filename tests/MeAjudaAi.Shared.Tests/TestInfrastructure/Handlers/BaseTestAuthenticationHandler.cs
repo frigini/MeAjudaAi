@@ -65,6 +65,14 @@ public abstract class BaseTestAuthenticationHandler(
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ProvidersDelete.GetValue()));
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ProvidersApprove.GetValue()));
 
+                // Add all admin permissions for ServiceCatalogs
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ServiceCatalogsRead.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ServiceCatalogsManage.GetValue()));
+
+                // Add all admin permissions for Locations
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.LocationsRead.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.LocationsManage.GetValue()));
+
                 claims.Add(new Claim(AuthConstants.Claims.IsSystemAdmin, "true"));
             }
             else if (role.Equals("user", StringComparison.OrdinalIgnoreCase))
