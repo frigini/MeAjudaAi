@@ -242,7 +242,7 @@
     <!-- Health check tenta conexão TCP sem TLS mas container espera SSL handshake -->
     <!-- Erro observado: "An error occurred while writing to logger(s). (SSL Handshake failed)" -->
     <!-- Monitorar: https://github.com/dotnet/aspire/issues para issue sobre Redis TLS em desenvolvimento -->
-    <PackageVersion Include="Aspire.Hosting.Redis" Version="13.0.2" />
+    <PackageVersion Include="Aspire.Hosting.Redis" Version="13.1.0" />
     <PackageVersion Include="Aspire.Hosting.Seq" Version="13.1.0" />
     <PackageVersion Include="Aspire.Npgsql" Version="13.1.0" />
     <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.0.2" />
