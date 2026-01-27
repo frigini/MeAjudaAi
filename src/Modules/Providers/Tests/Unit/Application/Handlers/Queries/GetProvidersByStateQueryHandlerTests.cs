@@ -65,7 +65,7 @@ public class GetProvidersByStateQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("obrigatório");
+        result.Error!.Message.Should().Be(ValidationMessages.Providers.StateParameterRequired);
 
         _providerRepositoryMock.Verify(
             x => x.GetByStateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
@@ -84,7 +84,7 @@ public class GetProvidersByStateQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("obrigatório");
+        result.Error!.Message.Should().Be(ValidationMessages.Providers.StateParameterRequired);
 
         _providerRepositoryMock.Verify(
             x => x.GetByStateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
@@ -103,7 +103,7 @@ public class GetProvidersByStateQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("obrigatório");
+        result.Error!.Message.Should().Be(ValidationMessages.Providers.StateParameterRequired);
 
         _providerRepositoryMock.Verify(
             x => x.GetByStateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),

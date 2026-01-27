@@ -99,6 +99,7 @@ public static class ValidationMessages
     /// </summary>
     public static class Providers
     {
-        public const string ErrorRetrievingProviders = "Ocorreu um erro ao recuperar os prestadores";
+        public const string ErrorRetrievingProviders = "Ocorreu um erro ao recuperar os prestadores.";
+        public const string StateParameterRequired = "O parâmetro de estado é obrigatório.";
     }
 }
