@@ -65,11 +65,11 @@ public abstract class BaseTestAuthenticationHandler(
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ProvidersDelete.GetValue()));
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ProvidersApprove.GetValue()));
 
-                // Add all admin permissions for ServiceCatalogs
+                // Adicionar todas as permissões administrativas para Catálogos de Serviço
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ServiceCatalogsRead.GetValue()));
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ServiceCatalogsManage.GetValue()));
 
-                // Add all admin permissions for Locations
+                // Adicionar todas as permissões administrativas para Localizações
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.LocationsRead.GetValue()));
                 claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.LocationsManage.GetValue()));
 
