@@ -122,8 +122,8 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
                 
                 var retrievedProvider = JsonSerializer.Deserialize<JsonElement>(getContent);
 
-                // Verificar se o JSON tem a estrutura esperada (pode estar dentro de "data" ou outro wrapper)
-                if (retrievedProvider.TryGetProperty("data", out var dataProperty))
+                // Verificar se o JSON tem a estrutura esperada (pode estar dentro de "value" ou outro wrapper)
+                if (retrievedProvider.TryGetProperty("value", out var dataProperty))
                 {
                     retrievedProvider = dataProperty;
                 }

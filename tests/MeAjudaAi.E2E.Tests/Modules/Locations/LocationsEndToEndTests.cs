@@ -28,12 +28,13 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         // Arrange
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
-
+        // Use unique data for workflow to avoid conflict with other tests
+        var uniqueSuffix = Guid.NewGuid().ToString("N")[..4];
         var request = new
         {
-            CityName = "Poços de Caldas",
-            StateSigla = "MG",
-            IbgeCode = 3152131,
+            City = $"MuriaéFlow_{uniqueSuffix}",
+            State = "MG",
+            IbgeCode = 3143906,
             IsActive = true
         };
 
@@ -46,6 +47,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
+        // Create returns Response<T> (legacy), so use "data"
         result.TryGetProperty("data", out var dataElement).Should().BeTrue();
         var cityId = Guid.Parse(dataElement.GetString()!);
         cityId.Should().NotBeEmpty();
@@ -57,9 +59,9 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
             var city = await dbContext.AllowedCities.FirstOrDefaultAsync(c => c.Id == cityId);
 
             city.Should().NotBeNull();
-            city!.CityName.Should().Be("Poços de Caldas");
-            city.StateSigla.Should().Be("MG");
-            city.IbgeCode.Should().Be(3152131);
+            city!.CityName.Should().Be(request.City);
+            city.StateSigla.Should().Be(request.State);
+            city.IbgeCode.Should().Be(request.IbgeCode);
             city.IsActive.Should().BeTrue();
             city.CreatedBy.Should().NotBeNullOrWhiteSpace();
         });
@@ -82,8 +84,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var duplicateRequest = new
         {
-            CityName = "São Paulo",
-            StateSigla = "SP",
+            City = "São Paulo",
+            State = "SP",
             IbgeCode = 9999999
         };
 
@@ -105,8 +107,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var request = new
         {
-            CityName = "Curitiba",
-            StateSigla = "PR"
+            City = "Curitiba",
+            State = "PR"
         };
 
         // Act
@@ -124,16 +126,15 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var invalidRequest = new
         {
-            CityName = "", // Empty city name
-            StateSigla = "MG"
+            City = "", // Empty city name
+            State = "MG"
         };
 
         // Act
         var response = await _fixture.PostJsonAsync("/api/v1/admin/allowed-cities", invalidRequest);
 
         // Assert
-        // TODO: Deveria retornar 400, mas retorna 500 por exceção não tratada
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.InternalServerError);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -163,7 +164,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
-        result.TryGetProperty("data", out var dataElement).Should().BeTrue();
+        // GetAll returns Result<T>, so use "value"
+        result.TryGetProperty("value", out var dataElement).Should().BeTrue();
         var cities = dataElement.EnumerateArray().ToList();
 
         cities.Should().NotBeEmpty();
@@ -209,7 +211,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
-        result.TryGetProperty("data", out var dataElement).Should().BeTrue();
+        // GetAll returns Result<T>, so use "value"
+        result.TryGetProperty("value", out var dataElement).Should().BeTrue();
         var cities = dataElement.EnumerateArray().ToList();
 
         // Verify both active and inactive cities are present
@@ -258,7 +261,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
-        result.TryGetProperty("data", out var dataElement).Should().BeTrue();
+        // GetAll returns Result<T>, so use "value"
+        result.TryGetProperty("value", out var dataElement).Should().BeTrue();
         var cities = dataElement.EnumerateArray().ToList();
 
         cities.Should().NotBeEmpty();
@@ -301,6 +305,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
+        // GetById returns Response<T> (legacy), so use "data"
         result.TryGetProperty("data", out var dataElement).Should().BeTrue();
 
         dataElement.TryGetProperty("id", out var idElement).Should().BeTrue();
@@ -345,8 +350,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var updateRequest = new
         {
-            CityName = "Porto Alegre Atualizado",
-            StateSigla = "RS",
+            City = "Porto Alegre Atualizado",
+            State = "RS",
             IbgeCode = 4314902,
             IsActive = false
         };
@@ -380,8 +385,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var nonExistentId = Guid.NewGuid();
         var updateRequest = new
         {
-            CityName = "Fortaleza",
-            StateSigla = "CE"
+            City = "Fortaleza",
+            State = "CE"
         };
 
         // Act
@@ -415,8 +420,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var updateRequest = new
         {
-            CityName = "Belém", // Trying to rename to existing city
-            StateSigla = "PA"
+            City = "Belém", // Trying to rename to existing city
+            State = "PA"
         };
 
         // Act
@@ -481,10 +486,12 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         TestContainerFixture.AuthenticateAsAdmin();
 
         // Step 1: Create city
+        // Use unique data for workflow to avoid conflict with other tests
+        var uniqueSuffix = Guid.NewGuid().ToString("N")[..4];
         var createRequest = new
         {
-            CityName = "Vitória",
-            StateSigla = "ES",
+            City = $"Vitória_{uniqueSuffix}",
+            State = "ES",
             IbgeCode = 3205309
         };
 
@@ -493,6 +500,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var createContent = await createResponse.Content.ReadAsStringAsync();
         var createResult = JsonSerializer.Deserialize<JsonElement>(createContent, TestContainerFixture.JsonOptions);
+        // Create returns Response<T> (legacy), so use "data"
         createResult.TryGetProperty("data", out var cityIdElement).Should().BeTrue();
         var cityId = Guid.Parse(cityIdElement.GetString()!);
 
@@ -503,8 +511,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         // Step 3: Update city
         var updateRequest = new
         {
-            CityName = "Vitória Atualizada",
-            StateSigla = "ES",
+            City = "Vitória Atualizada",
+            State = "ES",
             IbgeCode = 3205309,
             IsActive = false
         };

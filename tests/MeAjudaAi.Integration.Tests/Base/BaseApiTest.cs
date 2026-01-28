@@ -603,16 +603,13 @@ public abstract class BaseApiTest : IAsyncLifetime
     /// </summary>
     protected async Task<T?> ReadJsonAsync<T>(HttpContent content)
     {
-        var stream = await content.ReadAsStreamAsync();
-        
-        // Tenta deserializar como Result<T> primeiro para suportar a nova estrutura de resposta
-        // Isso evita quebrar centenas de testes que esperam o objeto direto (T)
-        // Se T já for um Result ou Result<anything>, o deserializador lidará corretamente
+        // Lê tudo como string para evitar problemas de seek em streams não-bufferizados
+        var jsonString = await content.ReadAsStringAsync();
+
+        // Tenta deserializar como JsonElement primeiro para inspecionar a estrutura
         try 
         {
-            // Usa JsonNode para inspecionar a estrutura sem deserializar tudo duas vezes se possível,
-            // ou tenta deserializar direto como Result<T>
-            var json = await JsonSerializer.DeserializeAsync<JsonElement>(stream, SerializationDefaults.Api);
+            var json = JsonSerializer.Deserialize<JsonElement>(jsonString, SerializationDefaults.Api);
             
             // Verifica se tem as propriedades de um Result
             if (json.ValueKind == JsonValueKind.Object && 
@@ -622,7 +619,6 @@ public abstract class BaseApiTest : IAsyncLifetime
                 // É um Result wrapper - verifica se foi sucesso
                 if (isSuccessProp.ValueKind == JsonValueKind.False)
                 {
-                   // Se falhou, retorna default(T) para indicar erro, ou lança exceção se preferir
                    return default;
                 }
 
@@ -630,14 +626,13 @@ public abstract class BaseApiTest : IAsyncLifetime
                 return JsonSerializer.Deserialize<T>(valueProp.GetRawText(), SerializationDefaults.Api);
             }
             
-            // Não é wrapper, deserializa direto do elemento
-            return JsonSerializer.Deserialize<T>(json, SerializationDefaults.Api);
+            // Não é wrapper, deserializa direto
+            return JsonSerializer.Deserialize<T>(jsonString, SerializationDefaults.Api);
         }
         catch (JsonException)
         {
-            // Fallback para deserialização direta se a inspeção falhar (ex: array raiz)
-            stream.Position = 0;
-            return await JsonSerializer.DeserializeAsync<T>(stream, SerializationDefaults.Api);
+            // Fallback para deserialização direta se a inspeção falhar (ex: string vazia ou inválida)
+            return JsonSerializer.Deserialize<T>(jsonString, SerializationDefaults.Api);
         }
     }
 

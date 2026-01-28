@@ -36,7 +36,6 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
     {
         var command = request.ToCommand();
         var cityId = await commandDispatcher.SendAsync<CreateAllowedCityCommand, Guid>(command, cancellationToken);
-
         return Results.CreatedAtRoute("GetAllowedCityById", new { id = cityId }, new Response<Guid>(cityId, 201));
     }
 }

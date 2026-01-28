@@ -287,7 +287,15 @@ public sealed class MiddlewareEndToEndTests : IClassFixture<TestContainerFixture
         problemDetails.Should().NotBeNull();
         
         // Validar que tem mensagem de erro
-        problemDetails!.RootElement.TryGetProperty("message", out _).Should().BeTrue($"Response deve ter propriedade 'message'. Response: {responseBody}");
+        // Com o novo formato ApiResult, o erro pode estar dentro de 'error'
+        if (problemDetails!.RootElement.TryGetProperty("error", out var errorProp))
+        {
+            errorProp.TryGetProperty("message", out _).Should().BeTrue($"Response deve ter propriedade 'message' dentro de 'error'. Response: {responseBody}");
+        }
+        else
+        {
+            problemDetails!.RootElement.TryGetProperty("message", out _).Should().BeTrue($"Response deve ter propriedade 'message'. Response: {responseBody}");
+        }
     }
 
     [Fact]

@@ -99,7 +99,7 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
-        result.TryGetProperty("data", out var data).Should().BeTrue();
+        result.TryGetProperty("value", out var data).Should().BeTrue();
 
         var services = data.Deserialize<ServiceListDto[]>(TestContainerFixture.JsonOptions);
         services.Should().NotBeNull();
@@ -135,7 +135,7 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
         var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var responseWrapper = await TestContainerFixture.ReadJsonAsync<Response<ServiceCategoryDto>>(getResponse);
+        var responseWrapper = await TestContainerFixture.ReadJsonAsync<ApiResult<ServiceCategoryDto>>(getResponse);
         responseWrapper.Should().NotBeNull();
         responseWrapper!.Data.Should().NotBeNull();
 
@@ -201,7 +201,7 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
         // Assert - Verify service is inactive
         var getAfterDeactivate = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/services/{service.Id.Value}");
         getAfterDeactivate.StatusCode.Should().Be(HttpStatusCode.OK);
-        var deactivatedResponse = await TestContainerFixture.ReadJsonAsync<Response<ServiceDto>>(getAfterDeactivate);
+        var deactivatedResponse = await TestContainerFixture.ReadJsonAsync<ApiResult<ServiceDto>>(getAfterDeactivate);
         deactivatedResponse.Should().NotBeNull();
         deactivatedResponse!.Data.Should().NotBeNull();
         var deactivatedService = deactivatedResponse.Data;
@@ -214,7 +214,7 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
         // Assert - Verify service is active again
         var getAfterActivate = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/services/{service.Id.Value}");
         getAfterActivate.StatusCode.Should().Be(HttpStatusCode.OK);
-        var activatedResponse = await TestContainerFixture.ReadJsonAsync<Response<ServiceDto>>(getAfterActivate);
+        var activatedResponse = await TestContainerFixture.ReadJsonAsync<ApiResult<ServiceDto>>(getAfterActivate);
         activatedResponse.Should().NotBeNull();
         activatedResponse!.Data.Should().NotBeNull();
         var activatedService = activatedResponse.Data;
@@ -483,7 +483,7 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var content = await getServiceResponse.Content.ReadAsStringAsync();
         var result = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content, TestContainerFixture.JsonOptions);
-        result.TryGetProperty("data", out var data).Should().BeTrue("response should contain data property");
+        result.TryGetProperty("value", out var data).Should().BeTrue("response should contain value property");
         data.TryGetProperty("categoryId", out var categoryIdElement).Should().BeTrue("service should have categoryId property");
         var actualCategoryId = categoryIdElement.GetGuid();
         actualCategoryId.Should().Be(category2Id,

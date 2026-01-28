@@ -99,30 +99,19 @@ public class HangfireAuthorizationFilterTests
     }
 
     [Fact]
+
     public void Authorize_UseDotnetEnvironmentVariable_ShouldWork()
     {
         // Arrange
-        var originalAspNetCoreEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        var originalDotNetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        using var _ = new EnvironmentScope(null, "Development");
+        var filter = new HangfireAuthorizationFilter();
+        var context = CreateDashboardContext();
 
-        try
-        {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Development");
-            var filter = new HangfireAuthorizationFilter();
-            var context = CreateDashboardContext();
+        // Act
+        var result = filter.Authorize(context);
 
-            // Act
-            var result = filter.Authorize(context);
-
-            // Assert
-            result.Should().BeTrue("Should respect DOTNET_ENVIRONMENT when ASPNETCORE_ENVIRONMENT is not set");
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalAspNetCoreEnv);
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalDotNetEnv);
-        }
+        // Assert
+        result.Should().BeTrue("Should respect DOTNET_ENVIRONMENT when ASPNETCORE_ENVIRONMENT is not set");
     }
 
     [Fact]
@@ -207,98 +196,66 @@ public class HangfireAuthorizationFilterTests
     }
 
     [Fact]
+
     public void Authorize_WithNullUser_ShouldDenyAccess()
     {
         // Arrange
-        var originalAspNetCoreEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        var originalDotNetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        using var _ = new EnvironmentScope("Production", null);
+        var httpContext = new DefaultHttpContext { User = null! };
+        var filter = new HangfireAuthorizationFilter();
+        var context = CreateDashboardContext(httpContext);
 
-        try
-        {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
-            var httpContext = new DefaultHttpContext { User = null! };
-            var filter = new HangfireAuthorizationFilter();
-            var context = CreateDashboardContext(httpContext);
+        // Act
+        var result = filter.Authorize(context);
 
-            // Act
-            var result = filter.Authorize(context);
-
-            // Assert
-            result.Should().BeFalse("Null User should deny access in production");
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalAspNetCoreEnv);
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalDotNetEnv);
-        }
+        // Assert
+        result.Should().BeFalse("Null User should deny access in production");
     }
 
     [Fact]
+
     public void Authorize_DefaultEnvironmentIsProduction_ShouldRequireAuth()
     {
         // Arrange
-        var originalAspNetCoreEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        var originalDotNetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        using var _ = new EnvironmentScope(null, null);
+        
+        var identity = new Mock<ClaimsIdentity>();
+        identity.Setup(i => i.IsAuthenticated).Returns(false);
+        var principal = new ClaimsPrincipal(identity.Object);
+        var httpContext = new DefaultHttpContext { User = principal };
+        var filter = new HangfireAuthorizationFilter();
+        var context = CreateDashboardContext(httpContext);
 
-        try
-        {
-            // Sem variável de ambiente (default = Production)
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
-            
-            var identity = new Mock<ClaimsIdentity>();
-            identity.Setup(i => i.IsAuthenticated).Returns(false);
-            var principal = new ClaimsPrincipal(identity.Object);
-            var httpContext = new DefaultHttpContext { User = principal };
-            var filter = new HangfireAuthorizationFilter();
-            var context = CreateDashboardContext(httpContext);
+        // Act
+        var result = filter.Authorize(context);
 
-            // Act
-            var result = filter.Authorize(context);
-
-            // Assert
-            result.Should().BeFalse("Default environment (Production) should require authentication");
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalAspNetCoreEnv);
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalDotNetEnv);
-        }
+        // Assert
+        result.Should().BeFalse("Default environment (Production) should require authentication");
     }
 
     [Theory]
     [InlineData("Staging")]
     [InlineData("PreProduction")]
     [InlineData("QA")]
+
     public void Authorize_InNonDevelopmentEnvironments_ShouldRequireAuth(string environment)
     {
         // Arrange
-        var originalAspNetCoreEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        var originalDotNetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        using var _ = new EnvironmentScope(environment, null);
+        
+        var identity = new Mock<ClaimsIdentity>();
+        identity.Setup(i => i.IsAuthenticated).Returns(false);
+        var principal = new ClaimsPrincipal(identity.Object);
+        
+        var httpContext = new DefaultHttpContext { User = principal };
+        var filter = new HangfireAuthorizationFilter();
+        var context = CreateDashboardContext(httpContext);
 
-        try
-        {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
-            
-            var identity = new Mock<ClaimsIdentity>();
-            identity.Setup(i => i.IsAuthenticated).Returns(false);
-            var principal = new ClaimsPrincipal(identity.Object);
-            
-            var httpContext = new DefaultHttpContext { User = principal };
-            var filter = new HangfireAuthorizationFilter();
-            var context = CreateDashboardContext(httpContext);
+        // Act
+        var result = filter.Authorize(context);
 
-            // Act
-            var result = filter.Authorize(context);
-
-            // Assert
-            result.Should().BeFalse($"{environment} environment should require authentication like Production");
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalAspNetCoreEnv);
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalDotNetEnv);
-        }
+        // Assert
+        result.Should().BeFalse($"{environment} environment should require authentication like Production");
     }
 
 }

@@ -213,23 +213,8 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTe
             var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
             // Extrair array de providers da resposta
-            JsonElement providersArray;
-            if (providers.ValueKind == JsonValueKind.Array)
-            {
-                providersArray = providers;
-            }
-            else if (providers.TryGetProperty("value", out var valueProperty) && valueProperty.ValueKind != JsonValueKind.Null)
-            {
-                providersArray = valueProperty;
-            }
-            else if (providers.TryGetProperty("data", out var dataProperty))
-            {
-                providersArray = dataProperty;
-            }
-            else
-            {
-                throw new InvalidOperationException("Response does not contain expected array, data, or value property");
-            }
+            // Extrair providers usando helper unificado
+            var providersArray = GetResponseData(providers);
 
             providersArray.ValueKind.Should().Be(JsonValueKind.Array,
                 "Verification-status response should be an array of providers");

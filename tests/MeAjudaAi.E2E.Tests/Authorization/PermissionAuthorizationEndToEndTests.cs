@@ -458,7 +458,7 @@ public class PermissionAuthorizationEndToEndTests : IClassFixture<TestContainerF
 
         var createContent = await createResponse.Content.ReadAsStringAsync();
         using var createJson = JsonDocument.Parse(createContent);
-        return createJson.RootElement.GetProperty("data").GetProperty("id").GetString()!;
+        return createJson.RootElement.GetProperty("value").GetProperty("id").GetString()!;
     }
 
     #endregion
