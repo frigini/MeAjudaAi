@@ -81,7 +81,7 @@ public class UpdateServiceCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        // Using generic validation message as observed in failures
+        // Usando mensagem de validação genérica conforme observado nas falhas
         result.Error!.Message.Should().Be(string.Format(ValidationMessages.Catalogs.ServiceNameExists, command.Name));
         _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
     }

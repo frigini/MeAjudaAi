@@ -86,11 +86,20 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
 
         var users = JsonSerializer.Deserialize<JsonElement>(content);
 
-        // Esperar formato de resposta API consistente - deve ser um objeto com propriedade data
+        // Esperar formato de resposta API consistente - deve ser um objeto com propriedade data ou value
         users.ValueKind.Should().Be(JsonValueKind.Object,
             "API should return a structured response object");
-        users.TryGetProperty("data", out var dataElement).Should().BeTrue(
-            "Response should contain 'data' property for consistency");
+
+        JsonElement dataElement;
+        if (users.TryGetProperty("value", out var valueElement) && valueElement.ValueKind != JsonValueKind.Null)
+        {
+            dataElement = valueElement;
+        }
+        else
+        {
+            users.TryGetProperty("data", out dataElement).Should().BeTrue(
+                "Response should contain 'data' or 'value' property for consistency");
+        }
         dataElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
         dataElement.ValueKind.Should().NotBe(JsonValueKind.Null,
             "Data property should contain either an array of users or a paginated response object");
@@ -229,6 +238,11 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
 
     private static JsonElement GetResponseData(JsonElement response)
     {
+        if (response.TryGetProperty("value", out var valueElement) && valueElement.ValueKind != JsonValueKind.Null)
+        {
+            return valueElement;
+        }
+
         return response.TryGetProperty("data", out var dataElement)
             ? dataElement
             : response;

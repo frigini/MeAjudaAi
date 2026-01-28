@@ -2,6 +2,7 @@ using FluentAssertions;
 using Hangfire;
 using Hangfire.Dashboard;
 using MeAjudaAi.Shared.Jobs;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -14,6 +15,7 @@ namespace MeAjudaAi.Shared.Tests.Unit.Jobs;
 /// Testes unitários para HangfireAuthorizationFilter
 /// Verifica ACL do dashboard Hangfire por ambiente e role
 /// </summary>
+[Collection("EnvironmentVariableTests")]
 [Trait("Category", "Unit")]
 [Trait("Component", "Hangfire")]
 public class HangfireAuthorizationFilterTests
@@ -81,7 +83,7 @@ public class HangfireAuthorizationFilterTests
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, "admin-user"),
-                new Claim("is_system_admin", "true") // Claim expected by the filter for admin access
+                new Claim(AuthConstants.Claims.IsSystemAdmin, "true") // Claim expected by the filter for admin access
             };
             var identity = new ClaimsIdentity(claims, "TestAuth");
             var principal = new ClaimsPrincipal(identity);
@@ -349,5 +351,8 @@ public class HangfireAuthorizationFilterTests
             Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalDotNetEnv);
         }
     }
+
+[CollectionDefinition("EnvironmentVariableTests", DisableParallelization = true)]
+public class EnvironmentVariableTestsCollection { }
 
 }

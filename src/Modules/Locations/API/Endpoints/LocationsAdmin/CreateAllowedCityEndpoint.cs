@@ -32,7 +32,6 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
     private static async Task<IResult> CreateAsync(
         CreateAllowedCityRequest request,
         ICommandDispatcher commandDispatcher,
-        ILogger<CreateAllowedCityEndpoint> logger,
         CancellationToken cancellationToken)
     {
         var command = request.ToCommand();

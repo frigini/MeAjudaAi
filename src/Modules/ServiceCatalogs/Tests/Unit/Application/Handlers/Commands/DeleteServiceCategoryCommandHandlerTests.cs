@@ -23,6 +23,33 @@ public class DeleteServiceCategoryCommandHandlerTests
     }
 // ...
     [Fact]
+    public async Task Handle_WithValidCommand_ShouldReturnSuccess()
+    {
+        // Arrange
+        var category = new ServiceCategoryBuilder().WithName("Limpeza").Build();
+        var command = new DeleteServiceCategoryCommand(category.Id.Value);
+
+        _categoryRepositoryMock
+            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(category);
+
+        _serviceRepositoryMock
+            .Setup(x => x.CountByCategoryAsync(It.IsAny<ServiceCategoryId>(), false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+
+        _categoryRepositoryMock
+            .Setup(x => x.DeleteAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _categoryRepositoryMock.Verify(x => x.DeleteAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task Handle_WithNonExistentCategory_ShouldReturnFailure()
     {
         // Arrange

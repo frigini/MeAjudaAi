@@ -246,6 +246,11 @@ public class ServiceCatalogsApiTests : BaseApiTest
 
     private static JsonElement GetResponseData(JsonElement response)
     {
+        if (response.TryGetProperty("value", out var valueElement) && valueElement.ValueKind != JsonValueKind.Null)
+        {
+            return valueElement;
+        }
+
         return response.TryGetProperty("data", out var dataElement)
             ? dataElement
             : response;

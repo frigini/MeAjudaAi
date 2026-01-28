@@ -204,7 +204,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTe
         try
         {
             // Act - Buscar apenas providers Pending
-            var response = await Client.GetAsync("/api/v1/providers/by-verification-status/Pending");
+            var response = await Client.GetAsync("/api/v1/providers/verification-status/Pending");
 
             // Assert
             var content = await response.Content.ReadAsStringAsync();
@@ -219,13 +219,17 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTe
             {
                 providersArray = providers;
             }
+            else if (providers.TryGetProperty("value", out var valueProperty) && valueProperty.ValueKind != JsonValueKind.Null)
+            {
+                providersArray = valueProperty;
+            }
             else if (providers.TryGetProperty("data", out var dataProperty))
             {
                 providersArray = dataProperty;
             }
             else
             {
-                throw new InvalidOperationException("Response does not contain expected array or data property");
+                throw new InvalidOperationException("Response does not contain expected array, data, or value property");
             }
 
             // Verificar que contém o provider Pending
@@ -318,7 +322,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTe
         {
             "/api/v1/providers",
             "/api/v1/providers/by-type/Individual",
-            "/api/v1/providers/by-verification-status/Pending"
+            "/api/v1/providers/verification-status/Pending"
         };
 
         // Act & Assert
@@ -339,6 +343,11 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTe
 
     private static JsonElement GetResponseData(JsonElement response)
     {
+        if (response.TryGetProperty("value", out var valueElement) && valueElement.ValueKind != JsonValueKind.Null)
+        {
+            return valueElement;
+        }
+
         return response.TryGetProperty("data", out var dataElement)
             ? dataElement
             : response;
