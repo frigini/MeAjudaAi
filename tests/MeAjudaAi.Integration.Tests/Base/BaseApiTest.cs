@@ -627,7 +627,6 @@ public abstract class BaseApiTest : IAsyncLifetime
                 }
 
                 // Se sucesso, desserializa o campo 'value'
-                // Se sucesso, desserializa o campo 'value'
                 return JsonSerializer.Deserialize<T>(valueProp.GetRawText(), SerializationDefaults.Api);
             }
             

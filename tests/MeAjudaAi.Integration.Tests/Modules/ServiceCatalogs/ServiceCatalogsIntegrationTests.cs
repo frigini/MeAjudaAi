@@ -417,6 +417,14 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Bas
                     }
                     foundService.Should().BeTrue($"Created service {serviceId} should be in the filtered results");
                 }
+            else
+            {
+                dataElement.TryGetProperty("id", out var itemId).Should().BeTrue();
+                itemId.GetString().Should().Be(serviceId);
+                dataElement.TryGetProperty("categoryId", out var itemCategoryId).Should().BeTrue();
+                itemCategoryId.GetString().Should().Be(categoryId,
+                    "Service should belong to the correct category");
+            }
             }
             finally
             {

@@ -231,6 +231,9 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTe
                 throw new InvalidOperationException("Response does not contain expected array, data, or value property");
             }
 
+            providersArray.ValueKind.Should().Be(JsonValueKind.Array,
+                "Verification-status response should be an array of providers");
+
             // Verificar que contém o provider Pending
             var hasPendingProvider = false;
             var hasVerifiedProvider = false;
