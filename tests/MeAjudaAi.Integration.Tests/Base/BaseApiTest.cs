@@ -643,6 +643,21 @@ public abstract class BaseApiTest : IAsyncLifetime
     }
 
     /// <summary>
+    /// Helper para extrair dados da resposta, suportando tanto formato legado (data wrapper) quanto novo (Result with value)
+    /// </summary>
+    protected static JsonElement GetResponseData(JsonElement response)
+    {
+        if (response.TryGetProperty("value", out var valueElement) && valueElement.ValueKind != JsonValueKind.Null)
+        {
+            return valueElement;
+        }
+
+        return response.TryGetProperty("data", out var dataElement)
+            ? dataElement
+            : response;
+    }
+
+    /// <summary>
     /// Resolves the ApiService project path using multiple strategies:
     /// 1. Environment variable MEAJUDAAI_API_SERVICE_PATH (for CI override)
     /// 2. Assembly location relative path resolution

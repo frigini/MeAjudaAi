@@ -232,7 +232,7 @@ public class HangfireAuthorizationFilterTests
     }
 
     [Fact]
-    public void Authorize_WithNullHttpContext_ShouldDenyAccess()
+    public void Authorize_WithDefaultHttpContext_ShouldDenyAccess()
     {
         // Arrange
         var originalAspNetCoreEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -352,7 +352,7 @@ public class HangfireAuthorizationFilterTests
         }
     }
 
+}
+
 [CollectionDefinition("EnvironmentVariableTests", DisableParallelization = true)]
 public class EnvironmentVariableTestsCollection { }
-
-}

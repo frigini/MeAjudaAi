@@ -64,14 +64,14 @@ public class DeleteServiceCommandHandlerTests
 
         _providersModuleApiMock
             .Setup(x => x.HasProvidersOfferingServiceAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Failure(new Error("Error communicating with providers module")));
+            .ReturnsAsync(Result<bool>.Failure(new Error(ValidationMessages.Providers.ErrorRetrievingProviders)));
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Be("Error communicating with providers module");
+        result.Error!.Message.Should().Be(ValidationMessages.Providers.ErrorRetrievingProviders);
         _repositoryMock.Verify(x => x.DeleteAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);
     }
     [Fact]

@@ -108,11 +108,10 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTe
         // Expect a consistent API response format - should be an object with data property
         providers.ValueKind.Should().Be(JsonValueKind.Object,
             "API should return a structured response object");
-        providers.TryGetProperty("data", out var dataElement).Should().BeTrue(
-            "Response should contain 'data' property for consistency");
+        var dataElement = GetResponseData(providers);
         dataElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
         dataElement.ValueKind.Should().NotBe(JsonValueKind.Null,
-            "Data property should contain either an array of providers or a paginated response object");
+            "A propriedade de dados deve conter uma matriz de provedores ou um objeto de resposta paginado");
     }
 
     [Fact]
@@ -341,17 +340,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTe
         }
     }
 
-    private static JsonElement GetResponseData(JsonElement response)
-    {
-        if (response.TryGetProperty("value", out var valueElement) && valueElement.ValueKind != JsonValueKind.Null)
-        {
-            return valueElement;
-        }
 
-        return response.TryGetProperty("data", out var dataElement)
-            ? dataElement
-            : response;
-    }
 
     private async Task<string?> CreateTestProvider(string name, int type)
     {

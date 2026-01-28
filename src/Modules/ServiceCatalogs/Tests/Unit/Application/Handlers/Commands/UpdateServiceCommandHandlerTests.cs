@@ -20,7 +20,7 @@ public class UpdateServiceCommandHandlerTests
         _repositoryMock = new Mock<IServiceRepository>();
         _handler = new UpdateServiceCommandHandler(_repositoryMock.Object);
     }
-// ...
+
     [Fact]
     public async Task Handle_WithNonExistentService_ShouldReturnFailure()
     {

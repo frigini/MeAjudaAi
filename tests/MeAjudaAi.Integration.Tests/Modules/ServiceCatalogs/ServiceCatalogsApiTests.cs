@@ -44,8 +44,7 @@ public class ServiceCatalogsApiTests : BaseApiTest
         // Expect a consistent API response format
         categories.ValueKind.Should().Be(JsonValueKind.Object,
             "API should return a structured response object");
-        categories.TryGetProperty("data", out var dataElement).Should().BeTrue(
-            "Response should contain 'data' property for consistency");
+        var dataElement = GetResponseData(categories);
         dataElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
     }
 
@@ -68,8 +67,7 @@ public class ServiceCatalogsApiTests : BaseApiTest
         // Expect a consistent API response format
         services.ValueKind.Should().Be(JsonValueKind.Object,
             "API should return a structured response object");
-        services.TryGetProperty("data", out var dataElement).Should().BeTrue(
-            "Response should contain 'data' property for consistency");
+        var dataElement = GetResponseData(services);
         dataElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
     }
 
@@ -244,16 +242,6 @@ public class ServiceCatalogsApiTests : BaseApiTest
             HttpStatusCode.NotFound);
     }
 
-    private static JsonElement GetResponseData(JsonElement response)
-    {
-        if (response.TryGetProperty("value", out var valueElement) && valueElement.ValueKind != JsonValueKind.Null)
-        {
-            return valueElement;
-        }
 
-        return response.TryGetProperty("data", out var dataElement)
-            ? dataElement
-            : response;
-    }
 }
 

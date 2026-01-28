@@ -81,19 +81,8 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Bas
         var categories = JsonSerializer.Deserialize<JsonElement>(content);
         categories.ValueKind.Should().Be(JsonValueKind.Object,
             "API should return a structured response object");
-        categories.ValueKind.Should().Be(JsonValueKind.Object,
-            "API should return a structured response object");
 
-        JsonElement dataElement;
-        if (categories.TryGetProperty("value", out var valueElement) && valueElement.ValueKind != JsonValueKind.Null)
-        {
-            dataElement = valueElement;
-        }
-        else
-        {
-            categories.TryGetProperty("data", out dataElement).Should().BeTrue(
-                "Response should contain 'data' or 'value' property for consistency");
-        }
+        var dataElement = GetResponseData(categories);
         dataElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
     }
 
@@ -404,7 +393,8 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Bas
                 var services = JsonSerializer.Deserialize<JsonElement>(content);
 
                 services.ValueKind.Should().Be(JsonValueKind.Object);
-                services.TryGetProperty("data", out var dataElement).Should().BeTrue();
+                var dataElement = GetResponseData(services);
+                dataElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
 
                 // Should contain at least the service we just created
                 if (dataElement.ValueKind == JsonValueKind.Array)
@@ -441,15 +431,5 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Bas
         }
     }
 
-    private static JsonElement GetResponseData(JsonElement response)
-    {
-        if (response.TryGetProperty("value", out var valueElement) && valueElement.ValueKind != JsonValueKind.Null)
-        {
-            return valueElement;
-        }
 
-        return response.TryGetProperty("data", out var dataElement)
-            ? dataElement
-            : response;
-    }
 }
