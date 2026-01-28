@@ -15,7 +15,7 @@ public sealed class DeleteServiceCategoryCommandHandler(
     public async Task<Result> HandleAsync(DeleteServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
         if (request.Id == Guid.Empty)
-            return Result.Failure("Category ID cannot be empty.");
+            return Result.Failure(ValidationMessages.Required.Id);
 
         var categoryId = ServiceCategoryId.From(request.Id);
         var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
@@ -26,7 +26,7 @@ public sealed class DeleteServiceCategoryCommandHandler(
         // Verificar se a categoria possui serviços
         var serviceCount = await serviceRepository.CountByCategoryAsync(categoryId, activeOnly: false, cancellationToken);
         if (serviceCount > 0)
-            return Result.Failure($"Cannot delete category with {serviceCount} service(s). Remove or reassign services first.");
+            return Result.Failure(string.Format(ValidationMessages.Catalogs.CannotDeleteCategoryWithServices, serviceCount));
 
         await categoryRepository.DeleteAsync(categoryId, cancellationToken);
 

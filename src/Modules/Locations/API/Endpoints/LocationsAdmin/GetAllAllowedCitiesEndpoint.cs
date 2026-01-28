@@ -35,7 +35,7 @@ public class GetAllAllowedCitiesEndpoint : BaseEndpoint, IEndpoint
 
         var result = await queryDispatcher.QueryAsync<GetAllAllowedCitiesQuery, IReadOnlyList<AllowedCityDto>>(query, cancellationToken);
 
-        // Fix: Return wrapped Result<T> to match Global API Protocol and Client expectation
+        // Ajuste: Retorna Result<T> encapsulado para atender ao Protocolo Global da API e expectativa do Cliente
         return TypedResults.Ok(Result<IReadOnlyList<AllowedCityDto>>.Success(result));
     }
 }

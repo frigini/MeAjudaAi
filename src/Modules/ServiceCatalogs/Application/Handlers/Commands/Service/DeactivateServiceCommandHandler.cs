@@ -14,7 +14,7 @@ public sealed class DeactivateServiceCommandHandler(
     public async Task<Result> HandleAsync(DeactivateServiceCommand request, CancellationToken cancellationToken = default)
     {
         if (request.Id == Guid.Empty)
-            return Result.Failure("Service ID cannot be empty.");
+            return Result.Failure(ValidationMessages.Required.Id);
 
         var serviceId = ServiceId.From(request.Id);
         var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);

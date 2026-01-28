@@ -14,7 +14,7 @@ public sealed class DeactivateServiceCategoryCommandHandler(
     public async Task<Result> HandleAsync(DeactivateServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
         if (request.Id == Guid.Empty)
-            return Result.Failure("Category ID cannot be empty.");
+            return Result.Failure(ValidationMessages.Required.Id);
 
         var categoryId = ServiceCategoryId.From(request.Id);
         var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);

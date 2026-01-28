@@ -20,6 +20,7 @@ public static class ValidationMessages
         public const string Id = "O identificador é obrigatório.";
         public const string Password = "A senha é obrigatória.";
         public const string Role = "O papel não pode estar vazio.";
+        public const string CategoryName = "O nome da categoria é obrigatório.";
     }
 
     /// <summary>
@@ -95,6 +96,10 @@ public static class ValidationMessages
         /// Valor exibido quando o nome da categoria não está disponível (navegação não carregada)
         /// </summary>
         public const string UnknownCategoryName = "Desconhecida";
+
+        public const string CannotDeleteServiceOffered = "Não é possível excluir o serviço '{0}' pois ele é oferecido por prestadores.";
+        public const string CannotDeleteCategoryWithServices = "Não é possível excluir a categoria com {0} serviço(s). Remova ou reatribua os serviços primeiro.";
+        public const string CategoryNameExists = "Já existe uma categoria com o nome '{0}'.";
     }
 
     /// <summary>

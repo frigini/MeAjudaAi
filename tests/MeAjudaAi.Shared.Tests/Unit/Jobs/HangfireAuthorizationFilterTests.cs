@@ -43,6 +43,7 @@ public class HangfireAuthorizationFilterTests
     {
         // Arrange
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
+        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
         var filter = new HangfireAuthorizationFilter();
         var context = CreateDashboardContext();
 

@@ -16,7 +16,7 @@ public sealed class DeleteServiceCommandHandler(
     public async Task<Result> HandleAsync(DeleteServiceCommand request, CancellationToken cancellationToken = default)
     {
         if (request.Id == Guid.Empty)
-            return Result.Failure("Service ID cannot be empty.");
+            return Result.Failure(ValidationMessages.Required.Id);
 
         var serviceId = ServiceId.From(request.Id);
         var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
@@ -31,7 +31,7 @@ public sealed class DeleteServiceCommandHandler(
             return Result.Failure(hasProvidersResult.Error);
 
         if (hasProvidersResult.Value)
-            return Result.Failure($"Cannot delete service '{service.Name}': it is being offered by one or more providers. Please deactivate the service instead.");
+            return Result.Failure(string.Format(ValidationMessages.Catalogs.CannotDeleteServiceOffered, service.Name));
 
         await serviceRepository.DeleteAsync(serviceId, cancellationToken);
 
