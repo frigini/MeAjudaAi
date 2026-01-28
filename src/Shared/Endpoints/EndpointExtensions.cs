@@ -18,11 +18,13 @@ public static class EndpointExtensions
         {
             if (!string.IsNullOrEmpty(createdRoute))
             {
-                var createdResponse = new Response<T>(result.Value, 201, "Criado com sucesso");
-                return TypedResults.CreatedAtRoute(createdResponse, createdRoute, routeValues);
+                // Para Created, ainda precisamos retornar o Result<T> completo para manter o contrato
+                return TypedResults.CreatedAtRoute(result, createdRoute, routeValues);
             }
 
-            return TypedResults.Ok(new Response<T>(result.Value));
+            // CORREÇÃO CRÍTICA: Retorna o Result<T> completo, não apenas o Value
+            // O cliente espera { "isSuccess": true, "value": { ... }, "error": null }
+            return TypedResults.Ok(result);
         }
 
         return CreateErrorResponse<T>(result.Error);
@@ -34,7 +36,8 @@ public static class EndpointExtensions
     public static IResult Handle(Result result)
     {
         if (result.IsSuccess)
-            return TypedResults.Ok(new Response<object>(null));
+            // Retorna o Result completo para vazio também
+            return TypedResults.Ok(result);
 
         return CreateErrorResponse<object>(result.Error);
     }
@@ -51,8 +54,11 @@ public static class EndpointExtensions
                 totalCount,
                 currentPage,
                 pageSize);
-
-            return TypedResults.Ok(pagedResponse);
+            
+            // Retorna Result<PagedResponse> para manter consistência
+            // Usa conversão implícita ou construtor explícito já que Result.Success(val) não existe na classe não-genérica
+            Result<PagedResponse<IEnumerable<T>>> wrappedResult = pagedResponse;
+            return TypedResults.Ok(wrappedResult);
         }
 
         return CreateErrorResponse<IEnumerable<T>>(result.Error);
@@ -63,17 +69,12 @@ public static class EndpointExtensions
     /// </summary>
     public static IResult HandlePagedResult<T>(Result<PagedResult<T>> result)
     {
+        // Se o result já é um Result<PagedResult<T>>, retornamos ele diretamente
+        // O cliente espera Result<PagedResult<T>>
+        
         if (result.IsSuccess)
         {
-            var pagedData = result.Value;
-            var pagedResponse = new PagedResponse<IEnumerable<T>>(
-                pagedData.Items,          // dados
-                pagedData.TotalItems,     // totalCount
-                pagedData.PageNumber,     // página atual
-                pagedData.PageSize        // tamanho da página
-            );
-
-            return TypedResults.Ok(pagedResponse);
+            return TypedResults.Ok(result);
         }
 
         return CreateErrorResponse<PagedResult<T>>(result.Error);

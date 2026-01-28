@@ -195,6 +195,7 @@
       "attributes": {
         "access.token.lifespan": "3600"
       },
+      "secret": "meajudaai-api-secret-dev-2024",
       "authorizationServicesEnabled": false
     }
   ],
@@ -227,6 +228,13 @@
         "meajudaai-report-admin",
         "meajudaai-catalog-manager",
         "meajudaai-location-manager"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
       ]
     },
     {

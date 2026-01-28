@@ -599,11 +599,42 @@ public abstract class BaseApiTest : IAsyncLifetime
 
     /// <summary>
     /// Deserializa resposta JSON usando as opções de serialização compartilhadas (com suporte a enums).
+    /// Detecta automaticamente se a resposta está envolvida em um Result&lt;T&gt; e a desembrulha se necessário.
     /// </summary>
     protected async Task<T?> ReadJsonAsync<T>(HttpContent content)
     {
         var stream = await content.ReadAsStreamAsync();
-        return await JsonSerializer.DeserializeAsync<T>(stream, SerializationDefaults.Api);
+        
+        // Tenta deserializar como Result<T> primeiro para suportar a nova estrutura de resposta
+        // Isso evita quebrar centenas de testes que esperam o objeto direto (T)
+        // Se T já for um Result ou Result<anything>, o deserializador lidará corretamente
+        try 
+        {
+            // Usa JsonNode para inspecionar a estrutura sem deserializar tudo duas vezes se possível,
+            // ou tenta deserializar direto como Result<T>
+            var json = await JsonSerializer.DeserializeAsync<JsonElement>(stream, SerializationDefaults.Api);
+            
+            // Verifica se tem as propriedades de um Result
+            if (json.ValueKind == JsonValueKind.Object && 
+                json.TryGetProperty("isSuccess", out _) && 
+                json.TryGetProperty("value", out var valueProp))
+            {
+                // É um Result wrapper
+                if (valueProp.ValueKind == JsonValueKind.Null)
+                    return default;
+                
+                return JsonSerializer.Deserialize<T>(valueProp, SerializationDefaults.Api);
+            }
+            
+            // Não é wrapper, deserializa direto do elemento
+            return JsonSerializer.Deserialize<T>(json, SerializationDefaults.Api);
+        }
+        catch (JsonException)
+        {
+            // Fallback para deserialização direta se a inspeção falhar (ex: array raiz)
+            stream.Position = 0;
+            return await JsonSerializer.DeserializeAsync<T>(stream, SerializationDefaults.Api);
+        }
     }
 
     /// <summary>

@@ -25,7 +25,8 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         context.Providers
             .Include(p => p.Documents)
             .Include(p => p.Qualifications)
-            .Include(p => p.Services);
+            .Include(p => p.Services)
+            .AsSplitQuery();
 
     /// <summary>
     /// Adiciona um novo prestador de serviços ao repositório.

@@ -12,6 +12,7 @@ using MeAjudaAi.Contracts.Functional;
 
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
+using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -21,12 +22,6 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 /// <summary>
 /// Endpoint responsável pela consulta paginada de prestadores de serviços do sistema.
 /// </summary>
-/// <remarks>
-/// Implementa padrão de endpoint mínimo para listagem paginada de prestadores
-/// utilizando arquitetura CQRS. Suporta filtros e parâmetros de paginação
-/// para otimizar performance em grandes volumes de dados. Requer autorização
-/// apropriada para acesso aos dados dos prestadores.
-/// </remarks>
 public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>
@@ -41,7 +36,8 @@ public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
     /// - Resposta paginada estruturada
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet(ApiEndpoints.Providers.GetAll, GetProvidersAsync)
+    {
+        app.MapGet(ApiEndpoints.Providers.GetAll, GetProvidersAsync)
             .WithName("GetProviders")
             .WithSummary("Consultar prestadores paginados")
             .WithDescription("""
@@ -96,31 +92,8 @@ public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
             .Produces<RateLimitErrorResponse>(StatusCodes.Status429TooManyRequests, "application/json")
             .Produces<InternalServerErrorResponse>(StatusCodes.Status500InternalServerError, "application/json")
             .RequirePermission(EPermission.ProvidersList);
+    }
 
-    /// <summary>
-    /// Processa requisição de consulta de prestadores de forma assíncrona.
-    /// </summary>
-    /// <param name="pageNumber">Número da página (padrão: 1)</param>
-    /// <param name="pageSize">Tamanho da página (padrão: 10)</param>
-    /// <param name="name">Filtro por nome do prestador (opcional)</param>
-    /// <param name="type">Filtro por tipo de serviço (opcional)</param>
-    /// <param name="verificationStatus">Filtro por status de verificação (opcional)</param>
-    /// <param name="queryDispatcher">Dispatcher para envio de queries CQRS</param>
-    /// <param name="cancellationToken">Token de cancelamento da operação</param>
-    /// <returns>
-    /// Resultado HTTP contendo:
-    /// - 200 OK: Lista paginada de prestadores com metadados de paginação
-    /// - 400 Bad Request: Erro de validação nos parâmetros
-    /// </returns>
-    /// <remarks>
-    /// Fluxo de execução:
-    /// 1. Extrai parâmetros de paginação da query string
-    /// 2. Cria query CQRS com filtros validados
-    /// 3. Envia query através do dispatcher
-    /// 4. Retorna resposta paginada estruturada com metadados
-    /// 
-    /// Suporta parâmetros: PageNumber, PageSize, Name, Type, VerificationStatus
-    /// </remarks>
     private static async Task<IResult> GetProvidersAsync(
         int pageNumber = 1,
         int pageSize = 10,
@@ -128,21 +101,39 @@ public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
         int? type = null,
         int? verificationStatus = null,
         IQueryDispatcher queryDispatcher = null!,
+        ILogger<GetProvidersEndpoint> logger = null!,
         CancellationToken cancellationToken = default)
     {
-        var request = new GetProvidersRequest
+        try
         {
-            PageNumber = pageNumber,
-            PageSize = pageSize,
-            Name = name,
-            Type = type,
-            VerificationStatus = verificationStatus
-        };
+            var request = new GetProvidersRequest
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                Name = name,
+                Type = type,
+                VerificationStatus = verificationStatus
+            };
 
-        var query = request.ToProvidersQuery();
-        var result = await queryDispatcher.QueryAsync<GetProvidersQuery, Result<PagedResult<ProviderDto>>>(
-            query, cancellationToken);
+            var query = request.ToProvidersQuery();
+            var result = await queryDispatcher.QueryAsync<GetProvidersQuery, Result<PagedResult<ProviderDto>>>(
+                query, cancellationToken);
 
-        return HandlePagedResult(result);
+            return HandlePagedResult(result);
+        }
+        catch (Exception ex)
+        {
+            // Log detalhado para identificar causa raiz do erro 500 mascarado
+            logger.LogError(ex, 
+                "CRITICAL ERROR in GetProviders: {Message} | ValidRequest: {IsValid} | Args: Page={Page}, Size={Size}, Name={Name}", 
+                ex.Message, 
+                pageNumber > 0 && pageSize > 0,
+                pageNumber, pageSize, name);
+
+            return Results.Problem(
+                detail: "Ocorreu um erro interno ao processar a lista de prestadores. Consulte os logs.",
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Internal Server Error");
+        }
     }
 }

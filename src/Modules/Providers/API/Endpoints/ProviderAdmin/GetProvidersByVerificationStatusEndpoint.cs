@@ -7,6 +7,7 @@ using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Queries;
+using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -35,7 +36,7 @@ public class GetProvidersByVerificationStatusEndpoint : BaseEndpoint, IEndpoint
     /// - Respostas estruturadas para lista de prestadores
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet("/by-verification-status/{status}", GetProvidersByVerificationStatusAsync)
+        => app.MapGet("/verification-status/{status}", GetProvidersByVerificationStatusAsync)
             .WithName("GetProvidersByVerificationStatus")
             .WithSummary("Consultar prestadores por status de verificação")
             .WithDescription("""
@@ -73,6 +74,7 @@ public class GetProvidersByVerificationStatusEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     /// <param name="status">Status de verificação para filtro</param>
     /// <param name="queryDispatcher">Dispatcher para envio de queries CQRS</param>
+    /// <param name="logger">Logger para registro de erros e diagnóstico</param>
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
     /// <returns>Resultado HTTP com lista de prestadores ou erro apropriado</returns>
     /// <remarks>
@@ -85,12 +87,27 @@ public class GetProvidersByVerificationStatusEndpoint : BaseEndpoint, IEndpoint
     private static async Task<IResult> GetProvidersByVerificationStatusAsync(
         EVerificationStatus status,
         IQueryDispatcher queryDispatcher,
+        ILogger<GetProvidersByVerificationStatusEndpoint> logger,
         CancellationToken cancellationToken)
     {
-        var query = status.ToVerificationStatusQuery();
-        var result = await queryDispatcher.QueryAsync<GetProvidersByVerificationStatusQuery, Result<IReadOnlyList<ProviderDto>>>(
-            query, cancellationToken);
+        try
+        {
+            var query = status.ToVerificationStatusQuery();
+            var result = await queryDispatcher.QueryAsync<GetProvidersByVerificationStatusQuery, Result<IReadOnlyList<ProviderDto>>>(
+                query, cancellationToken);
 
-        return Handle(result);
+            return Handle(result);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, 
+                "CRITICAL ERROR in GetProvidersByVerificationStatus: {Message} | Status={Status}", 
+                ex.Message, status);
+
+            return Results.Problem(
+                detail: "Ocorreu um erro interno ao buscar prestadores por status. Consulte os logs.",
+                statusCode: StatusCodes.Status500InternalServerError,
+                title: "Internal Server Error");
+        }
     }
 }
