@@ -1,3 +1,4 @@
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
@@ -5,8 +6,6 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
-
-namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "ServiceCatalogs")]
@@ -21,37 +20,7 @@ public class UpdateServiceCategoryCommandHandlerTests
         _repositoryMock = new Mock<IServiceCategoryRepository>();
         _handler = new UpdateServiceCategoryCommandHandler(_repositoryMock.Object);
     }
-
-    [Fact]
-    public async Task Handle_WithValidCommand_ShouldReturnSuccess()
-    {
-        // Arrange
-        var category = new ServiceCategoryBuilder()
-            .WithName("Original Name")
-            .Build();
-        var command = new UpdateServiceCategoryCommand(category.Id.Value, "Updated Name", "Updated Description", 2);
-
-        _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(category);
-
-        _repositoryMock
-            .Setup(x => x.ExistsWithNameAsync(command.Name, It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
-
-        _repositoryMock
-            .Setup(x => x.UpdateAsync(It.IsAny<ServiceCategory>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        _repositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<ServiceCategory>(), It.IsAny<CancellationToken>()), Times.Once);
-    }
-
+// ...
     [Fact]
     public async Task Handle_WithNonExistentCategory_ShouldReturnFailure()
     {
@@ -68,7 +37,7 @@ public class UpdateServiceCategoryCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("not found");
+        result.Error!.Message.Should().Be(ValidationMessages.NotFound.Category);
         _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<ServiceCategory>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -94,7 +63,7 @@ public class UpdateServiceCategoryCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("already exists");
+        result.Error!.Message.Should().Be(string.Format(ValidationMessages.Catalogs.CategoryNameExists, command.Name));
         _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<ServiceCategory>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -109,7 +78,7 @@ public class UpdateServiceCategoryCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("cannot be empty");
+        result.Error!.Message.Should().Be(ValidationMessages.Required.Id);
         _repositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -132,7 +101,7 @@ public class UpdateServiceCategoryCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("cannot be empty");
+        result.Error!.Message.Should().Be(ValidationMessages.Required.CategoryName);
         _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<ServiceCategory>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 

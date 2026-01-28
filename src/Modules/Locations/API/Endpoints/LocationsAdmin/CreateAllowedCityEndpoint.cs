@@ -35,20 +35,9 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
         ILogger<CreateAllowedCityEndpoint> logger,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = request.ToCommand();
-            var cityId = await commandDispatcher.SendAsync<CreateAllowedCityCommand, Guid>(command, cancellationToken);
+        var command = request.ToCommand();
+        var cityId = await commandDispatcher.SendAsync<CreateAllowedCityCommand, Guid>(command, cancellationToken);
 
-            return Results.CreatedAtRoute("GetAllowedCityById", new { id = cityId }, new Response<Guid>(cityId, 201));
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error creating allowed city: {City}-{State}", request.City, request.State);
-            return Results.Problem(
-                detail: "Ocorreu um erro ao criar a cidade permitida. Tente novamente mais tarde.",
-                statusCode: StatusCodes.Status500InternalServerError,
-                title: "Erro ao criar cidade permitida");
-        }
+        return Results.CreatedAtRoute("GetAllowedCityById", new { id = cityId }, new Response<Guid>(cityId, 201));
     }
 }
