@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 
@@ -20,7 +21,7 @@ public sealed class GetProvidersByStateQueryHandler(
             if (string.IsNullOrWhiteSpace(query.State))
             {
                 logger.LogWarning("Invalid state parameter: state cannot be null or empty");
-                return Result<IReadOnlyList<ProviderDto>>.Failure("State parameter is required");
+                return Result<IReadOnlyList<ProviderDto>>.Failure(ValidationMessages.Providers.StateParameterRequired);
             }
 
             logger.LogInformation("Getting providers by state {State}", query.State);
@@ -31,7 +32,8 @@ public sealed class GetProvidersByStateQueryHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting providers by state {State}", query.State);
-            return Result<IReadOnlyList<ProviderDto>>.Failure("An error occurred while retrieving providers");
+            return Result<IReadOnlyList<ProviderDto>>.Failure(ValidationMessages.Providers.ErrorRetrievingProviders);
         }
     }
 }
+

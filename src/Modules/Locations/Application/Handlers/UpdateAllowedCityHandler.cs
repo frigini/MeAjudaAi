@@ -16,44 +16,29 @@ public sealed class UpdateAllowedCityHandler(
 {
     public async Task HandleAsync(UpdateAllowedCityCommand command, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            // Buscar entidade existente
-            var city = await repository.GetByIdAsync(command.Id, cancellationToken)
-                ?? throw new AllowedCityNotFoundException(command.Id);
+        // Buscar entidade existente
+        var city = await repository.GetByIdAsync(command.Id, cancellationToken)
+            ?? throw new AllowedCityNotFoundException(command.Id);
 
-            // Verificar se novo nome/estado já existe (exceto para esta cidade)
-            var existing = await repository.GetByCityAndStateAsync(command.CityName, command.StateSigla, cancellationToken);
-            if (existing is not null && existing.Id != command.Id)
-            {
-                throw new DuplicateAllowedCityException(command.CityName, command.StateSigla);
-            }
-
-            // Obter usuário atual (Admin)
-            var currentUser = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email) ?? "system";
-
-            // Atualizar entidade
-            city.Update(
-                command.CityName,
-                command.StateSigla,
-                command.IbgeCode,
-                command.IsActive,
-                currentUser);
-
-            // Persistir alterações
-            await repository.UpdateAsync(city, cancellationToken);
-        }
-        catch (AllowedCityNotFoundException)
+        // Verificar se novo nome/estado já existe (exceto para esta cidade)
+        var existing = await repository.GetByCityAndStateAsync(command.CityName, command.StateSigla, cancellationToken);
+        if (existing is not null && existing.Id != command.Id)
         {
-            throw;
+            throw new DuplicateAllowedCityException(command.CityName, command.StateSigla);
         }
-        catch (DuplicateAllowedCityException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException($"Failed to update allowed city with ID {command.Id}", ex);
-        }
+
+        // Obter usuário atual (Admin)
+        var currentUser = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email) ?? "system";
+
+        // Atualizar entidade
+        city.Update(
+            command.CityName,
+            command.StateSigla,
+            command.IbgeCode,
+            command.IsActive,
+            currentUser);
+
+        // Persistir alterações
+        await repository.UpdateAsync(city, cancellationToken);
     }
 }

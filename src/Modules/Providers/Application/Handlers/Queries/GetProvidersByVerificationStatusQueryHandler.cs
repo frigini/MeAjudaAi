@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 
@@ -25,7 +26,8 @@ public sealed class GetProvidersByVerificationStatusQueryHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting providers by verification status {Status}", query.Status);
-            return Result<IReadOnlyList<ProviderDto>>.Failure("An error occurred while retrieving providers");
+            return Result<IReadOnlyList<ProviderDto>>.Failure(ValidationMessages.Providers.ErrorRetrievingProviders);
         }
     }
 }
+

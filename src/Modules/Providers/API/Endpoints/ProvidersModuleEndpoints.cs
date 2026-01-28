@@ -33,7 +33,7 @@ public static class ProvidersModuleEndpoints
     /// - GET /by-city/{city} - Buscar por cidade
     /// - GET /by-state/{state} - Buscar por estado
     /// - GET /by-type/{type} - Buscar por tipo
-    /// - GET /by-verification-status/{status} - Buscar por status
+    /// - GET /verification-status/{status} - Buscar por status
     /// - PUT /{id} - Atualizar perfil
     /// - POST /{id}/documents - Adicionar documento
     /// - DELETE /{id}/documents/{documentType} - Remover documento

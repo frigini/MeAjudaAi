@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Models;
+namespace MeAjudaAi.Contracts.Models;
 
 /// <summary>
 /// Envelope padrão para respostas paginadas da API

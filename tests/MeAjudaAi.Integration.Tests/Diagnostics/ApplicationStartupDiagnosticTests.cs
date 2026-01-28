@@ -65,7 +65,11 @@ public class ApplicationStartupDiagnosticTests(ITestOutputHelper testOutput) : I
                                 ["ConnectionStrings:ProvidersDb"] = _databaseFixture.ConnectionString,
                                 ["ConnectionStrings:ServiceCatalogsDb"] = _databaseFixture.ConnectionString,
                                 ["ConnectionStrings:SearchProvidersDb"] = _databaseFixture.ConnectionString,
-                                ["ConnectionStrings:BookingsDb"] = _databaseFixture.ConnectionString
+                                ["ConnectionStrings:BookingsDb"] = _databaseFixture.ConnectionString,
+                                ["Keycloak:Enabled"] = "false",
+                                ["Keycloak:ClientSecret"] = "test-secret",
+                                ["Keycloak:AdminUsername"] = "test-admin",
+                                ["Keycloak:AdminPassword"] = "test-password"
                             });
                         }
                     });

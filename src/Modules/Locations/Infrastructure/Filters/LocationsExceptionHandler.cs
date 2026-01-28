@@ -20,6 +20,8 @@ public sealed class LocationsExceptionHandler(ILogger<LocationsExceptionHandler>
         ProblemDetails? problemDetails = exception switch
         {
             Shared.Exceptions.NotFoundException notFoundEx => HandleNotFoundException(notFoundEx),
+            DuplicateAllowedCityException duplicateEx => HandleDuplicateException(duplicateEx),
+            ArgumentException argumentEx => HandleArgumentException(argumentEx),
             BadRequestException badRequestEx => HandleBadRequestException(badRequestEx),
             _ => null
         };
@@ -52,6 +54,28 @@ public sealed class LocationsExceptionHandler(ILogger<LocationsExceptionHandler>
         {
             Status = StatusCodes.Status400BadRequest,
             Title = "Bad request",
+            Detail = exception.Message
+        };
+    }
+
+    private ProblemDetails HandleDuplicateException(DuplicateAllowedCityException exception)
+    {
+        logger.LogWarning(exception, "Duplicate resource: {Message}", exception.Message);
+        return new ProblemDetails
+        {
+            Status = StatusCodes.Status400BadRequest,
+            Title = "Duplicate resource",
+            Detail = exception.Message
+        };
+    }
+
+    private ProblemDetails HandleArgumentException(ArgumentException exception)
+    {
+        logger.LogWarning(exception, "Invalid argument: {Message}", exception.Message);
+        return new ProblemDetails
+        {
+            Status = StatusCodes.Status400BadRequest,
+            Title = "Invalid argument",
             Detail = exception.Message
         };
     }

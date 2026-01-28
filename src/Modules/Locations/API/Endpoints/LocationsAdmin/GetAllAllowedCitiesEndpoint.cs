@@ -8,7 +8,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Functional;
+
 namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 
 /// <summary>
@@ -21,7 +23,7 @@ public class GetAllAllowedCitiesEndpoint : BaseEndpoint, IEndpoint
             .WithName("GetAllAllowedCities")
             .WithSummary("Listar todas as cidades permitidas")
             .WithDescription("Recupera todas as cidades permitidas (opcionalmente apenas as ativas)")
-            .Produces<Response<IReadOnlyList<AllowedCityDto>>>(StatusCodes.Status200OK)
+            .Produces<Result<IReadOnlyList<AllowedCityDto>>>(StatusCodes.Status200OK)
             .RequireAdmin();
 
     private static async Task<IResult> GetAllAsync(
@@ -33,6 +35,7 @@ public class GetAllAllowedCitiesEndpoint : BaseEndpoint, IEndpoint
 
         var result = await queryDispatcher.QueryAsync<GetAllAllowedCitiesQuery, IReadOnlyList<AllowedCityDto>>(query, cancellationToken);
 
-        return Results.Ok(new Response<IReadOnlyList<AllowedCityDto>>(result));
+        // Ajuste: Retorna Result<T> encapsulado para atender ao Protocolo Global da API e expectativa do Cliente
+        return TypedResults.Ok(Result<IReadOnlyList<AllowedCityDto>>.Success(result));
     }
 }

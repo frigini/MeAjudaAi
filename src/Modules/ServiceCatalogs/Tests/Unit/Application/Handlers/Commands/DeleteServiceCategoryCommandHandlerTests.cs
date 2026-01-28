@@ -1,11 +1,10 @@
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
-
-namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
 
 [Trait("Category", "Unit")]
 [Trait("Module", "ServiceCatalogs")]
@@ -22,7 +21,7 @@ public class DeleteServiceCategoryCommandHandlerTests
         _serviceRepositoryMock = new Mock<IServiceRepository>();
         _handler = new DeleteServiceCategoryCommandHandler(_categoryRepositoryMock.Object, _serviceRepositoryMock.Object);
     }
-
+// ...
     [Fact]
     public async Task Handle_WithValidCommand_ShouldReturnSuccess()
     {
@@ -66,7 +65,7 @@ public class DeleteServiceCategoryCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("not found");
+        result.Error!.Message.Should().Be(ValidationMessages.NotFound.Category);
         _categoryRepositoryMock.Verify(x => x.DeleteAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -90,7 +89,7 @@ public class DeleteServiceCategoryCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("Cannot delete");
+        result.Error!.Message.Should().Be(string.Format(ValidationMessages.Catalogs.CannotDeleteCategoryWithServices, 3));
         _categoryRepositoryMock.Verify(x => x.DeleteAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

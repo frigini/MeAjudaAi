@@ -11,7 +11,7 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

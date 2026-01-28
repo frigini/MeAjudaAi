@@ -9,7 +9,7 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Models;
+
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Builder;
