@@ -21,13 +21,13 @@ public sealed class DeleteServiceCommandHandler(
         var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
 
         if (service is null)
-            return Result.Failure($"Service with ID '{request.Id}' not found.");
+            return Result.Failure(Error.NotFound($"Service with ID '{request.Id}' not found."));
 
         // Verificar se algum provedor oferece este serviço antes de deletar
         var hasProvidersResult = await providersModuleApi.HasProvidersOfferingServiceAsync(request.Id, cancellationToken);
 
         if (hasProvidersResult.IsFailure)
-            return Result.Failure($"Failed to verify if providers offer this service: {hasProvidersResult.Error.Message}");
+            return Result.Failure(hasProvidersResult.Error);
 
         if (hasProvidersResult.Value)
             return Result.Failure($"Cannot delete service '{service.Name}': it is being offered by one or more providers. Please deactivate the service instead.");

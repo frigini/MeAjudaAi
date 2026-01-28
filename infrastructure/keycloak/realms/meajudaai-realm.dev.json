@@ -246,6 +246,13 @@
       "emailVerified": true,
       "realmRoles": [
         "customer"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "customer123",
+          "temporary": false
+        }
       ]
     }
   ]

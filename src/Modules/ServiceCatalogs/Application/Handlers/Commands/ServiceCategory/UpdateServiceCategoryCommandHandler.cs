@@ -22,7 +22,7 @@ public sealed class UpdateServiceCategoryCommandHandler(
             var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
 
             if (category is null)
-                return Result.Failure($"Category with ID '{request.Id}' not found.");
+                return Result.Failure(Error.NotFound($"Category with ID '{request.Id}' not found."));
 
             var normalizedName = request.Name?.Trim();
 

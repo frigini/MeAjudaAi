@@ -95,13 +95,13 @@ public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
     }
 
     private static async Task<IResult> GetProvidersAsync(
+        IQueryDispatcher queryDispatcher,
+        ILogger<GetProvidersEndpoint> logger,
         int pageNumber = 1,
         int pageSize = 10,
         string? name = null,
         int? type = null,
         int? verificationStatus = null,
-        IQueryDispatcher queryDispatcher = null!,
-        ILogger<GetProvidersEndpoint> logger = null!,
         CancellationToken cancellationToken = default)
     {
         try

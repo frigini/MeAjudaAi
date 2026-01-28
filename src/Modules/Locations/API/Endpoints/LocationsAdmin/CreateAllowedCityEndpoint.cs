@@ -30,12 +30,23 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
     private static async Task<IResult> CreateAsync(
         CreateAllowedCityRequest request,
         ICommandDispatcher commandDispatcher,
+        ILogger<CreateAllowedCityEndpoint> logger,
         CancellationToken cancellationToken)
     {
-        var command = request.ToCommand();
+        try
+        {
+            var command = request.ToCommand();
+            var cityId = await commandDispatcher.SendAsync<CreateAllowedCityCommand, Guid>(command, cancellationToken);
 
-        var cityId = await commandDispatcher.SendAsync<CreateAllowedCityCommand, Guid>(command, cancellationToken);
-
-        return Results.CreatedAtRoute("GetAllowedCityById", new { id = cityId }, new Response<Guid>(cityId, 201));
+            return Results.CreatedAtRoute("GetAllowedCityById", new { id = cityId }, new Response<Guid>(cityId, 201));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error creating allowed city: {City}-{State}", request.City, request.State);
+            return Results.Problem(
+                detail: ex.Message,
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Erro ao criar cidade permitida");
+        }
     }
 }

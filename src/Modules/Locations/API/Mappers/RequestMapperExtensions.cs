@@ -19,8 +19,8 @@ public static class RequestMapperExtensions
     public static CreateAllowedCityCommand ToCommand(this CreateAllowedCityRequest request)
     {
         return new CreateAllowedCityCommand(
-            request.CityName,
-            request.StateSigla,
+            request.City,
+            request.State,
             request.IbgeCode,
             request.IsActive
         );
@@ -37,8 +37,8 @@ public static class RequestMapperExtensions
         return new UpdateAllowedCityCommand
         {
             Id = id,
-            CityName = request.CityName,
-            StateSigla = request.StateSigla,
+            CityName = request.City,
+            StateSigla = request.State,
             IbgeCode = request.IbgeCode,
             IsActive = request.IsActive
         };

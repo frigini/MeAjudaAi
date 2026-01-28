@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 
@@ -34,6 +35,7 @@ public class GetAllAllowedCitiesEndpoint : BaseEndpoint, IEndpoint
 
         var result = await queryDispatcher.QueryAsync<GetAllAllowedCitiesQuery, IReadOnlyList<AllowedCityDto>>(query, cancellationToken);
 
-        return Results.Ok(new Response<IReadOnlyList<AllowedCityDto>>(result));
+        // Fix: Return wrapped Result<T> to match Global API Protocol and Client expectation
+        return TypedResults.Ok(Result<IReadOnlyList<AllowedCityDto>>.Success(result));
     }
 }

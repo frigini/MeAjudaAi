@@ -619,7 +619,14 @@ public abstract class BaseApiTest : IAsyncLifetime
                 json.TryGetProperty("isSuccess", out _) && 
                 json.TryGetProperty("value", out var valueProp))
             {
-                // É um Result wrapper
+                // É um Result wrapper - verifica se foi sucesso
+                if (json.TryGetProperty("isSuccess", out var isSuccessProp) && 
+                    isSuccessProp.ValueKind == JsonValueKind.False)
+                {
+                    // Resposta de erro da API - propagar para que o teste possa validar
+                    return JsonSerializer.Deserialize<T>(json, SerializationDefaults.Api);
+                }
+
                 if (valueProp.ValueKind == JsonValueKind.Null)
                     return default;
                 

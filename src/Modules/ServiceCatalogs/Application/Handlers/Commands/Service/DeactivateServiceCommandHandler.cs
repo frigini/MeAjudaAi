@@ -19,7 +19,7 @@ public sealed class DeactivateServiceCommandHandler(
         var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
 
         if (service is null)
-            return Result.Failure($"Service with ID '{request.Id}' not found.");
+            return Result.Failure(Error.NotFound($"Service with ID '{request.Id}' not found."));
 
         service.Deactivate();
 

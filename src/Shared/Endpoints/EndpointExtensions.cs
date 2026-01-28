@@ -36,8 +36,10 @@ public static class EndpointExtensions
     public static IResult Handle(Result result)
     {
         if (result.IsSuccess)
+        {
             // Retorna o Result completo para vazio também
             return TypedResults.Ok(result);
+        }
 
         return CreateErrorResponse<object>(result.Error);
     }
@@ -104,19 +106,21 @@ public static class EndpointExtensions
 
     private static IResult CreateErrorResponse<T>(Error error)
     {
-        var response = new Response<T>(default, error.StatusCode, error.Message);
+        // Fix: Retornar Result<T> (Falha) para consistência com o caminho de sucesso
+        // O corpo da resposta de erro será { "isSuccess": false, "error": { ... }, "value": null }
+        var failedResult = Result<T>.Failure(error);
 
         return error.StatusCode switch
         {
-            404 => TypedResults.NotFound(response),
-            400 => TypedResults.BadRequest(response),
+            404 => TypedResults.NotFound(failedResult),
+            400 => TypedResults.BadRequest(failedResult),
             401 => TypedResults.Unauthorized(),
             403 => TypedResults.Forbid(),
             500 => TypedResults.Problem(
                 detail: error.Message,
                 statusCode: 500,
-                title: "Internal Server Error"),
-            _ => TypedResults.BadRequest(response)
+                title: "Erro Interno do Servidor"),
+            _ => TypedResults.BadRequest(failedResult)
         };
     }
 }

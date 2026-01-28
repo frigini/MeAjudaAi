@@ -114,8 +114,7 @@ public class DeleteServiceCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.Error!.Message.Should().Contain("Failed to verify if providers offer this service");
-        result.Error!.Message.Should().Contain("Providers module is unavailable");
+        result.Error!.Message.Should().Be("Providers module is unavailable");
         _repositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Once);
         _providersModuleApiMock.Verify(x => x.HasProvidersOfferingServiceAsync(service.Id.Value, It.IsAny<CancellationToken>()), Times.Once);
         _repositoryMock.Verify(x => x.DeleteAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()), Times.Never);

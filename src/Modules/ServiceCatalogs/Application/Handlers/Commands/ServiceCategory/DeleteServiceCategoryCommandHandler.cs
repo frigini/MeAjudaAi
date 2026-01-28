@@ -20,7 +20,7 @@ public sealed class DeleteServiceCategoryCommandHandler(
         var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
 
         if (category is null)
-            return Result.Failure($"Category with ID '{request.Id}' not found.");
+            return Result.Failure(Error.NotFound($"Category with ID '{request.Id}' not found."));
 
         // Verificar se a categoria possui serviços
         var serviceCount = await serviceRepository.CountByCategoryAsync(categoryId, activeOnly: false, cancellationToken);

@@ -15,8 +15,8 @@ public class RequestMapperExtensionsTests
     {
         // Arrange
         var request = new CreateAllowedCityRequest(
-            CityName: "Muriaé",
-            StateSigla: "MG",
+            City: "Muriaé",
+            State: "MG",
             IbgeCode: 3143906,
             IsActive: true
         );
@@ -37,8 +37,8 @@ public class RequestMapperExtensionsTests
     {
         // Arrange
         var request = new CreateAllowedCityRequest(
-            CityName: "Itaperuna",
-            StateSigla: "RJ",
+            City: "Itaperuna",
+            State: "RJ",
             IbgeCode: null,
             IsActive: true
         );
@@ -59,8 +59,8 @@ public class RequestMapperExtensionsTests
     {
         // Arrange
         var request = new CreateAllowedCityRequest(
-            CityName: "Linhares",
-            StateSigla: "ES",
+            City: "Linhares",
+            State: "ES",
             IbgeCode: 3203205,
             IsActive: false
         );
@@ -81,8 +81,8 @@ public class RequestMapperExtensionsTests
     {
         // Arrange
         var request = new UpdateAllowedCityRequest(
-            CityName: "Belo Horizonte",
-            StateSigla: "MG",
+            City: "Belo Horizonte",
+            State: "MG",
             IbgeCode: 3106200,
             IsActive: true
         );
@@ -105,8 +105,8 @@ public class RequestMapperExtensionsTests
     {
         // Arrange
         var request = new UpdateAllowedCityRequest(
-            CityName: "Rio de Janeiro",
-            StateSigla: "RJ",
+            City: "Rio de Janeiro",
+            State: "RJ",
             IbgeCode: null,
             IsActive: false
         );
@@ -160,8 +160,8 @@ public class RequestMapperExtensionsTests
     {
         // Arrange
         var request = new CreateAllowedCityRequest(
-            CityName: cityName,
-            StateSigla: state,
+            City: cityName,
+            State: state,
             IbgeCode: ibgeCode,
             IsActive: true
         );
@@ -188,8 +188,8 @@ public class RequestMapperExtensionsTests
     {
         // Arrange
         var request = new UpdateAllowedCityRequest(
-            CityName: cityName,
-            StateSigla: state,
+            City: cityName,
+            State: state,
             IbgeCode: ibgeCode,
             IsActive: isActive
         );

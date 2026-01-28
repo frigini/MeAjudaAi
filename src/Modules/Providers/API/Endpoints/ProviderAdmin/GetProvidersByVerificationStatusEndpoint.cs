@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -29,7 +30,7 @@ public class GetProvidersByVerificationStatusEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     /// <param name="app">Builder de rotas do endpoint</param>
     /// <remarks>
-    /// Configura endpoint GET em "/by-verification-status/{status}" com:
+    /// Configura endpoint GET em "/verification-status/{status}" com:
     /// - Autorização AdminOnly (apenas administradores)
     /// - Validação automática de enum para EVerificationStatus
     /// - Documentação OpenAPI automática
@@ -67,7 +68,8 @@ public class GetProvidersByVerificationStatusEndpoint : BaseEndpoint, IEndpoint
                 """)
             .RequireAuthorization("AdminOnly")
             .Produces<Response<IReadOnlyList<ProviderDto>>>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status400BadRequest);
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status500InternalServerError, typeof(ProblemDetails));
 
     /// <summary>
     /// Implementa a lógica de consulta de prestadores por status de verificação.
@@ -98,6 +100,11 @@ public class GetProvidersByVerificationStatusEndpoint : BaseEndpoint, IEndpoint
 
             return Handle(result);
         }
+        catch (OperationCanceledException)
+        {
+            logger.LogInformation("Request Canceled in GetProvidersByVerificationStatus. Status={Status}", status);
+            throw; // Propagate cancellation to pipeline
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, 
@@ -107,7 +114,7 @@ public class GetProvidersByVerificationStatusEndpoint : BaseEndpoint, IEndpoint
             return Results.Problem(
                 detail: "Ocorreu um erro interno ao buscar prestadores por status. Consulte os logs.",
                 statusCode: StatusCodes.Status500InternalServerError,
-                title: "Internal Server Error");
+                title: "Erro Interno do Servidor");
         }
     }
 }
