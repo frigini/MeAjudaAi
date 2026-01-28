@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
@@ -22,7 +23,7 @@ public sealed class UpdateServiceCommandHandler(
             var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
 
             if (service is null)
-                return Result.Failure(Error.NotFound($"Service with ID '{request.Id}' not found."));
+                return Result.Failure(Error.NotFound(ValidationMessages.NotFound.Service));
 
             var normalizedName = request.Name?.Trim();
 

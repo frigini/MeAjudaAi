@@ -1,0 +1,660 @@
+Test run for C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\bin\Debug\net10.0\MeAjudaAi.Integration.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.2)
+[xUnit.net 00:00:01.23]   Discovering: MeAjudaAi.Integration.Tests
+[xUnit.net 00:00:01.54]   Discovered:  MeAjudaAi.Integration.Tests
+[xUnit.net 00:00:01.73]   Starting:    MeAjudaAi.Integration.Tests
+[xUnit.net 00:00:01.81]     MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsResponseDebugTests.Debug_CreateServiceCategory_ResponseFormat [SKIP]
+[xUnit.net 00:00:01.81]       Diagnostic test - enable only when debugging response format issues
+  Skipped MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsResponseDebugTests.Debug_CreateServiceCategory_ResponseFormat [1 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.CepLookupIntegrationTests.GetAddressFromCepAsync_WhenViaCepFails_ShouldFallbackToBrasilApi [990 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.GeocodingIntegrationTests.GetCoordinatesFromAddressAsync_WithCaching_ShouldCacheResults [1 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.GeocodingIntegrationTests.GetCoordinatesFromAddressAsync_WhenNominatimReturnsError_ShouldReturnFailure [19 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.GeocodingIntegrationTests.GetCoordinatesFromAddressAsync_WithEmptyAddress_ShouldReturnFailure [4 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.CepLookupIntegrationTests.GetAddressFromCepAsync_WithCaching_ShouldCacheResults [139 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.CepLookupIntegrationTests.GetAddressFromCepAsync_WithInvalidCep_ShouldReturnFailure [3 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.CepLookupIntegrationTests.GetAddressFromCepAsync_WithValidCep_ShouldReturnAddress [4 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.CepLookupIntegrationTests.GetAddressFromCepAsync_WhenAllProvidersFail_ShouldReturnFailure [5 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.GeocodingIntegrationTests.GetCoordinatesFromAddressAsync_MultipleAddresses_ShouldHandleRateLimiting [2 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.GeocodingIntegrationTests.GetCoordinatesFromAddressAsync_WithValidAddress_ShouldReturnCoordinates [3 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.GeocodingIntegrationTests.GetCoordinatesFromAddressAsync_WhenAddressNotFound_ShouldReturnFailure [3 ms]
+  Passed MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter.DeadLetterIntegrationTests.FailureClassification_WithDifferentExceptions_ReturnsCorrectType(exceptionTypeName: "System.ArgumentException", expectedType: Permanent) [17 s]
+[xUnit.net 00:00:19.89]     MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter.DeadLetterIntegrationTests.MessageRetryMiddleware_EndToEnd_WorksWithDeadLetterSystem [SKIP]
+[xUnit.net 00:00:19.89]       Implementation pending - requires actual retry middleware logic
+  Passed MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter.DeadLetterIntegrationTests.FailureClassification_WithDifferentExceptions_ReturnsCorrectType(exceptionTypeName: "UnknownException", expectedType: Unknown) [82 ms]
+  Passed MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter.DeadLetterIntegrationTests.FailureClassification_WithDifferentExceptions_ReturnsCorrectType(exceptionTypeName: "System.OutOfMemoryException", expectedType: Critical) [76 ms]
+  Passed MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter.DeadLetterIntegrationTests.FailureClassification_WithDifferentExceptions_ReturnsCorrectType(exceptionTypeName: "System.TimeoutException", expectedType: Transient) [71 ms]
+  Passed MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter.DeadLetterIntegrationTests.FailedMessageInfo_Serialization_WorksCorrectly [84 ms]
+  Passed MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter.DeadLetterIntegrationTests.DeadLetterConfiguration_WithValidOptions_BindsCorrectly [73 ms]
+  Passed MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter.DeadLetterIntegrationTests.DeadLetterSystem_WithTestingEnvironment_UsesNoOpService [73 ms]
+  Passed MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter.DeadLetterIntegrationTests.DeadLetterSystem_WithProductionEnvironment_ConfiguresServiceBusService [71 ms]
+  Skipped MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter.DeadLetterIntegrationTests.MessageRetryMiddleware_EndToEnd_WorksWithDeadLetterSystem [1 ms]
+  Passed MeAjudaAi.Integration.Tests.ApplicationStartupDiagnosticTests.Application_Should_Start_Without_Exceptions [23 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.AllowedCityExceptionHandlingTests.CreateDuplicateCity_ShouldDetectDuplicate [23 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsDependencyInjectionTest.Should_Have_ServiceCategoryRepository_Registered [24 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersDatabaseTests.ProviderQueryService_ShouldBeAbleToQuery [28 s]
+  Passed MeAjudaAi.Integration.Tests.Messaging.MessageBusSelectionTests.MessageBusFactory_InProductionEnvironment_ShouldCreateServiceBus [29 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersDbContextTests.Database_ShouldHaveCorrectSchema [29 s]
+  Passed MeAjudaAi.Integration.Tests.Debug.DatabaseSeedVerificationTest.AllowedCities_Should_BeSeededCorrectly [30 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Users.UserDbContextTests.CanConnectToDatabase_ShouldWork [31 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceRepositoryIntegrationTests.AddAsync_WithValidService_ShouldPersistToDatabase [33 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.SearchProviders.SearchProvidersApiTests.Search_WithoutRequiredParameters_ShouldReturnBadRequest [16 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.IbgeApiIntegrationTests.GetMunicipiosByUFAsync_InvalidUF_ShouldReturnEmptyList [32 s]
+  Passed MeAjudaAi.Integration.Tests.ConnectionStringValidationTests.Database_Contexts_Should_Be_Configured [12 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.AllowedCityExceptionHandlingTests.GetNonExistingCity_ShouldReturnNull [12 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsDependencyInjectionTest.Should_List_All_Registered_CommandHandlers [12 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Users.UsersApiTests.DeleteUser_WithNonExistentId_ShouldReturnNotFound [38 s]
+  Passed MeAjudaAi.Integration.Tests.Infrastructure.DataSeedingIntegrationTests.ServiceCatalogs_ShouldHave12Services [7 ms]
+  Passed MeAjudaAi.Integration.Tests.Infrastructure.DataSeedingIntegrationTests.ServiceCatalogs_AllCategoriesAreActive [2 ms]
+  Passed MeAjudaAi.Integration.Tests.Infrastructure.DataSeedingIntegrationTests.ServiceCatalogs_ShouldHave8Categories [2 ms]
+  Passed MeAjudaAi.Integration.Tests.Infrastructure.DataSeedingIntegrationTests.ServiceCatalogs_AllServicesLinkedToCategories [2 ms]
+  Passed MeAjudaAi.Integration.Tests.Infrastructure.DataSeedingIntegrationTests.ServiceCatalogs_AllServicesAreActive [2 ms]
+  Passed MeAjudaAi.Integration.Tests.Infrastructure.DataSeedingIntegrationTests.ServiceCatalogs_ShouldHaveSpecificServices [19 ms]
+  Passed MeAjudaAi.Integration.Tests.Infrastructure.DataSeedingIntegrationTests.ServiceCatalogs_ShouldHaveExpectedCategories [4 ms]
+  Passed MeAjudaAi.Integration.Tests.Infrastructure.DataSeedingIntegrationTests.ServiceCatalogs_IdempotencyCheck_RunningTwiceShouldNotDuplicate [12 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersDatabaseTests.ProvidersTable_ShouldExist [12 s]
+[xUnit.net 00:00:43.51]     MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.CreateService_WithValidData_ShouldReturnCreated [FAIL]
+[xUnit.net 00:00:43.51]       Expected categoryDataElement.TryGetProperty("id", out var categoryIdProperty) to be True, but found False.
+[xUnit.net 00:00:43.51]       Stack Trace:
+[xUnit.net 00:00:43.51]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:00:43.51]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:43.51]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+[xUnit.net 00:00:43.51]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:43.51]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:00:43.51]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+[xUnit.net 00:00:43.51]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:00:43.51]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsApiTests.cs(133,0): at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.CreateService_WithValidData_ShouldReturnCreated()
+[xUnit.net 00:00:43.51]         --- End of stack trace from previous location ---
+  Failed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.CreateService_WithValidData_ShouldReturnCreated [41 s]
+  Error Message:
+   Expected categoryDataElement.TryGetProperty("id", out var categoryIdProperty) to be True, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.CreateService_WithValidData_ShouldReturnCreated() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsApiTests.cs:line 133
+--- End of stack trace from previous location ---
+  Passed MeAjudaAi.Integration.Tests.Messaging.MessageBusSelectionTests.MessageBusFactory_InDevelopmentEnvironment_ShouldCreateRabbitMq [13 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersDbContextTests.CanConnectToDatabase_ShouldWork [13 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsDbContextTests.Database_ShouldAllowBasicOperations [13 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceRepositoryIntegrationTests.GetAllAsync_ShouldReturnAllServices [13 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.SearchProviders.SearchProvidersApiTests.Search_WithInvalidLongitude_ShouldReturnBadRequest [15 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.IbgeApiIntegrationTests.GetMunicipioByNameAsync_Muriae_ShouldReturnValidMunicipio [15 s]
+  Passed MeAjudaAi.Integration.Tests.ConnectionStringValidationTests.ProvidersDatabase_Tables_Should_Exist [16 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsDependencyInjectionTest.Should_Have_CommandDispatcher_Registered [15 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersDatabaseTests.ProviderQueryService_ShouldBeRegistered [12 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.AllowedCityExceptionHandlingTests.ValidRepository_ShouldHaveAllMethods [17 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Users.UserRepositoryIntegrationTests.GetByUsernameAsync_WithExistingUsername_ShouldReturnUser [13 s]
+  Passed MeAjudaAi.Integration.Tests.Authentication.AuthenticationTests.GetUsers_WithAdminAuthentication_ShouldReturnOk [56 s]
+  Passed MeAjudaAi.Integration.Tests.Messaging.MessageBusSelectionTests.MessageBusFactory_InTestingEnvironment_ShouldReturnMock [14 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.AzureBlobStorageServiceTests.ExistsAsync_WhenBlobDoesNotExist_ShouldReturnFalse [175 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.AzureBlobStorageServiceTests.EnsureContainerExists_WhenContainerAlreadyExists_ShouldNotCreateAgain [5 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.AzureBlobStorageServiceTests.EnsureContainerExists_WhenContainerDoesNotExist_ShouldCreateContainer [2 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.AzureBlobStorageServiceTests.ExistsAsync_When404Exception_ShouldReturnFalse [2 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.AzureBlobStorageServiceTests.EnsureContainerExists_WhenCalledConcurrently_ShouldOnlyCreateOnce [104 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.AzureBlobStorageServiceTests.GenerateUploadUrlAsync_WhenCannotGenerateSas_ShouldThrowInvalidOperationException [16 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.AzureBlobStorageServiceTests.DeleteAsync_WhenBlobExists_ShouldDeleteSuccessfully [4 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.AzureBlobStorageServiceTests.EnsureContainerExists_WhenCreationFails_ShouldThrowInvalidOperationException [3 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.AzureBlobStorageServiceTests.ExistsAsync_WhenBlobExists_ShouldReturnTrue [2 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.AzureBlobStorageServiceTests.GenerateDownloadUrlAsync_WhenCannotGenerateSas_ShouldThrowInvalidOperationException [5 ms]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsDbContextTests.ServiceCatalogsDbContext_ShouldBeRegistered [14 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceRepositoryIntegrationTests.ExistsWithNameAsync_WithExistingName_ShouldReturnTrue [13 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.SecurityHeadersMiddlewareTests.SecurityHeaders_AllEndpoints_ShouldHaveConsistentHeaders [1 m 2 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.SearchProviders.SearchProvidersApiTests.Search_WithNegativeRadius_ShouldReturnBadRequest [14 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.IbgeApiIntegrationTests.ValidateCityInStateAsync_ValidCityWrongState_ShouldReturnFalse [14 s]
+  Passed MeAjudaAi.Integration.Tests.ConnectionStringValidationTests.ConnectionString_Fallback_Strategy_Should_Work [15 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsDependencyInjectionTest.Should_Have_CreateServiceCategoryCommandHandler_Registered [15 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Users.UsersApiTests.UserEndpoints_ShouldHandleInvalidGuids [29 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersDatabaseTests.ProvidersDbContext_ShouldBeConfiguredCorrectly [16 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCategoryRepositoryIntegrationTests.UpdateAsync_WithModifiedCategory_ShouldPersistChanges [16 s]
+[xUnit.net 00:01:12.99]     MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.CreateServiceCategory_WithValidData_ShouldReturnCreated [FAIL]
+[xUnit.net 00:01:13.00]       Expected dataElement.TryGetProperty("id", out _) to be True because Response data should contain 'id' property. Full response: {"isSuccess":true,"isFailure":false,"value":{"id":"019c04d2-99ee-71b0-a1db-3cfe31d1d9fa","name":"Test Category 5edfaba0ca3a41cbbcea814dd83d1cd0","description":"Test Description","isActive":true,"displayOrder":1,"createdAt":"2026-01-28T13:37:16.7823328Z","updatedAt":null},"error":null}, but found False.
+[xUnit.net 00:01:13.00]       Stack Trace:
+[xUnit.net 00:01:13.00]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:01:13.00]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:01:13.00]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:01:13.00]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:01:13.00]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsApiTests.cs(100,0): at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.CreateServiceCategory_WithValidData_ShouldReturnCreated()
+[xUnit.net 00:01:13.00]         --- End of stack trace from previous location ---
+  Failed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.CreateServiceCategory_WithValidData_ShouldReturnCreated [29 s]
+  Error Message:
+   Expected dataElement.TryGetProperty("id", out _) to be True because Response data should contain 'id' property. Full response: {"isSuccess":true,"isFailure":false,"value":{"id":"019c04d2-99ee-71b0-a1db-3cfe31d1d9fa","name":"Test Category 5edfaba0ca3a41cbbcea814dd83d1cd0","description":"Test Description","isActive":true,"displayOrder":1,"createdAt":"2026-01-28T13:37:16.7823328Z","updatedAt":null},"error":null}, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.CreateServiceCategory_WithValidData_ShouldReturnCreated() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsApiTests.cs:line 100
+--- End of stack trace from previous location ---
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.CepProvidersUnavailabilityTests.LookupCep_WhenViaCepAndBrasilApiReturnInvalidJson_ShouldFallbackToOpenCep [29 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Users.UserRepositoryIntegrationTests.UpdateAsync_WithModifiedUser_ShouldPersistChanges [17 s]
+  Passed MeAjudaAi.Integration.Tests.Authentication.AuthenticationTests.GetUsers_WithoutAuthentication_ShouldReturnUnauthorized [18 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsDbContextTests.DocumentsDbContext_ShouldUseCorrectSchema [17 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsDbContextTests.Services_ShouldHaveForeignKeyToServiceCategories [18 s]
+  Passed MeAjudaAi.Integration.Tests.Authorization.InstancePermissionAuthorizationIntegrationTests.AdminUser_ShouldHaveAccessToAllEndpoints [1 m 17 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceRepositoryIntegrationTests.GetByCategoryAsync_WithMatchingCategory_ShouldReturnServices [17 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.SecurityHeadersMiddlewareTests.SecurityHeaders_PostRequest_ShouldAlsoHaveHeaders [17 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.IbgeApiIntegrationTests.ValidateCityInStateAsync_ValidCityAndState_ShouldReturnTrue [16 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsDependencyInjectionTest.Should_Have_ServiceCatalogsDbContext_Registered [14 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCategoryRepositoryIntegrationTests.AddAsync_WithValidCategory_ShouldPersistToDatabase [15 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Users.UserRepositoryIntegrationTests.GetByEmailAsync_WithExistingEmail_ShouldReturnUser [16 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsDbContextTests.DocumentsDbContext_ShouldUseSnakeCaseNamingConvention [16 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsIntegrationTests.DocumentsModule_ShouldSupportCompleteWorkflow [16 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceRepositoryIntegrationTests.GetByNameAsync_WithExistingName_ShouldReturnService [16 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.SearchProviders.SearchProvidersApiTests.Search_WithValidCoordinates_ShouldNotReturnNotFound [32 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.SecurityHeadersMiddlewareTests.SecurityHeaders_ShouldIncludeStrictTransportSecurity [18 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.IbgeApiIntegrationTests.GetMunicipioByNameAsync_NonExistentCity_ShouldReturnNull [17 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsDependencyInjectionTest.Should_Be_Able_To_Resolve_And_Execute_CreateServiceCategoryCommandHandler [16 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCategoryRepositoryIntegrationTests.ExistsWithNameAsync_WithExistingName_ShouldReturnTrue [15 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Users.UsersApiTests.UpdateUser_WithNonExistentId_ShouldReturnNotFound [32 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.CepProvidersUnavailabilityTests.LookupCep_WhenViaCepReturnsErrorTrueAndOthersFail_ShouldReturnFailure [31 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.ServicesEndpoint_WithPagination_ShouldAcceptParameters [33 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersApiTests.ProvidersEndpoint_WithPaginationParameters_ShouldAcceptThem [38 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Users.UserRepositoryIntegrationTests.GetUsersByIdsAsync_WithMultipleIds_ShouldReturnMatchingUsers [20 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsDbContextTests.DocumentsDbContext_ShouldTrackChanges [19 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsIntegrationTests.DocumentRepository_AddAndRetrieve_ShouldWorkCorrectly [19 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.CompressionSecurityMiddlewareTests.CompressionSecurity_AuthenticatedUser_ShouldDisableCompression [45 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.SecurityHeadersMiddlewareTests.SecurityHeaders_ShouldIncludeXFrameOptions [18 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.IbgeApiIntegrationTests.ValidateCityInStateAsync_InvalidCity_ShouldReturnFalse [17 s]
+  Passed MeAjudaAi.Integration.Tests.Database.DbContextConcurrencyTests.SaveChangesAsync_WithNoConflict_ShouldSucceed [18 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCategoryRepositoryIntegrationTests.GetByNameAsync_WithExistingName_ShouldReturnCategory [18 s]
+  Passed MeAjudaAi.Integration.Tests.Authentication.AuthenticationTests.RateLimiting_EndpointIsReachable_ShouldReturnSuccessOrRateLimited [44 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersApiTests.HealthCheck_ShouldIncludeProvidersDatabase [15 s]
+  Passed MeAjudaAi.Integration.Tests.Authorization.InstancePermissionAuthorizationIntegrationTests.RegularUser_CanAccessPublicProviderListing [45 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Users.UserRepositoryIntegrationTests.GetPagedAsync_ShouldReturnPagedResults [13 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsIntegrationTests.BlobStorageService_ShouldBeRegisteredInDI [12 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsDbContextTests.DocumentsDbContext_ShouldHaveDocumentsTable [14 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.SearchProviders.SearchProvidersApiTests.Search_WithLargeRadius_ShouldAcceptParameter [30 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.SecurityHeadersMiddlewareTests.SecurityHeaders_ShouldIncludeXContentTypeOptions [12 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.IbgeApiIntegrationTests.GetMunicipiosByUFAsync_SP_ShouldReturnSaoPauloCities [12 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Users.UsersApiTests.CreateUser_WithInvalidData_ShouldReturnBadRequest [30 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.GetProvidersByType_ShouldReturnOnlyIndividualProviders [37 s]
+  Passed MeAjudaAi.Integration.Tests.Database.DbContextConcurrencyTests.SaveChangesAsync_WithConcurrentModifications_ShouldThrowConcurrencyException [14 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCategoryRepositoryIntegrationTests.GetAllAsync_ShouldReturnAllCategories [14 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersApiTests.GetProviderById_Endpoint_ShouldExist [15 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.CategoriesEndpoint_WithPagination_ShouldAcceptParameters [32 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Users.UserRepositoryIntegrationTests.AddAsync_WithValidUser_ShouldPersistToDatabase [13 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsIntegrationTests.DocumentRepository_UpdateAsync_ShouldPersistChanges [13 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsDbContextTests.Documents_ShouldSupportBasicCrudOperations [14 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.SecurityHeadersMiddlewareTests.SecurityHeaders_ShouldIncludeContentSecurityPolicy [13 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.IbgeApiIntegrationTests.GetMunicipioByNameAsync_SpecialCharacters_ShouldHandleCorrectly(cityName: "S├úo Paulo", expectedUF: "SP") [13 s]
+  Passed MeAjudaAi.Integration.Tests.DependencyInjectionDiagnosticTests.Should_Have_All_Critical_Services_Registered [13 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsIntegrationTests.DocumentIntelligenceService_ShouldBeRegisteredInDI [10 s]
+  Passed MeAjudaAi.Integration.Tests.Authentication.AuthenticationTests.GetUsers_WithRegularUserAuthentication_ShouldReturnForbidden [30 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsDbContextTests.DocumentsDbContext_ShouldHaveMigrationsHistoryTableInCorrectSchema [10 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.CompressionSecurityMiddlewareTests.CompressionSecurity_MultipleAuthenticatedRequests_ShouldConsistentlyDisableCompression [36 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.SecurityHeadersMiddlewareTests.SecurityHeaders_ShouldIncludeReferrerPolicy [11 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.CepProvidersUnavailabilityTests.LookupCep_WhenViaCepReturns500_ShouldFallbackToBrasilApi [50 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.SearchProviders.SearchProvidersApiTests.Search_WithSmallRadius_ShouldAcceptParameter [29 s]
+  Passed MeAjudaAi.Integration.Tests.DependencyInjectionDiagnosticTests.Should_List_All_Registered_QueryHandlers [10 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsIntegrationTests.BlobStorageService_GenerateDownloadUrl_ShouldReturnValidUrl [9 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProviderRepositoryIntegrationTests.GetByCityAsync_WithMatchingCity_ShouldReturnProviders [10 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsDbContextTests.DocumentsDbContext_ShouldBeRegisteredInDependencyInjection [10 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsApiTests.UploadDocument_WithDifferentContentTypes_ShouldAcceptCommonFormats(contentType: "application/pdf", fileName: "document.pdf") [29 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.SecurityHeadersMiddlewareTests.SecurityHeaders_ErrorResponse_ShouldStillHaveHeaders [10 s]
+[xUnit.net 00:02:49.63]     MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.GetProvidersByVerificationStatus_ShouldFilterCorrectly [FAIL]
+[xUnit.net 00:02:49.63]       Expected response.StatusCode to be HttpStatusCode.OK {value: 200} because the endpoint should return OK. Response: , but found HttpStatusCode.NotFound {value: 404}.
+[xUnit.net 00:02:49.63]       Stack Trace:
+[xUnit.net 00:02:49.63]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:02:49.63]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:02:49.63]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:02:49.63]            at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)
+[xUnit.net 00:02:49.63]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Providers\ProvidersIntegrationTests.cs(211,0): at MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.GetProvidersByVerificationStatus_ShouldFilterCorrectly()
+[xUnit.net 00:02:49.63]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Providers\ProvidersIntegrationTests.cs(250,0): at MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.GetProvidersByVerificationStatus_ShouldFilterCorrectly()
+[xUnit.net 00:02:49.63]         --- End of stack trace from previous location ---
+[xUnit.net 00:02:49.63]       Output:
+[xUnit.net 00:02:49.63]         Cleanup failed: Could not delete provider 019c04d3-c44d-7e38-8dc2-fa8c034b5351. Status: TooManyRequests
+  Failed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.GetProvidersByVerificationStatus_ShouldFilterCorrectly [35 s]
+  Error Message:
+   Expected response.StatusCode to be HttpStatusCode.OK {value: 200} because the endpoint should return OK. Response: , but found HttpStatusCode.NotFound {value: 404}.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)
+   at MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.GetProvidersByVerificationStatus_ShouldFilterCorrectly() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Providers\ProvidersIntegrationTests.cs:line 211
+   at MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.GetProvidersByVerificationStatus_ShouldFilterCorrectly() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Providers\ProvidersIntegrationTests.cs:line 250
+--- End of stack trace from previous location ---
+  Standard Output Messages:
+ Cleanup failed: Could not delete provider 019c04d3-c44d-7e38-8dc2-fa8c034b5351. Status: TooManyRequests
+
+
+  Passed MeAjudaAi.Integration.Tests.DependencyInjectionDiagnosticTests.Should_Have_GetProvidersQueryHandler_Registered [11 s]
+[xUnit.net 00:02:52.59]     MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.CreateServiceCategory_WithValidData_ShouldReturnCreated [FAIL]
+[xUnit.net 00:02:52.59]       Expected dataElement.TryGetProperty("id", out _) to be True because Response data should contain 'id' property. Full response: {"isSuccess":true,"isFailure":false,"value":{"id":"019c04d4-25c1-7a98-ad36-ff16e7edd9be","name":"Test Category 3121424a096544d9906ab126ec6cf22c","description":"Test Category","isActive":true,"displayOrder":1,"createdAt":"2026-01-28T13:38:58.1138891Z","updatedAt":null},"error":null}, but found False.
+[xUnit.net 00:02:52.59]       Stack Trace:
+[xUnit.net 00:02:52.59]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:02:52.59]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:02:52.60]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:02:52.60]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:02:52.60]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsIntegrationTests.cs(44,0): at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.CreateServiceCategory_WithValidData_ShouldReturnCreated()
+[xUnit.net 00:02:52.60]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsIntegrationTests.cs(65,0): at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.CreateServiceCategory_WithValidData_ShouldReturnCreated()
+[xUnit.net 00:02:52.60]         --- End of stack trace from previous location ---
+  Failed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.CreateServiceCategory_WithValidData_ShouldReturnCreated [27 s]
+  Error Message:
+   Expected dataElement.TryGetProperty("id", out _) to be True because Response data should contain 'id' property. Full response: {"isSuccess":true,"isFailure":false,"value":{"id":"019c04d4-25c1-7a98-ad36-ff16e7edd9be","name":"Test Category 3121424a096544d9906ab126ec6cf22c","description":"Test Category","isActive":true,"displayOrder":1,"createdAt":"2026-01-28T13:38:58.1138891Z","updatedAt":null},"error":null}, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.CreateServiceCategory_WithValidData_ShouldReturnCreated() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsIntegrationTests.cs:line 44
+   at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.CreateServiceCategory_WithValidData_ShouldReturnCreated() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsIntegrationTests.cs:line 65
+--- End of stack trace from previous location ---
+  Passed MeAjudaAi.Integration.Tests.Modules.SearchProviders.SearchProvidersApiTests.Search_WithInvalidPageSize_ShouldReturnBadRequest [13 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsIntegrationTests.DocumentRepository_ShouldBeRegisteredInDI [12 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProviderRepositoryIntegrationTests.GetByUserIdAsync_WithExistingUserId_ShouldReturnProvider [12 s]
+[xUnit.net 00:02:55.16]     MeAjudaAi.Integration.Tests.Modules.Users.UsersApiTests.UsersEndpoint_WithAuthentication_ShouldReturnValidResponse [FAIL]
+[xUnit.net 00:02:55.16]       Expected users.TryGetProperty("data", out var dataElement) to be True because Response should contain 'data' property for consistency, but found False.
+[xUnit.net 00:02:55.16]       Stack Trace:
+[xUnit.net 00:02:55.16]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:02:55.16]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:02:55.16]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:02:55.16]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:02:55.16]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Users\UsersApiTests.cs(41,0): at MeAjudaAi.Integration.Tests.Modules.Users.UsersApiTests.UsersEndpoint_WithAuthentication_ShouldReturnValidResponse()
+[xUnit.net 00:02:55.16]         --- End of stack trace from previous location ---
+  Failed MeAjudaAi.Integration.Tests.Modules.Users.UsersApiTests.UsersEndpoint_WithAuthentication_ShouldReturnValidResponse [41 s]
+  Error Message:
+   Expected users.TryGetProperty("data", out var dataElement) to be True because Response should contain 'data' property for consistency, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at MeAjudaAi.Integration.Tests.Modules.Users.UsersApiTests.UsersEndpoint_WithAuthentication_ShouldReturnValidResponse() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Users\UsersApiTests.cs:line 41
+--- End of stack trace from previous location ---
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentRepositoryIntegrationTests.ExistsAsync_WithExistingDocument_ShouldReturnTrue [12 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.CatalogsEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors [38 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.SecurityHeadersMiddlewareTests.SecurityHeaders_Development_ShouldHaveLenientCSP [13 s]
+  Passed MeAjudaAi.Integration.Tests.Authorization.InstancePermissionAuthorizationIntegrationTests.JsonDeserialization_ShouldHandleAllResponseFormats [56 s]
+[xUnit.net 00:03:02.00]     MeAjudaAi.Integration.Tests.Modules.Users.UsersIntegrationTests.GetUsers_ShouldReturnUsersList [FAIL]
+[xUnit.net 00:03:02.00]       Expected users.TryGetProperty("data", out var dataElement) to be True because Response should contain 'data' property for consistency, but found False.
+[xUnit.net 00:03:02.00]       Stack Trace:
+[xUnit.net 00:03:02.00]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:03:02.00]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:03:02.00]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:03:02.00]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:03:02.00]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Users\UsersIntegrationTests.cs(92,0): at MeAjudaAi.Integration.Tests.Modules.Users.UsersIntegrationTests.GetUsers_ShouldReturnUsersList()
+[xUnit.net 00:03:02.00]         --- End of stack trace from previous location ---
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersApiTests.ProvidersEndpoint_WithFilterParameters_ShouldAcceptThem [42 s]
+  Failed MeAjudaAi.Integration.Tests.Modules.Users.UsersIntegrationTests.GetUsers_ShouldReturnUsersList [41 s]
+  Error Message:
+   Expected users.TryGetProperty("data", out var dataElement) to be True because Response should contain 'data' property for consistency, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at MeAjudaAi.Integration.Tests.Modules.Users.UsersIntegrationTests.GetUsers_ShouldReturnUsersList() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Users\UsersIntegrationTests.cs:line 92
+--- End of stack trace from previous location ---
+  Passed MeAjudaAi.Integration.Tests.DependencyInjectionDiagnosticTests.Should_Have_QueryDispatcher_Registered [17 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsIntegrationTests.BlobStorageService_GenerateUploadUrl_ShouldReturnValidUrlAndExpiry [16 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProviderRepositoryIntegrationTests.AddAsync_WithValidProvider_ShouldPersistToDatabase [16 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentRepositoryIntegrationTests.AddAsync_WithValidDocument_ShouldPersistToDatabase [16 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsApiTests.UploadDocument_WithDifferentContentTypes_ShouldAcceptCommonFormats(contentType: "image/png", fileName: "document.png") [28 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.CompressionSecurityMiddlewareTests.CompressionSecurity_AuthenticatedRequest_WithoutAcceptEncoding_ShouldSucceed [41 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.SecurityHeadersMiddlewareTests.SecurityHeaders_ShouldIncludeXPermittedCrossDomainPolicies [22 s]
+  Passed MeAjudaAi.Integration.Tests.Authorization.InstancePermissionAuthorizationIntegrationTests.AuthenticationConfiguration_ShouldBeIsolatedBetweenTests [22 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProviderRepositoryIntegrationTests.ExistsByUserIdAsync_WithExistingUserId_ShouldReturnTrue [13 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentRepositoryIntegrationTests.GetByProviderIdAsync_WithMultipleDocuments_ShouldReturnAllDocumentsForProvider [13 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsIntegrationTests.DocumentRepository_GetByProviderIdAsync_ShouldReturnOnlyProviderDocuments [15 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.SearchProviders.SearchProvidersApiTests.Search_WithSubscriptionTierFilter_ShouldAcceptParameter [33 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.CompressionSecurityMiddlewareTests.CompressionSecurity_AnonymousUser_ShouldAllowCompression [12 s]
+[xUnit.net 00:03:29.87]     MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.ServiceCategoriesEndpoint_WithAuthentication_ShouldReturnValidResponse [FAIL]
+[xUnit.net 00:03:29.87]       Expected categories.TryGetProperty("data", out var dataElement) to be True because Response should contain 'data' property for consistency, but found False.
+[xUnit.net 00:03:29.87]       Stack Trace:
+[xUnit.net 00:03:29.87]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:03:29.87]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:03:29.87]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:03:29.87]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:03:29.87]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsApiTests.cs(47,0): at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.ServiceCategoriesEndpoint_WithAuthentication_ShouldReturnValidResponse()
+[xUnit.net 00:03:29.87]         --- End of stack trace from previous location ---
+  Passed MeAjudaAi.Integration.Tests.Authorization.PermissionAuthorizationIntegrationTests.RegularUser_ShouldBeForbiddenFromUsersEndpoint [34 s]
+  Failed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.ServiceCategoriesEndpoint_WithAuthentication_ShouldReturnValidResponse [32 s]
+  Error Message:
+   Expected categories.TryGetProperty("data", out var dataElement) to be True because Response should contain 'data' property for consistency, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.ServiceCategoriesEndpoint_WithAuthentication_ShouldReturnValidResponse() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsApiTests.cs:line 47
+--- End of stack trace from previous location ---
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.CepProvidersUnavailabilityTests.LookupCep_WhenAllProvidersReturn500_ShouldReturnFailure [54 s]
+[xUnit.net 00:03:33.47]     MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.GetProviders_ShouldReturnProvidersList [FAIL]
+[xUnit.net 00:03:33.47]       Expected providers.TryGetProperty("data", out var dataElement) to be True because Response should contain 'data' property for consistency, but found False.
+[xUnit.net 00:03:33.47]       Stack Trace:
+[xUnit.net 00:03:33.47]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:03:33.47]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:03:33.47]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:03:33.47]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:03:33.47]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Providers\ProvidersIntegrationTests.cs(111,0): at MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.GetProviders_ShouldReturnProvidersList()
+[xUnit.net 00:03:33.47]         --- End of stack trace from previous location ---
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.CatalogsEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors [39 s]
+  Failed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.GetProviders_ShouldReturnProvidersList [43 s]
+  Error Message:
+   Expected providers.TryGetProperty("data", out var dataElement) to be True because Response should contain 'data' property for consistency, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.GetProviders_ShouldReturnProvidersList() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Providers\ProvidersIntegrationTests.cs:line 111
+--- End of stack trace from previous location ---
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProviderRepositoryIntegrationTests.GetByStateAsync_WithMatchingState_ShouldReturnProviders [12 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentRepositoryIntegrationTests.Document_WithDifferentStatuses_ShouldPersistCorrectly [12 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.SearchProviders.SearchProvidersApiTests.Search_WithRadiusExceeding500Km_ShouldReturnBadRequest [11 s]
+  Passed MeAjudaAi.Integration.Tests.Authorization.PermissionAuthorizationIntegrationTests.UnauthenticatedRequest_ShouldReturnUnauthorized [10 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsApiTests.UploadDocument_WithDifferentContentTypes_ShouldAcceptCommonFormats(contentType: "image/jpeg", fileName: "document.jpeg") [28 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentRepositoryIntegrationTests.UpdateAsync_WithModifiedDocument_ShouldPersistChanges [8 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.SearchProviders.SearchProvidersApiTests.Search_WithInvalidLatitude_ShouldReturnBadRequest [8 s]
+[xUnit.net 00:03:47.38]     MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersApiTests.ProvidersEndpoint_WithAuthentication_ShouldReturnValidResponse [FAIL]
+[xUnit.net 00:03:47.38]       Expected (hasItems || hasTotalCount || hasPage) to be True because Should be a paginated result, but found False.
+[xUnit.net 00:03:47.38]       Stack Trace:
+[xUnit.net 00:03:47.38]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:03:47.38]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:03:47.38]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:03:47.38]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:03:47.38]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Providers\ProvidersApiTests.cs(65,0): at MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersApiTests.ProvidersEndpoint_WithAuthentication_ShouldReturnValidResponse()
+[xUnit.net 00:03:47.38]         --- End of stack trace from previous location ---
+  Failed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersApiTests.ProvidersEndpoint_WithAuthentication_ShouldReturnValidResponse [46 s]
+  Error Message:
+   Expected (hasItems || hasTotalCount || hasPage) to be True because Should be a paginated result, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersApiTests.ProvidersEndpoint_WithAuthentication_ShouldReturnValidResponse() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Providers\ProvidersApiTests.cs:line 65
+--- End of stack trace from previous location ---
+  Passed MeAjudaAi.Integration.Tests.Modules.Users.UsersIntegrationTests.GetUserByEmail_WithNonExistentEmail_ShouldReturnNotFound [50 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.CepProvidersUnavailabilityTests.LookupCep_WhenViaCepReturnsMalformedJson_ShouldFallbackToBrasilApi [25 s]
+[xUnit.net 00:03:57.91]     MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.ServicesEndpoint_WithAuthentication_ShouldReturnValidResponse [FAIL]
+[xUnit.net 00:03:57.91]       Expected services.TryGetProperty("data", out var dataElement) to be True because Response should contain 'data' property for consistency, but found False.
+[xUnit.net 00:03:57.91]       Stack Trace:
+[xUnit.net 00:03:57.91]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:03:57.91]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:03:57.91]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:03:57.91]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:03:57.91]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsApiTests.cs(71,0): at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.ServicesEndpoint_WithAuthentication_ShouldReturnValidResponse()
+[xUnit.net 00:03:57.91]         --- End of stack trace from previous location ---
+  Failed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.ServicesEndpoint_WithAuthentication_ShouldReturnValidResponse [28 s]
+  Error Message:
+   Expected services.TryGetProperty("data", out var dataElement) to be True because Response should contain 'data' property for consistency, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.ServicesEndpoint_WithAuthentication_ShouldReturnValidResponse() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsApiTests.cs:line 71
+--- End of stack trace from previous location ---
+[xUnit.net 00:03:58.48]     MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.ServiceWorkflow_CreateWithCategoryUpdateDelete_ShouldWork [FAIL]
+[xUnit.net 00:03:58.48]       Expected categoryDataElement.TryGetProperty("id", out var categoryIdProperty) to be True, but found False.
+[xUnit.net 00:03:58.48]       Stack Trace:
+[xUnit.net 00:03:58.48]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:03:58.48]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:03:58.48]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:03:58.48]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:03:58.48]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsIntegrationTests.cs(252,0): at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.ServiceWorkflow_CreateWithCategoryUpdateDelete_ShouldWork()
+[xUnit.net 00:03:58.48]         --- End of stack trace from previous location ---
+  Failed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.ServiceWorkflow_CreateWithCategoryUpdateDelete_ShouldWork [26 s]
+  Error Message:
+   Expected categoryDataElement.TryGetProperty("id", out var categoryIdProperty) to be True, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.ServiceWorkflow_CreateWithCategoryUpdateDelete_ShouldWork() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsIntegrationTests.cs:line 252
+--- End of stack trace from previous location ---
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsApiTests.CreateCategory_WithoutAuthentication_ShouldReturnUnauthorized [6 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsApiTests.UploadDocument_WithInvalidRequest_ShouldReturnBadRequest [23 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.SearchProviders.SearchProvidersApiTests.Search_WithPagination_ShouldAcceptParameters [23 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersApiTests.CreateProvider_Endpoint_ShouldExist [23 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.CompressionSecurityMiddlewareTests.CompressionSecurity_DifferentEndpoints_ShouldApplyRulesConsistently [45 s]
+  Passed MeAjudaAi.Integration.Tests.Authorization.PermissionAuthorizationIntegrationTests.AdminUser_ShouldHaveAccessToUsersEndpoint [36 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersApiTests.CreateProvider_WithoutAuthentication_ShouldReturnUnauthorized [6 s]
+  Passed MeAjudaAi.Integration.Tests.Authorization.InstancePermissionAuthorizationIntegrationTests.NoStaticStateInterference_MultipleConfigurationChanges [56 s]
+[xUnit.net 00:04:22.20]     MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.GetServicesByCategoryId_ShouldReturnFilteredServices [FAIL]
+[xUnit.net 00:04:22.20]       Expected categoryDataElement.TryGetProperty("id", out var categoryIdProperty) to be True, but found False.
+[xUnit.net 00:04:22.20]       Stack Trace:
+[xUnit.net 00:04:22.20]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:04:22.20]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:04:22.20]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:04:22.20]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:04:22.20]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsIntegrationTests.cs(363,0): at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.GetServicesByCategoryId_ShouldReturnFilteredServices()
+[xUnit.net 00:04:22.20]         --- End of stack trace from previous location ---
+  Failed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.GetServicesByCategoryId_ShouldReturnFilteredServices [23 s]
+  Error Message:
+   Expected categoryDataElement.TryGetProperty("id", out var categoryIdProperty) to be True, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.GetServicesByCategoryId_ShouldReturnFilteredServices() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsIntegrationTests.cs:line 363
+--- End of stack trace from previous location ---
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersApiTests.ProvidersEndpoint_UnauthorizedUser_ShouldReturnUnauthorized [6 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Users.UsersIntegrationTests.UsersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors [35 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WithMalformedLocationHeader_ShouldFailOpen(malformedLocation: "|") [36 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsApiTests.GetDocumentStatus_WithNonExistentId_ShouldReturnNotFound [28 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.SearchProviders.SearchProvidersApiTests.Search_WithMultipleFilters_ShouldAcceptParameters [24 s]
+  Passed MeAjudaAi.Integration.Tests.Authorization.InstancePermissionAuthorizationIntegrationTests.AuthConfig_ShouldSupportCustomUserRoles [24 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.GetServiceById_WithNonExistentId_ShouldReturnNotFound [23 s]
+  Passed MeAjudaAi.Integration.Tests.Authorization.PermissionAuthorizationIntegrationTests.AdminUser_ShouldHaveAccessToProvidersEndpoint [35 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsApiTests.UploadDocument_WithDifferentDocumentTypes_ShouldAcceptAll(docType: ProofOfResidence) [23 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.SearchProviders.SearchProvidersApiTests.Search_WithDifferentLocation_ShouldAcceptCoordinates [23 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersApiTests.ProvidersEndpoint_ShouldSupportFilters [35 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Users.UsersIntegrationTests.GetUserById_WithNonExistentId_ShouldReturnNotFound [40 s]
+  Passed MeAjudaAi.Integration.Tests.Authorization.InstancePermissionAuthorizationIntegrationTests.RegularUser_CannotAccessAdminEndpoint [24 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WithMalformedLocationHeader_ShouldFailOpen(malformedLocation: "  |  ") [37 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.GetServiceCategoryById_WithNonExistentId_ShouldReturnNotFound [25 s]
+  Passed MeAjudaAi.Integration.Tests.Authorization.InstancePermissionAuthorizationIntegrationTests.UnauthenticatedRequest_ShouldReturnUnauthorized [11 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsApiTests.UploadDocument_WithDifferentDocumentTypes_ShouldAcceptAll(docType: IdentityDocument) [23 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.SearchProviders.SearchProvidersApiTests.Search_WithMinRatingFilter_ShouldAcceptParameter [23 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersApiTests.ProvidersEndpoint_ShouldSupportPagination [35 s]
+[xUnit.net 00:05:37.89]     MeAjudaAi.Integration.Tests.Modules.Users.UsersIntegrationTests.CreateUser_WithValidData_ShouldReturnCreated [FAIL]
+[xUnit.net 00:05:37.89]       Expected dataElement.TryGetProperty("id", out _) to be True because Response data should contain 'id' property. Full response: {"isSuccess":true,"isFailure":false,"value":{"id":"019c04d6-b419-790a-b060-7d5bafe8d44b","username":"test378653e2f7554287","email":"test-5f5f17a1886041bd954f48f84174d888@example.com","firstName":"Test","lastName":"User","fullName":"Test User","keycloakId":"mock_keycloak_019c04d6-b419-7f40-8522-10dc969a8722","createdAt":"2026-01-28T13:41:45.6250702Z","updatedAt":null},"error":null}, but found False.
+[xUnit.net 00:05:37.89]       Stack Trace:
+[xUnit.net 00:05:37.89]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:05:37.89]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:05:37.89]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:05:37.89]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:05:37.89]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Users\UsersIntegrationTests.cs(56,0): at MeAjudaAi.Integration.Tests.Modules.Users.UsersIntegrationTests.CreateUser_WithValidData_ShouldReturnCreated()
+[xUnit.net 00:05:37.89]         --- End of stack trace from previous location ---
+  Failed MeAjudaAi.Integration.Tests.Modules.Users.UsersIntegrationTests.CreateUser_WithValidData_ShouldReturnCreated [29 s]
+  Error Message:
+   Expected dataElement.TryGetProperty("id", out _) to be True because Response data should contain 'id' property. Full response: {"isSuccess":true,"isFailure":false,"value":{"id":"019c04d6-b419-790a-b060-7d5bafe8d44b","username":"test378653e2f7554287","email":"test-5f5f17a1886041bd954f48f84174d888@example.com","firstName":"Test","lastName":"User","fullName":"Test User","keycloakId":"mock_keycloak_019c04d6-b419-7f40-8522-10dc969a8722","createdAt":"2026-01-28T13:41:45.6250702Z","updatedAt":null},"error":null}, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at MeAjudaAi.Integration.Tests.Modules.Users.UsersIntegrationTests.CreateUser_WithValidData_ShouldReturnCreated() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Users\UsersIntegrationTests.cs:line 56
+--- End of stack trace from previous location ---
+[xUnit.net 00:05:38.51]     MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.GetServiceCategories_ShouldReturnCategoriesList [FAIL]
+[xUnit.net 00:05:38.51]       Expected categories.TryGetProperty("data", out var dataElement) to be True because Response should contain 'data' property for consistency, but found False.
+[xUnit.net 00:05:38.51]       Stack Trace:
+[xUnit.net 00:05:38.51]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:05:38.51]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:05:38.51]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:05:38.51]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:05:38.51]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsIntegrationTests.cs(84,0): at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.GetServiceCategories_ShouldReturnCategoriesList()
+[xUnit.net 00:05:38.51]         --- End of stack trace from previous location ---
+  Failed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.GetServiceCategories_ShouldReturnCategoriesList [27 s]
+  Error Message:
+   Expected categories.TryGetProperty("data", out var dataElement) to be True because Response should contain 'data' property for consistency, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.GetServiceCategories_ShouldReturnCategoriesList() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsIntegrationTests.cs:line 84
+--- End of stack trace from previous location ---
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersApiTests.ProvidersModule_ShouldBeProperlyRegistered [6 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Users.UsersIntegrationTests.Database_Should_Persist_Users_Correctly [6 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsApiTests.UploadDocument_WithDifferentDocumentTypes_ShouldAcceptAll(docType: CriminalRecord) [24 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WithMalformedLocationHeader_ShouldFailOpen(malformedLocation: "Muria├⌐| ") [38 s]
+  Passed MeAjudaAi.Integration.Tests.Authorization.InstancePermissionAuthorizationIntegrationTests.EndpointResponses_ShouldBeConsistentWithoutFlakiness [35 s]
+[xUnit.net 00:06:01.41]     MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.ServiceCategoryWorkflow_CreateUpdateDelete_ShouldWork [FAIL]
+[xUnit.net 00:06:01.41]       Expected createdCategory.TryGetProperty("id", out var idProperty) to be True, but found False.
+[xUnit.net 00:06:01.41]       Stack Trace:
+[xUnit.net 00:06:01.41]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:06:01.41]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:06:01.41]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:06:01.41]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:06:01.41]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsIntegrationTests.cs(175,0): at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.ServiceCategoryWorkflow_CreateUpdateDelete_ShouldWork()
+[xUnit.net 00:06:01.41]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsIntegrationTests.cs(227,0): at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.ServiceCategoryWorkflow_CreateUpdateDelete_ShouldWork()
+[xUnit.net 00:06:01.41]         --- End of stack trace from previous location ---
+[xUnit.net 00:06:01.41]       Output:
+[xUnit.net 00:06:01.41]         Category workflow test failed: Expected createdCategory.TryGetProperty("id", out var idProperty) to be True, but found False.
+  Failed MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.ServiceCategoryWorkflow_CreateUpdateDelete_ShouldWork [22 s]
+  Error Message:
+   Expected createdCategory.TryGetProperty("id", out var idProperty) to be True, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.ServiceCategoryWorkflow_CreateUpdateDelete_ShouldWork() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsIntegrationTests.cs:line 175
+   at MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs.ServiceCatalogsIntegrationTests.ServiceCategoryWorkflow_CreateUpdateDelete_ShouldWork() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\ServiceCatalogs\ServiceCatalogsIntegrationTests.cs:line 227
+--- End of stack trace from previous location ---
+  Standard Output Messages:
+ Category workflow test failed: Expected createdCategory.TryGetProperty("id", out var idProperty) to be True, but found False.
+
+
+[xUnit.net 00:06:07.99]     MeAjudaAi.Integration.Tests.Modules.Users.UsersIntegrationTests.UserWorkflow_CreateUpdateDelete_ShouldWork [FAIL]
+[xUnit.net 00:06:07.99]       Expected createdUser.TryGetProperty("id", out var idProperty) to be True, but found False.
+[xUnit.net 00:06:07.99]       Stack Trace:
+[xUnit.net 00:06:07.99]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 00:06:07.99]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:06:07.99]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 00:06:07.99]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:06:07.99]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Users\UsersIntegrationTests.cs(185,0): at MeAjudaAi.Integration.Tests.Modules.Users.UsersIntegrationTests.UserWorkflow_CreateUpdateDelete_ShouldWork()
+[xUnit.net 00:06:07.99]         --- End of stack trace from previous location ---
+[xUnit.net 00:06:07.99]       Output:
+[xUnit.net 00:06:07.99]         User workflow test failed: Expected createdUser.TryGetProperty("id", out var idProperty) to be True, but found False.
+  Failed MeAjudaAi.Integration.Tests.Modules.Users.UsersIntegrationTests.UserWorkflow_CreateUpdateDelete_ShouldWork [23 s]
+  Error Message:
+   Expected createdUser.TryGetProperty("id", out var idProperty) to be True, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at MeAjudaAi.Integration.Tests.Modules.Users.UsersIntegrationTests.UserWorkflow_CreateUpdateDelete_ShouldWork() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Users\UsersIntegrationTests.cs:line 185
+--- End of stack trace from previous location ---
+  Standard Output Messages:
+ User workflow test failed: Expected createdUser.TryGetProperty("id", out var idProperty) to be True, but found False.
+
+
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsApiTests.UploadDocument_WithDifferentDocumentTypes_ShouldAcceptAll(docType: Other) [23 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsApiTests.DocumentsEndpoints_WithoutAuthentication_ShouldReturnUnauthorized [5 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WithMalformedLocationHeader_ShouldFailOpen(malformedLocation: "Muria├⌐|") [34 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsApiTests.UploadDocument_WithValidRequest_ShouldReturnUploadUrl [22 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WithMalformedLocationHeader_ShouldFailOpen(malformedLocation: " |MG") [34 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Documents.DocumentsApiTests.UploadDocument_WithMismatchedProviderId_ShouldReturnForbidden [23 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WithMalformedLocationHeader_ShouldFailOpen(malformedLocation: "|MG") [33 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WhenAllowedState_ShouldReturnOk [34 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WithAllowedCities_CaseInsensitive_ShouldWork(city: "Muria├⌐", state: "MG") [39 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WithAllowedCities_CaseInsensitive_ShouldWork(city: "Linhares", state: "ES") [40 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WithAllowedCities_CaseInsensitive_ShouldWork(city: "muria├⌐", state: "mg") [41 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WithAllowedCities_CaseInsensitive_ShouldWork(city: "MURIA├ë", state: "MG") [41 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WithAllowedCities_CaseInsensitive_ShouldWork(city: "itaperuna", state: "rj") [38 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WithAllowedCities_CaseInsensitive_ShouldWork(city: "Itaperuna", state: "RJ") [39 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WhenNoLocationHeaders_ShouldFailOpen [33 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WithEmptyStateHeader_ShouldValidateByCityList(emptyState: "") [39 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WithEmptyStateHeader_ShouldValidateByCityList(emptyState: "  ") [39 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WhenBlockedCity_ShouldReturn451 [23 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WhenLocationHeader_ShouldReturnOk [40 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.HealthCheck_ShouldAlwaysWork_RegardlessOfLocation [6 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.Swagger_ShouldAlwaysWork_RegardlessOfLocation [6 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WhenAllowedCity_ShouldReturnOk [41 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WithEmptyCityHeader_ShouldFailOpen(emptyCity: "  ") [34 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WithEmptyCityHeader_ShouldFailOpen(emptyCity: null) [34 s]
+  Passed MeAjudaAi.Integration.Tests.Middleware.GeographicRestrictionIntegrationTests.GetProviders_WithEmptyCityHeader_ShouldFailOpen(emptyCity: "") [33 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.GeographicRestrictionConfigTests.GeographicRestriction_ShouldAllow_WhenCityInAllowedList [22 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.GeographicRestrictionConfigTests.GeographicRestriction_ShouldBlock_WhenCityNotInAllowedList [22 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.GeographicRestrictionConfigTests.GeographicRestriction_ShouldBlock_WhenStateNotInAllowedList [22 s]
+[xUnit.net 01:03:34.81]     MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.CreateProvider_WithValidData_ShouldReturnCreated [FAIL]
+[xUnit.net 01:03:34.81]       System.TimeoutException : The operation has timed out.
+[xUnit.net 01:03:34.81]       Stack Trace:
+[xUnit.net 01:03:34.81]         /_/src/Testcontainers/Configurations/WaitStrategies/WaitStrategy.cs(222,0): at DotNet.Testcontainers.Configurations.WaitStrategy.WaitUntilAsync(Func`1 wait, TimeSpan interval, TimeSpan timeout, Int32 retries, CancellationToken ct)
+[xUnit.net 01:03:34.81]         /_/src/Testcontainers/Containers/DockerContainer.cs(742,0): at DotNet.Testcontainers.Containers.DockerContainer.CheckReadinessAsync(IEnumerable`1 waitStrategies, CancellationToken ct)
+[xUnit.net 01:03:34.81]         /_/src/Testcontainers/Containers/DockerContainer.cs(581,0): at DotNet.Testcontainers.Containers.DockerContainer.UnsafeStartAsync(CancellationToken ct)
+[xUnit.net 01:03:34.81]         /_/src/Testcontainers/Containers/DockerContainer.cs(342,0): at DotNet.Testcontainers.Containers.DockerContainer.StartAsync(CancellationToken ct)
+[xUnit.net 01:03:34.81]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Fixtures\Database\SimpleDatabaseFixture.cs(51,0): at MeAjudaAi.Integration.Tests.Infrastructure.SimpleDatabaseFixture.InitializeAsync()
+[xUnit.net 01:03:34.81]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Base\BaseApiTest.cs(109,0): at MeAjudaAi.Integration.Tests.Base.BaseApiTest.InitializeAsync()
+  Failed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.CreateProvider_WithValidData_ShouldReturnCreated [1 h]
+  Error Message:
+   System.TimeoutException : The operation has timed out.
+  Stack Trace:
+     at DotNet.Testcontainers.Configurations.WaitStrategy.WaitUntilAsync(Func`1 wait, TimeSpan interval, TimeSpan timeout, Int32 retries, CancellationToken ct) in /_/src/Testcontainers/Configurations/WaitStrategies/WaitStrategy.cs:line 222
+   at DotNet.Testcontainers.Containers.DockerContainer.CheckReadinessAsync(IEnumerable`1 waitStrategies, CancellationToken ct) in /_/src/Testcontainers/Containers/DockerContainer.cs:line 742
+   at DotNet.Testcontainers.Containers.DockerContainer.UnsafeStartAsync(CancellationToken ct) in /_/src/Testcontainers/Containers/DockerContainer.cs:line 581
+   at DotNet.Testcontainers.Containers.DockerContainer.StartAsync(CancellationToken ct) in /_/src/Testcontainers/Containers/DockerContainer.cs:line 342
+   at MeAjudaAi.Integration.Tests.Infrastructure.SimpleDatabaseFixture.InitializeAsync() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Fixtures\Database\SimpleDatabaseFixture.cs:line 51
+   at MeAjudaAi.Integration.Tests.Base.BaseApiTest.InitializeAsync() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Base\BaseApiTest.cs:line 109
+  Passed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.GetProviderById_WithNonExistentId_ShouldReturnNotFound [34 s]
+[xUnit.net 01:04:52.07]     MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.ProvidersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors [FAIL]
+[xUnit.net 01:04:52.07]       Expected response.StatusCode to be HttpStatusCode.OK {value: 200} because Authenticated admin requests to /api/v1/providers/by-verification-status/Pending should succeed., but found HttpStatusCode.NotFound {value: 404}.
+[xUnit.net 01:04:52.07]       Stack Trace:
+[xUnit.net 01:04:52.07]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+[xUnit.net 01:04:52.07]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 01:04:52.07]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+[xUnit.net 01:04:52.07]            at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)
+[xUnit.net 01:04:52.07]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Providers\ProvidersIntegrationTests.cs(335,0): at MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.ProvidersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors()
+[xUnit.net 01:04:52.07]         --- End of stack trace from previous location ---
+[xUnit.net 01:04:52.07]       Output:
+[xUnit.net 01:04:52.07]         Endpoint /api/v1/providers/by-verification-status/Pending returned NotFound. Body: 
+  Failed MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.ProvidersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors [43 s]
+  Error Message:
+   Expected response.StatusCode to be HttpStatusCode.OK {value: 200} because Authenticated admin requests to /api/v1/providers/by-verification-status/Pending should succeed., but found HttpStatusCode.NotFound {value: 404}.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)
+   at MeAjudaAi.Integration.Tests.Modules.Providers.ProvidersIntegrationTests.ProvidersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Modules\Providers\ProvidersIntegrationTests.cs:line 335
+--- End of stack trace from previous location ---
+  Standard Output Messages:
+ Endpoint /api/v1/providers/by-verification-status/Pending returned NotFound. Body: 
+
+
+[xUnit.net 01:18:44.32]     MeAjudaAi.Integration.Tests.Modules.Locations.IbgeUnavailabilityTests.GeographicRestriction_WhenIbgeReturnsMalformedJson_ShouldFallbackToSimpleValidation [FAIL]
+[xUnit.net 01:18:44.32]       System.TimeoutException : The operation has timed out.
+[xUnit.net 01:18:44.32]       Stack Trace:
+[xUnit.net 01:18:44.32]         /_/src/Testcontainers/Configurations/WaitStrategies/WaitStrategy.cs(222,0): at DotNet.Testcontainers.Configurations.WaitStrategy.WaitUntilAsync(Func`1 wait, TimeSpan interval, TimeSpan timeout, Int32 retries, CancellationToken ct)
+[xUnit.net 01:18:44.32]         /_/src/Testcontainers/Containers/DockerContainer.cs(742,0): at DotNet.Testcontainers.Containers.DockerContainer.CheckReadinessAsync(IEnumerable`1 waitStrategies, CancellationToken ct)
+[xUnit.net 01:18:44.32]         /_/src/Testcontainers/Containers/DockerContainer.cs(581,0): at DotNet.Testcontainers.Containers.DockerContainer.UnsafeStartAsync(CancellationToken ct)
+[xUnit.net 01:18:44.32]         /_/src/Testcontainers/Containers/DockerContainer.cs(342,0): at DotNet.Testcontainers.Containers.DockerContainer.StartAsync(CancellationToken ct)
+[xUnit.net 01:18:44.32]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Fixtures\Database\SimpleDatabaseFixture.cs(51,0): at MeAjudaAi.Integration.Tests.Infrastructure.SimpleDatabaseFixture.InitializeAsync()
+[xUnit.net 01:18:44.32]         C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Base\BaseApiTest.cs(109,0): at MeAjudaAi.Integration.Tests.Base.BaseApiTest.InitializeAsync()
+  Failed MeAjudaAi.Integration.Tests.Modules.Locations.IbgeUnavailabilityTests.GeographicRestriction_WhenIbgeReturnsMalformedJson_ShouldFallbackToSimpleValidation [1 h]
+  Error Message:
+   System.TimeoutException : The operation has timed out.
+  Stack Trace:
+     at DotNet.Testcontainers.Configurations.WaitStrategy.WaitUntilAsync(Func`1 wait, TimeSpan interval, TimeSpan timeout, Int32 retries, CancellationToken ct) in /_/src/Testcontainers/Configurations/WaitStrategies/WaitStrategy.cs:line 222
+   at DotNet.Testcontainers.Containers.DockerContainer.CheckReadinessAsync(IEnumerable`1 waitStrategies, CancellationToken ct) in /_/src/Testcontainers/Containers/DockerContainer.cs:line 742
+   at DotNet.Testcontainers.Containers.DockerContainer.UnsafeStartAsync(CancellationToken ct) in /_/src/Testcontainers/Containers/DockerContainer.cs:line 581
+   at DotNet.Testcontainers.Containers.DockerContainer.StartAsync(CancellationToken ct) in /_/src/Testcontainers/Containers/DockerContainer.cs:line 342
+   at MeAjudaAi.Integration.Tests.Infrastructure.SimpleDatabaseFixture.InitializeAsync() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Fixtures\Database\SimpleDatabaseFixture.cs:line 51
+   at MeAjudaAi.Integration.Tests.Base.BaseApiTest.InitializeAsync() in C:\Code\MeAjudaAi\tests\MeAjudaAi.Integration.Tests\Base\BaseApiTest.cs:line 109
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.IbgeUnavailabilityTests.GeographicRestriction_WhenIbgeReturnsEmptyArray_ShouldFallbackToSimpleValidation [40 s]
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.IbgeUnavailabilityTests.GeographicRestriction_WhenIbgeUnavailableAndCityNotAllowed_ShouldDenyAccess [39 s]
+[xUnit.net 01:20:55.85]   Finished:    MeAjudaAi.Integration.Tests (ID = 'a999e5766ed6353fdaed37723b721340af5d7107b3449cae5b6c00d04c40ba96')
+  Passed MeAjudaAi.Integration.Tests.Modules.Locations.IbgeUnavailabilityTests.GeographicRestriction_WhenIbgeReturns500_ShouldFallbackToSimpleValidation [52 s]
+
+Test Run Failed.
+Total tests: 261
+     Passed: 240
+     Failed: 19
+    Skipped: 2
+ Total time: 1.3490 Hours

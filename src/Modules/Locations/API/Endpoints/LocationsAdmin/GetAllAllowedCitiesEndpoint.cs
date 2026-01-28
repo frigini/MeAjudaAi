@@ -23,7 +23,7 @@ public class GetAllAllowedCitiesEndpoint : BaseEndpoint, IEndpoint
             .WithName("GetAllAllowedCities")
             .WithSummary("Listar todas as cidades permitidas")
             .WithDescription("Recupera todas as cidades permitidas (opcionalmente apenas as ativas)")
-            .Produces<Response<IReadOnlyList<AllowedCityDto>>>(StatusCodes.Status200OK)
+            .Produces<Result<IReadOnlyList<AllowedCityDto>>>(StatusCodes.Status200OK)
             .RequireAdmin();
 
     private static async Task<IResult> GetAllAsync(

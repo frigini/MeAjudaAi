@@ -121,6 +121,11 @@ public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
 
             return HandlePagedResult(result);
         }
+        catch (OperationCanceledException)
+        {
+            // Retorna 499 (Client Closed Request) ou similares para cancelamento
+            return Results.StatusCode(499);
+        }
         catch (Exception ex)
         {
             // Log detalhado para identificar causa raiz do erro 500 mascarado
@@ -133,7 +138,7 @@ public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
             return Results.Problem(
                 detail: "Ocorreu um erro interno ao processar a lista de prestadores. Consulte os logs.",
                 statusCode: StatusCodes.Status500InternalServerError,
-                title: "Internal Server Error");
+                title: "Erro Interno do Servidor");
         }
     }
 }

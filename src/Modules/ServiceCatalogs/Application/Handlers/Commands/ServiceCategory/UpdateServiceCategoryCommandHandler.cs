@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
@@ -22,7 +23,7 @@ public sealed class UpdateServiceCategoryCommandHandler(
             var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
 
             if (category is null)
-                return Result.Failure(Error.NotFound($"Category with ID '{request.Id}' not found."));
+                return Result.Failure(Error.NotFound(ValidationMessages.NotFound.Category));
 
             var normalizedName = request.Name?.Trim();
 

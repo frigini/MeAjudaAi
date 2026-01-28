@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Modules.Providers;
@@ -21,7 +22,7 @@ public sealed class DeleteServiceCommandHandler(
         var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
 
         if (service is null)
-            return Result.Failure(Error.NotFound($"Service with ID '{request.Id}' not found."));
+            return Result.Failure(Error.NotFound(ValidationMessages.NotFound.Service));
 
         // Verificar se algum provedor oferece este serviço antes de deletar
         var hasProvidersResult = await providersModuleApi.HasProvidersOfferingServiceAsync(request.Id, cancellationToken);

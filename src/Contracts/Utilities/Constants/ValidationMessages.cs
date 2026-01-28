@@ -60,6 +60,9 @@ public static class ValidationMessages
         public const string User = "Usuário não encontrado.";
         public const string UserByEmail = "Usuário com este email não encontrado.";
         public const string Resource = "Recurso não encontrado.";
+        public const string Service = "Serviço não encontrado.";
+        public const string ServiceById = "Serviço com ID '{0}' não encontrado.";
+        public const string Category = "Categoria não encontrada.";
     }
 
     /// <summary>

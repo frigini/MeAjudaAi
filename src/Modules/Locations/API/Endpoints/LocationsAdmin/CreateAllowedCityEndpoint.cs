@@ -44,7 +44,7 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
         {
             logger.LogError(ex, "Error creating allowed city: {City}-{State}", request.City, request.State);
             return Results.Problem(
-                detail: ex.Message,
+                detail: "Ocorreu um erro ao criar a cidade permitida. Tente novamente mais tarde.",
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "Erro ao criar cidade permitida");
         }

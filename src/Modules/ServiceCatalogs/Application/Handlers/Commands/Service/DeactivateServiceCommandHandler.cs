@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
@@ -19,7 +20,7 @@ public sealed class DeactivateServiceCommandHandler(
         var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
 
         if (service is null)
-            return Result.Failure(Error.NotFound($"Service with ID '{request.Id}' not found."));
+            return Result.Failure(Error.NotFound(string.Format(ValidationMessages.NotFound.ServiceById, request.Id)));
 
         service.Deactivate();
 

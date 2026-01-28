@@ -616,27 +616,19 @@ public abstract class BaseApiTest : IAsyncLifetime
             
             // Verifica se tem as propriedades de um Result
             if (json.ValueKind == JsonValueKind.Object && 
-                json.TryGetProperty("isSuccess", out _) && 
+                json.TryGetProperty("isSuccess", out var isSuccessProp) && 
                 json.TryGetProperty("value", out var valueProp))
             {
                 // É um Result wrapper - verifica se foi sucesso
-                if (json.TryGetProperty("isSuccess", out var isSuccessProp) && 
-                    isSuccessProp.ValueKind == JsonValueKind.False)
+                if (isSuccessProp.ValueKind == JsonValueKind.False)
                 {
-                    // Resposta de erro da API - propagar para que o teste possa validar
-                    return JsonSerializer.Deserialize<T>(json, SerializationDefaults.Api);
+                   // Se falhou, retorna default(T) para indicar erro, ou lança exceção se preferir
+                   return default;
                 }
 
-                if (valueProp.ValueKind == JsonValueKind.Null)
-                    return default;
-                
-                return JsonSerializer.Deserialize<T>(valueProp, SerializationDefaults.Api);
-            }
-            
-            // Não é wrapper, deserializa direto do elemento
-            return JsonSerializer.Deserialize<T>(json, SerializationDefaults.Api);
-        }
-        catch (JsonException)
+                // Se sucesso, desserializa o campo 'value'
+                return JsonSerializer.Deserialize<T>(valueProp.GetRawText(), SerializationDefaults.Api);
+            }      catch (JsonException)
         {
             // Fallback para deserialização direta se a inspeção falhar (ex: array raiz)
             stream.Position = 0;
