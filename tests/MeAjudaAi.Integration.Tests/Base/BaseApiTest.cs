@@ -627,8 +627,14 @@ public abstract class BaseApiTest : IAsyncLifetime
                 }
 
                 // Se sucesso, desserializa o campo 'value'
+                // Se sucesso, desserializa o campo 'value'
                 return JsonSerializer.Deserialize<T>(valueProp.GetRawText(), SerializationDefaults.Api);
-            }      catch (JsonException)
+            }
+            
+            // Não é wrapper, deserializa direto do elemento
+            return JsonSerializer.Deserialize<T>(json, SerializationDefaults.Api);
+        }
+        catch (JsonException)
         {
             // Fallback para deserialização direta se a inspeção falhar (ex: array raiz)
             stream.Position = 0;

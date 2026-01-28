@@ -8,6 +8,7 @@ using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Mvc;
 
 using MeAjudaAi.Contracts.Models;
 
@@ -24,7 +25,8 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
             .WithSummary("Criar nova cidade permitida")
             .WithDescription("Cria uma nova cidade permitida para operações de prestadores (apenas Admin)")
             .Produces<Response<Guid>>(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status500InternalServerError)
             .RequireAdmin();
 
     private static async Task<IResult> CreateAsync(

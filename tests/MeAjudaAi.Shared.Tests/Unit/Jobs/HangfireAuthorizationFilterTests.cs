@@ -42,20 +42,70 @@ public class HangfireAuthorizationFilterTests
     public void Authorize_InDevelopmentEnvironment_ShouldAllowAccess(string environment)
     {
         // Arrange
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
-        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
-        var filter = new HangfireAuthorizationFilter();
-        var context = CreateDashboardContext();
+        var originalAspNetCoreEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var originalDotNetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        
+        try
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
+            var filter = new HangfireAuthorizationFilter();
+            var context = CreateDashboardContext();
 
-        // Act
-        var result = filter.Authorize(context);
+            // Act
+            var result = filter.Authorize(context);
 
-        // Assert
-        result.Should().BeTrue("Development environment should allow unrestricted access");
-
-        // Cleanup
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
+            // Assert
+            result.Should().BeTrue("Development environment should allow unrestricted access");
+        }
+        finally
+        {
+            // Cleanup
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalAspNetCoreEnv);
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalDotNetEnv);
+        }
     }
+
+    [Fact]
+    public void Authorize_InProductionEnvironment_WithAdminRole_ShouldAllowAccess()
+    {
+        // Arrange
+        var originalAspNetCoreEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var originalDotNetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+
+        try
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
+            
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, "admin-user"),
+                new Claim("is_system_admin", "true") // Claim expected by the filter for admin access
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuth");
+            var principal = new ClaimsPrincipal(identity);
+            var httpContext = new DefaultHttpContext { User = principal };
+            
+            var context = createDashboardContextWithUser(httpContext);
+            var filter = new HangfireAuthorizationFilter();
+
+            // Act
+            var result = filter.Authorize(context);
+
+            // Assert
+            result.Should().BeTrue("Authenticated admin users should have access in Production");
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalAspNetCoreEnv);
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalDotNetEnv);
+        }
+    }
+
+    // Helper wrapper to match local method name if needed, or just use CreateDashboardContext(httpContext)
+    private static AspNetCoreDashboardContext createDashboardContextWithUser(HttpContext httpContext)
+        => CreateDashboardContext(httpContext);
 
     [Theory]
     [InlineData("Testing")]
@@ -64,19 +114,28 @@ public class HangfireAuthorizationFilterTests
     public void Authorize_InTestingEnvironment_ShouldAllowAccess(string environment)
     {
         // Arrange
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
-        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
-        var filter = new HangfireAuthorizationFilter();
-        var context = CreateDashboardContext();
+        var originalAspNetCoreEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var originalDotNetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
 
-        // Act
-        var result = filter.Authorize(context);
+        try
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
+            var filter = new HangfireAuthorizationFilter();
+            var context = CreateDashboardContext();
 
-        // Assert
-        result.Should().BeTrue("Testing environment should allow unrestricted access");
+            // Act
+            var result = filter.Authorize(context);
 
-        // Cleanup
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
+            // Assert
+            result.Should().BeTrue("Testing environment should allow unrestricted access");
+        }
+        finally
+        {
+            // Cleanup
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalAspNetCoreEnv);
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalDotNetEnv);
+        }
     }
 
     [Fact]

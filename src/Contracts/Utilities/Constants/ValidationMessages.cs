@@ -64,6 +64,7 @@ public static class ValidationMessages
         public const string Service = "Serviço não encontrado.";
         public const string ServiceById = "Serviço com ID '{0}' não encontrado.";
         public const string Category = "Categoria não encontrada.";
+        public const string CategoryById = "Categoria com ID '{0}' não encontrada.";
     }
 
     /// <summary>

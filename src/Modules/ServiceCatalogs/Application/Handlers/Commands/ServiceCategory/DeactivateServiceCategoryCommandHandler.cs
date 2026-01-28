@@ -20,7 +20,7 @@ public sealed class DeactivateServiceCategoryCommandHandler(
         var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
 
         if (category is null)
-            return Result.Failure(Error.NotFound(ValidationMessages.NotFound.Category));
+            return Result.Failure(Error.NotFound(string.Format(ValidationMessages.NotFound.CategoryById, request.Id)));
 
         category.Deactivate();
 
