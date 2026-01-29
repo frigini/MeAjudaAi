@@ -1,3 +1,5 @@
+using MeAjudaAi.Modules.Locations.Domain.Exceptions;
+
 namespace MeAjudaAi.Modules.Locations.Domain.Entities;
 
 /// <summary>
@@ -67,16 +69,16 @@ public sealed class AllowedCity
         createdBy = createdBy?.Trim() ?? string.Empty;
 
         if (string.IsNullOrWhiteSpace(cityName))
-            throw new ArgumentException("Nome da cidade não pode ser vazio", nameof(cityName));
+            throw new InvalidLocationArgumentException("Nome da cidade não pode ser vazio");
 
         if (string.IsNullOrWhiteSpace(stateSigla))
-            throw new ArgumentException("Sigla do estado não pode ser vazia", nameof(stateSigla));
+            throw new InvalidLocationArgumentException("Sigla do estado não pode ser vazia");
 
         if (stateSigla.Length != 2)
-            throw new ArgumentException("Sigla do estado deve ter 2 caracteres", nameof(stateSigla));
+            throw new InvalidLocationArgumentException("Sigla do estado deve ter 2 caracteres");
 
         if (string.IsNullOrWhiteSpace(createdBy))
-            throw new ArgumentException("CreatedBy não pode ser vazio", nameof(createdBy));
+            throw new InvalidLocationArgumentException("CreatedBy não pode ser vazio");
 
         Id = Guid.NewGuid();
         CityName = cityName;
@@ -95,16 +97,16 @@ public sealed class AllowedCity
         updatedBy = updatedBy?.Trim() ?? string.Empty;
 
         if (string.IsNullOrWhiteSpace(cityName))
-            throw new ArgumentException("Nome da cidade não pode ser vazio", nameof(cityName));
+            throw new InvalidLocationArgumentException("Nome da cidade não pode ser vazio");
 
         if (string.IsNullOrWhiteSpace(stateSigla))
-            throw new ArgumentException("Sigla do estado não pode ser vazia", nameof(stateSigla));
+            throw new InvalidLocationArgumentException("Sigla do estado não pode ser vazia");
 
         if (stateSigla.Length != 2)
-            throw new ArgumentException("Sigla do estado deve ter 2 caracteres", nameof(stateSigla));
+            throw new InvalidLocationArgumentException("Sigla do estado deve ter 2 caracteres");
 
         if (string.IsNullOrWhiteSpace(updatedBy))
-            throw new ArgumentException("UpdatedBy não pode ser vazio", nameof(updatedBy));
+            throw new InvalidLocationArgumentException("UpdatedBy não pode ser vazio");
 
         CityName = cityName;
         StateSigla = stateSigla;
@@ -117,7 +119,7 @@ public sealed class AllowedCity
     public void Activate(string updatedBy)
     {
         if (string.IsNullOrWhiteSpace(updatedBy))
-            throw new ArgumentException("UpdatedBy não pode ser vazio", nameof(updatedBy));
+            throw new InvalidLocationArgumentException("UpdatedBy não pode ser vazio");
 
         IsActive = true;
         UpdatedAt = DateTime.UtcNow;
@@ -127,7 +129,7 @@ public sealed class AllowedCity
     public void Deactivate(string updatedBy)
     {
         if (string.IsNullOrWhiteSpace(updatedBy))
-            throw new ArgumentException("UpdatedBy não pode ser vazio", nameof(updatedBy));
+            throw new InvalidLocationArgumentException("UpdatedBy não pode ser vazio");
 
         IsActive = false;
         UpdatedAt = DateTime.UtcNow;
