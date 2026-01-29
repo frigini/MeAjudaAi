@@ -138,6 +138,10 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
                 {
                     retrievedProvider = dataProperty;
                 }
+                else if (retrievedProvider.TryGetProperty("data", out var legacyDataProperty))
+                {
+                    retrievedProvider = legacyDataProperty;
+                }
                 
                 retrievedProvider.TryGetProperty("name", out var nameProperty).Should().BeTrue();
                 nameProperty.GetString().Should().NotBeNullOrEmpty();
@@ -209,8 +213,8 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
                 ContactInfo = new
                 {
                     Email = $"updated_{uniqueId}@example.com",
-                    PhoneNumber = _fixture.Faker.Phone.PhoneNumber(),
-                    Website = _fixture.Faker.Internet.Url()
+                    PhoneNumber = "+5511999999999",
+                    Website = "https://updated.example.com"
                 },
                 PrimaryAddress = new
                 {
