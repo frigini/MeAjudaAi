@@ -345,8 +345,8 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         {
             Username = _fixture.Faker.Internet.UserName(),
             Email = uniqueEmail, // Same email
-            FirstName = _fixture.Faker.Name.FirstName(),
-            LastName = _fixture.Faker.Name.LastName(),
+            FirstName = "Test",
+            LastName = "User",
             Password = "ValidPass123!",
             PhoneNumber = "+5511999999999"
         };
