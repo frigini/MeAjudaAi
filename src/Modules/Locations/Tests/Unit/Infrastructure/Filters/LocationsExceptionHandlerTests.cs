@@ -65,6 +65,15 @@ public class LocationsExceptionHandlerTests
         // Assert
         result.Should().BeTrue();
         context.Response.StatusCode.Should().Be(409);
+
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                exception,
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 
     [Fact]
@@ -83,6 +92,15 @@ public class LocationsExceptionHandlerTests
         // Assert
         result.Should().BeTrue();
         context.Response.StatusCode.Should().Be(400); // Mapped to BadRequest in code
+
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                exception,
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 
     private class TestBadRequestException(string message) : BadRequestException(message);
@@ -103,6 +121,15 @@ public class LocationsExceptionHandlerTests
         // Assert
         result.Should().BeTrue();
         context.Response.StatusCode.Should().Be(400);
+
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                exception,
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 
     [Fact]

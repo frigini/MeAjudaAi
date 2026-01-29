@@ -6,6 +6,7 @@ using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Xunit;
+using MeAjudaAi.Contracts.Utilities.Constants;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Endpoints;
 
@@ -43,7 +44,7 @@ public class EndpointExtensionsTests
         var createdResult = (CreatedAtRoute<Result<string>>)response;
         createdResult.StatusCode.Should().Be(201);
         createdResult.RouteName.Should().Be("GetById");
-        createdResult.RouteValues.Should().BeEquivalentTo(routeValues);
+        createdResult.RouteValues["id"].Should().Be(1);
         createdResult.Value.IsSuccess.Should().BeTrue();
     }
 
@@ -51,7 +52,7 @@ public class EndpointExtensionsTests
     public void Handle_Failure_NotFound_ShouldReturnNotFound()
     {
         // Arrange
-        var error = Error.NotFound("Not found");
+        var error = Error.NotFound(ValidationMessages.NotFound.Resource);
         var result = Result<string>.Failure(error);
 
         // Act
@@ -102,7 +103,7 @@ public class EndpointExtensionsTests
     public void Handle_NonGeneric_Failure_ShouldReturnError()
     {
         // Arrange
-        var error = new Error("Conflict error", 409);
+        var error = Error.BadRequest("Conflict error");
         var result = Result.Failure(error);
 
         // Act
@@ -116,7 +117,7 @@ public class EndpointExtensionsTests
     public void Handle_Failure_Unauthorized_ShouldReturnUnauthorized()
     {
          // Arrange
-        var error = Error.Unauthorized("Unauthorized");
+        var error = Error.Unauthorized(ValidationMessages.Generic.Unauthorized);
         var result = Result<string>.Failure(error);
 
         // Act

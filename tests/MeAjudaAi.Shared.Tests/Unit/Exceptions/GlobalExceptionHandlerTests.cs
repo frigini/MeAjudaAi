@@ -345,6 +345,10 @@ public class GlobalExceptionHandlerTests
         // Assert
         result.Should().BeTrue();
         _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+
+        var problemDetails = await DeserializeProblemDetails();
+        problemDetails!.Status.Should().Be(400);
+        problemDetails.Title.Should().Be("Erro de validação");
     }
 
     [Fact]
@@ -360,6 +364,10 @@ public class GlobalExceptionHandlerTests
         // Assert
         result.Should().BeTrue();
         _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+
+        var problemDetails = await DeserializeProblemDetails();
+        problemDetails!.Status.Should().Be(400);
+        problemDetails.Title.Should().Be("Violação de Regra de Domínio");
     }
 
     [Fact]
@@ -375,6 +383,10 @@ public class GlobalExceptionHandlerTests
         // Assert
         result.Should().BeTrue();
         _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status404NotFound);
+
+        var problemDetails = await DeserializeProblemDetails();
+        problemDetails!.Status.Should().Be(404);
+        problemDetails.Title.Should().Be("Recurso Não Encontrado");
     }
 
     [Fact]

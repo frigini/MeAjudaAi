@@ -87,7 +87,7 @@ public sealed class ActivateProviderCommandHandler(
             hasRequired => hasRequired
                 ? Result.Success()
                 : Result.Failure(ValidationMessages.Providers.MustHaveAllDocuments),
-            error => Result.Failure($"Failed to validate documents: {error.Message}"));
+            error => Result.Failure(ValidationMessages.Providers.ActivationFailed));
 
         if (requiredDocsValidation.IsFailure)
             return requiredDocsValidation;
@@ -98,7 +98,7 @@ public sealed class ActivateProviderCommandHandler(
             hasVerified => hasVerified
                 ? Result.Success()
                 : Result.Failure(ValidationMessages.Providers.MustHaveVerifiedDocuments),
-            error => Result.Failure($"Failed to validate documents: {error.Message}"));
+            error => Result.Failure(ValidationMessages.Providers.ActivationFailed));
 
         if (verifiedDocsValidation.IsFailure)
             return verifiedDocsValidation;
@@ -109,7 +109,7 @@ public sealed class ActivateProviderCommandHandler(
             hasPending => hasPending
                 ? Result.Failure(ValidationMessages.Providers.CannotBeActivatedPendingDocs)
                 : Result.Success(),
-            error => Result.Failure($"Failed to validate documents: {error.Message}"));
+            error => Result.Failure(ValidationMessages.Providers.ActivationFailed));
 
         if (pendingDocsValidation.IsFailure)
             return pendingDocsValidation;
@@ -120,7 +120,7 @@ public sealed class ActivateProviderCommandHandler(
             hasRejected => hasRejected
                 ? Result.Failure(ValidationMessages.Providers.CannotBeActivatedRejectedDocs)
                 : Result.Success(),
-            error => Result.Failure($"Failed to validate documents: {error.Message}"));
+            error => Result.Failure(ValidationMessages.Providers.ActivationFailed));
 
         return rejectedDocsValidation;
     }

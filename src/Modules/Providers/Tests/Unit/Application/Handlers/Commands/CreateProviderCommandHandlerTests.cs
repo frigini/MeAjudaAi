@@ -9,6 +9,7 @@ using MeAjudaAi.Modules.Providers.Tests.Builders;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using MeAjudaAi.Contracts.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 
@@ -89,7 +90,7 @@ public class CreateProviderCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("already exists");
+        result.Error!.Message.Should().Be(ValidationMessages.Providers.AlreadyExists);
 
         _providerRepositoryMock.Verify(
             x => x.AddAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(), It.IsAny<CancellationToken>()),

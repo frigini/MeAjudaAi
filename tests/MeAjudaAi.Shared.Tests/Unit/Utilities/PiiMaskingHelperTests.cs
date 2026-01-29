@@ -34,12 +34,6 @@ public class PiiMaskingHelperTests
     {
         var result = PiiMaskingHelper.MaskUserId(input);
         
-        var expectedStart = input[..3];
-        var expectedEnd = input[^3..];
-        
-        result.Should().StartWith(expectedStart);
-        result.Should().EndWith(expectedEnd);
-        result.Should().Contain("***");
-        result.Should().Be($"{expectedStart}***{expectedEnd}");
+        result.Should().Be($"{input[..3]}***{input[^3..]}");
     }
 }
