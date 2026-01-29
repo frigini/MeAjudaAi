@@ -28,7 +28,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         // Arrange
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
-        // Use unique data for workflow to avoid conflict with other tests
+        // Use dados únicos para o fluxo/workflow para evitar conflitos com outros testes
         var uniqueSuffix = Guid.NewGuid().ToString("N")[..4];
         var request = new
         {
@@ -47,7 +47,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
-        // Create returns Response<T> (legacy), so use "data"
+        // Create retorna Response<T> (legado), então use "data"
         result.TryGetProperty("data", out var dataElement).Should().BeTrue();
         var cityId = Guid.Parse(dataElement.GetString()!);
         cityId.Should().NotBeEmpty();
@@ -126,7 +126,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var invalidRequest = new
         {
-            City = "", // Empty city name
+            City = "", // Nome da cidade vazio
             State = "MG"
         };
 
@@ -164,7 +164,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
-        // GetAll returns Result<T>, so use "value"
+        // GetAll retorna Result<T>, então use "value"
         result.TryGetProperty("value", out var dataElement).Should().BeTrue();
         var cities = dataElement.EnumerateArray().ToList();
 
@@ -211,7 +211,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
-        // GetAll returns Result<T>, so use "value"
+        // GetAll retorna Result<T>, então use "value"
         result.TryGetProperty("value", out var dataElement).Should().BeTrue();
         var cities = dataElement.EnumerateArray().ToList();
 
@@ -261,7 +261,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
-        // GetAll returns Result<T>, so use "value"
+        // GetAll retorna Result<T>, então use "value"
         result.TryGetProperty("value", out var dataElement).Should().BeTrue();
         var cities = dataElement.EnumerateArray().ToList();
 
@@ -305,7 +305,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
-        // GetById returns Response<T> (legacy), so use "data"
+        // GetById retorna Response<T> (legado), então use "data"
         result.TryGetProperty("data", out var dataElement).Should().BeTrue();
 
         dataElement.TryGetProperty("id", out var idElement).Should().BeTrue();
@@ -486,7 +486,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         TestContainerFixture.AuthenticateAsAdmin();
 
         // Step 1: Create city
-        // Use unique data for workflow to avoid conflict with other tests
+        // Use dados únicos para o fluxo de trabalho para evitar conflito com outros testes
         var uniqueSuffix = Guid.NewGuid().ToString("N")[..4];
         var createRequest = new
         {
@@ -500,7 +500,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var createContent = await createResponse.Content.ReadAsStringAsync();
         var createResult = JsonSerializer.Deserialize<JsonElement>(createContent, TestContainerFixture.JsonOptions);
-        // Create returns Response<T> (legacy), so use "data"
+        // Create retorna Response<T> (legado), então use "data"
         createResult.TryGetProperty("data", out var cityIdElement).Should().BeTrue();
         var cityId = Guid.Parse(cityIdElement.GetString()!);
 

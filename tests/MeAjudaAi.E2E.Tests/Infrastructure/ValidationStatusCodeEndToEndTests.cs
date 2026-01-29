@@ -326,18 +326,19 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         // Arrange - Create duplicate user
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
-        var uniqueEmail = $"{_fixture.Faker.Internet.UserName()}@example.com";
+        var uniqueEmail = $"{Guid.NewGuid().ToString("N")[..8]}@example.com";
         var request = new
         {
-            Username = _fixture.Faker.Internet.UserName(),
+            Username = $"user{Guid.NewGuid().ToString("N")[..8]}",
             Email = uniqueEmail,
-            FirstName = _fixture.Faker.Name.FirstName(),
-            LastName = _fixture.Faker.Name.LastName(),
+            FirstName = "Test",
+            LastName = "User",
             Password = "ValidPass123!",
             PhoneNumber = "+5511999999999"
         };
         
-        await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
+        var firstResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.Created, "setup: first user creation should succeed");
 
         // Act - Try to create duplicate
         var duplicateRequest = new

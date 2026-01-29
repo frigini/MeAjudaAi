@@ -105,6 +105,17 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
             {
                 var providerContent = await getProviderResponse.Content.ReadAsStringAsync();
                 var provider = JsonSerializer.Deserialize<JsonElement>(providerContent);
+                
+                // Unwrapping para garantir que pegamos o userId correto mesmo dentro de um envelope
+                if (provider.TryGetProperty("value", out var dataProperty))
+                {
+                    provider = dataProperty;
+                }
+                else if (provider.TryGetProperty("data", out var legacyDataProperty))
+                {
+                    provider = legacyDataProperty;
+                }
+
                 if (provider.TryGetProperty("userId", out var userIdProperty))
                 {
                     userId = Guid.Parse(userIdProperty.GetString()!);

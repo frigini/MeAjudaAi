@@ -21,7 +21,7 @@ public sealed class LocationsExceptionHandler(ILogger<LocationsExceptionHandler>
         {
             Shared.Exceptions.NotFoundException notFoundEx => HandleNotFoundException(notFoundEx),
             DuplicateAllowedCityException duplicateEx => HandleDuplicateException(duplicateEx),
-            ArgumentException argumentEx => HandleArgumentException(argumentEx),
+            InvalidLocationArgumentException invalidArgEx => HandleArgumentException(invalidArgEx),
             BadRequestException badRequestEx => HandleBadRequestException(badRequestEx),
             _ => null
         };
@@ -63,20 +63,20 @@ public sealed class LocationsExceptionHandler(ILogger<LocationsExceptionHandler>
         logger.LogWarning(exception, "Duplicate resource: {Message}", exception.Message);
         return new ProblemDetails
         {
-            Status = StatusCodes.Status400BadRequest,
+            Status = StatusCodes.Status409Conflict,
             Title = "Duplicate resource",
             Detail = exception.Message
         };
     }
 
-    private ProblemDetails HandleArgumentException(ArgumentException exception)
+    private ProblemDetails HandleArgumentException(InvalidLocationArgumentException exception)
     {
         logger.LogWarning(exception, "Invalid argument: {Message}", exception.Message);
         return new ProblemDetails
         {
             Status = StatusCodes.Status400BadRequest,
             Title = "Invalid argument",
-            Detail = exception.Message
+            Detail = "Invalid input provided"
         };
     }
 }

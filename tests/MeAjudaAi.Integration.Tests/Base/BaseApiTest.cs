@@ -641,11 +641,13 @@ public abstract class BaseApiTest : IAsyncLifetime
     /// </summary>
     protected static JsonElement GetResponseData(JsonElement response)
     {
-        if (response.TryGetProperty("value", out var valueElement) && valueElement.ValueKind != JsonValueKind.Null)
+        // Se a resposta tem uma propriedade 'value', retorna ela (mesmo que seja null)
+        if (response.TryGetProperty("value", out var valueElement))
         {
             return valueElement;
         }
 
+        // Fallback para 'data' (legado) ou retorna a resposta original
         return response.TryGetProperty("data", out var dataElement)
             ? dataElement
             : response;
