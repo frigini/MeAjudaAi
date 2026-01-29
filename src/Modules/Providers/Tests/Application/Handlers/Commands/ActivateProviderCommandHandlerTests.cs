@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Contracts.Modules.Documents;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -42,7 +43,7 @@ public class ActivateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Provider not found");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.NotFound);
     }
 
     [Fact]
@@ -64,7 +65,7 @@ public class ActivateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("must have all required documents");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.MustHaveAllDocuments);
     }
 
     [Fact]
@@ -89,7 +90,7 @@ public class ActivateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("must have verified documents");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.MustHaveVerifiedDocuments);
     }
 
     [Fact]
@@ -117,7 +118,7 @@ public class ActivateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("cannot be activated while documents are pending");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.CannotBeActivatedPendingDocs);
     }
 
     [Fact]
@@ -148,7 +149,7 @@ public class ActivateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("cannot be activated with rejected documents");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.CannotBeActivatedRejectedDocs);
     }
 
     [Fact]
@@ -159,7 +160,7 @@ public class ActivateProviderCommandHandlerTests
         var command = new ActivateProviderCommand(providerId, "admin@test.com");
         var provider = CreateProvider(providerId);
         
-        // Setup provider status to be eligible for activation (PendingDocumentVerification)
+        // Configura o status do provider para ser elegível para ativação (PendingDocumentVerification)
         provider.CompleteBasicInfo("admin@test.com");
 
         _providerRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))

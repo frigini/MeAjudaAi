@@ -9,8 +9,13 @@ using MeAjudaAi.Shared.Exceptions;
 using Moq;
 using Xunit;
 
+using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
+
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Application.Handlers.Commands.Service;
 
+[Trait("Category", "Unit")]
+[Trait("Module", "ServiceCatalogs")]
+[Trait("Layer", "Application")]
 public class UpdateServiceCommandHandlerTests
 {
     private readonly Mock<IServiceRepository> _serviceRepositoryMock;
@@ -61,13 +66,12 @@ public class UpdateServiceCommandHandlerTests
         var serviceId = Guid.NewGuid();
         var command = new UpdateServiceCommand(serviceId, "", "Desc", 1);
 
-        var service = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service.Create(
-            new ServiceCategoryId(Guid.NewGuid()),
-            "Original Name",
-            "Original Desc",
-            0);
+        var category = new ServiceCategoryBuilder().AsActive().Build();
+        var service = new ServiceBuilder()
+            .WithCategoryId(category.Id)
+            .WithName("Original Name")
+            .Build();
         
-        // HACK: ID is generated inside Create, need to verify if we can mock return with correct ID or just match by Any
         _serviceRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
 
@@ -86,11 +90,11 @@ public class UpdateServiceCommandHandlerTests
         var serviceId = Guid.NewGuid();
         var command = new UpdateServiceCommand(serviceId, "New Name", "Desc", 1);
 
-        var service = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service.Create(
-            new ServiceCategoryId(Guid.NewGuid()),
-            "Original Name",
-            "Original Desc",
-            0);
+        var category = new ServiceCategoryBuilder().AsActive().Build();
+        var service = new ServiceBuilder()
+            .WithCategoryId(category.Id)
+            .WithName("Original Name")
+            .Build();
 
         _serviceRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
@@ -103,7 +107,7 @@ public class UpdateServiceCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain(string.Format(ValidationMessages.Catalogs.ServiceNameExists, "New Name"));
+        result.Error.Message.Should().Be(string.Format(ValidationMessages.Catalogs.ServiceNameExists, "New Name"));
     }
 
     [Fact]
@@ -113,11 +117,11 @@ public class UpdateServiceCommandHandlerTests
         var serviceId = Guid.NewGuid();
         var command = new UpdateServiceCommand(serviceId, "Updated Name", "Updated Desc", 2);
 
-        var service = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service.Create(
-            new ServiceCategoryId(Guid.NewGuid()),
-            "Original Name",
-            "Original Desc",
-            0);
+        var category = new ServiceCategoryBuilder().AsActive().Build();
+        var service = new ServiceBuilder()
+            .WithCategoryId(category.Id)
+            .WithName("Original Name")
+            .Build();
 
         _serviceRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);

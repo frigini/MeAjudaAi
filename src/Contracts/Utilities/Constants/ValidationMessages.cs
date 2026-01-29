@@ -112,5 +112,13 @@ public static class ValidationMessages
     {
         public const string ErrorRetrievingProviders = "Ocorreu um erro ao recuperar os prestadores.";
         public const string StateParameterRequired = "O parâmetro de estado é obrigatório.";
+        public const string AlreadyExists = "Provedor já existe para este usuário.";
+        public const string CreationError = "Ocorreu um erro ao criar o provedor.";
+        public const string NotFound = "Provedor não encontrado.";
+        public const string ActivationFailed = "Falha ao ativar o provedor.";
+        public const string MustHaveAllDocuments = "O provedor deve ter todos os documentos obrigatórios antes da ativação.";
+        public const string MustHaveVerifiedDocuments = "O provedor deve ter documentos verificados antes da ativação.";
+        public const string CannotBeActivatedPendingDocs = "O provedor não pode ser ativado enquanto houver documentos pendentes de verificação.";
+        public const string CannotBeActivatedRejectedDocs = "O provedor não pode ser ativado com documentos rejeitados. Por favor, reenvie os documentos corretos.";
     }
 }

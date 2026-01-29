@@ -1,4 +1,5 @@
 using FluentAssertions;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -59,7 +60,7 @@ public class CreateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Provider already exists for this user");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.AlreadyExists);
     }
 
     [Fact]
@@ -95,7 +96,7 @@ public class CreateProviderCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldCatchAndReturnFailure()
+    public async Task HandleAsync_WhenRepositoryThrowsException_ShouldReturnFailure()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -120,6 +121,6 @@ public class CreateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("An error occurred while creating the provider");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.CreationError);
     }
 }

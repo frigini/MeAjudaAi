@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Npgsql;
+using System.Reflection;
 using ValidationException = MeAjudaAi.Shared.Exceptions.ValidationException;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Exceptions;
@@ -329,6 +330,52 @@ public class GlobalExceptionHandlerTests
     #endregion
 
     #region Generic Exception Tests
+
+    [Fact]
+    public async Task TryHandleAsync_WithWrappedValidationException_ShouldUnwrapAndReturn400()
+    {
+        // Arrange
+        var validationErrors = new List<ValidationFailure> { new("Prop", "Error") };
+        var inner = new ValidationException(validationErrors);
+        var exception = new InvalidOperationException("Wrapped", inner);
+
+        // Act
+        var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
+
+        // Assert
+        result.Should().BeTrue();
+        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithWrappedAggregateException_ShouldUnwrap()
+    {
+        // Arrange
+        var inner = new TestDomainException("Domain error");
+        var exception = new AggregateException(inner);
+
+        // Act
+        var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
+
+        // Assert
+        result.Should().BeTrue();
+        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithWrappedTargetInvocationException_ShouldUnwrap()
+    {
+        // Arrange
+        var inner = new NotFoundException("Entity", "123");
+        var exception = new TargetInvocationException(inner);
+
+        // Act
+        var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
+
+        // Assert
+        result.Should().BeTrue();
+        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status404NotFound);
+    }
 
     [Fact]
     public async Task TryHandleAsync_WithGenericException_ShouldReturn500()
