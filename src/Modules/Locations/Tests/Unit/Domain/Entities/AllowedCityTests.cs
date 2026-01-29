@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
+using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Domain.Entities;
@@ -58,7 +59,7 @@ public class AllowedCityTests
         var act = () => new AllowedCity(invalidCityName, "MG", "admin@test.com");
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<InvalidLocationArgumentException>()
             .WithMessage("*Nome da cidade não pode ser vazio*");
     }
 
@@ -72,7 +73,7 @@ public class AllowedCityTests
         var act = () => new AllowedCity("Muriaé", invalidStateSigla, "admin@test.com");
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<InvalidLocationArgumentException>()
             .WithMessage("*Sigla do estado não pode ser vazia*");
     }
 
@@ -85,7 +86,7 @@ public class AllowedCityTests
         var act = () => new AllowedCity("Muriaé", invalidLength, "admin@test.com");
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<InvalidLocationArgumentException>()
             .WithMessage("*Sigla do estado deve ter 2 caracteres*");
     }
 
@@ -99,7 +100,7 @@ public class AllowedCityTests
         var act = () => new AllowedCity("Muriaé", "MG", invalidCreatedBy);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<InvalidLocationArgumentException>()
             .WithMessage("*CreatedBy não pode ser vazio*");
     }
 
@@ -172,7 +173,7 @@ public class AllowedCityTests
         var act = () => allowedCity.Update(invalidCityName, "RJ", null, true, "admin@test.com");
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<InvalidLocationArgumentException>()
             .WithMessage("*Nome da cidade não pode ser vazio*");
     }
 
@@ -189,7 +190,7 @@ public class AllowedCityTests
         var act = () => allowedCity.Update("Itaperuna", invalidStateSigla, null, true, "admin@test.com");
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<InvalidLocationArgumentException>()
             .WithMessage("*Sigla do estado não pode ser vazia*");
     }
 
@@ -205,7 +206,7 @@ public class AllowedCityTests
         var act = () => allowedCity.Update("Itaperuna", invalidLength, null, true, "admin@test.com");
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<InvalidLocationArgumentException>()
             .WithMessage("*Sigla do estado deve ter 2 caracteres*");
     }
 
@@ -222,7 +223,7 @@ public class AllowedCityTests
         var act = () => allowedCity.Update("Itaperuna", "RJ", null, true, invalidUpdatedBy);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<InvalidLocationArgumentException>()
             .WithMessage("*UpdatedBy não pode ser vazio*");
     }
 
@@ -285,7 +286,7 @@ public class AllowedCityTests
         var act = () => allowedCity.Activate(invalidUpdatedBy);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<InvalidLocationArgumentException>()
             .WithMessage("*UpdatedBy não pode ser vazio*");
     }
 
@@ -321,7 +322,7 @@ public class AllowedCityTests
         var act = () => allowedCity.Deactivate(invalidUpdatedBy);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<InvalidLocationArgumentException>()
             .WithMessage("*UpdatedBy não pode ser vazio*");
     }
 
