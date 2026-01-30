@@ -45,9 +45,9 @@
       },
       "SonarAnalyzer.CSharp": {
         "type": "Direct",
-        "requested": "[10.18.0.131500, )",
-        "resolved": "10.18.0.131500",
-        "contentHash": "Rbad71/k5e8MfG81i03Yh2YQQgovIdmyhWcLRevrcW4h9i1DUB3kKX9O1QiOGXcULLjkTdRAXdR8A8XtinL3Pg=="
+        "requested": "[10.19.0.132793, )",
+        "resolved": "10.19.0.132793",
+        "contentHash": "vDQSFE+KU5pXfVNzz4R4CA0ZGuLO35Sn+a7z2nyV9EM/nHsvl+WFGZ61Uk9eTdbhta1YXzqCMXB2B+6dn6ykVA=="
       },
       "xunit.runner.visualstudio": {
         "type": "Direct",
@@ -174,8 +174,8 @@
       },
       "Microsoft.DotNet.HotReload.WebAssembly.Browser": {
         "type": "Transitive",
-        "resolved": "10.0.102",
-        "contentHash": "Y8Xq5gLe6l3bW82uGJODzom5Z7pn+Y71BHObnmWF0LqbKFqfOOVDg76a2vyJnRLHn0X1LmsXSec/QdCWFOPl4A=="
+        "resolved": "10.0.101",
+        "contentHash": "30d2d7ti8GiDYf9zg4+w5cvH3jm9HAQMyXzZgCVpEjmh3WLErJazuu2tyoIO75uNYLWPD/NNTTRD9SoPpDiACw=="
       },
       "Microsoft.Extensions.AmbientMetadata.Application": {
         "type": "Transitive",
@@ -543,7 +543,7 @@
           "MeAjudaAi.Contracts": "[1.0.0, )",
           "Microsoft.AspNetCore.Components.WebAssembly": "[10.0.2, )",
           "Microsoft.AspNetCore.Components.WebAssembly.Authentication": "[10.0.2, )",
-          "Microsoft.DotNet.HotReload.WebAssembly.Browser": "[10.0.102, )",
+          "Microsoft.DotNet.HotReload.WebAssembly.Browser": "[10.0.101, )",
           "Microsoft.Extensions.Http.Polly": "[10.0.2, )",
           "Microsoft.Extensions.Http.Resilience": "[10.2.0, )",
           "MudBlazor": "[8.15.0, )",
