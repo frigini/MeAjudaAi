@@ -139,7 +139,9 @@
         {
             ["ServiceId"] = serviceId,
             ["ServiceName"] = service.Name,
-            ["CategoryId"] = service.CategoryId
+            ["CategoryId"] = service.CategoryId,
+            ["Description"] = service.Description,
+            ["DisplayOrder"] = service.DisplayOrder
         };
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
 

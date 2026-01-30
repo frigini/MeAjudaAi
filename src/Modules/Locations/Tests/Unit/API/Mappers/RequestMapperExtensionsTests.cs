@@ -15,9 +15,12 @@ public class RequestMapperExtensionsTests
     {
         // Arrange
         var request = new CreateAllowedCityRequest(
-            City: "Muriaé",
-            State: "MG",
+            CityName: "Muriaé",
+            StateSigla: "MG",
             IbgeCode: 3143906,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
 
@@ -37,9 +40,12 @@ public class RequestMapperExtensionsTests
     {
         // Arrange
         var request = new CreateAllowedCityRequest(
-            City: "Itaperuna",
-            State: "RJ",
+            CityName: "Itaperuna",
+            StateSigla: "RJ",
             IbgeCode: null,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
 
@@ -59,9 +65,12 @@ public class RequestMapperExtensionsTests
     {
         // Arrange
         var request = new CreateAllowedCityRequest(
-            City: "Linhares",
-            State: "ES",
+            CityName: "Linhares",
+            StateSigla: "ES",
             IbgeCode: 3203205,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: false
         );
 
@@ -81,9 +90,12 @@ public class RequestMapperExtensionsTests
     {
         // Arrange
         var request = new UpdateAllowedCityRequest(
-            City: "Belo Horizonte",
-            State: "MG",
+            CityName: "Belo Horizonte",
+            StateSigla: "MG",
             IbgeCode: 3106200,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
         var id = Guid.NewGuid();
@@ -105,9 +117,12 @@ public class RequestMapperExtensionsTests
     {
         // Arrange
         var request = new UpdateAllowedCityRequest(
-            City: "Rio de Janeiro",
-            State: "RJ",
+            CityName: "Rio de Janeiro",
+            StateSigla: "RJ",
             IbgeCode: null,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: false
         );
         var id = Guid.NewGuid();
@@ -160,9 +175,12 @@ public class RequestMapperExtensionsTests
     {
         // Arrange
         var request = new CreateAllowedCityRequest(
-            City: cityName,
-            State: state,
+            CityName: cityName,
+            StateSigla: state,
             IbgeCode: ibgeCode,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
 
@@ -188,9 +206,12 @@ public class RequestMapperExtensionsTests
     {
         // Arrange
         var request = new UpdateAllowedCityRequest(
-            City: cityName,
-            State: state,
+            CityName: cityName,
+            StateSigla: state,
             IbgeCode: ibgeCode,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: isActive
         );
         var id = Guid.NewGuid();

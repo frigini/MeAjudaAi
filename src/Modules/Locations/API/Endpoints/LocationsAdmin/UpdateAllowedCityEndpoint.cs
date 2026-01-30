@@ -5,6 +5,7 @@ using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -35,8 +36,7 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
     {
         var command = request.ToCommand(id);
 
-        await commandDispatcher.SendAsync(command, cancellationToken);
-
-        return Results.Ok(new Response<string>("Cidade permitida atualizada com sucesso"));
+        var result = await commandDispatcher.SendAsync<UpdateAllowedCityCommand, Result>(command, cancellationToken);
+        return EndpointExtensions.Handle(result);
     }
 }

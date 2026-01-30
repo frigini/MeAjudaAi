@@ -88,7 +88,12 @@ public static class EndpointExtensions
     public static IResult HandleNoContent<T>(Result<T> result)
     {
         if (result.IsSuccess)
-            return TypedResults.NoContent();
+        {
+            // CORREÇÃO CRÍTICA: Retornar 200 OK com o Result<T> completo
+            // O frontend espera { "isSuccess": true, "value": ... }
+            // 204 No Content retorna corpo vazio, quebrando a deserialização do Result<T> no cliente Refit.
+            return TypedResults.Ok(result);
+        }
 
         return CreateErrorResponse<T>(result.Error);
     }
@@ -99,7 +104,10 @@ public static class EndpointExtensions
     public static IResult HandleNoContent(Result result)
     {
         if (result.IsSuccess)
-            return TypedResults.NoContent();
+        {
+            // CORREÇÃO CRÍTICA: Retornar 200 OK com o Result completo
+            return TypedResults.Ok(result);
+        }
 
         return CreateErrorResponse<object>(result.Error);
     }

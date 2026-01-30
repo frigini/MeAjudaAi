@@ -26,7 +26,7 @@ public class GetAllowedCityByIdHandlerTests
         // Arrange
         var cityId = Guid.NewGuid();
         var query = new GetAllowedCityByIdQuery { Id = cityId };
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
 
         _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(city);
@@ -63,7 +63,7 @@ public class GetAllowedCityByIdHandlerTests
         // Arrange
         var cityId = Guid.NewGuid();
         var query = new GetAllowedCityByIdQuery { Id = cityId };
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, false);
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0, false);
 
         _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(city);
@@ -82,7 +82,7 @@ public class GetAllowedCityByIdHandlerTests
         // Arrange
         var cityId = Guid.NewGuid();
         var query = new GetAllowedCityByIdQuery { Id = cityId };
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
 
         _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(city);

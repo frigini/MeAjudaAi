@@ -4,7 +4,10 @@ namespace MeAjudaAi.Modules.Locations.Application.DTOs.Requests;
 /// Request DTO para criação de cidade permitida
 /// </summary>
 public sealed record CreateAllowedCityRequest(
-    string City,
-    string State,
+    string CityName,
+    string StateSigla,
     int? IbgeCode,
+    double Latitude,
+    double Longitude,
+    double ServiceRadiusKm,
     bool IsActive = true);

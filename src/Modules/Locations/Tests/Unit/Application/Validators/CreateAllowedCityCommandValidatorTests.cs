@@ -17,6 +17,10 @@ public class CreateAllowedCityCommandValidatorTests
             CityName: "",
             StateSigla: "SP",
             IbgeCode: null,
+
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
 
@@ -35,6 +39,9 @@ public class CreateAllowedCityCommandValidatorTests
             CityName: null!,
             StateSigla: "SP",
             IbgeCode: null,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
 
@@ -53,6 +60,9 @@ public class CreateAllowedCityCommandValidatorTests
             CityName: new string('A', 101), // 101 characters
             StateSigla: "SP",
             IbgeCode: null,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
 
@@ -71,6 +81,9 @@ public class CreateAllowedCityCommandValidatorTests
             CityName: "S\u00e3o Paulo",
             StateSigla: "",
             IbgeCode: null,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
 
@@ -89,6 +102,9 @@ public class CreateAllowedCityCommandValidatorTests
             CityName: "S\u00e3o Paulo",
             StateSigla: null!,
             IbgeCode: null,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
 
@@ -107,6 +123,9 @@ public class CreateAllowedCityCommandValidatorTests
             CityName: "S\u00e3o Paulo",
             StateSigla: "S", // Only 1 character
             IbgeCode: null,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
 
@@ -125,6 +144,9 @@ public class CreateAllowedCityCommandValidatorTests
             CityName: "S\u00e3o Paulo",
             StateSigla: "SPP", // 3 characters
             IbgeCode: null,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
 
@@ -161,6 +183,9 @@ public class CreateAllowedCityCommandValidatorTests
             CityName: "A", // 1 character (minimum)
             StateSigla: "SP",
             IbgeCode: null,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
 
@@ -179,6 +204,9 @@ public class CreateAllowedCityCommandValidatorTests
             CityName: new string('A', 100), // 100 characters (maximum)
             StateSigla: "SP",
             IbgeCode: null,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
 

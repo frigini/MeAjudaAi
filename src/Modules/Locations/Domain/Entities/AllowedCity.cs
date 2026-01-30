@@ -29,6 +29,21 @@ public sealed class AllowedCity
     public int? IbgeCode { get; private set; }
 
     /// <summary>
+    /// Latitude da cidade
+    /// </summary>
+    public double Latitude { get; private set; }
+
+    /// <summary>
+    /// Longitude da cidade
+    /// </summary>
+    public double Longitude { get; private set; }
+
+    /// <summary>
+    /// Raio de atendimento padrão para a cidade (em Km)
+    /// </summary>
+    public double ServiceRadiusKm { get; private set; }
+
+    /// <summary>
     /// Indica se a cidade está ativa para operação
     /// </summary>
     public bool IsActive { get; private set; }
@@ -61,6 +76,9 @@ public sealed class AllowedCity
         string stateSigla,
         string createdBy,
         int? ibgeCode = null,
+        double latitude = 0,
+        double longitude = 0,
+        double serviceRadiusKm = 0,
         bool isActive = true)
     {
         // Trim first
@@ -84,12 +102,23 @@ public sealed class AllowedCity
         CityName = cityName;
         StateSigla = stateSigla;
         IbgeCode = ibgeCode;
+        Latitude = latitude;
+        Longitude = longitude;
+        ServiceRadiusKm = serviceRadiusKm;
         IsActive = isActive;
         CreatedAt = DateTime.UtcNow;
         CreatedBy = createdBy;
     }
 
-    public void Update(string cityName, string stateSigla, int? ibgeCode, bool isActive, string updatedBy)
+    public void Update(
+        string cityName, 
+        string stateSigla, 
+        int? ibgeCode, 
+        double latitude, 
+        double longitude, 
+        double serviceRadiusKm, 
+        bool isActive, 
+        string updatedBy)
     {
         // Trim first
         cityName = cityName?.Trim() ?? string.Empty;
@@ -111,6 +140,9 @@ public sealed class AllowedCity
         CityName = cityName;
         StateSigla = stateSigla;
         IbgeCode = ibgeCode;
+        Latitude = latitude;
+        Longitude = longitude;
+        ServiceRadiusKm = serviceRadiusKm;
         IsActive = isActive;
         UpdatedAt = DateTime.UtcNow;
         UpdatedBy = updatedBy;

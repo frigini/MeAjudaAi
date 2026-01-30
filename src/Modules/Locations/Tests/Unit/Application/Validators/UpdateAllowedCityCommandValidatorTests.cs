@@ -17,7 +17,10 @@ public class UpdateAllowedCityCommandValidatorTests
         {
             Id = Guid.Empty,
             CityName = "S\u00e3o Paulo",
-            StateSigla = "SP"
+            StateSigla = "SP",
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0
         };
 
         // Act
@@ -35,7 +38,10 @@ public class UpdateAllowedCityCommandValidatorTests
         {
             Id = Guid.NewGuid(),
             CityName = "",
-            StateSigla = "SP"
+            StateSigla = "SP",
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0
         };
 
         // Act
@@ -53,7 +59,10 @@ public class UpdateAllowedCityCommandValidatorTests
         {
             Id = Guid.NewGuid(),
             CityName = null!,
-            StateSigla = "SP"
+            StateSigla = "SP",
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0
         };
 
         // Act
@@ -71,7 +80,10 @@ public class UpdateAllowedCityCommandValidatorTests
         {
             Id = Guid.NewGuid(),
             CityName = new string('A', 101), // 101 characters
-            StateSigla = "SP"
+            StateSigla = "SP",
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0
         };
 
         // Act
@@ -89,7 +101,10 @@ public class UpdateAllowedCityCommandValidatorTests
         {
             Id = Guid.NewGuid(),
             CityName = "S\u00e3o Paulo",
-            StateSigla = ""
+            StateSigla = "",
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0
         };
 
         // Act
@@ -107,7 +122,10 @@ public class UpdateAllowedCityCommandValidatorTests
         {
             Id = Guid.NewGuid(),
             CityName = "S\u00e3o Paulo",
-            StateSigla = null!
+            StateSigla = null!,
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0
         };
 
         // Act
@@ -125,7 +143,10 @@ public class UpdateAllowedCityCommandValidatorTests
         {
             Id = Guid.NewGuid(),
             CityName = "S\u00e3o Paulo",
-            StateSigla = "S" // Only 1 character
+            StateSigla = "S", // Only 1 character
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0
         };
 
         // Act
@@ -143,7 +164,10 @@ public class UpdateAllowedCityCommandValidatorTests
         {
             Id = Guid.NewGuid(),
             CityName = "S\u00e3o Paulo",
-            StateSigla = "SPP" // 3 characters
+            StateSigla = "SPP", // 3 characters
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0
         };
 
         // Act
@@ -161,7 +185,10 @@ public class UpdateAllowedCityCommandValidatorTests
         {
             Id = Guid.NewGuid(),
             CityName = "S\u00e3o Paulo",
-            StateSigla = "SP"
+            StateSigla = "SP",
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0
         };
 
         // Act
@@ -179,7 +206,10 @@ public class UpdateAllowedCityCommandValidatorTests
         {
             Id = Guid.NewGuid(),
             CityName = "A", // 1 character (minimum)
-            StateSigla = "SP"
+            StateSigla = "SP",
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0
         };
 
         // Act
@@ -197,7 +227,10 @@ public class UpdateAllowedCityCommandValidatorTests
         {
             Id = Guid.NewGuid(),
             CityName = new string('A', 100), // 100 characters (maximum)
-            StateSigla = "SP"
+            StateSigla = "SP",
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0
         };
 
         // Act

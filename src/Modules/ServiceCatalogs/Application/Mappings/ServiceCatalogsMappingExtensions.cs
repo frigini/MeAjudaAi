@@ -19,6 +19,7 @@ public static class ServiceCatalogsMappingExtensions
             service.CategoryId.Value,
             service.Name,
             service.Description,
+            service.DisplayOrder,
             service.IsActive);
 
     /// <summary>

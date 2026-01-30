@@ -88,6 +88,8 @@ public class ServicesPageTests
             Guid.NewGuid(),
             categoryId,
             "Limpeza Residencial",
+            null,
+            0,
             true
         );
         

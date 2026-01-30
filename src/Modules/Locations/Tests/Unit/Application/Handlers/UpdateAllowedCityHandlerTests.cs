@@ -1,6 +1,7 @@
-using FluentAssertions;
-using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
+using MeAjudaAi.Modules.Locations.Application.Services;
+using MeAjudaAi.Modules.Locations.Application.Commands;
+using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Modules.Locations.Domain.Repositories;
@@ -14,14 +15,16 @@ namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;
 public class UpdateAllowedCityHandlerTests
 {
     private readonly Mock<IAllowedCityRepository> _repositoryMock;
+    private readonly Mock<IGeocodingService> _geocodingServiceMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly UpdateAllowedCityHandler _handler;
 
     public UpdateAllowedCityHandlerTests()
     {
         _repositoryMock = new Mock<IAllowedCityRepository>();
+        _geocodingServiceMock = new Mock<IGeocodingService>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        _handler = new UpdateAllowedCityHandler(_repositoryMock.Object, _httpContextAccessorMock.Object);
+        _handler = new UpdateAllowedCityHandler(_repositoryMock.Object, _geocodingServiceMock.Object, _httpContextAccessorMock.Object);
     }
 
     [Fact]
@@ -29,13 +32,16 @@ public class UpdateAllowedCityHandlerTests
     {
         // Arrange
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
         var command = new UpdateAllowedCityCommand
         {
             Id = cityId,
             CityName = "Itaperuna",
             StateSigla = "RJ",
             IbgeCode = 3302270,
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0,
             IsActive = true
         };
         var userEmail = "admin2@test.com";
@@ -66,6 +72,9 @@ public class UpdateAllowedCityHandlerTests
             CityName = "Itaperuna",
             StateSigla = "RJ",
             IbgeCode = 3302270,
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0,
             IsActive = true
         };
 
@@ -74,11 +83,12 @@ public class UpdateAllowedCityHandlerTests
             .ReturnsAsync((AllowedCity?)null);
 
         // Act
-        var act = async () => await _handler.HandleAsync(command, CancellationToken.None);
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<AllowedCityNotFoundException>()
-            .WithMessage("*not found*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.StatusCode.Should().Be(404);
+        result.Error.Message.Should().Contain("não encontrada");
     }
 
     [Fact]
@@ -86,15 +96,18 @@ public class UpdateAllowedCityHandlerTests
     {
         // Arrange
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
         var differentCityId = Guid.NewGuid();
-        var duplicateCity = new AllowedCity("Itaperuna", "RJ", "admin@test.com", 3302270);
+        var duplicateCity = new AllowedCity("Itaperuna", "RJ", "admin@test.com", 3302270, 0, 0, 0);
         var command = new UpdateAllowedCityCommand
         {
             Id = cityId,
             CityName = "Itaperuna",
             StateSigla = "RJ",
             IbgeCode = 3302270,
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0,
             IsActive = true
         };
 
@@ -117,13 +130,16 @@ public class UpdateAllowedCityHandlerTests
     {
         // Arrange
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
         var command = new UpdateAllowedCityCommand
         {
             Id = cityId,
             CityName = "Muriaé",
             StateSigla = "MG",
             IbgeCode = 3143906,
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0,
             IsActive = true
         };
 
@@ -143,13 +159,16 @@ public class UpdateAllowedCityHandlerTests
     {
         // Arrange
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
         var command = new UpdateAllowedCityCommand
         {
             Id = cityId,
             CityName = "Itaperuna",
             StateSigla = "RJ",
             IbgeCode = 3302270,
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0,
             IsActive = true
         };
 

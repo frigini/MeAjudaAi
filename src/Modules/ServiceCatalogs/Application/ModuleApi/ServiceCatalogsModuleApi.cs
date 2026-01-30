@@ -161,6 +161,8 @@ public sealed class ServiceCatalogsModuleApi(
                 s.Id.Value,
                 s.CategoryId.Value,
                 s.Name,
+                s.Description,
+                s.DisplayOrder,
                 s.IsActive
             )).ToList();
 

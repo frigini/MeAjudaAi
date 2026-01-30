@@ -27,7 +27,7 @@ public class GetAllAllowedCitiesHandlerTests
         var query = new GetAllAllowedCitiesQuery { OnlyActive = true };
         var activeCities = new List<AllowedCity>
         {
-            new("Muriaé", "MG", "admin@test.com", 3143906)
+            new("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0)
         };
 
         _repositoryMock.Setup(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()))
@@ -49,8 +49,8 @@ public class GetAllAllowedCitiesHandlerTests
         var query = new GetAllAllowedCitiesQuery { OnlyActive = false };
         var allCities = new List<AllowedCity>
         {
-            new("Muriaé", "MG", "admin@test.com", 3143906),
-            new("Itaperuna", "RJ", "admin@test.com", 3302270, false)
+            new("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0),
+            new("Itaperuna", "RJ", "admin@test.com", 3302270, 0, 0, 0, false)
         };
 
         _repositoryMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
@@ -84,7 +84,7 @@ public class GetAllAllowedCitiesHandlerTests
     {
         // Arrange
         var query = new GetAllAllowedCitiesQuery { OnlyActive = true };
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
         _repositoryMock.Setup(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<AllowedCity> { city });
 

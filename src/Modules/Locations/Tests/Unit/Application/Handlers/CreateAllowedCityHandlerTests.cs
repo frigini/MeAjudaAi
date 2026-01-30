@@ -1,6 +1,7 @@
-using FluentAssertions;
-using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
+using MeAjudaAi.Modules.Locations.Application.Services;
+using MeAjudaAi.Modules.Locations.Application.Commands;
+using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Modules.Locations.Domain.Repositories;
@@ -14,21 +15,23 @@ namespace MeAjudaAi.Modules.Locations.Tests.Unit.Application.Handlers;
 public class CreateAllowedCityHandlerTests
 {
     private readonly Mock<IAllowedCityRepository> _repositoryMock;
+    private readonly Mock<IGeocodingService> _geocodingServiceMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly CreateAllowedCityHandler _handler;
 
     public CreateAllowedCityHandlerTests()
     {
         _repositoryMock = new Mock<IAllowedCityRepository>();
+        _geocodingServiceMock = new Mock<IGeocodingService>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        _handler = new CreateAllowedCityHandler(_repositoryMock.Object, _httpContextAccessorMock.Object);
+        _handler = new CreateAllowedCityHandler(_repositoryMock.Object, _geocodingServiceMock.Object, _httpContextAccessorMock.Object);
     }
 
     [Fact]
     public async Task HandleAsync_WithValidCommand_ShouldCreateAllowedCityAndReturnId()
     {
         // Arrange
-        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, true);
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, 0, 0, 0, true);
         var userEmail = "admin@test.com";
 
         SetupHttpContext(userEmail);
@@ -47,7 +50,7 @@ public class CreateAllowedCityHandlerTests
     public async Task HandleAsync_WhenCityAlreadyExists_ShouldThrowDuplicateAllowedCityException()
     {
         // Arrange
-        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, true);
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, 0, 0, 0, true);
         SetupHttpContext("admin@test.com");
 
         _repositoryMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
@@ -65,7 +68,7 @@ public class CreateAllowedCityHandlerTests
     public async Task HandleAsync_WithNoUserEmail_ShouldUseSystemAsCreator()
     {
         // Arrange
-        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, true);
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, 0, 0, 0, true);
         SetupHttpContext(null);
 
         _repositoryMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
@@ -88,7 +91,7 @@ public class CreateAllowedCityHandlerTests
     public async Task HandleAsync_WithNullIbgeCode_ShouldCreateCity()
     {
         // Arrange
-        var command = new CreateAllowedCityCommand("Muriaé", "MG", null, true);
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", null, 0, 0, 0, true);
         SetupHttpContext("admin@test.com");
 
         _repositoryMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
@@ -111,7 +114,7 @@ public class CreateAllowedCityHandlerTests
     public async Task HandleAsync_WithIsActiveFalse_ShouldCreateInactiveCity()
     {
         // Arrange
-        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, false);
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, 0, 0, 0, false);
         SetupHttpContext("admin@test.com");
 
         _repositoryMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))

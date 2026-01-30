@@ -9,4 +9,7 @@ public sealed record CreateAllowedCityCommand(
     string CityName,
     string StateSigla,
     int? IbgeCode,
+    double Latitude = 0,
+    double Longitude = 0,
+    double ServiceRadiusKm = 0,
     bool IsActive = true) : Command<Guid>;

@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Locations.Application.Commands;
+using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Modules.Locations.Domain.Repositories;
@@ -13,6 +14,7 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 /// </summary>
 public sealed class CreateAllowedCityHandler(
     IAllowedCityRepository repository,
+    IGeocodingService geocodingService,
     IHttpContextAccessor httpContextAccessor) : ICommandHandler<CreateAllowedCityCommand, Guid>
 {
     public async Task<Guid> HandleAsync(CreateAllowedCityCommand command, CancellationToken cancellationToken = default)
@@ -24,6 +26,30 @@ public sealed class CreateAllowedCityHandler(
             throw new DuplicateAllowedCityException(command.CityName, command.StateSigla);
         }
 
+        // Tentar obter coordenadas se não informadas
+        double lat = command.Latitude;
+        double lon = command.Longitude;
+
+        if (Math.Abs(lat) < 0.0001 && Math.Abs(lon) < 0.0001)
+        {
+            try 
+            {
+                var address = $"{command.CityName}, {command.StateSigla}, Brasil";
+                var coords = await geocodingService.GetCoordinatesAsync(address, cancellationToken);
+                
+                if (coords != null)
+                {
+                    lat = coords.Latitude;
+                    lon = coords.Longitude;
+                }
+            }
+            catch
+            {
+                // Ignorar erros de geocoding para não bloquear a criação
+                // O usuário pode editar depois manualmente
+            }
+        }
+
         // Obter usuário atual (Admin)
         var currentUser = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email) ?? "system";
 
@@ -33,6 +59,9 @@ public sealed class CreateAllowedCityHandler(
             command.StateSigla,
             currentUser,
             command.IbgeCode,
+            lat,
+            lon,
+            command.ServiceRadiusKm,
             command.IsActive);
 
         // Persistir

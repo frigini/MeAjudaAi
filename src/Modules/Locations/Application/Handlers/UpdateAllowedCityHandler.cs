@@ -1,7 +1,9 @@
 using MeAjudaAi.Modules.Locations.Application.Commands;
+using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Modules.Locations.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
@@ -12,13 +14,17 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 /// </summary>
 public sealed class UpdateAllowedCityHandler(
     IAllowedCityRepository repository,
-    IHttpContextAccessor httpContextAccessor) : ICommandHandler<UpdateAllowedCityCommand>
+    IGeocodingService geocodingService,
+    IHttpContextAccessor httpContextAccessor) : ICommandHandler<UpdateAllowedCityCommand, Result>
 {
-    public async Task HandleAsync(UpdateAllowedCityCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result> HandleAsync(UpdateAllowedCityCommand command, CancellationToken cancellationToken = default)
     {
-        // Buscar entidade existente
-        var city = await repository.GetByIdAsync(command.Id, cancellationToken)
-            ?? throw new AllowedCityNotFoundException(command.Id);
+        // Obter cidade existente
+        var allowedCity = await repository.GetByIdAsync(command.Id, cancellationToken);
+        if (allowedCity == null)
+        {
+            return Result.Failure(Error.NotFound("Cidade permitida não encontrada"));
+        }
 
         // Verificar se novo nome/estado já existe (exceto para esta cidade)
         var existing = await repository.GetByCityAndStateAsync(command.CityName, command.StateSigla, cancellationToken);
@@ -27,18 +33,52 @@ public sealed class UpdateAllowedCityHandler(
             throw new DuplicateAllowedCityException(command.CityName, command.StateSigla);
         }
 
+        // Tentar obter coordenadas se não informadas
+        double lat = command.Latitude;
+        double lon = command.Longitude;
+
+        // Se lat/long forem 0 e o comando indicar que mudou cidade/estado ou é uma correção, tenta geocoding
+        // Aqui assumimos que se veio 0, o frontend não enviou, então tentamos obter
+        if (Math.Abs(lat) < 0.0001 && Math.Abs(lon) < 0.0001)
+        {
+            // Se já tem lat/long salvos e não mudou o nome/estado, mantém os antigos?
+            // Mas o comando de update substitui tudo. Se o usuário quiser manter, deve mandar os valores antigos.
+            // Mas para facilitar, se veio zerado, tentamos geocoding.
+            
+            try 
+            {
+                var address = $"{command.CityName}, {command.StateSigla}, Brasil";
+                var coords = await geocodingService.GetCoordinatesAsync(address, cancellationToken);
+                
+                if (coords != null)
+                {
+                    lat = coords.Latitude;
+                    lon = coords.Longitude;
+                }
+            }
+            catch
+            {
+                // Ignorar erro
+            }
+        }
+
         // Obter usuário atual (Admin)
         var currentUser = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email) ?? "system";
 
         // Atualizar entidade
-        city.Update(
+        allowedCity.Update(
             command.CityName,
             command.StateSigla,
             command.IbgeCode,
+            lat,
+            lon,
+            command.ServiceRadiusKm,
             command.IsActive,
             currentUser);
 
-        // Persistir alterações
-        await repository.UpdateAsync(city, cancellationToken);
+        // Persistir
+        await repository.UpdateAsync(allowedCity, cancellationToken);
+
+        return Result.Success();
     }
 }

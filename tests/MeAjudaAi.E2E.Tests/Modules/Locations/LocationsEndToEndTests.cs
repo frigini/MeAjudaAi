@@ -454,7 +454,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var response = await _fixture.ApiClient.DeleteAsync($"/api/v1/admin/allowed-cities/{cityId}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify city was removed
         await _fixture.WithServiceScopeAsync(async services =>
@@ -533,7 +533,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         // Step 5: Delete city
         var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/admin/allowed-cities/{cityId}");
-        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        deleteResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Step 6: Verify deletion
         var getFinalResponse = await _fixture.ApiClient.GetAsync($"/api/v1/admin/allowed-cities/{cityId}");

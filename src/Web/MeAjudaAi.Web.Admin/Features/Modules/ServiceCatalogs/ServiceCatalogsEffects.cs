@@ -74,6 +74,31 @@ public sealed class ServiceCatalogsEffects
     }
 
     /// <summary>
+    /// Effect para atualizar categoria
+    /// </summary>
+    [EffectMethod]
+    public async Task HandleUpdateCategoryAction(ServiceCatalogsActions.UpdateCategoryAction action, IDispatcher dispatcher)
+    {
+        var request = new MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs.UpdateServiceCatalogCategoryRequestDto(
+            action.Name,
+            action.Description,
+            action.DisplayOrder);
+
+        await _snackbar.ExecuteApiCallAsync(
+            apiCall: () => _serviceCatalogsApi.UpdateCategoryAsync(action.CategoryId, request),
+            operationName: "Atualizar categoria",
+            onSuccess: _ =>
+            {
+                _snackbar.Add("Categoria atualizada com sucesso!", Severity.Success);
+                dispatcher.Dispatch(new ServiceCatalogsActions.LoadCategoriesAction());
+            },
+            onError: ex =>
+            {
+                // Error handled by snackbar
+            });
+    }
+
+    /// <summary>
     /// Effect para excluir categoria
     /// </summary>
     [EffectMethod]
@@ -114,6 +139,31 @@ public sealed class ServiceCatalogsEffects
             onError: ex =>
             {
                 dispatcher.Dispatch(new ServiceCatalogsActions.ToggleCategoryActivationFailureAction(action.CategoryId, ex.Message));
+            });
+    }
+
+    /// <summary>
+    /// Effect para atualizar serviço
+    /// </summary>
+    [EffectMethod]
+    public async Task HandleUpdateServiceAction(ServiceCatalogsActions.UpdateServiceAction action, IDispatcher dispatcher)
+    {
+        var request = new MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs.UpdateServiceRequestDto(
+            Name: action.Name,
+            Description: action.Description
+        );
+
+        await _snackbar.ExecuteApiCallAsync(
+            apiCall: () => _serviceCatalogsApi.UpdateServiceAsync(action.ServiceId, request),
+            operationName: "Atualizar serviço",
+            onSuccess: _ =>
+            {
+                _snackbar.Add("Serviço atualizado com sucesso!", Severity.Success);
+                dispatcher.Dispatch(new ServiceCatalogsActions.LoadServicesAction());
+            },
+            onError: ex =>
+            {
+                // Error handled by snackbar
             });
     }
 

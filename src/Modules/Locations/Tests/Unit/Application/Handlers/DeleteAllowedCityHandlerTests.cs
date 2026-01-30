@@ -25,7 +25,7 @@ public class DeleteAllowedCityHandlerTests
     {
         // Arrange
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
         var command = new DeleteAllowedCityCommand { Id = cityId };
 
         _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
@@ -60,7 +60,7 @@ public class DeleteAllowedCityHandlerTests
     {
         // Arrange
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, false);
+        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0, false);
         var command = new DeleteAllowedCityCommand { Id = cityId };
 
         _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
