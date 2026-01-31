@@ -45,6 +45,10 @@ public sealed class CreateAllowedCityHandler(
                     lon = coords.Longitude;
                 }
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 // Falha no geocoding não é bloqueante; o usuário pode editar as coordenadas manualmente

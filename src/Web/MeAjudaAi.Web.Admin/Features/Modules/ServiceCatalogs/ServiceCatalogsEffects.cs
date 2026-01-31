@@ -159,7 +159,7 @@ public sealed class ServiceCatalogsEffects
             onSuccess: _ =>
             {
                 _snackbar.Add("Serviço atualizado com sucesso!", Severity.Success);
-                dispatcher.Dispatch(new ServiceCatalogsActions.LoadServicesAction());
+                dispatcher.Dispatch(new ServiceCatalogsActions.LoadServicesAction(ActiveOnly: false));
             },
             onError: ex =>
             {

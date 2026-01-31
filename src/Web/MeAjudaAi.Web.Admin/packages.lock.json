@@ -85,12 +85,6 @@
         "resolved": "10.0.2",
         "contentHash": "PxZuemv+NCofS6Mivh9Ke2krvILyTTZMUDaZnzG+VkhpGxqPaCjSSUhZN9AxJwvRxpmpTEDylwCarzq5nOlo8w=="
       },
-      "Microsoft.DotNet.HotReload.WebAssembly.Browser": {
-        "type": "Direct",
-        "requested": "[10.0.102, )",
-        "resolved": "10.0.102",
-        "contentHash": "Y8Xq5gLe6l3bW82uGJODzom5Z7pn+Y71BHObnmWF0LqbKFqfOOVDg76a2vyJnRLHn0X1LmsXSec/QdCWFOPl4A=="
-      },
       "Microsoft.Extensions.Http.Polly": {
         "type": "Direct",
         "requested": "[10.0.2, )",

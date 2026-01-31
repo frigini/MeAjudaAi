@@ -37,32 +37,44 @@ public sealed class UpdateAllowedCityHandler(
         double lat = command.Latitude;
         double lon = command.Longitude;
 
-        // Se lat/long forem 0 e o comando indicar que mudou cidade/estado ou é uma correção, tenta geocoding
-        // Aqui assumimos que se veio 0, o frontend não enviou, então tentamos obter
-        if (Math.Abs(lat) < 0.0001 && Math.Abs(lon) < 0.0001)
+        // Verificar se precisamos buscar novas coordenadas
+        // 1. Se cidade ou estado mudaram
+        // 2. Ou se as coordenadas atuais são inválidas (0,0)
+        // 3. E se o comando não trouxe novas coordenadas válidas (estão zeradas)
+        var cityOrStateChanged = !string.Equals(allowedCity.CityName, command.CityName, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(allowedCity.StateSigla, command.StateSigla, StringComparison.OrdinalIgnoreCase);
+        
+        var existingCoordsMissing = Math.Abs(allowedCity.Latitude) < 0.0001 && Math.Abs(allowedCity.Longitude) < 0.0001;
+        var commandCoordsMissing = Math.Abs(lat) < 0.0001 && Math.Abs(lon) < 0.0001;
+
+        if (commandCoordsMissing)
         {
-            // Fallback para as coordenadas existentes caso o geocoding falhe ou não retorne nada
+            // Fallback inicial para as coordenadas existentes
             lat = allowedCity.Latitude;
             lon = allowedCity.Longitude;
 
-            try 
+            // Só tenta geocoding se realmente necessário
+            if (cityOrStateChanged || existingCoordsMissing)
             {
-                var address = $"{command.CityName}, {command.StateSigla}, Brasil";
-                var coords = await geocodingService.GetCoordinatesAsync(address, cancellationToken);
-                
-                if (coords != null)
+                try 
                 {
-                    lat = coords.Latitude;
-                    lon = coords.Longitude;
+                    var address = $"{command.CityName}, {command.StateSigla}, Brasil";
+                    var coords = await geocodingService.GetCoordinatesAsync(address, cancellationToken);
+                    
+                    if (coords != null)
+                    {
+                        lat = coords.Latitude;
+                        lon = coords.Longitude;
+                    }
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch
-            {
-                // Ignorar erro e manter os valores originais (fallback)
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch
+                {
+                    // Ignorar erro e manter os valores originais (fallback)
+                }
             }
         }
 
