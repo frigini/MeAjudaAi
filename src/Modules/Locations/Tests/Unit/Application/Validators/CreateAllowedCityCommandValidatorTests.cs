@@ -165,6 +165,9 @@ public class CreateAllowedCityCommandValidatorTests
             CityName: "S\u00e3o Paulo",
             StateSigla: "SP",
             IbgeCode: 3550308,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
 

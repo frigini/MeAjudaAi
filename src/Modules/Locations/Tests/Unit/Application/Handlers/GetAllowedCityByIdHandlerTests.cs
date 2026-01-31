@@ -26,7 +26,7 @@ public class GetAllowedCityByIdHandlerTests
         // Arrange
         var cityId = Guid.NewGuid();
         var query = new GetAllowedCityByIdQuery { Id = cityId };
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, -21.130, -42.366, 15);
 
         _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(city);
@@ -98,5 +98,8 @@ public class GetAllowedCityByIdHandlerTests
         result.IsActive.Should().Be(city.IsActive);
         result.CreatedAt.Should().Be(city.CreatedAt);
         result.CreatedBy.Should().Be(city.CreatedBy);
+        result.Latitude.Should().Be(city.Latitude);
+        result.Longitude.Should().Be(city.Longitude);
+        result.ServiceRadiusKm.Should().Be(city.ServiceRadiusKm);
     }
 }

@@ -98,6 +98,15 @@ public sealed class AllowedCity
         if (string.IsNullOrWhiteSpace(createdBy))
             throw new InvalidLocationArgumentException("CreatedBy não pode ser vazio");
 
+        if (double.IsNaN(latitude) || double.IsInfinity(latitude) || latitude < -90 || latitude > 90)
+            throw new InvalidLocationArgumentException("Latitude inválida");
+
+        if (double.IsNaN(longitude) || double.IsInfinity(longitude) || longitude < -180 || longitude > 180)
+            throw new InvalidLocationArgumentException("Longitude inválida");
+            
+        if (double.IsNaN(serviceRadiusKm) || double.IsInfinity(serviceRadiusKm) || serviceRadiusKm < 0)
+            throw new InvalidLocationArgumentException("Raio de atendimento deve ser maior ou igual a zero");
+
         Id = Guid.NewGuid();
         CityName = cityName;
         StateSigla = stateSigla;
@@ -136,6 +145,15 @@ public sealed class AllowedCity
 
         if (string.IsNullOrWhiteSpace(updatedBy))
             throw new InvalidLocationArgumentException("UpdatedBy não pode ser vazio");
+
+        if (double.IsNaN(latitude) || double.IsInfinity(latitude) || latitude < -90 || latitude > 90)
+            throw new InvalidLocationArgumentException("Latitude inválida");
+
+        if (double.IsNaN(longitude) || double.IsInfinity(longitude) || longitude < -180 || longitude > 180)
+            throw new InvalidLocationArgumentException("Longitude inválida");
+
+        if (double.IsNaN(serviceRadiusKm) || double.IsInfinity(serviceRadiusKm) || serviceRadiusKm < 0)
+            throw new InvalidLocationArgumentException("Raio de atendimento deve ser maior ou igual a zero");
 
         CityName = cityName;
         StateSigla = stateSigla;

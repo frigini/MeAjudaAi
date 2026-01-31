@@ -80,9 +80,9 @@ public sealed class ServiceCatalogsEffects
     public async Task HandleUpdateCategoryAction(ServiceCatalogsActions.UpdateCategoryAction action, IDispatcher dispatcher)
     {
         var request = new MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs.UpdateServiceCatalogCategoryRequestDto(
-            action.Name,
-            action.Description,
-            action.DisplayOrder);
+            Name: action.Name,
+            Description: action.Description,
+            DisplayOrder: action.DisplayOrder);
 
         await _snackbar.ExecuteApiCallAsync(
             apiCall: () => _serviceCatalogsApi.UpdateCategoryAsync(action.CategoryId, request),
@@ -94,7 +94,8 @@ public sealed class ServiceCatalogsEffects
             },
             onError: ex =>
             {
-                // Error handled by snackbar
+                // Snackbar shows error; optionally dispatch failure action if state tracking is needed:
+                // dispatcher.Dispatch(new ServiceCatalogsActions.UpdateCategoryFailureAction(action.CategoryId, ex.Message));
             });
     }
 
@@ -163,7 +164,8 @@ public sealed class ServiceCatalogsEffects
             },
             onError: ex =>
             {
-                // Error handled by snackbar
+                // Snackbar shows error; optionally dispatch failure action if state tracking is needed:
+                // dispatcher.Dispatch(new ServiceCatalogsActions.UpdateServiceFailureAction(action.ServiceId, ex.Message));
             });
     }
 

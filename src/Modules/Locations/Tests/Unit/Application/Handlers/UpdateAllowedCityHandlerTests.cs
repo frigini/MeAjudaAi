@@ -39,9 +39,9 @@ public class UpdateAllowedCityHandlerTests
             CityName = "Itaperuna",
             StateSigla = "RJ",
             IbgeCode = 3302270,
-            Latitude = 0,
-            Longitude = 0,
-            ServiceRadiusKm = 0,
+            Latitude = 10,
+            Longitude = 20,
+            ServiceRadiusKm = 15,
             IsActive = true
         };
         var userEmail = "admin2@test.com";
@@ -59,11 +59,14 @@ public class UpdateAllowedCityHandlerTests
         existingCity.CityName.Should().Be("Itaperuna");
         existingCity.StateSigla.Should().Be("RJ");
         existingCity.IbgeCode.Should().Be(3302270);
+        existingCity.Latitude.Should().Be(10);
+        existingCity.Longitude.Should().Be(20);
+        existingCity.ServiceRadiusKm.Should().Be(15);
         _repositoryMock.Verify(x => x.UpdateAsync(existingCity, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task HandleAsync_WhenCityNotFound_ShouldThrowAllowedCityNotFoundException()
+    public async Task HandleAsync_WhenCityNotFound_ShouldReturnNotFoundResult()
     {
         // Arrange
         var command = new UpdateAllowedCityCommand
@@ -145,6 +148,8 @@ public class UpdateAllowedCityHandlerTests
 
         SetupHttpContext("admin@test.com");
         _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existingCity);
+        _repositoryMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
 
         // Act

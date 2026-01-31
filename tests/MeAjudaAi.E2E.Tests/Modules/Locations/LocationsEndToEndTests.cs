@@ -77,7 +77,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
-            var city = new AllowedCity("São Paulo", "SP", "system", 3550308);
+            var city = new AllowedCity("São Paulo", "SP", "system", 3550308, 0, 0, 0);
             dbContext.AllowedCities.Add(city);
             await dbContext.SaveChangesAsync();
         });
@@ -148,8 +148,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
 
-            var activeCity = new AllowedCity("Rio de Janeiro", "RJ", "system", 3304557, true);
-            var inactiveCity = new AllowedCity("Niterói", "RJ", "system", 3303302, false);
+            var activeCity = new AllowedCity("Rio de Janeiro", "RJ", "system", 3304557, -22.9, -43.1, 10, true);
+            var inactiveCity = new AllowedCity("Niterói", "RJ", "system", 3303302, -22.8, -43.1, 10, false);
 
             dbContext.AllowedCities.AddRange(activeCity, inactiveCity);
             await dbContext.SaveChangesAsync();
@@ -192,8 +192,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
 
-            var activeCity = new AllowedCity("Salvador", "BA", "system", 2927408, true);
-            var inactiveCity = new AllowedCity("Feira de Santana", "BA", "system", 2910800, false);
+            var activeCity = new AllowedCity("Salvador", "BA", "system", 2927408, -12.9, -38.5, 10, true);
+            var inactiveCity = new AllowedCity("Feira de Santana", "BA", "system", 2910800, -12.2, -38.9, 10, false);
 
             dbContext.AllowedCities.AddRange(activeCity, inactiveCity);
             await dbContext.SaveChangesAsync();
@@ -242,10 +242,10 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
             var cities = new[]
             {
-                new AllowedCity("Uberlândia", "MG", "system"),
-                new AllowedCity("Belo Horizonte", "MG", "system"),
-                new AllowedCity("Brasília", "DF", "system"),
-                new AllowedCity("Goiânia", "GO", "system")
+                new AllowedCity("Uberlândia", "MG", "system", null, 0, 0, 0),
+                new AllowedCity("Belo Horizonte", "MG", "system", null, 0, 0, 0),
+                new AllowedCity("Brasília", "DF", "system", null, 0, 0, 0),
+                new AllowedCity("Goiânia", "GO", "system", null, 0, 0, 0)
             };
 
             dbContext.AllowedCities.AddRange(cities);
@@ -290,7 +290,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
-            var city = new AllowedCity("Recife", "PE", "system", 2611606);
+            var city = new AllowedCity("Recife", "PE", "system", 2611606, 0, 0, 0);
             dbContext.AllowedCities.Add(city);
             await dbContext.SaveChangesAsync();
             cityId = city.Id;
@@ -342,7 +342,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
-            var city = new AllowedCity("Porto Alegre", "RS", "system", 4314902);
+            var city = new AllowedCity("Porto Alegre", "RS", "system", 4314902, 0, 0, 0);
             dbContext.AllowedCities.Add(city);
             await dbContext.SaveChangesAsync();
             cityId = city.Id;
@@ -408,8 +408,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
-            var city1 = new AllowedCity("Manaus", "AM", "system");
-            var city2 = new AllowedCity("Belém", "PA", "system");
+            var city1 = new AllowedCity("Manaus", "AM", "system", null, 0, 0, 0);
+            var city2 = new AllowedCity("Belém", "PA", "system", null, 0, 0, 0);
 
             dbContext.AllowedCities.AddRange(city1, city2);
             await dbContext.SaveChangesAsync();
@@ -420,7 +420,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var updateRequest = new
         {
-            City = "Belém", // Trying to rename to existing city
+            City = "Belém", // Tentando renomear para uma cidade existente
             State = "PA"
         };
 
@@ -444,7 +444,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
-            var city = new AllowedCity("Florianópolis", "SC", "system");
+            var city = new AllowedCity("Florianópolis", "SC", "system", null, 0, 0, 0);
             dbContext.AllowedCities.Add(city);
             await dbContext.SaveChangesAsync();
             cityId = city.Id;

@@ -106,7 +106,7 @@ public static class EndpointExtensions
         if (result.IsSuccess)
         {
             // CORREÇÃO CRÍTICA: Retornar 200 OK com o Result completo
-            return TypedResults.Ok(result);
+            return HandleNoContent<object>(Result<object>.Success(null!)); // Reusing HandleNoContent<T> logic to avoid code duplication (S4144)
         }
 
         return CreateErrorResponse<object>(result.Error);
@@ -122,12 +122,9 @@ public static class EndpointExtensions
         {
             404 => TypedResults.NotFound(failedResult),
             400 => TypedResults.BadRequest(failedResult),
-            401 => TypedResults.Unauthorized(),
-            403 => TypedResults.Forbid(),
-            500 => TypedResults.Problem(
-                detail: error.Message,
-                statusCode: 500,
-                title: "Erro Interno do Servidor"),
+            401 => TypedResults.Json(failedResult, statusCode: 401),
+            403 => TypedResults.Json(failedResult, statusCode: 403),
+            500 => TypedResults.Json(failedResult, statusCode: 500),
             _ => TypedResults.BadRequest(failedResult)
         };
     }

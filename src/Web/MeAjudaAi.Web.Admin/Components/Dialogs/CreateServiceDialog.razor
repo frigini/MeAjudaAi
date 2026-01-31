@@ -1,10 +1,10 @@
 @using Fluxor
 @using MeAjudaAi.Web.Admin.Features.Modules.ServiceCatalogs
 @using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs
-@using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs
 @inject IState<ServiceCatalogsState> ServiceCatalogsState
 @inject IServiceCatalogsApi ServiceCatalogsApi
 @inject ISnackbar Snackbar
+@inject ILogger<CreateServiceDialog> Logger
 
 <MudDialog>
     <DialogContent>
@@ -108,14 +108,7 @@
                 DisplayOrder: displayOrder
             );
 
-            // TODO: Use Effect instead of direct API call for consistency?
-            // Current code uses direct API call. Keeping it for now as per minimal change principle.
-            // But Services page likely listens to state changes. 
-            // If we use API call here, we need to dispatch a LoadServicesAction or similar afterwards?
-            // The original code was: var result = await ServiceCatalogsApi.CreateServiceAsync(request);
-            // This returns Result<ModuleServiceDto>. 
-            // If we switch to Fluxor Action, we need to handle the response differently.
-            // For now, sticking to the existing pattern in this file.
+            // TODO: [#issue] Evaluate Fluxor Effect pattern vs direct API call
             
             var result = await ServiceCatalogsApi.CreateServiceAsync(request);
 
@@ -133,7 +126,8 @@
         }
         catch (Exception ex)
         {
-             Snackbar.Add($"Erro inesperado: {ex.Message}", Severity.Error);
+             Logger.LogError(ex, "Error creating service");
+             Snackbar.Add("Ocorreu um erro ao criar o serviço. Tente novamente mais tarde.", Severity.Error);
         }
         finally
         {

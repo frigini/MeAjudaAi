@@ -97,11 +97,13 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var content = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
-        result.TryGetProperty("value", out var data).Should().BeTrue();
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var services = data.Deserialize<ServiceListDto[]>(TestContainerFixture.JsonOptions);
+        var wrapper = await TestContainerFixture.ReadJsonAsync<ApiResult<ServiceListDto[]>>(response);
+        wrapper.Should().NotBeNull();
+        wrapper!.Data.Should().NotBeNull();
+        var services = wrapper.Data!;
         services.Should().NotBeNull();
         services!.Length.Should().Be(3, "should return exactly 3 services for this category");
         services.Should().OnlyContain(s => s.CategoryId == category.Id.Value, "all services should belong to the specified category");
@@ -481,11 +483,12 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
         getServiceResponse.IsSuccessStatusCode.Should().BeTrue(
             "the updated service should be retrievable after changing category");
 
-        var content = await getServiceResponse.Content.ReadAsStringAsync();
-        var result = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content, TestContainerFixture.JsonOptions);
-        result.TryGetProperty("value", out var data).Should().BeTrue("response should contain value property");
-        data.TryGetProperty("categoryId", out var categoryIdElement).Should().BeTrue("service should have categoryId property");
-        var actualCategoryId = categoryIdElement.GetGuid();
+
+
+        var wrapper = await TestContainerFixture.ReadJsonAsync<ApiResult<ServiceDto>>(getServiceResponse);
+        wrapper.Should().NotBeNull();
+        wrapper!.Data.Should().NotBeNull();
+        var actualCategoryId = wrapper.Data!.CategoryId;
         actualCategoryId.Should().Be(category2Id,
             "the service should now be associated with the new category");
     }

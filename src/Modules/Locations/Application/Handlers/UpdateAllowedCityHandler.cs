@@ -41,10 +41,6 @@ public sealed class UpdateAllowedCityHandler(
         // Aqui assumimos que se veio 0, o frontend não enviou, então tentamos obter
         if (Math.Abs(lat) < 0.0001 && Math.Abs(lon) < 0.0001)
         {
-            // Se já tem lat/long salvos e não mudou o nome/estado, mantém os antigos?
-            // Mas o comando de update substitui tudo. Se o usuário quiser manter, deve mandar os valores antigos.
-            // Mas para facilitar, se veio zerado, tentamos geocoding.
-            
             try 
             {
                 var address = $"{command.CityName}, {command.StateSigla}, Brasil";
@@ -55,6 +51,10 @@ public sealed class UpdateAllowedCityHandler(
                     lat = coords.Latitude;
                     lon = coords.Longitude;
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch
             {

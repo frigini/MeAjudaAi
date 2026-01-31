@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Locations.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
@@ -15,7 +16,8 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 public sealed class CreateAllowedCityHandler(
     IAllowedCityRepository repository,
     IGeocodingService geocodingService,
-    IHttpContextAccessor httpContextAccessor) : ICommandHandler<CreateAllowedCityCommand, Guid>
+    IHttpContextAccessor httpContextAccessor,
+    Microsoft.Extensions.Logging.ILogger<CreateAllowedCityHandler> logger) : ICommandHandler<CreateAllowedCityCommand, Guid>
 {
     public async Task<Guid> HandleAsync(CreateAllowedCityCommand command, CancellationToken cancellationToken = default)
     {
@@ -43,10 +45,10 @@ public sealed class CreateAllowedCityHandler(
                     lon = coords.Longitude;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignorar erros de geocoding para não bloquear a criação
-                // O usuário pode editar depois manualmente
+                // Geocoding failure is non-blocking; user can edit coordinates manually
+                logger.LogWarning(ex, "Geocoding failed for city {CityName}, {StateSigla}. Proceeding with default coordinates.", command.CityName, command.StateSigla);
             }
         }
 
