@@ -17,7 +17,7 @@ public sealed class CreateAllowedCityHandler(
     IAllowedCityRepository repository,
     IGeocodingService geocodingService,
     IHttpContextAccessor httpContextAccessor,
-    Microsoft.Extensions.Logging.ILogger<CreateAllowedCityHandler> logger) : ICommandHandler<CreateAllowedCityCommand, Guid>
+    ILogger<CreateAllowedCityHandler> logger) : ICommandHandler<CreateAllowedCityCommand, Guid>
 {
     public async Task<Guid> HandleAsync(CreateAllowedCityCommand command, CancellationToken cancellationToken = default)
     {

@@ -7,6 +7,8 @@ using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
+using Microsoft.Extensions.Logging;
+
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
 /// <summary>
@@ -15,6 +17,7 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 public sealed class UpdateAllowedCityHandler(
     IAllowedCityRepository repository,
     IGeocodingService geocodingService,
+    ILogger<UpdateAllowedCityHandler> logger,
     IHttpContextAccessor httpContextAccessor) : ICommandHandler<UpdateAllowedCityCommand, Result>
 {
     public async Task<Result> HandleAsync(UpdateAllowedCityCommand command, CancellationToken cancellationToken = default)
@@ -27,10 +30,11 @@ public sealed class UpdateAllowedCityHandler(
         }
 
         // Verificar se novo nome/estado já existe (exceto para esta cidade)
+        // Verificar se novo nome/estado já existe (exceto para esta cidade)
         var existing = await repository.GetByCityAndStateAsync(command.CityName, command.StateSigla, cancellationToken);
         if (existing is not null && existing.Id != command.Id)
         {
-            throw new DuplicateAllowedCityException(command.CityName, command.StateSigla);
+            return Result.Failure(Error.Conflict($"Cidade '{command.CityName}-{command.StateSigla}' já cadastrada"));
         }
 
         // Tentar obter coordenadas se não informadas
@@ -73,7 +77,8 @@ public sealed class UpdateAllowedCityHandler(
                 }
                 catch
                 {
-                    // Ignorar erro e manter os valores originais (fallback)
+                    // Manter os valores originais (fallback)
+                    logger.LogWarning("Geocoding failed for city {CityName}, {StateSigla}. Keeping existing coordinates.", command.CityName, command.StateSigla);
                 }
             }
         }

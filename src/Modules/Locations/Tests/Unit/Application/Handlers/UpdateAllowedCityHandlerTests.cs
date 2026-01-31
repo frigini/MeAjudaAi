@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Modules.Locations.Domain.Repositories;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Moq;
 using System.Security.Claims;
 using Xunit;
@@ -18,6 +19,7 @@ public class UpdateAllowedCityHandlerTests
     private readonly Mock<IAllowedCityRepository> _repositoryMock;
     private readonly Mock<IGeocodingService> _geocodingServiceMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+    private readonly Mock<ILogger<UpdateAllowedCityHandler>> _loggerMock;
     private readonly UpdateAllowedCityHandler _handler;
 
     public UpdateAllowedCityHandlerTests()
@@ -25,12 +27,13 @@ public class UpdateAllowedCityHandlerTests
         _repositoryMock = new Mock<IAllowedCityRepository>();
         _geocodingServiceMock = new Mock<IGeocodingService>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+        _loggerMock = new Mock<ILogger<UpdateAllowedCityHandler>>();
         
-        // Default mock behavior to avoid NREs
+        // Comportamento padrão do mock para evitar NREs
         _geocodingServiceMock.Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new GeoPoint(0, 0));
 
-        _handler = new UpdateAllowedCityHandler(_repositoryMock.Object, _geocodingServiceMock.Object, _httpContextAccessorMock.Object);
+        _handler = new UpdateAllowedCityHandler(_repositoryMock.Object, _geocodingServiceMock.Object, _loggerMock.Object, _httpContextAccessorMock.Object);
     }
 
     [Fact]

@@ -32,8 +32,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var uniqueSuffix = Guid.NewGuid().ToString("N")[..4];
         var request = new
         {
-            City = $"MuriaéFlow_{uniqueSuffix}",
-            State = "MG",
+            CityName = $"MuriaéFlow_{uniqueSuffix}",
+            StateSigla = "MG",
             IbgeCode = 3143906,
             IsActive = true
         };
@@ -59,8 +59,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
             var city = await dbContext.AllowedCities.FirstOrDefaultAsync(c => c.Id == cityId);
 
             city.Should().NotBeNull();
-            city!.CityName.Should().Be(request.City);
-            city.StateSigla.Should().Be(request.State);
+            city!.CityName.Should().Be(request.CityName);
+            city.StateSigla.Should().Be(request.StateSigla);
             city.IbgeCode.Should().Be(request.IbgeCode);
             city.IsActive.Should().BeTrue();
             city.CreatedBy.Should().NotBeNullOrWhiteSpace();
@@ -84,8 +84,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var duplicateRequest = new
         {
-            City = "São Paulo",
-            State = "SP",
+            CityName = "São Paulo",
+            StateSigla = "SP",
             IbgeCode = 9999999
         };
 
@@ -107,8 +107,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var request = new
         {
-            City = "Curitiba",
-            State = "PR"
+            CityName = "Curitiba",
+            StateSigla = "PR"
         };
 
         // Act
@@ -126,8 +126,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var invalidRequest = new
         {
-            City = "", // Nome da cidade vazio
-            State = "MG"
+            CityName = "", // Nome da cidade vazio
+            StateSigla = "MG"
         };
 
         // Act
@@ -350,8 +350,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var updateRequest = new
         {
-            City = "Porto Alegre Atualizado",
-            State = "RS",
+            CityName = "Porto Alegre Atualizado",
+            StateSigla = "RS",
             IbgeCode = 4314902,
             IsActive = false
         };
@@ -385,8 +385,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var nonExistentId = Guid.NewGuid();
         var updateRequest = new
         {
-            City = "Fortaleza",
-            State = "CE"
+            CityName = "Fortaleza",
+            StateSigla = "CE"
         };
 
         // Act
@@ -420,8 +420,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var updateRequest = new
         {
-            City = "Belém", // Tentando renomear para uma cidade existente
-            State = "PA"
+            CityName = "Belém", // Tentando renomear para uma cidade existente
+            StateSigla = "PA"
         };
 
         // Act
@@ -490,8 +490,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var uniqueSuffix = Guid.NewGuid().ToString("N")[..4];
         var createRequest = new
         {
-            City = $"Vitória_{uniqueSuffix}",
-            State = "ES",
+            CityName = $"Vitória_{uniqueSuffix}",
+            StateSigla = "ES",
             IbgeCode = 3205309
         };
 
@@ -511,8 +511,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         // Step 3: Update city
         var updateRequest = new
         {
-            City = "Vitória Atualizada",
-            State = "ES",
+            CityName = "Vitória Atualizada",
+            StateSigla = "ES",
             IbgeCode = 3205309,
             IsActive = false
         };
