@@ -614,7 +614,11 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>
     /// </summary>
     private static JsonElement GetResponseData(JsonElement response)
     {
-        // Se a resposta tem uma propriedade 'data', desencapsula ela
+        // Se a resposta tem uma propriedade 'value' ou 'data', desencapsula ela
+        if (response.TryGetProperty("value", out var value))
+        {
+            return value;
+        }
         if (response.TryGetProperty("data", out var data))
         {
             return data;

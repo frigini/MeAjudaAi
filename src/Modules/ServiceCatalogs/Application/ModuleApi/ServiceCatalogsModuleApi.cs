@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Contracts.Modules;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs.DTOs;
@@ -160,6 +161,8 @@ public sealed class ServiceCatalogsModuleApi(
                 s.Id.Value,
                 s.CategoryId.Value,
                 s.Name,
+                s.Description,
+                s.DisplayOrder,
                 s.IsActive
             )).ToList();
 

@@ -18,6 +18,9 @@ public class RequestMapperExtensionsTests
             CityName: "Muriaé",
             StateSigla: "MG",
             IbgeCode: 3143906,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
 
@@ -40,6 +43,9 @@ public class RequestMapperExtensionsTests
             CityName: "Itaperuna",
             StateSigla: "RJ",
             IbgeCode: null,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
 
@@ -62,6 +68,9 @@ public class RequestMapperExtensionsTests
             CityName: "Linhares",
             StateSigla: "ES",
             IbgeCode: 3203205,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: false
         );
 
@@ -84,6 +93,9 @@ public class RequestMapperExtensionsTests
             CityName: "Belo Horizonte",
             StateSigla: "MG",
             IbgeCode: 3106200,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
         var id = Guid.NewGuid();
@@ -108,6 +120,9 @@ public class RequestMapperExtensionsTests
             CityName: "Rio de Janeiro",
             StateSigla: "RJ",
             IbgeCode: null,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: false
         );
         var id = Guid.NewGuid();
@@ -163,6 +178,9 @@ public class RequestMapperExtensionsTests
             CityName: cityName,
             StateSigla: state,
             IbgeCode: ibgeCode,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: true
         );
 
@@ -191,6 +209,9 @@ public class RequestMapperExtensionsTests
             CityName: cityName,
             StateSigla: state,
             IbgeCode: ibgeCode,
+            Latitude: 0,
+            Longitude: 0,
+            ServiceRadiusKm: 0,
             IsActive: isActive
         );
         var id = Guid.NewGuid();

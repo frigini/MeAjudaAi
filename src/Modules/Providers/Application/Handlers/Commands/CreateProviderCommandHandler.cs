@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -40,7 +41,7 @@ public sealed class CreateProviderCommandHandler(
             if (existingProvider != null)
             {
                 logger.LogWarning("Provider already exists for user {UserId}", command.UserId);
-                return Result<ProviderDto>.Failure("Provider already exists for this user");
+                return Result<ProviderDto>.Failure(ValidationMessages.Providers.AlreadyExists);
             }
 
             // Converte DTOs para objetos de domínio
@@ -65,7 +66,7 @@ public sealed class CreateProviderCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error creating provider for user {UserId}", command.UserId);
-            return Result<ProviderDto>.Failure("An error occurred while creating the provider");
+            return Result<ProviderDto>.Failure(ValidationMessages.Providers.CreationError);
         }
     }
 }

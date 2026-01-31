@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace MeAjudaAi.Shared.Models;
+namespace MeAjudaAi.Contracts.Models;
 
 /// <summary>
 /// Representa uma cidade permitida para acesso ao serviço.

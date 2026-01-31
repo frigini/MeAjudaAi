@@ -40,6 +40,18 @@ public record Error(string Message, int StatusCode = 400)
     /// </summary>
     /// <param name="message">Mensagem descritiva do erro</param>
     /// <returns>Erro com StatusCode 500</returns>
+    /// <summary>
+    /// Cria um erro Internal Server Error (500).
+    /// </summary>
+    /// <param name="message">Mensagem descritiva do erro</param>
+    /// <returns>Erro com StatusCode 500</returns>
     public static Error Internal(string message) => new(message, 500);
+
+    /// <summary>
+    /// Cria um erro Conflict (409).
+    /// </summary>
+    /// <param name="message">Mensagem descritiva do erro</param>
+    /// <returns>Erro com StatusCode 409</returns>
+    public static Error Conflict(string message) => new(message, 409);
 }
 

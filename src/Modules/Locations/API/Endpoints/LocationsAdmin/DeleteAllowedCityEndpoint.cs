@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts;
+using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -20,7 +21,7 @@ public class DeleteAllowedCityEndpoint : BaseEndpoint, IEndpoint
             .WithName("DeleteAllowedCity")
             .WithSummary("Deletar cidade permitida")
             .WithDescription("Deleta uma cidade permitida")
-            .Produces(StatusCodes.Status204NoContent)
+            .Produces<Result>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .RequireAdmin();
 
@@ -33,6 +34,8 @@ public class DeleteAllowedCityEndpoint : BaseEndpoint, IEndpoint
 
         await commandDispatcher.SendAsync(command, cancellationToken);
 
-        return Results.NoContent();
+        // CORREÇÃO: Retornar 200 OK com Result.Success() para compatibilidade com ILocationsApi (Refit)
+        // O frontend espera um objeto JSON { "isSuccess": true, ... }
+        return Results.Ok(Result.Success());
     }
 }

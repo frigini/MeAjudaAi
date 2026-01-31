@@ -70,7 +70,7 @@ public class GetProviderByIdQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("not found");
+        result.Error!.Message.Should().Contain("Prestador não encontrado");
 
         _providerRepositoryMock.Verify(
             x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -95,6 +95,6 @@ public class GetProviderByIdQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("Error getting provider");
+        result.Error!.Message.Should().Contain("Erro ao buscar prestador");
     }
 }

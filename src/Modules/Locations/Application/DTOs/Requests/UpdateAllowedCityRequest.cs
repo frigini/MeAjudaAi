@@ -7,4 +7,7 @@ public sealed record UpdateAllowedCityRequest(
     string CityName,
     string StateSigla,
     int? IbgeCode,
+    double Latitude,
+    double Longitude,
+    double ServiceRadiusKm,
     bool IsActive);

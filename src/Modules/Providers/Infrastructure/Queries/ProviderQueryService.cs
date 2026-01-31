@@ -53,6 +53,7 @@ public sealed class ProviderQueryService : IProviderQueryService
         var query = _context.Providers
             .Include(p => p.Documents)
             .Include(p => p.Qualifications)
+            .AsSplitQuery()
             .Where(p => !p.IsDeleted);
 
         // Aplica filtro por nome (busca parcial, case-insensitive)

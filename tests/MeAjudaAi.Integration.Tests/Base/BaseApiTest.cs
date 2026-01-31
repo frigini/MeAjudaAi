@@ -143,6 +143,9 @@ public abstract class BaseApiTest : IAsyncLifetime
                         ["Messaging:Enabled"] = "false",
                         ["Messaging:Provider"] = "Mock",
                         ["Keycloak:Enabled"] = "false",
+                        ["Keycloak:ClientSecret"] = "test-secret",
+                        ["Keycloak:AdminUsername"] = "test-admin",
+                        ["Keycloak:AdminPassword"] = "test-password",
                         ["FeatureManagement:GeographicRestriction"] = "true",
                         ["FeatureManagement:PushNotifications"] = "false",
                         ["FeatureManagement:StripePayments"] = "false",
@@ -596,11 +599,58 @@ public abstract class BaseApiTest : IAsyncLifetime
 
     /// <summary>
     /// Deserializa resposta JSON usando as opções de serialização compartilhadas (com suporte a enums).
+    /// Detecta automaticamente se a resposta está envolvida em um Result&lt;T&gt; e a desembrulha se necessário.
     /// </summary>
     protected async Task<T?> ReadJsonAsync<T>(HttpContent content)
     {
-        var stream = await content.ReadAsStreamAsync();
-        return await JsonSerializer.DeserializeAsync<T>(stream, SerializationDefaults.Api);
+        // Lê tudo como string para evitar problemas de seek em streams não-bufferizados
+        var jsonString = await content.ReadAsStringAsync();
+
+        // Tenta deserializar como JsonElement primeiro para inspecionar a estrutura
+        try 
+        {
+            var json = JsonSerializer.Deserialize<JsonElement>(jsonString, SerializationDefaults.Api);
+            
+            // Verifica se tem as propriedades de um Result
+            if (json.ValueKind == JsonValueKind.Object && 
+                json.TryGetProperty("isSuccess", out var isSuccessProp) && 
+                json.TryGetProperty("value", out var valueProp))
+            {
+                // É um Result wrapper - verifica se foi sucesso
+                if (isSuccessProp.ValueKind == JsonValueKind.False)
+                {
+                   return default;
+                }
+
+                // Se sucesso, desserializa o campo 'value'
+                return JsonSerializer.Deserialize<T>(valueProp.GetRawText(), SerializationDefaults.Api);
+            }
+            
+            // Não é wrapper, deserializa direto
+            return JsonSerializer.Deserialize<T>(jsonString, SerializationDefaults.Api);
+        }
+        catch (JsonException)
+        {
+            // Fallback para deserialização direta se a inspeção falhar (ex: string vazia ou inválida)
+            return JsonSerializer.Deserialize<T>(jsonString, SerializationDefaults.Api);
+        }
+    }
+
+    /// <summary>
+    /// Helper para extrair dados da resposta, suportando tanto formato legado (data wrapper) quanto novo (Result with value)
+    /// </summary>
+    protected static JsonElement GetResponseData(JsonElement response)
+    {
+        // Se a resposta tem uma propriedade 'value', retorna ela (mesmo que seja null)
+        if (response.TryGetProperty("value", out var valueElement))
+        {
+            return valueElement;
+        }
+
+        // Fallback para 'data' (legado) ou retorna a resposta original
+        return response.TryGetProperty("data", out var dataElement)
+            ? dataElement
+            : response;
     }
 
     /// <summary>

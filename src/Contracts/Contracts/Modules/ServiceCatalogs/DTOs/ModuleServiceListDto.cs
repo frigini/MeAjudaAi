@@ -7,6 +7,8 @@ public sealed record ModuleServiceListDto(
     Guid Id,
     Guid CategoryId,
     string Name,
+    string? Description,
+    int DisplayOrder,
     bool IsActive
 );
 

@@ -53,5 +53,13 @@ public static class AuthConstants
         public const string Bearer = "Bearer";
         public const string RequestId = "X-Request-Id";
         public const string CorrelationId = "X-Correlation-Id";
+        public const string DebugAuthFailure = "X-Debug-Auth-Failure";
+        
+        // Headers de debug (apenas em ambientes não-produção)
+        public const string DebugUser = "X-Debug-User";
+        public const string DebugRoles = "X-Debug-Roles";
+        public const string DebugPermissionsCount = "X-Debug-Permissions-Count";
+        public const string DebugPermissions = "X-Debug-Permissions";
+        public const string DebugAuthStatus = "X-Debug-Auth-Status";
     }
 }

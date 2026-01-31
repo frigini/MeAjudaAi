@@ -8,8 +8,10 @@ using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Mvc;
 
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
+
 namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 
 /// <summary>
@@ -23,7 +25,8 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
             .WithSummary("Criar nova cidade permitida")
             .WithDescription("Cria uma nova cidade permitida para operações de prestadores (apenas Admin)")
             .Produces<Response<Guid>>(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status500InternalServerError)
             .RequireAdmin();
 
     private static async Task<IResult> CreateAsync(
@@ -32,9 +35,7 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
         CancellationToken cancellationToken)
     {
         var command = request.ToCommand();
-
         var cityId = await commandDispatcher.SendAsync<CreateAllowedCityCommand, Guid>(command, cancellationToken);
-
         return Results.CreatedAtRoute("GetAllowedCityById", new { id = cityId }, new Response<Guid>(cityId, 201));
     }
 }

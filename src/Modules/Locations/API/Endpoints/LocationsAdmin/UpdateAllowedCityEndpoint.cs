@@ -5,11 +5,12 @@ using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
 namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 
 /// <summary>
@@ -22,7 +23,7 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
             .WithName("UpdateAllowedCity")
             .WithSummary("Atualizar cidade permitida")
             .WithDescription("Atualiza uma cidade permitida existente")
-            .Produces<Response<string>>(StatusCodes.Status200OK)
+            .Produces<Result>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest)
             .RequireAdmin();
@@ -35,8 +36,7 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
     {
         var command = request.ToCommand(id);
 
-        await commandDispatcher.SendAsync(command, cancellationToken);
-
-        return Results.Ok(new Response<string>("Cidade permitida atualizada com sucesso"));
+        var result = await commandDispatcher.SendAsync<UpdateAllowedCityCommand, Result>(command, cancellationToken);
+        return EndpointExtensions.Handle(result);
     }
 }

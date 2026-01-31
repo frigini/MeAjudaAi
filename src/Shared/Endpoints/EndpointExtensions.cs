@@ -1,7 +1,7 @@
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
-using MeAjudaAi.Shared.Models;
+
 using Microsoft.AspNetCore.Http;
 
 namespace MeAjudaAi.Shared.Endpoints;
@@ -18,11 +18,13 @@ public static class EndpointExtensions
         {
             if (!string.IsNullOrEmpty(createdRoute))
             {
-                var createdResponse = new Response<T>(result.Value, 201, "Criado com sucesso");
-                return TypedResults.CreatedAtRoute(createdResponse, createdRoute, routeValues);
+                // Para Created, ainda precisamos retornar o Result<T> completo para manter o contrato
+                return TypedResults.CreatedAtRoute(result, createdRoute, routeValues);
             }
 
-            return TypedResults.Ok(new Response<T>(result.Value));
+            // CORREÇÃO CRÍTICA: Retorna o Result<T> completo, não apenas o Value
+            // O cliente espera { "isSuccess": true, "value": { ... }, "error": null }
+            return TypedResults.Ok(result);
         }
 
         return CreateErrorResponse<T>(result.Error);
@@ -34,7 +36,10 @@ public static class EndpointExtensions
     public static IResult Handle(Result result)
     {
         if (result.IsSuccess)
-            return TypedResults.Ok(new Response<object>(null));
+        {
+            // Retorna o Result completo para vazio também
+            return TypedResults.Ok(result);
+        }
 
         return CreateErrorResponse<object>(result.Error);
     }
@@ -51,8 +56,11 @@ public static class EndpointExtensions
                 totalCount,
                 currentPage,
                 pageSize);
-
-            return TypedResults.Ok(pagedResponse);
+            
+            // Retorna Result<PagedResponse> para manter consistência
+            // Usa conversão implícita ou construtor explícito já que Result.Success(val) não existe na classe não-genérica
+            Result<PagedResponse<IEnumerable<T>>> wrappedResult = pagedResponse;
+            return TypedResults.Ok(wrappedResult);
         }
 
         return CreateErrorResponse<IEnumerable<T>>(result.Error);
@@ -63,17 +71,12 @@ public static class EndpointExtensions
     /// </summary>
     public static IResult HandlePagedResult<T>(Result<PagedResult<T>> result)
     {
+        // Se o result já é um Result<PagedResult<T>>, retornamos ele diretamente
+        // O cliente espera Result<PagedResult<T>>
+        
         if (result.IsSuccess)
         {
-            var pagedData = result.Value;
-            var pagedResponse = new PagedResponse<IEnumerable<T>>(
-                pagedData.Items,          // dados
-                pagedData.TotalItems,     // totalCount
-                pagedData.PageNumber,     // página atual
-                pagedData.PageSize        // tamanho da página
-            );
-
-            return TypedResults.Ok(pagedResponse);
+            return TypedResults.Ok(result);
         }
 
         return CreateErrorResponse<PagedResult<T>>(result.Error);
@@ -85,7 +88,12 @@ public static class EndpointExtensions
     public static IResult HandleNoContent<T>(Result<T> result)
     {
         if (result.IsSuccess)
-            return TypedResults.NoContent();
+        {
+            // CORREÇÃO CRÍTICA: Retornar 200 OK com o Result<T> completo
+            // O frontend espera { "isSuccess": true, "value": ... }
+            // 204 No Content retorna corpo vazio, quebrando a deserialização do Result<T> no cliente Refit.
+            return TypedResults.Ok(result);
+        }
 
         return CreateErrorResponse<T>(result.Error);
     }
@@ -96,26 +104,28 @@ public static class EndpointExtensions
     public static IResult HandleNoContent(Result result)
     {
         if (result.IsSuccess)
-            return TypedResults.NoContent();
+        {
+            // CORREÇÃO CRÍTICA: Retornar 200 OK com o Result completo
+            return HandleNoContent<object>(Result<object>.Success(null!)); // Reusing HandleNoContent<T> logic to avoid code duplication (S4144)
+        }
 
         return CreateErrorResponse<object>(result.Error);
     }
 
     private static IResult CreateErrorResponse<T>(Error error)
     {
-        var response = new Response<T>(default, error.StatusCode, error.Message);
+        // Fix: Retornar Result<T> (Falha) para consistência com o caminho de sucesso
+        // O corpo da resposta de erro será { "isSuccess": false, "error": { ... }, "value": null }
+        var failedResult = Result<T>.Failure(error);
 
         return error.StatusCode switch
         {
-            404 => TypedResults.NotFound(response),
-            400 => TypedResults.BadRequest(response),
-            401 => TypedResults.Unauthorized(),
-            403 => TypedResults.Forbid(),
-            500 => TypedResults.Problem(
-                detail: error.Message,
-                statusCode: 500,
-                title: "Internal Server Error"),
-            _ => TypedResults.BadRequest(response)
+            404 => TypedResults.NotFound(failedResult),
+            400 => TypedResults.BadRequest(failedResult),
+            401 => TypedResults.Json(failedResult, statusCode: 401),
+            403 => TypedResults.Json(failedResult, statusCode: 403),
+            500 => TypedResults.Json(failedResult, statusCode: 500),
+            _ => TypedResults.BadRequest(failedResult)
         };
     }
 }

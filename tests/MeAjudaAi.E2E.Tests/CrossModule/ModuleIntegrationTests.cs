@@ -50,7 +50,7 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
             content.Should().NotBeNullOrEmpty();
 
             var result = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content, TestContainerFixture.JsonOptions);
-            result.TryGetProperty("data", out var dataProperty).Should().BeTrue();
+            result.TryGetProperty("value", out var dataProperty).Should().BeTrue();
             dataProperty.TryGetProperty("id", out var idProperty).Should().BeTrue();
             idProperty.GetGuid().Should().NotBeEmpty();
         }
@@ -82,7 +82,7 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
         {
             var createContent = await createResponse.Content.ReadAsStringAsync();
             var createResult = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(createContent, TestContainerFixture.JsonOptions);
-            createResult.TryGetProperty("data", out var dataProperty).Should().BeTrue();
+            createResult.TryGetProperty("value", out var dataProperty).Should().BeTrue();
             dataProperty.TryGetProperty("id", out var idProperty).Should().BeTrue();
             var userId = idProperty.GetGuid();
 

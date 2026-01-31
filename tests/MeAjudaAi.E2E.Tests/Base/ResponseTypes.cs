@@ -56,3 +56,10 @@ public record TokenResponse(
     int ExpiresIn,
     string TokenType
 );
+
+public record ApiResult<T>(T? Value, bool IsSuccess, bool IsFailure, ApiError? Error)
+{
+    public T? Data => Value; 
+}
+
+public record ApiError(string Code, string Message);

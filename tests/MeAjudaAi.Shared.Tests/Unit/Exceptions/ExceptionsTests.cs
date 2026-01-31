@@ -36,16 +36,17 @@ public class ExceptionsTests
     public void NotFoundException_ShouldFormatMessage()
     {
         // Arrange
-        var entityName = "Provider";
-        var entityId = Guid.NewGuid();
+        var targetEntity = "Provider";
+        var targetId = Guid.NewGuid();
+        var expectedMsg = $"{targetEntity} with id {targetId} was not found";
 
         // Act
-        var exception = new NotFoundException(entityName, entityId);
+        var exception = new NotFoundException(targetEntity, targetId);
 
         // Assert
-        exception.EntityName.Should().Be(entityName);
-        exception.EntityId.Should().Be(entityId);
-        exception.Message.Should().Be($"{entityName} with id {entityId} was not found");
+        exception.EntityName.Should().Be(targetEntity);
+        exception.EntityId.Should().Be(targetId);
+        exception.Message.Should().Be(expectedMsg);
     }
 
     [Fact]

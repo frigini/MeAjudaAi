@@ -4,20 +4,22 @@
 @inject IState<ServiceCatalogsState> ServiceCatalogsState
 @inject IServiceCatalogsApi ServiceCatalogsApi
 @inject ISnackbar Snackbar
+@inject ILogger<CreateServiceDialog> Logger
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="form" @bind-IsValid="@success">
             <MudGrid>
                 <MudItem xs="12">
-                    <MudSelect @bind-Value="categoryId" 
+                    <MudSelect T="Guid?" @bind-Value="categoryId" 
                                Label="Categoria" 
                                Required="true"
                                RequiredError="Selecione uma categoria"
-                               Variant="Variant.Outlined">
+                               Variant="Variant.Outlined"
+                               AnchorOrigin="Origin.BottomCenter">
                         @foreach (var category in ServiceCatalogsState.Value.Categories.Where(c => c.IsActive))
                         {
-                            <MudSelectItem Value="@category.Id">@category.Name</MudSelectItem>
+                            <MudSelectItem T="Guid?" Value="@((Guid?)category.Id)">@category.Name</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
@@ -73,7 +75,7 @@
     private MudForm form = null!;
     private bool success;
     private bool isSubmitting;
-    private Guid categoryId = Guid.Empty;
+    private Guid? categoryId = null; // Changed to nullable
     private string name = string.Empty;
     private string? description;
     private int displayOrder = 0;
@@ -89,7 +91,7 @@
         if (!success) return;
 
         // Validate category selection
-        if (categoryId == Guid.Empty)
+        if (categoryId == null || categoryId == Guid.Empty)
         {
             Snackbar.Add("Selecione uma categoria", Severity.Warning);
             return;
@@ -100,7 +102,7 @@
             isSubmitting = true;
 
             var request = new CreateServiceRequestDto(
-                CategoryId: categoryId,
+                CategoryId: categoryId.Value, // Safe due to check above
                 Name: name,
                 Description: description,
                 DisplayOrder: displayOrder
@@ -111,12 +113,19 @@
             if (result.IsSuccess)
             {
                 Snackbar.Add("Serviço criado com sucesso!", Severity.Success);
+                // Dispatch action to refresh list? 
+                // The parent component might handle this on DialogResult.Ok.
                 MudDialog?.Close(DialogResult.Ok(true));
             }
             else
             {
                 Snackbar.Add($"Erro: {result.Error?.Message}", Severity.Error);
             }
+        }
+        catch (Exception ex)
+        {
+             Logger.LogError(ex, "Error creating service");
+             Snackbar.Add("Ocorreu um erro ao criar o serviço. Tente novamente mais tarde.", Severity.Error);
         }
         finally
         {

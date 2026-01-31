@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
+using MeAjudaAi.Shared.Authorization.Core;
 
 namespace MeAjudaAi.Modules.Locations.API.Endpoints;
 
@@ -37,7 +38,7 @@ public static class LocationsModuleEndpoints
         // Usa o sistema unificado de versionamento via BaseEndpoint
         // RequireAdmin aplicado no grupo garante que todos endpoints são protegidos por padrão
         var endpoints = BaseEndpoint.CreateVersionedGroup(app, "admin/allowed-cities", "Allowed Cities")
-            .RequireAdmin();
+            .RequirePermission(EPermission.LocationsManage);
 
         // Endpoints de gestão de cidades permitidas (Admin only)
         endpoints.MapEndpoint<CreateAllowedCityEndpoint>()

@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Utilities.Constants;
+namespace MeAjudaAi.Contracts.Utilities.Constants;
 
 /// <summary>
 /// Mensagens de validação padronizadas utilizadas no sistema
@@ -20,6 +20,8 @@ public static class ValidationMessages
         public const string Id = "O identificador é obrigatório.";
         public const string Password = "A senha é obrigatória.";
         public const string Role = "O papel não pode estar vazio.";
+        public const string CategoryName = "O nome da categoria é obrigatório.";
+        public const string ServiceName = "O nome do serviço é obrigatório.";
     }
 
     /// <summary>
@@ -60,6 +62,10 @@ public static class ValidationMessages
         public const string User = "Usuário não encontrado.";
         public const string UserByEmail = "Usuário com este email não encontrado.";
         public const string Resource = "Recurso não encontrado.";
+        public const string Service = "Serviço não encontrado.";
+        public const string ServiceById = "Serviço com ID '{0}' não encontrado.";
+        public const string Category = "Categoria não encontrada.";
+        public const string CategoryById = "Categoria com ID '{0}' não encontrada.";
     }
 
     /// <summary>
@@ -92,5 +98,27 @@ public static class ValidationMessages
         /// Valor exibido quando o nome da categoria não está disponível (navegação não carregada)
         /// </summary>
         public const string UnknownCategoryName = "Desconhecida";
+
+        public const string CannotDeleteServiceOffered = "Não é possível excluir o serviço '{0}' pois ele é oferecido por prestadores.";
+        public const string CannotDeleteCategoryWithServices = "Não é possível excluir a categoria com {0} serviço(s). Remova ou reatribua os serviços primeiro.";
+        public const string CategoryNameExists = "Já existe uma categoria com o nome '{0}'.";
+        public const string ServiceNameExists = "Já existe um serviço com o nome '{0}' nesta categoria.";
+    }
+
+    /// <summary>
+    /// Mensagens para o módulo Providers
+    /// </summary>
+    public static class Providers
+    {
+        public const string ErrorRetrievingProviders = "Ocorreu um erro ao recuperar os prestadores.";
+        public const string StateParameterRequired = "O parâmetro de estado é obrigatório.";
+        public const string AlreadyExists = "Provedor já existe para este usuário.";
+        public const string CreationError = "Ocorreu um erro ao criar o provedor.";
+        public const string NotFound = "Provedor não encontrado.";
+        public const string ActivationFailed = "Falha ao ativar o provedor.";
+        public const string MustHaveAllDocuments = "O provedor deve ter todos os documentos obrigatórios antes da ativação.";
+        public const string MustHaveVerifiedDocuments = "O provedor deve ter documentos verificados antes da ativação.";
+        public const string CannotBeActivatedPendingDocs = "O provedor não pode ser ativado enquanto houver documentos pendentes de verificação.";
+        public const string CannotBeActivatedRejectedDocs = "O provedor não pode ser ativado com documentos rejeitados. Por favor, reenvie os documentos corretos.";
     }
 }

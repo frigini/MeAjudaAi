@@ -8,5 +8,6 @@ public sealed record ServiceListDto(
     Guid CategoryId,
     string Name,
     string? Description,
+    int DisplayOrder,
     bool IsActive
 );

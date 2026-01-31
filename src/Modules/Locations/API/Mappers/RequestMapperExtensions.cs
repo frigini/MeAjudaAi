@@ -22,6 +22,9 @@ public static class RequestMapperExtensions
             request.CityName,
             request.StateSigla,
             request.IbgeCode,
+            request.Latitude,
+            request.Longitude,
+            request.ServiceRadiusKm,
             request.IsActive
         );
     }
@@ -40,6 +43,9 @@ public static class RequestMapperExtensions
             CityName = request.CityName,
             StateSigla = request.StateSigla,
             IbgeCode = request.IbgeCode,
+            Latitude = request.Latitude,
+            Longitude = request.Longitude,
+            ServiceRadiusKm = request.ServiceRadiusKm,
             IsActive = request.IsActive
         };
     }

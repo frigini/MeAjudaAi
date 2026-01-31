@@ -10,6 +10,7 @@ using MeAjudaAi.Contracts.Modules.Documents;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
 using Moq;
+using MeAjudaAi.Contracts.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 
@@ -94,7 +95,7 @@ public sealed class ActivateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Provider not found");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.NotFound);
 
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
@@ -125,7 +126,7 @@ public sealed class ActivateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("must have all required documents");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.MustHaveAllDocuments);
 
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
@@ -160,7 +161,7 @@ public sealed class ActivateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("must have verified documents");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.MustHaveVerifiedDocuments);
 
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
@@ -199,7 +200,7 @@ public sealed class ActivateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("pending verification");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.CannotBeActivatedPendingDocs);
 
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
@@ -242,7 +243,7 @@ public sealed class ActivateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("rejected documents");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.CannotBeActivatedRejectedDocs);
 
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
@@ -273,7 +274,7 @@ public sealed class ActivateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Failed to validate documents");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.ActivationFailed);
 
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
@@ -295,7 +296,7 @@ public sealed class ActivateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Failed to activate provider");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.ActivationFailed);
     }
 
     [Fact]
@@ -341,6 +342,6 @@ public sealed class ActivateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Failed to activate provider");
+        result.Error.Message.Should().Be(ValidationMessages.Providers.ActivationFailed);
     }
 }
