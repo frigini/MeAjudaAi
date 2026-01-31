@@ -94,10 +94,7 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
         // Act
         var response = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/services/category/{category.Id.Value}");
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        // Assert
+        // Asserção
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var wrapper = await TestContainerFixture.ReadJsonAsync<ApiResult<ServiceListDto[]>>(response);

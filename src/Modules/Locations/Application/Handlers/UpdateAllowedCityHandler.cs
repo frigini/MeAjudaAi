@@ -41,6 +41,10 @@ public sealed class UpdateAllowedCityHandler(
         // Aqui assumimos que se veio 0, o frontend não enviou, então tentamos obter
         if (Math.Abs(lat) < 0.0001 && Math.Abs(lon) < 0.0001)
         {
+            // Fallback para as coordenadas existentes caso o geocoding falhe ou não retorne nada
+            lat = allowedCity.Latitude;
+            lon = allowedCity.Longitude;
+
             try 
             {
                 var address = $"{command.CityName}, {command.StateSigla}, Brasil";
@@ -58,7 +62,7 @@ public sealed class UpdateAllowedCityHandler(
             }
             catch
             {
-                // Ignorar erro
+                // Ignorar erro e manter os valores originais (fallback)
             }
         }
 

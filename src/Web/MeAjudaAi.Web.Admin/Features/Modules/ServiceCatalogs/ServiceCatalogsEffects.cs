@@ -94,8 +94,7 @@ public sealed class ServiceCatalogsEffects
             },
             onError: ex =>
             {
-                // Snackbar shows error; optionally dispatch failure action if state tracking is needed:
-                // dispatcher.Dispatch(new ServiceCatalogsActions.UpdateCategoryFailureAction(action.CategoryId, ex.Message));
+                dispatcher.Dispatch(new ServiceCatalogsActions.UpdateCategoryFailureAction(action.CategoryId, ex.Message));
             });
     }
 
@@ -164,8 +163,7 @@ public sealed class ServiceCatalogsEffects
             },
             onError: ex =>
             {
-                // Snackbar shows error; optionally dispatch failure action if state tracking is needed:
-                // dispatcher.Dispatch(new ServiceCatalogsActions.UpdateServiceFailureAction(action.ServiceId, ex.Message));
+                dispatcher.Dispatch(new ServiceCatalogsActions.UpdateServiceFailureAction(action.ServiceId, ex.Message));
             });
     }
 

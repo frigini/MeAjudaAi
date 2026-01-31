@@ -132,8 +132,9 @@ public class UpdateAllowedCityHandlerTests
     public async Task HandleAsync_UpdatingSameCityWithSameName_ShouldNotThrowException()
     {
         // Arrange
-        var cityId = Guid.NewGuid();
+        // Arrange
         var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
+        var cityId = existingCity.Id; // Use the actual ID of the entity
         var command = new UpdateAllowedCityCommand
         {
             Id = cityId,

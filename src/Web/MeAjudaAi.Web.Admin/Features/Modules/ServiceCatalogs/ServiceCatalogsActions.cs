@@ -38,6 +38,11 @@ public static class ServiceCatalogsActions
     /// Atualiza categoria (pós-update)
     /// </summary>
     public sealed record UpdateCategoryAction(Guid CategoryId, string Name, string? Description, int DisplayOrder);
+    
+    /// <summary>
+    /// Falha ao atualizar categoria
+    /// </summary>
+    public sealed record UpdateCategoryFailureAction(Guid CategoryId, string ErrorMessage);
 
     // ========== SERVICES ==========
 
@@ -70,6 +75,11 @@ public static class ServiceCatalogsActions
     /// Atualiza serviço (pós-update)
     /// </summary>
     public sealed record UpdateServiceAction(Guid ServiceId, string Name, string? Description);
+
+    /// <summary>
+    /// Falha ao atualizar serviço
+    /// </summary>
+    public sealed record UpdateServiceFailureAction(Guid ServiceId, string ErrorMessage);
 
     /// <summary>
     /// Atualiza status de ativação de categoria

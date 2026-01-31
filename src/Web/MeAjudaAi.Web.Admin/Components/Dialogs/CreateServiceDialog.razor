@@ -108,8 +108,6 @@
                 DisplayOrder: displayOrder
             );
 
-            // TODO: [#issue] Evaluate Fluxor Effect pattern vs direct API call
-            
             var result = await ServiceCatalogsApi.CreateServiceAsync(request);
 
             if (result.IsSuccess)

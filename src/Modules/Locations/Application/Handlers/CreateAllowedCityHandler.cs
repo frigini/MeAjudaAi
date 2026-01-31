@@ -47,7 +47,7 @@ public sealed class CreateAllowedCityHandler(
             }
             catch (Exception ex)
             {
-                // Geocoding failure is non-blocking; user can edit coordinates manually
+                // Falha no geocoding não é bloqueante; o usuário pode editar as coordenadas manualmente
                 logger.LogWarning(ex, "Geocoding failed for city {CityName}, {StateSigla}. Proceeding with default coordinates.", command.CityName, command.StateSigla);
             }
         }
