@@ -124,7 +124,11 @@ public class EndpointExtensionsTests
         var response = EndpointExtensions.Handle(result);
 
         // Assert
-        response.Should().BeOfType<UnauthorizedHttpResult>();
+        response.Should().BeOfType<JsonHttpResult<Result<string>>>();
+        var jsonResult = (JsonHttpResult<Result<string>>)response;
+        jsonResult.StatusCode.Should().Be(401);
+        jsonResult.Value.IsFailure.Should().BeTrue();
+        jsonResult.Value.Error.Should().Be(error);
     }
 
     [Fact]
@@ -185,9 +189,11 @@ public class EndpointExtensionsTests
         var response = EndpointExtensions.HandleNoContent(result);
 
         // Assert
-        response.Should().BeOfType<NoContent>();
-        var noContentResult = (NoContent)response;
-        noContentResult.StatusCode.Should().Be(204);
+        // Updated to expect Ok<Result<string>> because HandleNoContent now returns Ok(result) for frontend compatibility
+        response.Should().BeOfType<Ok<Result<string>>>();
+        var okResult = (Ok<Result<string>>)response;
+        okResult.StatusCode.Should().Be(200);
+        okResult.Value.IsSuccess.Should().BeTrue();
     }
 
     [Fact]
