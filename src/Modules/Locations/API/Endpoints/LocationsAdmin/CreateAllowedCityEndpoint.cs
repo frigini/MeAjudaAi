@@ -9,8 +9,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
-
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 
@@ -35,7 +35,16 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
         CancellationToken cancellationToken)
     {
         var command = request.ToCommand();
-        var cityId = await commandDispatcher.SendAsync<CreateAllowedCityCommand, Guid>(command, cancellationToken);
-        return Results.CreatedAtRoute("GetAllowedCityById", new { id = cityId }, new Response<Guid>(cityId, 201));
+        var result = await commandDispatcher.SendAsync<CreateAllowedCityCommand, Result<Guid>>(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return Results.Problem(
+                detail: result.Error.Message,
+                statusCode: result.Error.StatusCode,
+                title: "Erro ao criar cidade permitida");
+        }
+
+        return Results.CreatedAtRoute("GetAllowedCityById", new { id = result.Value }, new Response<Guid>(result.Value, 201));
     }
 }

@@ -139,12 +139,156 @@ public class UpdateAllowedCityHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_WhenCityNameChanged_AndCoordsMissing_ShouldCallGeocodingService()
+    {
+        // Arrange
+        var cityId = Guid.NewGuid();
+        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 10, 20, 0);
+        var command = new UpdateAllowedCityCommand
+        {
+            Id = cityId,
+            CityName = "New City",
+            StateSigla = "MG",
+            IbgeCode = 3143906,
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0,
+            IsActive = true
+        };
+
+        SetupHttpContext("admin@test.com");
+        _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existingCity);
+        _repositoryMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((AllowedCity?)null);
+        
+        var expectedCoords = new GeoPoint(30, 40);
+        _geocodingServiceMock.Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedCoords);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _geocodingServiceMock.Verify(x => x.GetCoordinatesAsync($"{command.CityName}, {command.StateSigla}, Brasil", It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(x => x.UpdateAsync(It.Is<AllowedCity>(c => c.Latitude == expectedCoords.Latitude && c.Longitude == expectedCoords.Longitude), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenStateChanged_AndCoordsMissing_ShouldCallGeocodingService()
+    {
+        // Arrange
+        var cityId = Guid.NewGuid();
+        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 10, 20, 0);
+        var command = new UpdateAllowedCityCommand
+        {
+            Id = cityId,
+            CityName = "Muriaé",
+            StateSigla = "RJ",
+            IbgeCode = 3143906,
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0,
+            IsActive = true
+        };
+
+        SetupHttpContext("admin@test.com");
+        _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existingCity);
+        _repositoryMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((AllowedCity?)null);
+
+        var expectedCoords = new GeoPoint(30, 40);
+        _geocodingServiceMock.Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedCoords);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _geocodingServiceMock.Verify(x => x.GetCoordinatesAsync($"{command.CityName}, {command.StateSigla}, Brasil", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenExistingCoordsInvalid_AndCommandCoordsMissing_ShouldCallGeocodingService()
+    {
+        // Arrange
+        var cityId = Guid.NewGuid();
+        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0); // Invalid/Zero coords
+        var command = new UpdateAllowedCityCommand
+        {
+            Id = cityId,
+            CityName = "Muriaé",
+            StateSigla = "MG", // No change in location name
+            IbgeCode = 3143906,
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0,
+            IsActive = true
+        };
+
+        SetupHttpContext("admin@test.com");
+        _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existingCity);
+        
+        var expectedCoords = new GeoPoint(30, 40);
+        _geocodingServiceMock.Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedCoords);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _geocodingServiceMock.Verify(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(x => x.UpdateAsync(It.Is<AllowedCity>(c => c.Latitude == expectedCoords.Latitude && c.Longitude == expectedCoords.Longitude), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenGeocodingFails_ShouldKeepExistingCoordinates()
+    {
+        // Arrange
+        var cityId = Guid.NewGuid();
+        var existingCoordsLat = 10.5;
+        var existingCoordsLon = 20.5;
+        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, existingCoordsLat, existingCoordsLon, 0);
+        var command = new UpdateAllowedCityCommand
+        {
+            Id = cityId,
+            CityName = "New City",
+            StateSigla = "MG",
+            IbgeCode = 3143906,
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 0,
+            IsActive = true
+        };
+
+        SetupHttpContext("admin@test.com");
+        _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existingCity);
+        _repositoryMock.Setup(x => x.GetByCityAndStateAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((AllowedCity?)null);
+
+        _geocodingServiceMock.Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Geocoding service unavailable"));
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue(); // Should handle exception gracefully
+        _repositoryMock.Verify(x => x.UpdateAsync(It.Is<AllowedCity>(c => c.Latitude == existingCoordsLat && c.Longitude == existingCoordsLon), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task HandleAsync_UpdatingSameCityWithSameName_ShouldNotThrowException()
     {
         // Arrange
-        // Arrange
         var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
-        var cityId = existingCity.Id; // Use the actual ID of the entity
+        var cityId = existingCity.Id; // Use o ID real da entidade
         var command = new UpdateAllowedCityCommand
         {
             Id = cityId,

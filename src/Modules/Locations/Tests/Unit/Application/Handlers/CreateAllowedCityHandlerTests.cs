@@ -51,12 +51,13 @@ public class CreateAllowedCityHandlerTests
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeEmpty();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeEmpty();
         _repositoryMock.Verify(x => x.AddAsync(It.IsAny<AllowedCity>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task HandleAsync_WhenCityAlreadyExists_ShouldThrowDuplicateAllowedCityException()
+    public async Task HandleAsync_WhenCityAlreadyExists_ShouldReturnConflictError()
     {
         // Arrange
         var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, 0, 0, 0, true);
@@ -66,11 +67,12 @@ public class CreateAllowedCityHandlerTests
             .ReturnsAsync(true);
 
         // Act
-        var act = async () => await _handler.HandleAsync(command, CancellationToken.None);
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<DuplicateAllowedCityException>()
-            .WithMessage("*já cadastrada*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.StatusCode.Should().Be(409);
+        result.Error.Message.Should().Contain("já cadastrada");
     }
 
     [Fact]

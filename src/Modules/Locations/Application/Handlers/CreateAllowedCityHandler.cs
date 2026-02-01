@@ -7,6 +7,7 @@ using MeAjudaAi.Shared.Commands;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
@@ -17,15 +18,15 @@ public sealed class CreateAllowedCityHandler(
     IAllowedCityRepository repository,
     IGeocodingService geocodingService,
     IHttpContextAccessor httpContextAccessor,
-    ILogger<CreateAllowedCityHandler> logger) : ICommandHandler<CreateAllowedCityCommand, Guid>
+    ILogger<CreateAllowedCityHandler> logger) : ICommandHandler<CreateAllowedCityCommand, Result<Guid>>
 {
-    public async Task<Guid> HandleAsync(CreateAllowedCityCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<Guid>> HandleAsync(CreateAllowedCityCommand command, CancellationToken cancellationToken = default)
     {
         // Validar se já existe cidade com mesmo nome e estado
         var exists = await repository.ExistsAsync(command.CityName, command.StateSigla, cancellationToken);
         if (exists)
         {
-            throw new DuplicateAllowedCityException(command.CityName, command.StateSigla);
+            return Result<Guid>.Failure(Error.Conflict($"Cidade '{command.CityName}-{command.StateSigla}' já cadastrada"));
         }
 
         // Tentar obter coordenadas se não informadas
@@ -73,6 +74,6 @@ public sealed class CreateAllowedCityHandler(
         // Persistir
         await repository.AddAsync(allowedCity, cancellationToken);
 
-        return allowedCity.Id;
+        return Result<Guid>.Success(allowedCity.Id);
     }
 }

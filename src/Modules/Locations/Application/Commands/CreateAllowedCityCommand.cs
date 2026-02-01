@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Contracts.Functional;
 
 namespace MeAjudaAi.Modules.Locations.Application.Commands;
 
@@ -12,4 +13,4 @@ public sealed record CreateAllowedCityCommand(
     double Latitude = 0,
     double Longitude = 0,
     double ServiceRadiusKm = 0,
-    bool IsActive = true) : Command<Guid>;
+    bool IsActive = true) : Command<Result<Guid>>;

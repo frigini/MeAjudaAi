@@ -93,7 +93,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var response = await _fixture.PostJsonAsync("/api/v1/admin/allowed-cities", duplicateRequest);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
 
         var content = await response.Content.ReadAsStringAsync();
         content.Should().Contain("já cadastrada");
@@ -428,7 +429,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var response = await _fixture.PutJsonAsync($"/api/v1/admin/allowed-cities/{city1Id}", updateRequest);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
 
         var content = await response.Content.ReadAsStringAsync();
         content.Should().Contain("já cadastrada");

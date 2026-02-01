@@ -30,7 +30,6 @@ public sealed class UpdateAllowedCityHandler(
         }
 
         // Verificar se novo nome/estado já existe (exceto para esta cidade)
-        // Verificar se novo nome/estado já existe (exceto para esta cidade)
         var existing = await repository.GetByCityAndStateAsync(command.CityName, command.StateSigla, cancellationToken);
         if (existing is not null && existing.Id != command.Id)
         {
