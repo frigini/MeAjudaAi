@@ -104,7 +104,7 @@ public class UpdateAllowedCityHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenDuplicateCityExists_ShouldThrowDuplicateAllowedCityException()
+    public async Task HandleAsync_WhenDuplicateCityExists_ShouldReturnConflictError()
     {
         // Arrange
         var cityId = Guid.NewGuid();
@@ -130,11 +130,12 @@ public class UpdateAllowedCityHandlerTests
             .ReturnsAsync(duplicateCity);
 
         // Act
-        var act = async () => await _handler.HandleAsync(command, CancellationToken.None);
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<DuplicateAllowedCityException>()
-            .WithMessage("*já cadastrada*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.StatusCode.Should().Be(409);
+        result.Error.Message.Should().Contain("já cadastrada");
     }
 
     [Fact]
