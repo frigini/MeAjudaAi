@@ -121,4 +121,15 @@ public static class ValidationMessages
         public const string CannotBeActivatedPendingDocs = "O provedor não pode ser ativado enquanto houver documentos pendentes de verificação.";
         public const string CannotBeActivatedRejectedDocs = "O provedor não pode ser ativado com documentos rejeitados. Por favor, reenvie os documentos corretos.";
     }
+
+    /// <summary>
+    /// Mensagens para o módulo Locations
+    /// </summary>
+    public static class Locations
+    {
+        public const string NotFound = "Cidade permitida não encontrada.";
+        public const string DuplicateCity = "Cidade já cadastrada com este nome e estado.";
+        public const string UpdateFailed = "Erro ao atualizar cidade permitida.";
+        public const string CreationFailed = "Erro ao criar cidade permitida.";
+    }
 }

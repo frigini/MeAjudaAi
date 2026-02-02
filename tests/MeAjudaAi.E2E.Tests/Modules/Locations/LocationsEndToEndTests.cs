@@ -3,7 +3,10 @@ using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
+
+
 
 namespace MeAjudaAi.E2E.Tests.Modules.Locations;
 
@@ -433,7 +436,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
 
         var content = await response.Content.ReadAsStringAsync();
-        content.Should().Contain("já cadastrada");
+        content.Should().Contain(ValidationMessages.Locations.DuplicateCity);
     }
 
     [Fact]

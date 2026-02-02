@@ -6,6 +6,7 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -40,8 +41,16 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
         
         if (result.IsFailure)
         {
+            // Mapeia o código de erro/status para uma mensagem localizada segura
+            var errorMessage = result.Error.StatusCode switch
+            {
+                StatusCodes.Status409Conflict => ValidationMessages.Locations.DuplicateCity,
+                StatusCodes.Status404NotFound => ValidationMessages.Locations.NotFound,
+                _ => ValidationMessages.Locations.UpdateFailed 
+            };
+
             return Results.Problem(
-                detail: result.Error.Message,
+                detail: errorMessage,
                 statusCode: result.Error.StatusCode,
                 title: "Erro ao atualizar cidade permitida");
         }
