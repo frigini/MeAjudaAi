@@ -71,7 +71,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
     }
 
     [Fact]
-    public async Task CreateAllowedCity_WithDuplicateCityAndState_ShouldReturnBadRequest()
+    public async Task CreateAllowedCity_WithDuplicateCityAndState_ShouldReturnConflict()
     {
         // Arrange
         TestContainerFixture.AuthenticateAsAdmin();
@@ -95,7 +95,6 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         // Act
         var response = await _fixture.PostJsonAsync("/api/v1/admin/allowed-cities", duplicateRequest);
 
-        // Assert
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
 
@@ -364,7 +363,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var response = await _fixture.PutJsonAsync($"/api/v1/admin/allowed-cities/{cityId}", updateRequest);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verify database changes
         await _fixture.WithServiceScopeAsync(async services =>
@@ -401,7 +401,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
     }
 
     [Fact]
-    public async Task UpdateAllowedCity_WithDuplicateCityAndState_ShouldReturnBadRequest()
+    public async Task UpdateAllowedCity_WithDuplicateCityAndState_ShouldReturnConflict()
     {
         // Arrange
         TestContainerFixture.AuthenticateAsAdmin();
@@ -431,7 +431,6 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         // Act
         var response = await _fixture.PutJsonAsync($"/api/v1/admin/allowed-cities/{city1Id}", updateRequest);
 
-        // Assert
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
 
@@ -523,7 +522,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         };
 
         var updateResponse = await _fixture.PutJsonAsync($"/api/v1/admin/allowed-cities/{cityId}", updateRequest);
-        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Step 4: Verify update
         await _fixture.WithServiceScopeAsync(async services =>

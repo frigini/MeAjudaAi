@@ -24,7 +24,8 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
             .WithName("UpdateAllowedCity")
             .WithSummary("Atualizar cidade permitida")
             .WithDescription("Atualiza uma cidade permitida existente")
-            .Produces<Result>(StatusCodes.Status200OK)
+            .WithDescription("Atualiza uma cidade permitida existente")
+            .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest)
             .RequireAdmin();
@@ -55,6 +56,6 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
                 title: "Erro ao atualizar cidade permitida");
         }
 
-        return Results.Ok();
+        return Results.NoContent();
     }
 }
