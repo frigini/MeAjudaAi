@@ -37,6 +37,15 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
         var command = request.ToCommand(id);
 
         var result = await commandDispatcher.SendAsync<UpdateAllowedCityCommand, Result>(command, cancellationToken);
-        return EndpointExtensions.Handle(result);
+        
+        if (result.IsFailure)
+        {
+            return Results.Problem(
+                detail: result.Error.Message,
+                statusCode: result.Error.StatusCode,
+                title: "Erro ao atualizar cidade permitida");
+        }
+
+        return Results.Ok();
     }
 }
