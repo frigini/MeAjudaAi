@@ -123,7 +123,9 @@ public class PatchAllowedCityHandlerTests
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
+        result.IsSuccess.Should().BeTrue();
         existingCity.UpdatedBy.Should().Be("system");
+        _repositoryMock.Verify(x => x.UpdateAsync(existingCity, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private void SetupHttpContext(string? userEmail)

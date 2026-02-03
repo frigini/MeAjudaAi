@@ -11,14 +11,25 @@ public static class ResponseMapperExtensions
             city.Id,
             city.CityName,
             city.StateSigla,
-            "Brasil", // Defaulting to Brasil since it's not in the internal DTO explicitly as a property for listing
+            "Brasil", // Padrão Brasil, pois não está explícito no DTO interno para listagem
             city.Latitude,
             city.Longitude,
-            (int)city.ServiceRadiusKm, // Contract uses int, Internal uses double
+            MapServiceRadius(city.ServiceRadiusKm),
             city.IsActive,
             city.CreatedAt,
             city.UpdatedAt
         );
+    }
+
+    private static int MapServiceRadius(double radius)
+    {
+        // Validação explícita para evitar truncamento silencioso
+        if (Math.Abs(radius - Math.Round(radius)) > 0.01)
+        {
+            throw new FormatException($"O raio de serviço {radius}km tem precisão decimal e não pode ser convertido seguramente para int no contrato.");
+        }
+        
+        return (int)Math.Round(radius);
     }
 
     public static IReadOnlyList<ModuleAllowedCityDto> ToContract(this IEnumerable<AllowedCityDto> cities)

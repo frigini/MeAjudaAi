@@ -30,7 +30,7 @@ public sealed class GeocodingService(
             cacheKey,
             async ct =>
             {
-                logger.LogInformation("Cache miss para geocoding de {Address}, consultando Nominatim", address);
+                logger.LogInformation("Cache miss for geocoding of {Address}, querying Nominatim", address);
                 return await nominatimClient.GetCoordinatesAsync(address, ct);
             },
             expiration: TimeSpan.FromDays(7),
@@ -61,7 +61,7 @@ public sealed class GeocodingService(
             cacheKey,
             async ct =>
             {
-                logger.LogInformation("Cache miss para busca de locations '{Query}', consultando Nominatim", query);
+                logger.LogInformation("Cache miss for locations search '{Query}', querying Nominatim", query);
                 var results = await nominatimClient.SearchAsync(query, ct);
                 return results.ToList();
             },

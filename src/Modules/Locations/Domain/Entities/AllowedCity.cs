@@ -104,8 +104,7 @@ public sealed class AllowedCity
         if (double.IsNaN(longitude) || double.IsInfinity(longitude) || longitude < -180 || longitude > 180)
             throw new InvalidLocationArgumentException("Longitude inválida");
             
-        if (double.IsNaN(serviceRadiusKm) || double.IsInfinity(serviceRadiusKm) || serviceRadiusKm < 0)
-            throw new InvalidLocationArgumentException("Raio de atendimento deve ser maior ou igual a zero");
+        ValidateServiceRadius(serviceRadiusKm);
 
         Id = Guid.NewGuid();
         CityName = cityName;
@@ -152,8 +151,7 @@ public sealed class AllowedCity
         if (double.IsNaN(longitude) || double.IsInfinity(longitude) || longitude < -180 || longitude > 180)
             throw new InvalidLocationArgumentException("Longitude inválida");
 
-        if (double.IsNaN(serviceRadiusKm) || double.IsInfinity(serviceRadiusKm) || serviceRadiusKm < 0)
-            throw new InvalidLocationArgumentException("Raio de atendimento deve ser maior ou igual a zero");
+        ValidateServiceRadius(serviceRadiusKm);
 
         CityName = cityName;
         StateSigla = stateSigla;
@@ -188,14 +186,19 @@ public sealed class AllowedCity
 
     public void UpdateRadius(double serviceRadiusKm, string updatedBy)
     {
-         if (string.IsNullOrWhiteSpace(updatedBy))
+        if (string.IsNullOrWhiteSpace(updatedBy))
             throw new InvalidLocationArgumentException("UpdatedBy não pode ser vazio");
 
-        if (double.IsNaN(serviceRadiusKm) || double.IsInfinity(serviceRadiusKm) || serviceRadiusKm < 0)
-            throw new InvalidLocationArgumentException("Raio de atendimento deve ser maior ou igual a zero");
+        ValidateServiceRadius(serviceRadiusKm);
 
         ServiceRadiusKm = serviceRadiusKm;
         UpdatedAt = DateTime.UtcNow;
         UpdatedBy = updatedBy;
+    }
+
+    private static void ValidateServiceRadius(double serviceRadiusKm)
+    {
+        if (double.IsNaN(serviceRadiusKm) || double.IsInfinity(serviceRadiusKm) || serviceRadiusKm < 0)
+            throw new InvalidLocationArgumentException("Raio de atendimento deve ser maior ou igual a zero");
     }
 }

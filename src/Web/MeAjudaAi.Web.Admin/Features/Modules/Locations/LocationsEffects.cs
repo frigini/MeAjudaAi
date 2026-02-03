@@ -71,14 +71,9 @@ public sealed class LocationsEffects
             },
             onError: ex =>
             {
-                // Se houve erro, deveríamos reverter o estado se fosse UI otimista.
-                // Por hora, apenas notifica erro.
-                // O ExecuteApiCallAsync já exibe notificação de erro via snackbar? Sim, se configurado.
-                // Mas aqui estamos passando onError customizado.
-                
-                // _snackbar.ExecuteApiCallAsync implementation details:
-                // It shows error snackbar automatically if onError doesn't handle fully? 
-                // Let's assume standard behavior.
+                // Falha ao atualizar cidade. Tente novamente.
+                _snackbar.Add("Falha ao atualizar cidade. Tente novamente.", Severity.Error);
+                Console.WriteLine($"Erro ao atualizar cidade {action.CityId}: {ex}");
             });
     }
 
@@ -148,7 +143,8 @@ public sealed class LocationsEffects
             },
             onError: ex =>
             {
-                dispatcher.Dispatch(new UpdateAllowedCityRadiusFailureAction(action.CityId, ex.Message));
+                Console.WriteLine($"Erro ao atualizar raio da cidade {action.CityId}: {ex}");
+                dispatcher.Dispatch(new UpdateAllowedCityRadiusFailureAction(action.CityId, "Erro ao atualizar o raio, tente novamente."));
             });
     }
 }

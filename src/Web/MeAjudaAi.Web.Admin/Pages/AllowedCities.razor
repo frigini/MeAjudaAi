@@ -105,13 +105,22 @@
         }
     }
 
+    private readonly Dictionary<Guid, int> _originalRadius = new();
+
     private void OnStartedEditingItem(ModuleAllowedCityDto item)
     {
-        // Optional: logic when editing starts
+        _originalRadius[item.Id] = item.ServiceRadiusKm;
     }
 
     private void OnCommittedItemChanges(ModuleAllowedCityDto item)
     {
+         if (_originalRadius.TryGetValue(item.Id, out var original) && original == item.ServiceRadiusKm)
+        {
+            _originalRadius.Remove(item.Id);
+            return;
+        }
+
+        _originalRadius.Remove(item.Id);
         Dispatcher.Dispatch(new UpdateAllowedCityRadiusAction(item.Id, item.ServiceRadiusKm));
     }
 

@@ -24,7 +24,6 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
             .WithName("UpdateAllowedCity")
             .WithSummary("Atualizar cidade permitida")
             .WithDescription("Atualiza uma cidade permitida existente")
-            .WithDescription("Atualiza uma cidade permitida existente")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest)

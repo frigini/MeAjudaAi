@@ -22,7 +22,7 @@ public static class LocationsModuleEndpoints
     /// <param name="app">Aplicação web para configuração das rotas</param>
     /// <remarks>
     /// Configura um grupo versionado em "/api/v1/admin/allowed-cities" com:
-    /// - Autorização de Admin obrigatória (RequireAdmin)
+    /// - Autorização por permissão (RequirePermission(EPermission.LocationsManage))
     /// - Tag "Allowed Cities" para documentação OpenAPI
     /// - Todos os endpoints de administração de cidades permitidas
     /// 
@@ -36,7 +36,7 @@ public static class LocationsModuleEndpoints
     public static void MapLocationsEndpoints(this WebApplication app)
     {
         // Usa o sistema unificado de versionamento via BaseEndpoint
-        // RequireAdmin aplicado no grupo garante que todos endpoints são protegidos por padrão
+        // RequirePermission aplicado no grupo garante que todos endpoints são protegidos por padrão
         var endpoints = BaseEndpoint.CreateVersionedGroup(app, "admin/allowed-cities", "Allowed Cities")
             .RequirePermission(EPermission.LocationsManage);
 

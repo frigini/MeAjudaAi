@@ -379,7 +379,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var response = await _fixture.PutJsonAsync($"/api/v1/admin/allowed-cities/{cityId}", updateRequest);
 
         // Assert
-        // Assert
+
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verify database changes

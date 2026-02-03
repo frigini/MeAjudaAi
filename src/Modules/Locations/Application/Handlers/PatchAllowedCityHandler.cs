@@ -5,6 +5,8 @@ using MeAjudaAi.Shared.Commands;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
+using MeAjudaAi.Contracts.Utilities.Constants;
+
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
 /// <summary>
@@ -19,10 +21,15 @@ public sealed class PatchAllowedCityHandler(
         var allowedCity = await repository.GetByIdAsync(command.Id, cancellationToken);
         if (allowedCity == null)
         {
-            return Result.Failure(Error.NotFound("Cidade permitida não encontrada"));
+            return Result.Failure(Error.NotFound(ValidationMessages.Locations.AllowedCityNotFound));
         }
 
         var currentUser = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email) ?? "system";
+
+        if (!command.ServiceRadiusKm.HasValue && !command.IsActive.HasValue)
+        {
+            return Result.Success();
+        }
 
         if (command.ServiceRadiusKm.HasValue)
         {

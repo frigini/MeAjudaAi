@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Shared.Endpoints;
@@ -18,7 +19,7 @@ public class SearchLocationsEndpoint : IEndpoint
             .WithSummary("Busca cidades/endereços para cadastro")
             .WithDescription("Retorna candidatos de localização baseados na query")
             .Produces<LocationCandidate[]>(StatusCodes.Status200OK)
-            .RequireAdmin();
+            .RequirePermission(EPermission.LocationsManage);
     }
 
     private static async Task<IResult> SearchAsync(

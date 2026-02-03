@@ -98,14 +98,15 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add("Erro ao buscar cidades: " + ex.Message, Severity.Error);
+            Console.WriteLine($"Erro na busca de cidades: {ex}");
+            Snackbar.Add("Erro ao buscar cidades. Tente novamente mais tarde.", Severity.Error);
             return Array.Empty<LocationCandidate>();
         }
     }
 
     private void OnCitySelected(LocationCandidate? candidate)
     {
-        // _selectedCity is already set by property
+        // _selectedCity já é definido pela propriedade
         if (candidate != null)
         {
             city = candidate.City;
@@ -118,6 +119,7 @@
         {
             city = string.Empty;
             state = string.Empty;
+            country = string.Empty; // Resetar país para evitar dados obsoletos
             latitude = 0;
             longitude = 0;
         }
