@@ -43,7 +43,7 @@ public class ActivateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(ValidationMessages.Providers.NotFound);
+        result.Error.Message.Should().Be(ValidationMessages.Providers.ProviderNotFound);
     }
 
     [Fact]

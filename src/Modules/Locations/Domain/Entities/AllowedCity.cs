@@ -185,4 +185,17 @@ public sealed class AllowedCity
         UpdatedAt = DateTime.UtcNow;
         UpdatedBy = updatedBy;
     }
+
+    public void UpdateRadius(double serviceRadiusKm, string updatedBy)
+    {
+         if (string.IsNullOrWhiteSpace(updatedBy))
+            throw new InvalidLocationArgumentException("UpdatedBy não pode ser vazio");
+
+        if (double.IsNaN(serviceRadiusKm) || double.IsInfinity(serviceRadiusKm) || serviceRadiusKm < 0)
+            throw new InvalidLocationArgumentException("Raio de atendimento deve ser maior ou igual a zero");
+
+        ServiceRadiusKm = serviceRadiusKm;
+        UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = updatedBy;
+    }
 }

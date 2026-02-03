@@ -76,6 +76,19 @@ public interface ILocationsApi
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Atualiza parcialmente uma cidade permitida (Admin only).
+    /// </summary>
+    /// <param name="id">ID da cidade</param>
+    /// <param name="request">Dados para atualização parcial</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>Resultado da operação</returns>
+    [Patch("/api/v1/admin/allowed-cities/{id}")]
+    Task<Result<Unit>> PatchAllowedCityAsync(
+        Guid id,
+        [Body] PatchAllowedCityRequestDto request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Deleta uma cidade permitida (Admin only).
     /// </summary>
     /// <param name="id">ID da cidade (GUID)</param>
@@ -102,5 +115,16 @@ public interface ILocationsApi
     [Get("/api/v1/admin/allowed-cities/state/{state}")]
     Task<Result<IReadOnlyList<ModuleAllowedCityDto>>> GetAllowedCitiesByStateAsync(
         string state,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Busca cidades cadastradas ou geolocalizadas (candidatos).
+    /// </summary>
+    /// <param name="query">Nome da cidade para busca</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>Lista de candidatos encontrados</returns>
+    [Get("/api/v1/locations/search")]
+    Task<List<LocationCandidate>> SearchAllowedCitiesAsync(
+        [Query] string query,
         CancellationToken cancellationToken = default);
 }

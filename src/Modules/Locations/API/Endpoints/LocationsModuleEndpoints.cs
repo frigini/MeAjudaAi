@@ -45,6 +45,14 @@ public static class LocationsModuleEndpoints
             .MapEndpoint<GetAllAllowedCitiesEndpoint>()
             .MapEndpoint<GetAllowedCityByIdEndpoint>()
             .MapEndpoint<UpdateAllowedCityEndpoint>()
+            .MapEndpoint<PatchAllowedCityEndpoint>()
             .MapEndpoint<DeleteAllowedCityEndpoint>();
+
+        // Endpoints gerais de localizações (interações auxiliares)
+        // Grupo: /api/v1/locations
+        var locationEndpoints = BaseEndpoint.CreateVersionedGroup(app, "locations", "Locations")
+            .RequirePermission(EPermission.LocationsManage);
+
+        locationEndpoints.MapEndpoint<SearchLocationsEndpoint>();
     }
 }

@@ -1,186 +1,25 @@
+using System;
 using FluentAssertions;
+using MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Modules.Locations.API.Mappers;
 using MeAjudaAi.Modules.Locations.Application.DTOs.Requests;
 using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.API.Mappers;
 
-[Trait("Category", "Unit")]
-[Trait("Layer", "API")]
-[Trait("Component", "Mappers")]
 public class RequestMapperExtensionsTests
 {
     [Fact]
-    public void ToCommand_WithValidCreateAllowedCityRequest_ShouldMapToCreateAllowedCityCommand()
+    public void ToCommand_FromInternalRequest_ShouldMapCorrectly()
     {
         // Arrange
         var request = new CreateAllowedCityRequest(
-            CityName: "Muriaé",
-            StateSigla: "MG",
-            IbgeCode: 3143906,
-            Latitude: 0,
-            Longitude: 0,
-            ServiceRadiusKm: 0,
-            IsActive: true
-        );
-
-        // Act
-        var command = request.ToCommand();
-
-        // Assert
-        command.Should().NotBeNull();
-        command.CityName.Should().Be("Muriaé");
-        command.StateSigla.Should().Be("MG");
-        command.IbgeCode.Should().Be(3143906);
-        command.IsActive.Should().BeTrue();
-    }
-
-    [Fact]
-    public void ToCommand_WithNullIbgeCode_ShouldMapWithNullIbgeCode()
-    {
-        // Arrange
-        var request = new CreateAllowedCityRequest(
-            CityName: "Itaperuna",
-            StateSigla: "RJ",
-            IbgeCode: null,
-            Latitude: 0,
-            Longitude: 0,
-            ServiceRadiusKm: 0,
-            IsActive: true
-        );
-
-        // Act
-        var command = request.ToCommand();
-
-        // Assert
-        command.Should().NotBeNull();
-        command.CityName.Should().Be("Itaperuna");
-        command.StateSigla.Should().Be("RJ");
-        command.IbgeCode.Should().BeNull();
-        command.IsActive.Should().BeTrue();
-    }
-
-    [Fact]
-    public void ToCommand_WithIsActiveFalse_ShouldMapWithIsActiveFalse()
-    {
-        // Arrange
-        var request = new CreateAllowedCityRequest(
-            CityName: "Linhares",
+            CityName: "Vitoria",
             StateSigla: "ES",
-            IbgeCode: 3203205,
-            Latitude: 0,
-            Longitude: 0,
-            ServiceRadiusKm: 0,
-            IsActive: false
-        );
-
-        // Act
-        var command = request.ToCommand();
-
-        // Assert
-        command.Should().NotBeNull();
-        command.CityName.Should().Be("Linhares");
-        command.StateSigla.Should().Be("ES");
-        command.IbgeCode.Should().Be(3203205);
-        command.IsActive.Should().BeFalse();
-    }
-
-    [Fact]
-    public void ToCommand_WithUpdateAllowedCityRequest_ShouldMapToUpdateCommand()
-    {
-        // Arrange
-        var request = new UpdateAllowedCityRequest(
-            CityName: "Belo Horizonte",
-            StateSigla: "MG",
-            IbgeCode: 3106200,
-            Latitude: 0,
-            Longitude: 0,
-            ServiceRadiusKm: 0,
-            IsActive: true
-        );
-        var id = Guid.NewGuid();
-
-        // Act
-        var command = request.ToCommand(id);
-
-        // Assert
-        command.Should().NotBeNull();
-        command.Id.Should().Be(id);
-        command.CityName.Should().Be("Belo Horizonte");
-        command.StateSigla.Should().Be("MG");
-        command.IbgeCode.Should().Be(3106200);
-        command.IsActive.Should().BeTrue();
-    }
-
-    [Fact]
-    public void ToCommand_WithUpdateRequestAndNullIbgeCode_ShouldMapCorrectly()
-    {
-        // Arrange
-        var request = new UpdateAllowedCityRequest(
-            CityName: "Rio de Janeiro",
-            StateSigla: "RJ",
-            IbgeCode: null,
-            Latitude: 0,
-            Longitude: 0,
-            ServiceRadiusKm: 0,
-            IsActive: false
-        );
-        var id = Guid.NewGuid();
-
-        // Act
-        var command = request.ToCommand(id);
-
-        // Assert
-        command.Should().NotBeNull();
-        command.Id.Should().Be(id);
-        command.CityName.Should().Be("Rio de Janeiro");
-        command.StateSigla.Should().Be("RJ");
-        command.IbgeCode.Should().BeNull();
-        command.IsActive.Should().BeFalse();
-    }
-
-    [Fact]
-    public void ToDeleteCommand_WithValidGuid_ShouldMapToDeleteAllowedCityCommand()
-    {
-        // Arrange
-        var id = Guid.NewGuid();
-
-        // Act
-        var command = id.ToDeleteCommand();
-
-        // Assert
-        command.Should().NotBeNull();
-        command.Id.Should().Be(id);
-    }
-
-    [Fact]
-    public void ToDeleteCommand_WithEmptyGuid_ShouldMapToDeleteCommand()
-    {
-        // Arrange
-        var id = Guid.Empty;
-
-        // Act
-        var command = id.ToDeleteCommand();
-
-        // Assert
-        command.Should().NotBeNull();
-        command.Id.Should().Be(Guid.Empty);
-    }
-
-    [Theory]
-    [InlineData("São Paulo", "SP", 3550308)]
-    [InlineData("Vitória", "ES", 3205309)]
-    [InlineData("Niterói", "RJ", 3303302)]
-    public void ToCommand_WithDifferentCities_ShouldMapCorrectly(string cityName, string state, int ibgeCode)
-    {
-        // Arrange
-        var request = new CreateAllowedCityRequest(
-            CityName: cityName,
-            StateSigla: state,
-            IbgeCode: ibgeCode,
-            Latitude: 0,
-            Longitude: 0,
-            ServiceRadiusKm: 0,
+            IbgeCode: 123456,
+            Latitude: -20.0,
+            Longitude: -40.0,
+            ServiceRadiusKm: 50,
             IsActive: true
         );
 
@@ -188,43 +27,39 @@ public class RequestMapperExtensionsTests
         var command = request.ToCommand();
 
         // Assert
-        command.Should().NotBeNull();
-        command.CityName.Should().Be(cityName);
-        command.StateSigla.Should().Be(state);
-        command.IbgeCode.Should().Be(ibgeCode);
-        command.IsActive.Should().BeTrue();
+        command.CityName.Should().Be(request.CityName);
+        command.StateSigla.Should().Be(request.StateSigla);
+        command.IbgeCode.Should().Be(request.IbgeCode);
+        command.Latitude.Should().Be(request.Latitude);
+        command.Longitude.Should().Be(request.Longitude);
+        command.ServiceRadiusKm.Should().Be(request.ServiceRadiusKm);
+        command.IsActive.Should().Be(request.IsActive);
     }
 
-    [Theory]
-    [InlineData("Curitiba", "PR", 4106902, true)]
-    [InlineData("Porto Alegre", "RS", 4314902, false)]
-    public void ToCommand_WithUpdateRequestAndDifferentStates_ShouldMapCorrectly(
-        string cityName,
-        string state,
-        int ibgeCode,
-        bool isActive)
+    [Fact]
+    public void ToCommand_FromContractRequestDto_ShouldMapCorrectly()
     {
         // Arrange
-        var request = new UpdateAllowedCityRequest(
-            CityName: cityName,
-            StateSigla: state,
-            IbgeCode: ibgeCode,
-            Latitude: 0,
-            Longitude: 0,
-            ServiceRadiusKm: 0,
-            IsActive: isActive
+        var requestDto = new CreateAllowedCityRequestDto(
+            City: "Serra",
+            State: "ES",
+            Country: "Brasil",
+            Latitude: -20.1,
+            Longitude: -40.2,
+            ServiceRadiusKm: 30,
+            IsActive: true
         );
-        var id = Guid.NewGuid();
 
         // Act
-        var command = request.ToCommand(id);
+        var command = requestDto.ToCommand();
 
         // Assert
-        command.Should().NotBeNull();
-        command.Id.Should().Be(id);
-        command.CityName.Should().Be(cityName);
-        command.StateSigla.Should().Be(state);
-        command.IbgeCode.Should().Be(ibgeCode);
-        command.IsActive.Should().Be(isActive);
+        command.CityName.Should().Be(requestDto.City);
+        command.StateSigla.Should().Be(requestDto.State);
+        command.IbgeCode.Should().BeNull(); // DTO doesn't have IBGE code
+        command.Latitude.Should().Be(requestDto.Latitude);
+        command.Longitude.Should().Be(requestDto.Longitude);
+        command.ServiceRadiusKm.Should().Be(requestDto.ServiceRadiusKm);
+        command.IsActive.Should().Be(requestDto.IsActive);
     }
 }

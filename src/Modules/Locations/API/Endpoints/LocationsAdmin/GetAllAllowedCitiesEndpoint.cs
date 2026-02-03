@@ -11,6 +11,9 @@ using Microsoft.AspNetCore.Routing;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Functional;
 
+using MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs;
+using MeAjudaAi.Modules.Locations.API.Mappers;
+
 namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 
 /// <summary>
@@ -23,7 +26,7 @@ public class GetAllAllowedCitiesEndpoint : BaseEndpoint, IEndpoint
             .WithName("GetAllAllowedCities")
             .WithSummary("Listar todas as cidades permitidas")
             .WithDescription("Recupera todas as cidades permitidas (opcionalmente apenas as ativas)")
-            .Produces<Result<IReadOnlyList<AllowedCityDto>>>(StatusCodes.Status200OK)
+            .Produces<Result<IReadOnlyList<ModuleAllowedCityDto>>>(StatusCodes.Status200OK)
             .RequireAdmin();
 
     private static async Task<IResult> GetAllAsync(
@@ -34,8 +37,10 @@ public class GetAllAllowedCitiesEndpoint : BaseEndpoint, IEndpoint
         var query = new GetAllAllowedCitiesQuery { OnlyActive = onlyActive };
 
         var result = await queryDispatcher.QueryAsync<GetAllAllowedCitiesQuery, IReadOnlyList<AllowedCityDto>>(query, cancellationToken);
+        
+        // Map to contract DTOs
+        var contractResult = result.ToContract();
 
-        // Ajuste: Retorna Result<T> encapsulado para atender ao Protocolo Global da API e expectativa do Cliente
-        return TypedResults.Ok(Result<IReadOnlyList<AllowedCityDto>>.Success(result));
+        return TypedResults.Ok(Result<IReadOnlyList<ModuleAllowedCityDto>>.Success(contractResult));
     }
 }

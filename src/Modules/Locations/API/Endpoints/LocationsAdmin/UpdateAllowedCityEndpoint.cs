@@ -46,7 +46,7 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
             var errorMessage = result.Error.StatusCode switch
             {
                 StatusCodes.Status409Conflict => ValidationMessages.Locations.DuplicateCity,
-                StatusCodes.Status404NotFound => ValidationMessages.Locations.NotFound,
+                StatusCodes.Status404NotFound => ValidationMessages.Locations.AllowedCityNotFound,
                 _ => ValidationMessages.Locations.UpdateFailed 
             };
 

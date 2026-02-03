@@ -130,4 +130,25 @@ public sealed class LocationsEffects
                 dispatcher.Dispatch(new ToggleCityActivationFailureAction(action.CityId, ex.Message));
             });
     }
+    [EffectMethod]
+    public async Task HandleUpdateAllowedCityRadiusAction(UpdateAllowedCityRadiusAction action, IDispatcher dispatcher)
+    {
+        var patchRequest = new PatchAllowedCityRequestDto(
+            ServiceRadiusKm: action.ServiceRadiusKm,
+            IsActive: null
+        );
+
+        await _snackbar.ExecuteApiCallAsync(
+            apiCall: () => _locationsApi.PatchAllowedCityAsync(action.CityId, patchRequest),
+            operationName: "Atualizar raio",
+            onSuccess: _ =>
+            {
+                dispatcher.Dispatch(new UpdateAllowedCityRadiusSuccessAction(action.CityId, action.ServiceRadiusKm));
+                _snackbar.Add("Raio atualizado com sucesso!", Severity.Success);
+            },
+            onError: ex =>
+            {
+                dispatcher.Dispatch(new UpdateAllowedCityRadiusFailureAction(action.CityId, ex.Message));
+            });
+    }
 }

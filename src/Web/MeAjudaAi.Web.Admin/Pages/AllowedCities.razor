@@ -37,29 +37,31 @@
         <MudDataGrid T="ModuleAllowedCityDto"
                      Items="@LocationsState.Value.AllowedCities"
                      Loading="@LocationsState.Value.IsLoading"
-                     Dense="true"
-                     Hover="true"
-                     FixedHeader="true"
+                     ReadOnly="false"
+                     EditMode="DataGridEditMode.Cell"
+                     StartedEditingItem="@OnStartedEditingItem"
+                     CommittedItemChanges="@OnCommittedItemChanges"
                      Height="calc(100vh - 300px)">
             <Columns>
-                <PropertyColumn Property="x => x.City" Title="Cidade" />
-                <PropertyColumn Property="x => x.State" Title="Estado" />
-                <PropertyColumn Property="x => x.Country" Title="País" />
-                <PropertyColumn Property="x => x.Latitude" Title="Latitude" Format="F6" />
-                <PropertyColumn Property="x => x.Longitude" Title="Longitude" Format="F6" />
-                <PropertyColumn Property="x => x.ServiceRadiusKm" Title="Raio (km)" />
-                <TemplateColumn Title="Status">
+                <PropertyColumn Property="x => x.City" Title="Cidade" Editable="false" />
+                <PropertyColumn Property="x => x.State" Title="Estado" Editable="false" />
+                <PropertyColumn Property="x => x.Country" Title="País" Editable="false" />
+                <PropertyColumn Property="x => x.Latitude" Title="Latitude" Format="F6" Editable="false" />
+                <PropertyColumn Property="x => x.Longitude" Title="Longitude" Format="F6" Editable="false" />
+                <PropertyColumn Property="x => x.ServiceRadiusKm" Title="Raio (km)" Editable="true">
+                    <EditTemplate>
+                        <MudNumericField @bind-Value="context.Item.ServiceRadiusKm" Label="Raio" Variant="Variant.Text" Min="1" Max="500" />
+                    </EditTemplate>
+                </PropertyColumn>
+                <TemplateColumn Title="Status" Editable="false">
                     <CellTemplate>
                         <MudChip Size="Size.Small" Color="@ActivationStatus.ToColor(context.Item.IsActive)">
                             @ActivationStatus.ToDisplayName(context.Item.IsActive)
                         </MudChip>
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn Title="Ações" Sortable="false">
+                <TemplateColumn Title="Ações" Sortable="false" Editable="false">
                     <CellTemplate>
-                        <MudTooltip Text="Editar">
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" OnClick="@(() => OpenEditDialog(context.Item))" />
-                        </MudTooltip>
                         <MudTooltip Text="@(context.Item.IsActive ? "Desativar" : "Ativar")">
                             <MudSwitch T="bool" 
                                        Checked="@context.Item.IsActive" 
@@ -103,27 +105,14 @@
         }
     }
 
-    private async Task OpenEditDialog(ModuleAllowedCityDto city)
+    private void OnStartedEditingItem(ModuleAllowedCityDto item)
     {
-        var parameters = new DialogParameters
-        {
-            { nameof(EditAllowedCityDialog.CityId), city.Id },
-            { nameof(EditAllowedCityDialog.CityName), city.City },
-            { nameof(EditAllowedCityDialog.State), city.State },
-            { nameof(EditAllowedCityDialog.Country), city.Country },
-            { nameof(EditAllowedCityDialog.Latitude), city.Latitude },
-            { nameof(EditAllowedCityDialog.Longitude), city.Longitude },
-            { nameof(EditAllowedCityDialog.ServiceRadiusKm), city.ServiceRadiusKm },
-            { nameof(EditAllowedCityDialog.IsActive), city.IsActive }
-        };
+        // Optional: logic when editing starts
+    }
 
-        var dialog = await DialogService.ShowAsync<EditAllowedCityDialog>("Editar Cidade Permitida", parameters);
-        var result = await dialog.Result;
-
-        if (!result.Canceled)
-        {
-            Dispatcher.Dispatch(new LoadAllowedCitiesAction(OnlyActive: false)); // Reload list
-        }
+    private void OnCommittedItemChanges(ModuleAllowedCityDto item)
+    {
+        Dispatcher.Dispatch(new UpdateAllowedCityRadiusAction(item.Id, item.ServiceRadiusKm));
     }
 
     private async Task ToggleActivation(Guid cityId, bool newActiveStatus)

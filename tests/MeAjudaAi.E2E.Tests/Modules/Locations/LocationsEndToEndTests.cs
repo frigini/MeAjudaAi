@@ -35,9 +35,12 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var uniqueSuffix = Guid.NewGuid().ToString("N")[..4];
         var request = new
         {
-            CityName = $"MuriaéFlow_{uniqueSuffix}",
-            StateSigla = "MG",
-            IbgeCode = 3143906,
+            City = $"MuriaéFlow_{uniqueSuffix}",
+            State = "MG",
+            Country = "Brasil",
+            Latitude = -21.1,
+            Longitude = -42.3,
+            ServiceRadiusKm = 10,
             IsActive = true
         };
 
@@ -62,9 +65,9 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
             var city = await dbContext.AllowedCities.FirstOrDefaultAsync(c => c.Id == cityId);
 
             city.Should().NotBeNull();
-            city!.CityName.Should().Be(request.CityName);
-            city.StateSigla.Should().Be(request.StateSigla);
-            city.IbgeCode.Should().Be(request.IbgeCode);
+            city!.CityName.Should().Be(request.City);
+            city.StateSigla.Should().Be(request.State);
+            // city.IbgeCode.Should().Be(request.IbgeCode); // Removed from request
             city.IsActive.Should().BeTrue();
             city.CreatedBy.Should().NotBeNullOrWhiteSpace();
         });
@@ -87,9 +90,13 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var duplicateRequest = new
         {
-            CityName = "São Paulo",
-            StateSigla = "SP",
-            IbgeCode = 9999999
+            City = "São Paulo",
+            State = "SP",
+            Country = "Brasil",
+            Latitude = -23.5,
+            Longitude = -46.6,
+            ServiceRadiusKm = 20,
+            IsActive = true
         };
 
         // Act
@@ -110,8 +117,13 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var request = new
         {
-            CityName = "Curitiba",
-            StateSigla = "PR"
+            City = "Curitiba",
+            State = "PR",
+            Country = "Brasil",
+            Latitude = -25.4,
+            Longitude = -49.2,
+            ServiceRadiusKm = 15,
+            IsActive = true
         };
 
         // Act
@@ -129,8 +141,12 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var invalidRequest = new
         {
-            CityName = "", // Nome da cidade vazio
-            StateSigla = "MG"
+            City = "", // Nome da cidade vazio
+            State = "MG",
+            Country = "Brasil",
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 10
         };
 
         // Act
@@ -494,9 +510,13 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var uniqueSuffix = Guid.NewGuid().ToString("N")[..4];
         var createRequest = new
         {
-            CityName = $"Vitória_{uniqueSuffix}",
-            StateSigla = "ES",
-            IbgeCode = 3205309
+            City = $"Vitória_{uniqueSuffix}",
+            State = "ES",
+            Country = "Brasil",
+            Latitude = -20.3,
+            Longitude = -40.3,
+            ServiceRadiusKm = 10,
+            IsActive = true
         };
 
         var createResponse = await _fixture.PostJsonAsync("/api/v1/admin/allowed-cities", createRequest);
@@ -542,6 +562,59 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         // Step 6: Verify deletion
         var getFinalResponse = await _fixture.ApiClient.GetAsync($"/api/v1/admin/allowed-cities/{cityId}");
         getFinalResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+    [Fact]
+    public async Task PatchAllowedCity_ShouldUpdateRadius_And_ActiveStatus()
+    {
+        // Arrange
+        TestContainerFixture.AuthenticateAsAdmin();
+
+        // Step 1: Create city
+        var uniqueSuffix = Guid.NewGuid().ToString("N")[..4];
+        var createRequest = new
+        {
+            City = $"City_{uniqueSuffix}",
+            State = "ES",
+            Country = "Brasil",
+            Latitude = -20.3,
+            Longitude = -40.3,
+            ServiceRadiusKm = 10,
+            IsActive = false
+        };
+
+        var createResponse = await _fixture.PostJsonAsync("/api/v1/admin/allowed-cities", createRequest);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        
+        var createContent = await createResponse.Content.ReadAsStringAsync();
+        var createResult = JsonSerializer.Deserialize<JsonElement>(createContent, TestContainerFixture.JsonOptions);
+        createResult.TryGetProperty("data", out var cityIdElement).Should().BeTrue();
+        var cityId = Guid.Parse(cityIdElement.GetString()!);
+
+        // Step 2: Patch city (Update Radius to 50 and Activate)
+        var patchRequest = new
+        {
+            ServiceRadiusKm = 50,
+            IsActive = true
+        };
+
+        // Act
+        var patchResponse = await _fixture.PatchJsonAsync($"/api/v1/admin/allowed-cities/{cityId}", patchRequest);
+
+        // Assert
+        patchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Verify database changes
+        await _fixture.WithServiceScopeAsync(async services =>
+        {
+            var dbContext = services.GetRequiredService<LocationsDbContext>();
+            var city = await dbContext.AllowedCities.FirstOrDefaultAsync(c => c.Id == cityId);
+
+            city.Should().NotBeNull();
+            city!.CityName.Should().Be(createRequest.City); // Unchanged
+            city.ServiceRadiusKm.Should().Be(50); // Updated
+            city.IsActive.Should().BeTrue(); // Updated
+            city.UpdatedBy.Should().NotBeNullOrWhiteSpace();
+        });
     }
 }
 

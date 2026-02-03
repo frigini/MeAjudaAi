@@ -43,7 +43,7 @@ public sealed class ActivateProviderCommandHandler(
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure(ValidationMessages.Providers.NotFound);
+                return Result.Failure(ValidationMessages.Providers.ProviderNotFound);
             }
 
             // Validar que provider tem documentos verificados via Documents module

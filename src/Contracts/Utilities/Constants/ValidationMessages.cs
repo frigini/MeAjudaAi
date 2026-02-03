@@ -114,7 +114,7 @@ public static class ValidationMessages
         public const string StateParameterRequired = "O parâmetro de estado é obrigatório.";
         public const string AlreadyExists = "Provedor já existe para este usuário.";
         public const string CreationError = "Ocorreu um erro ao criar o provedor.";
-        public const string NotFound = "Provedor não encontrado.";
+        public const string ProviderNotFound = "Provedor não encontrado.";
         public const string ActivationFailed = "Falha ao ativar o provedor.";
         public const string MustHaveAllDocuments = "O provedor deve ter todos os documentos obrigatórios antes da ativação.";
         public const string MustHaveVerifiedDocuments = "O provedor deve ter documentos verificados antes da ativação.";
@@ -127,7 +127,7 @@ public static class ValidationMessages
     /// </summary>
     public static class Locations
     {
-        public const string NotFound = "Cidade permitida não encontrada.";
+        public const string AllowedCityNotFound = "Cidade permitida não encontrada.";
         public const string DuplicateCity = "Cidade já cadastrada com este nome e estado.";
         public const string UpdateFailed = "Erro ao atualizar cidade permitida.";
         public const string CreationFailed = "Erro ao criar cidade permitida.";

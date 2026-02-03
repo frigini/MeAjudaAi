@@ -476,6 +476,16 @@ public class TestContainerFixture : IAsyncLifetime
 #pragma warning restore CA2000
 
     /// <summary>
+    /// Envia PATCH com JSON serializado
+    /// </summary>
+    public async Task<HttpResponseMessage> PatchJsonAsync<T>(string requestUri, T content)
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
+        var stringContent = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
+        return await ApiClient.PatchAsync(requestUri, stringContent);
+    }
+
+    /// <summary>
     /// Deserializa JSON da resposta HTTP
     /// </summary>
     public static async Task<T?> ReadJsonAsync<T>(HttpResponseMessage response)

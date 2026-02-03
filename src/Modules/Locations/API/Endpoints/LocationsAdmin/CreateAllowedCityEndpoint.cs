@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs;
 
 namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 
@@ -30,7 +31,7 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
             .RequireAdmin();
 
     private static async Task<IResult> CreateAsync(
-        CreateAllowedCityRequest request,
+        CreateAllowedCityRequestDto request,
         ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {

@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs;
 
 namespace MeAjudaAi.Modules.Locations.Application.Services;
 
@@ -11,4 +12,9 @@ public interface IGeocodingService
     /// Obtém coordenadas geográficas a partir de um endereço completo.
     /// </summary>
     Task<GeoPoint?> GetCoordinatesAsync(string address, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Busca endereços/cidades que correspondam à query.
+    /// </summary>
+    Task<List<LocationCandidate>> SearchAsync(string query, CancellationToken cancellationToken = default);
 }

@@ -45,6 +45,38 @@ public sealed class GeocodingService(
         return coordinates;
     }
 
+
+
+    public async Task<List<MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs.LocationCandidate>> SearchAsync(string query, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return [];
+        }
+
+        var normalizedQuery = query.Trim().ToLowerInvariant();
+        var cacheKey = $"geocoding:search:{normalizedQuery}";
+
+        var candidates = await cacheService.GetOrCreateAsync(
+            cacheKey,
+            async ct =>
+            {
+                logger.LogInformation("Cache miss para busca de locations '{Query}', consultando Nominatim", query);
+                var results = await nominatimClient.SearchAsync(query, ct);
+                return results.ToList();
+            },
+            expiration: TimeSpan.FromDays(1),
+            options: new HybridCacheEntryOptions
+            {
+                Expiration = TimeSpan.FromDays(1),
+                LocalCacheExpiration = TimeSpan.FromHours(1)
+            },
+            tags: ["geocoding"],
+            cancellationToken: cancellationToken);
+
+        return candidates ?? [];
+    }
+
     private static string GetCacheKey(string address)
     {
         // Normalizar endereço para evitar duplicatas de cache

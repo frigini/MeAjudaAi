@@ -115,6 +115,140 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
         }
     }
 
+    public async Task<MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs.LocationCandidate[]> SearchAsync(string query, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return [];
+        }
+
+        try
+        {
+            await _rateLimiter.WaitAsync(cancellationToken);
+            try
+            {
+                var timeSinceLastRequest = timeProvider.GetUtcNow().UtcDateTime - _lastRequestTime;
+                if (timeSinceLastRequest < TimeSpan.FromSeconds(1))
+                {
+                    var delay = TimeSpan.FromSeconds(1) - timeSinceLastRequest;
+                    await Task.Delay(delay, cancellationToken);
+                }
+
+                var encodedQuery = HttpUtility.UrlEncode(query);
+                // addressdetails=1 para trazer cidade/estado
+                var url = $"search?q={encodedQuery}&format=json&addressdetails=1&limit=10&countrycodes=br";
+
+                logger.LogInformation("Searching Nominatim for query: {Query}", query);
+
+                _lastRequestTime = timeProvider.GetUtcNow().UtcDateTime;
+                var response = await httpClient.GetAsync(url, cancellationToken);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    logger.LogWarning("Nominatim returned status {StatusCode} for query {Query}", response.StatusCode, query);
+                    return [];
+                }
+
+                var content = await response.Content.ReadAsStringAsync(cancellationToken);
+                var results = JsonSerializer.Deserialize<NominatimResponse[]>(content, SerializationDefaults.Default);
+
+                if (results is null || results.Length == 0)
+                {
+                    return [];
+                }
+
+                var candidates = new List<MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs.LocationCandidate>();
+                var seenLocations = new HashSet<(string City, string State)>();
+
+                foreach (var result in results)
+                {
+                    if (string.IsNullOrWhiteSpace(result.Lat) || string.IsNullOrWhiteSpace(result.Lon))
+                    {
+                        continue;
+                    }
+
+                    if (!double.TryParse(result.Lat, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var lat) ||
+                        !double.TryParse(result.Lon, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var lon))
+                    {
+                        continue;
+                    }
+
+                    // Extrair cidade e estado do endereço estruturado
+                    var city = result.Address?.City ?? result.Address?.Town ?? result.Address?.Village ?? result.Address?.Municipality;
+                    var state = result.Address?.State;
+                    var country = result.Address?.Country;
+
+                    if (string.IsNullOrWhiteSpace(city)) continue;
+
+                    // Mapear nome do estado para sigla (UF) se necessário
+                    if (!string.IsNullOrWhiteSpace(state) && StateToSiglaMap.TryGetValue(state, out var sigla))
+                    {
+                        state = sigla;
+                    }
+
+                    // Filtrar duplicatas
+                    var locationKey = (city, state ?? "");
+                    if (seenLocations.Contains(locationKey))
+                    {
+                        continue;
+                    }
+                    seenLocations.Add(locationKey);
+
+                    candidates.Add(new MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs.LocationCandidate(
+                        result.DisplayName ?? "",
+                        city,
+                        state ?? "",
+                        country ?? "",
+                        lat,
+                        lon
+                    ));
+                }
+
+                return candidates.ToArray();
+            }
+            finally
+            {
+                _rateLimiter.Release();
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error searching Nominatim for query {Query}", query);
+            return [];
+        }
+    }
+
+    private static readonly Dictionary<string, string> StateToSiglaMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        { "Acre", "AC" },
+        { "Alagoas", "AL" },
+        { "Amapá", "AP" },
+        { "Amazonas", "AM" },
+        { "Bahia", "BA" },
+        { "Ceará", "CE" },
+        { "Distrito Federal", "DF" },
+        { "Espírito Santo", "ES" },
+        { "Goiás", "GO" },
+        { "Maranhão", "MA" },
+        { "Mato Grosso", "MT" },
+        { "Mato Grosso do Sul", "MS" },
+        { "Minas Gerais", "MG" },
+        { "Pará", "PA" },
+        { "Paraíba", "PB" },
+        { "Paraná", "PR" },
+        { "Pernambuco", "PE" },
+        { "Piauí", "PI" },
+        { "Rio de Janeiro", "RJ" },
+        { "Rio Grande do Norte", "RN" },
+        { "Rio Grande do Sul", "RS" },
+        { "Rondônia", "RO" },
+        { "Roraima", "RR" },
+        { "Santa Catarina", "SC" },
+        { "São Paulo", "SP" },
+        { "Sergipe", "SE" },
+        { "Tocantins", "TO" }
+    };
+
     public void Dispose()
     {
         _rateLimiter.Dispose();

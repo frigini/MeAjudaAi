@@ -95,7 +95,7 @@ public sealed class ActivateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(ValidationMessages.Providers.NotFound);
+        result.Error.Message.Should().Be(ValidationMessages.Providers.ProviderNotFound);
 
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
