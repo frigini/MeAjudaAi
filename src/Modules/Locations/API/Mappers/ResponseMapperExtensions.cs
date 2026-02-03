@@ -21,6 +21,11 @@ public static class ResponseMapperExtensions
         );
     }
 
+    public static IReadOnlyList<ModuleAllowedCityDto> ToContract(this IEnumerable<AllowedCityDto> cities)
+    {
+        return cities.Select(ToContract).ToList();
+    }
+
     private static int MapServiceRadius(double radius)
     {
         var rounded = (int)Math.Round(radius);
@@ -32,10 +37,5 @@ public static class ResponseMapperExtensions
         }
         
         return rounded;
-    }
-
-    public static IReadOnlyList<ModuleAllowedCityDto> ToContract(this IEnumerable<AllowedCityDto> cities)
-    {
-        return cities.Select(ToContract).ToList();
     }
 }

@@ -71,11 +71,7 @@ public sealed class UsersModuleApi(
             logger.LogDebug("Users module is available and healthy");
             return true;
         }
-        catch (OperationCanceledException ex)
-        {
-            logger.LogDebug(ex, "Users module availability check was cancelled");
-            throw;
-        }
+
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking Users module availability");
@@ -113,10 +109,7 @@ public sealed class UsersModuleApi(
                 result.Error.Message, result.Error.StatusCode);
             return false;
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
+
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Basic operations test failed for Users module");

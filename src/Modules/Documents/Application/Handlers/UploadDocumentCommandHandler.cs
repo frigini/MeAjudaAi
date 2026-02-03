@@ -133,16 +133,7 @@ public class UploadDocumentCommandHandler(
                 blobName,
                 expiresAt);
         }
-        catch (UnauthorizedAccessException ex)
-        {
-            _logger.LogWarning(ex, "Authorization failed while uploading document for provider {ProviderId}", command.ProviderId);
-            throw;
-        }
-        catch (ArgumentException ex)
-        {
-            _logger.LogWarning(ex, "Validation failed while uploading document: {Message}", ex.Message);
-            throw;
-        }
+
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while uploading document for provider {ProviderId}", command.ProviderId);

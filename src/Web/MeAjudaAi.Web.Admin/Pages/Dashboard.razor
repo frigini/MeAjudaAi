@@ -86,6 +86,7 @@
                     <MudButton Variant="Variant.Outlined" 
                                Color="Color.Warning" 
                                StartIcon="@Icons.Material.Filled.VerifiedUser"
+                               Href="/providers?filter=pending"
                                Disabled="@(DashboardState.Value.PendingVerifications == 0)">
                         Verificar Pendentes (@DashboardState.Value.PendingVerifications)
                     </MudButton>

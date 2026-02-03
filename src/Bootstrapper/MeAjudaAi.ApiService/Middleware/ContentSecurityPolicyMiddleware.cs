@@ -8,7 +8,7 @@ public class ContentSecurityPolicyMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ContentSecurityPolicyMiddleware> _logger;
-    private readonly IConfiguration _configuration;
+
     private readonly string _cspPolicy;
 
     public ContentSecurityPolicyMiddleware(
@@ -19,7 +19,7 @@ public class ContentSecurityPolicyMiddleware
     {
         _next = next;
         _logger = logger;
-        _configuration = configuration;
+
         _cspPolicy = BuildCspPolicy(environment, configuration);
     }
 
@@ -28,8 +28,7 @@ public class ContentSecurityPolicyMiddleware
         // Adicionar headers de CSP
         context.Response.Headers.Append("Content-Security-Policy", _cspPolicy);
         
-        // Adicionar CSP Report-Only para testes (comentado para produção)
-        // context.Response.Headers.Append("Content-Security-Policy-Report-Only", _cspPolicy);
+
 
         // Adicionar headers de segurança adicionais
         context.Response.Headers.Append("X-Content-Type-Options", "nosniff");

@@ -76,10 +76,10 @@ public sealed class UpdateAllowedCityHandler(
                 {
                     throw;
                 }
-                catch
+                catch (Exception ex)
                 {
                     // Manter os valores originais (fallback)
-                    logger.LogWarning("Geocoding failed for city {CityName}, {StateSigla}. Keeping existing coordinates.", command.CityName, command.StateSigla);
+                    logger.LogWarning(ex, "Geocoding failed for city {CityName}, {StateSigla}. Keeping existing coordinates.", command.CityName, command.StateSigla);
                 }
             }
         }

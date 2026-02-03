@@ -336,16 +336,16 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 VerificationStatus = "Pending",
                 // BusinessProfile fields
                 LegalName = "João Silva - Psicólogo",
-                FantasyName = (string?)null,
+                FantasyName = default(string?),
                 Description = "Psicólogo clínico com 10 anos de experiência em atendimento individual e familiar",
                 // ContactInfo fields
                 Email = "joao.silva@provider.com",
                 PhoneNumber = "11987654321",
-                Website = (string?)null,
+                Website = default(string?),
                 // Address fields
                 Street = "Av. Paulista",
                 Number = "1000",
-                Complement = "Sala 101",
+                Complement = default(string?),
                 Neighborhood = "Bela Vista",
                 City = "São Paulo",
                 State = "SP",
@@ -362,16 +362,16 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 VerificationStatus = "Verified",
                 // BusinessProfile fields
                 LegalName = "Maria Santos - Assistente Social",
-                FantasyName = (string?)null,
+                FantasyName = default(string?),
                 Description = "Assistente social especializada em famílias em situação de vulnerabilidade social",
                 // ContactInfo fields
                 Email = "maria.santos@provider.com",
                 PhoneNumber = "11912345678",
-                Website = (string?)null,
+                Website = default(string?),
                 // Address fields
                 Street = "Rua da Consolação",
                 Number = "500",
-                Complement = (string?)null,
+                Complement = default(string?),
                 Neighborhood = "Consolação",
                 City = "São Paulo",
                 State = "SP",

@@ -75,11 +75,7 @@ public sealed class DocumentsModuleApi(
             logger.LogDebug("Documents module is available and healthy");
             return true;
         }
-        catch (OperationCanceledException ex)
-        {
-            logger.LogDebug(ex, "Documents module availability check was cancelled");
-            throw;
-        }
+
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking Documents module availability");
@@ -103,10 +99,7 @@ public sealed class DocumentsModuleApi(
             // Sucesso se retornar Success com null (documento não encontrado)
             return result.IsSuccess && result.Value == null;
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
+
         catch
         {
             // GetDocumentByIdAsync já fez o log do erro
@@ -127,10 +120,7 @@ public sealed class DocumentsModuleApi(
                 ? Result<ModuleDocumentDto?>.Success(null)
                 : Result<ModuleDocumentDto?>.Success(MapToModuleDto(document));
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
+
         catch (Exception ex)
         {
             logger.LogError(ex, "Error retrieving document {DocumentId}", documentId);
@@ -150,10 +140,7 @@ public sealed class DocumentsModuleApi(
             var moduleDtos = documents.Select(MapToModuleDto).ToList();
             return Result<IReadOnlyList<ModuleDocumentDto>>.Success(moduleDtos);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
+
         catch (Exception ex)
         {
             logger.LogError(ex, "Error retrieving documents for provider {ProviderId}", providerId);
@@ -200,10 +187,7 @@ public sealed class DocumentsModuleApi(
 
             return Result<ModuleDocumentStatusDto?>.Success(statusDto);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
+
         catch (Exception ex)
         {
             logger.LogError(ex, "Error retrieving document status {DocumentId}", documentId);
@@ -270,10 +254,7 @@ public sealed class DocumentsModuleApi(
             var hasVerified = documentsResult.Value!.Any(d => d.Status == StatusString(EDocumentStatus.Verified));
             return Result<bool>.Success(hasVerified);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
+
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking verified documents for provider {ProviderId}", providerId);
@@ -322,10 +303,7 @@ public sealed class DocumentsModuleApi(
 
             return Result<bool>.Success(hasRequired);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
+
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking required documents for provider {ProviderId}", providerId);
@@ -364,10 +342,7 @@ public sealed class DocumentsModuleApi(
 
             return Result<DocumentStatusCountDto>.Success(count);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
+
         catch (Exception ex)
         {
             logger.LogError(ex, "Error retrieving document status count for provider {ProviderId}", providerId);
@@ -391,10 +366,7 @@ public sealed class DocumentsModuleApi(
             var hasPending = documentsResult.Value!.Any(d => d.Status == StatusString(EDocumentStatus.PendingVerification));
             return Result<bool>.Success(hasPending);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
+
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking pending documents for provider {ProviderId}", providerId);
@@ -418,10 +390,7 @@ public sealed class DocumentsModuleApi(
             var hasRejected = documentsResult.Value!.Any(d => d.Status == StatusString(EDocumentStatus.Rejected));
             return Result<bool>.Success(hasRejected);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
+
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking rejected documents for provider {ProviderId}", providerId);

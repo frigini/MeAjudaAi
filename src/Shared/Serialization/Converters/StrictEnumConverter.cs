@@ -33,7 +33,7 @@ public class StrictEnumConverter : JsonConverterFactory
         return (JsonConverter)Activator.CreateInstance(converterType, _namingPolicy, _allowIntegerValues)!;
     }
 
-    private class StrictEnumConverterInner<TEnum> : JsonConverter<TEnum> where TEnum : struct, Enum
+    private sealed class StrictEnumConverterInner<TEnum> : JsonConverter<TEnum> where TEnum : struct, Enum
     {
         private readonly JsonNamingPolicy? _namingPolicy;
         private readonly bool _allowIntegerValues;

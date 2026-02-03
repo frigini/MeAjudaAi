@@ -79,11 +79,7 @@ public sealed class ProvidersModuleApi(
             logger.LogDebug("Providers module is available and healthy");
             return true;
         }
-        catch (OperationCanceledException ex)
-        {
-            logger.LogDebug(ex, "Providers module availability check was cancelled");
-            throw;
-        }
+
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking Providers module availability");
@@ -111,10 +107,7 @@ public sealed class ProvidersModuleApi(
 
             return false;
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
+
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Basic operations test failed for Providers module");
