@@ -114,7 +114,7 @@
 
     private void OnCommittedItemChanges(ModuleAllowedCityDto item)
     {
-         if (_originalRadius.TryGetValue(item.Id, out var original) && original == item.ServiceRadiusKm)
+        if (_originalRadius.TryGetValue(item.Id, out var original) && original == item.ServiceRadiusKm)
         {
             _originalRadius.Remove(item.Id);
             return;

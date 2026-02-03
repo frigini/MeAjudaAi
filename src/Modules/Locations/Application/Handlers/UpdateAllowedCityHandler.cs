@@ -9,6 +9,8 @@ using System.Security.Claims;
 
 using Microsoft.Extensions.Logging;
 
+using MeAjudaAi.Shared.Extensions;
+
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
 /// <summary>
@@ -83,7 +85,7 @@ public sealed class UpdateAllowedCityHandler(
         }
 
         // Obter usuário atual (Admin)
-        var currentUser = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email) ?? "system";
+        var currentUser = httpContextAccessor.GetAuditIdentity();
 
         // Atualizar entidade
         allowedCity.Update(

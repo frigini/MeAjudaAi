@@ -9,6 +9,8 @@ using System.Security.Claims;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Contracts.Functional;
 
+using MeAjudaAi.Shared.Extensions;
+
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
 /// <summary>
@@ -58,7 +60,7 @@ public sealed class CreateAllowedCityHandler(
         }
 
         // Obter usuário atual (Admin)
-        var currentUser = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email) ?? "system";
+        var currentUser = httpContextAccessor.GetAuditIdentity();
 
         // Criar entidade
         var allowedCity = new AllowedCity(

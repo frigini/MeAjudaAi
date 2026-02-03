@@ -80,7 +80,7 @@
             if (_selectedCity != value)
             {
                 _selectedCity = value;
-                OnCitySelected(value); // Calls the existing logic
+                OnCitySelected(value); // Chama a lógica existente
             }
         }
     }
@@ -98,7 +98,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erro na busca de cidades: {ex}");
+            Console.WriteLine($"Error fetching cities: {ex}");
             Snackbar.Add("Erro ao buscar cidades. Tente novamente mais tarde.", Severity.Error);
             return Array.Empty<LocationCandidate>();
         }

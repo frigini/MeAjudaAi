@@ -7,6 +7,8 @@ using System.Security.Claims;
 
 using MeAjudaAi.Contracts.Utilities.Constants;
 
+using MeAjudaAi.Shared.Extensions;
+
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
 /// <summary>
@@ -24,7 +26,7 @@ public sealed class PatchAllowedCityHandler(
             return Result.Failure(Error.NotFound(ValidationMessages.Locations.AllowedCityNotFound));
         }
 
-        var currentUser = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email) ?? "system";
+        var currentUser = httpContextAccessor.GetAuditIdentity();
 
         if (!command.ServiceRadiusKm.HasValue && !command.IsActive.HasValue)
         {
