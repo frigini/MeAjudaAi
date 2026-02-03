@@ -51,7 +51,7 @@ public class UpdateProviderProfileEndpoint : BaseEndpoint, IEndpoint
                 - 🏢 Modificação do perfil de negócio
                 - 📞 Atualização de informações de contato
                 - 📍 Alteração de endereço principal
-                - 🔒 Controle de acesso: próprio prestador ou administrador
+                - 🔒 Controle de acesso: usuários com permissão ProvidersUpdate
                 
                 **Campos atualizáveis:**
                 - Nome do prestador

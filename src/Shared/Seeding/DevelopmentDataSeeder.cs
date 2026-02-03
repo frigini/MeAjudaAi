@@ -21,6 +21,12 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
     private static readonly Guid HousingCategoryId = Guid.Parse("55555555-5555-5555-5555-555555555555");
     private static readonly Guid FoodCategoryId = Guid.Parse("66666666-6666-6666-6666-666666666666");
 
+    // IDs estáveis para Providers de teste
+    private static readonly Guid Provider1UserId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+    private static readonly Guid Provider2UserId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
+    private static readonly Guid Provider1Id = Guid.Parse("11111111-2222-3333-4444-555555555555");
+    private static readonly Guid Provider2Id = Guid.Parse("66666666-7777-8888-9999-000000000000");
+
     public DevelopmentDataSeeder(
         IServiceProvider serviceProvider,
         ILogger<DevelopmentDataSeeder> logger)
@@ -142,6 +148,10 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         {
             await SeedServiceCatalogsAsync(cancellationToken);
             await SeedLocationsAsync(cancellationToken);
+            
+            // Always seed providers (uses ON CONFLICT DO NOTHING)
+            _logger.LogInformation("🏢 Ensuring provider seed data...");
+            await SeedProvidersAsync(cancellationToken);
 
             _logger.LogInformation("✅ Data seed completed successfully!");
         }
@@ -301,6 +311,105 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         }
 
         _logger.LogInformation("✅ Locations: {Count} cities processed (new inserted, existing ignored)", cities.Length);
+    }
+
+    private async Task SeedProvidersAsync(CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("🏢 Seeding Providers...");
+
+        var context = GetDbContext("Providers");
+        if (context == null)
+        {
+            _logger.LogWarning("⚠️ ProvidersDbContext not found, skipping seed");
+            return;
+        }
+
+        var providers = new[]
+        {
+            new
+            {
+                Id = Provider1Id,
+                UserId = Provider1UserId,
+                Name = "João Silva",
+                Type = "Individual", // EProviderType.Individual
+                Status = "Active",
+                VerificationStatus = "Pending",
+                // BusinessProfile fields
+                LegalName = "João Silva - Psicólogo",
+                FantasyName = (string?)null,
+                Description = "Psicólogo clínico com 10 anos de experiência em atendimento individual e familiar",
+                // ContactInfo fields
+                Email = "joao.silva@provider.com",
+                PhoneNumber = "11987654321",
+                Website = (string?)null,
+                // Address fields
+                Street = "Av. Paulista",
+                Number = "1000",
+                Complement = "Sala 101",
+                Neighborhood = "Bela Vista",
+                City = "São Paulo",
+                State = "SP",
+                ZipCode = "01310100",
+                Country = "Brasil"
+            },
+            new
+            {
+                Id = Provider2Id,
+                UserId = Provider2UserId,
+                Name = "Maria Santos",
+                Type = "Individual",
+                Status = "Active",
+                VerificationStatus = "Verified",
+                // BusinessProfile fields
+                LegalName = "Maria Santos - Assistente Social",
+                FantasyName = (string?)null,
+                Description = "Assistente social especializada em famílias em situação de vulnerabilidade social",
+                // ContactInfo fields
+                Email = "maria.santos@provider.com",
+                PhoneNumber = "11912345678",
+                Website = (string?)null,
+                // Address fields
+                Street = "Rua da Consolação",
+                Number = "500",
+                Complement = (string?)null,
+                Neighborhood = "Consolação",
+                City = "São Paulo",
+                State = "SP",
+                ZipCode = "01301000",
+                Country = "Brasil"
+            }
+        };
+
+        foreach (var provider in providers)
+        {
+            // Insert Provider with all owned entity fields in a single flat row
+            await context.Database.ExecuteSqlRawAsync(
+                @"INSERT INTO providers.providers (
+                    id, user_id, name, type, status, verification_status, 
+                    legal_name, fantasy_name, description,
+                    email, phone_number, website,
+                    street, number, complement, neighborhood, city, state, zip_code, country,
+                    is_deleted, created_at, updated_at
+                  ) 
+                  VALUES (
+                    {0}, {1}, {2}, {3}, {4}, {5},
+                    {6}, {7}, {8},
+                    {9}, {10}, {11},
+                    {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19},
+                    false, {20}, {21}
+                  )
+                  ON CONFLICT (user_id) DO NOTHING",
+                [
+                    provider.Id, provider.UserId, provider.Name, provider.Type, provider.Status, provider.VerificationStatus,
+                    provider.LegalName, provider.FantasyName, provider.Description,
+                    provider.Email, provider.PhoneNumber, provider.Website,
+                    provider.Street, provider.Number, provider.Complement, provider.Neighborhood, provider.City, provider.State, provider.ZipCode, provider.Country,
+                    DateTime.UtcNow, DateTime.UtcNow
+                ],
+                cancellationToken);
+        }
+
+        _logger.LogInformation("✅ Providers: {Count} providers processed (new inserted, existing ignored)", providers.Length);
     }
 
     /// <summary>

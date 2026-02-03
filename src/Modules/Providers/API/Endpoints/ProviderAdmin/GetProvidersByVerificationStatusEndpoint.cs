@@ -105,7 +105,7 @@ public class GetProvidersByVerificationStatusEndpoint : BaseEndpoint, IEndpoint
         catch (OperationCanceledException)
         {
             logger.LogInformation("Request Canceled in GetProvidersByVerificationStatus. Status={Status}", status);
-            throw; // Propagate cancellation to pipeline
+            throw; // Propagar cancelamento para o pipeline
         }
         catch (Exception ex)
         {

@@ -17,15 +17,6 @@
 
 <div class="d-flex justify-space-between align-center mb-4">
     <MudText Typo="Typo.h3">Provedores</MudText>
-    <AuthorizeView Policy="@PolicyNames.ProviderManagerPolicy">
-        <MudButton Variant="Variant.Filled" 
-                   Color="Color.Primary" 
-                   StartIcon="@Icons.Material.Filled.Add" 
-                   OnClick="@OpenCreateDialog"
-                   AriaLabel="Criar novo provedor">
-            Novo Provedor
-        </MudButton>
-    </AuthorizeView>
 </div>
 
 @if (ProvidersState.Value.IsLoading)
@@ -181,17 +172,6 @@
         Dispatcher.Dispatch(new GoToPageAction(page));
     }
 
-    private async Task OpenCreateDialog()
-    {
-        var dialog = await DialogService.ShowAsync<CreateProviderDialog>("Novo Provedor");
-        var result = await dialog.Result;
-
-        if (!result.Canceled)
-        {
-            // Recarregar lista após criação
-            Dispatcher.Dispatch(new LoadProvidersAction());
-        }
-    }
 
     private async Task OpenEditDialog(Guid providerId)
     {

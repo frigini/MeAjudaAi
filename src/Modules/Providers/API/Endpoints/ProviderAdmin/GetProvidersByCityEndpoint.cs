@@ -20,7 +20,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 /// <remarks>
 /// Implementa padrão de endpoint mínimo para busca de prestadores de serviços
 /// filtrados por cidade específica. Utiliza arquitetura CQRS e permite
-/// consulta pública para facilitar descoberta de serviços.
+/// consulta autorizada para facilitar descoberta de serviços.
 /// </remarks>
 public class GetProvidersByCityEndpoint : BaseEndpoint, IEndpoint
 {

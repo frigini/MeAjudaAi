@@ -47,7 +47,7 @@ public class AddDocumentEndpoint : BaseEndpoint, IEndpoint
                 
                 **Características:**
                 - 📄 Adição de documentos de verificação
-                - 🔒 Controle de acesso: próprio prestador ou administrador
+                - 🔒 Controle de acesso: usuários com permissão ProvidersUpdate
                 - ✅ Validação automática de tipo e formato
                 - 📋 Atualização automática do perfil
                 

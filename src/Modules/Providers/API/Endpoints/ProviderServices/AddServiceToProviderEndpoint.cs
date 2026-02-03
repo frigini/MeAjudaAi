@@ -45,7 +45,7 @@ public class AddServiceToProviderEndpoint : BaseEndpoint, IEndpoint
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
-            .RequirePermission(EPermission.ProvidersUpdate);
+            .RequireAuthorization("SelfOrAdmin");
 
     /// <summary>
     /// Processa requisição de adição de serviço ao provider.

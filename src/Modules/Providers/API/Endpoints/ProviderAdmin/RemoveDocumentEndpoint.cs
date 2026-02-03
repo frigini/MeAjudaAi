@@ -49,7 +49,7 @@ public class RemoveDocumentEndpoint : BaseEndpoint, IEndpoint
                 
                 **Características:**
                 - 🗑️ Remoção permanente de documento
-                - 🔒 Controle de acesso: próprio prestador ou administrador
+                - 🔒 Controle de acesso: usuários com permissão ProvidersUpdate
                 - ✅ Validação de existência do documento
                 - 📋 Atualização automática do perfil
                 
