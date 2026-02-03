@@ -9,6 +9,8 @@ using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -29,7 +31,7 @@ public class GetProviderByUserIdEndpoint : BaseEndpoint, IEndpoint
     /// <param name="app">Builder de rotas do endpoint</param>
     /// <remarks>
     /// Configura endpoint GET em "/by-user/{userId:guid}" com:
-    /// - Autorização SelfOrAdmin (usuário pode ver próprios dados ou admin vê qualquer)
+    /// - Autorização por permissão (ProvidersRead)
     /// - Validação automática de GUID para o parâmetro userId
     /// - Documentação OpenAPI automática
     /// - Respostas estruturadas para sucesso (200) e não encontrado (404)
@@ -58,7 +60,7 @@ public class GetProviderByUserIdEndpoint : BaseEndpoint, IEndpoint
                 - Documentos e qualificações
                 - Status de verificação atual
                 """)
-            .RequireAuthorization("SelfOrAdmin")
+            .RequirePermission(EPermission.ProvidersRead)
             .Produces<Response<ProviderDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 

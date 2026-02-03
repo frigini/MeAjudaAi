@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderServices;
 
@@ -41,7 +43,7 @@ public class RemoveServiceFromProviderEndpoint : BaseEndpoint, IEndpoint
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
-            .RequireAuthorization("SelfOrAdmin");
+            .RequirePermission(EPermission.ProvidersUpdate);
 
     /// <summary>
     /// Processa requisição de remoção de serviço do provider.

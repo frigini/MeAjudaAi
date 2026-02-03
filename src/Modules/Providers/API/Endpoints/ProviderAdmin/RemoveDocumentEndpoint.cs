@@ -10,6 +10,8 @@ using MeAjudaAi.Contracts.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -29,7 +31,7 @@ public class RemoveDocumentEndpoint : BaseEndpoint, IEndpoint
     /// <param name="app">Builder de rotas do endpoint</param>
     /// <remarks>
     /// Configura endpoint DELETE em "/{id:guid}/documents/{documentType}" com:
-    /// - Autorização SelfOrAdmin (prestador pode remover próprios documentos ou admin gerenciar)
+    /// - Autorização por permissão (ProvidersUpdate)
     /// - Validação automática de GUID para o parâmetro ID
     /// - Validação automática de enum para documentType
     /// - Documentação OpenAPI automática
@@ -69,7 +71,7 @@ public class RemoveDocumentEndpoint : BaseEndpoint, IEndpoint
                 - Remove histórico do documento
                 - Pode impactar elegibilidade para serviços
                 """)
-            .RequireAuthorization("SelfOrAdmin")
+            .RequirePermission(EPermission.ProvidersUpdate)
             .Produces<Response<ProviderDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);

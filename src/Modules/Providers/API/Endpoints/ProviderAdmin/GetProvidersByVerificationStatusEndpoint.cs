@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -31,7 +33,7 @@ public class GetProvidersByVerificationStatusEndpoint : BaseEndpoint, IEndpoint
     /// <param name="app">Builder de rotas do endpoint</param>
     /// <remarks>
     /// Configura endpoint GET em "/verification-status/{status}" com:
-    /// - Autorização AdminOnly (apenas administradores)
+    /// - Autorização por permissão (ProvidersApprove)
     /// - Validação automática de enum para EVerificationStatus
     /// - Documentação OpenAPI automática
     /// - Respostas estruturadas para lista de prestadores
@@ -66,7 +68,7 @@ public class GetProvidersByVerificationStatusEndpoint : BaseEndpoint, IEndpoint
                 - Histórico de verificação quando aplicável
                 - Informações de contato e documentos
                 """)
-            .RequireAuthorization("AdminOnly")
+            .RequirePermission(EPermission.ProvidersApprove)
             .Produces<Response<IReadOnlyList<ProviderDto>>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError, typeof(ProblemDetails));

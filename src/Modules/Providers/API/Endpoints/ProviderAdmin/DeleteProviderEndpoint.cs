@@ -6,6 +6,8 @@ using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -26,7 +28,7 @@ public class DeleteProviderEndpoint : BaseEndpoint, IEndpoint
     /// <param name="app">Builder de rotas do endpoint</param>
     /// <remarks>
     /// Configura endpoint DELETE em "/{id:guid}" com:
-    /// - Autorização AdminOnly (apenas administradores podem excluir prestadores)
+    /// - Autorização por permissão (ProvidersDelete)
     /// - Validação automática de GUID para o parâmetro ID
     /// - Documentação OpenAPI automática
     /// - Códigos de resposta apropriados
@@ -67,7 +69,7 @@ public class DeleteProviderEndpoint : BaseEndpoint, IEndpoint
                 - Não existem dependências críticas
                 - Auditoria de motivo (futuro)
                 """)
-            .RequireAuthorization("AdminOnly")
+            .RequirePermission(EPermission.ProvidersDelete)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
