@@ -104,6 +104,8 @@
                 </CardHeaderContent>
             </MudCardHeader>
             <MudCardContent>
+                <MudText>Chart disabled for debugging</MudText>
+                @*
                 @if (ProvidersState.Value.Providers.Count > 0)
                 {
                     <MudChart ChartType="ChartType.Donut"
@@ -119,6 +121,7 @@
                         Nenhum provedor cadastrado
                     </MudText>
                 }
+                *@
             </MudCardContent>
         </MudCard>
     </MudItem>
@@ -132,6 +135,8 @@
                 </CardHeaderContent>
             </MudCardHeader>
             <MudCardContent>
+                <MudText>Chart disabled for debugging</MudText>
+                @*
                 @if (ProvidersState.Value.Providers.Count > 0)
                 {
                     <MudChart ChartType="ChartType.Pie"
@@ -147,6 +152,7 @@
                         Nenhum provedor cadastrado
                     </MudText>
                 }
+                *@
             </MudCardContent>
         </MudCard>
     </MudItem>
@@ -185,6 +191,7 @@
     private string[] providerStatusLabels = Array.Empty<string>();
     private double[] providerTypeData = Array.Empty<double>();
     private string[] providerTypeLabels = Array.Empty<string>();
+    private bool _disposed;
 
     protected override void OnInitialized()
     {
@@ -209,6 +216,8 @@
 
     private void OnProvidersStateChanged(object? sender, EventArgs e)
     {
+        if (_disposed) return;
+
         try
         {
             // Atualiza sempre que houver providers (captura mudanças de status/tipo)
@@ -227,6 +236,8 @@
 
     private void UpdateChartData()
     {
+        // TEMPORARY: Charts disabled for debugging
+        /*
         var providers = ProvidersState.Value.Providers;
         
         if (providers.Count == 0)
@@ -273,10 +284,12 @@
             return g.Key;
         }).ToArray();
         providerTypeData = typeGroups.Select(g => (double)g.Count()).ToArray();
+        */
     }
 
     public void Dispose()
     {
+        _disposed = true;
         ProvidersState.StateChanged -= OnProvidersStateChanged;
     }
 }

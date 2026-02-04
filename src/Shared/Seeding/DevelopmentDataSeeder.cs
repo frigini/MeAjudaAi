@@ -149,7 +149,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             await SeedServiceCatalogsAsync(cancellationToken);
             await SeedLocationsAsync(cancellationToken);
             
-            // Always seed providers (uses ON CONFLICT DO NOTHING)
+            // Sempre semeia providers (usa ON CONFLICT DO NOTHING)
             _logger.LogInformation("🏢 Ensuring provider seed data...");
             await SeedProvidersAsync(cancellationToken);
 
@@ -287,30 +287,33 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
 
         var cities = new[]
         {
-            new { Id = UuidGenerator.NewId(), IbgeCode = 3143906, CityName = "Muriaé", State = "MG" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = 3550308, CityName = "São Paulo", State = "SP" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = 3304557, CityName = "Rio de Janeiro", State = "RJ" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = 3106200, CityName = "Belo Horizonte", State = "MG" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = 4106902, CityName = "Curitiba", State = "PR" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = 4314902, CityName = "Porto Alegre", State = "RS" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = 5300108, CityName = "Brasília", State = "DF" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = 2927408, CityName = "Salvador", State = "BA" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = 2304400, CityName = "Fortaleza", State = "CE" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = 2611606, CityName = "Recife", State = "PE" },
-            new { Id = UuidGenerator.NewId(), IbgeCode = 1302603, CityName = "Manaus", State = "AM" }
+            new { Id = UuidGenerator.NewId(), IbgeCode = 3143906, CityName = "Muriaé", State = "MG", Lat = -21.1294, Lon = -42.3686, Radius = 30 },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 3550308, CityName = "São Paulo", State = "SP", Lat = -23.5505, Lon = -46.6333, Radius = 50 },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 3304557, CityName = "Rio de Janeiro", State = "RJ", Lat = -22.9068, Lon = -43.1729, Radius = 40 },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 3106200, CityName = "Belo Horizonte", State = "MG", Lat = -19.9167, Lon = -43.9345, Radius = 40 },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 4106902, CityName = "Curitiba", State = "PR", Lat = -25.4244, Lon = -49.2654, Radius = 35 },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 4314902, CityName = "Porto Alegre", State = "RS", Lat = -30.0346, Lon = -51.2177, Radius = 30 },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 5300108, CityName = "Brasília", State = "DF", Lat = -15.7975, Lon = -47.8919, Radius = 40 },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 2927408, CityName = "Salvador", State = "BA", Lat = -12.9777, Lon = -38.5016, Radius = 35 },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 2304400, CityName = "Fortaleza", State = "CE", Lat = -3.7319, Lon = -38.5267, Radius = 30 },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 2611606, CityName = "Recife", State = "PE", Lat = -8.0476, Lon = -34.8770, Radius = 25 },
+            new { Id = UuidGenerator.NewId(), IbgeCode = 1302603, CityName = "Manaus", State = "AM", Lat = -3.1190, Lon = -60.0217, Radius = 50 }
         };
 
         foreach (var city in cities)
         {
             await context.Database.ExecuteSqlRawAsync(
-                @"INSERT INTO locations.allowed_cities (id, ibge_code, city_name, state_sigla, is_active, created_at, updated_at, created_by, updated_by) 
-                  VALUES ({0}, {1}, {2}, {3}, true, {4}, {5}, {6}, {7})
-                  ON CONFLICT (city_name, state_sigla) DO NOTHING",
-                [city.Id, city.IbgeCode, city.CityName, city.State, DateTime.UtcNow, DateTime.UtcNow, "system", "system"],
+                @"INSERT INTO locations.allowed_cities (id, ibge_code, city_name, state_sigla, is_active, created_at, updated_at, created_by, updated_by, latitude, longitude, service_radius_km) 
+                  VALUES ({0}, {1}, {2}, {3}, true, {4}, {5}, {6}, {7}, {8}, {9}, {10})
+                  ON CONFLICT (city_name, state_sigla) DO UPDATE SET 
+                    latitude = EXCLUDED.latitude,
+                    longitude = EXCLUDED.longitude,
+                    service_radius_km = EXCLUDED.service_radius_km",
+                [city.Id, city.IbgeCode, city.CityName, city.State, DateTime.UtcNow, DateTime.UtcNow, "system", "system", city.Lat, city.Lon, city.Radius],
                 cancellationToken);
         }
 
-        _logger.LogInformation("✅ Locations: {Count} cities processed (new inserted, existing ignored)", cities.Length);
+        _logger.LogInformation("✅ Locations: {Count} cities processed (updated coordinates/radius if existed)", cities.Length);
     }
 
     private async Task SeedProvidersAsync(CancellationToken cancellationToken)
@@ -331,44 +334,41 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 Id = Provider1Id,
                 UserId = Provider1UserId,
                 Name = "João Silva",
-                Type = "Individual", // EProviderType.Individual
+                Type = "Individual", 
                 Status = "Active",
                 VerificationStatus = "Pending",
-                // BusinessProfile fields
                 LegalName = "João Silva - Psicólogo",
                 FantasyName = default(string?),
                 Description = "Psicólogo clínico com 10 anos de experiência em atendimento individual e familiar",
-                // ContactInfo fields
                 Email = "joao.silva@provider.com",
                 PhoneNumber = "11987654321",
-                Website = default(string?),
-                // Address fields
+                Website = "https://joaosilva.com.br",
                 Street = "Av. Paulista",
                 Number = "1000",
-                Complement = default(string?),
+                Complement = "Sala 101",
                 Neighborhood = "Bela Vista",
                 City = "São Paulo",
                 State = "SP",
                 ZipCode = "01310100",
-                Country = "Brasil"
+                Country = "Brasil",
+                // Documents
+                DocumentNumber = "11111111111",
+                DocumentType = "CPF"
             },
             new
             {
                 Id = Provider2Id,
                 UserId = Provider2UserId,
                 Name = "Maria Santos",
-                Type = "Individual",
+                Type = "Company",
                 Status = "Active",
                 VerificationStatus = "Verified",
-                // BusinessProfile fields
-                LegalName = "Maria Santos - Assistente Social",
-                FantasyName = default(string?),
-                Description = "Assistente social especializada em famílias em situação de vulnerabilidade social",
-                // ContactInfo fields
-                Email = "maria.santos@provider.com",
+                LegalName = "Santos Serviços Sociais Ltda",
+                FantasyName = "Santos Social",
+                Description = "Assistência social especializada em famílias em situação de vulnerabilidade social",
+                Email = "contato@santos.com.br",
                 PhoneNumber = "11912345678",
-                Website = default(string?),
-                // Address fields
+                Website = "https://santos.com.br",
                 Street = "Rua da Consolação",
                 Number = "500",
                 Complement = default(string?),
@@ -376,13 +376,42 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 City = "São Paulo",
                 State = "SP",
                 ZipCode = "01301000",
-                Country = "Brasil"
+                Country = "Brasil",
+                // Documents
+                DocumentNumber = "66666666000199",
+                DocumentType = "CNPJ"
+            },
+            new
+            {
+                Id = Guid.NewGuid(),
+                UserId = Guid.NewGuid(),
+                Name = "Pedro Oliveira",
+                Type = "Individual",
+                Status = "Suspended",
+                VerificationStatus = "Rejected",
+                LegalName = "Pedro Oliveira Reformas",
+                FantasyName = default(string?),
+                Description = "Reformas e pequenos reparos residenciais.",
+                Email = "pedro.obras@gmail.com",
+                PhoneNumber = "21999887766",
+                Website = default(string?),
+                Street = "Rua das Laranjeiras",
+                Number = "123",
+                Complement = "Casa 2",
+                Neighborhood = "Laranjeiras",
+                City = "Rio de Janeiro",
+                State = "RJ",
+                ZipCode = "22240000",
+                Country = "Brasil",
+                // Documents
+                DocumentNumber = "22233344455",
+                DocumentType = "CPF"
             }
         };
 
         foreach (var provider in providers)
         {
-            // Insert Provider with all owned entity fields in a single flat row
+            // Insert Provider
             await context.Database.ExecuteSqlRawAsync(
                 @"INSERT INTO providers.providers (
                     id, user_id, name, type, status, verification_status, 
@@ -407,9 +436,21 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                     DateTime.UtcNow, DateTime.UtcNow
                 ],
                 cancellationToken);
+
+            // Insert Document (Primary)
+            // Note: We use simple SQL injection for development seeder brevity, but EF Core parameters are safer.
+            // provider_id and id are composite primary key
+            await context.Database.ExecuteSqlRawAsync(
+                @"INSERT INTO providers.document (
+                    provider_id, id, number, document_type, is_primary
+                  )
+                  VALUES ({0}, {1}, {2}, {3}, true)
+                  ON CONFLICT (provider_id, id) DO NOTHING",
+                [provider.Id, UuidGenerator.NewId(), provider.DocumentNumber, provider.DocumentType],
+                cancellationToken);
         }
 
-        _logger.LogInformation("✅ Providers: {Count} providers processed (new inserted, existing ignored)", providers.Length);
+        _logger.LogInformation("✅ Providers: {Count} providers processed with documents", providers.Length);
     }
 
     /// <summary>

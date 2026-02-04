@@ -18,7 +18,9 @@
                              Required="true"
                              RequiredError="Selecione uma cidade da lista"
                              CoerceText="false" 
-                             DebounceInterval="500" />
+                             DebounceInterval="500" 
+                             Variant="Variant.Outlined"
+                             Class="mb-4" />
 
             @if (SelectedCity != null)
             {
@@ -33,7 +35,9 @@
                              RequiredError="Raio de atendimento é obrigatório"
                              Min="1"
                              Max="500"
-                             HelperText="Raio em quilômetros para busca de providers" />
+                             HelperText="Raio em quilômetros para busca de providers" 
+                             Variant="Variant.Outlined"
+                             Class="mb-4" />
 
             <MudSwitch @bind-Value="isActive"
                        Label="Cidade Ativa"

@@ -80,6 +80,10 @@ public sealed class ProvidersModuleApi(
             return true;
         }
 
+        catch (OperationCanceledException)
+        {
+            throw; // Let cancellation propagate
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking Providers module availability");
@@ -108,6 +112,10 @@ public sealed class ProvidersModuleApi(
             return false;
         }
 
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Basic operations test failed for Providers module");
@@ -139,9 +147,10 @@ public sealed class ProvidersModuleApi(
 
     public async Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersBasicInfoAsync(IEnumerable<Guid> providerIds, CancellationToken cancellationToken = default)
     {
-        logger.LogDebug("Getting basic provider info for {Count} provider IDs", providerIds.Count());
+        var idList = providerIds.ToList();
+        logger.LogDebug("Getting basic provider info for {Count} provider IDs", idList.Count);
 
-        var result = await getProvidersByIdsHandler.HandleAsync(new GetProvidersByIdsQuery(providerIds.ToList()), cancellationToken);
+        var result = await getProvidersByIdsHandler.HandleAsync(new GetProvidersByIdsQuery(idList), cancellationToken);
 
         return result.Match(
             onSuccess: providerDtos => Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(

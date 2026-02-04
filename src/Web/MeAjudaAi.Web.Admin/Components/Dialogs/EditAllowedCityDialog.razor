@@ -11,40 +11,50 @@
                           Label="Cidade"
                           Required="true"
                           RequiredError="Nome da cidade é obrigatório"
-                          MaxLength="100" />
+                          MaxLength="100"
+                          Variant="Variant.Outlined"
+                          Class="mb-3" />
 
             <MudTextField @bind-Value="state"
                           Label="Estado (UF)"
                           Required="true"
                           RequiredError="Estado é obrigatório"
                           MaxLength="2"
-                          HelperText="Ex: SP, RJ, MG" />
+                          HelperText="Ex: SP, RJ, MG"
+                          Variant="Variant.Outlined"
+                          Class="mb-3" />
 
             <MudTextField @bind-Value="country"
                           Label="País"
                           Required="true"
                           RequiredError="País é obrigatório"
-                          MaxLength="50" />
+                          MaxLength="50"
+                          Variant="Variant.Outlined"
+                          Class="mb-3" />
 
-            <MudNumericField @bind-Value="latitude"
-                             Label="Latitude"
-                             Required="true"
-                             RequiredError="Latitude é obrigatória"
-                             Format="F6"
-                             Min="-90"
-                             Max="90"
-                             ErrorText="Latitude deve estar entre -90 e 90"
-                             HelperText="Coordenada geográfica (decimal)" />
+            <div class="d-flex gap-4 mb-3">
+                <MudNumericField @bind-Value="latitude"
+                                 Label="Latitude"
+                                 Required="true"
+                                 RequiredError="Latitude é obrigatória"
+                                 Format="F6"
+                                 Min="-90"
+                                 Max="90"
+                                 ErrorText="Latitude deve estar entre -90 e 90"
+                                 HelperText="Coordenada geográfica"
+                                 Variant="Variant.Outlined" />
 
-            <MudNumericField @bind-Value="longitude"
-                             Label="Longitude"
-                             Required="true"
-                             RequiredError="Longitude é obrigatória"
-                             Format="F6"
-                             Min="-180"
-                             Max="180"
-                             ErrorText="Longitude deve estar entre -180 e 180"
-                             HelperText="Coordenada geográfica (decimal)" />
+                <MudNumericField @bind-Value="longitude"
+                                 Label="Longitude"
+                                 Required="true"
+                                 RequiredError="Longitude é obrigatória"
+                                 Format="F6"
+                                 Min="-180"
+                                 Max="180"
+                                 ErrorText="Longitude deve estar entre -180 e 180"
+                                 HelperText="Coordenada geográfica"
+                                 Variant="Variant.Outlined" />
+            </div>
 
             <MudNumericField @bind-Value="serviceRadiusKm"
                              Label="Raio de Atendimento (km)"
@@ -52,7 +62,9 @@
                              RequiredError="Raio de atendimento é obrigatório"
                              Min="1"
                              Max="500"
-                             HelperText="Raio em quilômetros para busca de providers" />
+                             HelperText="Raio em quilômetros para busca de providers"
+                             Variant="Variant.Outlined"
+                             Class="mb-3" />
 
             <MudSwitch @bind-Value="isActive"
                        Label="Cidade Ativa"

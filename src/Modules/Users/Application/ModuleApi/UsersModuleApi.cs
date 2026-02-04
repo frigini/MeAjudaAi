@@ -72,6 +72,11 @@ public sealed class UsersModuleApi(
             return true;
         }
 
+        catch (OperationCanceledException)
+        {
+            logger.LogDebug("Users module availability check was cancelled");
+            return false;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking Users module availability");
@@ -110,6 +115,11 @@ public sealed class UsersModuleApi(
             return false;
         }
 
+        catch (OperationCanceledException)
+        {
+            logger.LogDebug("Basic operations test was cancelled for Users module");
+            return false;
+        }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Basic operations test failed for Users module");
