@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 using MeAjudaAi.Shared.Extensions;
 
-using static MeAjudaAi.Modules.Locations.ValidationMessages;
+using MeAjudaAi.Modules.Locations.Domain;
 
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
@@ -30,14 +30,14 @@ public sealed class UpdateAllowedCityHandler(
         var allowedCity = await repository.GetByIdAsync(command.Id, cancellationToken);
         if (allowedCity == null)
         {
-            return Result.Failure(Error.NotFound(Locations.AllowedCityNotFound));
+            return Result.Failure(Error.NotFound(ValidationMessages.Locations.AllowedCityNotFound));
         }
 
         // Verificar se novo nome/estado já existe (exceto para esta cidade)
         var existing = await repository.GetByCityAndStateAsync(command.CityName, command.StateSigla, cancellationToken);
         if (existing is not null && existing.Id != command.Id)
         {
-            return Result.Failure(Error.Conflict(Locations.DuplicateCity));
+            return Result.Failure(Error.Conflict(ValidationMessages.Locations.DuplicateCity));
         }
 
         // Tentar obter coordenadas se não informadas
