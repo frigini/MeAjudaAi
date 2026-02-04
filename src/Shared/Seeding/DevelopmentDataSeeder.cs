@@ -29,6 +29,11 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
     private static readonly Guid Provider2Id = Guid.Parse("66666666-7777-8888-9999-000000000000");
     private static readonly Guid Provider3Id = Guid.Parse("77777777-8888-9999-0000-111111111111");
 
+    // IDs estáveis para Documentos dos Providers
+    private static readonly Guid Provider1DocumentId = Guid.Parse("aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa");
+    private static readonly Guid Provider2DocumentId = Guid.Parse("bbbbbbbb-2222-2222-2222-bbbbbbbbbbbb");
+    private static readonly Guid Provider3DocumentId = Guid.Parse("cccccccc-3333-3333-3333-cccccccccccc");
+
     public DevelopmentDataSeeder(
         IServiceProvider serviceProvider,
         ILogger<DevelopmentDataSeeder> logger)
@@ -335,6 +340,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             {
                 Id = Provider1Id,
                 UserId = Provider1UserId,
+                DocumentId = Provider1DocumentId,
                 Name = "João Silva",
                 Type = "Individual", 
                 Status = "Active",
@@ -361,6 +367,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             {
                 Id = Provider2Id,
                 UserId = Provider2UserId,
+                DocumentId = Provider2DocumentId,
                 Name = "Maria Santos",
                 Type = "Company",
                 Status = "Active",
@@ -387,6 +394,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             {
                 Id = Provider3Id,
                 UserId = Provider3UserId,
+                DocumentId = Provider3DocumentId,
                 Name = "Pedro Oliveira",
                 Type = "Individual",
                 Status = "Suspended",
@@ -439,16 +447,16 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 ],
                 cancellationToken);
 
-            // Insert Document (Primary)
-            // Note: We use parameterized SQL with EF Core to ensure safety and prevent SQL injection.
-            // provider_id and id are composite primary key
+            // Inserir Documento (Primário)
+            // Nota: Utilizamos SQL parametrizado com EF Core para garantir segurança e prevenir injeção de SQL.
+            // provider_id e id são chave primária composta
             await context.Database.ExecuteSqlRawAsync(
                 @"INSERT INTO providers.document (
                     provider_id, id, number, document_type, is_primary
                   )
                   VALUES ({0}, {1}, {2}, {3}, true)
                   ON CONFLICT (provider_id, id) DO NOTHING",
-                [provider.Id, UuidGenerator.NewId(), provider.DocumentNumber, provider.DocumentType],
+                [provider.Id, provider.DocumentId, provider.DocumentNumber, provider.DocumentType],
                 cancellationToken);
         }
 

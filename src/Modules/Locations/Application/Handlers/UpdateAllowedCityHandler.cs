@@ -24,6 +24,8 @@ public sealed class UpdateAllowedCityHandler(
     ILogger<UpdateAllowedCityHandler> logger,
     IHttpContextAccessor httpContextAccessor) : ICommandHandler<UpdateAllowedCityCommand, Result>
 {
+    private const double CoordinateZeroThreshold = 0.0001;
+
     public async Task<Result> HandleAsync(UpdateAllowedCityCommand command, CancellationToken cancellationToken = default)
     {
         // Obter cidade existente
@@ -51,8 +53,8 @@ public sealed class UpdateAllowedCityHandler(
         var cityOrStateChanged = !string.Equals(allowedCity.CityName, command.CityName, StringComparison.OrdinalIgnoreCase)
             || !string.Equals(allowedCity.StateSigla, command.StateSigla, StringComparison.OrdinalIgnoreCase);
         
-        var existingCoordsMissing = Math.Abs(allowedCity.Latitude) < 0.0001 && Math.Abs(allowedCity.Longitude) < 0.0001;
-        var commandCoordsMissing = Math.Abs(lat) < 0.0001 && Math.Abs(lon) < 0.0001;
+        var existingCoordsMissing = Math.Abs(allowedCity.Latitude) < CoordinateZeroThreshold && Math.Abs(allowedCity.Longitude) < CoordinateZeroThreshold;
+        var commandCoordsMissing = Math.Abs(lat) < CoordinateZeroThreshold && Math.Abs(lon) < CoordinateZeroThreshold;
 
         if (commandCoordsMissing)
         {
