@@ -134,7 +134,7 @@ public class UploadDocumentCommandHandler(
                 expiresAt);
         }
 
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not UnauthorizedAccessException and not ArgumentException)
         {
             _logger.LogError(ex, "Unexpected error while uploading document for provider {ProviderId}", command.ProviderId);
             throw new InvalidOperationException("Falha ao enviar documento. Por favor, tente novamente mais tarde.", ex);

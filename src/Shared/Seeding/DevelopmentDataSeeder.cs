@@ -24,8 +24,10 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
     // IDs estáveis para Providers de teste
     private static readonly Guid Provider1UserId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
     private static readonly Guid Provider2UserId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
+    private static readonly Guid Provider3UserId = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd");
     private static readonly Guid Provider1Id = Guid.Parse("11111111-2222-3333-4444-555555555555");
     private static readonly Guid Provider2Id = Guid.Parse("66666666-7777-8888-9999-000000000000");
+    private static readonly Guid Provider3Id = Guid.Parse("77777777-8888-9999-0000-111111111111");
 
     public DevelopmentDataSeeder(
         IServiceProvider serviceProvider,
@@ -383,8 +385,8 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             },
             new
             {
-                Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid(),
+                Id = Provider3Id,
+                UserId = Provider3UserId,
                 Name = "Pedro Oliveira",
                 Type = "Individual",
                 Status = "Suspended",
@@ -438,7 +440,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 cancellationToken);
 
             // Insert Document (Primary)
-            // Note: We use simple SQL injection for development seeder brevity, but EF Core parameters are safer.
+            // Note: We use parameterized SQL with EF Core to ensure safety and prevent SQL injection.
             // provider_id and id are composite primary key
             await context.Database.ExecuteSqlRawAsync(
                 @"INSERT INTO providers.document (
