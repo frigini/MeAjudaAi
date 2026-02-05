@@ -3718,10 +3718,46 @@ Desenvolver aplicações frontend usando **Blazor WebAssembly** (Admin Portal) e
 - Notificações push
 - Secure Storage para tokens
 
+
 **Shared**:
-- OpenAPI TypeScript Generator (sincronizar tipos C# → TS)
+- **OpenAPI TypeScript Generator**: Sincroniza tipos C# → TypeScript automaticamente
+  - **Tooling**: `openapi-typescript-codegen` ou `@hey-api/openapi-ts`
+  - **Trigger**: CI/CD job on `api/swagger/v1/swagger.json` changes
+  - **Output**: `MeAjudaAi.Web.Customer/types/api/generated/`
+  - **Versioning**: API versions `v1`, `v2` (breaking changes require version bump)
+  - **Breaking Change Gating**: OpenAPI diff in CI fails PR without version bump
 - Keycloak OIDC (autenticação unificada)
 - PostgreSQL (backend único)
+
+**Code Sharing Strategy (C# ↔ TypeScript)**:
+
+| Artifact | Backend Source | Frontend Output | Sync Method |
+|----------|----------------|-----------------|-------------|
+| **DTOs** | `Contracts/*.cs` | `types/api/*.ts` | OpenAPI Generator (auto) |
+| **Enums** | `Shared.Contracts/Enums/` | `types/enums.ts` | OpenAPI Generator (auto) |
+| **Validation** | FluentValidation | Zod schemas | Manual mapping (Sprint 8A) |
+| **Constants** | `Shared.Contracts/Constants/` | `lib/constants.ts` | Manual sync |
+
+**Generated Files Location**:
+```
+src/
+├── Contracts/                       # Backend DTOs (C#)
+├── Web/
+│   ├── MeAjudaAi.Web.Admin/         # Blazor (consumes Contracts via Refit)
+│   └── MeAjudaAi.Web.Customer/      # Next.js
+│       └── types/api/generated/     # ← OpenAPI generated types
+└── Mobile/
+    └── MeAjudaAi.Mobile.Customer/   # React Native
+        └── src/types/api/           # ← Same OpenAPI generated types
+```
+
+**CI/CD Pipeline** (GitHub Actions):
+1. Backend changes → Swagger JSON updated
+2. OpenAPI diff check (breaking changes?)
+3. If breaking → Require API version bump (`v1` → `v2`)
+4. Generate TypeScript types
+5. Commit to `types/api/generated/` (auto-commit bot)
+6. Frontend tests run with new types
 
 ### 🗂️ Estrutura de Projetos Atualizada
 ```text
@@ -3730,23 +3766,42 @@ src/
 │   ├── MeAjudaAi.Web.Admin/          # Blazor WASM Admin Portal (existente)
 │   └── MeAjudaAi.Web.Customer/       # 🆕 Next.js Customer App (Sprint 8A)
 ├── Mobile/
-│   └── MeAjudaAi.Mobile.Customer/    # 🆕 React Native + Expo (Sprint 8B)
+│   └── MeAudaAi.Mobile.Customer/    # 🆕 React Native + Expo (Sprint 8B)
 └── Shared/
     ├── MeAjudaAi.Shared.DTOs/        # DTOs C# (backend)
     └── MeAjudaAi.Shared.Contracts/   # OpenAPI spec → TypeScript types
 ```
 
 ### 🔐 Autenticação Unificada
+
+**Cross-Platform Authentication Consistency**:
+
+| Aspect | Admin (Blazor) | Customer Web (Next.js) | Customer Mobile (RN) |
+|--------|----------------|------------------------|----------------------|
+| **Token Storage** | In-memory | HTTP-only cookies | Secure Storage |
+| **Token Lifetime** | 1h access + 24h refresh | 1h access + 7d refresh | 1h access + 30d refresh |
+| **Refresh Strategy** | Automatic (OIDC lib) | Middleware refresh | Background refresh |
+| **Role Claims** | `role` claim | `role` claim | `role` claim |
+| **Logout** | `/bff/logout` | `/api/auth/signout` | Revoke + clear storage |
+
+**Keycloak Configuration**:
+- **Realm**: `MeAjudaAi`
+- **Clients**: `meajudaai-admin` (public), `meajudaai-customer` (public)
+- **Roles**: `admin`, `customer`, `provider`
+- **Token Format**: JWT (RS256)
+- **Token Lifetime**: Access 1h, Refresh 30d (configurable per client)
+
+**Implementation Details**:
 - **Protocolo**: OpenID Connect (OIDC)
 - **Identity Provider**: Keycloak
 - **Admin Portal**: `Microsoft.AspNetCore.Components.WebAssembly.Authentication` (Blazor)
 - **Customer Web**: NextAuth.js v5 (Next.js)
 - **Customer Mobile**: React Native OIDC Client
-- **Token Storage**: 
-  - Admin: Tokens em memória (Blazor WASM)
-  - Customer Web: HTTP-only cookies (Next.js)
-  - Customer Mobile: Secure Storage (React Native)
 - **Refresh**: Automático via OIDC interceptor
+
+**Migration Guide**: See `docs/authentication-migration.md` (to be created Sprint 8A)
+
+
 
 ---
 
