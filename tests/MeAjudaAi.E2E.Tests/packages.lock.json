@@ -1661,7 +1661,7 @@
           "Aspire.Hosting.Orchestration.win-x64": "[13.1.0, )",
           "Aspire.Hosting.PostgreSQL": "[13.1.0, )",
           "Aspire.Hosting.RabbitMQ": "[13.1.0, )",
-          "Aspire.Hosting.Redis": "[13.0.2, )",
+          "Aspire.Hosting.Redis": "[13.1.0, )",
           "Aspire.Hosting.Seq": "[13.1.0, )",
           "FluentValidation.DependencyInjectionExtensions": "[12.1.1, )",
           "MeAjudaAi.Modules.Documents.Infrastructure": "[1.0.0, )",
@@ -2280,13 +2280,13 @@
       },
       "Aspire.Hosting.Redis": {
         "type": "CentralTransitive",
-        "requested": "[13.0.2, )",
-        "resolved": "13.0.2",
-        "contentHash": "c8aPhpzF9BSNNMyqbwWDgddwroGgju+DTrQ32dPZQSKuI/N1gqURNz7Wzuc6TedQK+RVNiObnBTy64aJVQWhPg==",
+        "requested": "[13.1.0, )",
+        "resolved": "13.1.0",
+        "contentHash": "UNRS9btygxg2T9JxiPp4HaUCAJDw/YwhlZvdCV+6tblWd+pqwFckGhiJSy78DTy7nulaLVWpfpfma0KMHrVLzQ==",
         "dependencies": {
           "AspNetCore.HealthChecks.Redis": "9.0.0",
           "AspNetCore.HealthChecks.Uris": "9.0.0",
-          "Aspire.Hosting": "13.0.2",
+          "Aspire.Hosting": "13.1.0",
           "Google.Protobuf": "3.33.0",
           "Grpc.AspNetCore": "2.71.0",
           "Grpc.Net.ClientFactory": "2.71.0",
@@ -2298,6 +2298,7 @@
           "Microsoft.Extensions.Configuration.Binder": "8.0.2",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2",
           "Microsoft.Extensions.Diagnostics.HealthChecks": "8.0.22",
+          "Microsoft.Extensions.FileSystemGlobbing": "10.0.1",
           "Microsoft.Extensions.Hosting": "8.0.1",
           "Microsoft.Extensions.Hosting.Abstractions": "8.0.1",
           "Microsoft.Extensions.Http": "8.0.1",
@@ -2897,9 +2898,9 @@
       },
       "Microsoft.OpenApi": {
         "type": "CentralTransitive",
-        "requested": "[2.3.0, )",
-        "resolved": "2.3.0",
-        "contentHash": "5RZpjyt0JMmoc/aEgY9c1vE5pusdDGvkPl9qKIy9KFbRiIXD+w7gBJxX+unSjzzOcfgRoYxnO4okZyqDAL2WEw=="
+        "requested": "[2.6.1, )",
+        "resolved": "2.6.1",
+        "contentHash": "PsuxkZR3JXrfiMQUGkdb+U8sMgNqcEqmeBITnJswScWgxvQs73aagmaiww+TMgrAtPpIvveJb3nFICDkPfKXUQ=="
       },
       "Moq": {
         "type": "CentralTransitive",
