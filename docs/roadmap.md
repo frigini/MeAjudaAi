@@ -1188,9 +1188,9 @@ private string GetProviderTypeDisplayName(ProviderType type)
 
 ---
 
-### 🔄 Sprint 7.16 - Technical Debt Sprint (17-21 Jan 2026)
+### ✅ Sprint 7.16 - Technical Debt Sprint (17-21 Jan 2026)
 
-**Status**: 🔄 EM PROGRESSO (17-21 Jan 2026)  
+**Status**: ✅ CONCLUÍDA (17-21 Jan 2026)  
 **Duração**: 1 semana (5 dias úteis)  
 **Objetivo**: Reduzir débito técnico ANTES de iniciar Customer App
 
@@ -1711,13 +1711,13 @@ public void LanguageSwitcher_Should_ChangeCulture()
 - ✅ **4 SDKs completos** para Admin Portal (IProvidersApi, IDocumentsApi, IServiceCatalogsApi, ILocationsApi)
 - ✅ **Documentação SDK** melhorada (conceito, arquitetura, exemplos práticos)
 
-**🔄 Próxima Etapa: Sprint 7 - Blazor Admin Portal Features** (6-24 Jan 2026)
-- CRUD completo de Providers (create, update, delete, verify)
-- Gestão de Documentos (upload, verificação, rejection)
-- Gestão de Service Catalogs (categorias + serviços)
-- Gestão de Restrições Geográficas (UI para AllowedCities)
-- Gráficos Dashboard (MudCharts - providers por status, evolução temporal)
-- Aumentar cobertura de testes (30+ testes bUnit)
+**✅ Próxima Etapa Concluída: Sprint 7 - Blazor Admin Portal Features** (6-7 Jan 2026)
+- ✅ CRUD completo de Providers (create, update, delete, verify)
+- ✅ Gestão de Documentos (upload, verificação, rejection)
+- ✅ Gestão de Service Catalogs (categorias + serviços)
+- ✅ Gestão de Restrições Geográficas (UI para AllowedCities)
+- ✅ Gráficos Dashboard (MudCharts - providers por status, evolução temporal)
+- ✅ Aumentar cobertura de testes (30+ testes bUnit)
 
 ---
 
@@ -3663,13 +3663,13 @@ gantt
 
 ## 🎨 Fase 2: Frontend & Experiência
 
-**Status**: ⏳ Em andamento (Jan–Mar 2026)
+**Status**: 🔄 Em andamento (Jan–Fev 2026)
 
 ### Objetivo
 Desenvolver aplicações frontend usando Blazor WebAssembly (Web) e MAUI Blazor Hybrid (Mobile), aproveitando fullstack .NET para máxima reutilização de código.
 
-> **📅 Status Atual**: Sprint 6 concluída (5 Jan 2026)  
-> Próximo foco: Sprint 7 - Blazor Admin Portal Features.
+> **📅 Status Atual**: Sprint 7 concluída (7 Jan 2026), Sprint 7.16 concluída (21 Jan 2026), Sprint 7.20 concluída (5 Fev 2026), Sprint 7.21 concluída (5 Fev 2026)  
+> Próximo foco: Sprint 8 - Customer App (Web + Mobile).
 
 ---
 
@@ -3794,9 +3794,11 @@ src/
 
 ---
 
-#### 🔜 Fase 2: Database-Backed + Admin Portal UI (PLANEJADO - Sprint 7+)
+#### ✅ Fase 2: Database-Backed + Admin Portal UI (CONCLUÍDO - Sprint 7, 7 Jan 2026)
 
 **Contexto**: Migrar lista de cidades/estados de `appsettings.json` para banco de dados, permitindo gestão dinâmica via Blazor Admin Portal sem necessidade de redeploy.
+
+**Status**: ✅ IMPLEMENTADO - AllowedCities UI completa com CRUD, coordenadas geográficas, e raio de serviço.
 
 **Arquitetura Proposta**:
 ```sql
