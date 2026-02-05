@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Application.Options;
+using MeAjudaAi.Modules.Documents.Domain;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
@@ -573,7 +574,7 @@ public class UploadDocumentCommandHandlerTests
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _handler.HandleAsync(command, CancellationToken.None));
 
-        exception.Message.Should().Contain("Falha ao enviar documento. Por favor, tente novamente mais tarde.");
+        exception.Message.Should().Contain(ValidationMessages.UploadFailed);
         exception.InnerException.Should().NotBeNull();
         exception.InnerException!.Message.Should().Contain("Database error");
 
