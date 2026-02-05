@@ -14,4 +14,7 @@ public sealed record ModuleAllowedCityDto(
     int ServiceRadiusKm,
     bool IsActive,
     DateTime CreatedAt,
-    DateTime? UpdatedAt);
+    DateTime? UpdatedAt)
+{
+    public int ServiceRadiusKm { get; set; } = ServiceRadiusKm;
+}

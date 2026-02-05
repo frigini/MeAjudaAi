@@ -4,11 +4,13 @@ using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -18,7 +20,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 /// <remarks>
 /// Implementa padrão de endpoint mínimo para busca de prestadores de serviços
 /// filtrados por cidade específica. Utiliza arquitetura CQRS e permite
-/// consulta pública para facilitar descoberta de serviços.
+/// consulta autorizada para facilitar descoberta de serviços.
 /// </remarks>
 public class GetProvidersByCityEndpoint : BaseEndpoint, IEndpoint
 {
@@ -28,7 +30,7 @@ public class GetProvidersByCityEndpoint : BaseEndpoint, IEndpoint
     /// <param name="app">Builder de rotas do endpoint</param>
     /// <remarks>
     /// Configura endpoint GET em "/by-city/{city}" com:
-    /// - Autorização obrigatória (RequireAuthorization)
+    /// - Autorização por permissão (ProvidersRead)
     /// - Validação de parâmetro de cidade
     /// - Documentação OpenAPI automática
     /// - Respostas estruturadas para lista de prestadores
@@ -57,7 +59,7 @@ public class GetProvidersByCityEndpoint : BaseEndpoint, IEndpoint
                 - Informações de contato
                 - Status de verificação
                 """)
-            .RequireAuthorization()
+            .RequirePermission(EPermission.ProvidersRead)
             .Produces<Response<IReadOnlyList<ProviderDto>>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest);
 

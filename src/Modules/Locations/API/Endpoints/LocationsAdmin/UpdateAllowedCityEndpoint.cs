@@ -5,11 +5,13 @@ using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
 namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 
 /// <summary>
@@ -22,7 +24,7 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
             .WithName("UpdateAllowedCity")
             .WithSummary("Atualizar cidade permitida")
             .WithDescription("Atualiza uma cidade permitida existente")
-            .Produces<Response<string>>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest)
             .RequireAdmin();
@@ -35,8 +37,24 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
     {
         var command = request.ToCommand(id);
 
-        await commandDispatcher.SendAsync(command, cancellationToken);
+        var result = await commandDispatcher.SendAsync<UpdateAllowedCityCommand, Result>(command, cancellationToken);
+        
+        if (result.IsFailure)
+        {
+            // Mapeia o código de erro/status para uma mensagem localizada segura
+            var errorMessage = result.Error.StatusCode switch
+            {
+                StatusCodes.Status409Conflict => ValidationMessages.Locations.DuplicateCity,
+                StatusCodes.Status404NotFound => ValidationMessages.Locations.AllowedCityNotFound,
+                _ => ValidationMessages.Locations.UpdateFailed 
+            };
 
-        return Results.Ok(new Response<string>("Cidade permitida atualizada com sucesso"));
+            return Results.Problem(
+                detail: errorMessage,
+                statusCode: result.Error.StatusCode,
+                title: "Erro ao atualizar cidade permitida");
+        }
+
+        return Results.NoContent();
     }
 }

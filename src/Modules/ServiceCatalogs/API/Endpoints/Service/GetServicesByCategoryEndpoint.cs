@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.Service;
 

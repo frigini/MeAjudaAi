@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Application.Options;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
+using MeAjudaAi.Modules.Documents.Domain;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
@@ -133,20 +134,11 @@ public class UploadDocumentCommandHandler(
                 blobName,
                 expiresAt);
         }
-        catch (UnauthorizedAccessException ex)
-        {
-            _logger.LogWarning(ex, "Authorization failed while uploading document for provider {ProviderId}", command.ProviderId);
-            throw;
-        }
-        catch (ArgumentException ex)
-        {
-            _logger.LogWarning(ex, "Validation failed while uploading document: {Message}", ex.Message);
-            throw;
-        }
-        catch (Exception ex)
+
+        catch (Exception ex) when (ex is not UnauthorizedAccessException and not ArgumentException)
         {
             _logger.LogError(ex, "Unexpected error while uploading document for provider {ProviderId}", command.ProviderId);
-            throw new InvalidOperationException("Failed to upload document. Please try again later.", ex);
+            throw new InvalidOperationException(ValidationMessages.UploadFailed, ex);
         }
     }
 }

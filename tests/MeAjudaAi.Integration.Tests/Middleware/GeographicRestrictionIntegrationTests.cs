@@ -2,7 +2,7 @@ using System.Net;
 using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
 
 namespace MeAjudaAi.Integration.Tests.Middleware;
 

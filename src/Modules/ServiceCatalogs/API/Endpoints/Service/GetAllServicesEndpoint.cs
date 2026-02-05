@@ -8,8 +8,10 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Core;
 
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.Service;
 
@@ -30,7 +32,8 @@ public class GetAllServicesEndpoint : BaseEndpoint, IEndpoint
                 - Obter apenas serviços ativos para exibição pública
                 - Administração do catálogo completo
                 """)
-            .Produces<Response<IReadOnlyList<ServiceListDto>>>(StatusCodes.Status200OK);
+            .Produces<Response<IReadOnlyList<ServiceListDto>>>(StatusCodes.Status200OK)
+            .RequirePermission(EPermission.ServiceCatalogsRead);
 
     private static async Task<IResult> GetAllAsync(
         [AsParameters] GetAllServicesQuery query,

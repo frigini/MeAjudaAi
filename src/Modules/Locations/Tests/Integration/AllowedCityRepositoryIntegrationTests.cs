@@ -52,7 +52,7 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     public async Task AddAsync_WithValidCity_ShouldPersistCity()
     {
         // Arrange
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
 
         // Act
         await AddCityAndSaveAsync(city);
@@ -71,9 +71,9 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     public async Task GetAllActiveAsync_ShouldReturnOnlyActiveCities()
     {
         // Arrange
-        var activeCity1 = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
-        var activeCity2 = new AllowedCity("Itaperuna", "RJ", "admin@test.com", 3302270);
-        var inactiveCity = new AllowedCity("São Paulo", "SP", "admin@test.com", 3550308, false);
+        var activeCity1 = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
+        var activeCity2 = new AllowedCity("Itaperuna", "RJ", "admin@test.com", 3302270, 0, 0, 0);
+        var inactiveCity = new AllowedCity("São Paulo", "SP", "admin@test.com", 3550308, 0, 0, 0, false);
 
         await AddCityAndSaveAsync(activeCity1);
         await AddCityAndSaveAsync(activeCity2);
@@ -94,8 +94,8 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     public async Task GetAllAsync_ShouldReturnAllCities()
     {
         // Arrange
-        var activeCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
-        var inactiveCity = new AllowedCity("Itaperuna", "RJ", "admin@test.com", 3302270, false);
+        var activeCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
+        var inactiveCity = new AllowedCity("Itaperuna", "RJ", "admin@test.com", 3302270, 0, 0, 0, false);
 
         await AddCityAndSaveAsync(activeCity);
         await AddCityAndSaveAsync(inactiveCity);
@@ -113,7 +113,7 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     public async Task GetByIdAsync_WithExistingCity_ShouldReturnCity()
     {
         // Arrange
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
         await AddCityAndSaveAsync(city);
 
         // Act
@@ -144,7 +144,7 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     public async Task GetByCityAndStateAsync_WithExistingCityAndState_ShouldReturnCity()
     {
         // Arrange
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
         await AddCityAndSaveAsync(city);
 
         // Act
@@ -170,7 +170,7 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     public async Task IsCityAllowedAsync_WithActiveCity_ShouldReturnTrue()
     {
         // Arrange
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
         await AddCityAndSaveAsync(city);
 
         // Act
@@ -184,7 +184,7 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     public async Task IsCityAllowedAsync_WithInactiveCity_ShouldReturnFalse()
     {
         // Arrange
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, false);
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0, false);
         await AddCityAndSaveAsync(city);
 
         // Act
@@ -208,11 +208,11 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     public async Task UpdateAsync_WithValidChanges_ShouldPersistChanges()
     {
         // Arrange
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
         await AddCityAndSaveAsync(city);
 
         // Act
-        city.Update("Itaperuna", "RJ", 3302270, true, "admin2@test.com");
+        city.Update("Itaperuna", "RJ", 3302270, 0, 0, 0, true, "admin2@test.com");
         await UpdateCityAndSaveAsync(city);
 
         // Assert
@@ -229,7 +229,7 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     public async Task DeleteAsync_WithExistingCity_ShouldRemoveCity()
     {
         // Arrange
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
         await AddCityAndSaveAsync(city);
 
         // Act
@@ -245,7 +245,7 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     public async Task ExistsAsync_WithExistingCity_ShouldReturnTrue()
     {
         // Arrange
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
         await AddCityAndSaveAsync(city);
 
         // Act
@@ -269,9 +269,9 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     public async Task GetAllActiveAsync_ShouldReturnOrderedByCityNameAndState()
     {
         // Arrange
-        var city1 = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
-        var city2 = new AllowedCity("Itaperuna", "RJ", "admin@test.com", 3302270);
-        var city3 = new AllowedCity("Bom Jesus do Itabapoana", "RJ", "admin@test.com", 3300704);
+        var city1 = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
+        var city2 = new AllowedCity("Itaperuna", "RJ", "admin@test.com", 3302270, 0, 0, 0);
+        var city3 = new AllowedCity("Bom Jesus do Itabapoana", "RJ", "admin@test.com", 3300704, 0, 0, 0);
 
         await AddCityAndSaveAsync(city1);
         await AddCityAndSaveAsync(city2);
@@ -295,7 +295,7 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     public async Task GetByCityAndStateAsync_ShouldBeCaseInsensitive()
     {
         // Arrange
-        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
         await AddCityAndSaveAsync(city);
 
         // Act
@@ -313,10 +313,10 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     public async Task AddAsync_WithDuplicateCityAndState_ShouldThrowException()
     {
         // Arrange
-        var city1 = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var city1 = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
         await AddCityAndSaveAsync(city1);
 
-        var city2 = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var city2 = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
 
         // Act
         var act = async () =>
@@ -333,10 +333,10 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
     public async Task AddAsync_WithDuplicateIbgeCode_ShouldThrowException()
     {
         // Arrange
-        var city1 = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
+        var city1 = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, 0, 0, 0);
         await AddCityAndSaveAsync(city1);
 
-        var city2 = new AllowedCity("Outra Cidade", "SP", "admin@test.com", 3143906);
+        var city2 = new AllowedCity("Outra Cidade", "SP", "admin@test.com", 3143906, 0, 0, 0);
 
         // Act
         var act = async () =>

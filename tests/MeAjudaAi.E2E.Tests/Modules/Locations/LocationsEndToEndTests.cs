@@ -3,7 +3,10 @@ using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
+
+
 
 namespace MeAjudaAi.E2E.Tests.Modules.Locations;
 
@@ -28,12 +31,16 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         // Arrange
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
-
+        // Use dados únicos para o fluxo/workflow para evitar conflitos com outros testes
+        var uniqueSuffix = Guid.NewGuid().ToString("N")[..4];
         var request = new
         {
-            CityName = "Poços de Caldas",
-            StateSigla = "MG",
-            IbgeCode = 3152131,
+            City = $"MuriaéFlow_{uniqueSuffix}",
+            State = "MG",
+            Country = "Brasil",
+            Latitude = -21.1,
+            Longitude = -42.3,
+            ServiceRadiusKm = 10,
             IsActive = true
         };
 
@@ -46,6 +53,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
+        // Create retorna Response<T> (legado), então use "data"
         result.TryGetProperty("data", out var dataElement).Should().BeTrue();
         var cityId = Guid.Parse(dataElement.GetString()!);
         cityId.Should().NotBeEmpty();
@@ -57,16 +65,16 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
             var city = await dbContext.AllowedCities.FirstOrDefaultAsync(c => c.Id == cityId);
 
             city.Should().NotBeNull();
-            city!.CityName.Should().Be("Poços de Caldas");
-            city.StateSigla.Should().Be("MG");
-            city.IbgeCode.Should().Be(3152131);
+            city!.CityName.Should().Be(request.City);
+            city.StateSigla.Should().Be(request.State);
+            // city.IbgeCode.Should().Be(request.IbgeCode); // Removed from request
             city.IsActive.Should().BeTrue();
             city.CreatedBy.Should().NotBeNullOrWhiteSpace();
         });
     }
 
     [Fact]
-    public async Task CreateAllowedCity_WithDuplicateCityAndState_ShouldReturnBadRequest()
+    public async Task CreateAllowedCity_WithDuplicateCityAndState_ShouldReturnConflict()
     {
         // Arrange
         TestContainerFixture.AuthenticateAsAdmin();
@@ -75,23 +83,27 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
-            var city = new AllowedCity("São Paulo", "SP", "system", 3550308);
+            var city = new AllowedCity("São Paulo", "SP", "system", 3550308, 0, 0, 0);
             dbContext.AllowedCities.Add(city);
             await dbContext.SaveChangesAsync();
         });
 
         var duplicateRequest = new
         {
-            CityName = "São Paulo",
-            StateSigla = "SP",
-            IbgeCode = 9999999
+            City = "São Paulo",
+            State = "SP",
+            Country = "Brasil",
+            Latitude = -23.5,
+            Longitude = -46.6,
+            ServiceRadiusKm = 20,
+            IsActive = true
         };
 
         // Act
         var response = await _fixture.PostJsonAsync("/api/v1/admin/allowed-cities", duplicateRequest);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
 
         var content = await response.Content.ReadAsStringAsync();
         content.Should().Contain("já cadastrada");
@@ -105,8 +117,13 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var request = new
         {
-            CityName = "Curitiba",
-            StateSigla = "PR"
+            City = "Curitiba",
+            State = "PR",
+            Country = "Brasil",
+            Latitude = -25.4,
+            Longitude = -49.2,
+            ServiceRadiusKm = 15,
+            IsActive = true
         };
 
         // Act
@@ -124,16 +141,19 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var invalidRequest = new
         {
-            CityName = "", // Empty city name
-            StateSigla = "MG"
+            City = "", // Nome da cidade vazio
+            State = "MG",
+            Country = "Brasil",
+            Latitude = 0,
+            Longitude = 0,
+            ServiceRadiusKm = 10
         };
 
         // Act
         var response = await _fixture.PostJsonAsync("/api/v1/admin/allowed-cities", invalidRequest);
 
         // Assert
-        // TODO: Deveria retornar 400, mas retorna 500 por exceção não tratada
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.InternalServerError);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -147,8 +167,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
 
-            var activeCity = new AllowedCity("Rio de Janeiro", "RJ", "system", 3304557, true);
-            var inactiveCity = new AllowedCity("Niterói", "RJ", "system", 3303302, false);
+            var activeCity = new AllowedCity("Rio de Janeiro", "RJ", "system", 3304557, -22.9, -43.1, 10, true);
+            var inactiveCity = new AllowedCity("Niterói", "RJ", "system", 3303302, -22.8, -43.1, 10, false);
 
             dbContext.AllowedCities.AddRange(activeCity, inactiveCity);
             await dbContext.SaveChangesAsync();
@@ -163,7 +183,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
-        result.TryGetProperty("data", out var dataElement).Should().BeTrue();
+        // GetAll retorna Result<T>, então use "value"
+        result.TryGetProperty("value", out var dataElement).Should().BeTrue();
         var cities = dataElement.EnumerateArray().ToList();
 
         cities.Should().NotBeEmpty();
@@ -190,8 +211,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
 
-            var activeCity = new AllowedCity("Salvador", "BA", "system", 2927408, true);
-            var inactiveCity = new AllowedCity("Feira de Santana", "BA", "system", 2910800, false);
+            var activeCity = new AllowedCity("Salvador", "BA", "system", 2927408, -12.9, -38.5, 10, true);
+            var inactiveCity = new AllowedCity("Feira de Santana", "BA", "system", 2910800, -12.2, -38.9, 10, false);
 
             dbContext.AllowedCities.AddRange(activeCity, inactiveCity);
             await dbContext.SaveChangesAsync();
@@ -209,7 +230,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
-        result.TryGetProperty("data", out var dataElement).Should().BeTrue();
+        // GetAll retorna Result<T>, então use "value"
+        result.TryGetProperty("value", out var dataElement).Should().BeTrue();
         var cities = dataElement.EnumerateArray().ToList();
 
         // Verify both active and inactive cities are present
@@ -239,10 +261,10 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
             var cities = new[]
             {
-                new AllowedCity("Uberlândia", "MG", "system"),
-                new AllowedCity("Belo Horizonte", "MG", "system"),
-                new AllowedCity("Brasília", "DF", "system"),
-                new AllowedCity("Goiânia", "GO", "system")
+                new AllowedCity("Uberlândia", "MG", "system", null, 0, 0, 0),
+                new AllowedCity("Belo Horizonte", "MG", "system", null, 0, 0, 0),
+                new AllowedCity("Brasília", "DF", "system", null, 0, 0, 0),
+                new AllowedCity("Goiânia", "GO", "system", null, 0, 0, 0)
             };
 
             dbContext.AllowedCities.AddRange(cities);
@@ -258,7 +280,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
-        result.TryGetProperty("data", out var dataElement).Should().BeTrue();
+        // GetAll retorna Result<T>, então use "value"
+        result.TryGetProperty("value", out var dataElement).Should().BeTrue();
         var cities = dataElement.EnumerateArray().ToList();
 
         cities.Should().NotBeEmpty();
@@ -286,7 +309,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
-            var city = new AllowedCity("Recife", "PE", "system", 2611606);
+            var city = new AllowedCity("Recife", "PE", "system", 2611606, 0, 0, 0);
             dbContext.AllowedCities.Add(city);
             await dbContext.SaveChangesAsync();
             cityId = city.Id;
@@ -301,6 +324,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
+        // GetById retorna Response<T> (legado), então use "data"
         result.TryGetProperty("data", out var dataElement).Should().BeTrue();
 
         dataElement.TryGetProperty("id", out var idElement).Should().BeTrue();
@@ -337,7 +361,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
-            var city = new AllowedCity("Porto Alegre", "RS", "system", 4314902);
+            var city = new AllowedCity("Porto Alegre", "RS", "system", 4314902, 0, 0, 0);
             dbContext.AllowedCities.Add(city);
             await dbContext.SaveChangesAsync();
             cityId = city.Id;
@@ -355,7 +379,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var response = await _fixture.PutJsonAsync($"/api/v1/admin/allowed-cities/{cityId}", updateRequest);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verify database changes
         await _fixture.WithServiceScopeAsync(async services =>
@@ -392,7 +417,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
     }
 
     [Fact]
-    public async Task UpdateAllowedCity_WithDuplicateCityAndState_ShouldReturnBadRequest()
+    public async Task UpdateAllowedCity_WithDuplicateCityAndState_ShouldReturnConflict()
     {
         // Arrange
         TestContainerFixture.AuthenticateAsAdmin();
@@ -403,8 +428,8 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
-            var city1 = new AllowedCity("Manaus", "AM", "system");
-            var city2 = new AllowedCity("Belém", "PA", "system");
+            var city1 = new AllowedCity("Manaus", "AM", "system", null, 0, 0, 0);
+            var city2 = new AllowedCity("Belém", "PA", "system", null, 0, 0, 0);
 
             dbContext.AllowedCities.AddRange(city1, city2);
             await dbContext.SaveChangesAsync();
@@ -415,7 +440,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var updateRequest = new
         {
-            CityName = "Belém", // Trying to rename to existing city
+            CityName = "Belém", // Tentando renomear para uma cidade existente
             StateSigla = "PA"
         };
 
@@ -423,10 +448,10 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var response = await _fixture.PutJsonAsync($"/api/v1/admin/allowed-cities/{city1Id}", updateRequest);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
 
         var content = await response.Content.ReadAsStringAsync();
-        content.Should().Contain("já cadastrada");
+        content.Should().Contain(ValidationMessages.Locations.DuplicateCity);
     }
 
     [Fact]
@@ -439,7 +464,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
-            var city = new AllowedCity("Florianópolis", "SC", "system");
+            var city = new AllowedCity("Florianópolis", "SC", "system", null, 0, 0, 0);
             dbContext.AllowedCities.Add(city);
             await dbContext.SaveChangesAsync();
             cityId = city.Id;
@@ -449,7 +474,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         var response = await _fixture.ApiClient.DeleteAsync($"/api/v1/admin/allowed-cities/{cityId}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify city was removed
         await _fixture.WithServiceScopeAsync(async services =>
@@ -481,11 +506,17 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         TestContainerFixture.AuthenticateAsAdmin();
 
         // Step 1: Create city
+        // Use dados únicos para o fluxo de trabalho para evitar conflito com outros testes
+        var uniqueSuffix = Guid.NewGuid().ToString("N")[..4];
         var createRequest = new
         {
-            CityName = "Vitória",
-            StateSigla = "ES",
-            IbgeCode = 3205309
+            City = $"Vitória_{uniqueSuffix}",
+            State = "ES",
+            Country = "Brasil",
+            Latitude = -20.3,
+            Longitude = -40.3,
+            ServiceRadiusKm = 10,
+            IsActive = true
         };
 
         var createResponse = await _fixture.PostJsonAsync("/api/v1/admin/allowed-cities", createRequest);
@@ -493,6 +524,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var createContent = await createResponse.Content.ReadAsStringAsync();
         var createResult = JsonSerializer.Deserialize<JsonElement>(createContent, TestContainerFixture.JsonOptions);
+        // Create retorna Response<T> (legado), então use "data"
         createResult.TryGetProperty("data", out var cityIdElement).Should().BeTrue();
         var cityId = Guid.Parse(cityIdElement.GetString()!);
 
@@ -510,7 +542,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         };
 
         var updateResponse = await _fixture.PutJsonAsync($"/api/v1/admin/allowed-cities/{cityId}", updateRequest);
-        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Step 4: Verify update
         await _fixture.WithServiceScopeAsync(async services =>
@@ -525,11 +557,64 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
 
         // Step 5: Delete city
         var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/admin/allowed-cities/{cityId}");
-        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        deleteResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Step 6: Verify deletion
         var getFinalResponse = await _fixture.ApiClient.GetAsync($"/api/v1/admin/allowed-cities/{cityId}");
         getFinalResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+    [Fact]
+    public async Task PatchAllowedCity_ShouldUpdateRadius_And_ActiveStatus()
+    {
+        // Arrange
+        TestContainerFixture.AuthenticateAsAdmin();
+
+        // Step 1: Create city
+        var uniqueSuffix = Guid.NewGuid().ToString("N")[..4];
+        var createRequest = new
+        {
+            City = $"City_{uniqueSuffix}",
+            State = "ES",
+            Country = "Brasil",
+            Latitude = -20.3,
+            Longitude = -40.3,
+            ServiceRadiusKm = 10,
+            IsActive = false
+        };
+
+        var createResponse = await _fixture.PostJsonAsync("/api/v1/admin/allowed-cities", createRequest);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        
+        var createContent = await createResponse.Content.ReadAsStringAsync();
+        var createResult = JsonSerializer.Deserialize<JsonElement>(createContent, TestContainerFixture.JsonOptions);
+        createResult.TryGetProperty("data", out var cityIdElement).Should().BeTrue();
+        var cityId = Guid.Parse(cityIdElement.GetString()!);
+
+        // Step 2: Patch city (Update Radius to 50 and Activate)
+        var patchRequest = new
+        {
+            ServiceRadiusKm = 50,
+            IsActive = true
+        };
+
+        // Act
+        var patchResponse = await _fixture.PatchJsonAsync($"/api/v1/admin/allowed-cities/{cityId}", patchRequest);
+
+        // Assert
+        patchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Verify database changes
+        await _fixture.WithServiceScopeAsync(async services =>
+        {
+            var dbContext = services.GetRequiredService<LocationsDbContext>();
+            var city = await dbContext.AllowedCities.FirstOrDefaultAsync(c => c.Id == cityId);
+
+            city.Should().NotBeNull();
+            city!.CityName.Should().Be(createRequest.City); // Unchanged
+            city.ServiceRadiusKm.Should().Be(50); // Updated
+            city.IsActive.Should().BeTrue(); // Updated
+            city.UpdatedBy.Should().NotBeNullOrWhiteSpace();
+        });
     }
 }
 

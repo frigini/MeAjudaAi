@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -28,7 +30,7 @@ public class RequireBasicInfoCorrectionEndpoint : BaseEndpoint, IEndpoint
     /// <param name="app">Builder de rotas do endpoint</param>
     /// <remarks>
     /// Configura endpoint POST definido em ApiEndpoints.Providers.RequireBasicInfoCorrection com:
-    /// - Autorização AdminOnly (apenas administradores/verificadores podem solicitar correções)
+    /// - Autorização por permissão (ProvidersApprove)
     /// - Validação automática de GUID para o parâmetro ID
     /// - Documentação OpenAPI automática
     /// - Códigos de resposta apropriados
@@ -76,7 +78,7 @@ public class RequireBasicInfoCorrectionEndpoint : BaseEndpoint, IEndpoint
                 - Autorização administrativa verificada
                 - Identidade do solicitante autenticada
                 """)
-            .RequireAuthorization("AdminOnly")
+            .RequirePermission(EPermission.ProvidersApprove)
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);

@@ -50,8 +50,12 @@ public class ProvidersApiTests : BaseApiTest
                 var hasTotalCount = jsonDocument.RootElement.TryGetProperty("totalCount", out _);
                 var hasPage = jsonDocument.RootElement.TryGetProperty("page", out _);
 
-                // Verifica se está envolvido em uma propriedade "data" (wrapper de resposta da API)
+                // Verifica se está envolvido em uma propriedade "data" (wrapper de resposta da API) ou "value" (Result<T>)
                 var hasDataWrapper = jsonDocument.RootElement.TryGetProperty("data", out var dataElement);
+                if (!hasDataWrapper)
+                {
+                    hasDataWrapper = jsonDocument.RootElement.TryGetProperty("value", out dataElement);
+                }
                 if (hasDataWrapper && dataElement.ValueKind == JsonValueKind.Object)
                 {
                     var dataHasItems = dataElement.TryGetProperty("items", out _);

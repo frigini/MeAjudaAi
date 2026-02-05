@@ -47,6 +47,36 @@ public sealed class LocationsEffects
         }
     }
 
+    /// <summary>Effect para atualizar cidade permitida</summary>
+    [EffectMethod]
+    public async Task HandleUpdateAllowedCityAction(UpdateAllowedCityAction action, IDispatcher dispatcher)
+    {
+        var updateRequest = new UpdateAllowedCityRequestDto(
+            action.UpdatedCity.City,
+            action.UpdatedCity.State,
+            action.UpdatedCity.Country,
+            action.UpdatedCity.Latitude,
+            action.UpdatedCity.Longitude,
+            action.UpdatedCity.ServiceRadiusKm,
+            action.UpdatedCity.IsActive
+        );
+
+        await _snackbar.ExecuteApiCallAsync(
+            apiCall: () => _locationsApi.UpdateAllowedCityAsync(action.CityId, updateRequest),
+            operationName: "Atualizar cidade",
+            onSuccess: _ =>
+            {
+                _snackbar.Add("Cidade atualizada com sucesso!", Severity.Success);
+                dispatcher.Dispatch(new LoadAllowedCitiesAction());
+            },
+            onError: ex =>
+            {
+                // Falha ao atualizar cidade. Tente novamente.
+                _snackbar.Add("Falha ao atualizar cidade. Tente novamente.", Severity.Error);
+                Console.WriteLine($"Erro ao atualizar cidade {action.CityId}: {ex}");
+            });
+    }
+
     /// <summary>Effect para excluir cidade permitida</summary>
     [EffectMethod]
     public async Task HandleDeleteAllowedCityAction(DeleteAllowedCityAction action, IDispatcher dispatcher)
@@ -93,6 +123,28 @@ public sealed class LocationsEffects
             onError: ex =>
             {
                 dispatcher.Dispatch(new ToggleCityActivationFailureAction(action.CityId, ex.Message));
+            });
+    }
+    [EffectMethod]
+    public async Task HandleUpdateAllowedCityRadiusAction(UpdateAllowedCityRadiusAction action, IDispatcher dispatcher)
+    {
+        var patchRequest = new PatchAllowedCityRequestDto(
+            ServiceRadiusKm: action.ServiceRadiusKm,
+            IsActive: null
+        );
+
+        await _snackbar.ExecuteApiCallAsync(
+            apiCall: () => _locationsApi.PatchAllowedCityAsync(action.CityId, patchRequest),
+            operationName: "Atualizar raio",
+            onSuccess: _ =>
+            {
+                dispatcher.Dispatch(new UpdateAllowedCityRadiusSuccessAction(action.CityId, action.ServiceRadiusKm));
+                _snackbar.Add("Raio atualizado com sucesso!", Severity.Success);
+            },
+            onError: ex =>
+            {
+                Console.WriteLine($"Erro ao atualizar raio da cidade {action.CityId}: {ex}");
+                dispatcher.Dispatch(new UpdateAllowedCityRadiusFailureAction(action.CityId, "Erro ao atualizar o raio, tente novamente."));
             });
     }
 }

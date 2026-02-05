@@ -8,8 +8,11 @@ using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Mvc;
+using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs;
 
-using MeAjudaAi.Shared.Models;
 namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 
 /// <summary>
@@ -23,18 +26,26 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
             .WithSummary("Criar nova cidade permitida")
             .WithDescription("Cria uma nova cidade permitida para operações de prestadores (apenas Admin)")
             .Produces<Response<Guid>>(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status500InternalServerError)
             .RequireAdmin();
 
     private static async Task<IResult> CreateAsync(
-        CreateAllowedCityRequest request,
+        CreateAllowedCityRequestDto request,
         ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
         var command = request.ToCommand();
+        var result = await commandDispatcher.SendAsync<CreateAllowedCityCommand, Result<Guid>>(command, cancellationToken);
 
-        var cityId = await commandDispatcher.SendAsync<CreateAllowedCityCommand, Guid>(command, cancellationToken);
+        if (result.IsFailure)
+        {
+            return Results.Problem(
+                detail: result.Error.Message,
+                statusCode: result.Error.StatusCode,
+                title: "Erro ao criar cidade permitida");
+        }
 
-        return Results.CreatedAtRoute("GetAllowedCityById", new { id = cityId }, new Response<Guid>(cityId, 201));
+        return Results.CreatedAtRoute("GetAllowedCityById", new { id = result.Value }, new Response<Guid>(result.Value, 201));
     }
 }

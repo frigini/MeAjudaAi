@@ -6,11 +6,13 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -31,7 +33,7 @@ public class UpdateProviderProfileEndpoint : BaseEndpoint, IEndpoint
     /// <param name="app">Builder de rotas do endpoint</param>
     /// <remarks>
     /// Configura endpoint PUT em "/{id:guid}" com:
-    /// - Autorização SelfOrAdmin (prestador pode atualizar próprios dados ou admin qualquer)
+    /// - Autorização por permissão (ProvidersUpdate)
     /// - Validação automática de GUID para o parâmetro ID
     /// - Documentação OpenAPI automática
     /// - Códigos de resposta apropriados
@@ -49,7 +51,7 @@ public class UpdateProviderProfileEndpoint : BaseEndpoint, IEndpoint
                 - 🏢 Modificação do perfil de negócio
                 - 📞 Atualização de informações de contato
                 - 📍 Alteração de endereço principal
-                - 🔒 Controle de acesso: próprio prestador ou administrador
+                - 🔒 Controle de acesso: usuários com permissão ProvidersUpdate
                 
                 **Campos atualizáveis:**
                 - Nome do prestador
@@ -63,7 +65,7 @@ public class UpdateProviderProfileEndpoint : BaseEndpoint, IEndpoint
                 - Campos obrigatórios preenchidos
                 - Autorização de acesso ao prestador
                 """)
-            .RequireAuthorization("SelfOrAdmin")
+            .RequirePermission(EPermission.ProvidersUpdate)
             .Produces<Response<ProviderDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);

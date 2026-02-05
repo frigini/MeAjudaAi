@@ -195,6 +195,98 @@ public sealed class NominatimClientTests : IDisposable
     }
 
     [Fact]
+    public async Task SearchAsync_ShouldFilterDuplicates_WhenSameCityAndStateReturned()
+    {
+        // Arrange
+        var query = "Linhares";
+        var nominatimResponses = new[]
+        {
+            new NominatimResponse
+            {
+                Lat = "-19.391",
+                Lon = "-40.072",
+                DisplayName = "Linhares, Região Geográfica Imediata de Linhares, Região Geográfica Intermediária de Linhares, Espírito Santo, Região Sudeste, Brasil",
+                Address = new NominatimAddress { City = "Linhares", State = "Espírito Santo", Country = "Brasil" }
+            },
+            new NominatimResponse
+            {
+                Lat = "-19.400", // Diferente lat/lon mas mesma cidade/estado
+                Lon = "-40.080",
+                DisplayName = "Linhares, Espírito Santo, Brasil",
+                Address = new NominatimAddress { City = "Linhares", State = "Espírito Santo", Country = "Brasil" }
+            }
+        };
+
+        _mockHandler.SetResponse(
+            HttpStatusCode.OK,
+            JsonSerializer.Serialize(nominatimResponses, SerializationDefaults.Default));
+
+        // Act
+        var result = await _client.SearchAsync(query, CancellationToken.None);
+
+        // Assert
+        result.Should().HaveCount(1);
+        result[0].City.Should().Be("Linhares");
+        result[0].State.Should().Be("ES"); // Mapped to Sigla
+    }
+
+    [Fact]
+    public async Task SearchAsync_ShouldMapStateNamesToAbbreviations()
+    {
+        // Arrange
+        var query = "Juiz de Fora";
+        var nominatimResponses = new[]
+        {
+            new NominatimResponse
+            {
+                Lat = "-21.764",
+                Lon = "-43.350",
+                DisplayName = "Juiz de Fora, Minas Gerais, Brasil",
+                Address = new NominatimAddress { City = "Juiz de Fora", State = "Minas Gerais", Country = "Brasil" }
+            }
+        };
+
+        _mockHandler.SetResponse(
+            HttpStatusCode.OK,
+            JsonSerializer.Serialize(nominatimResponses, SerializationDefaults.Default));
+
+        // Act
+        var result = await _client.SearchAsync(query, CancellationToken.None);
+
+        // Assert
+        result.Should().HaveCount(1);
+        result[0].State.Should().Be("MG");
+    }
+
+    [Fact]
+    public async Task SearchAsync_ShouldNotMapUnknownStates()
+    {
+        // Arrange
+        var query = "Cidade Estrangeira";
+        var nominatimResponses = new[]
+        {
+            new NominatimResponse
+            {
+                Lat = "10.0",
+                Lon = "20.0",
+                DisplayName = "Cidade, Estado Desconhecido, País",
+                Address = new NominatimAddress { City = "Cidade", State = "Estado Desconhecido", Country = "País" }
+            }
+        };
+
+        _mockHandler.SetResponse(
+            HttpStatusCode.OK,
+            JsonSerializer.Serialize(nominatimResponses, SerializationDefaults.Default));
+
+        // Act
+        var result = await _client.SearchAsync(query, CancellationToken.None);
+
+        // Assert
+        result.Should().HaveCount(1);
+        result[0].State.Should().Be("Estado Desconhecido");
+    }
+
+    [Fact]
     public async Task GetCoordinatesAsync_ShouldUrlEncodeAddress()
     {
         // Arrange

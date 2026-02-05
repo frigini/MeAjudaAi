@@ -34,7 +34,7 @@ public sealed class GetProviderByIdQueryHandler(
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", query.ProviderId);
-                return Result<ProviderDto?>.Failure(Error.NotFound("Provider not found"));
+                return Result<ProviderDto?>.Failure(Error.NotFound("Prestador não encontrado"));
             }
 
             logger.LogInformation("Provider {ProviderId} found successfully", query.ProviderId);
@@ -43,7 +43,8 @@ public sealed class GetProviderByIdQueryHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting provider by ID {ProviderId}", query.ProviderId);
-            return Result<ProviderDto?>.Failure("Error getting provider");
+            return Result<ProviderDto?>.Failure("Erro ao buscar prestador");
         }
     }
 }
+

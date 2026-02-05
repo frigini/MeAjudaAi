@@ -2,6 +2,7 @@ using FluentAssertions;
 using Hangfire;
 using Hangfire.Dashboard;
 using MeAjudaAi.Shared.Jobs;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -14,6 +15,7 @@ namespace MeAjudaAi.Shared.Tests.Unit.Jobs;
 /// Testes unitários para HangfireAuthorizationFilter
 /// Verifica ACL do dashboard Hangfire por ambiente e role
 /// </summary>
+[Collection("EnvironmentVariableTests")]
 [Trait("Category", "Unit")]
 [Trait("Component", "Hangfire")]
 public class HangfireAuthorizationFilterTests
@@ -42,7 +44,7 @@ public class HangfireAuthorizationFilterTests
     public void Authorize_InDevelopmentEnvironment_ShouldAllowAccess(string environment)
     {
         // Arrange
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
+        using var _ = new EnvironmentScope(environment, null);
         var filter = new HangfireAuthorizationFilter();
         var context = CreateDashboardContext();
 
@@ -51,9 +53,31 @@ public class HangfireAuthorizationFilterTests
 
         // Assert
         result.Should().BeTrue("Development environment should allow unrestricted access");
+    }
 
-        // Cleanup
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
+    [Fact]
+    public void Authorize_InProductionEnvironment_WithAdminRole_ShouldAllowAccess()
+    {
+        // Arrange
+        using var _ = new EnvironmentScope("Production", null);
+        
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, "admin-user"),
+            new Claim(AuthConstants.Claims.IsSystemAdmin, "true") // Claim expected by the filter for admin access
+        };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        var principal = new ClaimsPrincipal(identity);
+        var httpContext = new DefaultHttpContext { User = principal };
+        
+        var context = CreateDashboardContext(httpContext);
+        var filter = new HangfireAuthorizationFilter();
+
+        // Act
+        var result = filter.Authorize(context);
+
+        // Assert
+        result.Should().BeTrue("Authenticated admin users should have access in Production");
     }
 
     [Theory]
@@ -63,7 +87,7 @@ public class HangfireAuthorizationFilterTests
     public void Authorize_InTestingEnvironment_ShouldAllowAccess(string environment)
     {
         // Arrange
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
+        using var _ = new EnvironmentScope(environment, null);
         var filter = new HangfireAuthorizationFilter();
         var context = CreateDashboardContext();
 
@@ -72,17 +96,14 @@ public class HangfireAuthorizationFilterTests
 
         // Assert
         result.Should().BeTrue("Testing environment should allow unrestricted access");
-
-        // Cleanup
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
     }
 
     [Fact]
+
     public void Authorize_UseDotnetEnvironmentVariable_ShouldWork()
     {
-        // Arrange - Apenas DOTNET_ENVIRONMENT configurado
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
-        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Development");
+        // Arrange
+        using var _ = new EnvironmentScope(null, "Development");
         var filter = new HangfireAuthorizationFilter();
         var context = CreateDashboardContext();
 
@@ -91,16 +112,13 @@ public class HangfireAuthorizationFilterTests
 
         // Assert
         result.Should().BeTrue("Should respect DOTNET_ENVIRONMENT when ASPNETCORE_ENVIRONMENT is not set");
-
-        // Cleanup
-        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
     }
 
     [Fact]
     public void Authorize_InProductionWithoutAuthentication_ShouldDenyAccess()
     {
         // Arrange
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
+        using var _ = new EnvironmentScope("Production", null);
         
         var identity = new Mock<ClaimsIdentity>();
         identity.Setup(i => i.IsAuthenticated).Returns(false);
@@ -115,16 +133,13 @@ public class HangfireAuthorizationFilterTests
 
         // Assert
         result.Should().BeFalse("Production requires authentication");
-
-        // Cleanup
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
     }
 
     [Fact]
     public void Authorize_InProductionAuthenticatedButNotAdmin_ShouldDenyAccess()
     {
         // Arrange
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
+        using var _ = new EnvironmentScope("Production", null);
         
         var claims = new List<Claim>
         {
@@ -143,44 +158,13 @@ public class HangfireAuthorizationFilterTests
 
         // Assert
         result.Should().BeFalse("Production requires SystemAdmin role");
-
-        // Cleanup
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
     }
 
     [Fact]
-    public void Authorize_InProductionWithSystemAdminRole_ShouldAllowAccess()
+    public void Authorize_WithDefaultHttpContext_ShouldDenyAccess()
     {
         // Arrange
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
-        
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, "admin-user"),
-            new Claim("is_system_admin", "true") // Claim que identifica administrador do sistema
-        };
-        
-        var identity = new ClaimsIdentity(claims, "TestAuth");
-        var principal = new ClaimsPrincipal(identity);
-        var httpContext = new DefaultHttpContext { User = principal };
-        var filter = new HangfireAuthorizationFilter();
-        var context = CreateDashboardContext(httpContext);
-
-        // Act
-        var result = filter.Authorize(context);
-
-        // Assert
-        result.Should().BeTrue("SystemAdmin should have access in production");
-
-        // Cleanup
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
-    }
-
-    [Fact]
-    public void Authorize_WithNullHttpContext_ShouldDenyAccess()
-    {
-        // Arrange
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
+        using var _ = new EnvironmentScope("Production", null);
         var filter = new HangfireAuthorizationFilter();
         var context = CreateDashboardContext(null!);
 
@@ -188,17 +172,35 @@ public class HangfireAuthorizationFilterTests
         var result = filter.Authorize(context);
 
         // Assert
-        result.Should().BeFalse("Null HttpContext should deny access in production");
+        result.Should().BeFalse("Default HttpContext should deny access in production");
+    }
 
-        // Cleanup
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
+    private readonly struct EnvironmentScope : IDisposable
+    {
+        private readonly string? _originalAspNetCore;
+        private readonly string? _originalDotNet;
+
+        public EnvironmentScope(string? aspNetCore, string? dotNet)
+        {
+            _originalAspNetCore = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            _originalDotNet = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", aspNetCore);
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", dotNet);
+        }
+
+        public void Dispose()
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", _originalAspNetCore);
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", _originalDotNet);
+        }
     }
 
     [Fact]
+
     public void Authorize_WithNullUser_ShouldDenyAccess()
     {
         // Arrange
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
+        using var _ = new EnvironmentScope("Production", null);
         var httpContext = new DefaultHttpContext { User = null! };
         var filter = new HangfireAuthorizationFilter();
         var context = CreateDashboardContext(httpContext);
@@ -208,17 +210,14 @@ public class HangfireAuthorizationFilterTests
 
         // Assert
         result.Should().BeFalse("Null User should deny access in production");
-
-        // Cleanup
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
     }
 
     [Fact]
+
     public void Authorize_DefaultEnvironmentIsProduction_ShouldRequireAuth()
     {
-        // Arrange - Sem variável de ambiente (default = Production)
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
-        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
+        // Arrange
+        using var _ = new EnvironmentScope(null, null);
         
         var identity = new Mock<ClaimsIdentity>();
         identity.Setup(i => i.IsAuthenticated).Returns(false);
@@ -238,10 +237,11 @@ public class HangfireAuthorizationFilterTests
     [InlineData("Staging")]
     [InlineData("PreProduction")]
     [InlineData("QA")]
+
     public void Authorize_InNonDevelopmentEnvironments_ShouldRequireAuth(string environment)
     {
         // Arrange
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
+        using var _ = new EnvironmentScope(environment, null);
         
         var identity = new Mock<ClaimsIdentity>();
         identity.Setup(i => i.IsAuthenticated).Returns(false);
@@ -256,9 +256,9 @@ public class HangfireAuthorizationFilterTests
 
         // Assert
         result.Should().BeFalse($"{environment} environment should require authentication like Production");
-
-        // Cleanup
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
     }
 
 }
+
+[CollectionDefinition("EnvironmentVariableTests", DisableParallelization = true)]
+public class EnvironmentVariableTestsCollection { }

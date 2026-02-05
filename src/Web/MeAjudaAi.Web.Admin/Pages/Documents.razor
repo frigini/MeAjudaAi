@@ -27,14 +27,14 @@
     <MudCard>
         <MudCardHeader>
             <CardHeaderContent>
-                <MudText Typo="Typo.h6">Documentos por Provider</MudText>
+                <MudText Typo="Typo.h6">Documentos por Provedor</MudText>
             </CardHeaderContent>
             <CardHeaderActions>
                 <MudButton Color="Color.Info" 
                            Variant="Variant.Filled" 
                            StartIcon="@Icons.Material.Filled.FilterList"
                            OnClick="OpenProviderSelector">
-                    Selecionar Provider
+                    Selecionar Provedor
                 </MudButton>
             </CardHeaderActions>
         </MudCardHeader>
@@ -42,14 +42,14 @@
             @if (DocumentsState.Value.SelectedProviderId == null)
             {
                 <MudAlert Severity="Severity.Info">
-                    Selecione um provider para visualizar seus documentos
+                    Selecione um provedor para visualizar seus documentos
                 </MudAlert>
             }
             else
             {
                 <MudStack Row="true" Justify="Justify.SpaceBetween" Class="mb-4">
                     <MudText Typo="Typo.body1">
-                        Provider ID: <b>@DocumentsState.Value.SelectedProviderId.Value</b>
+                        ID do Provedor: <b>@DocumentsState.Value.SelectedProviderId.Value</b>
                     </MudText>
                     <MudButton Color="Color.Primary" 
                                Variant="Variant.Filled" 
@@ -116,7 +116,7 @@
                         </TemplateColumn>
                     </Columns>
                     <NoRecordsContent>
-                        <MudText>Nenhum documento encontrado para este provider</MudText>
+                        <MudText>Nenhum documento encontrado para este provedor</MudText>
                     </NoRecordsContent>
                 </MudDataGrid>
             }
@@ -130,7 +130,7 @@
         var parameters = new DialogParameters();
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
 
-        var dialog = await DialogService.ShowAsync<ProviderSelectorDialog>("Selecionar Provider", parameters, options);
+        var dialog = await DialogService.ShowAsync<ProviderSelectorDialog>("Selecionar Provedor", parameters, options);
         var result = await dialog.Result;
 
         if (!result.Canceled && result.Data is Guid providerId)

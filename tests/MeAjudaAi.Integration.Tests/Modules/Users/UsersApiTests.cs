@@ -35,11 +35,14 @@ public class UsersApiTests : BaseApiTest
         var content = await response.Content.ReadAsStringAsync();
         var users = JsonSerializer.Deserialize<JsonElement>(content);
 
-        // Expect a consistent API response format - should be an object with data property
+        // Espera um formato de resposta API consistente - deve ser um objeto com propriedade data ou value
         users.ValueKind.Should().Be(JsonValueKind.Object,
             "API should return a structured response object");
-        users.TryGetProperty("data", out var dataElement).Should().BeTrue(
-            "Response should contain 'data' property for consistency");
+
+        var dataElement = GetResponseData(users);
+        (users.TryGetProperty("value", out _) || users.TryGetProperty("data", out _)).Should().BeTrue(
+            "Response should contain 'data' or 'value' property for consistency");
+
         dataElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
         dataElement.ValueKind.Should().NotBe(JsonValueKind.Null,
             "Data property should contain either an array of users or a paginated response object");

@@ -4,11 +4,13 @@ using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -29,7 +31,7 @@ public class GetProviderByIdEndpoint : BaseEndpoint, IEndpoint
     /// <param name="app">Builder de rotas do endpoint</param>
     /// <remarks>
     /// Configura endpoint GET em "/{id:guid}" com:
-    /// - Autorização obrigatória (RequireAuthorization)
+    /// - Autorização por permissão (ProvidersRead)
     /// - Validação automática de GUID para o parâmetro ID
     /// - Documentação OpenAPI automática
     /// - Respostas estruturadas para sucesso (200) e não encontrado (404)
@@ -55,7 +57,7 @@ public class GetProviderByIdEndpoint : BaseEndpoint, IEndpoint
                 - Status de verificação
                 - Metadados de criação e atualização
                 """)
-            .RequireAuthorization()
+            .RequirePermission(EPermission.ProvidersRead)
             .Produces<Response<ProviderDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 

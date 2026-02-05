@@ -108,11 +108,10 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTe
         // Expect a consistent API response format - should be an object with data property
         providers.ValueKind.Should().Be(JsonValueKind.Object,
             "API should return a structured response object");
-        providers.TryGetProperty("data", out var dataElement).Should().BeTrue(
-            "Response should contain 'data' property for consistency");
+        var dataElement = GetResponseData(providers);
         dataElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
         dataElement.ValueKind.Should().NotBe(JsonValueKind.Null,
-            "Data property should contain either an array of providers or a paginated response object");
+            "A propriedade de dados deve conter uma matriz de provedores ou um objeto de resposta paginado");
     }
 
     [Fact]
@@ -204,7 +203,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTe
         try
         {
             // Act - Buscar apenas providers Pending
-            var response = await Client.GetAsync("/api/v1/providers/by-verification-status/Pending");
+            var response = await Client.GetAsync("/api/v1/providers/verification-status/Pending");
 
             // Assert
             var content = await response.Content.ReadAsStringAsync();
@@ -214,19 +213,11 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTe
             var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
             // Extrair array de providers da resposta
-            JsonElement providersArray;
-            if (providers.ValueKind == JsonValueKind.Array)
-            {
-                providersArray = providers;
-            }
-            else if (providers.TryGetProperty("data", out var dataProperty))
-            {
-                providersArray = dataProperty;
-            }
-            else
-            {
-                throw new InvalidOperationException("Response does not contain expected array or data property");
-            }
+            // Extrair providers usando helper unificado
+            var providersArray = GetResponseData(providers);
+
+            providersArray.ValueKind.Should().Be(JsonValueKind.Array,
+                "Verification-status response should be an array of providers");
 
             // Verificar que contém o provider Pending
             var hasPendingProvider = false;
@@ -318,7 +309,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTe
         {
             "/api/v1/providers",
             "/api/v1/providers/by-type/Individual",
-            "/api/v1/providers/by-verification-status/Pending"
+            "/api/v1/providers/verification-status/Pending"
         };
 
         // Act & Assert
@@ -337,12 +328,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTe
         }
     }
 
-    private static JsonElement GetResponseData(JsonElement response)
-    {
-        return response.TryGetProperty("data", out var dataElement)
-            ? dataElement
-            : response;
-    }
+
 
     private async Task<string?> CreateTestProvider(string name, int type)
     {

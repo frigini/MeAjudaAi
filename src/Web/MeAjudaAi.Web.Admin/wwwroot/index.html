@@ -6,9 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MeAjudaAi - Admin Portal</title>
     
-    <!-- Content Security Policy - Development -->
-    <!-- Production CSP should be configured via HTTP headers in the hosting environment -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://localhost:* http://localhost:* ws://localhost:* wss://localhost:*; frame-src http://localhost:*; media-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'">
+    <!-- Content Security Policy is configured via HTTP headers in middleware -->
+    <!-- Do not use http-equiv="Content-Security-Policy" as frame-ancestors and other directives are ignored in meta tags -->
     
     <base href="/" />
     <link rel="preload" id="webassembly" />

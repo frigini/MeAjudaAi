@@ -81,8 +81,8 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Bas
         var categories = JsonSerializer.Deserialize<JsonElement>(content);
         categories.ValueKind.Should().Be(JsonValueKind.Object,
             "API should return a structured response object");
-        categories.TryGetProperty("data", out var dataElement).Should().BeTrue(
-            "Response should contain 'data' property for consistency");
+
+        var dataElement = GetResponseData(categories);
         dataElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
     }
 
@@ -393,7 +393,8 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Bas
                 var services = JsonSerializer.Deserialize<JsonElement>(content);
 
                 services.ValueKind.Should().Be(JsonValueKind.Object);
-                services.TryGetProperty("data", out var dataElement).Should().BeTrue();
+                var dataElement = GetResponseData(services);
+                dataElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
 
                 // Should contain at least the service we just created
                 if (dataElement.ValueKind == JsonValueKind.Array)
@@ -416,6 +417,14 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Bas
                     }
                     foundService.Should().BeTrue($"Created service {serviceId} should be in the filtered results");
                 }
+            else
+            {
+                dataElement.TryGetProperty("id", out var itemId).Should().BeTrue();
+                itemId.GetString().Should().Be(serviceId);
+                dataElement.TryGetProperty("categoryId", out var itemCategoryId).Should().BeTrue();
+                itemCategoryId.GetString().Should().Be(categoryId,
+                    "Service should belong to the correct category");
+            }
             }
             finally
             {
@@ -430,10 +439,5 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Bas
         }
     }
 
-    private static JsonElement GetResponseData(JsonElement response)
-    {
-        return response.TryGetProperty("data", out var dataElement)
-            ? dataElement
-            : response;
-    }
+
 }

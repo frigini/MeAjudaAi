@@ -105,6 +105,17 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
             {
                 var providerContent = await getProviderResponse.Content.ReadAsStringAsync();
                 var provider = JsonSerializer.Deserialize<JsonElement>(providerContent);
+                
+                // Unwrapping para garantir que pegamos o userId correto mesmo dentro de um envelope
+                if (provider.TryGetProperty("value", out var dataProperty))
+                {
+                    provider = dataProperty;
+                }
+                else if (provider.TryGetProperty("data", out var legacyDataProperty))
+                {
+                    provider = legacyDataProperty;
+                }
+
                 if (provider.TryGetProperty("userId", out var userIdProperty))
                 {
                     userId = Guid.Parse(userIdProperty.GetString()!);
@@ -122,10 +133,14 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
                 
                 var retrievedProvider = JsonSerializer.Deserialize<JsonElement>(getContent);
 
-                // Verificar se o JSON tem a estrutura esperada (pode estar dentro de "data" ou outro wrapper)
-                if (retrievedProvider.TryGetProperty("data", out var dataProperty))
+                // Verificar se o JSON tem a estrutura esperada (pode estar dentro de "value" ou outro wrapper)
+                if (retrievedProvider.TryGetProperty("value", out var dataProperty))
                 {
                     retrievedProvider = dataProperty;
+                }
+                else if (retrievedProvider.TryGetProperty("data", out var legacyDataProperty))
+                {
+                    retrievedProvider = legacyDataProperty;
                 }
                 
                 retrievedProvider.TryGetProperty("name", out var nameProperty).Should().BeTrue();
@@ -198,8 +213,8 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
                 ContactInfo = new
                 {
                     Email = $"updated_{uniqueId}@example.com",
-                    PhoneNumber = _fixture.Faker.Phone.PhoneNumber(),
-                    Website = _fixture.Faker.Internet.Url()
+                    PhoneNumber = "+5511999999999",
+                    Website = "https://updated.example.com"
                 },
                 PrimaryAddress = new
                 {

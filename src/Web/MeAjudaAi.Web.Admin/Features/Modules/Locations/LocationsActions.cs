@@ -64,4 +64,15 @@ public static class LocationsActions
 
     /// <summary>Falha ao alterar status de ativação</summary>
     public sealed record ToggleCityActivationFailureAction(Guid CityId, string ErrorMessage);
+
+    // ========== UPDATE RADIUS OPERATIONS ==========
+
+    /// <summary>Solicita atualização do raio de atendimento</summary>
+    public sealed record UpdateAllowedCityRadiusAction(Guid CityId, double ServiceRadiusKm);
+
+    /// <summary>Sucesso ao atualizar raio</summary>
+    public sealed record UpdateAllowedCityRadiusSuccessAction(Guid CityId, double ServiceRadiusKm);
+
+    /// <summary>Falha ao atualizar raio</summary>
+    public sealed record UpdateAllowedCityRadiusFailureAction(Guid CityId, string ErrorMessage);
 }

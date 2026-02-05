@@ -53,9 +53,10 @@ public partial class Program
             if (!app.Environment.IsEnvironment("Testing"))
             {
                 await app.ApplyModuleMigrationsAsync();
+                
+                // Seed de dados de desenvolvimento
+                await app.SeedDevelopmentDataIfNeededAsync();
             }
-
-            // Seed de dados: usando SQL scripts via MigrationHostedService
 
             LogStartupComplete(app);
 

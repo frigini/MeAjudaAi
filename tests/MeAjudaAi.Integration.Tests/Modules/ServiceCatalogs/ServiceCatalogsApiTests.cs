@@ -37,15 +37,14 @@ public class ServiceCatalogsApiTests : BaseApiTest
         }
 
         response.StatusCode.Should().Be(HttpStatusCode.OK,
-            $"Admin users should receive a successful response. Error: {content}");
+            $"Usuários administradores devem receber uma resposta bem-sucedida. Erro: {content}");
 
         var categories = JsonSerializer.Deserialize<JsonElement>(content);
 
-        // Expect a consistent API response format
+        // Espera um formato de resposta API consistente
         categories.ValueKind.Should().Be(JsonValueKind.Object,
-            "API should return a structured response object");
-        categories.TryGetProperty("data", out var dataElement).Should().BeTrue(
-            "Response should contain 'data' property for consistency");
+            "A API deve retornar um objeto de resposta estruturado");
+        var dataElement = GetResponseData(categories);
         dataElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
     }
 
@@ -60,16 +59,15 @@ public class ServiceCatalogsApiTests : BaseApiTest
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK,
-            "Admin users should receive a successful response");
+            "Usuários administradores devem receber uma resposta bem-sucedida");
 
         var content = await response.Content.ReadAsStringAsync();
         var services = JsonSerializer.Deserialize<JsonElement>(content);
 
-        // Expect a consistent API response format
+        // Espera um formato de resposta API consistente
         services.ValueKind.Should().Be(JsonValueKind.Object,
-            "API should return a structured response object");
-        services.TryGetProperty("data", out var dataElement).Should().BeTrue(
-            "Response should contain 'data' property for consistency");
+            "A API deve retornar um objeto de resposta estruturado");
+        var dataElement = GetResponseData(services);
         dataElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
     }
 
@@ -244,11 +242,6 @@ public class ServiceCatalogsApiTests : BaseApiTest
             HttpStatusCode.NotFound);
     }
 
-    private static JsonElement GetResponseData(JsonElement response)
-    {
-        return response.TryGetProperty("data", out var dataElement)
-            ? dataElement
-            : response;
-    }
+
 }
 

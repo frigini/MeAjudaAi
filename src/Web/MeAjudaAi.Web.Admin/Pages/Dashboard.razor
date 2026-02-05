@@ -35,7 +35,7 @@
                     <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Primary" Size="Size.Large" />
                 </div>
                 <MudText Typo="Typo.h4">@DashboardState.Value.TotalProviders</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Default">Total de Fornecedores</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Default">Total de Provedores</MudText>
             </MudCardContent>
         </MudCard>
     </MudItem>
@@ -81,11 +81,12 @@
                                Color="Color.Primary" 
                                StartIcon="@Icons.Material.Filled.People"
                                Href="/providers">
-                        Gerenciar Fornecedores
+                        Gerenciar Provedores
                     </MudButton>
                     <MudButton Variant="Variant.Outlined" 
                                Color="Color.Warning" 
                                StartIcon="@Icons.Material.Filled.VerifiedUser"
+                               Href="/providers?filter=pending"
                                Disabled="@(DashboardState.Value.PendingVerifications == 0)">
                         Verificar Pendentes (@DashboardState.Value.PendingVerifications)
                     </MudButton>
@@ -99,13 +100,15 @@
         <MudCard Elevation="2">
             <MudCardHeader>
                 <CardHeaderContent>
-                    <MudText Typo="Typo.h6">Fornecedores por Status</MudText>
+                    <MudText Typo="Typo.h6">Provedores por Status</MudText>
                 </CardHeaderContent>
             </MudCardHeader>
             <MudCardContent>
+
                 @if (ProvidersState.Value.Providers.Count > 0)
                 {
-                    <MudChart ChartType="ChartType.Donut"
+                    <MudChart @key="@providerStatusData"
+                              ChartType="ChartType.Donut"
                               InputData="@providerStatusData"
                               InputLabels="@providerStatusLabels"
                               Width="300px"
@@ -115,7 +118,7 @@
                 else
                 {
                     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-center">
-                        Nenhum fornecedor cadastrado
+                        Nenhum provedor cadastrado
                     </MudText>
                 }
             </MudCardContent>
@@ -127,13 +130,15 @@
         <MudCard Elevation="2">
             <MudCardHeader>
                 <CardHeaderContent>
-                    <MudText Typo="Typo.h6">Fornecedores por Tipo</MudText>
+                    <MudText Typo="Typo.h6">Provedores por Tipo</MudText>
                 </CardHeaderContent>
             </MudCardHeader>
             <MudCardContent>
+
                 @if (ProvidersState.Value.Providers.Count > 0)
                 {
-                    <MudChart ChartType="ChartType.Pie"
+                    <MudChart @key="@providerTypeData"
+                              ChartType="ChartType.Pie"
                               InputData="@providerTypeData"
                               InputLabels="@providerTypeLabels"
                               Width="300px"
@@ -143,7 +148,7 @@
                 else
                 {
                     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-center">
-                        Nenhum fornecedor cadastrado
+                        Nenhum provedor cadastrado
                     </MudText>
                 }
             </MudCardContent>
@@ -184,6 +189,7 @@
     private string[] providerStatusLabels = Array.Empty<string>();
     private double[] providerTypeData = Array.Empty<double>();
     private string[] providerTypeLabels = Array.Empty<string>();
+    private bool _disposed;
 
     protected override void OnInitialized()
     {
@@ -208,6 +214,8 @@
 
     private void OnProvidersStateChanged(object? sender, EventArgs e)
     {
+        if (_disposed) return;
+
         try
         {
             // Atualiza sempre que houver providers (captura mudanças de status/tipo)
@@ -233,6 +241,7 @@
 
         // Provider Status Chart Data - semantically ordered
         var statusGroups = providers
+            .Where(p => !string.IsNullOrEmpty(p.VerificationStatus))
             .GroupBy(p => p.VerificationStatus)
             .OrderBy(g => {
                 // g.Key é string numérica ("0", "1", "2"), converte para int antes de buscar
@@ -247,35 +256,53 @@
 
         providerStatusLabels = statusGroups.Select(g => {
             if (int.TryParse(g.Key, out int status))
-                return VerificationStatus.ToDisplayName(status);
-            return g.Key;
+                return VerificationStatus.ToDisplayName(status) ?? "Desconhecido";
+            return g.Key ?? "Desconhecido";
         }).ToArray();
         providerStatusData = statusGroups.Select(g => (double)g.Count()).ToArray();
 
-        // Provider Type Chart Data - semantically ordered
+        // Provider Type Chart Data
         var typeGroups = providers
+            .Where(p => !string.IsNullOrEmpty(p.ProviderType))
             .GroupBy(p => p.ProviderType)
-            .OrderBy(g => {
-                // g.Key é string numérica ("0", "1"), converte para int antes de buscar
-                if (int.TryParse(g.Key, out int typeValue))
-                {
-                    var index = Array.IndexOf(ProviderTypeOrderInts, typeValue);
-                    return index >= 0 ? index : int.MaxValue;
-                }
-                return int.MaxValue; // Unknown values sorted last
-            })
+            .OrderBy(g => g.Key) // Simple alphabetical sort for now, or assume string matches Enum names
             .ToList();
 
         providerTypeLabels = typeGroups.Select(g => {
-            if (int.TryParse(g.Key, out int type))
-                return ProviderType.ToDisplayName(type);
-            return g.Key;
+            return GetProviderTypeDisplayName(g.Key);
         }).ToArray();
         providerTypeData = typeGroups.Select(g => (double)g.Count()).ToArray();
     }
 
+    private string GetProviderTypeDisplayName(string typeKey)
+    {
+        if (string.IsNullOrEmpty(typeKey)) return "Desconhecido";
+
+        // Try to match standard keys to our constants
+        if (string.Equals(typeKey, "Individual", StringComparison.OrdinalIgnoreCase))
+            return ProviderType.ToDisplayName(ProviderType.Individual);
+        
+        if (string.Equals(typeKey, "Company", StringComparison.OrdinalIgnoreCase))
+            return ProviderType.ToDisplayName(ProviderType.Company);
+
+        if (string.Equals(typeKey, "Cooperative", StringComparison.OrdinalIgnoreCase))
+            return ProviderType.ToDisplayName(ProviderType.Cooperative);
+
+        if (string.Equals(typeKey, "Freelancer", StringComparison.OrdinalIgnoreCase))
+            return ProviderType.ToDisplayName(ProviderType.Freelancer);
+
+        // Fallback: Check if it is a number
+        if (int.TryParse(typeKey, out int typeValue))
+        {
+            return ProviderType.ToDisplayName(typeValue) ?? "Desconhecido";
+        }
+
+        return typeKey;
+    }
+
     public void Dispose()
     {
+        _disposed = true;
         ProvidersState.StateChanged -= OnProvidersStateChanged;
     }
 }

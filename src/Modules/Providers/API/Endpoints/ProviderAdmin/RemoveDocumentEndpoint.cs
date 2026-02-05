@@ -6,10 +6,12 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -29,7 +31,7 @@ public class RemoveDocumentEndpoint : BaseEndpoint, IEndpoint
     /// <param name="app">Builder de rotas do endpoint</param>
     /// <remarks>
     /// Configura endpoint DELETE em "/{id:guid}/documents/{documentType}" com:
-    /// - Autorização SelfOrAdmin (prestador pode remover próprios documentos ou admin gerenciar)
+    /// - Autorização por permissão (ProvidersUpdate)
     /// - Validação automática de GUID para o parâmetro ID
     /// - Validação automática de enum para documentType
     /// - Documentação OpenAPI automática
@@ -47,7 +49,7 @@ public class RemoveDocumentEndpoint : BaseEndpoint, IEndpoint
                 
                 **Características:**
                 - 🗑️ Remoção permanente de documento
-                - 🔒 Controle de acesso: próprio prestador ou administrador
+                - 🔒 Controle de acesso: usuários com permissão ProvidersUpdate
                 - ✅ Validação de existência do documento
                 - 📋 Atualização automática do perfil
                 
@@ -69,7 +71,7 @@ public class RemoveDocumentEndpoint : BaseEndpoint, IEndpoint
                 - Remove histórico do documento
                 - Pode impactar elegibilidade para serviços
                 """)
-            .RequireAuthorization("SelfOrAdmin")
+            .RequirePermission(EPermission.ProvidersUpdate)
             .Produces<Response<ProviderDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);

@@ -75,9 +75,10 @@ public sealed class DocumentsModuleApi(
             logger.LogDebug("Documents module is available and healthy");
             return true;
         }
-        catch (OperationCanceledException ex)
+
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            logger.LogDebug(ex, "Documents module availability check was cancelled");
+            logger.LogDebug("Documents module availability check canceled");
             throw;
         }
         catch (Exception ex)
@@ -103,7 +104,8 @@ public sealed class DocumentsModuleApi(
             // Sucesso se retornar Success com null (documento não encontrado)
             return result.IsSuccess && result.Value == null;
         }
-        catch (OperationCanceledException)
+
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
@@ -127,8 +129,10 @@ public sealed class DocumentsModuleApi(
                 ? Result<ModuleDocumentDto?>.Success(null)
                 : Result<ModuleDocumentDto?>.Success(MapToModuleDto(document));
         }
-        catch (OperationCanceledException)
+
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
+            // Propagar cancelamento para o caller
             throw;
         }
         catch (Exception ex)
@@ -150,7 +154,8 @@ public sealed class DocumentsModuleApi(
             var moduleDtos = documents.Select(MapToModuleDto).ToList();
             return Result<IReadOnlyList<ModuleDocumentDto>>.Success(moduleDtos);
         }
-        catch (OperationCanceledException)
+
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
@@ -162,20 +167,20 @@ public sealed class DocumentsModuleApi(
     }
 
     /// <summary>
-    /// Gets the status of a document.
+    /// Obtém o status de um documento.
     /// </summary>
-    /// <param name="documentId">Document ID</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Document status DTO or null if not found</returns>
+    /// <param name="documentId">ID do documento</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>DTO de status do documento ou null se não encontrado</returns>
     /// <remarks>
-    /// <para><strong>UpdatedAt Semantics:</strong></para>
-    /// <para>Uses VerifiedAt ?? UploadedAt where VerifiedAt represents the timestamp of the last
-    /// status change (verification or rejection). The domain model sets VerifiedAt when documents
-    /// are verified OR rejected. For documents still in Uploaded/PendingVerification status,
-    /// falls back to UploadedAt.</para>
-    /// <para><strong>Note:</strong> RejectedAt is NOT used in the fallback chain because the domain
-    /// already populates VerifiedAt for rejected documents, making VerifiedAt the authoritative
-    /// timestamp for all terminal states (Verified/Rejected).</para>
+    /// <para><strong>Semântica de UpdatedAt:</strong></para>
+    /// <para>Usa VerifiedAt ?? UploadedAt, onde VerifiedAt representa o timestamp da última mudança
+    /// de status (verificação ou rejeição). O modelo de domínio define VerifiedAt quando documentos
+    /// são verificados OU rejeitados. Para documentos ainda em Uploaded/PendingVerification,
+    /// usa UploadedAt como fallback.</para>
+    /// <para><strong>Nota:</strong> RejectedAt NÃO é usado na cadeia de fallback porque o domínio
+    /// já popula VerifiedAt para documentos rejeitados, tornando VerifiedAt o timestamp
+    /// autoritativo para todos os estados terminais (Verified/Rejected).</para>
     /// </remarks>
     public async Task<Result<ModuleDocumentStatusDto?>> GetDocumentStatusAsync(
         Guid documentId,
@@ -200,7 +205,8 @@ public sealed class DocumentsModuleApi(
 
             return Result<ModuleDocumentStatusDto?>.Success(statusDto);
         }
-        catch (OperationCanceledException)
+
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
@@ -270,7 +276,8 @@ public sealed class DocumentsModuleApi(
             var hasVerified = documentsResult.Value!.Any(d => d.Status == StatusString(EDocumentStatus.Verified));
             return Result<bool>.Success(hasVerified);
         }
-        catch (OperationCanceledException)
+
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
@@ -322,7 +329,8 @@ public sealed class DocumentsModuleApi(
 
             return Result<bool>.Success(hasRequired);
         }
-        catch (OperationCanceledException)
+
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
@@ -364,7 +372,8 @@ public sealed class DocumentsModuleApi(
 
             return Result<DocumentStatusCountDto>.Success(count);
         }
-        catch (OperationCanceledException)
+
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
@@ -391,7 +400,8 @@ public sealed class DocumentsModuleApi(
             var hasPending = documentsResult.Value!.Any(d => d.Status == StatusString(EDocumentStatus.PendingVerification));
             return Result<bool>.Success(hasPending);
         }
-        catch (OperationCanceledException)
+
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
@@ -418,7 +428,8 @@ public sealed class DocumentsModuleApi(
             var hasRejected = documentsResult.Value!.Any(d => d.Status == StatusString(EDocumentStatus.Rejected));
             return Result<bool>.Success(hasRejected);
         }
-        catch (OperationCanceledException)
+
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }

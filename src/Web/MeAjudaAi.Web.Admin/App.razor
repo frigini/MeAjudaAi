@@ -1,6 +1,7 @@
 @using MeAjudaAi.Web.Admin.Components.Errors
 @using MeAjudaAi.Web.Admin.Features.Errors
 @using MeAjudaAi.Web.Admin.Themes
+@using MeAjudaAi.Web.Admin.Services
 @using Fluxor
 @using System.Globalization
 @inject IState<ThemeState> ThemeState
@@ -8,6 +9,7 @@
 @inject ILogger<App> Logger
 @inject Services.ErrorLoggingService ErrorLogger
 @inject IJSRuntime JSRuntime
+@inject OidcDebugService OidcDebugService
 @implements IDisposable
 
 <Fluxor.Blazor.Web.StoreInitializer />
@@ -72,9 +74,35 @@
         // Load preferred language from localStorage
         await LoadPreferredLanguage();
         
+        // Realizar diagnóstico de OIDC/Keycloak
+        await DiagnoseOidcConfiguration();
+        
         // Subscribe to theme changes
         ThemeState.StateChanged += OnThemeStateChanged;
         _isDarkMode = ThemeState.Value.IsDarkMode;
+    }
+
+    private async Task DiagnoseOidcConfiguration()
+    {
+        try
+        {
+            Logger.LogInformation("🔐 Iniciando diagnóstico de autenticação OIDC/Keycloak");
+            var healthCheck = await OidcDebugService.CheckKeycloakHealthAsync();
+            Logger.LogInformation(healthCheck.GetDiagnosticSummary());
+
+            if (!healthCheck.IsHealthy)
+            {
+                Logger.LogWarning("⚠️ Detectados problemas na configuração de autenticação:");
+                foreach (var error in healthCheck.Errors)
+                {
+                    Logger.LogWarning("   - {Error}", error);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "❌ Erro ao diagnosticar configuração OIDC");
+        }
     }
 
     private async Task LoadPreferredLanguage()

@@ -81,10 +81,7 @@ public class CreateProviderRequestValidator : AbstractValidator<CreateProviderRe
         });
     }
 
-    private static bool BeValidGuid(string? value)
-    {
-        return !string.IsNullOrEmpty(value) && Guid.TryParse(value, out _);
-    }
+
 
     private static bool BeValidProviderType(EProviderType type)
     {

@@ -107,5 +107,20 @@ public enum EPermission
     AdminUsers,
 
     [Display(Name = "admin:reports")]
-    AdminReports
+    AdminReports,
+
+    // ===== SERVICE CATALOGS MODULE =====
+    [Display(Name = "service-catalogs:read")]
+    ServiceCatalogsRead,
+
+    [Display(Name = "service-catalogs:manage")]
+    ServiceCatalogsManage,
+
+    // ===== LOCATIONS MODULE =====
+    [Display(Name = "locations:read")]
+    LocationsRead,
+
+    [Display(Name = "locations:manage")]
+    LocationsManage
 }
+

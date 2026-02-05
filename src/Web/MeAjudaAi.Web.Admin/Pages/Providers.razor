@@ -11,21 +11,13 @@
 @inject IDialogService DialogService
 @inject ILogger<Providers> Logger
 @inject IPermissionService PermissionService
+@inject NavigationManager Navigation
 @implements IDisposable
 
 <PageTitle>Provedores - MeAjudaAi Admin</PageTitle>
 
 <div class="d-flex justify-space-between align-center mb-4">
     <MudText Typo="Typo.h3">Provedores</MudText>
-    <AuthorizeView Policy="@PolicyNames.ProviderManagerPolicy">
-        <MudButton Variant="Variant.Filled" 
-                   Color="Color.Primary" 
-                   StartIcon="@Icons.Material.Filled.Add" 
-                   OnClick="@OpenCreateDialog"
-                   AriaLabel="Criar novo provedor">
-            Novo Provedor
-        </MudButton>
-    </AuthorizeView>
 </div>
 
 @if (ProvidersState.Value.IsLoading)
@@ -65,7 +57,8 @@
                      Virtualize="true"
                      FixedHeader="true"
                      Height="calc(100vh - 400px)"
-                     Loading="@ProvidersState.Value.IsLoading">
+                     Loading="@ProvidersState.Value.IsLoading"
+                     RowStyleFunc="@_rowStyleFunc">
             <Columns>
                 <PropertyColumn Property="x => x.Id" Title="ID" />
                 <PropertyColumn Property="x => x.ProviderType" Title="Tipo" />
@@ -123,13 +116,30 @@
     </MudCardActions>
 </MudCard>
 
+
+
 @code {
     private string _searchTerm = string.Empty;
     private IEnumerable<ModuleProviderDto> _filteredProviders = [];
+    private bool _showOnlyPending = false;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
+        
+        // Check for query parameter 'filter=pending'
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = uri.Query.TrimStart('?');
+        
+        if (!string.IsNullOrEmpty(query))
+        {
+             var queryParams = query.Split('&');
+             if (queryParams.Any(q => q.Equals("filter=pending", StringComparison.OrdinalIgnoreCase)))
+             {
+                 _showOnlyPending = true;
+             }
+        }
+
         // Carregar providers ao inicializar
         Dispatcher.Dispatch(new LoadProvidersAction());
         UpdateFilteredProviders();
@@ -155,11 +165,19 @@
     private void UpdateFilteredProviders()
     {
         // Usa memoization para cachear resultados filtrados
-        var cacheKey = $"providers_filtered_{_searchTerm}_{ProvidersState.Value.Providers.Count()}";
+        // Inclui _showOnlyPending na chave do cache
+        var cacheKey = $"providers_filtered_{_searchTerm}_{_showOnlyPending}_{ProvidersState.Value.Providers.Count()}";
         
         _filteredProviders = PerformanceHelper.Memoize(cacheKey, () =>
         {
             var providers = ProvidersState.Value.Providers;
+
+            // Apply pending filter first if active
+            if (_showOnlyPending)
+            {
+                providers = providers.Where(p => 
+                    p.VerificationStatus == VerificationStatus.Pending.ToString()).ToList();
+            }
 
             if (string.IsNullOrWhiteSpace(_searchTerm))
             {
@@ -180,18 +198,17 @@
     {
         Dispatcher.Dispatch(new GoToPageAction(page));
     }
-
-    private async Task OpenCreateDialog()
+    
+    
+    // Highlights rows with Pending status (cached delegate to avoid re-renders)
+    private readonly Func<ModuleProviderDto, int, string> _rowStyleFunc = (x, i) =>
     {
-        var dialog = await DialogService.ShowAsync<CreateProviderDialog>("Novo Provedor");
-        var result = await dialog.Result;
+        if (x.VerificationStatus == VerificationStatus.Pending.ToString())
+            return "background-color: var(--mud-palette-warning-hover); font-weight: 500;";
+            
+        return "";
+    };
 
-        if (!result.Canceled)
-        {
-            // Recarregar lista após criação
-            Dispatcher.Dispatch(new LoadProvidersAction());
-        }
-    }
 
     private async Task OpenEditDialog(Guid providerId)
     {

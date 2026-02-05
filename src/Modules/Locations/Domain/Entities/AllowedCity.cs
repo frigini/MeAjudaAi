@@ -1,3 +1,5 @@
+using MeAjudaAi.Modules.Locations.Domain.Exceptions;
+
 namespace MeAjudaAi.Modules.Locations.Domain.Entities;
 
 /// <summary>
@@ -25,6 +27,21 @@ public sealed class AllowedCity
     /// Código IBGE do município (opcional - preenchido via integração IBGE)
     /// </summary>
     public int? IbgeCode { get; private set; }
+
+    /// <summary>
+    /// Latitude da cidade
+    /// </summary>
+    public double Latitude { get; private set; }
+
+    /// <summary>
+    /// Longitude da cidade
+    /// </summary>
+    public double Longitude { get; private set; }
+
+    /// <summary>
+    /// Raio de atendimento padrão para a cidade (em Km)
+    /// </summary>
+    public double ServiceRadiusKm { get; private set; }
 
     /// <summary>
     /// Indica se a cidade está ativa para operação
@@ -59,6 +76,9 @@ public sealed class AllowedCity
         string stateSigla,
         string createdBy,
         int? ibgeCode = null,
+        double latitude = 0,
+        double longitude = 0,
+        double serviceRadiusKm = 0,
         bool isActive = true)
     {
         // Trim first
@@ -67,27 +87,46 @@ public sealed class AllowedCity
         createdBy = createdBy?.Trim() ?? string.Empty;
 
         if (string.IsNullOrWhiteSpace(cityName))
-            throw new ArgumentException("Nome da cidade não pode ser vazio", nameof(cityName));
+            throw new InvalidLocationArgumentException("Nome da cidade não pode ser vazio");
 
         if (string.IsNullOrWhiteSpace(stateSigla))
-            throw new ArgumentException("Sigla do estado não pode ser vazia", nameof(stateSigla));
+            throw new InvalidLocationArgumentException("Sigla do estado não pode ser vazia");
 
         if (stateSigla.Length != 2)
-            throw new ArgumentException("Sigla do estado deve ter 2 caracteres", nameof(stateSigla));
+            throw new InvalidLocationArgumentException("Sigla do estado deve ter 2 caracteres");
 
         if (string.IsNullOrWhiteSpace(createdBy))
-            throw new ArgumentException("CreatedBy não pode ser vazio", nameof(createdBy));
+            throw new InvalidLocationArgumentException("CreatedBy não pode ser vazio");
+
+        if (double.IsNaN(latitude) || double.IsInfinity(latitude) || latitude < -90 || latitude > 90)
+            throw new InvalidLocationArgumentException("Latitude inválida");
+
+        if (double.IsNaN(longitude) || double.IsInfinity(longitude) || longitude < -180 || longitude > 180)
+            throw new InvalidLocationArgumentException("Longitude inválida");
+            
+        ValidateServiceRadius(serviceRadiusKm);
 
         Id = Guid.NewGuid();
         CityName = cityName;
         StateSigla = stateSigla;
         IbgeCode = ibgeCode;
+        Latitude = latitude;
+        Longitude = longitude;
+        ServiceRadiusKm = serviceRadiusKm;
         IsActive = isActive;
         CreatedAt = DateTime.UtcNow;
         CreatedBy = createdBy;
     }
 
-    public void Update(string cityName, string stateSigla, int? ibgeCode, bool isActive, string updatedBy)
+    public void Update(
+        string cityName, 
+        string stateSigla, 
+        int? ibgeCode, 
+        double latitude, 
+        double longitude, 
+        double serviceRadiusKm, 
+        bool isActive, 
+        string updatedBy)
     {
         // Trim first
         cityName = cityName?.Trim() ?? string.Empty;
@@ -95,20 +134,31 @@ public sealed class AllowedCity
         updatedBy = updatedBy?.Trim() ?? string.Empty;
 
         if (string.IsNullOrWhiteSpace(cityName))
-            throw new ArgumentException("Nome da cidade não pode ser vazio", nameof(cityName));
+            throw new InvalidLocationArgumentException("Nome da cidade não pode ser vazio");
 
         if (string.IsNullOrWhiteSpace(stateSigla))
-            throw new ArgumentException("Sigla do estado não pode ser vazia", nameof(stateSigla));
+            throw new InvalidLocationArgumentException("Sigla do estado não pode ser vazia");
 
         if (stateSigla.Length != 2)
-            throw new ArgumentException("Sigla do estado deve ter 2 caracteres", nameof(stateSigla));
+            throw new InvalidLocationArgumentException("Sigla do estado deve ter 2 caracteres");
 
         if (string.IsNullOrWhiteSpace(updatedBy))
-            throw new ArgumentException("UpdatedBy não pode ser vazio", nameof(updatedBy));
+            throw new InvalidLocationArgumentException("UpdatedBy não pode ser vazio");
+
+        if (double.IsNaN(latitude) || double.IsInfinity(latitude) || latitude < -90 || latitude > 90)
+            throw new InvalidLocationArgumentException("Latitude inválida");
+
+        if (double.IsNaN(longitude) || double.IsInfinity(longitude) || longitude < -180 || longitude > 180)
+            throw new InvalidLocationArgumentException("Longitude inválida");
+
+        ValidateServiceRadius(serviceRadiusKm);
 
         CityName = cityName;
         StateSigla = stateSigla;
         IbgeCode = ibgeCode;
+        Latitude = latitude;
+        Longitude = longitude;
+        ServiceRadiusKm = serviceRadiusKm;
         IsActive = isActive;
         UpdatedAt = DateTime.UtcNow;
         UpdatedBy = updatedBy;
@@ -117,7 +167,7 @@ public sealed class AllowedCity
     public void Activate(string updatedBy)
     {
         if (string.IsNullOrWhiteSpace(updatedBy))
-            throw new ArgumentException("UpdatedBy não pode ser vazio", nameof(updatedBy));
+            throw new InvalidLocationArgumentException("UpdatedBy não pode ser vazio");
 
         IsActive = true;
         UpdatedAt = DateTime.UtcNow;
@@ -127,10 +177,28 @@ public sealed class AllowedCity
     public void Deactivate(string updatedBy)
     {
         if (string.IsNullOrWhiteSpace(updatedBy))
-            throw new ArgumentException("UpdatedBy não pode ser vazio", nameof(updatedBy));
+            throw new InvalidLocationArgumentException("UpdatedBy não pode ser vazio");
 
         IsActive = false;
         UpdatedAt = DateTime.UtcNow;
         UpdatedBy = updatedBy;
+    }
+
+    public void UpdateRadius(double serviceRadiusKm, string updatedBy)
+    {
+        if (string.IsNullOrWhiteSpace(updatedBy))
+            throw new InvalidLocationArgumentException("UpdatedBy não pode ser vazio");
+
+        ValidateServiceRadius(serviceRadiusKm);
+
+        ServiceRadiusKm = serviceRadiusKm;
+        UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = updatedBy;
+    }
+
+    private static void ValidateServiceRadius(double serviceRadiusKm)
+    {
+        if (double.IsNaN(serviceRadiusKm) || double.IsInfinity(serviceRadiusKm) || serviceRadiusKm < 0)
+            throw new InvalidLocationArgumentException("Raio de atendimento deve ser maior ou igual a zero");
     }
 }

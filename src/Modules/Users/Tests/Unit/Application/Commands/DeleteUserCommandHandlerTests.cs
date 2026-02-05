@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Time.Testing;
 

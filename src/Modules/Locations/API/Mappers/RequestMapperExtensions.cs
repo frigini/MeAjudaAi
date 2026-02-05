@@ -9,19 +9,33 @@ namespace MeAjudaAi.Modules.Locations.API.Mappers;
 public static class RequestMapperExtensions
 {
     /// <summary>
-    /// Mapeia CreateAllowedCityRequest para CreateAllowedCityCommand.
+    /// Mapeia CreateAllowedCityRequest (Internal) para CreateAllowedCityCommand.
     /// </summary>
-    /// <param name="request">Requisição de criação de cidade permitida</param>
-    /// <returns>CreateAllowedCityCommand com propriedades mapeadas</returns>
-    /// <remarks>
-    /// A validação de entrada do usuário deve ser feita via FluentValidation antes de chegar neste ponto.
-    /// </remarks>
     public static CreateAllowedCityCommand ToCommand(this CreateAllowedCityRequest request)
     {
         return new CreateAllowedCityCommand(
             request.CityName,
             request.StateSigla,
             request.IbgeCode,
+            request.Latitude,
+            request.Longitude,
+            request.ServiceRadiusKm,
+            request.IsActive
+        );
+    }
+
+    /// <summary>
+    /// Mapeia CreateAllowedCityRequestDto (Contract) para CreateAllowedCityCommand.
+    /// </summary>
+    public static CreateAllowedCityCommand ToCommand(this MeAjudaAi.Contracts.Contracts.Modules.Locations.DTOs.CreateAllowedCityRequestDto request)
+    {
+        return new CreateAllowedCityCommand(
+            request.City,
+            request.State,
+            null, // IbgeCode not in contract
+            request.Latitude,
+            request.Longitude,
+            request.ServiceRadiusKm,
             request.IsActive
         );
     }
@@ -40,6 +54,9 @@ public static class RequestMapperExtensions
             CityName = request.CityName,
             StateSigla = request.StateSigla,
             IbgeCode = request.IbgeCode,
+            Latitude = request.Latitude,
+            Longitude = request.Longitude,
+            ServiceRadiusKm = request.ServiceRadiusKm,
             IsActive = request.IsActive
         };
     }

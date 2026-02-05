@@ -5,6 +5,7 @@ namespace MeAjudaAi.Contracts.Modules.Providers.DTOs;
 /// Usado pelo Admin Portal para adicionar novos providers ao sistema.
 /// </summary>
 public sealed record CreateProviderRequestDto(
+    Guid UserId,
     string Name,
     int Type,
     BusinessProfileDto BusinessProfile,

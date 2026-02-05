@@ -6,11 +6,13 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -30,7 +32,7 @@ public class CreateProviderEndpoint : BaseEndpoint, IEndpoint
     /// <param name="app">Builder de rotas do endpoint</param>
     /// <remarks>
     /// Configura endpoint POST em "/" com:
-    /// - Autorização obrigatória (SelfOrAdmin)
+    /// - Autorização por permissão (ProvidersCreate)
     /// - Documentação OpenAPI automática
     /// - Códigos de resposta apropriados
     /// - Nome único para referência
@@ -57,7 +59,7 @@ public class CreateProviderEndpoint : BaseEndpoint, IEndpoint
                 """)
             .Produces<Response<ProviderDto>>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
-            .RequireAuthorization("SelfOrAdmin");
+            .RequirePermission(EPermission.ProvidersCreate);
 
     /// <summary>
     /// Processa requisição de criação de prestador de forma assíncrona.

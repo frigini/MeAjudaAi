@@ -127,6 +127,11 @@ nav:
       - Exemplos de Auth em Testes: testing/test-auth-examples.md
       - Arquitetura E2E: testing/e2e-architecture-analysis.md
       - Cobertura de Código: testing/coverage.md
+  - Admin Portal:
+      - Visão Geral: admin-portal/overview.md
+      - Dashboard: admin-portal/dashboard.md
+      - Funcionalidades: admin-portal/features.md
+      - Arquitetura: admin-portal/architecture.md
   - Referência:
       - Roadmap: roadmap.md
       - Débito Técnico: technical-debt.md

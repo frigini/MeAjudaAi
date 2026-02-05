@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Models;
 

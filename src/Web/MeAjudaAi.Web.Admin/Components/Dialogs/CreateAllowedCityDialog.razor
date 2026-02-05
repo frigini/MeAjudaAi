@@ -7,44 +7,27 @@
 <MudDialog>
     <DialogContent>
         <MudForm @ref="form" @bind-IsValid="@isValid">
-            <MudTextField @bind-Value="city"
-                          Label="Cidade"
-                          Required="true"
-                          RequiredError="Nome da cidade é obrigatório"
-                          MaxLength="100" />
-
-            <MudTextField @bind-Value="state"
-                          Label="Estado (UF)"
-                          Required="true"
-                          RequiredError="Estado é obrigatório"
-                          MaxLength="2"
-                          HelperText="Ex: SP, RJ, MG" />
-
-            <MudTextField @bind-Value="country"
-                          Label="País"
-                          Required="true"
-                          RequiredError="País é obrigatório"
-                          MaxLength="50" />
-
-            <MudNumericField @bind-Value="latitude"
-                             Label="Latitude"
+            <MudAutocomplete T="LocationCandidate"
+                             Label="Buscar Cidade"
+                             @bind-Value="SelectedCity"
+                             SearchFunc="SearchCity"
+                             ToStringFunc="@(e => e == null ? null : $"{e.City} - {e.State}")"
+                             Placeholder="Digite o nome da cidade..."
+                             AdornmentIcon="@Icons.Material.Filled.Search"
+                             AdornmentColor="Color.Primary"
                              Required="true"
-                             RequiredError="Latitude é obrigatória"
-                             Format="F6"
-                             Min="-90"
-                             Max="90"
-                             ErrorText="Latitude deve estar entre -90 e 90"
-                             HelperText="Coordenada geográfica (decimal)" />
+                             RequiredError="Selecione uma cidade da lista"
+                             CoerceText="false" 
+                             DebounceInterval="500" 
+                             Variant="Variant.Outlined"
+                             Class="mb-4" />
 
-            <MudNumericField @bind-Value="longitude"
-                             Label="Longitude"
-                             Required="true"
-                             RequiredError="Longitude é obrigatória"
-                             Format="F6"
-                             Min="-180"
-                             Max="180"
-                             ErrorText="Longitude deve estar entre -180 e 180"
-                             HelperText="Coordenada geográfica (decimal)" />
+            @if (SelectedCity != null)
+            {
+                <MudText Typo="Typo.body2" Class="mt-2 mb-4">
+                    <strong>Localização Selecionada:</strong> @city - @state (@latitude.ToString("F4"), @longitude.ToString("F4"))
+                </MudText>
+            }
 
             <MudNumericField @bind-Value="serviceRadiusKm"
                              Label="Raio de Atendimento (km)"
@@ -52,7 +35,9 @@
                              RequiredError="Raio de atendimento é obrigatório"
                              Min="1"
                              Max="500"
-                             HelperText="Raio em quilômetros para busca de providers" />
+                             HelperText="Raio em quilômetros para busca de providers" 
+                             Variant="Variant.Outlined"
+                             Class="mb-4" />
 
             <MudSwitch @bind-Value="isActive"
                        Label="Cidade Ativa"
@@ -90,6 +75,60 @@
     private int serviceRadiusKm = 50;
     private bool isActive = true;
 
+    private LocationCandidate? _selectedCity;
+    private LocationCandidate? SelectedCity
+    {
+        get => _selectedCity;
+        set
+        {
+            if (_selectedCity != value)
+            {
+                _selectedCity = value;
+                OnCitySelected(value); // Chama a lógica existente
+            }
+        }
+    }
+
+    private async Task<IEnumerable<LocationCandidate>> SearchCity(string value, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(value) || value.Length < 3)
+        {
+            return Array.Empty<LocationCandidate>();
+        }
+
+        try
+        {
+           return await LocationsApi.SearchAllowedCitiesAsync(value, ct);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching cities: {ex}");
+            Snackbar.Add("Erro ao buscar cidades. Tente novamente mais tarde.", Severity.Error);
+            return Array.Empty<LocationCandidate>();
+        }
+    }
+
+    private void OnCitySelected(LocationCandidate? candidate)
+    {
+        // _selectedCity já é definido pela propriedade
+        if (candidate != null)
+        {
+            city = candidate.City;
+            state = candidate.State;
+            country = candidate.Country;
+            latitude = candidate.Latitude;
+            longitude = candidate.Longitude;
+        }
+        else
+        {
+            city = string.Empty;
+            state = string.Empty;
+            country = string.Empty; // Resetar país para evitar dados obsoletos
+            latitude = 0;
+            longitude = 0;
+        }
+    }
+
     private void Cancel()
     {
         MudDialog?.Cancel();
@@ -98,6 +137,11 @@
     private async Task Submit()
     {
         if (!isValid || form is null) return;
+        if (SelectedCity == null) 
+        {
+            Snackbar.Add("Selecione uma cidade", Severity.Warning);
+            return;
+        }
 
         isSubmitting = true;
 

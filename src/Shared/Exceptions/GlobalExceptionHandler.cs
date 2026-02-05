@@ -14,9 +14,10 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         Exception exception,
         CancellationToken cancellationToken)
     {
-        // Desencapsula exceções conhecidas de InvalidOperationException
-        if (exception is InvalidOperationException { InnerException: { } inner } &&
-            inner is ValidationException or NotFoundException or BadRequestException or UnprocessableEntityException)
+        // Desencapsula exceções de wrappers comuns
+        if ((exception is InvalidOperationException or System.Reflection.TargetInvocationException or AggregateException) 
+            && exception.InnerException is { } inner
+            && inner is ValidationException or BadRequestException or UnprocessableEntityException or ArgumentException or DomainException or NotFoundException)
         {
             exception = inner;
         }

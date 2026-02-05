@@ -6,11 +6,13 @@ using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 
@@ -30,7 +32,7 @@ public class AddDocumentEndpoint : BaseEndpoint, IEndpoint
     /// <param name="app">Builder de rotas do endpoint</param>
     /// <remarks>
     /// Configura endpoint POST em "/{id:guid}/documents" com:
-    /// - Autorização SelfOrAdmin (prestador pode adicionar próprios documentos ou admin gerenciar)
+    /// - Autorização por permissão (ProvidersUpdate)
     /// - Validação automática de GUID para o parâmetro ID
     /// - Documentação OpenAPI automática
     /// - Códigos de resposta apropriados
@@ -45,7 +47,7 @@ public class AddDocumentEndpoint : BaseEndpoint, IEndpoint
                 
                 **Características:**
                 - 📄 Adição de documentos de verificação
-                - 🔒 Controle de acesso: próprio prestador ou administrador
+                - 🔒 Controle de acesso: usuários com permissão ProvidersUpdate
                 - ✅ Validação automática de tipo e formato
                 - 📋 Atualização automática do perfil
                 
@@ -66,7 +68,7 @@ public class AddDocumentEndpoint : BaseEndpoint, IEndpoint
                 - Prestador existente e ativo
                 - Não duplicação de documentos do mesmo tipo
                 """)
-            .RequireAuthorization("SelfOrAdmin")
+            .RequirePermission(EPermission.ProvidersUpdate)
             .Produces<Response<ProviderDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);

@@ -25,7 +25,8 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         context.Providers
             .Include(p => p.Documents)
             .Include(p => p.Qualifications)
-            .Include(p => p.Services);
+            .Include(p => p.Services)
+            .AsSplitQuery();
 
     /// <summary>
     /// Adiciona um novo prestador de serviços ao repositório.
@@ -90,10 +91,10 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     /// </summary>
     public async Task<IReadOnlyList<Provider>> GetByCityAsync(string city, CancellationToken cancellationToken = default)
     {
-        ValidateSearchInput(city, nameof(city));
+        var escapedCity = EscapeLikePattern(city);
         return await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
-            .Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.City, $"%{city}%"))
+            .Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.City, $"%{escapedCity}%", "\\"))
             .OrderBy(p => p.Id)
             .ToListAsync(cancellationToken);
     }
@@ -102,12 +103,20 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     /// </summary>
     public async Task<IReadOnlyList<Provider>> GetByStateAsync(string state, CancellationToken cancellationToken = default)
     {
-        ValidateSearchInput(state, nameof(state));
+        var escapedState = EscapeLikePattern(state);
         return await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
-            .Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.State, $"%{state}%"))
+            .Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.State, $"%{escapedState}%", "\\"))
             .OrderBy(p => p.Id)
             .ToListAsync(cancellationToken);
+    }
+
+    private static string EscapeLikePattern(string input)
+    {
+        return input
+            .Replace("\\", "\\\\")
+            .Replace("%", "\\%")
+            .Replace("_", "\\_");
     }
 
     /// <summary>
@@ -223,9 +232,5 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
             .AnyAsync(p => p.Services.Any(s => s.ServiceId == serviceId), cancellationToken);
     }
 
-    private static void ValidateSearchInput(string input, string paramName)
-    {
-        if (input.Contains('%') || input.Contains('_'))
-            throw new ArgumentException($"{paramName} cannot contain wildcard characters (% or _)", paramName);
-    }
+
 }

@@ -63,9 +63,10 @@ public sealed class SearchProvidersModuleApi(
             }
             return testResult.IsSuccess;
         }
-        catch (OperationCanceledException ex)
+
+        catch (OperationCanceledException)
         {
-            logger.LogDebug(ex, "SearchProviders module availability check was cancelled");
+            logger.LogDebug("SearchProviders availability check was cancelled");
             throw;
         }
         catch (Exception ex)

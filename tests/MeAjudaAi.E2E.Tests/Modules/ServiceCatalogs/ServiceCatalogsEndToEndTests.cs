@@ -6,7 +6,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Contracts;
-using MeAjudaAi.Shared.Models;
+using MeAjudaAi.Contracts.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.E2E.Tests.Modules.ServiceCatalogs;
@@ -94,14 +94,13 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
         // Act
         var response = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/services/category/{category.Id.Value}");
 
-        // Assert
+        // Asserção
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var content = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
-        result.TryGetProperty("data", out var data).Should().BeTrue();
-
-        var services = data.Deserialize<ServiceListDto[]>(TestContainerFixture.JsonOptions);
+        var wrapper = await TestContainerFixture.ReadJsonAsync<ApiResult<ServiceListDto[]>>(response);
+        wrapper.Should().NotBeNull();
+        wrapper!.Data.Should().NotBeNull();
+        var services = wrapper.Data!;
         services.Should().NotBeNull();
         services!.Length.Should().Be(3, "should return exactly 3 services for this category");
         services.Should().OnlyContain(s => s.CategoryId == category.Id.Value, "all services should belong to the specified category");
@@ -129,13 +128,13 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
         var response = await _fixture.PutJsonAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}", updateRequest);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify the category was actually updated
         var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var responseWrapper = await TestContainerFixture.ReadJsonAsync<Response<ServiceCategoryDto>>(getResponse);
+        var responseWrapper = await TestContainerFixture.ReadJsonAsync<ApiResult<ServiceCategoryDto>>(getResponse);
         responseWrapper.Should().NotBeNull();
         responseWrapper!.Data.Should().NotBeNull();
 
@@ -175,7 +174,7 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
         var response = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify category was deleted
         var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
@@ -196,12 +195,12 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
 
         // Act - Deactivate
         var deactivateResponse = await _fixture.PostJsonAsync($"/api/v1/service-catalogs/services/{service.Id.Value}/deactivate", new { });
-        deactivateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        deactivateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Assert - Verify service is inactive
         var getAfterDeactivate = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/services/{service.Id.Value}");
         getAfterDeactivate.StatusCode.Should().Be(HttpStatusCode.OK);
-        var deactivatedResponse = await TestContainerFixture.ReadJsonAsync<Response<ServiceDto>>(getAfterDeactivate);
+        var deactivatedResponse = await TestContainerFixture.ReadJsonAsync<ApiResult<ServiceDto>>(getAfterDeactivate);
         deactivatedResponse.Should().NotBeNull();
         deactivatedResponse!.Data.Should().NotBeNull();
         var deactivatedService = deactivatedResponse.Data;
@@ -209,12 +208,12 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
 
         // Act - Activate
         var activateResponse = await _fixture.PostJsonAsync($"/api/v1/service-catalogs/services/{service.Id.Value}/activate", new { });
-        activateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        activateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Assert - Verify service is active again
         var getAfterActivate = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/services/{service.Id.Value}");
         getAfterActivate.StatusCode.Should().Be(HttpStatusCode.OK);
-        var activatedResponse = await TestContainerFixture.ReadJsonAsync<Response<ServiceDto>>(getAfterActivate);
+        var activatedResponse = await TestContainerFixture.ReadJsonAsync<ApiResult<ServiceDto>>(getAfterActivate);
         activatedResponse.Should().NotBeNull();
         activatedResponse!.Data.Should().NotBeNull();
         var activatedService = activatedResponse.Data;
@@ -471,7 +470,7 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
             changeCategoryRequest,
             TestContainerFixture.JsonOptions);
 
-        // Assert - Change is expected to succeed in this scenario
+        // Assert - Change is expected to succeed
         response.StatusCode.Should().BeOneOf(
             [HttpStatusCode.OK, HttpStatusCode.NoContent],
             "the service category change should succeed in this scenario");
@@ -481,11 +480,12 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
         getServiceResponse.IsSuccessStatusCode.Should().BeTrue(
             "the updated service should be retrievable after changing category");
 
-        var content = await getServiceResponse.Content.ReadAsStringAsync();
-        var result = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content, TestContainerFixture.JsonOptions);
-        result.TryGetProperty("data", out var data).Should().BeTrue("response should contain data property");
-        data.TryGetProperty("categoryId", out var categoryIdElement).Should().BeTrue("service should have categoryId property");
-        var actualCategoryId = categoryIdElement.GetGuid();
+
+
+        var wrapper = await TestContainerFixture.ReadJsonAsync<ApiResult<ServiceDto>>(getServiceResponse);
+        wrapper.Should().NotBeNull();
+        wrapper!.Data.Should().NotBeNull();
+        var actualCategoryId = wrapper.Data!.CategoryId;
         actualCategoryId.Should().Be(category2Id,
             "the service should now be associated with the new category");
     }
@@ -537,7 +537,7 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
             $"/api/v1/service-catalogs/categories/{inactiveCategoryId}/deactivate",
             null);
 
-        deactivateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent,
+        deactivateResponse.StatusCode.Should().Be(HttpStatusCode.OK,
             "Category deactivation is a precondition for this test. Response: {0}",
             await deactivateResponse.Content.ReadAsStringAsync());
 
