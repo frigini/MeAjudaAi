@@ -2,7 +2,7 @@
 
 Uma plataforma abrangente de serviços construída com .NET Aspire, projetada para conectar prestadores de serviços com clientes usando arquitetura monólito modular.
 
-<!-- Atualizado: 17 Janeiro 2026 - Sprint 7.16 em andamento (Keycloak Automation + Technical Debt) -->
+<!-- Atualizado: 5 Fevereiro 2026 - Sprint 7.21 (Package Updates: Microsoft.OpenApi 2.6.1, Aspire.Hosting.Redis 13.1.0, SonarAnalyzer.CSharp 10.19.0) -->
 
 ## 🎯 Visão Geral
 
@@ -24,6 +24,8 @@ O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implem
 - **MudBlazor 8.15.0** - Material Design UI components
 - **Fluxor 6.9.0** - Redux state management
 - **Entity Framework Core 10.0.2** - ORM e persistência
+- **Microsoft.OpenApi 2.6.1** - OpenAPI specification
+- **SonarAnalyzer.CSharp 10.19.0** - Code quality analysis
 - **PostgreSQL 16** - Banco de dados principal
 - **Keycloak 26.0.2** - Autenticação OAuth2/OIDC
 - **Redis 7** - Cache distribuído
@@ -127,11 +129,19 @@ O projeto foi organizado para facilitar navegação e manutenção:
 .\scripts\dev.ps1
 ```
 
-**Pronto!** 🎉 Acesse:
-- **Aspire Dashboard**: [https://localhost:17063/](https://localhost:17063/)
-- **Admin Portal**: [https://localhost:7032/](https://localhost:7032/) (via Aspire)
-- **API**: [https://localhost:7524/](https://localhost:7524/) (Swagger: /swagger)
-- **Keycloak**: [http://localhost:8080/](http://localhost:8080/) (admin/senha gerada)
+**Pronto!** 🎉 Acesse os serviços em desenvolvimento:
+
+| Serviço | URL | Credenciais | Descrição |
+|---------|-----|-------------|-----------|
+| **Aspire Dashboard** | https://localhost:17063/ | - | Orquestração e observabilidade |
+| **Admin Portal** | https://localhost:7032/ | admin.portal/admin123 | Portal administrativo Blazor |
+| **API** | https://localhost:7524/swagger | - | API REST com Swagger UI |
+| **Keycloak** | http://localhost:8080/ | admin/[console logs] | Autenticação OAuth2/OIDC |
+| **PostgreSQL** | localhost:5432 | postgres/[gerada] | Banco de dados |
+| **Redis** | localhost:6379 | - | Cache distribuído |
+| **RabbitMQ** | http://localhost:15672/ | meajudaai/[gerada] | Message broker |
+
+> ⚠️ **Ambiente local**: Credenciais/portas acima são valores de desenvolvimento. **Não reutilize em produção.**
 
 ### 🔄 Uso Diário
 
@@ -202,22 +212,6 @@ dotnet test tests/MeAjudaAi.Modules.Users.Tests/
 - `make clean` - Limpar artefatos
 
 ---
-
-## 🌐 URLs dos Serviços (Desenvolvimento)
-
-> ⚠️ **Ambiente local**: Credenciais/portas abaixo são valores de desenvolvimento. **Não reutilize em produção.**
-
-| Serviço | URL | Credenciais | Configuração |
-|---------|-----|-------------|-------------|
-| **Aspire Dashboard** | [https://localhost:17063/](https://localhost:17063/) | - | `AppHost/launchSettings.json` |
-| **Admin Portal** | [https://localhost:7032/](https://localhost:7032/) | admin.portal/admin123 | Via Aspire (auto-start) |
-| **API** | [https://localhost:7524/swagger](https://localhost:7524/swagger) | - | `ApiService/launchSettings.json` |
-| **Keycloak** | [http://localhost:8080/](http://localhost:8080/) | admin/[console logs] | `compose/development.yml` |
-| **PostgreSQL** | localhost:5432 | postgres/[gerada] | Docker Compose |
-| **Redis** | localhost:6379 | - | Docker Compose |
-| **RabbitMQ** | [http://localhost:15672/](http://localhost:15672/) | meajudaai/[gerada] | Docker Compose |
-
-
 
 ## 🧩 Módulos do Sistema
 
