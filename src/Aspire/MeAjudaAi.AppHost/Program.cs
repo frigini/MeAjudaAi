@@ -158,6 +158,14 @@ internal static class Program
             .WithExternalHttpEndpoints()
             .WaitFor(apiService);
             // NOTA: Keycloak WaitFor removido - veja comentário no apiService acima
+
+        // Customer Web App (Next.js)
+        var customerWebPath = Path.Combine(builder.AppHostDirectory, "..", "..", "Web", "meajudaai-web-customer");
+        _ = builder.AddNpmApp("customer-web", customerWebPath, "dev")
+            .WithHttpEndpoint(port: 3000, env: "PORT")
+            .WithExternalHttpEndpoints()
+            .WithEnvironment("NEXT_PUBLIC_API_URL", apiService.GetEndpoint("http"))
+            .WaitFor(apiService);
     }
 
     private static void ConfigureProductionEnvironment(IDistributedApplicationBuilder builder)
