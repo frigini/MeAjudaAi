@@ -573,7 +573,7 @@ public class UploadDocumentCommandHandlerTests
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _handler.HandleAsync(command, CancellationToken.None));
 
-        exception.Message.Should().Contain("Failed to upload document");
+        exception.Message.Should().Contain("Falha ao enviar documento. Por favor, tente novamente mais tarde.");
         exception.InnerException.Should().NotBeNull();
         exception.InnerException!.Message.Should().Contain("Database error");
 

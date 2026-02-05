@@ -130,6 +130,15 @@ public sealed class DocumentsModuleApi(
                 : Result<ModuleDocumentDto?>.Success(MapToModuleDto(document));
         }
 
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // Propagar cancelamento para o caller
+            throw;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error retrieving document {DocumentId}", documentId);
@@ -150,6 +159,10 @@ public sealed class DocumentsModuleApi(
             return Result<IReadOnlyList<ModuleDocumentDto>>.Success(moduleDtos);
         }
 
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error retrieving documents for provider {ProviderId}", providerId);
@@ -197,6 +210,10 @@ public sealed class DocumentsModuleApi(
             return Result<ModuleDocumentStatusDto?>.Success(statusDto);
         }
 
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error retrieving document status {DocumentId}", documentId);
@@ -264,6 +281,10 @@ public sealed class DocumentsModuleApi(
             return Result<bool>.Success(hasVerified);
         }
 
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking verified documents for provider {ProviderId}", providerId);
@@ -313,6 +334,10 @@ public sealed class DocumentsModuleApi(
             return Result<bool>.Success(hasRequired);
         }
 
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking required documents for provider {ProviderId}", providerId);
@@ -352,6 +377,10 @@ public sealed class DocumentsModuleApi(
             return Result<DocumentStatusCountDto>.Success(count);
         }
 
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error retrieving document status count for provider {ProviderId}", providerId);
@@ -376,6 +405,10 @@ public sealed class DocumentsModuleApi(
             return Result<bool>.Success(hasPending);
         }
 
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking pending documents for provider {ProviderId}", providerId);
@@ -400,6 +433,10 @@ public sealed class DocumentsModuleApi(
             return Result<bool>.Success(hasRejected);
         }
 
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking rejected documents for provider {ProviderId}", providerId);

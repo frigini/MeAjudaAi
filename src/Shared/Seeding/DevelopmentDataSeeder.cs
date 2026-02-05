@@ -421,7 +421,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
 
         foreach (var provider in providers)
         {
-            // Insert Provider
+            // Inserir Provedor
             await context.Database.ExecuteSqlRawAsync(
                 @"INSERT INTO providers.providers (
                     id, user_id, name, type, status, verification_status, 
