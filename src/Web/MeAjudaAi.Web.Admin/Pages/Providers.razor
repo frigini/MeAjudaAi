@@ -129,12 +129,15 @@
         
         // Check for query parameter 'filter=pending'
         var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
-        var queryParams = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        var query = uri.Query.TrimStart('?');
         
-        if (queryParams.TryGetValue("filter", out var filterValue) &&
-            filterValue.ToString().Equals("pending", StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(query))
         {
-            _showOnlyPending = true;
+             var queryParams = query.Split('&');
+             if (queryParams.Any(q => q.Equals("filter=pending", StringComparison.OrdinalIgnoreCase)))
+             {
+                 _showOnlyPending = true;
+             }
         }
 
         // Carregar providers ao inicializar

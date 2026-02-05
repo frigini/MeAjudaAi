@@ -12,7 +12,7 @@
     <!-- Microsoft.Extensions.* family version alignment -->
     <!-- Keep all Microsoft.Extensions.* packages on the same major version (10.x) -->
     <!-- This prevents Refit.HttpClientFactory from pulling in 9.x versions -->
-    <PackageVersion Include="HtmlSanitizer" Version="9.0.889" />
+    <PackageVersion Include="HtmlSanitizer" Version="9.0.890" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.2" />
     <!-- .NET & Microsoft Core -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />

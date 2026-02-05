@@ -61,7 +61,7 @@ graph TB
 
 ## 📁 Estrutura de Diretórios
 
-```
+```text
 src/Web/MeAjudaAi.Web.Admin/
 ├── Pages/                    # Páginas principais
 │   ├── Dashboard.razor

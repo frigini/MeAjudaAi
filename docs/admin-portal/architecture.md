@@ -36,7 +36,7 @@ graph LR
 
 Cada feature segue a estrutura:
 
-```
+```text
 Features/
 └── Modules/
     └── Providers/
