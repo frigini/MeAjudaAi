@@ -18,7 +18,7 @@ O Admin Portal permite que administradores da plataforma gerenciem:
 
 ### Frontend
 - **Blazor WebAssembly (.NET 10)**: Framework principal para SPA
-- **MudBlazor 8.0**: Biblioteca de componentes UI Material Design
+- **MudBlazor 8.15.0**: Biblioteca de componentes UI Material Design
 - **Fluxor**: State management (padrão Flux/Redux)
 
 ### Autenticação
@@ -89,6 +89,8 @@ src/Web/MeAjudaAi.Web.Admin/
 │   ├── ProviderConstants.cs
 │   ├── DocumentConstants.cs
 │   └── CommonConstants.cs
+│   # Nota: Enums e constantes compartilhadas com backend estão em MeAjudaAi.Contracts
+│   # Esta pasta contém apenas constantes específicas da UI (ex: layout, cores, timeouts)
 ├── Helpers/                 # Métodos auxiliares
 │   ├── AccessibilityHelper.cs
 │   ├── PerformanceHelper.cs

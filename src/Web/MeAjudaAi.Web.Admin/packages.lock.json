@@ -42,7 +42,7 @@
       },
       "HtmlSanitizer": {
         "type": "Direct",
-        "requested": "[9.0.890, )",
+        "requested": "[9.0.892, )",
         "resolved": "9.0.892",
         "contentHash": "zdkMmpNCjTkxna8Y+jmPIFm2st+HjHrf32yNElFYwe7L4GmDm+mdKR6TzDyf6ewJ0RUUz84D4IkHNgrwGi4VbQ==",
         "dependencies": {

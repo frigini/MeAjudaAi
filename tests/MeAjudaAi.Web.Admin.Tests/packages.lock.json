@@ -538,7 +538,7 @@
           "FluentValidation.DependencyInjectionExtensions": "[12.1.1, )",
           "Fluxor.Blazor.Web": "[6.9.0, )",
           "Fluxor.Blazor.Web.ReduxDevTools": "[6.9.0, )",
-          "HtmlSanitizer": "[9.0.890, )",
+          "HtmlSanitizer": "[9.0.892, )",
           "MeAjudaAi.Client.Contracts": "[1.0.0, )",
           "MeAjudaAi.Contracts": "[1.0.0, )",
           "Microsoft.AspNetCore.Components.WebAssembly": "[10.0.2, )",
@@ -591,7 +591,7 @@
       },
       "HtmlSanitizer": {
         "type": "CentralTransitive",
-        "requested": "[9.0.890, )",
+        "requested": "[9.0.892, )",
         "resolved": "9.0.892",
         "contentHash": "zdkMmpNCjTkxna8Y+jmPIFm2st+HjHrf32yNElFYwe7L4GmDm+mdKR6TzDyf6ewJ0RUUz84D4IkHNgrwGi4VbQ==",
         "dependencies": {

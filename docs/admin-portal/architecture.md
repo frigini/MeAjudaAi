@@ -159,7 +159,7 @@ public class ProvidersEffects
         }
         else
         {
-            var errorMessage = _errorHandler.HandleApiError(result, "carregar provedores");
+            var errorMessage = _errorHandler.HandleApiError(result, "load providers");
             _snackbar.Add(errorMessage, Severity.Error);
             dispatcher.Dispatch(new LoadProvidersFailureAction(errorMessage));
         }
