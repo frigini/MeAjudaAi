@@ -181,47 +181,6 @@ Hangfire.PostgreSql 1.20.13 foi compilado contra Npgsql 6.x, mas o projeto está
 
 ---
 
-## 📦 Microsoft.OpenApi 2.3.0 - Bloqueio de Atualização
-
-**Arquivo**: `Directory.Packages.props`  
-**Situação**: BLOQUEADO - Incompatibilidade com ASP.NET Core Source Generators  
-**Severidade**: BAIXA (funciona perfeitamente na versão atual)  
-**Status**: Pinado em 2.3.0
-
-**Descrição**:
-Microsoft.OpenApi 3.x é incompatível com os source generators do ASP.NET Core 10.0. Erro confirmado em teste realizado em 16/01/2026 com SDK 10.0.102.
-
-**Erro Encontrado**:
-```text
-error CS0200: Property or indexer 'IOpenApiMediaType.Example' cannot be assigned to -- it is read only
-```
-
-**Testes Realizados**:
-- ✅ Testado com SDK 10.0.101 (Dez 2025) - incompatível
-- ✅ Testado com SDK 10.0.102 (Jan 2026) - incompatível  
-- ✅ Testado Microsoft.OpenApi 3.1.3 (16 Jan 2026) - build falha
-- ✅ Confirmado que 2.3.0 funciona perfeitamente
-
-**Causa Raiz**:
-- Microsoft.OpenApi 3.x mudou `IOpenApiMediaType.Example` para read-only
-- ASP.NET Core source generator ainda gera código que tenta escrever nessa propriedade
-- Source generator não foi atualizado para API do OpenApi 3.x
-
-**Decisão**: Manter Microsoft.OpenApi 2.3.0
-- ✅ Funciona 100%
-- ✅ Zero impacto em funcionalidades
-- ✅ Swagger UI completo e funcional
-- ⚠️ Versão desatualizada (mas estável)
-
-**Monitoramento**:
-- [ ] Verificar releases do .NET SDK para correções no source generator
-- [ ] Testar Microsoft.OpenApi 3.x a cada atualização de SDK
-
-**Prioridade**: BAIXA (não urgente, não afeta funcionalidade)  
-**Monitorar**: <https://github.com/dotnet/aspnetcore/issues>
-
----
-
 ## 📋 Padronização de Records
 
 **Arquivo**: Múltiplos arquivos em `src/Shared/Contracts/**` e `src/Modules/**/Domain/**`  
