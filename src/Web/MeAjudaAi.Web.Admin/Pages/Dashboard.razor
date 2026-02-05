@@ -234,7 +234,6 @@
 
     private void UpdateChartData()
     {
-        // TEMPORARY: Charts disabled for debugging
         var providers = ProvidersState.Value.Providers;
         
         if (providers.Count == 0)
@@ -295,7 +294,7 @@
         // Fallback: Check if it is a number
         if (int.TryParse(typeKey, out int typeValue))
         {
-            return ProviderType.ToDisplayName(typeValue);
+            return ProviderType.ToDisplayName(typeValue) ?? "Desconhecido";
         }
 
         return typeKey;

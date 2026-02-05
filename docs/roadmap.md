@@ -34,7 +34,8 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **16 Jan 2026**: Sprint 7.13 - Standardized Error Handling (CONCLUÍDO - Retry logic, correlation IDs, HTTP status mapping)
 - ✅ **16 Jan 2026**: Sprint 7.14 - Complete Localization (CONCLUÍDO - pt-BR/en-US, 140+ strings, culture switching)
 - ✅ **16 Jan 2026**: Sprint 7.15 - Package Updates & Resilience Migration (CONCLUÍDO - .NET 10.0.2, deprecated packages removed)
-- ⏳ **17-21 Jan 2026**: Sprint 7.16 - Technical Debt Sprint (Keycloak automation, warnings, tests, records)
+- ✅ **17-21 Jan 2026**: Sprint 7.16 - Technical Debt Sprint (CONCLUÍDO - Keycloak automation, warnings, tests, records)
+- ✅ **5 Fev 2026**: Sprint 7.20 - Dashboard Charts & Data Mapping Fixes (CONCLUÍDO - JSON property mapping, debug messages removed)
 - ⏳ **22 Jan - 4 Fev 2026**: Sprint 8 - Customer App (Web + Mobile)
 - ⏳ **5-14 Fev 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
 - 🎯 **17 Fevereiro 2026**: MVP Launch (Admin Portal + Customer App)
@@ -1065,6 +1066,124 @@ if (result.IsFailure) {
 **Commits**:
 - `b370b328`: "chore: update 39 nuget packages to latest stable versions"
 - `949b6d3c`: "refactor: migrate from Polly.Extensions.Http to Microsoft.Extensions.Http.Resilience"
+
+---
+
+### ✅ Sprint 7.20 - Dashboard Charts & Data Mapping Fixes (5 Fev 2026)
+
+**Status**: CONCLUÍDA (5 Fev 2026)  
+**Duração**: 1 dia  
+**Branch**: `fix/aspire-initialization` (continuação)
+
+**Contexto**: Dashboard charts estavam exibindo mensagens de debug e o gráfico "Provedores por Tipo" estava vazio devido a incompatibilidade de mapeamento JSON entre backend e frontend.
+
+#### 🎯 Objetivos
+
+1. ✅ **Remover Mensagens de Debug** - Eliminar "Chart disabled for debugging"
+2. ✅ **Corrigir Gráfico Vazio** - Resolver problema de dados ausentes em "Provedores por Tipo"
+3. ✅ **Implementar Mapeamento JSON Correto** - Alinhar propriedades backend/frontend
+4. ✅ **Adicionar Helper Methods** - Criar métodos de formatação localizados
+
+#### 🔍 Problema Identificado
+
+**Root Cause**: Property name mismatch entre backend e frontend
+
+- **Backend API** (`ProviderDto`): Retorna JSON com propriedade `type: 1`
+- **Frontend DTO** (`ModuleProviderDto`): Esperava propriedade `ProviderType`
+- **Resultado**: `ProviderType` ficava `null` no frontend, causando gráfico vazio
+
+**Investigação**:
+1. ✅ Verificado `DevelopmentDataSeeder.cs` - Dados de seed CONTÊM tipos ("Individual", "Company")
+2. ✅ Analisado `GetProvidersEndpoint.cs` - Retorna `ProviderDto` com propriedade `Type`
+3. ✅ Inspecionado `ModuleProviderDto.cs` - Propriedade chamada `ProviderType` (mismatch!)
+4. ✅ Confirmado via `ProvidersEffects.cs` - Usa `IProvidersApi.GetProvidersAsync`
+
+#### 🛠️ Soluções Implementadas
+
+**1. JSON Property Mapping** ✅:
+```csharp
+// src/Contracts/Contracts/Modules/Providers/DTOs/ModuleProviderDto.cs
+using System.Text.Json.Serialization;
+
+public sealed record ModuleProviderDto(
+    Guid Id,
+    string Name,
+    string Email,
+    string Document,
+    [property: JsonPropertyName("type")]  // ← FIX: Mapeia "type" do JSON para "ProviderType"
+    string ProviderType,
+    string VerificationStatus,
+    DateTime CreatedAt,
+    DateTime UpdatedAt,
+    bool IsActive,
+    string? Phone = null);
+```
+
+**2. Debug Messages Removal** ✅:
+```razor
+<!-- src/Web/MeAjudaAi.Web.Admin/Pages/Dashboard.razor -->
+<!-- ANTES -->
+<MudCardContent>
+    <MudText>Chart disabled for debugging</MudText>
+    @if (ProvidersState.Value.Providers.Count > 0)
+
+<!-- DEPOIS -->
+<MudCardContent>
+    @if (ProvidersState.Value.Providers.Count > 0)
+```
+
+**3. Display Name Helper** ✅:
+```csharp
+// Dashboard.razor @code
+private string GetProviderTypeDisplayName(ProviderType type)
+{
+    return type switch
+    {
+        ProviderType.Individual => "Pessoa Física",
+        ProviderType.Company => "Pessoa Jurídica",
+        _ => type.ToString()
+    };
+}
+```
+
+**4. Chart Logic Simplification** ✅:
+```csharp
+// Removido código complexo de parsing int
+// ANTES: int.TryParse(g.Key, out int typeValue) + ProviderTypeOrderInts lookup
+// DEPOIS: Enum.TryParse<ProviderType>(g.Key, true, out var typeEnum) + GetProviderTypeDisplayName()
+```
+
+#### 📊 Arquivos Modificados
+
+| Arquivo | Mudanças | LOC |
+|---------|----------|-----|
+| `ModuleProviderDto.cs` | Adicionado `[JsonPropertyName("type")]` e using | +3 |
+| `Dashboard.razor` | Removido debug text, adicionado helper method | +12, -15 |
+
+#### ✅ Resultados Alcançados
+
+- ✅ **Gráfico "Provedores por Tipo"**: Agora exibe dados corretamente
+- ✅ **Mensagens de Debug**: Removidas de ambos os gráficos
+- ✅ **Build**: Sucesso sem erros (0 errors, 0 warnings)
+- ✅ **Mapeamento JSON**: Backend `type` → Frontend `ProviderType` funcionando
+- ✅ **Localização**: Labels em português ("Pessoa Física", "Pessoa Jurídica")
+
+#### 🎓 Lições Aprendidas
+
+1. **Property Naming Conventions**: Backend usa nomes curtos (`Type`), Frontend usa nomes descritivos (`ProviderType`)
+2. **JSON Serialization**: `[JsonPropertyName]` é essencial para alinhar DTOs entre camadas
+3. **Record Positional Parameters**: Atributos requerem `[property: ...]` syntax
+4. **Debug Messages**: Sempre remover antes de merge para evitar confusão em produção
+
+#### 🔮 Próximos Passos
+
+- [ ] Implementar "Atividades Recentes" (ver Fase 3+)
+- [ ] Adicionar mais gráficos ao Dashboard (distribuição geográfica, documentos pendentes)
+- [ ] Criar testes bUnit para componentes de gráficos
+
+**Commits**:
+- [hash]: "fix: add JsonPropertyName mapping for ProviderType in ModuleProviderDto"
+- [hash]: "fix: remove debug messages and simplify chart logic in Dashboard"
 
 ---
 
@@ -4444,10 +4563,76 @@ LEFT JOIN providers.providers p ON al.actor_id = p.provider_id;
 
 ### 🛡️ Admin Portal - Módulos Avançados
 **Funcionalidades Adicionais (Pós-MVP)**:
+- **Recent Activity Dashboard Widget**: Feed de atividades recentes (registros, uploads, verificações, mudanças de status) com atualizações em tempo real via SignalR
 - **User & Provider Analytics**: Dashboards avançados com Grafana
 - **Fraud Detection**: Sistema de scoring para detectar perfis suspeitos
 - **Bulk Operations**: Ações em lote (ex: aprovar múltiplos documentos)
 - **Audit Trail**: Histórico completo de todas ações administrativas
+
+#### 📊 Recent Activity Widget (Prioridade: MÉDIA)
+
+**Contexto**: Atualmente o Dashboard exibe apenas gráficos estáticos. Um feed de atividades recentes melhoraria a visibilidade operacional.
+
+**Funcionalidades Core**:
+- **Timeline de Eventos**: Feed cronológico de atividades do sistema
+- **Tipos de Eventos**:
+  - Novos registros de prestadores
+  - Uploads de documentos
+  - Mudanças de status de verificação
+  - Ações administrativas (aprovações/rejeições)
+  - Adições/remoções de serviços
+- **Filtros**: Por tipo de evento, módulo, data
+- **Real-time Updates**: SignalR para atualização automática
+- **Paginação**: Carregar mais atividades sob demanda
+
+**Implementação Técnica**:
+```csharp
+// Domain Events → Integration Events → SignalR Hub
+public record ProviderRegisteredEvent(Guid ProviderId, string Name, DateTime Timestamp);
+public record DocumentUploadedEvent(Guid DocumentId, string Type, DateTime Timestamp);
+public record VerificationStatusChangedEvent(Guid ProviderId, string OldStatus, string NewStatus);
+
+// SignalR Hub
+public class ActivityHub : Hub
+{
+    public async Task BroadcastActivity(ActivityDto activity)
+    {
+        await Clients.All.SendAsync("ReceiveActivity", activity);
+    }
+}
+
+// Frontend Component
+@inject HubConnection HubConnection
+
+<MudTimeline>
+    @foreach (var activity in RecentActivities)
+    {
+        <MudTimelineItem Color="@GetActivityColor(activity.Type)">
+            <MudText>@activity.Description</MudText>
+            <MudText Typo="Typo.caption">@activity.Timestamp.ToRelativeTime()</MudText>
+        </MudTimelineItem>
+    }
+</MudTimeline>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        HubConnection.On<ActivityDto>("ReceiveActivity", activity =>
+        {
+            RecentActivities.Insert(0, activity);
+            StateHasChanged();
+        });
+        await HubConnection.StartAsync();
+    }
+}
+```
+
+**Estimativa**: 3-5 dias (1 dia backend events, 1 dia SignalR, 2-3 dias frontend)
+
+**Dependências**:
+- SignalR configurado no backend
+- Event bus consumindo domain events
+- ActivityDto contract definido
 
 ---
 

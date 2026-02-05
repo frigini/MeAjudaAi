@@ -449,7 +449,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
 
             // Inserir Documento (Primário)
             // Nota: Utilizamos SQL parametrizado com EF Core para garantir segurança e prevenir injeção de SQL.
-            // provider_id e id são chave primária composta
+            // Chave primária composta: (provider_id, document_type)
             await context.Database.ExecuteSqlRawAsync(
                 @"INSERT INTO providers.document (
                     provider_id, number, document_type, is_primary

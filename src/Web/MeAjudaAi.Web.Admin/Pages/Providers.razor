@@ -11,6 +11,7 @@
 @inject IDialogService DialogService
 @inject ILogger<Providers> Logger
 @inject IPermissionService PermissionService
+@inject NavigationManager Navigation
 @implements IDisposable
 
 <PageTitle>Provedores - MeAjudaAi Admin</PageTitle>
@@ -57,7 +58,7 @@
                      FixedHeader="true"
                      Height="calc(100vh - 400px)"
                      Loading="@ProvidersState.Value.IsLoading"
-                     RowStyleFunc="@RowStyleFunc">
+                     RowStyleFunc="@_rowStyleFunc">
             <Columns>
                 <PropertyColumn Property="x => x.Id" Title="ID" />
                 <PropertyColumn Property="x => x.ProviderType" Title="Tipo" />
@@ -115,7 +116,7 @@
     </MudCardActions>
 </MudCard>
 
-@inject NavigationManager Navigation
+
 
 @code {
     private string _searchTerm = string.Empty;
@@ -128,15 +129,12 @@
         
         // Check for query parameter 'filter=pending'
         var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
-        var query = uri.Query.TrimStart('?');
+        var queryParams = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
         
-        if (!string.IsNullOrEmpty(query))
+        if (queryParams.TryGetValue("filter", out var filterValue) &&
+            filterValue.ToString().Equals("pending", StringComparison.OrdinalIgnoreCase))
         {
-             var queryParams = query.Split('&');
-             if (queryParams.Any(q => q.Equals("filter=pending", StringComparison.OrdinalIgnoreCase)))
-             {
-                 _showOnlyPending = true;
-             }
+            _showOnlyPending = true;
         }
 
         // Carregar providers ao inicializar
@@ -198,8 +196,9 @@
         Dispatcher.Dispatch(new GoToPageAction(page));
     }
     
-    // Highlights rows with Pending status
-    private Func<ModuleProviderDto, int, string> RowStyleFunc => (x, i) =>
+    
+    // Highlights rows with Pending status (cached delegate to avoid re-renders)
+    private readonly Func<ModuleProviderDto, int, string> _rowStyleFunc = (x, i) =>
     {
         if (x.VerificationStatus == VerificationStatus.Pending.ToString())
             return "background-color: var(--mud-palette-warning-hover); font-weight: 500;";
