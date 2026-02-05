@@ -135,10 +135,6 @@ public sealed class DocumentsModuleApi(
             // Propagar cancelamento para o caller
             throw;
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error retrieving document {DocumentId}", documentId);
