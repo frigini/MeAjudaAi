@@ -36,6 +36,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **16 Jan 2026**: Sprint 7.15 - Package Updates & Resilience Migration (CONCLUÍDO - .NET 10.0.2, deprecated packages removed)
 - ✅ **17-21 Jan 2026**: Sprint 7.16 - Technical Debt Sprint (CONCLUÍDO - Keycloak automation, warnings, tests, records)
 - ✅ **5 Fev 2026**: Sprint 7.20 - Dashboard Charts & Data Mapping Fixes (CONCLUÍDO - JSON property mapping, debug messages removed)
+- ✅ **5 Fev 2026**: Sprint 7.21 - Package Updates & Bug Fixes (CONCLUÍDO - Microsoft.OpenApi 2.6.1, Aspire.Hosting.Redis 13.1.0, SonarAnalyzer.CSharp 10.19.0)
 - ⏳ **22 Jan - 4 Fev 2026**: Sprint 8 - Customer App (Web + Mobile)
 - ⏳ **5-14 Fev 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
 - 🎯 **17 Fevereiro 2026**: MVP Launch (Admin Portal + Customer App)

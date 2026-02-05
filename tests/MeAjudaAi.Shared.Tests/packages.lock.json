@@ -284,10 +284,10 @@
       },
       "Hangfire.NetCore": {
         "type": "Transitive",
-        "resolved": "1.8.22",
-        "contentHash": "I7LiUHpC3ks7k+vLFOdwwCwDHxT83H+Mv6bT+7vkI1SLOc4Vwv2zOWdeeN1K86vddu7R36ho+eKP0gvfYlSZjg==",
+        "resolved": "1.8.23",
+        "contentHash": "SmvUJF/u5MCP666R5Y1V+GntqBc4RCWJqn5ztMMN67d53Cx5cuaWR0YNLMrabjylwLarFYJ7EdR9RnGEZzp/dg==",
         "dependencies": {
-          "Hangfire.Core": "[1.8.22]",
+          "Hangfire.Core": "[1.8.23]",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "3.0.0",
           "Microsoft.Extensions.Hosting.Abstractions": "3.0.0",
           "Microsoft.Extensions.Logging.Abstractions": "3.0.0"
@@ -1417,8 +1417,8 @@
           "Dapper": "[2.1.66, )",
           "FluentValidation": "[12.1.1, )",
           "FluentValidation.DependencyInjectionExtensions": "[12.1.1, )",
-          "Hangfire.AspNetCore": "[1.8.22, )",
-          "Hangfire.Core": "[1.8.22, )",
+          "Hangfire.AspNetCore": "[1.8.23, )",
+          "Hangfire.Core": "[1.8.23, )",
           "Hangfire.PostgreSql": "[1.20.13, )",
           "MeAjudaAi.Contracts": "[1.0.0, )",
           "Microsoft.AspNetCore.OpenApi": "[10.0.2, )",
@@ -1603,18 +1603,18 @@
       },
       "Hangfire.AspNetCore": {
         "type": "CentralTransitive",
-        "requested": "[1.8.22, )",
-        "resolved": "1.8.22",
-        "contentHash": "Ud5ZNnH9q5+3MryiuPTW7baRERN9QYLyX+8muLwH9BqumoE9eWZRxna9RrunYaMVkNGbTUUuwOfSYIvCC222TQ==",
+        "requested": "[1.8.23, )",
+        "resolved": "1.8.23",
+        "contentHash": "TXpOl7kX4xXq5bLEqqWCpt9zh3TaouDwtb3GDtzGHX5uSC2RaAqZzn2swevivx3Uki16slXIigiPtgr4TPKpsg==",
         "dependencies": {
-          "Hangfire.NetCore": "[1.8.22]"
+          "Hangfire.NetCore": "[1.8.23]"
         }
       },
       "Hangfire.Core": {
         "type": "CentralTransitive",
-        "requested": "[1.8.22, )",
-        "resolved": "1.8.22",
-        "contentHash": "fjgEtlfkLNnUcX9IB+fp3gTPtt5G7VJ0PCcoKLEWnXJXn5qTm/mvrm/t3/T+Xj35ZePtbWBm+j2PXE0beFwzbA==",
+        "requested": "[1.8.23, )",
+        "resolved": "1.8.23",
+        "contentHash": "YCOTtF3NNOQI83PlfjeNDDBkofJDfdET2CwhfQsiVBwmsU6lP19QW9NVTIH9epl+MnOsyFC2G1RnlPSGV8F1FQ==",
         "dependencies": {
           "Newtonsoft.Json": "11.0.1"
         }
@@ -1933,9 +1933,9 @@
       },
       "Microsoft.OpenApi": {
         "type": "CentralTransitive",
-        "requested": "[2.3.0, )",
-        "resolved": "2.3.0",
-        "contentHash": "5RZpjyt0JMmoc/aEgY9c1vE5pusdDGvkPl9qKIy9KFbRiIXD+w7gBJxX+unSjzzOcfgRoYxnO4okZyqDAL2WEw=="
+        "requested": "[2.6.1, )",
+        "resolved": "2.6.1",
+        "contentHash": "PsuxkZR3JXrfiMQUGkdb+U8sMgNqcEqmeBITnJswScWgxvQs73aagmaiww+TMgrAtPpIvveJb3nFICDkPfKXUQ=="
       },
       "Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite": {
         "type": "CentralTransitive",
