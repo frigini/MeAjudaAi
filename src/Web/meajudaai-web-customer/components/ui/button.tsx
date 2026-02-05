@@ -27,26 +27,30 @@ export const buttonVariants = tv({
 
 export interface ButtonProps
   extends ComponentProps<"button">,
-    VariantProps<typeof buttonVariants> {}
+  VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+}
 
 export function Button({
   className,
   variant,
   size,
   disabled,
+  asChild,
   children,
   ...props
 }: ButtonProps) {
+  const Comp = asChild ? "span" : "button";
+
   return (
-    <button
-      type="button"
+    <Comp
       data-slot="button"
       data-disabled={disabled ? "" : undefined}
       className={twMerge(buttonVariants({ variant, size }), className)}
-      disabled={disabled}
+      {...(asChild ? {} : { type: "button", disabled })}
       {...props}
     >
       {children}
-    </button>
+    </Comp>
   );
 }
