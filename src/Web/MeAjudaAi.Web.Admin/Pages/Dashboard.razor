@@ -104,11 +104,11 @@
                 </CardHeaderContent>
             </MudCardHeader>
             <MudCardContent>
-                <MudText>Chart disabled for debugging</MudText>
-                @*
+
                 @if (ProvidersState.Value.Providers.Count > 0)
                 {
-                    <MudChart ChartType="ChartType.Donut"
+                    <MudChart @key="@providerStatusData"
+                              ChartType="ChartType.Donut"
                               InputData="@providerStatusData"
                               InputLabels="@providerStatusLabels"
                               Width="300px"
@@ -121,7 +121,6 @@
                         Nenhum provedor cadastrado
                     </MudText>
                 }
-                *@
             </MudCardContent>
         </MudCard>
     </MudItem>
@@ -135,11 +134,11 @@
                 </CardHeaderContent>
             </MudCardHeader>
             <MudCardContent>
-                <MudText>Chart disabled for debugging</MudText>
-                @*
+
                 @if (ProvidersState.Value.Providers.Count > 0)
                 {
-                    <MudChart ChartType="ChartType.Pie"
+                    <MudChart @key="@providerTypeData"
+                              ChartType="ChartType.Pie"
                               InputData="@providerTypeData"
                               InputLabels="@providerTypeLabels"
                               Width="300px"
@@ -152,7 +151,6 @@
                         Nenhum provedor cadastrado
                     </MudText>
                 }
-                *@
             </MudCardContent>
         </MudCard>
     </MudItem>
@@ -237,7 +235,6 @@
     private void UpdateChartData()
     {
         // TEMPORARY: Charts disabled for debugging
-        /*
         var providers = ProvidersState.Value.Providers;
         
         if (providers.Count == 0)
@@ -245,6 +242,7 @@
 
         // Provider Status Chart Data - semantically ordered
         var statusGroups = providers
+            .Where(p => !string.IsNullOrEmpty(p.VerificationStatus))
             .GroupBy(p => p.VerificationStatus)
             .OrderBy(g => {
                 // g.Key é string numérica ("0", "1", "2"), converte para int antes de buscar
@@ -259,32 +257,48 @@
 
         providerStatusLabels = statusGroups.Select(g => {
             if (int.TryParse(g.Key, out int status))
-                return VerificationStatus.ToDisplayName(status);
-            return g.Key;
+                return VerificationStatus.ToDisplayName(status) ?? "Desconhecido";
+            return g.Key ?? "Desconhecido";
         }).ToArray();
         providerStatusData = statusGroups.Select(g => (double)g.Count()).ToArray();
 
-        // Provider Type Chart Data - semantically ordered
+        // Provider Type Chart Data
         var typeGroups = providers
+            .Where(p => !string.IsNullOrEmpty(p.ProviderType))
             .GroupBy(p => p.ProviderType)
-            .OrderBy(g => {
-                // g.Key é string numérica ("0", "1"), converte para int antes de buscar
-                if (int.TryParse(g.Key, out int typeValue))
-                {
-                    var index = Array.IndexOf(ProviderTypeOrderInts, typeValue);
-                    return index >= 0 ? index : int.MaxValue;
-                }
-                return int.MaxValue; // Unknown values sorted last
-            })
+            .OrderBy(g => g.Key) // Simple alphabetical sort for now, or assume string matches Enum names
             .ToList();
 
         providerTypeLabels = typeGroups.Select(g => {
-            if (int.TryParse(g.Key, out int type))
-                return ProviderType.ToDisplayName(type);
-            return g.Key;
+            return GetProviderTypeDisplayName(g.Key);
         }).ToArray();
         providerTypeData = typeGroups.Select(g => (double)g.Count()).ToArray();
-        */
+    }
+
+    private string GetProviderTypeDisplayName(string typeKey)
+    {
+        if (string.IsNullOrEmpty(typeKey)) return "Desconhecido";
+
+        // Try to match standard keys to our constants
+        if (string.Equals(typeKey, "Individual", StringComparison.OrdinalIgnoreCase))
+            return ProviderType.ToDisplayName(ProviderType.Individual);
+        
+        if (string.Equals(typeKey, "Company", StringComparison.OrdinalIgnoreCase))
+            return ProviderType.ToDisplayName(ProviderType.Company);
+
+        if (string.Equals(typeKey, "Cooperative", StringComparison.OrdinalIgnoreCase))
+            return ProviderType.ToDisplayName(ProviderType.Cooperative);
+
+        if (string.Equals(typeKey, "Freelancer", StringComparison.OrdinalIgnoreCase))
+            return ProviderType.ToDisplayName(ProviderType.Freelancer);
+
+        // Fallback: Check if it is a number
+        if (int.TryParse(typeKey, out int typeValue))
+        {
+            return ProviderType.ToDisplayName(typeValue);
+        }
+
+        return typeKey;
     }
 
     public void Dispose()

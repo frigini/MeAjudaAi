@@ -452,11 +452,11 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             // provider_id e id são chave primária composta
             await context.Database.ExecuteSqlRawAsync(
                 @"INSERT INTO providers.document (
-                    provider_id, id, number, document_type, is_primary
+                    provider_id, number, document_type, is_primary
                   )
-                  VALUES ({0}, {1}, {2}, {3}, true)
-                  ON CONFLICT (provider_id, id) DO NOTHING",
-                [provider.Id, provider.DocumentId, provider.DocumentNumber, provider.DocumentType],
+                  VALUES ({0}, {1}, {2}, true)
+                  ON CONFLICT (provider_id, document_type) DO NOTHING",
+                [provider.Id, provider.DocumentNumber, provider.DocumentType],
                 cancellationToken);
         }
 
@@ -464,9 +464,9 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
     }
 
     /// <summary>
-    /// Retrieves a DbContext for the specified module using reflection.
-    /// Naming convention: MeAjudaAi.Modules.{moduleName}.Infrastructure.Persistence.{moduleName}DbContext
-    /// Example: "Users" → MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext
+    /// Obtém um DbContext para o módulo especificado usando reflexão.
+    /// Convenção de nomenclatura: MeAjudaAi.Modules.{moduleName}.Infrastructure.Persistence.{moduleName}DbContext
+    /// Exemplo: "Users" → MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext
     /// </summary>
     private DbContext? GetDbContext(string moduleName)
     {

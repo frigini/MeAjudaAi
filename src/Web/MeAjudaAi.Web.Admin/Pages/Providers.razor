@@ -56,7 +56,8 @@
                      Virtualize="true"
                      FixedHeader="true"
                      Height="calc(100vh - 400px)"
-                     Loading="@ProvidersState.Value.IsLoading">
+                     Loading="@ProvidersState.Value.IsLoading"
+                     RowStyleFunc="@RowStyleFunc">
             <Columns>
                 <PropertyColumn Property="x => x.Id" Title="ID" />
                 <PropertyColumn Property="x => x.ProviderType" Title="Tipo" />
@@ -114,13 +115,30 @@
     </MudCardActions>
 </MudCard>
 
+@inject NavigationManager Navigation
+
 @code {
     private string _searchTerm = string.Empty;
     private IEnumerable<ModuleProviderDto> _filteredProviders = [];
+    private bool _showOnlyPending = false;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
+        
+        // Check for query parameter 'filter=pending'
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = uri.Query.TrimStart('?');
+        
+        if (!string.IsNullOrEmpty(query))
+        {
+             var queryParams = query.Split('&');
+             if (queryParams.Any(q => q.Equals("filter=pending", StringComparison.OrdinalIgnoreCase)))
+             {
+                 _showOnlyPending = true;
+             }
+        }
+
         // Carregar providers ao inicializar
         Dispatcher.Dispatch(new LoadProvidersAction());
         UpdateFilteredProviders();
@@ -146,11 +164,19 @@
     private void UpdateFilteredProviders()
     {
         // Usa memoization para cachear resultados filtrados
-        var cacheKey = $"providers_filtered_{_searchTerm}_{ProvidersState.Value.Providers.Count()}";
+        // Inclui _showOnlyPending na chave do cache
+        var cacheKey = $"providers_filtered_{_searchTerm}_{_showOnlyPending}_{ProvidersState.Value.Providers.Count()}";
         
         _filteredProviders = PerformanceHelper.Memoize(cacheKey, () =>
         {
             var providers = ProvidersState.Value.Providers;
+
+            // Apply pending filter first if active
+            if (_showOnlyPending)
+            {
+                providers = providers.Where(p => 
+                    p.VerificationStatus == VerificationStatus.Pending.ToString()).ToList();
+            }
 
             if (string.IsNullOrWhiteSpace(_searchTerm))
             {
@@ -171,6 +197,15 @@
     {
         Dispatcher.Dispatch(new GoToPageAction(page));
     }
+    
+    // Highlights rows with Pending status
+    private Func<ModuleProviderDto, int, string> RowStyleFunc => (x, i) =>
+    {
+        if (x.VerificationStatus == VerificationStatus.Pending.ToString())
+            return "background-color: var(--mud-palette-warning-hover); font-weight: 500;";
+            
+        return "";
+    };
 
 
     private async Task OpenEditDialog(Guid providerId)

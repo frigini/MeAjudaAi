@@ -34,7 +34,7 @@
                            Variant="Variant.Filled" 
                            StartIcon="@Icons.Material.Filled.FilterList"
                            OnClick="OpenProviderSelector">
-                    Selecionar Provider
+                    Selecionar Provedor
                 </MudButton>
             </CardHeaderActions>
         </MudCardHeader>
@@ -42,7 +42,7 @@
             @if (DocumentsState.Value.SelectedProviderId == null)
             {
                 <MudAlert Severity="Severity.Info">
-                    Selecione um provider para visualizar seus documentos
+                    Selecione um provedor para visualizar seus documentos
                 </MudAlert>
             }
             else
@@ -130,7 +130,7 @@
         var parameters = new DialogParameters();
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
 
-        var dialog = await DialogService.ShowAsync<ProviderSelectorDialog>("Selecionar Provider", parameters, options);
+        var dialog = await DialogService.ShowAsync<ProviderSelectorDialog>("Selecionar Provedor", parameters, options);
         var result = await dialog.Result;
 
         if (!result.Canceled && result.Data is Guid providerId)

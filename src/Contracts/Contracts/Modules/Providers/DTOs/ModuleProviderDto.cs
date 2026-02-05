@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace MeAjudaAi.Contracts.Modules.Providers.DTOs;
 
 /// <summary>
@@ -8,6 +10,7 @@ public sealed record ModuleProviderDto(
     string Name,
     string Email,
     string Document,
+    [property: JsonPropertyName("type")]
     string ProviderType,
     string VerificationStatus,
     DateTime CreatedAt,

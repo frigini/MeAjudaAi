@@ -6,7 +6,7 @@
 <MudDialog>
     <DialogContent>
         <MudText Typo="Typo.body1" Class="mb-4">
-            Selecione um provider para visualizar seus documentos:
+            Selecione um provedor para visualizar seus documentos:
         </MudText>
 
         @if (ProvidersState.Value.IsLoading)
@@ -32,7 +32,20 @@
                     <MudListItem T="Guid" OnClick="@(() => SelectProvider(provider.Id))">
                         <MudStack>
                             <MudText Typo="Typo.body1"><b>@provider.Name</b></MudText>
-                            <MudText Typo="Typo.caption">@provider.Email | @provider.Document</MudText>
+                            <MudText Typo="Typo.caption">
+                                @if (!string.IsNullOrEmpty(provider.Email))
+                                {
+                                    @provider.Email
+                                }
+                                @if (!string.IsNullOrEmpty(provider.Email) && !string.IsNullOrEmpty(provider.Document))
+                                {
+                                    <span class="mx-1">|</span>
+                                }
+                                @if (!string.IsNullOrEmpty(provider.Document))
+                                {
+                                    @provider.Document
+                                }
+                            </MudText>
                         </MudStack>
                     </MudListItem>
                     <MudDivider />
@@ -42,7 +55,7 @@
         else
         {
             <MudAlert Severity="Severity.Info">
-                Nenhum provider encontrado. Carregue a lista de providers primeiro.
+                Nenhum provedor encontrado. Carregue a lista de provedores primeiro.
             </MudAlert>
         }
     </DialogContent>
