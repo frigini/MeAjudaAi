@@ -6,6 +6,7 @@ import type { ProviderDto } from '@/types/api/provider';
 
 // Mapeamento de ProviderType (backend enum) para frontend string
 // 0=None, 1=Individual, 2=Company, 3=Cooperative, 4=Freelancer
+// NOTE: Alinhado com o enum ProviderType em MeAjudaAi.Core.Shared.Contracts
 const PROVIDER_TYPE_MAP: Record<number, ProviderDto['providerType']> = {
     0: 'None',
     1: 'Individual',
@@ -35,6 +36,7 @@ export function mapSearchableProviderToProvider(
         services: [],
         city: dto.city ?? '',
         state: dto.state ?? '',
+        description: dto.description ?? undefined,
         // TODO: Mapear providerType quando SearchableProviderDto incluir essa informação
         providerType: 'Individual',
     };

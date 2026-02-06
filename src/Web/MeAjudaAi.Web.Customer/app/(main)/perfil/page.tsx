@@ -22,7 +22,7 @@ export default async function ProfilePage() {
         const response = await apiUsersGet2({
             path: { id: session.user.id },
             headers: {
-                'Authorization': `Bearer ${(session as any).accessToken}`
+                'Authorization': `Bearer ${session.accessToken}`
             }
         });
 
@@ -62,7 +62,7 @@ export default async function ProfilePage() {
                             <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                                 <User className="size-4" /> Nome Completo
                             </h4>
-                            <p className="font-medium text-lg">{user.fullName || (user.firstName + ' ' + user.lastName)}</p>
+                            <p className="font-medium text-lg">{user.fullName || [user.firstName, user.lastName].filter(Boolean).join(' ') || ''}</p>
                         </div>
 
                         <div className="space-y-1">
@@ -84,8 +84,7 @@ export default async function ProfilePage() {
                                 <MapPin className="size-4" /> Localização
                             </h4>
                             <p className="font-medium text-lg">
-                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                                {(user as any)?.address || (user as any)?.location || "Não informado"}
+                                {"Não informado"}
                             </p>
                         </div>
                     </div>

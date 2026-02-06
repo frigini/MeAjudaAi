@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { getAuthHeaders } from "@/lib/api/auth-headers";
+import { useSession } from "next-auth/react";
 
 // Schema validation
 const profileSchema = z.object({
@@ -37,6 +37,7 @@ interface EditProfileFormProps {
 
 export function EditProfileForm({ userId, initialData }: EditProfileFormProps) {
     const router = useRouter();
+    const { data: session } = useSession();
     const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<ProfileFormValues>({
@@ -52,7 +53,8 @@ export function EditProfileForm({ userId, initialData }: EditProfileFormProps) {
     async function onSubmit(data: ProfileFormValues) {
         setIsLoading(true);
         try {
-            const token = (session as any)?.accessToken;
+            // Using properly typed session access
+            const token = session?.accessToken;
             const headers: HeadersInit = {
                 'Content-Type': 'application/json',
                 ...(token ? { 'Authorization': `Bearer ${token}` } : {})
@@ -77,9 +79,11 @@ export function EditProfileForm({ userId, initialData }: EditProfileFormProps) {
 
             toast.success("Perfil atualizado com sucesso!");
 
-            // Refresh to ensure data is consistent and redirect
+            // Refresh to ensure data is consistent, then redirect
+            // We await a small delay to allow the refresh (which is fire-and-forget) to likely process
+            // before ensuring navigation to the profile page.
             router.refresh();
-            // Note: refresh() doesn't return a promise, navigation might happen before invalidation is complete
+            await new Promise((resolve) => setTimeout(resolve, 100));
             router.replace("/perfil");
         } catch (error) {
             console.error("Profile update exception:", error);

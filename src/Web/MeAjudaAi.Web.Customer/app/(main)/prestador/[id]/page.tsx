@@ -66,7 +66,7 @@ export default async function ProviderProfilePage({
                             <span className="text-lg font-semibold">{mockRating}</span>
                             <span className="text-foreground/60">
                                 ({mockReviewCount}{" "}
-                                {(mockReviewCount as any) === 1 ? "avaliação" : "avaliações"})
+                                {mockReviewCount === 1 ? "avaliação" : "avaliações"})
                             </span>
                         </div> {/* Location */}
                         {address && (address.city || address.state) && (

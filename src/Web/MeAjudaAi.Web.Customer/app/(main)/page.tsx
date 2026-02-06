@@ -106,8 +106,8 @@ export default function HomePage() {
             apareça para seus clientes. Tenha boas recomendações e destaque-se
             frente aos seus concorrentes.
           </p>
-          <Button size="lg" variant="primary">
-            Cadastre-se grátis
+          <Button size="lg" variant="primary" asChild>
+            <a href="/auth/signin">Cadastre-se grátis</a>
           </Button>
         </div>
       </section>

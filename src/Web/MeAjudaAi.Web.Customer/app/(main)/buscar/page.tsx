@@ -64,7 +64,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 </h1>
 
                 {/* Search Form */}
-                <form action="/buscar" method="get" className="flex flex-col md:flex-row gap-4">
+                <form action="/buscar" method="get" role="search" aria-label="Buscar prestadores" className="flex flex-col md:flex-row gap-4">
                     <div className="flex-1">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-foreground-subtle" />

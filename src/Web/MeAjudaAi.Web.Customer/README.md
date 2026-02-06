@@ -49,3 +49,11 @@ npm run dev
 -   **Tailwind v4**: Estilos declarativos diretamente no CSS (`globals.css`).
 -   **API Client**: Código gerado automaticamente a partir do Swagger/OpenAPI.
 -   **TypeScript**: Tipagem estrita em toda a aplicação.
+
+### Geração e Atualização do Cliente API
+
+-   Para regenerar o cliente API após mudanças no backend:
+    ```bash
+    npm run generate:api
+    ```
+-   Sempre que possível, reutilize enums e constantes de `Shared.Contracts` para manter alinhamento com o backend.
