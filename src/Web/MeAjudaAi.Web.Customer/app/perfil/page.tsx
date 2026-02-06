@@ -6,6 +6,7 @@ import { apiUsersGet2 } from "@/lib/api/generated";
 import { getAuthHeaders } from "@/lib/api/auth-headers";
 import Link from "next/link";
 import { User, Mail, Phone, MapPin, Edit } from "lucide-react";
+import { MeAjudaAiModulesUsersApplicationDtosUserDto } from "@/lib/api/generated/types.gen";
 
 export const dynamic = "force-dynamic";
 
@@ -29,11 +30,11 @@ export default async function ProfilePage() {
             headers: headers
         });
 
-        if (response.error || !(response.data as any)?.result) {
+        if (response.error || !(response.data as { result?: MeAjudaAiModulesUsersApplicationDtosUserDto })?.result) {
             console.error("API Error:", response.error);
             error = "Não foi possível carregar os dados do perfil.";
         } else {
-            user = (response.data as any)?.result;
+            user = (response.data as { result: MeAjudaAiModulesUsersApplicationDtosUserDto }).result;
         }
     } catch (e) {
         console.error("Failed to fetch user profile", e);
@@ -95,7 +96,10 @@ export default async function ProfilePage() {
                             <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                                 <MapPin className="size-4" /> Localização
                             </h4>
-                            <p className="font-medium text-lg">{"- -"}</p>
+                            <p className="font-medium text-lg">
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                {(user as any)?.address || (user as any)?.location || "Não informado"}
+                            </p>
                         </div>
                     </div>
                 </CardContent>

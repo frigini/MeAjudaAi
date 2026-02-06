@@ -160,7 +160,7 @@ internal static class Program
             // NOTA: Keycloak WaitFor removido - veja comentário no apiService acima
 
         // Aplicação Web do Cliente (Next.js 15)
-        var customerWebPath = Path.Combine(builder.AppHostDirectory, "..", "..", "Web", "meajudaai-web-customer");
+        var customerWebPath = Path.Combine(builder.AppHostDirectory, "..", "..", "Web", "MeAjudaAi.Web.Customer");
         _ = builder.AddJavaScriptApp("customer-web", customerWebPath)
             .WithHttpEndpoint(port: 3000, env: "PORT")
             .WithExternalHttpEndpoints()

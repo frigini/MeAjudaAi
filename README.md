@@ -313,7 +313,7 @@ dotnet test tests/MeAjudaAi.Modules.Users.Tests/
 # Acessar: http://localhost:3000/
 
 # Ou manualmente (apenas Next.js)
-cd src/Web/meajudaai-web-customer
+cd src/Web/MeAjudaAi.Web.Customer
 npm install
 npm run dev
 ```

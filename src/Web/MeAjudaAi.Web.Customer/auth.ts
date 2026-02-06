@@ -8,6 +8,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams({
                 client_id: process.env.KEYCLOAK_CLIENT_ID ?? "",
+                client_secret: process.env.KEYCLOAK_CLIENT_SECRET ?? "",
                 grant_type: "refresh_token",
                 refresh_token: token.refreshToken ?? "",
             }),
@@ -49,6 +50,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             // Initial sign in
             if (account && profile) {
                 return {
+                    ...token,
                     accessToken: account.access_token ?? "",
                     refreshToken: account.refresh_token ?? "",
                     expiresAt: account.expires_at ? account.expires_at * 1000 : Date.now() + 3600000,
