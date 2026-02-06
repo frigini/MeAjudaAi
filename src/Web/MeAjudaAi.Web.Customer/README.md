@@ -28,6 +28,11 @@ Crie um arquivo `.env.local` na raiz com:
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:7002
 OPENAPI_SPEC_URL=http://localhost:7002/api-docs/v1/swagger.json
+
+# Keycloak Authentication (NextAuth)
+KEYCLOAK_ISSUER=http://localhost:8080/realms/meajudaai
+KEYCLOAK_CLIENT_ID=meajudaai-web
+KEYCLOAK_CLIENT_SECRET=your_client_secret_here
 ```
 
 ### Instalação e Desenvolvimento

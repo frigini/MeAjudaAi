@@ -27,7 +27,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     if (cityFilter) {
         const location = await geocodeCity(cityFilter);
         if (location) {
-            console.log(`Geocoded '${cityFilter}' to ${location.latitude}, ${location.longitude}`);
             latitude = location.latitude;
             longitude = location.longitude;
         } else {

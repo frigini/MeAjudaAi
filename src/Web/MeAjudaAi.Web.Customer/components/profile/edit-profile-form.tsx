@@ -37,7 +37,7 @@ interface EditProfileFormProps {
 
 export function EditProfileForm({ userId, initialData }: EditProfileFormProps) {
     const router = useRouter();
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
     const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<ProfileFormValues>({
@@ -51,13 +51,20 @@ export function EditProfileForm({ userId, initialData }: EditProfileFormProps) {
     });
 
     async function onSubmit(data: ProfileFormValues) {
+        if (status !== 'authenticated' || !session?.accessToken) {
+            toast.error("Erro de autenticação", {
+                description: "Sua sessão expirou. Faça login novamente.",
+            });
+            return;
+        }
+
         setIsLoading(true);
         try {
             // Using properly typed session access
-            const token = session?.accessToken;
+            const token = session.accessToken;
             const headers: HeadersInit = {
                 'Content-Type': 'application/json',
-                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                'Authorization': `Bearer ${token}`
             };
 
             const { error } = await apiProfilePut({
@@ -134,7 +141,12 @@ export function EditProfileForm({ userId, initialData }: EditProfileFormProps) {
                         <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl>
-                                <Input placeholder="seu.email@exemplo.com" {...field} />
+                                <Input
+                                    placeholder="seu.email@exemplo.com"
+                                    {...field}
+                                    disabled={true}
+                                    title="Alteração de email não permitida neste momento."
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -148,7 +160,7 @@ export function EditProfileForm({ userId, initialData }: EditProfileFormProps) {
                         <FormItem>
                             <FormLabel>Telefone (Opcional)</FormLabel>
                             <FormControl>
-                                <Input placeholder="(00) 00000-0000" {...field} />
+                                <Input placeholder="(11) 99999-9999" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

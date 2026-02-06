@@ -17,8 +17,9 @@ export function Header({ className }: HeaderProps) {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        if (searchQuery.trim()) {
-            router.push(`/buscar?q=${encodeURIComponent(searchQuery)}`);
+        const trimmedQuery = searchQuery.trim();
+        if (trimmedQuery) {
+            router.push(`/buscar?q=${encodeURIComponent(trimmedQuery)}`);
         }
     };
 
@@ -34,7 +35,7 @@ export function Header({ className }: HeaderProps) {
                 <div className="hidden md:flex flex-1 max-w-2xl mx-8">
                     <form onSubmit={handleSearch} className="relative w-full">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-foreground-subtle" />
-                        <input
+                        <Input
                             type="search"
                             placeholder="Buscar serviço..."
                             aria-label="Buscar serviço"

@@ -60,6 +60,7 @@ export function mapApiProviderToProvider(
         name: displayName,
         // ProviderDto não tem email na raiz, apenas em businessProfile.contactInfo
         email: contactInfo?.email ?? '',
+        phone: contactInfo?.phoneNumber ?? undefined,
         // ProviderDto não tem profilePictureUrl na raiz
         avatarUrl: null,
         // ProviderDto não tem averageRating/reviewCount na raiz. Assumimos 0 por enquanto.

@@ -15,8 +15,10 @@ export interface ProviderDto {
      * Disponíveis: "None" | "Individual" | "Company" | "Cooperative" | "Freelancer"
      * NOTE: Alinhado com o enum ProviderType em MeAjudaAi.Core.Shared.Contracts
      */
-    providerType: "None" | "Individual" | "Company" | "Cooperative" | "Freelancer";
+    providerType: ProviderType;
 }
+
+export type ProviderType = "None" | "Individual" | "Company" | "Cooperative" | "Freelancer";
 
 export interface ServiceDto {
     id: string;
