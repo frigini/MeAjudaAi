@@ -39,9 +39,9 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
         Keycloak({
-            clientId: process.env.KEYCLOAK_CLIENT_ID,
-            clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
-            issuer: process.env.KEYCLOAK_ISSUER,
+            clientId: process.env.KEYCLOAK_CLIENT_ID ?? "",
+            clientSecret: process.env.KEYCLOAK_CLIENT_SECRET ?? "",
+            issuer: process.env.KEYCLOAK_ISSUER ?? "",
         }),
     ],
     callbacks: {
@@ -79,4 +79,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     // Debug in development
     debug: process.env.NODE_ENV === "development",
+    pages: {
+        signIn: "/auth/signin",
+    },
 })

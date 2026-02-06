@@ -53,3 +53,13 @@ export function CardTitle({ className, ...props }: ComponentProps<"h3">) {
 export function CardContent({ className, ...props }: ComponentProps<"div">) {
     return <div data-slot="card-content" className={className} {...props} />;
 }
+
+export function CardDescription({ className, ...props }: ComponentProps<"p">) {
+    return (
+        <p
+            data-slot="card-description"
+            className={twMerge("text-sm text-muted-foreground", className)}
+            {...props}
+        />
+    );
+}

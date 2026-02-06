@@ -15,6 +15,7 @@ export const buttonVariants = tv({
       outline: "border-2 border-secondary text-secondary hover:bg-secondary/10",
       ghost: "text-foreground hover:bg-surface-raised",
       destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+      link: "text-primary underline-offset-4 hover:underline",
     },
     size: {
       sm: "h-9 px-3 text-sm gap-1.5 [&_svg]:size-3.5",
