@@ -1,4 +1,4 @@
-import { Star, MapPin, Phone, Mail } from "lucide-react";
+import { MapPin, Phone, Mail } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,14 +59,15 @@ const mockReviews: ReviewDto[] = [
 ];
 
 interface ProviderProfilePageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
-export default function ProviderProfilePage({
+export default async function ProviderProfilePage({
     params,
 }: ProviderProfilePageProps) {
+    const { id } = await params;
     // TODO: Replace with actual API call
     const provider = mockProvider;
     const reviews = mockReviews;
@@ -163,28 +164,34 @@ export default function ProviderProfilePage({
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-6">
-                        {reviews.map((review) => (
-                            <div key={review.id} className="border-b border-border pb-6 last:border-0 last:pb-0">
-                                <div className="flex items-start justify-between mb-2">
-                                    <div>
-                                        <p className="font-medium text-foreground">
-                                            {review.customerName}
-                                        </p>
-                                        <p className="text-sm text-foreground-subtle">
-                                            {new Date(review.createdAt).toLocaleDateString("pt-BR", {
-                                                day: "2-digit",
-                                                month: "long",
-                                                year: "numeric",
-                                            })}
-                                        </p>
+                        {reviews.length === 0 ? (
+                            <p className="text-foreground-subtle text-center py-4">
+                                Nenhuma avaliação ainda.
+                            </p>
+                        ) : (
+                            reviews.map((review) => (
+                                <div key={review.id} className="border-b border-border pb-6 last:border-0 last:pb-0">
+                                    <div className="flex items-start justify-between mb-2">
+                                        <div>
+                                            <p className="font-medium text-foreground">
+                                                {review.customerName}
+                                            </p>
+                                            <p className="text-sm text-foreground-subtle">
+                                                {new Date(review.createdAt).toLocaleDateString("pt-BR", {
+                                                    day: "2-digit",
+                                                    month: "long",
+                                                    year: "numeric",
+                                                })}
+                                            </p>
+                                        </div>
+                                        <Rating value={review.rating} size="sm" />
                                     </div>
-                                    <Rating value={review.rating} size="sm" />
+                                    <p className="text-foreground-subtle leading-relaxed">
+                                        {review.comment}
+                                    </p>
                                 </div>
-                                <p className="text-foreground-subtle leading-relaxed">
-                                    {review.comment}
-                                </p>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </CardContent>
             </Card>

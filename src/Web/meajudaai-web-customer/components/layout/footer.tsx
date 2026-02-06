@@ -75,6 +75,7 @@ export function Footer({ className }: FooterProps) {
                             <p className="text-xs font-semibold mb-1">
                                 Política de Privacidade
                             </p>
+                            {/* TODO: Add link to privacy policy page when it exists */}
                         </div>
                     </div>
                 </div>

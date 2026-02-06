@@ -54,15 +54,16 @@ const mockProviders: ProviderDto[] = [
 ];
 
 interface SearchPageProps {
-    searchParams: {
+    searchParams: Promise<{
         q?: string;
         city?: string;
-    };
+    }>;
 }
 
-export default function SearchPage({ searchParams }: SearchPageProps) {
-    const query = searchParams.q || "";
-    const city = searchParams.city || "";
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+    const { q, city } = await searchParams;
+    const query = q || "";
+    const cityFilter = city || "";
 
     // TODO: Replace with actual API call
     const providers = mockProviders;
@@ -76,11 +77,12 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
                 </h1>
 
                 {/* Search Form */}
-                <div className="flex flex-col md:flex-row gap-4">
+                <form action="/buscar" method="get" className="flex flex-col md:flex-row gap-4">
                     <div className="flex-1">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-foreground-subtle" />
                             <input
+                                name="q"
                                 type="search"
                                 placeholder="Buscar serviço..."
                                 defaultValue={query}
@@ -90,16 +92,17 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
                     </div>
                     <div className="w-full md:w-64">
                         <input
+                            name="city"
                             type="text"
                             placeholder="Cidade..."
-                            defaultValue={city}
+                            defaultValue={cityFilter}
                             className="w-full px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                         />
                     </div>
-                    <Button variant="primary" size="lg">
+                    <Button variant="primary" size="lg" type="submit">
                         Buscar
                     </Button>
-                </div>
+                </form>
             </div>
 
             {/* Results Count */}
