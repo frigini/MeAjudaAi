@@ -25,12 +25,15 @@ export function Avatar({
 }: AvatarProps) {
     const initials =
         fallback ||
-        alt
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .toUpperCase()
-            .slice(0, 2);
+        (alt.trim()
+            ? alt
+                .split(" ")
+                .filter((n) => n.length > 0)
+                .map((n) => n[0])
+                .join("")
+                .toUpperCase()
+                .slice(0, 2)
+            : "");
 
     return (
         <div

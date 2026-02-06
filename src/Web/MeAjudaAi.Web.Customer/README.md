@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MeAjudaAi - Customer Web App
 
-## Getting Started
+Esta é a aplicação web para clientes do sistema **MeAjudaAi**, desenvolvida com [Next.js](https://nextjs.org) e [Tailwind CSS v4](https://tailwindcss.com).
 
-First, run the development server:
+## Estrutura do Projeto
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+A aplicação utiliza a estrutura de diretórios do Next.js App Router com Grupos de Rotas:
+
+-   `app/(main)/`: Contém as páginas principais (Home, Buscar, Perfil, Prestador) que compartilham o layout padrão.
+-   `app/(auth)/`: Contém as páginas de autenticação (Login, Cadastro).
+-   `components/`: Componentes React reutilizáveis.
+    -   `ui/`: Componentes de interface base (Design System).
+    -   `profile/`, `providers/`, `reviews/`: Componentes específicos por funcionalidade.
+-   `lib/`: Utilitários, mappers e cliente API gerado.
+-   `types/`: Definições de tipos TypeScript.
+
+## Configuração
+
+### Requisitos
+
+-   Node.js 18+
+-   npm / yarn / pnpm
+
+### Variáveis de Ambiente
+
+Crie um arquivo `.env.local` na raiz com:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:7002
+OPENAPI_SPEC_URL=http://localhost:7002/api-docs/v1/swagger.json
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Instalação e Desenvolvimento
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Funcionalidades Principais
 
-## Learn More
+-   🔍 **Busca de Prestadores**: Filtre prestadores por cidade, estado e tipo de serviço.
+-   ⭐ **Avaliações**: Visualize e envie avaliações para os prestadores.
+-   👤 **Gerenciamento de Perfil**: Edite suas informações pessoais.
+-   🔐 **Autenticação**: Integração com Keycloak via NextAuth.js.
 
-To learn more about Next.js, take a look at the following resources:
+## Padrões de Código
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+-   **Tailwind v4**: Estilos declarativos diretamente no CSS (`globals.css`).
+-   **API Client**: Código gerado automaticamente a partir do Swagger/OpenAPI.
+-   **TypeScript**: Tipagem estrita em toda a aplicação.

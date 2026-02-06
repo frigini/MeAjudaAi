@@ -15,7 +15,9 @@ export default function SearchError({
     const router = useRouter();
 
     useEffect(() => {
-        console.error('Search error:', error);
+        // Log the error to an error reporting service
+        // TODO: Enviar erro para um serviço de observabilidade (ex: Sentry)
+        console.error(error);
     }, [error]);
 
     return (

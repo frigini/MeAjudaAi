@@ -9,8 +9,6 @@ export async function getAuthHeaders() {
 
     if (session?.accessToken) {
         headers['Authorization'] = `Bearer ${session.accessToken}`;
-    } else {
-        console.warn('[API Client] No access token found in session — request will be unauthenticated');
     }
 
     return headers;

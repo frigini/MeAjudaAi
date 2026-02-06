@@ -59,15 +59,16 @@ export default async function ProviderProfilePage({
                             {displayName}
                         </h1>
 
-                        <div className="flex items-center gap-2 mt-2">
-                            <Rating value={Math.round(mockRating)} readOnly size="md" />
-                            <span className="font-medium text-foreground">{mockRating}</span>
-                            <span className="text-foreground-subtle">
-                                ({mockReviewCount} avaliações)
+                        {/* Mock rating for display until API supports it */}
+                        {/* TODO: Substituir por dados Reais da API quando suportado */}
+                        <div className="flex items-center gap-2 mb-4">
+                            <Rating value={mockRating} size="md" readOnly={true} />
+                            <span className="text-lg font-semibold">{mockRating}</span>
+                            <span className="text-foreground/60">
+                                ({mockReviewCount}{" "}
+                                {(mockReviewCount as any) === 1 ? "avaliação" : "avaliações"})
                             </span>
-                        </div>
-
-                        {/* Location */}
+                        </div> {/* Location */}
                         {address && (address.city || address.state) && (
                             <div className="flex items-center gap-2 mt-4 text-foreground-subtle">
                                 <MapPin className="size-4" />

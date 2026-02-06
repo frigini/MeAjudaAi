@@ -47,7 +47,8 @@ export function ReviewForm({ providerId, onSuccess }: ReviewFormProps) {
             // Mock API call
             await new Promise((resolve) => setTimeout(resolve, 1000));
 
-            console.log("Submitting review for provider", providerId, data);
+            // TODO: Integrar com API real de avaliações quando disponível
+            // console.log("Submitting review for provider", providerId, data);
 
             toast.success("Avaliação enviada!", {
                 description: "Obrigado pelo seu feedback.",

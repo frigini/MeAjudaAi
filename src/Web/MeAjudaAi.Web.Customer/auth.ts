@@ -45,6 +45,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             issuer: process.env.KEYCLOAK_ISSUER ?? "",
         }),
     ],
+    pages: {
+        signIn: "/auth/signin",
+    },
     callbacks: {
         async jwt({ token, account, profile }) {
             // Initial sign in
@@ -68,20 +71,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         },
         async session({ session, token }) {
             if (token?.accessToken) {
-                session.accessToken = token.accessToken
+                (session as any).accessToken = token.accessToken
             }
-            if (token?.id) {
-                session.user.id = token.id
+            if (token?.id && session.user) {
+                session.user.id = token.id as string
             }
             if (token?.error) {
-                session.error = token.error as string
+                (session as any).error = token.error as string
             }
             return session
         },
     },
     // Debug in development
     debug: process.env.NODE_ENV === "development",
-    pages: {
-        signIn: "/auth/signin",
-    },
-})
+});

@@ -11,7 +11,7 @@ export interface ProviderDto {
     state: string;
     description?: string;
     phone?: string;
-    providerType: "Individual" | "Company";
+    providerType: "None" | "Individual" | "Company" | "Cooperative" | "Freelancer";
 }
 
 export interface ServiceDto {

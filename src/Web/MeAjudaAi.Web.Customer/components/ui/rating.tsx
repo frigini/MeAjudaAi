@@ -65,7 +65,7 @@ export function Rating({
                         onMouseEnter={() => handleMouseEnter(index)}
                         onMouseLeave={handleMouseLeave}
                         disabled={readOnly}
-                        aria-label={`${index} ${index === 1 ? 'star' : 'stars'}`}
+                        aria-label={`${index} ${index === 1 ? 'estrela' : 'estrelas'}`}
                     >
                         <Star
                             className={cn(

@@ -7,11 +7,11 @@ import type { ProviderDto } from '@/types/api/provider';
 // Mapeamento de ProviderType (backend enum) para frontend string
 // 0=None, 1=Individual, 2=Company, 3=Cooperative, 4=Freelancer
 const PROVIDER_TYPE_MAP: Record<number, ProviderDto['providerType']> = {
-    0: 'Individual',
+    0: 'None',
     1: 'Individual',
     2: 'Company',
-    3: 'Company', // Falta 'Cooperative' no frontend ProviderDto, mapeando para Company
-    4: 'Individual', // Falta 'Freelancer' no frontend ProviderDto, mapeando para Individual
+    3: 'Cooperative',
+    4: 'Freelancer',
 };
 
 /**
@@ -35,7 +35,7 @@ export function mapSearchableProviderToProvider(
         services: [],
         city: dto.city ?? '',
         state: dto.state ?? '',
-        // Tipo de prestador não disponível na busca
+        // TODO: Mapear providerType quando SearchableProviderDto incluir essa informação
         providerType: 'Individual',
     };
 }

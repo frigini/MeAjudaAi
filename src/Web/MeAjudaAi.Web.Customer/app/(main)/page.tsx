@@ -1,4 +1,4 @@
-import { Search, CheckCircle2, Users, Star } from "lucide-react";
+import { Search, CheckCircle2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 

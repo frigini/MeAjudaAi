@@ -52,7 +52,12 @@ export function EditProfileForm({ userId, initialData }: EditProfileFormProps) {
     async function onSubmit(data: ProfileFormValues) {
         setIsLoading(true);
         try {
-            const headers = await getAuthHeaders();
+            const token = (session as any)?.accessToken;
+            const headers: HeadersInit = {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            };
+
             const { error } = await apiProfilePut({
                 path: { id: userId },
                 body: {
@@ -74,6 +79,7 @@ export function EditProfileForm({ userId, initialData }: EditProfileFormProps) {
 
             // Refresh to ensure data is consistent and redirect
             router.refresh();
+            // Note: refresh() doesn't return a promise, navigation might happen before invalidation is complete
             router.replace("/perfil");
         } catch (error) {
             console.error("Profile update exception:", error);

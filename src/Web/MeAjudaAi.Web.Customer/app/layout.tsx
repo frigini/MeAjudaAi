@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 import { AppProviders } from "@/components/providers/app-providers";
 import { Toaster } from "sonner";
 
@@ -20,9 +18,7 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className="antialiased">
         <AppProviders>
-          <Header />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
+          {children}
           <Toaster />
         </AppProviders>
       </body>

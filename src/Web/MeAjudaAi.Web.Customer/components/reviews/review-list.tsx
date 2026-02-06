@@ -24,11 +24,14 @@ export function ReviewList({ providerId }: ReviewListProps) {
 
     const loadMore = () => {
         // Mock loading more
-        const newReviews = generateMockReviews(3).map(r => ({
-            ...r,
-            id: `review-${reviews.length + parseInt(r.id.split('-')[1])}`
-        }));
-        setReviews([...reviews, ...newReviews]);
+        // TODO: Mudar para API real e usar providerId
+        setReviews(prev => {
+            const newReviews = generateMockReviews(3).map(r => ({
+                ...r,
+                id: `review-${prev.length + parseInt(r.id.split('-')[1])}`
+            }));
+            return [...prev, ...newReviews];
+        });
     };
 
     return (

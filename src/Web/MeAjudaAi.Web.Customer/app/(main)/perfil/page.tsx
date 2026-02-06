@@ -3,54 +3,41 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiUsersGet2 } from "@/lib/api/generated";
-import { getAuthHeaders } from "@/lib/api/auth-headers";
 import Link from "next/link";
-import { User, Mail, Phone, MapPin, Edit } from "lucide-react";
-import { MeAjudaAiModulesUsersApplicationDtosUserDto } from "@/lib/api/generated/types.gen";
+import { User, Mail, Phone, MapPin, Pencil } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
     const session = await auth();
 
-    if (!session || !session.user || !session.user.id) {
-        redirect("/api/auth/signin");
+    if (!session?.user?.id) {
+        redirect("/auth/signin");
     }
 
-    // Fetch user details from API
+    // Fetch user details
     let user = null;
-    let error = null;
 
     try {
-        const headers = await getAuthHeaders();
         const response = await apiUsersGet2({
-            path: {
-                id: session.user.id
-            },
-            headers: headers
+            path: { id: session.user.id },
+            headers: {
+                'Authorization': `Bearer ${(session as any).accessToken}`
+            }
         });
 
-        if (response.error || !(response.data as { result?: MeAjudaAiModulesUsersApplicationDtosUserDto })?.result) {
-            console.error("API Error:", response.error);
-            error = "Não foi possível carregar os dados do perfil.";
-        } else {
-            user = (response.data as { result: MeAjudaAiModulesUsersApplicationDtosUserDto }).result;
-        }
+        user = (response.data as any)?.result;
     } catch (e) {
         console.error("Failed to fetch user profile", e);
-        error = "Não foi possível carregar os dados do perfil.";
     }
 
-    if (error) {
+    if (!user) {
         return (
-            <div className="container mx-auto px-4 py-8">
-                <Card className="border-destructive">
-                    <CardContent className="pt-6">
-                        <p className="text-destructive font-medium">{error}</p>
-                    </CardContent>
-                </Card>
+            <div className="container mx-auto py-10 text-center">
+                <h1 className="text-2xl font-bold text-destructive">Erro ao carregar perfil</h1>
+                <p className="mt-2 text-muted-foreground">Não foi possível carregar os dados do seu perfil no momento.</p>
             </div>
-        )
+        );
     }
 
     return (
@@ -59,7 +46,7 @@ export default async function ProfilePage() {
                 <h1 className="text-3xl font-bold">Meu Perfil</h1>
                 <Button asChild>
                     <Link href="/perfil/editar">
-                        <Edit className="mr-2 size-4" />
+                        <Pencil className="mr-2 size-4" />
                         Editar Perfil
                     </Link>
                 </Button>
@@ -75,14 +62,14 @@ export default async function ProfilePage() {
                             <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                                 <User className="size-4" /> Nome Completo
                             </h4>
-                            <p className="font-medium text-lg">{user?.fullName || session.user.name}</p>
+                            <p className="font-medium text-lg">{user.fullName || (user.firstName + ' ' + user.lastName)}</p>
                         </div>
 
                         <div className="space-y-1">
                             <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                                 <Mail className="size-4" /> Email
                             </h4>
-                            <p className="font-medium text-lg">{user?.email || session.user.email}</p>
+                            <p className="font-medium text-lg">{user.email}</p>
                         </div>
 
                         <div className="space-y-1">

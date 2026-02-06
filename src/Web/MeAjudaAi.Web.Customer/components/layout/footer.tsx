@@ -81,7 +81,7 @@ export function Footer({ className }: FooterProps) {
                 </div>
 
                 <div className="mt-8 pt-8 border-t border-white/20 text-center text-sm">
-                    Todos os direitos reservados Desenvolvedores AjudaAi
+                    © {new Date().getFullYear()} AjudaAi. Todos os direitos reservados.
                 </div>
             </div>
         </footer>

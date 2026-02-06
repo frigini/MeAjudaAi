@@ -1,6 +1,4 @@
-// import * as React from "react" // Removed unused React import
-
-import { cn } from "../../lib/utils/index"
+import { cn } from "@/lib/utils/cn"
 
 import type { ComponentPropsWithRef } from "react";
 

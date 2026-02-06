@@ -1,5 +1,4 @@
 import { twMerge } from "tailwind-merge";
-import { twMerge as merge } from "tailwind-merge";
 import type { ComponentProps } from "react";
 
 export const cardVariants = {

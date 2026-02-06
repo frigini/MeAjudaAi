@@ -1,5 +1,6 @@
 import { tv, type VariantProps } from "tailwind-variants";
 import { twMerge } from "tailwind-merge";
+import { Slot } from "@radix-ui/react-slot";
 import type { ComponentProps } from "react";
 
 export const buttonVariants = tv({
@@ -10,8 +11,8 @@ export const buttonVariants = tv({
   ],
   variants: {
     variant: {
-      primary: "bg-secondary text-secondary-foreground hover:bg-secondary-hover",
-      secondary: "bg-primary text-primary-foreground hover:bg-primary-hover",
+      primary: "bg-primary text-primary-foreground hover:bg-primary-hover",
+      secondary: "bg-secondary text-secondary-foreground hover:bg-secondary-hover",
       outline: "border-2 border-secondary text-secondary hover:bg-secondary/10",
       ghost: "text-foreground hover:bg-surface-raised",
       destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
@@ -41,7 +42,7 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
-  const Comp = asChild ? "span" : "button";
+  const Comp = asChild ? Slot : "button";
 
   return (
     <Comp
