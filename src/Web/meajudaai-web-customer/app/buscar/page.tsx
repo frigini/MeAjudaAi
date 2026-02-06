@@ -4,6 +4,8 @@ import { ProviderCard } from "@/components/providers/provider-card";
 import { apiProvidersGet3 } from "@/lib/api/generated";
 import { mapSearchableProviderToProvider } from "@/lib/api/mappers";
 
+import { geocodeCity } from "@/lib/services/geocoding";
+
 interface SearchPageProps {
     searchParams: Promise<{
         q?: string;
@@ -16,21 +18,28 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     const searchQuery = q || "";
     const cityFilter = city || "";
 
-    // TODO: Implement geocoding to convert city name to coordinates (Google Maps API / OpenStreetMap)
-    // Currently fallback to São Paulo coordinates
-    // When implemented: 
-    // const { lat, lng } = await geocodeCity(cityFilter);
-    const defaultLatitude = -23.5505;
-    const defaultLongitude = -46.6333;
+    // Default coordinates (São Paulo)
+    let latitude = -23.5505;
+    let longitude = -46.6333;
     const defaultRadius = 50; // 50km radius
 
-    // Fetch providers from API
-    // Note: API requires coordinates. We are passing default coordinates for now 
-    // but preserving query structure for future implementation.
+    // Attempt to geocode if city is provided
+    if (cityFilter) {
+        const location = await geocodeCity(cityFilter);
+        if (location) {
+            console.log(`Geocoded '${cityFilter}' to ${location.latitude}, ${location.longitude}`);
+            latitude = location.latitude;
+            longitude = location.longitude;
+        } else {
+            console.warn(`Could not geocode '${cityFilter}', using default location.`);
+        }
+    }
+
+    // Fetch providers from API using dynamic or default coordinates
     const { data, error } = await apiProvidersGet3({
         query: {
-            latitude: defaultLatitude,
-            longitude: defaultLongitude,
+            latitude,
+            longitude,
             radiusInKm: defaultRadius,
             page: 1,
             pageSize: 20,
@@ -39,7 +48,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     });
 
     if (error) {
-        throw new Error(`Failed to fetch providers: ${error.detail || error.title || 'Unknown error'}`);
+        console.error("SearchPage: Failed to fetch providers", error);
+        throw new Error('Failed to fetch providers. Please try again later.');
     }
 
     // Map API DTOs to application types

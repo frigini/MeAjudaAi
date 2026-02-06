@@ -5,7 +5,8 @@ export default auth((req) => {
     const isOnProfile = req.nextUrl.pathname.startsWith("/perfil")
 
     if (isOnProfile && !isLoggedIn) {
-        return Response.redirect(new URL("/api/auth/signin", req.nextUrl))
+        const callbackUrl = encodeURIComponent(req.nextUrl.pathname + req.nextUrl.search);
+        return Response.redirect(new URL(`/api/auth/signin?callbackUrl=${callbackUrl}`, req.nextUrl))
     }
 })
 

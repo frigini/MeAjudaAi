@@ -41,7 +41,6 @@ export function UserMenu() {
                     <Avatar
                         src={session?.user?.image}
                         alt={session?.user?.name || "User"}
-                        fallback={session?.user?.name?.[0]}
                     />
                 </Button>
             </DropdownMenuTrigger>
@@ -62,7 +61,7 @@ export function UserMenu() {
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => signOut()}>
+                <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Sair</span>
                 </DropdownMenuItem>

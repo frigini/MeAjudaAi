@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { apiProvidersGet2 } from "@/lib/api/generated";
+import { Rating } from "@/components/ui/rating";
+import { ReviewList } from "@/components/reviews/review-list";
+import { ReviewForm } from "@/components/reviews/review-form"; // Import Form
 
 interface ProviderProfilePageProps {
     params: Promise<{
@@ -36,10 +38,14 @@ export default async function ProviderProfilePage({
     // Display name: fantasy name or legal name or "Prestador"
     const displayName = businessProfile?.fantasyName || businessProfile?.legalName || provider.name || "Prestador";
 
+    // Mock rating for display until API supports it
+    const mockRating = 4.8;
+    const mockReviewCount = 12;
+
     return (
         <div className="container mx-auto px-4 py-8">
             {/* Provider Header */}
-            <Card padding="lg" className="mb-8">
+            <Card className="mb-8 p-6">
                 <div className="flex flex-col md:flex-row items-start gap-6">
                     <Avatar
                         src={null}
@@ -53,20 +59,13 @@ export default async function ProviderProfilePage({
                             {displayName}
                         </h1>
 
-                        {/* TODO: Add rating when available in API */}
-                        {/* <div className="flex items-center gap-2 mt-2">
-                            <Rating value={0} size="md" showValue />
+                        <div className="flex items-center gap-2 mt-2">
+                            <Rating value={Math.round(mockRating)} readOnly size="md" />
+                            <span className="font-medium text-foreground">{mockRating}</span>
                             <span className="text-foreground-subtle">
-                                (0 avaliações)
+                                ({mockReviewCount} avaliações)
                             </span>
-                        </div> */}
-
-                        {/* TODO: Add services when available */}
-                        {/* <div className="flex flex-wrap gap-2 mt-4">
-                            <span className="text-foreground-subtle">
-                                Nenhum serviço cadastrado
-                            </span>
-                        </div> */}
+                        </div>
 
                         {/* Location */}
                         {address && (address.city || address.state) && (
@@ -83,7 +82,7 @@ export default async function ProviderProfilePage({
                         {/* Contact Buttons */}
                         <div className="flex flex-wrap gap-3 mt-6">
                             {contactInfo?.email && (
-                                <Button variant="primary" size="md" asChild>
+                                <Button size="lg" asChild>
                                     <a href={`mailto:${contactInfo.email}`}>
                                         <Mail className="mr-2 size-4" />
                                         Enviar mensagem
@@ -91,7 +90,7 @@ export default async function ProviderProfilePage({
                                 </Button>
                             )}
                             {contactInfo?.phoneNumber && (
-                                <Button variant="outline" size="md" asChild>
+                                <Button variant="outline" size="lg" asChild>
                                     <a href={`tel:${contactInfo.phoneNumber}`}>
                                         <Phone className="mr-2 size-4" />
                                         Ligar
@@ -105,23 +104,22 @@ export default async function ProviderProfilePage({
 
             {/* About Section */}
             {businessProfile?.description && (
-                <Card padding="lg" className="mb-8">
+                <Card className="mb-8 p-6">
                     <h2 className="text-2xl font-bold text-foreground mb-4">Sobre</h2>
-                    <p className="text-foreground-subtle whitespace-pre-wrap">
+                    <p className="text-foreground-subtle whitespace-pre-wrap leading-relaxed">
                         {businessProfile.description}
                     </p>
                 </Card>
             )}
 
             {/* Reviews Section */}
-            <Card padding="lg">
+            <Card className="p-6">
                 <h2 className="text-2xl font-bold text-foreground mb-6">Avaliações</h2>
 
-                {/* TODO: Implement reviews API integration */}
-                <div className="text-center py-8">
-                    <p className="text-foreground-subtle">
-                        Nenhuma avaliação ainda.
-                    </p>
+                <ReviewForm providerId={id} />
+
+                <div className="mt-8">
+                    <ReviewList providerId={id} />
                 </div>
             </Card>
         </div>
