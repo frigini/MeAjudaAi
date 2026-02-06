@@ -48,7 +48,7 @@ O Customer Web App é a interface pública da plataforma MeAjudaAi, construída 
 - **Custom components** - Design system baseado no Figma
 
 ### Authentication
-- **NextAuth.js v5** - Authentication via Keycloak OIDC (planejado)
+- **Auth.js v5** - Authentication via Keycloak OIDC (planejado)
 
 ---
 
@@ -171,16 +171,19 @@ npm run lint
 Crie `.env.local`:
 
 ```bash
+# ⚠️ NUNCA COMMITE ESTE ARQUIVO — está no .gitignore
+# Secrets devem permanecer apenas locais ou em variáveis de ambiente seguras
+
 # API Backend
 NEXT_PUBLIC_API_URL=http://localhost:7524
 
-# NextAuth.js (quando implementado)
+# Auth.js (quando implementado)
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-secret-here
+NEXTAUTH_SECRET=your-secret-here  # Gere com: openssl rand -base64 32
 
 # Keycloak
 KEYCLOAK_CLIENT_ID=meajudaai-customer
-KEYCLOAK_CLIENT_SECRET=your-secret
+KEYCLOAK_CLIENT_SECRET=your-secret  # Obtido do Keycloak Admin Console
 KEYCLOAK_ISSUER=http://localhost:8080/realms/meajudaai
 ```
 
@@ -240,6 +243,11 @@ export async function searchProviders(query: string): Promise<ProviderDto[]> {
     headers,
     body: JSON.stringify({ query })
   });
+  
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+  
   return response.json();
 }
 ```
@@ -253,7 +261,7 @@ export async function searchProviders(query: string): Promise<ProviderDto[]> {
 ```typescript
 // app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth";
-import KeycloakProvider from "next-auth/providers/keycloak";
+import KeycloakProvider from "@auth/core/providers/keycloak";
 
 export const authOptions = {
   providers: [
@@ -408,5 +416,5 @@ _ = builder.AddJavaScriptApp("customer-web", customerWebPath)
 - [Next.js 15 Documentation](https://nextjs.org/docs)
 - [React 19 Documentation](https://react.dev/)
 - [Tailwind CSS v4](https://tailwindcss.com/docs)
-- [NextAuth.js v5](https://next-auth.js.org/)
+- [Auth.js v5](https://authjs.dev/getting-started/installation/nextjs)
 - [Aspire for JavaScript Developers](https://devblogs.microsoft.com/aspire/aspire-for-javascript-developers/)

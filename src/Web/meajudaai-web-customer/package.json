@@ -6,9 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate:api": "openapi-ts",
+    "generate:api:watch": "openapi-ts --watch"
   },
   "dependencies": {
+    "@hey-api/client-fetch": "^0.13.1",
+    "@hey-api/openapi-ts": "^0.92.3",
+    "@tanstack/react-query": "^5.90.20",
     "clsx": "^2.1.1",
     "lucide-react": "^0.469.0",
     "next": "15.1.6",
@@ -18,11 +23,12 @@
     "react-hook-form": "^7.54.2",
     "tailwind-merge": "^2.6.0",
     "tailwind-variants": "^0.3.0",
-    "zod": "^3.24.1"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@hookform/resolvers": "^3.9.1",
     "@tailwindcss/postcss": "^4.0.0",
+    "@tanstack/react-query-devtools": "^5.91.3",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
