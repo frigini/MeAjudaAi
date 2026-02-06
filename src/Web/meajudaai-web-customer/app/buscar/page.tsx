@@ -1,57 +1,8 @@
 import { Search } from "lucide-react";
-import { ProviderGrid } from "@/components/providers/provider-grid";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import type { ProviderDto } from "@/types/api/provider";
-
-// Mock data for demonstration (will be replaced with API call)
-const mockProviders: ProviderDto[] = [
-    {
-        id: "1",
-        name: "José Silva",
-        email: "jose@example.com",
-        avatarUrl: null,
-        averageRating: 4.5,
-        reviewCount: 12,
-        services: [
-            { id: "1", name: "Pedreiro", category: "Construção" },
-            { id: "2", name: "Pintura", category: "Construção" },
-        ],
-        city: "São Paulo",
-        state: "SP",
-        providerType: "Individual",
-    },
-    {
-        id: "2",
-        name: "Maria Santos",
-        email: "maria@example.com",
-        avatarUrl: null,
-        averageRating: 5.0,
-        reviewCount: 8,
-        services: [
-            { id: "3", name: "Eletricista", category: "Elétrica" },
-        ],
-        city: "Rio de Janeiro",
-        state: "RJ",
-        providerType: "Individual",
-    },
-    {
-        id: "3",
-        name: "TechFix Informática",
-        email: "contato@techfix.com",
-        avatarUrl: null,
-        averageRating: 4.8,
-        reviewCount: 25,
-        services: [
-            { id: "4", name: "Manutenção de Computadores", category: "Informática" },
-            { id: "5", name: "Instalação de Redes", category: "Informática" },
-            { id: "6", name: "Suporte Técnico", category: "Informática" },
-        ],
-        city: "Belo Horizonte",
-        state: "MG",
-        providerType: "Company",
-    },
-];
+import { ProviderCard } from "@/components/providers/provider-card";
+import { apiProvidersGet3 } from "@/lib/api/generated";
+import { mapSearchableProviderToProvider } from "@/lib/api/mappers";
 
 interface SearchPageProps {
     searchParams: Promise<{
@@ -62,18 +13,39 @@ interface SearchPageProps {
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
     const { q, city } = await searchParams;
-    const query = q || "";
+    const searchQuery = q || "";
     const cityFilter = city || "";
 
-    // TODO: Replace with actual API call
-    const providers = mockProviders;
+    // TODO: Implement geocoding to convert city name to coordinates
+    // For now, using São Paulo coordinates as default
+    const defaultLatitude = -23.5505;
+    const defaultLongitude = -46.6333;
+    const defaultRadius = 50; // 50km radius
+
+    // Fetch providers from API
+    const { data, error } = await apiProvidersGet3({
+        query: {
+            latitude: defaultLatitude,
+            longitude: defaultLongitude,
+            radiusInKm: defaultRadius,
+            page: 1,
+            pageSize: 20,
+        },
+    });
+
+    if (error) {
+        throw new Error('Failed to fetch providers');
+    }
+
+    // Map API DTOs to application types
+    const providers = (data?.items || []).map(mapSearchableProviderToProvider);
 
     return (
         <div className="container mx-auto px-4 py-8">
             {/* Search Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-foreground mb-6">
-                    {query ? `Resultados para "${query}"` : "Buscar Prestadores"}
+                    {searchQuery ? `Resultados para "${searchQuery}"` : "Buscar Prestadores"}
                 </h1>
 
                 {/* Search Form */}
@@ -85,7 +57,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                                 name="q"
                                 type="search"
                                 placeholder="Buscar serviço..."
-                                defaultValue={query}
+                                defaultValue={searchQuery}
                                 className="w-full pl-10 pr-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
                             />
                         </div>
@@ -108,13 +80,29 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             {/* Results Count */}
             <div className="mb-6">
                 <p className="text-foreground-subtle">
-                    {providers.length}{" "}
-                    {providers.length === 1 ? "prestador encontrado" : "prestadores encontrados"}
+                    {providers.length} prestador{providers.length !== 1 ? 'es' : ''} encontrado{providers.length !== 1 ? 's' : ''}
+                    {cityFilter && ` em ${cityFilter}`}
                 </p>
             </div>
 
             {/* Provider Grid */}
-            <ProviderGrid providers={providers} />
+            {providers.length > 0 ? (
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {providers.map((provider) => (
+                        <ProviderCard key={provider.id} provider={provider} />
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-16">
+                    <Search className="mx-auto mb-4 h-16 w-16 text-foreground-subtle" />
+                    <h3 className="text-xl font-semibold text-foreground mb-2">
+                        Nenhum prestador encontrado
+                    </h3>
+                    <p className="text-foreground-subtle">
+                        Tente ajustar os filtros de busca ou buscar por outro serviço.
+                    </p>
+                </div>
+            )}
         </div>
     );
 }

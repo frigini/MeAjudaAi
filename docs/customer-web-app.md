@@ -175,11 +175,12 @@ Crie `.env.local`:
 # Secrets devem permanecer apenas locais ou em variáveis de ambiente seguras
 
 # API Backend
-NEXT_PUBLIC_API_URL=http://localhost:7524
+NEXT_PUBLIC_API_URL=http://localhost:7002
 
-# Auth.js (quando implementado)
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-secret-here  # Gere com: openssl rand -base64 32
+# Auth.js v5 (quando implementado)
+AUTH_URL=http://localhost:3000
+AUTH_SECRET=your-secret-here  # Gere com: openssl rand -base64 32
+# Nota: NEXTAUTH_URL e NEXTAUTH_SECRET permanecem como aliases para compatibilidade
 
 # Keycloak
 KEYCLOAK_CLIENT_ID=meajudaai-customer
@@ -191,30 +192,35 @@ KEYCLOAK_ISSUER=http://localhost:8080/realms/meajudaai
 
 ## 🔗 Integração com Backend
 
-### OpenAPI TypeScript Generator (Planejado)
+### OpenAPI TypeScript Generator
 
-Tipos TypeScript serão gerados automaticamente do backend .NET:
+Tipos TypeScript são gerados automaticamente do backend .NET usando `@hey-api/openapi-ts`:
 
 ```bash
 # Gerar tipos do OpenAPI spec
-npx openapi-typescript-codegen \
-  --input http://localhost:7524/swagger/v1/swagger.json \
-  --output ./types/api/generated \
-  --client fetch
+npm run generate:api
+
+# Ou manualmente:
+npx @hey-api/openapi-ts
 ```
+
+**Configuração** ([openapi-ts.config.ts](../src/Web/meajudaai-web-customer/openapi-ts.config.ts)):
+- **Input**: `http://localhost:7002/api-docs/v1/swagger.json`
+- **Output**: `./lib/api/generated`
+- **Plugins**: `@tanstack/react-query`, `zod`
 
 **Resultado**:
 ```typescript
-// types/api/generated/models/ProviderDto.ts
-export type ProviderDto = {
-  id: string;
-  name: string;
-  email: string;
-  averageRating: number;
-  reviewCount: number;
-  services: ServiceDto[];
-  city: string;
-  state: string;
+// lib/api/generated/types.gen.ts
+export type MeAjudaAiModulesProvidersApplicationDtosProviderDto = {
+  id?: string;
+  name?: string | null;
+  email?: string | null;
+  averageRating?: number;
+  reviewCount?: number;
+  services?: Array<ServiceDto> | null;
+  city?: string | null;
+  state?: string | null;
   // ... auto-generated from C# DTOs
 }
 ```
@@ -223,20 +229,20 @@ export type ProviderDto = {
 
 ```typescript
 // lib/api/providers.ts
-import { getSession } from "next-auth/react";
-import type { ProviderDto } from "@/types/api/generated";
+import { auth } from "@/auth"; // Auth.js v5
+import type { MeAjudaAiModulesProvidersApplicationDtosProviderDto } from "@/lib/api/generated";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 async function getAuthHeaders() {
-  const session = await getSession();
+  const session = await auth(); // Auth.js v5 API
   return {
     "Authorization": `Bearer ${session?.accessToken}`,
     "Content-Type": "application/json"
   };
 }
 
-export async function searchProviders(query: string): Promise<ProviderDto[]> {
+export async function searchProviders(query: string): Promise<MeAjudaAiModulesProvidersApplicationDtosProviderDto[]> {
   const headers = await getAuthHeaders();
   const response = await fetch(`${API_BASE_URL}/api/providers/search`, {
     method: "POST",
@@ -256,16 +262,16 @@ export async function searchProviders(query: string): Promise<ProviderDto[]> {
 
 ## 🔐 Autenticação (Planejado)
 
-### NextAuth.js + Keycloak
+### Auth.js v5 + Keycloak
 
 ```typescript
-// app/api/auth/[...nextauth]/route.ts
+// auth.ts (Auth.js v5 API)
 import NextAuth from "next-auth";
-import KeycloakProvider from "@auth/core/providers/keycloak";
+import Keycloak from "next-auth/providers/keycloak";
 
-export const authOptions = {
+export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
-    KeycloakProvider({
+    Keycloak({
       clientId: process.env.KEYCLOAK_CLIENT_ID!,
       clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
       issuer: process.env.KEYCLOAK_ISSUER,
@@ -279,21 +285,27 @@ export const authOptions = {
       return token;
     },
     async session({ session, token }) {
-      session.accessToken = token.accessToken;
+      session.accessToken = token.accessToken as string;
       return session;
     }
   }
-};
+});
 
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+// app/api/auth/[...nextauth]/route.ts
+export { handlers as GET, handlers as POST } from "@/auth";
 ```
 
 ### Protected Routes
 
 ```typescript
-// middleware.ts
-export { default } from "next-auth/middleware";
+// middleware.ts (Auth.js v5)
+import { auth } from "@/auth";
+
+export default auth((req) => {
+  if (!req.auth && req.nextUrl.pathname.startsWith("/perfil")) {
+    return Response.redirect(new URL("/login", req.url));
+  }
+});
 
 export const config = {
   matcher: ["/perfil/:path*", "/prestador/editar/:path*"]
