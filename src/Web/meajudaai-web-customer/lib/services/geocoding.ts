@@ -21,11 +21,15 @@ export async function geocodeCity(query: string): Promise<GeocodingResult | null
 
         if (data && data.length > 0) {
             const firstMatch = data[0];
-            if (firstMatch.latitude !== undefined && firstMatch.longitude !== undefined) {
+            if (
+                firstMatch &&
+                firstMatch.latitude != null &&
+                firstMatch.longitude != null
+            ) {
                 return {
                     latitude: firstMatch.latitude,
                     longitude: firstMatch.longitude,
-                    displayName: firstMatch.displayName || query
+                    displayName: firstMatch.displayName || query,
                 };
             }
         }

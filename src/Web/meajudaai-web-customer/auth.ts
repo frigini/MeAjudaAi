@@ -45,7 +45,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }),
     ],
     callbacks: {
-        async jwt({ token, account, profile }: any) {
+        async jwt({ token, account, profile }) {
             // Initial sign in
             if (account && profile) {
                 return {
@@ -64,7 +64,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             // Access token has expired, try to update it
             return refreshAccessToken(token)
         },
-        async session({ session, token }: any) {
+        async session({ session, token }) {
             if (token?.accessToken) {
                 session.accessToken = token.accessToken
             }

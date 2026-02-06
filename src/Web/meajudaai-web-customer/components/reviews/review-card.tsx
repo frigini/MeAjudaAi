@@ -19,12 +19,14 @@ interface ReviewCardProps {
 
 export function ReviewCard({ review }: ReviewCardProps) {
     // Get initials for avatar fallback
-    const initials = review.authorName
+    const initials = (review.authorName || "")
+        .trim()
         .split(" ")
-        .map((n) => n[0])
+        .filter(Boolean)
+        .map((n) => n[0] || "")
         .slice(0, 2)
         .join("")
-        .toUpperCase();
+        .toUpperCase() || "?";
 
     return (
         <Card className="mb-4">

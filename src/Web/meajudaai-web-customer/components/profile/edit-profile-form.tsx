@@ -18,29 +18,24 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { getAuthHeaders } from "@/lib/api/auth-headers";
 
 // Schema validation
 const profileSchema = z.object({
     firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
     lastName: z.string().min(2, "Sobrenome deve ter pelo menos 2 caracteres"),
     email: z.string().email("Email inválido"),
-    phoneNumber: z.string().optional(),
+    phoneNumber: z.string().regex(/^\(\d{2}\)\s?\d{4,5}-\d{4}$/, "Formato inválido (ex: (11) 99999-9999)").optional().or(z.literal("")),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 interface EditProfileFormProps {
     userId: string;
-    initialData: {
-        firstName?: string | null;
-        lastName?: string | null;
-        email?: string | null;
-        phoneNumber?: string | null;
-    };
+    initialData: Partial<ProfileFormValues>;
 }
 
 export function EditProfileForm({ userId, initialData }: EditProfileFormProps) {
-    // const { toast } = useToast(); // Deprecated
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
 
@@ -57,6 +52,7 @@ export function EditProfileForm({ userId, initialData }: EditProfileFormProps) {
     async function onSubmit(data: ProfileFormValues) {
         setIsLoading(true);
         try {
+            const headers = await getAuthHeaders();
             const { error } = await apiProfilePut({
                 path: { id: userId },
                 body: {
@@ -65,22 +61,20 @@ export function EditProfileForm({ userId, initialData }: EditProfileFormProps) {
                     email: data.email,
                     phoneNumber: data.phoneNumber || null,
                 },
+                headers: headers
             });
 
             if (error) {
                 console.error("Profile update error:", error);
-                toast.error("Erro ao atualizar perfil", {
-                    description: "Não foi possível salvar as alterações. Tente novamente.",
-                });
+                toast.error("Erro ao atualizar perfil");
                 return;
             }
 
-            toast.success("Perfil atualizado", {
-                description: "Suas informações foram salvas com sucesso.",
-            });
+            toast.success("Perfil atualizado com sucesso!");
 
-            router.push("/perfil");
+            // Refresh to ensure data is consistent and redirect
             router.refresh();
+            router.replace("/perfil");
         } catch (error) {
             console.error("Profile update exception:", error);
             toast.error("Erro inesperado", {

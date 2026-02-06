@@ -13,6 +13,12 @@ interface RatingProps {
     size?: "sm" | "md" | "lg"
 }
 
+const sizeClasses = {
+    sm: "w-3 h-3",
+    md: "w-4 h-4",
+    lg: "w-6 h-6",
+}
+
 export function Rating({
     value,
     max = 5,
@@ -22,12 +28,6 @@ export function Rating({
     size = "md",
 }: RatingProps) {
     const [hoverValue, setHoverValue] = useState<number | null>(null)
-
-    const sizeClasses = {
-        sm: "w-3 h-3",
-        md: "w-4 h-4",
-        lg: "w-6 h-6",
-    }
 
     const handleMouseEnter = (index: number) => {
         if (!readOnly) {
@@ -65,7 +65,7 @@ export function Rating({
                         onMouseEnter={() => handleMouseEnter(index)}
                         onMouseLeave={handleMouseLeave}
                         disabled={readOnly}
-                        aria-label={`${index} stars`}
+                        aria-label={`${index} ${index === 1 ? 'star' : 'stars'}`}
                     >
                         <Star
                             className={cn(

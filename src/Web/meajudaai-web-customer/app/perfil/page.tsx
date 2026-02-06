@@ -1,6 +1,5 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { AppProviders } from "@/components/providers/app-providers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiUsersGet2 } from "@/lib/api/generated";
@@ -30,7 +29,12 @@ export default async function ProfilePage() {
             headers: headers
         });
 
-        user = (response.data as any)?.result;
+        if (response.error || !(response.data as any)?.result) {
+            console.error("API Error:", response.error);
+            error = "Não foi possível carregar os dados do perfil.";
+        } else {
+            user = (response.data as any)?.result;
+        }
     } catch (e) {
         console.error("Failed to fetch user profile", e);
         error = "Não foi possível carregar os dados do perfil.";
@@ -80,13 +84,11 @@ export default async function ProfilePage() {
                             <p className="font-medium text-lg">{user?.email || session.user.email}</p>
                         </div>
 
-                        {/* Phone isn't in default session but is in API */}
                         <div className="space-y-1">
                             <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                                 <Phone className="size-4" /> Telefone
                             </h4>
-                            <p className="font-medium text-lg">{/*user?.phoneNumber ||*/ "Não informado"}</p>
-                            {/* Note: I need to check if user DTO has phoneNumber. It likely does based on types. */}
+                            <p className="font-medium text-lg">{"Não informado"}</p>
                         </div>
 
                         <div className="space-y-1">

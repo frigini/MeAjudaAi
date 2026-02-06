@@ -21,7 +21,6 @@ const generateMockReviews = (count: number): Review[] => {
 
 export function ReviewList({ providerId }: ReviewListProps) {
     const [reviews, setReviews] = useState<Review[]>(generateMockReviews(3));
-    const [page, setPage] = useState(1);
 
     const loadMore = () => {
         // Mock loading more
@@ -30,7 +29,6 @@ export function ReviewList({ providerId }: ReviewListProps) {
             id: `review-${reviews.length + parseInt(r.id.split('-')[1])}`
         }));
         setReviews([...reviews, ...newReviews]);
-        setPage(page + 1);
     };
 
     return (

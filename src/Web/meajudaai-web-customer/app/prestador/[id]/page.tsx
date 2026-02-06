@@ -6,7 +6,7 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import { apiProvidersGet2 } from "@/lib/api/generated";
 import { Rating } from "@/components/ui/rating";
 import { ReviewList } from "@/components/reviews/review-list";
-import { ReviewForm } from "@/components/reviews/review-form"; // Import Form
+import { ReviewForm } from "@/components/reviews/review-form";
 
 interface ProviderProfilePageProps {
     params: Promise<{
