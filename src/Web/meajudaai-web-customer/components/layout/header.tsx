@@ -1,6 +1,7 @@
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
+import { UserMenu } from "./user-menu";
 
 export interface HeaderProps {
     className?: string;
@@ -28,14 +29,7 @@ export function Header({ className }: HeaderProps) {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-3">
-                    <Button variant="outline" size="sm">
-                        Cadastre-se grátis
-                    </Button>
-                    <Button variant="secondary" size="sm">
-                        Login
-                    </Button>
-                </div>
+                <UserMenu />
             </div>
         </header>
     );

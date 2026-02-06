@@ -2,11 +2,12 @@ import { Card } from '@/components/ui/card';
 
 export default function Loading() {
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8" role="status" aria-label="Carregando resultados da busca">
             {/* Search Header Skeleton */}
             <div className="mb-8">
                 <div className="h-8 w-64 animate-pulse rounded bg-surface-raised" />
-                <div className="mt-2 h-4 w-96 animate-pulse rounded bg-surface-raised" />
+                {/* Responsive width: w-full with max-width on mobile, fixed width on sm+ screens */}
+                <div className="mt-2 h-4 w-full max-w-[384px] sm:w-96 animate-pulse rounded bg-surface-raised" />
             </div>
 
             {/* Provider Grid Skeleton */}

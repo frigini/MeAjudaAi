@@ -11,8 +11,10 @@
     "generate:api:watch": "openapi-ts --watch"
   },
   "dependencies": {
+    "@auth/core": "^0.37.2",
     "@hey-api/client-fetch": "^0.13.1",
     "@hey-api/openapi-ts": "^0.92.3",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@tanstack/react-query": "^5.90.20",
     "clsx": "^2.1.1",
     "lucide-react": "^0.469.0",

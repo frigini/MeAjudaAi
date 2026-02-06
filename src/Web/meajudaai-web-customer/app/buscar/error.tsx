@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 
@@ -11,6 +12,8 @@ export default function SearchError({
     error: Error & { digest?: string };
     reset: () => void;
 }) {
+    const router = useRouter();
+
     useEffect(() => {
         console.error('Search error:', error);
     }, [error]);
@@ -28,7 +31,7 @@ export default function SearchError({
                 </p>
                 <div className="flex gap-4">
                     <Button onClick={() => reset()}>Tentar novamente</Button>
-                    <Button variant="outline" onClick={() => (window.location.href = '/')}>
+                    <Button variant="outline" onClick={() => router.push('/')}>
                         Voltar para home
                     </Button>
                 </div>

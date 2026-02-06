@@ -83,15 +83,19 @@ export default async function ProviderProfilePage({
                         {/* Contact Buttons */}
                         <div className="flex flex-wrap gap-3 mt-6">
                             {contactInfo?.email && (
-                                <Button variant="primary" size="md">
-                                    <Mail className="mr-2 size-4" />
-                                    Enviar mensagem
+                                <Button variant="primary" size="md" asChild>
+                                    <a href={`mailto:${contactInfo.email}`}>
+                                        <Mail className="mr-2 size-4" />
+                                        Enviar mensagem
+                                    </a>
                                 </Button>
                             )}
                             {contactInfo?.phoneNumber && (
-                                <Button variant="outline" size="md">
-                                    <Phone className="mr-2 size-4" />
-                                    Ligar
+                                <Button variant="outline" size="md" asChild>
+                                    <a href={`tel:${contactInfo.phoneNumber}`}>
+                                        <Phone className="mr-2 size-4" />
+                                        Ligar
+                                    </a>
                                 </Button>
                             )}
                         </div>

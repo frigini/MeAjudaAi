@@ -16,13 +16,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     const searchQuery = q || "";
     const cityFilter = city || "";
 
-    // TODO: Implement geocoding to convert city name to coordinates
-    // For now, using São Paulo coordinates as default
+    // TODO: Implement geocoding to convert city name to coordinates (Google Maps API / OpenStreetMap)
+    // Currently fallback to São Paulo coordinates
+    // When implemented: 
+    // const { lat, lng } = await geocodeCity(cityFilter);
     const defaultLatitude = -23.5505;
     const defaultLongitude = -46.6333;
     const defaultRadius = 50; // 50km radius
 
     // Fetch providers from API
+    // Note: API requires coordinates. We are passing default coordinates for now 
+    // but preserving query structure for future implementation.
     const { data, error } = await apiProvidersGet3({
         query: {
             latitude: defaultLatitude,
@@ -30,11 +34,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             radiusInKm: defaultRadius,
             page: 1,
             pageSize: 20,
+            // TODO: Map searchQuery (text) to serviceIds if possible, or request API update to support text query
         },
     });
 
     if (error) {
-        throw new Error('Failed to fetch providers');
+        throw new Error(`Failed to fetch providers: ${error.detail || error.title || 'Unknown error'}`);
     }
 
     // Map API DTOs to application types
@@ -88,8 +93,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             {/* Provider Grid */}
             {providers.length > 0 ? (
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {providers.map((provider) => (
-                        <ProviderCard key={provider.id} provider={provider} />
+                    {providers.map((provider, index) => (
+                        <ProviderCard
+                            key={`${provider.id || 'provider'}-${index}`}
+                            provider={provider}
+                        />
                     ))}
                 </div>
             ) : (
