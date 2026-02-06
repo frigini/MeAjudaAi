@@ -195,7 +195,7 @@
     <PackageVersion Include="Scrutor" Version="7.0.0" />
     <!-- System -->
     <PackageVersion Include="Azure.Storage.Common" Version="12.26.0" />
-    <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.1.0" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.1.2" />
     <!-- System.IO.Hashing: Version 9.0.10 required by Aspire.Hosting.Azure.AppContainers 13.0.2 -->
     <!-- Note: Azure.Storage.Common 12.25.0 depends on 8.0.0, but NuGet resolves to 9.0.10 via transitive lift -->
     <!-- This is acceptable as System.IO.Hashing maintains backward compatibility -->
