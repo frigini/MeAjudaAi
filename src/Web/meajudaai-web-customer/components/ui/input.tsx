@@ -1,6 +1,7 @@
 import { tv, type VariantProps } from "tailwind-variants";
 import { twMerge } from "tailwind-merge";
 import type { ComponentProps } from "react";
+import { useId } from "react";
 
 export const inputVariants = tv({
     base: [
@@ -33,14 +34,19 @@ export function Input({
     label,
     error,
     disabled,
+    id: providedId,
     ...props
 }: InputProps) {
+    const generatedId = useId();
+    const id = providedId || generatedId;
+
     return (
         <div className="flex flex-col gap-1.5">
             {label && (
-                <label className="text-sm font-medium text-foreground">{label}</label>
+                <label htmlFor={id} className="text-sm font-medium text-foreground">{label}</label>
             )}
             <input
+                id={id}
                 data-slot="input"
                 data-disabled={disabled ? "" : undefined}
                 className={twMerge(

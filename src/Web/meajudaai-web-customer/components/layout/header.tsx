@@ -1,5 +1,6 @@
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils/cn";
 
 export interface HeaderProps {
     className?: string;
@@ -7,7 +8,7 @@ export interface HeaderProps {
 
 export function Header({ className }: HeaderProps) {
     return (
-        <header className="sticky top-0 z-50 border-b border-border bg-white shadow-sm">
+        <header className={cn("sticky top-0 z-50 border-b border-border bg-white shadow-sm", className)}>
             <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 {/* Logo */}
                 <div className="flex items-center gap-2">

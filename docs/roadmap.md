@@ -3739,7 +3739,7 @@ Desenvolver aplicações frontend usando **Blazor WebAssembly** (Admin Portal) e
 | **Constants** | `Shared.Contracts/Constants/` | `lib/constants.ts` | Manual sync |
 
 **Generated Files Location**:
-```
+```text
 src/
 ├── Contracts/                       # Backend DTOs (C#)
 ├── Web/

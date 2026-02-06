@@ -19,7 +19,7 @@ export const buttonVariants = tv({
     size: {
       sm: "h-9 px-3 text-sm gap-1.5 [&_svg]:size-3.5",
       md: "h-11 px-4 text-base gap-2 [&_svg]:size-4",
-      lg: "h-13 px-6 text-lg gap-2.5 [&_svg]:size-5",
+      lg: "h-12 px-6 text-lg gap-2.5 [&_svg]:size-5",
     },
   },
   defaultVariants: { variant: "primary", size: "md" },

@@ -1,4 +1,5 @@
 import { Mail, Phone, Instagram } from "lucide-react";
+import { cn } from "@/lib/utils/cn";
 
 export interface FooterProps {
     className?: string;
@@ -6,7 +7,7 @@ export interface FooterProps {
 
 export function Footer({ className }: FooterProps) {
     return (
-        <footer className="bg-secondary text-white">
+        <footer className={cn("bg-secondary text-white", className)}>
             <div className="container mx-auto px-4 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {/* Missão */}
@@ -72,7 +73,7 @@ export function Footer({ className }: FooterProps) {
 
                         <div className="mt-6">
                             <p className="text-xs font-semibold mb-1">
-                                Acesse legal de privacidade de dados
+                                Política de Privacidade
                             </p>
                         </div>
                     </div>

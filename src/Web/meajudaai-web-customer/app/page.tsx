@@ -25,7 +25,8 @@ export default function HomePage() {
               <input
                 type="search"
                 placeholder="Buscar serviço..."
-                className="w-full pl-12 pr-4 py-4 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-secondary"
+                aria-label="Buscar serviço"
+                className="w-full pl-12 pr-24 py-4 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-secondary"
               />
               <Button
                 variant="primary"
