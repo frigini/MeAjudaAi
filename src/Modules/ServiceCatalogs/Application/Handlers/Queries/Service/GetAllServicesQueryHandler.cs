@@ -16,6 +16,11 @@ public sealed class GetAllServicesQueryHandler(IServiceRepository repository)
     {
         var services = await repository.GetAllAsync(request.ActiveOnly, cancellationToken);
 
+        if (!string.IsNullOrWhiteSpace(request.Name))
+        {
+            services = services.Where(s => s.Name.Contains(request.Name, StringComparison.InvariantCultureIgnoreCase)).ToList();
+        }
+
         var dtos = services.Select(s => s.ToListDto()).ToList();
 
         return Result<IReadOnlyList<ServiceListDto>>.Success(dtos);

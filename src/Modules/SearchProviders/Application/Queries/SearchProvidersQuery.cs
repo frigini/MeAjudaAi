@@ -15,6 +15,7 @@ public sealed record SearchProvidersQuery(
     double Latitude,
     double Longitude,
     double RadiusInKm,
+    string? Term = null,
     Guid[]? ServiceIds = null,
     decimal? MinRating = null,
     ESubscriptionTier[]? SubscriptionTiers = null,

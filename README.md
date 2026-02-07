@@ -102,7 +102,9 @@ O projeto foi organizado para facilitar navegação e manutenção:
 │   ├── Bootstrapper/   # API Service entry point
 │   ├── Modules/        # Módulos de domínio (DDD)
 │   ├── Shared/         # Contratos e abstrações
-│   └── Web/            # Admin Portal Blazor WASM
+│   └── Web/            # Aplicações Web
+│       ├── MeAjudaAi.Web.Admin/     # Admin Portal (Blazor WASM)
+│       └── meajudaai-web-customer/  # Customer Web App (Next.js 15)
 ├── 📁 tests/           # Testes automatizados (xUnit v3)
 └── 📁 tools/           # Ferramentas de desenvolvimento
     └── api-collections/  # Gerador Bruno/Postman collections
@@ -132,9 +134,10 @@ O projeto foi organizado para facilitar navegação e manutenção:
 **Pronto!** 🎉 Acesse os serviços em desenvolvimento:
 
 | Serviço | URL | Credenciais | Descrição |
-|---------|-----|-------------|-----------|
+|---------|-----|-------------|--------------|
 | **Aspire Dashboard** | https://localhost:17063/ | - | Orquestração e observabilidade |
 | **Admin Portal** | https://localhost:7032/ | admin.portal/admin123 | Portal administrativo Blazor |
+| **Customer Web App** | http://localhost:3000/ | - | Aplicação pública Next.js (clientes/prestadores) |
 | **API** | https://localhost:7524/swagger | - | API REST com Swagger UI |
 | **Keycloak** | http://localhost:8080/ | admin/[console logs] | Autenticação OAuth2/OIDC |
 | **PostgreSQL** | localhost:5432 | postgres/[gerada] | Banco de dados |
@@ -275,6 +278,77 @@ dotnet test tests/MeAjudaAi.Modules.Users.Tests/
 .\scripts\dev.ps1
 # Acessar: https://localhost:7032/
 ```
+
+---
+
+## 🌐 Customer Web App
+
+**Aplicação pública** Next.js 15 para clientes e prestadores de serviços.
+
+**Stack Tecnológico:**
+- ⚛️ **React 19** (Server + Client Components)
+- 🔄 **Next.js 15** (App Router, SSR/SSG)
+- 🎨 **Tailwind CSS v4** (Design System do Figma)
+- 🔐 **NextAuth.js v5** (Autenticação via Keycloak)
+- 📝 **TypeScript 5.7+** (Strict mode)
+- 🎯 **Tailwind Variants** (Component variants)
+- 🪝 **React Hook Form + Zod** (Formulários e validação)
+- 🎭 **Lucide React** (Ícones)
+
+**Funcionalidades Implementadas:**
+- ✅ Design System completo (cores do Figma: #355873 azul, #D06704 laranja)
+- ✅ Componentes base (Button, Card, Input, Badge, Rating, Avatar)
+- ✅ Layout (Header com busca, Footer com missão/visão/valores)
+- ✅ Home page (Hero, "Como funciona?", CTA prestadores)
+- ✅ Busca de prestadores (/buscar) com filtros
+- ✅ Perfil de prestador (/prestador/[id]) com avaliações
+- ✅ Integração com Aspire (orquestração automática)
+- ✅ Acessibilidade (ARIA labels, htmlFor/id associations)
+
+**Como Executar:**
+
+```powershell
+# Via Aspire (recomendado - inicia tudo automaticamente)
+.\scripts\dev.ps1
+# Acessar: http://localhost:3000/
+
+# Ou manualmente (apenas Next.js)
+cd src/Web/MeAjudaAi.Web.Customer
+npm install
+npm run dev
+```
+
+**Estrutura:**
+```text
+src/Web/meajudaai-web-customer/
+├── app/                    # Next.js App Router
+│   ├── layout.tsx          # Root layout (Header + Footer)
+│   ├── page.tsx            # Home page
+│   ├── buscar/             # Search page
+│   └── prestador/[id]/     # Provider profile
+├── components/
+│   ├── ui/                 # Base components (Button, Card, Input...)
+│   ├── layout/             # Header, Footer
+│   ├── providers/          # ProviderCard, ProviderGrid
+│   └── reviews/            # Review components
+├── lib/
+│   └── utils/              # Utilities (cn helper)
+├── types/
+│   └── api/                # TypeScript types (will be auto-generated)
+└── globals.css             # Tailwind v4 + Design tokens
+```
+
+**Próximos Passos:**
+- [ ] NextAuth.js + Keycloak integration
+- [ ] OpenAPI TypeScript generator (auto-generate types from backend)
+- [ ] API client with authentication
+- [ ] Protected routes
+- [ ] Edit profile page
+- [ ] Login/Cadastro pages
+
+👉 Detalhes: [docs/customer-web-app.md](docs/customer-web-app.md) *(a ser criado)*
+
+---
 
 📖 **Documentação**: [docs/architecture.md](docs/architecture.md) | [docs/modules/admin-portal.md](docs/modules/admin-portal.md)
 

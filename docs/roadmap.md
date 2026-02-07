@@ -7,9 +7,9 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ | Sprint 7-7.15 ✅ CONCLUÍDO | MVP Target: 31/Março/2026  
+**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ | Sprint 7-7.15 ✅ CONCLUÍDO | MVP Target: 14/Março/2026  
 **Cobertura de Testes**: Backend 90.56% | Frontend 30 testes bUnit  
-**Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MudBlazor 8.0 + Fluxor
+**Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM (Admin) + React 19 + Next.js 15 (Customer) + Tailwind v4
 
 ### Marcos Principais
 - ✅ **Janeiro 2025**: Fase 1 concluída - 6 módulos core implementados
@@ -37,10 +37,11 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **17-21 Jan 2026**: Sprint 7.16 - Technical Debt Sprint (CONCLUÍDO - Keycloak automation, warnings, tests, records)
 - ✅ **5 Fev 2026**: Sprint 7.20 - Dashboard Charts & Data Mapping Fixes (CONCLUÍDO - JSON property mapping, debug messages removed)
 - ✅ **5 Fev 2026**: Sprint 7.21 - Package Updates & Bug Fixes (CONCLUÍDO - Microsoft.OpenApi 2.6.1, Aspire.Hosting.Redis 13.1.0, SonarAnalyzer.CSharp 10.19.0)
-- ⏳ **22 Jan - 4 Fev 2026**: Sprint 8 - Customer App (Web + Mobile)
-- ⏳ **5-14 Fev 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
-- 🎯 **17 Fevereiro 2026**: MVP Launch (Admin Portal + Customer App)
-- 🔮 **Fevereiro 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
+- 🔄 **5-18 Fev 2026**: Sprint 8A - Customer Web App (React + Next.js) (EM ANDAMENTO)
+- ⏳ **19 Fev - 4 Mar 2026**: Sprint 8B - Mobile App (React Native + Expo)
+- ⏳ **5-11 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
+- 🎯 **14 Março 2026**: MVP Launch (Admin Portal + Customer App Web + Mobile)
+- 🔮 **Março 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
 
 ## ⚠️ Notas de Risco
 
@@ -52,7 +53,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 ## 🎯 Status Atual
 
-**📅 Sprint 7.14 conclusão**: 16 de Janeiro de 2026
+**📅 Sprint 8A em andamento**: Fevereiro de 2026
 
 ### ✅ Sprint 7.10 - Accessibility Features - CONCLUÍDA (16 Jan 2026)
 ### ✅ Sprint 7.11 - Error Boundaries - CONCLUÍDA (16 Jan 2026) 
@@ -1188,9 +1189,9 @@ private string GetProviderTypeDisplayName(ProviderType type)
 
 ---
 
-### 🔄 Sprint 7.16 - Technical Debt Sprint (17-21 Jan 2026)
+### ✅ Sprint 7.16 - Technical Debt Sprint (17-21 Jan 2026)
 
-**Status**: 🔄 EM PROGRESSO (17-21 Jan 2026)  
+**Status**: ✅ CONCLUÍDA (17-21 Jan 2026)  
 **Duração**: 1 semana (5 dias úteis)  
 **Objetivo**: Reduzir débito técnico ANTES de iniciar Customer App
 
@@ -1410,6 +1411,30 @@ Get-ChildItem -Recurse -Include *.cs | Select-String "record "
 - `fix(sprint-7.16): resolve all frontend analyzer warnings`
 - `test(sprint-7.16): increase bUnit coverage to 30-40 tests`
 - `refactor(sprint-7.16): standardize record usage across project`
+
+---
+
+### 🔄 Sprint 8A - Customer Web App (Em Andamento)
+
+**Status**: EM ANDAMENTO (5-18 Fev 2026)  
+**Foco**: Refinamento de Layout e UX (Home & Search)
+
+**Atividades Realizadas**:
+1. **Home Page Layout Refinement** ✅
+   - Restaurada seção "Como funciona?" (How It Works) após "Conheça o MeAjudaAí".
+   - Ajustado posicionamento para melhorar fluxo de conteúdo (Promessa -> Confiança -> Processo).
+   - Corrigidos warnings de imagens (aspect ratio, sizes).
+   - Ajustados espaçamentos e alinhamentos (Hero, City Search vertical center).
+
+2. **Search Page Layout & UX** ✅
+   - Removido limite de largura (`max-w-6xl`) para aproveitar tela cheia.
+   - Service Tags movidas para largura total, centralizadas em desktop.
+   - Mock de Service Tags atualizado para "Top 10 Serviços Populares" (Pedreiro, Eletricista, etc.).
+   - Melhorada experiência em mobile com scroll horizontal.
+
+**Próximos Passos**:
+- Integrar Service Tags com backend real (popularidade/regional).
+- Implementar filtros avançados.
 
 ---
 
@@ -1711,13 +1736,13 @@ public void LanguageSwitcher_Should_ChangeCulture()
 - ✅ **4 SDKs completos** para Admin Portal (IProvidersApi, IDocumentsApi, IServiceCatalogsApi, ILocationsApi)
 - ✅ **Documentação SDK** melhorada (conceito, arquitetura, exemplos práticos)
 
-**🔄 Próxima Etapa: Sprint 7 - Blazor Admin Portal Features** (6-24 Jan 2026)
-- CRUD completo de Providers (create, update, delete, verify)
-- Gestão de Documentos (upload, verificação, rejection)
-- Gestão de Service Catalogs (categorias + serviços)
-- Gestão de Restrições Geográficas (UI para AllowedCities)
-- Gráficos Dashboard (MudCharts - providers por status, evolução temporal)
-- Aumentar cobertura de testes (30+ testes bUnit)
+**✅ Próxima Etapa Concluída: Sprint 7 - Blazor Admin Portal Features** (6-7 Jan 2026)
+- ✅ CRUD completo de Providers (create, update, delete, verify)
+- ✅ Gestão de Documentos (upload, verificação, rejection)
+- ✅ Gestão de Service Catalogs (categorias + serviços)
+- ✅ Gestão de Restrições Geográficas (UI para AllowedCities)
+- ✅ Gráficos Dashboard (MudCharts - providers por status, evolução temporal)
+- ✅ Aumentar cobertura de testes (30+ testes bUnit)
 
 ---
 
@@ -3663,63 +3688,144 @@ gantt
 
 ## 🎨 Fase 2: Frontend & Experiência
 
-**Status**: ⏳ Em andamento (Jan–Mar 2026)
+**Status**: 🔄 Em andamento (Jan–Mar 2026)
 
 ### Objetivo
-Desenvolver aplicações frontend usando Blazor WebAssembly (Web) e MAUI Blazor Hybrid (Mobile), aproveitando fullstack .NET para máxima reutilização de código.
+Desenvolver aplicações frontend usando **Blazor WebAssembly** (Admin Portal) e **React + Next.js** (Customer Web App) + **React Native** (Mobile App).
 
-> **📅 Status Atual**: Sprint 6 concluída (5 Jan 2026)  
-> Próximo foco: Sprint 7 - Blazor Admin Portal Features.
+> **📅 Status Atual**: Sprint 7 concluída (7 Jan 2026), Sprint 7.16 concluída (21 Jan 2026), Sprint 7.20 concluída (5 Fev 2026), Sprint 7.21 concluída (5 Fev 2026)  
+> **📝 Decisão Técnica** (5 Fev 2026): Customer App usará **React 19 + Next.js 15 + Tailwind v4** (SEO, performance, ecosystem)  
+> Próximo foco: Sprint 8A - Customer Web App (React + Next.js).
 
 ---
 
-### 📱 Stack Tecnológico ATUALIZADA
+### 📱 Stack Tecnológico ATUALIZADO (5 Fev 2026)
 
-> **📝 Nota de Decisão Técnica** (Janeiro 2025):  
-> Stack de frontend atualizado de **React + TypeScript** para **Blazor WASM + MAUI Hybrid**.  
-> **Razão**: Maximizar reutilização de código entre web e mobile (70%+ de código compartilhado C#), melhor integração com ASP.NET Core Identity + Keycloak, e redução de complexidade DevOps (fullstack .NET). Ver justificativa completa abaixo.
+> **📝 Decisão Técnica** (5 Fevereiro 2026):  
+> Stack de Customer App definida como **React 19 + Next.js 15 + Tailwind CSS v4**.  
+> **Admin Portal** permanece em **Blazor WASM** (já implementado, interno, estável).  
+> **Razão**: SEO crítico para Customer App, performance inicial, ecosystem maduro, hiring facilitado.
 
-**Decisão Estratégica**: Blazor WASM + MAUI Hybrid (fullstack .NET)
+**Decisão Estratégica**: Dual Stack (Blazor para Admin, React para Customer)
 
 **Justificativa**:
-- ✅ **Compartilhamento de Código**: C# end-to-end, compartilhar DTOs, validators, business logic
-- ✅ **Integração com Identity**: Melhor integração nativa com ASP.NET Core Identity + Keycloak
-- ✅ **Performance**: AOT compilation no Blazor WASM (carregamento rápido)
-- ✅ **Mobile Nativo**: MAUI Blazor Hybrid permite usar APIs nativas do device
-- ✅ **Ecossistema**: Um único stack .NET reduz complexidade de DevOps
-- ✅ **Evolução**: Preparado para futuras features (notificações push, geolocalização nativa)
+- ✅ **SEO**: Customer App precisa aparecer no Google ("eletricista RJ") - Next.js SSR/SSG resolve
+- ✅ **Performance**: Initial load rápido crítico para conversão mobile - code splitting + lazy loading
+- ✅ **Ecosystem**: Massivo - geolocation, maps, payments, qualquer problema já resolvido
+- ✅ **Hiring**: Fácil escalar time - React devs abundantes vs Blazor devs raros
+- ✅ **Mobile**: React Native maduro e testado vs MAUI Hybrid ainda novo
+- ✅ **Modern Stack**: React 19 + Tailwind v4 é estado da arte (2026)
+- ⚠️ **Trade-off**: DTOs duplicados (C# backend, TS frontend) - mitigado com OpenAPI TypeScript Generator
 
 **Stack Completa**:
-- **Web Admin Portal**: Blazor WebAssembly (AOT enabled)
-- **Web Customer App**: Blazor WebAssembly (AOT enabled)
-- **Mobile Customer App**: .NET MAUI Blazor Hybrid (iOS + Android)
-- **UI Library**: MudBlazor (Material Design para Blazor)
-- **State Management**: Fluxor (Flux/Redux para Blazor)
-- **Auth**: Microsoft.AspNetCore.Components.WebAssembly.Authentication (OIDC)
-- **API Client**: Refit + HttpClientFactory
-- **Mapping**: AutoMapper compartilhado com backend
+
+**Admin Portal** (mantido):
+- Blazor WebAssembly 10.0 (AOT enabled)
+- MudBlazor 8.15.0 (Material Design)
+- Fluxor 6.9.0 (Redux state management)
+- Refit (API client)
+
+**Customer Web App** (novo):
+- React 19 (Server Components + Client Components)
+- Next.js 15 (App Router, SSR/SSG)
+- TypeScript 5.7+ (strict mode)
+- Tailwind CSS v4 (@theme, CSS variables)
+- Base UI React (@base-ui/react) - headless components
+- Zustand (client state) + TanStack Query v5 (server state)
+- React Hook Form + Zod (forms & validation)
+- Lucide React (icons)
+
+**Mobile Customer App** (novo):
+- React Native + Expo
+- Compartilha componentes com Customer Web App
+- Geolocalização nativa
+- Notificações push
+- Secure Storage para tokens
+
+
+**Shared**:
+- **OpenAPI TypeScript Generator**: Sincroniza tipos C# → TypeScript automaticamente
+  - **Tooling**: `openapi-typescript-codegen` ou `@hey-api/openapi-ts`
+  - **Trigger**: CI/CD job on `api/swagger/v1/swagger.json` changes
+  - **Output**: `MeAjudaAi.Web.Customer/types/api/generated/`
+  - **Versioning**: API versions `v1`, `v2` (breaking changes require version bump)
+  - **Breaking Change Gating**: OpenAPI diff in CI fails PR without version bump
+- Keycloak OIDC (autenticação unificada)
+- PostgreSQL (backend único)
+
+**Code Sharing Strategy (C# ↔ TypeScript)**:
+
+| Artifact | Backend Source | Frontend Output | Sync Method |
+|----------|----------------|-----------------|-------------|
+| **DTOs** | `Contracts/*.cs` | `types/api/*.ts` | OpenAPI Generator (auto) |
+| **Enums** | `Shared.Contracts/Enums/` | `types/enums.ts` | OpenAPI Generator (auto) |
+| **Validation** | FluentValidation | Zod schemas | Manual mapping (Sprint 8A) |
+| **Constants** | `Shared.Contracts/Constants/` | `lib/constants.ts` | Manual sync |
+
+**Generated Files Location**:
+```text
+src/
+├── Contracts/                       # Backend DTOs (C#)
+├── Web/
+│   ├── MeAjudaAi.Web.Admin/         # Blazor (consumes Contracts via Refit)
+│   └── MeAjudaAi.Web.Customer/      # Next.js
+│       └── types/api/generated/     # ← OpenAPI generated types
+└── Mobile/
+    └── MeAjudaAi.Mobile.Customer/   # React Native
+        └── src/types/api/           # ← Same OpenAPI generated types
+```
+
+**CI/CD Pipeline** (GitHub Actions):
+1. Backend changes → Swagger JSON updated
+2. OpenAPI diff check (breaking changes?)
+3. If breaking → Require API version bump (`v1` → `v2`)
+4. Generate TypeScript types
+5. Commit to `types/api/generated/` (auto-commit bot)
+6. Frontend tests run with new types
 
 ### 🗂️ Estrutura de Projetos Atualizada
 ```text
 src/
 ├── Web/
-│   ├── MeAjudaAi.Web.Admin/          # Blazor WASM Admin Portal
-│   ├── MeAjudaAi.Web.Customer/       # Blazor WASM Customer App
-│   └── MeAjudaAi.Web.Shared/         # Componentes compartilhados
+│   ├── MeAjudaAi.Web.Admin/          # Blazor WASM Admin Portal (existente)
+│   └── MeAjudaAi.Web.Customer/       # 🆕 Next.js Customer App (Sprint 8A)
 ├── Mobile/
-│   └── MeAjudaAi.Mobile/             # .NET MAUI Blazor Hybrid
+│   └── MeAudaJai.Mobile.Customer/    # 🆕 React Native + Expo (Sprint 8B)
 └── Shared/
-    ├── MeAjudaAi.Shared.DTOs/        # DTOs compartilhados (backend + frontend)
-    ├── MeAjudaAi.Shared.Validators/  # FluentValidation (backend + frontend)
-    └── MeAjudaAi.Shared.Contracts/   # Interfaces de API (Refit)
+    ├── MeAjudaAi.Shared.DTOs/        # DTOs C# (backend)
+    └── MeAjudaAi.Shared.Contracts/   # OpenAPI spec → TypeScript types
 ```
 
-### 🔐 Autenticação Atualizada
+### 🔐 Autenticação Unificada
+
+**Cross-Platform Authentication Consistency**:
+
+| Aspect | Admin (Blazor) | Customer Web (Next.js) | Customer Mobile (RN) |
+|--------|----------------|------------------------|----------------------|
+| **Token Storage** | In-memory | HTTP-only cookies | Secure Storage |
+| **Token Lifetime** | 1h access + 24h refresh | 1h access + 7d refresh | 1h access + 30d refresh |
+| **Refresh Strategy** | Automatic (OIDC lib) | Middleware refresh | Background refresh |
+| **Role Claims** | `role` claim | `role` claim | `role` claim |
+| **Logout** | `/bff/logout` | `/api/auth/signout` | Revoke + clear storage |
+
+**Keycloak Configuration**:
+- **Realm**: `MeAjudaAi`
+- **Clients**: `meajudaai-admin` (public), `meajudaai-customer` (public)
+- **Roles**: `admin`, `customer`, `provider`
+- **Token Format**: JWT (RS256)
+- **Token Lifetime**: Access 1h, Refresh 30d (configurable per client)
+
+**Implementation Details**:
 - **Protocolo**: OpenID Connect (OIDC)
 - **Identity Provider**: Keycloak
-- **Token Management**: `Microsoft.AspNetCore.Components.WebAssembly.Authentication`
-- **Storage**: Tokens em memória (WASM) + Secure Storage (MAUI)
+- **Admin Portal**: `Microsoft.AspNetCore.Components.WebAssembly.Authentication` (Blazor)
+- **Customer Web**: NextAuth.js v5 (Next.js)
+- **Customer Mobile**: React Native OIDC Client
 - **Refresh**: Automático via OIDC interceptor
+
+**Migration Guide**: See `docs/authentication-migration.md` (to be created Sprint 8A)
+
+
 
 ---
 
@@ -3794,9 +3900,11 @@ src/
 
 ---
 
-#### 🔜 Fase 2: Database-Backed + Admin Portal UI (PLANEJADO - Sprint 7+)
+#### ✅ Fase 2: Database-Backed + Admin Portal UI (CONCLUÍDO - Sprint 7, 7 Jan 2026)
 
 **Contexto**: Migrar lista de cidades/estados de `appsettings.json` para banco de dados, permitindo gestão dinâmica via Blazor Admin Portal sem necessidade de redeploy.
+
+**Status**: ✅ IMPLEMENTADO - AllowedCities UI completa com CRUD, coordenadas geográficas, e raio de serviço.
 
 **Arquitetura Proposta**:
 ```sql
@@ -4296,7 +4404,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - ✅ Segurança e performance hardened
 - ✅ Documentação completa para usuários e desenvolvedores
 - ✅ Monitoring e observabilidade configurados
-- 🎯 **PRONTO PARA LAUNCH EM 17 DE FEVEREIRO DE 2026**
+- 🎯 **PRONTO PARA LAUNCH EM 14 DE MARÇO DE 2026**
 
 > **⚠️ CRITICAL**: Se Sprint 9 não for suficiente para completar todos os itens, considerar delay do MVP launch ou reduzir escopo (mover features não-críticas para post-MVP). A qualidade e estabilidade do MVP são mais importantes que a data de lançamento.
 
@@ -4434,6 +4542,18 @@ public interface IBillingModuleApi : IModuleApi
 3. **VerificationScheduler**: Agendar verificações periódicas
 
 **Nota**: Infraestrutura básica já existe (campo OcrData, estados de verificação), falta implementar workers e integrações.
+
+---
+
+### 3.4. 🏷️ Dynamic Service Tags (Planejado - Fase 3)
+
+**Objetivo**: Exibir tags de serviços baseadas na popularidade real por região.
+
+**Funcionalidades**:
+- **Endpoint**: `GET /services/top-region?city=SP` (ou lat/lon)
+- **Lógica**: Calcular serviços com maior volume de buscas/contratações na região do usuário.
+- **Fallback**: Exibir "Top Globais" se dados regionais insuficientes.
+- **Cache**: TTL curto (ex: 1h) para manter relevância sem comprometer performance.
 
 ---
 
