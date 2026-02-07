@@ -42,10 +42,10 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             latitude,
             longitude,
             radiusInKm: defaultRadius,
+            term: searchQuery,
             page: 1,
             pageSize: 20,
-            // TODO: Map searchQuery to serviceIds or use text search when available in API
-        },
+        } as any,
     });
 
     if (error) {
@@ -108,7 +108,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
             {/* 4. Provider Grid */}
             {providers.length > 0 ? (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
+                <div className="grid gap-6 sm:grid-cols-2">
                     {gridItems.map((item, index) => {
                         if (item.type === 'ad') {
                             return <AdCard key={`ad-${index}`} />;

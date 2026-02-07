@@ -106,7 +106,7 @@ export default async function ProviderProfilePage({
                         </div>
                     </div>
                 </div>
-            </Card >
+            </Card>
 
             {/* About Section */}
             {
@@ -130,6 +130,6 @@ export default async function ProviderProfilePage({
                     <ReviewList providerId={id} />
                 </div>
             </Card>
-        </div >
+        </div>
     );
 }

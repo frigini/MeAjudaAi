@@ -37,6 +37,7 @@ public interface ISearchableProviderRepository
     Task<SearchResult> SearchAsync(
         GeoPoint location,
         double radiusInKm,
+        string? term = null,
         Guid[]? serviceIds = null,
         decimal? minRating = null,
         ESubscriptionTier[]? subscriptionTiers = null,

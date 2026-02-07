@@ -15,6 +15,18 @@ const PROVIDER_TYPE_MAP: Record<number, ProviderDto['providerType']> = {
     4: 'Freelancer',
 };
 
+// Mock de serviços para mapeamento visual
+// TODO: Remover quando a API retornar os nomes dos serviços
+const MOCK_SERVICES = [
+    "Pedreiro", "Eletricista", "Encanador", "Pintor",
+    "Jardineiro", "Montador de Móveis", "Faxina", "Marido de Aluguel"
+];
+
+function getMockServiceName(id: string): string {
+    const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return MOCK_SERVICES[hash % MOCK_SERVICES.length];
+}
+
 /**
  * Converte SearchableProviderDto (da API de busca) para ProviderDto (tipo da aplicação)
  */
@@ -32,9 +44,14 @@ export function mapSearchableProviderToProvider(
         averageRating: dto.averageRating ?? 0,
         // Mapeando totalReviews para reviewCount
         reviewCount: dto.totalReviews ?? 0,
-        // SearchableProviderDto retorna apenas serviceIds, não os detalhes completos
-        // TODO: Considerar buscar nomes dos serviços ou alterar a API para retornar nomes
-        services: [],
+        // SearchableProviderDto retorna apenas serviceIds
+        // Mapeando para nomes mockados baseados no ID para visualização
+        services: dto.serviceIds?.map(id => ({
+            id: id,
+            name: getMockServiceName(id),
+            description: '',
+            category: { id: '', name: 'Geral', description: '' }
+        })) ?? [],
         city: dto.city ?? '',
         state: dto.state ?? '',
         description: dto.description ?? undefined,

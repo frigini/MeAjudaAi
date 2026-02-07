@@ -65,6 +65,7 @@ public sealed class SearchableProviderRepository(
     public async Task<SearchResult> SearchAsync(
         GeoPoint location,
         double radiusInKm,
+        string? term = null,
         Guid[]? serviceIds = null,
         decimal? minRating = null,
         ESubscriptionTier[]? subscriptionTiers = null,
@@ -84,7 +85,7 @@ public sealed class SearchableProviderRepository(
         // Usar Dapper com PostGIS nativo para máxima performance espacial
         // ST_DWithin filtra por raio usando índice GIST
         // ST_Distance calcula distância exata em metros
-        var sql = BuildSpatialSearchSql(serviceIds, minRating, subscriptionTiers);
+        var sql = BuildSpatialSearchSql(term, serviceIds, minRating, subscriptionTiers);
 
         var results = await dapper.QueryAsync<ProviderSearchResultDto>(
             sql,
@@ -93,6 +94,7 @@ public sealed class SearchableProviderRepository(
                 Lat = location.Latitude,
                 Lng = location.Longitude,
                 RadiusMeters = radiusInKm * 1000, // Converter km para metros
+                Term = term != null ? $"%{term}%" : null,
                 ServiceIds = serviceIds,
                 MinRating = minRating,
                 Tiers = subscriptionTiers?.Select(t => (int)t).ToArray(),
@@ -104,7 +106,7 @@ public sealed class SearchableProviderRepository(
         var resultList = results.ToList();
 
         // Contar total antes da paginação (executar query de count separada)
-        var countSql = BuildSpatialCountSql(serviceIds, minRating, subscriptionTiers);
+        var countSql = BuildSpatialCountSql(term, serviceIds, minRating, subscriptionTiers);
         var totalCount = await dapper.QuerySingleOrDefaultAsync<int?>(
             countSql,
             new
@@ -112,6 +114,7 @@ public sealed class SearchableProviderRepository(
                 Lat = location.Latitude,
                 Lng = location.Longitude,
                 RadiusMeters = radiusInKm * 1000,
+                Term = term != null ? $"%{term}%" : null,
                 ServiceIds = serviceIds,
                 MinRating = minRating,
                 Tiers = subscriptionTiers?.Select(t => (int)t).ToArray()
@@ -129,10 +132,15 @@ public sealed class SearchableProviderRepository(
     }
 
     private static string BuildSpatialSearchSql(
+        string? term,
         Guid[]? serviceIds,
         decimal? minRating,
         ESubscriptionTier[]? subscriptionTiers)
     {
+        var termFilter = !string.IsNullOrWhiteSpace(term)
+            ? "AND (name ILIKE @Term OR description ILIKE @Term)"
+            : "";
+
         var serviceFilter = serviceIds?.Length > 0
             ? "AND service_ids && @ServiceIds"
             : "";
@@ -171,6 +179,7 @@ public sealed class SearchableProviderRepository(
                     ST_SetSRID(ST_MakePoint(@Lng, @Lat), 4326)::geography,
                     @RadiusMeters
                 )
+                {termFilter}
                 {serviceFilter}
                 {ratingFilter}
                 {tierFilter}
@@ -180,10 +189,15 @@ public sealed class SearchableProviderRepository(
     }
 
     private static string BuildSpatialCountSql(
+        string? term,
         Guid[]? serviceIds,
         decimal? minRating,
         ESubscriptionTier[]? subscriptionTiers)
     {
+        var termFilter = !string.IsNullOrWhiteSpace(term)
+            ? "AND (name ILIKE @Term OR description ILIKE @Term)"
+            : "";
+
         var serviceFilter = serviceIds?.Length > 0
             ? "AND service_ids && @ServiceIds"
             : "";
@@ -205,6 +219,7 @@ public sealed class SearchableProviderRepository(
                     ST_SetSRID(ST_MakePoint(@Lng, @Lat), 4326)::geography,
                     @RadiusMeters
                 )
+                {termFilter}
                 {serviceFilter}
                 {ratingFilter}
                 {tierFilter}
