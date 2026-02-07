@@ -40,7 +40,7 @@ export default async function ProviderProfilePage({
 
     // Mock rating for display until API supports it
     const mockRating = 4.8;
-    const mockReviewCount = 12;
+    const mockReviewCount: number = 12;
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -69,16 +69,15 @@ export default async function ProviderProfilePage({
                                 {mockReviewCount === 1 ? "avaliação" : "avaliações"})
                             </span>
                         </div> {/* Location */}
-                        {address && (address.city || address.state) && (
+
+                        {address && (address.city || address.state) ? (
                             <div className="flex items-center gap-2 mt-4 text-foreground-subtle">
                                 <MapPin className="size-4" />
                                 <span>
-                                    {address.city && address.state
-                                        ? `${address.city}, ${address.state}`
-                                        : address.city || address.state}
+                                    {[address.city, address.state].filter(Boolean).join(", ")}
                                 </span>
                             </div>
-                        )}
+                        ) : null}
 
                         {/* Contact Buttons */}
                         <div className="flex flex-wrap gap-3 mt-6">
@@ -101,17 +100,19 @@ export default async function ProviderProfilePage({
                         </div>
                     </div>
                 </div>
-            </Card>
+            </Card >
 
             {/* About Section */}
-            {businessProfile?.description && (
-                <Card className="mb-8 p-6">
-                    <h2 className="text-2xl font-bold text-foreground mb-4">Sobre</h2>
-                    <p className="text-foreground-subtle whitespace-pre-wrap leading-relaxed">
-                        {businessProfile.description}
-                    </p>
-                </Card>
-            )}
+            {
+                businessProfile?.description && (
+                    <Card className="mb-8 p-6">
+                        <h2 className="text-2xl font-bold text-foreground mb-4">Sobre</h2>
+                        <p className="text-foreground-subtle whitespace-pre-wrap leading-relaxed">
+                            {businessProfile.description}
+                        </p>
+                    </Card>
+                )
+            }
 
             {/* Reviews Section */}
             <Card className="p-6">
@@ -123,6 +124,6 @@ export default async function ProviderProfilePage({
                     <ReviewList providerId={id} />
                 </div>
             </Card>
-        </div>
+        </div >
     );
 }
