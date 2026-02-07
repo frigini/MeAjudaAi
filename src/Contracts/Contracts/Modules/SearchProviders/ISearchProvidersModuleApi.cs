@@ -15,6 +15,7 @@ public interface ISearchProvidersModuleApi : IModuleApi
     /// <param name="latitude">Latitude do ponto central da busca</param>
     /// <param name="longitude">Longitude do ponto central da busca</param>
     /// <param name="radiusInKm">Raio de busca em quilômetros</param>
+    /// <param name="term">Termo de busca textual (nome, descrição)</param>
     /// <param name="serviceIds">Filtro opcional por IDs de serviços</param>
     /// <param name="minRating">Filtro opcional de avaliação mínima</param>
     /// <param name="subscriptionTiers">Filtro opcional por níveis de assinatura</param>
@@ -26,6 +27,7 @@ public interface ISearchProvidersModuleApi : IModuleApi
         double latitude,
         double longitude,
         double radiusInKm,
+        string? term = null,
         Guid[]? serviceIds = null,
         decimal? minRating = null,
         ESubscriptionTier[]? subscriptionTiers = null,
