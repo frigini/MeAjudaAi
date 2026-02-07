@@ -1,6 +1,10 @@
 import { Button } from "@/components/ui/button";
 
-export function AdCard() {
+interface AdCardProps {
+    onAdvertiseClick?: () => void;
+}
+
+export function AdCard({ onAdvertiseClick }: AdCardProps) {
     return (
         <div className="h-full min-h-[300px] rounded-xl border border-border bg-[#FFF8F3] p-6 flex flex-col justify-between relative overflow-hidden group">
             <div className="flex flex-col gap-2 z-10">
@@ -14,7 +18,11 @@ export function AdCard() {
             <div className="absolute right-[-20px] top-[40%] h-24 w-24 rounded-full bg-orange-600/90 blur-sm transform rotate-12 group-hover:scale-110 transition-transform duration-500"></div>
 
             <div className="mt-auto z-10">
-                <Button variant="link" className="text-foreground-subtle hover:text-orange-600 p-0 h-auto font-medium">
+                <Button
+                    variant="link"
+                    className="text-foreground-subtle hover:text-orange-600 p-0 h-auto font-medium"
+                    onClick={onAdvertiseClick}
+                >
                     Anuncie aqui!
                 </Button>
             </div>

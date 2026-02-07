@@ -7,7 +7,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ | Sprint 7-7.15 ✅ CONCLUÍDO | MVP Target: 31/Março/2026  
+**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ | Sprint 7-7.15 ✅ CONCLUÍDO | MVP Target: 14/Março/2026  
 **Cobertura de Testes**: Backend 90.56% | Frontend 30 testes bUnit  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM (Admin) + React 19 + Next.js 15 (Customer) + Tailwind v4
 
@@ -3790,7 +3790,7 @@ src/
 │   ├── MeAjudaAi.Web.Admin/          # Blazor WASM Admin Portal (existente)
 │   └── MeAjudaAi.Web.Customer/       # 🆕 Next.js Customer App (Sprint 8A)
 ├── Mobile/
-│   └── MeAudaAi.Mobile.Customer/    # 🆕 React Native + Expo (Sprint 8B)
+│   └── MeAudaJai.Mobile.Customer/    # 🆕 React Native + Expo (Sprint 8B)
 └── Shared/
     ├── MeAjudaAi.Shared.DTOs/        # DTOs C# (backend)
     └── MeAjudaAi.Shared.Contracts/   # OpenAPI spec → TypeScript types
@@ -4404,7 +4404,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - ✅ Segurança e performance hardened
 - ✅ Documentação completa para usuários e desenvolvedores
 - ✅ Monitoring e observabilidade configurados
-- 🎯 **PRONTO PARA LAUNCH EM 17 DE FEVEREIRO DE 2026**
+- 🎯 **PRONTO PARA LAUNCH EM 14 DE MARÇO DE 2026**
 
 > **⚠️ CRITICAL**: Se Sprint 9 não for suficiente para completar todos os itens, considerar delay do MVP launch ou reduzir escopo (mover features não-críticas para post-MVP). A qualidade e estabilidade do MVP são mais importantes que a data de lançamento.
 

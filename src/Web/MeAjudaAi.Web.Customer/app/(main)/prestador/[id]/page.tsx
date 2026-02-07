@@ -64,7 +64,7 @@ export default async function ProviderProfilePage({
                         </h1>
 
                         {/* Mock rating for display until API supports it */}
-                        {/* TODO: Substituir por dados Reais da API quando suportado */}
+                        {/* TODO: Replace with real API data (Rating/Reviews) when available. Tracked for future sprint. */}
                         <div className="flex items-center gap-2 mb-4">
                             <Rating value={mockRating} size="md" readOnly={true} />
                             <span className="text-lg font-semibold">{mockRating}</span>

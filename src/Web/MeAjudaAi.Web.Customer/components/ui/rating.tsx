@@ -29,26 +29,12 @@ export function Rating({
 }: RatingProps) {
     const [hoverValue, setHoverValue] = useState<number | null>(null)
 
-    const handleMouseEnter = (index: number) => {
-        if (!readOnly) {
-            setHoverValue(index)
-        }
-    }
-
-    const handleMouseLeave = () => {
-        if (!readOnly) {
-            setHoverValue(null)
-        }
-    }
-
-    const handleClick = (index: number) => {
-        if (!readOnly && onChange) {
-            onChange(index)
-        }
-    }
-
     return (
-        <div className={cn("flex items-center gap-0.5", className)}>
+        <div
+            className={cn("flex items-center gap-0.5", className)}
+            role={readOnly ? "img" : undefined}
+            aria-label={readOnly ? `${value} de ${max} estrelas` : undefined}
+        >
             {Array.from({ length: max }).map((_, i) => {
                 const index = i + 1
                 const effectiveValue = hoverValue ?? value
@@ -65,9 +51,8 @@ export function Rating({
                         onMouseEnter={() => !readOnly && setHoverValue(index)}
                         onMouseLeave={() => !readOnly && setHoverValue(null)}
                         onClick={() => !readOnly && onChange?.(index)}
-                        role={readOnly ? "img" : "button"}
-                        aria-label={`${index} de ${max} estrelas`}
-                        aria-hidden={readOnly ? "true" : undefined} // aria-hidden should be true or undefined, not "false"
+                        role={readOnly ? "presentation" : "button"}
+                        aria-label={!readOnly ? `${index} de ${max} estrelas` : undefined}
                     >
                         <Star
                             className={cn(

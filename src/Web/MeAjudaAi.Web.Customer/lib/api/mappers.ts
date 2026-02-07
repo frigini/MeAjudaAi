@@ -27,7 +27,8 @@ export function mapSearchableProviderToProvider(
         // SearchableProviderDto não expõe email por privacidade
         email: '',
         // SearchableProviderDto atual não retorna avatarUrl
-        avatarUrl: null,
+        // Mock visual para testes: atribui uma imagem estática (1-10) baseada no hash do ID
+        avatarUrl: `/images/providers/provider-${(dto.providerId ? (dto.providerId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 10) + 1 : 1)}.svg`,
         averageRating: dto.averageRating ?? 0,
         // Mapeando totalReviews para reviewCount
         reviewCount: dto.totalReviews ?? 0,
@@ -62,7 +63,8 @@ export function mapApiProviderToProvider(
         email: contactInfo?.email ?? '',
         phone: contactInfo?.phoneNumber ?? undefined,
         // ProviderDto não tem profilePictureUrl na raiz
-        avatarUrl: null,
+        // Mock visual para testes: atribui uma imagem estática (1-10) baseada no hash do ID
+        avatarUrl: `/images/providers/provider-${(dto.id ? (dto.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 10) + 1 : 1)}.svg`,
         // ProviderDto não tem averageRating/reviewCount na raiz. Assumimos 0 por enquanto.
         // TODO: Enriquecer com dados reais quando API retornar rating e reviews no detalhe
         averageRating: 0,

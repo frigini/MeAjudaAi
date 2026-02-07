@@ -61,7 +61,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     if (providers.length > 0) {
         gridItems.push({ type: 'provider', data: providers[0] });
         gridItems.push({ type: 'ad', data: null });
-        providers.slice(1).forEach(p => gridItems.push({ type: 'provider', data: p }));
+        providers.slice(1).forEach(p => {
+            gridItems.push({ type: 'provider', data: p });
+        });
     } else {
         // Even if no providers, show AdCard? Maybe not.
         // If empty, standard empty state.

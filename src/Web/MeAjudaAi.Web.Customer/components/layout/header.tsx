@@ -36,7 +36,7 @@ export function Header({ className }: HeaderProps) {
                         alt="Logo Icon"
                         width={120}
                         height={120}
-                        className="h-[120px] w-auto object-contain"
+                        className="h-20 w-auto object-contain"
                         style={{ width: "auto" }}
                         priority
                         quality={100}

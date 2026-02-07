@@ -28,13 +28,14 @@ export function ServiceTags() {
     // I'll map it to the 'q' param for simplicity as per existing search logic.
     const currentQuery = searchParams.get("q") || "";
 
-    const handleTagClick = (tag: string) => {
+    const handleTagClick = (tagLabel: string, tagId: string) => {
         const params = new URLSearchParams(searchParams.toString());
+        const isActive = currentQuery.toLowerCase() === tagLabel.toLowerCase() || currentQuery === tagId;
 
-        if (currentQuery === tag) {
+        if (isActive) {
             params.delete("q"); // Deselect
         } else {
-            params.set("q", tag);
+            params.set("q", tagLabel);
         }
 
         // Preserve city if it exists
@@ -55,7 +56,7 @@ export function ServiceTags() {
                     return (
                         <button
                             key={tag.id}
-                            onClick={() => handleTagClick(tag.label)}
+                            onClick={() => handleTagClick(tag.label, tag.id)}
                             className={cn(
                                 "px-4 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap",
                                 isActive
