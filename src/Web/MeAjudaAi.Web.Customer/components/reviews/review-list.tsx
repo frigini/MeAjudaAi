@@ -14,7 +14,8 @@ const generateMockReviews = (count: number): Review[] => {
         id: `review-${i}`,
         authorName: `Usuário ${i + 1}`,
         rating: 4 + (i % 2), // 4 or 5 stars mostly
-        comment: "Ótimo profissional! Recomendo muito o serviço. Atendeu todas as expectativas e foi super pontual.",
+        comment: "Excelente profissional! Chegou no horário combinado, fez um trabalho impecável na instalação elétrica e deixou tudo limpo depois. Recomendo muito!",
+        verified: i % 3 === 0, // Mock verification status
         createdAt: new Date(Date.now() - i * 86400000 * 5), // spaced by 5 days
     }));
 };

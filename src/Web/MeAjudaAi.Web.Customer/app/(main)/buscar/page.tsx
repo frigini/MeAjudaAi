@@ -1,9 +1,11 @@
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ProviderCard } from "@/components/providers/provider-card";
+import { ServiceCard } from "@/components/service/service-card";
+import { AdCard } from "@/components/search/ad-card";
+import { ServiceTags } from "@/components/search/service-tags";
+
 import { apiProvidersGet3 } from "@/lib/api/generated";
 import { mapSearchableProviderToProvider } from "@/lib/api/mappers";
-
 import { geocodeCity } from "@/lib/services/geocoding";
 
 interface SearchPageProps {
@@ -34,7 +36,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         }
     }
 
-    // Fetch providers from API using dynamic or default coordinates
+    // Fetch providers from API
     const { data, error } = await apiProvidersGet3({
         query: {
             latitude,
@@ -42,7 +44,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             radiusInKm: defaultRadius,
             page: 1,
             pageSize: 20,
-            // TODO: Map searchQuery (text) to serviceIds if possible, or request API update to support text query
+            // TODO: Map searchQuery to serviceIds or use text search when available in API
         },
     });
 
@@ -54,69 +56,86 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     // Map API DTOs to application types
     const providers = (data?.items || []).map(mapSearchableProviderToProvider);
 
+    // Insert AdCard at index 1 (2nd position) if we have enough items
+    const gridItems = [];
+    if (providers.length > 0) {
+        gridItems.push({ type: 'provider', data: providers[0] });
+        gridItems.push({ type: 'ad', data: null });
+        providers.slice(1).forEach(p => gridItems.push({ type: 'provider', data: p }));
+    } else {
+        // Even if no providers, show AdCard? Maybe not.
+        // If empty, standard empty state.
+    }
+
     return (
         <div className="container mx-auto px-4 py-8">
-            {/* Search Header */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-foreground mb-6">
-                    {searchQuery ? `Resultados para "${searchQuery}"` : "Buscar Prestadores"}
-                </h1>
-
-                {/* Search Form */}
-                <form action="/buscar" method="get" role="search" aria-label="Buscar prestadores" className="flex flex-col md:flex-row gap-4">
-                    <div className="flex-1">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-foreground-subtle" />
-                            <input
-                                name="q"
-                                type="search"
-                                placeholder="Buscar serviço..."
-                                defaultValue={searchQuery}
-                                className="w-full pl-10 pr-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
-                            />
-                        </div>
-                    </div>
-                    <div className="w-full md:w-64">
-                        <input
-                            name="city"
-                            type="text"
-                            placeholder="Cidade..."
-                            defaultValue={cityFilter}
-                            className="w-full px-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
-                    </div>
-                    <Button variant="primary" size="lg" type="submit">
-                        Buscar
+            {/* 1. Search Bar Centered */}
+            <div className="max-w-3xl mx-auto mb-8">
+                <form action="/buscar" method="get" role="search" className="relative flex items-center">
+                    <input
+                        name="city"
+                        type="hidden"
+                        value={cityFilter}
+                    />
+                    <input
+                        name="q"
+                        type="search"
+                        placeholder="Buscar serviço"
+                        defaultValue={searchQuery}
+                        className="w-full pl-6 pr-14 py-4 border border-orange-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 text-lg placeholder:text-foreground-subtle"
+                    />
+                    <Button
+                        type="submit"
+                        size="icon"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#E0702B] hover:bg-[#c56226] h-10 w-10 rounded-md"
+                        aria-label="Buscar"
+                    >
+                        <Search className="h-5 w-5 text-white" />
                     </Button>
                 </form>
+
+
             </div>
 
-            {/* Results Count */}
-            <div className="mb-6">
-                <p className="text-foreground-subtle">
-                    {providers.length} prestador{providers.length !== 1 ? 'es' : ''} encontrado{providers.length !== 1 ? 's' : ''}
-                    {cityFilter && ` em ${cityFilter}`}
-                </p>
+            {/* 2. Service Tags - Full Width */}
+            <div className="mb-8">
+                <ServiceTags />
             </div>
 
-            {/* Provider Grid */}
+
+
+            {/* 4. Provider Grid */}
             {providers.length > 0 ? (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {providers.map((provider, index) => (
-                        <ProviderCard
-                            key={`${provider.id || 'provider'}-${index}`}
-                            provider={provider}
-                        />
-                    ))}
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
+                    {gridItems.map((item, index) => {
+                        if (item.type === 'ad') {
+                            return <AdCard key={`ad-${index}`} />;
+                        }
+
+                        const provider = item.data!;
+                        return (
+                            <ServiceCard
+                                key={provider.id}
+                                id={provider.id}
+                                name={provider.name}
+                                avatarUrl={provider.avatarUrl ?? undefined}
+                                description={provider.description || "Prestador de serviços disponível para te atender."}
+                                services={provider.services.map(s => s.name)}
+                                rating={provider.averageRating}
+                                reviewCount={provider.reviewCount}
+                            />
+                        );
+                    })}
                 </div>
             ) : (
-                <div className="text-center py-16">
-                    <Search className="mx-auto mb-4 h-16 w-16 text-foreground-subtle" />
+                <div className="text-center py-16 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    <Search className="mx-auto mb-4 h-16 w-16 text-gray-300" />
                     <h3 className="text-xl font-semibold text-foreground mb-2">
                         Nenhum prestador encontrado
                     </h3>
-                    <p className="text-foreground-subtle">
-                        Tente ajustar os filtros de busca ou buscar por outro serviço.
+                    <p className="text-foreground-subtle max-w-md mx-auto">
+                        Não encontramos prestadores para "<strong>{searchQuery}</strong>"{cityFilter && ` em ${cityFilter}`}.
+                        Tente buscar por termos mais genéricos como "Pedreiro" ou "Eletricista".
                     </p>
                 </div>
             )}

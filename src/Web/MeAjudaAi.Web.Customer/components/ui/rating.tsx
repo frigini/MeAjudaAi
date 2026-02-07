@@ -51,30 +51,34 @@ export function Rating({
         <div className={cn("flex items-center gap-0.5", className)}>
             {Array.from({ length: max }).map((_, i) => {
                 const index = i + 1
-                const isFilled = (hoverValue !== null ? hoverValue : value) >= index
+                const effectiveValue = hoverValue ?? value
+                const isFilled = effectiveValue >= index
+                const isHalfFilled = effectiveValue >= index - 0.5 && effectiveValue < index
 
                 return (
-                    <button
-                        key={i}
-                        type="button"
+                    <span
+                        key={index}
                         className={cn(
                             "transition-colors focus:outline-none focus:ring-1 focus:ring-ring rounded-sm",
                             readOnly ? "cursor-default" : "cursor-pointer"
                         )}
-                        onClick={() => handleClick(index)}
-                        onMouseEnter={() => handleMouseEnter(index)}
-                        onMouseLeave={handleMouseLeave}
-                        disabled={readOnly}
-                        aria-label={`${index} ${index === 1 ? 'estrela' : 'estrelas'}`}
+                        onMouseEnter={() => !readOnly && setHoverValue(index)}
+                        onMouseLeave={() => !readOnly && setHoverValue(null)}
+                        onClick={() => !readOnly && onChange?.(index)}
+                        role={readOnly ? "img" : "button"}
+                        aria-label={`${index} de ${max} estrelas`}
+                        aria-hidden={readOnly ? "true" : undefined} // aria-hidden should be true or undefined, not "false"
                     >
                         <Star
                             className={cn(
                                 sizeClasses[size],
                                 "transition-all",
-                                isFilled ? "fill-orange-500 text-orange-500" : "fill-transparent text-gray-300",
+                                isFilled ? "fill-orange-500 text-orange-500" :
+                                    isHalfFilled ? "fill-orange-500 text-orange-500" : // Lucide Star doesn't support half-fill visually, so treating half as full for now
+                                        "fill-transparent text-gray-300",
                             )}
                         />
-                    </button>
+                    </span>
                 )
             })}
         </div>

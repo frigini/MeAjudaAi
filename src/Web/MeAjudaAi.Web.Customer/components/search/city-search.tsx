@@ -36,6 +36,7 @@ export function CitySearch() {
                 className="h-10 w-10 p-0 bg-secondary hover:bg-secondary-hover text-white rounded-md shrink-0"
                 onClick={handleSearch}
                 disabled={!city}
+                aria-label="Buscar prestadores"
             >
                 <Search className="h-5 w-5" />
             </Button>

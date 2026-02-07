@@ -37,7 +37,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **17-21 Jan 2026**: Sprint 7.16 - Technical Debt Sprint (CONCLUÍDO - Keycloak automation, warnings, tests, records)
 - ✅ **5 Fev 2026**: Sprint 7.20 - Dashboard Charts & Data Mapping Fixes (CONCLUÍDO - JSON property mapping, debug messages removed)
 - ✅ **5 Fev 2026**: Sprint 7.21 - Package Updates & Bug Fixes (CONCLUÍDO - Microsoft.OpenApi 2.6.1, Aspire.Hosting.Redis 13.1.0, SonarAnalyzer.CSharp 10.19.0)
-- ⏳ **5-18 Fev 2026**: Sprint 8A - Customer Web App (React + Next.js)
+- 🔄 **5-18 Fev 2026**: Sprint 8A - Customer Web App (React + Next.js) (EM ANDAMENTO)
 - ⏳ **19 Fev - 4 Mar 2026**: Sprint 8B - Mobile App (React Native + Expo)
 - ⏳ **5-11 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
 - 🎯 **14 Março 2026**: MVP Launch (Admin Portal + Customer App Web + Mobile)
@@ -53,7 +53,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 ## 🎯 Status Atual
 
-**📅 Sprint 7.14 conclusão**: 16 de Janeiro de 2026
+**📅 Sprint 8A em andamento**: Fevereiro de 2026
 
 ### ✅ Sprint 7.10 - Accessibility Features - CONCLUÍDA (16 Jan 2026)
 ### ✅ Sprint 7.11 - Error Boundaries - CONCLUÍDA (16 Jan 2026) 
@@ -1411,6 +1411,30 @@ Get-ChildItem -Recurse -Include *.cs | Select-String "record "
 - `fix(sprint-7.16): resolve all frontend analyzer warnings`
 - `test(sprint-7.16): increase bUnit coverage to 30-40 tests`
 - `refactor(sprint-7.16): standardize record usage across project`
+
+---
+
+### 🔄 Sprint 8A - Customer Web App (Em Andamento)
+
+**Status**: EM ANDAMENTO (5-18 Fev 2026)  
+**Foco**: Refinamento de Layout e UX (Home & Search)
+
+**Atividades Realizadas**:
+1. **Home Page Layout Refinement** ✅
+   - Restaurada seção "Como funciona?" (How It Works) após "Conheça o MeAjudaAí".
+   - Ajustado posicionamento para melhorar fluxo de conteúdo (Promessa -> Confiança -> Processo).
+   - Corrigidos warnings de imagens (aspect ratio, sizes).
+   - Ajustados espaçamentos e alinhamentos (Hero, City Search vertical center).
+
+2. **Search Page Layout & UX** ✅
+   - Removido limite de largura (`max-w-6xl`) para aproveitar tela cheia.
+   - Service Tags movidas para largura total, centralizadas em desktop.
+   - Mock de Service Tags atualizado para "Top 10 Serviços Populares" (Pedreiro, Eletricista, etc.).
+   - Melhorada experiência em mobile com scroll horizontal.
+
+**Próximos Passos**:
+- Integrar Service Tags com backend real (popularidade/regional).
+- Implementar filtros avançados.
 
 ---
 
@@ -4518,6 +4542,18 @@ public interface IBillingModuleApi : IModuleApi
 3. **VerificationScheduler**: Agendar verificações periódicas
 
 **Nota**: Infraestrutura básica já existe (campo OcrData, estados de verificação), falta implementar workers e integrações.
+
+---
+
+### 3.4. 🏷️ Dynamic Service Tags (Planejado - Fase 3)
+
+**Objetivo**: Exibir tags de serviços baseadas na popularidade real por região.
+
+**Funcionalidades**:
+- **Endpoint**: `GET /services/top-region?city=SP` (ou lat/lon)
+- **Lógica**: Calcular serviços com maior volume de buscas/contratações na região do usuário.
+- **Fallback**: Exibir "Top Globais" se dados regionais insuficientes.
+- **Cache**: TTL curto (ex: 1h) para manter relevância sem comprometer performance.
 
 ---
 

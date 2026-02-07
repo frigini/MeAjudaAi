@@ -19,14 +19,23 @@ export function UserMenu() {
     // Fail-safe: Show buttons by default (avoids infinite loading if JS fails)
     // If authenticated, we show the avatar.
     // Loading state - prevent flash of unauthenticated UI
+    // Loading state - prevent flash of unauthenticated UI
     if (status === "loading") {
         return (
             <div className="h-10 w-10 rounded-full bg-secondary/20 animate-pulse" />
         );
     }
 
+    // Check for session errors (e.g. RefreshAccessTokenError)
     if (session?.user) {
+        if ((session as any).error) {
+            // Force sign out if token is invalid
+            void signOut({ callbackUrl: "/" });
+            return null; // Don't render anything while signing out
+        }
+
         return (
+
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-10 w-10 rounded-full">

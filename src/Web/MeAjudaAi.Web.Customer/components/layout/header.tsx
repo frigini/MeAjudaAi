@@ -3,7 +3,7 @@
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { UserMenu } from "./user-menu";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
@@ -15,6 +15,7 @@ export interface HeaderProps {
 
 export function Header({ className }: HeaderProps) {
     const router = useRouter();
+    const pathname = usePathname();
     const [searchQuery, setSearchQuery] = useState("");
 
     const handleSearch = (e: React.FormEvent) => {
@@ -36,6 +37,7 @@ export function Header({ className }: HeaderProps) {
                         width={120}
                         height={120}
                         className="h-[120px] w-auto object-contain"
+                        style={{ width: "auto" }}
                         priority
                         quality={100}
                     />
@@ -45,25 +47,28 @@ export function Header({ className }: HeaderProps) {
                         width={140}
                         height={40}
                         className="h-10 w-auto object-contain"
+                        style={{ width: "auto" }}
                         priority
                         quality={100}
                     />
                 </Link>
 
-                {/* Search Bar - Hidden on mobile */}
-                <div className="hidden md:flex flex-1 max-w-2xl mx-8">
-                    <form onSubmit={handleSearch} className="relative w-full">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-foreground-subtle" />
-                        <Input
-                            type="search"
-                            placeholder="Buscar serviço..."
-                            aria-label="Buscar serviço"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border-2 border-secondary rounded-lg focus:outline-none focus:ring-0 text-foreground bg-background"
-                        />
-                    </form>
-                </div>
+                {/* Search Bar - Hidden on mobile and on search page */}
+                {!pathname?.startsWith("/buscar") && (
+                    <div className="hidden md:flex flex-1 max-w-2xl mx-8">
+                        <form onSubmit={handleSearch} className="relative w-full">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-foreground-subtle" />
+                            <Input
+                                type="search"
+                                placeholder="Buscar serviço..."
+                                aria-label="Buscar serviço"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 border-2 border-secondary rounded-lg focus:outline-none focus:ring-0 text-foreground bg-background"
+                            />
+                        </form>
+                    </div>
+                )}
 
                 {/* Actions */}
                 <UserMenu />

@@ -1,8 +1,5 @@
-import { Avatar } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Rating } from "@/components/ui/rating";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 export interface Review {
     id: string;
@@ -11,6 +8,7 @@ export interface Review {
     rating: number;
     comment: string;
     createdAt: string | Date;
+    verified: boolean;
 }
 
 interface ReviewCardProps {
@@ -18,18 +16,25 @@ interface ReviewCardProps {
 }
 
 export function ReviewCard({ review }: ReviewCardProps) {
+    const { authorName, rating, comment, createdAt, verified } = review;
+
     return (
         <Card className="mb-4 bg-white rounded-2xl shadow-sm border border-border/50">
             <CardContent className="p-6">
                 <div className="flex flex-col gap-4">
                     {/* Rating Stars */}
-                    <div>
-                        <Rating value={review.rating} readOnly size="md" />
+                    <div className="flex items-center gap-1">
+                        <Rating value={rating} readOnly size="md" />
+                        {verified && (
+                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-green-100 text-[10px] font-bold text-green-600 ml-1">
+                                ✓
+                            </span>
+                        )}
                     </div>
 
                     {/* Review Text */}
                     <p className="text-foreground text-base leading-relaxed">
-                        {review.comment}
+                        {comment}
                     </p>
 
                     {/* Author & Date - Right Aligned */}

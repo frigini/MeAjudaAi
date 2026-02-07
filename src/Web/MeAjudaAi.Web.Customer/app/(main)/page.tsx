@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { AdBanner } from "@/components/ui/ad-banner";
 import { CitySearch } from "@/components/search/city-search";
 import Image from "next/image";
-
+import { HowItWorks } from "@/components/home/how-it-works";
 export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen">
@@ -25,6 +25,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
 
       {/* Blue Section - Conheça */}
       <section className="bg-primary text-white py-20 overflow-hidden relative">
@@ -55,8 +56,16 @@ export default function HomePage() {
               fill
               className="object-contain object-center z-10"
               priority
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
           </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="bg-white py-20 pb-8">
+        <div className="container mx-auto px-4">
+          <HowItWorks />
         </div>
       </section>
 
@@ -73,6 +82,7 @@ export default function HomePage() {
                 alt="Seja um prestador"
                 fill
                 className="object-contain object-center mix-blend-multiply"
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
 

@@ -26,12 +26,12 @@ export default async function ProviderProfilePage({
         },
     });
 
-    if (!data?.data) {
-        notFound();
-    }
-
     if (error) {
         throw error; // Let Next.js error boundary handle non-404 failures
+    }
+
+    if (!data?.data) {
+        notFound();
     }
 
     const provider = data.data;
@@ -52,7 +52,7 @@ export default async function ProviderProfilePage({
             <Card className="mb-8 p-6">
                 <div className="flex flex-col md:flex-row items-start gap-6">
                     <Avatar
-                        src={null}
+                        src={undefined}
                         alt={displayName}
                         size="xl"
                         className="flex-shrink-0"
