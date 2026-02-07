@@ -70,8 +70,8 @@ export function Rating({
                         <Star
                             className={cn(
                                 sizeClasses[size],
-                                isFilled ? "fill-primary text-primary" : "fill-none text-muted-foreground",
-                                /* Apply partial fill logic if needed, but simple full stars for now */
+                                "transition-all",
+                                isFilled ? "fill-orange-500 text-orange-500" : "fill-transparent text-gray-300",
                             )}
                         />
                     </button>

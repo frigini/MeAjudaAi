@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
+import Link from "next/link";
 
 export interface HeaderProps {
     className?: string;
@@ -28,7 +29,7 @@ export function Header({ className }: HeaderProps) {
         <header className={cn("sticky top-0 z-50 border-b border-border bg-white shadow-sm", className)}>
             <div className="container mx-auto flex h-24 items-center justify-between px-4">
                 {/* Logo */}
-                <div className="flex items-center cursor-pointer" onClick={() => router.push('/')}>
+                <Link href="/" className="flex items-center gap-4 cursor-pointer" aria-label="Ir para a página inicial">
                     <Image
                         src="/logo-icon-azul.png"
                         alt="Logo Icon"
@@ -40,14 +41,14 @@ export function Header({ className }: HeaderProps) {
                     />
                     <Image
                         src="/logo-text-azul.png"
-                        alt="Me MeAjudaAí"
+                        alt="MeAjudaAí"
                         width={140}
                         height={40}
                         className="h-10 w-auto object-contain"
                         priority
                         quality={100}
                     />
-                </div>
+                </Link>
 
                 {/* Search Bar - Hidden on mobile */}
                 <div className="hidden md:flex flex-1 max-w-2xl mx-8">

@@ -26,8 +26,12 @@ export default async function ProviderProfilePage({
         },
     });
 
-    if (error || !data?.data) {
+    if (!data?.data) {
         notFound();
+    }
+
+    if (error) {
+        throw error; // Let Next.js error boundary handle non-404 failures
     }
 
     const provider = data.data;
@@ -68,7 +72,9 @@ export default async function ProviderProfilePage({
                                 ({mockReviewCount}{" "}
                                 {mockReviewCount === 1 ? "avaliação" : "avaliações"})
                             </span>
-                        </div> {/* Location */}
+                        </div>
+
+                        {/* Location */}
 
                         {address && (address.city || address.state) ? (
                             <div className="flex items-center gap-2 mt-4 text-foreground-subtle">

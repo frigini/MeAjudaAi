@@ -18,6 +18,13 @@ export function UserMenu() {
     const { data: session, status } = useSession();
     // Fail-safe: Show buttons by default (avoids infinite loading if JS fails)
     // If authenticated, we show the avatar.
+    // Loading state - prevent flash of unauthenticated UI
+    if (status === "loading") {
+        return (
+            <div className="h-10 w-10 rounded-full bg-secondary/20 animate-pulse" />
+        );
+    }
+
     if (session?.user) {
         return (
             <DropdownMenu>

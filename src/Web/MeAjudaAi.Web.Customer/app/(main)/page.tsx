@@ -1,6 +1,5 @@
-import { Search, CheckCircle2, Users, ArrowRight } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { AdBanner } from "@/components/ui/ad-banner";
 import { CitySearch } from "@/components/search/city-search";
 import Image from "next/image";
@@ -67,11 +66,8 @@ export default function HomePage() {
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center gap-12">
-            {/* Illustration Placeholder - Right (Desktop) / Top (Mobile) order swap? No, left usually. */}
-            {/* Making it Right aligned text based on original code, but mockup 4 shows text on RIGHT, image LEFT? 
-                    Actually mockup 4 bottom part: "Você é prestador de serviço?" Text on RIGHT, Man on LEFT.
-                 */}
-            <div className="flex-1 relative h-[500px] w-full hidden md:block order-1 md:order-2">
+
+            <div className="flex-1 relative h-[500px] w-full hidden md:block order-2 md:order-1">
               <Image
                 src="/illustration-man.png"
                 alt="Seja um prestador"
@@ -108,7 +104,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
-    </div>
+      </section >
+    </div >
   );
 }
