@@ -46,7 +46,10 @@ export function ServiceCard({
                             <h3 className="text-xl font-bold text-foreground mb-2">
                                 {name}
                             </h3>
-                            <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-3">
+                            <p
+                                className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-3"
+                                title={description} // Show full description on hover
+                            >
                                 {description}
                             </p>
 
@@ -63,10 +66,12 @@ export function ServiceCard({
                             </div>
                         </div>
 
-                        {/* Footer: Rating */}
-                        <div className="flex items-center gap-2">
-                            <Rating value={rating} readOnly size="lg" />
-                            <span className="text-sm font-medium ml-1">
+                        {/* Footer: Rating & Reviews */}
+                        <div className="flex flex-col gap-1 mt-auto">
+                            <div className="flex items-center gap-1">
+                                <Rating value={rating} readOnly size="lg" />
+                            </div>
+                            <span className="text-sm font-medium text-foreground">
                                 {reviewCount} {reviewCount === 1 ? 'comentário' : 'comentários'}
                             </span>
                         </div>

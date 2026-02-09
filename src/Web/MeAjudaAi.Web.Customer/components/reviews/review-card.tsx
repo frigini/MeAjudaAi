@@ -1,58 +1,44 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Star, CheckCircle2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Rating } from "@/components/ui/rating";
 
 export interface Review {
     id: string;
     authorName: string;
-    authorAvatar?: string;
     rating: number;
     comment: string;
-    createdAt: string | Date;
     verified: boolean;
+    createdAt: Date;
 }
 
 interface ReviewCardProps {
     review: Review;
+    className?: string;
 }
 
-export function ReviewCard({ review }: ReviewCardProps) {
-    const { authorName, rating, comment, createdAt, verified } = review;
-
+export function ReviewCard({ review, className }: ReviewCardProps) {
     return (
-        <Card className="mb-4 bg-white rounded-2xl shadow-sm border border-border/50">
-            <CardContent className="p-6">
-                <div className="flex flex-col gap-4">
-                    {/* Rating Stars */}
-                    <div className="flex items-center gap-1">
-                        <Rating value={rating} readOnly size="md" />
-                        {verified && (
-                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-green-100 text-[10px] font-bold text-green-600 ml-1">
-                                ✓
-                            </span>
-                        )}
-                    </div>
+        <div className={cn("bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-4", className)}>
+            {/* Header: Rating */}
+            <div className="flex gap-1">
+                <Rating value={review.rating} readOnly size="sm" />
+            </div>
 
-                    {/* Review Text */}
-                    <p className="text-foreground text-base leading-relaxed">
-                        {comment}
-                    </p>
+            {/* Comment */}
+            <p className="text-foreground-subtle text-sm leading-relaxed flex-grow">
+                {review.comment}
+            </p>
 
-                    {/* Author & Date - Right Aligned */}
-                    <div className="flex flex-col items-end mt-2">
-                        <div className="flex items-center gap-1">
-                            <span className="font-semibold text-orange-500 text-base">
-                                {review.authorName}
-                            </span>
-                            {/* Verified checkmark if needed, image shows a green check */}
-                            <span className="text-green-500">✓</span>
-                        </div>
-                        <span className="text-sm text-muted-foreground">
-                            {/* Hardcoded format to match image "dd/MM/yyyy" or use date-fns */}
-                            {new Date(review.createdAt).toLocaleDateString('pt-BR')}
-                        </span>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
+            {/* Footer: Author & Date */}
+            <div className="flex items-center justify-end gap-2 text-xs">
+                <span className="font-medium text-[#E0702B] flex items-center gap-1">
+                    {review.authorName}
+                    {review.verified && <CheckCircle2 className="size-3" />}
+                </span>
+                <span className="text-muted-foreground">
+                    {review.createdAt.toLocaleDateString('pt-BR')}
+                </span>
+            </div>
+        </div>
     );
 }

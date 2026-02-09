@@ -6,7 +6,6 @@ import { signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
-import Link from "next/link"
 
 export function LoginForm({
     className,

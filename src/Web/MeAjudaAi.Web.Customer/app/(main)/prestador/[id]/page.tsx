@@ -1,21 +1,23 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { cache } from "react";
-import { Card } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Mail, MapPin, Phone } from "lucide-react";
 import { apiProvidersGet2 } from "@/lib/api/generated/sdk.gen";
 import { Rating } from "@/components/ui/rating";
 import { ReviewList } from "@/components/reviews/review-list";
-import { ReviewForm } from "@/components/reviews/review-form";
+import { Badge } from "@/components/ui/badge";
 
 // Deduplicate requests with React cache
 const getCachedProvider = cache(async (id: string) => {
-    const { data } = await apiProvidersGet2({
-        path: { id },
-    });
-    return data?.data;
+    try {
+        const { data } = await apiProvidersGet2({
+            path: { id },
+        });
+        return data?.data;
+    } catch (error) {
+        console.error("Error fetching provider:", error);
+        return null;
+    }
 });
 
 interface ProviderProfilePageProps {
@@ -54,107 +56,82 @@ export default async function ProviderProfilePage({
     params,
 }: ProviderProfilePageProps) {
     const { id } = await params;
-    const provider = await getCachedProvider(id);
 
-    if (!provider) {
+    // Fetch real data
+    const providerData = await getCachedProvider(id);
+
+    if (!providerData) {
         notFound();
     }
 
-    const businessProfile = provider.businessProfile;
+    // Prepare display data (mixing real + mock where missing)
+    const businessProfile = providerData.businessProfile;
     const contactInfo = businessProfile?.contactInfo;
-    const address = businessProfile?.primaryAddress;
 
-    // Display name: fantasy name or legal name or "Prestador"
-    const displayName = businessProfile?.fantasyName || businessProfile?.legalName || provider.name || "Prestador";
+    const displayName = businessProfile?.fantasyName || businessProfile?.legalName || providerData.name || "Prestador";
+    const description = businessProfile?.description || "Este prestador ainda não adicionou uma descrição.";
+    const email = contactInfo?.email || "Email não disponível";
 
-    // Mock rating for display until API supports it
+    // Mocked data for UI Refinement requirements
     const mockRating = 4.8;
-    const mockReviewCount: number = 12;
+    const mockPhones = contactInfo?.phoneNumber ? [contactInfo.phoneNumber] : ["(00) 0 0000 - 0000"];
+    const mockServices = ["Serviço com nome grande", "Serviço 3", "Serviço 3", "Serviço 3", "Serviço 3", "Serviço com nome grande"];
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            {/* Provider Header */}
-            <Card className="mb-8 p-6">
-                <div className="flex flex-col md:flex-row items-start gap-6">
-                    <Avatar
-                        src={undefined}
-                        alt={displayName}
-                        size="xl"
-                        className="flex-shrink-0"
-                    />
+        <div className="container mx-auto px-4 py-8 max-w-5xl">
+            {/* Header Section */}
+            <div className="flex flex-col items-center text-center mb-12">
+                <Avatar
+                    size="xl"
+                    className="h-32 w-32 border-4 border-white shadow-sm mb-4"
+                    src={undefined} // No avatar URL in DTO yet
+                    alt={displayName}
+                    fallback={displayName.substring(0, 2).toUpperCase()}
+                />
 
-                    <div className="flex-1">
-                        <h1 className="text-3xl font-bold text-foreground">
-                            {displayName}
-                        </h1>
+                <h1 className="text-3xl font-bold text-[#E0702B] mb-1">{displayName}</h1>
+                <p className="text-muted-foreground text-sm mb-6">{email}</p>
 
-                        {/* Mock rating for display until API supports it */}
-                        {/* TODO: Replace with real API data (Rating/Reviews) when available. Tracked for future sprint. */}
-                        <div className="flex items-center gap-2 mb-4">
-                            <Rating value={mockRating} size="md" readOnly={true} />
-                            <span className="text-lg font-semibold">{mockRating}</span>
-                            <span className="text-foreground-subtle">
-                                ({mockReviewCount}{" "}
-                                {mockReviewCount === 1 ? "avaliação" : "avaliações"})
-                            </span>
-                        </div>
+                <div className="max-w-3xl mb-6">
+                    <p className="text-sm leading-relaxed text-foreground-subtle text-justify">
+                        {description}
+                    </p>
+                </div>
 
-                        {/* Location */}
-
-                        {address && (address.city || address.state) ? (
-                            <div className="flex items-center gap-2 mt-4 text-foreground-subtle">
-                                <MapPin className="size-4" />
-                                <span>
-                                    {[address.city, address.state].filter(Boolean).join(", ")}
-                                </span>
-                            </div>
-                        ) : null}
-
-                        {/* Contact Buttons */}
-                        <div className="flex flex-wrap gap-3 mt-6">
-                            {contactInfo?.email && (
-                                <Button size="lg" asChild>
-                                    <a href={`mailto:${encodeURIComponent(contactInfo.email)}`}>
-                                        <Mail className="mr-2 size-4" />
-                                        Enviar mensagem
-                                    </a>
-                                </Button>
-                            )}
-                            {contactInfo?.phoneNumber && (
-                                <Button variant="outline" size="lg" asChild>
-                                    <a href={`tel:${encodeURIComponent(contactInfo.phoneNumber)}`}>
-                                        <Phone className="mr-2 size-4" />
-                                        Ligar
-                                    </a>
-                                </Button>
-                            )}
-                        </div>
+                <div className="flex flex-col items-center gap-2 mb-6">
+                    <div className="flex gap-1">
+                        <Rating value={mockRating} readOnly size="md" />
                     </div>
                 </div>
-            </Card>
 
-            {/* About Section */}
-            {
-                businessProfile?.description && (
-                    <Card className="mb-8 p-6">
-                        <h2 className="text-2xl font-bold text-foreground mb-4">Sobre</h2>
-                        <p className="text-foreground-subtle whitespace-pre-wrap leading-relaxed">
-                            {businessProfile.description}
-                        </p>
-                    </Card>
-                )
-            }
+                <div className="space-y-1">
+                    {mockPhones.map((phone, i) => (
+                        <div key={i} className="flex items-center justify-center gap-2 text-sm text-foreground-subtle">
+                            {phone} <span className="text-green-500">📱</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Services Section */}
+            <div className="mb-12">
+                <h2 className="text-xl font-bold mb-4">Serviços</h2>
+                <div className="flex flex-wrap gap-2">
+                    {mockServices.map((service, index) => (
+                        <Badge
+                            key={index}
+                            className="bg-[#E0702B] hover:bg-[#c56226] text-white font-normal px-4 py-1.5 text-sm rounded-md border-none"
+                        >
+                            {service}
+                        </Badge>
+                    ))}
+                </div>
+            </div>
 
             {/* Reviews Section */}
-            <Card className="p-6">
-                <h2 className="text-2xl font-bold text-foreground mb-6">Avaliações</h2>
-
-                <ReviewForm providerId={id} />
-
-                <div className="mt-8">
-                    <ReviewList providerId={id} />
-                </div>
-            </Card>
+            <div className="mb-12">
+                <ReviewList providerId={id} />
+            </div>
         </div>
     );
 }

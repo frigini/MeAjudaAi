@@ -181,7 +181,15 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act
-        var result = await repository.SearchAsync(searchLocation, 50, null, null, null, null, 0, 10);
+        var result = await repository.SearchAsync(
+            searchLocation,
+            radiusInKm: 50,
+            term: null,
+            serviceIds: null,
+            minRating: null,
+            subscriptionTiers: null,
+            skip: 0,
+            take: 10);
 
         // Assert
         result.Providers.Should().HaveCount(2);
@@ -215,7 +223,15 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333); // Search from Centro
 
         // Act
-        var result = await repository.SearchAsync(searchLocation, 50, null, null, null, null, 0, 10);
+        var result = await repository.SearchAsync(
+            searchLocation,
+            radiusInKm: 50,
+            term: null,
+            serviceIds: null,
+            minRating: null,
+            subscriptionTiers: null,
+            skip: 0,
+            take: 10);
 
         // Assert
         result.Providers.Should().HaveCount(2);
