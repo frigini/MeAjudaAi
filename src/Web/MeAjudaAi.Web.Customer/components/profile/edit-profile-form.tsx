@@ -13,7 +13,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import { apiProfilePut } from "@/lib/api/generated";
+import { apiProfilePut } from "@/lib/api/generated/sdk.gen";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

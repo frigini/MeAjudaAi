@@ -111,7 +111,7 @@ public sealed class SearchableProviderRepository(
                 ) / 1000.0 AS DistanceKm
             FROM search_providers.searchable_providers
             {whereClause}
-            ORDER BY SubscriptionTier DESC, AverageRating DESC, DistanceKm ASC
+            ORDER BY subscription_tier DESC, average_rating DESC, DistanceKm ASC
             OFFSET @Skip LIMIT @Take
             """;
 

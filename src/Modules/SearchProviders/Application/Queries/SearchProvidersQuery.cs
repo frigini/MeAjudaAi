@@ -41,7 +41,9 @@ public sealed record SearchProvidersQuery(
             ? string.Join("-", SubscriptionTiers.OrderBy(x => x))
             : "all";
 
-        return $"search:providers:lat:{lat}:lng:{lng}:radius:{radius}:services:{serviceKey}:rating:{rating}:tiers:{tierKey}:page:{Page}:size:{PageSize}";
+        var term = (Term ?? "").ToLowerInvariant().Trim();
+
+        return $"search:providers:lat:{lat}:lng:{lng}:radius:{radius}:term:{term}:services:{serviceKey}:rating:{rating}:tiers:{tierKey}:page:{Page}:size:{PageSize}";
     }
 
     public TimeSpan GetCacheExpiration()

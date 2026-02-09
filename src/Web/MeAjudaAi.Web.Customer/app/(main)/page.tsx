@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdBanner } from "@/components/ui/ad-banner";
 import { CitySearch } from "@/components/search/city-search";

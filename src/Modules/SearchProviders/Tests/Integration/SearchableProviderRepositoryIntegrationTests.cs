@@ -68,7 +68,15 @@ public class SearchableProviderRepositoryIntegrationTests : SearchProvidersInteg
         var searchLocation = new GeoPoint(-23.5505, -46.6333); // São Paulo Centro
 
         // Act - Buscar em raio de 20km
-        var result = await repository.SearchAsync(searchLocation, 20, null, null, null, null, 0, 10);
+        var result = await repository.SearchAsync(
+            location: searchLocation,
+            radiusInKm: 20,
+            term: null,
+            serviceIds: null,
+            minRating: null,
+            subscriptionTiers: null,
+            skip: 0,
+            take: 10);
 
         // Assert
         result.Providers.Should().HaveCount(3); // Apenas os 3 de SP
@@ -114,14 +122,14 @@ public class SearchableProviderRepositoryIntegrationTests : SearchProvidersInteg
 
         // Act - Buscar apenas eletricistas
         var result = await repository.SearchAsync(
-            searchLocation,
-            50,
-            null,
-            new[] { electricianServiceId },
-            null,
-            null,
-            0,
-            10);
+            location: searchLocation,
+            radiusInKm: 50,
+            term: null,
+            serviceIds: new[] { electricianServiceId },
+            minRating: null,
+            subscriptionTiers: null,
+            skip: 0,
+            take: 10);
 
         // Assert
         result.Providers.Should().HaveCount(2);
@@ -155,14 +163,14 @@ public class SearchableProviderRepositoryIntegrationTests : SearchProvidersInteg
 
         // Act - Buscar apenas com rating >= 4.0
         var result = await repository.SearchAsync(
-            searchLocation,
-            50,
-            null,
-            null,
-            4.0m,
-            null,
-            0,
-            10);
+            location: searchLocation,
+            radiusInKm: 50,
+            term: null,
+            serviceIds: null,
+            minRating: 4.0m,
+            subscriptionTiers: null,
+            skip: 0,
+            take: 10);
 
         // Assert
         result.Providers.Should().HaveCount(2);
@@ -193,14 +201,14 @@ public class SearchableProviderRepositoryIntegrationTests : SearchProvidersInteg
 
         // Act - Buscar apenas Standard e Gold
         var result = await repository.SearchAsync(
-            searchLocation,
-            50,
-            null,
-            null,
-            null,
-            new[] { ESubscriptionTier.Standard, ESubscriptionTier.Gold },
-            0,
-            10);
+            location: searchLocation,
+            radiusInKm: 50,
+            term: null,
+            serviceIds: null,
+            minRating: null,
+            subscriptionTiers: new[] { ESubscriptionTier.Standard, ESubscriptionTier.Gold },
+            skip: 0,
+            take: 10);
 
         // Assert
         result.Providers.Should().HaveCount(3);
@@ -232,14 +240,14 @@ public class SearchableProviderRepositoryIntegrationTests : SearchProvidersInteg
 
         // Act - Página 2 com 5 items por página
         var result = await repository.SearchAsync(
-            searchLocation,
-            100,
-            null,
-            null,
-            null,
-            null,
-            5,
-            5);
+            location: searchLocation,
+            radiusInKm: 100,
+            term: null,
+            serviceIds: null,
+            minRating: null,
+            subscriptionTiers: null,
+            skip: 5,
+            take: 5);
 
         // Assert
         result.Providers.Should().HaveCount(5); // Page size
@@ -264,7 +272,15 @@ public class SearchableProviderRepositoryIntegrationTests : SearchProvidersInteg
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act
-        var result = await repository.SearchAsync(searchLocation, 50, null, null, null, null, 0, 10);
+        var result = await repository.SearchAsync(
+            location: searchLocation,
+            radiusInKm: 50,
+            term: null,
+            serviceIds: null,
+            minRating: null,
+            subscriptionTiers: null,
+            skip: 0,
+            take: 10);
 
         // Assert
         result.Providers.Should().HaveCount(1);
@@ -331,18 +347,54 @@ public class SearchableProviderRepositoryIntegrationTests : SearchProvidersInteg
 
         // Act - Aplicar todos os filtros
         var result = await repository.SearchAsync(
-            searchLocation,
-            20, // 20km radius
-            null,
-            new[] { serviceId },
-            4.0m, // minRating
-            new[] { ESubscriptionTier.Gold },
-            0,
-            10);
+            location: searchLocation,
+            radiusInKm: 20, // 20km radius
+            term: null,
+            serviceIds: new[] { serviceId },
+            minRating: 4.0m, // minRating
+            subscriptionTiers: new[] { ESubscriptionTier.Gold },
+            skip: 0,
+            take: 10);
 
         // Assert
         result.Providers.Should().HaveCount(1);
         result.Providers.Single().Id.Should().Be(matchingProvider.Id);
+    }
+
+    [Fact]
+    public async Task SearchAsync_WithTermFilter_ShouldReturnMatchingProviders()
+    {
+        // Arrange
+        await CleanupDatabase();
+        using var scope = CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
+
+        var provider1 = CreateTestSearchableProvider("João Silva", -23.5505, -46.6333);
+        var provider2 = CreateTestSearchableProvider("Maria Santos", -23.5505, -46.6333);
+        var provider3 = CreateTestSearchableProvider("José Silva", -23.5505, -46.6333);
+
+        await PersistSearchableProviderAsync(provider1);
+        await PersistSearchableProviderAsync(provider2);
+        await PersistSearchableProviderAsync(provider3);
+
+        var searchLocation = new GeoPoint(-23.5505, -46.6333);
+
+        // Act - Search for "Silva"
+        var result = await repository.SearchAsync(
+            location: searchLocation,
+            radiusInKm: 10,
+            term: "Silva",
+            serviceIds: null,
+            minRating: null,
+            subscriptionTiers: null,
+            skip: 0,
+            take: 10);
+
+        // Assert
+        result.Providers.Should().HaveCount(2);
+        result.Providers.Should().Contain(p => p.Id == provider1.Id);
+        result.Providers.Should().Contain(p => p.Id == provider3.Id);
+        result.Providers.Should().NotContain(p => p.Id == provider2.Id);
     }
 
     [Fact]
@@ -392,16 +444,26 @@ public class SearchableProviderRepositoryIntegrationTests : SearchProvidersInteg
 
         // Verificar que busca antiga não retorna mais
         var oldLocationResult = await repository.SearchAsync(
-            new GeoPoint(-23.5505, -46.6333),
-            10,
-            null, null, null, null, 0, 10);
+            location: new GeoPoint(-23.5505, -46.6333),
+            radiusInKm: 10,
+            term: null,
+            serviceIds: null,
+            minRating: null,
+            subscriptionTiers: null,
+            skip: 0,
+            take: 10);
         oldLocationResult.Providers.Should().NotContain(p => p.Id == provider.Id);
 
         // Verificar que busca nova retorna
         var newLocationResult = await repository.SearchAsync(
-            newLocation,
-            10,
-            null, null, null, null, 0, 10);
+            location: newLocation,
+            radiusInKm: 10,
+            term: null,
+            serviceIds: null,
+            minRating: null,
+            subscriptionTiers: null,
+            skip: 0,
+            take: 10);
         newLocationResult.Providers.Should().Contain(p => p.Id == provider.Id);
     }
 

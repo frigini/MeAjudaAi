@@ -1,4 +1,4 @@
-import { apiSearchGet } from "@/lib/api/generated";
+import { apiSearchGet } from "@/lib/api/generated/sdk.gen";
 import { getAuthHeaders } from "@/lib/api/auth-headers";
 
 export interface GeocodingResult {

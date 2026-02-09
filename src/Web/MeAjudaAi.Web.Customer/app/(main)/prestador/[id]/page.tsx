@@ -1,12 +1,22 @@
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
+import { cache } from "react";
 import { Card } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Mail, MapPin, Phone } from "lucide-react";
-import { apiProvidersGet2 } from "@/lib/api/generated";
+import { apiProvidersGet2 } from "@/lib/api/generated/sdk.gen";
 import { Rating } from "@/components/ui/rating";
 import { ReviewList } from "@/components/reviews/review-list";
 import { ReviewForm } from "@/components/reviews/review-form";
+
+// Deduplicate requests with React cache
+const getCachedProvider = cache(async (id: string) => {
+    const { data } = await apiProvidersGet2({
+        path: { id },
+    });
+    return data?.data;
+});
 
 interface ProviderProfilePageProps {
     params: Promise<{
@@ -14,27 +24,42 @@ interface ProviderProfilePageProps {
     }>;
 }
 
+export async function generateMetadata({
+    params,
+}: ProviderProfilePageProps): Promise<Metadata> {
+    const { id } = await params;
+    const provider = await getCachedProvider(id);
+
+    if (!provider) {
+        return {
+            title: "Prestador não encontrado | MeAjudaAi",
+        };
+    }
+
+    const businessProfile = provider.businessProfile;
+    const displayName = businessProfile?.fantasyName || businessProfile?.legalName || provider.name || "Prestador";
+    const description = businessProfile?.description?.slice(0, 160) || `Confira o perfil de ${displayName} no MeAjudaAi.`;
+
+    return {
+        title: `${displayName} | MeAjudaAi`,
+        description,
+        openGraph: {
+            title: `${displayName} | MeAjudaAi`,
+            description,
+        },
+    };
+}
+
 export default async function ProviderProfilePage({
     params,
 }: ProviderProfilePageProps) {
     const { id } = await params;
+    const provider = await getCachedProvider(id);
 
-    // Fetch provider from API
-    const { data, error } = await apiProvidersGet2({
-        path: {
-            id,
-        },
-    });
-
-    if (error) {
-        throw error; // Let Next.js error boundary handle non-404 failures
-    }
-
-    if (!data?.data) {
+    if (!provider) {
         notFound();
     }
 
-    const provider = data.data;
     const businessProfile = provider.businessProfile;
     const contactInfo = businessProfile?.contactInfo;
     const address = businessProfile?.primaryAddress;

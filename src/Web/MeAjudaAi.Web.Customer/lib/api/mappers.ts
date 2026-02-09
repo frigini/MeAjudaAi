@@ -1,7 +1,7 @@
 import type {
     MeAjudaAiModulesSearchProvidersApplicationDtosSearchableProviderDto,
     MeAjudaAiModulesProvidersApplicationDtosProviderDto,
-} from '@/lib/api/generated';
+} from '@/lib/api/generated/types.gen';
 import type { ProviderDto } from '@/types/api/provider';
 
 // Mapeamento de ProviderType (backend enum) para frontend string

@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { apiUsersGet2 } from "@/lib/api/generated";
+import { apiUsersGet2 } from "@/lib/api/generated/sdk.gen";
 import { EditProfileForm } from "@/components/profile/edit-profile-form";
 
 export const dynamic = "force-dynamic";
@@ -20,10 +20,12 @@ export default async function EditProfilePage() {
         const response = await apiUsersGet2({
             path: { id: session.user.id },
             headers: {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 'Authorization': `Bearer ${(session as any).accessToken}`
             }
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         user = (response.data as any)?.result;
     } catch (e) {
         console.error("Failed to fetch user profile", e);

@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration;
 
 /// <summary>
-/// Integration tests for SearchProviders Infrastructure - edge cases and boundary conditions
+/// Testes de integração para a infraestrutura de SearchProviders - casos extremos e condições de contorno
 /// </summary>
 [Trait("Category", "Integration")]
 [Trait("Module", "SearchProviders")]
@@ -26,7 +26,15 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act
-        var result = await repository.SearchAsync(searchLocation, 50, null, null, null, null, 0, 10);
+        var result = await repository.SearchAsync(
+            searchLocation,
+            radiusInKm: 50,
+            term: null,
+            serviceIds: null,
+            minRating: null,
+            subscriptionTiers: null,
+            skip: 0,
+            take: 10);
 
         // Assert
         result.Should().NotBeNull();
@@ -48,7 +56,15 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333); // Exact same location
 
         // Act
-        var result = await repository.SearchAsync(searchLocation, 0, null, null, null, null, 0, 10);
+        var result = await repository.SearchAsync(
+            searchLocation,
+            radiusInKm: 0,
+            term: null,
+            serviceIds: null,
+            minRating: null,
+            subscriptionTiers: null,
+            skip: 0,
+            take: 10);
 
         // Assert
         result.Providers.Should().BeEmpty();
@@ -73,7 +89,15 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act - 1000km radius should include all Brazilian cities
-        var result = await repository.SearchAsync(searchLocation, 1000, null, null, null, null, 0, 10);
+        var result = await repository.SearchAsync(
+            searchLocation,
+            radiusInKm: 1000,
+            term: null,
+            serviceIds: null,
+            minRating: null,
+            subscriptionTiers: null,
+            skip: 0,
+            take: 10);
 
         // Assert
         result.Providers.Should().HaveCount(3);
@@ -97,10 +121,26 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act - Get page 1 (skip 0, take 10)
-        var page1 = await repository.SearchAsync(searchLocation, 50, null, null, null, null, 0, 10);
+        var page1 = await repository.SearchAsync(
+            searchLocation,
+            radiusInKm: 50,
+            term: null,
+            serviceIds: null,
+            minRating: null,
+            subscriptionTiers: null,
+            skip: 0,
+            take: 10);
 
         // Act - Get page 2 (skip 10, take 10)
-        var page2 = await repository.SearchAsync(searchLocation, 50, null, null, null, null, 10, 10);
+        var page2 = await repository.SearchAsync(
+            searchLocation,
+            radiusInKm: 50,
+            term: null,
+            serviceIds: null,
+            minRating: null,
+            subscriptionTiers: null,
+            skip: 10,
+            take: 10);
 
         // Assert
         page1.Providers.Should().HaveCount(10);
@@ -213,44 +253,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         result.Providers.Should().BeEmpty();
     }
 
-    [Fact(Skip = "Rating not denormalized to SearchableProvider - filter not implemented")]
-    public async Task SearchAsync_WithMinRatingFilter_ShouldFilterCorrectly()
-    {
-        // Arrange
-        await CleanupDatabase();
-        using var scope = CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
 
-        var lowRatingProvider = CreateTestSearchableProvider(
-            "Low Rating",
-            -23.5505,
-            -46.6333);
-
-        var highRatingProvider = CreateTestSearchableProvider(
-            "High Rating",
-            -23.5505,
-            -46.6333);
-
-        await PersistSearchableProviderAsync(lowRatingProvider);
-        await PersistSearchableProviderAsync(highRatingProvider);
-
-        var searchLocation = new GeoPoint(-23.5505, -46.6333);
-
-        // Act
-        var result = await repository.SearchAsync(
-            searchLocation,
-            50,
-            null,
-            serviceIds: null,
-            minRating: 4.0m,
-            subscriptionTiers: null,
-            skip: 0,
-            take: 10);
-
-        // Assert - This test is skipped because rating filtering requires denormalization
-        // When implemented, should verify only providers with rating >= 4.0 are returned
-        result.Providers.Should().OnlyContain(p => true); // Placeholder for future implementation
-    }
 
     [Fact]
     public async Task SearchAsync_WithSubscriptionTierFilter_ShouldFilterCorrectly()
@@ -399,7 +402,15 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
             {
                 using var innerScope = CreateScope();
                 var innerRepo = innerScope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
-                return await innerRepo.SearchAsync(searchLocation, 50, null, null, null, null, 0, 10);
+                return await innerRepo.SearchAsync(
+                    searchLocation,
+                    radiusInKm: 50,
+                    term: null,
+                    serviceIds: null,
+                    minRating: null,
+                    subscriptionTiers: null,
+                    skip: 0,
+                    take: 10);
             }))
             .ToArray();
 

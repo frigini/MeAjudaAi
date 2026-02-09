@@ -4,7 +4,7 @@ import { ServiceCard } from "@/components/service/service-card";
 import { AdCard } from "@/components/search/ad-card";
 import { ServiceTags } from "@/components/search/service-tags";
 
-import { apiProvidersGet3 } from "@/lib/api/generated";
+import { apiProvidersGet3 } from "@/lib/api/generated/sdk.gen";
 import { mapSearchableProviderToProvider } from "@/lib/api/mappers";
 import { geocodeCity } from "@/lib/services/geocoding";
 
@@ -20,9 +20,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     const searchQuery = q || "";
     const cityFilter = city || "";
 
-    // Default coordinates (São Paulo)
-    let latitude = -23.5505;
-    let longitude = -46.6333;
+    // Default coordinates (Linhares - ES) for development
+    let latitude = -19.3917;
+    let longitude = -40.0722;
     const defaultRadius = 50; // 50km radius
 
     // Attempt to geocode if city is provided
@@ -45,6 +45,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             term: searchQuery,
             page: 1,
             pageSize: 20,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
     });
 
@@ -136,8 +137,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                         Nenhum prestador encontrado
                     </h3>
                     <p className="text-foreground-subtle max-w-md mx-auto">
-                        Não encontramos prestadores para "<strong>{searchQuery}</strong>"{cityFilter && ` em ${cityFilter}`}.
-                        Tente buscar por termos mais genéricos como "Pedreiro" ou "Eletricista".
+                        Não encontramos prestadores para &quot;<strong>{searchQuery}</strong>&quot;{cityFilter && ` em ${cityFilter}`}.
+                        Tente buscar por termos mais genéricos como &quot;Pedreiro&quot; ou &quot;Eletricista&quot;.
                     </p>
                 </div>
             )}

@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { apiUsersGet2 } from "@/lib/api/generated";
+import { apiUsersGet2 } from "@/lib/api/generated/sdk.gen";
 import Link from "next/link";
 import { User, Mail, Phone, MapPin, Pencil } from "lucide-react";
 
@@ -26,6 +26,7 @@ export default async function ProfilePage() {
             }
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         user = (response.data as any)?.result;
     } catch (e) {
         console.error("Failed to fetch user profile", e);
