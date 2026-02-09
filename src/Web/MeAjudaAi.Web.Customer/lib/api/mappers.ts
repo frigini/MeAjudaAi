@@ -27,6 +27,11 @@ function getMockServiceName(id: string): string {
     return MOCK_SERVICES[hash % MOCK_SERVICES.length];
 }
 
+function getMockAvatarUrl(id?: string): string {
+    const hash = id ? id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 10 : 0;
+    return `/images/providers/provider-${hash + 1}.svg`;
+}
+
 /**
  * Converte SearchableProviderDto (da API de busca) para ProviderDto (tipo da aplicação)
  */
@@ -40,7 +45,7 @@ export function mapSearchableProviderToProvider(
         email: '',
         // SearchableProviderDto atual não retorna avatarUrl
         // Mock visual para testes: atribui uma imagem estática (1-10) baseada no hash do ID
-        avatarUrl: `/images/providers/provider-${(dto.providerId ? (dto.providerId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 10) + 1 : 1)}.svg`,
+        avatarUrl: getMockAvatarUrl(dto.providerId),
         averageRating: dto.averageRating ?? 0,
         // Mapeando totalReviews para reviewCount
         reviewCount: dto.totalReviews ?? 0,
@@ -81,7 +86,7 @@ export function mapApiProviderToProvider(
         phone: contactInfo?.phoneNumber ?? undefined,
         // ProviderDto não tem profilePictureUrl na raiz
         // Mock visual para testes: atribui uma imagem estática (1-10) baseada no hash do ID
-        avatarUrl: `/images/providers/provider-${(dto.id ? (dto.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 10) + 1 : 1)}.svg`,
+        avatarUrl: getMockAvatarUrl(dto.id),
         // ProviderDto não tem averageRating/reviewCount na raiz. Assumimos 0 por enquanto.
         // TODO: Enriquecer com dados reais quando API retornar rating e reviews no detalhe
         averageRating: 0,

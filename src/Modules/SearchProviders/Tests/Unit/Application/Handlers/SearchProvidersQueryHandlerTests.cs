@@ -50,6 +50,7 @@ public class SearchProvidersQueryHandlerTests
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 query.RadiusInKm,
+                query.Term,
                 query.ServiceIds,
                 query.MinRating,
                 query.SubscriptionTiers,
@@ -111,6 +112,7 @@ public class SearchProvidersQueryHandlerTests
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
+                It.IsAny<string?>(),
                 It.Is<Guid[]?>(ids => ids != null && ids.Contains(serviceId1) && ids.Contains(serviceId2)),
                 It.IsAny<decimal?>(),
                 It.IsAny<ESubscriptionTier[]?>(),
@@ -130,6 +132,7 @@ public class SearchProvidersQueryHandlerTests
         _repositoryMock.Verify(x => x.SearchAsync(
             It.IsAny<GeoPoint>(),
             It.IsAny<double>(),
+            It.IsAny<string?>(),
             It.Is<Guid[]?>(ids => ids != null && ids.Contains(serviceId1) && ids.Contains(serviceId2)),
             It.IsAny<decimal?>(),
             It.IsAny<ESubscriptionTier[]?>(),
@@ -155,6 +158,7 @@ public class SearchProvidersQueryHandlerTests
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
+                It.IsAny<string?>(),
                 It.IsAny<Guid[]?>(),
                 4.0m,
                 It.IsAny<ESubscriptionTier[]?>(),
@@ -174,6 +178,7 @@ public class SearchProvidersQueryHandlerTests
         _repositoryMock.Verify(x => x.SearchAsync(
             It.IsAny<GeoPoint>(),
             It.IsAny<double>(),
+            It.IsAny<string?>(),
             It.IsAny<Guid[]?>(),
             4.0m,
             It.IsAny<ESubscriptionTier[]?>(),
@@ -199,6 +204,7 @@ public class SearchProvidersQueryHandlerTests
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
+                It.IsAny<string?>(),
                 It.IsAny<Guid[]?>(),
                 It.IsAny<decimal?>(),
                 It.Is<ESubscriptionTier[]?>(t => t != null && t.Contains(ESubscriptionTier.Gold)),
@@ -235,6 +241,7 @@ public class SearchProvidersQueryHandlerTests
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
+                It.IsAny<string?>(),
                 It.IsAny<Guid[]?>(),
                 It.IsAny<decimal?>(),
                 It.IsAny<ESubscriptionTier[]?>(),
@@ -270,6 +277,7 @@ public class SearchProvidersQueryHandlerTests
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
+                It.IsAny<string?>(),
                 It.IsAny<Guid[]?>(),
                 It.IsAny<decimal?>(),
                 It.IsAny<ESubscriptionTier[]?>(),
@@ -311,6 +319,7 @@ public class SearchProvidersQueryHandlerTests
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
+                It.IsAny<string?>(),
                 It.IsAny<Guid[]?>(),
                 It.IsAny<decimal?>(),
                 It.IsAny<ESubscriptionTier[]?>(),

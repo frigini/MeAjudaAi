@@ -26,7 +26,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act
-        var result = await repository.SearchAsync(searchLocation, 50, null, null, null, 0, 10);
+        var result = await repository.SearchAsync(searchLocation, 50, null, null, null, null, 0, 10);
 
         // Assert
         result.Should().NotBeNull();
@@ -48,7 +48,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333); // Exact same location
 
         // Act
-        var result = await repository.SearchAsync(searchLocation, 0, null, null, null, 0, 10);
+        var result = await repository.SearchAsync(searchLocation, 0, null, null, null, null, 0, 10);
 
         // Assert
         result.Providers.Should().BeEmpty();
@@ -73,7 +73,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act - 1000km radius should include all Brazilian cities
-        var result = await repository.SearchAsync(searchLocation, 1000, null, null, null, 0, 10);
+        var result = await repository.SearchAsync(searchLocation, 1000, null, null, null, null, 0, 10);
 
         // Assert
         result.Providers.Should().HaveCount(3);
@@ -97,10 +97,10 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act - Get page 1 (skip 0, take 10)
-        var page1 = await repository.SearchAsync(searchLocation, 50, null, null, null, 0, 10);
+        var page1 = await repository.SearchAsync(searchLocation, 50, null, null, null, null, 0, 10);
 
         // Act - Get page 2 (skip 10, take 10)
-        var page2 = await repository.SearchAsync(searchLocation, 50, null, null, null, 10, 10);
+        var page2 = await repository.SearchAsync(searchLocation, 50, null, null, null, null, 10, 10);
 
         // Assert
         page1.Providers.Should().HaveCount(10);
@@ -141,7 +141,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act
-        var result = await repository.SearchAsync(searchLocation, 50, null, null, null, 0, 10);
+        var result = await repository.SearchAsync(searchLocation, 50, null, null, null, null, 0, 10);
 
         // Assert
         result.Providers.Should().HaveCount(2);
@@ -175,7 +175,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var searchLocation = new GeoPoint(-23.5505, -46.6333); // Search from Centro
 
         // Act
-        var result = await repository.SearchAsync(searchLocation, 50, null, null, null, 0, 10);
+        var result = await repository.SearchAsync(searchLocation, 50, null, null, null, null, 0, 10);
 
         // Assert
         result.Providers.Should().HaveCount(2);
@@ -202,6 +202,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var result = await repository.SearchAsync(
             searchLocation,
             50,
+            null,
             serviceIds: nonExistentServiceIds,
             minRating: null,
             subscriptionTiers: null,
@@ -239,6 +240,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var result = await repository.SearchAsync(
             searchLocation,
             50,
+            null,
             serviceIds: null,
             minRating: 4.0m,
             subscriptionTiers: null,
@@ -279,6 +281,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         var result = await repository.SearchAsync(
             searchLocation,
             50,
+            null,
             serviceIds: null,
             minRating: null,
             subscriptionTiers: new[] { ESubscriptionTier.Gold },
@@ -396,7 +399,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
             {
                 using var innerScope = CreateScope();
                 var innerRepo = innerScope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
-                return await innerRepo.SearchAsync(searchLocation, 50, null, null, null, 0, 10);
+                return await innerRepo.SearchAsync(searchLocation, 50, null, null, null, null, 0, 10);
             }))
             .ToArray();
 

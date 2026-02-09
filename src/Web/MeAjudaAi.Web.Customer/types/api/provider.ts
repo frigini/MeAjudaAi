@@ -23,7 +23,12 @@ export type ProviderType = "None" | "Individual" | "Company" | "Cooperative" | "
 export interface ServiceDto {
     id: string;
     name: string;
-    category: string;
+    description?: string;
+    category: {
+        id: string;
+        name: string;
+        description?: string;
+    };
 }
 
 export interface ReviewDto {

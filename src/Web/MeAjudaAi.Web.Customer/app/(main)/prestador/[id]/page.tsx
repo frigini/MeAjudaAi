@@ -68,7 +68,7 @@ export default async function ProviderProfilePage({
                         <div className="flex items-center gap-2 mb-4">
                             <Rating value={mockRating} size="md" readOnly={true} />
                             <span className="text-lg font-semibold">{mockRating}</span>
-                            <span className="text-foreground/60">
+                            <span className="text-foreground-subtle">
                                 ({mockReviewCount}{" "}
                                 {mockReviewCount === 1 ? "avaliação" : "avaliações"})
                             </span>
@@ -89,7 +89,7 @@ export default async function ProviderProfilePage({
                         <div className="flex flex-wrap gap-3 mt-6">
                             {contactInfo?.email && (
                                 <Button size="lg" asChild>
-                                    <a href={`mailto:${contactInfo.email}`}>
+                                    <a href={`mailto:${encodeURIComponent(contactInfo.email)}`}>
                                         <Mail className="mr-2 size-4" />
                                         Enviar mensagem
                                     </a>
@@ -97,7 +97,7 @@ export default async function ProviderProfilePage({
                             )}
                             {contactInfo?.phoneNumber && (
                                 <Button variant="outline" size="lg" asChild>
-                                    <a href={`tel:${contactInfo.phoneNumber}`}>
+                                    <a href={`tel:${encodeURIComponent(contactInfo.phoneNumber)}`}>
                                         <Phone className="mr-2 size-4" />
                                         Ligar
                                     </a>

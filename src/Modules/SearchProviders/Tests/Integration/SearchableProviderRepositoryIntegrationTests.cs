@@ -68,7 +68,7 @@ public class SearchableProviderRepositoryIntegrationTests : SearchProvidersInteg
         var searchLocation = new GeoPoint(-23.5505, -46.6333); // São Paulo Centro
 
         // Act - Buscar em raio de 20km
-        var result = await repository.SearchAsync(searchLocation, 20, null, null, null, 0, 10);
+        var result = await repository.SearchAsync(searchLocation, 20, null, null, null, null, 0, 10);
 
         // Assert
         result.Providers.Should().HaveCount(3); // Apenas os 3 de SP
@@ -116,6 +116,7 @@ public class SearchableProviderRepositoryIntegrationTests : SearchProvidersInteg
         var result = await repository.SearchAsync(
             searchLocation,
             50,
+            null,
             new[] { electricianServiceId },
             null,
             null,
@@ -157,6 +158,7 @@ public class SearchableProviderRepositoryIntegrationTests : SearchProvidersInteg
             searchLocation,
             50,
             null,
+            null,
             4.0m,
             null,
             0,
@@ -193,6 +195,7 @@ public class SearchableProviderRepositoryIntegrationTests : SearchProvidersInteg
         var result = await repository.SearchAsync(
             searchLocation,
             50,
+            null,
             null,
             null,
             new[] { ESubscriptionTier.Standard, ESubscriptionTier.Gold },
@@ -234,6 +237,7 @@ public class SearchableProviderRepositoryIntegrationTests : SearchProvidersInteg
             null,
             null,
             null,
+            null,
             5,
             5);
 
@@ -260,7 +264,7 @@ public class SearchableProviderRepositoryIntegrationTests : SearchProvidersInteg
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act
-        var result = await repository.SearchAsync(searchLocation, 50, null, null, null, 0, 10);
+        var result = await repository.SearchAsync(searchLocation, 50, null, null, null, null, 0, 10);
 
         // Assert
         result.Providers.Should().HaveCount(1);
@@ -329,6 +333,7 @@ public class SearchableProviderRepositoryIntegrationTests : SearchProvidersInteg
         var result = await repository.SearchAsync(
             searchLocation,
             20, // 20km radius
+            null,
             new[] { serviceId },
             4.0m, // minRating
             new[] { ESubscriptionTier.Gold },
@@ -389,14 +394,14 @@ public class SearchableProviderRepositoryIntegrationTests : SearchProvidersInteg
         var oldLocationResult = await repository.SearchAsync(
             new GeoPoint(-23.5505, -46.6333),
             10,
-            null, null, null, 0, 10);
+            null, null, null, null, 0, 10);
         oldLocationResult.Providers.Should().NotContain(p => p.Id == provider.Id);
 
         // Verificar que busca nova retorna
         var newLocationResult = await repository.SearchAsync(
             newLocation,
             10,
-            null, null, null, 0, 10);
+            null, null, null, null, 0, 10);
         newLocationResult.Providers.Should().Contain(p => p.Id == provider.Id);
     }
 
