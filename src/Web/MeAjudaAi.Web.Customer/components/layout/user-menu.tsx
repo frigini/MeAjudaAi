@@ -11,7 +11,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Loader2 } from "lucide-react";
+import { User, LogOut } from "lucide-react";
 import Link from "next/link";
 
 export function UserMenu() {
@@ -28,7 +28,7 @@ export function UserMenu() {
 
     // Check for session errors (e.g. RefreshAccessTokenError)
     if (session?.user) {
-        if ((session as any).error) {
+        if ((session as { error?: string }).error) {
             // Force sign out if token is invalid
             void signOut({ callbackUrl: "/" });
             return null; // Don't render anything while signing out

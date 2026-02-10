@@ -63,7 +63,6 @@ export function EditProfileForm({ userId, initialData }: EditProfileFormProps) {
             // Using properly typed session access
             const token = session.accessToken;
             const headers: HeadersInit = {
-                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             };
 

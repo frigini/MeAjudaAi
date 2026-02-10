@@ -2,12 +2,14 @@ using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Seeding;
 
 /// <summary>
 /// Implementação do seeder de dados de desenvolvimento
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class DevelopmentDataSeeder : IDevelopmentDataSeeder
 {
     private readonly IServiceProvider _serviceProvider;
@@ -323,7 +325,9 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             new { Id = UuidGenerator.NewId(), Name = "Pintor", Description = "Pintura residencial e comercial", CategoryId = idMap.GetValueOrDefault("Habitação", HousingCategoryId), DisplayOrder = 13 },
             new { Id = UuidGenerator.NewId(), Name = "Jardineiro", Description = "Manutenção de jardins e áreas verdes", CategoryId = idMap.GetValueOrDefault("Habitação", HousingCategoryId), DisplayOrder = 14 },
             new { Id = UuidGenerator.NewId(), Name = "Montador de Móveis", Description = "Montagem e desmontagem de móveis", CategoryId = idMap.GetValueOrDefault("Habitação", HousingCategoryId), DisplayOrder = 15 },
-            new { Id = UuidGenerator.NewId(), Name = "Faxina", Description = "Limpeza residencial e comercial", CategoryId = idMap.GetValueOrDefault("Habitação", HousingCategoryId), DisplayOrder = 16 }
+            new { Id = UuidGenerator.NewId(), Name = "Faxina", Description = "Limpeza residencial e comercial", CategoryId = idMap.GetValueOrDefault("Habitação", HousingCategoryId), DisplayOrder = 16 },
+            new { Id = UuidGenerator.NewId(), Name = "Frete e Mudança", Description = "Serviços de transporte e mudança", CategoryId = idMap.GetValueOrDefault("Habitação", HousingCategoryId), DisplayOrder = 17 },
+            new { Id = UuidGenerator.NewId(), Name = "Assistência Técnica", Description = "Reparo de computadores e eletrônicos", CategoryId = idMap.GetValueOrDefault("Habitação", HousingCategoryId), DisplayOrder = 18 }
         };
 
         foreach (var svc in services)
@@ -361,7 +365,6 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             new { Id = UuidGenerator.NewId(), IbgeCode = 5300108, CityName = "Brasília", State = "DF", Lat = -15.7975, Lon = -47.8919, Radius = 40 },
             new { Id = UuidGenerator.NewId(), IbgeCode = 2927408, CityName = "Salvador", State = "BA", Lat = -12.9777, Lon = -38.5016, Radius = 35 },
             new { Id = UuidGenerator.NewId(), IbgeCode = 2304400, CityName = "Fortaleza", State = "CE", Lat = -3.7319, Lon = -38.5267, Radius = 30 },
-            new { Id = UuidGenerator.NewId(), IbgeCode = 2611606, CityName = "Recife", State = "PE", Lat = -8.0476, Lon = -34.8770, Radius = 25 },
             new { Id = UuidGenerator.NewId(), IbgeCode = 2611606, CityName = "Recife", State = "PE", Lat = -8.0476, Lon = -34.8770, Radius = 25 },
             new { Id = UuidGenerator.NewId(), IbgeCode = 1302603, CityName = "Manaus", State = "AM", Lat = -3.1190, Lon = -60.0217, Radius = 50 },
             new { Id = UuidGenerator.NewId(), IbgeCode = 3203205, CityName = "Linhares", State = "ES", Lat = -19.3909, Lon = -40.0715, Radius = 30 }
@@ -478,10 +481,10 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 DocumentType = "CPF"
             },
             // Provedores de Linhares (Correspondendo ao SeedSearchProvidersAsync)
-            new { Id = ProviderLinhares1Id, UserId = ProviderLinhares1UserId, DocumentId = ProviderLinhares1DocumentId, Name = "Carlos Construções", Type = "Individual", Status = "Active", VerificationStatus = "Verified", LegalName = "Carlos Santos", FantasyName = "Carlos Construções", Description = "Pedreiro especializado em acabamentos e reformas gerais.", Email = "carlos@example.com", PhoneNumber = "27999881111", Website = (string?)null, Street = "Av. Goverador Lindenberg", Number = "100", Complement = (string?)null, Neighborhood = "Centro", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "11122233344", DocumentType = "CPF" },
+            new { Id = ProviderLinhares1Id, UserId = ProviderLinhares1UserId, DocumentId = ProviderLinhares1DocumentId, Name = "Carlos Construções", Type = "Individual", Status = "Active", VerificationStatus = "Verified", LegalName = "Carlos Santos", FantasyName = (string?)"Carlos Construções", Description = "Pedreiro especializado em acabamentos e reformas gerais.", Email = "carlos@example.com", PhoneNumber = "27999881111", Website = (string?)null, Street = "Av. Goverador Lindenberg", Number = "100", Complement = (string?)null, Neighborhood = "Centro", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "11122233344", DocumentType = "CPF" },
             new { Id = ProviderLinhares2Id, UserId = ProviderLinhares2UserId, DocumentId = ProviderLinhares2DocumentId, Name = "Elétrica Fast", Type = "Company", Status = "Active", VerificationStatus = "Verified", LegalName = "Elétrica Fast Ltda", FantasyName = (string?)"Elétrica Fast", Description = "Instalações elétricas residenciais e industriais. Plantão 24h.", Email = "contato@eletricafast.com", PhoneNumber = "27999882222", Website = (string?)"https://eletricafast.com.br", Street = "Rua da Conceição", Number = "200", Complement = (string?)"Loja 1", Neighborhood = "Centro", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "12345678000199", DocumentType = "CNPJ" },
-            new { Id = ProviderLinhares3Id, UserId = ProviderLinhares3UserId, DocumentId = ProviderLinhares3DocumentId, Name = "Hidráulica Silva", Type = "Individual", Status = "Active", VerificationStatus = "Verified", LegalName = "José Silva", FantasyName = "Hidráulica Silva", Description = "Conserto de vazamentos, instalação de tubulações e caixas d'água.", Email = "silva@hidraulica.com", PhoneNumber = "27999883333", Website = (string?)null, Street = "Av. Vitória", Number = "300", Complement = (string?)null, Neighborhood = "Interlagos", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "22233344455", DocumentType = "CPF" },
-            new { Id = ProviderLinhares4Id, UserId = ProviderLinhares4UserId, DocumentId = ProviderLinhares4DocumentId, Name = "Pinturas Premium", Type = "Individual", Status = "Active", VerificationStatus = "Verified", LegalName = "Marcos Pintor", FantasyName = "Pinturas Premium", Description = "Pintura residencial, texturas, grafiato e efeitos especiais.", Email = "marcos@pinturas.com", PhoneNumber = "27999884444", Website = (string?)null, Street = "Rua Ipê", Number = "400", Complement = (string?)null, Neighborhood = "Bela Vista", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "33344455566", DocumentType = "CPF" },
+            new { Id = ProviderLinhares3Id, UserId = ProviderLinhares3UserId, DocumentId = ProviderLinhares3DocumentId, Name = "Hidráulica Silva", Type = "Individual", Status = "Active", VerificationStatus = "Verified", LegalName = "José Silva", FantasyName = (string?)"Hidráulica Silva", Description = "Conserto de vazamentos, instalação de tubulações e caixas d'água.", Email = "silva@hidraulica.com", PhoneNumber = "27999883333", Website = (string?)null, Street = "Av. Vitória", Number = "300", Complement = (string?)null, Neighborhood = "Interlagos", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "22233300011", DocumentType = "CPF" },
+            new { Id = ProviderLinhares4Id, UserId = ProviderLinhares4UserId, DocumentId = ProviderLinhares4DocumentId, Name = "Pinturas Premium", Type = "Individual", Status = "Active", VerificationStatus = "Verified", LegalName = "Marcos Pintor", FantasyName = (string?)"Pinturas Premium", Description = "Pintura residencial, texturas, grafiato e efeitos especiais.", Email = "marcos@pinturas.com", PhoneNumber = "27999884444", Website = (string?)null, Street = "Rua Ipê", Number = "400", Complement = (string?)null, Neighborhood = "Bela Vista", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "33344455566", DocumentType = "CPF" },
             new { Id = ProviderLinhares5Id, UserId = ProviderLinhares5UserId, DocumentId = ProviderLinhares5DocumentId, Name = "Jardins & Cia", Type = "Company", Status = "Active", VerificationStatus = "Verified", LegalName = "Jardins e Paisagismo Ltda", FantasyName = (string?)"Jardins & Cia", Description = "Manutenção de jardins, poda de árvores e paisagismo.", Email = "contato@jardins.com", PhoneNumber = "27999885555", Website = (string?)"https://jardineiros.com.br", Street = "Av. Lagoa Juparanã", Number = "500", Complement = (string?)null, Neighborhood = "Três Barras", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "98765432000100", DocumentType = "CNPJ" },
             new { Id = ProviderLinhares6Id, UserId = ProviderLinhares6UserId, DocumentId = ProviderLinhares6DocumentId, Name = "Limpeza Total", Type = "Company", Status = "Active", VerificationStatus = "Verified", LegalName = "Limpeza Total Serviços", FantasyName = (string?)"Limpeza Total", Description = "Limpeza pós-obra, faxinas residenciais e higienização de estofados.", Email = "sac@limpezatotal.com", PhoneNumber = "27999886666", Website = (string?)"https://limpezatotal.com.br", Street = "Rua dos Jacarandás", Number = "600", Complement = (string?)null, Neighborhood = "Movelar", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "11223344000155", DocumentType = "CNPJ" },
             new { Id = ProviderLinhares7Id, UserId = ProviderLinhares7UserId, DocumentId = ProviderLinhares7DocumentId, Name = "Montador Express", Type = "Individual", Status = "Active", VerificationStatus = "Verified", LegalName = "Ricardo Montador", FantasyName = "Montador Express", Description = "Montagem de móveis comprados na internet. Rápido e cuidadoso.", Email = "ricardo@montador.com", PhoneNumber = "27999887777", Website = (string?)null, Street = "Rua Araucária", Number = "700", Complement = (string?)null, Neighborhood = "Planalto", City = "Linhares", State = "ES", ZipCode = "29900000", Country = "Brasil", DocumentNumber = "44455566677", DocumentType = "CPF" },
@@ -508,7 +511,27 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                     {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19},
                     false, {20}, {21}
                   )
-                  ON CONFLICT (user_id) DO NOTHING",
+                  ON CONFLICT (id) DO UPDATE SET
+                    user_id = EXCLUDED.user_id,
+                    name = EXCLUDED.name,
+                    type = EXCLUDED.type,
+                    status = EXCLUDED.status,
+                    verification_status = EXCLUDED.verification_status,
+                    legal_name = EXCLUDED.legal_name,
+                    fantasy_name = EXCLUDED.fantasy_name,
+                    description = EXCLUDED.description,
+                    email = EXCLUDED.email,
+                    phone_number = EXCLUDED.phone_number,
+                    website = EXCLUDED.website,
+                    street = EXCLUDED.street,
+                    number = EXCLUDED.number,
+                    complement = EXCLUDED.complement,
+                    neighborhood = EXCLUDED.neighborhood,
+                    city = EXCLUDED.city,
+                    state = EXCLUDED.state,
+                    zip_code = EXCLUDED.zip_code,
+                    country = EXCLUDED.country,
+                    updated_at = EXCLUDED.updated_at",
                 [
                     provider.Id, provider.UserId, provider.Name, provider.Type, provider.Status, provider.VerificationStatus,
                     provider.LegalName, provider.FantasyName, provider.Description,
@@ -546,13 +569,11 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         }
 
         // Recuperar DbContexts de Origem
-        var providersContext = GetDbContext("Providers");
-        var locationsContext = GetDbContext("Locations");
         var servicesContext = GetDbContext("ServiceCatalogs");
 
-        if (providersContext == null || locationsContext == null || servicesContext == null)
+        if (servicesContext == null)
         {
-             _logger.LogWarning("⚠️ Missing source contexts for Search seeding");
+             _logger.LogWarning("⚠️ ServiceCatalogsDbContext not found, skipping search seed");
              return;
         }
 
@@ -572,14 +593,15 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             new { Id = ProviderLinhares5Id, Name = "Jardins & Cia", Description = "Manutenção de jardins, poda de árvores e paisagismo.", Tier = 0, Rating = 5.0, Reviews = 5, ServiceName = "Jardineiro" },
             new { Id = ProviderLinhares6Id, Name = "Limpeza Total", Description = "Limpeza pós-obra, faxinas residenciais e higienização de estofados.", Tier = 2, Rating = 4.6, Reviews = 31, ServiceName = "Faxina" },
             new { Id = ProviderLinhares7Id, Name = "Montador Express", Description = "Montagem de móveis comprados na internet. Rápido e cuidadoso.", Tier = 0, Rating = 4.8, Reviews = 12, ServiceName = "Montador de Móveis" },
-            new { Id = ProviderLinhares8Id, Name = "Fretes do João", Description = "Pequenos fretes e mudanças dentro de Linhares e região.", Tier = 0, Rating = 4.4, Reviews = 9, ServiceName = "Pedreiro" }, // Fallback service
-            new { Id = ProviderLinhares9Id, Name = "SOS Computadores", Description = "Formatação, remoção de vírus e reparo de computadores e notebooks.", Tier = 1, Rating = 4.9, Reviews = 56, ServiceName = "Eletricista" }, // Fallback
+            new { Id = ProviderLinhares8Id, Name = "Fretes do João", Description = "Pequenos fretes e mudanças dentro de Linhares e região.", Tier = 0, Rating = 4.4, Reviews = 9, ServiceName = "Frete e Mudança" }, 
+            new { Id = ProviderLinhares9Id, Name = "SOS Computadores", Description = "Formatação, remoção de vírus e reparo de computadores e notebooks.", Tier = 1, Rating = 4.9, Reviews = 56, ServiceName = "Assistência Técnica" }, 
             new { Id = ProviderLinhares10Id, Name = "Dona Maria Bolos", Description = "Bolos caseiros e doces para festas. Encomendas com antecedência.", Tier = 0, Rating = 5.0, Reviews = 110, ServiceName = "Confeitaria" } // Fallback
         };
 
         // Obter IDs dos serviços
         // Nota: Como usamos connection string direta no GetDbContext, podemos não conseguir consultar facilmente cruzado
         // Então vamos buscar os IDs dos serviços pelo nome no banco de ServiceCatalogs
+        var syncedCount = 0;
         foreach (var p in providersToSync)
         {
             var serviceId = await servicesContext.Database.SqlQueryRaw<Guid>(
@@ -602,7 +624,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             var lon = cityLon + lonOffset;
 
             // Inserir no SearchProviders
-             await context.Database.ExecuteSqlRawAsync(
+             var rowsAffected = await context.Database.ExecuteSqlRawAsync(
                 @"INSERT INTO search_providers.searchable_providers (
                     id, provider_id, name, description, 
                     location, 
@@ -630,9 +652,12 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                     new[] { serviceId }, DateTime.UtcNow, DateTime.UtcNow
                 ],
                 cancellationToken);
+            
+            if (rowsAffected > 0)
+                syncedCount++;
         }
 
-        _logger.LogInformation("✅ SearchProviders: {Count} providers synced to read model", providersToSync.Length);
+        _logger.LogInformation("✅ SearchProviders: {Count} providers synced to read model", syncedCount);
     }
 
     /// <summary>

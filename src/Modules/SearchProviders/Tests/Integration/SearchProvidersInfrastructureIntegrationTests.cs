@@ -257,8 +257,8 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         // Act
         var result = await repository.SearchAsync(
             searchLocation,
-            50,
-            null,
+            radiusInKm: 50,
+            term: null,
             serviceIds: nonExistentServiceIds,
             minRating: null,
             subscriptionTiers: null,
@@ -299,8 +299,8 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         // Act
         var result = await repository.SearchAsync(
             searchLocation,
-            50,
-            null,
+            radiusInKm: 50,
+            term: null,
             serviceIds: null,
             minRating: null,
             subscriptionTiers: new[] { ESubscriptionTier.Gold },
@@ -438,5 +438,36 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
             result.Providers.Should().HaveCount(10);
             result.TotalCount.Should().Be(10);
         });
+    }
+    [Fact]
+    public async Task SearchAsync_WithTerm_ShouldFilterCaseInsensitive()
+    {
+        // Arrange
+        await CleanupDatabase();
+        using var scope = CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
+
+        var provider1 = CreateTestSearchableProvider("João Silva", -23.5505, -46.6333);
+        var provider2 = CreateTestSearchableProvider("Maria Santos", -23.5505, -46.6333);
+
+        await PersistSearchableProviderAsync(provider1);
+        await PersistSearchableProviderAsync(provider2);
+
+        var searchLocation = new GeoPoint(-23.5505, -46.6333);
+
+        // Act
+        var result = await repository.SearchAsync(
+            searchLocation,
+            radiusInKm: 50,
+            term: "silva", // Lowercase search
+            serviceIds: null,
+            minRating: null,
+            subscriptionTiers: null,
+            skip: 0,
+            take: 10);
+
+        // Assert
+        result.Providers.Should().HaveCount(1);
+        result.Providers.First().Name.Should().Be("João Silva");
     }
 }

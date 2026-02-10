@@ -7,6 +7,8 @@ import { ServiceTags } from "@/components/search/service-tags";
 import { apiProvidersGet3 } from "@/lib/api/generated/sdk.gen";
 import { mapSearchableProviderToProvider } from "@/lib/api/mappers";
 import { geocodeCity } from "@/lib/services/geocoding";
+import { getAuthHeaders } from "@/lib/api/auth-headers";
+import { ProviderDto } from "@/types/api/provider";
 
 interface SearchPageProps {
     searchParams: Promise<{
@@ -37,6 +39,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     }
 
     // Fetch providers from API
+    const headers = await getAuthHeaders();
     const { data, error } = await apiProvidersGet3({
         query: {
             latitude,
@@ -47,6 +50,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             pageSize: 20,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
+        headers,
     });
 
     if (error) {
@@ -58,7 +62,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     const providers = (data?.items || []).map(mapSearchableProviderToProvider);
 
     // Insert AdCard at index 1 (2nd position) if we have enough items
-    const gridItems = [];
+    type GridItem =
+        | { type: 'provider'; data: ProviderDto }
+        | { type: 'ad'; data: null };
+
+    const gridItems: GridItem[] = [];
     if (providers.length > 0) {
         gridItems.push({ type: 'provider', data: providers[0] });
         gridItems.push({ type: 'ad', data: null });
@@ -74,27 +82,51 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <div className="container mx-auto px-4 py-8">
             {/* 1. Search Bar Centered */}
             <div className="max-w-3xl mx-auto mb-8">
-                <form action="/buscar" method="get" role="search" className="relative flex items-center">
-                    <input
-                        name="city"
-                        type="hidden"
-                        value={cityFilter}
-                    />
-                    <input
-                        name="q"
-                        type="search"
-                        placeholder="Buscar serviço"
-                        defaultValue={searchQuery}
-                        className="w-full pl-6 pr-14 py-4 border border-orange-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 text-lg placeholder:text-foreground-subtle"
-                    />
-                    <Button
-                        type="submit"
-                        size="icon"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#E0702B] hover:bg-[#c56226] h-10 w-10 rounded-md"
-                        aria-label="Buscar"
-                    >
-                        <Search className="h-5 w-5 text-white" />
-                    </Button>
+                <form action="/buscar" method="get" role="search" className="relative flex items-center gap-2">
+                    {/* Expose city input or allow clearing it */}
+                    {cityFilter && (
+                        <input
+                            name="city"
+                            type="hidden"
+                            value={cityFilter}
+                        />
+                    )}
+
+                    <div className="relative w-full">
+                        <input
+                            name="q"
+                            type="search"
+                            placeholder={cityFilter ? `Buscar em ${cityFilter}...` : "Buscar serviço"}
+                            defaultValue={searchQuery}
+                            className="w-full pl-6 pr-14 py-4 border border-orange-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 text-lg placeholder:text-foreground-subtle"
+                        />
+                        {cityFilter && (
+                            <div className="absolute right-14 top-1/2 -translate-y-1/2">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 text-xs text-muted-foreground hover:text-destructive"
+                                    onClick={() => {
+                                        // This is a server component, so we rely on form submit without hidden city input 
+                                        // But inside a form actions/inputs are static. 
+                                        // We'll trust the user to clear the search or navigate back home for now, 
+                                        // or better: add a link to clear city
+                                    }}
+                                    asChild
+                                >
+                                    <a href={`/buscar?q=${searchQuery}`}>Limpar Cidade</a>
+                                </Button>
+                            </div>
+                        )}
+                        <Button
+                            type="submit"
+                            size="icon"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#E0702B] hover:bg-[#c56226] h-10 w-10 rounded-md"
+                            aria-label="Buscar"
+                        >
+                            <Search className="h-5 w-5 text-white" />
+                        </Button>
+                    </div>
                 </form>
 
 
@@ -115,7 +147,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                             return <AdCard key={`ad-${index}`} />;
                         }
 
-                        const provider = item.data!;
+                        const provider = item.data; // Type narrowed automatically
                         return (
                             <ServiceCard
                                 key={provider.id}

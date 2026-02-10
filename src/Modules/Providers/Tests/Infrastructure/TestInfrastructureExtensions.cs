@@ -65,6 +65,12 @@ public static class ProvidersTestInfrastructureExtensions
         // Adicionar serviços de aplicação específicos do Providers
         services.AddScoped<IProviderQueryService, ProviderQueryService>();
 
+        // Adicionar Dispatcher de Queries
+        services.AddScoped<MeAjudaAi.Shared.Queries.IQueryDispatcher, MeAjudaAi.Shared.Queries.QueryDispatcher>();
+        
+        // Registrar handlers de teste explicitamente
+        services.AddScoped<MeAjudaAi.Shared.Queries.IQueryHandler<MeAjudaAi.Modules.Providers.Application.Queries.GetPublicProviderByIdQuery, MeAjudaAi.Contracts.Functional.Result<MeAjudaAi.Modules.Providers.Application.DTOs.PublicProviderDto?>>, MeAjudaAi.Modules.Providers.Application.Handlers.Queries.GetPublicProviderByIdQueryHandler>();
+
         return services;
     }
 }

@@ -1,4 +1,4 @@
-import { Star, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Rating } from "@/components/ui/rating";
 
@@ -36,7 +36,7 @@ export function ReviewCard({ review, className }: ReviewCardProps) {
                     {review.verified && <CheckCircle2 className="size-3" />}
                 </span>
                 <span className="text-muted-foreground">
-                    {review.createdAt.toLocaleDateString('pt-BR')}
+                    {new Date(review.createdAt).toLocaleDateString('pt-BR')}
                 </span>
             </div>
         </div>

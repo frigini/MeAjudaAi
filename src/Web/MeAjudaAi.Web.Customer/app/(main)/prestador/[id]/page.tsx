@@ -2,20 +2,45 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { cache } from "react";
 import { Avatar } from "@/components/ui/avatar";
-import { apiProvidersGet2 } from "@/lib/api/generated/sdk.gen";
 import { Rating } from "@/components/ui/rating";
+import { createClient, createConfig } from "@/lib/api/generated/client";
 import { ReviewList } from "@/components/reviews/review-list";
 import { Badge } from "@/components/ui/badge";
 
+// Initialize client directly to avoid potential circular dependency issues with generated barrel files
+const client = createClient(createConfig({
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002'
+}));
+
+interface PublicProviderData {
+    id: string;
+    name: string;
+    type: string;
+    fantasyName?: string;
+    description?: string;
+    city?: string;
+    state?: string;
+    rating?: number;
+    phoneNumbers?: string[];
+    services?: string[];
+}
+
 // Deduplicate requests with React cache
-const getCachedProvider = cache(async (id: string) => {
+const getCachedProvider = cache(async (id: string): Promise<PublicProviderData | null> => {
     try {
-        const { data } = await apiProvidersGet2({
-            path: { id },
+        // Fetching from new public endpoint
+        const response = await client.get<{ data: PublicProviderData }>({
+            url: `/api/v1/providers/${id}/public`
         });
-        return data?.data;
+
+        if (response.error) {
+            console.error(`API Error fetching provider ${id}:`, response.error);
+            return null;
+        }
+
+        return response.data || null;
     } catch (error) {
-        console.error("Error fetching provider:", error);
+        console.error(`Exception fetching public provider ${id}:`, error);
         return null;
     }
 });
@@ -38,9 +63,8 @@ export async function generateMetadata({
         };
     }
 
-    const businessProfile = provider.businessProfile;
-    const displayName = businessProfile?.fantasyName || businessProfile?.legalName || provider.name || "Prestador";
-    const description = businessProfile?.description?.slice(0, 160) || `Confira o perfil de ${displayName} no MeAjudaAi.`;
+    const displayName = provider.fantasyName || provider.name || "Prestador";
+    const description = provider.description || `Confira o perfil de ${displayName} no MeAjudaAi.`;
 
     return {
         title: `${displayName} | MeAjudaAi`,
@@ -57,25 +81,22 @@ export default async function ProviderProfilePage({
 }: ProviderProfilePageProps) {
     const { id } = await params;
 
-    // Fetch real data
+    // Fetch real data (public endpoint)
     const providerData = await getCachedProvider(id);
 
     if (!providerData) {
         notFound();
     }
 
-    // Prepare display data (mixing real + mock where missing)
-    const businessProfile = providerData.businessProfile;
-    const contactInfo = businessProfile?.contactInfo;
+    // Prepare display data from PublicProviderDto
+    const displayName = providerData.fantasyName || providerData.name || "Prestador";
+    const description = providerData.description || "Este prestador ainda não adicionou uma descrição.";
+    const cityState = providerData.city && providerData.state ? `${providerData.city} - ${providerData.state}` : "";
 
-    const displayName = businessProfile?.fantasyName || businessProfile?.legalName || providerData.name || "Prestador";
-    const description = businessProfile?.description || "Este prestador ainda não adicionou uma descrição.";
-    const email = contactInfo?.email || "Email não disponível";
-
-    // Mocked data for UI Refinement requirements
-    const mockRating = 4.8;
-    const mockPhones = contactInfo?.phoneNumber ? [contactInfo.phoneNumber] : ["(00) 0 0000 - 0000"];
-    const mockServices = ["Serviço com nome grande", "Serviço 3", "Serviço 3", "Serviço 3", "Serviço 3", "Serviço com nome grande"];
+    // Using data from PublicProviderDto (which may contain real or mocked data from backend)
+    const rating = providerData.rating || 4.8;
+    const phones = (providerData.phoneNumbers && providerData.phoneNumbers.length > 0) ? providerData.phoneNumbers : ["(00) 0 0000 - 0000"];
+    const services = (providerData.services && providerData.services.length > 0) ? providerData.services : ["Serviço Geral"];
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-5xl">
@@ -90,7 +111,7 @@ export default async function ProviderProfilePage({
                 />
 
                 <h1 className="text-3xl font-bold text-[#E0702B] mb-1">{displayName}</h1>
-                <p className="text-muted-foreground text-sm mb-6">{email}</p>
+                <p className="text-muted-foreground text-sm mb-6">{cityState}</p>
 
                 <div className="max-w-3xl mb-6">
                     <p className="text-sm leading-relaxed text-foreground-subtle text-justify">
@@ -100,12 +121,12 @@ export default async function ProviderProfilePage({
 
                 <div className="flex flex-col items-center gap-2 mb-6">
                     <div className="flex gap-1">
-                        <Rating value={mockRating} readOnly size="md" />
+                        <Rating value={rating} readOnly size="md" />
                     </div>
                 </div>
 
                 <div className="space-y-1">
-                    {mockPhones.map((phone, i) => (
+                    {phones.map((phone: string, i: number) => (
                         <div key={i} className="flex items-center justify-center gap-2 text-sm text-foreground-subtle">
                             {phone} <span className="text-green-500">📱</span>
                         </div>
@@ -117,7 +138,7 @@ export default async function ProviderProfilePage({
             <div className="mb-12">
                 <h2 className="text-xl font-bold mb-4">Serviços</h2>
                 <div className="flex flex-wrap gap-2">
-                    {mockServices.map((service, index) => (
+                    {services.map((service: string, index: number) => (
                         <Badge
                             key={index}
                             className="bg-[#E0702B] hover:bg-[#c56226] text-white font-normal px-4 py-1.5 text-sm rounded-md border-none"
@@ -130,7 +151,7 @@ export default async function ProviderProfilePage({
 
             {/* Reviews Section */}
             <div className="mb-12">
-                <ReviewList providerId={id} />
+                <ReviewList />
             </div>
         </div>
     );

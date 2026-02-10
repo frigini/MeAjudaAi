@@ -30,7 +30,7 @@ interface ReviewFormProps {
     onSuccess?: () => void;
 }
 
-export function ReviewForm({ providerId, onSuccess }: ReviewFormProps) {
+export function ReviewForm({ onSuccess }: Omit<ReviewFormProps, 'providerId'>) {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm<ReviewFormValues>({
@@ -41,7 +41,8 @@ export function ReviewForm({ providerId, onSuccess }: ReviewFormProps) {
         },
     });
 
-    async function onSubmit(data: ReviewFormValues) {
+    async function onSubmit() {
+        // console.log("Submitting", _data);
         setIsSubmitting(true);
         try {
             // Mock API call
@@ -56,7 +57,7 @@ export function ReviewForm({ providerId, onSuccess }: ReviewFormProps) {
 
             form.reset();
             onSuccess?.();
-        } catch (error) {
+        } catch {
             toast.error("Erro ao enviar avaliação", {
                 description: "Tente novamente mais tarde.",
             });

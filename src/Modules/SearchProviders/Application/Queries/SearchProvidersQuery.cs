@@ -9,7 +9,7 @@ using MeAjudaAi.Contracts.Models;
 namespace MeAjudaAi.Modules.SearchProviders.Application.Queries;
 
 /// <summary>
-/// Query to search for providers based on location, services, and other criteria.
+/// Query para buscar prestadores com base em localização, serviços e outros critérios.
 /// </summary>
 public sealed record SearchProvidersQuery(
     double Latitude,

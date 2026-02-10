@@ -52,6 +52,7 @@ public static class ProvidersModuleEndpoints
         endpoints.MapEndpoint<GetProvidersEndpoint>()
             .MapEndpoint<CreateProviderEndpoint>()
             .MapEndpoint<GetProviderByIdEndpoint>()
+            .MapEndpoint<GetPublicProviderByIdEndpoint>() // Novo endpoint público
             .MapEndpoint<GetProviderByUserIdEndpoint>()
             .MapEndpoint<GetProvidersByCityEndpoint>()
             .MapEndpoint<GetProvidersByStateEndpoint>()

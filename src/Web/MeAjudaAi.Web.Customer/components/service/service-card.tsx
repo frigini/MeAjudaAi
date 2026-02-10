@@ -33,7 +33,7 @@ export function ServiceCard({
                     {/* Avatar */}
                     <div className="flex-shrink-0">
                         <Avatar
-                            src={avatarUrl ?? undefined}
+                            src={avatarUrl}
                             alt={name}
                             className="h-24 w-24 md:h-32 md:w-32 rounded-full object-cover border-4 border-white shadow-sm"
                             fallback={name.substring(0, 2).toUpperCase()}
@@ -55,9 +55,9 @@ export function ServiceCard({
 
                             {/* Service Tags */}
                             <div className="flex flex-wrap gap-2 mb-4">
-                                {services.map((service, index) => (
+                                {services.map((service) => (
                                     <Badge
-                                        key={index}
+                                        key={service}
                                         className="bg-[#E0702B] hover:bg-[#c56226] text-white font-normal px-4 py-1 text-sm rounded-full border-none"
                                     >
                                         {service}

@@ -5,9 +5,6 @@ import { Review, ReviewCard } from "./review-card";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 
-interface ReviewListProps {
-    providerId: string;
-}
 
 // Mock data generator
 const generateMockReviews = (count: number): Review[] => {
@@ -21,7 +18,7 @@ const generateMockReviews = (count: number): Review[] => {
     }));
 };
 
-export function ReviewList({ providerId }: ReviewListProps) {
+export function ReviewList() {
     const [reviews, setReviews] = useState<Review[]>(generateMockReviews(4));
 
     const loadMore = () => {
@@ -40,7 +37,7 @@ export function ReviewList({ providerId }: ReviewListProps) {
         <div className="space-y-6">
             <div className="flex items-center gap-2 mb-4">
                 <h3 className="text-xl font-bold">Comentários</h3>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setReviews([...reviews].reverse())}>
                     <ArrowUpDown className="h-4 w-4" />
                     <span className="sr-only">Ordenar comentários</span>
                 </Button>
@@ -53,7 +50,9 @@ export function ReviewList({ providerId }: ReviewListProps) {
             </div>
 
             <div className="text-center mt-8">
-                {/* Pagination or Load More - kept simple for now based on mock */}
+                <Button variant="outline" onClick={loadMore}>
+                    Carregar mais
+                </Button>
             </div>
         </div>
     );
