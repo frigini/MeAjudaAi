@@ -636,7 +636,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                     {0}, {1}, {2}, {3}, 
                     ST_SetSRID(ST_MakePoint({4}, {5}), 4326), 
                     {6}, {7}, {8}, 
-                    {9}, true, 'Linhares', 'ES', {10}, {11}
+                    {9}, true, {10}, {11}, {12}, {13}
                   )
                   ON CONFLICT (provider_id) DO UPDATE SET
                     name = EXCLUDED.name,
@@ -652,7 +652,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                     UuidGenerator.NewId(), p.Id, p.Name, p.Description,
                     lon, lat, // PostGIS usa Longitude, Latitude
                     p.Tier, (decimal)p.Rating, p.Reviews,
-                    new[] { serviceId }, DateTime.UtcNow, DateTime.UtcNow
+                    new[] { serviceId }, "Linhares", "ES", DateTime.UtcNow, DateTime.UtcNow
                 ],
                 cancellationToken);
             

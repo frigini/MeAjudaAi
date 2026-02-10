@@ -40,9 +40,9 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
         Keycloak({
-            clientId: process.env.KEYCLOAK_CLIENT_ID ?? "",
-            clientSecret: process.env.KEYCLOAK_CLIENT_SECRET ?? "",
-            issuer: process.env.KEYCLOAK_ISSUER ?? "",
+            clientId: process.env.KEYCLOAK_CLIENT_ID || (() => { throw new Error("Missing KEYCLOAK_CLIENT_ID") })(),
+            clientSecret: process.env.KEYCLOAK_CLIENT_SECRET || (() => { throw new Error("Missing KEYCLOAK_CLIENT_SECRET") })(),
+            issuer: process.env.KEYCLOAK_ISSUER || (() => { throw new Error("Missing KEYCLOAK_ISSUER") })(),
         }),
     ],
     pages: {

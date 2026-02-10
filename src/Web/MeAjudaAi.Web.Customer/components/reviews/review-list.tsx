@@ -19,7 +19,7 @@ const generateMockReviews = (count: number): Review[] => {
 };
 
 export function ReviewList({ providerId }: { providerId: string }) {
-    const [reviews, setReviews] = useState<Review[]>(generateMockReviews(4));
+    const [reviews, setReviews] = useState<Review[]>(() => generateMockReviews(4));
 
     const loadMore = () => {
         // Mock loading more
@@ -37,7 +37,7 @@ export function ReviewList({ providerId }: { providerId: string }) {
         <div className="space-y-6">
             <div className="flex items-center gap-2 mb-4">
                 <h3 className="text-xl font-bold">Comentários</h3>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setReviews([...reviews].reverse())}>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setReviews(prev => [...prev].reverse())}>
                     <ArrowUpDown className="h-4 w-4" />
                     <span className="sr-only">Ordenar comentários</span>
                 </Button>

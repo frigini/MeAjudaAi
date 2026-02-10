@@ -142,6 +142,7 @@ public class GetPublicProviderByIdQueryHandlerTests
         );
         
         var statusProperty = typeof(Provider).GetProperty(nameof(Provider.Status));
+        statusProperty.Should().NotBeNull("Provider.Status property must exist");
         statusProperty!.SetValue(provider, EProviderStatus.Active);
 
         _providerRepositoryMock.Setup(x => x.GetByIdAsync(providerId, It.IsAny<CancellationToken>()))
@@ -159,7 +160,13 @@ public class GetPublicProviderByIdQueryHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
+        
+        // Verify restricted fields are empty
         result.Value!.Services.Should().BeEmpty();
         result.Value.PhoneNumbers.Should().BeEmpty();
+
+        // Verify non-restricted fields are still present
+        result.Value.Name.Should().Be("Test Provider");
+        result.Value.FantasyName.Should().Be("Fantasy Name");
     }
 }
