@@ -9,6 +9,13 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+
+    /* Dark mode overrides */
+    --color-surface: #1a1a1a;
+    --color-surface-raised: #262626;
+    --color-foreground-subtle: #a3a3a3;
+    --color-border: #404040;
+    --color-input: #404040;
   }
 }
 

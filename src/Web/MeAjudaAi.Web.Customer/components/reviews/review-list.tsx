@@ -35,15 +35,14 @@ export function ReviewList({ providerId }: { providerId: string }) {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-2 mb-4">
-                <h3 className="text-xl font-bold">Comentários</h3>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setReviews(prev => [...prev].reverse())}>
+            <div className="flex justify-end mb-4">
+                <Button variant="ghost" size="sm" className="h-8 gap-2 text-muted-foreground" onClick={() => setReviews(prev => [...prev].reverse())}>
+                    <span className="text-sm">Ordenar</span>
                     <ArrowUpDown className="h-4 w-4" />
-                    <span className="sr-only">Ordenar comentários</span>
                 </Button>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                 {reviews.map((review) => (
                     <ReviewCard key={review.id} review={review} />
                 ))}

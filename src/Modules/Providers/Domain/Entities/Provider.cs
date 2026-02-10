@@ -545,10 +545,13 @@ public sealed class Provider : AggregateRoot<ProviderId>
     /// 2. O serviço está ativo e disponível para associação
     /// A validação deve ocorrer no command handler antes de chamar este método.
     /// </remarks>
-    public void AddService(Guid serviceId)
+    public void AddService(Guid serviceId, string serviceName)
     {
         if (serviceId == Guid.Empty)
             throw new ProviderDomainException("ServiceId cannot be empty");
+
+        if (string.IsNullOrWhiteSpace(serviceName))
+            throw new ProviderDomainException("ServiceName cannot be empty");
 
         if (IsDeleted)
             throw new ProviderDomainException("Cannot add services to deleted provider");
@@ -556,7 +559,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
         if (_services.Any(s => s.ServiceId == serviceId))
             throw new ProviderDomainException($"Service {serviceId} is already offered by this provider");
 
-        var providerService = new ProviderService(Id, serviceId);
+        var providerService = new ProviderService(Id, serviceId, serviceName);
         _services.Add(providerService);
         MarkAsUpdated();
 

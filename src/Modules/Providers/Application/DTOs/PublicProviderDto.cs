@@ -20,5 +20,6 @@ public sealed record PublicProviderDto(
     double? Rating,
     int ReviewCount,
     IEnumerable<string> Services,
-    IEnumerable<string> PhoneNumbers
+    IEnumerable<string> PhoneNumbers,
+    string? Email
 );

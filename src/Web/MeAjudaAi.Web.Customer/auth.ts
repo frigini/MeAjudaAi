@@ -27,8 +27,12 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
             expiresAt: Date.now() + (refreshedTokens.expires_in * 1000),
             refreshToken: refreshedTokens.refresh_token ?? token.refreshToken, // Fall back to old refresh token
         }
-    } catch (error) {
-        console.error("RefreshAccessTokenError", error)
+    } catch (error: any) {
+        // Log only safe error details to prevent token leakage
+        console.error("RefreshAccessTokenError", {
+            message: error.message,
+            status: error.status || error.statusCode
+        });
 
         return {
             ...token,
@@ -37,12 +41,18 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
     }
 }
 
+function requireEnv(name: string): string {
+    const value = process.env[name];
+    if (!value) throw new Error(`Missing ${name}`);
+    return value;
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
         Keycloak({
-            clientId: process.env.KEYCLOAK_CLIENT_ID || (() => { throw new Error("Missing KEYCLOAK_CLIENT_ID") })(),
-            clientSecret: process.env.KEYCLOAK_CLIENT_SECRET || (() => { throw new Error("Missing KEYCLOAK_CLIENT_SECRET") })(),
-            issuer: process.env.KEYCLOAK_ISSUER || (() => { throw new Error("Missing KEYCLOAK_ISSUER") })(),
+            clientId: requireEnv("KEYCLOAK_CLIENT_ID"),
+            clientSecret: requireEnv("KEYCLOAK_CLIENT_SECRET"),
+            issuer: requireEnv("KEYCLOAK_ISSUER"),
         }),
     ],
     pages: {

@@ -56,6 +56,10 @@ public class AddServiceToProviderCommandHandlerTests
             .Setup(x => x.ValidateServicesAsync(It.IsAny<Guid[]>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ModuleServiceValidationResultDto>.Success(validationResult));
 
+        _serviceCatalogsMock
+            .Setup(x => x.GetServiceByIdAsync(serviceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleServiceDto?>.Success(new ModuleServiceDto(serviceId, Guid.NewGuid(), "Category", "Test Service", "Description", true)));
+
         // Act
         var result = await _sut.HandleAsync(command, CancellationToken.None);
 
@@ -193,6 +197,10 @@ public class AddServiceToProviderCommandHandlerTests
         _serviceCatalogsMock
             .Setup(x => x.ValidateServicesAsync(It.IsAny<Guid[]>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ModuleServiceValidationResultDto>.Success(validationResult));
+
+        _serviceCatalogsMock
+            .Setup(x => x.GetServiceByIdAsync(serviceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleServiceDto?>.Success(new ModuleServiceDto(serviceId, Guid.NewGuid(), "Category", "Test Service", "Description", true)));
 
         _repositoryMock
             .Setup(x => x.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))

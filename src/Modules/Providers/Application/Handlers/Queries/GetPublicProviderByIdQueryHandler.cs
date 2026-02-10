@@ -64,12 +64,17 @@ public sealed class GetPublicProviderByIdQueryHandler : IQueryHandler<GetPublicP
             ReviewCount: 0, 
             
             // Dados sensíveis ou dependentes de módulos externos são condicionados por privacidade
-            Services: !isPrivacyEnabled 
-                ? new[] { "Serviço Geral" } // Placeholder enquanto módulo de serviços não integra
+            Services: !isPrivacyEnabled
+                ? provider.Services.Select(s => s.ServiceName).ToList()
                 : Array.Empty<string>(),
-            PhoneNumbers: !isPrivacyEnabled && businessProfile.ContactInfo?.PhoneNumber != null 
-                ? new[] { businessProfile.ContactInfo.PhoneNumber } 
-                : Array.Empty<string>()
+            PhoneNumbers: !isPrivacyEnabled && businessProfile.ContactInfo != null
+                ? (string.IsNullOrWhiteSpace(businessProfile.ContactInfo.PhoneNumber)
+                    ? businessProfile.ContactInfo.AdditionalPhoneNumbers
+                    : new[] { businessProfile.ContactInfo.PhoneNumber }.Concat(businessProfile.ContactInfo.AdditionalPhoneNumbers))
+                : Array.Empty<string>(),
+            Email: !isPrivacyEnabled && businessProfile.ContactInfo != null
+                ? businessProfile.ContactInfo.Email
+                : null
         );
 
         return Result<PublicProviderDto?>.Success(dto);
