@@ -27,7 +27,7 @@ export function Header({ className }: HeaderProps) {
     };
 
     return (
-        <header className={cn("sticky top-0 z-50 border-b border-border bg-white shadow-sm", className)}>
+        <header className={cn("sticky top-0 z-50 border-b border-[#E0702B] bg-white shadow-sm", className)}>
             <div className="container mx-auto flex h-24 items-center justify-between px-4">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-4 cursor-pointer" aria-label="Ir para a página inicial">

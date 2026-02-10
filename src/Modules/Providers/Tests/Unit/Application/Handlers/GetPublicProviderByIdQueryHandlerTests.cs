@@ -129,6 +129,7 @@ public class GetPublicProviderByIdQueryHandlerTests
         // Verify restricted fields are empty
         result.Value!.Services.Should().BeEmpty();
         result.Value.PhoneNumbers.Should().BeEmpty();
+        result.Value.Email.Should().BeNull();
 
         // Verify non-restricted fields are still present
         result.Value.Name.Should().Be("Test Provider");

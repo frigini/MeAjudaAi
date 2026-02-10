@@ -213,4 +213,41 @@ public class AddServiceToProviderCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain("Ocorreu um erro ao adicionar serviço ao prestador");
     }
+
+    [Fact]
+    public async Task HandleAsync_WhenGetServiceByIdFails_ShouldReturnFailure()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var serviceId = Guid.NewGuid();
+        var command = new AddServiceToProviderCommand(providerId, serviceId);
+
+        var provider = CreateTestProvider(providerId);
+
+        _repositoryMock
+            .Setup(x => x.GetByIdAsync(It.Is<ProviderId>(id => id.Value == providerId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(provider);
+
+        // Service validation succeeds
+        var validationResult = new ModuleServiceValidationResultDto(
+            ValidServiceIds: new[] { serviceId },
+            InvalidServiceIds: Array.Empty<Guid>(),
+            InactiveServiceIds: Array.Empty<Guid>());
+
+        _serviceCatalogsMock
+            .Setup(x => x.ValidateServicesAsync(It.IsAny<Guid[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleServiceValidationResultDto>.Success(validationResult));
+
+        // GetServiceByIdAsync fails
+        _serviceCatalogsMock
+            .Setup(x => x.GetServiceByIdAsync(serviceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleServiceDto?>.Failure(Error.NotFound("Service not found")));
+
+        // Act
+        var result = await _sut.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Be("Falha ao recuperar detalhes do serviço.");
+    }
 }

@@ -7,10 +7,9 @@ import { createClient, createConfig } from "@/lib/api/generated/client";
 import { ReviewList } from "@/components/reviews/review-list";
 import { ReviewForm } from "@/components/reviews/review-form";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, ArrowUpDown } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { MeAjudaAiContractsFunctionalError } from "@/lib/api/generated/types.gen";
 
-// Initialize client directly
 const client = createClient(createConfig({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002'
 }));
@@ -30,10 +29,9 @@ interface PublicProviderData {
     email?: string;
 }
 
-// Deduplicate requests with React cache
 const getCachedProvider = cache(async (id: string): Promise<PublicProviderData | null> => {
     try {
-        const response = await client.get<{ data: PublicProviderData }>({
+        const response = await client.get({
             url: `/api/v1/providers/${id}/public`
         });
 
@@ -46,7 +44,13 @@ const getCachedProvider = cache(async (id: string): Promise<PublicProviderData |
             throw new Error(apiError.message || 'Erro ao carregar perfil do prestador');
         }
 
-        return response.data || null;
+        // API returns Result pattern: { isSuccess: true, value: {...} }
+        const result = response.data as { isSuccess: boolean; value: PublicProviderData } | null;
+        if (result?.isSuccess && result?.value) {
+            return result.value;
+        }
+
+        return null;
     } catch (error: any) {
         if (error.status === 404 || error.statusCode === 404 || (error instanceof Error && error.message.includes("404"))) return null;
         console.error(`Exception fetching public provider ${id}:`, error);
@@ -90,7 +94,6 @@ export default async function ProviderProfilePage({
 }: ProviderProfilePageProps) {
     const { id } = await params;
 
-    // Fetch real data
     const providerData = await getCachedProvider(id);
 
     if (!providerData) {
@@ -100,11 +103,9 @@ export default async function ProviderProfilePage({
     const displayName = providerData.fantasyName || providerData.name || "Prestador";
     const description = providerData.description || "Este prestador ainda não adicionou uma descrição.";
 
-    // Using data from PublicProviderDto with safe fallbacks
     const rating = providerData.rating ?? 0;
     const reviewCount = providerData.reviewCount ?? 0;
 
-    // Ensure phones and services are arrays
     const phones = (providerData.phoneNumbers && providerData.phoneNumbers.length > 0)
         ? providerData.phoneNumbers
         : ["(00) 0 0000-0000"];
@@ -113,103 +114,101 @@ export default async function ProviderProfilePage({
         ? providerData.services
         : ["Serviço Geral"];
 
-    // Format phone for WhatsApp link (remove non-digits)
     const getWhatsappLink = (phone: string) => {
         const cleanPhone = phone.replace(/\D/g, "");
         return `https://wa.me/55${cleanPhone}`;
     };
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-6xl space-y-12">
+        <div className="container mx-auto px-4 py-8">
+            {/* Centered Profile Container */}
+            <div className="max-w-4xl mx-auto">
 
-            {/* Top Section: Centralized Profile Info */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+                {/* Profile Section - Matching Figma Layout */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12">
 
-                {/* Left Column: Avatar, Rating, Phones */}
-                <div className="md:col-span-3 flex flex-col items-center md:items-end space-y-6 text-center md:text-right">
-                    {/* Avatar */}
-                    <Avatar
-                        src={undefined}
-                        alt={displayName}
-                        fallback={displayName.substring(0, 2).toUpperCase()}
-                        className="h-40 w-40 border-4 border-white shadow-md text-4xl font-bold rounded-full overflow-hidden"
-                    />
+                    {/* Left Column: Avatar, Rating, Phones */}
+                    <div className="md:col-span-3 flex flex-col items-center space-y-4">
+                        {/* Avatar */}
+                        <Avatar
+                            src={undefined}
+                            alt={displayName}
+                            fallback={displayName.substring(0, 2).toUpperCase()}
+                            className="h-32 w-32 border-4 border-white shadow-md text-3xl font-bold"
+                        />
 
-                    {/* Rating */}
-                    <div className="flex flex-col items-center md:items-end gap-1">
-                        <Rating value={rating} readOnly size="md" className="text-[#E0702B]" />
-                    </div>
+                        {/* Rating */}
+                        <div className="flex items-center">
+                            <Rating value={rating} readOnly size="md" className="text-[#E0702B]" />
+                        </div>
 
-                    {/* Phones */}
-                    <div className="w-full flex flex-col items-center md:items-end space-y-2">
-                        {phones.map((phone: string, i: number) => (
-                            <div key={i} className="flex items-center gap-2 text-gray-600 justify-end">
-                                <span className="text-sm font-medium whitespace-nowrap">{phone}</span>
-                                <a
-                                    href={getWhatsappLink(phone)}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-green-500 hover:text-green-600 transition-colors"
-                                    title="Chamar no WhatsApp"
-                                >
-                                    <MessageCircle className="w-4 h-4" />
-                                </a>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Right Column: Name, Email, Description, Services */}
-                <div className="md:col-span-9 space-y-8">
-
-                    {/* Header Info */}
-                    <div className="space-y-1 text-center md:text-left">
-                        <h1 className="text-3xl md:text-4xl font-bold text-[#E0702B]">{displayName}</h1>
-                        {providerData.email && (
-                            <p className="text-gray-500 font-medium lowercase">{providerData.email}</p>
-                        )}
-                    </div>
-
-                    {/* Description */}
-                    <div className="prose prose-stone max-w-none text-gray-600 leading-relaxed whitespace-pre-wrap text-justify md:text-left">
-                        <p>{description}</p>
-                    </div>
-
-                    {/* Services */}
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">Serviços</h2>
-                        <div className="flex flex-wrap gap-3">
-                            {services.map((service: string, index: number) => (
-                                <Badge
-                                    key={index}
-                                    className="px-4 py-1.5 text-sm font-medium bg-[#E0702B] hover:bg-[#c56226] text-white border-none transition-colors rounded-md"
-                                >
-                                    {service}
-                                </Badge>
+                        {/* Phones */}
+                        <div className="w-full space-y-2">
+                            {phones.map((phone: string, i: number) => (
+                                <div key={i} className="flex items-center gap-2 text-gray-600 text-sm">
+                                    <span className="font-medium">{phone}</span>
+                                    <a
+                                        href={getWhatsappLink(phone)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-green-500 hover:text-green-600 transition-colors"
+                                        title="Chamar no WhatsApp"
+                                    >
+                                        <MessageCircle className="w-4 h-4" />
+                                    </a>
+                                </div>
                             ))}
+                        </div>
+                    </div>
+
+                    {/* Right Column: Name, Email, Description, Services */}
+                    <div className="md:col-span-9 space-y-4">
+
+                        {/* Name */}
+                        <h1 className="text-3xl md:text-4xl font-bold text-[#E0702B]">{displayName}</h1>
+
+                        {/* Email */}
+                        {providerData.email && (
+                            <p className="text-gray-500 font-medium text-sm lowercase">{providerData.email}</p>
+                        )}
+
+                        {/* Description */}
+                        <div className="text-gray-600 leading-relaxed text-justify">
+                            <p>{description}</p>
+                        </div>
+
+                        {/* Services */}
+                        <div className="pt-4">
+                            <h2 className="text-lg font-bold text-gray-900 mb-3">Serviços</h2>
+                            <div className="flex flex-wrap gap-2">
+                                {services.map((service: string, index: number) => (
+                                    <Badge
+                                        key={index}
+                                        className="px-3 py-1 text-sm font-medium bg-[#E0702B] hover:bg-[#c56226] text-white border-none transition-colors rounded-md"
+                                    >
+                                        {service}
+                                    </Badge>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Bottom Section: Reviews (Full Width) */}
-            <div className="pt-8 border-t border-gray-100 w-full">
-                <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-2">
-                        <h2 className="text-2xl font-bold text-gray-900">Comentários</h2>
-                        <ArrowUpDown className="w-5 h-5 text-gray-400" />
+            {/* Comments Section - Full Width (outside centered container) */}
+            <div className="container mx-auto px-4 py-8">
+                <div className="pt-8 border-t border-gray-200">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-bold text-gray-900">Comentários</h2>
                     </div>
-                </div>
 
-                {/* Review Form & List - Spanning full width */}
-                <div className="space-y-12">
-                    {/* We can potentially move the form to a modal or keep it here depending on UX preferences 
-                        For now, keeping it here but full width */}
-                    {/* <div className="max-w-2xl"> 
-                         <ReviewForm providerId={id} />
-                    </div> */}
+                    <div className="space-y-6">
+                        <div className="bg-gray-50 p-3 rounded-lg">
+                            <ReviewForm providerId={id} />
+                        </div>
 
-                    <ReviewList providerId={id} />
+                        <ReviewList providerId={id} />
+                    </div>
                 </div>
             </div>
         </div>

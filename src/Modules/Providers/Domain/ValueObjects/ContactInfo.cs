@@ -53,7 +53,7 @@ public class ContactInfo : ValueObject
         yield return Email;
         yield return PhoneNumber ?? string.Empty;
         yield return Website ?? string.Empty;
-        foreach (var phone in AdditionalPhoneNumbers)
+        foreach (var phone in AdditionalPhoneNumbers.OrderBy(p => p))
         {
             yield return phone;
         }

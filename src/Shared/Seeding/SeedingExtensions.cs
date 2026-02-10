@@ -32,7 +32,7 @@ public static class SeedingExtensions
         var seeder = scope.ServiceProvider.GetService<IDevelopmentDataSeeder>();
         if (seeder != null)
         {
-            await seeder.SeedIfEmptyAsync(cancellationToken);
+            await seeder.ForceSeedAsync(cancellationToken);
         }
     }
 }
