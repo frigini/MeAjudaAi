@@ -250,7 +250,10 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         }
     }
 
-    protected ProvidersDbContext dbContext => GetService<ProvidersDbContext>();
+    /// <summary>
+    /// Acesso direto ao contexto de banco de dados do módulo Providers
+    /// </summary>
+    protected ProvidersDbContext DbContext => GetService<ProvidersDbContext>();
 
     /// <summary>
     /// Obtém um serviço do provider isolado

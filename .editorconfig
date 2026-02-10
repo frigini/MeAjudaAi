@@ -1,11 +1,3 @@
-# Seeding-specific rules
-[src/Shared/Seeding/**.cs]
-
-# CS8601: Possible null reference assignment
-# Justification: EF Core ExecuteSqlRawAsync correctly handles null values and converts them to SQL NULL
-dotnet_diagnostic.CS8601.severity = none
-
-
 # Global rules
 [*.cs]
 
@@ -30,16 +22,6 @@ dotnet_diagnostic.S1144.severity = none
 # S3427: Method overloads with default parameter values should not overlap
 dotnet_diagnostic.S3427.severity = none
 
-# Migrations specific rules
-[**/*Migrations/*.cs]
-
-
-# S1186: Methods should not be empty
-dotnet_diagnostic.S1186.severity = none
-
-
-# Warning cleanup requested
-[*.cs]
 # Suppress IDE style rules causing build noise
 dotnet_diagnostic.IDE0022.severity = none # Use block body for method
 dotnet_diagnostic.IDE0046.severity = none # 'if' statement can be simplified
@@ -82,4 +64,15 @@ dotnet_diagnostic.CA1822.severity = none # Mark members as static
 
 # Default severity for all analyzers (Global fallback)
 dotnet_analyzer_diagnostic.severity = warning
+
+# Seeding-specific rules
+[src/Shared/Seeding/**.cs]
+# CS8601: Possible null reference assignment
+# Justification: EF Core ExecuteSqlRawAsync correctly handles null values and converts them to SQL NULL
+dotnet_diagnostic.CS8601.severity = none
+
+# Migrations specific rules
+[**/*Migrations/*.cs]
+# S1186: Methods should not be empty
+dotnet_diagnostic.S1186.severity = none
 

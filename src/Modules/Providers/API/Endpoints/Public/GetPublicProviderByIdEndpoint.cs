@@ -38,7 +38,7 @@ public class GetPublicProviderByIdEndpoint : BaseEndpoint, IEndpoint
                 - Dados de auditoria interna
                 """)
             .AllowAnonymous() // Permite acesso sem login
-            .RequireRateLimiting("public") // Aplica política de rate limiting pública
+            .RequireRateLimiting(RateLimitPolicies.Public) // Aplica política de rate limiting pública
             .Produces<Response<PublicProviderDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 

@@ -71,13 +71,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         },
         async session({ session, token }) {
             if (token?.accessToken) {
-                (session as any).accessToken = token.accessToken
+                session.accessToken = token.accessToken as string
             }
             if (token?.id && session.user) {
                 session.user.id = token.id as string
             }
             if (token?.error) {
-                (session as any).error = token.error as string
+                session.error = token.error as string
             }
             return session
         },
@@ -86,9 +86,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             if (url.startsWith("//")) {
                 return baseUrl
             }
-            // Permite URLs que começam com a baseUrl ou caminhos relativos
-            if (url.startsWith(baseUrl)) return url
-            else if (url.startsWith("/")) return new URL(url, baseUrl).toString()
+
+            try {
+                const resolvedUrl = new URL(url, baseUrl)
+                const baseOrigin = new URL(baseUrl).origin
+
+                // Permite se a origem for a mesma ou se for um caminho relativo válido (já resolvido pelo construtor URL)
+                if (resolvedUrl.origin === baseOrigin) {
+                    return resolvedUrl.toString()
+                }
+            } catch {
+                // Se falhar o parsing, cai no fallback seguro
+            }
+
             return baseUrl
         },
     },

@@ -112,17 +112,10 @@ public partial class Program
     private static async Task ConfigureMiddlewareAsync(WebApplication app)
     {
         app.MapDefaultEndpoints();
-        app.UseRateLimiter();
-
-        // Adiciona middleware de logging estruturado (condicionalmente adiciona Serilog request logging baseado no ambiente)
-        if (!app.Environment.IsEnvironment("Testing"))
-        {
-            app.UseStructuredLogging();
-        }
-
         // Configurar serviços e módulos
         await app.UseSharedServicesAsync();
         app.UseApiServices(app.Environment);
+        app.UseRateLimiter();
         app.UseUsersModule();
         app.UseProvidersModule();
         app.UseDocumentsModule();

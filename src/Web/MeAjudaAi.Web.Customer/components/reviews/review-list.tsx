@@ -18,7 +18,7 @@ const generateMockReviews = (count: number): Review[] => {
     }));
 };
 
-export function ReviewList() {
+export function ReviewList({ providerId }: { providerId: string }) {
     const [reviews, setReviews] = useState<Review[]>(generateMockReviews(4));
 
     const loadMore = () => {

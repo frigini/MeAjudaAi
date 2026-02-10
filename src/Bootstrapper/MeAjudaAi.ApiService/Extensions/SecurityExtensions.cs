@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
+using System.Threading.RateLimiting;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
@@ -442,12 +443,12 @@ public static class SecurityExtensions
         services.AddRateLimiter(options =>
         {
             // Política para endpoints públicos anonimizados
-            options.AddFixedWindowLimiter("public", opt =>
+            options.AddFixedWindowLimiter(RateLimitPolicies.Public, opt =>
             {
                 opt.Window = TimeSpan.FromMinutes(1);
                 opt.PermitLimit = 60;
                 opt.QueueLimit = 10;
-                opt.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+                opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
             });
 
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;

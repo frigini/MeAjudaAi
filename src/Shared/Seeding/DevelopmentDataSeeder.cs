@@ -615,7 +615,8 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 continue;
             }
 
-            // Gerar lat/lon aleatórios próximos a Linhares para distribuir no mapa
+            // Gera coordenadas determinísticas baseadas no ID do prestador para manter a localização estável entre seeds.
+            // GetHashCode não é garantido entre versões do .NET, mas é suficiente para dados de desenvolvimento.
             var random = new Random(p.Id.GetHashCode());
             var latOffset = (random.NextDouble() - 0.5) * 0.05; // +/- 0.025 graus (~2.5km)
             var lonOffset = (random.NextDouble() - 0.5) * 0.05;

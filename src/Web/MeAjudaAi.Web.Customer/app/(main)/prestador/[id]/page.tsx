@@ -15,7 +15,6 @@ const client = createClient(createConfig({
 }));
 
 const BRAND_COLOR = "#E0702B";
-const BRAND_HOVER = "#c56226";
 
 /**
  * Public Data DTO as returned by the API
@@ -53,9 +52,9 @@ const getCachedProvider = cache(async (id: string): Promise<PublicProviderData |
         }
 
         return response.data || null;
-    } catch (error) {
+    } catch (error: any) {
         // Fallback for network errors that look like 404s
-        if (error instanceof Error && error.message.includes("404")) return null;
+        if (error.status === 404 || error.statusCode === 404 || (error instanceof Error && error.message.includes("404"))) return null;
         console.error(`Exception fetching public provider ${id}:`, error);
         throw error;
     }
@@ -127,7 +126,7 @@ export default async function ProviderProfilePage({
                     fallback={displayName.substring(0, 2).toUpperCase()}
                 />
 
-                <h1 className="text-3xl font-bold mb-1" style={{ color: BRAND_COLOR }}>{displayName}</h1>
+                <h1 className="text-3xl font-bold mb-1 text-brand">{displayName}</h1>
                 <p className="text-muted-foreground text-sm mb-6">{cityState}</p>
 
                 <div className="max-w-3xl mb-6">
@@ -158,8 +157,7 @@ export default async function ProviderProfilePage({
                     {services.map((service: string, index: number) => (
                         <Badge
                             key={index}
-                            className="text-white font-normal px-4 py-1.5 text-sm rounded-md border-none"
-                            style={{ backgroundColor: BRAND_COLOR }}
+                            className="bg-brand hover:bg-brand-hover text-white font-normal px-4 py-1.5 text-sm rounded-md border-none"
                         >
                             {service}
                         </Badge>
@@ -170,7 +168,7 @@ export default async function ProviderProfilePage({
             {/* Reviews Section */}
             <div className="mb-12">
                 <ReviewForm providerId={id} />
-                <ReviewList />
+                <ReviewList providerId={id} />
             </div>
         </div>
     );

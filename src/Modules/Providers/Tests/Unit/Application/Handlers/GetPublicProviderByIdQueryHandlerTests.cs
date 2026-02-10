@@ -120,4 +120,46 @@ public class GetPublicProviderByIdQueryHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error.StatusCode.Should().Be(404); // Public endpoint hides inactive providers as Not Found
     }
+
+    [Fact]
+    public async Task Handle_Should_Return_Restricted_Provider_When_Privacy_Flag_Is_Enabled()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var provider = new Provider(
+            new ProviderId(providerId), 
+            userId, 
+            "Test Provider", 
+            EProviderType.Individual,
+            new BusinessProfile(
+                "Legal Name",
+                new ContactInfo("test@example.com", "123456789"),
+                new Address("Street", "123", "Neighborhood", "City", "State", "12345678"),
+                "Fantasy Name",
+                "Description"
+            )
+        );
+        
+        var statusProperty = typeof(Provider).GetProperty(nameof(Provider.Status));
+        statusProperty!.SetValue(provider, EProviderStatus.Active);
+
+        _providerRepositoryMock.Setup(x => x.GetByIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(provider);
+
+        // Enable privacy flag
+        _featureManagerMock.Setup(x => x.IsEnabledAsync(MeAjudaAi.Shared.Utilities.Constants.FeatureFlags.PublicProfilePrivacy))
+            .ReturnsAsync(true);
+
+        var query = new GetPublicProviderByIdQuery(providerId);
+
+        // Act
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value!.Services.Should().BeEmpty();
+        result.Value.PhoneNumbers.Should().BeEmpty();
+    }
 }

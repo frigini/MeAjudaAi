@@ -46,7 +46,7 @@ public sealed class GetPublicProviderByIdQueryHandler : IQueryHandler<GetPublicP
         var businessProfile = provider.BusinessProfile;
         
         // Verifica se a privacidade restrita está habilitada via feature flag
-        var isPrivacyHabilitated = await _featureManager.IsEnabledAsync(FeatureFlags.PublicProfilePrivacy);
+        var isPrivacyEnabled = await _featureManager.IsEnabledAsync(FeatureFlags.PublicProfilePrivacy);
 
         // Mapeamento para DTO seguro com valores default (reais virão de integração futura)
         var dto = new PublicProviderDto(
@@ -64,10 +64,10 @@ public sealed class GetPublicProviderByIdQueryHandler : IQueryHandler<GetPublicP
             ReviewCount: 0, 
             
             // Dados sensíveis ou dependentes de módulos externos são condicionados por privacidade
-            Services: !isPrivacyHabilitated 
+            Services: !isPrivacyEnabled 
                 ? new[] { "Serviço Geral" } // Placeholder enquanto módulo de serviços não integra
                 : Array.Empty<string>(),
-            PhoneNumbers: !isPrivacyHabilitated && businessProfile.ContactInfo?.PhoneNumber != null 
+            PhoneNumbers: !isPrivacyEnabled && businessProfile.ContactInfo?.PhoneNumber != null 
                 ? new[] { businessProfile.ContactInfo.PhoneNumber } 
                 : Array.Empty<string>()
         );

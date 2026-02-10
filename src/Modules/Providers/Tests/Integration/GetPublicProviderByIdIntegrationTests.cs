@@ -30,8 +30,8 @@ public class GetPublicProviderByIdIntegrationTests : ProvidersIntegrationTestBas
         typeof(Provider).GetProperty(nameof(Provider.Status))?.SetValue(provider, EProviderStatus.Active);
         typeof(Provider).GetProperty(nameof(Provider.VerificationStatus))?.SetValue(provider, EVerificationStatus.Verified);
         
-        var dbContext = GetService<ProvidersDbContext>();
-        await dbContext.SaveChangesAsync();
+        DbContext.Providers.Update(provider);
+        await DbContext.SaveChangesAsync();
 
         var dispatcher = GetService<IQueryDispatcher>();
         var query = new GetPublicProviderByIdQuery(provider.Id);
@@ -60,13 +60,12 @@ public class GetPublicProviderByIdIntegrationTests : ProvidersIntegrationTestBas
             EProviderType.Individual,
             businessProfile);
             
-        // Bypass domain transitions to set required state for test
-        typeof(Provider).GetProperty(nameof(Provider.Status))?.SetValue(provider, EProviderStatus.Suspended);
-        typeof(Provider).GetProperty(nameof(Provider.VerificationStatus))?.SetValue(provider, EVerificationStatus.Suspended);
-        provider.Suspend("Test suspension"); // This will now work as it's not Rejected/Deleted
+        provider.CompleteBasicInfo();
+        provider.Activate();
+        provider.Suspend("Test suspension");
         
-        var dbContext = GetService<ProvidersDbContext>();
-        await dbContext.SaveChangesAsync();
+        DbContext.Providers.Update(provider);
+        await DbContext.SaveChangesAsync();
 
         var dispatcher = GetService<IQueryDispatcher>();
         var query = new GetPublicProviderByIdQuery(provider.Id);

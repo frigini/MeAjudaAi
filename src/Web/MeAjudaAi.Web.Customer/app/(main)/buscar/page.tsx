@@ -108,7 +108,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                                     className="h-8 text-xs text-muted-foreground hover:text-destructive"
                                     asChild
                                 >
-                                    <a href={`/buscar?q=${searchQuery}`}>Limpar Cidade</a>
+                                    <a href={`/buscar?q=${encodeURIComponent(searchQuery)}`}>Limpar Cidade</a>
                                 </Button>
                             </div>
                         )}
