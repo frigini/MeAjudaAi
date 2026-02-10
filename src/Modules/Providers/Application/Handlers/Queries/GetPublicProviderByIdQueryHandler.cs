@@ -3,8 +3,11 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.FeatureManagement;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 
@@ -14,10 +17,12 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 public sealed class GetPublicProviderByIdQueryHandler : IQueryHandler<GetPublicProviderByIdQuery, Result<PublicProviderDto?>>
 {
     private readonly IProviderRepository _providerRepository;
+    private readonly IFeatureManager _featureManager;
 
-    public GetPublicProviderByIdQueryHandler(IProviderRepository providerRepository)
+    public GetPublicProviderByIdQueryHandler(IProviderRepository providerRepository, IFeatureManager featureManager)
     {
         _providerRepository = providerRepository;
+        _featureManager = featureManager;
     }
 
     public async Task<Result<PublicProviderDto?>> HandleAsync(
@@ -33,18 +38,17 @@ public sealed class GetPublicProviderByIdQueryHandler : IQueryHandler<GetPublicP
 
         // Validação adicional: Apenas prestadores ativos devem ser consultados publicamente
         // Se estiver suspenso ou rejeitado, retornamos NotFound por segurança/privacidade
-        if (provider.Status != MeAjudaAi.Modules.Providers.Domain.Enums.EProviderStatus.Active)
+        if (provider.Status != EProviderStatus.Active)
         {
              return Result<PublicProviderDto?>.Failure(Error.NotFound("Prestador não encontrado."));
         }
 
-        // TODO: Em um cenário real, buscaríamos avaliações e serviços de seus respectivos módulos/repositórios
-        // Por enquanto, seguimos o padrão de retornar dados mockados/placeholders para satisfazer o contrato de UI
-        // até que os módulos de Avaliação e Serviço estejam integrados.
-
         var businessProfile = provider.BusinessProfile;
         
-        // Mapeamento para DTO seguro
+        // Verifica se a privacidade restrita está habilitada via feature flag
+        var isPrivacyHabilitated = await _featureManager.IsEnabledAsync(FeatureFlags.PublicProfilePrivacy);
+
+        // Mapeamento para DTO seguro com valores default (reais virão de integração futura)
         var dto = new PublicProviderDto(
             provider.Id,
             provider.Name,
@@ -55,11 +59,15 @@ public sealed class GetPublicProviderByIdQueryHandler : IQueryHandler<GetPublicP
             businessProfile.PrimaryAddress?.State,
             provider.CreatedAt,
             
-            // Dados enriquecidos (Mockados por enquanto)
-            Rating: 4.8, // Valor default para UI
-            ReviewCount: 12, // Valor default para UI
-            Services: new[] { "Serviço Geral" }, // Placeholder
-            PhoneNumbers: businessProfile.ContactInfo?.PhoneNumber != null 
+            // Dados enriquecidos: Usando safe defaults (null/0) conforme solicitado
+            Rating: null, 
+            ReviewCount: 0, 
+            
+            // Dados sensíveis ou dependentes de módulos externos são condicionados por privacidade
+            Services: !isPrivacyHabilitated 
+                ? new[] { "Serviço Geral" } // Placeholder enquanto módulo de serviços não integra
+                : Array.Empty<string>(),
+            PhoneNumbers: !isPrivacyHabilitated && businessProfile.ContactInfo?.PhoneNumber != null 
                 ? new[] { businessProfile.ContactInfo.PhoneNumber } 
                 : Array.Empty<string>()
         );

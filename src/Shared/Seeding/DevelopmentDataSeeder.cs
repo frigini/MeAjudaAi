@@ -644,6 +644,8 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                     average_rating = EXCLUDED.average_rating,
                     total_reviews = EXCLUDED.total_reviews,
                     service_ids = EXCLUDED.service_ids,
+                    subscription_tier = EXCLUDED.subscription_tier,
+                    is_active = EXCLUDED.is_active,
                     updated_at = EXCLUDED.updated_at",
                 [
                     UuidGenerator.NewId(), p.Id, p.Name, p.Description,

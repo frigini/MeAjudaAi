@@ -5,13 +5,21 @@ import { Avatar } from "@/components/ui/avatar";
 import { Rating } from "@/components/ui/rating";
 import { createClient, createConfig } from "@/lib/api/generated/client";
 import { ReviewList } from "@/components/reviews/review-list";
+import { ReviewForm } from "@/components/reviews/review-form";
 import { Badge } from "@/components/ui/badge";
+import { MeAjudaAiContractsFunctionalError } from "@/lib/api/generated/types.gen";
 
 // Initialize client directly to avoid potential circular dependency issues with generated barrel files
 const client = createClient(createConfig({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002'
 }));
 
+const BRAND_COLOR = "#E0702B";
+const BRAND_HOVER = "#c56226";
+
+/**
+ * Public Data DTO as returned by the API
+ */
 interface PublicProviderData {
     id: string;
     name: string;
@@ -28,20 +36,28 @@ interface PublicProviderData {
 // Deduplicate requests with React cache
 const getCachedProvider = cache(async (id: string): Promise<PublicProviderData | null> => {
     try {
-        // Fetching from new public endpoint
         const response = await client.get<{ data: PublicProviderData }>({
             url: `/api/v1/providers/${id}/public`
         });
 
         if (response.error) {
-            console.error(`API Error fetching provider ${id}:`, response.error);
-            return null;
+            const apiError = response.error as MeAjudaAiContractsFunctionalError;
+            // Handle 404 explicitly as "not found"
+            if (apiError.statusCode === 404) {
+                return null;
+            }
+
+            // Other transient errors should be captured by error boundaries
+            console.error(`API Error fetching provider ${id}:`, apiError);
+            throw new Error(apiError.message || 'Erro ao carregar perfil do prestador');
         }
 
         return response.data || null;
     } catch (error) {
+        // Fallback for network errors that look like 404s
+        if (error instanceof Error && error.message.includes("404")) return null;
         console.error(`Exception fetching public provider ${id}:`, error);
-        return null;
+        throw error;
     }
 });
 
@@ -93,8 +109,9 @@ export default async function ProviderProfilePage({
     const description = providerData.description || "Este prestador ainda não adicionou uma descrição.";
     const cityState = providerData.city && providerData.state ? `${providerData.city} - ${providerData.state}` : "";
 
-    // Using data from PublicProviderDto (which may contain real or mocked data from backend)
-    const rating = providerData.rating || 4.8;
+    // Using data from PublicProviderDto with safe fallbacks
+    // Use ?? instead of || so 0 rating is preserved if possible (though improbable in this context)
+    const rating = providerData.rating ?? 4.8;
     const phones = (providerData.phoneNumbers && providerData.phoneNumbers.length > 0) ? providerData.phoneNumbers : ["(00) 0 0000 - 0000"];
     const services = (providerData.services && providerData.services.length > 0) ? providerData.services : ["Serviço Geral"];
 
@@ -105,12 +122,12 @@ export default async function ProviderProfilePage({
                 <Avatar
                     size="xl"
                     className="h-32 w-32 border-4 border-white shadow-sm mb-4"
-                    src={undefined} // No avatar URL in DTO yet
+                    src={undefined}
                     alt={displayName}
                     fallback={displayName.substring(0, 2).toUpperCase()}
                 />
 
-                <h1 className="text-3xl font-bold text-[#E0702B] mb-1">{displayName}</h1>
+                <h1 className="text-3xl font-bold mb-1" style={{ color: BRAND_COLOR }}>{displayName}</h1>
                 <p className="text-muted-foreground text-sm mb-6">{cityState}</p>
 
                 <div className="max-w-3xl mb-6">
@@ -141,7 +158,8 @@ export default async function ProviderProfilePage({
                     {services.map((service: string, index: number) => (
                         <Badge
                             key={index}
-                            className="bg-[#E0702B] hover:bg-[#c56226] text-white font-normal px-4 py-1.5 text-sm rounded-md border-none"
+                            className="text-white font-normal px-4 py-1.5 text-sm rounded-md border-none"
+                            style={{ backgroundColor: BRAND_COLOR }}
                         >
                             {service}
                         </Badge>
@@ -151,6 +169,7 @@ export default async function ProviderProfilePage({
 
             {/* Reviews Section */}
             <div className="mb-12">
+                <ReviewForm providerId={id} />
                 <ReviewList />
             </div>
         </div>

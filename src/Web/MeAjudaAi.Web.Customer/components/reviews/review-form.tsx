@@ -30,7 +30,7 @@ interface ReviewFormProps {
     onSuccess?: () => void;
 }
 
-export function ReviewForm({ onSuccess }: Omit<ReviewFormProps, 'providerId'>) {
+export function ReviewForm({ providerId, onSuccess }: ReviewFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm<ReviewFormValues>({
@@ -41,8 +41,8 @@ export function ReviewForm({ onSuccess }: Omit<ReviewFormProps, 'providerId'>) {
         },
     });
 
-    async function onSubmit() {
-        // console.log("Submitting", _data);
+    async function onSubmit(data: ReviewFormValues) {
+        // console.log("Submitting", data);
         setIsSubmitting(true);
         try {
             // Mock API call
@@ -50,6 +50,8 @@ export function ReviewForm({ onSuccess }: Omit<ReviewFormProps, 'providerId'>) {
 
             // TODO: Integrar com API real de avaliações quando disponível
             // console.log("Submitting review for provider", providerId, data);
+            void providerId; // Keep it used to avoid lint errors while mock
+            void data; // Keep it used
 
             toast.success("Avaliação enviada!", {
                 description: "Obrigado pelo seu feedback.",

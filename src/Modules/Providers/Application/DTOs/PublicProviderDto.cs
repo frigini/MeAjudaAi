@@ -17,7 +17,7 @@ public sealed record PublicProviderDto(
     DateTime CreatedAt,
     
     // Dados para UI refinada
-    double Rating,
+    double? Rating,
     int ReviewCount,
     IEnumerable<string> Services,
     IEnumerable<string> PhoneNumbers

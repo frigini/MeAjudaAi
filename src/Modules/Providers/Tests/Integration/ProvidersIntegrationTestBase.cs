@@ -250,6 +250,8 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         }
     }
 
+    protected ProvidersDbContext dbContext => GetService<ProvidersDbContext>();
+
     /// <summary>
     /// Obtém um serviço do provider isolado
     /// </summary>

@@ -14,7 +14,10 @@ export function LoginForm({
     const searchParams = useSearchParams()
     // Validate callbackUrl for defense-in-depth (allow relative paths only)
     const rawCallbackUrl = searchParams.get("callbackUrl") || "/"
-    const callbackUrl = rawCallbackUrl.startsWith("/") ? rawCallbackUrl : "/"
+    // Tighten validation: must start with / but NOT // (to avoid protocol-relative open redirects)
+    const callbackUrl = (rawCallbackUrl.startsWith("/") && !rawCallbackUrl.startsWith("//"))
+        ? rawCallbackUrl
+        : "/"
     const [isLoading, setIsLoading] = useState(false)
 
     const handleLogin = async () => {

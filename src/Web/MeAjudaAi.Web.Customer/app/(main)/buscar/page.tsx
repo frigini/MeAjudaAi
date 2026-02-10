@@ -22,10 +22,10 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     const searchQuery = q || "";
     const cityFilter = city || "";
 
-    // Default coordinates (Linhares - ES) for development
-    let latitude = -19.3917;
-    let longitude = -40.0722;
-    const defaultRadius = 50; // 50km radius
+    // Default coordinates (Linhares - ES) for development, with environment overrides
+    let latitude = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_LAT || "-19.3917");
+    let longitude = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_LNG || "-40.0722");
+    const defaultRadius = parseInt(process.env.NEXT_PUBLIC_DEFAULT_RADIUS || "50");
 
     // Attempt to geocode if city is provided
     if (cityFilter) {
@@ -106,12 +106,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                                     variant="ghost"
                                     size="sm"
                                     className="h-8 text-xs text-muted-foreground hover:text-destructive"
-                                    onClick={() => {
-                                        // This is a server component, so we rely on form submit without hidden city input 
-                                        // But inside a form actions/inputs are static. 
-                                        // We'll trust the user to clear the search or navigate back home for now, 
-                                        // or better: add a link to clear city
-                                    }}
                                     asChild
                                 >
                                     <a href={`/buscar?q=${searchQuery}`}>Limpar Cidade</a>

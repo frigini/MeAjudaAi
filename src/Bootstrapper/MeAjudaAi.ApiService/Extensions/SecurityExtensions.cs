@@ -9,6 +9,8 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 
 namespace MeAjudaAi.ApiService.Extensions;
@@ -430,6 +432,28 @@ public static class SecurityExtensions
         }
 
         return roleClaims;
+    }
+
+    /// <summary>
+    /// Configura políticas de rate limiting customizadas
+    /// </summary>
+    public static IServiceCollection AddCustomRateLimiting(this IServiceCollection services)
+    {
+        services.AddRateLimiter(options =>
+        {
+            // Política para endpoints públicos anonimizados
+            options.AddFixedWindowLimiter("public", opt =>
+            {
+                opt.Window = TimeSpan.FromMinutes(1);
+                opt.PermitLimit = 60;
+                opt.QueueLimit = 10;
+                opt.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+            });
+
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        });
+
+        return services;
     }
 
     /// <summary>

@@ -8,17 +8,21 @@ using Moq;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 
+using Microsoft.FeatureManagement;
+
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers;
 
 public class GetPublicProviderByIdQueryHandlerTests
 {
     private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IFeatureManager> _featureManagerMock;
     private readonly GetPublicProviderByIdQueryHandler _handler;
 
     public GetPublicProviderByIdQueryHandlerTests()
     {
         _providerRepositoryMock = new Mock<IProviderRepository>();
-        _handler = new GetPublicProviderByIdQueryHandler(_providerRepositoryMock.Object);
+        _featureManagerMock = new Mock<IFeatureManager>();
+        _handler = new GetPublicProviderByIdQueryHandler(_providerRepositoryMock.Object, _featureManagerMock.Object);
     }
 
     [Fact]
@@ -41,7 +45,9 @@ public class GetPublicProviderByIdQueryHandlerTests
             )
         );
         
-        typeof(Provider).GetProperty(nameof(Provider.Status))?.SetValue(provider, EProviderStatus.Active);
+        var statusProperty = typeof(Provider).GetProperty(nameof(Provider.Status));
+        statusProperty.Should().NotBeNull("Status property should be available on Provider for tests");
+        statusProperty!.SetValue(provider, EProviderStatus.Active);
 
         _providerRepositoryMock.Setup(x => x.GetByIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
@@ -98,7 +104,9 @@ public class GetPublicProviderByIdQueryHandlerTests
         );
 
         // Set status to Suspended using reflection to ensure test isolation from default state
-        typeof(Provider).GetProperty(nameof(Provider.Status))?.SetValue(provider, EProviderStatus.Suspended);
+        var statusProperty = typeof(Provider).GetProperty(nameof(Provider.Status));
+        statusProperty.Should().NotBeNull("Status property should be available on Provider for tests");
+        statusProperty!.SetValue(provider, EProviderStatus.Suspended);
 
         _providerRepositoryMock.Setup(x => x.GetByIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);

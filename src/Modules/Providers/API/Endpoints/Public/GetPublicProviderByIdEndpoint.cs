@@ -9,7 +9,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
+using MeAjudaAi.Shared.Utilities.Constants;
+
+namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public;
 
 /// <summary>
 /// Endpoint público para consulta de detalhes básicos do prestador.
@@ -17,7 +19,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 public class GetPublicProviderByIdEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet("/{id:guid}/public", GetPublicProviderAsync)
+        => app.MapGet(ApiEndpoints.Providers.GetPublicById, GetPublicProviderAsync)
             .WithName("GetPublicProviderById")
             .WithSummary("Consultar perfil público do prestador")
             .WithDescription("""
@@ -36,6 +38,7 @@ public class GetPublicProviderByIdEndpoint : BaseEndpoint, IEndpoint
                 - Dados de auditoria interna
                 """)
             .AllowAnonymous() // Permite acesso sem login
+            .RequireRateLimiting("public") // Aplica política de rate limiting pública
             .Produces<Response<PublicProviderDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 

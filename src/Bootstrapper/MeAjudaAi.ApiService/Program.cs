@@ -43,6 +43,7 @@ public partial class Program
             // Shared services por último (GlobalExceptionHandler atua como fallback)
             builder.Services.AddSharedServices(builder.Configuration);
             builder.Services.AddApiServices(builder.Configuration, builder.Environment);
+            builder.Services.AddCustomRateLimiting();
 
             var app = builder.Build();
 
@@ -111,6 +112,7 @@ public partial class Program
     private static async Task ConfigureMiddlewareAsync(WebApplication app)
     {
         app.MapDefaultEndpoints();
+        app.UseRateLimiter();
 
         // Adiciona middleware de logging estruturado (condicionalmente adiciona Serilog request logging baseado no ambiente)
         if (!app.Environment.IsEnvironment("Testing"))

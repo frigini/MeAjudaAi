@@ -40,20 +40,11 @@ dotnet_diagnostic.S1186.severity = none
 
 # Warning cleanup requested
 [*.cs]
-# Suppress specific warnings
-dotnet_diagnostic.CS1591.severity = none # Missing XML comment for publicly visible type or member
-dotnet_diagnostic.CS8618.severity = none # Non-nullable field must contain a non-null value when exiting constructor
-dotnet_diagnostic.CA1707.severity = none # Identifiers should not contain underscores
-dotnet_diagnostic.CA1062.severity = none # Validate arguments of public methods
-dotnet_diagnostic.CA1822.severity = none # Mark members as static
-
-# Suppress IDE style rules causing build errors
+# Suppress IDE style rules causing build noise
 dotnet_diagnostic.IDE0022.severity = none # Use block body for method
 dotnet_diagnostic.IDE0046.severity = none # 'if' statement can be simplified
 dotnet_diagnostic.IDE0005.severity = none # Using directive is unnecessary
 dotnet_diagnostic.IDE0031.severity = none # Null check can be simplified
-
-# Additional suppressions to clean up build noise
 dotnet_diagnostic.CA1716.severity = none # Identifiers should not conflict with reserved keywords
 dotnet_diagnostic.CA1873.severity = none # Logger argument evaluation
 dotnet_diagnostic.CA1720.severity = none # Identifier contains type name
@@ -72,14 +63,23 @@ dotnet_diagnostic.CA1816.severity = none # Dispose methods should call SuppressF
 dotnet_diagnostic.CA2201.severity = none # Do not raise reserved exception types
 dotnet_diagnostic.CA1311.severity = none # Specify a culture or use an invariant version
 dotnet_diagnostic.S1481.severity = none # Remove unused local variables
-dotnet_diagnostic.CS8619.severity = none # Nullability of reference types in value doesn't match target type
 dotnet_diagnostic.CA1051.severity = none # Do not declare visible instance fields
 dotnet_diagnostic.CA1852.severity = none # Type can be sealed
-dotnet_diagnostic.CS8602.severity = none # Dereference of a possibly null reference
 dotnet_diagnostic.CA1507.severity = none # Use nameof in place of string literal
-dotnet_diagnostic.CA1001.severity = none # Types that own disposable fields should be disposable
-dotnet_diagnostic.CA2012.severity = none # ValueTask should not have their result directly accessed
 
-# Default severity for all analyzers
+# Restore critical rules to suggestions to catch potential bugs
+dotnet_diagnostic.CS8602.severity = suggestion # Dereference of a possibly null reference
+dotnet_diagnostic.CS8618.severity = suggestion # Non-nullable field must contain a non-null value
+dotnet_diagnostic.CA1062.severity = suggestion # Validate arguments of public methods
+dotnet_diagnostic.CA1001.severity = suggestion # Types that own disposable fields should be disposable
+dotnet_diagnostic.CA2012.severity = suggestion # ValueTask should not have their result directly accessed
+dotnet_diagnostic.CS8619.severity = suggestion # Nullability of reference types doesn't match target
+
+# Keep some general noise suppressions
+dotnet_diagnostic.CS1591.severity = none # Missing XML comment
+dotnet_diagnostic.CA1707.severity = none # Identifiers should not contain underscores
+dotnet_diagnostic.CA1822.severity = none # Mark members as static
+
+# Default severity for all analyzers (Global fallback)
 dotnet_analyzer_diagnostic.severity = warning
 

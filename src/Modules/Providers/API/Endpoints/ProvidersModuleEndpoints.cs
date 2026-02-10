@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 using MeAjudaAi.Modules.Providers.API.Endpoints.ProviderServices;
+using MeAjudaAi.Modules.Providers.API.Endpoints.Public;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
 

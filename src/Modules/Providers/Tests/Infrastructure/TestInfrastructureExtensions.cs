@@ -1,8 +1,13 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Providers.Application.DTOs;
+using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
+using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
@@ -10,6 +15,8 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
+using Microsoft.Extensions.Configuration;
+using Microsoft.FeatureManagement;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Infrastructure;
 
@@ -35,6 +42,8 @@ public static class ProvidersTestInfrastructureExtensions
         // Usar extensões compartilhadas
         services.AddTestLogging();
         services.AddTestCache(options.Cache);
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
+        services.AddFeatureManagement();
 
         // Adicionar serviços de cache do Shared (incluindo ICacheService)
         // Para testes, usar implementação simples sem dependências complexas
@@ -66,10 +75,10 @@ public static class ProvidersTestInfrastructureExtensions
         services.AddScoped<IProviderQueryService, ProviderQueryService>();
 
         // Adicionar Dispatcher de Queries
-        services.AddScoped<MeAjudaAi.Shared.Queries.IQueryDispatcher, MeAjudaAi.Shared.Queries.QueryDispatcher>();
+        services.AddScoped<IQueryDispatcher, QueryDispatcher>();
         
         // Registrar handlers de teste explicitamente
-        services.AddScoped<MeAjudaAi.Shared.Queries.IQueryHandler<MeAjudaAi.Modules.Providers.Application.Queries.GetPublicProviderByIdQuery, MeAjudaAi.Contracts.Functional.Result<MeAjudaAi.Modules.Providers.Application.DTOs.PublicProviderDto?>>, MeAjudaAi.Modules.Providers.Application.Handlers.Queries.GetPublicProviderByIdQueryHandler>();
+        services.AddScoped<IQueryHandler<GetPublicProviderByIdQuery, Result<PublicProviderDto?>>, GetPublicProviderByIdQueryHandler>();
 
         return services;
     }

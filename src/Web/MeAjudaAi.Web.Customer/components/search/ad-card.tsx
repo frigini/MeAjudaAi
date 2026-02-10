@@ -1,10 +1,6 @@
 import { Button } from "@/components/ui/button";
 
-interface AdCardProps {
-    onAdvertiseClick?: () => void;
-}
-
-export function AdCard({ onAdvertiseClick }: AdCardProps) {
+export function AdCard() {
     return (
         <div className="h-full min-h-[300px] rounded-xl border border-border bg-[#FFF8F3] p-6 flex flex-col justify-between relative overflow-hidden group">
             <div className="flex flex-col gap-2 z-10">
@@ -21,9 +17,9 @@ export function AdCard({ onAdvertiseClick }: AdCardProps) {
                 <Button
                     variant="link"
                     className="text-foreground-subtle hover:text-orange-600 p-0 h-auto font-medium"
-                    onClick={onAdvertiseClick}
+                    asChild
                 >
-                    Anuncie aqui!
+                    <a href="mailto:contato@meajudaai.com.br?subject=Anunciar no MeAjudaAi">Anuncie aqui!</a>
                 </Button>
             </div>
         </div>

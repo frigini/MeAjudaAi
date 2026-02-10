@@ -81,6 +81,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
             return session
         },
+        async redirect({ url, baseUrl }) {
+            // Rejeitar URLs protocolares relativas (ex: //attacker.com) para evitar Open Redirect
+            if (url.startsWith("//")) {
+                return baseUrl
+            }
+            // Permite URLs que começam com a baseUrl ou caminhos relativos
+            if (url.startsWith(baseUrl)) return url
+            else if (url.startsWith("/")) return new URL(url, baseUrl).toString()
+            return baseUrl
+        },
     },
     // Debug in development
     debug: process.env.NODE_ENV === "development",
