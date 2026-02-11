@@ -9,6 +9,7 @@ import { ReviewForm } from "@/components/reviews/review-form";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle } from "lucide-react";
 import { MeAjudaAiContractsFunctionalError } from "@/lib/api/generated/types.gen";
+import { VerifiedBadge } from "@/components/ui/verified-badge";
 
 const client = createClient(createConfig({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002'
@@ -27,6 +28,7 @@ interface PublicProviderData {
     phoneNumbers?: string[];
     services?: string[];
     email?: string;
+    verificationStatus?: string;
 }
 
 const getCachedProvider = cache(async (id: string): Promise<PublicProviderData | null> => {
@@ -171,8 +173,11 @@ export default async function ProviderProfilePage({
                     {/* Right Column: Name, Email, Description, Services */}
                     <div className="md:col-span-9 space-y-4">
 
-                        {/* Name */}
-                        <h1 className="text-3xl md:text-4xl font-bold text-[#E0702B]">{displayName}</h1>
+                        {/* Name & Badge */}
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-3xl md:text-4xl font-bold text-[#E0702B]">{displayName}</h1>
+                            <VerifiedBadge status={providerData.verificationStatus || "Pending"} size="lg" />
+                        </div>
 
                         {/* Email */}
                         {providerData.email && (

@@ -74,7 +74,8 @@ public sealed class GetPublicProviderByIdQueryHandler : IQueryHandler<GetPublicP
                 : Array.Empty<string>(),
             Email: !isPrivacyEnabled && businessProfile.ContactInfo != null
                 ? businessProfile.ContactInfo.Email
-                : null
+                : null,
+            VerificationStatus: provider.VerificationStatus
         );
 
         return Result<PublicProviderDto?>.Success(dto);

@@ -21,5 +21,6 @@ public sealed record PublicProviderDto(
     int ReviewCount,
     IEnumerable<string> Services,
     IEnumerable<string> PhoneNumbers,
-    string? Email
+    string? Email,
+    EVerificationStatus VerificationStatus
 );

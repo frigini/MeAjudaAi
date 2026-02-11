@@ -24,6 +24,7 @@ public static class ProviderMapper
             provider.VerificationStatus,
             provider.Documents.Select(d => d.ToDto()).ToList(),
             provider.Qualifications.Select(q => q.ToDto()).ToList(),
+            provider.Services.Select(s => s.ToDto()).ToList(),
             provider.CreatedAt,
             provider.UpdatedAt,
             provider.IsDeleted,
@@ -157,5 +158,15 @@ public static class ProviderMapper
             dto.IssueDate,
             dto.ExpirationDate,
             dto.DocumentNumber);
+        /// <summary>
+    /// Converte ProviderService para ProviderServiceDto.
+    /// </summary>
+    public static ProviderServiceDto ToDto(this ProviderService service)
+    {
+        return new ProviderServiceDto(
+            service.ServiceId,
+            service.ServiceName
+        );
     }
+}
 }
