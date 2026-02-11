@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
 using System.Security.Claims;
 using Xunit;
+using MeAjudaAi.Modules.Providers.Domain.Enums;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.API.Endpoints;
 
@@ -32,8 +33,8 @@ public class GetMyProviderProfileEndpointTests
         var userId = Guid.NewGuid();
         var context = CreateHttpContextWithUserId(userId);
         var providerDto = new ProviderDto(
-            Guid.NewGuid(), userId, "Test", Domain.Enums.EProviderType.Individual, null!, 
-            Domain.Enums.EProviderStatus.Active, Domain.Enums.EVerificationStatus.Verified, 
+            Guid.NewGuid(), userId, "Test", EProviderType.Individual, null!, 
+            EProviderStatus.Active, EVerificationStatus.Verified, 
             new List<DocumentDto>(), new List<QualificationDto>(), new List<ProviderServiceDto>(), DateTime.UtcNow, null, false, null, null, null);
 
         var dispatchResult = Result<ProviderDto?>.Success(providerDto);

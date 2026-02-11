@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Http;
@@ -36,15 +37,19 @@ public class UpdateMyProviderProfileEndpointTests
         var providerId = Guid.NewGuid();
         var context = CreateHttpContextWithUserId(userId);
         
-        var request = new UpdateProviderProfileRequest(
-            "New Name",
-            new BusinessProfileDto("Legal", new ContactInfoDto("e@e.com", "123", "site"), new AddressDto("S", "1", "N", "C", "ST", "Z", "Co"), "Fantasy", "Desc")
-        );
+        var request = new UpdateProviderProfileRequest
+        {
+            Name = "New Name",
+            BusinessProfile = new BusinessProfileDto(
+                "Legal", "Fantasy", "Desc", 
+                new ContactInfoDto("e@e.com", "123", "site"), 
+                new AddressDto("S", "1", "C", "N", "C", "ST", "Z", "Co"))
+        };
 
         // Setup Query to return ProviderId
         var providerDto = new ProviderDto(
-            providerId, userId, "Old Name", Domain.Enums.EProviderType.Individual, null!, 
-            Domain.Enums.EProviderStatus.Active, Domain.Enums.EVerificationStatus.Verified, 
+            providerId, userId, "Old Name", EProviderType.Individual, null!, 
+            EProviderStatus.Active, EVerificationStatus.Verified, 
             new List<DocumentDto>(), new List<QualificationDto>(), new List<ProviderServiceDto>(), DateTime.UtcNow, null, false, null, null, null);
             
         _queryDispatcherMock
@@ -70,7 +75,7 @@ public class UpdateMyProviderProfileEndpointTests
                 It.Is<GetProviderByUserIdQuery>(q => q.UserId == userId), It.IsAny<CancellationToken>()), Times.Once);
                 
         _commandDispatcherMock.Verify(x => x.SendAsync<UpdateProviderProfileCommand, Result<ProviderDto>>(
-                It.Is<UpdateProviderProfileCommand>(c => c.Id == providerId && c.Name == request.Name), It.IsAny<CancellationToken>()), Times.Once);
+                It.Is<UpdateProviderProfileCommand>(c => c.ProviderId == providerId && c.Name == request.Name), It.IsAny<CancellationToken>()), Times.Once);
     }
     
     [Fact]
@@ -80,10 +85,14 @@ public class UpdateMyProviderProfileEndpointTests
         var userId = Guid.NewGuid();
         var context = CreateHttpContextWithUserId(userId);
         
-        var request = new UpdateProviderProfileRequest(
-            "New Name",
-            new BusinessProfileDto("Legal", new ContactInfoDto("e@e.com", "123", "site"), new AddressDto("S", "1", "N", "C", "ST", "Z", "Co"), "Fantasy", "Desc")
-        );
+        var request = new UpdateProviderProfileRequest
+        {
+            Name = "New Name",
+            BusinessProfile = new BusinessProfileDto(
+                "Legal", "Fantasy", "Desc", 
+                new ContactInfoDto("e@e.com", "123", "site"), 
+                new AddressDto("S", "1", "C", "N", "C", "ST", "Z", "Co"))
+        };
 
         _queryDispatcherMock
             .Setup(x => x.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(

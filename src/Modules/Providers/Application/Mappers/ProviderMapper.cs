@@ -158,7 +158,9 @@ public static class ProviderMapper
             dto.IssueDate,
             dto.ExpirationDate,
             dto.DocumentNumber);
-        /// <summary>
+    }
+
+    /// <summary>
     /// Converte ProviderService para ProviderServiceDto.
     /// </summary>
     public static ProviderServiceDto ToDto(this ProviderService service)
@@ -168,5 +170,4 @@ public static class ProviderMapper
             service.ServiceName
         );
     }
-}
 }

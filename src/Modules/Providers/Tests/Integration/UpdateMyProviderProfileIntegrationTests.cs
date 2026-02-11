@@ -8,6 +8,9 @@ using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+
 namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 
 public class UpdateMyProviderProfileIntegrationTests : ProvidersIntegrationTestBase
@@ -24,7 +27,8 @@ public class UpdateMyProviderProfileIntegrationTests : ProvidersIntegrationTestB
             .WithType(EProviderType.Individual)
             .Build();
 
-        await AddAsync(provider);
+        await DbContext.Providers.AddAsync(provider);
+        await DbContext.SaveChangesAsync();
 
         var newName = "Updated Name";
         var businessProfileDto = new BusinessProfileDto(
@@ -49,7 +53,7 @@ public class UpdateMyProviderProfileIntegrationTests : ProvidersIntegrationTestB
         result.Value.BusinessProfile.Description.Should().Be("Updated Description");
 
         // Verify DB
-        var dbContext = scope.ServiceProvider.GetRequiredService<Infrastructure.Persistence.ProvidersDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
         var updatedProvider = await dbContext.Providers.FindAsync(provider.Id);
         updatedProvider.Should().NotBeNull();
         updatedProvider!.Name.Should().Be(newName);

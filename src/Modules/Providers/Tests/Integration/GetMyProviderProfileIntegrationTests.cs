@@ -7,6 +7,8 @@ using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
+using MeAjudaAi.Contracts.Functional;
+
 namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 
 public class GetMyProviderProfileIntegrationTests : ProvidersIntegrationTestBase
@@ -21,7 +23,8 @@ public class GetMyProviderProfileIntegrationTests : ProvidersIntegrationTestBase
             .WithType(EProviderType.Individual)
             .Build();
 
-        await AddAsync(provider);
+        await DbContext.Providers.AddAsync(provider);
+        await DbContext.SaveChangesAsync();
 
         using var scope = CreateScope();
         var queryDispatcher = scope.ServiceProvider.GetRequiredService<IQueryDispatcher>();
