@@ -509,13 +509,6 @@ jobs:
             echo "⚠️  Architecture tests not found - skipping"
           fi
 
-      - name: Restore Frontend Dependencies
-        run: |
-          echo "🔄 Restoring Web.Admin dependencies with --force-evaluate..."
-          dotnet restore src/Web/MeAjudaAi.Web.Admin/MeAjudaAi.Web.Admin.csproj --force-evaluate /p:RestoreLockedMode=false
-          dotnet restore tests/MeAjudaAi.Web.Admin.Tests/MeAjudaAi.Web.Admin.Tests.csproj --force-evaluate /p:RestoreLockedMode=false
-          echo "✅ Frontend dependencies restored"
-
       - name: Run Frontend Component Tests (bUnit)
         if: always()
         env:
@@ -1114,11 +1107,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: |
-          dotnet restore MeAjudaAi.slnx
-          # Workaround for Admin lock file drift in CI
-          dotnet restore src/Web/MeAjudaAi.Web.Admin/MeAjudaAi.Web.Admin.csproj --force-evaluate /p:RestoreLockedMode=false
-          dotnet restore tests/MeAjudaAi.Web.Admin.Tests/MeAjudaAi.Web.Admin.Tests.csproj --force-evaluate /p:RestoreLockedMode=false
+        run: dotnet restore MeAjudaAi.slnx
 
       - name: Run Security Audit
         run: dotnet list package --vulnerable --include-transitive
