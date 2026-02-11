@@ -20,15 +20,20 @@ async function proxyProviderServiceRequest(
             }
         });
 
+        const contentType = res.headers.get('Content-Type') || 'application/json';
+        const body = res.status === 204 ? null : await res.text();
+
         if (!res.ok) {
-            return new NextResponse(res.statusText, { status: res.status });
+            return new NextResponse(body || res.statusText, {
+                status: res.status,
+                headers: { 'Content-Type': contentType }
+            });
         }
 
         // Forward successful status (201, 204, etc) and body if present
-        const body = res.status === 204 ? null : await res.text();
         return new NextResponse(body, {
             status: res.status,
-            headers: { 'Content-Type': res.headers.get('Content-Type') || 'application/json' }
+            headers: { 'Content-Type': contentType }
         });
     } catch (error) {
         console.error(`Error proxying ${method} /providers/${providerId}/services/${serviceId}:`, error);

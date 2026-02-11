@@ -57,4 +57,48 @@ public class GetMyProviderProfileEndpointTests
                 It.Is<GetProviderByUserIdQuery>(q => q.UserId == userId), It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task GetMyProfileAsync_WithInvalidUserId_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var context = new DefaultHttpContext();
+        context.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim("sub", "invalid-guid")
+        }));
+
+        // Act
+        var methodInfo = typeof(GetMyProviderProfileEndpoint).GetMethod("GetMyProfileAsync", 
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            
+        var task = (Task<IResult>)methodInfo!.Invoke(null, new object[] { context, _queryDispatcherMock.Object, CancellationToken.None })!;
+        var result = await task;
+
+        // Assert
+        result.Should().BeOfType<BadRequest<Response<object>>>();
+    }
+
+    [Fact]
+    public async Task GetMyProfileAsync_WithNonExistentProvider_ShouldReturnNotFound()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var context = EndpointTestHelpers.CreateHttpContextWithUserId(userId);
+        var dispatchResult = Result<ProviderDto?>.Success(null);
+
+        _queryDispatcherMock
+            .Setup(x => x.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(
+                It.IsAny<GetProviderByUserIdQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(dispatchResult);
+
+        // Act
+        var methodInfo = typeof(GetMyProviderProfileEndpoint).GetMethod("GetMyProfileAsync", 
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            
+        var task = (Task<IResult>)methodInfo!.Invoke(null, new object[] { context, _queryDispatcherMock.Object, CancellationToken.None })!;
+        var result = await task;
+
+        // Assert
+        result.Should().BeOfType<NotFound<Response<object>>>();
+    }
 }

@@ -15,7 +15,7 @@ permissions:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  STRICT_COVERAGE: false
+  STRICT_COVERAGE: false # TODO: Re-set to true once coverage threshold (90%) is consistently met
   # PostgreSQL configuration (DRY principle - single source of truth)
   # Fallback credentials: Only used in fork/local dev; main repo requires secrets
   POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}

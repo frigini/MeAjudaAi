@@ -24,6 +24,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
 {
     private PostgreSqlContainer? _container;
     private ServiceProvider? _serviceProvider;
+    private ProvidersDbContext? _dbContext;
     private readonly string _testClassId;
 
     protected ProvidersIntegrationTestBase()
@@ -194,8 +195,9 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         }
 
         // Estratégia 2: Recriar database
-        await DbContext.Database.EnsureDeletedAsync();
-        await DbContext.Database.EnsureCreatedAsync();
+        var dbContext = DbContext;
+        await dbContext.Database.EnsureDeletedAsync();
+        await dbContext.Database.EnsureCreatedAsync();
     }
 
     /// <summary>
@@ -248,7 +250,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     /// <summary>
     /// Acesso direto ao contexto de banco de dados do módulo Providers
     /// </summary>
-    protected ProvidersDbContext DbContext => GetService<ProvidersDbContext>();
+    protected ProvidersDbContext DbContext => _dbContext ??= GetService<ProvidersDbContext>();
 
     /// <summary>
     /// Obtém um serviço do provider isolado
