@@ -24,7 +24,7 @@ const PublicProviderSchema = z.object({
     phoneNumbers: z.array(z.string()).optional().nullable(),
     services: z.array(z.string()).optional().nullable(),
     email: z.string().email().optional().nullable(),
-    verificationStatus: z.string().optional().nullable()
+    verificationStatus: z.enum(["Pending", "Verified", "Rejected", "Suspended"]).optional().nullable()
 });
 
 type PublicProviderData = z.infer<typeof PublicProviderSchema>;
@@ -184,7 +184,7 @@ export default async function ProviderProfilePage({
                         {/* Name & Badge */}
                         <div className="flex items-center gap-3">
                             <h1 className="text-3xl md:text-4xl font-bold text-[#E0702B]">{displayName}</h1>
-                            <VerifiedBadge status={(providerData.verificationStatus as any) || "Pending"} size="lg" />
+                            <VerifiedBadge status={providerData.verificationStatus || "Pending"} size="lg" />
                         </div>
 
                         {/* Email */}

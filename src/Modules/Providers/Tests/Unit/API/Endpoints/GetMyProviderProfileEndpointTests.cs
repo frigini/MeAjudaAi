@@ -36,7 +36,6 @@ public class GetMyProviderProfileEndpointTests
             new List<DocumentDto>(), new List<QualificationDto>(), new List<ProviderServiceDto>(), DateTime.UtcNow, null, false, null, null, null);
 
         var dispatchResult = Result<ProviderDto?>.Success(providerDto);
-// ...
 
         _queryDispatcherMock
             .Setup(x => x.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(

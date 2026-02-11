@@ -9,7 +9,7 @@ export async function PUT(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002';
+        const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002';
 
         const res = await fetch(`${apiUrl}/api/v1/providers/me`, {
             method: "PUT",

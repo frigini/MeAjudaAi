@@ -37,7 +37,9 @@ public class GetPublicProviderByIdQueryHandlerTests
             .Build();
 
         // Bypass domain transitions to set Active status directly for test
-        typeof(Provider).GetProperty(nameof(Provider.Status))?.SetValue(provider, EProviderStatus.Active);
+        var statusProp = typeof(Provider).GetProperty(nameof(Provider.Status));
+        statusProp.Should().NotBeNull("Provider.Status property must exist");
+        statusProp!.SetValue(provider, EProviderStatus.Active);
 
         _providerRepositoryMock
             .Setup(x => x.GetByIdAsync(provider.Id, It.IsAny<CancellationToken>()))
@@ -111,7 +113,9 @@ public class GetPublicProviderByIdQueryHandlerTests
             .Build();
         
         // Bypass domain transitions to set Active status directly for test
-        typeof(Provider).GetProperty(nameof(Provider.Status))?.SetValue(provider, EProviderStatus.Active);
+        var statusProp = typeof(Provider).GetProperty(nameof(Provider.Status));
+        statusProp.Should().NotBeNull("Provider.Status property must exist");
+        statusProp!.SetValue(provider, EProviderStatus.Active);
         
         _providerRepositoryMock
             .Setup(x => x.GetByIdAsync(provider.Id, It.IsAny<CancellationToken>()))
