@@ -41,7 +41,7 @@ const getCachedProvider = cache(async (id: string): Promise<PublicProviderData |
                 return null;
             }
             console.error(`API Error fetching provider ${id}:`, apiError);
-            throw new Error(apiError.message || 'Erro ao carregar perfil do prestador');
+            throw new Error(apiError.message || 'Error loading provider profile');
         }
 
         // API returns Result pattern: { isSuccess: true, value: {...} }
@@ -190,12 +190,12 @@ export default async function ProviderProfilePage({
                                 <h2 className="text-lg font-bold text-gray-900 mb-3">Serviços</h2>
                                 <div className="flex flex-wrap gap-2">
                                     {services.map((service: string, i: number) => (
-                                        <span
+                                        <Badge
                                             key={i}
                                             className="px-3 py-1 bg-[#E0702B] text-white text-sm rounded-full"
                                         >
                                             {service}
-                                        </span>
+                                        </Badge>
                                     ))}
                                 </div>
                             </div>

@@ -80,6 +80,23 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
     private static readonly Guid ProviderLinhares10UserId = Guid.Parse("10000010-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
     private static readonly Guid ProviderLinhares10DocumentId = Guid.Parse("10000010-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
 
+    // Mapeamento de serviços por prestador (fonte única de verdade)
+    private static readonly (Guid ProviderId, string ServiceName)[] ProviderServiceMappings = new[]
+    {
+        (Provider1Id, "Atendimento Psicológico Gratuito"),
+        (ProviderLinhares1Id, "Pedreiro"),
+        (ProviderLinhares2Id, "Serviço com nome grande"),
+        (ProviderLinhares2Id, "Serviço 3"),
+        (ProviderLinhares3Id, "Encanador"),
+        (ProviderLinhares4Id, "Pintor"),
+        (ProviderLinhares5Id, "Jardineiro"),
+        (ProviderLinhares6Id, "Faxina"),
+        (ProviderLinhares7Id, "Montador de Móveis"),
+        (ProviderLinhares8Id, "Frete e Mudança"),
+        (ProviderLinhares9Id, "Assistência Técnica"),
+        (ProviderLinhares10Id, "Confeitaria"),
+    };
+
     public DevelopmentDataSeeder(
         IServiceProvider serviceProvider,
         ILogger<DevelopmentDataSeeder> logger)
@@ -579,25 +596,10 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             return;
         }
 
-        // Mapping based on providersToSync in SeedSearchProvidersAsync plus manual entries for test providers
-        var providerServices = new[]
-        {
-            new { ProviderId = Provider1Id, ServiceName = "Atendimento Psicológico Gratuito" }, // Saúde
-            new { ProviderId = ProviderLinhares1Id, ServiceName = "Pedreiro" },
-            new { ProviderId = ProviderLinhares2Id, ServiceName = "Serviço com nome grande" },
-            new { ProviderId = ProviderLinhares2Id, ServiceName = "Serviço 3" },
-            new { ProviderId = ProviderLinhares3Id, ServiceName = "Encanador" },
-            new { ProviderId = ProviderLinhares4Id, ServiceName = "Pintor" },
-            new { ProviderId = ProviderLinhares5Id, ServiceName = "Jardineiro" },
-            new { ProviderId = ProviderLinhares6Id, ServiceName = "Faxina" },
-            new { ProviderId = ProviderLinhares7Id, ServiceName = "Montador de Móveis" },
-            new { ProviderId = ProviderLinhares8Id, ServiceName = "Frete e Mudança" },
-            new { ProviderId = ProviderLinhares9Id, ServiceName = "Assistência Técnica" },
-            new { ProviderId = ProviderLinhares10Id, ServiceName = "Confeitaria" }
-        };
+        // Use the shared ProviderServiceMappings to ensure consistency with search read model
 
         var count = 0;
-        foreach (var ps in providerServices)
+        foreach (var ps in ProviderServiceMappings)
         {
             // 1. Get ServiceId by name
             var serviceId = await servicesContext.Database.SqlQueryRaw<Guid>(
@@ -671,25 +673,10 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         // Build a map of provider ID to all their service IDs
         var providerServiceMap = new Dictionary<Guid, List<Guid>>();
         
-        // Get all service IDs from providerServices array (defined in SeedProviderServicesAsync)
-        var allProviderServices = new[]
-        {
-            new { ProviderId = Provider1Id, ServiceName = "Atendimento Psicológico Gratuito" },
-            new { ProviderId = ProviderLinhares1Id, ServiceName = "Pedreiro" },
-            new { ProviderId = ProviderLinhares2Id, ServiceName = "Serviço com nome grande" },
-            new { ProviderId = ProviderLinhares2Id, ServiceName = "Serviço 3" }, // Multiple services for same provider
-            new { ProviderId = ProviderLinhares3Id, ServiceName = "Encanador" },
-            new { ProviderId = ProviderLinhares4Id, ServiceName = "Pintor" },
-            new { ProviderId = ProviderLinhares5Id, ServiceName = "Jardineiro" },
-            new { ProviderId = ProviderLinhares6Id, ServiceName = "Faxina" },
-            new { ProviderId = ProviderLinhares7Id, ServiceName = "Montador de Móveis" },
-            new { ProviderId = ProviderLinhares8Id, ServiceName = "Frete e Mudança" },
-            new { ProviderId = ProviderLinhares9Id, ServiceName = "Assistência Técnica" },
-            new { ProviderId = ProviderLinhares10Id, ServiceName = "Confeitaria" }
-        };
+        // Use the shared ProviderServiceMappings as the single source of truth
 
         // Resolve all service IDs and group by provider
-        foreach (var ps in allProviderServices)
+        foreach (var ps in ProviderServiceMappings)
         {
             var serviceId = await servicesContext.Database.SqlQueryRaw<Guid>(
                 "SELECT id AS \"Value\" FROM service_catalogs.services WHERE name = {0}", ps.ServiceName)
