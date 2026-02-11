@@ -158,10 +158,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         return new BusinessProfile("Test Company Legal Name", contactInfo, address, "Test Company Fantasy", "Test company description");
     }
 
-    /// <summary>
-    /// Limpa dados das tabelas para isolamento entre testes
-    /// Usando banco isolado, cleanup é mais simples e confiável
-    /// </summary>
+
     /// <summary>
     /// Limpa dados das tabelas para isolamento entre testes
     /// Usando banco isolado, cleanup é mais simples e confiável

@@ -9,16 +9,20 @@ export default async function DashboardPage() {
         redirect("/api/auth/signin");
     }
 
-    try {
-        const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002';
-        const res = await fetch(`${apiUrl}/api/v1/providers/me`, {
-            headers: {
-                "Authorization": `Bearer ${session.accessToken}`
-            },
-            cache: "no-store" // Ensure fresh data on every visit
-        });
+    const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002';
+    const res = await fetch(`${apiUrl}/api/v1/providers/me`, {
+        headers: {
+            "Authorization": `Bearer ${session.accessToken}`
+        },
+        cache: "no-store" // Ensure fresh data on every visit
+    });
 
-        if (res.status === 401) redirect("/api/auth/signin");
+    // Check 401 before try block to allow redirect to propagate
+    if (res.status === 401) {
+        redirect("/api/auth/signin");
+    }
+
+    try {
         if (res.status === 404) {
             // User is logged in but not a provider? 
             // Or provider profile not created?

@@ -1,6 +1,6 @@
 import { BadgeCheck, Ban } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { VerificationStatus, EVerificationStatus } from "@/types/api/provider";
+import { VerificationStatus } from "@/types/api/provider";
 
 interface VerifiedBadgeProps {
     status: VerificationStatus;

@@ -24,6 +24,14 @@ export async function PUT(req: NextRequest) {
             return new NextResponse(res.statusText, { status: res.status });
         }
 
+        // Check for empty response (e.g., 204 No Content)
+        const contentType = res.headers.get("content-type");
+        const contentLength = res.headers.get("content-length");
+
+        if (res.status === 204 || contentLength === "0" || !contentType?.includes("application/json")) {
+            return new NextResponse(null, { status: res.status });
+        }
+
         const data = await res.json();
         return NextResponse.json(data);
     } catch (error) {
