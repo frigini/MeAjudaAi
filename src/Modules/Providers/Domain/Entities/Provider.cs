@@ -538,6 +538,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
     /// Adiciona um serviço à lista de serviços oferecidos pelo provider.
     /// </summary>
     /// <param name="serviceId">ID do serviço do catálogo (ServiceCatalogs module)</param>
+    /// <param name="serviceName">Nome do serviço (desnormalizado para exibição)</param>
     /// <exception cref="ProviderDomainException">Lançada se o serviço já estiver na lista</exception>
     /// <remarks>
     /// IMPORTANTE: Quando implementar o command handler para adicionar serviços, validar que:

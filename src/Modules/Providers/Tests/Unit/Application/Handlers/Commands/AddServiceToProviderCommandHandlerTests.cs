@@ -222,7 +222,7 @@ public class AddServiceToProviderCommandHandlerTests
         var serviceId = Guid.NewGuid();
         var command = new AddServiceToProviderCommand(providerId, serviceId);
 
-        var provider = CreateTestProvider(providerId);
+        var provider = ProviderBuilder.Create().Build();
 
         _repositoryMock
             .Setup(x => x.GetByIdAsync(It.Is<ProviderId>(id => id.Value == providerId), It.IsAny<CancellationToken>()))
@@ -230,7 +230,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Service validation succeeds
         var validationResult = new ModuleServiceValidationResultDto(
-            ValidServiceIds: new[] { serviceId },
+            AllValid: true,
             InvalidServiceIds: Array.Empty<Guid>(),
             InactiveServiceIds: Array.Empty<Guid>());
 

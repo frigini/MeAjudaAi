@@ -312,13 +312,14 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 DisplayOrder = 4
             },
 
+            // Note: DisplayOrder is scoped per category, so same values across different categories are allowed
             new
             {
                 Id = UuidGenerator.NewId(),
                 Name = "Orientação Jurídica Gratuita",
                 Description = "Atendimento jurídico para questões civis e trabalhistas",
                 CategoryId = idMap.GetValueOrDefault("Jurídico", LegalCategoryId),
-                DisplayOrder = 4
+                DisplayOrder = 4 // Same as Confeitaria, but different category
             },
             // Housing / Services
             new { Id = UuidGenerator.NewId(), Name = "Pedreiro", Description = "Construção e reformas em geral", CategoryId = idMap.GetValueOrDefault("Habitação", HousingCategoryId), DisplayOrder = 10 },
@@ -667,19 +668,52 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         };
 
         // Obter IDs dos serviços
-        // Nota: Como usamos connection string direta no GetDbContext, podemos não conseguir consultar facilmente cruzado
-        // Então vamos buscar os IDs dos serviços pelo nome no banco de ServiceCatalogs
+        // Build a map of provider ID to all their service IDs
+        var providerServiceMap = new Dictionary<Guid, List<Guid>>();
+        
+        // Get all service IDs from providerServices array (defined in SeedProviderServicesAsync)
+        var allProviderServices = new[]
+        {
+            new { ProviderId = Provider1Id, ServiceName = "Atendimento Psicológico Gratuito" },
+            new { ProviderId = ProviderLinhares1Id, ServiceName = "Pedreiro" },
+            new { ProviderId = ProviderLinhares2Id, ServiceName = "Serviço com nome grande" },
+            new { ProviderId = ProviderLinhares2Id, ServiceName = "Serviço 3" }, // Multiple services for same provider
+            new { ProviderId = ProviderLinhares3Id, ServiceName = "Encanador" },
+            new { ProviderId = ProviderLinhares4Id, ServiceName = "Pintor" },
+            new { ProviderId = ProviderLinhares5Id, ServiceName = "Jardineiro" },
+            new { ProviderId = ProviderLinhares6Id, ServiceName = "Faxina" },
+            new { ProviderId = ProviderLinhares7Id, ServiceName = "Montador de Móveis" },
+            new { ProviderId = ProviderLinhares8Id, ServiceName = "Frete e Mudança" },
+            new { ProviderId = ProviderLinhares9Id, ServiceName = "Assistência Técnica" },
+            new { ProviderId = ProviderLinhares10Id, ServiceName = "Confeitaria" }
+        };
+
+        // Resolve all service IDs and group by provider
+        foreach (var ps in allProviderServices)
+        {
+            var serviceId = await servicesContext.Database.SqlQueryRaw<Guid>(
+                "SELECT id AS \"Value\" FROM service_catalogs.services WHERE name = {0}", ps.ServiceName)
+                .FirstOrDefaultAsync(cancellationToken);
+            
+            if (serviceId == Guid.Empty)
+            {
+                _logger.LogWarning("⚠️ Service '{ServiceName}' not found. Skipping.", ps.ServiceName);
+                continue;
+            }
+
+            if (!providerServiceMap.ContainsKey(ps.ProviderId))
+                providerServiceMap[ps.ProviderId] = new List<Guid>();
+            
+            providerServiceMap[ps.ProviderId].Add(serviceId);
+        }
+
         var syncedCount = 0;
         foreach (var p in providersToSync)
         {
-            var serviceId = await servicesContext.Database.SqlQueryRaw<Guid>(
-                "SELECT id AS \"Value\" FROM service_catalogs.services WHERE name = {0}", p.ServiceName)
-                .FirstOrDefaultAsync(cancellationToken);
-            
-            // Se não encontrar o serviço, logamos um aviso e pulamos este provider para manter o determinismo
-            if (serviceId == Guid.Empty)
+            // Get all service IDs for this provider
+            if (!providerServiceMap.TryGetValue(p.Id, out var serviceIds) || serviceIds.Count == 0)
             {
-                _logger.LogWarning("⚠️ Service '{ServiceName}' not found for provider '{ProviderName}'. Skipping search index seed for this entry.", p.ServiceName, p.Name);
+                _logger.LogWarning("⚠️ No services found for provider '{ProviderName}'. Skipping search index seed.", p.Name);
                 continue;
             }
 
@@ -720,7 +754,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                     UuidGenerator.NewId(), p.Id, p.Name, p.Description,
                     lon, lat, // PostGIS usa Longitude, Latitude
                     p.Tier, (decimal)p.Rating, p.Reviews,
-                    new Guid[] { serviceId }, "Linhares", "ES", DateTime.UtcNow, DateTime.UtcNow
+                    serviceIds.ToArray(), "Linhares", "ES", DateTime.UtcNow, DateTime.UtcNow
                 },
                 cancellationToken);
             

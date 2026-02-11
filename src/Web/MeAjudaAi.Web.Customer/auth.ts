@@ -28,9 +28,10 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
             refreshToken: refreshedTokens.refresh_token ?? token.refreshToken, // Fall back to old refresh token
         }
     } catch (error: any) {
-        // Log only safe error details to prevent token leakage
+        // Log Keycloak error fields (error, error_description) instead of generic message/status
         console.error("RefreshAccessTokenError", {
-            message: error.message,
+            error: error.error || error.message,
+            error_description: error.error_description,
             status: error.status || error.statusCode
         });
 

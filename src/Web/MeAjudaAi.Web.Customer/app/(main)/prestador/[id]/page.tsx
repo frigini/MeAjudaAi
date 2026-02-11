@@ -106,9 +106,7 @@ export default async function ProviderProfilePage({
     const rating = providerData.rating ?? 0;
     const reviewCount = providerData.reviewCount ?? 0;
 
-    const phones = (providerData.phoneNumbers && providerData.phoneNumbers.length > 0)
-        ? providerData.phoneNumbers
-        : ["(00) 0 0000-0000"];
+    const phones = providerData.phoneNumbers || [];
 
     const services = (providerData.services && providerData.services.length > 0)
         ? providerData.services
@@ -116,7 +114,8 @@ export default async function ProviderProfilePage({
 
     const getWhatsappLink = (phone: string) => {
         const cleanPhone = phone.replace(/\D/g, "");
-        return `https://wa.me/55${cleanPhone}`;
+        // Validate: Brazilian phone should have at least 10 digits (DDD + number)
+        return cleanPhone.length >= 10 ? `https://wa.me/55${cleanPhone}` : null;
     };
 
     return (
@@ -143,22 +142,29 @@ export default async function ProviderProfilePage({
                         </div>
 
                         {/* Phones */}
-                        <div className="w-full space-y-2">
-                            {phones.map((phone: string, i: number) => (
-                                <div key={i} className="flex items-center gap-2 text-gray-600 text-sm">
-                                    <span className="font-medium">{phone}</span>
-                                    <a
-                                        href={getWhatsappLink(phone)}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-green-500 hover:text-green-600 transition-colors"
-                                        title="Chamar no WhatsApp"
-                                    >
-                                        <MessageCircle className="w-4 h-4" />
-                                    </a>
-                                </div>
-                            ))}
-                        </div>
+                        {phones.length > 0 && (
+                            <div className="w-full space-y-2">
+                                {phones.map((phone: string, i: number) => {
+                                    const whatsappLink = getWhatsappLink(phone);
+                                    return (
+                                        <div key={i} className="flex items-center gap-2 text-gray-600 text-sm">
+                                            <span className="font-medium">{phone}</span>
+                                            {whatsappLink && (
+                                                <a
+                                                    href={whatsappLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-green-500 hover:text-green-600 transition-colors"
+                                                    title="Chamar no WhatsApp"
+                                                >
+                                                    <MessageCircle className="w-4 h-4" />
+                                                </a>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
 
                     {/* Right Column: Name, Email, Description, Services */}
@@ -196,19 +202,17 @@ export default async function ProviderProfilePage({
             </div>
 
             {/* Comments Section - Full Width (outside centered container) */}
-            <div className="container mx-auto px-4 py-8">
-                <div className="pt-8 border-t border-gray-200">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-bold text-gray-900">Comentários</h2>
+            <div className="pt-8 border-t border-gray-200">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold text-gray-900">Comentários</h2>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                        <ReviewForm providerId={id} />
                     </div>
 
-                    <div className="space-y-6">
-                        <div className="bg-gray-50 p-3 rounded-lg">
-                            <ReviewForm providerId={id} />
-                        </div>
-
-                        <ReviewList providerId={id} />
-                    </div>
+                    <ReviewList providerId={id} />
                 </div>
             </div>
         </div>

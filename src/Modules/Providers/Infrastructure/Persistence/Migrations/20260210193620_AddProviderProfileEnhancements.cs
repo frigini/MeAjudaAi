@@ -36,6 +36,13 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                   AND ps.service_name IS NULL;
             ");
 
+            // Step 2.5: Fallback for orphaned rows (service not found in catalog)
+            migrationBuilder.Sql(@"
+                UPDATE providers.provider_services
+                SET service_name = 'Unknown Service'
+                WHERE service_name IS NULL;
+            ");
+
             // Step 3: Make service_name non-nullable (all rows should have values now)
             migrationBuilder.AlterColumn<string>(
                 name: "service_name",
