@@ -139,7 +139,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         var provider = new Provider(userId, name, type, businessProfile);
 
         // Obter contexto
-        var dbContext = GetService<ProvidersDbContext>();
+        var dbContext = DbContext;
 
         await dbContext.Providers.AddAsync(provider, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -165,31 +165,10 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     /// </summary>
     protected async Task CleanupDatabase()
     {
-        var dbContext = GetService<ProvidersDbContext>();
-        var schema = GetTestOptions().Database.Schema;
-
-        try
-        {
-            // Com banco isolado, podemos usar TRUNCATE com segurança
-#pragma warning disable EF1002 // Risk of SQL injection - schema comes from test configuration, not user input
-            await dbContext.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {schema}.providers CASCADE");
-#pragma warning restore EF1002
-        }
-        catch (Exception ex)
-        {
-            // Fallback para DELETE se TRUNCATE falhar
-            var logger = GetService<ILogger<ProvidersIntegrationTestBase>>();
-            logger.LogWarning(ex, "TRUNCATE failed: {Message}. Using DELETE fallback...", ex.Message);
-
-#pragma warning disable EF1002 // Risk of SQL injection - schema comes from test configuration, not user input
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.qualification");
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.document");
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.providers");
-#pragma warning restore EF1002
-        }
+        await ExecuteTruncateOrDeleteAsync();
 
         // Verificar se limpeza foi bem-sucedida
-        var remainingCount = await dbContext.Providers.CountAsync();
+        var remainingCount = await DbContext.Providers.CountAsync();
         if (remainingCount > 0)
         {
             throw new InvalidOperationException($"Database cleanup failed: {remainingCount} providers remain");
@@ -202,42 +181,49 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     /// </summary>
     protected async Task ForceCleanDatabase()
     {
-        var dbContext = GetService<ProvidersDbContext>();
+        try
+        {
+            // Estratégia 1: TRUNCATE/DELETE
+            await ExecuteTruncateOrDeleteAsync();
+            return;
+        }
+        catch (Exception ex)
+        {
+            var logger = GetService<ILogger<ProvidersIntegrationTestBase>>();
+            logger.LogError(ex, "TRUNCATE/DELETE failed: {Message}. Recreating database...", ex.Message);
+        }
+
+        // Estratégia 2: Recriar database
+        await DbContext.Database.EnsureDeletedAsync();
+        await DbContext.Database.EnsureCreatedAsync();
+    }
+
+    /// <summary>
+    /// Executa TRUNCATE com fallback para DELETE
+    /// </summary>
+    private async Task ExecuteTruncateOrDeleteAsync()
+    {
         var schema = GetTestOptions().Database.Schema;
 
         try
         {
             // Estratégia 1: TRUNCATE CASCADE
 #pragma warning disable EF1002 // Risk of SQL injection - schema comes from test configuration, not user input
-            await dbContext.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {schema}.providers CASCADE");
+            await DbContext.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {schema}.providers CASCADE");
 #pragma warning restore EF1002
-            return;
         }
         catch (Exception ex)
         {
+            // Fallback para DELETE se TRUNCATE falhar
             var logger = GetService<ILogger<ProvidersIntegrationTestBase>>();
-            logger.LogWarning(ex, "TRUNCATE failed: {Message}. Trying DELETE...", ex.Message);
-        }
+            logger.LogWarning(ex, "TRUNCATE failed: {Message}. Using DELETE fallback...", ex.Message);
 
-        try
-        {
-            // Estratégia 2: DELETE em ordem reversa
 #pragma warning disable EF1002 // Risk of SQL injection - schema comes from test configuration, not user input
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.qualification");
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.document");
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.providers");
+            await DbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.qualification");
+            await DbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.document");
+            await DbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.providers");
 #pragma warning restore EF1002
-            return;
         }
-        catch (Exception ex)
-        {
-            var logger = GetService<ILogger<ProvidersIntegrationTestBase>>();
-            logger.LogError(ex, "DELETE failed: {Message}. Recreating database...", ex.Message);
-        }
-
-        // Estratégia 3: Recriar database
-        await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
     }
 
     /// <summary>

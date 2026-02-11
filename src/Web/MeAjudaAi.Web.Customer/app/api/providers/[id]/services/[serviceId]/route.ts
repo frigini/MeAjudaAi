@@ -1,6 +1,36 @@
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * Shared helper to proxy authenticated requests to the backend API
+ */
+async function proxyProviderServiceRequest(
+    method: "POST" | "DELETE",
+    providerId: string,
+    serviceId: string,
+    accessToken: string
+): Promise<NextResponse> {
+    const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002';
+
+    try {
+        const res = await fetch(`${apiUrl}/api/v1/providers/${providerId}/services/${serviceId}`, {
+            method,
+            headers: {
+                "Authorization": `Bearer ${accessToken}`
+            }
+        });
+
+        if (!res.ok) {
+            return new NextResponse(res.statusText, { status: res.status });
+        }
+
+        return new NextResponse(null, { status: 200 });
+    } catch (error) {
+        console.error(`Error proxying ${method} /providers/${providerId}/services/${serviceId}:`, error);
+        return new NextResponse("Internal Server Error", { status: 500 });
+    }
+}
+
 export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ id: string; serviceId: string }> }
@@ -11,26 +41,7 @@ export async function POST(
     }
 
     const { id, serviceId } = await params;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002';
-
-    try {
-        const res = await fetch(`${apiUrl}/api/v1/providers/${id}/services/${serviceId}`, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${session.accessToken}`
-            }
-        });
-
-        if (!res.ok) {
-            return new NextResponse(res.statusText, { status: res.status });
-        }
-
-        // Return empty or json depending on API. Assuming void/success.
-        return new NextResponse(null, { status: 200 });
-    } catch (error) {
-        console.error(`Error proxying POST /providers/${id}/services/${serviceId}:`, error);
-        return new NextResponse("Internal Server Error", { status: 500 });
-    }
+    return proxyProviderServiceRequest("POST", id, serviceId, session.accessToken);
 }
 
 export async function DELETE(
@@ -43,23 +54,5 @@ export async function DELETE(
     }
 
     const { id, serviceId } = await params;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002';
-
-    try {
-        const res = await fetch(`${apiUrl}/api/v1/providers/${id}/services/${serviceId}`, {
-            method: "DELETE",
-            headers: {
-                "Authorization": `Bearer ${session.accessToken}`
-            }
-        });
-
-        if (!res.ok) {
-            return new NextResponse(res.statusText, { status: res.status });
-        }
-
-        return new NextResponse(null, { status: 200 });
-    } catch (error) {
-        console.error(`Error proxying DELETE /providers/${id}/services/${serviceId}:`, error);
-        return new NextResponse("Internal Server Error", { status: 500 });
-    }
+    return proxyProviderServiceRequest("DELETE", id, serviceId, session.accessToken);
 }
