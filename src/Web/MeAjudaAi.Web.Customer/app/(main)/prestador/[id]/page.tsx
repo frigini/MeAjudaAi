@@ -108,9 +108,7 @@ export default async function ProviderProfilePage({
 
     const phones = providerData.phoneNumbers || [];
 
-    const services = (providerData.services && providerData.services.length > 0)
-        ? providerData.services
-        : ["Serviço Geral"];
+    const services = providerData.services ?? [];
 
     const getWhatsappLink = (phone: string) => {
         const cleanPhone = phone.replace(/\D/g, "");
@@ -137,8 +135,11 @@ export default async function ProviderProfilePage({
                         />
 
                         {/* Rating */}
-                        <div className="flex items-center">
-                            <Rating value={rating} readOnly size="md" className="text-[#E0702B]" />
+                        <div className="flex items-center gap-2">
+                            <Rating value={rating} className="text-[#E0702B]" />
+                            {reviewCount > 0 && (
+                                <span className="text-sm text-gray-600">({reviewCount} avaliações)</span>
+                            )}
                         </div>
 
                         {/* Phones */}
@@ -184,19 +185,21 @@ export default async function ProviderProfilePage({
                         </div>
 
                         {/* Services */}
-                        <div className="pt-4">
-                            <h2 className="text-lg font-bold text-gray-900 mb-3">Serviços</h2>
-                            <div className="flex flex-wrap gap-2">
-                                {services.map((service: string, index: number) => (
-                                    <Badge
-                                        key={index}
-                                        className="px-3 py-1 text-sm font-medium bg-[#E0702B] hover:bg-[#c56226] text-white border-none transition-colors rounded-md"
-                                    >
-                                        {service}
-                                    </Badge>
-                                ))}
+                        {services.length > 0 && (
+                            <div className="pt-4">
+                                <h2 className="text-lg font-bold text-gray-900 mb-3">Serviços</h2>
+                                <div className="flex flex-wrap gap-2">
+                                    {services.map((service: string, i: number) => (
+                                        <span
+                                            key={i}
+                                            className="px-3 py-1 bg-[#E0702B] text-white text-sm rounded-full"
+                                        >
+                                            {service}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>

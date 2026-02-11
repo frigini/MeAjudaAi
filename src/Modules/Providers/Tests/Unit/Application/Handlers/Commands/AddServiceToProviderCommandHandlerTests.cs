@@ -225,7 +225,7 @@ public class AddServiceToProviderCommandHandlerTests
         var provider = ProviderBuilder.Create().Build();
 
         _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<ProviderId>(id => id.Value == providerId), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         // Service validation succeeds

@@ -16,7 +16,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                 table: "providers",
                 type: "text",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: "[]");
 
             // Step 1: Add service_name as nullable
             migrationBuilder.AddColumn<string>(
