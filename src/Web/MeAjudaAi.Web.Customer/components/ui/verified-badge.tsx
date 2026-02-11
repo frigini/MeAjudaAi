@@ -1,10 +1,9 @@
-import { BadgeCheck, AlertTriangle, Ban } from "lucide-react";
+import { BadgeCheck, Ban } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-export type VerificationStatus = "Pending" | "Verified" | "Rejected" | "Suspended";
+import { VerificationStatus, EVerificationStatus } from "@/types/api/provider";
 
 interface VerifiedBadgeProps {
-    status: string; // Using string to accommodate API response
+    status: VerificationStatus;
     className?: string;
     showLabel?: boolean;
     size?: "sm" | "md" | "lg";

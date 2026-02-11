@@ -8,6 +8,9 @@ using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
@@ -49,24 +52,33 @@ public static class ProvidersTestInfrastructureExtensions
         // Para testes, usar implementação simples sem dependências complexas
         services.AddSingleton<MeAjudaAi.Shared.Caching.ICacheService, MeAjudaAi.Shared.Tests.TestInfrastructure.Services.TestCacheService>();
 
-        // Configurar DbContext específico para PostgreSQL com TestContainers (isolado por teste)
+        // Configurar DbContext
         services.AddDbContext<ProvidersDbContext>((serviceProvider, dbOptions) =>
         {
-            var container = serviceProvider.GetRequiredService<PostgreSqlContainer>();
-            var connectionString = container.GetConnectionString();
-
-            dbOptions.UseNpgsql(connectionString, npgsqlOptions =>
+            if (options.Database.UseInMemoryDatabase)
             {
-                npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Providers.Infrastructure");
-                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", options.Database.Schema);
-                npgsqlOptions.CommandTimeout(60);
-            })
-            .ConfigureWarnings(warnings =>
+                dbOptions.UseInMemoryDatabase(options.Database.DatabaseName);
+                dbOptions.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning));
+            }
+            else
+            {
+                var container = serviceProvider.GetRequiredService<PostgreSqlContainer>();
+                var connectionString = container.GetConnectionString();
+
+                dbOptions.UseNpgsql(connectionString, npgsqlOptions =>
+                {
+                    npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Providers.Infrastructure");
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", options.Database.Schema);
+                    npgsqlOptions.CommandTimeout(60);
+                });
+            }
+
+            dbOptions.ConfigureWarnings(warnings =>
             {
                 // Suprimir warnings de pending model changes em testes
                 warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning);
             });
-        }, ServiceLifetime.Scoped); // Garantir que seja Scoped
+        }, ServiceLifetime.Scoped);
 
         // Adicionar repositórios específicos do Providers
         services.AddScoped<IProviderRepository, ProviderRepository>();
@@ -74,11 +86,14 @@ public static class ProvidersTestInfrastructureExtensions
         // Adicionar serviços de aplicação específicos do Providers
         services.AddScoped<IProviderQueryService, ProviderQueryService>();
 
-        // Adicionar Dispatcher de Queries
+        // Adicionar Dispatcher de Queries e Commands
         services.AddScoped<IQueryDispatcher, QueryDispatcher>();
+        services.AddScoped<ICommandDispatcher, CommandDispatcher>();
         
         // Registrar handlers de teste explicitamente
         services.AddScoped<IQueryHandler<GetPublicProviderByIdQuery, Result<PublicProviderDto?>>, GetPublicProviderByIdQueryHandler>();
+        services.AddScoped<IQueryHandler<GetProviderByUserIdQuery, Result<ProviderDto?>>, GetProviderByUserIdQueryHandler>();
+        services.AddScoped<ICommandHandler<UpdateProviderProfileCommand, Result<ProviderDto>>, UpdateProviderProfileCommandHandler>();
 
         return services;
     }

@@ -1,36 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { DashboardClient } from "@/components/providers/dashboard-client";
-
-interface ProviderDto {
-    id: string;
-    userId: string;
-    name: string;
-    type: string;
-    businessProfile: {
-        legalName: string;
-        fantasyName?: string;
-        description?: string;
-        contactInfo: {
-            email: string;
-            phoneNumber: string;
-            website?: string;
-        };
-        primaryAddress: {
-            street: string;
-            number: string;
-            complement?: string;
-            neighborhood: string;
-            city: string;
-            state: string;
-            zipCode: string;
-            country: string;
-        };
-    };
-    status: string;
-    verificationStatus: string;
-    services: Array<{ serviceId: string; serviceName: string }>;
-}
+import DashboardClient from "@/components/providers/dashboard-client";
+import { ProviderDto } from "@/types/api/provider";
 
 export default async function DashboardPage() {
     const session = await auth();
@@ -39,7 +10,8 @@ export default async function DashboardPage() {
     }
 
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002'}/api/v1/providers/me`, {
+        const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002';
+        const res = await fetch(`${apiUrl}/api/v1/providers/me`, {
             headers: {
                 "Authorization": `Bearer ${session.accessToken}`
             },
@@ -75,7 +47,7 @@ export default async function DashboardPage() {
             provider = json;
         }
 
-        return <DashboardClient provider={provider} accessToken={session.accessToken} />;
+        return <DashboardClient provider={provider} />;
 
     } catch (error) {
         console.error("Dashboard Error:", error);

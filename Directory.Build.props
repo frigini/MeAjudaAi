@@ -23,7 +23,7 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <!-- In CI/production builds, use locked mode to ensure exact package versions -->
     <!-- In dev builds, allow lock file updates (RestoreLockedMode is false by default) -->
-    <RestoreLockedMode Condition="'$(CI)' == 'true' OR '$(Configuration)' == 'Release'">false</RestoreLockedMode>
+    <RestoreLockedMode Condition="'$(CI)' == 'true' OR '$(Configuration)' == 'Release'">true</RestoreLockedMode>
     
     <!-- Allow floating versions for prerelease .NET 10 packages - pin exact versions once .NET 10 is stable -->
     <CentralPackageFloatingVersionsEnabled>true</CentralPackageFloatingVersionsEnabled>

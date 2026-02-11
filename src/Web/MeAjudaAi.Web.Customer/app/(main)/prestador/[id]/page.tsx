@@ -3,58 +3,66 @@ import { Metadata } from "next";
 import { cache } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Rating } from "@/components/ui/rating";
-import { createClient, createConfig } from "@/lib/api/generated/client";
 import { ReviewList } from "@/components/reviews/review-list";
 import { ReviewForm } from "@/components/reviews/review-form";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle } from "lucide-react";
-import { MeAjudaAiContractsFunctionalError } from "@/lib/api/generated/types.gen";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import { z } from "zod";
 
-const client = createClient(createConfig({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002'
-}));
+// Zod Schema for Runtime Validation
+const PublicProviderSchema = z.object({
+    id: z.string().uuid(),
+    name: z.string(),
+    type: z.string(),
+    fantasyName: z.string().optional().nullable(),
+    description: z.string().optional().nullable(),
+    city: z.string().optional().nullable(),
+    state: z.string().optional().nullable(),
+    rating: z.number().optional().nullable(),
+    reviewCount: z.number().optional().nullable(),
+    phoneNumbers: z.array(z.string()).optional().nullable(),
+    services: z.array(z.string()).optional().nullable(),
+    email: z.string().email().optional().nullable(),
+    verificationStatus: z.string().optional().nullable()
+});
 
-interface PublicProviderData {
-    id: string;
-    name: string;
-    type: string;
-    fantasyName?: string;
-    description?: string;
-    city?: string;
-    state?: string;
-    rating?: number;
-    reviewCount?: number;
-    phoneNumbers?: string[];
-    services?: string[];
-    email?: string;
-    verificationStatus?: string;
-}
+type PublicProviderData = z.infer<typeof PublicProviderSchema>;
 
 const getCachedProvider = cache(async (id: string): Promise<PublicProviderData | null> => {
     try {
-        const response = await client.get({
-            url: `/api/v1/providers/${id}/public`
+        const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002';
+        const res = await fetch(`${apiUrl}/api/v1/providers/${id}/public`, {
+            next: { revalidate: 60 } // Cache for 60 seconds
         });
 
-        if (response.error) {
-            const apiError = response.error as MeAjudaAiContractsFunctionalError;
-            if (apiError.statusCode === 404) {
-                return null;
-            }
-            console.error(`API Error fetching provider ${id}:`, apiError);
-            throw new Error(apiError.message || 'Error loading provider profile');
+        if (res.status === 404) return null;
+        if (!res.ok) {
+            throw new Error(`Failed to fetch provider: ${res.statusText}`);
         }
 
-        // API returns Result pattern: { isSuccess: true, value: {...} }
-        const result = response.data as { isSuccess: boolean; value: PublicProviderData } | null;
-        if (result?.isSuccess && result?.value) {
-            return result.value;
+        const json = await res.json();
+
+        // API returns Result<PublicProviderDto> usually: { isSuccess: true, value: {...} }
+        // We need to extract the value and validate it.
+        let dataToValidate = json;
+        if (json && typeof json === 'object' && 'value' in json) {
+            dataToValidate = json.value;
         }
 
-        return null;
-    } catch (error: any) {
-        if (error.status === 404 || error.statusCode === 404 || (error instanceof Error && error.message.includes("404"))) return null;
+        // Validate with Zod
+        const result = PublicProviderSchema.safeParse(dataToValidate);
+
+        if (!result.success) {
+            console.error(`Validation Error for provider ${id}:`, result.error);
+            // Fail fast or return null? "fail fast with a thrown error if validation fails"
+            throw new Error(`Invalid provider data received: ${result.error.message}`);
+        }
+
+        return result.data;
+
+    } catch (error) {
+        if (error instanceof Error && (error.message.includes("404") || (error as any).status === 404)) return null;
         console.error(`Exception fetching public provider ${id}:`, error);
         throw error;
     }
@@ -176,7 +184,7 @@ export default async function ProviderProfilePage({
                         {/* Name & Badge */}
                         <div className="flex items-center gap-3">
                             <h1 className="text-3xl md:text-4xl font-bold text-[#E0702B]">{displayName}</h1>
-                            <VerifiedBadge status={providerData.verificationStatus || "Pending"} size="lg" />
+                            <VerifiedBadge status={(providerData.verificationStatus as any) || "Pending"} size="lg" />
                         </div>
 
                         {/* Email */}

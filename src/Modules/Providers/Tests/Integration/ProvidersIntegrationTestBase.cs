@@ -19,6 +19,7 @@ namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 /// Classe base para testes de integração específicos do módulo Providers.
 /// Usa isolamento completo com database único por classe de teste.
 /// </summary>
+[Trait("Category", "Integration")]
 public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
 {
     private PostgreSqlContainer? _container;
@@ -42,8 +43,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
                 DatabaseName = $"providers_test_{_testClassId}",
                 Username = "test_user",
                 Password = "test_password",
-                Schema = "providers",
-                UseInMemoryDatabase = false
+                Schema = "providers"
             },
             Cache = new TestCacheOptions
             {
@@ -65,19 +65,25 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         // Criar container PostgreSQL isolado para esta classe de teste
         var options = GetTestOptions();
 
-        _container = new PostgreSqlBuilder(options.Database.PostgresImage)
-            .WithDatabase(options.Database.DatabaseName)
-            .WithUsername(options.Database.Username)
-            .WithPassword(options.Database.Password)
-            .Build();
+        if (!options.Database.UseInMemoryDatabase)
+        {
+            _container = new PostgreSqlBuilder(options.Database.PostgresImage)
+                .WithDatabase(options.Database.DatabaseName)
+                .WithUsername(options.Database.Username)
+                .WithPassword(options.Database.Password)
+                .Build();
 
-        await _container.StartAsync();
+            await _container.StartAsync();
+        }
 
         // Configurar serviços com container isolado
         var services = new ServiceCollection();
 
-        // Registrar o container específico
-        services.AddSingleton(_container);
+        // Registrar o container específico se não estiver usando In-Memory
+        if (!options.Database.UseInMemoryDatabase && _container != null)
+        {
+            services.AddSingleton(_container);
+        }
 
         // Configurar logging otimizado
         services.AddLogging(builder =>
@@ -152,6 +158,10 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         return new BusinessProfile("Test Company Legal Name", contactInfo, address, "Test Company Fantasy", "Test company description");
     }
 
+    /// <summary>
+    /// Limpa dados das tabelas para isolamento entre testes
+    /// Usando banco isolado, cleanup é mais simples e confiável
+    /// </summary>
     /// <summary>
     /// Limpa dados das tabelas para isolamento entre testes
     /// Usando banco isolado, cleanup é mais simples e confiável

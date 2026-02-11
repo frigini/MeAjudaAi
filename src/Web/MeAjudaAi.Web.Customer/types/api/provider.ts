@@ -1,41 +1,49 @@
-// Temporary mock types until OpenAPI generator is setup
-export interface ProviderDto {
-    id: string;
-    name: string;
+export interface ServiceDto {
+    serviceId: string;
+    serviceName: string;
+}
+
+export interface ContactInfoDto {
     email: string;
-    avatarUrl?: string | null;
-    averageRating: number;
-    reviewCount: number;
-    services: ServiceDto[];
+    phoneNumber: string;
+    website?: string;
+}
+
+export interface AddressDto {
+    street: string;
+    number: string;
+    complement?: string;
+    neighborhood: string;
     city: string;
     state: string;
-    description?: string;
-    phone?: string;
-    /**
-     * Disponíveis: "None" | "Individual" | "Company" | "Cooperative" | "Freelancer"
-     * NOTE: Alinhado com o enum ProviderType em MeAjudaAi.Core.Shared.Contracts
-     */
-    providerType: ProviderType;
+    zipCode: string;
+    country: string;
 }
 
-export type ProviderType = "None" | "Individual" | "Company" | "Cooperative" | "Freelancer";
+export interface BusinessProfileDto {
+    legalName: string;
+    fantasyName?: string;
+    description?: string;
+    contactInfo: ContactInfoDto;
+    primaryAddress: AddressDto;
+}
 
-export interface ServiceDto {
+export enum EVerificationStatus {
+    Pending = 1,
+    Verified = 2,
+    Rejected = 3,
+    Suspended = 4
+}
+
+export type VerificationStatus = "Pending" | "Verified" | "Rejected" | "Suspended";
+
+export interface ProviderDto {
     id: string;
+    userId: string;
     name: string;
-    description?: string;
-    category: {
-        id: string;
-        name: string;
-        description?: string;
-    };
-}
-
-export interface ReviewDto {
-    id: string;
-    providerId: string;
-    customerName: string;
-    rating: number;
-    comment: string;
-    createdAt: string;
+    type: string;
+    businessProfile: BusinessProfileDto;
+    status: string;
+    verificationStatus: VerificationStatus;
+    services: ServiceDto[];
 }

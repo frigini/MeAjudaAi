@@ -35,7 +35,7 @@ public class UpdateMyProviderProfileEndpointTests
         // Arrange
         var userId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
-        var context = CreateHttpContextWithUserId(userId);
+        var context = EndpointTestHelpers.CreateHttpContextWithUserId(userId);
         
         var request = new UpdateProviderProfileRequest
         {
@@ -83,7 +83,7 @@ public class UpdateMyProviderProfileEndpointTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var context = CreateHttpContextWithUserId(userId);
+        var context = EndpointTestHelpers.CreateHttpContextWithUserId(userId);
         
         var request = new UpdateProviderProfileRequest
         {
@@ -106,19 +106,10 @@ public class UpdateMyProviderProfileEndpointTests
         var task = (Task<IResult>)methodInfo!.Invoke(null, new object[] { context, request, _queryDispatcherMock.Object, _commandDispatcherMock.Object, CancellationToken.None })!;
         var result = await task; // Should be NotFound
         
-        // Impossible to assert IResult type directly easily without helpers, but execution completes without exception
+        // Assert
+        _commandDispatcherMock.Verify(x => x.SendAsync<UpdateProviderProfileCommand, Result<ProviderDto>>(
+            It.IsAny<UpdateProviderProfileCommand>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
 
-    private DefaultHttpContext CreateHttpContextWithUserId(Guid userId)
-    {
-        var context = new DefaultHttpContext();
-        var claims = new List<Claim>
-        {
-            new Claim("sub", userId.ToString())
-        };
-        var identity = new ClaimsIdentity(claims, "TestAuth");
-        context.User = new ClaimsPrincipal(identity);
-        return context;
-    }
 }

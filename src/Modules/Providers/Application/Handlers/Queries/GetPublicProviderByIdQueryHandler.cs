@@ -5,9 +5,12 @@ using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.FeatureManagement;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 
@@ -48,6 +51,16 @@ public sealed class GetPublicProviderByIdQueryHandler : IQueryHandler<GetPublicP
         // Verifica se a privacidade restrita está habilitada via feature flag
         var isPrivacyEnabled = await _featureManager.IsEnabledAsync(FeatureFlags.PublicProfilePrivacy);
 
+        var phoneNumbers = ResolvePhoneNumbers(isPrivacyEnabled, businessProfile);
+        
+        var email = !isPrivacyEnabled && businessProfile.ContactInfo != null
+            ? businessProfile.ContactInfo.Email
+            : null;
+            
+        var services = !isPrivacyEnabled
+            ? provider.Services.Select(s => s.ServiceName).ToList()
+            : new List<string>();
+
         // Mapeamento para DTO seguro com valores default (reais virão de integração futura)
         var dto = new PublicProviderDto(
             provider.Id,
@@ -64,20 +77,24 @@ public sealed class GetPublicProviderByIdQueryHandler : IQueryHandler<GetPublicP
             ReviewCount: 0, 
             
             // Dados sensíveis ou dependentes de módulos externos são condicionados por privacidade
-            Services: !isPrivacyEnabled
-                ? provider.Services.Select(s => s.ServiceName).ToList()
-                : Array.Empty<string>(),
-            PhoneNumbers: !isPrivacyEnabled && businessProfile.ContactInfo != null
-                ? (string.IsNullOrWhiteSpace(businessProfile.ContactInfo.PhoneNumber)
-                    ? businessProfile.ContactInfo.AdditionalPhoneNumbers
-                    : new[] { businessProfile.ContactInfo.PhoneNumber }.Concat(businessProfile.ContactInfo.AdditionalPhoneNumbers))
-                : Array.Empty<string>(),
-            Email: !isPrivacyEnabled && businessProfile.ContactInfo != null
-                ? businessProfile.ContactInfo.Email
-                : null,
+            Services: services,
+            PhoneNumbers: phoneNumbers,
+            Email: email,
             VerificationStatus: provider.VerificationStatus
         );
 
         return Result<PublicProviderDto?>.Success(dto);
+    }
+
+    private static IEnumerable<string> ResolvePhoneNumbers(bool isPrivacyEnabled, BusinessProfile profile)
+    {
+        if (isPrivacyEnabled || profile.ContactInfo is null)
+            return Array.Empty<string>();
+
+        if (string.IsNullOrWhiteSpace(profile.ContactInfo.PhoneNumber))
+            return profile.ContactInfo.AdditionalPhoneNumbers;
+
+        return new[] { profile.ContactInfo.PhoneNumber }
+            .Concat(profile.ContactInfo.AdditionalPhoneNumbers);
     }
 }

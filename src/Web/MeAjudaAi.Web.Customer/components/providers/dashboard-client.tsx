@@ -5,41 +5,24 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, Save, Loader2, Trash2 } from "lucide-react";
+import { Plus, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
-// import { createClient, createConfig } from "@/lib/api/generated/client"; // We can't use generated client properly yet.
+import { ProviderDto, ServiceDto } from "@/types/api/provider";
 
-interface ServiceDto {
-    serviceId: string;
-    serviceName: string;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002';
+
+interface ProviderDashboardClientProps {
+    provider: ProviderDto;
 }
 
-interface ProviderData {
-    id: string;
-    name: string;
-    description?: string;
-    businessProfile: {
-        fantasyName?: string;
-        contactInfo: {
-            email: string;
-        }
-    };
-    verificationStatus: string;
-    services: ServiceDto[];
-}
-
-interface DashboardClientProps {
-    provider: ProviderData;
-    accessToken: string;
-}
-
-export function DashboardClient({ provider, accessToken }: DashboardClientProps) {
+export default function ProviderDashboardClient({ provider }: ProviderDashboardClientProps) {
     const router = useRouter();
     const [isEditingDescription, setIsEditingDescription] = useState(false);
-    const [description, setDescription] = useState(provider.description || "");
+    // Description is nested in businessProfile
+    const [description, setDescription] = useState(provider.businessProfile.description || "");
     const [isSavingDescription, setIsSavingDescription] = useState(false);
 
     const [newServiceId, setNewServiceId] = useState("");
@@ -49,31 +32,14 @@ export function DashboardClient({ provider, accessToken }: DashboardClientProps)
     const handleSaveDescription = async () => {
         setIsSavingDescription(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002'}/api/v1/providers/me`, {
+            const res = await fetch(`${API_BASE}/api/providers/me`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${accessToken}`
                 },
                 body: JSON.stringify({
-                    name: provider.name, // Required by endpoint
+                    name: provider.name,
                     businessProfile: {
-                        ...provider.businessProfile, // We need to send full object?
-                        // The endpoint expects "UpdateProviderProfileRequest".
-                        // DTO: Name, BusinessProfile.
-                        // BusinessProfile has: LegalName, ContactInfo, Address, FantasyName, Description.
-                        // We are ONLY editing Description.
-                        // We need the FULL current profile to send it back?
-                        // Or does backend merge?
-                        // Backend replaces: `BusinessProfile = businessProfile;`
-                        // So we MUST send full current profile with updated description.
-                        // But we don't HAVE full profile here (address is missing in my interface above).
-                        // I should pass full provider object from server?
-                        // Yes.
-                        // For now, I'll alert user that this is incomplete implementation if addresses are lost.
-                        // Actually, I can Fetch the current data inside this component to be sure, or just assume "provider" prop has it.
-                        // But `ProviderData` interface above is incomplete.
-                        // I will cast `provider` to `any` or extend interface to include everything needed for update.
                         ...provider.businessProfile,
                         description: description
                     }
@@ -97,11 +63,10 @@ export function DashboardClient({ provider, accessToken }: DashboardClientProps)
         if (!newServiceId) return;
         setIsAddingService(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002'}/api/v1/providers/${provider.id}/services/${newServiceId}`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${accessToken}`
-                }
+            // Using local proxy route: /api/providers/[id]/services/[serviceId]
+            // We use POST to this route
+            const res = await fetch(`/api/providers/${provider.id}/services/${newServiceId}`, {
+                method: "POST"
             });
 
             if (!res.ok) throw new Error("Failed to add service");
@@ -121,11 +86,8 @@ export function DashboardClient({ provider, accessToken }: DashboardClientProps)
         if (!confirm("Tem certeza que deseja remover este serviço?")) return;
         setIsRemovingService(serviceId);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002'}/api/v1/providers/${provider.id}/services/${serviceId}`, {
-                method: "DELETE",
-                headers: {
-                    "Authorization": `Bearer ${accessToken}`
-                }
+            const res = await fetch(`/api/providers/${provider.id}/services/${serviceId}`, {
+                method: "DELETE"
             });
 
             if (!res.ok) throw new Error("Failed to remove service");
@@ -189,7 +151,7 @@ export function DashboardClient({ provider, accessToken }: DashboardClientProps)
                                 </div>
                             ) : (
                                 <p className="text-slate-600 whitespace-pre-wrap leading-relaxed">
-                                    {provider.description || "Nenhuma descrição adicionada."}
+                                    {provider.businessProfile.description || "Nenhuma descrição adicionada."}
                                 </p>
                             )}
                         </CardContent>

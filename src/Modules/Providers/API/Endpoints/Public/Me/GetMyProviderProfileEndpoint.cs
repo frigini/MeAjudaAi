@@ -28,7 +28,7 @@ public class GetMyProviderProfileEndpoint : BaseEndpoint, IEndpoint
     {
         var userIdString = GetUserId(context);
         if (!Guid.TryParse(userIdString, out var userId))
-            return BadRequest("Invalid User ID format");
+            return BadRequest("Formato de ID de usuário inválido");
 
         var query = new GetProviderByUserIdQuery(userId);
         var result = await queryDispatcher.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(
@@ -36,7 +36,7 @@ public class GetMyProviderProfileEndpoint : BaseEndpoint, IEndpoint
         
         if (result.IsSuccess && result.Value is null)
         {
-             return NotFound("Provider profile not found for the current user.");
+             return NotFound("Perfil do provedor não encontrado para o usuário atual.");
         }
 
         return Handle(result);
