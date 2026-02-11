@@ -7,8 +7,15 @@ export async function PUT(req: NextRequest) {
         return new NextResponse("Unauthorized", { status: 401 });
     }
 
+    let body;
     try {
-        const body = await req.json();
+        body = await req.json();
+    } catch (parseError) {
+        console.error("JSON parse error in PUT /providers/me:", parseError);
+        return new NextResponse("Invalid JSON body", { status: 400 });
+    }
+
+    try {
         const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002';
 
         const res = await fetch(`${apiUrl}/api/v1/providers/me`, {

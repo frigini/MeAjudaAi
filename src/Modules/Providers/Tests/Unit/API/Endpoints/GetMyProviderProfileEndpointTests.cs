@@ -45,11 +45,14 @@ public class GetMyProviderProfileEndpointTests
         // Act
         var methodInfo = typeof(GetMyProviderProfileEndpoint).GetMethod("GetMyProfileAsync", 
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        
+        methodInfo.Should().NotBeNull("GetMyProfileAsync must exist as a private static method on GetMyProviderProfileEndpoint");
             
         var task = (Task<IResult>)methodInfo!.Invoke(null, new object[] { context, _queryDispatcherMock.Object, CancellationToken.None })!;
         var result = await task;
 
         // Assert
+        result.Should().BeOfType<Ok<Result<ProviderDto?>>>();
         _queryDispatcherMock.Verify(x => x.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(
                 It.Is<GetProviderByUserIdQuery>(q => q.UserId == userId), It.IsAny<CancellationToken>()), Times.Once);
     }

@@ -24,7 +24,12 @@ async function proxyProviderServiceRequest(
             return new NextResponse(res.statusText, { status: res.status });
         }
 
-        return new NextResponse(null, { status: 200 });
+        // Forward successful status (201, 204, etc) and body if present
+        const body = res.status === 204 ? null : await res.text();
+        return new NextResponse(body, {
+            status: res.status,
+            headers: { 'Content-Type': res.headers.get('Content-Type') || 'application/json' }
+        });
     } catch (error) {
         console.error(`Error proxying ${method} /providers/${providerId}/services/${serviceId}:`, error);
         return new NextResponse("Internal Server Error", { status: 500 });

@@ -1,6 +1,6 @@
 <Project>
   <!-- Importar configurações globais da raiz -->
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../../../'))" />
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
   
   <!-- Configurações específicas do Blazor Admin Portal -->
   
