@@ -424,14 +424,6 @@
           "Polly.Core": "8.4.2"
         }
       },
-      "Polly.Extensions.Http": {
-        "type": "Transitive",
-        "resolved": "3.0.0",
-        "contentHash": "drrG+hB3pYFY7w1c3BD+lSGYvH2oIclH8GRSehgfyP5kjnFnHKQuuBhuHLv+PWyFuaTDyk/vfRpnxOzd11+J8g==",
-        "dependencies": {
-          "Polly": "7.1.0"
-        }
-      },
       "Polly.RateLimiting": {
         "type": "Transitive",
         "resolved": "8.4.2",
@@ -544,7 +536,6 @@
           "Microsoft.AspNetCore.Components.WebAssembly": "[10.0.2, )",
           "Microsoft.AspNetCore.Components.WebAssembly.Authentication": "[10.0.2, )",
           "Microsoft.DotNet.HotReload.WebAssembly.Browser": "[10.0.102, )",
-          "Microsoft.Extensions.Http.Polly": "[10.0.2, )",
           "Microsoft.Extensions.Http.Resilience": "[10.2.0, )",
           "MudBlazor": "[8.15.0, )",
           "Polly": "[8.6.5, )",
@@ -722,17 +713,6 @@
           "Microsoft.Extensions.Logging": "10.0.2",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.2",
           "Microsoft.Extensions.Options": "10.0.2"
-        }
-      },
-      "Microsoft.Extensions.Http.Polly": {
-        "type": "CentralTransitive",
-        "requested": "[10.0.2, )",
-        "resolved": "10.0.2",
-        "contentHash": "yYBiTVpKzZaTEFp2FHVGT3AQCUq3vSBEy9iwCg8LCA0wq8ZP4dVwoCnKtTMoN2khehMHIFifLGyhuW8sID/DpQ==",
-        "dependencies": {
-          "Microsoft.Extensions.Http": "10.0.2",
-          "Polly": "7.2.4",
-          "Polly.Extensions.Http": "3.0.0"
         }
       },
       "Microsoft.Extensions.Http.Resilience": {
