@@ -81,8 +81,8 @@ internal class LocalDevelopmentAuthenticationDomainService : IAuthenticationDoma
     }
 
     /// <summary>
-    /// Generates a deterministic GUID based on the input string.
-    /// Same input will always produce the same GUID.
+    /// Gera um GUID determinístico com base na string de entrada.
+    /// A mesma entrada sempre produzirá o mesmo GUID.
     /// </summary>
     private static Guid GenerateDeterministicGuid(string input)
     {

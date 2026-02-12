@@ -24,6 +24,16 @@ public class GetMyProviderProfileEndpointTests
         _queryDispatcherMock = new Mock<IQueryDispatcher>();
     }
 
+    private static System.Reflection.MethodInfo GetMyProfileMethod()
+    {
+        var method = typeof(GetMyProviderProfileEndpoint).GetMethod(
+            "GetMyProfileAsync",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+
+        method.Should().NotBeNull("GetMyProfileAsync must exist as a private static method on GetMyProviderProfileEndpoint");
+        return method!;
+    }
+
     [Fact]
     public async Task GetMyProfileAsync_WithValidUserId_ShouldDispatchQuery()
     {
@@ -43,12 +53,10 @@ public class GetMyProviderProfileEndpointTests
             .ReturnsAsync(dispatchResult);
 
         // Act
-        var methodInfo = typeof(GetMyProviderProfileEndpoint).GetMethod("GetMyProfileAsync", 
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-        
-        methodInfo.Should().NotBeNull("GetMyProfileAsync must exist as a private static method on GetMyProviderProfileEndpoint");
+        // Act
+        var methodInfo = GetMyProfileMethod();
             
-        var task = (Task<IResult>)methodInfo!.Invoke(null, new object[] { context, _queryDispatcherMock.Object, CancellationToken.None })!;
+        var task = (Task<IResult>)methodInfo.Invoke(null, new object[] { context, _queryDispatcherMock.Object, CancellationToken.None })!;
         var result = await task;
 
         // Assert
@@ -68,14 +76,18 @@ public class GetMyProviderProfileEndpointTests
         }));
 
         // Act
-        var methodInfo = typeof(GetMyProviderProfileEndpoint).GetMethod("GetMyProfileAsync", 
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        // Act
+        var methodInfo = GetMyProfileMethod();
             
-        var task = (Task<IResult>)methodInfo!.Invoke(null, new object[] { context, _queryDispatcherMock.Object, CancellationToken.None })!;
+        var task = (Task<IResult>)methodInfo.Invoke(null, new object[] { context, _queryDispatcherMock.Object, CancellationToken.None })!;
         var result = await task;
 
         // Assert
         result.Should().BeOfType<BadRequest<Response<object>>>();
+        _queryDispatcherMock.Verify(
+            x => x.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(
+                It.IsAny<GetProviderByUserIdQuery>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]
@@ -87,15 +99,15 @@ public class GetMyProviderProfileEndpointTests
         var dispatchResult = Result<ProviderDto?>.Success(null);
 
         _queryDispatcherMock
+        _queryDispatcherMock
             .Setup(x => x.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(
-                It.IsAny<GetProviderByUserIdQuery>(), It.IsAny<CancellationToken>()))
+                It.Is<GetProviderByUserIdQuery>(q => q.UserId == userId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(dispatchResult);
 
         // Act
-        var methodInfo = typeof(GetMyProviderProfileEndpoint).GetMethod("GetMyProfileAsync", 
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        var methodInfo = GetMyProfileMethod();
             
-        var task = (Task<IResult>)methodInfo!.Invoke(null, new object[] { context, _queryDispatcherMock.Object, CancellationToken.None })!;
+        var task = (Task<IResult>)methodInfo.Invoke(null, new object[] { context, _queryDispatcherMock.Object, CancellationToken.None })!;
         var result = await task;
 
         // Assert

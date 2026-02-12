@@ -198,6 +198,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         var dbContext = DbContext;
         await dbContext.Database.EnsureDeletedAsync();
         await dbContext.Database.EnsureCreatedAsync();
+        dbContext.ChangeTracker.Clear();
     }
 
     /// <summary>

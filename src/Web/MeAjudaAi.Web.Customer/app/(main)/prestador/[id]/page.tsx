@@ -24,7 +24,12 @@ const PublicProviderSchema = z.object({
     phoneNumbers: z.array(z.string()).optional().nullable(),
     services: z.array(z.string()).optional().nullable(),
     email: z.string().email().optional().nullable(),
-    verificationStatus: z.enum(["Pending", "Verified", "Rejected", "Suspended"]).optional().nullable()
+    verificationStatus: z.preprocess((val) => {
+        if (typeof val === 'string' && val.length > 0) {
+            return val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+        }
+        return val;
+    }, z.enum(["Pending", "Verified", "Rejected", "Suspended"]).optional().nullable())
 });
 
 type PublicProviderData = z.infer<typeof PublicProviderSchema>;

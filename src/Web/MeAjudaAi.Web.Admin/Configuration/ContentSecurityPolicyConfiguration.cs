@@ -84,6 +84,7 @@ public static class ContentSecurityPolicyConfiguration
     /// </summary>
     public static string GenerateMetaTag(string policy)
     {
-        return $"<meta http-equiv=\"Content-Security-Policy\" content=\"{policy}\">";
+        var encodedPolicy = System.Net.WebUtility.HtmlEncode(policy);
+        return $"<meta http-equiv=\"Content-Security-Policy\" content=\"{encodedPolicy}\">";
     }
 }

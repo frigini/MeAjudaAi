@@ -7,7 +7,7 @@
   <!-- Workaround: Desabilitar RestoreLockedMode para o Admin Portal devido à flutuação de versões
        de pacotes internos do sistema (ex: Microsoft.DotNet.HotReload.WebAssembly.Browser) 
        que variam entre versões minor do SDK .NET 10 nas máquinas de CI. 
-       TODO: Investigar regeneração determinística dos lock files ou atualização do SDK para remover bypass. -->
+       TODO: Re-habilitar RestoreLockedMode para garantir reprodutibilidade da supply-chain quando a flutuação de versão do SDK for resolvida. -->
   <PropertyGroup>
     <RestoreLockedMode>false</RestoreLockedMode>
   </PropertyGroup>

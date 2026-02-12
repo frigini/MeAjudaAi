@@ -70,13 +70,19 @@ public static class ApiErrorMessages
                 GetFriendlyMessage(httpEx.StatusCode.Value, operation),
             
             HttpRequestException =>
-                NetworkError,
+                string.IsNullOrWhiteSpace(operation) 
+                    ? NetworkError 
+                    : $"{operation}: {NetworkError}",
             
             TaskCanceledException or TimeoutException =>
-                Timeout,
+                string.IsNullOrWhiteSpace(operation) 
+                    ? Timeout 
+                    : $"{operation}: {Timeout}",
             
             _ =>
-                UnknownError
+                string.IsNullOrWhiteSpace(operation) 
+                    ? UnknownError 
+                    : $"{operation}: {UnknownError}"
         };
     }
 
