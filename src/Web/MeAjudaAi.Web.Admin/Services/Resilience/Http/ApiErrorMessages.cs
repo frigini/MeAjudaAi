@@ -67,25 +67,20 @@ public static class ApiErrorMessages
         return exception switch
         {
             HttpRequestException httpEx when httpEx.StatusCode.HasValue =>
-                string.IsNullOrWhiteSpace(operation)
-                    ? GetFriendlyMessage(httpEx.StatusCode.Value)
-                    : $"{operation}: {GetFriendlyMessage(httpEx.StatusCode.Value)}",
+                GetFriendlyMessage(httpEx.StatusCode.Value, operation),
             
             HttpRequestException =>
-                string.IsNullOrWhiteSpace(operation) 
-                    ? NetworkError 
-                    : $"{operation}: {NetworkError}",
+                WithOperation(NetworkError),
             
             TaskCanceledException or TimeoutException =>
-                string.IsNullOrWhiteSpace(operation) 
-                    ? Timeout 
-                    : $"{operation}: {Timeout}",
+                WithOperation(Timeout),
             
             _ =>
-                string.IsNullOrWhiteSpace(operation) 
-                    ? UnknownError 
-                    : $"{operation}: {UnknownError}"
+                WithOperation(UnknownError)
         };
+
+        string WithOperation(string message) =>
+            string.IsNullOrWhiteSpace(operation) ? message : $"{operation}: {message}";
     }
 
     /// <summary>

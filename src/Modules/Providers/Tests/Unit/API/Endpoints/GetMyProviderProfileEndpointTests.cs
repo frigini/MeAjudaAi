@@ -11,6 +11,7 @@ using Moq;
 using System.Security.Claims;
 using Xunit;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.API.Endpoints;
 
@@ -71,7 +72,7 @@ public class GetMyProviderProfileEndpointTests
         var context = new DefaultHttpContext();
         context.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
         {
-            new Claim("sub", "invalid-guid")
+            new Claim(AuthConstants.Claims.Subject, "invalid-guid")
         }));
 
         // Act
@@ -109,5 +110,9 @@ public class GetMyProviderProfileEndpointTests
 
         // Assert
         result.Should().BeOfType<NotFound<Response<object>>>();
+        _queryDispatcherMock.Verify(
+            x => x.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(
+                It.Is<GetProviderByUserIdQuery>(q => q.UserId == userId), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 }
