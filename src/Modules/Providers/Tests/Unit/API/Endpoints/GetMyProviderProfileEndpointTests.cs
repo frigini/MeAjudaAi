@@ -53,7 +53,6 @@ public class GetMyProviderProfileEndpointTests
             .ReturnsAsync(dispatchResult);
 
         // Act
-        // Act
         var methodInfo = GetMyProfileMethod();
             
         var task = (Task<IResult>)methodInfo.Invoke(null, new object[] { context, _queryDispatcherMock.Object, CancellationToken.None })!;
@@ -76,7 +75,6 @@ public class GetMyProviderProfileEndpointTests
         }));
 
         // Act
-        // Act
         var methodInfo = GetMyProfileMethod();
             
         var task = (Task<IResult>)methodInfo.Invoke(null, new object[] { context, _queryDispatcherMock.Object, CancellationToken.None })!;
@@ -98,7 +96,6 @@ public class GetMyProviderProfileEndpointTests
         var context = EndpointTestHelpers.CreateHttpContextWithUserId(userId);
         var dispatchResult = Result<ProviderDto?>.Success(null);
 
-        _queryDispatcherMock
         _queryDispatcherMock
             .Setup(x => x.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(
                 It.Is<GetProviderByUserIdQuery>(q => q.UserId == userId), It.IsAny<CancellationToken>()))

@@ -41,6 +41,7 @@ public static class ContentSecurityPolicyConfiguration
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: https:",
             $"connect-src 'self' {apiBaseUrl} {keycloakUrl} wss://*.azurewebsites.net",
+            $"frame-src {keycloakUrl}",
             "media-src 'none'",
             "object-src 'none'",
             "base-uri 'self'",
@@ -69,13 +70,15 @@ public static class ContentSecurityPolicyConfiguration
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: https:",
             $"connect-src {connectSrc}",
+            $"frame-src {keycloakUrl}",
             "media-src 'none'",
             "object-src 'none'",
             "base-uri 'self'",
             "form-action 'self'",
             "frame-ancestors 'none'",
             "upgrade-insecure-requests",
-            $"report-uri {apiBaseUrl}/api/csp-report" // Opcional: relatório de violação CSP
+            $"report-uri {apiBaseUrl}/api/csp-report", // Legacy report mechanism
+            $"report-to {apiBaseUrl}/api/csp-report"   // Modern report mechanism
         );
     }
 
@@ -84,7 +87,6 @@ public static class ContentSecurityPolicyConfiguration
     /// </summary>
     public static string GenerateMetaTag(string policy)
     {
-        var encodedPolicy = System.Net.WebUtility.HtmlEncode(policy);
-        return $"<meta http-equiv=\"Content-Security-Policy\" content=\"{encodedPolicy}\">";
+        return $"<meta http-equiv=\"Content-Security-Policy\" content=\"{policy}\">";
     }
 }

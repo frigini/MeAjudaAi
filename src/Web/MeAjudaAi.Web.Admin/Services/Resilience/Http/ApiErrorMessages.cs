@@ -67,7 +67,9 @@ public static class ApiErrorMessages
         return exception switch
         {
             HttpRequestException httpEx when httpEx.StatusCode.HasValue =>
-                GetFriendlyMessage(httpEx.StatusCode.Value, operation),
+                string.IsNullOrWhiteSpace(operation)
+                    ? GetFriendlyMessage(httpEx.StatusCode.Value)
+                    : $"{operation}: {GetFriendlyMessage(httpEx.StatusCode.Value)}",
             
             HttpRequestException =>
                 string.IsNullOrWhiteSpace(operation) 

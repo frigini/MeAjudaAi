@@ -10,6 +10,7 @@ using Microsoft.JSInterop;
 using Moq;
 using MudBlazor.Services;
 using static MeAjudaAi.Web.Admin.Features.Modules.Providers.ProvidersActions;
+using MeAjudaAi.Web.Admin.Services.Interfaces;
 
 namespace MeAjudaAi.Web.Admin.Tests.Pages;
 
@@ -26,12 +27,17 @@ public class ProvidersPageTests
         var mockProvidersApi = new Mock<IProvidersApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockProvidersState = new Mock<IState<ProvidersState>>();
+        var mockPermissionService = new Mock<IPermissionService>();
+        var mockActionSubscriber = new Mock<IActionSubscriber>();
         
         mockProvidersState.Setup(x => x.Value).Returns(new ProvidersState());
+        mockPermissionService.Setup(x => x.HasPermissionAsync(It.IsAny<string>())).ReturnsAsync(true);
         
         ctx.Services.AddSingleton(mockProvidersApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockProvidersState.Object);
+        ctx.Services.AddSingleton(mockPermissionService.Object);
+        ctx.Services.AddSingleton(mockActionSubscriber.Object);
         ctx.Services.AddMudServices();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
@@ -53,12 +59,17 @@ public class ProvidersPageTests
         var mockProvidersApi = new Mock<IProvidersApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockProvidersState = new Mock<IState<ProvidersState>>();
+        var mockPermissionService = new Mock<IPermissionService>();
+        var mockActionSubscriber = new Mock<IActionSubscriber>();
         
         mockProvidersState.Setup(x => x.Value).Returns(new ProvidersState { IsLoading = true });
+        mockPermissionService.Setup(x => x.HasPermissionAsync(It.IsAny<string>())).ReturnsAsync(true);
         
         ctx.Services.AddSingleton(mockProvidersApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockProvidersState.Object);
+        ctx.Services.AddSingleton(mockPermissionService.Object);
+        ctx.Services.AddSingleton(mockActionSubscriber.Object);
         ctx.Services.AddMudServices();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
@@ -85,9 +96,15 @@ public class ProvidersPageTests
             ErrorMessage = errorMessage 
         });
         
+        var mockPermissionService = new Mock<IPermissionService>();
+        var mockActionSubscriber = new Mock<IActionSubscriber>();
+        mockPermissionService.Setup(x => x.HasPermissionAsync(It.IsAny<string>())).ReturnsAsync(true);
+        
         ctx.Services.AddSingleton(mockProvidersApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockProvidersState.Object);
+        ctx.Services.AddSingleton(mockPermissionService.Object);
+        ctx.Services.AddSingleton(mockActionSubscriber.Object);
         ctx.Services.AddMudServices();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
@@ -127,12 +144,17 @@ public class ProvidersPageTests
 
         mockProvidersState.Setup(x => x.Value).Returns(new ProvidersState 
         { 
-            Providers = providers
         });
+        
+        var mockPermissionService = new Mock<IPermissionService>();
+        var mockActionSubscriber = new Mock<IActionSubscriber>();
+        mockPermissionService.Setup(x => x.HasPermissionAsync(It.IsAny<string>())).ReturnsAsync(true);
         
         ctx.Services.AddSingleton(mockProvidersApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockProvidersState.Object);
+        ctx.Services.AddSingleton(mockPermissionService.Object);
+        ctx.Services.AddSingleton(mockActionSubscriber.Object);
         ctx.Services.AddMudServices();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
