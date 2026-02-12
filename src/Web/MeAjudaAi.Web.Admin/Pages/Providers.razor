@@ -28,7 +28,7 @@
 @if (!string.IsNullOrEmpty(ProvidersState.Value.ErrorMessage))
 {
     <MudAlert Severity="Severity.Warning" Class="mb-4">
-        <MudText Typo="Typo.body1">Nenhum provedor encontrado ou erro ao carregar dados.</MudText>
+        <MudText Typo="Typo.body1">@ProvidersState.Value.ErrorMessage</MudText>
     </MudAlert>
 }
 

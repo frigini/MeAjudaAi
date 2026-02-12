@@ -10,6 +10,7 @@ using Microsoft.JSInterop;
 using Moq;
 using MudBlazor.Services;
 using static MeAjudaAi.Web.Admin.Features.Modules.Documents.DocumentsActions;
+using MeAjudaAi.Web.Admin.Tests.Helpers;
 
 namespace MeAjudaAi.Web.Admin.Tests.Pages;
 
@@ -19,10 +20,12 @@ namespace MeAjudaAi.Web.Admin.Tests.Pages;
 public class DocumentsPageTests
 {
     [Fact]
-    public void Documents_Page_Should_Show_Provider_Selector()
+    public async Task Documents_Page_Should_Show_Provider_Selector()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockDocumentsApi = new Mock<IDocumentsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockDocumentsState = new Mock<IState<DocumentsState>>();
@@ -32,22 +35,22 @@ public class DocumentsPageTests
         ctx.Services.AddSingleton(mockDocumentsApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockDocumentsState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<Documents>();
 
         // Assert
         var markup = cut.Markup;
-        markup.Should().Contain("Selecionar Fornecedor", "Deve ter botão de seleção de provider");
+        markup.Should().Contain("Selecionar Provedor", "Deve ter botão de seleção de provider");
     }
 
     [Fact]
-    public void Documents_Page_Should_Show_Upload_Button_When_Provider_Selected()
+    public async Task Documents_Page_Should_Show_Upload_Button_When_Provider_Selected()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockDocumentsApi = new Mock<IDocumentsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockDocumentsState = new Mock<IState<DocumentsState>>();
@@ -61,8 +64,6 @@ public class DocumentsPageTests
         ctx.Services.AddSingleton(mockDocumentsApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockDocumentsState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<Documents>();
@@ -73,10 +74,12 @@ public class DocumentsPageTests
     }
 
     [Fact]
-    public void Documents_Page_Should_Show_Loading_Indicator_When_Loading()
+    public async Task Documents_Page_Should_Show_Loading_Indicator_When_Loading()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockDocumentsApi = new Mock<IDocumentsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockDocumentsState = new Mock<IState<DocumentsState>>();
@@ -86,22 +89,22 @@ public class DocumentsPageTests
         ctx.Services.AddSingleton(mockDocumentsApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockDocumentsState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<Documents>();
 
         // Assert
-        var progressBars = cut.FindAll(".mud-progress-linear");
-        progressBars.Should().NotBeEmpty("Indicador de loading deve estar visível quando IsLoading=true");
+        var markup = cut.Markup;
+        markup.Should().Contain("mud-progress-linear", "Indicador de loading deve estar visível quando IsLoading=true");
     }
 
     [Fact]
-    public void Documents_Page_Should_Display_Document_List()
+    public async Task Documents_Page_Should_Display_Document_List()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockDocumentsApi = new Mock<IDocumentsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockDocumentsState = new Mock<IState<DocumentsState>>();
@@ -119,14 +122,13 @@ public class DocumentsPageTests
         
         mockDocumentsState.Setup(x => x.Value).Returns(new DocumentsState 
         { 
+            SelectedProviderId = testDocument.ProviderId,
             Documents = new List<ModuleDocumentDto> { testDocument }
         });
         
         ctx.Services.AddSingleton(mockDocumentsApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockDocumentsState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<Documents>();
@@ -138,10 +140,12 @@ public class DocumentsPageTests
     }
 
     [Fact]
-    public void Documents_Page_Should_Show_Error_Message_When_Error_Exists()
+    public async Task Documents_Page_Should_Show_Error_Message_When_Error_Exists()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockDocumentsApi = new Mock<IDocumentsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockDocumentsState = new Mock<IState<DocumentsState>>();
@@ -154,8 +158,6 @@ public class DocumentsPageTests
         ctx.Services.AddSingleton(mockDocumentsApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockDocumentsState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<Documents>();
