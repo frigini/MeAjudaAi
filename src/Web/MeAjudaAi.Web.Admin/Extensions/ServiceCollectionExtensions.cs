@@ -9,6 +9,8 @@ namespace MeAjudaAi.Web.Admin.Extensions;
 /// <summary>
 /// Métodos de extensão para IServiceCollection para simplificar o registro de clientes de API.
 /// </summary>
+#pragma warning disable S1135 // TODOs intencionais de dívida técnica documentada
+
 public static class ServiceCollectionExtensions
 {
     /// <summary>
@@ -24,7 +26,7 @@ public static class ServiceCollectionExtensions
         string baseUrl,
         bool useUploadPolicy = false) where TClient : class
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(baseUrl, nameof(baseUrl));
+        ArgumentException.ThrowIfNullOrWhiteSpace(baseUrl);
         
         if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var uri))
         {

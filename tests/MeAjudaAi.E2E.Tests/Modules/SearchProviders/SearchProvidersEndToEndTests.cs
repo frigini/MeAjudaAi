@@ -449,7 +449,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
                 AvgRating = 0.0m,
                 TotalReviews = 0,
                 SubscriptionTier = 0, // Free
-                ServiceIds = serviceIds ?? new Guid[] {},
+                ServiceIds = serviceIds ?? Array.Empty<Guid>(),
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             });

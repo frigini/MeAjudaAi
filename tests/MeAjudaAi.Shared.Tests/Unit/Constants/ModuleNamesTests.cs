@@ -199,14 +199,18 @@ public class ModuleNamesTests
     public void ImplementedModules_ShouldBeReadOnly()
     {
         // Assert
+        #pragma warning disable xUnit2032
         Assert.IsAssignableFrom<IReadOnlySet<string>>(ModuleNames.ImplementedModules);
+        #pragma warning restore xUnit2032
     }
 
     [Fact]
     public void AllModules_ShouldBeReadOnly()
     {
         // Assert
+        #pragma warning disable xUnit2032
         Assert.IsAssignableFrom<IReadOnlySet<string>>(ModuleNames.AllModules);
+        #pragma warning restore xUnit2032
     }
 
     #endregion

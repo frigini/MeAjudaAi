@@ -131,7 +131,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
     /// <summary>
     /// NOTA: 422 Unprocessable Entity não está implementado no MVP.
     /// Atualmente, todas as validações retornam 400 Bad Request (FluentValidation).
-    /// 
+    /// </summary>
     /// <summary>
     /// Valida HTTP 422 Unprocessable Entity para validações semânticas.
     /// Exemplo: formato inválido (400) vs. categoria não existe (422).

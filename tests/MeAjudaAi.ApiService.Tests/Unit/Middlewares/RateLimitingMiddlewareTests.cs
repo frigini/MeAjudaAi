@@ -292,7 +292,7 @@ public class RateLimitingMiddlewareTests
         context.Response.StatusCode.Should().Be(429);
         context.Response.Headers.Should().ContainKey("Retry-After");
 
-        var retryAfter = context.Response.Headers["Retry-After"].ToString();
+        var retryAfter = context.Response.Headers.RetryAfter.ToString();
         int.TryParse(retryAfter, out var seconds).Should().BeTrue();
         seconds.Should().BeGreaterThan(0).And.BeLessThanOrEqualTo(60);
     }

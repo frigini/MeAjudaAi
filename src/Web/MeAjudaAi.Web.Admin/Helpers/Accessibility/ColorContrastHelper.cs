@@ -1,3 +1,5 @@
+#pragma warning disable S1135 // TODOs intencionais de dívida técnica documentada
+
 namespace MeAjudaAi.Web.Admin.Helpers.Accessibility;
 
 /// <summary>

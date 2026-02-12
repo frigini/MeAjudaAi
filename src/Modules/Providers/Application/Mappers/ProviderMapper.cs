@@ -113,6 +113,17 @@ public static class ProviderMapper
     }
 
     /// <summary>
+    /// Converte ProviderService para ProviderServiceDto.
+    /// </summary>
+    public static ProviderServiceDto ToDto(this ProviderService service)
+    {
+        return new ProviderServiceDto(
+            service.ServiceId,
+            service.ServiceName
+        );
+    }
+
+    /// <summary>
     /// Converte BusinessProfileDto para BusinessProfile.
     /// </summary>
     public static BusinessProfile ToDomain(this BusinessProfileDto dto)
@@ -160,14 +171,5 @@ public static class ProviderMapper
             dto.DocumentNumber);
     }
 
-    /// <summary>
-    /// Converte ProviderService para ProviderServiceDto.
-    /// </summary>
-    public static ProviderServiceDto ToDto(this ProviderService service)
-    {
-        return new ProviderServiceDto(
-            service.ServiceId,
-            service.ServiceName
-        );
-    }
+
 }

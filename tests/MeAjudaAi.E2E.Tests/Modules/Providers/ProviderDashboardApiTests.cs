@@ -29,7 +29,6 @@ public class ProviderDashboardApiTests : IClassFixture<TestContainerFixture>
         
         var userId = await _fixture.CreateTestUserAsync();
         var providerId = await CreateTestProviderForUserAsync(userId);
-        var providerName = "Test Dashboard Provider"; // Created by helper
 
         // Act - Switch to Provider User
         TestContainerFixture.AuthenticateAsUser(userId.ToString());

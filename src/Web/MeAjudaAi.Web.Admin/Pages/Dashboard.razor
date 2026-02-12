@@ -176,13 +176,9 @@
 @code {
     // Arrays ordenados usando valores numéricos dos enums para comparação correta
     private static readonly int[] StatusOrderInts = { 
-        (int)VerificationStatus.Pending,
-        (int)VerificationStatus.Verified,
-        (int)VerificationStatus.Rejected
-    };
-    private static readonly int[] ProviderTypeOrderInts = { 
-        (int)ProviderType.Individual,
-        (int)ProviderType.Company
+        VerificationStatus.Pending,
+        VerificationStatus.Verified,
+        VerificationStatus.Rejected
     };
 
     private double[] providerStatusData = Array.Empty<double>();

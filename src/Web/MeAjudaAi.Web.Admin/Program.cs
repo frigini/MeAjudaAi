@@ -128,7 +128,6 @@ builder.Services.AddOidcAuthentication(options =>
 })
 .AddAccountClaimsPrincipalFactory<CustomAccountClaimsPrincipalFactory>();
 
-// builder.Services.AddPermissionBasedAuthorization(builder.Configuration);
 // Autorização com políticas baseadas em roles
 builder.Services.AddAuthorizationCore(options =>
 {

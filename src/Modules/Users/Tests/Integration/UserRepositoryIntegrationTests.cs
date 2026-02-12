@@ -275,11 +275,6 @@ public class UserRepositoryTests : BaseDatabaseTest
 
     public override async ValueTask DisposeAsync()
     {
-        await DisposeInternalAsync();
-    }
-
-    private async Task DisposeInternalAsync()
-    {
         await _context.DisposeAsync();
         await base.DisposeAsync();
     }
