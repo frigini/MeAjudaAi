@@ -24,6 +24,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Xunit;
+
+// Disable parallel execution to prevent race conditions when using shared database containers
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
@@ -377,6 +381,29 @@ public abstract class BaseApiTest : IAsyncLifetime
             return;
         }
 
+        // Implicit dependencies: satisfying cross-module database requirements
+        // 1. Providers module depends on ServiceCatalogs during migration (AddProviderProfileEnhancements)
+        if (modules.HasFlag(TestModule.Providers) && !modules.HasFlag(TestModule.ServiceCatalogs))
+        {
+            logger?.LogInformation("🔄 Adding implicit ServiceCatalogs dependency for Providers module");
+            modules |= TestModule.ServiceCatalogs;
+        }
+
+        // 2. SearchProviders depends on Providers and ServiceCatalogs for its read model
+        if (modules.HasFlag(TestModule.SearchProviders))
+        {
+            if (!modules.HasFlag(TestModule.Providers))
+            {
+                logger?.LogInformation("🔄 Adding implicit Providers dependency for SearchProviders module");
+                modules |= TestModule.Providers;
+            }
+            if (!modules.HasFlag(TestModule.ServiceCatalogs))
+            {
+                logger?.LogInformation("🔄 Adding implicit ServiceCatalogs dependency for SearchProviders module");
+                modules |= TestModule.ServiceCatalogs;
+            }
+        }
+
         logger?.LogInformation("🔄 Applying migrations for modules: {Modules}", modules);
 
         // Usa semáforo para garantir que apenas um teste aplique migrations por vez
@@ -409,6 +436,13 @@ public abstract class BaseApiTest : IAsyncLifetime
                 await context.Database.CloseConnectionAsync();
             }
 
+            if (modules.HasFlag(TestModule.ServiceCatalogs))
+            {
+                var context = serviceProvider.GetRequiredService<ServiceCatalogsDbContext>();
+                await ApplyMigrationForContextAsync(context, "ServiceCatalogs", logger, "ServiceCatalogsDbContext");
+                await context.Database.CloseConnectionAsync();
+            }
+
             if (modules.HasFlag(TestModule.Providers))
             {
                 var context = serviceProvider.GetRequiredService<ProvidersDbContext>();
@@ -420,13 +454,6 @@ public abstract class BaseApiTest : IAsyncLifetime
             {
                 var context = serviceProvider.GetRequiredService<DocumentsDbContext>();
                 await ApplyMigrationForContextAsync(context, "Documents", logger, "DocumentsDbContext");
-                await context.Database.CloseConnectionAsync();
-            }
-
-            if (modules.HasFlag(TestModule.ServiceCatalogs))
-            {
-                var context = serviceProvider.GetRequiredService<ServiceCatalogsDbContext>();
-                await ApplyMigrationForContextAsync(context, "ServiceCatalogs", logger, "ServiceCatalogsDbContext");
                 await context.Database.CloseConnectionAsync();
             }
 

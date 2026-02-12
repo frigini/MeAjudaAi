@@ -121,14 +121,14 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
             var usersDb = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
             await usersDb.Database.MigrateAsync();
             
+            var serviceCatalogsDb = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
+            await serviceCatalogsDb.Database.MigrateAsync();
+            
             var providersDb = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
             await providersDb.Database.MigrateAsync();
             
             var documentsDb = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
             await documentsDb.Database.MigrateAsync();
-            
-            var serviceCatalogsDb = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
-            await serviceCatalogsDb.Database.MigrateAsync();
             
             var locationsDb = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
             await locationsDb.Database.MigrateAsync();
