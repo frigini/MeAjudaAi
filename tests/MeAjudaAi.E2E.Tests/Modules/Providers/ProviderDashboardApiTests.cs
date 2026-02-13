@@ -29,7 +29,7 @@ public class ProviderDashboardApiTests : IClassFixture<TestContainerFixture>
         
         var userId = await _fixture.CreateTestUserAsync();
         var providerId = await CreateTestProviderForUserAsync(userId);
-
+        
         // Act - Switch to Provider User
         TestContainerFixture.AuthenticateAsUser(userId.ToString());
         
@@ -38,23 +38,11 @@ public class ProviderDashboardApiTests : IClassFixture<TestContainerFixture>
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        var content = await response.Content.ReadAsStringAsync();
-        using var doc = JsonDocument.Parse(content);
-        var root = doc.RootElement;
+        var provider = await TestContainerFixture.ReadJsonAsync<JsonElement>(response);
+        var value = provider.TryGetProperty("value", out var v) ? v : provider;
         
-        // Handle Result wrapper if present
-        JsonElement provider;
-        if (root.TryGetProperty("value", out var valueProp))
-        {
-            provider = valueProp;
-        }
-        else 
-        {
-            provider = root;
-        }
-
-        provider.GetProperty("id").GetString().Should().Be(providerId.ToString());
-        provider.GetProperty("userId").GetString().Should().Be(userId.ToString());
+        value.GetProperty("id").GetString().Should().Be(providerId.ToString());
+        value.GetProperty("userId").GetString().Should().Be(userId.ToString());
     }
 
     [Fact]
@@ -70,55 +58,52 @@ public class ProviderDashboardApiTests : IClassFixture<TestContainerFixture>
         // Act - Switch to Provider User
         TestContainerFixture.AuthenticateAsUser(userId.ToString());
         
-        // Get current profile to have full object (since PUT requires full object typically, or at least required fields)
-        // My endpoint uses UpdateProviderProfileRequest which has Name + BusinessProfile.
+        // Get current profile
         var getResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
-        var content = await getResponse.Content.ReadAsStringAsync();
-        using var doc = JsonDocument.Parse(content);
-        var root = doc.RootElement;
-        JsonElement provider = root.TryGetProperty("value", out var v) ? v : root;
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        
+        var provider = await TestContainerFixture.ReadJsonAsync<JsonElement>(getResponse);
+        var value = provider.TryGetProperty("value", out var v) ? v : provider;
 
         var newDescription = "Updated Description via Dashboard";
         
         var updateRequest = new
         {
-             Name = provider.GetProperty("name").GetString(),
+             Name = value.GetProperty("name").GetString(),
              BusinessProfile = new
              {
-                 LegalName = provider.GetProperty("businessProfile").GetProperty("legalName").GetString(),
-                 FantasyName = provider.GetProperty("businessProfile").GetProperty("fantasyName").GetString(),
+                 LegalName = value.GetProperty("businessProfile").GetProperty("legalName").GetString(),
+                 FantasyName = value.GetProperty("businessProfile").GetProperty("fantasyName").GetString(),
                  Description = newDescription,
                  ContactInfo = new
                  {
-                     Email = provider.GetProperty("businessProfile").GetProperty("contactInfo").GetProperty("email").GetString(),
-                     PhoneNumber = provider.GetProperty("businessProfile").GetProperty("contactInfo").GetProperty("phoneNumber").GetString(),
-                     Website = provider.GetProperty("businessProfile").GetProperty("contactInfo").TryGetProperty("website", out var w) ? w.GetString() : null
+                     Email = value.GetProperty("businessProfile").GetProperty("contactInfo").GetProperty("email").GetString(),
+                     PhoneNumber = value.GetProperty("businessProfile").GetProperty("contactInfo").GetProperty("phoneNumber").GetString(),
+                     Website = value.GetProperty("businessProfile").GetProperty("contactInfo").TryGetProperty("website", out var w) ? w.GetString() : null
                  },
                  PrimaryAddress = new
                  {
-                     Street = provider.GetProperty("businessProfile").GetProperty("primaryAddress").GetProperty("street").GetString(),
-                     Number = provider.GetProperty("businessProfile").GetProperty("primaryAddress").GetProperty("number").GetString(),
-                     Neighborhood = provider.GetProperty("businessProfile").GetProperty("primaryAddress").GetProperty("neighborhood").GetString(),
-                     City = provider.GetProperty("businessProfile").GetProperty("primaryAddress").GetProperty("city").GetString(),
-                     State = provider.GetProperty("businessProfile").GetProperty("primaryAddress").GetProperty("state").GetString(),
-                     ZipCode = provider.GetProperty("businessProfile").GetProperty("primaryAddress").GetProperty("zipCode").GetString(),
-                     Country = provider.GetProperty("businessProfile").GetProperty("primaryAddress").GetProperty("country").GetString()
+                     Street = value.GetProperty("businessProfile").GetProperty("primaryAddress").GetProperty("street").GetString(),
+                     Number = value.GetProperty("businessProfile").GetProperty("primaryAddress").GetProperty("number").GetString(),
+                     Neighborhood = value.GetProperty("businessProfile").GetProperty("primaryAddress").GetProperty("neighborhood").GetString(),
+                     City = value.GetProperty("businessProfile").GetProperty("primaryAddress").GetProperty("city").GetString(),
+                     State = value.GetProperty("businessProfile").GetProperty("primaryAddress").GetProperty("state").GetString(),
+                     ZipCode = value.GetProperty("businessProfile").GetProperty("primaryAddress").GetProperty("zipCode").GetString(),
+                     Country = value.GetProperty("businessProfile").GetProperty("primaryAddress").GetProperty("country").GetString()
                  }
              }
         };
 
-        var updateResponse = await _fixture.ApiClient.PutAsJsonAsync("/api/v1/providers/me", updateRequest, TestContainerFixture.JsonOptions);
+        var updateResponse = await _fixture.PutJsonAsync("/api/v1/providers/me", updateRequest);
 
         // Assert
         updateResponse.IsSuccessStatusCode.Should().BeTrue();
         
         var verifyResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
-        var verifyContent = await verifyResponse.Content.ReadAsStringAsync();
-        using var verifyDoc = JsonDocument.Parse(verifyContent);
-        var verifyRoot = verifyDoc.RootElement;
-        JsonElement verifyProvider = verifyRoot.TryGetProperty("value", out var vp) ? vp : verifyRoot;
+        var verifyProvider = await TestContainerFixture.ReadJsonAsync<JsonElement>(verifyResponse);
+        var verifyValue = verifyProvider.TryGetProperty("value", out var vp) ? vp : verifyProvider;
         
-        verifyProvider.GetProperty("businessProfile").GetProperty("description").GetString().Should().Be(newDescription);
+        verifyValue.GetProperty("businessProfile").GetProperty("description").GetString().Should().Be(newDescription);
     }
     
     // Services Management
