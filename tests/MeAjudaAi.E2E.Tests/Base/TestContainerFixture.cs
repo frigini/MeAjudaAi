@@ -27,9 +27,13 @@ namespace MeAjudaAi.E2E.Tests.Base;
 /// </summary>
 public class TestContainerFixture : IAsyncLifetime
 {
-    private PostgreSqlContainer _postgresContainer = null!;
-    private RedisContainer _redisContainer = null!;
-    private AzuriteContainer _azuriteContainer = null!;
+    private static PostgreSqlContainer? _postgresContainer;
+    private static RedisContainer? _redisContainer;
+    private static AzuriteContainer? _azuriteContainer;
+    private static readonly SemaphoreSlim _initializationLock = new(1, 1);
+    private static bool _containersInitialized = false;
+    private static bool _migrationsApplied = false;
+
     private WebApplicationFactory<Program> _factory = null!;
 
     public HttpClient ApiClient { get; private set; } = null!;
@@ -43,55 +47,86 @@ public class TestContainerFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        // Lógica de retry com exponential backoff para lidar com falhas transitórias do Docker
-        const int maxRetries = 3;
-        const int baseDelayMs = 2000;
-
-        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        // One-time initialization for the entire test run
+        if (!_containersInitialized)
         {
+            await _initializationLock.WaitAsync();
             try
             {
-                await InitializeContainersAsync();
-                await InitializeFactoryAsync();
-                return; // Sucesso
+                if (!_containersInitialized)
+                {
+                    await InitializeContainersAsync();
+                    _containersInitialized = true;
+                }
             }
-            catch (Exception ex) when (attempt < maxRetries)
+            finally
             {
-                var delay = TimeSpan.FromMilliseconds(baseDelayMs * Math.Pow(2, attempt - 1));
-                Console.WriteLine($"⚠️ Attempt {attempt}/{maxRetries} failed: {ex.Message}. Retrying in {delay.TotalSeconds}s...");
-                await Task.Delay(delay);
+                _initializationLock.Release();
             }
         }
+        
+        // Populate properties for the current instance (legacy support)
+        if (_postgresContainer != null) PostgresConnectionString = _postgresContainer.GetConnectionString();
+        if (_redisContainer != null) RedisConnectionString = _redisContainer.GetConnectionString();
+        if (_azuriteContainer != null) AzuriteConnectionString = _azuriteContainer.GetConnectionString();
 
-        // Se chegou aqui, todas as tentativas falharam
-        throw new InvalidOperationException($"Failed to initialize TestContainers after {maxRetries} attempts. Ensure Docker Desktop is running and healthy.");
+        // Initialize WebApplicationFactory for THIS test class instance
+        await InitializeFactoryAsync();
+
+        // One-time migration application for the entire test run
+        if (!_migrationsApplied)
+        {
+            await _initializationLock.WaitAsync();
+            try
+            {
+                if (!_migrationsApplied)
+                {
+                    await ApplyMigrationsAsync();
+                    _migrationsApplied = true;
+                }
+            }
+            finally
+            {
+                _initializationLock.Release();
+            }
+        }
     }
 
     private async Task InitializeContainersAsync()
     {
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
         // Configurar containers com timeouts aumentados para WSL2/Docker Desktop (Windows)
-        _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
-            .WithDatabase("meajudaai_test")
-            .WithUsername("postgres")
-            .WithPassword("test123")
-            .WithCleanUp(true)
-            .Build();
-
-        _redisContainer = new RedisBuilder("redis:7-alpine")
-            .WithCleanUp(true)
-            .Build();
-
-        _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.33.0")
-            .WithCleanUp(true)
-            .Build();
-
-        // Iniciar containers em paralelo para economizar tempo
-        var startTasks = new[]
+        if (_postgresContainer == null)
         {
-            _postgresContainer.StartAsync(),
-            _redisContainer.StartAsync(),
-            _azuriteContainer.StartAsync()
-        };
+            _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
+                .WithDatabase("meajudaai_test")
+                .WithUsername("postgres")
+                .WithPassword("test123")
+                .WithCleanUp(true)
+                .Build();
+        }
+
+        if (_redisContainer == null)
+        {
+            _redisContainer = new RedisBuilder("redis:7-alpine")
+                .WithCleanUp(true)
+                .Build();
+        }
+
+        if (_azuriteContainer == null)
+        {
+            _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.33.0")
+                .WithCleanUp(true)
+                .Build();
+        }
+
+        // Iniciar containers em paralelo
+        var startTasks = new List<Task>();
+        // Simple unconditional start - let Testcontainers handle idempotency or just fail if really broken
+        startTasks.Add(_postgresContainer.StartAsync());
+        startTasks.Add(_redisContainer.StartAsync());
+        startTasks.Add(_azuriteContainer.StartAsync());
 
         await Task.WhenAll(startTasks);
 
@@ -101,9 +136,6 @@ public class TestContainerFixture : IAsyncLifetime
         AzuriteConnectionString = _azuriteContainer.GetConnectionString();
 
         Console.WriteLine("✅ TestContainers initialized successfully");
-        Console.WriteLine($"📦 PostgreSQL: Host={_postgresContainer.Hostname}:{_postgresContainer.GetMappedPublicPort(5432)}, Database=meajudaai_test");
-        Console.WriteLine($"📦 Redis: Host={_redisContainer.Hostname}:{_redisContainer.GetMappedPublicPort(6379)}");
-        Console.WriteLine($"📦 Azurite: Host={_azuriteContainer.Hostname}:{_azuriteContainer.GetMappedPublicPort(10000)}");
     }
 
     private async Task InitializeFactoryAsync()
@@ -128,6 +160,7 @@ public class TestContainerFixture : IAsyncLifetime
                         ["ConnectionStrings:DocumentsDb"] = PostgresConnectionString,
                         ["ConnectionStrings:SearchProvidersDb"] = PostgresConnectionString,
                         ["ConnectionStrings:Redis"] = RedisConnectionString,
+                        ["Migrations:Enabled"] = "false",
                         ["Azure:Storage:ConnectionString"] = AzuriteConnectionString,
                         ["Hangfire:Enabled"] = "false",
                         ["Logging:LogLevel:Default"] = "Warning",
@@ -188,8 +221,8 @@ public class TestContainerFixture : IAsyncLifetime
         
         Services = _factory.Services;
 
-        // Aplicar migrations e seed inicial
-        await ApplyMigrationsAsync();
+        // Aplicar migrations e seed inicial: MOVED TO InitializeAsync to ensure run-once semantics
+        // await ApplyMigrationsAsync();
     }
 
     private void ConfigureMockServices(IServiceCollection services)
@@ -289,9 +322,9 @@ public class TestContainerFixture : IAsyncLifetime
         {
             // Aplicar migrations para cada módulo
             await ApplyMigrationForContext<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services);
+            await ApplyMigrationForContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
             await ApplyMigrationForContext<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services);
             await ApplyMigrationForContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services);
-            await ApplyMigrationForContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
             await ApplyMigrationForContext<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
             await ApplyMigrationForContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
 
@@ -359,21 +392,8 @@ public class TestContainerFixture : IAsyncLifetime
             await _factory.DisposeAsync();
         }
 
-        // Parar containers em paralelo
-        var stopTasks = new List<Task>();
-
-        if (_postgresContainer != null)
-            stopTasks.Add(_postgresContainer.DisposeAsync().AsTask());
-
-        if (_redisContainer != null)
-            stopTasks.Add(_redisContainer.DisposeAsync().AsTask());
-
-        if (_azuriteContainer != null)
-            stopTasks.Add(_azuriteContainer.DisposeAsync().AsTask());
-
-        await Task.WhenAll(stopTasks);
-
-        Console.WriteLine("✅ TestContainers disposed successfully");
+        // Do NOT dispose static containers here. They should run for the entire test session.
+        // If necessary, implement a Resource Reaper or rely on container cleanup (WithCleanUp(true)).
     }
 
     /// <summary>

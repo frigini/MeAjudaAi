@@ -51,7 +51,7 @@ public partial class Program
 
             // Aplicar migrations de todos os módulos ANTES de seed
             // Pular em ambiente de Testing pois os testes controlam suas próprias migrations
-            if (!app.Environment.IsEnvironment("Testing"))
+            if (!app.Environment.IsEnvironment("Testing") && app.Configuration.GetValue("Migrations:Enabled", true))
             {
                 await app.ApplyModuleMigrationsAsync();
                 
