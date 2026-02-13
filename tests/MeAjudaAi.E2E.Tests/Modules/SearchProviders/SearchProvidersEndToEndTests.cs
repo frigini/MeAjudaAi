@@ -16,13 +16,24 @@ namespace MeAjudaAi.E2E.Tests.Modules.SearchProviders;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "SearchProviders")]
-public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
+public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLifetime
 {
     private readonly TestContainerFixture _fixture;
 
     public SearchProvidersEndToEndTests(TestContainerFixture fixture)
     {
         _fixture = fixture;
+    }
+
+    public async Task InitializeAsync()
+    {
+        // Clean up database before each test to ensure isolation and performance
+        await _fixture.CleanupDatabaseAsync();
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
     }
 
     [Fact]
