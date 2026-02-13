@@ -126,14 +126,16 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
             // Configuração global para Npgsql
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
-            _sharedContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
+            var container = new PostgreSqlBuilder("postgis/postgis:16-3.4")
                 .WithDatabase("postgres") // Banco padrão para conexões administrativas
                 .WithUsername("postgres")
                 .WithPassword("test123")
                 .WithCleanUp(true)
                 .Build();
 
-            await _sharedContainer.StartAsync();
+            await container.StartAsync();
+
+            _sharedContainer = container;
         }
         finally
         {
