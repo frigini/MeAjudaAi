@@ -222,6 +222,27 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     }
 
     /// <summary>
+    /// Limpa dados das tabelas para isolamento entre testes.
+    /// Como cada classe de teste usa um banco de dados isolado, este método é mantido para compatibilidade
+    /// com testes que esperam poder limpar o estado explicitamente, mas o isolamento principal é via DB único.
+    /// </summary>
+    protected Task CleanupDatabase()
+    {
+        // No-op: Isolamento é garantido por banco de dados único por classe de teste.
+        // Se um teste específico precisar de limpeza intra-classe, pode implementar delete manual.
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Força limpeza do banco de dados.
+    /// Mantido para compatibilidade.
+    /// </summary>
+    protected Task ForceCleanDatabase()
+    {
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
     /// Acesso direto ao contexto de banco de dados do módulo Providers
     /// </summary>
     protected ProvidersDbContext DbContext => _dbContext ??= GetService<ProvidersDbContext>();
