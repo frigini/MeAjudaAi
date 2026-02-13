@@ -37,7 +37,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **17-21 Jan 2026**: Sprint 7.16 - Technical Debt Sprint (CONCLUÍDO - Keycloak automation, warnings, tests, records)
 - ✅ **5 Fev 2026**: Sprint 7.20 - Dashboard Charts & Data Mapping Fixes (CONCLUÍDO - JSON property mapping, debug messages removed)
 - ✅ **5 Fev 2026**: Sprint 7.21 - Package Updates & Bug Fixes (CONCLUÍDO - Microsoft.OpenApi 2.6.1, Aspire.Hosting.Redis 13.1.0, SonarAnalyzer.CSharp 10.19.0)
-- 🔄 **5-18 Fev 2026**: Sprint 8A - Customer Web App (React + Next.js) (EM ANDAMENTO)
+- ✅ **5-13 Fev 2026**: Sprint 8A - Customer Web App (React + Next.js) (CONCLUÍDO - Features & Test Optimization)
 - ⏳ **19 Fev - 4 Mar 2026**: Sprint 8B - Mobile App (React Native + Expo)
 - ⏳ **5-11 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
 - 🎯 **14 Março 2026**: MVP Launch (Admin Portal + Customer App Web + Mobile)
@@ -53,7 +53,29 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 ## 🎯 Status Atual
 
-**📅 Sprint 8A em andamento**: Fevereiro de 2026
+**📅 Sprint 8B pré-início**: Fevereiro de 2026
+
+### ✅ Sprint 8A - Customer Web App & Test Optimization - CONCLUÍDA (13 Fev 2026)
+
+**Objetivos**:
+1. ✅ **Integrar Service Tags com Backend**
+2. ✅ **Implementar Filtros Avançados de Busca**
+3. ✅ **Otimizar Testes E2E (Redução de Tempo)**
+
+**Progresso Atual**: 3/3 objetivos completos ✅ **SPRINT 8A CONCLUÍDO 100%!**
+
+**Funcionalidades Entregues**:
+- **Service Tags**: Integração com API para carregar serviços populares dinamicamente (`service-catalog.ts`).
+- **Busca Avançada**: Filtros de Categoria, Avaliação (Rating) e Distância (Raio) implementados na UI (`SearchFilters.tsx`) e integrados com API de busca.
+- **Frontend Integration**: `SearchPage` atualizado para processar novos parâmetros de filtro e mapear categorias para IDs de serviço.
+
+**Otimização de Testes**:
+- **Problema**: Testes E2E lentos devido a acúmulo de dados (40m+).
+- **Solução**: Implementado `IAsyncLifetime` e `CleanupDatabaseAsync()` em **todas** as classes de teste E2E (`Documents`, `Locations`, `Providers`, `ServiceCatalogs`, `Users`).
+- **Resultado**: Testes rodam com banco limpo a cada execução, prevenindo degradação de performance e falhas por dados sujos (Race Conditions).
+- **Parallelization**: Confirmado que `parallelizeTestCollections: false` é necessário devido ao uso de container de banco compartilhado.
+
+---
 
 ### ✅ Sprint 7.10 - Accessibility Features - CONCLUÍDA (16 Jan 2026)
 ### ✅ Sprint 7.11 - Error Boundaries - CONCLUÍDA (16 Jan 2026) 
@@ -1432,13 +1454,62 @@ Get-ChildItem -Recurse -Include *.cs | Select-String "record "
    - Mock de Service Tags atualizado para "Top 10 Serviços Populares" (Pedreiro, Eletricista, etc.).
    - Melhorada experiência em mobile com scroll horizontal.
 
-**Próximos Passos**:
+**Próximos Passos (Imediato)**:
 - Integrar Service Tags com backend real (popularidade/regional).
 - Implementar filtros avançados.
 
 ---
 
-### ⏭️ Part 13 - Unit Tests (Frontend) - BACKLOG
+### ⏳ Sprint 8B - Authentication & Onboarding Flow (Novo)
+
+**Periodo Estimado**: 19 Fev - 4 Mar 2026
+**Foco**: Fluxos de Cadastro e Login Segmentados (Cliente vs Prestador)
+
+**Regras de Negócio e UX**:
+
+**1. Ponto de Entrada Unificado**
+- Botão "Cadastre-se Grátis" na Home/Header.
+- **Modal de Seleção** (Inspirado em referência visual):
+  - Opção A: "Quero ser cliente" (Encontrar melhores acompanhantes/prestadores).
+  - Opção B: "Sou prestador" (Divulgar serviços).
+
+**2. Fluxo do Cliente (Customer Flow)**
+- **Login/Cadastro**:
+  - Social Login: Google, Facebook, Instagram.
+  - Manual: Email + Senha.
+- **Dados**:
+  - Validar necessidade de endereço (Possivelmente opcional no cadastro, obrigatório no agendamento).
+
+**3. Fluxo do Prestador (Provider Flow)**
+- **Redirecionamento**: Ao clicar em "Sou prestador", redirecionar para landing page específica de prestadores (modelo visual referência #3).
+- **Etapa 1: Cadastro Básico**:
+  - Social Login ou Manual.
+  - Dados Básicos: Nome, Telefone/WhatsApp (validado via OTP se possível).
+- **Etapa 2: Verificação de Segurança (Obrigatória)**:
+  - Upload de Documentos (RG/CNH).
+  - Validação de Antecedentes Criminais.
+  - Biometria Facial (Liveness Check) para evitar fraudes.
+- **Proteção**: Integração com Google reCAPTCHA v3 em todo o fluxo.
+
+**Entregáveis**:
+- [ ] Componente `AuthModal` com seleção de perfil.
+- [ ] Integração `NextAuth.js` com Providers (Google, FB, Instagram) e Credentials.
+- [ ] Página de Onboarding de Prestadores (Step-by-step wizard).
+- [ ] Integração com serviço de verificação de documentos/biometria.
+
+---
+
+### ⏳ Sprint 8C - Mobile App (React Native)
+
+**Periodo Estimado**: 5 Mar - 18 Mar 2026 (Deslocado)
+**Foco**: App Mobile Nativo (iOS/Android) com Expo
+
+**Escopo**:
+- Portar funcionalidades do Customer Web App para Mobile.
+- Reutilizar lógica de negócio e autenticação.
+- Notificações Push.
+
+---
 
 **Status**: SKIPPED durante Parts 10-15 (escopo muito grande)  
 **Prioridade**: Alta (recomendado antes do MVP)  

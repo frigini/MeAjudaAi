@@ -1,6 +1,18 @@
+export interface ServiceCategoryDto {
+    id: string;
+    name: string;
+    description?: string;
+}
+
 export interface ServiceDto {
-    serviceId: string;
-    serviceName: string;
+    id?: string;
+    name?: string;
+    description?: string;
+    category?: ServiceCategoryDto;
+
+    // Legacy support if needed, or remove if unused
+    serviceId?: string;
+    serviceName?: string;
 }
 
 export interface ContactInfoDto {
@@ -39,11 +51,29 @@ export type VerificationStatus = "Pending" | "Verified" | "Rejected" | "Suspende
 
 export interface ProviderDto {
     id: string;
-    userId: string;
     name: string;
-    type: string;
-    businessProfile: BusinessProfileDto;
-    status: string;
-    verificationStatus: VerificationStatus;
+    email?: string;
+    phone?: string;
+    avatarUrl?: string; // UI friendly
+
+    // Business data
+    description?: string;
+    averageRating?: number;
+    reviewCount?: number;
+
+    // Location
+    city?: string;
+    state?: string;
+
+    // Classification
+    providerType?: string; // 'Individual' | 'Company' | ...
+
+    // Services
     services: ServiceDto[];
+
+    // Detailed profile data (optional/nullable)
+    userId?: string;
+    businessProfile?: BusinessProfileDto;
+    status?: string;
+    verificationStatus?: VerificationStatus;
 }

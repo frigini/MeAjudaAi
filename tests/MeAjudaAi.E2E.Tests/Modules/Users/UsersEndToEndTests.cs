@@ -20,13 +20,23 @@ namespace MeAjudaAi.E2E.Tests.Modules.Users;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Users")]
-public class UsersEndToEndTests : IClassFixture<TestContainerFixture>
+public class UsersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLifetime
 {
     private readonly TestContainerFixture _fixture;
 
     public UsersEndToEndTests(TestContainerFixture fixture)
     {
         _fixture = fixture;
+    }
+
+    public async ValueTask InitializeAsync()
+    {
+        await _fixture.CleanupDatabaseAsync();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
     }
 
     [Fact]

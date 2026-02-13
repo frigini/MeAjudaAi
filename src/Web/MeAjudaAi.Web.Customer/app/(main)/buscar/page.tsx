@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { ServiceCard } from "@/components/service/service-card";
 import { AdCard } from "@/components/search/ad-card";
 import { ServiceTags } from "@/components/search/service-tags";
+import { SearchFilters } from "@/components/search/search-filters";
 
-import { apiProvidersGet3 } from "@/lib/api/generated/sdk.gen";
+import { apiProvidersGet3, apiCategoryGet } from "@/lib/api/generated/sdk.gen";
 import { mapSearchableProviderToProvider } from "@/lib/api/mappers";
 import { geocodeCity } from "@/lib/services/geocoding";
 import { getAuthHeaders } from "@/lib/api/auth-headers";
@@ -14,18 +15,22 @@ interface SearchPageProps {
     searchParams: Promise<{
         q?: string;
         city?: string;
+        radiusInKm?: string;
+        minRating?: string;
+        categoryId?: string;
     }>;
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-    const { q, city } = await searchParams;
+    const { q, city, radiusInKm, minRating, categoryId } = await searchParams;
     const searchQuery = q || "";
     const cityFilter = city || "";
+    const radius = parseFloat(radiusInKm || process.env.NEXT_PUBLIC_DEFAULT_RADIUS || "50");
+    const minRatingVal = minRating ? parseFloat(minRating) : undefined;
 
     // Default coordinates (Linhares - ES) for development, with environment overrides
     let latitude = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_LAT || "-19.3917");
     let longitude = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_LNG || "-40.0722");
-    const defaultRadius = parseInt(process.env.NEXT_PUBLIC_DEFAULT_RADIUS || "50");
 
     // Attempt to geocode if city is provided
     if (cityFilter) {
@@ -38,14 +43,32 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         }
     }
 
+    // If category is selected, fetch associated services to filter by serviceIds
+    let serviceIds: string[] | undefined = undefined;
+    if (categoryId) {
+        try {
+            const { data: catServices } = await apiCategoryGet({
+                path: { categoryId },
+                query: { activeOnly: true }
+            });
+            if (catServices?.data) {
+                serviceIds = catServices.data.map(s => s.id!).filter(Boolean);
+            }
+        } catch (e) {
+            console.error("Failed to fetch services for category", e);
+        }
+    }
+
     // Fetch providers from API
     const headers = await getAuthHeaders();
     const { data, error } = await apiProvidersGet3({
         query: {
             latitude,
             longitude,
-            radiusInKm: defaultRadius,
+            radiusInKm: radius,
             term: searchQuery,
+            serviceIds,
+            minRating: minRatingVal,
             page: 1,
             pageSize: 20,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -92,6 +115,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                         />
                     )}
 
+                    {/* Preserve filters in search form if needed, or rely on URL state */}
+                    {radiusInKm && <input type="hidden" name="radiusInKm" value={radiusInKm} />}
+                    {minRating && <input type="hidden" name="minRating" value={minRating} />}
+                    {categoryId && <input type="hidden" name="categoryId" value={categoryId} />}
+
                     <div className="relative w-full">
                         <input
                             name="q"
@@ -122,52 +150,57 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                         </Button>
                     </div>
                 </form>
-
-
             </div>
 
-            {/* 2. Service Tags - Full Width */}
-            <div className="mb-8">
-                <ServiceTags />
+            <div className="flex flex-col lg:flex-row gap-8">
+                {/* Sidebar Filters */}
+                <aside className="w-full lg:w-64 shrink-0">
+                    <SearchFilters />
+                </aside>
+
+                <main className="flex-1">
+                    {/* 2. Service Tags - Full Width */}
+                    <div className="mb-8">
+                        <ServiceTags />
+                    </div>
+
+                    {/* 4. Provider Grid */}
+                    {providers.length > 0 ? (
+                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+                            {gridItems.map((item, index) => {
+                                if (item.type === 'ad') {
+                                    return <AdCard key={`ad-${index}`} />;
+                                }
+
+                                const provider = item.data; // Type narrowed automatically
+                                return (
+                                    <ServiceCard
+                                        key={provider.id}
+                                        id={provider.id}
+                                        name={provider.name}
+                                        avatarUrl={provider.avatarUrl ?? undefined}
+                                        description={provider.description || "Prestador de serviços disponível para te atender."}
+                                        services={provider.services.map(s => s.name)}
+                                        rating={provider.averageRating}
+                                        reviewCount={provider.reviewCount}
+                                    />
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="text-center py-16 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                            <Search className="mx-auto mb-4 h-16 w-16 text-gray-300" />
+                            <h3 className="text-xl font-semibold text-foreground mb-2">
+                                Nenhum prestador encontrado
+                            </h3>
+                            <p className="text-foreground-subtle max-w-md mx-auto">
+                                Não encontramos prestadores para sua busca no momento.{cityFilter && ` em ${cityFilter}`}.
+                                Tente ajustar os filtros ou buscar por termos mais genéricos.
+                            </p>
+                        </div>
+                    )}
+                </main>
             </div>
-
-
-
-            {/* 4. Provider Grid */}
-            {providers.length > 0 ? (
-                <div className="grid gap-6 sm:grid-cols-2">
-                    {gridItems.map((item, index) => {
-                        if (item.type === 'ad') {
-                            return <AdCard key={`ad-${index}`} />;
-                        }
-
-                        const provider = item.data; // Type narrowed automatically
-                        return (
-                            <ServiceCard
-                                key={provider.id}
-                                id={provider.id}
-                                name={provider.name}
-                                avatarUrl={provider.avatarUrl ?? undefined}
-                                description={provider.description || "Prestador de serviços disponível para te atender."}
-                                services={provider.services.map(s => s.name)}
-                                rating={provider.averageRating}
-                                reviewCount={provider.reviewCount}
-                            />
-                        );
-                    })}
-                </div>
-            ) : (
-                <div className="text-center py-16 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    <Search className="mx-auto mb-4 h-16 w-16 text-gray-300" />
-                    <h3 className="text-xl font-semibold text-foreground mb-2">
-                        Nenhum prestador encontrado
-                    </h3>
-                    <p className="text-foreground-subtle max-w-md mx-auto">
-                        Não encontramos prestadores para &quot;<strong>{searchQuery}</strong>&quot;{cityFilter && ` em ${cityFilter}`}.
-                        Tente buscar por termos mais genéricos como &quot;Pedreiro&quot; ou &quot;Eletricista&quot;.
-                    </p>
-                </div>
-            )}
         </div>
     );
 }
