@@ -62,8 +62,17 @@ public static class ProvidersTestInfrastructureExtensions
             }
             else
             {
-                var container = serviceProvider.GetRequiredService<PostgreSqlContainer>();
-                var connectionString = container.GetConnectionString();
+                string connectionString;
+                
+                if (!string.IsNullOrWhiteSpace(options.Database.ConnectionString))
+                {
+                    connectionString = options.Database.ConnectionString;
+                }
+                else
+                {
+                    var container = serviceProvider.GetRequiredService<PostgreSqlContainer>();
+                    connectionString = container.GetConnectionString();
+                }
 
                 dbOptions.UseNpgsql(connectionString, npgsqlOptions =>
                 {

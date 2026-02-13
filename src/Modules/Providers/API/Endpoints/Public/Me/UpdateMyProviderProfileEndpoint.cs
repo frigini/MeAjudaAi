@@ -19,7 +19,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 public class UpdateMyProviderProfileEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPut("api/v1/providers/me", UpdateMyProfileAsync)
+        => app.MapPut("me", UpdateMyProfileAsync)
             .WithName("UpdateMyProviderProfile")
             .WithTags("Providers - Me")
             .RequireAuthorization()

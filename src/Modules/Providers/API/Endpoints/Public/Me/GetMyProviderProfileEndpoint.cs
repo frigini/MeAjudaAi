@@ -14,7 +14,7 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 public class GetMyProviderProfileEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet("api/v1/providers/me", GetMyProfileAsync)
+        => app.MapGet("me", GetMyProfileAsync)
             .WithName("GetMyProviderProfile")
             .WithTags("Providers - Me")
             .RequireAuthorization()
@@ -38,7 +38,6 @@ public class GetMyProviderProfileEndpoint : BaseEndpoint, IEndpoint
         {
              return NotFound("Perfil do provedor não encontrado para o usuário atual.");
         }
-
         return Handle(result);
     }
 }

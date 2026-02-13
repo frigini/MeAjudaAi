@@ -29,6 +29,9 @@ public class ProviderDashboardApiTests : IClassFixture<TestContainerFixture>
         
         var userId = await _fixture.CreateTestUserAsync();
         var providerId = await CreateTestProviderForUserAsync(userId);
+
+
+
         
         // Act - Switch to Provider User
         TestContainerFixture.AuthenticateAsUser(userId.ToString());
@@ -36,6 +39,8 @@ public class ProviderDashboardApiTests : IClassFixture<TestContainerFixture>
         var response = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
 
         // Assert
+
+
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
         var provider = await TestContainerFixture.ReadJsonAsync<JsonElement>(response);
