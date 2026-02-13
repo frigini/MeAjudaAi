@@ -44,7 +44,9 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         var nearbyProvider = await CreateProviderAsync(
             $"nearby_provider_{Guid.NewGuid():N}",
             -23.5605, // ~1.1km de distância
-            -46.6433
+            -46.6433,
+            subscriptionTier: "Free",
+            verify: false
         );
 
         // Act
@@ -328,7 +330,8 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         string businessName,
         double latitude,
         double longitude,
-        string subscriptionTier = "Free")
+        string subscriptionTier = "Free",
+        bool verify = true)
     {
         // Ensure authenticated as admin to create providers
         TestContainerFixture.AuthenticateAsAdmin();
@@ -378,22 +381,25 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         
         var providerId = TestContainerFixture.ExtractIdFromLocation(location!);
 
-        // Verificar o provider para que ele seja indexado no SearchProviders
-        var verifyRequest = new
+        if (verify)
         {
-            NewStatus = 1, // Verified
-            Reason = "Test verification for search indexing"
-        };
+            // Verificar o provider para que ele seja indexado no SearchProviders
+            var verifyRequest = new
+            {
+                NewStatus = 1, // Verified
+                Reason = "Test verification for search indexing"
+            };
 
-        var verifyResponse = await _fixture.ApiClient.PutAsJsonAsync(
-            $"/api/v1/providers/{providerId}/verification-status",
-            verifyRequest,
-            TestContainerFixture.JsonOptions);
+            var verifyResponse = await _fixture.ApiClient.PutAsJsonAsync(
+                $"/api/v1/providers/{providerId}/verification-status",
+                verifyRequest,
+                TestContainerFixture.JsonOptions);
 
-        // Continue silently if verification fails - the provider may still be searchable
-        if (!verifyResponse.IsSuccessStatusCode)
-        {
-            // Log or ignore - test continues regardless
+            // Continue silently if verification fails - the provider may still be searchable
+            if (!verifyResponse.IsSuccessStatusCode)
+            {
+                // Log or ignore - test continues regardless
+            }
         }
 
         // Indexar manualmente o provider no SearchProviders inserindo direto no banco
@@ -507,4 +513,3 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
             HttpStatusCode.Created);
     }
 }
-
