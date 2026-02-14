@@ -155,12 +155,9 @@ public static class PerformanceHelper
     {
         var now = DateTime.UtcNow;
 
-        if (ThrottleTimestamps.TryGetValue(key, out var lastExecution))
+        if (ThrottleTimestamps.TryGetValue(key, out var lastExecution) && now - lastExecution < minInterval)
         {
-            if (now - lastExecution < minInterval)
-            {
-                return true; // Throttled
-            }
+            return true; // Throttled
         }
 
         ThrottleTimestamps[key] = now;

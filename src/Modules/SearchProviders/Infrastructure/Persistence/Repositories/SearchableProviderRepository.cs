@@ -65,6 +65,7 @@ public sealed class SearchableProviderRepository(
     public async Task<SearchResult> SearchAsync(
         GeoPoint location,
         double radiusInKm,
+        string? term = null,
         Guid[]? serviceIds = null,
         decimal? minRating = null,
         ESubscriptionTier[]? subscriptionTiers = null,
@@ -81,71 +82,15 @@ public sealed class SearchableProviderRepository(
                 TotalCount: 0);
         }
 
+        // Sanitizar termo de busca para ILIKE
+        string? searchPattern = ToILikePattern(term);
+
         // Usar Dapper com PostGIS nativo para máxima performance espacial
         // ST_DWithin filtra por raio usando índice GIST
         // ST_Distance calcula distância exata em metros
-        var sql = BuildSpatialSearchSql(serviceIds, minRating, subscriptionTiers);
-
-        var results = await dapper.QueryAsync<ProviderSearchResultDto>(
-            sql,
-            new
-            {
-                Lat = location.Latitude,
-                Lng = location.Longitude,
-                RadiusMeters = radiusInKm * 1000, // Converter km para metros
-                ServiceIds = serviceIds,
-                MinRating = minRating,
-                Tiers = subscriptionTiers?.Select(t => (int)t).ToArray(),
-                Skip = Math.Max(0, skip),
-                Take = Math.Max(0, take)
-            },
-            cancellationToken);
-
-        var resultList = results.ToList();
-
-        // Contar total antes da paginação (executar query de count separada)
-        var countSql = BuildSpatialCountSql(serviceIds, minRating, subscriptionTiers);
-        var totalCount = await dapper.QuerySingleOrDefaultAsync<int?>(
-            countSql,
-            new
-            {
-                Lat = location.Latitude,
-                Lng = location.Longitude,
-                RadiusMeters = radiusInKm * 1000,
-                ServiceIds = serviceIds,
-                MinRating = minRating,
-                Tiers = subscriptionTiers?.Select(t => (int)t).ToArray()
-            },
-            cancellationToken) ?? 0;
-
-        // Mapear DTOs de volta para entidades do domínio
-        var providers = resultList.Select(MapToEntity).ToList();
-        var distances = resultList.Select(r => r.DistanceKm).ToList();
-
-        return new SearchResult(
-            Providers: providers,
-            DistancesInKm: distances,
-            TotalCount: totalCount);
-    }
-
-    private static string BuildSpatialSearchSql(
-        Guid[]? serviceIds,
-        decimal? minRating,
-        ESubscriptionTier[]? subscriptionTiers)
-    {
-        var serviceFilter = serviceIds?.Length > 0
-            ? "AND service_ids && @ServiceIds"
-            : "";
-
-        var ratingFilter = minRating.HasValue
-            ? "AND average_rating >= @MinRating"
-            : "";
-
-        var tierFilter = subscriptionTiers?.Length > 0
-            ? "AND subscription_tier = ANY(@Tiers)"
-            : "";
-
-        return $"""
+        var whereClause = BuildWhereClauses(searchPattern, serviceIds, minRating, subscriptionTiers);
+        
+        var sql = $"""
             SELECT 
                 id AS Id,
                 provider_id AS ProviderId,
@@ -165,25 +110,70 @@ public sealed class SearchableProviderRepository(
                     ST_SetSRID(ST_MakePoint(@Lng, @Lat), 4326)::geography
                 ) / 1000.0 AS DistanceKm
             FROM search_providers.searchable_providers
-            WHERE is_active = true
-                AND ST_DWithin(
-                    location::geography,
-                    ST_SetSRID(ST_MakePoint(@Lng, @Lat), 4326)::geography,
-                    @RadiusMeters
-                )
-                {serviceFilter}
-                {ratingFilter}
-                {tierFilter}
-            ORDER BY SubscriptionTier DESC, AverageRating DESC, DistanceKm ASC
+            {whereClause}
+            ORDER BY subscription_tier DESC, average_rating DESC, DistanceKm ASC
             OFFSET @Skip LIMIT @Take
             """;
+
+        var results = await dapper.QueryAsync<ProviderSearchResultDto>(
+            sql,
+            new
+            {
+                Lat = location.Latitude,
+                Lng = location.Longitude,
+                RadiusMeters = radiusInKm * 1000, // Converter km para metros
+                Term = searchPattern,
+                ServiceIds = serviceIds,
+                MinRating = minRating,
+                Tiers = subscriptionTiers?.Select(t => (int)t).ToArray(),
+                Skip = Math.Max(0, skip),
+                Take = Math.Max(0, take)
+            },
+            cancellationToken);
+
+        var resultList = results.ToList();
+
+        // Contar total antes da paginação (executar query de count separada)
+        var countSql = $"""
+            SELECT COUNT(*)
+            FROM search_providers.searchable_providers
+            {whereClause}
+            """;
+
+        var totalCount = await dapper.QuerySingleOrDefaultAsync<int?>(
+            countSql,
+            new
+            {
+                Lat = location.Latitude,
+                Lng = location.Longitude,
+                RadiusMeters = radiusInKm * 1000,
+                Term = searchPattern,
+                ServiceIds = serviceIds,
+                MinRating = minRating,
+                Tiers = subscriptionTiers?.Select(t => (int)t).ToArray()
+            },
+            cancellationToken) ?? 0;
+
+        // Mapear DTOs de volta para entidades do domínio
+        var providers = resultList.Select(MapToEntity).ToList();
+        var distances = resultList.Select(r => r.DistanceKm).ToList();
+
+        return new SearchResult(
+            Providers: providers,
+            DistancesInKm: distances,
+            TotalCount: totalCount);
     }
 
-    private static string BuildSpatialCountSql(
+    private static string BuildWhereClauses(
+        string? termPattern,
         Guid[]? serviceIds,
         decimal? minRating,
         ESubscriptionTier[]? subscriptionTiers)
     {
+        var termFilter = !string.IsNullOrWhiteSpace(termPattern)
+            ? "AND (name ILIKE @Term ESCAPE '\\' OR description ILIKE @Term ESCAPE '\\')"
+            : "";
+
         var serviceFilter = serviceIds?.Length > 0
             ? "AND service_ids && @ServiceIds"
             : "";
@@ -197,18 +187,35 @@ public sealed class SearchableProviderRepository(
             : "";
 
         return $"""
-            SELECT COUNT(*)
-            FROM search_providers.searchable_providers
             WHERE is_active = true
                 AND ST_DWithin(
                     location::geography,
                     ST_SetSRID(ST_MakePoint(@Lng, @Lat), 4326)::geography,
                     @RadiusMeters
                 )
+                {termFilter}
                 {serviceFilter}
                 {ratingFilter}
                 {tierFilter}
             """;
+    }
+
+    /// <summary>
+    /// Sanitiza entrada do usuário para uso seguro com cláusulas ILIKE/LIKE.
+    /// Retorna string nula se a entrada for vazia.
+    /// Escapa caracteres especiais de wildcard (%, _, \) com backslash.
+    /// </summary>
+    private static string? ToILikePattern(string? term)
+    {
+        if (string.IsNullOrWhiteSpace(term))
+            return null;
+
+        var escapedTerm = term
+            .Replace("\\", "\\\\") // Escapar o próprio caractere de escape primeiro
+            .Replace("%", "\\%")   // Escapar wildcard %
+            .Replace("_", "\\_");  // Escapar wildcard _
+
+        return $"%{escapedTerm}%";
     }
 
     private static SearchableProvider MapToEntity(ProviderSearchResultDto dto)

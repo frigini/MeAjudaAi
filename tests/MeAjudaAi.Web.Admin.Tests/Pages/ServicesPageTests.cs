@@ -10,6 +10,7 @@ using Moq;
 using MudBlazor.Services;
 using static MeAjudaAi.Web.Admin.Features.Modules.ServiceCatalogs.ServiceCatalogsActions;
 using ServicesPage = MeAjudaAi.Web.Admin.Pages.Services;
+using MeAjudaAi.Web.Admin.Tests.Helpers;
 
 namespace MeAjudaAi.Web.Admin.Tests.Pages;
 
@@ -19,10 +20,12 @@ namespace MeAjudaAi.Web.Admin.Tests.Pages;
 public class ServicesPageTests
 {
     [Fact]
-    public void Services_Page_Should_Dispatch_LoadActions_OnInitialized()
+    public async Task Services_Page_Should_Dispatch_LoadActions_OnInitialized()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockServiceCatalogsApi = new Mock<IServiceCatalogsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<ServiceCatalogsState>>();
@@ -32,8 +35,6 @@ public class ServicesPageTests
         ctx.Services.AddSingleton(mockServiceCatalogsApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<ServicesPage>();
@@ -50,10 +51,12 @@ public class ServicesPageTests
     }
 
     [Fact]
-    public void Services_Page_Should_Show_Create_Button()
+    public async Task Services_Page_Should_Show_Create_Button()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockServiceCatalogsApi = new Mock<IServiceCatalogsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<ServiceCatalogsState>>();
@@ -63,8 +66,6 @@ public class ServicesPageTests
         ctx.Services.AddSingleton(mockServiceCatalogsApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<ServicesPage>();
@@ -75,10 +76,12 @@ public class ServicesPageTests
     }
 
     [Fact]
-    public void Services_Page_Should_Display_Services_List()
+    public async Task Services_Page_Should_Display_Services_List()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockServiceCatalogsApi = new Mock<IServiceCatalogsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<ServiceCatalogsState>>();
@@ -110,8 +113,6 @@ public class ServicesPageTests
         ctx.Services.AddSingleton(mockServiceCatalogsApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<ServicesPage>();

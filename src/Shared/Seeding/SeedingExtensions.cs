@@ -15,7 +15,7 @@ public static class SeedingExtensions
     }
 
     /// <summary>
-    /// Executa seed de dados se ambiente for Development e banco estiver vazio
+    /// Executa seed de dados de desenvolvimento se ambiente for Development (idempotente via ON CONFLICT)
     /// </summary>
     public static async Task SeedDevelopmentDataIfNeededAsync(
         this IHost host,
@@ -32,7 +32,7 @@ public static class SeedingExtensions
         var seeder = scope.ServiceProvider.GetService<IDevelopmentDataSeeder>();
         if (seeder != null)
         {
-            await seeder.SeedIfEmptyAsync(cancellationToken);
+            await seeder.ForceSeedAsync(cancellationToken);
         }
     }
 }

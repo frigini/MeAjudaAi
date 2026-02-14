@@ -20,7 +20,7 @@
     @if (ServiceCatalogsState.Value.HasError)
     {
         <MudAlert Severity="Severity.Warning" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="@(() => Dispatcher.Dispatch(new ServiceCatalogsActions.ClearErrorAction()))">
-            <MudText Typo="Typo.body1">Nenhuma categoria encontrada ou erro ao carregar dados.</MudText>
+            <MudText Typo="Typo.body1">@(string.IsNullOrEmpty(ServiceCatalogsState.Value.ErrorMessage) ? "Nenhuma categoria encontrada ou erro ao carregar dados." : ServiceCatalogsState.Value.ErrorMessage)</MudText>
         </MudAlert>
     }
 

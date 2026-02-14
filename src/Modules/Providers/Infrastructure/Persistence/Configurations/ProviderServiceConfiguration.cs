@@ -26,6 +26,11 @@ public class ProviderServiceConfiguration : IEntityTypeConfiguration<ProviderSer
             .HasColumnName("service_id")
             .IsRequired();
 
+        builder.Property(ps => ps.ServiceName)
+            .HasMaxLength(100)
+            .IsRequired()
+            .HasColumnName("service_name");
+
         builder.Property(ps => ps.AddedAt)
             .HasColumnName("added_at")
             .IsRequired();

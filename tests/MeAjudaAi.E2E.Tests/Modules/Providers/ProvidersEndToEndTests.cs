@@ -13,13 +13,23 @@ namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Providers")]
-public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
+public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLifetime
 {
     private readonly TestContainerFixture _fixture;
 
     public ProvidersEndToEndTests(TestContainerFixture fixture)
     {
         _fixture = fixture;
+    }
+
+    public async ValueTask InitializeAsync()
+    {
+        await _fixture.CleanupDatabaseAsync();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
     }
 
     #region Basic CRUD Operations

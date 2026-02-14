@@ -105,6 +105,12 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
                     .HasMaxLength(20)
                     .HasColumnName("phone_number");
 
+                ci.Property(c => c.AdditionalPhoneNumbers)
+                    .HasConversion(
+                        v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                        v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>())
+                    .HasColumnName("additional_phone_numbers");
+
                 ci.Property(c => c.Website)
                     .HasMaxLength(255)
                     .HasColumnName("website");

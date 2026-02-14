@@ -5,6 +5,8 @@ using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Shared.Serialization;
 
+#pragma warning disable xUnit1004 // Teste de diagnóstico ignorado intencionalemente
+
 namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 
 public class ServiceCatalogsResponseDebugTests(ITestOutputHelper testOutput) : BaseApiTest

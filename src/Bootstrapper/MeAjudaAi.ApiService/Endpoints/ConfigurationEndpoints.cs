@@ -95,7 +95,8 @@ public static class ConfigurationEndpoints
             Features = new FeatureFlags
             {
                 EnableReduxDevTools = environment.IsDevelopment(),
-                EnableDebugMode = environment.IsDevelopment()
+                EnableDebugMode = environment.IsDevelopment(),
+                EnableFakeAuth = configuration.GetValue<bool>("FeatureFlags:EnableFakeAuth")
             }
         };
 

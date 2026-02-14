@@ -1,6 +1,17 @@
 <Project>
+  <!-- Importar configurações globais da raiz -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+  
   <!-- Configurações específicas do Blazor Admin Portal -->
   
+  <!-- Workaround: Desabilitar RestoreLockedMode para o Admin Portal devido à flutuação de versões
+       de pacotes internos do sistema (ex: Microsoft.DotNet.HotReload.WebAssembly.Browser) 
+       que variam entre versões minor do SDK .NET 10 nas máquinas de CI. 
+       TODO: Re-habilitar RestoreLockedMode para garantir reprodutibilidade da supply-chain quando a flutuação de versão do SDK for resolvida. -->
+  <PropertyGroup>
+    <RestoreLockedMode>false</RestoreLockedMode>
+  </PropertyGroup>
+
   <PropertyGroup>
     <!-- Supressão de warnings específicos do projeto Blazor -->
     <NoWarn>$(NoWarn);CS8602;S2094;S3260;S2953;S2933;S6966;S2325;S5693;MUD0002;NU1507;NU1601</NoWarn>

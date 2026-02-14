@@ -81,18 +81,18 @@ internal class LocalDevelopmentAuthenticationDomainService : IAuthenticationDoma
     }
 
     /// <summary>
-    /// Generates a deterministic GUID based on the input string.
-    /// Same input will always produce the same GUID.
+    /// Gera um GUID determinístico com base na string de entrada.
+    /// A mesma entrada sempre produzirá o mesmo GUID.
     /// </summary>
     private static Guid GenerateDeterministicGuid(string input)
     {
         // Normalize the input to lowercase for consistency
         var normalizedInput = input.ToLowerInvariant();
 
-        // Generate MD5 hash of the normalized input
-        var hash = MD5.HashData(Encoding.UTF8.GetBytes(normalizedInput));
+        // Generate SHA256 hash of the normalized input (and take first 16 bytes for GUID)
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(normalizedInput));
 
         // Use the first 16 bytes of the hash to create a GUID
-        return new Guid(hash);
+        return new Guid(hash.AsSpan(0, 16));
     }
 }

@@ -50,6 +50,7 @@ public class DapperConnectionTests
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
     }
 
+    #pragma warning disable xUnit1004
     [Fact(Skip = "DapperConnection modifica ambiente globalmente, impossível isolar em testes unitários - testar em integração")]
     public void Constructor_ThrowsException_WhenConnectionStringNotConfiguredOutsideTesting()
     {
@@ -57,6 +58,7 @@ public class DapperConnectionTests
         // Porém, não podemos isolar corretamente o teste pois o construtor estático é chamado antes
         // Este comportamento deve ser validado em teste de integração
     }
+    #pragma warning restore xUnit1004
 
     [Fact]
     public async Task QueryAsync_RecordsMetrics_OnSuccess()
@@ -204,6 +206,8 @@ public class DapperConnectionIntegrationTests : BaseDatabaseTest
         // Assert
         result.Should().Be(-1, "CREATE TEMP TABLE returns -1 for DDL commands in PostgreSQL");
     }
+
+
 
     [Fact]
     public async Task QueryAsync_RecordsConnectionError_OnFailure()

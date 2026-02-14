@@ -1,0 +1,12 @@
+@using MudBlazor
+@using Microsoft.AspNetCore.Components.Authorization
+
+<MudPopoverProvider />
+<CascadingAuthenticationState>
+    @ChildContent
+</CascadingAuthenticationState>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

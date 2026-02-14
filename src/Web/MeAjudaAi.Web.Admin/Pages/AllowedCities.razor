@@ -15,6 +15,11 @@
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudText Typo="Typo.h4" Class="mb-4">Cidades Permitidas</MudText>
+    
+    @if (LocationsState.Value.IsLoading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mb-4" />
+    }
 
     @if (LocationsState.Value.HasError)
     {

@@ -42,7 +42,7 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
-            const commits = `${{ steps.search-aspire.outputs.commits }}`;
+            const commits = process.env.COMMITS_DATA;
 
             const comment = `## 👀 Atividade Detectada no Repositório Aspire
 
@@ -57,7 +57,7 @@ jobs:
             🔗 **Ver todos commits**: https://github.com/dotnet/aspire/commits/main
 
             ---
-            *Auto-watch by [package-watch-notifications](https://github.com/${{ github.repository }}/actions/workflows/package-watch-notifications.yml)*
+            *Auto-watch by [package-watch-notifications](https://github.com/${process.env.GITHUB_REPOSITORY}/actions/workflows/package-watch-notifications.yml)*
             `;
 
             await github.rest.issues.createComment({
@@ -66,6 +66,8 @@ jobs:
               issue_number: 38,
               body: comment
             });
+        env:
+          COMMITS_DATA: ${{ steps.search-aspire.outputs.commits }}
 
   watch-hangfire-repo:
     name: Watch Hangfire.PostgreSql for v2.x mentions
@@ -97,7 +99,7 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
-            const items = `${{ steps.search-hangfire.outputs.items }}`;
+            const items = process.env.ITEMS_DATA;
 
             const comment = `## 🔔 Atividade Detectada - Hangfire.PostgreSql
 
@@ -112,7 +114,7 @@ jobs:
             🔗 **Repositório**: https://github.com/frankhommers/Hangfire.PostgreSql/issues
 
             ---
-            *Auto-watch by [package-watch-notifications](https://github.com/${{ github.repository }}/actions/workflows/package-watch-notifications.yml)*
+            *Auto-watch by [package-watch-notifications](https://github.com/${process.env.GITHUB_REPOSITORY}/actions/workflows/package-watch-notifications.yml)*
             `;
 
             await github.rest.issues.createComment({
@@ -121,6 +123,8 @@ jobs:
               issue_number: 39,
               body: comment
             });
+        env:
+          ITEMS_DATA: ${{ steps.search-hangfire.outputs.items }}
 
   check-documentation-updates:
     name: Remind to update documentation
@@ -160,7 +164,7 @@ jobs:
                 - [ ] Considerar workaround alternativo se necessário
 
                 ---
-                *Auto-reminder by [package-watch-notifications](https://github.com/${{ github.repository }}/actions/workflows/package-watch-notifications.yml)*
+                *Auto-reminder by [package-watch-notifications](https://github.com/${process.env.GITHUB_REPOSITORY}/actions/workflows/package-watch-notifications.yml)*
                 `;
 
                 await github.rest.issues.createComment({

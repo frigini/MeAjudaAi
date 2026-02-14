@@ -12,8 +12,7 @@ public static class ContentSecurityPolicyConfiguration
     /// </summary>
     public static string GetDevelopmentPolicy()
     {
-        return string.Join("; ", new[]
-        {
+        return string.Join("; ",
             "default-src 'self'",
             "script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval' 'unsafe-inline'", // Necessário para Blazor WASM, Fluxor e scripts inline
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
@@ -26,7 +25,7 @@ public static class ContentSecurityPolicyConfiguration
             "base-uri 'self'",
             "form-action 'self'",
             "frame-ancestors 'none'"
-        });
+        );
     }
 
     /// <summary>
@@ -35,21 +34,23 @@ public static class ContentSecurityPolicyConfiguration
     /// </summary>
     public static string GetStagingPolicy(string apiBaseUrl, string keycloakUrl)
     {
-        return string.Join("; ", new[]
-        {
+        return string.Join("; ",
             "default-src 'self'",
             "script-src 'self' 'wasm-unsafe-eval'",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: https:",
             $"connect-src 'self' {apiBaseUrl} {keycloakUrl} wss://*.azurewebsites.net",
+            $"frame-src {keycloakUrl}",
             "media-src 'none'",
             "object-src 'none'",
             "base-uri 'self'",
             "form-action 'self'",
             "frame-ancestors 'none'",
-            "upgrade-insecure-requests"
-        });
+            "upgrade-insecure-requests",
+            $"report-uri {apiBaseUrl}/api/csp-report", // Legacy report mechanism (Header only)
+            "report-to csp-endpoint"                  // Modern report mechanism (Header only)
+        );
     }
 
     /// <summary>
@@ -64,22 +65,23 @@ public static class ContentSecurityPolicyConfiguration
             connectSrc += $" {cdnUrl}";
         }
 
-        return string.Join("; ", new[]
-        {
+        return string.Join("; ",
             "default-src 'self'",
             "script-src 'self' 'wasm-unsafe-eval'",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: https:",
             $"connect-src {connectSrc}",
+            $"frame-src {keycloakUrl}",
             "media-src 'none'",
             "object-src 'none'",
             "base-uri 'self'",
             "form-action 'self'",
             "frame-ancestors 'none'",
             "upgrade-insecure-requests",
-            $"report-uri {apiBaseUrl}/api/csp-report" // Opcional: relatório de violação CSP
-        });
+            $"report-uri {apiBaseUrl}/api/csp-report", // Legacy report mechanism (Header only)
+            "report-to csp-endpoint"                  // Modern report mechanism (Header only)
+        );
     }
 
     /// <summary>
@@ -87,6 +89,8 @@ public static class ContentSecurityPolicyConfiguration
     /// </summary>
     public static string GenerateMetaTag(string policy)
     {
+        // NOTE: report-uri e report-to não são suportados em meta tags e serão ignorados pelo navegador.
+        // Se precisar de relatórios, entregue a política via cabeçalho HTTP Content-Security-Policy.
         return $"<meta http-equiv=\"Content-Security-Policy\" content=\"{policy}\">";
     }
 }

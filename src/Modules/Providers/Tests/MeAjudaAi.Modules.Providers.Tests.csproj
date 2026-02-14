@@ -36,6 +36,7 @@
     
     <!-- Integration Testing -->
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Npgsql" />
   </ItemGroup>
 
   <ItemGroup>

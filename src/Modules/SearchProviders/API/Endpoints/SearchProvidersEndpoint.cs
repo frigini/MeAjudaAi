@@ -33,14 +33,16 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
                 
                 **Algoritmo de Busca:**
                 1. Filtrar por raio a partir da localização de busca
-                2. Aplicar filtros opcionais (serviços, avaliação, nível de assinatura)
-                3. Classificar resultados por:
+                2. Aplicar filtro textual (nome, descrição) se fornecido
+                3. Aplicar filtros opcionais (serviços, avaliação, nível de assinatura)
+                4. Classificar resultados por:
                    - Nível de assinatura (Platinum > Gold > Standard > Free)
                    - Avaliação média (maior primeiro)
                    - Distância (mais próximo primeiro)
                 
                 **Casos de Uso:**
                 - Encontrar prestadores próximos a uma localização específica
+                - Buscar prestadores por nome ou termo (ex: "Eletricista", "João")
                 - Buscar prestadores que oferecem serviços específicos
                 - Filtrar por avaliação mínima ou nível de assinatura
                 """)
@@ -53,6 +55,7 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
         [FromQuery] double latitude,
         [FromQuery] double longitude,
         [FromQuery] double radiusInKm,
+        [FromQuery] string? term,
         [FromQuery] Guid[]? serviceIds,
         [FromQuery] decimal? minRating,
         [FromQuery] ESubscriptionTier[]? subscriptionTiers,
@@ -66,6 +69,7 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
             latitude,
             longitude,
             radiusInKm,
+            term,
             serviceIds,
             minRating,
             subscriptionTiers,

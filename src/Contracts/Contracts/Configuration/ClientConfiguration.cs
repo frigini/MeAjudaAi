@@ -89,4 +89,9 @@ public sealed record FeatureFlags
     /// Habilita mode de debug/diagnóstico.
     /// </summary>
     public bool EnableDebugMode { get; init; }
+
+    /// <summary>
+    /// Habilita autenticação fake para desenvolvimento local.
+    /// </summary>
+    public bool EnableFakeAuth { get; init; }
 }

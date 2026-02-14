@@ -249,6 +249,7 @@ public class ProvidersModuleApiTests
                 )
             },
             Qualifications: new List<QualificationDto>(),
+            Services: new List<ProviderServiceDto>(),
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null,
             IsDeleted: false,

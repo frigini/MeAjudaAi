@@ -17,13 +17,23 @@ namespace MeAjudaAi.E2E.Tests.Modules.ServiceCatalogs;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "ServiceCatalogs")]
-public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
+public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLifetime
 {
     private readonly TestContainerFixture _fixture;
 
     public ServiceCatalogsEndToEndTests(TestContainerFixture fixture)
     {
         _fixture = fixture;
+    }
+
+    public async ValueTask InitializeAsync()
+    {
+        await _fixture.CleanupDatabaseAsync();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
     }
 
     #region Basic CRUD and Validation Tests

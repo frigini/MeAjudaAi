@@ -10,6 +10,7 @@ using Microsoft.JSInterop;
 using Moq;
 using MudBlazor.Services;
 using static MeAjudaAi.Web.Admin.Features.Modules.Locations.LocationsActions;
+using MeAjudaAi.Web.Admin.Tests.Helpers;
 
 namespace MeAjudaAi.Web.Admin.Tests.Pages;
 
@@ -19,10 +20,12 @@ namespace MeAjudaAi.Web.Admin.Tests.Pages;
 public class AllowedCitiesPageTests
 {
     [Fact]
-    public void AllowedCities_Page_Should_Dispatch_LoadAction_OnInitialized()
+    public async Task AllowedCities_Page_Should_Dispatch_LoadAction_OnInitialized()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockLocationsApi = new Mock<ILocationsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<LocationsState>>();
@@ -32,8 +35,6 @@ public class AllowedCitiesPageTests
         ctx.Services.AddSingleton(mockLocationsApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<AllowedCities>();
@@ -46,10 +47,12 @@ public class AllowedCitiesPageTests
     }
 
     [Fact]
-    public void AllowedCities_Page_Should_Show_Create_Button()
+    public async Task AllowedCities_Page_Should_Show_Create_Button()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockLocationsApi = new Mock<ILocationsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<LocationsState>>();
@@ -59,8 +62,6 @@ public class AllowedCitiesPageTests
         ctx.Services.AddSingleton(mockLocationsApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<AllowedCities>();
@@ -71,10 +72,12 @@ public class AllowedCitiesPageTests
     }
 
     [Fact]
-    public void AllowedCities_Page_Should_Display_Cities_List()
+    public async Task AllowedCities_Page_Should_Display_Cities_List()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockLocationsApi = new Mock<ILocationsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<LocationsState>>();
@@ -100,8 +103,6 @@ public class AllowedCitiesPageTests
         ctx.Services.AddSingleton(mockLocationsApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<AllowedCities>();
@@ -113,10 +114,12 @@ public class AllowedCitiesPageTests
     }
 
     [Fact]
-    public void AllowedCities_Page_Should_Show_Loading_Indicator()
+    public async Task AllowedCities_Page_Should_Show_Loading_Indicator()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockLocationsApi = new Mock<ILocationsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<LocationsState>>();
@@ -126,14 +129,12 @@ public class AllowedCitiesPageTests
         ctx.Services.AddSingleton(mockLocationsApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<AllowedCities>();
 
         // Assert
         var markup = cut.Markup;
-        markup.Should().Contain("mud-progress-circular", "Indicador de loading deve estar visível");
+        markup.Should().Contain("mud-progress-linear", "Indicador de loading deve estar visível.");
     }
 }

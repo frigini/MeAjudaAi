@@ -10,6 +10,7 @@ using Microsoft.JSInterop;
 using Moq;
 using MudBlazor.Services;
 using static MeAjudaAi.Web.Admin.Features.Modules.Providers.ProvidersActions;
+using MeAjudaAi.Web.Admin.Tests.Helpers;
 
 namespace MeAjudaAi.Web.Admin.Tests.Pages;
 
@@ -19,10 +20,12 @@ namespace MeAjudaAi.Web.Admin.Tests.Pages;
 public class ProvidersPageTests
 {
     [Fact]
-    public void Providers_Page_Should_Dispatch_LoadProvidersAction_OnInitialized()
+    public async Task Providers_Page_Should_Dispatch_LoadProvidersAction_OnInitialized()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockProvidersApi = new Mock<IProvidersApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockProvidersState = new Mock<IState<ProvidersState>>();
@@ -32,8 +35,6 @@ public class ProvidersPageTests
         ctx.Services.AddSingleton(mockProvidersApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockProvidersState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<Providers>();
@@ -46,10 +47,54 @@ public class ProvidersPageTests
     }
 
     [Fact]
-    public void Providers_Page_Should_Show_Loading_Indicator_When_Loading()
+    public async Task Providers_Page_Should_Display_Providers_In_DataGrid()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
+        var mockProvidersApi = new Mock<IProvidersApi>();
+        var mockDispatcher = new Mock<IDispatcher>();
+        var mockProvidersState = new Mock<IState<ProvidersState>>();
+        
+        var testProvider = new ModuleProviderDto(
+            Guid.NewGuid(),
+            "Fornecedor Teste",
+            "teste@exemplo.com",
+            "12345678901",
+            "Individual",
+            "Verified",
+            DateTime.UtcNow,
+            DateTime.UtcNow,
+            true,
+            "(11) 99999-9999"
+        );
+        
+        mockProvidersState.Setup(x => x.Value).Returns(new ProvidersState 
+        { 
+            Providers = new List<ModuleProviderDto> { testProvider }
+        });
+        
+        ctx.Services.AddSingleton(mockProvidersApi.Object);
+        ctx.Services.AddSingleton(mockDispatcher.Object);
+        ctx.Services.AddSingleton(mockProvidersState.Object);
+
+        // Act
+        var cut = ctx.Render<Providers>();
+
+        // Assert
+        var markup = cut.Markup;
+        markup.Should().Contain("Fornecedor Teste", "Provider deve estar renderizado");
+        markup.Should().Contain("teste@exemplo.com");
+    }
+
+    [Fact]
+    public async Task Providers_Page_Should_Show_Loading_Indicator_When_Loading()
+    {
+        // Arrange
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockProvidersApi = new Mock<IProvidersApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockProvidersState = new Mock<IState<ProvidersState>>();
@@ -59,8 +104,6 @@ public class ProvidersPageTests
         ctx.Services.AddSingleton(mockProvidersApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockProvidersState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<Providers>();
@@ -71,76 +114,32 @@ public class ProvidersPageTests
     }
 
     [Fact]
-    public void Providers_Page_Should_Show_Error_Message_When_Error_Exists()
+    public async Task Providers_Page_Should_Show_Error_Message_When_Error_Exists()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockProvidersApi = new Mock<IProvidersApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockProvidersState = new Mock<IState<ProvidersState>>();
         
-        const string errorMessage = "Erro ao carregar fornecedores";
+        var errorMessage = "Erro ao carregar fornecedores";
         mockProvidersState.Setup(x => x.Value).Returns(new ProvidersState 
         { 
-            ErrorMessage = errorMessage 
+            ErrorMessage = errorMessage
         });
         
         ctx.Services.AddSingleton(mockProvidersApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockProvidersState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<Providers>();
 
         // Assert
         var alerts = cut.FindAll(".mud-alert");
-        alerts.Should().NotBeEmpty();
+        alerts.Should().NotBeEmpty("Alert de erro deve estar visível");
         cut.Markup.Should().Contain(errorMessage, "Mensagem de erro deve ser exibida");
-    }
-
-    [Fact]
-    public void Providers_Page_Should_Display_Providers_In_DataGrid()
-    {
-        // Arrange
-        using var ctx = new Bunit.BunitContext();
-        var mockProvidersApi = new Mock<IProvidersApi>();
-        var mockDispatcher = new Mock<IDispatcher>();
-        var mockProvidersState = new Mock<IState<ProvidersState>>();
-        
-        var providers = new List<ModuleProviderDto>
-        {
-            new(
-                Id: Guid.NewGuid(),
-                Name: "Fornecedor Teste",
-                Email: "teste@exemplo.com",
-                Document: "12345678901",
-                ProviderType: "Individual",
-                VerificationStatus: "Verified",
-                CreatedAt: DateTime.UtcNow,
-                UpdatedAt: DateTime.UtcNow,
-                IsActive: true,
-                Phone: "11999999999"
-            )
-        };
-
-        mockProvidersState.Setup(x => x.Value).Returns(new ProvidersState 
-        { 
-            Providers = providers
-        });
-        
-        ctx.Services.AddSingleton(mockProvidersApi.Object);
-        ctx.Services.AddSingleton(mockDispatcher.Object);
-        ctx.Services.AddSingleton(mockProvidersState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-
-        // Act
-        var cut = ctx.Render<Providers>();
-
-        // Assert
-        cut.Markup.Should().Contain("Fornecedor Teste", "Provider deve estar renderizado");
-        cut.Markup.Should().Contain("teste@exemplo.com");
     }
 }

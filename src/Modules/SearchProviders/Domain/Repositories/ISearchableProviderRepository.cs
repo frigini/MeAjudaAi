@@ -27,6 +27,7 @@ public interface ISearchableProviderRepository
     /// </summary>
     /// <param name="location">Ponto central para a busca</param>
     /// <param name="radiusInKm">Distância máxima em quilômetros</param>
+    /// <param name="term">Termo de busca textual</param>
     /// <param name="serviceIds">Lista opcional de IDs de serviços para filtrar</param>
     /// <param name="minRating">Filtro opcional de avaliação média mínima</param>
     /// <param name="subscriptionTiers">Lista opcional de tiers de assinatura para filtrar</param>
@@ -37,6 +38,7 @@ public interface ISearchableProviderRepository
     Task<SearchResult> SearchAsync(
         GeoPoint location,
         double radiusInKm,
+        string? term = null,
         Guid[]? serviceIds = null,
         decimal? minRating = null,
         ESubscriptionTier[]? subscriptionTiers = null,

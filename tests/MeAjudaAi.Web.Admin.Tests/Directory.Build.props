@@ -1,0 +1,15 @@
+<Project>
+  <!-- Importar configurações globais da raiz -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../../'))" />
+  
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <!-- Workaround: Desabilitar RestoreLockedMode para o Admin Portal devido à flutuação de versões
+       de pacotes internos do sistema (ex: Microsoft.DotNet.HotReload.WebAssembly.Browser) 
+       que variam entre versões minor do SDK .NET 10 nas máquinas de CI. -->
+  <PropertyGroup>
+    <RestoreLockedMode>false</RestoreLockedMode>
+  </PropertyGroup>
+</Project>

@@ -176,15 +176,15 @@ public class ProviderBuilder : BaseBuilder<Provider>
         var address = new Address(
             street: faker.Address.StreetAddress(),
             number: faker.Address.BuildingNumber(),
-            neighborhood: "Centro",
+            neighborhood: "Centro", // faker.Address.SecondaryAddress() sometimes is long
             city: faker.Address.City(),
             state: faker.Address.StateAbbr(),
-            zipCode: faker.Address.ZipCode(),
+            zipCode: "12345-678", // Safe length
             country: "Brasil");
 
         var contactInfo = new ContactInfo(
             email: faker.Internet.Email(),
-            phoneNumber: faker.Phone.PhoneNumber(),
+            phoneNumber: "11999999999", // Safe length < 20
             website: faker.Internet.Url());
 
         return new BusinessProfile(

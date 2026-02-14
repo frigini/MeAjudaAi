@@ -82,8 +82,21 @@ public sealed class AddServiceToProviderCommandHandler(
                 return Result.Failure(errorMessage);
             }
 
+            // 3.1 Buscar detalhes do serviço para obter o nome (necessário para desnormalização)
+            var serviceResult = await serviceCatalogsModuleApi.GetServiceByIdAsync(
+                command.ServiceId,
+                cancellationToken);
+
+            if (serviceResult.IsFailure || serviceResult.Value is null)
+            {
+                logger.LogError("Service {ServiceId} validated but details could not be retrieved", command.ServiceId);
+                return Result.Failure("Falha ao recuperar detalhes do serviço.");
+            }
+
+            var serviceName = serviceResult.Value.Name;
+
             // 4. Adicionar o serviço ao provider (domínio valida duplicatas)
-            provider.AddService(command.ServiceId);
+            provider.AddService(command.ServiceId, serviceName);
 
             // 5. Persistir mudanças
             await providerRepository.UpdateAsync(provider, cancellationToken);

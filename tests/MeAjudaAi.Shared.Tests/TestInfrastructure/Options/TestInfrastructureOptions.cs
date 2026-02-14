@@ -21,5 +21,10 @@ public class TestInfrastructureOptions
     /// Configurações de serviços externos (Keycloak, etc.)
     /// </summary>
     public TestExternalServicesOptions ExternalServices { get; set; } = new();
+
+    /// <summary>
+    /// Feature flags para testes (ex: "PublicProfilePrivacy": true)
+    /// </summary>
+    public Dictionary<string, bool> FeatureFlags { get; set; } = new();
 }
 

@@ -152,9 +152,9 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
             }
         }
 
-        // Gerar hash MD5 dos inputs
+        // Gerar hash SHA256 dos inputs
         var combined = string.Join("|", hashInputs);
-        var hashBytes = MD5.HashData(Encoding.UTF8.GetBytes(combined));
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(combined));
         return Task.FromResult(Convert.ToHexString(hashBytes));
     }
 

@@ -36,7 +36,10 @@ public class InspectAuthMiddleware(RequestDelegate next, IWebHostEnvironment env
                     
                     // Trunca permissões para evitar estouro do tamanho do header se houver muitas
                     var permString = string.Join(", ", permissions);
-                    if (permString.Length > 1000) permString = permString.Substring(0, 1000) + "...";
+                    if (permString.Length > 1000)
+                    {
+                        permString = string.Concat(permString.AsSpan(0, 1000), "...");
+                    }
                     
                     context.Response.Headers[AuthConstants.Headers.DebugPermissions] = permString;
                     return Task.CompletedTask;

@@ -19,6 +19,11 @@ public sealed class ProviderService
     public Guid ServiceId { get; private set; }
 
     /// <summary>
+    /// Nome do serviço (desnormalizado para facilitar exibição).
+    /// </summary>
+    public string ServiceName { get; private set; } = string.Empty;
+
+    /// <summary>
     /// Data em que o provider adicionou este serviço.
     /// </summary>
     public DateTime AddedAt { get; private set; }
@@ -36,22 +41,26 @@ public sealed class ProviderService
     /// <summary>
     /// Construtor interno para criação via métodos de domínio do Provider.
     /// </summary>
-    internal ProviderService(ProviderId providerId, Guid serviceId)
+    internal ProviderService(ProviderId providerId, Guid serviceId, string serviceName)
     {
         ProviderId = providerId ?? throw new ArgumentNullException(nameof(providerId));
 
         if (serviceId == Guid.Empty)
             throw new ArgumentException("ServiceId cannot be empty.", nameof(serviceId));
 
+        if (string.IsNullOrWhiteSpace(serviceName))
+            throw new ArgumentException("ServiceName cannot be empty.", nameof(serviceName));
+
         ServiceId = serviceId;
+        ServiceName = serviceName.Trim();
         AddedAt = DateTime.UtcNow;
     }
 
     /// <summary>
     /// Cria uma nova associação entre provider e serviço.
     /// </summary>
-    public static ProviderService Create(ProviderId providerId, Guid serviceId)
+    public static ProviderService Create(ProviderId providerId, Guid serviceId, string serviceName)
     {
-        return new ProviderService(providerId, serviceId);
+        return new ProviderService(providerId, serviceId, serviceName);
     }
 }
