@@ -29,7 +29,8 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     
     // Cache de nomes de bancos para garantir reutilização por TYPE da classe de teste
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, string> _databaseNames = new();
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> _createdDatabases = new();
+    // Use Lazy<Task> to ensure only one creation task runs per database name, even with concurrent tests
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Lazy<Task>> _createdDatabases = new();
 
     private ServiceProvider? _serviceProvider;
     private ProvidersDbContext? _dbContext;
@@ -44,7 +45,9 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     }
 
     /// <summary>
-    /// Configurações padrão para testes do módulo Providers
+    /// Configurações padrão para testes do módulo Providers.
+    /// WARNING: CleanupDatabase() is a no-op in this base class. Tests within the same class share the same database instance.
+    /// Derived tests must be order-independent or manually manage their data if they require isolation within the class.
     /// </summary>
     protected TestInfrastructureOptions GetTestOptions()
     {
@@ -52,8 +55,9 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         if (dbName.Length > 63)
         {
             // keep uniqueness via GUID suffix (last 32 chars) + prefix to identify it's a test
-            // provider_test_ + 32 chars GUID = 46 chars < 63 limit
-            dbName = $"providers_test_{_testClassId[^32..]}";
+            // pt_ + 15 chars prefix + _ + 32 chars GUID = 51 chars < 63 limit
+            var prefix = GetType().Name.Length > 15 ? GetType().Name[..15] : GetType().Name;
+            dbName = $"pt_{prefix}_{_testClassId[^32..]}";
         }
 
         var options = new TestInfrastructureOptions
@@ -98,11 +102,12 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         var options = GetTestOptions();
         var databaseName = options.Database.DatabaseName;
         
-        // Só cria se ainda não foi criado para este nome
-        if (_createdDatabases.TryAdd(databaseName, true)) 
-        {
-            await CreateLogicalDatabaseAsync(databaseName);
-        }
+        // Get or add a Lazy<Task> to ensure we only create the database once
+        var creationTask = _createdDatabases.GetOrAdd(databaseName, 
+            new Lazy<Task>(() => CreateLogicalDatabaseAsync(databaseName)));
+            
+        // Await the task (wrapper for the actual creation logic)
+        await creationTask.Value;
         
         // Atualiza connection string para apontar para o novo banco
         var builder = new NpgsqlConnectionStringBuilder(_sharedContainer!.GetConnectionString())
@@ -170,8 +175,18 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
 
         // Cria o banco de dados
         await using var command = connection.CreateCommand();
-        command.CommandText = $"CREATE DATABASE \"{databaseName}\"";
-        await command.ExecuteNonQueryAsync();
+        // Sanitize database name to prevent injection/errors with weird chars
+        var safeName = databaseName.Replace("\"", "\"\"");
+        command.CommandText = $"CREATE DATABASE \"{safeName}\"";
+        
+        try 
+        {
+            await command.ExecuteNonQueryAsync();
+        }
+        catch (PostgresException ex) when (ex.SqlState == "42P04") // Duplicate database
+        {
+            // Ignore if already exists (should be handled by Lazy, but good for safety)
+        }
     }
 
     /// <summary>
@@ -193,6 +208,30 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         await dbContext.Database.EnsureCreatedAsync();
 
         // Verificar isolamento (não deve ter providers ainda)
+        // Como estamos reusando o banco por classe de teste, precisamos limpar os dados entre os testes
+        var connection = dbContext.Database.GetDbConnection();
+        var wasOpen = connection.State == System.Data.ConnectionState.Open;
+        if (!wasOpen) await connection.OpenAsync();
+
+        try 
+        {
+            // Script para truncar todas as tabelas do schema 'providers'
+            await dbContext.Database.ExecuteSqlRawAsync(@"
+                DO $$ DECLARE
+                    r RECORD;
+                BEGIN
+                    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'providers') LOOP
+                        EXECUTE 'TRUNCATE TABLE ""providers"".""' || r.tablename || '"" CASCADE';
+                    END LOOP;
+                END $$;
+            ");
+        }
+        finally
+        {
+            if (!wasOpen) await connection.CloseAsync();
+        }
+
+        // Sanity check
         var count = await dbContext.Providers.CountAsync();
         if (count > 0)
         {

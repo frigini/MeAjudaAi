@@ -11,7 +11,13 @@ export function ServiceTags() {
     const [tags, setTags] = useState<ServiceListDto[]>([]);
 
     useEffect(() => {
-        getPopularServices().then(setTags);
+        let cancelled = false;
+        getPopularServices().then(data => {
+            if (!cancelled) {
+                setTags(data.filter(t => t.name));
+            }
+        });
+        return () => { cancelled = true; };
     }, []);
 
     const currentQuery = searchParams.get("q") || "";

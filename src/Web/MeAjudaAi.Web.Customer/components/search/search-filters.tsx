@@ -62,6 +62,7 @@ export function SearchFilters() {
                         onChange={(e) => setRadiusDraft(e.target.value)}
                         onMouseUp={() => updateFilter("radiusInKm", radiusDraft)}
                         onTouchEnd={() => updateFilter("radiusInKm", radiusDraft)}
+                        onKeyUp={() => updateFilter("radiusInKm", radiusDraft)}
                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-600 hover:accent-orange-700 transition-all"
                     />
                     <div className="flex justify-between text-xs text-gray-400 font-medium">

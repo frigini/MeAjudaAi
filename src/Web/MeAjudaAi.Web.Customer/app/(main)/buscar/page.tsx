@@ -60,6 +60,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     }
 
     // Fetch providers from API
+    // TODO: Implement pagination controls. Currently hardcoded to page 1.
     const headers = await getAuthHeaders();
     const { data, error } = await apiProvidersGet3({
         query: {
@@ -180,9 +181,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                                         name={provider.name}
                                         avatarUrl={provider.avatarUrl ?? undefined}
                                         description={provider.description || "Prestador de serviços disponível para te atender."}
-                                        services={provider.services.map(s => s.name)}
-                                        rating={provider.averageRating}
-                                        reviewCount={provider.reviewCount}
+                                        services={provider.services.map(s => s.name!).filter(Boolean)}
+                                        rating={provider.averageRating ?? 0}
+                                        reviewCount={provider.reviewCount ?? 0}
                                     />
                                 );
                             })}
@@ -194,7 +195,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                                 Nenhum prestador encontrado
                             </h3>
                             <p className="text-foreground-subtle max-w-md mx-auto">
-                                Não encontramos prestadores para sua busca no momento.{cityFilter && ` em ${cityFilter}`}.
+                                Não encontramos prestadores para sua busca no momento{cityFilter ? ` em ${cityFilter}` : ""}.
                                 Tente ajustar os filtros ou buscar por termos mais genéricos.
                             </p>
                         </div>

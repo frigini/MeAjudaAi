@@ -22,7 +22,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
     const router = useRouter();
     const [isEditingDescription, setIsEditingDescription] = useState(false);
     // Description is nested in businessProfile
-    const [description, setDescription] = useState(provider.businessProfile.description || "");
+    const [description, setDescription] = useState(provider.businessProfile?.description || "");
     const [isSavingDescription, setIsSavingDescription] = useState(false);
 
     const [newServiceId, setNewServiceId] = useState("");
@@ -40,7 +40,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                 body: JSON.stringify({
                     name: provider.name,
                     businessProfile: {
-                        ...provider.businessProfile,
+                        ...(provider.businessProfile || {}),
                         description: description
                     }
                 })
@@ -112,7 +112,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                 </div>
                 <div className="flex items-center gap-3 bg-white p-2 px-4 rounded-full shadow-sm border">
                     <span className="font-semibold text-slate-700">{provider.name}</span>
-                    <VerifiedBadge status={provider.verificationStatus} />
+                    <VerifiedBadge status={provider.verificationStatus ?? "Pending"} />
                 </div>
             </div>
 
@@ -151,7 +151,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                                 </div>
                             ) : (
                                 <p className="text-slate-600 whitespace-pre-wrap leading-relaxed">
-                                    {provider.businessProfile.description || "Nenhuma descrição adicionada."}
+                                    {provider.businessProfile?.description || "Nenhuma descrição adicionada."}
                                 </p>
                             )}
                         </CardContent>
@@ -185,13 +185,13 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                                     (provider.services || []).map((service) => (
                                         <div key={service.serviceId} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
                                             <div className="flex items-center gap-2">
-                                                <Badge variant="outline" className="bg-white">{service.serviceName}</Badge>
+                                                <Badge variant="secondary" className="bg-white">{service.serviceName}</Badge>
                                             </div>
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
                                                 className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                                onClick={() => handleRemoveService(service.serviceId)}
+                                                onClick={() => service.serviceId && handleRemoveService(service.serviceId)}
                                                 disabled={isRemovingService === service.serviceId}
                                             >
                                                 {isRemovingService === service.serviceId ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
@@ -213,7 +213,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-center gap-2">
-                                <VerifiedBadge status={provider.verificationStatus} showLabel size="lg" />
+                                <VerifiedBadge status={provider.verificationStatus ?? "Pending"} showLabel size="lg" />
                                 {provider.verificationStatus === "Pending" && (
                                     <span className="text-yellow-600 font-medium">Pendente de Verificação</span>
                                 )}

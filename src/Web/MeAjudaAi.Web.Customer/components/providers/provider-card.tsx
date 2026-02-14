@@ -29,7 +29,7 @@ export function ProviderCard({ provider }: ProviderCardProps) {
 
                         {/* Rating */}
                         <div className="flex items-center gap-2 mt-1">
-                            <Rating value={provider.averageRating} size="sm" readOnly={true} />
+                            <Rating value={provider.averageRating ?? 0} size="sm" readOnly={true} />
                             <span className="text-sm text-foreground-subtle">
                                 ({provider.reviewCount}{" "}
                                 {provider.reviewCount === 1 ? "avaliação" : "avaliações"})

@@ -3831,7 +3831,9 @@ Desenvolver aplicações frontend usando **Blazor WebAssembly** (Admin Portal) e
 | **DTOs** | `Contracts/*.cs` | `types/api/*.ts` | OpenAPI Generator (auto) |
 | **Enums** | `Shared.Contracts/Enums/` | `types/enums.ts` | OpenAPI Generator (auto) |
 | **Validation** | FluentValidation | Zod schemas | Manual mapping (Sprint 8A) |
-| **Constants** | `Shared.Contracts/Constants/` | `lib/constants.ts` | Manual sync |
+| **Constants** | `Shared.Contracts/Constants/` | `lib/constants.ts` | Goal: Generate from Shared (Stop Manual Sync) |
+
+**Strategy Note**: We prioritize reusing `MeAjudaAi.Shared.Contracts` for enums and constants to keep the Frontend aligned with the Backend and avoid drift.
 
 **Generated Files Location**:
 ```text

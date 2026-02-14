@@ -45,7 +45,6 @@ public static class ProvidersTestInfrastructureExtensions
         // Usar extensões compartilhadas
         services.AddTestLogging();
         services.AddTestCache(options.Cache);
-        services.AddTestCache(options.Cache);
         
         var configBuilder = new ConfigurationBuilder();
         if (options.FeatureFlags?.Any() == true)
