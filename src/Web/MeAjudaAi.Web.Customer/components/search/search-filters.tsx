@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiCategoriesGet } from "@/lib/api/generated/sdk.gen";
-import { MeAjudaAiModulesServiceCatalogsApplicationDtosServiceCategoryDto } from "@/lib/api/generated/types.gen";
+import { MeAjudaAiModulesServiceCatalogsApplicationDtosServiceCategoryDto as ServiceCategoryDto } from "@/lib/api/generated/types.gen";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 export function SearchFilters() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [categories, setCategories] = useState<MeAjudaAiModulesServiceCatalogsApplicationDtosServiceCategoryDto[]>([]);
+    const [categories, setCategories] = useState<ServiceCategoryDto[]>([]);
 
     // Default values
     const currentRadius = searchParams.get("radiusInKm") || "50";
@@ -33,7 +33,7 @@ export function SearchFilters() {
 
     const updateFilter = (key: string, value: string | null) => {
         const params = new URLSearchParams(searchParams.toString());
-        if (value) {
+        if (value != null) {
             params.set(key, value);
         } else {
             params.delete(key);

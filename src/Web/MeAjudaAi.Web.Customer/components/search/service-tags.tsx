@@ -9,12 +9,14 @@ export function ServiceTags() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [tags, setTags] = useState<ServiceListDto[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         let cancelled = false;
         getPopularServices().then(data => {
             if (!cancelled) {
                 setTags(data.filter(t => t.name));
+                setIsLoading(false);
             }
         });
         return () => { cancelled = true; };
@@ -34,6 +36,18 @@ export function ServiceTags() {
 
         router.push(`/buscar?${params.toString()}`);
     };
+
+    if (isLoading) {
+        return (
+            <div className="w-full overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0 no-scrollbar">
+                <div className="flex gap-3 min-w-max md:w-full md:justify-center">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                        <div key={i} className="h-7 w-24 bg-gray-200 rounded-full animate-pulse" />
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     if (tags.length === 0) {
         return null;

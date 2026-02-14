@@ -30,6 +30,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     // Cache de nomes de bancos para garantir reutilização por TYPE da classe de teste
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, string> _databaseNames = new();
     // Use Lazy<Task> to ensure only one creation task runs per database name, even with concurrent tests
+    // Usar Lazy<Task> para garantir que apenas uma tarefa de criação seja executada por nome de banco de dados, mesmo com testes simultâneos
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Lazy<Task>> _createdDatabases = new();
 
     private ServiceProvider? _serviceProvider;
@@ -46,8 +47,8 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
 
     /// <summary>
     /// Configurações padrão para testes do módulo Providers.
-    /// WARNING: CleanupDatabase() is a no-op in this base class. Tests within the same class share the same database instance.
-    /// Derived tests must be order-independent or manually manage their data if they require isolation within the class.
+    /// InitializeDatabaseAsync (chamado via IAsyncLifetime) executa TRUNCATE em todas as tabelas antes de cada método de teste,
+    /// garantindo um estado limpo. CleanupDatabase() é mantido como no-op para compatibilidade.
     /// </summary>
     protected TestInfrastructureOptions GetTestOptions()
     {
@@ -55,6 +56,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         if (dbName.Length > 63)
         {
             // keep uniqueness via GUID suffix (last 32 chars) + prefix to identify it's a test
+            // Manter unicidade via sufixo GUID (últimos 32 caracteres) + prefixo para identificar que é um teste
             // pt_ + 15 chars prefix + _ + 32 chars GUID = 51 chars < 63 limit
             var prefix = GetType().Name.Length > 15 ? GetType().Name[..15] : GetType().Name;
             dbName = $"pt_{prefix}_{_testClassId[^32..]}";
@@ -91,7 +93,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     }
 
     /// <summary>
-    /// Inicialização executada antes de cada classe de teste
+    /// Inicialização executada antes de cada método de teste
     /// </summary>
     public async ValueTask InitializeAsync()
     {
@@ -103,10 +105,12 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         var databaseName = options.Database.DatabaseName;
         
         // Get or add a Lazy<Task> to ensure we only create the database once
+        // Obter ou adicionar um Lazy<Task> para garantir que criamos o banco de dados apenas uma vez
         var creationTask = _createdDatabases.GetOrAdd(databaseName, 
-            new Lazy<Task>(() => CreateLogicalDatabaseAsync(databaseName)));
+            _ => new Lazy<Task>(() => CreateLogicalDatabaseAsync(databaseName)));
             
         // Await the task (wrapper for the actual creation logic)
+        // Aguardar a tarefa (wrapper para a lógica de criação real)
         await creationTask.Value;
         
         // Atualiza connection string para apontar para o novo banco
@@ -166,7 +170,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         }
     }
 
-    private async Task CreateLogicalDatabaseAsync(string databaseName)
+    private static async Task CreateLogicalDatabaseAsync(string databaseName)
     {
         // Conecta no banco 'postgres' padrão para criar o novo banco
         var adminConnectionString = _sharedContainer!.GetConnectionString();
@@ -176,6 +180,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         // Cria o banco de dados
         await using var command = connection.CreateCommand();
         // Sanitize database name to prevent injection/errors with weird chars
+        // Higienizar nome do banco de dados para evitar injeção/erros com caracteres estranhos
         var safeName = databaseName.Replace("\"", "\"\"");
         command.CommandText = $"CREATE DATABASE \"{safeName}\"";
         
@@ -186,6 +191,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         catch (PostgresException ex) when (ex.SqlState == "42P04") // Duplicate database
         {
             // Ignore if already exists (should be handled by Lazy, but good for safety)
+            // Ignorar se já existe (deve ser tratado pelo Lazy, mas bom para segurança)
         }
     }
 
@@ -232,6 +238,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         }
 
         // Sanity check
+        // Verificação de segurança
         var count = await dbContext.Providers.CountAsync();
         if (count > 0)
         {
@@ -275,6 +282,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         {
             await _serviceProvider.DisposeAsync();
         }
+        _dbContext = null;
 
         // NÃO descartamos o _sharedContainer aqui. Ele é estático e deve viver até o fim do processo.
         // Ryuk (Testcontainers) cuidará da limpeza ao final do processo.

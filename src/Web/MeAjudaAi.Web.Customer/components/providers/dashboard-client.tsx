@@ -12,7 +12,9 @@ import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { ProviderDto, ServiceDto } from "@/types/api/provider";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002';
+
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 interface ProviderDashboardClientProps {
     provider: ProviderDto;
@@ -29,10 +31,12 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
     const [isAddingService, setIsAddingService] = useState(false);
     const [isRemovingService, setIsRemovingService] = useState<string | null>(null);
 
+    const services = provider.services ?? [];
+
     const handleSaveDescription = async () => {
         setIsSavingDescription(true);
         try {
-            const res = await fetch(`${API_BASE}/api/providers/me`, {
+            const res = await fetch(`/api/providers/me`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -59,8 +63,20 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
         }
     };
 
+
+    const handleCancelDescription = () => {
+        setDescription(provider.businessProfile?.description || "");
+        setIsEditingDescription(false);
+    };
+
     const handleAddService = async () => {
         if (!newServiceId) return;
+
+        if (!UUID_REGEX.test(newServiceId)) {
+            toast.error("ID do serviço inválido. Deve ser um UUID.");
+            return;
+        }
+
         setIsAddingService(true);
         try {
             // Using local proxy route: /api/providers/[id]/services/[serviceId]
@@ -140,7 +156,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                                         placeholder="Descreva seus serviços e experiência..."
                                     />
                                     <div className="flex justify-end gap-2">
-                                        <Button variant="outline" size="sm" onClick={() => setIsEditingDescription(false)} disabled={isSavingDescription}>
+                                        <Button variant="outline" size="sm" onClick={handleCancelDescription} disabled={isSavingDescription}>
                                             Cancelar
                                         </Button>
                                         <Button size="sm" onClick={handleSaveDescription} disabled={isSavingDescription} className="bg-[#E0702B] hover:bg-[#c56225]">
@@ -179,10 +195,10 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
 
                             {/* Service List */}
                             <div className="space-y-2">
-                                {(provider.services || []).length === 0 ? (
+                                {services.length === 0 ? (
                                     <p className="text-slate-500 text-center py-4">Nenhum serviço cadastrado.</p>
                                 ) : (
-                                    (provider.services || []).map((service) => (
+                                    services.map((service) => (
                                         <div key={service.serviceId} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
                                             <div className="flex items-center gap-2">
                                                 <Badge variant="secondary" className="bg-white">{service.serviceName}</Badge>
