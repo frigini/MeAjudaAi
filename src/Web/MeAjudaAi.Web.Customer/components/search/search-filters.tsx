@@ -59,11 +59,11 @@ export function SearchFilters() {
                         max="100"
                         step="5"
                         value={radiusDraft}
-                        onChange={(e) => setRadiusDraft(e.target.value)}
-                        onMouseUp={() => updateFilter("radiusInKm", radiusDraft)}
-                        onTouchEnd={() => updateFilter("radiusInKm", radiusDraft)}
-                        onKeyUp={() => updateFilter("radiusInKm", radiusDraft)}
                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-600 hover:accent-orange-700 transition-all"
+                        onChange={(e) => setRadiusDraft(e.target.value)}
+                        onMouseUp={(e) => updateFilter("radiusInKm", (e.target as HTMLInputElement).value)}
+                        onTouchEnd={(e) => updateFilter("radiusInKm", (e.target as HTMLInputElement).value)}
+                        onKeyUp={(e) => updateFilter("radiusInKm", (e.target as HTMLInputElement).value)}
                     />
                     <div className="flex justify-between text-xs text-gray-400 font-medium">
                         <span>5km</span>

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ServiceCard } from "@/components/service/service-card";
@@ -156,13 +157,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             <div className="flex flex-col lg:flex-row gap-8">
                 {/* Sidebar Filters */}
                 <aside className="w-full lg:w-64 shrink-0">
-                    <SearchFilters />
+                    <Suspense fallback={<div className="h-96 w-full bg-gray-100 rounded-xl animate-pulse" />}>
+                        <SearchFilters />
+                    </Suspense>
                 </aside>
 
                 <main className="flex-1">
                     {/* 2. Service Tags - Full Width */}
                     <div className="mb-8">
-                        <ServiceTags />
+                        <Suspense fallback={<div className="h-10 w-full bg-gray-100 rounded-full animate-pulse" />}>
+                            <ServiceTags />
+                        </Suspense>
                     </div>
 
                     {/* 4. Provider Grid */}

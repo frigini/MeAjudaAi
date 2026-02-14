@@ -10,7 +10,7 @@ public class FakeAccessTokenProvider : IAccessTokenProvider
     public ValueTask<AccessTokenResult> RequestAccessToken()
     {
         var token = new AccessToken { Value = "fake_development_token" };
-        var result = new AccessTokenResult(AccessTokenResultStatus.Success, token, string.Empty);
+        var result = new AccessTokenResult(AccessTokenResultStatus.Success, token, string.Empty, null);
         return new ValueTask<AccessTokenResult>(result);
     }
 

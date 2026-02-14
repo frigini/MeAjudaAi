@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
-import { ProviderDto, ServiceDto } from "@/types/api/provider";
+import { ProviderDto } from "@/types/api/provider";
 
 
 

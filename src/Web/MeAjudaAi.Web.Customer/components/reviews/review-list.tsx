@@ -18,6 +18,7 @@ const generateMockReviews = (count: number): Review[] => {
     }));
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function ReviewList({ providerId }: { providerId: string }) {
     const [reviews, setReviews] = useState<Review[]>(() => generateMockReviews(4));
 

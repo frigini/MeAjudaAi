@@ -67,7 +67,7 @@ const getCachedProvider = cache(async (id: string): Promise<PublicProviderData |
         return result.data;
 
     } catch (error) {
-        if (error instanceof Error && (error.message.includes("404") || (error as any).status === 404)) return null;
+        if (error instanceof Error && (error.message.includes("404") || (error as { status?: number }).status === 404)) return null;
         console.error(`Exception fetching public provider ${id}:`, error);
         throw error;
     }

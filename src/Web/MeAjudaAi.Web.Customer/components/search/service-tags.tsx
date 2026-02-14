@@ -18,6 +18,8 @@ export function ServiceTags() {
                 setTags(data.filter(t => t.name));
                 setIsLoading(false);
             }
+        }).catch(() => {
+            if (!cancelled) setIsLoading(false);
         });
         return () => { cancelled = true; };
     }, []);

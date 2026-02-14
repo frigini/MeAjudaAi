@@ -274,7 +274,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     }
 
     /// <summary>
-    /// Limpeza executada após cada classe de teste
+    /// Limpeza executada após cada método de teste
     /// </summary>
     public async ValueTask DisposeAsync()
     {

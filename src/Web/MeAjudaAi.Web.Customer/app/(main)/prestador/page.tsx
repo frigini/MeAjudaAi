@@ -53,7 +53,7 @@ export default async function DashboardPage() {
 
         // Normalize verificationStatus (API might return lowercase)
         if (provider.verificationStatus && typeof provider.verificationStatus === 'string') {
-            provider.verificationStatus = (provider.verificationStatus.charAt(0).toUpperCase() + provider.verificationStatus.slice(1).toLowerCase()) as any;
+            provider.verificationStatus = (provider.verificationStatus.charAt(0).toUpperCase() + provider.verificationStatus.slice(1).toLowerCase()) as ProviderDto["verificationStatus"];
         }
 
         return <DashboardClient provider={provider} />;

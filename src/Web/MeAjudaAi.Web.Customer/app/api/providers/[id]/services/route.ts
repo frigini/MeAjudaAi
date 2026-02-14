@@ -10,7 +10,7 @@ export async function POST(
         return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const { id } = await params;
+    await params; // params must be awaited in Next.js 15
     // We need serviceId from body or query? 
     // The previous implementation was POST .../services/{serviceId}
     // But here we are in /api/providers/[id]/services/route.ts? No.
