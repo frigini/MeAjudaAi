@@ -26,8 +26,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     const { q, city, radiusInKm, minRating, categoryId } = await searchParams;
     const searchQuery = q || "";
     const cityFilter = city || "";
-    const radius = parseFloat(radiusInKm || process.env.NEXT_PUBLIC_DEFAULT_RADIUS || "50");
-    const minRatingVal = minRating ? parseFloat(minRating) : undefined;
+    const radiusInKmVal = parseFloat(radiusInKm || process.env.NEXT_PUBLIC_DEFAULT_RADIUS || "50");
+    const radius = Number.isNaN(radiusInKmVal) ? 50 : radiusInKmVal;
+
+    const minRatingParsed = minRating ? parseFloat(minRating) : undefined;
+    const minRatingVal = (minRatingParsed !== undefined && !Number.isNaN(minRatingParsed)) ? minRatingParsed : undefined;
 
     // Default coordinates (Linhares - ES) for development, with environment overrides
     let latitude = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_LAT || "-19.3917");
@@ -53,7 +56,10 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 query: { activeOnly: true }
             });
             if (catServices?.data) {
-                serviceIds = catServices.data.map(s => s.id!).filter(Boolean);
+                // Filter out undefined or empty strings to ensure safe ID list
+                serviceIds = catServices.data
+                    .map(s => s.id)
+                    .filter((id): id is string => !!id);
             }
         } catch (e) {
             console.error("Failed to fetch services for category", e);
@@ -73,6 +79,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             minRating: minRatingVal,
             page: 1,
             pageSize: 20,
+            // TODO: Remove 'as any' when SDK is regenerated to include 'term' in ApiProvidersGet3Data
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
         headers,
@@ -93,11 +100,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
     const gridItems: GridItem[] = [];
     if (providers.length > 0) {
-        gridItems.push({ type: 'provider', data: providers[0] });
-        gridItems.push({ type: 'ad', data: null });
-        providers.slice(1).forEach(p => {
-            gridItems.push({ type: 'provider', data: p });
-        });
+        // Only inject ad if we have multiple providers to avoid weird single-item grid with ad
+        if (providers.length > 1) {
+            gridItems.push({ type: 'provider', data: providers[0] });
+            gridItems.push({ type: 'ad', data: null });
+            providers.slice(1).forEach(p => {
+                gridItems.push({ type: 'provider', data: p });
+            });
+        } else {
+            // Just the single provider
+            gridItems.push({ type: 'provider', data: providers[0] });
+        }
     } else {
         // Even if no providers, show AdCard? Maybe not.
         // If empty, standard empty state.

@@ -227,7 +227,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
                     r RECORD;
                 BEGIN
                     FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'providers') LOOP
-                        EXECUTE 'TRUNCATE TABLE ""providers"".""' || r.tablename || '"" CASCADE';
+                        EXECUTE 'TRUNCATE TABLE ' || quote_ident('providers') || '.' || quote_ident(r.tablename) || ' CASCADE';
                     END LOOP;
                 END $$;
             ");

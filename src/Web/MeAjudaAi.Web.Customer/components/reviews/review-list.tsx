@@ -37,23 +37,34 @@ export function ReviewList({ providerId }: { providerId: string }) {
     return (
         <div className="space-y-6">
             <div className="flex justify-end mb-4">
-                <Button variant="ghost" size="sm" className="h-8 gap-2 text-muted-foreground" onClick={() => setReviews(prev => [...prev].reverse())}>
+                <Button variant="ghost" size="sm" className="h-8 gap-2 text-muted-foreground" onClick={() => setReviews(prev => [...prev].reverse())} disabled={reviews.length === 0}>
                     <span className="text-sm">Ordenar</span>
                     <ArrowUpDown className="h-4 w-4" />
                 </Button>
             </div>
 
-            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                {reviews.map((review) => (
-                    <ReviewCard key={review.id} review={review} />
-                ))}
-            </div>
+            {reviews.length > 0 ? (
+                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                    {reviews.map((review) => (
+                        <ReviewCard key={review.id} review={review} />
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-12 text-muted-foreground bg-slate-50 rounded-lg border border-dashed">
+                    <p>Ainda não há avaliações para este prestador.</p>
+                </div>
+            )}
 
-            <div className="text-center mt-8">
-                <Button variant="outline" onClick={loadMore}>
-                    Carregar mais
-                </Button>
-            </div>
+            {reviews.length > 0 && (
+                <div className="text-center mt-8 space-y-2">
+                    <Button variant="outline" onClick={loadMore}>
+                        Carregar mais
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                        Mostrando {reviews.length} avaliações
+                    </p>
+                </div>
+            )}
         </div>
     );
 }

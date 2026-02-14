@@ -208,7 +208,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                                                 size="sm"
                                                 className="text-red-500 hover:text-red-700 hover:bg-red-50"
                                                 onClick={() => service.serviceId && handleRemoveService(service.serviceId)}
-                                                disabled={isRemovingService === service.serviceId}
+                                                disabled={!service.serviceId || isRemovingService === service.serviceId}
                                             >
                                                 {isRemovingService === service.serviceId ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                                             </Button>

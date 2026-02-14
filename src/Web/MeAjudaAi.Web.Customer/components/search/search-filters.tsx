@@ -63,7 +63,11 @@ export function SearchFilters() {
                         onChange={(e) => setRadiusDraft(e.target.value)}
                         onMouseUp={(e) => updateFilter("radiusInKm", (e.target as HTMLInputElement).value)}
                         onTouchEnd={(e) => updateFilter("radiusInKm", (e.target as HTMLInputElement).value)}
-                        onKeyUp={(e) => updateFilter("radiusInKm", (e.target as HTMLInputElement).value)}
+                        onKeyUp={(e) => {
+                            if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+                                updateFilter("radiusInKm", (e.target as HTMLInputElement).value);
+                            }
+                        }}
                     />
                     <div className="flex justify-between text-xs text-gray-400 font-medium">
                         <span>5km</span>
