@@ -55,7 +55,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 **📅 Sprint 8B pré-início**: Fevereiro de 2026
 
-### ✅ Sprint 8A - Customer Web App & Test Optimization - CONCLUÍDA (13 Fev 2026)
+### ✅ Sprint 8A - Customer Web App & Test Optimization - CONCLUÍDA (5-13 Fev 2026)
 
 **Objetivos**:
 1. ✅ **Integrar Service Tags com Backend**

@@ -35,20 +35,25 @@ public class UpdateMyProviderProfileEndpoint : BaseEndpoint, IEndpoint
         CancellationToken cancellationToken)
     {
         if (request is null)
-            return Results.BadRequest("O corpo da requisição é obrigatório");
+            return BadRequest("O corpo da requisição é obrigatório");
 
         var userIdString = GetUserId(context);
         if (!Guid.TryParse(userIdString, out var userId))
-            return Results.BadRequest("Formato de ID de usuário inválido");
+            return BadRequest("Formato de ID de usuário inválido");
 
         // Primeiro, obter o ID do prestador para o usuário atual
         var query = new GetProviderByUserIdQuery(userId);
         var providerResult = await queryDispatcher.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(
             query, cancellationToken);
 
-        if (providerResult.IsFailure || providerResult.Value is null)
+        if (providerResult.IsFailure)
         {
-            return Results.NotFound("Perfil do provedor não encontrado para o usuário atual.");
+            return BadRequest(providerResult.Error.Message);
+        }
+
+        if (providerResult.Value is null)
+        {
+            return NotFound("Perfil do provedor não encontrado para o usuário atual.");
         }
 
         var providerId = providerResult.Value.Id;

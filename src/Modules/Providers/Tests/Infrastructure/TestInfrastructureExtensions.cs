@@ -45,7 +45,16 @@ public static class ProvidersTestInfrastructureExtensions
         // Usar extensões compartilhadas
         services.AddTestLogging();
         services.AddTestCache(options.Cache);
-        services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
+        services.AddTestCache(options.Cache);
+        
+        var configBuilder = new ConfigurationBuilder();
+        if (options.FeatureFlags?.Any() == true)
+        {
+            configBuilder.AddInMemoryCollection(
+                options.FeatureFlags.Select(kv => new KeyValuePair<string, string?>($"FeatureManagement:{kv.Key}", kv.Value.ToString())));
+        }
+        services.AddSingleton<IConfiguration>(configBuilder.Build());
+
         services.AddFeatureManagement();
 
         // Adicionar serviços de cache do Shared (incluindo ICacheService)
@@ -58,7 +67,11 @@ public static class ProvidersTestInfrastructureExtensions
             if (options.Database.UseInMemoryDatabase)
             {
                 dbOptions.UseInMemoryDatabase(options.Database.DatabaseName);
-                dbOptions.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning));
+                dbOptions.ConfigureWarnings(warnings => 
+                {
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning);
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning);
+                });
             }
             else
             {
@@ -80,13 +93,13 @@ public static class ProvidersTestInfrastructureExtensions
                     npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", options.Database.Schema);
                     npgsqlOptions.CommandTimeout(60);
                 });
-            }
 
-            dbOptions.ConfigureWarnings(warnings =>
-            {
-                // Suprimir warnings de pending model changes em testes
-                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning);
-            });
+                dbOptions.ConfigureWarnings(warnings =>
+                {
+                    // Suprimir warnings de pending model changes em testes
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning);
+                });
+            }
         }, ServiceLifetime.Scoped);
 
         // Adicionar repositórios específicos do Providers

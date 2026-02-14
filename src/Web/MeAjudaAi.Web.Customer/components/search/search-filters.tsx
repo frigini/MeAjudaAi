@@ -14,12 +14,21 @@ export function SearchFilters() {
 
     // Default values
     const currentRadius = searchParams.get("radiusInKm") || "50";
+    const [radiusDraft, setRadiusDraft] = useState(currentRadius);
     const currentMinRating = searchParams.get("minRating") || "";
     const activeCategory = searchParams.get("categoryId");
 
     useEffect(() => {
+        setRadiusDraft(currentRadius);
+    }, [currentRadius]);
+
+    useEffect(() => {
         apiCategoriesGet({ query: { activeOnly: true } })
-            .then(res => setCategories(res.data?.data || []));
+            .then(res => setCategories(res.data?.data || []))
+            .catch(err => {
+                console.error("Failed to load categories:", err);
+                setCategories([]);
+            });
     }, []);
 
     const updateFilter = (key: string, value: string | null) => {
@@ -41,7 +50,7 @@ export function SearchFilters() {
             <div>
                 <div className="flex justify-between items-center mb-3">
                     <h3 className="font-semibold text-sm uppercase text-gray-500 tracking-wider">Distância</h3>
-                    <span className="text-sm font-medium text-orange-600">{currentRadius} km</span>
+                    <span className="text-sm font-medium text-orange-600">{radiusDraft} km</span>
                 </div>
                 <div className="space-y-4">
                     <input
@@ -49,8 +58,10 @@ export function SearchFilters() {
                         min="5"
                         max="100"
                         step="5"
-                        value={currentRadius}
-                        onChange={(e) => updateFilter("radiusInKm", e.target.value)}
+                        value={radiusDraft}
+                        onChange={(e) => setRadiusDraft(e.target.value)}
+                        onMouseUp={() => updateFilter("radiusInKm", radiusDraft)}
+                        onTouchEnd={() => updateFilter("radiusInKm", radiusDraft)}
                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-600 hover:accent-orange-700 transition-all"
                     />
                     <div className="flex justify-between text-xs text-gray-400 font-medium">

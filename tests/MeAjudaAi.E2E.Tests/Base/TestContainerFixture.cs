@@ -362,8 +362,9 @@ public class TestContainerFixture : IAsyncLifetime
     private static async Task CleanupContext<TContext>(IServiceProvider services) where TContext : DbContext
     {
         var context = services.GetRequiredService<TContext>();
+        var tableNames = new List<string>();
 
-        // Delete all data but keep schema
+        // Collect all table names
         foreach (var entityType in context.Model.GetEntityTypes())
         {
             var tableName = entityType.GetTableName();
@@ -375,11 +376,20 @@ public class TestContainerFixture : IAsyncLifetime
                 var qualifiedTableName = string.IsNullOrEmpty(schema) || schema == "public"
                     ? $"\"{tableName}\""
                     : $"\"{schema}\".\"{tableName}\"";
+                
+                tableNames.Add(qualifiedTableName);
+            }
+        }
+
+        if (tableNames.Count > 0)
+        {
+            // Deduplicate table names (in case of shared tables or multiple entities mapping to same table)
+            var uniqueTables = tableNames.Distinct().ToList();
+            var batchSql = $"TRUNCATE TABLE {string.Join(", ", uniqueTables)} CASCADE";
 
 #pragma warning disable EF1002 // Risk of SQL injection - table/schema names come from EF metadata, not user input
-                await context.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {qualifiedTableName} CASCADE");
+            await context.Database.ExecuteSqlRawAsync(batchSql);
 #pragma warning restore EF1002
-            }
         }
     }
 

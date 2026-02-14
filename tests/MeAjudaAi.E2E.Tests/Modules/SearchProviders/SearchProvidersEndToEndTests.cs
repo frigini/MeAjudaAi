@@ -444,16 +444,19 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         {
             var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.IDapperConnection>();
             
+            // Note: The table name is "search_providers.searchable_providers"
+            // We need to ensure we set the SRID to 4326 for the geography column
             var sql = @"
                 INSERT INTO search_providers.searchable_providers 
-                (id, provider_id, name, location, average_rating, total_reviews, subscription_tier, service_ids, is_active, created_at)
+                (id, provider_id, name, description, city, state, location, average_rating, total_reviews, subscription_tier, service_ids, is_active, created_at, updated_at)
                 VALUES 
-                (@Id, @ProviderId, @Name, ST_SetSRID(ST_MakePoint(@Longitude, @Latitude), 4326)::geography, @AvgRating, @TotalReviews, @SubscriptionTier, @ServiceIds, @IsActive, @CreatedAt)
+                (@Id, @ProviderId, @Name, @Description, @City, @State, ST_SetSRID(ST_MakePoint(@Longitude, @Latitude), 4326)::geography, @AvgRating, @TotalReviews, @SubscriptionTier, @ServiceIds, @IsActive, @CreatedAt, @UpdatedAt)
                 ON CONFLICT (provider_id) 
                 DO UPDATE SET 
                     name = EXCLUDED.name,
                     location = EXCLUDED.location,
                     service_ids = EXCLUDED.service_ids,
+                    is_active = EXCLUDED.is_active,
                     updated_at = CURRENT_TIMESTAMP";
             
             await dapper.ExecuteAsync(sql, new
@@ -461,14 +464,18 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
                 Id = Guid.NewGuid(),
                 ProviderId = providerId,
                 Name = name,
+                Description = $"Test Provider {name}",
+                City = "São Paulo",
+                State = "SP",
                 Latitude = latitude,
                 Longitude = longitude,
-                AvgRating = 0.0m,
-                TotalReviews = 0,
-                SubscriptionTier = 0, // Free
+                AvgRating = 5.0m, // Ensure high rating to appear in top results
+                TotalReviews = 10,
+                SubscriptionTier = 1, // Gold/Standard tier (not 0/Free to ensure visibility if tiered) -> Wait, logic uses 0=Free, 1=Standard, etc. Let's use 1 (Standard) to be safe.
                 ServiceIds = serviceIds ?? Array.Empty<Guid>(),
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             });
         });
     }

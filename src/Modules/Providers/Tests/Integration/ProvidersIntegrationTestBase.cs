@@ -27,6 +27,10 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     private static PostgreSqlContainer? _sharedContainer;
     private static readonly SemaphoreSlim _sharedContainerLock = new(1, 1);
     
+    // Cache de nomes de bancos para garantir reutilização por TYPE da classe de teste
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, string> _databaseNames = new();
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> _createdDatabases = new();
+
     private ServiceProvider? _serviceProvider;
     private ProvidersDbContext? _dbContext;
     private readonly string _testClassId;
@@ -34,7 +38,9 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
 
     protected ProvidersIntegrationTestBase()
     {
-        _testClassId = $"{GetType().Name}_{Guid.NewGuid():N}";
+        // Garante que a mesma classe de teste use sempre o mesmo nome base, 
+        // mas classes diferentes (mesmo rodando em paralelo) tenham nomes diferentes.
+        _testClassId = _databaseNames.GetOrAdd(GetType(), t => $"{t.Name}_{Guid.NewGuid():N}");
     }
 
     /// <summary>
@@ -42,11 +48,19 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     /// </summary>
     protected TestInfrastructureOptions GetTestOptions()
     {
+        var dbName = $"providers_test_{_testClassId}";
+        if (dbName.Length > 63)
+        {
+            // keep uniqueness via GUID suffix (last 32 chars) + prefix to identify it's a test
+            // provider_test_ + 32 chars GUID = 46 chars < 63 limit
+            dbName = $"providers_test_{_testClassId[^32..]}";
+        }
+
         var options = new TestInfrastructureOptions
         {
             Database = new TestDatabaseOptions
             {
-                DatabaseName = $"providers_test_{_testClassId}",
+                DatabaseName = dbName,
                 Username = "test_user",
                 Password = "test_password",
                 Schema = "providers",
@@ -84,7 +98,11 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         var options = GetTestOptions();
         var databaseName = options.Database.DatabaseName;
         
-        await CreateLogicalDatabaseAsync(databaseName);
+        // Só cria se ainda não foi criado para este nome
+        if (_createdDatabases.TryAdd(databaseName, true)) 
+        {
+            await CreateLogicalDatabaseAsync(databaseName);
+        }
         
         // Atualiza connection string para apontar para o novo banco
         var builder = new NpgsqlConnectionStringBuilder(_sharedContainer!.GetConnectionString())
