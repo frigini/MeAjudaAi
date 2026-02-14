@@ -120,6 +120,7 @@
     <!--   - Hangfire.SqlServer (requires SQL Server)                              -->
     <!-- ========================================================================== -->
     <!-- Data Access -->
+    <PackageVersion Include="Npgsql" Version="10.0.0" />
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.2" />
     <!-- Microsoft Extensions -->

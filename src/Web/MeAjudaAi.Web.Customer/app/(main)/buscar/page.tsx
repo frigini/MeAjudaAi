@@ -66,6 +66,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             }
         } catch (e) {
             console.error("Failed to fetch services for category", e);
+            // Rethrow to avoid fail-open (showing all providers when filter fails)
+            throw new Error("Failed to validate category filter");
         }
     }
 
