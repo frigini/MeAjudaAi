@@ -471,12 +471,13 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
                 Longitude = longitude,
                 AvgRating = 5.0m, // Ensure high rating to appear in top results
                 TotalReviews = 10,
-                SubscriptionTier = 1, // Gold/Standard tier (not 0/Free to ensure visibility if tiered) -> Wait, logic uses 0=Free, 1=Standard, etc. Let's use 1 (Standard) to be safe.
+                SubscriptionTier = 1, // Standard
                 ServiceIds = serviceIds ?? Array.Empty<Guid>(),
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             });
+
         });
     }
 
