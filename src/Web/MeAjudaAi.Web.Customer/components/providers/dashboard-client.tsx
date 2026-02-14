@@ -159,7 +159,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                                         <Button variant="outline" size="sm" onClick={handleCancelDescription} disabled={isSavingDescription}>
                                             Cancelar
                                         </Button>
-                                        <Button size="sm" onClick={handleSaveDescription} disabled={isSavingDescription} className="bg-[#E0702B] hover:bg-[#c56225]">
+                                        <Button size="sm" onClick={handleSaveDescription} disabled={isSavingDescription} className="bg-brand hover:bg-brand-hover text-white">
                                             {isSavingDescription && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                             Salvar
                                         </Button>
@@ -187,7 +187,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                                     value={newServiceId}
                                     onChange={(e) => setNewServiceId(e.target.value)}
                                 />
-                                <Button onClick={handleAddService} disabled={isAddingService || !newServiceId} className="bg-[#E0702B] hover:bg-[#c56225]">
+                                <Button onClick={handleAddService} disabled={isAddingService || !newServiceId} className="bg-brand hover:bg-brand-hover text-white">
                                     {isAddingService ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
                                     Adicionar
                                 </Button>
@@ -198,15 +198,12 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                                 {services.length === 0 ? (
                                     <p className="text-slate-500 text-center py-4">Nenhum serviço cadastrado.</p>
                                 ) : (
-                                    services.map((service) => (
-                                        <div key={service.serviceId} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
+                                    services.map((service, index) => (
+                                        <div key={service.serviceId ?? index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
                                             <div className="flex items-center gap-2">
                                                 <Badge variant="secondary" className="bg-white">{service.serviceName}</Badge>
                                             </div>
                                             <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
                                                 onClick={() => service.serviceId && handleRemoveService(service.serviceId)}
                                                 disabled={!service.serviceId || isRemovingService === service.serviceId}
                                             >

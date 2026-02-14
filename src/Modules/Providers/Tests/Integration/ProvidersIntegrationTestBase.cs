@@ -67,8 +67,8 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
             Database = new TestDatabaseOptions
             {
                 DatabaseName = dbName,
-                Username = "test_user",
-                Password = "test_password",
+                Username = "postgres",
+                Password = "test123",
                 Schema = "providers",
                 // Força o uso do container compartilhado sobrescrevendo a connection string posteriormente
             },
@@ -281,6 +281,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         if (_serviceProvider != null)
         {
             await _serviceProvider.DisposeAsync();
+            _serviceProvider = null;
         }
         _dbContext = null;
 

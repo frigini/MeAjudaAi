@@ -32,9 +32,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     const minRatingParsed = minRating ? parseFloat(minRating) : undefined;
     const minRatingVal = (minRatingParsed !== undefined && !Number.isNaN(minRatingParsed)) ? minRatingParsed : undefined;
 
-    // Default coordinates (Linhares - ES) for development, with environment overrides
-    let latitude = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_LAT || "-19.3917");
-    let longitude = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_LNG || "-40.0722");
+    const DEFAULT_LAT = -19.3917;
+    const DEFAULT_LNG = -40.0722;
+    let latitude = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_LAT || "");
+    let longitude = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_LNG || "");
+    if (Number.isNaN(latitude)) latitude = DEFAULT_LAT;
+    if (Number.isNaN(longitude)) longitude = DEFAULT_LNG;
 
     // Attempt to geocode if city is provided
     if (cityFilter) {

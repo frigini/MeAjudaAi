@@ -130,7 +130,7 @@ export function SearchFilters() {
                                 id={`c-${cat.id}`}
                                 name="category"
                                 checked={activeCategory === cat.id}
-                                onChange={() => updateFilter("categoryId", cat.id || "")}
+                                onChange={() => updateFilter("categoryId", cat.id || null)}
                                 className="text-orange-600 focus:ring-orange-500 border-gray-300"
                             />
                             <Label htmlFor={`c-${cat.id}`} className={cn("cursor-pointer text-sm flex-1", activeCategory === cat.id && "font-medium text-orange-900")}>{cat.name}</Label>

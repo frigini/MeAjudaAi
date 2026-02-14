@@ -26,6 +26,7 @@ export function ReviewList({ providerId }: { providerId: string }) {
         // Mock loading more
         // TODO: Mudar para API real e usar providerId
         setReviews(prev => {
+            if (prev.length >= 20) return prev; // mock cap
             const newReviews = generateMockReviews(4).map(r => ({
                 ...r,
                 id: `review-${prev.length + parseInt(r.id.split('-')[1])}`

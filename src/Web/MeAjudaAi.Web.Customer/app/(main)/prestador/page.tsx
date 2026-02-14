@@ -1,8 +1,7 @@
 import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 import DashboardClient from "@/components/providers/dashboard-client";
 import { ProviderDto } from "@/types/api/provider";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 export default async function DashboardPage() {
     const session = await auth();
@@ -46,7 +45,7 @@ export default async function DashboardPage() {
         // BaseEndpoint usually returns Result.
 
         let provider: ProviderDto;
-        if (json.value) {
+        if ("value" in json && json.value != null) {
             provider = json.value;
         } else {
             provider = json;
@@ -70,9 +69,7 @@ export default async function DashboardPage() {
 
     } catch (error) {
         // Allow Next.js redirects to bubble up
-        if (isRedirectError(error)) {
-            throw error;
-        }
+        unstable_rethrow(error);
 
         console.error("Dashboard Error:", error);
         return (
