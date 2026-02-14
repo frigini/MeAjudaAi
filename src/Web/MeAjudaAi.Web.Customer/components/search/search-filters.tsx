@@ -1,11 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiCategoriesGet } from "@/lib/api/generated/sdk.gen";
 import { MeAjudaAiModulesServiceCatalogsApplicationDtosServiceCategoryDto as ServiceCategoryDto } from "@/lib/api/generated/types.gen";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+
+// Custom hook for debouncing callbacks
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function useDebouncedCallback<T extends (...args: any[]) => void>(callback: T, delay: number) {
+    const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+    return useCallback((...args: Parameters<T>) => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+
+        timeoutRef.current = setTimeout(() => {
+            callback(...args);
+        }, delay);
+    }, [callback, delay]);
+}
 
 export function SearchFilters() {
     const router = useRouter();
@@ -31,18 +47,23 @@ export function SearchFilters() {
             });
     }, []);
 
-    const updateFilter = (key: string, value: string | null) => {
+    // Debounce navigation to prevent excessive refreshing
+    const debouncedUpdate = useDebouncedCallback((key: string, value: string | number | null) => {
         const params = new URLSearchParams(searchParams.toString());
-        if (value != null) {
-            params.set(key, value);
+        if (value != null) { // Use != null to handle both null and undefined
+            params.set(key, value.toString());
         } else {
             params.delete(key);
         }
-
         // Reset page when filtering
         params.delete("page");
+        router.push(`/buscar?${params.toString()}`, { scroll: false });
+    }, 300);
 
-        router.push(`/buscar?${params.toString()}`);
+    const updateFilter = (key: string, value: string | number | null) => {
+        // Update local state immediately if needed (already handled by specific handlers), 
+        // but debounce the URL update.
+        debouncedUpdate(key, value);
     };
 
     return (

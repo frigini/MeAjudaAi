@@ -204,6 +204,9 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                                                 <Badge variant="secondary" className="bg-white">{service.serviceName}</Badge>
                                             </div>
                                             <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
                                                 onClick={() => service.serviceId && handleRemoveService(service.serviceId)}
                                                 disabled={!service.serviceId || isRemovingService === service.serviceId}
                                             >

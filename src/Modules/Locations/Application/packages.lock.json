@@ -45,6 +45,11 @@
           "Microsoft.Identity.Client.Extensions.Msal": "4.76.0"
         }
       },
+      "Dapper.AOT": {
+        "type": "Transitive",
+        "resolved": "1.0.48",
+        "contentHash": "rsLM3yKr4g+YKKox9lhc8D+kz67P7Q9+xdyn1LmCsoYr1kYpJSm+Nt6slo5UrfUrcTiGJ57zUlyO8XUdV7G7iA=="
+      },
       "Hangfire.NetCore": {
         "type": "Transitive",
         "resolved": "1.8.23",
@@ -405,7 +410,7 @@
           "FluentValidation.DependencyInjectionExtensions": "[12.1.1, )",
           "Hangfire.AspNetCore": "[1.8.23, )",
           "Hangfire.Core": "[1.8.23, )",
-          "Hangfire.PostgreSql": "[1.20.13, )",
+          "Hangfire.PostgreSql": "[1.21.1, )",
           "MeAjudaAi.Contracts": "[1.0.0, )",
           "Microsoft.AspNetCore.OpenApi": "[10.0.2, )",
           "Microsoft.EntityFrameworkCore": "[10.0.2, )",
@@ -530,11 +535,12 @@
       },
       "Hangfire.PostgreSql": {
         "type": "CentralTransitive",
-        "requested": "[1.20.13, )",
-        "resolved": "1.20.13",
-        "contentHash": "+JxVOTQINm/gTNstGYgiJQzjP81lGM86COvaSomSyYbbjDExAcqwc5xflsykMVfBKxMP6C/bH0wWgrlhPS0SMQ==",
+        "requested": "[1.21.1, )",
+        "resolved": "1.21.1",
+        "contentHash": "hFNZAxv+1p72/XCZdImnH6ovCzZ2DKAMTOI8CReT0P3yw/k0b0YJP2teA18agNH1ZYInPzhtxGk8hx5n2cxbbQ==",
         "dependencies": {
           "Dapper": "2.0.123",
+          "Dapper.AOT": "1.0.48",
           "Hangfire.Core": "1.8.0",
           "Npgsql": "6.0.11"
         }

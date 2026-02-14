@@ -27,6 +27,10 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     private static PostgreSqlContainer? _sharedContainer;
     private static readonly SemaphoreSlim _sharedContainerLock = new(1, 1);
     
+    // Credentials for the test database
+    private const string DbUsername = "postgres";
+    private const string DbPassword = "test123";
+
     // Cache de nomes de bancos para garantir reutilização por TYPE da classe de teste
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, string> _databaseNames = new();
     // Usar Lazy<Task> para garantir que apenas uma tarefa de criação seja executada por nome de banco de dados, mesmo com testes simultâneos
@@ -54,6 +58,9 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         var dbName = $"providers_test_{_testClassId}";
         if (dbName.Length > 63)
         {
+            // pt_ + 15 chars prefix + _ + 32 chars GUID = 51 chars < 63 limit.
+            // Note: PostgreSQL limit is 63 BYTES, not characters. Multi-byte chars in class name could exceed this.
+            // Nota: O limite do PostgreSQL é 63 BYTES, não caracteres. Caracteres multi-byte no nome da classe podem exceder isso.
             // Manter unicidade via sufixo GUID (últimos 32 caracteres) + prefixo para identificar que é um teste
             var prefix = GetType().Name.Length > 15 ? GetType().Name[..15] : GetType().Name;
             dbName = $"pt_{prefix}_{_testClassId[^32..]}";
@@ -64,8 +71,8 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
             Database = new TestDatabaseOptions
             {
                 DatabaseName = dbName,
-                Username = "postgres",
-                Password = "test123",
+                Username = DbUsername,
+                Password = DbPassword,
                 Schema = "providers",
                 // Força o uso do container compartilhado sobrescrevendo a connection string posteriormente
             },
@@ -150,8 +157,8 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
 
             var container = new PostgreSqlBuilder("postgis/postgis:16-3.4")
                 .WithDatabase("postgres") // Banco padrão para conexões administrativas
-                .WithUsername("postgres")
-                .WithPassword("test123")
+                .WithUsername(DbUsername)
+                .WithPassword(DbPassword)
                 .WithCleanUp(true)
                 .Build();
 
