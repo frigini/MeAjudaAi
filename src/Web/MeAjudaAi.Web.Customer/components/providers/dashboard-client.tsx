@@ -29,7 +29,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
 
     const [newServiceId, setNewServiceId] = useState("");
     const [isAddingService, setIsAddingService] = useState(false);
-    const [isRemovingService, setIsRemovingService] = useState<string | null>(null);
+    const [isRemovingService, setIsRemovingService] = useState<Set<string>>(new Set());
 
     const services = provider.services ?? [];
 
@@ -110,7 +110,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
 
     const handleRemoveService = async (serviceId: string) => {
         if (!confirm("Tem certeza que deseja remover este serviço?")) return;
-        setIsRemovingService(serviceId);
+        setIsRemovingService(prev => new Set(prev).add(serviceId));
         try {
             const res = await fetch(`/api/providers/${provider.id}/services/${serviceId}`, {
                 method: "DELETE"
@@ -124,7 +124,11 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
             console.error(error);
             toast.error("Erro ao remover serviço.");
         } finally {
-            setIsRemovingService(null);
+            setIsRemovingService(prev => {
+                const next = new Set(prev);
+                next.delete(serviceId);
+                return next;
+            });
         }
     };
 
@@ -225,9 +229,9 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                                                 size="sm"
                                                 className="text-red-500 hover:text-red-700 hover:bg-red-50"
                                                 onClick={() => service.serviceId && handleRemoveService(service.serviceId)}
-                                                disabled={!service.serviceId || isRemovingService === service.serviceId}
+                                                disabled={!service.serviceId || isRemovingService.has(service.serviceId)}
                                             >
-                                                {isRemovingService === service.serviceId ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                                {service.serviceId && isRemovingService.has(service.serviceId) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                                             </Button>
                                         </div>
                                     ))
@@ -247,9 +251,6 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                         <CardContent>
                             <div className="flex items-center gap-2">
                                 <VerifiedBadge status={provider.verificationStatus ?? "Pending"} showLabel size="lg" />
-                                {provider.verificationStatus === "Pending" && (
-                                    <span className="text-yellow-600 font-medium">Pendente de Verificação</span>
-                                )}
                             </div>
                             <p className="text-xs text-slate-400 mt-4">
                                 ID: {provider.id}

@@ -1436,9 +1436,9 @@ Get-ChildItem -Recurse -Include *.cs | Select-String "record "
 
 ---
 
-### 🔄 Sprint 8A - Customer Web App (Em Andamento)
+### ✅ Sprint 8A - Customer Web App (Concluída)
 
-**Status**: EM ANDAMENTO (5-18 Fev 2026)  
+**Status**: CONCLUÍDA (5-13 Fev 2026)  
 **Foco**: Refinamento de Layout e UX (Home & Search)
 
 **Atividades Realizadas**:
@@ -1489,6 +1489,13 @@ Get-ChildItem -Recurse -Include *.cs | Select-String "record "
   - Upload de Documentos (RG/CNH).
   - Validação de Antecedentes Criminais.
   - Biometria Facial (Liveness Check) para evitar fraudes.
+- **Conformidade LGPD & Segurança**:
+  - **Consentimento Explícito**: Coleta de aceite inequívoco para tratamento de dados sensíveis (biometria, antecedentes), detalhando finalidade e base legal (Prevenção à Fraude/Legítimo Interesse).
+  - **Política de Retenção**: Definição clara de prazos de armazenamento e fluxo de exclusão automática após inatividade ou solicitação.
+  - **Operadores de Dados**: Contratos com vendors (ex: serviço de biometria) exigindo compliance LGPD/GDPR e Acordos de Processamento de Dados (DPA).
+  - **Direitos do Titular**: Fluxos automatizados para solicitação de exportação (portabilidade) e anonimização/exclusão de dados.
+  - **DPIA**: Realização de Relatório de Impacto à Proteção de Dados (RIPD) específico para o tratamento de dados biométricos.
+  - **Segurança**: Criptografia em repouso (AES-256) e em trânsito (TLS 1.3). Divulgação transparente do uso de reCAPTCHA v3 e seus termos.
 - **Proteção**: Integração com Google reCAPTCHA v3 em todo o fluxo.
 
 **Entregáveis**:
@@ -2073,10 +2080,12 @@ Frontend Blazor WASM + MAUI Hybrid:
 - Sprint 6: Blazor Admin Portal Setup - ✅ CONCLUÍDO (5 Jan 2026) - [Ver conquistas detalhadas](#-sprint-6---blazor-admin-portal-setup---concluída-30-dez-2025---5-jan-2026)
 - Sprint 7: Blazor Admin Portal Features (6-24 Jan 2026) - ✅ CONCLUÍDO
 - Sprint 7.16: Technical Debt Sprint (17-21 Jan 2026) - 🔄 EM PROGRESSO (Task 5 movida p/ Sprint 9)
-- Sprint 8: Customer App (22 Jan - 4 Fev 2026) - ⏳ Planejado
-- Sprint 9: Buffer/Polishing (5-14 Fev 2026) - ⏳ Planejado
-- MVP Final: 17 de Fevereiro de 2026
-- _Nota: Data de MVP atualizada de 31 de Março para 17 de Fevereiro de 2026 após otimizações de Sprint 7 (Parts 10-15) e redução de débito técnico em Sprint 7.16_
+- Sprint 8: Customer App (5-18 Fev 2026) - ✅ Concluído
+- Sprint 8B: Mobile App (19 Fev - 4 Mar 2026) - ⏳ Planejado
+- Sprint 8D: Admin Portal Migration (19 Mar - 1 Abr 2026) - ⏳ Planejado
+- Sprint 9: Buffer/Polishing (5-11 Mar 2026) - ⏳ Planejado
+- MVP Final: 14 de Março de 2026
+- _Nota: Data de MVP atualizada para 14 de Março de 2026 para acomodar migração Nx e Mobile App._
 
 **⚠️ Risk Assessment**: Estimativas assumem velocidade consistente. Primeiro projeto Blazor WASM pode revelar complexidades não previstas (integração Keycloak, curva de aprendizado MudBlazor). Sprint 9 reservado como buffer de contingência.
 
@@ -2111,12 +2120,13 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 6** | 1 semana | 30 Dez - 5 Jan | Blazor Admin Portal - Setup & Core | ✅ CONCLUÍDO (5 Jan 2026) |
 | **Sprint 7** | 3 semanas | 6 - 24 Jan | Blazor Admin Portal - Features | ✅ CONCLUÍDO |
 | **Sprint 7.16** | 1 semana | 17-21 Jan | Technical Debt Sprint | 🔄 EM PROGRESSO |
-| **Sprint 8** | 2 semanas | 22 Jan - 4 Fev | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
-| **Sprint 9** | 10 dias | 5-14 Fev | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
-| **MVP Launch** | - | 17 Fev | Final deployment & launch preparation | 🎯 Target |
+| **Sprint 8** | 2 semanas | 5 - 18 Fev | Customer Web App (Web) | ✅ CONCLUÍDO |
+| **Sprint 8B** | 2 semanas | 19 Fev - 4 Mar | Mobile App (React Native) | ⏳ Planejado |
+| **Sprint 9** | 1 semana | 5-11 Mar | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
+| **MVP Launch** | - | 14 Mar | Final deployment & launch preparation | 🎯 Target |
 
-**MVP Launch Target**: 17 de Fevereiro de 2026 🎯  
-_Atualizado de 31 de Março após otimizações de Sprint 7 (Parts 10-15) e redução de débito técnico em Sprint 7.16_
+**MVP Launch Target**: 14 de Março de 2026 🎯  
+_Atualizado para 14 de Março de 2026._
 
 **Post-MVP (Fase 3+)**: Reviews, Assinaturas, Agendamentos (Fevereiro 2026+)
 
@@ -3830,8 +3840,13 @@ Desenvolver aplicações frontend usando **Blazor WebAssembly** (Admin Portal) e
 |----------|----------------|-----------------|-------------|
 | **DTOs** | `Contracts/*.cs` | `types/api/*.ts` | OpenAPI Generator (auto) |
 | **Enums** | `Shared.Contracts/Enums/` | `types/enums.ts` | OpenAPI Generator (auto) |
-| **Validation** | FluentValidation | Zod schemas | Manual mapping (Sprint 8A) |
-| **Constants** | `Shared.Contracts/Constants/` | `lib/constants.ts` | Goal: Generate from Shared (Stop Manual Sync) |
+| **Validation** | FluentValidation | Zod schemas | Automated Generation (Sprint 8A) |
+| **Constants** | `Shared.Contracts/Constants/` | `lib/constants.ts` | Automated Generation (Sprint 8A) |
+
+**Generation Plan**:
+1. Implementar ferramenta CLI para converter `Shared.Contracts` Enums e Constants em `types/enums.ts` e `lib/constants.ts`.
+2. Implementar conversor de metadados FluentValidation para Zod schemas em `types/api/validation.ts`.
+3. Adicionar tickets no backlog para verificação em CI e versionamento semântico dos artefatos gerados.
 
 **Strategy Note**: We prioritize reusing `MeAjudaAi.Shared.Contracts` for enums and constants to keep the Frontend aligned with the Backend and avoid drift.
 
@@ -3863,7 +3878,7 @@ src/
 │   ├── MeAjudaAi.Web.Admin/          # Blazor WASM Admin Portal (existente)
 │   └── MeAjudaAi.Web.Customer/       # 🆕 Next.js Customer App (Sprint 8A)
 ├── Mobile/
-│   └── MeAudaJai.Mobile.Customer/    # 🆕 React Native + Expo (Sprint 8B)
+│   └── MeAjudaAi.Mobile.Customer/    # 🆕 React Native + Expo (Sprint 8B)
 └── Shared/
     ├── MeAjudaAi.Shared.DTOs/        # DTOs C# (backend)
     └── MeAjudaAi.Shared.Contracts/   # OpenAPI spec → TypeScript types
@@ -3886,7 +3901,7 @@ src/
 - **Clients**: `meajudaai-admin` (public), `meajudaai-customer` (public)
 - **Roles**: `admin`, `customer`, `provider`
 - **Token Format**: JWT (RS256)
-- **Token Lifetime**: Access 1h, Refresh 30d (configurable per client)
+- **Token Lifetime**: Access 1h, Refresh 30d (configurable per client: Admin=24h, Customer=7d, Mobile=30d)
 
 **Implementation Details**:
 - **Protocolo**: OpenID Connect (OIDC)

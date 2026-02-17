@@ -27,7 +27,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     private static PostgreSqlContainer? _sharedContainer;
     private static readonly SemaphoreSlim _sharedContainerLock = new(1, 1);
     
-    // Credentials for the test database
+    // Credenciais para o banco de dados de teste
     private const string DbUsername = "postgres";
     private const string DbPassword = "test123";
 
@@ -56,12 +56,19 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     protected TestInfrastructureOptions GetTestOptions()
     {
         var dbName = $"providers_test_{_testClassId}";
-        if (dbName.Length > 63)
+        if (System.Text.Encoding.UTF8.GetByteCount(dbName) > 63)
         {
             // pt_ + 15 chars prefix + _ + 32 chars GUID = 51 chars < 63 limit.
-            // Note: PostgreSQL limit is 63 BYTES, not characters. Multi-byte chars in class name could exceed this.
+            // Nota: O limite do PostgreSQL é de 63 BYTES, não caracteres. Caracteres multi-byte no nome da classe podem exceder isso.
             // Manter unicidade via sufixo GUID (últimos 32 caracteres) + prefixo para identificar que é um teste
             var prefix = GetType().Name.Length > 15 ? GetType().Name[..15] : GetType().Name;
+            
+            // Recalcular para garantir que o prefixo em UTF8 não estoure o limite quando combinado
+            while (System.Text.Encoding.UTF8.GetByteCount($"pt_{prefix}_{_testClassId[^32..]}") > 63)
+            {
+                prefix = prefix[..^1];
+            }
+            
             dbName = $"pt_{prefix}_{_testClassId[^32..]}";
         }
 
