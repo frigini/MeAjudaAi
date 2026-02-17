@@ -147,7 +147,10 @@
     <!-- This is acceptable as System.IO.Hashing maintains backward compatibility -->
     <PackageVersion Include="System.IO.Hashing" Version="10.0.1" />
     <PackageVersion Include="System.Text.Json" Version="10.0.0" />
+    <!-- IdentityModel family - aligned to 8.16.0 to avoid version skew -->
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
+    <PackageVersion Include="Microsoft.IdentityModel.Protocols" Version="8.16.0" />
+    <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.16.0" />
     <!-- Testing Framework -->
     <!-- Using xUnit v3 only -->
     <PackageVersion Include="WireMock.Net" Version="1.25.0" />
