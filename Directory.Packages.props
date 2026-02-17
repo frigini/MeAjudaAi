@@ -29,6 +29,7 @@
     <!-- MONITORING: Issue #39 tracks Npgsql 10.x compatibility -->
     <!-- FALLBACK: Rollback to EF Core 9.x + Npgsql 8.x if job failure rate > 5% -->
     <!-- Breaking changes: https://www.npgsql.org/doc/release-notes/10.0.html -->
+    <!-- TODO: Implement automated pipeline gate for staging validation (Issue #39) -->
     <!-- ASP.NET Core -->
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.3" />
@@ -38,7 +39,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.3" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.3" />
-    <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.3" />
     <!-- API Versioning -->
     <PackageVersion Include="Asp.Versioning.Http" Version="8.1.1" />
     <PackageVersion Include="Asp.Versioning.Mvc" Version="8.1.1" />
