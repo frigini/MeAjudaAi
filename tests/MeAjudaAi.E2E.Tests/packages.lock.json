@@ -144,10 +144,10 @@
           "Microsoft.Extensions.Primitives": "8.0.0"
         }
       },
-      "Aspire.Dashboard.Sdk.win-x64": {
+      "Aspire.Dashboard.Sdk.linux-x64": {
         "type": "Transitive",
         "resolved": "13.1.0",
-        "contentHash": "rrcsI8cankYCiUlj4Ev+os9uKcutUCv+9kvHQt85RiUX/ewXsloFZy0/depKWrzdJkdJuoTbYFRlSe43TKq6aQ=="
+        "contentHash": "gIvMR7NdVGw+mUpK9qZsGuuYfDp4CHvBDLlykSSP9pCh5XGlMgDNR3uOMfvKVlqH1hAsOuecvxEcfQ9kjufrWw=="
       },
       "Aspire.Hosting": {
         "type": "Transitive",
@@ -374,10 +374,10 @@
           "System.IO.Hashing": "9.0.10"
         }
       },
-      "Aspire.Hosting.Orchestration.win-x64": {
+      "Aspire.Hosting.Orchestration.linux-x64": {
         "type": "Transitive",
         "resolved": "13.1.0",
-        "contentHash": "3w2UahEauTq719LPJ/BCySh31kz26sfjuOkRF5E4VYy1Q3xLRV43+OIGI3C5sy8feUHjrYz+DDq3DQn/2fu+4g=="
+        "contentHash": "V8u8ukncoflImciXeHG03x1pWbOiR4z1bIl2lwOKgdy7/JshFrlEaabaNuGmAIZFdWEM/fsc/hVDjecQyHF2aQ=="
       },
       "AspNetCore.HealthChecks.Rabbitmq": {
         "type": "Transitive",
@@ -835,13 +835,13 @@
       },
       "Microsoft.EntityFrameworkCore.Abstractions": {
         "type": "Transitive",
-        "resolved": "10.0.2",
-        "contentHash": "BzAwIU5mYeOmnKbEXrkwx7feW2V+zUTrK/kRonSib94tjvc0/iRj2a4N6YGXRhTNjaFP3tvCMIDaX1vIFF6dkg=="
+        "resolved": "10.0.3",
+        "contentHash": "c7Uoz381xnMHNBRB8eHRhGgzUtXbgddlbODhwZRrTSzZWDharp3RkJsFwhxyESbeXhCqmML7VdvjMQ7uu+HreA=="
       },
       "Microsoft.EntityFrameworkCore.Analyzers": {
         "type": "Transitive",
-        "resolved": "10.0.2",
-        "contentHash": "5C8aKN2HFhXfLhkrVvQ6yH990nw35pS7HNnwdBc628zIREaKJ4/rkdCXzxOdZo/SnCT3Kg7a/CqnhlzuJhlD4Q=="
+        "resolved": "10.0.3",
+        "contentHash": "lVABgJTyTUNE7Bi0bSu4dWHiCHIXEGzTh/kLh0N07IgU/tIKwTeBPp8tgV4x2iKj4h7iPLo8oXzyHmLDGtAE1g=="
       },
       "Microsoft.Extensions.AmbientMetadata.Application": {
         "type": "Transitive",
@@ -855,14 +855,14 @@
       },
       "Microsoft.Extensions.Caching.Memory": {
         "type": "Transitive",
-        "resolved": "10.0.2",
-        "contentHash": "MkdPYdtsu0Ta4m9Di4XnWVdO9u+wi1LtvisoR1EteIxsXWO/+3iyAPH6RZbw2lBlWZu9lastbl2YsHVIaL9j+g==",
+        "resolved": "10.0.3",
+        "contentHash": "No4fVh0z30SWqiWFRoA4PNdrEco6OjXvCqRFvlmRgDQqqks2bRDdeavUgWEiAX153ZAwW9loUgbxcvuP4NKQLg==",
         "dependencies": {
-          "Microsoft.Extensions.Caching.Abstractions": "10.0.2",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.2",
-          "Microsoft.Extensions.Logging.Abstractions": "10.0.2",
-          "Microsoft.Extensions.Options": "10.0.2",
-          "Microsoft.Extensions.Primitives": "10.0.2"
+          "Microsoft.Extensions.Caching.Abstractions": "10.0.3",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.3",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.3",
+          "Microsoft.Extensions.Options": "10.0.3",
+          "Microsoft.Extensions.Primitives": "10.0.3"
         }
       },
       "Microsoft.Extensions.Compliance.Abstractions": {
@@ -1033,8 +1033,8 @@
       },
       "Microsoft.Extensions.Primitives": {
         "type": "Transitive",
-        "resolved": "10.0.2",
-        "contentHash": "QmSiO+oLBEooGgB3i0GRXyeYRDHjllqt3k365jwfZlYWhvSHA3UL2NEVV5m8aZa041eIlblo6KMI5txvTMpTwA=="
+        "resolved": "10.0.3",
+        "contentHash": "GEcpTwo7sUoLGGNTqV1FZEuL+tTD9m81NX/mh099dqGNna07/UGZShKQNZRw4hv6nlliSUwYQgSYc7OR99Jufg=="
       },
       "Microsoft.Extensions.Resilience": {
         "type": "Transitive",
@@ -1649,14 +1649,14 @@
       "meajudaai.apphost": {
         "type": "Project",
         "dependencies": {
-          "Aspire.Dashboard.Sdk.win-x64": "[13.1.0, )",
+          "Aspire.Dashboard.Sdk.linux-x64": "[13.1.0, )",
           "Aspire.Hosting.AppHost": "[13.1.0, )",
           "Aspire.Hosting.Azure.AppContainers": "[13.1.0, )",
           "Aspire.Hosting.Azure.PostgreSQL": "[13.1.0, )",
           "Aspire.Hosting.Azure.ServiceBus": "[13.1.0, )",
           "Aspire.Hosting.JavaScript": "[13.1.0, )",
           "Aspire.Hosting.Keycloak": "[13.1.0-preview.1.25616.3, )",
-          "Aspire.Hosting.Orchestration.win-x64": "[13.1.0, )",
+          "Aspire.Hosting.Orchestration.linux-x64": "[13.1.0, )",
           "Aspire.Hosting.PostgreSQL": "[13.1.0, )",
           "Aspire.Hosting.RabbitMQ": "[13.1.0, )",
           "Aspire.Hosting.Redis": "[13.1.0, )",
@@ -1668,7 +1668,7 @@
           "MeAjudaAi.Modules.SearchProviders.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Modules.Users.Infrastructure": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.2, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.3, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0, )"
         }
       },
@@ -1711,7 +1711,7 @@
           "MeAjudaAi.Modules.Documents.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.2, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.3, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0, )"
         }
       },
@@ -1835,7 +1835,7 @@
           "MeAjudaAi.Modules.SearchProviders.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.SearchProviders.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.2, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.3, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite": "[10.0.0, )"
         }
@@ -1906,7 +1906,7 @@
           "MeAjudaAi.Modules.Users.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Users.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.2, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.3, )",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.2, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0, )",
           "System.IdentityModel.Tokens.Jwt": "[8.15.0, )"
@@ -1966,7 +1966,7 @@
           "Hangfire.PostgreSql": "[1.21.1, )",
           "MeAjudaAi.Contracts": "[1.0.0, )",
           "Microsoft.AspNetCore.OpenApi": "[10.0.2, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.2, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.3, )",
           "Microsoft.EntityFrameworkCore.Design": "[10.0.2, )",
           "Microsoft.Extensions.Caching.Hybrid": "[10.2.0, )",
           "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.2, )",
@@ -2606,14 +2606,14 @@
       },
       "Microsoft.EntityFrameworkCore": {
         "type": "CentralTransitive",
-        "requested": "[10.0.2, )",
-        "resolved": "10.0.2",
-        "contentHash": "d3+XKbLSHPCu3vwpXECoXcFbvGKmAhEeUmc1xy2czmuPnEF7rZN2HP5ZGMwCMbAKk4B01+nS4HixSMo2Vf/Y9g==",
+        "requested": "[10.0.3, )",
+        "resolved": "10.0.3",
+        "contentHash": "CDEImwD4A7BseABJMCpLZnhfFjmPY/bHwhhS70elc6gLI/bYUEOhxWt7PmaNGYGhIEzOnStlCy5QcVb+8dod5Q==",
         "dependencies": {
-          "Microsoft.EntityFrameworkCore.Abstractions": "10.0.2",
-          "Microsoft.EntityFrameworkCore.Analyzers": "10.0.2",
-          "Microsoft.Extensions.Caching.Memory": "10.0.2",
-          "Microsoft.Extensions.Logging": "10.0.2"
+          "Microsoft.EntityFrameworkCore.Abstractions": "10.0.3",
+          "Microsoft.EntityFrameworkCore.Analyzers": "10.0.3",
+          "Microsoft.Extensions.Caching.Memory": "10.0.3",
+          "Microsoft.Extensions.Logging": "10.0.3"
         }
       },
       "Microsoft.EntityFrameworkCore.Design": {
