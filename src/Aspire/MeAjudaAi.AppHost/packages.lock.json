@@ -2,11 +2,11 @@
   "version": 2,
   "dependencies": {
     "net10.0": {
-      "Aspire.Dashboard.Sdk.win-x64": {
+      "Aspire.Dashboard.Sdk.linux-x64": {
         "type": "Direct",
         "requested": "[13.1.0, )",
         "resolved": "13.1.0",
-        "contentHash": "rrcsI8cankYCiUlj4Ev+os9uKcutUCv+9kvHQt85RiUX/ewXsloFZy0/depKWrzdJkdJuoTbYFRlSe43TKq6aQ=="
+        "contentHash": "gIvMR7NdVGw+mUpK9qZsGuuYfDp4CHvBDLlykSSP9pCh5XGlMgDNR3uOMfvKVlqH1hAsOuecvxEcfQ9kjufrWw=="
       },
       "Aspire.Hosting.AppHost": {
         "type": "Direct",
@@ -43,16 +43,16 @@
       },
       "Aspire.Hosting.Azure.AppContainers": {
         "type": "Direct",
-        "requested": "[13.1.0, )",
-        "resolved": "13.1.0",
-        "contentHash": "z+C6ab5t7bl6cS/TEI34h8Ql/LA4bUDDHSVNSa2voIvIddg83R1VcUhMUbyYmdLV9zs3W8iepy7cemtv2yVPjg==",
+        "requested": "[13.1.1, )",
+        "resolved": "13.1.1",
+        "contentHash": "Ov9Q01rqZCKLrZ2Jo5tqucWILepu0GPgdF8hB6n3Zgdf4UpLYOq8zpkOvxEinySWFDi9s+Uvy/GW5PGGkxG/DA==",
         "dependencies": {
           "AspNetCore.HealthChecks.Uris": "9.0.0",
-          "Aspire.Hosting.Azure": "13.1.0",
-          "Aspire.Hosting.Azure.ContainerRegistry": "13.1.0",
-          "Aspire.Hosting.Azure.OperationalInsights": "13.1.0",
+          "Aspire.Hosting.Azure": "13.1.1",
+          "Aspire.Hosting.Azure.ContainerRegistry": "13.1.1",
+          "Aspire.Hosting.Azure.OperationalInsights": "13.1.1",
           "Azure.Core": "1.50.0",
-          "Azure.Identity": "1.17.0",
+          "Azure.Identity": "1.17.1",
           "Azure.Provisioning": "1.4.0",
           "Azure.Provisioning.AppContainers": "1.1.0",
           "Azure.Provisioning.ContainerRegistry": "1.1.0",
@@ -90,17 +90,17 @@
       },
       "Aspire.Hosting.Azure.PostgreSQL": {
         "type": "Direct",
-        "requested": "[13.1.0, )",
-        "resolved": "13.1.0",
-        "contentHash": "9B/n3tg+PhofjDkdNbPCz4lfXltzaFtc3KcOyhQaMI30O7rquxtCmAicN0ur4+1dZet7PUEE8g/qSnEa5XOyLg==",
+        "requested": "[13.1.1, )",
+        "resolved": "13.1.1",
+        "contentHash": "mjvCpbjAcagnw4ECb2K36S1VlYw76RNgnCuKad65lMFgFQm76MjymvPpxKwMBjKtb+OrasNf2Ji7TP1tDMGUTg==",
         "dependencies": {
           "AspNetCore.HealthChecks.NpgSql": "9.0.0",
           "AspNetCore.HealthChecks.Uris": "9.0.0",
-          "Aspire.Hosting.Azure": "13.1.0",
-          "Aspire.Hosting.Azure.KeyVault": "13.1.0",
-          "Aspire.Hosting.PostgreSQL": "13.1.0",
+          "Aspire.Hosting.Azure": "13.1.1",
+          "Aspire.Hosting.Azure.KeyVault": "13.1.1",
+          "Aspire.Hosting.PostgreSQL": "13.1.1",
           "Azure.Core": "1.50.0",
-          "Azure.Identity": "1.17.0",
+          "Azure.Identity": "1.17.1",
           "Azure.Provisioning": "1.4.0",
           "Azure.Provisioning.KeyVault": "1.1.0",
           "Azure.Provisioning.PostgreSql": "1.1.1",
@@ -135,14 +135,14 @@
       },
       "Aspire.Hosting.Azure.ServiceBus": {
         "type": "Direct",
-        "requested": "[13.1.0, )",
-        "resolved": "13.1.0",
-        "contentHash": "q8zYQpc8xSca07lY6nNGhcbgYJVKzGpDS64zT/ou7qhTHDrcl33aRZDp/oaVZJypunpWKK5LxVEY9G6A/ftwTg==",
+        "requested": "[13.1.1, )",
+        "resolved": "13.1.1",
+        "contentHash": "179FDWpdjYlVQ+A6TF/Aosm/a3bvmQApILwKPBfs7Gx9ByjwI8lLnZwTacqWsvm5pqzJrupFYdVzgL3PcdN70g==",
         "dependencies": {
           "AspNetCore.HealthChecks.Uris": "9.0.0",
-          "Aspire.Hosting.Azure": "13.1.0",
+          "Aspire.Hosting.Azure": "13.1.1",
           "Azure.Core": "1.50.0",
-          "Azure.Identity": "1.17.0",
+          "Azure.Identity": "1.17.1",
           "Azure.Provisioning": "1.4.0",
           "Azure.Provisioning.KeyVault": "1.1.0",
           "Azure.Provisioning.ServiceBus": "1.1.0",
@@ -241,21 +241,21 @@
           "System.IO.Hashing": "9.0.10"
         }
       },
-      "Aspire.Hosting.Orchestration.win-x64": {
+      "Aspire.Hosting.Orchestration.linux-x64": {
         "type": "Direct",
         "requested": "[13.1.0, )",
         "resolved": "13.1.0",
-        "contentHash": "3w2UahEauTq719LPJ/BCySh31kz26sfjuOkRF5E4VYy1Q3xLRV43+OIGI3C5sy8feUHjrYz+DDq3DQn/2fu+4g=="
+        "contentHash": "V8u8ukncoflImciXeHG03x1pWbOiR4z1bIl2lwOKgdy7/JshFrlEaabaNuGmAIZFdWEM/fsc/hVDjecQyHF2aQ=="
       },
       "Aspire.Hosting.PostgreSQL": {
         "type": "Direct",
-        "requested": "[13.1.0, )",
-        "resolved": "13.1.0",
-        "contentHash": "PxGe4UXh/Gcfr69m/IicL01nicv8n5k6T/l2NVoyosk2/xt6yGNfTwUyU4fIRmvnLpFl+ow1lZs7R4GYY37dLw==",
+        "requested": "[13.1.1, )",
+        "resolved": "13.1.1",
+        "contentHash": "ByZf0/Je2odrHDObOTZGn+IXX/umaHujSIY0KOmvd0sAYX6yO5W7EHGkTYjZMRFWY+zuRh4PRcUGVOVX7I5fuw==",
         "dependencies": {
           "AspNetCore.HealthChecks.NpgSql": "9.0.0",
           "AspNetCore.HealthChecks.Uris": "9.0.0",
-          "Aspire.Hosting": "13.1.0",
+          "Aspire.Hosting": "13.1.1",
           "Google.Protobuf": "3.33.0",
           "Grpc.AspNetCore": "2.71.0",
           "Grpc.Net.ClientFactory": "2.71.0",
@@ -283,13 +283,13 @@
       },
       "Aspire.Hosting.RabbitMQ": {
         "type": "Direct",
-        "requested": "[13.1.0, )",
-        "resolved": "13.1.0",
-        "contentHash": "l0z9RLJiBozfekysJaBShZgVrtfXAxsb4T3AUYqGDUAip5Wbpyfh+FH3OaUP3qO+bVOZ+gZVxRWfi7rwhsN3FQ==",
+        "requested": "[13.1.1, )",
+        "resolved": "13.1.1",
+        "contentHash": "tPRIDNnFLxQ/fPbEiq/Jw2iSlWrDhcuN16GDqg37M952pDAr79d0RHGUkXW2qYxFhPwjPl9UuoU6PTbN+ubIRw==",
         "dependencies": {
           "AspNetCore.HealthChecks.Rabbitmq": "9.0.0",
           "AspNetCore.HealthChecks.Uris": "9.0.0",
-          "Aspire.Hosting": "13.1.0",
+          "Aspire.Hosting": "13.1.1",
           "Google.Protobuf": "3.33.0",
           "Grpc.AspNetCore": "2.71.0",
           "Grpc.Net.ClientFactory": "2.71.0",
@@ -318,13 +318,13 @@
       },
       "Aspire.Hosting.Redis": {
         "type": "Direct",
-        "requested": "[13.1.0, )",
-        "resolved": "13.1.0",
-        "contentHash": "UNRS9btygxg2T9JxiPp4HaUCAJDw/YwhlZvdCV+6tblWd+pqwFckGhiJSy78DTy7nulaLVWpfpfma0KMHrVLzQ==",
+        "requested": "[13.1.1, )",
+        "resolved": "13.1.1",
+        "contentHash": "UVD975o7J1eQDPqNHjS4lZhx1Wjz/AS1mDPGXs1ZNGmNc+Psff4SWas9F1ZNNmbytosDx7HdcVhAqrhdwn98oA==",
         "dependencies": {
           "AspNetCore.HealthChecks.Redis": "9.0.0",
           "AspNetCore.HealthChecks.Uris": "9.0.0",
-          "Aspire.Hosting": "13.1.0",
+          "Aspire.Hosting": "13.1.1",
           "Google.Protobuf": "3.33.0",
           "Grpc.AspNetCore": "2.71.0",
           "Grpc.Net.ClientFactory": "2.71.0",
@@ -353,12 +353,12 @@
       },
       "Aspire.Hosting.Seq": {
         "type": "Direct",
-        "requested": "[13.1.0, )",
-        "resolved": "13.1.0",
-        "contentHash": "pv2NzcqRKXXZ0GSBk8G2+c511Y035xGdbhXsB84BBYRZ5iLJDcaV9eSBBxxwft7aMo9u+Fw++ixb3asNsoks/g==",
+        "requested": "[13.1.1, )",
+        "resolved": "13.1.1",
+        "contentHash": "0FiZQndmN4kHj/ckXSiyEp5I4ZtWozUgfghrIaViInIUq1DsZEu6swsnOH6Xe0aHGaZpWZrBAhpFDOf/i5sFxg==",
         "dependencies": {
           "AspNetCore.HealthChecks.Uris": "9.0.0",
-          "Aspire.Hosting": "13.1.0",
+          "Aspire.Hosting": "13.1.1",
           "Google.Protobuf": "3.33.0",
           "Grpc.AspNetCore": "2.71.0",
           "Grpc.Net.ClientFactory": "2.71.0",
@@ -433,8 +433,8 @@
       },
       "Aspire.Hosting": {
         "type": "Transitive",
-        "resolved": "13.1.0",
-        "contentHash": "veub9dDYRFQPbAnixhRRdikKI6zonmA7F6TViqKr1HWx97CaXBAJKe1ju5iTZ4+wYpZdLeDVuzw5MWB4qQAIMw==",
+        "resolved": "13.1.1",
+        "contentHash": "sd/R5Bwgr6Npmso/pdx5nUaQcJsFCPghh0R/jRO4Em4PjUQUL3UvJbufauTSnDO+NGA0+108GCxJhmH7iEDv4A==",
         "dependencies": {
           "AspNetCore.HealthChecks.Uris": "9.0.0",
           "Google.Protobuf": "3.33.0",
@@ -464,13 +464,13 @@
       },
       "Aspire.Hosting.Azure": {
         "type": "Transitive",
-        "resolved": "13.1.0",
-        "contentHash": "MQYU4l7AaFmz4UzmBIJcyh5NwP9gjx6qVJgDWFlJJCw4Baior8xjyOfxNVUBCI0VcVtGEMOvYW85KTmZ3Fgd2Q==",
+        "resolved": "13.1.1",
+        "contentHash": "F18VZz7xB7/9ZdMqh2dzpQp4CD3SUqXWSIgXCm88Bkg4Iznw99zW041SEu5YPsu+uA49OCMWhiFpnVy2y+/Fhw==",
         "dependencies": {
           "AspNetCore.HealthChecks.Uris": "9.0.0",
-          "Aspire.Hosting": "13.1.0",
+          "Aspire.Hosting": "13.1.1",
           "Azure.Core": "1.50.0",
-          "Azure.Identity": "1.17.0",
+          "Azure.Identity": "1.17.1",
           "Azure.Provisioning": "1.4.0",
           "Azure.Provisioning.KeyVault": "1.1.0",
           "Azure.ResourceManager.Authorization": "1.1.6",
@@ -504,13 +504,13 @@
       },
       "Aspire.Hosting.Azure.ContainerRegistry": {
         "type": "Transitive",
-        "resolved": "13.1.0",
-        "contentHash": "dQMpyBNpl2h4V2hP2ZbADLvc0Fz+w1ymvxaPvQBWlmdaxHRmIOyaKIaU1abM7tLTbWBEo0YzqLaJYcH9P/qTBw==",
+        "resolved": "13.1.1",
+        "contentHash": "vjs++MSJbcrQyVdXUPi+CHsi/8XxVDehwUsWs+scrU/AGDzGYgh3B5mBmvrc+uryRUnohYdaYM0HQB8YlKXcbA==",
         "dependencies": {
           "AspNetCore.HealthChecks.Uris": "9.0.0",
-          "Aspire.Hosting.Azure": "13.1.0",
+          "Aspire.Hosting.Azure": "13.1.1",
           "Azure.Core": "1.50.0",
-          "Azure.Identity": "1.17.0",
+          "Azure.Identity": "1.17.1",
           "Azure.Provisioning": "1.4.0",
           "Azure.Provisioning.ContainerRegistry": "1.1.0",
           "Azure.Provisioning.KeyVault": "1.1.0",
@@ -545,13 +545,13 @@
       },
       "Aspire.Hosting.Azure.KeyVault": {
         "type": "Transitive",
-        "resolved": "13.1.0",
-        "contentHash": "4QbAmFWadcEM4r4j2hKHkCEDXIncFMxJaiWw4i3zwDf7qUGkopPqe1gJaDDJb2h1/FkNEjS02D2EoL8zaQqn7w==",
+        "resolved": "13.1.1",
+        "contentHash": "L0yGBTeC7/5bwT7uBjv8IWlCGdpDOckBTtEnNn0Lw6VpGexyXfhc2LSuPTi4UmH5McuLxVf8/zV8B8RB8h/Yjw==",
         "dependencies": {
           "AspNetCore.HealthChecks.Uris": "9.0.0",
-          "Aspire.Hosting.Azure": "13.1.0",
+          "Aspire.Hosting.Azure": "13.1.1",
           "Azure.Core": "1.50.0",
-          "Azure.Identity": "1.17.0",
+          "Azure.Identity": "1.17.1",
           "Azure.Provisioning": "1.4.0",
           "Azure.Provisioning.KeyVault": "1.1.0",
           "Azure.ResourceManager.Authorization": "1.1.6",
@@ -585,13 +585,13 @@
       },
       "Aspire.Hosting.Azure.OperationalInsights": {
         "type": "Transitive",
-        "resolved": "13.1.0",
-        "contentHash": "p9TjKiMxx+tcszA4NeMB/NXgov2bKB4/GkiIs66kp7miIeB+L9I/xU7jdxVEk9KQcrJCAfw2rCMvfI405zRyHQ==",
+        "resolved": "13.1.1",
+        "contentHash": "7F8mx4q3wgfEvGSoRPpNqDs8CCUZYsVful06BWNUA/vgTMm6jqfyQ3GSBjyk5uH+MjAOkzCXOMxD7H9etADoJQ==",
         "dependencies": {
           "AspNetCore.HealthChecks.Uris": "9.0.0",
-          "Aspire.Hosting.Azure": "13.1.0",
+          "Aspire.Hosting.Azure": "13.1.1",
           "Azure.Core": "1.50.0",
-          "Azure.Identity": "1.17.0",
+          "Azure.Identity": "1.17.1",
           "Azure.Provisioning": "1.4.0",
           "Azure.Provisioning.KeyVault": "1.1.0",
           "Azure.Provisioning.OperationalInsights": "1.1.0",
@@ -663,12 +663,12 @@
       },
       "Azure.Identity": {
         "type": "Transitive",
-        "resolved": "1.17.0",
-        "contentHash": "QZiMa1O5lTniWTSDPyPVdBKOS0/M5DWXTfQ2xLOot96yp8Q5A69iScGtzCIxfbg/4bmp/TynibZ2VK1v3qsSNA==",
+        "resolved": "1.17.1",
+        "contentHash": "MSZkBrctcpiGxs9Cvr2VKKoN6qFLZlP3I6xuCWJ9iTgitI5Rgxtk5gfOSpXPZE3+CJmZ/mnqpQyGyjawFn5Vvg==",
         "dependencies": {
-          "Azure.Core": "1.49.0",
-          "Microsoft.Identity.Client": "4.76.0",
-          "Microsoft.Identity.Client.Extensions.Msal": "4.76.0"
+          "Azure.Core": "1.50.0",
+          "Microsoft.Identity.Client": "4.78.0",
+          "Microsoft.Identity.Client.Extensions.Msal": "4.78.0"
         }
       },
       "Azure.Provisioning": {
@@ -1107,18 +1107,18 @@
       },
       "Microsoft.Identity.Client": {
         "type": "Transitive",
-        "resolved": "4.76.0",
-        "contentHash": "j2FtmljuCveDJ7umBVYm6Bx3iVGA71U07Dc7byGr2Hrj7XlByZSknruCBUeYN3V75nn1VEhXegxE0MerxvxrXQ==",
+        "resolved": "4.78.0",
+        "contentHash": "vZ50HE9INSN+Ew8pCgTm0t7wzxQTqozF9L4MAsl64etXz0Teo0dbUvjpVzqDHRs6m1Vn8mHF04fGaxXrIvGpsg==",
         "dependencies": {
-          "Microsoft.IdentityModel.Abstractions": "6.35.0"
+          "Microsoft.IdentityModel.Abstractions": "8.14.0"
         }
       },
       "Microsoft.Identity.Client.Extensions.Msal": {
         "type": "Transitive",
-        "resolved": "4.76.0",
-        "contentHash": "D0n3yMTa3gnDh1usrJmyxGWKYeqbQNCWLgQ0Tswf7S6nk9YobiCOX+M2V8EX5SPqkZxpwkTT6odAhaafu3TIeA==",
+        "resolved": "4.78.0",
+        "contentHash": "DYU9o+DrDQuyZxeq91GBA9eNqBvA3ZMkLzQpF7L9dTk6FcIBM1y1IHXWqiKXTvptPF7CZE59upbyUoa+FJ5eiA==",
         "dependencies": {
-          "Microsoft.Identity.Client": "4.76.0",
+          "Microsoft.Identity.Client": "4.78.0",
           "System.Security.Cryptography.ProtectedData": "4.5.0"
         }
       },
