@@ -10,8 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Microsoft.Extensions.* family version alignment -->
-    <!-- Keep all Microsoft.Extensions.* packages on the same major version (10.x) -->
-    <!-- This prevents Refit.HttpClientFactory from pulling in 9.x versions -->
+    <!-- Keep all Microsoft.Extensions.* packages on the same major version (10.x) to avoid version skew -->
     <PackageVersion Include="bunit.web" Version="1.40.0" />
     <PackageVersion Include="HtmlSanitizer" Version="9.0.892" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.3" />
