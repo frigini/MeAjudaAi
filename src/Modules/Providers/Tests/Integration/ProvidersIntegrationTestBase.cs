@@ -214,7 +214,8 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     /// </summary>
     private async Task InitializeDatabaseAsync()
     {
-        var dbContext = _serviceProvider!.GetRequiredService<ProvidersDbContext>();
+        await using var scope = _serviceProvider!.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
 
         // Criar esquema
         await dbContext.Database.EnsureCreatedAsync();

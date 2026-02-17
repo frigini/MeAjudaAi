@@ -11,6 +11,8 @@ import { Plus, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { ProviderDto } from "@/types/api/provider";
+import { ServiceSelector } from "./service-selector";
+import { DEFAULT_VERIFICATION_STATUS } from "@/lib/constants";
 
 
 
@@ -27,7 +29,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
     const [description, setDescription] = useState(provider.businessProfile?.description || "");
     const [isSavingDescription, setIsSavingDescription] = useState(false);
 
-    const [newServiceId, setNewServiceId] = useState("");
+    const [selectedServiceId, setSelectedServiceId] = useState("");
     const [isAddingService, setIsAddingService] = useState(false);
     const [isRemovingService, setIsRemovingService] = useState<Set<string>>(new Set());
 
@@ -39,7 +41,12 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
             // First, fetch the latest provider data to ensure we have the full object
             // This prevents partial updates from wiping out other fields (Address, ContactInfo, etc.)
             const fetchRes = await fetch(`/api/providers/me`);
-            if (!fetchRes.ok) throw new Error("Failed to fetch latest provider data");
+            if (!fetchRes.ok) {
+                console.error(fetchRes);
+                toast.error("Erro ao obter dados do provedor.");
+                setIsSavingDescription(false);
+                return;
+            }
 
             const currentProvider: ProviderDto = await fetchRes.json();
 
@@ -57,7 +64,12 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                 })
             });
 
-            if (!res.ok) throw new Error("Failed to update description");
+            if (!res.ok) {
+                const errText = await res.text().catch(() => res.statusText);
+                console.error("Update failed:", errText);
+                toast.error("Erro ao salvar descrição.");
+                return;
+            }
 
             toast.success("Descrição atualizada com sucesso!");
             setIsEditingDescription(false);
@@ -80,29 +92,27 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
     };
 
     const handleAddService = async () => {
-        if (!newServiceId) return;
-
-        if (!UUID_REGEX.test(newServiceId)) {
-            toast.error("ID do serviço inválido. Deve ser um UUID.");
-            return;
-        }
+        if (!selectedServiceId) return;
 
         setIsAddingService(true);
         try {
             // Using local proxy route: /api/providers/[id]/services/[serviceId]
             // We use POST to this route
-            const res = await fetch(`/api/providers/${provider.id}/services/${newServiceId}`, {
+            const res = await fetch(`/api/providers/${provider.id}/services/${selectedServiceId}`, {
                 method: "POST"
             });
 
-            if (!res.ok) throw new Error("Failed to add service");
+            if (!res.ok) {
+                const errText = await res.text().catch(() => res.statusText);
+                throw new Error(errText || "Failed to add service");
+            }
 
             toast.success("Serviço adicionado!");
-            setNewServiceId("");
+            setSelectedServiceId("");
             router.refresh();
         } catch (error) {
             console.error(error);
-            toast.error("Erro ao adicionar serviço. Verifique o ID.");
+            toast.error("Erro ao adicionar serviço.");
         } finally {
             setIsAddingService(false);
         }
@@ -142,7 +152,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                 </div>
                 <div className="flex items-center gap-3 bg-white p-2 px-4 rounded-full shadow-sm border">
                     <span className="font-semibold text-slate-700">{provider.name}</span>
-                    <VerifiedBadge status={provider.verificationStatus ?? "Pending"} />
+                    <VerifiedBadge status={provider.verificationStatus ?? DEFAULT_VERIFICATION_STATUS} />
                 </div>
             </div>
 
@@ -159,7 +169,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => {
-                                        setDescription(provider.businessProfile?.description || "");
+                                        setDescription(provider.businessProfile?.description ?? "");
                                         setIsEditingDescription(true);
                                     }}
                                 >
@@ -201,14 +211,13 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                             <CardDescription>Gerencie os serviços que você oferece</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
-                            {/* Add Service */}
                             <div className="flex gap-2">
-                                <Input
-                                    placeholder="ID do Serviço (UUID)"
-                                    value={newServiceId}
-                                    onChange={(e) => setNewServiceId(e.target.value)}
+                                <ServiceSelector
+                                    value={selectedServiceId}
+                                    onSelect={setSelectedServiceId}
+                                    disabled={isAddingService}
                                 />
-                                <Button onClick={handleAddService} disabled={isAddingService || !newServiceId} className="bg-brand hover:bg-brand-hover text-white">
+                                <Button onClick={handleAddService} disabled={isAddingService || !selectedServiceId} className="bg-brand hover:bg-brand-hover text-white">
                                     {isAddingService ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
                                     Adicionar
                                 </Button>
@@ -222,7 +231,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                                     services.map((service, index) => (
                                         <div key={service.serviceId ?? index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
                                             <div className="flex items-center gap-2">
-                                                <Badge variant="secondary" className="bg-white">{service.serviceName}</Badge>
+                                                <Badge variant="secondary" className="bg-white">{service.serviceName ?? "Serviço sem nome"}</Badge>
                                             </div>
                                             <Button
                                                 variant="ghost"
@@ -250,7 +259,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-center gap-2">
-                                <VerifiedBadge status={provider.verificationStatus ?? "Pending"} showLabel size="lg" />
+                                <VerifiedBadge status={provider.verificationStatus ?? DEFAULT_VERIFICATION_STATUS} showLabel size="lg" />
                             </div>
                             <p className="text-xs text-slate-400 mt-4">
                                 ID: {provider.id}

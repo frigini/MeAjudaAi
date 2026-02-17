@@ -2085,7 +2085,7 @@ Frontend Blazor WASM + MAUI Hybrid:
 - Sprint 8D: Admin Portal Migration (19 Mar - 1 Abr 2026) - ⏳ Planejado
 - Sprint 9: Buffer/Polishing (5-11 Mar 2026) - ⏳ Planejado
 - MVP Final: 14 de Março de 2026
-- _Nota: Data de MVP atualizada para 14 de Março de 2026 para acomodar migração Nx e Mobile App._
+- *Nota: Data de MVP atualizada para 14 de Março de 2026 para acomodar migração Nx e Mobile App.*
 
 **⚠️ Risk Assessment**: Estimativas assumem velocidade consistente. Primeiro projeto Blazor WASM pode revelar complexidades não previstas (integração Keycloak, curva de aprendizado MudBlazor). Sprint 9 reservado como buffer de contingência.
 
@@ -2126,7 +2126,7 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **MVP Launch** | - | 14 Mar | Final deployment & launch preparation | 🎯 Target |
 
 **MVP Launch Target**: 14 de Março de 2026 🎯  
-_Atualizado para 14 de Março de 2026._
+*Atualizado para 14 de Março de 2026.*
 
 **Post-MVP (Fase 3+)**: Reviews, Assinaturas, Agendamentos (Fevereiro 2026+)
 
@@ -4153,7 +4153,7 @@ public class GeographicRestrictionMiddleware
 
 ### 📅 Sprint 8A: Customer App & Nx Setup (2 semanas) ⏳ ATUALIZADO
 
-**Status**: 📋 PLANEJADO PARA 22 Jan - 4 Fev 2026  
+**Status**: CONCLUÍDA (5-13 Fev 2026)
 **Dependências**: Sprint 7.16 concluído ✅  
 **Duração**: 2 semanas
 
@@ -4355,7 +4355,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 ### 📅 Sprint 9: Buffer - Polishing, Risk Mitigation & Refactoring (3 semanas) 🎯
 
 **Status**: 📋 PLANEJADO PARA MARÇO 2026  
-**Duração**: 3 semanas (Mar 3 - 24, 2026)  
+**Duração**: 1 semana (5-11 Mar 2026)  
 **Dependências**: Sprints 6-8 completos  
 **Natureza**: **BUFFER DE CONTINGÊNCIA** - não alocar novas features
 
