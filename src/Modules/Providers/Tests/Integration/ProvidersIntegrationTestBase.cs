@@ -60,7 +60,6 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         {
             // pt_ + 15 chars prefix + _ + 32 chars GUID = 51 chars < 63 limit.
             // Note: PostgreSQL limit is 63 BYTES, not characters. Multi-byte chars in class name could exceed this.
-            // Nota: O limite do PostgreSQL é 63 BYTES, não caracteres. Caracteres multi-byte no nome da classe podem exceder isso.
             // Manter unicidade via sufixo GUID (últimos 32 caracteres) + prefixo para identificar que é um teste
             var prefix = GetType().Name.Length > 15 ? GetType().Name[..15] : GetType().Name;
             dbName = $"pt_{prefix}_{_testClassId[^32..]}";
@@ -293,7 +292,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     /// Como cada classe de teste usa um banco de dados isolado, este método é mantido para compatibilidade
     /// com testes que esperam poder limpar o estado explicitamente, mas o isolamento principal é via DB único.
     /// </summary>
-    protected Task CleanupDatabase()
+    protected virtual Task CleanupDatabase()
     {
         // No-op: Isolamento é garantido por banco de dados único por classe de teste.
         // Se um teste específico precisar de limpeza intra-classe, pode implementar delete manual.
@@ -304,7 +303,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     /// Força limpeza do banco de dados.
     /// No-op por padrão; sobrescreva para forçar limpeza se necessário.
     /// </summary>
-    protected Task ForceCleanDatabase()
+    protected virtual Task ForceCleanDatabase()
     {
         return Task.CompletedTask;
     }

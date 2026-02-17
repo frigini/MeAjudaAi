@@ -4136,17 +4136,17 @@ public class GeographicRestrictionMiddleware
 
 ---
 
-### 📅 Sprint 8: Customer App (Web + Mobile) (2 semanas) ⏳ ATUALIZADO
+### 📅 Sprint 8A: Customer App & Nx Setup (2 semanas) ⏳ ATUALIZADO
 
 **Status**: 📋 PLANEJADO PARA 22 Jan - 4 Fev 2026  
 **Dependências**: Sprint 7.16 concluído ✅  
-**Duração**: 2 semanas (foco 100% em Customer App)
+**Duração**: 2 semanas
 
-**Contexto**: Sprint 7.16 removeu débitos técnicos e bloqueadores (Keycloak automation, warnings, tests, records). Sprint 8 pode focar 100% em Customer App com base sólida estabelecida.
+**Contexto**: Sprint dividida em duas partes para acomodar a migração para Nx monorepo.
 
 ---
 
-#### 📱 Customer App Development
+#### 📱 Parte 1: Customer App Development (Focus)
 
 **Home & Busca** (Semana 1):
 - [ ] **Landing Page**: Hero section + busca rápida
@@ -4161,40 +4161,33 @@ public class GeographicRestrictionMiddleware
 - [ ] **Contato**: Botão WhatsApp, telefone, email (MVP: links externos)
 - [ ] **Galeria**: Fotos do trabalho (se disponível)
 - [ ] **Reviews**: Listar avaliações de outros clientes (read-only, write em Fase 3)
+- [ ] **Meu Perfil**: Editar informações básicas
 
-**Meu Perfil** (Semana 2):
-- [ ] **Editar**: Nome, foto, telefone, endereço
-- [ ] **Histórico**: Prestadores contatados (tracking básico)
-- [ ] **Configurações**: Preferências de notificações (stub para futuro)
+#### 🛠️ Parte 2: Nx Monorepo Setup
 
-**MAUI Blazor Hybrid (Mobile)** (Semana 3):
-- [ ] **Geolocalização Nativa**: Usar GPS do device para busca automática
-- [ ] **Câmera**: Permitir upload de foto de perfil via câmera
-- [ ] **Notificações Push**: Stub para futuro (ex: prestador aceitou contato)
-- [ ] **Deep Linking**: Abrir prestador via link compartilhado
-- [ ] **Offline Mode**: Cache de última busca realizada
-- [ ] **Compartilhamento de Código**: 70%+ Razor Components compartilhados entre Web e Mobile
-
-**Tecnologias Mobile**:
-- **Framework**: .NET MAUI 10 + Blazor Hybrid
-- **UI**: MudBlazor (funciona em MAUI)
-- **Maps**: MAUI Community Toolkit Maps
-- **Storage**: Preferences API + Secure Storage
+**Objetivos**:
+- Inicializar workspace Nx
+- Migrar `MeAjudaAi.Web.Customer` para Nx
+- Configurar libs compartilhadas
 
 ---
 
-#### � Resultado Esperado Sprint 8
+### ⏳ Sprint 8D - Admin Portal Migration (Novo)
 
-- ✅ Customer App (Web) publicado
-- ✅ Customer App (Mobile) disponível em TestFlight (iOS) e Google Play Beta (Android)
-- ✅ 70%+ código compartilhado entre Web e Mobile
-- ✅ UX otimizada para mobile (gestures, navegação nativa)
-- ✅ Autenticação Keycloak OIDC (cliente meajudaai-customer configurado em Sprint 7.16)
-- ✅ 20+ testes bUnit para Customer App (patterns de Sprint 7.16)
+**Periodo Estimado**: 19 Mar - 1 Abr 2026
+**Foco**: Migração do Admin Portal para React e integração no monorepo Nx.
 
-**Timeline**:
-- **Semana 1** (22-29 Jan): Home + Busca Geolocalizada + Perfil Prestador
-- **Semana 2** (29 Jan - 4 Fev): Meu Perfil + MAUI Mobile + Deployment
+**Objetivos**:
+1. **Nx Workspace Setup**: Garantir suporte a múltiplos apps (Admin + Customer).
+2. **Admin Portal Migration**: Portar Blazor Admin para React (`apps/admin-portal`).
+3. **Shared Components**: Extrair UI kit para `libs/shared-ui`.
+4. **Auth Migration**: Configurar Keycloak no novo app React.
+
+**Entregáveis**:
+- [ ] Nx workspace com `apps/admin-portal` e `libs/shared-ui`.
+- [ ] Admin Portal React funcional (Providers, ServiceCatalogs).
+- [ ] Componentes reutilizáveis em biblioteca compartilhada.
+- [ ] Testes unitários/integração configurados.
 
 ---
 
@@ -4939,11 +4932,12 @@ public class ActivityHub : Hub
    - Gestão de prestadores, documentos, serviços
    - Dashboard com métricas básicas
    - UI para Geographic Restrictions
-4. 📋 **Sprint 8: Customer Portal** - Blazor WASM (Planejado - Fev/Mar 2026)
+4. 📋 **Sprint 8: Customer Portal** - React/Next.js (Planejado - Fev/Mar 2026)
    - Busca de prestadores
    - Gestão de perfil
-   - Visualização de serviços
-5. 📋 API Collections - Bruno .bru files para todos os módulos
+5. 📋 **Sprint 8D: Admin Portal Migration** - React/Nx (Planejado - Mar/Abr 2026)
+   - Migração completa de Blazor para React
+6. 📋 API Collections - Bruno .bru files para todos os módulos
 
 ### 🎯 **Média Prioridade (6-12 meses - Fase 2)**
 1. ⭐ Módulo Reviews & Ratings

@@ -36,15 +36,22 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
     const handleSaveDescription = async () => {
         setIsSavingDescription(true);
         try {
+            // First, fetch the latest provider data to ensure we have the full object
+            // This prevents partial updates from wiping out other fields (Address, ContactInfo, etc.)
+            const fetchRes = await fetch(`/api/providers/me`);
+            if (!fetchRes.ok) throw new Error("Failed to fetch latest provider data");
+
+            const currentProvider: ProviderDto = await fetchRes.json();
+
             const res = await fetch(`/api/providers/me`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    name: provider.name,
+                    name: currentProvider.name,
                     businessProfile: {
-                        ...(provider.businessProfile || {}),
+                        ...(currentProvider.businessProfile || {}),
                         description: description
                     }
                 })
@@ -55,6 +62,9 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
             toast.success("Descrição atualizada com sucesso!");
             setIsEditingDescription(false);
             router.refresh();
+
+            // Update local state if needed (router.refresh should handle it, but good practice)
+            // We rely on router.refresh() to update the prop passed to this component
         } catch (error) {
             console.error(error);
             toast.error("Erro ao atualizar descrição.");
@@ -141,7 +151,14 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-xl font-bold text-slate-800">Sobre Mim</CardTitle>
                             {!isEditingDescription && (
-                                <Button variant="ghost" size="sm" onClick={() => setIsEditingDescription(true)}>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                        setDescription(provider.businessProfile?.description || "");
+                                        setIsEditingDescription(true);
+                                    }}
+                                >
                                     Editar
                                 </Button>
                             )}

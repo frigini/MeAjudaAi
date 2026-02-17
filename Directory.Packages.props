@@ -72,7 +72,7 @@
     <!--   - Runtime compatibility is UNVALIDATED and may fail in production         -->
     <!--                                                                             -->
     <!-- PACKAGE VERSION STRATEGY:                                                  -->
-    <!--   OPTION 1 (CURRENT): Keep Npgsql 10.x + Hangfire.PostgreSql 1.20.13       -->
+    <!--   OPTION 1 (CURRENT): Keep Npgsql 10.x + Hangfire.PostgreSql 1.21.1        -->
     <!--     - Requires comprehensive integration testing (see below)                -->
     <!--     - Monitor: https://github.com/frankhommers/Hangfire.PostgreSql/issues  -->
     <!--     - Fallback: Downgrade to EF Core 9.x + Npgsql 8.x if issues found      -->
@@ -87,7 +87,7 @@
     <!--                                                                             -->
     <!-- VALIDATION REQUIREMENTS (DO NOT DEPLOY WITHOUT):                           -->
     <!--   ⚠️  CRITICAL: Npgsql 10.x compatibility with Hangfire UNVALIDATED         -->
-    <!--   ⚠️  Hangfire.PostgreSql 1.20.13 built against Npgsql 6.0.11              -->
+    <!--   ⚠️  Hangfire.PostgreSql 1.21.1 built against Npgsql 6.0.11               -->
     <!--   ⚠️  Runtime binding forces Npgsql 10.x via central package management     -->
     <!--   ✅ Staging environment testing with production-like workload REQUIRED     -->
     <!--   ✅ Manual verification of Hangfire dashboard functionality REQUIRED        -->
@@ -121,6 +121,8 @@
     <!-- ========================================================================== -->
     <!-- Data Access -->
     <PackageVersion Include="Npgsql" Version="10.0.0" />
+    <!-- Note: Dapper.AOT is transitively brought in by Hangfire.PostgreSql (1.21.1 -> Dapper.AOT 1.0.48) -->
+    <!-- It is benign for now, as we don't enable strict AOT on backend services yet. -->
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.2" />
     <!-- Microsoft Extensions -->
