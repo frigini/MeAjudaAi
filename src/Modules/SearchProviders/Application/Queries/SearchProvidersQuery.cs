@@ -9,12 +9,13 @@ using MeAjudaAi.Contracts.Models;
 namespace MeAjudaAi.Modules.SearchProviders.Application.Queries;
 
 /// <summary>
-/// Query to search for providers based on location, services, and other criteria.
+/// Query para buscar prestadores com base em localização, serviços e outros critérios.
 /// </summary>
 public sealed record SearchProvidersQuery(
     double Latitude,
     double Longitude,
     double RadiusInKm,
+    string? Term = null,
     Guid[]? ServiceIds = null,
     decimal? MinRating = null,
     ESubscriptionTier[]? SubscriptionTiers = null,
@@ -40,7 +41,9 @@ public sealed record SearchProvidersQuery(
             ? string.Join("-", SubscriptionTiers.OrderBy(x => x))
             : "all";
 
-        return $"search:providers:lat:{lat}:lng:{lng}:radius:{radius}:services:{serviceKey}:rating:{rating}:tiers:{tierKey}:page:{Page}:size:{PageSize}";
+        var term = (Term ?? "").ToLowerInvariant().Trim();
+
+        return $"search:providers:lat:{lat}:lng:{lng}:radius:{radius}:term:{term}:services:{serviceKey}:rating:{rating}:tiers:{tierKey}:page:{Page}:size:{PageSize}";
     }
 
     public TimeSpan GetCacheExpiration()

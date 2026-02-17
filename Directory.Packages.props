@@ -12,6 +12,7 @@
     <!-- Microsoft.Extensions.* family version alignment -->
     <!-- Keep all Microsoft.Extensions.* packages on the same major version (10.x) -->
     <!-- This prevents Refit.HttpClientFactory from pulling in 9.x versions -->
+    <PackageVersion Include="bunit.web" Version="1.40.0" />
     <PackageVersion Include="HtmlSanitizer" Version="9.0.892" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.2" />
     <!-- .NET & Microsoft Core -->
@@ -71,7 +72,7 @@
     <!--   - Runtime compatibility is UNVALIDATED and may fail in production         -->
     <!--                                                                             -->
     <!-- PACKAGE VERSION STRATEGY:                                                  -->
-    <!--   OPTION 1 (CURRENT): Keep Npgsql 10.x + Hangfire.PostgreSql 1.20.13       -->
+    <!--   OPTION 1 (CURRENT): Keep Npgsql 10.x + Hangfire.PostgreSql 1.21.1        -->
     <!--     - Requires comprehensive integration testing (see below)                -->
     <!--     - Monitor: https://github.com/frankhommers/Hangfire.PostgreSql/issues  -->
     <!--     - Fallback: Downgrade to EF Core 9.x + Npgsql 8.x if issues found      -->
@@ -86,7 +87,7 @@
     <!--                                                                             -->
     <!-- VALIDATION REQUIREMENTS (DO NOT DEPLOY WITHOUT):                           -->
     <!--   ⚠️  CRITICAL: Npgsql 10.x compatibility with Hangfire UNVALIDATED         -->
-    <!--   ⚠️  Hangfire.PostgreSql 1.20.13 built against Npgsql 6.0.11              -->
+    <!--   ⚠️  Hangfire.PostgreSql 1.21.1 built against Npgsql 6.0.11               -->
     <!--   ⚠️  Runtime binding forces Npgsql 10.x via central package management     -->
     <!--   ✅ Staging environment testing with production-like workload REQUIRED     -->
     <!--   ✅ Manual verification of Hangfire dashboard functionality REQUIRED        -->
@@ -119,6 +120,9 @@
     <!--   - Hangfire.SqlServer (requires SQL Server)                              -->
     <!-- ========================================================================== -->
     <!-- Data Access -->
+    <PackageVersion Include="Npgsql" Version="10.0.0" />
+    <!-- Note: Dapper.AOT is transitively brought in by Hangfire.PostgreSql (1.21.1 -> Dapper.AOT 1.0.48) -->
+    <!-- It is benign for now, as we don't enable strict AOT on backend services yet. -->
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.2" />
     <!-- Microsoft Extensions -->
@@ -189,7 +193,7 @@
     <!-- Background Jobs -->
     <PackageVersion Include="Hangfire.Core" Version="1.8.23" />
     <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.23" />
-    <PackageVersion Include="Hangfire.PostgreSql" Version="1.20.13" />
+    <PackageVersion Include="Hangfire.PostgreSql" Version="1.21.1" />
     <PackageVersion Include="Hangfire.InMemory" Version="1.0.0" />
     <!-- Dependency Injection -->
     <PackageVersion Include="Scrutor" Version="7.0.0" />
@@ -229,6 +233,7 @@
     <PackageVersion Include="Aspire.Hosting.Azure.AppContainers" Version="13.1.0" />
     <PackageVersion Include="Aspire.Hosting.Azure.PostgreSQL" Version="13.1.0" />
     <PackageVersion Include="Aspire.Hosting.Azure.ServiceBus" Version="13.1.0" />
+    <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.1.0" />
     <PackageVersion Include="Aspire.Hosting.Testing" Version="13.1.0" />
     <!-- Aspire.Hosting.Keycloak: NO STABLE VERSION EXISTS - using latest preview -->
     <!-- Nearest available: 13.1.0-preview.1.25616.3 (updated from 13.0.2-preview.1.25603.5) -->

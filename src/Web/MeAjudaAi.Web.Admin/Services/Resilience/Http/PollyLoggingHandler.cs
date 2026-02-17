@@ -51,14 +51,19 @@ public class PollyLoggingHandler(
                     "Aguarde alguns instantes e tente novamente.")
             };
         }
+        #pragma warning disable S2139 // Log and rethrow to maintain observability
         catch (Exception ex)
+        #pragma warning restore S2139
         {
             logger.LogError(ex, 
                 "❌ Unexpected error during HTTP request: {RequestUri}",
                 request.RequestUri);
             
+            
             connectionStatus.UpdateStatus(ConnectionStatus.Reconnecting);
+            #pragma warning disable S2139 // Log and rethrow to maintain observability
             throw;
+            #pragma warning restore S2139
         }
     }
 }

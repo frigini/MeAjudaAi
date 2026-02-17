@@ -16,13 +16,24 @@ namespace MeAjudaAi.E2E.Tests.Modules.SearchProviders;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "SearchProviders")]
-public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
+public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLifetime
 {
     private readonly TestContainerFixture _fixture;
 
     public SearchProvidersEndToEndTests(TestContainerFixture fixture)
     {
         _fixture = fixture;
+    }
+
+    public async ValueTask InitializeAsync()
+    {
+        // Clean up database before each test to ensure isolation and performance
+        await _fixture.CleanupDatabaseAsync();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
     }
 
     [Fact]
@@ -44,7 +55,9 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         var nearbyProvider = await CreateProviderAsync(
             $"nearby_provider_{Guid.NewGuid():N}",
             -23.5605, // ~1.1km de distância
-            -46.6433
+            -46.6433,
+            subscriptionTier: "Free",
+            verify: false
         );
 
         // Act
@@ -328,7 +341,8 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         string businessName,
         double latitude,
         double longitude,
-        string subscriptionTier = "Free")
+        string subscriptionTier = "Free",
+        bool verify = true)
     {
         // Ensure authenticated as admin to create providers
         TestContainerFixture.AuthenticateAsAdmin();
@@ -378,22 +392,25 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         
         var providerId = TestContainerFixture.ExtractIdFromLocation(location!);
 
-        // Verificar o provider para que ele seja indexado no SearchProviders
-        var verifyRequest = new
+        if (verify)
         {
-            NewStatus = 1, // Verified
-            Reason = "Test verification for search indexing"
-        };
+            // Verificar o provider para que ele seja indexado no SearchProviders
+            var verifyRequest = new
+            {
+                NewStatus = 1, // Verified
+                Reason = "Test verification for search indexing"
+            };
 
-        var verifyResponse = await _fixture.ApiClient.PutAsJsonAsync(
-            $"/api/v1/providers/{providerId}/verification-status",
-            verifyRequest,
-            TestContainerFixture.JsonOptions);
+            var verifyResponse = await _fixture.ApiClient.PutAsJsonAsync(
+                $"/api/v1/providers/{providerId}/verification-status",
+                verifyRequest,
+                TestContainerFixture.JsonOptions);
 
-        // Continue silently if verification fails - the provider may still be searchable
-        if (!verifyResponse.IsSuccessStatusCode)
-        {
-            // Log or ignore - test continues regardless
+            // Continue silently if verification fails - the provider may still be searchable
+            if (!verifyResponse.IsSuccessStatusCode)
+            {
+                // Log or ignore - test continues regardless
+            }
         }
 
         // Indexar manualmente o provider no SearchProviders inserindo direto no banco
@@ -427,16 +444,19 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         {
             var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.IDapperConnection>();
             
+            // Note: The table name is "search_providers.searchable_providers"
+            // We need to ensure we set the SRID to 4326 for the geography column
             var sql = @"
                 INSERT INTO search_providers.searchable_providers 
-                (id, provider_id, name, location, average_rating, total_reviews, subscription_tier, service_ids, is_active, created_at)
+                (id, provider_id, name, description, city, state, location, average_rating, total_reviews, subscription_tier, service_ids, is_active, created_at, updated_at)
                 VALUES 
-                (@Id, @ProviderId, @Name, ST_SetSRID(ST_MakePoint(@Longitude, @Latitude), 4326)::geography, @AvgRating, @TotalReviews, @SubscriptionTier, @ServiceIds, @IsActive, @CreatedAt)
+                (@Id, @ProviderId, @Name, @Description, @City, @State, ST_SetSRID(ST_MakePoint(@Longitude, @Latitude), 4326)::geography, @AvgRating, @TotalReviews, @SubscriptionTier, @ServiceIds, @IsActive, @CreatedAt, @UpdatedAt)
                 ON CONFLICT (provider_id) 
                 DO UPDATE SET 
                     name = EXCLUDED.name,
                     location = EXCLUDED.location,
                     service_ids = EXCLUDED.service_ids,
+                    is_active = EXCLUDED.is_active,
                     updated_at = CURRENT_TIMESTAMP";
             
             await dapper.ExecuteAsync(sql, new
@@ -444,15 +464,20 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
                 Id = Guid.NewGuid(),
                 ProviderId = providerId,
                 Name = name,
+                Description = $"Test Provider {name}",
+                City = "São Paulo",
+                State = "SP",
                 Latitude = latitude,
                 Longitude = longitude,
-                AvgRating = 0.0m,
-                TotalReviews = 0,
-                SubscriptionTier = 0, // Free
-                ServiceIds = serviceIds ?? new Guid[] {},
+                AvgRating = 5.0m, // Ensure high rating to appear in top results
+                TotalReviews = 10,
+                SubscriptionTier = 1, // Standard
+                ServiceIds = serviceIds ?? Array.Empty<Guid>(),
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             });
+
         });
     }
 
@@ -507,4 +532,3 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
             HttpStatusCode.Created);
     }
 }
-

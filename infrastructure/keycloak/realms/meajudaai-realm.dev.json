@@ -153,11 +153,13 @@
       "redirectUris": [
         "https://localhost:7282/*",
         "https://app.meajudaai.com.br/*",
-        "meajudaai://callback"
+        "meajudaai://callback",
+        "http://localhost:3000/*"
       ],
       "webOrigins": [
         "https://localhost:7282",
-        "https://app.meajudaai.com.br"
+        "https://app.meajudaai.com.br",
+        "http://localhost:3000"
       ],
       "frontchannelLogout": true,
       "attributes": {

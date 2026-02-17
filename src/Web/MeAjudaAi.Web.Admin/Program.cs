@@ -13,9 +13,11 @@ using MeAjudaAi.Web.Admin.Services.Resilience.Http;
 using MeAjudaAi.Web.Admin.Services.Resilience.Interfaces;
 using MeAjudaAi.Web.Admin.Validators;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;
 using MudBlazor.Services;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using System.Globalization;
 using System.Net.Http.Json;
 
@@ -102,33 +104,42 @@ builder.Services.AddHttpClient("MeAjudaAi.API", client =>
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>()
     .CreateClient("MeAjudaAi.API"));
 
-// Autenticação Keycloak OIDC com configuração do backend
-builder.Services.AddOidcAuthentication(options =>
+// Autenticação
+if (clientConfig.Features.EnableFakeAuth)
 {
-    options.ProviderOptions.Authority = clientConfig.Keycloak.Authority;
-    options.ProviderOptions.ClientId = clientConfig.Keycloak.ClientId;
-    options.ProviderOptions.ResponseType = clientConfig.Keycloak.ResponseType;
-    
-    // Adicionar configurações avançadas do OIDC para melhorar compatibilidade
-    // Estas configurações ajudam a lidar com provedores que não seguem completamente a spec OIDC
-    options.ProviderOptions.MetadataUrl = $"{clientConfig.Keycloak.Authority}/.well-known/openid-configuration";
-    
-    // Adicionar scopes da configuração
-    if (!string.IsNullOrWhiteSpace(clientConfig.Keycloak.Scope))
+    Console.WriteLine("⚠️ WARNING: Fake authentication is ENABLED. This is for local development only.");
+    builder.Services.AddScoped<AuthenticationStateProvider, MeAjudaAi.Web.Admin.Authentication.Fakes.FakeAuthenticationStateProvider>();
+    builder.Services.AddScoped<IAccessTokenProvider, MeAjudaAi.Web.Admin.Authentication.Fakes.FakeAccessTokenProvider>();
+}
+else
+{
+    // Autenticação Keycloak OIDC com configuração do backend
+    builder.Services.AddOidcAuthentication(options =>
     {
-        options.ProviderOptions.DefaultScopes.Clear();
-        foreach (var scope in clientConfig.Keycloak.Scope.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+        options.ProviderOptions.Authority = clientConfig.Keycloak.Authority;
+        options.ProviderOptions.ClientId = clientConfig.Keycloak.ClientId;
+        options.ProviderOptions.ResponseType = clientConfig.Keycloak.ResponseType;
+        
+        // Adicionar configurações avançadas do OIDC para melhorar compatibilidade
+        // Estas configurações ajudam a lidar com provedores que não seguem completamente a spec OIDC
+        options.ProviderOptions.MetadataUrl = $"{clientConfig.Keycloak.Authority}/.well-known/openid-configuration";
+        
+        // Adicionar scopes da configuração
+        if (!string.IsNullOrWhiteSpace(clientConfig.Keycloak.Scope))
         {
-            options.ProviderOptions.DefaultScopes.Add(scope);
+            options.ProviderOptions.DefaultScopes.Clear();
+            foreach (var scope in clientConfig.Keycloak.Scope.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            {
+                options.ProviderOptions.DefaultScopes.Add(scope);
+            }
         }
-    }
-    
-    options.ProviderOptions.PostLogoutRedirectUri = clientConfig.Keycloak.PostLogoutRedirectUri;
-    options.UserOptions.RoleClaim = "role"; // Mudado para "role" pois vamos converter para ClaimTypes.Role
-})
-.AddAccountClaimsPrincipalFactory<CustomAccountClaimsPrincipalFactory>();
+        
+        options.ProviderOptions.PostLogoutRedirectUri = clientConfig.Keycloak.PostLogoutRedirectUri;
+        options.UserOptions.RoleClaim = "role"; // Mudado para "role" pois vamos converter para ClaimTypes.Role
+    })
+    .AddAccountClaimsPrincipalFactory<CustomAccountClaimsPrincipalFactory>();
+}
 
-// builder.Services.AddPermissionBasedAuthorization(builder.Configuration);
 // Autorização com políticas baseadas em roles
 builder.Services.AddAuthorizationCore(options =>
 {

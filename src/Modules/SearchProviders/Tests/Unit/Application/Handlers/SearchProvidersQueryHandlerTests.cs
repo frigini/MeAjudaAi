@@ -50,6 +50,7 @@ public class SearchProvidersQueryHandlerTests
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 query.RadiusInKm,
+                query.Term,
                 query.ServiceIds,
                 query.MinRating,
                 query.SubscriptionTiers,
@@ -93,6 +94,52 @@ public class SearchProvidersQueryHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_WithTermFilter_ShouldPassTermToRepository()
+    {
+        // Arrange
+        var query = new SearchProvidersQuery(
+            Latitude: -23.5505,
+            Longitude: -46.6333,
+            RadiusInKm: 10,
+            Term: "Eletricista");
+
+        var providers = CreateTestProviders(1);
+        var searchPoint = new GeoPoint(query.Latitude, query.Longitude);
+        var distances = providers.Select(p => p.CalculateDistanceToInKm(searchPoint)).ToList();
+        _repositoryMock
+            .Setup(x => x.SearchAsync(
+                It.IsAny<GeoPoint>(),
+                query.RadiusInKm,
+                query.Term,
+                It.IsAny<Guid[]?>(),
+                It.IsAny<decimal?>(),
+                It.IsAny<ESubscriptionTier[]?>(),
+                0,
+                query.PageSize,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SearchResult(
+                Providers: providers,
+                DistancesInKm: distances,
+                TotalCount: 1));
+
+        // Act
+        var result = await _sut.HandleAsync(query, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        _repositoryMock.Verify(x => x.SearchAsync(
+            It.IsAny<GeoPoint>(),
+            It.IsAny<double>(),
+            "Eletricista",
+            It.IsAny<Guid[]?>(),
+            It.IsAny<decimal?>(),
+            It.IsAny<ESubscriptionTier[]?>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task HandleAsync_WithServiceIdsFilter_ShouldFilterByServices()
     {
         // Arrange
@@ -111,6 +158,7 @@ public class SearchProvidersQueryHandlerTests
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
+                It.IsAny<string?>(),
                 It.Is<Guid[]?>(ids => ids != null && ids.Contains(serviceId1) && ids.Contains(serviceId2)),
                 It.IsAny<decimal?>(),
                 It.IsAny<ESubscriptionTier[]?>(),
@@ -130,6 +178,7 @@ public class SearchProvidersQueryHandlerTests
         _repositoryMock.Verify(x => x.SearchAsync(
             It.IsAny<GeoPoint>(),
             It.IsAny<double>(),
+            It.IsAny<string?>(),
             It.Is<Guid[]?>(ids => ids != null && ids.Contains(serviceId1) && ids.Contains(serviceId2)),
             It.IsAny<decimal?>(),
             It.IsAny<ESubscriptionTier[]?>(),
@@ -155,6 +204,7 @@ public class SearchProvidersQueryHandlerTests
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
+                It.IsAny<string?>(),
                 It.IsAny<Guid[]?>(),
                 4.0m,
                 It.IsAny<ESubscriptionTier[]?>(),
@@ -174,6 +224,7 @@ public class SearchProvidersQueryHandlerTests
         _repositoryMock.Verify(x => x.SearchAsync(
             It.IsAny<GeoPoint>(),
             It.IsAny<double>(),
+            It.IsAny<string?>(),
             It.IsAny<Guid[]?>(),
             4.0m,
             It.IsAny<ESubscriptionTier[]?>(),
@@ -199,6 +250,7 @@ public class SearchProvidersQueryHandlerTests
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
+                It.IsAny<string?>(),
                 It.IsAny<Guid[]?>(),
                 It.IsAny<decimal?>(),
                 It.Is<ESubscriptionTier[]?>(t => t != null && t.Contains(ESubscriptionTier.Gold)),
@@ -235,6 +287,7 @@ public class SearchProvidersQueryHandlerTests
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
+                It.IsAny<string?>(),
                 It.IsAny<Guid[]?>(),
                 It.IsAny<decimal?>(),
                 It.IsAny<ESubscriptionTier[]?>(),
@@ -270,6 +323,7 @@ public class SearchProvidersQueryHandlerTests
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
+                It.IsAny<string?>(),
                 It.IsAny<Guid[]?>(),
                 It.IsAny<decimal?>(),
                 It.IsAny<ESubscriptionTier[]?>(),
@@ -311,6 +365,7 @@ public class SearchProvidersQueryHandlerTests
             .Setup(x => x.SearchAsync(
                 It.IsAny<GeoPoint>(),
                 It.IsAny<double>(),
+                It.IsAny<string?>(),
                 It.IsAny<Guid[]?>(),
                 It.IsAny<decimal?>(),
                 It.IsAny<ESubscriptionTier[]?>(),

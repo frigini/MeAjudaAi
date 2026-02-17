@@ -15,6 +15,7 @@ public sealed record ProviderDto(
     EVerificationStatus VerificationStatus,
     IReadOnlyList<DocumentDto> Documents,
     IReadOnlyList<QualificationDto> Qualifications,
+    IReadOnlyList<ProviderServiceDto> Services,
     DateTime CreatedAt,
     DateTime? UpdatedAt,
     bool IsDeleted,

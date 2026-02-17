@@ -35,7 +35,7 @@ public class RemoveServiceFromProviderCommandHandlerTests
         // Arrange
         var serviceId = Guid.NewGuid();
         var provider = ProviderBuilder.Create().Build();
-        provider.AddService(serviceId);
+        provider.AddService(serviceId, "Service Name");
         var command = new RemoveServiceFromProviderCommand(provider.Id.Value, serviceId);
 
         _repositoryMock
@@ -97,7 +97,7 @@ public class RemoveServiceFromProviderCommandHandlerTests
         // Arrange
         var serviceId = Guid.NewGuid();
         var provider = ProviderBuilder.Create().Build();
-        provider.AddService(serviceId);
+        provider.AddService(serviceId, "Service Name");
         var command = new RemoveServiceFromProviderCommand(provider.Id.Value, serviceId);
 
         _repositoryMock

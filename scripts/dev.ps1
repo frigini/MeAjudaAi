@@ -71,6 +71,7 @@ Write-Host "   - Keycloak (porta 8080)" -ForegroundColor White
 Write-Host "   - RabbitMQ (porta 5672)" -ForegroundColor White
 Write-Host "   - API Backend (porta 7524/5545)" -ForegroundColor White
 Write-Host "   - Admin Portal Blazor" -ForegroundColor White
+Write-Host "   - Customer Web App (porta 3000)" -ForegroundColor White
 Write-Host ""
 Write-Host "Pressione Ctrl+C para parar..." -ForegroundColor Gray
 Write-Host ""

@@ -4,5 +4,5 @@ using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
 
-public sealed record GetAllServicesQuery(bool ActiveOnly = false)
+public sealed record GetAllServicesQuery(bool ActiveOnly = false, string? Name = null)
     : Query<Result<IReadOnlyList<ServiceListDto>>>;

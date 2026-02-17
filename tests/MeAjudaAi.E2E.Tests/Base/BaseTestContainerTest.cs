@@ -25,17 +25,28 @@ using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 
+
+// Disable parallel execution to prevent race conditions when using shared database containers
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
+
 namespace MeAjudaAi.E2E.Tests.Base;
 
 /// <summary>
 /// Base class para testes E2E usando TestContainers
-/// Isolada de Aspire, com infraestrutura própria de teste
+/// Isolada de Aspire, com infraestrutura própria de teste.
+/// Refatorado para usar Singleton Pattern nos containers para evitar exaustão de recursos.
 /// </summary>
 public abstract class BaseTestContainerTest : IAsyncLifetime
 {
-    private PostgreSqlContainer _postgresContainer = null!;
-    private RedisContainer _redisContainer = null!;
-    private AzuriteContainer _azuriteContainer = null!;
+    // Static containers shared across all tests
+    private static PostgreSqlContainer? _postgresContainer;
+    private static RedisContainer? _redisContainer;
+    private static AzuriteContainer? _azuriteContainer;
+
+    // Locking for thread-safe initialization
+    private static readonly SemaphoreSlim _initializationLock = new(1, 1);
+    private static bool _initialized = false;
+
     private WebApplicationFactory<Program> _factory = null!;
 
     protected HttpClient ApiClient { get; private set; } = null!;
@@ -43,34 +54,77 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 
     protected static System.Text.Json.JsonSerializerOptions JsonOptions => SerializationDefaults.Api;
 
-    // Nota: Removido construtor estático com SetAllowUnauthenticated(true)
-    // Testes agora devem configurar explicitamente autenticação via AuthenticateAsAdmin(), AuthenticateAsUser(), etc.
-    // Isso previne race conditions onde testes esperam permissões específicas mas recebem acesso admin
-
     public virtual async ValueTask InitializeAsync()
     {
-        // Configurar containers com configuração mais robusta
-        _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4") // Mesma imagem usada em CI/CD e compose
-            .WithDatabase("meajudaai_test")
-            .WithUsername("postgres")
-            .WithPassword("test123")
-            .WithCleanUp(true)
-            .Build();
+        // Ensure containers are initialized only once
+        if (!_initialized)
+        {
+            await _initializationLock.WaitAsync();
+            try
+            {
+                if (!_initialized)
+                {
+                    // Configurar containers com configuração mais robusta
+                    if (_postgresContainer == null)
+                    {
+                        // Enable legacy timestamp behavior immediately
+                        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
-        _redisContainer = new RedisBuilder("redis:7-alpine")
-            .WithCleanUp(true)
-            .Build();
+                        _postgresContainer = new PostgreSqlBuilder("postgis/postgis:16-3.4")
+                            .WithDatabase("meajudaai_test")
+                            .WithUsername("postgres")
+                            .WithPassword("test123")
+                            .WithCleanUp(true)
+                            .Build();
+                    }
 
-        _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.34.0")
-            .WithCleanUp(true)
-            .Build();
+                    if (_redisContainer == null)
+                    {
+                        _redisContainer = new RedisBuilder("redis:7-alpine")
+                            .WithCleanUp(true)
+                            .Build();
+                    }
 
-        // Iniciar containers
-        await _postgresContainer.StartAsync();
-        await _redisContainer.StartAsync();
-        await _azuriteContainer.StartAsync();
+                    if (_azuriteContainer == null)
+                    {
+                        _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.33.0")
+                            .WithCleanUp(true)
+                            .Build();
+                    }
 
-        // Configurar WebApplicationFactory
+                    // Start containers in parallel
+                    var tasks = new List<Task>();
+                    tasks.Add(_postgresContainer.StartAsync());
+                    tasks.Add(_redisContainer.StartAsync());
+                    tasks.Add(_azuriteContainer.StartAsync());
+
+                    await Task.WhenAll(tasks);
+
+                    _initialized = true;
+                }
+            }
+            finally
+            {
+                _initializationLock.Release();
+            }
+        }
+
+        // Configurar WebApplicationFactory (instância por teste, mas usa containers compartilhados)
+        InitializeFactory();
+
+        // Create HTTP client with test context header injection
+        ApiClient = _factory.CreateDefaultClient(new TestContextHeaderHandler());
+
+        // Para a primeira execução, precisamos aplicar as migrações.
+        // Como todos os testes compartilham o banco, aplicamos de forma idempotente.
+        await ApplyMigrationsAsync();
+
+        // Aguardar API ficar disponível
+        await WaitForApiHealthAsync();
+    }
+
+    private void InitializeFactory()
+    {
 #pragma warning disable CA2000 // Dispose é gerenciado por IAsyncLifetime.DisposeAsync
         _factory = new WebApplicationFactory<Program>()
 #pragma warning restore CA2000
@@ -84,28 +138,28 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                     config.AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         // Todos os módulos compartilham a mesma instância de banco de dados de teste
-                        ["ConnectionStrings:DefaultConnection"] = _postgresContainer.GetConnectionString(),
-                        ["ConnectionStrings:meajudaai-db"] = _postgresContainer.GetConnectionString(),
-                        ["ConnectionStrings:UsersDb"] = _postgresContainer.GetConnectionString(),
-                        ["ConnectionStrings:ProvidersDb"] = _postgresContainer.GetConnectionString(),
-                        ["ConnectionStrings:DocumentsDb"] = _postgresContainer.GetConnectionString(),
-                        ["ConnectionStrings:Redis"] = _redisContainer.GetConnectionString(),
-                        ["Azure:Storage:ConnectionString"] = _azuriteContainer.GetConnectionString(),
+                        ["ConnectionStrings:DefaultConnection"] = _postgresContainer!.GetConnectionString(),
+                        ["ConnectionStrings:meajudaai-db"] = _postgresContainer!.GetConnectionString(),
+                        ["ConnectionStrings:UsersDb"] = _postgresContainer!.GetConnectionString(),
+                        ["ConnectionStrings:ProvidersDb"] = _postgresContainer!.GetConnectionString(),
+                        ["ConnectionStrings:DocumentsDb"] = _postgresContainer!.GetConnectionString(),
+                        ["ConnectionStrings:Redis"] = _redisContainer!.GetConnectionString(),
+                        ["Azure:Storage:ConnectionString"] = _azuriteContainer!.GetConnectionString(),
                         ["Hangfire:Enabled"] = "false", // Desabilitar Hangfire nos testes E2E
                         ["Logging:LogLevel:Default"] = "Warning",
                         ["Logging:LogLevel:Microsoft"] = "Error",
                         ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Error",
                         ["RabbitMQ:Enabled"] = "false",
                         ["Keycloak:Enabled"] = "false",
-                        // Desabilitar health checks de serviços externos nos testes E2E
+                         // Desabilitar health checks de serviços externos nos testes E2E
                         ["ExternalServices:Keycloak:Enabled"] = "false",
                         ["ExternalServices:PaymentGateway:Enabled"] = "false",
                         ["ExternalServices:Geolocation:Enabled"] = "false",
                         ["Cache:Enabled"] = "false", // Desabilitar Redis por enquanto
-                        ["Cache:ConnectionString"] = _redisContainer.GetConnectionString(),
+                        ["Cache:ConnectionString"] = _redisContainer!.GetConnectionString(),
                         // Desabilitar completamente Rate Limiting nos testes E2E
                         ["AdvancedRateLimit:General:Enabled"] = "false",
-                        // Valores válidos caso não consiga desabilitar completamente
+                         // Valores válidos caso não consiga desabilitar completamente
                         ["AdvancedRateLimit:Anonymous:RequestsPerMinute"] = "10000",
                         ["AdvancedRateLimit:Anonymous:RequestsPerHour"] = "100000",
                         ["AdvancedRateLimit:Anonymous:RequestsPerDay"] = "1000000",
@@ -148,7 +202,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 
                     services.AddSingleton(new PostgresOptions
                     {
-                        ConnectionString = _postgresContainer.GetConnectionString()
+                        ConnectionString = _postgresContainer!.GetConnectionString()
                     });
 
                     // Adicionar DatabaseMetrics se não existir
@@ -196,7 +250,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                     // Adicionar como Singleton com factory para injetar IServiceProvider
                     services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MockMessageBus>();
 
-                    // Substituir IDomainEventProcessor por um mock que não processa eventos (evitar publicação de eventos de integração em E2E)
+                    // Substituir IDomainEventProcessor por um mock que não processa eventos
                     var domainEventProcessorDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Events.IDomainEventProcessor)).ToList();
                     foreach (var descriptor in domainEventProcessorDescriptors)
                     {
@@ -218,32 +272,20 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                         .AddScheme<AuthenticationSchemeOptions, ConfigurableTestAuthenticationHandler>(
                             ConfigurableTestAuthenticationHandler.SchemeName, options => { });
 
-                    // Configurar aplicação automática de migrações apenas para testes
+                     // Add simple default migration hooks
                     services.AddScoped<Func<UsersDbContext>>(provider => () =>
                     {
                         var context = provider.GetRequiredService<UsersDbContext>();
-                        // Aplicar migrações apenas em testes
-                        context.Database.Migrate();
                         return context;
                     });
 
                     services.AddScoped<Func<ProvidersDbContext>>(provider => () =>
                     {
                         var context = provider.GetRequiredService<ProvidersDbContext>();
-                        // Migrations are applied explicitly in ApplyMigrationsAsync, no action needed here
                         return context;
                     });
                 });
             });
-
-        // Create HTTP client with test context header injection
-        ApiClient = _factory.CreateDefaultClient(new TestContextHeaderHandler());
-
-        // Aplicar migrações diretamente no banco TestContainer
-        await ApplyMigrationsAsync();
-
-        // Aguardar API ficar disponível
-        await WaitForApiHealthAsync();
     }
 
     public virtual async ValueTask DisposeAsync()
@@ -254,14 +296,9 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         ApiClient?.Dispose();
         _factory?.Dispose();
 
-        if (_postgresContainer != null)
-            await _postgresContainer.StopAsync();
-
-        if (_redisContainer != null)
-            await _redisContainer.StopAsync();
-
-        if (_azuriteContainer != null)
-            await _azuriteContainer.StopAsync();
+        // DO NOT dispose containers here as they are shared static singletons
+        // They will be cleaned up by Ryuk (Testcontainers) when the process exits
+        await Task.CompletedTask;
     }
 
     private async Task WaitForApiHealthAsync()
@@ -293,49 +330,65 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         throw new InvalidOperationException($"API did not become healthy after {maxAttempts} attempts");
     }
 
+    // Static flag for database migration state
+    private static bool _migrationsApplied = false;
+    private static readonly SemaphoreSlim _migrationLock = new(1, 1);
+
     private async Task ApplyMigrationsAsync()
     {
-        using var scope = _factory.Services.CreateScope();
+        if (_migrationsApplied) return;
 
-        // Garantir que o banco está limpo primeiro
-        var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        await usersContext.Database.EnsureDeletedAsync();
-
-        // Aplicar migrações no UsersDbContext (isso cria o banco e o schema users)
-        await usersContext.Database.MigrateAsync();
-
-        // Para ProvidersDbContext, só aplicar migrações (o banco já existe, só precisamos do schema providers)
-        var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
-        await providersContext.Database.MigrateAsync();
-
-        // Para DocumentsDbContext, só aplicar migrações (o banco já existe, só precisamos do schema documents)
-        var documentsContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
-        await documentsContext.Database.MigrateAsync();
-
-        // Para ServiceCatalogsDbContext, só aplicar migrações (o banco já existe, só precisamos do schema catalogs)
-        var catalogsContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
-        await catalogsContext.Database.MigrateAsync();
-
-        // Para SearchProvidersDbContext, só aplicar migrações (o banco já existe, só precisamos do schema search + PostGIS)
+        await _migrationLock.WaitAsync();
         try
         {
-            var searchContext = scope.ServiceProvider.GetService<SearchProvidersDbContext>();
-            if (searchContext == null)
-            {
-                throw new InvalidOperationException("SearchProvidersDbContext is not registered in DI.");
-            }
-            
-            await searchContext.Database.MigrateAsync();
-        }
-        catch (Exception ex)
-        {
-            // Re-throw to avoid masking the issue
-            throw new Exception($"Failed to apply SearchProviders migrations: {ex.Message}", ex);
-        }
+            if (_migrationsApplied) return;
 
-        // Para LocationsDbContext, só aplicar migrações (o banco já existe, só precisamos do schema locations)
-        var locationsContext = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
-        await locationsContext.Database.MigrateAsync();
+            using var scope = _factory.Services.CreateScope();
+
+            // Garantir que o banco está limpo primeiro se necessário
+            var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+            await usersContext.Database.EnsureDeletedAsync();
+
+            // 1. Users (Core)
+            await usersContext.Database.MigrateAsync();
+
+            // 2. ServiceCatalogs (Critical Prerequisite for Providers)
+            var catalogsContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
+            await catalogsContext.Database.MigrateAsync();
+
+            // 3. Providers (Depends on ServiceCatalogs)
+            var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
+            await providersContext.Database.MigrateAsync();
+
+            // 4. Documents
+            var documentsContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
+            await documentsContext.Database.MigrateAsync();
+
+            // 5. Locations
+            var locationsContext = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
+            await locationsContext.Database.MigrateAsync();
+
+            // 6. SearchProviders (Depends on Providers + PostGIS)
+            try
+            {
+                var searchContext = scope.ServiceProvider.GetService<SearchProvidersDbContext>();
+                if (searchContext != null)
+                {
+                    await searchContext.Database.MigrateAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log but rethrow to avoid masking issues
+                throw new Exception($"Failed to apply SearchProviders migrations: {ex.Message}", ex);
+            }
+
+            _migrationsApplied = true;
+        }
+        finally
+        {
+            _migrationLock.Release();
+        }
     }
 
     // Helper methods usando serialização compartilhada

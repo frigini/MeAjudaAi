@@ -538,6 +538,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
     /// Adiciona um serviço à lista de serviços oferecidos pelo provider.
     /// </summary>
     /// <param name="serviceId">ID do serviço do catálogo (ServiceCatalogs module)</param>
+    /// <param name="serviceName">Nome do serviço (desnormalizado para exibição)</param>
     /// <exception cref="ProviderDomainException">Lançada se o serviço já estiver na lista</exception>
     /// <remarks>
     /// IMPORTANTE: Quando implementar o command handler para adicionar serviços, validar que:
@@ -545,10 +546,13 @@ public sealed class Provider : AggregateRoot<ProviderId>
     /// 2. O serviço está ativo e disponível para associação
     /// A validação deve ocorrer no command handler antes de chamar este método.
     /// </remarks>
-    public void AddService(Guid serviceId)
+    public void AddService(Guid serviceId, string serviceName)
     {
         if (serviceId == Guid.Empty)
             throw new ProviderDomainException("ServiceId cannot be empty");
+
+        if (string.IsNullOrWhiteSpace(serviceName))
+            throw new ProviderDomainException("ServiceName cannot be empty");
 
         if (IsDeleted)
             throw new ProviderDomainException("Cannot add services to deleted provider");
@@ -556,7 +560,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
         if (_services.Any(s => s.ServiceId == serviceId))
             throw new ProviderDomainException($"Service {serviceId} is already offered by this provider");
 
-        var providerService = new ProviderService(Id, serviceId);
+        var providerService = new ProviderService(Id, serviceId, serviceName);
         _services.Add(providerService);
         MarkAsUpdated();
 

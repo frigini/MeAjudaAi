@@ -798,16 +798,25 @@ public class ProviderTests
         // Arrange
         var provider = CreateValidProvider();
         var serviceId = Guid.NewGuid();
+        var serviceName = "New Service";
 
         // Act
-        provider.AddService(serviceId);
+        provider.AddService(serviceId, serviceName);
 
         // Assert
         provider.Services.Should().HaveCount(1);
-        provider.Services.First().ServiceId.Should().Be(serviceId);
-        provider.Services.First().ProviderId.Should().Be(provider.Id);
+        var service = provider.Services.Single();
+        service.ServiceId.Should().Be(serviceId);
+        service.ServiceName.Should().Be(serviceName);
+        service.ProviderId.Should().Be(provider.Id);
         provider.OffersService(serviceId).Should().BeTrue();
         provider.GetServiceIds().Should().ContainSingle().Which.Should().Be(serviceId);
+
+        var addEvent = provider.DomainEvents.Last();
+        addEvent.Should().BeOfType<ProviderServiceAddedDomainEvent>();
+
+        var serviceAddedEvent = (ProviderServiceAddedDomainEvent)addEvent;
+        serviceAddedEvent.ServiceId.Should().Be(serviceId);
     }
 
     [Fact]
@@ -820,9 +829,9 @@ public class ProviderTests
         var serviceId3 = Guid.NewGuid();
 
         // Act
-        provider.AddService(serviceId1);
-        provider.AddService(serviceId2);
-        provider.AddService(serviceId3);
+        provider.AddService(serviceId1, "Service 1");
+        provider.AddService(serviceId2, "Service 2");
+        provider.AddService(serviceId3, "Service 3");
 
         // Assert
         provider.Services.Should().HaveCount(3);
@@ -839,7 +848,7 @@ public class ProviderTests
         var provider = CreateValidProvider();
 
         // Act
-        var act = () => provider.AddService(Guid.Empty);
+        var act = () => provider.AddService(Guid.Empty, "Service Name");
 
         // Assert
         act.Should().Throw<ProviderDomainException>()
@@ -847,19 +856,37 @@ public class ProviderTests
     }
 
     [Fact]
-    public void AddService_WithDuplicateService_ShouldThrowException()
+    public void AddService_WithDuplicateService_ShouldThrowProviderDomainException()
     {
         // Arrange
         var provider = CreateValidProvider();
         var serviceId = Guid.NewGuid();
-        provider.AddService(serviceId);
+        var serviceName = "Test Service";
+        provider.AddService(serviceId, serviceName);
 
-        // Act
-        var act = () => provider.AddService(serviceId);
-
-        // Assert
-        act.Should().Throw<ProviderDomainException>()
+        // Act & Assert
+        var action = () => provider.AddService(serviceId, serviceName);
+        action.Should().Throw<ProviderDomainException>()
             .WithMessage($"Service {serviceId} is already offered by this provider");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("  ")]
+    [InlineData(null)]
+    public void AddService_WithInvalidName_ShouldThrowProviderDomainException(string? invalidName)
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        var serviceId = Guid.NewGuid();
+
+        // Act & Assert
+#pragma warning disable CS8604 // Possible null reference argument
+        var action = () => provider.AddService(serviceId, invalidName);
+#pragma warning restore CS8604
+        
+        action.Should().Throw<ProviderDomainException>()
+            .WithMessage("ServiceName cannot be empty");
     }
 
     [Fact]
@@ -872,7 +899,7 @@ public class ProviderTests
         var serviceId = Guid.NewGuid();
 
         // Act
-        var act = () => provider.AddService(serviceId);
+        var act = () => provider.AddService(serviceId, "Service Name");
 
         // Assert
         act.Should().Throw<ProviderDomainException>()
@@ -885,7 +912,7 @@ public class ProviderTests
         // Arrange
         var provider = CreateValidProvider();
         var serviceId = Guid.NewGuid();
-        provider.AddService(serviceId);
+        provider.AddService(serviceId, "Service Name");
 
         // Act
         provider.RemoveService(serviceId);
@@ -931,7 +958,7 @@ public class ProviderTests
         // Arrange
         var provider = CreateValidProvider();
         var serviceId = Guid.NewGuid();
-        provider.AddService(serviceId);
+        provider.AddService(serviceId, "Service Name");
 
         // Act
         var result = provider.OffersService(serviceId);
@@ -976,9 +1003,9 @@ public class ProviderTests
         var serviceId1 = Guid.NewGuid();
         var serviceId2 = Guid.NewGuid();
         var serviceId3 = Guid.NewGuid();
-        provider.AddService(serviceId1);
-        provider.AddService(serviceId2);
-        provider.AddService(serviceId3);
+        provider.AddService(serviceId1, "Service 1");
+        provider.AddService(serviceId2, "Service 2");
+        provider.AddService(serviceId3, "Service 3");
 
         // Act
         var serviceIds = provider.GetServiceIds();

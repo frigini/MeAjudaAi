@@ -129,9 +129,11 @@ public class ErrorHandlingService(
 
             return result;
         }
-        catch (OperationCanceledException)
+        #pragma warning disable S2139 // Log and rethrow to maintain observability
+        catch (OperationCanceledException ex)
+        #pragma warning restore S2139
         {
-            logger.LogInformation(
+            logger.LogInformation(ex,
                 "Operation '{Operation}' canceled [CorrelationId: {CorrelationId}]",
                 operation, correlationId);
             

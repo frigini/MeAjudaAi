@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #2e2e2e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+
+    /* Dark mode overrides */
+    --color-surface: #1a1a1a;
+    --color-surface-raised: #262626;
+    --color-foreground-subtle: #a3a3a3;
+    --color-border: #404040;
+    --color-input: #404040;
+  }
+}
+
+@theme inline {
+  /* Colors from Figma */
+  --color-primary: #395873;
+  --color-primary-foreground: #ffffff;
+  --color-primary-hover: #2E4760;
+
+  --color-secondary: #D96704;
+  --color-secondary-light: #F2AE72;
+  --color-secondary-foreground: #ffffff;
+  --color-secondary-hover: #B85703;
+
+  --color-surface: #ffffff;
+  --color-surface-raised: #f5f5f5;
+
+  --color-foreground: var(--foreground);
+  --color-foreground-subtle: #666666;
+
+  --color-border: #e0e0e0;
+  --color-input: #e0e0e0;
+  --color-ring: #D96704;
+
+  --color-brand: #E0702B;
+  --color-brand-hover: #c56226;
+
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+
+  --color-background: var(--background);
+  --font-sans: 'Roboto', Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}

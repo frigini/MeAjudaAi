@@ -12,38 +12,75 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Testcontainers.PostgreSql;
 using Xunit;
+using Npgsql;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 
 /// <summary>
 /// Classe base para testes de integração específicos do módulo Providers.
-/// Usa isolamento completo com database único por classe de teste.
+/// Otimizada para usar um container compartilhado (Singleton) com bancos de dados isolados.
 /// </summary>
+[Trait("Category", "Integration")]
 public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
 {
-    private PostgreSqlContainer? _container;
+    // Container estático compartilhado entre TODOS os testes desta classe
+    private static PostgreSqlContainer? _sharedContainer;
+    private static readonly SemaphoreSlim _sharedContainerLock = new(1, 1);
+    
+    // Credenciais para o banco de dados de teste
+    private const string DbUsername = "postgres";
+    private const string DbPassword = "test123";
+
+    // Cache de nomes de bancos para garantir reutilização por TYPE da classe de teste
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, string> _databaseNames = new();
+    // Usar Lazy<Task> para garantir que apenas uma tarefa de criação seja executada por nome de banco de dados, mesmo com testes simultâneos
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Lazy<Task>> _createdDatabases = new();
+
     private ServiceProvider? _serviceProvider;
+    private ProvidersDbContext? _dbContext;
     private readonly string _testClassId;
+    private string? _connectionString;
 
     protected ProvidersIntegrationTestBase()
     {
-        _testClassId = $"{GetType().Name}_{Guid.NewGuid():N}";
+        // Garante que a mesma classe de teste use sempre o mesmo nome base, 
+        // mas classes diferentes (mesmo rodando em paralelo) tenham nomes diferentes.
+        _testClassId = _databaseNames.GetOrAdd(GetType(), t => $"{t.Name}_{Guid.NewGuid():N}");
     }
 
     /// <summary>
-    /// Configurações padrão para testes do módulo Providers
+    /// Configurações padrão para testes do módulo Providers.
+    /// InitializeDatabaseAsync (chamado via IAsyncLifetime) executa TRUNCATE em todas as tabelas antes de cada método de teste,
+    /// garantindo um estado limpo. CleanupDatabase() é mantido como no-op para compatibilidade.
     /// </summary>
     protected TestInfrastructureOptions GetTestOptions()
     {
-        return new TestInfrastructureOptions
+        var dbName = $"providers_test_{_testClassId}";
+        if (System.Text.Encoding.UTF8.GetByteCount(dbName) > 63)
+        {
+            // pt_ + 15 chars prefix + _ + 32 chars GUID = 51 chars < 63 limit.
+            // Nota: O limite do PostgreSQL é de 63 BYTES, não caracteres. Caracteres multi-byte no nome da classe podem exceder isso.
+            // Manter unicidade via sufixo GUID (últimos 32 caracteres) + prefixo para identificar que é um teste
+            var prefix = GetType().Name.Length > 15 ? GetType().Name[..15] : GetType().Name;
+            
+            // Recalcular para garantir que o prefixo em UTF8 não estoure o limite quando combinado
+            while (System.Text.Encoding.UTF8.GetByteCount($"pt_{prefix}_{_testClassId[^32..]}") > 63)
+            {
+                prefix = prefix[..^1];
+            }
+            
+            dbName = $"pt_{prefix}_{_testClassId[^32..]}";
+        }
+
+        var options = new TestInfrastructureOptions
         {
             Database = new TestDatabaseOptions
             {
-                DatabaseName = $"providers_test_{_testClassId}",
-                Username = "test_user",
-                Password = "test_password",
+                DatabaseName = dbName,
+                Username = DbUsername,
+                Password = DbPassword,
                 Schema = "providers",
-                UseInMemoryDatabase = false
+                // Força o uso do container compartilhado sobrescrevendo a connection string posteriormente
             },
             Cache = new TestCacheOptions
             {
@@ -55,29 +92,47 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
                 UseMessageBusMock = true
             }
         };
+
+        // Se já temos connection string (container já subiu), usamos ela
+        if (_connectionString != null)
+        {
+            options.Database.ConnectionString = _connectionString;
+        }
+
+        return options;
     }
 
     /// <summary>
-    /// Inicialização executada antes de cada classe de teste
+    /// Inicialização executada antes de cada método de teste
     /// </summary>
     public async ValueTask InitializeAsync()
     {
-        // Criar container PostgreSQL isolado para esta classe de teste
+        // 1. Garantir que o container compartilhado está rodando
+        await EnsureSharedContainerAsync();
+
+        // 2. Criar um banco de dados lógico ÚNICO para este teste dentro do container compartilhado
         var options = GetTestOptions();
+        var databaseName = options.Database.DatabaseName;
+        
+        // Obter ou adicionar um Lazy<Task> para garantir que criamos o banco de dados apenas uma vez
+        var creationTask = _createdDatabases.GetOrAdd(databaseName, 
+            _ => new Lazy<Task>(() => CreateLogicalDatabaseAsync(databaseName)));
+            
+        // Aguardar a tarefa (wrapper para a lógica de criação real)
+        await creationTask.Value;
+        
+        // Atualiza connection string para apontar para o novo banco
+        var builder = new NpgsqlConnectionStringBuilder(_sharedContainer!.GetConnectionString())
+        {
+            Database = databaseName
+        };
+        _connectionString = builder.ToString();
+        
+        // Atualiza options com a nova connection string
+        options.Database.ConnectionString = _connectionString;
 
-        _container = new PostgreSqlBuilder(options.Database.PostgresImage)
-            .WithDatabase(options.Database.DatabaseName)
-            .WithUsername(options.Database.Username)
-            .WithPassword(options.Database.Password)
-            .Build();
-
-        await _container.StartAsync();
-
-        // Configurar serviços com container isolado
+        // 3. Configurar serviços
         var services = new ServiceCollection();
-
-        // Registrar o container específico
-        services.AddSingleton(_container);
 
         // Configurar logging otimizado
         services.AddLogging(builder =>
@@ -90,8 +145,60 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
 
         _serviceProvider = services.BuildServiceProvider();
 
-        // Inicializar banco de dados
+        // 4. Inicializar schema do banco (EnsureCreated)
         await InitializeDatabaseAsync();
+    }
+
+    private static async Task EnsureSharedContainerAsync()
+    {
+        if (_sharedContainer != null) return;
+
+        await _sharedContainerLock.WaitAsync();
+        try
+        {
+            if (_sharedContainer != null) return;
+
+            // Configuração global para Npgsql
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+            var container = new PostgreSqlBuilder("postgis/postgis:16-3.4")
+                .WithDatabase("postgres") // Banco padrão para conexões administrativas
+                .WithUsername(DbUsername)
+                .WithPassword(DbPassword)
+                .WithCleanUp(true)
+                .Build();
+
+            await container.StartAsync();
+
+            _sharedContainer = container;
+        }
+        finally
+        {
+            _sharedContainerLock.Release();
+        }
+    }
+
+    private static async Task CreateLogicalDatabaseAsync(string databaseName)
+    {
+        // Conecta no banco 'postgres' padrão para criar o novo banco
+        var adminConnectionString = _sharedContainer!.GetConnectionString();
+        await using var connection = new NpgsqlConnection(adminConnectionString);
+        await connection.OpenAsync();
+
+        // Cria o banco de dados
+        await using var command = connection.CreateCommand();
+        // Higienizar nome do banco de dados para evitar injeção/erros com caracteres estranhos
+        var safeName = databaseName.Replace("\"", "\"\"");
+        command.CommandText = $"CREATE DATABASE \"{safeName}\"";
+        
+        try 
+        {
+            await command.ExecuteNonQueryAsync();
+        }
+        catch (PostgresException ex) when (ex.SqlState == "42P04") // Duplicate database
+        {
+            // Ignorar se já existe (deve ser tratado pelo Lazy, mas bom para segurança)
+        }
     }
 
     /// <summary>
@@ -107,16 +214,41 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     /// </summary>
     private async Task InitializeDatabaseAsync()
     {
-        var dbContext = _serviceProvider!.GetRequiredService<ProvidersDbContext>();
+        await using var scope = _serviceProvider!.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
 
-        // Criar banco e esquema sem executar migrations
+        // Criar esquema
         await dbContext.Database.EnsureCreatedAsync();
 
-        // Verificar isolamento
+        // Verificar isolamento (não deve ter providers ainda)
+        // Como estamos reusando o banco por classe de teste, precisamos limpar os dados entre os testes
+        var connection = dbContext.Database.GetDbConnection();
+        var wasOpen = connection.State == System.Data.ConnectionState.Open;
+        if (!wasOpen) await connection.OpenAsync();
+
+        try 
+        {
+            // Script para truncar todas as tabelas do schema 'providers'
+            await dbContext.Database.ExecuteSqlRawAsync(@"
+                DO $$ DECLARE
+                    r RECORD;
+                BEGIN
+                    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'providers') LOOP
+                        EXECUTE 'TRUNCATE TABLE ' || quote_ident('providers') || '.' || quote_ident(r.tablename) || ' CASCADE';
+                    END LOOP;
+                END $$;
+            ");
+        }
+        finally
+        {
+            if (!wasOpen) await connection.CloseAsync();
+        }
+
+        // Verificação de segurança
         var count = await dbContext.Providers.CountAsync();
         if (count > 0)
         {
-            throw new InvalidOperationException($"Database isolation failed for '{GetTestOptions().Database.DatabaseName}': found {count} existing providers in new database");
+            throw new InvalidOperationException($"Database isolation failed: found {count} existing providers in new database");
         }
     }
 
@@ -131,13 +263,9 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         CancellationToken cancellationToken = default)
     {
         var provider = new Provider(userId, name, type, businessProfile);
-
-        // Obter contexto
-        var dbContext = GetService<ProvidersDbContext>();
-
+        var dbContext = DbContext;
         await dbContext.Providers.AddAsync(provider, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
-
         return provider;
     }
 
@@ -148,107 +276,50 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     {
         var contactInfo = new ContactInfo(email, phone);
         var address = new Address("Test Street", "123", "Test Neighborhood", "Test City", "Test State", "12345-678", "Brazil");
-
         return new BusinessProfile("Test Company Legal Name", contactInfo, address, "Test Company Fantasy", "Test company description");
     }
 
     /// <summary>
-    /// Limpa dados das tabelas para isolamento entre testes
-    /// Usando banco isolado, cleanup é mais simples e confiável
-    /// </summary>
-    protected async Task CleanupDatabase()
-    {
-        var dbContext = GetService<ProvidersDbContext>();
-        var schema = GetTestOptions().Database.Schema;
-
-        try
-        {
-            // Com banco isolado, podemos usar TRUNCATE com segurança
-#pragma warning disable EF1002 // Risk of SQL injection - schema comes from test configuration, not user input
-            await dbContext.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {schema}.providers CASCADE");
-#pragma warning restore EF1002
-        }
-        catch (Exception ex)
-        {
-            // Fallback para DELETE se TRUNCATE falhar
-            var logger = GetService<ILogger<ProvidersIntegrationTestBase>>();
-            logger.LogWarning(ex, "TRUNCATE failed: {Message}. Using DELETE fallback...", ex.Message);
-
-#pragma warning disable EF1002 // Risk of SQL injection - schema comes from test configuration, not user input
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.qualification");
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.document");
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.providers");
-#pragma warning restore EF1002
-        }
-
-        // Verificar se limpeza foi bem-sucedida
-        var remainingCount = await dbContext.Providers.CountAsync();
-        if (remainingCount > 0)
-        {
-            throw new InvalidOperationException($"Database cleanup failed: {remainingCount} providers remain");
-        }
-    }
-
-    /// <summary>
-    /// Força limpeza mais agressiva do banco de dados
-    /// Com isolamento completo, é mais simples e confiável
-    /// </summary>
-    protected async Task ForceCleanDatabase()
-    {
-        var dbContext = GetService<ProvidersDbContext>();
-        var schema = GetTestOptions().Database.Schema;
-
-        try
-        {
-            // Estratégia 1: TRUNCATE CASCADE
-#pragma warning disable EF1002 // Risk of SQL injection - schema comes from test configuration, not user input
-            await dbContext.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {schema}.providers CASCADE");
-#pragma warning restore EF1002
-            return;
-        }
-        catch (Exception ex)
-        {
-            var logger = GetService<ILogger<ProvidersIntegrationTestBase>>();
-            logger.LogWarning(ex, "TRUNCATE failed: {Message}. Trying DELETE...", ex.Message);
-        }
-
-        try
-        {
-            // Estratégia 2: DELETE em ordem reversa
-#pragma warning disable EF1002 // Risk of SQL injection - schema comes from test configuration, not user input
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.qualification");
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.document");
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.providers");
-#pragma warning restore EF1002
-            return;
-        }
-        catch (Exception ex)
-        {
-            var logger = GetService<ILogger<ProvidersIntegrationTestBase>>();
-            logger.LogError(ex, "DELETE failed: {Message}. Recreating database...", ex.Message);
-        }
-
-        // Estratégia 3: Recriar database
-        await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
-    }
-
-    /// <summary>
-    /// Limpeza executada após cada classe de teste
+    /// Limpeza executada após cada método de teste
     /// </summary>
     public async ValueTask DisposeAsync()
     {
         if (_serviceProvider != null)
         {
             await _serviceProvider.DisposeAsync();
+            _serviceProvider = null;
         }
+        _dbContext = null;
 
-        if (_container != null)
-        {
-            await _container.StopAsync();
-            await _container.DisposeAsync();
-        }
+        // NÃO descartamos o _sharedContainer aqui. Ele é estático e deve viver até o fim do processo.
+        // Ryuk (Testcontainers) cuidará da limpeza ao final do processo.
     }
+
+    /// <summary>
+    /// Limpa dados das tabelas para isolamento entre testes.
+    /// Como cada classe de teste usa um banco de dados isolado, este método é mantido para compatibilidade
+    /// com testes que esperam poder limpar o estado explicitamente, mas o isolamento principal é via DB único.
+    /// </summary>
+    protected virtual Task CleanupDatabase()
+    {
+        // No-op: Isolamento é garantido por banco de dados único por classe de teste.
+        // Se um teste específico precisar de limpeza intra-classe, pode implementar delete manual.
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Força limpeza do banco de dados.
+    /// No-op por padrão; sobrescreva para forçar limpeza se necessário.
+    /// </summary>
+    protected virtual Task ForceCleanDatabase()
+    {
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Acesso direto ao contexto de banco de dados do módulo Providers
+    /// </summary>
+    protected ProvidersDbContext DbContext => _dbContext ??= GetService<ProvidersDbContext>();
 
     /// <summary>
     /// Obtém um serviço do provider isolado

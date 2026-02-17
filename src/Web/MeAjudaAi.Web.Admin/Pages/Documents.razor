@@ -16,6 +16,11 @@
         <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
         Gestão de Documentos
     </MudText>
+    
+    @if (DocumentsState.Value.IsLoading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mb-4" />
+    }
 
     @if (DocumentsState.Value.HasError)
     {

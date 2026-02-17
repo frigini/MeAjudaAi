@@ -60,6 +60,30 @@ public static class ApiErrorMessages
     }
 
     /// <summary>
+    /// Obtém mensagem de erro amigável para uma exceção
+    /// </summary>
+    public static string GetFriendlyMessage(Exception exception, string? operation = null)
+    {
+        return exception switch
+        {
+            HttpRequestException httpEx when httpEx.StatusCode.HasValue =>
+                GetFriendlyMessage(httpEx.StatusCode.Value, operation),
+            
+            HttpRequestException =>
+                WithOperation(NetworkError),
+            
+            TaskCanceledException or TimeoutException =>
+                WithOperation(Timeout),
+            
+            _ =>
+                WithOperation(UnknownError)
+        };
+
+        string WithOperation(string message) =>
+            string.IsNullOrWhiteSpace(operation) ? message : $"{operation}: {message}";
+    }
+
+    /// <summary>
     /// Mensagem para circuit breaker aberto
     /// </summary>
     public static string CircuitBreakerOpen => 
@@ -86,28 +110,5 @@ public static class ApiErrorMessages
     public static string UnknownError => 
         "Ocorreu um erro inesperado. Tente novamente.";
 
-    /// <summary>
-    /// Obtém mensagem de erro amigável para uma exceção
-    /// </summary>
-    public static string GetFriendlyMessage(Exception exception, string? operation = null)
-    {
-        var operationText = string.IsNullOrWhiteSpace(operation) 
-            ? "A operação" 
-            : operation;
 
-        return exception switch
-        {
-            HttpRequestException httpEx when httpEx.StatusCode.HasValue =>
-                GetFriendlyMessage(httpEx.StatusCode.Value, operation),
-            
-            HttpRequestException =>
-                NetworkError,
-            
-            TaskCanceledException or TimeoutException =>
-                Timeout,
-            
-            _ =>
-                UnknownError
-        };
-    }
 }

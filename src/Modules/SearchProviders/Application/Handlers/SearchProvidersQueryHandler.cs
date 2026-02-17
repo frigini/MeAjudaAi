@@ -51,6 +51,7 @@ public sealed class SearchProvidersQueryHandler(
         var searchResult = await repository.SearchAsync(
             location,
             query.RadiusInKm,
+            query.Term,
             query.ServiceIds,
             query.MinRating,
             query.SubscriptionTiers,

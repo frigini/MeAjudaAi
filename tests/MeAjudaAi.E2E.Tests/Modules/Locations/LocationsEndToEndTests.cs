@@ -16,13 +16,23 @@ namespace MeAjudaAi.E2E.Tests.Modules.Locations;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Locations")]
-public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
+public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLifetime
 {
     private readonly TestContainerFixture _fixture;
 
     public LocationsEndToEndTests(TestContainerFixture fixture)
     {
         _fixture = fixture;
+    }
+
+    public async ValueTask InitializeAsync()
+    {
+        await _fixture.CleanupDatabaseAsync();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
     }
 
     [Fact]

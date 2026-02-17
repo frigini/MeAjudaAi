@@ -39,4 +39,11 @@ public class TestDatabaseOptions
     /// Se deve usar InMemory database ao invés de PostgreSQL
     /// </summary>
     public bool UseInMemoryDatabase { get; set; } = false;
+
+    /// <summary>
+    /// Connection String explícita (opcional). 
+    /// Se fornecida, ignora configurações de host/port/container e usa esta string diretamente.
+    /// Útil para Shared Containers.
+    /// </summary>
+    public string? ConnectionString { get; set; }
 }

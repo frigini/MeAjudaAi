@@ -1,5 +1,7 @@
 using MeAjudaAi.Modules.Providers.API.Endpoints.ProviderAdmin;
 using MeAjudaAi.Modules.Providers.API.Endpoints.ProviderServices;
+using MeAjudaAi.Modules.Providers.API.Endpoints.Public;
+using MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
 
@@ -52,6 +54,9 @@ public static class ProvidersModuleEndpoints
         endpoints.MapEndpoint<GetProvidersEndpoint>()
             .MapEndpoint<CreateProviderEndpoint>()
             .MapEndpoint<GetProviderByIdEndpoint>()
+            .MapEndpoint<GetPublicProviderByIdEndpoint>() // Novo endpoint público
+            .MapEndpoint<GetMyProviderProfileEndpoint>()
+            .MapEndpoint<UpdateMyProviderProfileEndpoint>()
             .MapEndpoint<GetProviderByUserIdEndpoint>()
             .MapEndpoint<GetProvidersByCityEndpoint>()
             .MapEndpoint<GetProvidersByStateEndpoint>()

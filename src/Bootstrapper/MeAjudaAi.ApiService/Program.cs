@@ -43,6 +43,7 @@ public partial class Program
             // Shared services por último (GlobalExceptionHandler atua como fallback)
             builder.Services.AddSharedServices(builder.Configuration);
             builder.Services.AddApiServices(builder.Configuration, builder.Environment);
+            builder.Services.AddCustomRateLimiting();
 
             var app = builder.Build();
 
@@ -50,7 +51,7 @@ public partial class Program
 
             // Aplicar migrations de todos os módulos ANTES de seed
             // Pular em ambiente de Testing pois os testes controlam suas próprias migrations
-            if (!app.Environment.IsEnvironment("Testing"))
+            if (!app.Environment.IsEnvironment("Testing") && app.Configuration.GetValue("Migrations:Enabled", true))
             {
                 await app.ApplyModuleMigrationsAsync();
                 
@@ -111,16 +112,10 @@ public partial class Program
     private static async Task ConfigureMiddlewareAsync(WebApplication app)
     {
         app.MapDefaultEndpoints();
-
-        // Adiciona middleware de logging estruturado (condicionalmente adiciona Serilog request logging baseado no ambiente)
-        if (!app.Environment.IsEnvironment("Testing"))
-        {
-            app.UseStructuredLogging();
-        }
-
         // Configurar serviços e módulos
         await app.UseSharedServicesAsync();
         app.UseApiServices(app.Environment);
+        app.UseRateLimiter();
         app.UseUsersModule();
         app.UseProvidersModule();
         app.UseDocumentsModule();

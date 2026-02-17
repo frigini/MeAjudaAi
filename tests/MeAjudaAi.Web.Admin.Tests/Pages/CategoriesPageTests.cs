@@ -10,6 +10,7 @@ using Microsoft.JSInterop;
 using Moq;
 using MudBlazor.Services;
 using static MeAjudaAi.Web.Admin.Features.Modules.ServiceCatalogs.ServiceCatalogsActions;
+using MeAjudaAi.Web.Admin.Tests.Helpers;
 
 namespace MeAjudaAi.Web.Admin.Tests.Pages;
 
@@ -19,10 +20,12 @@ namespace MeAjudaAi.Web.Admin.Tests.Pages;
 public class CategoriesPageTests
 {
     [Fact]
-    public void Categories_Page_Should_Dispatch_LoadCategoriesAction_OnInitialized()
+    public async Task Categories_Page_Should_Dispatch_LoadCategoriesAction_OnInitialized()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockServiceCatalogsApi = new Mock<IServiceCatalogsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<ServiceCatalogsState>>();
@@ -32,8 +35,6 @@ public class CategoriesPageTests
         ctx.Services.AddSingleton(mockServiceCatalogsApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<Categories>();
@@ -46,10 +47,12 @@ public class CategoriesPageTests
     }
 
     [Fact]
-    public void Categories_Page_Should_Show_Create_Button()
+    public async Task Categories_Page_Should_Show_Create_Button()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockServiceCatalogsApi = new Mock<IServiceCatalogsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<ServiceCatalogsState>>();
@@ -59,8 +62,6 @@ public class CategoriesPageTests
         ctx.Services.AddSingleton(mockServiceCatalogsApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<Categories>();
@@ -71,10 +72,12 @@ public class CategoriesPageTests
     }
 
     [Fact]
-    public void Categories_Page_Should_Display_Categories_List()
+    public async Task Categories_Page_Should_Display_Categories_List()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockServiceCatalogsApi = new Mock<IServiceCatalogsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<ServiceCatalogsState>>();
@@ -95,8 +98,6 @@ public class CategoriesPageTests
         ctx.Services.AddSingleton(mockServiceCatalogsApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<Categories>();
@@ -107,10 +108,12 @@ public class CategoriesPageTests
     }
 
     [Fact]
-    public void Categories_Page_Should_Show_Loading_Indicator_When_Loading()
+    public async Task Categories_Page_Should_Show_Loading_Indicator_When_Loading()
     {
         // Arrange
-        using var ctx = new Bunit.BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.AddAdminTestServices();
+        
         var mockServiceCatalogsApi = new Mock<IServiceCatalogsApi>();
         var mockDispatcher = new Mock<IDispatcher>();
         var mockState = new Mock<IState<ServiceCatalogsState>>();
@@ -120,14 +123,12 @@ public class CategoriesPageTests
         ctx.Services.AddSingleton(mockServiceCatalogsApi.Object);
         ctx.Services.AddSingleton(mockDispatcher.Object);
         ctx.Services.AddSingleton(mockState.Object);
-        ctx.Services.AddMudServices();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         // Act
         var cut = ctx.Render<Categories>();
 
         // Assert
         var markup = cut.Markup;
-        markup.Should().Contain("mud-progress-circular", "Indicador de loading deve estar visível");
+        markup.Should().Contain("mud-progress-linear", "Indicador de loading deve estar visível.");
     }
 }

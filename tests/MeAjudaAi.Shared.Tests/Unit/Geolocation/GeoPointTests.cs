@@ -26,7 +26,7 @@ public class GeoPointTests
     public void Constructor_WithInvalidLatitude_ShouldThrowArgumentOutOfRangeException(double latitude, double longitude)
     {
         // Act
-        Action act = () => new GeoPoint(latitude, longitude);
+        Action act = () => _ = new GeoPoint(latitude, longitude);
 
         // Assert
         act.Should().Throw<ArgumentOutOfRangeException>()
@@ -42,7 +42,7 @@ public class GeoPointTests
     public void Constructor_WithInvalidLongitude_ShouldThrowArgumentOutOfRangeException(double latitude, double longitude)
     {
         // Act
-        Action act = () => new GeoPoint(latitude, longitude);
+        Action act = () => _ = new GeoPoint(latitude, longitude);
 
         // Assert
         act.Should().Throw<ArgumentOutOfRangeException>()
