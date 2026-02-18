@@ -60,6 +60,9 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
             verify: false
         );
 
+        // Wait for database commit to complete (especially important in CI)
+        await Task.Delay(500);
+
         // Act
         var response = await _fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude}&longitude={searchLongitude}&radiusInKm={radiusInKm}");
@@ -129,7 +132,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
             -46.6433
         );
         // Inserir diretamente com ServiceIds ao invés de usar endpoint
-        await InsertSearchableProviderAsync(cleaningProviderId, $"cleaning_provider_{Guid.NewGuid():N}", -23.5605, -46.6433, new[] { cleaningServiceId });
+        await InsertSearchableProviderAsync(cleaningProviderId, $"cleaning_provider_{Guid.NewGuid():N}", -23.5605, -46.6433, serviceIds: new[] { cleaningServiceId });
 
         // Provider com serviço de jardinagem
         var gardenProviderId = await CreateProviderAsync(
@@ -138,7 +141,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
             -46.6533
         );
         // Inserir diretamente com ServiceIds ao invés de usar endpoint
-        await InsertSearchableProviderAsync(gardenProviderId, $"garden_provider_{Guid.NewGuid():N}", -23.5705, -46.6533, new[] { gardenServiceId });
+        await InsertSearchableProviderAsync(gardenProviderId, $"garden_provider_{Guid.NewGuid():N}", -23.5705, -46.6533, serviceIds: new[] { gardenServiceId });
 
         // Act - Buscar apenas por serviço de limpeza
         var response = await _fixture.ApiClient.GetAsync(
@@ -172,11 +175,11 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
 
         var electricianId = await CreateProviderAsync($"electrician_{Guid.NewGuid():N}", -23.5605, -46.6433);
         // Inserir diretamente com ServiceIds ao invés de usar endpoint
-        await InsertSearchableProviderAsync(electricianId, $"electrician_{Guid.NewGuid():N}", -23.5605, -46.6433, new[] { electricalServiceId });
+        await InsertSearchableProviderAsync(electricianId, $"electrician_{Guid.NewGuid():N}", -23.5605, -46.6433, serviceIds: new[] { electricalServiceId });
 
         var plumberId = await CreateProviderAsync($"plumber_{Guid.NewGuid():N}", -23.5705, -46.6533);
         // Inserir diretamente com ServiceIds ao invés de usar endpoint
-        await InsertSearchableProviderAsync(plumberId, $"plumber_{Guid.NewGuid():N}", -23.5705, -46.6533, new[] { plumbingServiceId });
+        await InsertSearchableProviderAsync(plumberId, $"plumber_{Guid.NewGuid():N}", -23.5705, -46.6533, serviceIds: new[] { plumbingServiceId });
 
         // Act - Buscar por ambos os serviços
         var response = await _fixture.ApiClient.GetAsync(
@@ -414,7 +417,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         }
 
         // Indexar manualmente o provider no SearchProviders inserindo direto no banco
-        await InsertSearchableProviderAsync(providerId, businessName, latitude, longitude);
+        await InsertSearchableProviderAsync(providerId, businessName, latitude, longitude, subscriptionTier: subscriptionTier);
 
         return providerId;
     }
@@ -438,7 +441,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
     /// Insere um provider diretamente na tabela searchable_providers.
     /// Necessário porque o MockMessageBus não processa eventos de integração.
     /// </summary>
-    private async Task InsertSearchableProviderAsync(Guid providerId, string name, double latitude, double longitude, Guid[]? serviceIds = null)
+    private async Task InsertSearchableProviderAsync(Guid providerId, string name, double latitude, double longitude, string subscriptionTier = "Free", Guid[]? serviceIds = null)
     {
         await _fixture.WithServiceScopeAsync(async sp =>
         {
@@ -471,7 +474,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
                 Longitude = longitude,
                 AvgRating = 5.0m, // Ensure high rating to appear in top results
                 TotalReviews = 10,
-                SubscriptionTier = 1, // Standard
+                SubscriptionTier = MapSubscriptionTierToInt(subscriptionTier),
                 ServiceIds = serviceIds ?? Array.Empty<Guid>(),
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
@@ -531,4 +534,12 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
             HttpStatusCode.NoContent,
             HttpStatusCode.Created);
     }
+
+    private static int MapSubscriptionTierToInt(string tier) => tier switch
+    {
+        "Free" => 0,
+        "Standard" => 1,
+        "Platinum" => 2,
+        _ => 0 // Default to Free
+    };
 }

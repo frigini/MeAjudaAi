@@ -37,7 +37,7 @@ public class PollyLoggingHandler(
         catch (BrokenCircuitException ex)
         {
             logger.LogError(ex, 
-                "🔴 Circuit breaker is open - API unavailable. Request: {RequestUri}",
+                "🔴 Circuit breaker is open - API unavailable. Request: {RequestUri}. Total retries/failures reached threshold.",
                 request.RequestUri);
             
             connectionStatus.UpdateStatus(ConnectionStatus.Disconnected);
@@ -47,8 +47,8 @@ public class PollyLoggingHandler(
             {
                 RequestMessage = request,
                 Content = new StringContent(
-                    "O serviço está temporariamente indisponível. " +
-                    "Aguarde alguns instantes e tente novamente.")
+                    "O serviço está temporariamente indisponível devido a falhas técnicas. " +
+                    "Aguarde alguns instantes enquanto tentamos restabelecer a conexão.")
             };
         }
         #pragma warning disable S2139 // Log and rethrow to maintain observability
