@@ -60,6 +60,9 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
             verify: false
         );
 
+        // Wait for database commit to complete (especially important in CI)
+        await Task.Delay(500);
+
         // Act
         var response = await _fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude}&longitude={searchLongitude}&radiusInKm={radiusInKm}");
