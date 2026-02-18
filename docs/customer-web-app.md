@@ -204,7 +204,7 @@ npm run generate:api
 npx @hey-api/openapi-ts
 ```
 
-**Configuração** ([openapi-ts.config.ts](../src/Web/meajudaai-web-customer/openapi-ts.config.ts)):
+**Configuração** ([openapi-ts.config.ts](../src/Web/MeAjudaAi.Web.Customer/openapi-ts.config.ts)):
 - **Input**: `http://localhost:7002/api-docs/v1/swagger.json`
 - **Output**: `./lib/api/generated`
 - **Plugins**: `@tanstack/react-query`, `zod`
