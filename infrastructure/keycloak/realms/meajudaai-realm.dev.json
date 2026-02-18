@@ -93,6 +93,53 @@
       }
     ]
   },
+  "identityProviders": [
+    {
+      "alias": "google",
+      "displayName": "Google",
+      "providerId": "google",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${env.GOOGLE_CLIENT_ID}",
+        "clientSecret": "${env.GOOGLE_CLIENT_SECRET}"
+      }
+    },
+    {
+      "alias": "facebook",
+      "displayName": "Facebook",
+      "providerId": "facebook",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${env.FACEBOOK_APP_ID}",
+        "clientSecret": "${env.FACEBOOK_APP_SECRET}"
+      }
+    },
+    {
+      "alias": "instagram",
+      "displayName": "Instagram",
+      "providerId": "instagram",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${env.INSTAGRAM_CLIENT_ID}",
+        "clientSecret": "${env.INSTAGRAM_CLIENT_SECRET}"
+      }
+    }
+  ],
   "clients": [
     {
       "clientId": "admin-portal",

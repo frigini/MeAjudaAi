@@ -22,10 +22,18 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Missing KEYCLOAK_ADMIN_PASSWORD environment variable}
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HOSTNAME_STRICT_HTTPS: false
       KC_HTTP_ENABLED: true
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET}
+      INSTAGRAM_CLIENT_ID: ${INSTAGRAM_CLIENT_ID}
+      INSTAGRAM_CLIENT_SECRET: ${INSTAGRAM_CLIENT_SECRET}
     command: ["start-dev", "--import-realm"]
     ports:
       - "${KEYCLOAK_PORT:-8081}:8080"
+      - "8443:8443"
     volumes:
       - keycloak_standalone_data:/opt/keycloak/data
       - ../../keycloak/realms:/opt/keycloak/data/import
