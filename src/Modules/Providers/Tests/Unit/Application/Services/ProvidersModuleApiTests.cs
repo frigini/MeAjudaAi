@@ -240,6 +240,7 @@ public class ProvidersModuleApiTests
             ),
             Status: EProviderStatus.PendingBasicInfo,
             VerificationStatus: EVerificationStatus.Pending,
+            Tier: EProviderTier.Standard,
             Documents: new List<DocumentDto>
             {
                 new DocumentDto(

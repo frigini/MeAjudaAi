@@ -22,6 +22,7 @@ public static class ProviderMapper
             provider.BusinessProfile.ToDto(),
             provider.Status,
             provider.VerificationStatus,
+            provider.Tier,
             provider.Documents.Select(d => d.ToDto()).ToList(),
             provider.Qualifications.Select(q => q.ToDto()).ToList(),
             provider.Services.Select(s => s.ToDto()).ToList(),

@@ -40,6 +40,31 @@ public static class UserRoles
     /// </summary>
     public const string Customer = "customer";
 
+    // ===== PROVIDER TIER ROLES =====
+    // Gerenciados automaticamente via webhook Stripe (módulo de pagamentos futuro).
+    // Todo prestador começa como provider-standard (plano gratuito).
+
+    /// <summary>
+    /// Prestador de serviços no plano gratuito (Standard).
+    /// Atribuído automaticamente no auto-registro.
+    /// </summary>
+    public const string ProviderStandard = "provider-standard";
+
+    /// <summary>
+    /// Prestador de serviços no plano Silver (pago via Stripe).
+    /// </summary>
+    public const string ProviderSilver = "provider-silver";
+
+    /// <summary>
+    /// Prestador de serviços no plano Gold (pago via Stripe).
+    /// </summary>
+    public const string ProviderGold = "provider-gold";
+
+    /// <summary>
+    /// Prestador de serviços no plano Platinum (pago via Stripe).
+    /// </summary>
+    public const string ProviderPlatinum = "provider-platinum";
+
     /// <summary>
     /// Obtém todos os papéis disponíveis no sistema
     /// </summary>
@@ -51,7 +76,11 @@ public static class UserRoles
         CatalogManager,
         Operator,
         Viewer,
-        Customer
+        Customer,
+        ProviderStandard,
+        ProviderSilver,
+        ProviderGold,
+        ProviderPlatinum
     ];
 
     /// <summary>
@@ -75,6 +104,17 @@ public static class UserRoles
     ];
 
     /// <summary>
+    /// Obtém todos os papéis de prestador (qualquer tier)
+    /// </summary>
+    public static readonly string[] ProviderRoles =
+    [
+        ProviderStandard,
+        ProviderSilver,
+        ProviderGold,
+        ProviderPlatinum
+    ];
+
+    /// <summary>
     /// Valida se um papel é válido no sistema
     /// </summary>
     /// <param name="role">Papel a ser validado</param>
@@ -92,5 +132,13 @@ public static class UserRoles
     public static bool IsAdminRole(string role)
     {
         return AdminRoles.Contains(role, StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Valida se um papel é de prestador de serviços (qualquer tier)
+    /// </summary>
+    public static bool IsProviderRole(string role)
+    {
+        return ProviderRoles.Contains(role, StringComparer.OrdinalIgnoreCase);
     }
 }

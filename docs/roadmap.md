@@ -7,7 +7,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ | Sprint 7-7.15 ✅ CONCLUÍDO | MVP Target: 14/Março/2026  
+**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ | Sprint 7-7.16 ✅ | Sprint 8A ✅ CONCLUÍDO | Sprint 8B 🔄 EM ANDAMENTO | MVP Target: 14/Março/2026  
 **Cobertura de Testes**: Backend 90.56% | Frontend 30 testes bUnit  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM (Admin) + React 19 + Next.js 15 (Customer) + Tailwind v4
 
@@ -38,10 +38,12 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **5 Fev 2026**: Sprint 7.20 - Dashboard Charts & Data Mapping Fixes (CONCLUÍDO - JSON property mapping, debug messages removed)
 - ✅ **5 Fev 2026**: Sprint 7.21 - Package Updates & Bug Fixes (CONCLUÍDO - Microsoft.OpenApi 2.6.1, Aspire.Hosting.Redis 13.1.0, SonarAnalyzer.CSharp 10.19.0)
 - ✅ **5-13 Fev 2026**: Sprint 8A - Customer Web App (React + Next.js) (CONCLUÍDO - Features & Test Optimization)
-- ⏳ **19 Fev - 4 Mar 2026**: Sprint 8B - Mobile App (React Native + Expo)
-- ⏳ **5-11 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
-- 🎯 **14 Março 2026**: MVP Launch (Admin Portal + Customer App Web + Mobile)
-- 🔮 **Março 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
+- 🔄 **19 Fev - 4 Mar 2026**: Sprint 8B - Authentication & Onboarding Flow (EM ANDAMENTO)
+- ⏳ **5-18 Mar 2026**: Sprint 8C - Mobile App (React Native + Expo)
+- ⏳ **19-25 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
+- 🎯 **28 Março 2026**: MVP Launch (Admin Portal + Customer App Web + Mobile)
+- ⏳ **Pós-MVP**: Sprint Infra - NX Monorepo (unificar Customer Web + Provider App + Mobile em workspace compartilhado)
+- 🔮 **Março 2026+**: Fase 3 - Reviews, Assinaturas (Stripe), Agendamentos
 
 ## ⚠️ Notas de Risco
 
@@ -49,11 +51,53 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - Primeiro projeto Blazor WASM pode revelar complexidade não prevista
 - Sprint 9 reservado como buffer de contingência (não para novas features)
 
+## 🏗️ Decisões Arquiteturais Futuras
+
+### NX Monorepo (Frontend)
+
+**Status**: ⏳ Planejado pós-MVP  
+**Branch**: `infra/nx-monorepo` (separada do Sprint 8B)
+
+**Motivação**: Com Customer Web App (Next.js), Provider App (futuro) e Mobile (React Native + Expo), o compartilhamento de código (componentes, hooks, tipos TypeScript, schemas Zod) entre os projetos se torna crítico. NX oferece:
+- Workspace unificado com `libs/` compartilhadas
+- Build cache inteligente (só reconstrói o que mudou)
+- Dependency graph entre projetos
+- Geração de código consistente
+
+**Escopo da Sprint NX**:
+- Migrar `MeAjudaAi.Web.Customer` para workspace NX
+- Criar `apps/customer-web`, `apps/provider-web` (futuro), `apps/mobile`
+- Criar `libs/ui` (componentes compartilhados), `libs/auth`, `libs/api-client`
+- Atualizar `.NET Aspire AppHost` para apontar para nova estrutura
+- Atualizar CI/CD para usar `nx affected`
+
+**Timing recomendado**: Antes de iniciar o Provider App (Sprint 8C+), pois o NX facilita exatamente o compartilhamento entre Customer e Provider.
+
+---
+
+### Migração Admin Portal: Blazor WASM → React?
+
+**Status**: ⚪ Não planejado — decisão deliberada manter Blazor
+
+**Análise**:
+
+| Fator | Manter Blazor | Migrar para React |
+|-------|--------------|-------------------|
+| Custo | ✅ Zero | ❌ Alto (reescrever ~5000+ linhas) |
+| Compartilhamento C# DTOs | ✅ Nativo | ❌ Requer geração OpenAPI |
+| Uso interno (não SEO) | ✅ Blazor adequado | ⚠️ React seria over-engineering |
+| Unificação de stack | ⚠️ Dual-stack | ✅ Single-stack |
+| Hiring | ⚠️ Blazor nicho | ✅ React mais fácil |
+
+**Decisão**: **Manter Blazor WASM** para o Admin Portal. O Admin é uma ferramenta interna sem requisitos de SEO ou performance de carga inicial. A vantagem de compartilhar C# DTOs diretamente supera o custo de manter dual-stack. Migração só faria sentido se o time crescer e a curva de aprendizado Blazor se tornar um gargalo real de contratação.
+
+**Revisitar se**: time crescer >5 devs frontend e Blazor se tornar bloqueador de contratação.
+
 ---
 
 ## 🎯 Status Atual
 
-**📅 Sprint 8B pré-início**: Fevereiro de 2026
+**📅 Sprint 8B em andamento**: Fevereiro/Março de 2026
 
 ### ✅ Sprint 8A - Customer Web App & Test Optimization - CONCLUÍDA (5-13 Fev 2026)
 
@@ -1460,7 +1504,7 @@ Get-ChildItem -Recurse -Include *.cs | Select-String "record "
 
 ---
 
-### ⏳ Sprint 8B - Authentication & Onboarding Flow (Novo)
+### 🔄 Sprint 8B - Authentication & Onboarding Flow (EM ANDAMENTO)
 
 **Periodo Estimado**: 19 Fev - 4 Mar 2026
 **Foco**: Fluxos de Cadastro e Login Segmentados (Cliente vs Prestador)
@@ -1508,7 +1552,7 @@ Get-ChildItem -Recurse -Include *.cs | Select-String "record "
 
 ### ⏳ Sprint 8C - Mobile App (React Native)
 
-**Periodo Estimado**: 5 Mar - 18 Mar 2026 (Deslocado)
+**Periodo Estimado**: 5 Mar - 18 Mar 2026
 **Foco**: App Mobile Nativo (iOS/Android) com Expo
 
 **Escopo**:
@@ -5002,8 +5046,7 @@ public class ActivityHub : Hub
   - **Note**: Post-MVP feature, não é blocker para geographic-restriction inicial
 - **ViaCep API** - Lookup de CEP brasileiro
   - Base URL: `https://viacep.com.br/ws/`
-  - Documentação: <https://viacep.com.br/>
-- **BrasilApi CEP** - Lookup de CEP (fallback)
+  - Documentação: <https://viacep.com.br/>- **BrasilApi CEP** - Lookup de CEP (fallback)
   - Base URL: `https://brasilapi.com.br/api/cep/v1/`
   - Documentação: <https://brasilapi.com.br/docs>
 - **OpenCep API** - Lookup de CEP (fallback)

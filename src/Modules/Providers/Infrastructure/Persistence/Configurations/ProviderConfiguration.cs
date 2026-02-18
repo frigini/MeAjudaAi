@@ -54,6 +54,15 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
             .IsRequired()
             .HasColumnName("verification_status");
 
+        builder.Property(p => p.Tier)
+            .HasConversion(
+                tier => tier.ToString(),
+                value => Enum.Parse<EProviderTier>(value))
+            .HasMaxLength(20)
+            .IsRequired()
+            .HasDefaultValue(EProviderTier.Standard)
+            .HasColumnName("tier");
+
         builder.Property(p => p.IsDeleted)
             .IsRequired()
             .HasColumnName("is_deleted");

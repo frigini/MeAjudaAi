@@ -61,6 +61,14 @@ public sealed class Provider : AggregateRoot<ProviderId>
     public EVerificationStatus VerificationStatus { get; private set; }
 
     /// <summary>
+    /// Tier de assinatura do prestador de serviços.
+    /// </summary>
+    /// <remarks>
+    /// Padrão: Standard (plano gratuito). Promovido automaticamente via Stripe webhook.
+    /// </remarks>
+    public EProviderTier Tier { get; private set; }
+
+    /// <summary>
     /// Coleção de documentos validados do prestador de serviços.
     /// </summary>
     private readonly List<Document> _documents = [];
@@ -125,6 +133,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
         BusinessProfile = businessProfile;
         Status = EProviderStatus.PendingBasicInfo;
         VerificationStatus = EVerificationStatus.Pending;
+        Tier = EProviderTier.Standard;
 
         // Não adiciona eventos de domínio para testes
     }
@@ -158,6 +167,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
         BusinessProfile = businessProfile;
         Status = EProviderStatus.PendingBasicInfo;
         VerificationStatus = EVerificationStatus.Pending;
+        Tier = EProviderTier.Standard;
 
         AddDomainEvent(new ProviderRegisteredDomainEvent(
             Id.Value,
@@ -490,6 +500,36 @@ public sealed class Provider : AggregateRoot<ProviderId>
 
         UpdateStatus(EProviderStatus.Active, updatedBy);
         UpdateVerificationStatus(EVerificationStatus.Verified, updatedBy, skipMarkAsUpdated: true);
+    }
+
+    /// <summary>
+    /// Promove ou rebaixa o tier do prestador de serviços.
+    /// </summary>
+    /// <param name="newTier">Novo tier a ser atribuído</param>
+    /// <param name="updatedBy">Quem está fazendo a atualização (ex: "stripe-webhook")</param>
+    /// <remarks>
+    /// Normalmente chamado via webhook do Stripe após confirmação de pagamento.
+    /// Não há restrição de progressão — pode promover ou rebaixar livremente.
+    /// </remarks>
+    public void PromoteTier(EProviderTier newTier, string? updatedBy = null)
+    {
+        if (IsDeleted)
+            throw new ProviderDomainException("Cannot update tier of deleted provider");
+
+        if (Tier == newTier)
+            return;
+
+        var previousTier = Tier;
+        Tier = newTier;
+        MarkAsUpdated();
+
+        AddDomainEvent(new ProviderTierUpdatedDomainEvent(
+            Id.Value,
+            1,
+            UserId,
+            previousTier,
+            newTier,
+            updatedBy));
     }
 
     /// <summary>

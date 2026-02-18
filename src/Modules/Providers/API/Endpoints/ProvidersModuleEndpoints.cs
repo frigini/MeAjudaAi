@@ -55,6 +55,7 @@ public static class ProvidersModuleEndpoints
             .MapEndpoint<CreateProviderEndpoint>()
             .MapEndpoint<GetProviderByIdEndpoint>()
             .MapEndpoint<GetPublicProviderByIdEndpoint>() // Novo endpoint público
+            .MapEndpoint<RegisterProviderEndpoint>() // Novo endpoint de registro
             .MapEndpoint<GetMyProviderProfileEndpoint>()
             .MapEndpoint<UpdateMyProviderProfileEndpoint>()
             .MapEndpoint<GetProviderByUserIdEndpoint>()
@@ -67,7 +68,9 @@ public static class ProvidersModuleEndpoints
             .MapEndpoint<RemoveDocumentEndpoint>()
             .MapEndpoint<UpdateVerificationStatusEndpoint>()
             .MapEndpoint<RequireBasicInfoCorrectionEndpoint>()
-            .MapEndpoint<DeleteProviderEndpoint>();
+            .MapEndpoint<DeleteProviderEndpoint>()
+            .MapEndpoint<UploadMyDocumentEndpoint>()
+            .MapEndpoint<GetMyProviderStatusEndpoint>();
         
         // Endpoints de associação de serviços
         endpoints.MapEndpoint<AddServiceToProviderEndpoint>()
