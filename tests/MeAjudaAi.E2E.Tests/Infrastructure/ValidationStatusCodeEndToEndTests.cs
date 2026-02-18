@@ -227,8 +227,8 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         {
             Username = _fixture.Faker.Internet.UserName(),
             Email = uniqueEmail,
-            FirstName = _fixture.Faker.Name.FirstName(),
-            LastName = _fixture.Faker.Name.LastName(),
+            FirstName = "Carlos",
+            LastName = "Silva",
             Password = "ValidPass123!",
             PhoneNumber = "+5511999999999"
         };
@@ -241,8 +241,8 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         {
             Username = _fixture.Faker.Internet.UserName(), // Different username
             Email = uniqueEmail, // Same email
-            FirstName = _fixture.Faker.Name.FirstName(),
-            LastName = _fixture.Faker.Name.LastName(),
+            FirstName = "Ana",
+            LastName = "Souza",
             Password = "ValidPass123!",
             PhoneNumber = "+5511999999999"
         };
@@ -345,8 +345,8 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         {
             Username = _fixture.Faker.Internet.UserName(),
             Email = uniqueEmail, // Same email
-            FirstName = "Test",
-            LastName = "User",
+            FirstName = "Ana",
+            LastName = "Souza",
             Password = "ValidPass123!",
             PhoneNumber = "+5511999999999"
         };
