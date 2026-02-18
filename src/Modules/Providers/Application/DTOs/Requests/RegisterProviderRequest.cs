@@ -42,4 +42,9 @@ public record RegisterProviderRequest
     /// Indica que o prestador aceitou a Política de Privacidade/LGPD (obrigatório).
     /// </summary>
     public bool AcceptedPrivacyPolicy { get; init; }
+
+    /// <summary>
+    /// Número do documento (CPF/CNPJ) do prestador.
+    /// </summary>
+    public string DocumentNumber { get; init; } = string.Empty;
 }

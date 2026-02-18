@@ -12,4 +12,7 @@ public record RegisterProviderCommand(
     string? PhoneNumber,
     EProviderType Type,
     string DocumentNumber
-) : ICommand<Result<ProviderDto>>;
+) : ICommand<Result<ProviderDto>>
+{
+    public Guid CorrelationId { get; init; } = Guid.NewGuid();
+}

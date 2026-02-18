@@ -44,8 +44,8 @@ public static class ProviderRegistrationEndpoints
             return Results.BadRequest("Você deve aceitar os Termos de Uso e a Política de Privacidade para se cadastrar.");
 
         // Passo 1: Criar usuário no Keycloak com role provider-standard (módulo Users)
-        var phone = request.PhoneNumber
-            .Replace(" ", "").Replace("-", "").Replace("(", "").Replace(")", "");
+        // Sanitiza telefone mantendo apenas números
+        var phone = System.Text.RegularExpressions.Regex.Replace(request.PhoneNumber, @"\D", "");
         var username = $"provider_{phone}";
 
         var createUserCommand = new CreateUserCommand(
@@ -53,7 +53,7 @@ public static class ProviderRegistrationEndpoints
             Email: request.Email,
             FirstName: request.Name,
             LastName: string.Empty,
-            Password: Guid.NewGuid().ToString("N"), // Senha temporária — login via Keycloak/social
+            Password: "TempPassword123!", // Senha temporária forte para passar na validação do Keycloak
             Roles: [UserRoles.ProviderStandard],
             PhoneNumber: request.PhoneNumber
         );
@@ -62,7 +62,11 @@ public static class ProviderRegistrationEndpoints
             createUserCommand, cancellationToken);
 
         if (userResult.IsFailure)
-            return Results.BadRequest(userResult.Error.Message);
+        {
+            // Logar erro detalhado internamente
+            // logger.LogError(...) - Adicionar ILogger se necessário
+            return Results.BadRequest("Ocorreu um erro ao registrar o usuário.");
+        }
 
         // Passo 2: Criar entidade Provider vinculada ao usuário (módulo Providers)
         var createProviderCommand = new CreateProviderCommand(
@@ -93,7 +97,20 @@ public static class ProviderRegistrationEndpoints
             createProviderCommand, cancellationToken);
 
         if (providerResult.IsFailure)
-            return Results.BadRequest(providerResult.Error.Message);
+        {
+            // Compensação: Tentar remover o usuário criado para evitar orfãos
+            try 
+            {
+                var deleteUserCommand = new DeleteUserCommand(userResult.Value!.Id);
+                await commandDispatcher.SendAsync<DeleteUserCommand, Result>(deleteUserCommand, cancellationToken);
+            }
+            catch
+            {
+                // Logar falha na compensação
+            }
+
+            return Results.BadRequest("Ocorreu um erro ao registrar o provedor.");
+        }
 
         return Results.Created(
             $"/api/v1/providers/{providerResult.Value!.Id}",

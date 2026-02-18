@@ -15,7 +15,10 @@ import { useEffect } from "react";
 
 const formSchema = z.object({
     name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-    documentNumber: z.string().min(11, "Documento inválido").max(14, "Documento inválido"), // CPF 11, CNPJ 14 (sem formatação)
+    documentNumber: z.string()
+        .min(11, "Documento inválido")
+        .max(14, "Documento inválido")
+        .regex(/^\d+$/, "Apenas números são permitidos"), // CPF 11, CNPJ 14 (sem formatação)
     phoneNumber: z.string().min(10, "Telefone inválido"),
     type: z.nativeEnum(EProviderType),
     email: z.string().email("Email inválido").optional().or(z.literal("")),

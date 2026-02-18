@@ -44,8 +44,9 @@ public class AddDocumentRequestValidatorTests
         var result = await _validator.TestValidateAsync(request);
 
         // Assert
+        // Assert
         result.ShouldHaveValidationErrorFor(x => x.Number)
-            .WithErrorMessage("Document number is required");
+            .WithErrorMessage("Número do documento é obrigatório");
     }
 
     [Fact]
@@ -59,7 +60,7 @@ public class AddDocumentRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Number)
-            .WithErrorMessage("Document number must be at least 3 characters long");
+            .WithErrorMessage("Número do documento deve ter pelo menos 3 caracteres");
     }
 
     [Fact]
@@ -74,7 +75,7 @@ public class AddDocumentRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Number)
-            .WithErrorMessage("Document number cannot exceed 50 characters");
+            .WithErrorMessage("Número do documento não pode exceder 50 caracteres");
     }
 
     [Theory]
@@ -92,7 +93,7 @@ public class AddDocumentRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Number)
-            .WithErrorMessage("Document number can only contain letters, numbers, hyphens and dots");
+            .WithErrorMessage("Número do documento deve conter apenas letras, números, hífens e pontos");
     }
 
     [Theory]

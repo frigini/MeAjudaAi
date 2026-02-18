@@ -30,7 +30,7 @@ services:
       FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET}
       INSTAGRAM_CLIENT_ID: ${INSTAGRAM_CLIENT_ID}
       INSTAGRAM_CLIENT_SECRET: ${INSTAGRAM_CLIENT_SECRET}
-    command: ["start-dev", "--import-realm"]
+    command: ["start-dev", "--import-realm", "--features=instagram-broker"]
     ports:
       - "${KEYCLOAK_PORT:-8081}:8080"
       - "8443:8443"

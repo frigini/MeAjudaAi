@@ -7,7 +7,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ | Sprint 7-7.16 ✅ | Sprint 8A ✅ CONCLUÍDO | Sprint 8B 🔄 EM ANDAMENTO | MVP Target: 14/Março/2026  
+**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ | Sprint 7-7.16 ✅ | Sprint 8A ✅ CONCLUÍDO | Sprint 8B 🔄 EM ANDAMENTO | MVP Target: 28/Março/2026  
 **Cobertura de Testes**: Backend 90.56% | Frontend 30 testes bUnit  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM (Admin) + React 19 + Next.js 15 (Customer) + Tailwind v4
 
@@ -39,7 +39,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **5 Fev 2026**: Sprint 7.21 - Package Updates & Bug Fixes (CONCLUÍDO - Microsoft.OpenApi 2.6.1, Aspire.Hosting.Redis 13.1.0, SonarAnalyzer.CSharp 10.19.0)
 - ✅ **5-13 Fev 2026**: Sprint 8A - Customer Web App (React + Next.js) (CONCLUÍDO - Features & Test Optimization)
 - 🔄 **19 Fev - 4 Mar 2026**: Sprint 8B - Authentication & Onboarding Flow (EM ANDAMENTO)
-- ⏳ **5-18 Mar 2026**: Sprint 8C - Mobile App (React Native + Expo)
+- ⏳ **5-18 Mar 2026**: Sprint 8C - Mobile App (React Native + Expo) (PLANEJADO)
 - ⏳ **19-25 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
 - 🎯 **28 Março 2026**: MVP Launch (Admin Portal + Customer App Web + Mobile)
 - ⏳ **Pós-MVP**: Sprint Infra - NX Monorepo (unificar Customer Web + Provider App + Mobile em workspace compartilhado)

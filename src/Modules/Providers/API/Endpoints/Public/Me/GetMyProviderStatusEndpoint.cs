@@ -27,6 +27,7 @@ public class GetMyProviderStatusEndpoint : BaseEndpoint, IEndpoint
             .WithDescription("Retorna o status atual de aprovação e tier do prestador autenticado.")
             .RequireAuthorization()
             .Produces<Response<ProviderStatusDto>>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
 
     private static async Task<IResult> GetMyStatusAsync(

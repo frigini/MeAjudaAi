@@ -23,6 +23,8 @@ namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 /// Versão self-service do <see cref="ProviderAdmin.AddDocumentEndpoint"/> (admin-only).
 /// Reutiliza o mesmo <see cref="AddDocumentCommand"/> e <see cref="AddDocumentRequest"/>.
 /// </remarks>
+// TODO: Enforce "ProviderPolicy" or specific roles when authorization policies are defined globally.
+// Currently allows any authenticated user, but logic verifies if they have a Provider profile.
 public class UploadMyDocumentEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
@@ -30,7 +32,7 @@ public class UploadMyDocumentEndpoint : BaseEndpoint, IEndpoint
             .WithName("UploadMyDocument")
             .WithTags("Providers - Me")
             .WithSummary("Upload de documento pelo próprio prestador")
-            .WithDescription("Permite que o prestador adicione documentos ao seu próprio perfil durante o onboarding.")
+            .WithDescription("Permite que o prestador adicione documentos ao seu próprio perfil.")
             .RequireAuthorization()
             .Produces<Response<ProviderDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
@@ -53,7 +55,10 @@ public class UploadMyDocumentEndpoint : BaseEndpoint, IEndpoint
             query, cancellationToken);
 
         if (providerResult.IsFailure)
-            return BadRequest(providerResult.Error.Message);
+        {
+            // Retorna mensagem genérica para não expor interna
+            return BadRequest("Não foi possível validar o perfil do prestador. Tente novamente.");
+        }
 
         if (providerResult.Value is null)
             return NotFound("Perfil do prestador não encontrado para o usuário atual.");

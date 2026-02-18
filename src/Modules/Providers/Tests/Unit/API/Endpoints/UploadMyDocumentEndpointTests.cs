@@ -44,7 +44,7 @@ public class UploadMyDocumentEndpointTests
     }
 
     [Fact]
-    public async Task UploadDocumentAsync_WithValidRequest_ShouldUploadAndReturnCreated()
+    public async Task UploadDocumentAsync_WithValidRequest_ShouldUploadAndReturnOk()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -147,7 +147,7 @@ public class UploadMyDocumentEndpointTests
         var result = await task;
 
         // Assert
-        // Corrected expected type: BadRequest<Result<ProviderDto>> instead of BadRequest<string>
-        result.Should().BeOfType<BadRequest<Result<ProviderDto>>>();
+        // Corrected expected type: BadRequest<Response<object>> instead of BadRequest<Result<ProviderDto>>
+        result.Should().BeOfType<BadRequest<Response<object>>>();
     }
 }

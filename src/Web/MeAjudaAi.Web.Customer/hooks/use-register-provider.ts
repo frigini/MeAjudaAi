@@ -1,15 +1,8 @@
-"use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { client } from "@/lib/api/client";
 import { RegisterProviderRequest, ProviderDto } from "@/types/provider";
-
-interface ApiSuccessResponse<T> {
-    data: T;
-    isSuccess: boolean;
-    // ...
-}
+import { ApiResponse } from "@/types/api";
 
 export function useRegisterProvider() {
     const { data: session } = useSession();
@@ -20,10 +13,14 @@ export function useRegisterProvider() {
             const config = client.getConfig();
             const baseUrl = config.baseUrl || process.env.NEXT_PUBLIC_API_URL || "http://localhost:7002";
 
+            if (!session?.accessToken) {
+                throw new Error("Missing access token");
+            }
+
             const response = await fetch(`${baseUrl}/api/v1/providers/register`, {
                 method: "POST",
                 headers: {
-                    Authorization: `Bearer ${session?.accessToken}`,
+                    Authorization: `Bearer ${session.accessToken}`,
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(data),
@@ -34,12 +31,11 @@ export function useRegisterProvider() {
                 throw new Error(error.message || `Failed to register provider: ${response.statusText}`);
             }
 
-            const json = await response.json() as ApiSuccessResponse<ProviderDto>;
-            return json.data; // Response<T>.Data mapped to .data by System.Text.Json default options usually camelCase
+            const json = await response.json() as ApiResponse<ProviderDto>;
+            return json.data;
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["providerStatus"] });
-            // Pode adicionar toast success aqui ou no componente
         }
     });
 }

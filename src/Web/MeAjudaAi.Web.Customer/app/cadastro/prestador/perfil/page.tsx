@@ -1,17 +1,25 @@
-"use client";
-
 import { useProviderStatus } from "@/hooks/use-provider-status";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { EProviderStatus } from "@/types/provider";
+import { EProviderStatus, PROVIDER_STATUS_LABELS, PROVIDER_TIER_LABELS } from "@/types/provider";
 
 export default function ProviderProfilePage() {
-    const { data: providerStatus, isLoading } = useProviderStatus();
+    const { data: providerStatus, isLoading, error } = useProviderStatus();
 
     if (isLoading) {
         return (
             <div className="container mx-auto py-10 flex justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="container mx-auto py-10 text-center max-w-md">
+                <div className="text-red-500 mb-4 text-xl font-semibold">Erro ao carregar status</div>
+                <p className="text-muted-foreground mb-6">Ocorreu um problema ao verificar seu cadastro.</p>
+                <Button onClick={() => window.location.reload()} variant="outline">Tentar Novamente</Button>
             </div>
         );
     }
@@ -38,13 +46,13 @@ export default function ProviderProfilePage() {
                 <div className="flex justify-between items-start mb-4">
                     <div>
                         <h2 className="text-xl font-semibold">Status da Conta</h2>
-                        <p className="text-sm text-muted-foreground mt-1">Nível: <span className="font-medium text-primary">{providerStatus.tier}</span></p>
+                        <p className="text-sm text-muted-foreground mt-1">Nível: <span className="font-medium text-primary">{PROVIDER_TIER_LABELS[providerStatus.tier]}</span></p>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${providerStatus.status === EProviderStatus.Active ? "bg-green-100 text-green-800" :
-                            providerStatus.status === EProviderStatus.Rejected ? "bg-red-100 text-red-800" :
-                                "bg-amber-100 text-amber-800"
+                        providerStatus.status === EProviderStatus.Rejected ? "bg-red-100 text-red-800" :
+                            "bg-amber-100 text-amber-800"
                         }`}>
-                        {providerStatus.status}
+                        {PROVIDER_STATUS_LABELS[providerStatus.status]}
                     </span>
                 </div>
 

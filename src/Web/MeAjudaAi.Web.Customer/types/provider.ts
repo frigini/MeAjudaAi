@@ -1,16 +1,16 @@
 export enum EProviderType {
     Individual = "Individual",
-    Company = "Company"
+    Company = "Company",
+    Cooperative = "Cooperative",
+    Freelancer = "Freelancer"
 }
 
 export enum EProviderStatus {
     PendingBasicInfo = "PendingBasicInfo",
-    PendingDocuments = "PendingDocuments",
-    PendingVerification = "PendingVerification",
+    PendingDocumentVerification = "PendingDocumentVerification",
     Active = "Active",
     Suspended = "Suspended",
-    Rejected = "Rejected",
-    Deleted = "Deleted"
+    Rejected = "Rejected"
 }
 
 export enum EProviderTier {
@@ -22,11 +22,33 @@ export enum EProviderTier {
 
 export enum EVerificationStatus {
     Pending = "Pending",
-    UnderReview = "UnderReview",
+    InProgress = "InProgress",
     Verified = "Verified",
     Rejected = "Rejected",
-    Revoked = "Revoked"
+    Suspended = "Suspended"
 }
+
+export const PROVIDER_TYPE_LABELS: Record<EProviderType, string> = {
+    [EProviderType.Individual]: "Pessoa Física",
+    [EProviderType.Company]: "Pessoa Jurídica",
+    [EProviderType.Cooperative]: "Cooperativa",
+    [EProviderType.Freelancer]: "Autônomo"
+};
+
+export const PROVIDER_STATUS_LABELS: Record<EProviderStatus, string> = {
+    [EProviderStatus.PendingBasicInfo]: "Pendente (Dados Básicos)",
+    [EProviderStatus.PendingDocumentVerification]: "Aguardando Documentos",
+    [EProviderStatus.Active]: "Ativo",
+    [EProviderStatus.Suspended]: "Suspenso",
+    [EProviderStatus.Rejected]: "Rejeitado"
+};
+
+export const PROVIDER_TIER_LABELS: Record<EProviderTier, string> = {
+    [EProviderTier.Standard]: "Básico",
+    [EProviderTier.Silver]: "Prata",
+    [EProviderTier.Gold]: "Ouro",
+    [EProviderTier.Platinum]: "Platina"
+};
 
 export interface ProviderStatusDto {
     status: EProviderStatus;

@@ -20,12 +20,13 @@ public class RegisterProviderEndpoint : BaseEndpoint, IEndpoint
             .WithSummary("Registrar novo prestador")
             .WithDescription("Cria um novo perfil de prestador para o usuário autenticado.")
             .RequireAuthorization()
+            .Produces<Response<ProviderDto>>(StatusCodes.Status201Created)
             .Produces<Response<ProviderDto>>(StatusCodes.Status200OK)
             .Produces<Response<object>>(StatusCodes.Status400BadRequest);
 
     private static async Task<IResult> RegisterProviderAsync(
         HttpContext context,
-        [FromBody] RegisterProviderRequest request,
+        [FromBody] RegisterProviderApiRequest request,
         ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
@@ -53,14 +54,16 @@ public class RegisterProviderEndpoint : BaseEndpoint, IEndpoint
 
         var result = await commandDispatcher.SendAsync<RegisterProviderCommand, Result<ProviderDto>>(
             command, cancellationToken);
+
+        if (result.IsFailure)
+            return Handle(result);
             
-        // Se retornar sucesso, pode ser criado novo ou existente.
-        // Retornamos 200 OK com os dados.
-        return Handle(result);
+        // Retorna 201 Created com a localização do recurso (perfil do prestador)
+        return Results.Created($"/api/v1/providers/me", new Response<ProviderDto>(result.Value!));
     }
 }
 
-public record RegisterProviderRequest(
+public record RegisterProviderApiRequest(
     string Name,
     EProviderType Type,
     string DocumentNumber,
