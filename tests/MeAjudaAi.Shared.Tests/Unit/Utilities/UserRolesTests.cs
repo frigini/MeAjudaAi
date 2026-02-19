@@ -169,6 +169,10 @@ public class UserRolesTests
     [Theory]
     [InlineData("customer")]
     [InlineData("viewer")]
+    [InlineData("provider-standard")]
+    [InlineData("provider-silver")]
+    [InlineData("provider-gold")]
+    [InlineData("provider-platinum")]
     public void IsAdminRole_WithNonAdminRole_ShouldReturnFalse(string role)
     {
         // Ação
@@ -292,6 +296,20 @@ public class UserRolesTests
     {
         // Asserção
         UserRoles.ProviderRoles.Should().BeSubsetOf(UserRoles.AllRoles);
+    }
+
+    [Fact]
+    public void ProviderRoles_ShouldContainOnlyProviderRoles()
+    {
+        // Asserção
+        UserRoles.ProviderRoles.Should().HaveCount(4);
+        UserRoles.ProviderRoles.Should().Contain(new[]
+        {
+            UserRoles.ProviderStandard,
+            UserRoles.ProviderSilver,
+            UserRoles.ProviderGold,
+            UserRoles.ProviderPlatinum
+        });
     }
 
     #endregion

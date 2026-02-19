@@ -2,10 +2,17 @@ import type {
     MeAjudaAiModulesSearchProvidersApplicationDtosSearchableProviderDto,
     MeAjudaAiModulesProvidersApplicationDtosProviderDto,
 } from '@/lib/api/generated/types.gen';
-import type { ProviderDto } from '@/types/api/provider';
+import type { ProviderDto, BusinessProfileDto } from '@/types/api/provider';
 
 // Mapeamento de ProviderType (backend enum) para frontend Enum
-import { EProviderType, EProviderStatus, EVerificationStatus, EProviderTier, ProviderServiceDto } from '@/types/api/provider';
+import {
+    EProviderType,
+    EProviderStatus,
+    EVerificationStatus,
+    EProviderTier,
+    EDocumentType,
+    EDocumentStatus
+} from '@/types/api/provider';
 
 // Mock de serviços para mapeamento visual
 // TODO: Remover quando a API retornar os nomes dos serviços
@@ -55,7 +62,7 @@ export function mapSearchableProviderToProvider(
             primaryAddress: {
                 street: '', number: '', neighborhood: '', city: dto.city ?? '', state: dto.state ?? '', zipCode: '', country: 'Brasil'
             }
-        } as any, // Partial mock since Search doesn't return full profile
+        } as BusinessProfileDto, // Partial mock since Search doesn't return full profile
 
         type: EProviderType.Individual, // Default or map if available
         status: EProviderStatus.PendingBasicInfo, // Default safe
@@ -67,44 +74,6 @@ export function mapSearchableProviderToProvider(
     };
 }
 
-// Interface definitions to match actual API response structure to avoid generation sync issues
-interface LocalBusinessProfileDto {
-    legalName: string;
-    fantasyName?: string;
-    description?: string;
-    contactInfo?: {
-        email: string;
-        phoneNumber: string;
-    };
-    primaryAddress?: {
-        street: string;
-        number: string;
-        complement?: string;
-        neighborhood: string;
-        city: string;
-        state: string;
-        zipCode: string;
-        country: string;
-    };
-}
-
-interface LocalProviderDto extends MeAjudaAiModulesProvidersApplicationDtosProviderDto {
-    businessProfile?: LocalBusinessProfileDto;
-    services?: Array<{
-        serviceId: string;
-        price: number;
-        currency: string;
-        serviceName: string;
-    }>;
-    averageRating?: number;
-    reviewCount?: number;
-    tier?: EProviderTier;
-    createdAt?: string;
-}
-
-/**
- * Converte ProviderDto (da API de detalhes) para ProviderDto (tipo da aplicação)
- */
 // Local type definition to extend generated types with missing runtime fields
 // This is necessary because the generated SDK types are currently missing these fields
 // that are returned by the API at runtime.
@@ -146,9 +115,10 @@ export function mapApiProviderToProvider(
     rawDto: MeAjudaAiModulesProvidersApplicationDtosProviderDto
 ): ProviderDto {
     // Cast to extended interface to access missing properties safely
+    // TODO: replace double-cast when SDK types are updated — tracking: <issue-id>
     const dto = rawDto as unknown as ExtendedProviderDto;
 
-    const businessProfile = dto.businessProfile;
+    const businessProfile = dto.businessProfile as unknown as BusinessProfileDto;
     const contactInfo = businessProfile?.contactInfo;
     const address = businessProfile?.primaryAddress;
 
@@ -210,10 +180,10 @@ export function mapApiProviderToProvider(
         documents: dto.documents?.map(d => ({
             id: d.id ?? '',
             providerId: d.providerId ?? '',
-            documentType: (d.documentType as unknown as number) as any,
+            documentType: (d.documentType as unknown as EDocumentType),
             fileName: d.fileName ?? '',
             fileUrl: d.fileUrl ?? '',
-            status: (d.status as unknown as number) as any,
+            status: (d.status as unknown as EDocumentStatus),
             uploadedAt: d.uploadedAt ?? '',
             verifiedAt: d.verifiedAt,
             rejectionReason: d.rejectionReason,

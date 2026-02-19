@@ -10,7 +10,6 @@ import { MessageCircle } from "lucide-react";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { z } from "zod";
 
-// Zod Schema for Runtime Validation
 import { EVerificationStatus, EProviderType } from "@/types/api/provider";
 
 // Zod Schema for Runtime Validation
@@ -20,6 +19,7 @@ const PublicProviderSchema = z.object({
     type: z.preprocess((val) => {
         if (typeof val === 'string') {
             const lower = val.toLowerCase();
+            if (lower === 'none') return EProviderType.None;
             if (lower === 'individual' || lower === 'pessoafisica') return EProviderType.Individual;
             if (lower === 'company' || lower === 'pessoajuridica') return EProviderType.Company;
             if (lower === 'freelancer' || lower === 'autonomo') return EProviderType.Freelancer;
@@ -88,7 +88,6 @@ const getCachedProvider = cache(async (id: string): Promise<PublicProviderData |
         return result.data;
 
     } catch (error) {
-        if (error instanceof Error && (error as { status?: number }).status === 404) return null;
         console.error(`Exception fetching public provider ${id}:`, error);
         throw error;
     }

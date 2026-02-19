@@ -1,8 +1,8 @@
 import { twMerge } from "tailwind-merge";
 import type { ComponentProps } from "react";
-import Image from "next/image";
+import Image, { ImageProps } from "next/image";
 
-export interface AvatarProps extends Omit<ComponentProps<"img">, "src"> {
+export interface AvatarProps extends Omit<ImageProps, "src" | "alt"> {
     src?: string | null;
     alt: string;
     size?: "sm" | "md" | "lg" | "xl";
@@ -57,8 +57,8 @@ export function Avatar({
                 <Image
                     src={src}
                     alt={alt}
-                    width={sizePx[size] as number}
-                    height={sizePx[size] as number}
+                    width={sizePx[size]}
+                    height={sizePx[size]}
                     className="size-full object-cover"
                     {...rest}
                 />

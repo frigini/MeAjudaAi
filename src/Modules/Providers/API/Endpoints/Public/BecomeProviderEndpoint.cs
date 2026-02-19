@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using System.ComponentModel.DataAnnotations;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public;
 
@@ -37,9 +38,6 @@ public class BecomeProviderEndpoint : BaseEndpoint, IEndpoint
         // Obter email do token se possível, senão usar do request
         var email = context.User?.FindFirst("email")?.Value;
         
-        if (string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(request.Email))
-            email = request.Email;
-
         if (string.IsNullOrEmpty(email))
             return BadRequest("Email é obrigatório e não foi encontrado no token.");
 
@@ -64,9 +62,9 @@ public class BecomeProviderEndpoint : BaseEndpoint, IEndpoint
 }
 
 public record RegisterProviderApiRequest(
-    string Name,
-    EProviderType Type,
-    string DocumentNumber,
-    string? PhoneNumber,
-    string? Email
+    [Required, StringLength(100)] string Name,
+    [Required, EnumDataType(typeof(EProviderType))] EProviderType Type,
+    [Required, StringLength(20)] string DocumentNumber,
+    [Phone, StringLength(20)] string? PhoneNumber,
+    [EmailAddress] string? Email
 );
