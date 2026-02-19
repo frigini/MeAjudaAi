@@ -452,9 +452,9 @@ public static class SecurityExtensions
             });
 
             // Política específica para registro de prestadores (mais restritiva para evitar spam)
-            options.AddPolicy("provider-registration", context =>
+            options.AddPolicy(RateLimitPolicies.ProviderRegistration, context =>
                 RateLimitPartition.GetFixedWindowLimiter(
-                    partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+                    partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Connection.Id,
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
                         PermitLimit = 5,

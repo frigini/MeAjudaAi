@@ -1,8 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { client } from "@/lib/api/client";
 import { ProviderDto, ContactInfoDto, AddressDto } from "@/types/api/provider";
-import { ApiResponse } from "@/types/api";
 import { authenticatedFetch } from "@/lib/api/fetch-client";
 
 // Composed type from shared DTOs
@@ -33,7 +31,7 @@ export function useUpdateProviderProfile() {
                 token: session.accessToken,
             });
         },
-        onSuccess: (data) => {
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["providerStatus"] });
             queryClient.invalidateQueries({ queryKey: ["myProviderProfile"] });
         }

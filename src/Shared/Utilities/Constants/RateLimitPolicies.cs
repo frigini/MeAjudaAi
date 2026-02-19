@@ -9,4 +9,9 @@ public static class RateLimitPolicies
     /// Política para endpoints públicos anonimizados
     /// </summary>
     public const string Public = "public";
+
+    /// <summary>
+    /// Política para registro de prestadores
+    /// </summary>
+    public const string ProviderRegistration = "provider-registration";
 }

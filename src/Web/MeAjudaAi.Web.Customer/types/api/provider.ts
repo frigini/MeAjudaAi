@@ -62,17 +62,20 @@ export enum EProviderType {
 }
 
 export enum EProviderStatus {
-    PendingBasicInfo = 0,
-    PendingDocumentVerification = 1,
-    Active = 2,
-    Rejected = 3,
-    Suspended = 4
+    PendingBasicInfo = 1,
+    PendingDocumentVerification = 2,
+    Active = 3,
+    Suspended = 4,
+    Rejected = 5
 }
 
 export enum EVerificationStatus {
-    Pending = 0,
-    Verified = 1,
-    Rejected = 2
+    None = 0,
+    Pending = 1,
+    InProgress = 2,
+    Verified = 3,
+    Rejected = 4,
+    Suspended = 5
 }
 
 export enum EProviderTier {
@@ -89,13 +92,13 @@ export enum EDocumentType {
     RG = 3,
     CNH = 4,
     Passport = 5,
-    Other = 6
+    Other = 99
 }
 
 export enum EDocumentStatus {
-    Pending = 0,
-    Approved = 1,
-    Rejected = 2
+    Uploaded = 1,
+    PendingVerification = 2,
+    Verified = 3
 }
 
 export interface DocumentDto {
@@ -181,7 +184,10 @@ export const PROVIDER_TIER_LABELS: Record<EProviderTier, string> = {
 };
 
 export const VERIFICATION_STATUS_LABELS: Record<EVerificationStatus, string> = {
+    [EVerificationStatus.None]: "Não Iniciado",
     [EVerificationStatus.Pending]: "Pendente",
+    [EVerificationStatus.InProgress]: "Em Análise",
     [EVerificationStatus.Verified]: "Verificado",
     [EVerificationStatus.Rejected]: "Rejeitado",
+    [EVerificationStatus.Suspended]: "Suspenso",
 };

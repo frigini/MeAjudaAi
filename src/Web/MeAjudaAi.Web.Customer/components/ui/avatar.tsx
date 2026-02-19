@@ -29,7 +29,8 @@ export function Avatar({
     size = "md",
     fallback,
     className,
-    ...rest
+    style, // Capture style for container
+    ...rest // Forward remaining props (img props) to Image
 }: AvatarProps) {
     const initials =
         fallback ||
@@ -50,18 +51,19 @@ export function Avatar({
                 sizeClasses[size],
                 className
             )}
-            {...rest}
+            style={style}
         >
             {src ? (
                 <Image
                     src={src}
                     alt={alt}
-                    width={sizePx[size]}
-                    height={sizePx[size]}
+                    width={sizePx[size] as number}
+                    height={sizePx[size] as number}
                     className="size-full object-cover"
+                    {...rest}
                 />
             ) : (
-                <span className="text-sm">{initials}</span>
+                <span className="text-sm select-none">{initials}</span>
             )}
         </div>
     );

@@ -58,12 +58,12 @@ export function mapSearchableProviderToProvider(
         } as any, // Partial mock since Search doesn't return full profile
 
         type: EProviderType.Individual, // Default or map if available
-        status: EProviderStatus.Active, // Active
-        verificationStatus: EVerificationStatus.Verified, // Verified (mock)
+        status: EProviderStatus.PendingBasicInfo, // Default safe
+        verificationStatus: EVerificationStatus.Pending, // Default safe
         tier: EProviderTier.Standard,
         documents: [],
         qualifications: [],
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString() // Search result usually active, so date exists
     };
 }
 
@@ -134,7 +134,7 @@ export function mapApiProviderToProvider(
         // @ts-ignore
         qualifications: dto.qualifications || [],
 
-        createdAt: dto.createdAt ?? new Date().toISOString(),
+        createdAt: dto.createdAt ?? "", // Default to empty if missing, or handle upstream
         updatedAt: dto.updatedAt
     };
 }

@@ -17,7 +17,15 @@ import { EVerificationStatus, EProviderType, EProviderStatus, EProviderTier } fr
 const PublicProviderSchema = z.object({
     id: z.string().uuid(),
     name: z.string(),
-    type: z.preprocess((val) => typeof val === 'string' ? EProviderType.Individual : val, z.nativeEnum(EProviderType).optional()), // Relaxed
+    type: z.preprocess((val) => {
+        if (typeof val === 'string') {
+            // Basic mapping from string to Enum if needed, or rely on nativeEnum to handle values
+            // If val comes as "1", "2" string, we might need to parse int.
+            const parsed = parseInt(val, 10);
+            if (!isNaN(parsed)) return parsed;
+        }
+        return val;
+    }, z.nativeEnum(EProviderType).optional()),
     fantasyName: z.string().optional().nullable(),
     description: z.string().optional().nullable(),
     city: z.string().optional().nullable(),
@@ -195,7 +203,7 @@ export default async function ProviderProfilePage({
                         {/* Name & Badge */}
                         <div className="flex items-center gap-3">
                             <h1 className="text-3xl md:text-4xl font-bold text-[#E0702B]">{displayName}</h1>
-                            <VerifiedBadge status={providerData.verificationStatus || EVerificationStatus.Pending} size="lg" />
+                            <VerifiedBadge status={providerData.verificationStatus ?? EVerificationStatus.Pending} size="lg" />
                         </div>
 
                         {/* Email */}

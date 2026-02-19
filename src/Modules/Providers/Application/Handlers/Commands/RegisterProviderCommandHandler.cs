@@ -49,7 +49,9 @@ public sealed class RegisterProviderCommandHandler(
                 businessProfile
             );
 
-            var docType = command.Type == EProviderType.Individual ? EDocumentType.CPF : EDocumentType.CNPJ;
+            var docType = (command.Type == EProviderType.Individual || command.Type == EProviderType.Freelancer) 
+                ? EDocumentType.CPF 
+                : EDocumentType.CNPJ;
             var doc = new Document(command.DocumentNumber, docType, isPrimary: true);
             provider.AddDocument(doc);
             

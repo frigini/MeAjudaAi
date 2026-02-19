@@ -12,7 +12,7 @@ public class UserRolesTests
     public void AllRoles_ShouldContainAllDefinedRoles()
     {
         // Assert
-        UserRoles.AllRoles.Should().HaveCount(7);
+        UserRoles.AllRoles.Should().HaveCount(11);
         UserRoles.AllRoles.Should().Contain(new[]
         {
             UserRoles.Admin,
@@ -21,7 +21,11 @@ public class UserRolesTests
             UserRoles.CatalogManager,
             UserRoles.Operator,
             UserRoles.Viewer,
-            UserRoles.Customer
+            UserRoles.Customer,
+            UserRoles.ProviderStandard,
+            UserRoles.ProviderSilver,
+            UserRoles.ProviderGold,
+            UserRoles.ProviderPlatinum
         });
     }
 

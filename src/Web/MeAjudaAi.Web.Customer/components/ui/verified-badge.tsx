@@ -27,7 +27,7 @@ export function VerifiedBadge({ status, className, showLabel = false, size = "md
         return (
             <div className={cn("flex items-center gap-1 text-red-500", className)} title="Prestador Suspenso/Rejeitado">
                 <Ban size={iconSize} />
-                {showLabel && <span className="font-medium text-sm">Suspenso</span>}
+                {showLabel && <span className="font-medium text-sm">Rejeitado</span>}
             </div>
         );
     }

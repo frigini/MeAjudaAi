@@ -5,7 +5,7 @@ type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
 interface FetchOptions {
     method?: HttpMethod;
-    body?: any;
+    body?: unknown;
     headers?: Record<string, string>;
     token?: string | null;
 }
@@ -45,22 +45,23 @@ export async function authenticatedFetch<T>(endpoint: string, options: FetchOpti
 
     // Handle 204 No Content
     if (response.status === 204) {
-        return {} as T;
+        return {} as T; // or undefined as unknown as T
     }
 
-    const json = await response.json() as ApiResponse<T>;
+    const json = await response.json();
 
     // Normalize Result<T> wrapper
     if (json && typeof json === 'object' && 'value' in json) {
-        // @ts-ignore - Handle Result<T> shape
-        return json.value;
+        return (json as any).value as T;
     }
 
     // Handle ApiResponse<T> wrapper
-    // @ts-ignore
-    if ('data' in json) {
-        // @ts-ignore
-        return json.data;
+    if (json && typeof json === 'object' && 'data' in json) {
+        const apiRes = json as ApiResponse<T>;
+        if (apiRes.data === null && apiRes.isSuccess === false) {
+            throw new Error(apiRes.message || "API interaction failed");
+        }
+        return apiRes.data as T;
     }
 
     return json as T;
