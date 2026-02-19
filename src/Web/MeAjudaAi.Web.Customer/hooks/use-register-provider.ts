@@ -32,6 +32,11 @@ export function useRegisterProvider() {
             }
 
             const json = await response.json() as ApiResponse<ProviderDto>;
+
+            if (!json.data) {
+                throw new Error(json.message || "Failed to register provider (no data returned)");
+            }
+
             return json.data;
         },
         onSuccess: (data) => {
