@@ -63,25 +63,59 @@ export function mapSearchableProviderToProvider(
         tier: EProviderTier.Standard,
         documents: [],
         qualifications: [],
-        createdAt: new Date().toISOString() // Search result usually active, so date exists
+        createdAt: "" // Do not fabricate date for search results
     };
+}
+
+// Interface definitions to match actual API response structure to avoid generation sync issues
+interface LocalBusinessProfileDto {
+    legalName: string;
+    fantasyName?: string;
+    description?: string;
+    contactInfo?: {
+        email: string;
+        phoneNumber: string;
+    };
+    primaryAddress?: {
+        street: string;
+        number: string;
+        complement?: string;
+        neighborhood: string;
+        city: string;
+        state: string;
+        zipCode: string;
+        country: string;
+    };
+}
+
+interface LocalProviderDto extends MeAjudaAiModulesProvidersApplicationDtosProviderDto {
+    businessProfile?: LocalBusinessProfileDto;
+    services?: Array<{
+        serviceId: string;
+        price: number;
+        currency: string;
+        serviceName: string;
+    }>;
+    averageRating?: number;
+    reviewCount?: number;
+    tier?: EProviderTier;
+    createdAt?: string;
 }
 
 /**
  * Converte ProviderDto (da API de detalhes) para ProviderDto (tipo da aplicação)
  */
 export function mapApiProviderToProvider(
-    dto: MeAjudaAiModulesProvidersApplicationDtosProviderDto
+    rawDto: MeAjudaAiModulesProvidersApplicationDtosProviderDto
 ): ProviderDto {
+    // Cast to local interface to access missing properties safely
+    const dto = rawDto as unknown as LocalProviderDto;
+
     const businessProfile = dto.businessProfile;
-    // @ts-ignore
     const contactInfo = businessProfile?.contactInfo;
-    // @ts-ignore
     const address = businessProfile?.primaryAddress;
 
-    // @ts-ignore
     const displayName = businessProfile?.fantasyName || businessProfile?.legalName || dto.name || "Prestador";
-    // @ts-ignore
     const services = dto.services || [];
 
     return {
@@ -90,51 +124,53 @@ export function mapApiProviderToProvider(
         name: displayName,
 
         // Helper accessors
-        // @ts-ignore
         email: contactInfo?.email ?? '',
-        // @ts-ignore
         phone: contactInfo?.phoneNumber ?? undefined,
         avatarUrl: getMockAvatarUrl(dto.id),
-        // @ts-ignore
         description: businessProfile?.description || '',
 
-        // @ts-ignore
         averageRating: dto.averageRating ?? 0,
-        // @ts-ignore
         reviewCount: dto.reviewCount ?? 0,
 
-        // Map services if they exist in DTO, otherwise empty
-        // @ts-ignore
-        services: services.map((s: any) => ({
+        // Map services
+        services: services.map(s => ({
             serviceId: s.serviceId,
             price: s.price,
             currency: s.currency,
             serviceName: s.serviceName
         })),
 
-        // @ts-ignore
         city: address?.city ?? '',
-        // @ts-ignore
         state: address?.state ?? '',
 
         // Cast int to Enum
         type: (dto.type as unknown as EProviderType) ?? EProviderType.Individual,
 
         // Map full objects
-        // @ts-ignore
-        businessProfile: businessProfile,
-        // @ts-ignore
+        businessProfile: businessProfile as any, // Keep as any if strict match fails downstream, or map to app type
         status: (dto.status as unknown as EProviderStatus) ?? EProviderStatus.PendingBasicInfo,
-        // @ts-ignore
         verificationStatus: (dto.verificationStatus as unknown as EVerificationStatus) ?? EVerificationStatus.Pending,
-        // @ts-ignore
-        tier: (dto.tier as unknown as EProviderTier) ?? EProviderTier.Standard,
-        // @ts-ignore
-        documents: dto.documents || [],
-        // @ts-ignore
-        qualifications: dto.qualifications || [],
+        tier: dto.tier ?? EProviderTier.Standard,
+        documents: dto.documents?.map((d: any) => ({
+            id: d.id,
+            providerId: d.providerId,
+            documentType: d.documentType,
+            fileName: d.fileName,
+            fileUrl: d.fileUrl,
+            status: d.status,
+            uploadedAt: d.uploadedAt,
+            verifiedAt: d.verifiedAt,
+            rejectionReason: d.rejectionReason,
+            ocrData: d.ocrData
+        })) || [],
+        qualifications: dto.qualifications?.map((q: any) => ({
+            name: q.name,
+            issuer: q.issuer,
+            year: q.year,
+            fileUrl: q.fileUrl
+        })) || [],
 
-        createdAt: dto.createdAt ?? "", // Default to empty if missing, or handle upstream
+        createdAt: dto.createdAt ?? "", // Only use if present, otherwise empty string (or change type to optional)
         updatedAt: dto.updatedAt
     };
 }

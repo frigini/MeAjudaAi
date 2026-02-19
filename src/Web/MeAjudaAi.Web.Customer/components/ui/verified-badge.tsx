@@ -32,6 +32,24 @@ export function VerifiedBadge({ status, className, showLabel = false, size = "md
         );
     }
 
+    if (status === EVerificationStatus.Suspended) {
+        return (
+            <div className={cn("flex items-center gap-1 text-red-600", className)} title="Conta Suspensa">
+                <Ban size={iconSize} />
+                {showLabel && <span className="font-medium text-sm">Suspenso</span>}
+            </div>
+        );
+    }
+
+    if (status === EVerificationStatus.InProgress) {
+        return (
+            <div className={cn("flex items-center gap-1 text-amber-500", className)} title="Verificação em Andamento">
+                <BadgeCheck size={iconSize} className="text-amber-500" />
+                {showLabel && <span className="font-medium text-sm">Em Análise</span>}
+            </div>
+        );
+    }
+
     if (status === EVerificationStatus.Pending) {
         return (
             <div className={cn("flex items-center gap-1 text-yellow-600", className)} title="Pendente de Verificação">

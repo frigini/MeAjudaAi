@@ -30,14 +30,19 @@ export function useViaCep() {
     }, []);
 
     const fetchAddress = useCallback(async (cep: string): Promise<ViaCepResponse | null> => {
-        const cleanCep = cep.replace(/\D/g, "");
-        if (cleanCep.length !== 8) {
-            return null;
-        }
-
-        // Cancel previous request
+        // Cancel previous request immediately
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
+            abortControllerRef.current = null;
+        }
+
+        // Clean CEP
+        const cleanCep = cep.replace(/\D/g, "");
+
+        // If invalid, clear error and return
+        if (cleanCep.length !== 8) {
+            setError(null);
+            return null;
         }
 
         const controller = new AbortController();

@@ -9,6 +9,8 @@ using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Database.Exceptions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -62,19 +64,24 @@ public sealed class RegisterProviderCommandHandler(
 
             return Result<ProviderDto>.Success(provider.ToDto());
         }
-        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex) when (ex.InnerException?.Message.Contains("ix_providers_user_id") ?? false)
+        catch (DbUpdateException ex)
         {
-            logger.LogWarning(ex, "Duplicate provider registration attempt for user {UserId}", command.UserId);
-            var existing = await providerRepository.GetByUserIdAsync(command.UserId, cancellationToken);
-            if (existing is not null)
+            var processedEx = PostgreSqlExceptionProcessor.ProcessException(ex);
+            
+            if (processedEx is UniqueConstraintException)
             {
-                return Result<ProviderDto>.Success(existing.ToDto());
+                logger.LogWarning(ex, "Duplicate provider registration attempt for user {UserId}", command.UserId);
+                var existing = await providerRepository.GetByUserIdAsync(command.UserId, cancellationToken);
+                if (existing is not null)
+                {
+                    return Result<ProviderDto>.Success(existing.ToDto());
+                }
             }
-            throw; // Should not happen if index violation occurred
+            throw processedEx;
         }
-        catch (DomainException ex)
+        catch (Exception ex) when (ex is DomainException || ex is ArgumentException)
         {
-            logger.LogWarning(ex, "Domain validation error in RegisterProvider for user {UserId}: {Message}", command.UserId, ex.Message);
+            logger.LogWarning(ex, "Validation error in RegisterProvider for user {UserId}: {Message}", command.UserId, ex.Message);
             return Result<ProviderDto>.Failure(new Error("Erro ao processar a requisição. Verifique os dados informados.", 400));
         }
         catch (Exception ex)

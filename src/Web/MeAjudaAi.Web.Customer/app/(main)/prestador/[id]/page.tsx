@@ -11,7 +11,7 @@ import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { z } from "zod";
 
 // Zod Schema for Runtime Validation
-import { EVerificationStatus, EProviderType, EProviderStatus, EProviderTier } from "@/types/api/provider";
+import { EVerificationStatus, EProviderType } from "@/types/api/provider";
 
 // Zod Schema for Runtime Validation
 const PublicProviderSchema = z.object({
@@ -40,6 +40,9 @@ const PublicProviderSchema = z.object({
             const lower = val.toLowerCase();
             if (lower === 'verified') return EVerificationStatus.Verified;
             if (lower === 'rejected') return EVerificationStatus.Rejected;
+            if (lower === 'inprogress' || lower === 'in_progress') return EVerificationStatus.InProgress;
+            if (lower === 'suspended') return EVerificationStatus.Suspended;
+            if (lower === 'none') return EVerificationStatus.None;
             return EVerificationStatus.Pending;
         }
         return val;

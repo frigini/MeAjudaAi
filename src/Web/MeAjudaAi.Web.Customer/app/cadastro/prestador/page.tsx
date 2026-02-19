@@ -33,12 +33,13 @@ export default function RegisterProviderPage() {
 
     // Preencher nome e email da sessão
     useEffect(() => {
+        const { getValues, setValue } = form;
         if (session?.user) {
-            if (session.user.name && !form.getValues("name")) {
-                form.setValue("name", session.user.name);
+            if (session.user.name && !getValues("name")) {
+                setValue("name", session.user.name);
             }
-            if (session.user.email && !form.getValues("email")) {
-                form.setValue("email", session.user.email);
+            if (session.user.email && !getValues("email")) {
+                setValue("email", session.user.email);
             }
         }
     }, [session, form]);
@@ -85,9 +86,10 @@ export default function RegisterProviderPage() {
                             <FormItem>
                                 <FormLabel>Tipo de Pessoa</FormLabel>
                                 <FormControl>
-                                    <div className="flex gap-4">
+                                    <div className="flex flex-wrap gap-4">
                                         <Button
                                             type="button"
+                                            className="flex-1 min-w-[140px]"
                                             variant={field.value === EProviderType.Individual ? "primary" : "outline"}
                                             onClick={() => field.onChange(EProviderType.Individual)}
                                         >
@@ -95,6 +97,7 @@ export default function RegisterProviderPage() {
                                         </Button>
                                         <Button
                                             type="button"
+                                            className="flex-1 min-w-[140px]"
                                             variant={field.value === EProviderType.Company ? "primary" : "outline"}
                                             onClick={() => field.onChange(EProviderType.Company)}
                                         >
@@ -102,6 +105,7 @@ export default function RegisterProviderPage() {
                                         </Button>
                                         <Button
                                             type="button"
+                                            className="flex-1 min-w-[140px]"
                                             variant={field.value === EProviderType.Cooperative ? "primary" : "outline"}
                                             onClick={() => field.onChange(EProviderType.Cooperative)}
                                         >
@@ -109,6 +113,7 @@ export default function RegisterProviderPage() {
                                         </Button>
                                         <Button
                                             type="button"
+                                            className="flex-1 min-w-[140px]"
                                             variant={field.value === EProviderType.Freelancer ? "primary" : "outline"}
                                             onClick={() => field.onChange(EProviderType.Freelancer)}
                                         >

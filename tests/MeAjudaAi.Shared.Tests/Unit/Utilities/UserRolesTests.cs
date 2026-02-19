@@ -11,7 +11,7 @@ public class UserRolesTests
     [Fact]
     public void AllRoles_ShouldContainAllDefinedRoles()
     {
-        // Assert
+        // Asserção
         UserRoles.AllRoles.Should().HaveCount(11);
         UserRoles.AllRoles.Should().Contain(new[]
         {
@@ -32,7 +32,7 @@ public class UserRolesTests
     [Fact]
     public void AdminRoles_ShouldContainOnlyAdminRoles()
     {
-        // Assert
+        // Asserção
         UserRoles.AdminRoles.Should().HaveCount(5);
         UserRoles.AdminRoles.Should().Contain(new[]
         {
@@ -47,7 +47,7 @@ public class UserRolesTests
     [Fact]
     public void CustomerRoles_ShouldContainCustomerRole()
     {
-        // Assert
+        // Asserção
         UserRoles.CustomerRoles.Should().HaveCount(1);
         UserRoles.CustomerRoles.Should().Contain(UserRoles.Customer);
     }
@@ -55,7 +55,7 @@ public class UserRolesTests
     [Fact]
     public void RoleConstants_ShouldHaveExpectedValues()
     {
-        // Assert
+        // Asserção
         UserRoles.Admin.Should().Be("admin");
         UserRoles.ProviderManager.Should().Be("provider-manager");
         UserRoles.DocumentReviewer.Should().Be("document-reviewer");
@@ -63,6 +63,10 @@ public class UserRolesTests
         UserRoles.Operator.Should().Be("operator");
         UserRoles.Viewer.Should().Be("viewer");
         UserRoles.Customer.Should().Be("customer");
+        UserRoles.ProviderStandard.Should().Be("provider-standard");
+        UserRoles.ProviderSilver.Should().Be("provider-silver");
+        UserRoles.ProviderGold.Should().Be("provider-gold");
+        UserRoles.ProviderPlatinum.Should().Be("provider-platinum");
     }
 
     #endregion
@@ -79,10 +83,10 @@ public class UserRolesTests
     [InlineData("customer")]
     public void IsValidRole_WithValidRole_ShouldReturnTrue(string role)
     {
-        // Act
+        // Ação
         var result = UserRoles.IsValidRole(role);
 
-        // Assert
+        // Asserção
         result.Should().BeTrue();
     }
 
@@ -93,10 +97,10 @@ public class UserRolesTests
     [InlineData("Catalog-Manager")]
     public void IsValidRole_WithValidRoleDifferentCase_ShouldReturnTrue(string role)
     {
-        // Act
+        // Ação
         var result = UserRoles.IsValidRole(role);
 
-        // Assert
+        // Asserção
         result.Should().BeTrue();
     }
 
@@ -109,20 +113,20 @@ public class UserRolesTests
     [InlineData("admin-user")]
     public void IsValidRole_WithInvalidRole_ShouldReturnFalse(string role)
     {
-        // Act
+        // Ação
         var result = UserRoles.IsValidRole(role);
 
-        // Assert
+        // Asserção
         result.Should().BeFalse();
     }
 
     [Fact]
     public void IsValidRole_WithNull_ShouldReturnFalse()
     {
-        // Act
+        // Ação
         var result = UserRoles.IsValidRole(null!);
 
-        // Assert
+        // Asserção
         result.Should().BeFalse();
     }
 
@@ -138,10 +142,10 @@ public class UserRolesTests
     [InlineData("operator")]
     public void IsAdminRole_WithAdminRole_ShouldReturnTrue(string role)
     {
-        // Act
+        // Ação
         var result = UserRoles.IsAdminRole(role);
 
-        // Assert
+        // Asserção
         result.Should().BeTrue();
     }
 
@@ -151,10 +155,10 @@ public class UserRolesTests
     [InlineData("DOCUMENT-REVIEWER")]
     public void IsAdminRole_WithAdminRoleDifferentCase_ShouldReturnTrue(string role)
     {
-        // Act
+        // Ação
         var result = UserRoles.IsAdminRole(role);
 
-        // Assert
+        // Asserção
         result.Should().BeTrue();
     }
 
@@ -163,10 +167,10 @@ public class UserRolesTests
     [InlineData("viewer")]
     public void IsAdminRole_WithNonAdminRole_ShouldReturnFalse(string role)
     {
-        // Act
+        // Ação
         var result = UserRoles.IsAdminRole(role);
 
-        // Assert
+        // Asserção
         result.Should().BeFalse();
     }
 
@@ -176,20 +180,74 @@ public class UserRolesTests
     [InlineData(" ")]
     public void IsAdminRole_WithInvalidRole_ShouldReturnFalse(string role)
     {
-        // Act
+        // Ação
         var result = UserRoles.IsAdminRole(role);
 
-        // Assert
+        // Asserção
         result.Should().BeFalse();
     }
 
     [Fact]
     public void IsAdminRole_WithNull_ShouldReturnFalse()
     {
-        // Act
+        // Ação
         var result = UserRoles.IsAdminRole(null!);
 
-        // Assert
+        // Asserção
+        result.Should().BeFalse();
+    }
+
+    #endregion
+
+    #region IsProviderRole Tests
+
+    [Theory]
+    [InlineData("provider-standard")]
+    [InlineData("provider-silver")]
+    [InlineData("provider-gold")]
+    [InlineData("provider-platinum")]
+    public void IsProviderRole_WithProviderRole_ShouldReturnTrue(string role)
+    {
+        // Ação
+        var result = UserRoles.IsProviderRole(role);
+
+        // Asserção
+        result.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("admin")]
+    [InlineData("customer")]
+    [InlineData("viewer")]
+    public void IsProviderRole_WithNonProviderRole_ShouldReturnFalse(string role)
+    {
+        // Ação
+        var result = UserRoles.IsProviderRole(role);
+
+        // Asserção
+        result.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("invalid")]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void IsProviderRole_WithInvalidRole_ShouldReturnFalse(string role)
+    {
+        // Ação
+        var result = UserRoles.IsProviderRole(role);
+
+        // Asserção
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsProviderRole_WithNull_ShouldReturnFalse()
+    {
+        // Ação
+        var result = UserRoles.IsProviderRole(null!);
+
+        // Asserção
         result.Should().BeFalse();
     }
 
@@ -200,15 +258,22 @@ public class UserRolesTests
     [Fact]
     public void AdminRoles_ShouldBeSubsetOfAllRoles()
     {
-        // Assert
+        // Asserção
         UserRoles.AdminRoles.Should().BeSubsetOf(UserRoles.AllRoles);
     }
 
     [Fact]
     public void CustomerRoles_ShouldBeSubsetOfAllRoles()
     {
-        // Assert
+        // Asserção
         UserRoles.CustomerRoles.Should().BeSubsetOf(UserRoles.AllRoles);
+    }
+
+    [Fact]
+    public void ProviderRoles_ShouldBeSubsetOfAllRoles()
+    {
+        // Asserção
+        UserRoles.ProviderRoles.Should().BeSubsetOf(UserRoles.AllRoles);
     }
 
     #endregion
