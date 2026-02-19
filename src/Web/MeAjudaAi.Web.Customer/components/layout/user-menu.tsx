@@ -22,7 +22,6 @@ export function UserMenu() {
     // Fail-safe: Show buttons by default (avoids infinite loading if JS fails)
     // If authenticated, we show the avatar.
     // Loading state - prevent flash of unauthenticated UI
-    // Loading state - prevent flash of unauthenticated UI
     if (status === "loading") {
         return (
             <div className="h-10 w-10 rounded-full bg-secondary/20 animate-pulse" />
@@ -66,7 +65,7 @@ export function UserMenu() {
                     </DropdownMenuItem>
 
                     {/* Show Provider Section only if loaded and exists */}
-                    {!isLoadingProvider && providerStatus && <DropdownMenuSeparator />}
+                    {!isLoadingProvider && <DropdownMenuSeparator />}
 
                     {isLoadingProvider ? (
                         // Loading state handled or just suppress
@@ -77,12 +76,16 @@ export function UserMenu() {
                                 <div className="flex justify-between items-center">
                                     <span className="text-sm font-medium">Conta Prestador</span>
                                     <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full capitalize border border-primary/20">
-                                        {PROVIDER_TIER_LABELS[providerStatus.tier]}
+                                        {PROVIDER_TIER_LABELS[providerStatus.tier] ?? "Unknown"}
                                     </span>
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                    Status: <span className={providerStatus.status === EProviderStatus.Active ? "text-green-600 font-medium" : "text-amber-600"}>
-                                        {PROVIDER_STATUS_LABELS[providerStatus.status]}
+                                    Status: <span className={
+                                        providerStatus.status === EProviderStatus.Active ? "text-green-600 font-medium" :
+                                            (providerStatus.status === EProviderStatus.Rejected || providerStatus.status === EProviderStatus.Suspended) ? "text-red-600 font-medium" :
+                                                "text-amber-600"
+                                    }>
+                                        {PROVIDER_STATUS_LABELS[providerStatus.status] ?? "Unknown"}
                                     </span>
                                 </p>
                             </DropdownMenuLabel>

@@ -126,9 +126,23 @@ export default function RegisterProviderPage() {
                         name="documentNumber"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>{form.watch("type") === EProviderType.Individual ? "CPF" : "CNPJ"}</FormLabel>
+                                <FormLabel>{(form.watch("type") === EProviderType.Individual || form.watch("type") === EProviderType.Freelancer) ? "CPF" : "CNPJ"}</FormLabel>
                                 <FormControl>
                                     <Input placeholder="Apenas números" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Email (da sua conta)</FormLabel>
+                                <FormControl>
+                                    <Input {...field} disabled className="bg-muted text-muted-foreground" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

@@ -2166,12 +2166,12 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 7** | 3 semanas | 6 - 24 Jan | Blazor Admin Portal - Features | ✅ CONCLUÍDO |
 | **Sprint 7.16** | 1 semana | 17-21 Jan | Technical Debt Sprint | 🔄 EM PROGRESSO |
 | **Sprint 8** | 2 semanas | 5 - 18 Fev | Customer Web App (Web) | ✅ CONCLUÍDO |
-| **Sprint 8B** | 2 semanas | 19 Fev - 4 Mar | Mobile App (React Native) | ⏳ Planejado |
+| **Sprint 8B** | 2 semanas | 19 Fev - 4 Mar | Authentication & Onboarding | 🔄 EM ANDAMENTO |
 | **Sprint 9** | 1 semana | 5-11 Mar | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
 | **MVP Launch** | - | 14 Mar | Final deployment & launch preparation | 🎯 Target |
 
 **MVP Launch Target**: 28 de Março de 2026 🎯  
-*Atualizado para 14 de Março de 2026.*
+*Atualizado para 28 de Março de 2026.*
 
 **Post-MVP (Fase 3+)**: Reviews, Assinaturas, Agendamentos (Fevereiro 2026+)
 

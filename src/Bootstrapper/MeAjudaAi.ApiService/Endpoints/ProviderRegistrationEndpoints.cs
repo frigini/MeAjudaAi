@@ -31,7 +31,8 @@ public static class ProviderRegistrationEndpoints
                 "e a entidade Provider com Tier=Standard. Endpoint público, sem autenticação.")
             .Produces<Response<ProviderDto>>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .RequireRateLimiting("provider-registration");
 
         return endpoints;
     }
@@ -42,7 +43,7 @@ public static class ProviderRegistrationEndpoints
         ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
-        var logger = loggerFactory.CreateLogger("MeAjudaAi.ApiService.Endpoints.ProviderRegistrationEndpoints");
+        var logger = loggerFactory.CreateLogger(typeof(ProviderRegistrationEndpoints).FullName!);
 
         if (!request.AcceptedTerms || !request.AcceptedPrivacyPolicy)
             return Results.BadRequest("Você deve aceitar os Termos de Uso e a Política de Privacidade para se cadastrar.");
@@ -52,11 +53,16 @@ public static class ProviderRegistrationEndpoints
         var phone = System.Text.RegularExpressions.Regex.Replace(request.PhoneNumber, @"\D", "");
         var username = $"provider_{phone}";
 
+        // Use First Name as placeholder for Last Name to satisfy validation
+        var nameParts = request.Name.Trim().Split(' ', 2);
+        var firstName = nameParts[0];
+        var lastName = nameParts.Length > 1 ? nameParts[1] : firstName; // Fallback to firstname if no lastname
+
         var createUserCommand = new CreateUserCommand(
             Username: username,
             Email: request.Email,
-            FirstName: request.Name,
-            LastName: string.Empty,
+            FirstName: firstName,
+            LastName: lastName,
             Password: GenerateTemporaryPassword(), // Senha temporária forte gerada dinamicamente
             Roles: [UserRoles.ProviderStandard],
             PhoneNumber: request.PhoneNumber

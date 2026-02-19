@@ -60,6 +60,16 @@ public sealed class RegisterProviderCommandHandler(
 
             return Result<ProviderDto>.Success(provider.ToDto());
         }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex) when (ex.InnerException?.Message.Contains("ix_providers_user_id") ?? false)
+        {
+            logger.LogWarning(ex, "Duplicate provider registration attempt for user {UserId}", command.UserId);
+            var existing = await providerRepository.GetByUserIdAsync(command.UserId, cancellationToken);
+            if (existing is not null)
+            {
+                return Result<ProviderDto>.Success(existing.ToDto());
+            }
+            throw; // Should not happen if index violation occurred
+        }
         catch (DomainException ex)
         {
             logger.LogWarning(ex, "Domain validation error in RegisterProvider for user {UserId}: {Message}", command.UserId, ex.Message);

@@ -1,14 +1,13 @@
 # Standalone Keycloak for development
-# Minimal setup with embedded H2 database for quick testing
+# Minimal setup with Postgres database for quick testing
 # 
-# REQUIRED: Set KEYCLOAK_ADMIN_PASSWORD before running
-# OPTIONAL: Set KEYCLOAK_ADMIN (defaults to 'admin', consider using a custom username)
+# REQUIRED: Set KEYCLOAK_ADMIN_PASSWORD and KEYCLOAK_ADMIN in environment or .env
 # OPTIONAL: Set KEYCLOAK_PORT (defaults to 8081 to avoid conflicts with development.yml)
 #
 # Usage:
 #   export KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 32)
-#   export KEYCLOAK_ADMIN="meajudaai_admin"  # Recommended: avoid 'admin'
-#   export KEYCLOAK_PORT=8081                # Avoid port conflicts
+#   export KEYCLOAK_ADMIN="meajudaai_admin"
+#   export KEYCLOAK_PORT=8081
 #   docker compose -f standalone/keycloak-only.yml up -d
 #
 # Or use .env file with secure credentials
@@ -29,18 +28,18 @@ services:
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
       KC_LOG_LEVEL: info
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin123
-      # Identity Providers (Mandatory)
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?GOOGLE_CLIENT_ID is required}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?GOOGLE_CLIENT_SECRET is required}
-      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:?FACEBOOK_APP_ID is required}
-      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET:?FACEBOOK_APP_SECRET is required}
-      INSTAGRAM_CLIENT_ID: ${INSTAGRAM_CLIENT_ID:?INSTAGRAM_CLIENT_ID is required}
-      INSTAGRAM_CLIENT_SECRET: ${INSTAGRAM_CLIENT_SECRET:?INSTAGRAM_CLIENT_SECRET is required}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin123}
+      # Identity Providers (Optional for standalone)
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET:-}
+      INSTAGRAM_CLIENT_ID: ${INSTAGRAM_CLIENT_ID:-}
+      INSTAGRAM_CLIENT_SECRET: ${INSTAGRAM_CLIENT_SECRET:-}
     command: ["start-dev", "--import-realm"]
     ports:
-      - "8080:8080"
+      - "${KEYCLOAK_PORT:-8081}:8080"
       # - "8443:8443" # HTTPS disabled
     volumes:
       - keycloak_standalone_data:/opt/keycloak/data

@@ -155,3 +155,9 @@ export const PROVIDER_TIER_LABELS: Record<EProviderTier, string> = {
     [EProviderTier.Gold]: "Ouro",
     [EProviderTier.Platinum]: "Platina",
 };
+
+export const VERIFICATION_STATUS_LABELS: Record<EVerificationStatus, string> = {
+    [EVerificationStatus.Pending]: "Pendente",
+    [EVerificationStatus.Verified]: "Verificado",
+    [EVerificationStatus.Rejected]: "Rejeitado",
+};

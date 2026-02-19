@@ -29,6 +29,7 @@ export function Avatar({
     size = "md",
     fallback,
     className,
+    ...rest
 }: AvatarProps) {
     const initials =
         fallback ||
@@ -49,6 +50,7 @@ export function Avatar({
                 sizeClasses[size],
                 className
             )}
+            {...rest}
         >
             {src ? (
                 <Image

@@ -11,7 +11,7 @@ export const registerProviderSchema = z.object({
     type: z.nativeEnum(EProviderType),
     email: z.string().email("Email inválido").optional().or(z.literal("")),
 }).superRefine((data, ctx) => {
-    if (data.type === EProviderType.Individual) {
+    if (data.type === EProviderType.Individual || data.type === EProviderType.Freelancer) {
         // CPF must be 11 digits
         if (data.documentNumber.length !== 11) {
             ctx.addIssue({
@@ -20,7 +20,7 @@ export const registerProviderSchema = z.object({
                 path: ["documentNumber"],
             });
         }
-    } else if (data.type === EProviderType.Company) {
+    } else if (data.type === EProviderType.Company || data.type === EProviderType.Cooperative) {
         // CNPJ must be 14 digits
         if (data.documentNumber.length !== 14) {
             ctx.addIssue({
