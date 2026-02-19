@@ -147,7 +147,7 @@ public class UploadMyDocumentEndpointTests
         var result = await task;
 
         // Assert
-        // Corrected expected type: BadRequest<Response<object>> instead of BadRequest<Result<ProviderDto>>
-        result.Should().BeOfType<BadRequest<Response<object>>>();
+        // Corrected expected type: BadRequest<Result<ProviderDto>>
+        result.Should().BeOfType<BadRequest<Result<ProviderDto>>>();
     }
 }

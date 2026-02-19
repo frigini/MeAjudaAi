@@ -13,44 +13,15 @@ import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 
-const formSchema = z.object({
-    name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-    documentNumber: z.string()
-        .min(11, "Documento inválido")
-        .max(14, "Documento inválido")
-        .regex(/^\d+$/, "Apenas números são permitidos"), // CPF 11, CNPJ 14 (sem formatação)
-    phoneNumber: z.string().min(10, "Telefone inválido"),
-    type: z.nativeEnum(EProviderType),
-    email: z.string().email("Email inválido").optional().or(z.literal("")),
-}).superRefine((data, ctx) => {
-    if (data.type === EProviderType.Individual) {
-        // CPF must be 11 digits
-        if (data.documentNumber.length !== 11) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "CPF deve ter 11 dígitos",
-                path: ["documentNumber"],
-            });
-        }
-    } else if (data.type === EProviderType.Company) {
-        // CNPJ must be 14 digits
-        if (data.documentNumber.length !== 14) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "CNPJ deve ter 14 dígitos",
-                path: ["documentNumber"],
-            });
-        }
-    }
-});
+import { registerProviderSchema } from "@/lib/schemas/auth";
 
 export default function RegisterProviderPage() {
     const router = useRouter();
     const { data: session } = useSession();
     const { mutate: registerProvider, isPending } = useRegisterProvider();
 
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
+    const form = useForm<z.infer<typeof registerProviderSchema>>({
+        resolver: zodResolver(registerProviderSchema),
         defaultValues: {
             name: "",
             type: EProviderType.Individual,
@@ -72,7 +43,7 @@ export default function RegisterProviderPage() {
         }
     }, [session, form]);
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
+    function onSubmit(values: z.infer<typeof registerProviderSchema>) {
         registerProvider(values, {
             onSuccess: () => {
                 toast.success("Cadastro iniciado com sucesso!");

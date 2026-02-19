@@ -103,7 +103,9 @@ export default function ProviderProfilePage() {
                         // Se a intenção é que Endereço seja preenchido, deve ser um botão/link ativo.
                         // Ajustando conforme feedback para não 'dim', mas mantendo lógica de botão se 'Address' for o estado
                         // Como não temos EProviderStatus.PendingAddress, assumimos que PendingBasicInfo avança para Address.
-                        <Button size="sm" className="w-full mt-2">Preencher Endereço</Button>
+                        <Link href="/cadastro/prestador/perfil/endereco">
+                            <Button size="sm" className="w-full mt-2">Preencher Endereço</Button>
+                        </Link>
                     ) : (
                         // Se já passou dessa fase (Verificação ou Ativo), mostra como Concluído ou Pendente de Validação?
                         // O feedback diz "treat as completed/accessible".

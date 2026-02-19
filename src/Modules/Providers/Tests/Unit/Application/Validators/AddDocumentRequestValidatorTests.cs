@@ -124,6 +124,6 @@ public class AddDocumentRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.DocumentType)
-            .WithErrorMessage("DocumentType deve ser um tipo de documento válido. Valores válidos: None, CPF, CNPJ, RG, CNH, Passport, Other");
+            .WithErrorMessage("DocumentType deve ser um tipo de documento válido. Valores válidos: Valid EDocumentType values: None, CPF, CNPJ, RG, CNH, Passport, Other");
     }
 }
