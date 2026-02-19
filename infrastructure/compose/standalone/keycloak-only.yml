@@ -18,25 +18,35 @@ services:
     image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-26.0.2}
     container_name: meajudaai-keycloak-standalone
     environment:
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Missing KEYCLOAK_ADMIN_PASSWORD environment variable}
+      KC_DB: postgres
+      # Aponta para o host porque o Postgres está rodando fora deste compose (via Aspire ou outro)
+      KC_DB_URL: jdbc:postgresql://host.docker.internal:5432/meajudaai
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      KC_DB_SCHEMA: identity
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME: localhost
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
-      KC_HOSTNAME_STRICT_HTTPS: false
-      KC_HTTP_ENABLED: true
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID}
-      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET}
-      INSTAGRAM_CLIENT_ID: ${INSTAGRAM_CLIENT_ID}
-      INSTAGRAM_CLIENT_SECRET: ${INSTAGRAM_CLIENT_SECRET}
-    command: ["start-dev", "--import-realm", "--features=instagram-broker"]
+      KC_LOG_LEVEL: info
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin123
+      # Identity Providers (Mandatory)
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?GOOGLE_CLIENT_ID is required}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?GOOGLE_CLIENT_SECRET is required}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:?FACEBOOK_APP_ID is required}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET:?FACEBOOK_APP_SECRET is required}
+      INSTAGRAM_CLIENT_ID: ${INSTAGRAM_CLIENT_ID:?INSTAGRAM_CLIENT_ID is required}
+      INSTAGRAM_CLIENT_SECRET: ${INSTAGRAM_CLIENT_SECRET:?INSTAGRAM_CLIENT_SECRET is required}
+    command: ["start-dev", "--import-realm"]
     ports:
-      - "${KEYCLOAK_PORT:-8081}:8080"
-      - "8443:8443"
+      - "8080:8080"
+      # - "8443:8443" # HTTPS disabled
     volumes:
       - keycloak_standalone_data:/opt/keycloak/data
-      - ../../keycloak/realms:/opt/keycloak/data/import
+      - ../environments/keycloak/imports:/opt/keycloak/data/import
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health/ready || exit 1"]

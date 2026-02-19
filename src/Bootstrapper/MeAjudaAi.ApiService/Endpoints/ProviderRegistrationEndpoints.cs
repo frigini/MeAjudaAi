@@ -7,6 +7,7 @@ using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.ApiService.Endpoints;
 
@@ -38,8 +39,11 @@ public static class ProviderRegistrationEndpoints
     private static async Task<IResult> RegisterProviderAsync(
         [FromBody] RegisterProviderRequest request,
         ICommandDispatcher commandDispatcher,
+        ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
+        var logger = loggerFactory.CreateLogger("MeAjudaAi.ApiService.Endpoints.ProviderRegistrationEndpoints");
+
         if (!request.AcceptedTerms || !request.AcceptedPrivacyPolicy)
             return Results.BadRequest("Você deve aceitar os Termos de Uso e a Política de Privacidade para se cadastrar.");
 
@@ -53,7 +57,7 @@ public static class ProviderRegistrationEndpoints
             Email: request.Email,
             FirstName: request.Name,
             LastName: string.Empty,
-            Password: "TempPassword123!", // Senha temporária forte para passar na validação do Keycloak
+            Password: GenerateTemporaryPassword(), // Senha temporária forte gerada dinamicamente
             Roles: [UserRoles.ProviderStandard],
             PhoneNumber: request.PhoneNumber
         );
@@ -64,7 +68,7 @@ public static class ProviderRegistrationEndpoints
         if (userResult.IsFailure)
         {
             // Logar erro detalhado internamente
-            // logger.LogError(...) - Adicionar ILogger se necessário
+            logger.LogError("Failed to create Keycloak user for provider registration. Error: {Error}", userResult.Error.Message);
             return Results.BadRequest("Ocorreu um erro ao registrar o usuário.");
         }
 
@@ -104,9 +108,9 @@ public static class ProviderRegistrationEndpoints
                 var deleteUserCommand = new DeleteUserCommand(userResult.Value!.Id);
                 await commandDispatcher.SendAsync<DeleteUserCommand, Result>(deleteUserCommand, cancellationToken);
             }
-            catch
+            catch (Exception ex)
             {
-                // Logar falha na compensação
+                logger.LogError(ex, "Compensation failed: Could not delete orphaned user {UserId} after provider creation failed.", userResult.Value!.Id);
             }
 
             return Results.BadRequest("Ocorreu um erro ao registrar o provedor.");
@@ -115,5 +119,11 @@ public static class ProviderRegistrationEndpoints
         return Results.Created(
             $"/api/v1/providers/{providerResult.Value!.Id}",
             new Response<ProviderDto>(providerResult.Value));
+    }
+
+    private static string GenerateTemporaryPassword()
+    {
+        // Gera uma senha forte aleatória que satisfaz requisitos do Keycloak (Maiúscula, Minúscula, Número, Especial)
+        return $"Temp{Guid.NewGuid().ToString("N")[..8]}!123";
     }
 }

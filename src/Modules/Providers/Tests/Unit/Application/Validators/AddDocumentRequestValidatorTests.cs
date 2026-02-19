@@ -44,7 +44,6 @@ public class AddDocumentRequestValidatorTests
         var result = await _validator.TestValidateAsync(request);
 
         // Assert
-        // Assert
         result.ShouldHaveValidationErrorFor(x => x.Number)
             .WithErrorMessage("Número do documento é obrigatório");
     }
@@ -125,6 +124,6 @@ public class AddDocumentRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.DocumentType)
-            .WithErrorMessage("DocumentType must be a valid document type. Valid EDocumentType values: None, CPF, CNPJ, RG, CNH, Passport, Other");
+            .WithErrorMessage("DocumentType deve ser um tipo de documento válido. Valores válidos: None, CPF, CNPJ, RG, CNH, Passport, Other");
     }
 }

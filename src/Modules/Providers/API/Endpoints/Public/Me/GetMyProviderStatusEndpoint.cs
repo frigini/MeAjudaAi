@@ -44,7 +44,7 @@ public class GetMyProviderStatusEndpoint : BaseEndpoint, IEndpoint
             query, cancellationToken);
 
         if (result.IsFailure)
-            return BadRequest(result.Error.Message);
+            return BadRequest("Não foi possível consultar o status do prestador.");
 
         if (result.Value is null)
             return NotFound("Perfil do prestador não encontrado.");

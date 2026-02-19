@@ -22,6 +22,26 @@ const formSchema = z.object({
     phoneNumber: z.string().min(10, "Telefone inválido"),
     type: z.nativeEnum(EProviderType),
     email: z.string().email("Email inválido").optional().or(z.literal("")),
+}).superRefine((data, ctx) => {
+    if (data.type === EProviderType.Individual) {
+        // CPF must be 11 digits
+        if (data.documentNumber.length !== 11) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "CPF deve ter 11 dígitos",
+                path: ["documentNumber"],
+            });
+        }
+    } else if (data.type === EProviderType.Company) {
+        // CNPJ must be 14 digits
+        if (data.documentNumber.length !== 14) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "CNPJ deve ter 14 dígitos",
+                path: ["documentNumber"],
+            });
+        }
+    }
 });
 
 export default function RegisterProviderPage() {
@@ -108,6 +128,20 @@ export default function RegisterProviderPage() {
                                             onClick={() => field.onChange(EProviderType.Company)}
                                         >
                                             Pessoa Jurídica (CNPJ)
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant={field.value === EProviderType.Cooperative ? "primary" : "outline"}
+                                            onClick={() => field.onChange(EProviderType.Cooperative)}
+                                        >
+                                            Cooperativa
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant={field.value === EProviderType.Freelancer ? "primary" : "outline"}
+                                            onClick={() => field.onChange(EProviderType.Freelancer)}
+                                        >
+                                            Autônomo
                                         </Button>
                                     </div>
                                 </FormControl>

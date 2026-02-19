@@ -1,5 +1,6 @@
 import { twMerge } from "tailwind-merge";
 import type { ComponentProps } from "react";
+import Image from "next/image";
 
 export interface AvatarProps extends Omit<ComponentProps<"img">, "src"> {
     src?: string | null;
@@ -15,13 +16,19 @@ const sizeClasses = {
     xl: "size-16",
 };
 
+const sizePx = {
+    sm: 32,
+    md: 40,
+    lg: 48,
+    xl: 64,
+};
+
 export function Avatar({
     src,
     alt,
     size = "md",
     fallback,
     className,
-    ...props
 }: AvatarProps) {
     const initials =
         fallback ||
@@ -44,11 +51,12 @@ export function Avatar({
             )}
         >
             {src ? (
-                <img
+                <Image
                     src={src}
                     alt={alt}
+                    width={sizePx[size]}
+                    height={sizePx[size]}
                     className="size-full object-cover"
-                    {...props}
                 />
             ) : (
                 <span className="text-sm">{initials}</span>

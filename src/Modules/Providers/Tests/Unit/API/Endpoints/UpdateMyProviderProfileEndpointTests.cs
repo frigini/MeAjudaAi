@@ -47,7 +47,6 @@ public class UpdateMyProviderProfileEndpointTests
         };
 
         // Setup Query to return ProviderId
-        // Setup Query to return ProviderId
         var providerDto = new ProviderDto(
             providerId, userId, "Test", EProviderType.Individual, null!, 
             EProviderStatus.Active, EVerificationStatus.Verified, EProviderTier.Standard,

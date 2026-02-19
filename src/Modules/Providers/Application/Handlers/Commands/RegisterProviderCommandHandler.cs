@@ -8,7 +8,7 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Domain;
+using MeAjudaAi.Shared.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -62,7 +62,8 @@ public sealed class RegisterProviderCommandHandler(
         }
         catch (DomainException ex)
         {
-            return Result<ProviderDto>.Failure(new Error(ex.Message, 400));
+            logger.LogWarning(ex, "Domain validation error in RegisterProvider for user {UserId}: {Message}", command.UserId, ex.Message);
+            return Result<ProviderDto>.Failure(new Error("Erro ao processar a requisição. Verifique os dados informados.", 400));
         }
         catch (Exception ex)
         {

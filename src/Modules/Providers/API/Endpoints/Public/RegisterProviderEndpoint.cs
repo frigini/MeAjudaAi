@@ -3,6 +3,7 @@ using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -21,7 +22,6 @@ public class RegisterProviderEndpoint : BaseEndpoint, IEndpoint
             .WithDescription("Cria um novo perfil de prestador para o usuário autenticado.")
             .RequireAuthorization()
             .Produces<Response<ProviderDto>>(StatusCodes.Status201Created)
-            .Produces<Response<ProviderDto>>(StatusCodes.Status200OK)
             .Produces<Response<object>>(StatusCodes.Status400BadRequest);
 
     private static async Task<IResult> RegisterProviderAsync(

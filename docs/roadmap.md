@@ -40,6 +40,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **5-13 Fev 2026**: Sprint 8A - Customer Web App (React + Next.js) (CONCLUÍDO - Features & Test Optimization)
 - 🔄 **19 Fev - 4 Mar 2026**: Sprint 8B - Authentication & Onboarding Flow (EM ANDAMENTO)
 - ⏳ **5-18 Mar 2026**: Sprint 8C - Mobile App (React Native + Expo) (PLANEJADO)
+- 🚫 **CANCELADO**: Sprint 8D - Admin Portal Migration (Manter Blazor)
 - ⏳ **19-25 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
 - 🎯 **28 Março 2026**: MVP Launch (Admin Portal + Customer App Web + Mobile)
 - ⏳ **Pós-MVP**: Sprint Infra - NX Monorepo (unificar Customer Web + Provider App + Mobile em workspace compartilhado)
@@ -2169,7 +2170,7 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 9** | 1 semana | 5-11 Mar | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
 | **MVP Launch** | - | 14 Mar | Final deployment & launch preparation | 🎯 Target |
 
-**MVP Launch Target**: 14 de Março de 2026 🎯  
+**MVP Launch Target**: 28 de Março de 2026 🎯  
 *Atualizado para 14 de Março de 2026.*
 
 **Post-MVP (Fase 3+)**: Reviews, Assinaturas, Agendamentos (Fevereiro 2026+)
@@ -4231,15 +4232,6 @@ public class GeographicRestrictionMiddleware
 
 ---
 
-### ⏳ Sprint 8D - Admin Portal Migration (Novo)
-
-**Periodo Estimado**: 19 Mar - 1 Abr 2026
-**Foco**: Migração do Admin Portal para React e integração no monorepo Nx.
-
-**Objetivos**:
-1. **Nx Workspace Setup**: Garantir suporte a múltiplos apps (Admin + Customer).
-2. **Admin Portal Migration**: Portar Blazor Admin para React (`apps/admin-portal`).
-3. **Shared Components**: Extrair UI kit para `libs/shared-ui`.
 4. **Auth Migration**: Configurar Keycloak no novo app React.
 
 **Entregáveis**:
@@ -4529,7 +4521,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - ✅ Segurança e performance hardened
 - ✅ Documentação completa para usuários e desenvolvedores
 - ✅ Monitoring e observabilidade configurados
-- 🎯 **PRONTO PARA LAUNCH EM 14 DE MARÇO DE 2026**
+- 🎯 **PRONTO PARA LAUNCH EM 28 DE MARÇO DE 2026**
 
 > **⚠️ CRITICAL**: Se Sprint 9 não for suficiente para completar todos os itens, considerar delay do MVP launch ou reduzir escopo (mover features não-críticas para post-MVP). A qualidade e estabilidade do MVP são mais importantes que a data de lançamento.
 
@@ -5046,7 +5038,8 @@ public class ActivityHub : Hub
   - **Note**: Post-MVP feature, não é blocker para geographic-restriction inicial
 - **ViaCep API** - Lookup de CEP brasileiro
   - Base URL: `https://viacep.com.br/ws/`
-  - Documentação: <https://viacep.com.br/>- **BrasilApi CEP** - Lookup de CEP (fallback)
+  - Documentação: <https://viacep.com.br/>
+- **BrasilApi CEP** - Lookup de CEP (fallback)
   - Base URL: `https://brasilapi.com.br/api/cep/v1/`
   - Documentação: <https://brasilapi.com.br/docs>
 - **OpenCep API** - Lookup de CEP (fallback)

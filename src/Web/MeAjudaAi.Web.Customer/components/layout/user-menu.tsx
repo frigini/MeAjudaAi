@@ -11,11 +11,10 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Briefcase } from "lucide-react";
 import Link from "next/link";
 import { useProviderStatus } from "@/hooks/use-provider-status";
 import { EProviderStatus, PROVIDER_STATUS_LABELS, PROVIDER_TIER_LABELS } from "@/types/provider";
-import { Briefcase } from "lucide-react";
 
 export function UserMenu() {
     const { data: session, status } = useSession();
@@ -66,7 +65,8 @@ export function UserMenu() {
                         </Link>
                     </DropdownMenuItem>
 
-                    <DropdownMenuSeparator />
+                    {/* Show Provider Section only if loaded and exists */}
+                    {!isLoadingProvider && providerStatus && <DropdownMenuSeparator />}
 
                     {isLoadingProvider ? (
                         // Loading state handled or just suppress

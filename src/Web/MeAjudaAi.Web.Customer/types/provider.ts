@@ -1,4 +1,5 @@
 export enum EProviderType {
+    None = "None",
     Individual = "Individual",
     Company = "Company",
     Cooperative = "Cooperative",
@@ -29,6 +30,7 @@ export enum EVerificationStatus {
 }
 
 export const PROVIDER_TYPE_LABELS: Record<EProviderType, string> = {
+    [EProviderType.None]: "Nenhum",
     [EProviderType.Individual]: "Pessoa Física",
     [EProviderType.Company]: "Pessoa Jurídica",
     [EProviderType.Cooperative]: "Cooperativa",

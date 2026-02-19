@@ -1,3 +1,5 @@
+"use client";
+
 import { useProviderStatus } from "@/hooks/use-provider-status";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -81,15 +83,31 @@ export default function ProviderProfilePage() {
                     <p className="text-sm text-green-700">Concluído</p>
                 </div>
 
-                <div className={`p-6 border rounded-lg ${providerStatus.status === EProviderStatus.PendingBasicInfo ? "bg-white border-primary/20 shadow-sm ring-1 ring-primary/20" : "bg-slate-50 opacity-70"}`}>
+                <div className={`p-6 border rounded-lg ${providerStatus.status === EProviderStatus.PendingBasicInfo
+                    || providerStatus.status === EProviderStatus.PendingDocumentVerification
+                    || providerStatus.status === EProviderStatus.Active
+                    ? "bg-white border-primary/20 shadow-sm ring-1 ring-primary/20"
+                    : "bg-slate-50 opacity-70"
+                    }`}>
                     <div className="flex items-center gap-2 mb-2">
-                        <div className={`h-6 w-6 rounded-full flex items-center justify-center text-sm font-bold ${providerStatus.status === EProviderStatus.PendingBasicInfo ? "bg-primary text-white" : "bg-slate-200 text-slate-500"}`}>2</div>
+                        <div className={`h-6 w-6 rounded-full flex items-center justify-center text-sm font-bold ${providerStatus.status === EProviderStatus.PendingBasicInfo
+                            || providerStatus.status === EProviderStatus.PendingDocumentVerification
+                            || providerStatus.status === EProviderStatus.Active
+                            ? "bg-primary text-white"
+                            : "bg-slate-200 text-slate-500"
+                            }`}>2</div>
                         <h3 className="font-medium">2. Endereço</h3>
                     </div>
                     {providerStatus.status === EProviderStatus.PendingBasicInfo ? (
-                        <Button variant="outline" size="sm" className="w-full mt-2" disabled>Em breve</Button>
+                        // Se apenas Info Básica está ok, Endereço é o próximo passo (ativo) - mas aqui estava "Em breve" (disabled)
+                        // Se a intenção é que Endereço seja preenchido, deve ser um botão/link ativo.
+                        // Ajustando conforme feedback para não 'dim', mas mantendo lógica de botão se 'Address' for o estado
+                        // Como não temos EProviderStatus.PendingAddress, assumimos que PendingBasicInfo avança para Address.
+                        <Button size="sm" className="w-full mt-2">Preencher Endereço</Button>
                     ) : (
-                        <p className="text-sm text-muted-foreground">Pendente</p>
+                        // Se já passou dessa fase (Verificação ou Ativo), mostra como Concluído ou Pendente de Validação?
+                        // O feedback diz "treat as completed/accessible".
+                        <p className="text-sm text-green-700">Concluído</p>
                     )}
                 </div>
 
