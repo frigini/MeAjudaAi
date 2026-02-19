@@ -19,8 +19,12 @@ const PublicProviderSchema = z.object({
     name: z.string(),
     type: z.preprocess((val) => {
         if (typeof val === 'string') {
-            // Basic mapping from string to Enum if needed, or rely on nativeEnum to handle values
-            // If val comes as "1", "2" string, we might need to parse int.
+            const lower = val.toLowerCase();
+            if (lower === 'individual' || lower === 'pessoafisica') return EProviderType.Individual;
+            if (lower === 'company' || lower === 'pessoajuridica') return EProviderType.Company;
+            if (lower === 'freelancer' || lower === 'autonomo') return EProviderType.Freelancer;
+            if (lower === 'cooperative' || lower === 'cooperativa') return EProviderType.Cooperative;
+
             const parsed = parseInt(val, 10);
             if (!isNaN(parsed)) return parsed;
         }
@@ -84,7 +88,7 @@ const getCachedProvider = cache(async (id: string): Promise<PublicProviderData |
         return result.data;
 
     } catch (error) {
-        if (error instanceof Error && (error.message.includes("404") || (error as { status?: number }).status === 404)) return null;
+        if (error instanceof Error && (error as { status?: number }).status === 404) return null;
         console.error(`Exception fetching public provider ${id}:`, error);
         throw error;
     }

@@ -105,11 +105,48 @@ interface LocalProviderDto extends MeAjudaAiModulesProvidersApplicationDtosProvi
 /**
  * Converte ProviderDto (da API de detalhes) para ProviderDto (tipo da aplicação)
  */
+// Local type definition to extend generated types with missing runtime fields
+// This is necessary because the generated SDK types are currently missing these fields
+// that are returned by the API at runtime.
+type ExtendedProviderDto = Omit<MeAjudaAiModulesProvidersApplicationDtosProviderDto, 'documents' | 'qualifications'> & {
+    services?: {
+        serviceId?: string;
+        price?: number;
+        currency?: string;
+        serviceName?: string;
+    }[];
+    averageRating?: number;
+    reviewCount?: number;
+    tier?: EProviderTier | number;
+    // Documents in ProviderDto seems to be using a different DTO in the spec than what is returned or expected here
+    documents?: {
+        id?: string;
+        providerId?: string;
+        documentType?: number;
+        fileName?: string;
+        fileUrl?: string;
+        status?: number;
+        uploadedAt?: string;
+        verifiedAt?: string;
+        rejectionReason?: string;
+        ocrData?: string;
+    }[];
+    qualifications?: {
+        name?: string;
+        issuer?: string;
+        year?: number;
+        fileUrl?: string;
+    }[];
+};
+
+/**
+ * Converte ProviderDto (da API de detalhes) para ProviderDto (tipo da aplicação)
+ */
 export function mapApiProviderToProvider(
     rawDto: MeAjudaAiModulesProvidersApplicationDtosProviderDto
 ): ProviderDto {
-    // Cast to local interface to access missing properties safely
-    const dto = rawDto as unknown as LocalProviderDto;
+    // Cast to extended interface to access missing properties safely
+    const dto = rawDto as unknown as ExtendedProviderDto;
 
     const businessProfile = dto.businessProfile;
     const contactInfo = businessProfile?.contactInfo;
@@ -134,43 +171,62 @@ export function mapApiProviderToProvider(
 
         // Map services
         services: services.map(s => ({
-            serviceId: s.serviceId,
-            price: s.price,
-            currency: s.currency,
-            serviceName: s.serviceName
+            serviceId: s.serviceId ?? '',
+            price: s.price ?? 0,
+            currency: s.currency ?? 'BRL',
+            serviceName: s.serviceName ?? ''
         })),
 
         city: address?.city ?? '',
         state: address?.state ?? '',
 
-        // Cast int to Enum
+        // Cast int to Enum (Backend enums map to numbers in JSON)
         type: (dto.type as unknown as EProviderType) ?? EProviderType.Individual,
 
         // Map full objects
-        businessProfile: businessProfile as any, // Keep as any if strict match fails downstream, or map to app type
+        businessProfile: {
+            legalName: businessProfile?.legalName ?? '',
+            fantasyName: businessProfile?.fantasyName,
+            description: businessProfile?.description,
+            contactInfo: {
+                email: contactInfo?.email ?? '',
+                phoneNumber: contactInfo?.phoneNumber,
+                website: contactInfo?.website
+            },
+            primaryAddress: {
+                street: address?.street ?? '',
+                number: address?.number ?? '',
+                complement: address?.complement,
+                neighborhood: address?.neighborhood ?? '',
+                city: address?.city ?? '',
+                state: address?.state ?? '',
+                zipCode: address?.zipCode ?? '',
+                country: address?.country ?? ''
+            }
+        },
         status: (dto.status as unknown as EProviderStatus) ?? EProviderStatus.PendingBasicInfo,
         verificationStatus: (dto.verificationStatus as unknown as EVerificationStatus) ?? EVerificationStatus.Pending,
-        tier: dto.tier ?? EProviderTier.Standard,
-        documents: dto.documents?.map((d: any) => ({
-            id: d.id,
-            providerId: d.providerId,
-            documentType: d.documentType,
-            fileName: d.fileName,
-            fileUrl: d.fileUrl,
-            status: d.status,
-            uploadedAt: d.uploadedAt,
+        tier: (dto.tier as unknown as EProviderTier) ?? EProviderTier.Standard,
+        documents: dto.documents?.map(d => ({
+            id: d.id ?? '',
+            providerId: d.providerId ?? '',
+            documentType: (d.documentType as unknown as number) as any,
+            fileName: d.fileName ?? '',
+            fileUrl: d.fileUrl ?? '',
+            status: (d.status as unknown as number) as any,
+            uploadedAt: d.uploadedAt ?? '',
             verifiedAt: d.verifiedAt,
             rejectionReason: d.rejectionReason,
             ocrData: d.ocrData
         })) || [],
-        qualifications: dto.qualifications?.map((q: any) => ({
-            name: q.name,
-            issuer: q.issuer,
-            year: q.year,
-            fileUrl: q.fileUrl
+        qualifications: dto.qualifications?.map(q => ({
+            name: q.name ?? '',
+            issuer: q.issuer ?? '',
+            year: q.year ?? 0,
+            fileUrl: q.fileUrl ?? undefined
         })) || [],
 
-        createdAt: dto.createdAt ?? "", // Only use if present, otherwise empty string (or change type to optional)
+        createdAt: dto.createdAt ?? "",
         updatedAt: dto.updatedAt
     };
 }

@@ -76,7 +76,12 @@ public sealed class RegisterProviderCommandHandler(
                 {
                     return Result<ProviderDto>.Success(existing.ToDto());
                 }
+                
+                // If we have a unique constraint violation but can't find the provider,
+                // it implies a race condition or data inconsistency that we should report as a failure
+                return Result<ProviderDto>.Failure(new Error("provider.already.exists", "Um prestador já está registrado para este usuário."));
             }
+            // For other database errors, rethrow to be handled by global exception handler or outer catch
             throw processedEx;
         }
         catch (Exception ex) when (ex is DomainException || ex is ArgumentException)

@@ -32,8 +32,8 @@ export default function RegisterProviderPage() {
     });
 
     // Preencher nome e email da sessão
+    const { getValues, setValue } = form; // Stable references
     useEffect(() => {
-        const { getValues, setValue } = form;
         if (session?.user) {
             if (session.user.name && !getValues("name")) {
                 setValue("name", session.user.name);
@@ -42,7 +42,7 @@ export default function RegisterProviderPage() {
                 setValue("email", session.user.email);
             }
         }
-    }, [session, form]);
+    }, [session, getValues, setValue]);
 
     function onSubmit(values: z.infer<typeof registerProviderSchema>) {
         registerProvider(values, {

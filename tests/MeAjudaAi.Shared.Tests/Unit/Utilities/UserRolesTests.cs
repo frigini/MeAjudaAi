@@ -81,6 +81,10 @@ public class UserRolesTests
     [InlineData("operator")]
     [InlineData("viewer")]
     [InlineData("customer")]
+    [InlineData("provider-standard")]
+    [InlineData("provider-silver")]
+    [InlineData("provider-gold")]
+    [InlineData("provider-platinum")]
     public void IsValidRole_WithValidRole_ShouldReturnTrue(string role)
     {
         // Ação
@@ -249,6 +253,20 @@ public class UserRolesTests
 
         // Asserção
         result.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("Provider-Standard")]
+    [InlineData("PROVIDER-SILVER")]
+    [InlineData("provider-GOLD")]
+    [InlineData("PrOvIdEr-PlAtInUm")]
+    public void IsProviderRole_WithValidRoleDifferentCase_ShouldReturnTrue(string role)
+    {
+        // Ação
+        var result = UserRoles.IsProviderRole(role);
+
+        // Asserção
+        result.Should().BeTrue();
     }
 
     #endregion

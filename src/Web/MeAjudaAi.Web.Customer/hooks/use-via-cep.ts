@@ -33,6 +33,7 @@ export function useViaCep() {
         // Cancel previous request immediately
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
+            setIsLoading(false); // Ensure loading is cleared when previous request is aborted
             abortControllerRef.current = null;
         }
 
@@ -70,9 +71,15 @@ export function useViaCep() {
             return data;
         } catch (err: unknown) {
             if (err instanceof DOMException && err.name === 'AbortError') {
-                return null; // Silent abort
+                setIsLoading(false); // Clear loading on abort
+                return null;
             }
-            console.error(err);
+
+            // Log to console only in dev/test, or use a proper logger
+            if (process.env.NODE_ENV !== 'production') {
+                console.error(err);
+            }
+
             setError("Falha ao consultar CEP");
             return null;
         } finally {

@@ -98,7 +98,9 @@ export enum EDocumentType {
 export enum EDocumentStatus {
     Uploaded = 1,
     PendingVerification = 2,
-    Verified = 3
+    Verified = 3,
+    Rejected = 4,
+    Failed = 5
 }
 
 export interface DocumentDto {

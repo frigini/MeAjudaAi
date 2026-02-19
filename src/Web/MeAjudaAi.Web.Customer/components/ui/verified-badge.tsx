@@ -25,7 +25,7 @@ export function VerifiedBadge({ status, className, showLabel = false, size = "md
 
     if (status === EVerificationStatus.Rejected) {
         return (
-            <div className={cn("flex items-center gap-1 text-red-500", className)} title="Prestador Suspenso/Rejeitado">
+            <div className={cn("flex items-center gap-1 text-red-500", className)} title="Prestador Rejeitado">
                 <Ban size={iconSize} />
                 {showLabel && <span className="font-medium text-sm">Rejeitado</span>}
             </div>

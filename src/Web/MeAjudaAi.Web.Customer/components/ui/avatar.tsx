@@ -16,7 +16,7 @@ const sizeClasses = {
     xl: "size-16",
 };
 
-const sizePx = {
+const sizePx: Record<NonNullable<AvatarProps["size"]>, number> = {
     sm: 32,
     md: 40,
     lg: 48,
