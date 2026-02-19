@@ -1,9 +1,10 @@
 import { MapPin } from "lucide-react";
+import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Rating } from "@/components/ui/rating";
-import type { ProviderDto } from "@/types/api/provider";
+import { ProviderDto, EVerificationStatus } from "@/types/api/provider";
 import Link from "next/link";
 
 export interface ProviderCardProps {
@@ -23,9 +24,14 @@ export function ProviderCard({ provider }: ProviderCardProps) {
                     />
 
                     <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-lg text-foreground truncate">
-                            {provider.name}
-                        </h3>
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-lg text-foreground truncate">
+                                {provider.name}
+                            </h3>
+                            {provider.verificationStatus === EVerificationStatus.Verified && (
+                                <VerifiedBadge status={EVerificationStatus.Verified} size="sm" showLabel={false} />
+                            )}
+                        </div>
 
                         {/* Rating */}
                         <div className="flex items-center gap-2 mt-1">
@@ -39,8 +45,8 @@ export function ProviderCard({ provider }: ProviderCardProps) {
                         {/* Services */}
                         <div className="flex flex-wrap gap-2 mt-3">
                             {provider.services.slice(0, 3).map((service) => (
-                                <Badge key={service.id} variant="secondary">
-                                    {service.name}
+                                <Badge key={service.serviceId} variant="secondary">
+                                    {service.serviceName}
                                 </Badge>
                             ))}
                             {provider.services.length > 3 && (

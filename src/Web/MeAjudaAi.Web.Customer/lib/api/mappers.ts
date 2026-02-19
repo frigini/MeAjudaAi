@@ -5,7 +5,7 @@ import type {
 import type { ProviderDto } from '@/types/api/provider';
 
 // Mapeamento de ProviderType (backend enum) para frontend Enum
-import { EProviderType, ProviderServiceDto } from '@/types/api/provider';
+import { EProviderType, EProviderStatus, EVerificationStatus, EProviderTier, ProviderServiceDto } from '@/types/api/provider';
 
 // Mock de serviços para mapeamento visual
 // TODO: Remover quando a API retornar os nomes dos serviços
@@ -58,9 +58,9 @@ export function mapSearchableProviderToProvider(
         } as any, // Partial mock since Search doesn't return full profile
 
         type: EProviderType.Individual, // Default or map if available
-        status: 2, // Active
-        verificationStatus: 1, // Verified (mock)
-        tier: 0,
+        status: EProviderStatus.Active, // Active
+        verificationStatus: EVerificationStatus.Verified, // Verified (mock)
+        tier: EProviderTier.Standard,
         documents: [],
         qualifications: [],
         createdAt: new Date().toISOString()
@@ -95,6 +95,8 @@ export function mapApiProviderToProvider(
         // @ts-ignore
         phone: contactInfo?.phoneNumber ?? undefined,
         avatarUrl: getMockAvatarUrl(dto.id),
+        // @ts-ignore
+        description: businessProfile?.description || '',
 
         // @ts-ignore
         averageRating: dto.averageRating ?? 0,
@@ -122,11 +124,11 @@ export function mapApiProviderToProvider(
         // @ts-ignore
         businessProfile: businessProfile,
         // @ts-ignore
-        status: dto.status,
+        status: (dto.status as unknown as EProviderStatus) ?? EProviderStatus.PendingBasicInfo,
         // @ts-ignore
-        verificationStatus: dto.verificationStatus,
+        verificationStatus: (dto.verificationStatus as unknown as EVerificationStatus) ?? EVerificationStatus.Pending,
         // @ts-ignore
-        tier: dto.tier,
+        tier: (dto.tier as unknown as EProviderTier) ?? EProviderTier.Standard,
         // @ts-ignore
         documents: dto.documents || [],
         // @ts-ignore

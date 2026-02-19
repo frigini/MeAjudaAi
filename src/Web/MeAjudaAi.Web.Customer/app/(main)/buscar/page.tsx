@@ -204,7 +204,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                                         name={provider.name}
                                         avatarUrl={provider.avatarUrl ?? undefined}
                                         description={provider.description || "Prestador de serviços disponível para te atender."}
-                                        services={provider.services.map(s => s.name!).filter(Boolean)}
+                                        services={provider.services.map(s => s.serviceName!).filter(Boolean)}
                                         rating={provider.averageRating ?? 0}
                                         reviewCount={provider.reviewCount ?? 0}
                                     />

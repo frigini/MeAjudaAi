@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { EVerificationStatus } from "@/types/api/provider";
 
 interface VerifiedBadgeProps {
-    status: EVerificationStatus;
+    status?: EVerificationStatus;
     className?: string;
     showLabel?: boolean;
     size?: "sm" | "md" | "lg";

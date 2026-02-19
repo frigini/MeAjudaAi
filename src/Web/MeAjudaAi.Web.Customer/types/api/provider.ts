@@ -82,10 +82,33 @@ export enum EProviderTier {
     Platinum = 3
 }
 
+export enum EDocumentType {
+    None = 0,
+    CPF = 1,
+    CNPJ = 2,
+    RG = 3,
+    CNH = 4,
+    Passport = 5,
+    Other = 6
+}
+
+export enum EDocumentStatus {
+    Pending = 0,
+    Approved = 1,
+    Rejected = 2
+}
+
 export interface DocumentDto {
-    type: string;
-    url: string;
-    status: string;
+    id: string; // Guid
+    providerId: string; // Guid
+    documentType: EDocumentType;
+    fileName: string;
+    fileUrl: string;
+    status: EDocumentStatus;
+    uploadedAt: string; // DateTime
+    verifiedAt?: string | null;
+    rejectionReason?: string | null;
+    ocrData?: string | null;
 }
 
 export interface ProviderDto {
@@ -110,6 +133,7 @@ export interface ProviderDto {
     email?: string;
     phone?: string;
     avatarUrl?: string;
+    description?: string;
     averageRating?: number;
     reviewCount?: number;
 

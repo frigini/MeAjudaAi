@@ -16,7 +16,7 @@ import { Loader2 } from "lucide-react";
 
 export default function ProviderAddressPage() {
     const router = useRouter();
-    const { data: profile, isLoading: isLoadingProfile } = useMyProviderProfile();
+    const { data: profile, isLoading: isLoadingProfile, error: profileError } = useMyProviderProfile();
     const { mutate: updateProfile, isPending: isSaving } = useUpdateProviderProfile();
     const { fetchAddress, isLoading: isLoadingCep } = useViaCep();
 
@@ -33,11 +33,13 @@ export default function ProviderAddressPage() {
         },
     });
 
+    const { reset } = form;
+
     // Load existing address if available
     useEffect(() => {
         if (profile?.businessProfile?.primaryAddress) {
             const addr = profile.businessProfile.primaryAddress;
-            form.reset({
+            reset({
                 zipCode: addr.zipCode || "",
                 street: addr.street || "",
                 number: addr.number || "",
@@ -47,24 +49,28 @@ export default function ProviderAddressPage() {
                 state: addr.state || "",
             });
         }
-    }, [profile, form]);
+    }, [profile?.businessProfile?.primaryAddress, reset]); // Specific deps
 
     const handleCepBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
         const cep = e.target.value;
         if (cep.length >= 8) {
             const data = await fetchAddress(cep);
             if (data) {
-                form.setValue("street", data.logradouro);
-                form.setValue("neighborhood", data.bairro); // ViaCEP uses 'bairro', mapped to 'neighborhood'
-                form.setValue("city", data.localidade);
-                form.setValue("state", data.uf);
+                // shouldValidate: true ensures errors are cleared if field becomes valid
+                form.setValue("street", data.logradouro, { shouldValidate: true });
+                form.setValue("neighborhood", data.bairro, { shouldValidate: true }); // ViaCEP uses 'bairro', mapped to 'neighborhood'
+                form.setValue("city", data.localidade, { shouldValidate: true });
+                form.setValue("state", data.uf, { shouldValidate: true });
                 form.setFocus("number");
             }
         }
     };
 
     function onSubmit(values: AddressSchema) {
-        if (!profile) return;
+        if (!profile) {
+            toast.error("Erro: Perfil não carregado. Tente recarregar a página.");
+            return;
+        }
 
         // Construct full update payload properly
         const payload = {
@@ -107,6 +113,15 @@ export default function ProviderAddressPage() {
         return (
             <div className="container mx-auto py-20 flex justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+
+    if (profileError) {
+        return (
+            <div className="container mx-auto py-20 flex flex-col items-center justify-center text-center">
+                <p className="text-red-500 font-medium mb-4">Erro ao carregar perfil</p>
+                <Button onClick={() => window.location.reload()}>Tentar Novamente</Button>
             </div>
         );
     }

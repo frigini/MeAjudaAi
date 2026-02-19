@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 interface ViaCepResponse {
     cep: string;
@@ -14,7 +14,7 @@ export function useViaCep() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchAddress = async (cep: string): Promise<ViaCepResponse | null> => {
+    const fetchAddress = useCallback(async (cep: string): Promise<ViaCepResponse | null> => {
         // Clean CEP
         const cleanCep = cep.replace(/\D/g, "");
         if (cleanCep.length !== 8) {
@@ -44,7 +44,7 @@ export function useViaCep() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
     return { fetchAddress, isLoading, error };
 }

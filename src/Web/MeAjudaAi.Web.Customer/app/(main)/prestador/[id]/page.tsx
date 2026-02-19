@@ -11,10 +11,13 @@ import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { z } from "zod";
 
 // Zod Schema for Runtime Validation
+import { EVerificationStatus, EProviderType, EProviderStatus, EProviderTier } from "@/types/api/provider";
+
+// Zod Schema for Runtime Validation
 const PublicProviderSchema = z.object({
     id: z.string().uuid(),
     name: z.string(),
-    type: z.string(),
+    type: z.preprocess((val) => typeof val === 'string' ? EProviderType.Individual : val, z.nativeEnum(EProviderType).optional()), // Relaxed
     fantasyName: z.string().optional().nullable(),
     description: z.string().optional().nullable(),
     city: z.string().optional().nullable(),
@@ -25,11 +28,14 @@ const PublicProviderSchema = z.object({
     services: z.array(z.string()).optional().nullable(),
     email: z.string().email().optional().nullable(),
     verificationStatus: z.preprocess((val) => {
-        if (typeof val === 'string' && val.length > 0) {
-            return val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+        if (typeof val === 'string') {
+            const lower = val.toLowerCase();
+            if (lower === 'verified') return EVerificationStatus.Verified;
+            if (lower === 'rejected') return EVerificationStatus.Rejected;
+            return EVerificationStatus.Pending;
         }
         return val;
-    }, z.enum(["Pending", "Verified", "Rejected", "Suspended"]).optional().nullable())
+    }, z.nativeEnum(EVerificationStatus).optional().nullable())
 });
 
 type PublicProviderData = z.infer<typeof PublicProviderSchema>;
@@ -189,7 +195,7 @@ export default async function ProviderProfilePage({
                         {/* Name & Badge */}
                         <div className="flex items-center gap-3">
                             <h1 className="text-3xl md:text-4xl font-bold text-[#E0702B]">{displayName}</h1>
-                            <VerifiedBadge status={providerData.verificationStatus || "Pending"} size="lg" />
+                            <VerifiedBadge status={providerData.verificationStatus || EVerificationStatus.Pending} size="lg" />
                         </div>
 
                         {/* Email */}

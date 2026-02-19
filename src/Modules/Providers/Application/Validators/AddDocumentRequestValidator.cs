@@ -24,7 +24,7 @@ public class AddDocumentRequestValidator : AbstractValidator<AddDocumentRequest>
 
         RuleFor(x => x.DocumentType)
             .Must(BeValidDocumentType)
-            .WithMessage($"DocumentType deve ser um tipo de documento válido. Valores válidos: {EnumExtensions.GetValidValuesDescription<EDocumentType>()}");
+            .WithMessage("Tipo de documento inválido. Valores aceitos: None, CPF, CNPJ, RG, CNH, Passport, Other");
     }
 
     private static bool BeValidDocumentType(EDocumentType documentType)
