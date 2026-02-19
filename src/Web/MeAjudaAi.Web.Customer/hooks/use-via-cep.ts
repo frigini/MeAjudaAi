@@ -1,17 +1,19 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 
 // Use discriminated union for better type safety
+export type ViaCepSuccessResponse = {
+    erro?: false;
+    cep: string;
+    logradouro: string;
+    complemento: string;
+    bairro: string;
+    localidade: string;
+    uf: string;
+};
+
 export type ViaCepResponse =
     | { erro: true }
-    | {
-        erro?: false;
-        cep: string;
-        logradouro: string;
-        complemento: string;
-        bairro: string;
-        localidade: string;
-        uf: string;
-    };
+    | ViaCepSuccessResponse;
 
 const VIACEP_BASE_URL = "https://viacep.com.br/ws";
 
@@ -29,7 +31,7 @@ export function useViaCep() {
         };
     }, []);
 
-    const fetchAddress = useCallback(async (cep: string): Promise<ViaCepResponse | null> => {
+    const fetchAddress = useCallback(async (cep: string): Promise<ViaCepSuccessResponse | null> => {
         // Cancel previous request immediately
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
@@ -68,7 +70,7 @@ export function useViaCep() {
                 return null;
             }
 
-            return data;
+            return data as ViaCepSuccessResponse;
         } catch (err: unknown) {
             if (err instanceof DOMException && err.name === 'AbortError') {
                 setIsLoading(false); // Clear loading on abort

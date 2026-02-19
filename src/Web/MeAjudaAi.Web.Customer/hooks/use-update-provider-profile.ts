@@ -25,11 +25,14 @@ export function useUpdateProviderProfile() {
                 throw new Error("Missing access token");
             }
 
-            return await authenticatedFetch<ProviderDto>("/api/v1/providers/me", {
+            const result = await authenticatedFetch<ProviderDto>("/api/v1/providers/me", {
                 method: "PUT",
                 body: data,
                 token: session.accessToken,
             });
+
+            if (!result) throw new Error("Failed to update profile");
+            return result;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["providerStatus"] });

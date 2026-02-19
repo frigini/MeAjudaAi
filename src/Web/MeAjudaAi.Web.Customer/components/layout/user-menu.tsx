@@ -15,6 +15,7 @@ import { User, LogOut, Briefcase } from "lucide-react";
 import Link from "next/link";
 import { useProviderStatus } from "@/hooks/use-provider-status";
 import { EProviderStatus, PROVIDER_STATUS_LABELS, PROVIDER_TIER_LABELS } from "@/types/provider";
+import { AuthSelectionDropdown } from "@/components/auth/auth-selection-dropdown";
 
 export function UserMenu() {
     const { data: session, status } = useSession();
@@ -117,9 +118,7 @@ export function UserMenu() {
     // Default view: Unauthenticated / Loading / Error
     return (
         <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" asChild>
-                <Link href="/cadastro">Cadastre-se grátis</Link>
-            </Button>
+            <AuthSelectionDropdown />
             <Button variant="secondary" size="sm" onClick={() => signIn("keycloak")}>
                 Login
             </Button>

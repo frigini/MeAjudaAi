@@ -58,7 +58,9 @@ public static class RequestMapperExtensions
         return new AddDocumentCommand(
             providerId,
             request.Number,
-            request.DocumentType
+            request.DocumentType,
+            request.FileName,
+            request.FileUrl
         );
     }
 

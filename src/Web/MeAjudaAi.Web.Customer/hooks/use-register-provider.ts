@@ -15,11 +15,14 @@ export function useRegisterProvider() {
                 throw new Error("Missing access token");
             }
 
-            return await authenticatedFetch<ProviderDto>("/api/v1/providers/register", {
+            const result = await authenticatedFetch<ProviderDto>("/api/v1/providers/register", {
                 method: "POST",
                 body: data,
                 token: session.accessToken,
             });
+
+            if (!result) throw new Error("Failed to register provider");
+            return result;
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["providerStatus"] });

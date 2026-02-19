@@ -37,7 +37,12 @@ public sealed class AddDocumentCommandHandler(
                 return Result<ProviderDto>.Failure("Provider not found");
             }
 
-            var document = new Document(command.DocumentNumber, command.DocumentType);
+            var document = new Document(
+                command.DocumentNumber, 
+                command.DocumentType, 
+                command.FileName, 
+                command.FileUrl
+            );
             provider.AddDocument(document);
 
             await providerRepository.UpdateAsync(provider, cancellationToken);

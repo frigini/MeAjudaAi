@@ -3,17 +3,20 @@ using System;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
+namespace MeAjudaAi.Modules.Providers.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(ProvidersDbContext))]
-    partial class ProvidersDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260219205050_AddDocumentFileProperties")]
+    partial class AddDocumentFileProperties
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

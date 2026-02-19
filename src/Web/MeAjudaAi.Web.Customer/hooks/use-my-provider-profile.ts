@@ -14,9 +14,25 @@ export function useMyProviderProfile() {
             if (!session?.accessToken) return null;
 
             try {
-                return await authenticatedFetch<ProviderDto>("/api/v1/providers/me", {
+                const result = await authenticatedFetch<ProviderDto>("/api/v1/providers/me", {
                     token: session.accessToken,
                 });
+
+                if (result === undefined) {
+                    // authenticatedFetch returns undefined if the response status is 204 No Content
+                    // or if the response body is empty/unparseable for a successful status.
+                    // For a profile fetch, this might indicate no profile found,
+                    // or an unexpected empty response.
+                    // Given the original code returned `null` for 404,
+                    // we can treat an undefined result similarly if it implies no profile.
+                    // However, the instruction specifically asks to "handle `undefined` return"
+                    // and the example shows throwing an error for registration.
+                    // For a GET request, an undefined result for a successful status
+                    // is usually an unexpected scenario if a DTO is expected.
+                    // Let's assume `undefined` here means no profile found, similar to 404.
+                    return null;
+                }
+                return result;
             } catch (error: any) {
                 if (error.status === 404) {
                     return null;

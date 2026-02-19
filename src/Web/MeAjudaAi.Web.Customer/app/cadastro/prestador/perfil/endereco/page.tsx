@@ -97,7 +97,7 @@ export default function ProviderAddressPage() {
             },
         };
 
-        // @ts-ignore - Payload structure might slightly differ from explicit types but matches useUpdateProviderProfile expectations
+
         updateProfile(payload, {
             onSuccess: () => {
                 toast.success("Endereço salvo com sucesso!");

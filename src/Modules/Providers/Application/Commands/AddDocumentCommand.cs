@@ -11,5 +11,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Commands;
 public sealed record AddDocumentCommand(
     Guid ProviderId,
     string DocumentNumber,
-    EDocumentType DocumentType
+    EDocumentType DocumentType,
+    string? FileName = null,
+    string? FileUrl = null
 ) : Command<Result<ProviderDto>>;

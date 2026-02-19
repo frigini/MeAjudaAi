@@ -12,7 +12,10 @@ export default auth((req) => {
     // /prestador/[id] is a public profile and should remain accessible
     const isProviderDashboard = pathname === "/prestador"
 
-    const isProtected = isProfile || isClientDashboard || isProviderDashboard
+    // Protect onboarding wizard (must be logged in to complete profile)
+    const isOnboardingWizard = pathname.startsWith("/cadastro/prestador/perfil")
+
+    const isProtected = isProfile || isClientDashboard || isProviderDashboard || isOnboardingWizard
 
     if (isProtected && !isLoggedIn) {
         const callbackUrl = encodeURIComponent(pathname + search);

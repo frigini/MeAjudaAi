@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
+using MeAjudaAi.Modules.Users.API.Endpoints.Public;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
 
@@ -17,6 +18,7 @@ public static class UsersModuleEndpoints
             .MapEndpoint<GetUserByEmailEndpoint>()
             .MapEndpoint<GetUserByIdEndpoint>()
             .MapEndpoint<GetUsersEndpoint>()
-            .MapEndpoint<UpdateUserProfileEndpoint>();
+            .MapEndpoint<UpdateUserProfileEndpoint>()
+            .MapEndpoint<RegisterCustomerEndpoint>();
     }
 }

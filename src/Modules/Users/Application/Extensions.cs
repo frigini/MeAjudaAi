@@ -38,6 +38,7 @@ public static class Extensions
         services.AddScoped<ICommandHandler<DeleteUserCommand, Result>, DeleteUserCommandHandler>();
         services.AddScoped<ICommandHandler<ChangeUserEmailCommand, Result<UserDto>>, ChangeUserEmailCommandHandler>();
         services.AddScoped<ICommandHandler<ChangeUserUsernameCommand, Result<UserDto>>, ChangeUserUsernameCommandHandler>();
+        services.AddScoped<ICommandHandler<RegisterCustomerCommand, Result<UserDto>>, RegisterCustomerCommandHandler>();
 
         // Cache Services específicos do módulo
         services.AddScoped<IUsersCacheService, UsersCacheService>();
