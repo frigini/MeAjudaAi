@@ -12,19 +12,19 @@ using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public;
 
-public class RegisterProviderEndpoint : BaseEndpoint, IEndpoint
+public class BecomeProviderEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("register", RegisterProviderAsync)
-            .WithName("RegisterProvider")
+        => app.MapPost("become", BecomeProviderAsync)
+            .WithName("BecomeProvider")
             .WithTags("Providers")
-            .WithSummary("Registrar novo prestador")
-            .WithDescription("Cria um novo perfil de prestador para o usuário autenticado.")
+            .WithSummary("Tornar-se prestador (usuário já autenticado)")
+            .WithDescription("Transforma o usuário autenticado em um prestador de serviços. Requer token de usuário.")
             .RequireAuthorization()
             .Produces<Response<ProviderDto>>(StatusCodes.Status201Created)
             .Produces<Response<object>>(StatusCodes.Status400BadRequest);
 
-    private static async Task<IResult> RegisterProviderAsync(
+    private static async Task<IResult> BecomeProviderAsync(
         HttpContext context,
         [FromBody] RegisterProviderApiRequest request,
         ICommandDispatcher commandDispatcher,
