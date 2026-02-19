@@ -57,7 +57,11 @@ type PublicProviderData = z.infer<typeof PublicProviderSchema>;
 
 const getCachedProvider = cache(async (id: string): Promise<PublicProviderData | null> => {
     try {
-        const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002';
+        const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
+        if (!apiUrl) {
+            throw new Error("Missing API_URL or NEXT_PUBLIC_API_URL environment variable.");
+        }
+
         const res = await fetch(`${apiUrl}/api/v1/providers/${id}/public`, {
             next: { revalidate: 60 } // Cache for 60 seconds
         });
@@ -146,7 +150,12 @@ export default async function ProviderProfilePage({
     const services = providerData.services ?? [];
 
     const getWhatsappLink = (phone: string) => {
-        const cleanPhone = phone.replace(/\D/g, "");
+        let cleanPhone = phone.replace(/\D/g, "");
+        // If it starts with 55 and has enough digits to be DDI(2)+DDD(2)+Phone(8-9), assume DDI exists
+        if (cleanPhone.startsWith("55") && cleanPhone.length >= 12) {
+            cleanPhone = cleanPhone.substring(2);
+        }
+
         // Validate: Brazilian phone should have at least 10 digits (DDD + number)
         return cleanPhone.length >= 10 ? `https://wa.me/55${cleanPhone}` : null;
     };

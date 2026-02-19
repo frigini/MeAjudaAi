@@ -136,9 +136,9 @@ export interface ProviderDto {
 
     // UI Helpers (optional, based on mapping)
     email?: string;
-    phone?: string;
-    avatarUrl?: string;
-    description?: string;
+    phone?: string | null;
+    avatarUrl?: string | null;
+    description?: string | null;
     averageRating?: number;
     reviewCount?: number;
 

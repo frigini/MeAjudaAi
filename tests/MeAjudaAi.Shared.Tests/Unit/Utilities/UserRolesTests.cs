@@ -225,6 +225,10 @@ public class UserRolesTests
 
     [Theory]
     [InlineData("admin")]
+    [InlineData("provider-manager")]
+    [InlineData("document-reviewer")]
+    [InlineData("catalog-manager")]
+    [InlineData("operator")]
     [InlineData("customer")]
     [InlineData("viewer")]
     public void IsProviderRole_WithNonProviderRole_ShouldReturnFalse(string role)

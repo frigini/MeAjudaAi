@@ -58,14 +58,14 @@ export function mapSearchableProviderToProvider(
         state: dto.state ?? '',
         businessProfile: {
             legalName: dto.name ?? '',
-            contactInfo: { email: '' },
+            contactInfo: { email: '', phoneNumber: undefined }, // Typed to indicate partial structure
             primaryAddress: {
                 street: '', number: '', neighborhood: '', city: dto.city ?? '', state: dto.state ?? '', zipCode: '', country: 'Brasil'
             }
-        } as BusinessProfileDto, // Partial mock since Search doesn't return full profile
+        } as unknown as BusinessProfileDto, // Explicit unknown cast for partial mock
 
         type: EProviderType.Individual, // Default or map if available
-        status: EProviderStatus.PendingBasicInfo, // Default safe
+        status: EProviderStatus.Active, // Default to Active so it shows in search results
         verificationStatus: EVerificationStatus.Pending, // Default safe
         tier: EProviderTier.Standard,
         documents: [],
@@ -132,7 +132,7 @@ export function mapApiProviderToProvider(
 
         // Helper accessors
         email: contactInfo?.email ?? '',
-        phone: contactInfo?.phoneNumber ?? undefined,
+        phone: contactInfo?.phoneNumber,
         avatarUrl: getMockAvatarUrl(dto.id),
         description: businessProfile?.description || '',
 
@@ -180,10 +180,10 @@ export function mapApiProviderToProvider(
         documents: dto.documents?.map(d => ({
             id: d.id ?? '',
             providerId: d.providerId ?? '',
-            documentType: (d.documentType as unknown as EDocumentType),
+            documentType: (d.documentType as unknown as EDocumentType) ?? EDocumentType.Other,
             fileName: d.fileName ?? '',
             fileUrl: d.fileUrl ?? '',
-            status: (d.status as unknown as EDocumentStatus),
+            status: (d.status as unknown as EDocumentStatus) ?? EDocumentStatus.PendingVerification,
             uploadedAt: d.uploadedAt ?? '',
             verifiedAt: d.verifiedAt,
             rejectionReason: d.rejectionReason,
@@ -193,7 +193,7 @@ export function mapApiProviderToProvider(
             name: q.name ?? '',
             issuer: q.issuer ?? '',
             year: q.year ?? 0,
-            fileUrl: q.fileUrl ?? undefined
+            fileUrl: q.fileUrl
         })) || [],
 
         createdAt: dto.createdAt ?? "",

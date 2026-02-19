@@ -35,7 +35,7 @@ public class BecomeProviderEndpoint : BaseEndpoint, IEndpoint
         if (!Guid.TryParse(userIdString, out var userId))
             return BadRequest("Formato de ID de usuário inválido");
 
-        // Obter email do token se possível, senão usar do request
+        // Obter email do token (obrigatório). Não há fallback para o corpo da requisição.
         var email = context.User?.FindFirst("email")?.Value;
         
         if (string.IsNullOrEmpty(email))
@@ -65,6 +65,5 @@ public record RegisterProviderApiRequest(
     [Required, StringLength(100)] string Name,
     [Required, EnumDataType(typeof(EProviderType))] EProviderType Type,
     [Required, StringLength(20)] string DocumentNumber,
-    [Phone, StringLength(20)] string? PhoneNumber,
-    [EmailAddress] string? Email
+    [Phone, StringLength(20)] string? PhoneNumber
 );
