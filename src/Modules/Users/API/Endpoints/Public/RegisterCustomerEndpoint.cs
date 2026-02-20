@@ -18,6 +18,10 @@ public class RegisterCustomerEndpoint : IEndpoint
             ICommandDispatcher dispatcher,
             CancellationToken cancellationToken) =>
         {
+            var command = new RegisterCustomerCommand(
+                request.Name,
+                request.Email,
+                request.Password,
                 request.PhoneNumber,
                 request.TermsAccepted,
                 request.AcceptedPrivacyPolicy
