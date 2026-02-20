@@ -65,9 +65,14 @@ export default function ProviderProfilePage() {
         );
     }
 
-    const hasAddress = !!profile.businessProfile?.primaryAddress?.street;
-    const hasDocuments = (profile.documents?.length ?? 0) > 0;
+    const isVerified = profile.status === EProviderStatus.Active;
+    const hasAddress = !!profile.businessProfile?.primaryAddress?.street || isVerified;
+    const hasDocuments = (profile.documents?.length ?? 0) > 0 || isVerified;
     const isPendingVerification = profile.status === EProviderStatus.PendingDocumentVerification;
+
+    // Derived states for completed steps based on the user request
+    const step2Completed = hasAddress || isPendingVerification || isVerified;
+    const step3Completed = hasDocuments || isPendingVerification || isVerified;
 
     return (
         <div className="container mx-auto py-10 max-w-4xl">
@@ -112,21 +117,21 @@ export default function ProviderProfilePage() {
                     <p className="text-sm text-green-700">Concluído</p>
                 </div>
 
-                <div className={`p-6 border rounded-lg ${hasAddress || isPendingVerification
+                <div className={`p-6 border rounded-lg ${step2Completed
                     ? "bg-green-50/50 border-green-100"
                     : "bg-white border-primary/20 shadow-sm ring-1 ring-primary/20"
                     }`}>
                     <div className="flex items-center gap-2 mb-2">
-                        <div className={`h-6 w-6 rounded-full flex items-center justify-center text-sm font-bold ${hasAddress || isPendingVerification
+                        <div className={`h-6 w-6 rounded-full flex items-center justify-center text-sm font-bold ${step2Completed
                             ? "bg-green-200 text-green-700"
                             : "bg-primary text-white"
                             }`}>
-                            {hasAddress || isPendingVerification ? "✓" : "2"}
+                            {step2Completed ? "✓" : "2"}
                         </div>
                         <h3 className="font-medium">2. Endereço</h3>
                     </div>
 
-                    {hasAddress || isPendingVerification ? (
+                    {step2Completed ? (
                         <div className="flex flex-col gap-2">
                             <p className="text-sm text-green-700">Concluído</p>
                             <Link href="/cadastro/prestador/perfil/endereco" className="text-xs text-primary underline">
@@ -140,45 +145,41 @@ export default function ProviderProfilePage() {
                     )}
                 </div>
 
-                <div className={`p-6 border rounded-lg ${hasDocuments || isPendingVerification
+                <div className={`p-6 border rounded-lg ${step3Completed
                     ? "bg-green-50/50 border-green-100" // Completed
                     : hasAddress
                         ? "bg-white border-primary/20 shadow-sm ring-1 ring-primary/20" // Active
                         : "bg-slate-50 opacity-50" // Locked
                     }`}>
                     <div className="flex items-center gap-2 mb-2">
-                        <div className={`h-6 w-6 rounded-full flex items-center justify-center text-sm font-bold ${hasDocuments || isPendingVerification ? "bg-green-200 text-green-700" :
+                        <div className={`h-6 w-6 rounded-full flex items-center justify-center text-sm font-bold ${step3Completed ? "bg-green-200 text-green-700" :
                             hasAddress ? "bg-primary text-white" : "bg-slate-200 text-slate-500"
                             }`}>
-                            {hasDocuments || isPendingVerification ? "✓" : "3"}
+                            {step3Completed ? "✓" : "3"}
                         </div>
                         <h3 className="font-medium">3. Documentos</h3>
                     </div>
 
-                    {!hasAddress ? (
+                    {step3Completed ? (
+                        <div className="flex flex-col gap-2">
+                            <p className={`text-sm ${profile.status === EProviderStatus.Active ? "text-green-700" :
+                                profile.status === EProviderStatus.Rejected ? "text-red-700" :
+                                    isPendingVerification ? "text-amber-700" : "text-green-700"
+                                }`}>
+                                {profile.status === EProviderStatus.Active ? "Verificados" :
+                                    profile.status === EProviderStatus.Rejected ? "Rejeitados" :
+                                        isPendingVerification ? "Em Análise" : "Enviados"}
+                            </p>
+                            <Link href="/cadastro/prestador/perfil/documentos" className="text-xs text-primary underline">
+                                Gerenciar
+                            </Link>
+                        </div>
+                    ) : !hasAddress ? (
                         <p className="text-sm text-muted-foreground">Bloqueado</p>
                     ) : (
-                        <div>
-                            {hasDocuments || isPendingVerification ? (
-                                <div className="flex flex-col gap-2">
-                                    <p className={`text-sm ${profile.status === EProviderStatus.Active ? "text-green-700" :
-                                        profile.status === EProviderStatus.Rejected ? "text-red-700" :
-                                            isPendingVerification ? "text-amber-700" : "text-green-700"
-                                        }`}>
-                                        {profile.status === EProviderStatus.Active ? "Verificados" :
-                                            profile.status === EProviderStatus.Rejected ? "Rejeitados" :
-                                                isPendingVerification ? "Em Análise" : "Enviados"}
-                                    </p>
-                                    <Link href="/cadastro/prestador/perfil/documentos" className="text-xs text-primary underline">
-                                        Gerenciar
-                                    </Link>
-                                </div>
-                            ) : (
-                                <Link href="/cadastro/prestador/perfil/documentos">
-                                    <Button size="sm" className="w-full mt-2">Enviar Documentos</Button>
-                                </Link>
-                            )}
-                        </div>
+                        <Link href="/cadastro/prestador/perfil/documentos">
+                            <Button size="sm" className="w-full mt-2">Enviar Documentos</Button>
+                        </Link>
                     )}
                 </div>
             </div>

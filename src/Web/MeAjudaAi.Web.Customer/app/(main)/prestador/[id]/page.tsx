@@ -59,11 +59,12 @@ const PublicProviderSchema = z.object({
 type PublicProviderData = z.infer<typeof PublicProviderSchema>;
 
 const getCachedProvider = cache(async (id: string): Promise<PublicProviderData | null> => {
+    const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
+    if (!apiUrl) {
+        throw new Error("Missing API_URL or NEXT_PUBLIC_API_URL environment variable.");
+    }
+
     try {
-        const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
-        if (!apiUrl) {
-            throw new Error("Missing API_URL or NEXT_PUBLIC_API_URL environment variable.");
-        }
 
         const res = await fetch(`${apiUrl}/api/v1/providers/${id}/public`, {
             next: { revalidate: 60 } // Cache for 60 seconds

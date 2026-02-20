@@ -98,7 +98,7 @@ export function CustomerRegisterForm() {
                         <FormItem>
                             <FormLabel>Nome Completo</FormLabel>
                             <FormControl>
-                                <Input placeholder="Seu nome" {...field} />
+                                <Input placeholder="Seu nome" autoComplete="name" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -112,7 +112,7 @@ export function CustomerRegisterForm() {
                         <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl>
-                                <Input placeholder="seu@email.com" type="email" {...field} />
+                                <Input placeholder="seu@email.com" type="email" autoComplete="email" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -129,6 +129,7 @@ export function CustomerRegisterForm() {
                                 <Input
                                     type="tel"
                                     inputMode="numeric"
+                                    autoComplete="tel"
                                     placeholder="(00) 00000-0000"
                                     {...field}
                                     onChange={(e) => {
@@ -157,6 +158,7 @@ export function CustomerRegisterForm() {
                                         <Input
                                             type={showPassword ? "text" : "password"}
                                             placeholder="******"
+                                            autoComplete="new-password"
                                             {...field}
                                         />
                                         <Button
@@ -192,6 +194,7 @@ export function CustomerRegisterForm() {
                                         <Input
                                             type={showConfirmPassword ? "text" : "password"}
                                             placeholder="******"
+                                            autoComplete="new-password"
                                             {...field}
                                         />
                                         <Button
