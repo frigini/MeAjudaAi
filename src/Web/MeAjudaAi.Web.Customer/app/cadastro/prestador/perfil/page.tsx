@@ -52,13 +52,13 @@ export default function ProviderProfilePage() {
                 <div className="flex justify-between items-start mb-4">
                     <div>
                         <h2 className="text-xl font-semibold">Status da Conta</h2>
-                        <p className="text-sm text-muted-foreground mt-1">Nível: <span className="font-medium text-primary">{PROVIDER_TIER_LABELS[profile.tier]}</span></p>
+                        <p className="text-sm text-muted-foreground mt-1">Nível: <span className="font-medium text-primary">{PROVIDER_TIER_LABELS[profile.tier] ?? profile.tier ?? "Desconhecido"}</span></p>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${profile.status === EProviderStatus.Active ? "bg-green-100 text-green-800" :
                         profile.status === EProviderStatus.Rejected ? "bg-red-100 text-red-800" :
                             "bg-amber-100 text-amber-800"
                         }`}>
-                        {PROVIDER_STATUS_LABELS[profile.status]}
+                        {PROVIDER_STATUS_LABELS[profile.status] ?? profile.status ?? "Desconhecido"}
                     </span>
                 </div>
 
@@ -66,9 +66,22 @@ export default function ProviderProfilePage() {
 
                 <div className="mt-4 pt-4 border-t">
                     <p className="text-muted-foreground">
-                        {profile.status === EProviderStatus.PendingBasicInfo
-                            ? "Complete seu cadastro informando seu endereço e enviando seus documentos."
-                            : "Seu cadastro está em análise. Aguarde a verificação."}
+                        {(() => {
+                            switch (profile.status) {
+                                case EProviderStatus.PendingBasicInfo:
+                                    return "Complete seu cadastro informando seu endereço e enviando seus documentos.";
+                                case EProviderStatus.Active:
+                                    return "Seu cadastro está ativo. Você já pode oferecer serviços.";
+                                case EProviderStatus.Rejected:
+                                    return "Ocorreu um problema com seu cadastro. Verifique os motivos da rejeição e corrija as informações.";
+                                case EProviderStatus.PendingDocumentVerification:
+                                    return "Seu cadastro está em análise. Aguarde a verificação dos documentos.";
+                                case EProviderStatus.Suspended:
+                                    return "Seu cadastro está temporariamente suspenso.";
+                                default:
+                                    return "Aguarde a atualização do seu status.";
+                            }
+                        })()}
                     </p>
                 </div>
             </div>

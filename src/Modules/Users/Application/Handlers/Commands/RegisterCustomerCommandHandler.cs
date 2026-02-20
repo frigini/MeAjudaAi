@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Users.Application.Commands;
@@ -31,10 +32,16 @@ public sealed class RegisterCustomerCommandHandler(
         {
             emailAsValueObject = new Email(command.Email);
             
-            var localPart = emailAsValueObject.Value.Contains('@') 
-                ? emailAsValueObject.Value.Split('@')[0] 
-                : emailAsValueObject.Value;
-            var slug = $"{localPart}_{Guid.NewGuid().ToString("N").Substring(0, 6)}";
+            var fullLocalPart = emailAsValueObject.Value.Split('@')[0];
+            var noTagLocalPart = fullLocalPart.Split('+')[0];
+            var sanitizedLocalPart = Regex.Replace(noTagLocalPart, @"[^a-zA-Z0-9._\-]", "");
+            
+            if (string.IsNullOrWhiteSpace(sanitizedLocalPart) || sanitizedLocalPart.Length < 3)
+            {
+                sanitizedLocalPart = $"user{Guid.NewGuid().ToString("N").Substring(0, 5)}";
+            }
+            
+            var slug = $"{sanitizedLocalPart}_{Guid.NewGuid().ToString("N").Substring(0, 6)}";
             validUsername = new Username(slug);
         }
         catch (ArgumentException ex)

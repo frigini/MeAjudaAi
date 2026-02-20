@@ -4,6 +4,8 @@ import { MeAjudaAiModulesServiceCatalogsApplicationDtosServiceListDto } from "@/
 
 export type ServiceListDto = MeAjudaAiModulesServiceCatalogsApplicationDtosServiceListDto;
 
+export const SERVICES_STALE_TIME = 1000 * 60 * 60; // 1 hour
+
 export function useServices() {
     return useQuery({
         queryKey: ["services"],
@@ -11,11 +13,12 @@ export function useServices() {
             const { data } = await apiServicesGet({
                 query: {
                     activeOnly: true
-                }
+                },
+                throwOnError: true
             });
             // The API returns a wrapper, data.data contains the list
             return (data?.data || []) as ServiceListDto[];
         },
-        staleTime: 1000 * 60 * 60, // 1 hour
+        staleTime: SERVICES_STALE_TIME,
     });
 }

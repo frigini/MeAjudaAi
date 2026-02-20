@@ -662,7 +662,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
             throw new ProviderDomainException("Cannot update services of deleted provider");
 
         var currentServiceIds = _services.Select(s => s.ServiceId).ToHashSet();
-        var newServiceList = newServices.ToList();
+        var newServiceList = newServices.GroupBy(s => s.ServiceId).Select(g => g.First()).ToList();
         var newServiceIds = newServiceList.Select(s => s.ServiceId).ToHashSet();
 
         // Identify services to remove

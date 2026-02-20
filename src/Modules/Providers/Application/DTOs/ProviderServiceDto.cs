@@ -5,5 +5,7 @@ namespace MeAjudaAi.Modules.Providers.Application.DTOs;
 /// </summary>
 public sealed record ProviderServiceDto(
     Guid ServiceId,
-    string ServiceName
+    string ServiceName,
+    decimal? Price = null,
+    string? Currency = null
 );

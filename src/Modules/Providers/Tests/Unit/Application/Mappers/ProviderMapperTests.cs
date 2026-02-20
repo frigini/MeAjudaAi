@@ -121,7 +121,7 @@ public class ProviderMapperTests
     public void ToDto_WithDocument_ShouldMapAllFields()
     {
         // Arrange
-        var document = new Document("12345678900", EDocumentType.CPF, isPrimary: true);
+        var document = new Document("12345678900", EDocumentType.CPF, "doc.pdf", "https://storage/doc.pdf", isPrimary: true);
 
         // Act
         var dto = document.ToDto();
@@ -130,6 +130,8 @@ public class ProviderMapperTests
         dto.Should().NotBeNull();
         dto.Number.Should().Be("12345678900");
         dto.DocumentType.Should().Be(EDocumentType.CPF);
+        dto.FileName.Should().Be("doc.pdf");
+        dto.FileUrl.Should().Be("https://storage/doc.pdf");
         dto.IsPrimary.Should().BeTrue();
     }
 
@@ -246,6 +248,8 @@ public class ProviderMapperTests
         document.Should().NotBeNull();
         document.Number.Should().Be("12345678900");
         document.DocumentType.Should().Be(EDocumentType.CPF);
+        document.FileName.Should().Be("doc.pdf");
+        document.FileUrl.Should().Be("https://storage/doc.pdf");
         document.IsPrimary.Should().BeTrue();
     }
 

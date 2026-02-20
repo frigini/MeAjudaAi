@@ -60,9 +60,7 @@ export function CustomerRegisterForm() {
             });
 
             // Redirect to signin
-            setTimeout(() => {
-                router.push("/api/auth/signin");
-            }, 1500);
+            router.replace("/api/auth/signin");
 
         } catch (error) {
             console.error("Erro ao criar conta:", error);

@@ -101,7 +101,7 @@ public class UserRolesTests
     [InlineData("Catalog-Manager")]
     [InlineData("Provider-Standard")]
     [InlineData("PROVIDER-SILVER")]
-    [InlineData("provider-gold")]
+    [InlineData("ProViDeR-GoLd")]
     [InlineData("PrOvIdEr-PlAtInUm")]
     public void IsValidRole_WithValidRoleDifferentCase_ShouldReturnTrue(string role)
     {

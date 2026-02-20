@@ -31,9 +31,15 @@ export default function ProviderDocumentsPage() {
             return;
         }
 
+        if (!profile?.id) {
+            toast.error("Perfil do prestador não encontrado.");
+            if (e.target) e.target.value = "";
+            return;
+        }
+
         setUploadingType(type);
         try {
-            await uploadDocument(file, type, profile?.id || "");
+            await uploadDocument(file, type, profile.id);
         } finally {
             setUploadingType(null);
             // Reset file input
@@ -49,10 +55,10 @@ export default function ProviderDocumentsPage() {
         );
     }
 
-    if (!profile) {
+    if (error) {
         return (
             <div className="container mx-auto py-20 text-center">
-                <p>Perfil não encontrado.</p>
+                <p className="text-red-500 font-medium">Erro ao carregar perfil.</p>
                 <Button onClick={() => window.location.reload()} variant="outline" className="mt-4">
                     Tentar Novamente
                 </Button>
@@ -60,11 +66,10 @@ export default function ProviderDocumentsPage() {
         );
     }
 
-
-    if (error) {
+    if (!profile) {
         return (
             <div className="container mx-auto py-20 text-center">
-                <p className="text-red-500 font-medium">Erro ao carregar perfil.</p>
+                <p>Perfil não encontrado.</p>
                 <Button onClick={() => window.location.reload()} variant="outline" className="mt-4">
                     Tentar Novamente
                 </Button>

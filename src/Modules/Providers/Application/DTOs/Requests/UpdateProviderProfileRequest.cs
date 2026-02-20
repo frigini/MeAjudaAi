@@ -24,7 +24,7 @@ public record UpdateProviderProfileRequest
     );
 
     /// <summary>
-    /// Lista de serviços oferecidos pelo prestador.
+    /// Lista de serviços oferecidos pelo prestador. Pode ser nulo se não houver alteração.
     /// </summary>
-    public List<ProviderServiceDto> Services { get; init; } = new();
+    public List<ProviderServiceDto>? Services { get; init; }
 }

@@ -34,7 +34,9 @@ public class AddDocumentCommandHandlerTests
         var command = new AddDocumentCommand(
             ProviderId: providerId,
             DocumentNumber: "11144477735",
-            DocumentType: EDocumentType.CPF
+            DocumentType: EDocumentType.CPF,
+            FileName: "doc.pdf",
+            FileUrl: "https://storage/doc.pdf"
         );
 
         _providerRepositoryMock
@@ -52,6 +54,8 @@ public class AddDocumentCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(providerId);
+        result.Value.FileName.Should().Be("doc.pdf");
+        result.Value.FileUrl.Should().Be("https://storage/doc.pdf");
 
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),

@@ -18,7 +18,7 @@ export default function ProviderAddressPage() {
     const router = useRouter();
     const { data: profile, isLoading: isLoadingProfile, error: profileError } = useMyProviderProfile();
     const { mutate: updateProfile, isPending: isSaving } = useUpdateProviderProfile();
-    const { fetchAddress, isLoading: isLoadingCep } = useViaCep();
+    const { fetchAddress, isLoading: isLoadingCep, error: cepError } = useViaCep();
 
     const form = useForm<AddressSchema>({
         resolver: zodResolver(addressSchema),
@@ -172,6 +172,7 @@ export default function ProviderAddressPage() {
                                             </div>
                                         </FormControl>
                                         <FormMessage />
+                                        {cepError && <p className="text-[0.8rem] font-medium text-destructive mt-1">{cepError}</p>}
                                     </FormItem>
                                 )}
                             />

@@ -33,7 +33,6 @@ public class GetAllServicesEndpoint : BaseEndpoint, IEndpoint
                 - Administração do catálogo completo
                 """)
             .Produces<Response<IReadOnlyList<ServiceListDto>>>(StatusCodes.Status200OK)
-            .Produces<Response<IReadOnlyList<ServiceListDto>>>(StatusCodes.Status200OK)
             .AllowAnonymous();
 
     private static async Task<IResult> GetAllAsync(

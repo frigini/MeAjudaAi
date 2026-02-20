@@ -31,30 +31,36 @@ public class SecurityHeadersMiddleware(RequestDelegate next, IWebHostEnvironment
     // Cabeçalhos para remover - usando array para iteração mais rápida
     private static readonly string[] HeadersToRemove = ["Server", "X-Powered-By", "X-AspNet-Version"];
 
-    public async Task InvokeAsync(HttpContext context)
+    public Task InvokeAsync(HttpContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var headers = context.Response.Headers;
-
-        // Adiciona cabeçalhos de segurança estáticos eficientemente
-        foreach (var header in StaticHeaders)
+        context.Response.OnStarting(state =>
         {
-            headers.Append(header.Key, header.Value);
-        }
+            var ctx = (HttpContext)state;
+            var headers = ctx.Response.Headers;
 
-        // HSTS apenas em produção e HTTPS - usando verificação de ambiente em cache
-        if (context.Request.IsHttps && !_isDevelopment)
-        {
-            headers.Append("Strict-Transport-Security", HstsHeader);
-        }
+            // Adiciona cabeçalhos de segurança estáticos eficientemente
+            foreach (var header in StaticHeaders)
+            {
+                headers[header.Key] = header.Value;
+            }
 
-        // Remove cabeçalhos de exposição de informações eficientemente
-        foreach (var headerName in HeadersToRemove)
-        {
-            headers.Remove(headerName);
-        }
+            // HSTS apenas em produção e HTTPS - usando verificação de ambiente em cache
+            if (ctx.Request.IsHttps && !_isDevelopment)
+            {
+                headers["Strict-Transport-Security"] = HstsHeader;
+            }
 
-        await _next(context);
+            // Remove cabeçalhos de exposição de informações eficientemente
+            foreach (var headerName in HeadersToRemove)
+            {
+                headers.Remove(headerName);
+            }
+
+            return Task.CompletedTask;
+        }, context);
+
+        return _next(context);
     }
 }

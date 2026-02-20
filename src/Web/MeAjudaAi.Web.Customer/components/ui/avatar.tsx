@@ -1,26 +1,20 @@
 import { twMerge } from "tailwind-merge";
 import Image, { ImageProps } from "next/image";
 
-export interface AvatarProps extends Omit<ImageProps, "src" | "alt" | "width" | "height" | "fill"> {
+export interface AvatarProps extends Omit<ImageProps, "src" | "alt" | "width" | "height" | "fill" | "style"> {
     src?: string | null;
     alt: string;
     size?: "sm" | "md" | "lg" | "xl";
     fallback?: string;
+    containerStyle?: React.CSSProperties;
 }
 
-const sizeClasses = {
-    sm: "size-8",
-    md: "size-10",
-    lg: "size-12",
-    xl: "size-16",
-};
-
-const sizePx: Record<NonNullable<AvatarProps["size"]>, number> = {
-    sm: 32,
-    md: 40,
-    lg: 48,
-    xl: 64,
-};
+const SIZE_CONFIG = {
+    sm: { classes: "size-8", px: 32 },
+    md: { classes: "size-10", px: 40 },
+    lg: { classes: "size-12", px: 48 },
+    xl: { classes: "size-16", px: 64 },
+} as const;
 
 export function Avatar({
     src,
@@ -28,7 +22,7 @@ export function Avatar({
     size = "md",
     fallback,
     className,
-    style, // Capture style for container
+    containerStyle,
     ...rest // Forward remaining props (img props) to Image
 }: AvatarProps) {
     const initials =
@@ -47,17 +41,17 @@ export function Avatar({
         <div
             className={twMerge(
                 "relative inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground font-medium overflow-hidden",
-                sizeClasses[size],
+                SIZE_CONFIG[size].classes,
                 className
             )}
-            style={style}
+            style={containerStyle}
         >
             {src ? (
                 <Image
                     src={src}
                     alt={alt}
-                    width={sizePx[size]}
-                    height={sizePx[size]}
+                    width={SIZE_CONFIG[size].px}
+                    height={SIZE_CONFIG[size].px}
                     className="size-full object-cover"
                     {...rest}
                 />
