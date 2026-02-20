@@ -150,7 +150,11 @@ export default function RegisterProviderPage() {
                             <FormItem>
                                 <FormLabel>Email (da sua conta)</FormLabel>
                                 <FormControl>
-                                    <Input {...field} disabled className="bg-muted text-muted-foreground" />
+                                    <Input
+                                        {...field}
+                                        disabled={Boolean(session?.user?.email)}
+                                        className={Boolean(session?.user?.email) ? "bg-muted text-muted-foreground" : ""}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

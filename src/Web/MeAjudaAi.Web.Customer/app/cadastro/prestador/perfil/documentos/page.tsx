@@ -88,6 +88,8 @@ export default function ProviderDocumentsPage() {
                 return <Badge variant="primary"><Upload className="w-3 h-3 mr-1" /> Enviado</Badge>;
             case EDocumentStatus.Rejected:
                 return <Badge variant="destructive"><AlertCircle className="w-3 h-3 mr-1" /> Rejeitado</Badge>;
+            case EDocumentStatus.Failed:
+                return <Badge variant="destructive"><AlertCircle className="w-3 h-3 mr-1" /> Falha</Badge>;
             default:
                 return <Badge variant="secondary">Pendente</Badge>;
         }
@@ -113,7 +115,9 @@ export default function ProviderDocumentsPage() {
                         {/* Check if any identity doc is uploaded */}
                         {(() => {
                             const uploadedIdentity = profile.documents?.find(d =>
-                                [EDocumentType.RG, EDocumentType.CNH, EDocumentType.Passport].includes(d.documentType)
+                                d.documentType === EDocumentType.RG ||
+                                d.documentType === EDocumentType.CNH ||
+                                d.documentType === EDocumentType.Passport
                             );
 
                             if (uploadedIdentity) {
@@ -131,7 +135,7 @@ export default function ProviderDocumentsPage() {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             {getStatusBadge(uploadedIdentity.status)}
-                                            {uploadedIdentity.status === EDocumentStatus.Rejected && (
+                                            {(uploadedIdentity.status === EDocumentStatus.Rejected || uploadedIdentity.status === EDocumentStatus.Failed) && (
                                                 <div className="relative">
                                                     <input
                                                         type="file"
@@ -240,7 +244,7 @@ export default function ProviderDocumentsPage() {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             {getStatusBadge(cpf.status)}
-                                            {cpf.status === EDocumentStatus.Rejected && (
+                                            {(cpf.status === EDocumentStatus.Rejected || cpf.status === EDocumentStatus.Failed) && (
                                                 <div className="relative">
                                                     <input
                                                         type="file"

@@ -53,55 +53,61 @@ export interface QualificationDto {
     documentNumber?: string;
 }
 
-export enum EProviderType {
-    None = 0,
-    Individual = 1,
-    Company = 2,
-    Cooperative = 3,
-    Freelancer = 4
-}
+export const EProviderType = {
+    None: 0,
+    Individual: 1,
+    Company: 2,
+    Cooperative: 3,
+    Freelancer: 4
+} as const;
+export type EProviderType = typeof EProviderType[keyof typeof EProviderType];
 
-export enum EProviderStatus {
-    PendingBasicInfo = 1,
-    PendingDocumentVerification = 2,
-    Active = 3,
-    Suspended = 4,
-    Rejected = 5
-}
+export const EProviderStatus = {
+    PendingBasicInfo: 1,
+    PendingDocumentVerification: 2,
+    Active: 3,
+    Suspended: 4,
+    Rejected: 5
+} as const;
+export type EProviderStatus = typeof EProviderStatus[keyof typeof EProviderStatus];
 
-export enum EVerificationStatus {
-    None = 0,
-    Pending = 1,
-    InProgress = 2,
-    Verified = 3,
-    Rejected = 4,
-    Suspended = 5
-}
+export const EVerificationStatus = {
+    None: 0,
+    Pending: 1,
+    InProgress: 2,
+    Verified: 3,
+    Rejected: 4,
+    Suspended: 5
+} as const;
+export type EVerificationStatus = typeof EVerificationStatus[keyof typeof EVerificationStatus];
 
-export enum EProviderTier {
-    Standard = 0,
-    Silver = 1,
-    Gold = 2,
-    Platinum = 3
-}
+export const EProviderTier = {
+    Standard: 0,
+    Silver: 1,
+    Gold: 2,
+    Platinum: 3
+} as const;
+export type EProviderTier = typeof EProviderTier[keyof typeof EProviderTier];
 
-export enum EDocumentType {
-    None = 0,
-    CPF = 1,
-    CNPJ = 2,
-    RG = 3,
-    CNH = 4,
-    Passport = 5,
-    Other = 99
-}
+export const EDocumentType = {
+    None: 0,
+    CPF: 1,
+    CNPJ: 2,
+    RG: 3,
+    CNH: 4,
+    Passport: 5,
+    Other: 99
+} as const;
+export type EDocumentType = typeof EDocumentType[keyof typeof EDocumentType];
 
-export enum EDocumentStatus {
-    Uploaded = 1,
-    PendingVerification = 2,
-    Verified = 3,
-    Rejected = 4,
-    Failed = 5
-}
+export const EDocumentStatus = {
+    Uploaded: 1,
+    PendingVerification: 2,
+    Verified: 3,
+    Rejected: 4,
+    Failed: 5
+} as const;
+export type EDocumentStatus = typeof EDocumentStatus[keyof typeof EDocumentStatus];
 
 export interface DocumentDto {
     id?: string; // Guid

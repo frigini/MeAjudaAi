@@ -49,8 +49,6 @@ export function mapSearchableProviderToProvider(
         // Mapeando para ProviderServiceDto
         services: dto.serviceIds?.map(id => ({
             serviceId: id,
-            price: 0, // Mock price
-            currency: 'BRL',
             serviceName: getMockServiceName(id)
         })) ?? [],
 
@@ -151,8 +149,6 @@ export function mapApiProviderToProvider(
         // Map services
         services: services.map(s => ({
             serviceId: s.serviceId ?? '',
-            price: s.price ?? 0,
-            currency: s.currency ?? 'BRL',
             serviceName: s.serviceName ?? ''
         })),
 

@@ -1,12 +1,13 @@
 import { twMerge } from "tailwind-merge";
 import Image, { ImageProps } from "next/image";
+import type { CSSProperties } from "react";
 
 export interface AvatarProps extends Omit<ImageProps, "src" | "alt" | "width" | "height" | "fill" | "style"> {
     src?: string | null;
     alt: string;
     size?: "sm" | "md" | "lg" | "xl";
     fallback?: string;
-    containerStyle?: React.CSSProperties;
+    containerStyle?: CSSProperties;
 }
 
 const SIZE_CONFIG = {

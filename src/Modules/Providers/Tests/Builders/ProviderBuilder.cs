@@ -75,7 +75,7 @@ public class ProviderBuilder : BaseBuilder<Provider>
                     var prop = typeof(Provider).GetProperty(nameof(Provider.Tier));
                     if (prop == null)
                     {
-                        throw new InvalidOperationException($"A propriedade '{nameof(Provider.Tier)}' não foi encontrada na classe {nameof(Provider)}.");
+                        throw new InvalidOperationException($"Property '{nameof(Provider.Tier)}' was not found on class {nameof(Provider)}.");
                     }
                     prop.SetValue(provider, _tier.Value);
                 }
