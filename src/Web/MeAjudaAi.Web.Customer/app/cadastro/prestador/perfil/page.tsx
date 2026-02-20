@@ -74,7 +74,7 @@ export default function ProviderProfilePage() {
                         <p className="text-sm text-muted-foreground mt-1">Nível: <span className="font-medium text-primary">{PROVIDER_TIER_LABELS[profile.tier] ?? profile.tier ?? "Desconhecido"}</span></p>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${profile.status === EProviderStatus.Active ? "bg-green-100 text-green-800" :
-                        profile.status === EProviderStatus.Rejected ? "bg-red-100 text-red-800" :
+                        (profile.status === EProviderStatus.Rejected || profile.status === EProviderStatus.Suspended) ? "bg-red-100 text-red-800" :
                             "bg-amber-100 text-amber-800"
                         }`}>
                         {PROVIDER_STATUS_LABELS[profile.status] ?? profile.status ?? "Desconhecido"}

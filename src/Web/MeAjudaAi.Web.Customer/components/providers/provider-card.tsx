@@ -20,7 +20,7 @@ export function ProviderCard({ provider }: ProviderCardProps) {
                         src={provider.avatarUrl}
                         alt={provider.name}
                         size="lg"
-                        className="flex-shrink-0"
+                        containerClassName="flex-shrink-0"
                     />
 
                     <div className="flex-1 min-w-0">

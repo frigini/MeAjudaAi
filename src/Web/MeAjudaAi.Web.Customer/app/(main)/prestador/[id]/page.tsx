@@ -175,7 +175,7 @@ export default async function ProviderProfilePage({
                             src={undefined}
                             alt={displayName}
                             fallback={displayName.substring(0, 2).toUpperCase()}
-                            className="h-32 w-32 border-4 border-white shadow-md text-3xl font-bold"
+                            containerClassName="h-32 w-32 border-4 border-white shadow-md text-3xl font-bold"
                         />
 
                         {/* Rating */}

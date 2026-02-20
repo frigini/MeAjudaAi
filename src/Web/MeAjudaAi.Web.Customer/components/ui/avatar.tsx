@@ -7,6 +7,7 @@ export interface AvatarProps extends Omit<ImageProps, "src" | "alt" | "width" | 
     alt: string;
     size?: "sm" | "md" | "lg" | "xl";
     fallback?: string;
+    containerClassName?: string;
     containerStyle?: CSSProperties;
 }
 
@@ -22,7 +23,7 @@ export function Avatar({
     alt,
     size = "md",
     fallback,
-    className,
+    containerClassName,
     containerStyle,
     ...rest // Forward remaining props (img props) to Image
 }: AvatarProps) {
@@ -43,7 +44,7 @@ export function Avatar({
             className={twMerge(
                 "relative inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground font-medium overflow-hidden",
                 SIZE_CONFIG[size].classes,
-                className
+                containerClassName
             )}
             style={containerStyle}
         >

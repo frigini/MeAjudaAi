@@ -13,7 +13,13 @@ export const registerProviderSchema = z.object({
     acceptedTerms: z.boolean().refine(v => v === true, "Você deve aceitar os termos de uso"),
     acceptedPrivacyPolicy: z.boolean().refine(v => v === true, "Você deve aceitar a política de privacidade"),
 }).superRefine((data, ctx) => {
-    if (data.type === EProviderType.Individual || data.type === EProviderType.Freelancer) {
+    if (data.type === EProviderType.None) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Tipo de provedor inválido",
+            path: ["type"],
+        });
+    } else if (data.type === EProviderType.Individual || data.type === EProviderType.Freelancer) {
         // CPF must be 11 digits
         if (data.documentNumber.length !== 11) {
             ctx.addIssue({
@@ -55,6 +61,7 @@ export const registerCustomerSchema = z.object({
         .regex(/[^a-zA-Z0-9]/, "A senha deve conter pelo menos um caractere especial"),
     confirmPassword: z.string(),
     termsAccepted: z.boolean().refine((val) => val === true, "Você deve aceitar os termos de uso"),
+    acceptedPrivacyPolicy: z.boolean().refine((val) => val === true, "Você deve aceitar a política de privacidade"),
 }).refine((data) => data.password === data.confirmPassword, {
     message: "As senhas não conferem",
     path: ["confirmPassword"],

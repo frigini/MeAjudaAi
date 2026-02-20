@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
+import Link from "next/link";
 
 import { registerProviderSchema } from "@/lib/schemas/auth";
 
@@ -58,6 +59,8 @@ export default function RegisterProviderPage() {
             }
         });
     }
+
+    const providerType = form.watch("type");
 
     return (
         <div className="container mx-auto py-10 max-w-lg">
@@ -134,7 +137,7 @@ export default function RegisterProviderPage() {
                         name="documentNumber"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>{(form.watch("type") === EProviderType.Individual || form.watch("type") === EProviderType.Freelancer) ? "CPF" : "CNPJ"}</FormLabel>
+                                <FormLabel>{(providerType === EProviderType.Individual || providerType === EProviderType.Freelancer) ? "CPF" : "CNPJ"}</FormLabel>
                                 <FormControl>
                                     <Input placeholder="Apenas números" {...field} />
                                 </FormControl>
@@ -188,7 +191,7 @@ export default function RegisterProviderPage() {
                                 </FormControl>
                                 <div className="space-y-1 leading-none">
                                     <FormLabel>
-                                        Aceito os termos de uso
+                                        Aceito os <Link href="/termos-de-uso" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">Termos de Uso</Link>
                                     </FormLabel>
                                     <FormMessage />
                                 </div>
@@ -209,7 +212,7 @@ export default function RegisterProviderPage() {
                                 </FormControl>
                                 <div className="space-y-1 leading-none">
                                     <FormLabel>
-                                        Aceito a política de privacidade
+                                        Aceito a <Link href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">Política de Privacidade</Link>
                                     </FormLabel>
                                     <FormMessage />
                                 </div>
