@@ -46,7 +46,7 @@ public class ProviderMapperTests
         dto.DeletedAt.Should().Be(provider.DeletedAt);
         dto.SuspensionReason.Should().Be(provider.SuspensionReason);
         dto.RejectionReason.Should().Be(provider.RejectionReason);
-        dto.Tier.Should().Be(EProviderTier.Standard);
+        dto.Tier.Should().Be(provider.Tier);
 
         // Assert nested BusinessProfile mapping
         dto.BusinessProfile.Should().NotBeNull();
@@ -56,6 +56,21 @@ public class ProviderMapperTests
         dto.BusinessProfile.ContactInfo!.Email.Should().Be("test@example.com");
         dto.BusinessProfile.PrimaryAddress.Should().NotBeNull();
         dto.BusinessProfile.PrimaryAddress!.City.Should().Be("São Paulo");
+    }
+
+    [Fact]
+    public void ToDto_WithNonStandardTier_ShouldMapTierCorrectly()
+    {
+        // Arrange
+        var provider = ProviderBuilder.Create()
+            .WithTier(EProviderTier.Gold)
+            .Build();
+
+        // Act
+        var dto = provider.ToDto();
+
+        // Assert
+        dto.Tier.Should().Be(EProviderTier.Gold);
     }
 
     [Fact]

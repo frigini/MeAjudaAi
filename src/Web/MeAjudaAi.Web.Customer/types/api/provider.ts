@@ -106,13 +106,13 @@ export enum EDocumentStatus {
 }
 
 export interface DocumentDto {
-    id: string; // Guid
-    providerId: string; // Guid
+    id?: string; // Guid
+    providerId?: string; // Guid
     documentType: EDocumentType;
     fileName: string;
     fileUrl: string;
-    status: EDocumentStatus;
-    uploadedAt: string; // DateTime
+    status?: EDocumentStatus;
+    uploadedAt?: string; // DateTime
     verifiedAt?: string | null;
     rejectionReason?: string | null;
     ocrData?: string | null;

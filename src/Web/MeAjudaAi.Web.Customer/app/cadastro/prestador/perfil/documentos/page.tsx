@@ -77,7 +77,7 @@ export default function ProviderDocumentsPage() {
         );
     }
 
-    const getStatusBadge = (status: EDocumentStatus) => {
+    const getStatusBadge = (status?: EDocumentStatus) => {
         switch (status) {
             case EDocumentStatus.Verified:
                 return <Badge variant="success"><CheckCircle className="w-3 h-3 mr-1" /> Verificado</Badge>;

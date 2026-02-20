@@ -15,6 +15,7 @@ public class ProviderBuilder : BaseBuilder<Provider>
     private BusinessProfile? _businessProfile;
     private ProviderId? _providerId;
     private EVerificationStatus? _verificationStatus;
+    private EProviderTier? _tier;
     private readonly List<Document> _documents = new();
     private readonly List<Qualification> _qualifications = new();
 
@@ -68,8 +69,20 @@ public class ProviderBuilder : BaseBuilder<Provider>
                     provider.UpdateVerificationStatus(_verificationStatus.Value);
                 }
 
+                // Define tier se especificado
+                if (_tier.HasValue)
+                {
+                    typeof(Provider).GetProperty(nameof(Provider.Tier))?.SetValue(provider, _tier.Value);
+                }
+
                 return provider;
             });
+    }
+
+    public ProviderBuilder WithTier(EProviderTier tier)
+    {
+        _tier = tier;
+        return this;
     }
 
     public ProviderBuilder WithUserId(Guid userId)

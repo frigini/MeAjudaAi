@@ -15,7 +15,7 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { registerCustomerSchema, RegisterCustomerSchema } from "@/lib/schemas/auth";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ApiError, publicFetch } from "@/lib/api/fetch-client";
 import { toast } from "sonner";
@@ -27,6 +27,15 @@ export function CustomerRegisterForm() {
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (timerRef.current) {
+                clearTimeout(timerRef.current);
+            }
+        };
+    }, []);
 
     const form = useForm<RegisterCustomerSchema>({
         resolver: zodResolver(registerCustomerSchema),
@@ -60,7 +69,7 @@ export function CustomerRegisterForm() {
             });
 
             // Delay redirect to allow toast to be visible
-            setTimeout(() => {
+            timerRef.current = setTimeout(() => {
                 router.replace("/api/auth/signin");
             }, 1000);
 
@@ -73,7 +82,6 @@ export function CustomerRegisterForm() {
             toast.error("Erro no cadastro", {
                 description: message,
             });
-        } finally {
             setIsLoading(false);
         }
     }

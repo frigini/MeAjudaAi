@@ -85,6 +85,12 @@ export default function ProviderProfilePage() {
                     </div>
                 )}
 
+                {profile.status === EProviderStatus.Suspended && profile.suspensionReason && (
+                    <div className="mt-4 p-4 bg-red-50 text-red-800 text-sm rounded-md border border-red-200">
+                        <strong>Motivo da suspensão:</strong> {profile.suspensionReason}
+                    </div>
+                )}
+
                 <div className="mt-4 pt-4 border-t">
                     <p className="text-muted-foreground">
                         {getProviderStatusMessage(profile.status)}
