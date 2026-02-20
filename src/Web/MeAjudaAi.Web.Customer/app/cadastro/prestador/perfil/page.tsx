@@ -166,7 +166,7 @@ export default function ProviderProfilePage() {
                                 profile.status === EProviderStatus.Rejected ? "text-red-700" :
                                     isPendingVerification ? "text-amber-700" : "text-green-700"
                                 }`}>
-                                {profile.status === EProviderStatus.Active ? "Verificados" :
+                                {profile.status === EProviderStatus.Active || profile.status === EProviderStatus.Suspended ? "Verificados" :
                                     profile.status === EProviderStatus.Rejected ? "Rejeitados" :
                                         isPendingVerification ? "Em Análise" : "Enviados"}
                             </p>

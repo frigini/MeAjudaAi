@@ -26,8 +26,10 @@ const PublicProviderSchema = z.object({
             if (lower === 'freelancer' || lower === 'autonomo') return EProviderType.Freelancer;
             if (lower === 'cooperative' || lower === 'cooperativa') return EProviderType.Cooperative;
 
-            const parsed = parseInt(val, 10);
-            if (!isNaN(parsed)) return parsed;
+            if (/^\d+$/.test(val)) {
+                const parsed = parseInt(val, 10);
+                if (!isNaN(parsed)) return parsed;
+            }
         }
         return val;
     }, z.nativeEnum(EProviderType).optional()),
@@ -65,9 +67,13 @@ const getCachedProvider = cache(async (id: string): Promise<PublicProviderData |
         throw new Error("Missing API_URL or NEXT_PUBLIC_API_URL environment variable.");
     }
 
-    try {
+    const { headers } = await import("next/headers");
+    const requestHeaders = await headers();
+    const cookieHeader = requestHeaders.get("cookie");
 
+    try {
         const res = await fetch(`${apiUrl}/api/v1/providers/${id}/public`, {
+            headers: cookieHeader ? { "Cookie": cookieHeader } : {},
             next: { revalidate: 60 } // Cache for 60 seconds
         });
 

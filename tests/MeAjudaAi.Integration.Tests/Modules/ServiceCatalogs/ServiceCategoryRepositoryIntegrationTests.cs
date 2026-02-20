@@ -132,7 +132,7 @@ public class ServiceCategoryRepositoryIntegrationTests : BaseApiTest
     private ServiceCategory CreateValidCategory()
     {
         return ServiceCategory.Create(
-            _faker.Commerce.Department(),
+            $"{_faker.Commerce.Department()}_{Guid.NewGuid():N[..6]}",
             _faker.Lorem.Sentence(),
             _faker.Random.Int(0, 100));
     }

@@ -28,6 +28,11 @@ public sealed partial class RegisterCustomerCommandHandler(
             return Result<UserDto>.Failure(Error.BadRequest("Você deve aceitar os termos de uso para se cadastrar."));
         }
 
+        if (!command.AcceptedPrivacyPolicy)
+        {
+            return Result<UserDto>.Failure(Error.BadRequest("Você deve aceitar a política de privacidade para se cadastrar."));
+        }
+
         Email emailAsValueObject;
         Username validUsername;
 

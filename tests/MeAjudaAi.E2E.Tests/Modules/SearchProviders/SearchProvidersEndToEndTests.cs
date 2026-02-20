@@ -146,7 +146,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
 
         // Act - Buscar apenas por serviço de limpeza
         var response = await _fixture.ApiClient.GetAsync(
-            $"/api/v1/search/providers?latitude={searchLatitude}&longitude={searchLongitude}&radiusInKm={radiusInKm}&serviceIds={cleaningServiceId}");
+            $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&serviceIds={cleaningServiceId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -184,7 +184,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
 
         // Act - Buscar por ambos os serviços
         var response = await _fixture.ApiClient.GetAsync(
-            $"/api/v1/search/providers?latitude={searchLatitude}&longitude={searchLongitude}&radiusInKm={radiusInKm}&serviceIds={electricalServiceId}&serviceIds={plumbingServiceId}");
+            $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&serviceIds={electricalServiceId}&serviceIds={plumbingServiceId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -232,7 +232,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
 
         // Act
         var response = await _fixture.ApiClient.GetAsync(
-            $"/api/v1/search/providers?latitude={searchLatitude}&longitude={searchLongitude}&radiusInKm={radiusInKm}&page=1&pageSize=50");
+            $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&page=1&pageSize=50");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -269,7 +269,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
 
         // Act
         var response = await _fixture.ApiClient.GetAsync(
-            $"/api/v1/search/providers?latitude={searchLatitude}&longitude={searchLongitude}&radiusInKm={radiusInKm}&minRating={minRating}");
+            $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&minRating={minRating.ToString(CultureInfo.InvariantCulture)}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK,

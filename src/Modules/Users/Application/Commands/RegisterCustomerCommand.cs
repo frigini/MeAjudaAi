@@ -9,5 +9,6 @@ public sealed record RegisterCustomerCommand(
     string Email,
     string Password,
     string PhoneNumber,
-    bool TermsAccepted
+    bool TermsAccepted,
+    bool AcceptedPrivacyPolicy
 ) : Command<Result<UserDto>>;

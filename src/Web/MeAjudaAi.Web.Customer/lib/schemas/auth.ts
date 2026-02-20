@@ -53,7 +53,7 @@ export const addressSchema = z.object({
 export const registerCustomerSchema = z.object({
     name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
     email: z.string().email("Email inválido"),
-    phoneNumber: z.string().min(10, "Telefone inválido"),
+    phoneNumber: z.string().min(14, "Telefone inválido"),
     password: z.string()
         .min(8, "Senha deve ter pelo menos 8 caracteres")
         .regex(/[a-zA-Z]/, "A senha deve conter pelo menos uma letra")

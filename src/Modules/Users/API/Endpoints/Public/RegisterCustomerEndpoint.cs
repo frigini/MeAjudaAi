@@ -18,12 +18,9 @@ public class RegisterCustomerEndpoint : IEndpoint
             ICommandDispatcher dispatcher,
             CancellationToken cancellationToken) =>
         {
-            var command = new RegisterCustomerCommand(
-                request.Name,
-                request.Email,
-                request.Password,
                 request.PhoneNumber,
-                request.TermsAccepted
+                request.TermsAccepted,
+                request.AcceptedPrivacyPolicy
             );
 
             var result = await dispatcher.SendAsync<RegisterCustomerCommand, Result<UserDto>>(command, cancellationToken);
@@ -43,5 +40,6 @@ public record RegisterCustomerRequest(
     string Email,
     string Password,
     string PhoneNumber,
-    bool TermsAccepted
+    bool TermsAccepted,
+    bool AcceptedPrivacyPolicy
 );
