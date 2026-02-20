@@ -2,6 +2,7 @@ using FluentAssertions;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Messaging.Factories;
+using MeAjudaAi.Shared.Messaging.Handlers;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using MeAjudaAi.Shared.Tests.TestInfrastructure;
@@ -9,6 +10,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Testcontainers.RabbitMq;
 
 namespace MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter;
 
@@ -98,7 +100,6 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
         // Assert
         deadLetterService.Should().NotBeNull();
         deadLetterService.Should().BeOfType<NoOpDeadLetterService>();
-    }
     }
 
     [Fact]

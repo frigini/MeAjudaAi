@@ -36,6 +36,7 @@
     <!-- Testes de Banco de Dados -->
     <PackageReference Include="Testcontainers.Azurite" />
     <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.RabbitMq" />
     <PackageReference Include="Respawn" />
     <PackageReference Include="Scrutor" />
     <!-- Removed Microsoft.EntityFrameworkCore.InMemory - using real database with TestContainers instead -->

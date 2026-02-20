@@ -1376,6 +1376,7 @@
           "Scrutor": "[7.0.0, )",
           "Testcontainers.Azurite": "[4.10.0, )",
           "Testcontainers.PostgreSql": "[4.10.0, )",
+          "Testcontainers.RabbitMq": "[4.10.0, )",
           "xunit.v3": "[3.2.2, )"
         }
       },
@@ -2231,6 +2232,15 @@
         "requested": "[4.10.0, )",
         "resolved": "4.10.0",
         "contentHash": "DPoTpTc6aLvl+15h2jdGOwgtfNwhlQhpRGd4hfm8nI9Kl7UbVSr/0zJeycsThOg3VrCSw4UGwdrf5lYSCKrdfA==",
+        "dependencies": {
+          "Testcontainers": "4.10.0"
+        }
+      },
+      "Testcontainers.RabbitMq": {
+        "type": "CentralTransitive",
+        "requested": "[4.10.0, )",
+        "resolved": "4.10.0",
+        "contentHash": "psuDUrJbqaFeZ6T+kNL9rEiafyPVlQuk5xeHswuiFVMlBaihpobKTlUxWy0k9hLy6xR5Op8kGayLmsb32gDXkA==",
         "dependencies": {
           "Testcontainers": "4.10.0"
         }
