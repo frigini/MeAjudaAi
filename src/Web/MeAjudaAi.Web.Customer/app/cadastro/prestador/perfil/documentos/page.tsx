@@ -28,6 +28,7 @@ export default function ProviderDocumentsPage() {
 
         if (file.size > 5 * 1024 * 1024) { // 5MB limit
             toast.error("O arquivo deve ter no máximo 5MB.");
+            if (e.target) e.target.value = "";
             return;
         }
 
@@ -138,6 +139,7 @@ export default function ProviderDocumentsPage() {
                                                         accept=".pdf,.jpg,.jpeg,.png"
                                                         onChange={(e) => handleFileChange(e, uploadedIdentity.documentType)}
                                                         disabled={isUploading}
+                                                        aria-label={`Reenviar ${uploadedIdentity.documentType === EDocumentType.RG ? "RG" : uploadedIdentity.documentType === EDocumentType.CNH ? "CNH" : "Passaporte"}`}
                                                     />
                                                     <Button variant="outline" size="sm">Reenviar</Button>
                                                 </div>
@@ -148,8 +150,8 @@ export default function ProviderDocumentsPage() {
                             }
 
                             return (
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="col-span-2 md:col-span-1">
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    <div className="col-span-1">
                                         <div className="relative">
                                             <input
                                                 type="file"
@@ -157,6 +159,7 @@ export default function ProviderDocumentsPage() {
                                                 accept=".pdf,.jpg,.jpeg,.png"
                                                 onChange={(e) => handleFileChange(e, EDocumentType.CNH)}
                                                 disabled={isUploading}
+                                                aria-label="Enviar CNH"
                                             />
                                             <Button variant="outline" className="w-full h-24 flex flex-col gap-2" disabled={isUploading}>
                                                 {isUploading && uploadingType === EDocumentType.CNH ? (
@@ -168,7 +171,7 @@ export default function ProviderDocumentsPage() {
                                             </Button>
                                         </div>
                                     </div>
-                                    <div className="col-span-2 md:col-span-1">
+                                    <div className="col-span-1">
                                         <div className="relative">
                                             <input
                                                 type="file"
@@ -176,6 +179,7 @@ export default function ProviderDocumentsPage() {
                                                 accept=".pdf,.jpg,.jpeg,.png"
                                                 onChange={(e) => handleFileChange(e, EDocumentType.RG)}
                                                 disabled={isUploading}
+                                                aria-label="Enviar RG"
                                             />
                                             <Button variant="outline" className="w-full h-24 flex flex-col gap-2" disabled={isUploading}>
                                                 {isUploading && uploadingType === EDocumentType.RG ? (
@@ -184,6 +188,26 @@ export default function ProviderDocumentsPage() {
                                                     <FileText className="h-6 w-6" />
                                                 )}
                                                 <span>Enviar RG</span>
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    <div className="col-span-1">
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                accept=".pdf,.jpg,.jpeg,.png"
+                                                onChange={(e) => handleFileChange(e, EDocumentType.Passport)}
+                                                disabled={isUploading}
+                                                aria-label="Enviar Passaporte"
+                                            />
+                                            <Button variant="outline" className="w-full h-24 flex flex-col gap-2" disabled={isUploading}>
+                                                {isUploading && uploadingType === EDocumentType.Passport ? (
+                                                    <Loader2 className="h-6 w-6 animate-spin" />
+                                                ) : (
+                                                    <FileText className="h-6 w-6" />
+                                                )}
+                                                <span>Enviar Passaporte</span>
                                             </Button>
                                         </div>
                                     </div>
@@ -224,6 +248,7 @@ export default function ProviderDocumentsPage() {
                                                         accept=".pdf,.jpg,.jpeg,.png"
                                                         onChange={(e) => handleFileChange(e, EDocumentType.CPF)}
                                                         disabled={isUploading}
+                                                        aria-label="Reenviar CPF"
                                                     />
                                                     <Button variant="outline" size="sm">Reenviar</Button>
                                                 </div>
@@ -241,6 +266,7 @@ export default function ProviderDocumentsPage() {
                                         accept=".pdf,.jpg,.jpeg,.png"
                                         onChange={(e) => handleFileChange(e, EDocumentType.CPF)}
                                         disabled={isUploading}
+                                        aria-label="Enviar Comprovante de CPF"
                                     />
                                     <Button variant="outline" className="w-full h-16 flex items-center justify-center gap-2" disabled={isUploading}>
                                         {isUploading && uploadingType === EDocumentType.CPF ? (

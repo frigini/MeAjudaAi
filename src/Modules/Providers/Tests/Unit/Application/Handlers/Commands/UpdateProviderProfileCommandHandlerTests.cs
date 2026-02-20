@@ -261,7 +261,7 @@ public class UpdateProviderProfileCommandHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
         var updatedBy = Guid.NewGuid();
-        var provider = ProviderBuilder.Create().WithId(providerId);
+        Provider provider = ProviderBuilder.Create().WithId(providerId);
 
         var businessProfileDto = new BusinessProfileDto(
             LegalName: "Prestador",

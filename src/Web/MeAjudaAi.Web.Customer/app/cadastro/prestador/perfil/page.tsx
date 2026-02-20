@@ -28,7 +28,9 @@ export default function ProviderProfilePage() {
     if (isLoading) {
         return (
             <div className="container mx-auto py-10 flex justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <div role="status" className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary">
+                    <span className="sr-only">Carregando...</span>
+                </div>
             </div>
         );
     }
@@ -156,9 +158,13 @@ export default function ProviderProfilePage() {
                         <div>
                             {hasDocuments || isPendingVerification ? (
                                 <div className="flex flex-col gap-2">
-                                    <p className="text-sm text-green-700">
+                                    <p className={`text-sm ${profile.status === EProviderStatus.Active ? "text-green-700" :
+                                        profile.status === EProviderStatus.Rejected ? "text-red-700" :
+                                            isPendingVerification ? "text-amber-700" : "text-green-700"
+                                        }`}>
                                         {profile.status === EProviderStatus.Active ? "Verificados" :
-                                            isPendingVerification ? "Em Análise" : "Enviados"}
+                                            profile.status === EProviderStatus.Rejected ? "Rejeitados" :
+                                                isPendingVerification ? "Em Análise" : "Enviados"}
                                     </p>
                                     <Link href="/cadastro/prestador/perfil/documentos" className="text-xs text-primary underline">
                                         Gerenciar

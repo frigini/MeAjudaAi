@@ -9,7 +9,9 @@ export const registerProviderSchema = z.object({
         .regex(/^\d+$/, "Apenas números são permitidos"), // CPF 11, CNPJ 14 (sem formatação)
     phoneNumber: z.string().min(10, "Telefone inválido"),
     type: z.nativeEnum(EProviderType),
-    email: z.string().email("Email inválido").optional().or(z.literal("")),
+    email: z.string().email("Email inválido"), // Now strictly required
+    acceptedTerms: z.boolean().refine(v => v === true, "Você deve aceitar os termos de uso"),
+    acceptedPrivacyPolicy: z.boolean().refine(v => v === true, "Você deve aceitar a política de privacidade"),
 }).superRefine((data, ctx) => {
     if (data.type === EProviderType.Individual || data.type === EProviderType.Freelancer) {
         // CPF must be 11 digits

@@ -77,7 +77,7 @@ export function mapSearchableProviderToProvider(
 // Local type definition to extend generated types with missing runtime fields
 // This is necessary because the generated SDK types are currently missing these fields
 // that are returned by the API at runtime.
-// TODO: Remove ExtendedProviderDto after SDK regeneration (see GitHub issue #YYY or similar task to fix OpenAPI generation)
+// TODO: Remove ExtendedProviderDto after SDK regeneration (see GitHub issue #42)
 type ExtendedProviderDto = Omit<MeAjudaAiModulesProvidersApplicationDtosProviderDto, 'documents' | 'qualifications'> & {
     services?: {
         serviceId?: string;
@@ -192,7 +192,7 @@ export function mapApiProviderToProvider(
             documentType: (d.documentType as unknown as EDocumentType) ?? EDocumentType.Other,
             fileName: d.fileName ?? '',
             fileUrl: d.fileUrl ?? '',
-            status: (d.status as unknown as EDocumentStatus),
+            status: (d.status as unknown as EDocumentStatus) ?? EDocumentStatus.PendingVerification,
             uploadedAt: d.uploadedAt,
             verifiedAt: d.verifiedAt,
             rejectionReason: d.rejectionReason,

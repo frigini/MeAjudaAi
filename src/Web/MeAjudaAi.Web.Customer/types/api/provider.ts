@@ -16,9 +16,7 @@ export interface ServiceDto {
 
 export interface ProviderServiceDto {
     serviceId: string;
-    price: number;
-    currency: string;
-    serviceName?: string; // Flattened for display
+    serviceName: string; // Flattened for display
 }
 
 export interface AddressDto {
@@ -166,7 +164,9 @@ export interface RegisterProviderRequest {
     type: EProviderType;
     documentNumber: string;
     phoneNumber: string; // Required in backend
-    email?: string;
+    email: string; // Required in backend
+    acceptedTerms: boolean;
+    acceptedPrivacyPolicy: boolean;
 }
 
 export const PROVIDER_TYPE_LABELS: Record<EProviderType, string> = {

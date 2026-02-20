@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useRegisterProvider } from "@/hooks/use-register-provider";
 import { EProviderType } from "@/types/api/provider";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
@@ -28,6 +29,8 @@ export default function RegisterProviderPage() {
             documentNumber: "",
             phoneNumber: "",
             email: "",
+            acceptedTerms: false,
+            acceptedPrivacyPolicy: false,
         },
     });
 
@@ -164,6 +167,48 @@ export default function RegisterProviderPage() {
                                     <Input placeholder="(00) 00000-0000" {...field} />
                                 </FormControl>
                                 <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="acceptedTerms"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                                <FormControl>
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                    <FormLabel>
+                                        Aceito os termos de uso
+                                    </FormLabel>
+                                    <FormMessage />
+                                </div>
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="acceptedPrivacyPolicy"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                                <FormControl>
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                    <FormLabel>
+                                        Aceito a política de privacidade
+                                    </FormLabel>
+                                    <FormMessage />
+                                </div>
                             </FormItem>
                         )}
                     />

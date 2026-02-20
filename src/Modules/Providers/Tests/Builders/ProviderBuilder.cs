@@ -72,7 +72,12 @@ public class ProviderBuilder : BaseBuilder<Provider>
                 // Define tier se especificado
                 if (_tier.HasValue)
                 {
-                    typeof(Provider).GetProperty(nameof(Provider.Tier))?.SetValue(provider, _tier.Value);
+                    var prop = typeof(Provider).GetProperty(nameof(Provider.Tier));
+                    if (prop == null)
+                    {
+                        throw new InvalidOperationException($"A propriedade '{nameof(Provider.Tier)}' não foi encontrada na classe {nameof(Provider)}.");
+                    }
+                    prop.SetValue(provider, _tier.Value);
                 }
 
                 return provider;
