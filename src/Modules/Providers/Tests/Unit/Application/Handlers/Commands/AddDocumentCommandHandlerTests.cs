@@ -54,8 +54,10 @@ public class AddDocumentCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(providerId);
-        result.Value.FileName.Should().Be("doc.pdf");
-        result.Value.FileUrl.Should().Be("https://storage/doc.pdf");
+        result.Value.Documents.Should().NotBeEmpty();
+        var doc = result.Value.Documents.First();
+        doc.FileName.Should().Be("doc.pdf");
+        doc.FileUrl.Should().Be("https://storage/doc.pdf");
 
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),

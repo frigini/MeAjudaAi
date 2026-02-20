@@ -26,6 +26,8 @@ public partial class Program
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.WebHost.ConfigureKestrel(opts => opts.AddServerHeader = false);
+
             ConfigureLogging(builder);
 
             // Configurações via ServiceDefaults e Shared (sem duplicar Serilog)

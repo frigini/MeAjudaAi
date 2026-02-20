@@ -143,6 +143,7 @@ export interface ProviderDto {
     description?: string | null;
     averageRating?: number;
     reviewCount?: number;
+    rejectionReason?: string | null;
 
     // Helper accessors for Location
     city?: string;

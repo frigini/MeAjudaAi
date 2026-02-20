@@ -120,6 +120,12 @@ public class ProviderBuilder : BaseBuilder<Provider>
         return this;
     }
 
+    public ProviderBuilder WithDocument(string number, EDocumentType type, string fileName, string fileUrl)
+    {
+        _documents.Add(new Document(number, type, fileName, fileUrl));
+        return this;
+    }
+
     public ProviderBuilder WithQualification(string name, string description, string organization, DateTime issueDate, DateTime expirationDate, string documentNumber)
     {
         _qualifications.Add(new Qualification(name, description, organization, issueDate, expirationDate, documentNumber));

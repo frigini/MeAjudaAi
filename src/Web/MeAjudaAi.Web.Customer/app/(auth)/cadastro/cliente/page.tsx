@@ -32,7 +32,6 @@ export default function CustomerRegisterPage() {
                     </div>
 
                     <div className="flex flex-col gap-4">
-                        {/* Placeholder for social buttons if needed, or redirect to Keycloak */}
                         <Button variant="outline" className="w-full" asChild>
                             <Link href="/api/auth/signin">
                                 Login com Social / Existente

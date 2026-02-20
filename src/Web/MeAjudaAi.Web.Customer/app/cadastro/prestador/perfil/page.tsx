@@ -6,7 +6,7 @@ import Link from "next/link";
 import { EProviderStatus, PROVIDER_STATUS_LABELS, PROVIDER_TIER_LABELS } from "@/types/api/provider";
 
 export default function ProviderProfilePage() {
-    const { data: profile, isLoading, error } = useMyProviderProfile();
+    const { data: profile, isLoading, error, refetch } = useMyProviderProfile();
 
     if (isLoading) {
         return (
@@ -21,7 +21,7 @@ export default function ProviderProfilePage() {
             <div className="container mx-auto py-10 text-center max-w-md">
                 <div className="text-red-500 mb-4 text-xl font-semibold">Erro ao carregar status</div>
                 <p className="text-muted-foreground mb-6">Ocorreu um problema ao verificar seu cadastro.</p>
-                <Button onClick={() => window.location.reload()} variant="outline">Tentar Novamente</Button>
+                <Button onClick={() => refetch()} variant="outline">Tentar Novamente</Button>
             </div>
         );
     }
@@ -62,7 +62,11 @@ export default function ProviderProfilePage() {
                     </span>
                 </div>
 
-                {/* TODO: Add rejectionReason to ProviderDto */}
+                {profile.status === EProviderStatus.Rejected && profile.rejectionReason && (
+                    <div className="mt-4 p-4 bg-red-50 text-red-800 text-sm rounded-md border border-red-200">
+                        <strong>Motivo da rejeição:</strong> {profile.rejectionReason}
+                    </div>
+                )}
 
                 <div className="mt-4 pt-4 border-t">
                     <p className="text-muted-foreground">
@@ -144,7 +148,10 @@ export default function ProviderProfilePage() {
                         <div>
                             {hasDocuments || isPendingVerification ? (
                                 <div className="flex flex-col gap-2">
-                                    <p className="text-sm text-green-700">{isPendingVerification ? "Em Análise" : "Enviados"}</p>
+                                    <p className="text-sm text-green-700">
+                                        {profile.status === EProviderStatus.Active ? "Verificados" :
+                                            isPendingVerification ? "Em Análise" : "Enviados"}
+                                    </p>
                                     <Link href="/cadastro/prestador/perfil/documentos" className="text-xs text-primary underline">
                                         Gerenciar
                                     </Link>

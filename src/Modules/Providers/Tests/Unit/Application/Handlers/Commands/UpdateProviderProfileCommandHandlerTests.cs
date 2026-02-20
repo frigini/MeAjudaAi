@@ -253,13 +253,15 @@ public class UpdateProviderProfileCommandHandlerTests
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
             Times.Never);
+    }
+
     [Fact]
     public async Task HandleAsync_WithServices_ShouldUpdateServices()
     {
         // Arrange
         var providerId = Guid.NewGuid();
         var updatedBy = Guid.NewGuid();
-        var provider = ProviderBuilder.Create().WithId(providerId);
+        var provider = ProviderBuilder.Create().WithId(providerId).Build();
 
         var businessProfileDto = new BusinessProfileDto(
             LegalName: "Prestador",

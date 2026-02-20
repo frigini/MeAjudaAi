@@ -87,6 +87,7 @@ type ExtendedProviderDto = Omit<MeAjudaAiModulesProvidersApplicationDtosProvider
     }[];
     averageRating?: number;
     reviewCount?: number;
+    rejectionReason?: string;
     tier?: EProviderTier | number;
     // Documents in ProviderDto seems to be using a different DTO in the spec than what is returned or expected here
     documents?: {
@@ -140,6 +141,7 @@ export function mapApiProviderToProvider(
 
         averageRating: dto.averageRating ?? 0,
         reviewCount: dto.reviewCount ?? 0,
+        rejectionReason: dto.rejectionReason,
 
         // Map services
         services: services.map(s => ({

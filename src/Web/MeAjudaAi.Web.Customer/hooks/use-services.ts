@@ -20,5 +20,6 @@ export function useServices() {
             return (data?.data || []) as ServiceListDto[];
         },
         staleTime: SERVICES_STALE_TIME,
+        gcTime: SERVICES_STALE_TIME,
     });
 }

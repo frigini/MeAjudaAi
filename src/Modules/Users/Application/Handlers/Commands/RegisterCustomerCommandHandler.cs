@@ -12,12 +12,15 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 
-public sealed class RegisterCustomerCommandHandler(
+public sealed partial class RegisterCustomerCommandHandler(
     IUserDomainService userDomainService,
     IUserRepository userRepository,
     ILogger<RegisterCustomerCommandHandler> logger
 ) : ICommandHandler<RegisterCustomerCommand, Result<UserDto>>
 {
+    [GeneratedRegex(@"[^a-zA-Z0-9._\-]", RegexOptions.Compiled)]
+    private static partial Regex SanitizationRegex();
+
     public async Task<Result<UserDto>> HandleAsync(RegisterCustomerCommand command, CancellationToken cancellationToken = default)
     {
         if (!command.TermsAccepted)
@@ -34,11 +37,18 @@ public sealed class RegisterCustomerCommandHandler(
             
             var fullLocalPart = emailAsValueObject.Value.Split('@')[0];
             var noTagLocalPart = fullLocalPart.Split('+')[0];
-            var sanitizedLocalPart = Regex.Replace(noTagLocalPart, @"[^a-zA-Z0-9._\-]", "");
+            var sanitizedLocalPart = SanitizationRegex().Replace(noTagLocalPart, "");
             
             if (string.IsNullOrWhiteSpace(sanitizedLocalPart) || sanitizedLocalPart.Length < 3)
             {
-                sanitizedLocalPart = $"user{Guid.NewGuid().ToString("N").Substring(0, 5)}";
+                sanitizedLocalPart = $"usr{Guid.NewGuid().ToString("N").Substring(0, 5)}";
+            }
+            
+            // UsernameMaxLength defaults to 50 in ValidationConstants. Deduct 1 for "_" and 6 for the trailing GUID.
+            int maxLocalPartLength = MeAjudaAi.Shared.Utilities.Constants.ValidationConstants.UserLimits.UsernameMaxLength - 7;
+            if (sanitizedLocalPart.Length > maxLocalPartLength)
+            {
+                sanitizedLocalPart = sanitizedLocalPart.Substring(0, maxLocalPartLength);
             }
             
             var slug = $"{sanitizedLocalPart}_{Guid.NewGuid().ToString("N").Substring(0, 6)}";

@@ -151,11 +151,13 @@ export function CustomerRegisterForm() {
                                             size="sm"
                                             className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                                             onClick={() => setShowPassword(!showPassword)}
+                                            aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                                            title={showPassword ? "Ocultar senha" : "Mostrar senha"}
                                         >
                                             {showPassword ? (
-                                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                                <EyeOff className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                                             ) : (
-                                                <Eye className="h-4 w-4 text-muted-foreground" />
+                                                <Eye className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                                             )}
                                         </Button>
                                     </div>
@@ -184,11 +186,13 @@ export function CustomerRegisterForm() {
                                             size="sm"
                                             className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            aria-label={showConfirmPassword ? "Ocultar confirmação de senha" : "Mostrar confirmação de senha"}
+                                            title={showConfirmPassword ? "Ocultar confirmação de senha" : "Mostrar confirmação de senha"}
                                         >
                                             {showConfirmPassword ? (
-                                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                                <EyeOff className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                                             ) : (
-                                                <Eye className="h-4 w-4 text-muted-foreground" />
+                                                <Eye className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                                             )}
                                         </Button>
                                     </div>

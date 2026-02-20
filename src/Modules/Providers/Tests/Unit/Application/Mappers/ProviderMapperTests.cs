@@ -313,8 +313,8 @@ public class ProviderMapperTests
     {
         // Arrange
         var provider = ProviderBuilder.Create()
-            .WithDocument("12345678900", EDocumentType.CPF)
-            .WithDocument("12345678000100", EDocumentType.CNPJ)
+            .WithDocument("12345678900", EDocumentType.CPF, "doc1.pdf", "https://storage/doc1.pdf")
+            .WithDocument("12345678000100", EDocumentType.CNPJ, "doc2.pdf", "https://storage/doc2.pdf")
             .Build();
 
         // Act
@@ -322,8 +322,14 @@ public class ProviderMapperTests
 
         // Assert
         dto.Documents.Should().HaveCount(2);
-        dto.Documents.Should().Contain(d => d.DocumentType == EDocumentType.CPF);
-        dto.Documents.Should().Contain(d => d.DocumentType == EDocumentType.CNPJ);
+        
+        var cpfDoc = dto.Documents.Single(d => d.DocumentType == EDocumentType.CPF);
+        cpfDoc.FileName.Should().Be("doc1.pdf");
+        cpfDoc.FileUrl.Should().Be("https://storage/doc1.pdf");
+
+        var cnpjDoc = dto.Documents.Single(d => d.DocumentType == EDocumentType.CNPJ);
+        cnpjDoc.FileName.Should().Be("doc2.pdf");
+        cnpjDoc.FileUrl.Should().Be("https://storage/doc2.pdf");
     }
 
     [Fact]
