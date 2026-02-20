@@ -46,6 +46,7 @@ public class ProviderMapperTests
         dto.DeletedAt.Should().Be(provider.DeletedAt);
         dto.SuspensionReason.Should().Be(provider.SuspensionReason);
         dto.RejectionReason.Should().Be(provider.RejectionReason);
+        dto.Tier.Should().Be(EProviderTier.Standard);
 
         // Assert nested BusinessProfile mapping
         dto.BusinessProfile.Should().NotBeNull();
@@ -324,10 +325,12 @@ public class ProviderMapperTests
         dto.Documents.Should().HaveCount(2);
         
         var cpfDoc = dto.Documents.Single(d => d.DocumentType == EDocumentType.CPF);
+        cpfDoc.Number.Should().Be("12345678900");
         cpfDoc.FileName.Should().Be("doc1.pdf");
         cpfDoc.FileUrl.Should().Be("https://storage/doc1.pdf");
 
         var cnpjDoc = dto.Documents.Single(d => d.DocumentType == EDocumentType.CNPJ);
+        cnpjDoc.Number.Should().Be("12345678000100");
         cnpjDoc.FileName.Should().Be("doc2.pdf");
         cnpjDoc.FileUrl.Should().Be("https://storage/doc2.pdf");
     }

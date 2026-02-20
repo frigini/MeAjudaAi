@@ -5,6 +5,23 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { EProviderStatus, PROVIDER_STATUS_LABELS, PROVIDER_TIER_LABELS } from "@/types/api/provider";
 
+function getProviderStatusMessage(status: EProviderStatus): string {
+    switch (status) {
+        case EProviderStatus.PendingBasicInfo:
+            return "Complete seu cadastro informando seu endereço e enviando seus documentos.";
+        case EProviderStatus.Active:
+            return "Seu cadastro está ativo. Você já pode oferecer serviços.";
+        case EProviderStatus.Rejected:
+            return "Ocorreu um problema com seu cadastro. Verifique os motivos da rejeição e corrija as informações.";
+        case EProviderStatus.PendingDocumentVerification:
+            return "Seu cadastro está em análise. Aguarde a verificação dos documentos.";
+        case EProviderStatus.Suspended:
+            return "Seu cadastro está temporariamente suspenso.";
+        default:
+            return "Aguarde a atualização do seu status.";
+    }
+}
+
 export default function ProviderProfilePage() {
     const { data: profile, isLoading, error, refetch } = useMyProviderProfile();
 
@@ -40,7 +57,7 @@ export default function ProviderProfilePage() {
         );
     }
 
-    const hasAddress = !!profile.businessProfile?.primaryAddress;
+    const hasAddress = !!profile.businessProfile?.primaryAddress?.street;
     const hasDocuments = (profile.documents?.length ?? 0) > 0;
     const isPendingVerification = profile.status === EProviderStatus.PendingDocumentVerification;
 
@@ -70,22 +87,7 @@ export default function ProviderProfilePage() {
 
                 <div className="mt-4 pt-4 border-t">
                     <p className="text-muted-foreground">
-                        {(() => {
-                            switch (profile.status) {
-                                case EProviderStatus.PendingBasicInfo:
-                                    return "Complete seu cadastro informando seu endereço e enviando seus documentos.";
-                                case EProviderStatus.Active:
-                                    return "Seu cadastro está ativo. Você já pode oferecer serviços.";
-                                case EProviderStatus.Rejected:
-                                    return "Ocorreu um problema com seu cadastro. Verifique os motivos da rejeição e corrija as informações.";
-                                case EProviderStatus.PendingDocumentVerification:
-                                    return "Seu cadastro está em análise. Aguarde a verificação dos documentos.";
-                                case EProviderStatus.Suspended:
-                                    return "Seu cadastro está temporariamente suspenso.";
-                                default:
-                                    return "Aguarde a atualização do seu status.";
-                            }
-                        })()}
+                        {getProviderStatusMessage(profile.status)}
                     </p>
                 </div>
             </div>

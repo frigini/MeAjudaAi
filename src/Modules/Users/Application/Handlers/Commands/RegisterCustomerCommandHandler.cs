@@ -18,7 +18,7 @@ public sealed partial class RegisterCustomerCommandHandler(
     ILogger<RegisterCustomerCommandHandler> logger
 ) : ICommandHandler<RegisterCustomerCommand, Result<UserDto>>
 {
-    [GeneratedRegex(@"[^a-zA-Z0-9._\-]", RegexOptions.Compiled)]
+    [GeneratedRegex(@"[^a-zA-Z0-9._\-]")]
     private static partial Regex SanitizationRegex();
 
     public async Task<Result<UserDto>> HandleAsync(RegisterCustomerCommand command, CancellationToken cancellationToken = default)
@@ -44,7 +44,7 @@ public sealed partial class RegisterCustomerCommandHandler(
                 sanitizedLocalPart = $"usr{Guid.NewGuid().ToString("N").Substring(0, 5)}";
             }
             
-            // UsernameMaxLength defaults to 50 in ValidationConstants. Deduct 1 for "_" and 6 for the trailing GUID.
+            // UsernameMaxLength é 30 em ValidationConstants; deduz 1 para '_' e 6 para GUID => localPartMax = UsernameMaxLength - 7
             int maxLocalPartLength = MeAjudaAi.Shared.Utilities.Constants.ValidationConstants.UserLimits.UsernameMaxLength - 7;
             if (sanitizedLocalPart.Length > maxLocalPartLength)
             {
@@ -74,7 +74,7 @@ public sealed partial class RegisterCustomerCommandHandler(
         // Cria usuário com papel de "cliente"
         var names = command.Name.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
         var firstName = names.FirstOrDefault() ?? command.Name;
-        var lastName = names.Length > 1 ? names[1] : "";
+        var lastName = names.Length > 1 && !string.IsNullOrWhiteSpace(names[1]) ? names[1] : firstName;
         
         var userResult = await userDomainService.CreateUserAsync(
             validUsername,

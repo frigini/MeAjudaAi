@@ -59,8 +59,10 @@ export function CustomerRegisterForm() {
                 description: "Redirecionando para login...",
             });
 
-            // Redirect to signin
-            router.replace("/api/auth/signin");
+            // Delay redirect to allow toast to be visible
+            setTimeout(() => {
+                router.replace("/api/auth/signin");
+            }, 1000);
 
         } catch (error) {
             console.error("Erro ao criar conta:", error);
@@ -115,6 +117,8 @@ export function CustomerRegisterForm() {
                             <FormLabel>Celular (com DDD)</FormLabel>
                             <FormControl>
                                 <Input
+                                    type="tel"
+                                    inputMode="numeric"
                                     placeholder="(00) 00000-0000"
                                     {...field}
                                     onChange={(e) => {

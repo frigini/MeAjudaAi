@@ -59,8 +59,8 @@ export enum EProviderType {
     None = 0,
     Individual = 1,
     Company = 2,
-    Freelancer = 3,
-    Cooperative = 4
+    Cooperative = 3,
+    Freelancer = 4
 }
 
 export enum EProviderStatus {
@@ -116,6 +116,8 @@ export interface DocumentDto {
     verifiedAt?: string | null;
     rejectionReason?: string | null;
     ocrData?: string | null;
+    number?: string;
+    isPrimary?: boolean;
 }
 
 export interface ProviderDto {
@@ -144,6 +146,7 @@ export interface ProviderDto {
     averageRating?: number;
     reviewCount?: number;
     rejectionReason?: string | null;
+    suspensionReason?: string | null;
 
     // Helper accessors for Location
     city?: string;
@@ -155,6 +158,7 @@ export interface ProviderStatusDto {
     tier: EProviderTier;
     verificationStatus: EVerificationStatus;
     rejectionReason?: string | null;
+    suspensionReason?: string | null;
 }
 
 export interface RegisterProviderRequest {

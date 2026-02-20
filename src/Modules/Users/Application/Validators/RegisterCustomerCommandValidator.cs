@@ -18,7 +18,7 @@ public class RegisterCustomerCommandValidator : AbstractValidator<RegisterCustom
             .MaximumLength(ValidationConstants.UserLimits.EmailMaxLength).WithMessage($"Email deve ter no máximo {ValidationConstants.UserLimits.EmailMaxLength} caracteres");
             
         RuleFor(x => x.PhoneNumber)
-            .MaximumLength(20).WithMessage("Telefone deve ter no máximo 20 caracteres")
+            .MaximumLength(ValidationConstants.UserLimits.PhoneNumberMaxLength).WithMessage($"Telefone deve ter no máximo {ValidationConstants.UserLimits.PhoneNumberMaxLength} caracteres")
             .When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber));
             
         RuleFor(x => x.Password)

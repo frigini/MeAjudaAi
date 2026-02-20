@@ -88,7 +88,9 @@ type ExtendedProviderDto = Omit<MeAjudaAiModulesProvidersApplicationDtosProvider
     averageRating?: number;
     reviewCount?: number;
     rejectionReason?: string;
+    suspensionReason?: string;
     tier?: EProviderTier | number;
+    profilePictureUrl?: string;
     // Documents in ProviderDto seems to be using a different DTO in the spec than what is returned or expected here
     documents?: {
         id?: string;
@@ -101,6 +103,8 @@ type ExtendedProviderDto = Omit<MeAjudaAiModulesProvidersApplicationDtosProvider
         verifiedAt?: string;
         rejectionReason?: string;
         ocrData?: string;
+        number?: string;
+        isPrimary?: boolean;
     }[];
     qualifications?: {
         name?: string;
@@ -136,12 +140,13 @@ export function mapApiProviderToProvider(
         // Helper accessors
         email: contactInfo?.email ?? '',
         phone: contactInfo?.phoneNumber,
-        avatarUrl: getMockAvatarUrl(dto.id),
+        avatarUrl: dto.profilePictureUrl ?? getMockAvatarUrl(dto.id),
         description: businessProfile?.description || '',
 
         averageRating: dto.averageRating ?? 0,
         reviewCount: dto.reviewCount ?? 0,
         rejectionReason: dto.rejectionReason,
+        suspensionReason: dto.suspensionReason,
 
         // Map services
         services: services.map(s => ({
@@ -191,7 +196,9 @@ export function mapApiProviderToProvider(
             uploadedAt: d.uploadedAt ?? '',
             verifiedAt: d.verifiedAt,
             rejectionReason: d.rejectionReason,
-            ocrData: d.ocrData
+            ocrData: d.ocrData,
+            number: d.number,
+            isPrimary: d.isPrimary
         })) || [],
         qualifications: dto.qualifications?.map(q => ({
             name: q.name ?? '',
