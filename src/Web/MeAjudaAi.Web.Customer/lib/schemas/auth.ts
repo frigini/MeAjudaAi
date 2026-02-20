@@ -46,7 +46,11 @@ export const registerCustomerSchema = z.object({
     name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
     email: z.string().email("Email inválido"),
     phoneNumber: z.string().min(10, "Telefone inválido"),
-    password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+    password: z.string()
+        .min(8, "Senha deve ter pelo menos 8 caracteres")
+        .regex(/[a-zA-Z]/, "A senha deve conter pelo menos uma letra")
+        .regex(/[0-9]/, "A senha deve conter pelo menos um número")
+        .regex(/[^a-zA-Z0-9]/, "A senha deve conter pelo menos um caractere especial"),
     confirmPassword: z.string(),
     termsAccepted: z.boolean().refine((val) => val === true, "Você deve aceitar os termos de uso"),
 }).refine((data) => data.password === data.confirmPassword, {

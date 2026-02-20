@@ -1,8 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { client } from "@/lib/api/client";
 import { ProviderDto } from "@/types/api/provider";
-import { ApiResponse } from "@/types/api";
 import { authenticatedFetch } from "@/lib/api/fetch-client";
 
 export function useMyProviderProfile() {
@@ -19,17 +17,7 @@ export function useMyProviderProfile() {
                 });
 
                 if (result === undefined) {
-                    // authenticatedFetch returns undefined if the response status is 204 No Content
-                    // or if the response body is empty/unparseable for a successful status.
-                    // For a profile fetch, this might indicate no profile found,
-                    // or an unexpected empty response.
-                    // Given the original code returned `null` for 404,
-                    // we can treat an undefined result similarly if it implies no profile.
-                    // However, the instruction specifically asks to "handle `undefined` return"
-                    // and the example shows throwing an error for registration.
-                    // For a GET request, an undefined result for a successful status
-                    // is usually an unexpected scenario if a DTO is expected.
-                    // Let's assume `undefined` here means no profile found, similar to 404.
+                    // Treat undefined as no profile found.
                     return null;
                 }
                 return result;

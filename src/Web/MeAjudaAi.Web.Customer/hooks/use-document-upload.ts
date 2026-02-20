@@ -4,7 +4,6 @@ import { authenticatedFetch } from "@/lib/api/fetch-client";
 import { EDocumentType } from "@/types/api/provider";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 
 interface UploadDocumentResponse {
     documentId: string;
@@ -38,27 +37,24 @@ export function useDocumentUpload(options?: UseDocumentUploadOptions) {
 
         try {
             // 1. Get SAS Token (Upload URL)
-            console.log("Requesting upload URL for:", file.name, documentType);
             const uploadResponse = await authenticatedFetch<UploadDocumentResponse>("/api/v1/documents/upload", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
+                body: {
                     providerId,
                     documentType,
                     fileName: file.name,
                     contentType: file.type || "application/octet-stream",
                     fileSizeBytes: file.size,
-                }),
+                },
                 token: session.accessToken,
             });
 
             if (!uploadResponse || !uploadResponse.uploadUrl) {
                 throw new Error("Falha ao obter URL de upload.");
             }
-
-            console.log("Got upload URL, starting blob upload...");
 
             // 2. Upload file to Azure Blob Storage using SAS URL
             // Direct fetch to Azure, no auth header needed (handled by SAS)
@@ -76,23 +72,19 @@ export function useDocumentUpload(options?: UseDocumentUploadOptions) {
                 throw new Error(`Falha no upload do arquivo para o storage: ${blobResponse.statusText}`);
             }
 
-            console.log("Blob upload success. Registering document in profile...");
-
             // 3. Register document in Provider Profile (using UploadMyDocumentEndpoint)
             await authenticatedFetch("/api/v1/providers/me/documents", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
+                body: {
                     documentType,
                     fileName: file.name,
                     fileUrl: uploadResponse.blobName, // Storing BlobName as reference
-                }),
+                },
                 token: session.accessToken,
             });
-
-            console.log("Document registered successfully.");
 
             clearInterval(progressInterval);
             setProgress(100);

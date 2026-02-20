@@ -48,9 +48,11 @@ export interface BusinessProfileDto {
 
 export interface QualificationDto {
     name: string;
-    issuer: string;
-    year: number;
-    fileUrl?: string;
+    description?: string;
+    issuingOrganization?: string;
+    issueDate?: string | null;
+    expirationDate?: string | null;
+    documentNumber?: string;
 }
 
 export enum EProviderType {

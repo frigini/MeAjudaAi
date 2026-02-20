@@ -102,9 +102,11 @@ type ExtendedProviderDto = Omit<MeAjudaAiModulesProvidersApplicationDtosProvider
     }[];
     qualifications?: {
         name?: string;
-        issuer?: string;
-        year?: number;
-        fileUrl?: string;
+        description?: string;
+        issuingOrganization?: string;
+        issueDate?: string;
+        expirationDate?: string;
+        documentNumber?: string;
     }[];
 };
 
@@ -115,7 +117,6 @@ export function mapApiProviderToProvider(
     rawDto: MeAjudaAiModulesProvidersApplicationDtosProviderDto
 ): ProviderDto {
     // Cast to extended interface to access missing properties safely
-    // TODO: replace double-cast when SDK types are updated — tracking: <issue-id>
     const dto = rawDto as unknown as ExtendedProviderDto;
 
     const businessProfile = dto.businessProfile as unknown as BusinessProfileDto;
@@ -191,9 +192,11 @@ export function mapApiProviderToProvider(
         })) || [],
         qualifications: dto.qualifications?.map(q => ({
             name: q.name ?? '',
-            issuer: q.issuer ?? '',
-            year: q.year ?? 0,
-            fileUrl: q.fileUrl
+            description: q.description,
+            issuingOrganization: q.issuingOrganization,
+            issueDate: q.issueDate,
+            expirationDate: q.expirationDate,
+            documentNumber: q.documentNumber
         })) || [],
 
         createdAt: dto.createdAt ?? "",

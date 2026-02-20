@@ -35,6 +35,11 @@ public sealed class UpdateProviderProfileCommandHandler(
             var businessProfile = command.BusinessProfile.ToDomain();
             provider.UpdateProfile(command.Name, businessProfile, command.UpdatedBy);
 
+            if (command.Services != null)
+            {
+                provider.UpdateServices(command.Services.Select(s => (s.ServiceId, s.ServiceName)));
+            }
+
             await providerRepository.UpdateAsync(provider, cancellationToken);
 
             logger.LogInformation("Provider profile {ProviderId} updated successfully", command.ProviderId);

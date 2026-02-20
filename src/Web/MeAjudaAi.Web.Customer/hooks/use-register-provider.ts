@@ -1,8 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { client } from "@/lib/api/client";
 import { RegisterProviderRequest, ProviderDto } from "@/types/provider";
-import { ApiResponse } from "@/types/api";
 import { authenticatedFetch } from "@/lib/api/fetch-client";
 
 export function useRegisterProvider() {

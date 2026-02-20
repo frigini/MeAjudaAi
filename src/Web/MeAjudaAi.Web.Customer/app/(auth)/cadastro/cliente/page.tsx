@@ -1,6 +1,7 @@
 import { CustomerRegisterForm } from "@/components/auth/customer-register-form";
 import Link from "next/link";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 export default function CustomerRegisterPage() {
     return (
@@ -30,13 +31,13 @@ export default function CustomerRegisterPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-4">
                         {/* Placeholder for social buttons if needed, or redirect to Keycloak */}
-                        <Link href="/api/auth/signin" className="col-span-2">
-                            <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full">
+                        <Button variant="outline" className="w-full" asChild>
+                            <Link href="/api/auth/signin">
                                 Login com Social / Existente
-                            </button>
-                        </Link>
+                            </Link>
+                        </Button>
                     </div>
 
                     <p className="px-8 text-center text-sm text-muted-foreground">

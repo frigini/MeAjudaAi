@@ -1,5 +1,4 @@
 import { twMerge } from "tailwind-merge";
-import type { ComponentProps } from "react";
 import Image, { ImageProps } from "next/image";
 
 export interface AvatarProps extends Omit<ImageProps, "src" | "alt" | "width" | "height" | "fill"> {

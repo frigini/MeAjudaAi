@@ -65,7 +65,7 @@ export function UserMenu() {
                         </Link>
                     </DropdownMenuItem>
 
-                    {/* Show Provider Section only if loaded and exists */}
+                    {/* Show provider details when loaded and exists; otherwise render 'Quero trabalhar' fallback */}
                     {!isLoadingProvider && <DropdownMenuSeparator />}
 
                     {isLoadingProvider ? (

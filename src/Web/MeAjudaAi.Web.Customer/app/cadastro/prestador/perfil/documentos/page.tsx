@@ -5,7 +5,7 @@ import { useMyProviderProfile } from "@/hooks/use-my-provider-profile";
 import { useDocumentUpload } from "@/hooks/use-document-upload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { EDocumentStatus, EDocumentType } from "@/types/api/provider";
+import { EDocumentStatus, EDocumentType, EProviderStatus } from "@/types/api/provider";
 import { Loader2, Upload, FileText, CheckCircle, AlertCircle, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 
 export default function ProviderDocumentsPage() {
     const router = useRouter();
-    const { data: profile, isLoading: isLoadingProfile } = useMyProviderProfile();
+    const { data: profile, isLoading: isLoadingProfile, error } = useMyProviderProfile();
     const { uploadDocument, isUploading } = useDocumentUpload();
     const [uploadingType, setUploadingType] = useState<EDocumentType | null>(null);
 
@@ -61,57 +61,16 @@ export default function ProviderDocumentsPage() {
     }
 
 
-
-    // Note: EDocumentType.CPF and EDocumentType.CNPJ are specific. 
-    // Usually Identity covers RG/CNH. 
-    // Is CPF separate? In Brazil, usually yes if RG doesn't have it.
-    // Let's use Identity as primary ID.
-    // And if type is Company, maybe CNPJ card?
-    // For now, let's just list a standard set.
-
-    // Actually, looking at types/api/provider.ts:
-    // None = 0, CPF = 1, CNPJ = 2, RG = 3, CNH = 4, Passport = 5, Other = 99
-    // So there is NO "Identity" generic type.
-    // I should probably ask for "Identidade (RG, CNH ou Passaporte)" and map to RG or CNH based on user selection or just use "RG" as generic?
-    // Or allow user to select type.
-    // For MVP, let's ask for specific types or map "Identity" UI to a dropdown?
-    // Let's simplify: Ask for "Documento de Identificação" and handle type selection later or default to RG/CNH?
-    // Or just list types:
-    // 1. Identificação (RG, CNH ou Passaporte)
-    // 2. CPF (se não constar na identificação) - optional?
-    // 3. Comprovante de Residência (Type not in enum? Just "Other" or mapped?)
-
-    // Wait, EDocumentType enum in simple version is:
-    // CPF, CNPJ, RG, CNH, Passport, Other.
-    // There is NO "ProofOfResidence" in the enum I saw in grep?
-    // Let's check grep again.
-    // The grep output for UploadDocumentEndpoint comments mentioned: "- ProofOfResidence".
-    // But verify the file provider.ts again.
-
-    // provider.ts content:
-    // export enum EDocumentType {
-    //     None = 0,
-    //     CPF = 1,
-    //     CNPJ = 2,
-    //     RG = 3,
-    //     CNH = 4,
-    //     Passport = 5,
-    //     Other = 99
-    // }
-
-    // So "ProofOfResidence" is MISSING from provider.ts enum!
-    // But backend UploadDocumentEndpoint logic supports it (comments say so).
-    // This means frontend definitions are OUT OF SYNC with backend if backend supports it.
-    // Or backend comments are aspirational.
-    // I should check backend `EDocumentType.cs`.
-    // But for now, I'll stick to what frontend supports: "Other" for residence?
-    // Or just asking for CNH/RG.
-
-    // Let's stick to asking for CNH or RG (Identidade).
-    // And maybe Other for Residence?
-
-    // Re-mapped required documents based on available ENUMS:
-
+    if (error) {
+        return (
+            <div className="container mx-auto py-20 text-center">
+                <p className="text-red-500 font-medium">Erro ao carregar perfil.</p>
+                <Button onClick={() => window.location.reload()} variant="outline" className="mt-4">
+                    Tentar Novamente
+                </Button>
+            </div>
+        );
+    }
 
     const getStatusBadge = (status: EDocumentStatus) => {
         switch (status) {
@@ -250,7 +209,21 @@ export default function ProviderDocumentsPage() {
                                                 <p className="font-medium text-sm truncate max-w-[200px]">{cpf.fileName}</p>
                                             </div>
                                         </div>
-                                        {getStatusBadge(cpf.status)}
+                                        <div className="flex items-center gap-2">
+                                            {getStatusBadge(cpf.status)}
+                                            {cpf.status === EDocumentStatus.Rejected && (
+                                                <div className="relative">
+                                                    <input
+                                                        type="file"
+                                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                        accept=".pdf,.jpg,.jpeg,.png"
+                                                        onChange={(e) => handleFileChange(e, EDocumentType.CPF)}
+                                                        disabled={isUploading}
+                                                    />
+                                                    <Button variant="outline" size="sm">Reenviar</Button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 );
                             }
@@ -285,7 +258,7 @@ export default function ProviderDocumentsPage() {
                 </Button>
                 <Button
                     onClick={() => router.push("/cadastro/prestador/perfil")}
-                    variant={profile.status === 2 ? "primary" : "secondary"}
+                    variant={profile.status === EProviderStatus.PendingDocumentVerification ? "primary" : "secondary"}
                 >
                     Concluir
                 </Button>

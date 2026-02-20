@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
 import { User, Briefcase } from "lucide-react";
 
@@ -16,7 +15,7 @@ export function AuthSelectionDropdown() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="hidden md:flex">
+                <Button variant="outline" size="sm">
                     Cadastre-se grátis
                 </Button>
             </DropdownMenuTrigger>

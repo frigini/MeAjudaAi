@@ -302,11 +302,13 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                                 .HasColumnName("document_type");
 
                             b1.Property<string>("FileName")
-                                .HasColumnType("text")
+                                .HasMaxLength(255)
+                                .HasColumnType("character varying(255)")
                                 .HasColumnName("file_name");
 
                             b1.Property<string>("FileUrl")
-                                .HasColumnType("text")
+                                .HasMaxLength(2048)
+                                .HasColumnType("character varying(2048)")
                                 .HasColumnName("file_url");
 
                             b1.Property<bool>("IsPrimary")

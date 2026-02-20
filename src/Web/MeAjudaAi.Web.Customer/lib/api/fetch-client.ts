@@ -60,7 +60,7 @@ export async function authenticatedFetch<T>(endpoint: string, options: FetchOpti
 
     // Normalize Result<T> wrapper
     if (json && typeof json === 'object' && 'value' in json) {
-        const value = (json as any).value;
+        const value = (json as Record<string, unknown>).value;
         if (value === null || value === undefined) {
             throw new Error("Response contained null/undefined value for expected Result<T>");
         }
@@ -112,12 +112,18 @@ export async function publicFetch<T>(endpoint: string, options: FetchOptions = {
     const json = await response.json();
 
     if (json && typeof json === 'object' && 'value' in json) {
-        const value = (json as any).value;
+        const value = (json as Record<string, unknown>).value;
+        if (value === null || value === undefined) {
+            throw new Error("Response contained null/undefined value for expected Result<T>");
+        }
         return value as T;
     }
 
     if (json && typeof json === 'object' && 'data' in json) {
         const apiRes = json as ApiResponse<T>;
+        if (apiRes.data === null || apiRes.data === undefined) {
+            throw new Error(apiRes.message || "API interaction failed");
+        }
         return apiRes.data as T;
     }
 

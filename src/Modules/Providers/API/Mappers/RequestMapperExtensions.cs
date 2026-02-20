@@ -43,7 +43,8 @@ public static class RequestMapperExtensions
         return new UpdateProviderProfileCommand(
             providerId,
             request.Name,
-            request.BusinessProfile
+            request.BusinessProfile,
+            request.Services
         );
     }
 

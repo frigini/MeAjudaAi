@@ -49,7 +49,17 @@ export default function ProviderAddressPage() {
                 state: addr.state || "",
             });
         }
-    }, [profile?.businessProfile?.primaryAddress, reset]); // Specific deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        profile?.businessProfile?.primaryAddress?.zipCode,
+        profile?.businessProfile?.primaryAddress?.street,
+        profile?.businessProfile?.primaryAddress?.number,
+        profile?.businessProfile?.primaryAddress?.complement,
+        profile?.businessProfile?.primaryAddress?.neighborhood,
+        profile?.businessProfile?.primaryAddress?.city,
+        profile?.businessProfile?.primaryAddress?.state,
+        reset
+    ]); // Specific scalar deps
 
     const handleCepBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
         const cep = e.target.value;

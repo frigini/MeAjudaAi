@@ -11,5 +11,6 @@ public sealed record UpdateProviderProfileCommand(
     Guid ProviderId,
     string Name,
     BusinessProfileDto BusinessProfile,
+    List<ProviderServiceDto> Services,
     string? UpdatedBy = null
 ) : Command<Result<ProviderDto>>;

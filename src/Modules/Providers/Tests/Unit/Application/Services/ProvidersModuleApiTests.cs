@@ -246,6 +246,8 @@ public class ProvidersModuleApiTests
                 new DocumentDto(
                     Number: "12345678901",
                     DocumentType: EDocumentType.CPF,
+                    FileName: "cpf.pdf",
+                    FileUrl: "https://storage.blob.core.windows.net/docs/cpf.pdf",
                     IsPrimary: true
                 )
             },

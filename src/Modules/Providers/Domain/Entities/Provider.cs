@@ -653,6 +653,38 @@ public sealed class Provider : AggregateRoot<ProviderId>
     }
 
     /// <summary>
+    /// Atualiza a lista de serviços oferecidos pelo prestador.
+    /// </summary>
+    /// <param name="newServices">Nova lista de serviços (ID e Nome)</param>
+    public void UpdateServices(IEnumerable<(Guid ServiceId, string ServiceName)> newServices)
+    {
+        if (IsDeleted)
+            throw new ProviderDomainException("Cannot update services of deleted provider");
+
+        var currentServiceIds = _services.Select(s => s.ServiceId).ToHashSet();
+        var newServiceList = newServices.ToList();
+        var newServiceIds = newServiceList.Select(s => s.ServiceId).ToHashSet();
+
+        // Identify services to remove
+        var servicesToRemove = currentServiceIds.Except(newServiceIds).ToList();
+        foreach (var serviceId in servicesToRemove)
+        {
+            RemoveService(serviceId);
+        }
+
+        // Identify services to add
+        // Note: For existing services, we don't update names here as they come from catalog
+        // Only add new ones that are not present
+        foreach (var (serviceId, serviceName) in newServiceList)
+        {
+            if (!currentServiceIds.Contains(serviceId))
+            {
+                AddService(serviceId, serviceName);
+            }
+        }
+    }
+
+    /// <summary>
     /// Exclui logicamente o prestador de serviços do sistema.
     /// </summary>
     /// <param name="timeProvider">Provedor de data/hora para auditoria</param>

@@ -58,6 +58,7 @@ public class UpdateProviderProfileCommandHandlerTests
             ProviderId: providerId,
             Name: "Prestador Atualizado",
             BusinessProfile: businessProfileDto,
+            Services: new List<ProviderServiceDto>(),
             UpdatedBy: updatedBy.ToString()
         );
 
@@ -119,6 +120,7 @@ public class UpdateProviderProfileCommandHandlerTests
             ProviderId: providerId,
             Name: "Prestador Atualizado",
             BusinessProfile: businessProfileDto,
+            Services: new List<ProviderServiceDto>(),
             UpdatedBy: updatedBy.ToString()
         );
 
@@ -177,6 +179,7 @@ public class UpdateProviderProfileCommandHandlerTests
             ProviderId: providerId,
             Name: invalidName,
             BusinessProfile: businessProfileDto,
+            Services: new List<ProviderServiceDto>(),
             UpdatedBy: updatedBy.ToString()
         );
 
@@ -232,6 +235,7 @@ public class UpdateProviderProfileCommandHandlerTests
             ProviderId: providerId,
             Name: "Prestador Atualizado",
             BusinessProfile: businessProfileDto,
+            Services: new List<ProviderServiceDto>(),
             UpdatedBy: updatedBy.ToString()
         );
 

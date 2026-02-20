@@ -13,6 +13,7 @@ export interface UpdateProviderProfileRequest {
         contactInfo: ContactInfoDto;
         primaryAddress: AddressDto;
     };
+    services?: { serviceId: string; serviceName: string; }[];
 }
 
 export function useUpdateProviderProfile() {

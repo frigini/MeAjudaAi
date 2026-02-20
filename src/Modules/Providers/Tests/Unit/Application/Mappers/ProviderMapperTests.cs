@@ -2,8 +2,8 @@ using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
-using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using Xunit;
 
@@ -231,7 +231,13 @@ public class ProviderMapperTests
     public void ToDomain_WithDocumentDto_ShouldMapAllProperties()
     {
         // Arrange
-        var dto = new DocumentDto("12345678900", EDocumentType.CPF, true);
+        var dto = new DocumentDto(
+            Number: "12345678900",
+            DocumentType: EDocumentType.CPF,
+            FileName: "doc.pdf",
+            FileUrl: "https://storage/doc.pdf",
+            IsPrimary: true
+        );
 
         // Act
         var document = dto.ToDomain();

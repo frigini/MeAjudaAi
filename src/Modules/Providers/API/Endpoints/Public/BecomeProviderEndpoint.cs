@@ -23,7 +23,8 @@ public class BecomeProviderEndpoint : BaseEndpoint, IEndpoint
             .WithDescription("Transforma o usuário autenticado em um prestador de serviços. Requer token de usuário.")
             .RequireAuthorization()
             .Produces<Response<ProviderDto>>(StatusCodes.Status201Created)
-            .Produces<Response<object>>(StatusCodes.Status400BadRequest);
+            .Produces<Response<object>>(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized);
 
     private static async Task<IResult> BecomeProviderAsync(
         HttpContext context,

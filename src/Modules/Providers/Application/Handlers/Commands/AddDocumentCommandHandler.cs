@@ -34,7 +34,7 @@ public sealed class AddDocumentCommandHandler(
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result<ProviderDto>.Failure("Provider not found");
+                return Result<ProviderDto>.Failure("Fornecedor não encontrado");
             }
 
             var document = new Document(
@@ -53,7 +53,7 @@ public sealed class AddDocumentCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error adding document to provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure("An error occurred while adding the document");
+            return Result<ProviderDto>.Failure("Ocorreu um erro ao adicionar o documento");
         }
     }
 }

@@ -49,7 +49,7 @@ export function CustomerRegisterForm() {
                 body: {
                     name: data.name,
                     email: data.email,
-                    phoneNumber: data.phoneNumber,
+                    phoneNumber: data.phoneNumber.replace(/\D/g, ""),
                     password: data.password,
                     termsAccepted: data.termsAccepted,
                 },

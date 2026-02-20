@@ -33,7 +33,8 @@ public class GetAllServicesEndpoint : BaseEndpoint, IEndpoint
                 - Administração do catálogo completo
                 """)
             .Produces<Response<IReadOnlyList<ServiceListDto>>>(StatusCodes.Status200OK)
-            .RequirePermission(EPermission.ServiceCatalogsRead);
+            .Produces<Response<IReadOnlyList<ServiceListDto>>>(StatusCodes.Status200OK)
+            .AllowAnonymous();
 
     private static async Task<IResult> GetAllAsync(
         [AsParameters] GetAllServicesQuery query,

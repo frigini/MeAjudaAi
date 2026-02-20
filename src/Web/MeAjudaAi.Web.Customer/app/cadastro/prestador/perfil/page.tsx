@@ -41,7 +41,7 @@ export default function ProviderProfilePage() {
     }
 
     const hasAddress = !!profile.businessProfile?.primaryAddress;
-    const hasDocuments = profile.documents?.length > 0;
+    const hasDocuments = (profile.documents?.length ?? 0) > 0;
     const isPendingVerification = profile.status === EProviderStatus.PendingDocumentVerification;
 
     return (
@@ -62,14 +62,7 @@ export default function ProviderProfilePage() {
                     </span>
                 </div>
 
-                {/* Rejection Reason would need to come from profile (not explicitly in ProviderDto currently, but status DTO had it). 
-                    ProviderDto usually doesn't expose rejection reason unless mapped. 
-                    Let's assume it's NOT there for now or add it later.
-                    For now, logic remains if it WAS there. 
-                    Actually, ProviderDto definition shows 'status', 'verificationStatus', 'tier'. 
-                    RejectionReason is missing from ProviderDto interface in provider.ts.
-                    So we skip it for now.
-                */}
+                {/* TODO: Add rejectionReason to ProviderDto */}
 
                 <div className="mt-4 pt-4 border-t">
                     <p className="text-muted-foreground">

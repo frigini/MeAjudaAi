@@ -13,7 +13,7 @@ export default auth((req) => {
     const isProviderDashboard = pathname === "/prestador"
 
     // Protect onboarding wizard (must be logged in to complete profile)
-    const isOnboardingWizard = pathname.startsWith("/cadastro/prestador/perfil")
+    const isOnboardingWizard = pathname.startsWith("/cadastro/prestador")
 
     const isProtected = isProfile || isClientDashboard || isProviderDashboard || isOnboardingWizard
 

@@ -73,7 +73,6 @@ export function useViaCep() {
             return data as ViaCepSuccessResponse;
         } catch (err: unknown) {
             if (err instanceof DOMException && err.name === 'AbortError') {
-                setIsLoading(false); // Clear loading on abort
                 return null;
             }
 
