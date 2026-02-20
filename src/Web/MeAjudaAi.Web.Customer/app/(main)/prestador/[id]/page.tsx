@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { cache } from "react";
+import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
 import { Rating } from "@/components/ui/rating";
 import { ReviewList } from "@/components/reviews/review-list";
@@ -191,7 +192,7 @@ export default async function ProviderProfilePage({
                         </div>
 
                         {/* Phones */}
-                        {phones.length > 0 && (
+                        {phones.length > 0 ? (
                             <div className="w-full space-y-2">
                                 {phones.map((phone: string, i: number) => {
                                     const whatsappLink = getWhatsappLink(phone);
@@ -212,6 +213,16 @@ export default async function ProviderProfilePage({
                                         </div>
                                     );
                                 })}
+                            </div>
+                        ) : (
+                            <div className="w-full p-4 bg-orange-50 border border-orange-100 rounded-lg text-center">
+                                <p className="text-sm text-gray-700 mb-2">Faça login para visualizar os contatos deste prestador.</p>
+                                <Link
+                                    href={`/api/auth/signin?callbackUrl=/prestador/${id}`}
+                                    className="text-sm font-bold text-[#E0702B] hover:underline"
+                                >
+                                    Fazer Login
+                                </Link>
                             </div>
                         )}
                     </div>
