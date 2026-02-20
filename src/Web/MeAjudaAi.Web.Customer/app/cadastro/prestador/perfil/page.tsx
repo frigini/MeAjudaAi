@@ -22,6 +22,12 @@ function getProviderStatusMessage(status: EProviderStatus): string {
     }
 }
 
+function getStatusBadgeClasses(status: EProviderStatus): string {
+    if (status === EProviderStatus.Active) return "bg-green-100 text-green-800";
+    if (status === EProviderStatus.Rejected || status === EProviderStatus.Suspended) return "bg-red-100 text-red-800";
+    return "bg-amber-100 text-amber-800";
+}
+
 export default function ProviderProfilePage() {
     const { data: profile, isLoading, error, refetch } = useMyProviderProfile();
 
@@ -73,10 +79,7 @@ export default function ProviderProfilePage() {
                         <h2 className="text-xl font-semibold">Status da Conta</h2>
                         <p className="text-sm text-muted-foreground mt-1">Nível: <span className="font-medium text-primary">{PROVIDER_TIER_LABELS[profile.tier] ?? profile.tier ?? "Desconhecido"}</span></p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${profile.status === EProviderStatus.Active ? "bg-green-100 text-green-800" :
-                        (profile.status === EProviderStatus.Rejected || profile.status === EProviderStatus.Suspended) ? "bg-red-100 text-red-800" :
-                            "bg-amber-100 text-amber-800"
-                        }`}>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClasses(profile.status)}`}>
                         {PROVIDER_STATUS_LABELS[profile.status] ?? profile.status ?? "Desconhecido"}
                     </span>
                 </div>

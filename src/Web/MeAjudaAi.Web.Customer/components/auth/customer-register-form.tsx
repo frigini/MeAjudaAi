@@ -45,7 +45,8 @@ export function CustomerRegisterForm() {
             phoneNumber: "",
             password: "",
             confirmPassword: "",
-            termsAccepted: false,
+            acceptedTerms: false,
+            acceptedPrivacyPolicy: false,
         },
     });
 
@@ -60,7 +61,8 @@ export function CustomerRegisterForm() {
                     email: data.email,
                     phoneNumber: data.phoneNumber.replace(/\D/g, ""),
                     password: data.password,
-                    termsAccepted: data.termsAccepted,
+                    acceptedTerms: data.acceptedTerms,
+                    acceptedPrivacyPolicy: data.acceptedPrivacyPolicy,
                 },
             });
 
@@ -217,7 +219,7 @@ export function CustomerRegisterForm() {
 
                 <FormField
                     control={form.control}
-                    name="termsAccepted"
+                    name="acceptedTerms"
                     render={({ field }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-2">
                             <FormControl>
@@ -228,7 +230,28 @@ export function CustomerRegisterForm() {
                             </FormControl>
                             <div className="space-y-1 leading-none">
                                 <FormLabel>
-                                    Li e aceito os <Link href="/termos" className="text-primary hover:underline">Termos de Uso</Link> e <Link href="/privacidade" className="text-primary hover:underline">Política de Privacidade</Link>
+                                    Li e aceito os <Link href="/termos" className="text-primary hover:underline">Termos de Uso</Link>
+                                </FormLabel>
+                                <FormMessage />
+                            </div>
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="acceptedPrivacyPolicy"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-2">
+                            <FormControl>
+                                <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                                <FormLabel>
+                                    Li e aceito a <Link href="/privacidade" className="text-primary hover:underline">Política de Privacidade</Link>
                                 </FormLabel>
                                 <FormMessage />
                             </div>

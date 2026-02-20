@@ -25,6 +25,7 @@ export function Avatar({
     fallback,
     containerClassName,
     containerStyle,
+    className,
     ...rest // Forward remaining props (img props) to Image
 }: AvatarProps) {
     const initials =
@@ -54,7 +55,7 @@ export function Avatar({
                     alt={alt}
                     width={SIZE_CONFIG[size].px}
                     height={SIZE_CONFIG[size].px}
-                    className="size-full object-cover"
+                    className={twMerge("size-full object-cover", className)}
                     {...rest}
                 />
             ) : (

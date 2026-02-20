@@ -60,7 +60,7 @@ export const registerCustomerSchema = z.object({
         .regex(/[0-9]/, "A senha deve conter pelo menos um número")
         .regex(/[^a-zA-Z0-9]/, "A senha deve conter pelo menos um caractere especial"),
     confirmPassword: z.string(),
-    termsAccepted: z.boolean().refine((val) => val === true, "Você deve aceitar os termos de uso"),
+    acceptedTerms: z.boolean().refine((val) => val === true, "Você deve aceitar os termos de uso"),
     acceptedPrivacyPolicy: z.boolean().refine((val) => val === true, "Você deve aceitar a política de privacidade"),
 }).refine((data) => data.password === data.confirmPassword, {
     message: "As senhas não conferem",

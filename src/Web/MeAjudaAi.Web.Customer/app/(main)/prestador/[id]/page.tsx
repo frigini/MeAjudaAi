@@ -41,6 +41,9 @@ const PublicProviderSchema = z.object({
     email: z.string().email().optional().nullable(),
     verificationStatus: z.preprocess((val) => {
         if (typeof val === 'string') {
+            if (/^\d+$/.test(val)) {
+                return parseInt(val, 10);
+            }
             const lower = val.toLowerCase();
             if (lower === 'verified') return EVerificationStatus.Verified;
             if (lower === 'rejected') return EVerificationStatus.Rejected;

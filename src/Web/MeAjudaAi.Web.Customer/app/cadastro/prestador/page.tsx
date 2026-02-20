@@ -2,7 +2,6 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -15,14 +14,14 @@ import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 import Link from "next/link";
 
-import { registerProviderSchema } from "@/lib/schemas/auth";
+import { RegisterProviderSchema, registerProviderSchema } from "@/lib/schemas/auth";
 
 export default function RegisterProviderPage() {
     const router = useRouter();
     const { data: session } = useSession();
     const { mutate: registerProvider, isPending } = useRegisterProvider();
 
-    const form = useForm<z.infer<typeof registerProviderSchema>>({
+    const form = useForm<RegisterProviderSchema>({
         resolver: zodResolver(registerProviderSchema),
         defaultValues: {
             name: "",
@@ -48,14 +47,15 @@ export default function RegisterProviderPage() {
         }
     }, [session, getValues, setValue]);
 
-    function onSubmit(values: z.infer<typeof registerProviderSchema>) {
+    function onSubmit(values: RegisterProviderSchema) {
         registerProvider(values, {
             onSuccess: () => {
                 toast.success("Cadastro iniciado com sucesso!");
                 router.push("/cadastro/prestador/perfil");
             },
             onError: (error) => {
-                toast.error(`Erro ao cadastrar: ${error.message}`);
+                console.error("Erro ao cadastrar prestador:", error);
+                toast.error("Erro ao cadastrar. Tente novamente mais tarde.");
             }
         });
     }
