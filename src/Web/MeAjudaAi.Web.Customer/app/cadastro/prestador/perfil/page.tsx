@@ -69,10 +69,11 @@ export default function ProviderProfilePage() {
     const hasAddress = !!profile.businessProfile?.primaryAddress?.street || isVerified;
     const hasDocuments = (profile.documents?.length ?? 0) > 0 || isVerified;
     const isPendingVerification = profile.status === EProviderStatus.PendingDocumentVerification;
+    const isSuspended = profile.status === EProviderStatus.Suspended;
 
     // Derived states for completed steps based on the user request
-    const step2Completed = hasAddress || isPendingVerification || isVerified;
-    const step3Completed = hasDocuments || isPendingVerification || isVerified;
+    const step2Completed = hasAddress || isPendingVerification;
+    const step3Completed = hasDocuments || isPendingVerification || isSuspended;
 
     return (
         <div className="container mx-auto py-10 max-w-4xl">

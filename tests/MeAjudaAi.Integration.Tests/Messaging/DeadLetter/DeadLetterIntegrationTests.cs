@@ -34,7 +34,14 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
                 connectionString = container.GetConnectionString();
             }
         }
-        catch { /* Fallback para localhost */ }
+        catch (InvalidOperationException)
+        {
+            // Container not available, fall back to localhost
+        }
+        catch (InvalidCastException)
+        {
+            // Service is not a RabbitMqContainer, fall back to localhost
+        }
 
         return new RabbitMqOptions
         {
@@ -212,7 +219,7 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
         Func<TestMessage, CancellationToken, Task> failingHandler = (msg, ct) => 
         {
             failureCount++;
-            throw new Exception("Simulated transient failure");
+            throw new TimeoutException("Simulated transient failure");
         };
 
         // Act

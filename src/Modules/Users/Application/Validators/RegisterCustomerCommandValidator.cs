@@ -10,6 +10,7 @@ public class RegisterCustomerCommandValidator : AbstractValidator<RegisterCustom
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Nome é obrigatório")
+            .MinimumLength(2).WithMessage("Nome deve ter pelo menos 2 caracteres")
             .MaximumLength(ValidationConstants.UserLimits.FirstNameMaxLength + ValidationConstants.UserLimits.LastNameMaxLength).WithMessage($"Nome deve ter no máximo {ValidationConstants.UserLimits.FirstNameMaxLength + ValidationConstants.UserLimits.LastNameMaxLength} caracteres");
             
         RuleFor(x => x.Email)

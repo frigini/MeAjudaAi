@@ -520,28 +520,12 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         return TestContainerFixture.ExtractIdFromLocation(location!);
     }
 
-    private async Task AddServiceToProviderAsync(Guid providerId, Guid serviceId)
-    {
-        // Aguardar um pouco para garantir que provider e service estão committados
-        await Task.Delay(100);
-        
-        TestContainerFixture.AuthenticateAsAdmin();
-        var response = await _fixture.ApiClient.PostAsync(
-            $"/api/v1/providers/{providerId}/services/{serviceId}",
-            null);
-        
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK,
-            HttpStatusCode.NoContent,
-            HttpStatusCode.Created);
-    }
-
     private static int MapSubscriptionTierToInt(string tier) => tier switch
     {
-        "Free" => 0,
-        "Standard" => 1,
+        "Standard" => 0,
+        "Silver" => 1,
         "Gold" => 2,
         "Platinum" => 3,
-        _ => 0 // Default to Free
+        _ => 0 // Default to Standard
     };
 }

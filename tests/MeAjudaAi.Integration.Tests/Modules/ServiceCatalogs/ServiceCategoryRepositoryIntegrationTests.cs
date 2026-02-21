@@ -40,7 +40,7 @@ public class ServiceCategoryRepositoryIntegrationTests : BaseApiTest
     }
 
     /// <summary>
-    /// Retrieves a category by name and verifies the correct category is returned.
+    /// Recupera uma categoria por nome e verifica se a categoria correta é retornada.
     /// </summary>
     [Fact]
     public async Task GetByNameAsync_WithExistingName_ShouldReturnCategory()
@@ -132,7 +132,7 @@ public class ServiceCategoryRepositoryIntegrationTests : BaseApiTest
     private ServiceCategory CreateValidCategory()
     {
         return ServiceCategory.Create(
-            $"{_faker.Commerce.Department()}_{Guid.NewGuid():N[..6]}",
+            $"{_faker.Commerce.Department()}_{Guid.NewGuid().ToString("N")[..6]}",
             _faker.Lorem.Sentence(),
             _faker.Random.Int(0, 100));
     }

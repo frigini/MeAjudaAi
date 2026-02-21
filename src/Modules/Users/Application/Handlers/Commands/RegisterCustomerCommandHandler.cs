@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 using MeAjudaAi.Contracts.Functional;
-using MeAjudaAi.Contracts.Utilities.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
@@ -50,7 +50,7 @@ public sealed partial class RegisterCustomerCommandHandler(
             }
             
             // UsernameMaxLength é 30 em ValidationConstants; deduz 1 para '_' e 6 para GUID => localPartMax = UsernameMaxLength - 7
-            int maxLocalPartLength = MeAjudaAi.Shared.Utilities.Constants.ValidationConstants.UserLimits.UsernameMaxLength - 7;
+            int maxLocalPartLength = ValidationConstants.UserLimits.UsernameMaxLength - 7;
             if (sanitizedLocalPart.Length > maxLocalPartLength)
             {
                 sanitizedLocalPart = sanitizedLocalPart.Substring(0, maxLocalPartLength);
@@ -79,7 +79,7 @@ public sealed partial class RegisterCustomerCommandHandler(
         // Cria usuário com papel de "cliente"
         var names = command.Name.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
         var firstName = names.FirstOrDefault() ?? command.Name;
-        var lastName = names.Length > 1 && !string.IsNullOrWhiteSpace(names[1]) ? names[1] : firstName;
+        var lastName = names.Length > 1 && !string.IsNullOrWhiteSpace(names[1]) ? names[1] : ".";
         
         var userResult = await userDomainService.CreateUserAsync(
             validUsername,
@@ -98,8 +98,30 @@ public sealed partial class RegisterCustomerCommandHandler(
             return Result<UserDto>.Failure(userResult.Error);
         }
 
-        await userRepository.AddAsync(userResult.Value, cancellationToken);
-        
+        try
+        {
+            await userRepository.AddAsync(userResult.Value, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to persist customer {Email} ({Id}) to repository. Attempting Keycloak compensation.",
+                maskedEmail, userResult.Value.Id);
+
+            // Compensação: desativar o usuário criado no Keycloak para evitar órfão
+            try
+            {
+                await userDomainService.SyncUserWithKeycloakAsync(userResult.Value.Id, cancellationToken);
+            }
+            catch (Exception compensationEx)
+            {
+                logger.LogCritical(compensationEx,
+                    "CRITICAL: Failed to compensate Keycloak user {UserId} after repository failure. Manual cleanup required.",
+                    userResult.Value.Id);
+            }
+
+            return Result<UserDto>.Failure(Error.Internal("Falha ao salvar o cadastro. Tente novamente mais tarde."));
+        }
+
         logger.LogInformation("Customer registered successfully: {Email} ({Id})", maskedEmail, userResult.Value.Id);
 
         return Result<UserDto>.Success(userResult.Value.ToDto());

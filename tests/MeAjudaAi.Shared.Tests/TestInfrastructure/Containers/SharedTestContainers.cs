@@ -257,16 +257,32 @@ public static class SharedTestContainers
         {
             try
             {
-                // Tenta verificar se a porta do RabbitMQ está mapeada
-                var amqpPort = _rabbitMqContainer.GetMappedPublicPort(5672);
+                // Tenta obter a connection string e validá-la
+                var connectionString = _rabbitMqContainer.GetConnectionString();
                 
-                // Se conseguiu obter a porta, o container está pronto
-                Console.WriteLine($"Container RabbitMQ ready! AMQP Port: {amqpPort}");
-                return;
+                // Tenta fazer uma conexão básica com a string obtida
+                if (!string.IsNullOrEmpty(connectionString))
+                {
+                    // A string deve ser válida para AMQP
+                    var uri = new Uri(connectionString);
+                    if (uri.Scheme == "amqp" || uri.Scheme == "amqps")
+                    {
+                        Console.WriteLine($"Container RabbitMQ ready! Connection String: {connectionString}");
+                        return;
+                    }
+                }
+                
+                Console.WriteLine($"RabbitMQ not ready yet - invalid connection string (attempt {i + 1}/{maxRetries})");
+                await Task.Delay(delayMs);
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"RabbitMQ not ready yet (attempt {i + 1}/{maxRetries}): {ex.Message}");
+                await Task.Delay(delayMs);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"RabbitMQ validation error (attempt {i + 1}/{maxRetries}): {ex.Message}");
                 await Task.Delay(delayMs);
             }
         }

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { MessageCircle } from "lucide-react";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { z } from "zod";
+import { headers } from "next/headers";
 
 import { EVerificationStatus, EProviderType } from "@/types/api/provider";
 
@@ -27,8 +28,7 @@ const PublicProviderSchema = z.object({
             if (lower === 'cooperative' || lower === 'cooperativa') return EProviderType.Cooperative;
 
             if (/^\d+$/.test(val)) {
-                const parsed = parseInt(val, 10);
-                if (!isNaN(parsed)) return parsed;
+                return parseInt(val, 10);
             }
         }
         return val;
@@ -61,20 +61,16 @@ const PublicProviderSchema = z.object({
 
 type PublicProviderData = z.infer<typeof PublicProviderSchema>;
 
-const getCachedProvider = cache(async (id: string): Promise<PublicProviderData | null> => {
+const getCachedProvider = cache(async (id: string, cookieHeader: string | null): Promise<PublicProviderData | null> => {
     const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
     if (!apiUrl) {
         throw new Error("Missing API_URL or NEXT_PUBLIC_API_URL environment variable.");
     }
 
-    const { headers } = await import("next/headers");
-    const requestHeaders = await headers();
-    const cookieHeader = requestHeaders.get("cookie");
-
     try {
         const res = await fetch(`${apiUrl}/api/v1/providers/${id}/public`, {
             headers: cookieHeader ? { "Cookie": cookieHeader } : {},
-            next: { revalidate: 60 } // Cache for 60 seconds
+            cache: 'no-store' // Do not cache auth-dependent data
         });
 
         if (res.status === 404) return null;
@@ -114,11 +110,24 @@ interface ProviderProfilePageProps {
     }>;
 }
 
+function getWhatsappLink(phone: string): string | null {
+    let cleanPhone = phone.replace(/\D/g, "");
+    // If it starts with 55 and has enough digits to be DDI(2)+DDD(2)+Phone(8-9), assume DDI exists
+    if (cleanPhone.startsWith("55") && cleanPhone.length >= 12) {
+        cleanPhone = cleanPhone.substring(2);
+    }
+
+    // Validate: Brazilian phone should have at least 10 digits (DDD + number)
+    return cleanPhone.length >= 10 ? `https://wa.me/55${cleanPhone}` : null;
+}
+
 export async function generateMetadata({
     params,
 }: ProviderProfilePageProps): Promise<Metadata> {
     const { id } = await params;
-    const provider = await getCachedProvider(id);
+    const requestHeaders = await headers();
+    const cookieHeader = requestHeaders.get("cookie");
+    const provider = await getCachedProvider(id, cookieHeader);
 
     if (!provider) {
         return {
@@ -143,8 +152,10 @@ export default async function ProviderProfilePage({
     params,
 }: ProviderProfilePageProps) {
     const { id } = await params;
+    const requestHeaders = await headers();
+    const cookieHeader = requestHeaders.get("cookie");
 
-    const providerData = await getCachedProvider(id);
+    const providerData = await getCachedProvider(id, cookieHeader);
 
     if (!providerData) {
         notFound();
@@ -159,17 +170,6 @@ export default async function ProviderProfilePage({
     const phones = providerData.phoneNumbers || [];
 
     const services = providerData.services ?? [];
-
-    const getWhatsappLink = (phone: string) => {
-        let cleanPhone = phone.replace(/\D/g, "");
-        // If it starts with 55 and has enough digits to be DDI(2)+DDD(2)+Phone(8-9), assume DDI exists
-        if (cleanPhone.startsWith("55") && cleanPhone.length >= 12) {
-            cleanPhone = cleanPhone.substring(2);
-        }
-
-        // Validate: Brazilian phone should have at least 10 digits (DDD + number)
-        return cleanPhone.length >= 10 ? `https://wa.me/55${cleanPhone}` : null;
-    };
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -219,6 +219,10 @@ export default async function ProviderProfilePage({
                                         </div>
                                     );
                                 })}
+                            </div>
+                        ) : cookieHeader ? (
+                            <div className="w-full p-4 bg-blue-50 border border-blue-100 rounded-lg text-center">
+                                <p className="text-sm text-gray-700">Este prestador não informou contatos.</p>
                             </div>
                         ) : (
                             <div className="w-full p-4 bg-orange-50 border border-orange-100 rounded-lg text-center">
