@@ -2,6 +2,7 @@ using FluentAssertions;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Messaging.Factories;
+using MeAjudaAi.Shared.Messaging.Handlers;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using MeAjudaAi.Shared.Tests.TestInfrastructure;
@@ -9,6 +10,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Testcontainers.RabbitMq;
 
 namespace MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter;
 
@@ -20,14 +22,31 @@ namespace MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter;
 [Trait("Component", "DeadLetterSystem")]
 public class DeadLetterIntegrationTests : BaseIntegrationTest
 {
-    private static RabbitMqOptions CreateTestRabbitMqOptions()
+    private RabbitMqOptions CreateTestRabbitMqOptions()
     {
+        // Tenta obter a connection string do container se disponível
+        string connectionString = "amqp://localhost";
+        try 
+        {
+            var container = ServiceProvider.GetService<RabbitMqContainer>();
+            if (container != null)
+            {
+                connectionString = container.GetConnectionString();
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            // Container not available, fall back to localhost
+        }
+        catch (InvalidCastException)
+        {
+            // Service is not a RabbitMqContainer, fall back to localhost
+        }
+
         return new RabbitMqOptions
         {
-            ConnectionString = "amqp://localhost",
+            ConnectionString = connectionString,
             DefaultQueueName = "test-queue",
-            Host = "localhost",
-            Port = 5672,
             Username = "guest",
             Password = "guest",
             VirtualHost = "/",
@@ -64,8 +83,7 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
         services.AddSingleton(CreateTestRabbitMqOptions());
     }
 
-    #pragma warning disable xUnit1004
-    [Fact(Skip = "Necessita RabbitMQ")]
+    [Fact]
     public async Task DeadLetter_ShouldMoveMessageToDlq_AfterMaxRetries()
     {
         // Arrange
@@ -90,7 +108,6 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
         deadLetterService.Should().NotBeNull();
         deadLetterService.Should().BeOfType<NoOpDeadLetterService>();
     }
-    #pragma warning restore xUnit1004
 
     [Fact]
     public void DeadLetterSystem_WithTestingEnvironment_UsesNoOpService()
@@ -176,9 +193,8 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
         shouldRetryPermanent.Should().BeFalse();
     }
 
-    #pragma warning disable xUnit1004
-    [Fact(Skip = "Implementation pending - requires actual retry middleware logic")]
-    public void MessageRetryMiddleware_EndToEnd_WorksWithDeadLetterSystem()
+    [Fact]
+    public async Task MessageRetryMiddleware_EndToEnd_WorksWithDeadLetterSystem()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -196,14 +212,23 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
 
         var serviceProvider = services.BuildServiceProvider();
         var message = new TestMessage { Id = "integration-test" };
+        var middlewareFactory = serviceProvider.GetRequiredService<IMessageRetryMiddlewareFactory>();
+        var middleware = middlewareFactory.CreateMiddleware<TestMessage>("TestHandler", "test-queue");
+        
+        var failureCount = 0;
+        Func<TestMessage, CancellationToken, Task> failingHandler = (msg, ct) => 
+        {
+            failureCount++;
+            throw new TimeoutException("Simulated transient failure");
+        };
 
-        // TODO: Implementar lógica end-to-end real para MessageRetryMiddleware
-        // Este teste requer implementar:
-        // 1. Simular falha no processamento da mensagem
-        // 2. Verificar tentativas de retry
-        // 3. Confirmar que a mensagem vai para a fila de dead letter após o número máximo de tentativas
+        // Act
+        var result = await middleware.ExecuteWithRetryAsync(message, failingHandler, CancellationToken.None);
+
+        // Assert
+        result.Should().BeFalse("Message should be sent to DLQ after max retries");
+        failureCount.Should().Be(4); // 1 original + 3 retries (based on config in CreateConfiguration)
     }
-    #pragma warning restore xUnit1004
 
     [Fact]
     public void FailedMessageInfo_Serialization_WorksCorrectly()

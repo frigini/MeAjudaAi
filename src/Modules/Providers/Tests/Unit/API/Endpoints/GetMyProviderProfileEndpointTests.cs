@@ -43,7 +43,7 @@ public class GetMyProviderProfileEndpointTests
         var context = EndpointTestHelpers.CreateHttpContextWithUserId(userId);
         var providerDto = new ProviderDto(
             Guid.NewGuid(), userId, "Test", EProviderType.Individual, null!, 
-            EProviderStatus.Active, EVerificationStatus.Verified, 
+            EProviderStatus.Active, EVerificationStatus.Verified, EProviderTier.Standard,
             new List<DocumentDto>(), new List<QualificationDto>(), new List<ProviderServiceDto>(), DateTime.UtcNow, null, false, null, null, null);
 
         var dispatchResult = Result<ProviderDto?>.Success(providerDto);

@@ -22,4 +22,9 @@ public record UpdateProviderProfileRequest
         new ContactInfoDto(string.Empty, null, null),
         new AddressDto(string.Empty, string.Empty, null, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty)
     );
+
+    /// <summary>
+    /// Lista de serviços oferecidos pelo prestador. Pode ser nulo se não houver alteração.
+    /// </summary>
+    public List<ProviderServiceDto>? Services { get; init; }
 }

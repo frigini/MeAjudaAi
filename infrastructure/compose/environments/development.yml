@@ -47,21 +47,32 @@ services:
     image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-26.0.2}
     container_name: meajudaai-keycloak-dev
     environment:
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Missing KEYCLOAK_ADMIN_PASSWORD environment variable}
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
-      KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?KEYCLOAK_DB_PASSWORD must be set}
+      KC_DB_URL: jdbc:postgresql://postgres:5432/meajudaai
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      KC_DB_SCHEMA: identity
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME: localhost
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
-      KC_HTTP_ENABLED: true
-    command: ["start-dev", "--import-realm"]  # Override base production command for development
+      KC_LOG_LEVEL: info
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin123
+      # Identity Providers (Optional for local dev - fail fast if needed by using ${VAR:?error})
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET}
+      INSTAGRAM_CLIENT_ID: ${INSTAGRAM_CLIENT_ID}
+      INSTAGRAM_CLIENT_SECRET: ${INSTAGRAM_CLIENT_SECRET}
+    command: ["start-dev", "--import-realm"]
     ports:
       - "8080:8080"
+      # - "8443:8443" # HTTPS disabled in dev
     volumes:
       - keycloak_data:/opt/keycloak/data
-      - ../../keycloak/realms:/opt/keycloak/data/import
+      - ./keycloak/imports:/opt/keycloak/data/import
     depends_on:
       - keycloak-db
     networks:

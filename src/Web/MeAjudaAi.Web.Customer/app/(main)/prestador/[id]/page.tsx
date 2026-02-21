@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { cache } from "react";
+import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
 import { Rating } from "@/components/ui/rating";
 import { ReviewList } from "@/components/reviews/review-list";
@@ -9,12 +10,29 @@ import { Badge } from "@/components/ui/badge";
 import { MessageCircle } from "lucide-react";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { z } from "zod";
+import { headers } from "next/headers";
+
+import { EVerificationStatus, EProviderType } from "@/types/api/provider";
 
 // Zod Schema for Runtime Validation
 const PublicProviderSchema = z.object({
     id: z.string().uuid(),
     name: z.string(),
-    type: z.string(),
+    type: z.preprocess((val) => {
+        if (typeof val === 'string') {
+            const lower = val.toLowerCase();
+            if (lower === 'none') return EProviderType.None;
+            if (lower === 'individual' || lower === 'pessoafisica') return EProviderType.Individual;
+            if (lower === 'company' || lower === 'pessoajuridica') return EProviderType.Company;
+            if (lower === 'freelancer' || lower === 'autonomo') return EProviderType.Freelancer;
+            if (lower === 'cooperative' || lower === 'cooperativa') return EProviderType.Cooperative;
+
+            if (/^\d+$/.test(val)) {
+                return parseInt(val, 10);
+            }
+        }
+        return val;
+    }, z.nativeEnum(EProviderType).optional()),
     fantasyName: z.string().optional().nullable(),
     description: z.string().optional().nullable(),
     city: z.string().optional().nullable(),
@@ -25,20 +43,34 @@ const PublicProviderSchema = z.object({
     services: z.array(z.string()).optional().nullable(),
     email: z.string().email().optional().nullable(),
     verificationStatus: z.preprocess((val) => {
-        if (typeof val === 'string' && val.length > 0) {
-            return val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+        if (typeof val === 'string') {
+            if (/^\d+$/.test(val)) {
+                return parseInt(val, 10);
+            }
+            const lower = val.toLowerCase();
+            if (lower === 'verified') return EVerificationStatus.Verified;
+            if (lower === 'rejected') return EVerificationStatus.Rejected;
+            if (lower === 'inprogress' || lower === 'in_progress') return EVerificationStatus.InProgress;
+            if (lower === 'suspended') return EVerificationStatus.Suspended;
+            if (lower === 'none') return EVerificationStatus.None;
+            return EVerificationStatus.Pending;
         }
         return val;
-    }, z.enum(["Pending", "Verified", "Rejected", "Suspended"]).optional().nullable())
+    }, z.nativeEnum(EVerificationStatus).optional().nullable())
 });
 
 type PublicProviderData = z.infer<typeof PublicProviderSchema>;
 
-const getCachedProvider = cache(async (id: string): Promise<PublicProviderData | null> => {
+const getCachedProvider = cache(async (id: string, cookieHeader: string | null): Promise<PublicProviderData | null> => {
+    const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
+    if (!apiUrl) {
+        throw new Error("Missing API_URL or NEXT_PUBLIC_API_URL environment variable.");
+    }
+
     try {
-        const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7002';
         const res = await fetch(`${apiUrl}/api/v1/providers/${id}/public`, {
-            next: { revalidate: 60 } // Cache for 60 seconds
+            headers: cookieHeader ? { "Cookie": cookieHeader } : {},
+            cache: 'no-store' // Do not cache auth-dependent data
         });
 
         if (res.status === 404) return null;
@@ -67,7 +99,6 @@ const getCachedProvider = cache(async (id: string): Promise<PublicProviderData |
         return result.data;
 
     } catch (error) {
-        if (error instanceof Error && (error.message.includes("404") || (error as { status?: number }).status === 404)) return null;
         console.error(`Exception fetching public provider ${id}:`, error);
         throw error;
     }
@@ -79,11 +110,24 @@ interface ProviderProfilePageProps {
     }>;
 }
 
+function getWhatsappLink(phone: string): string | null {
+    let cleanPhone = phone.replace(/\D/g, "");
+    // If it starts with 55 and has enough digits to be DDI(2)+DDD(2)+Phone(8-9), assume DDI exists
+    if (cleanPhone.startsWith("55") && cleanPhone.length >= 12) {
+        cleanPhone = cleanPhone.substring(2);
+    }
+
+    // Validate: Brazilian phone should have at least 10 digits (DDD + number)
+    return cleanPhone.length >= 10 ? `https://wa.me/55${cleanPhone}` : null;
+}
+
 export async function generateMetadata({
     params,
 }: ProviderProfilePageProps): Promise<Metadata> {
     const { id } = await params;
-    const provider = await getCachedProvider(id);
+    const requestHeaders = await headers();
+    const cookieHeader = requestHeaders.get("cookie");
+    const provider = await getCachedProvider(id, cookieHeader);
 
     if (!provider) {
         return {
@@ -108,8 +152,10 @@ export default async function ProviderProfilePage({
     params,
 }: ProviderProfilePageProps) {
     const { id } = await params;
+    const requestHeaders = await headers();
+    const cookieHeader = requestHeaders.get("cookie");
 
-    const providerData = await getCachedProvider(id);
+    const providerData = await getCachedProvider(id, cookieHeader);
 
     if (!providerData) {
         notFound();
@@ -124,12 +170,6 @@ export default async function ProviderProfilePage({
     const phones = providerData.phoneNumbers || [];
 
     const services = providerData.services ?? [];
-
-    const getWhatsappLink = (phone: string) => {
-        const cleanPhone = phone.replace(/\D/g, "");
-        // Validate: Brazilian phone should have at least 10 digits (DDD + number)
-        return cleanPhone.length >= 10 ? `https://wa.me/55${cleanPhone}` : null;
-    };
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -146,7 +186,7 @@ export default async function ProviderProfilePage({
                             src={undefined}
                             alt={displayName}
                             fallback={displayName.substring(0, 2).toUpperCase()}
-                            className="h-32 w-32 border-4 border-white shadow-md text-3xl font-bold"
+                            containerClassName="h-32 w-32 border-4 border-white shadow-md text-3xl font-bold"
                         />
 
                         {/* Rating */}
@@ -158,7 +198,7 @@ export default async function ProviderProfilePage({
                         </div>
 
                         {/* Phones */}
-                        {phones.length > 0 && (
+                        {phones.length > 0 ? (
                             <div className="w-full space-y-2">
                                 {phones.map((phone: string, i: number) => {
                                     const whatsappLink = getWhatsappLink(phone);
@@ -180,6 +220,20 @@ export default async function ProviderProfilePage({
                                     );
                                 })}
                             </div>
+                        ) : cookieHeader ? (
+                            <div className="w-full p-4 bg-blue-50 border border-blue-100 rounded-lg text-center">
+                                <p className="text-sm text-gray-700">Este prestador não informou contatos.</p>
+                            </div>
+                        ) : (
+                            <div className="w-full p-4 bg-orange-50 border border-orange-100 rounded-lg text-center">
+                                <p className="text-sm text-gray-700 mb-2">Faça login para visualizar os contatos deste prestador.</p>
+                                <Link
+                                    href={`/api/auth/signin?callbackUrl=/prestador/${id}`}
+                                    className="text-sm font-bold text-[#E0702B] hover:underline"
+                                >
+                                    Fazer Login
+                                </Link>
+                            </div>
                         )}
                     </div>
 
@@ -189,7 +243,7 @@ export default async function ProviderProfilePage({
                         {/* Name & Badge */}
                         <div className="flex items-center gap-3">
                             <h1 className="text-3xl md:text-4xl font-bold text-[#E0702B]">{displayName}</h1>
-                            <VerifiedBadge status={providerData.verificationStatus || "Pending"} size="lg" />
+                            <VerifiedBadge status={providerData.verificationStatus ?? EVerificationStatus.Pending} size="lg" />
                         </div>
 
                         {/* Email */}

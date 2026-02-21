@@ -2,18 +2,17 @@ import type {
     MeAjudaAiModulesSearchProvidersApplicationDtosSearchableProviderDto,
     MeAjudaAiModulesProvidersApplicationDtosProviderDto,
 } from '@/lib/api/generated/types.gen';
-import type { ProviderDto } from '@/types/api/provider';
+import type { ProviderDto, BusinessProfileDto } from '@/types/api/provider';
 
-// Mapeamento de ProviderType (backend enum) para frontend string
-// 0=None, 1=Individual, 2=Company, 3=Cooperative, 4=Freelancer
-// NOTE: Alinhado com o enum ProviderType em MeAjudaAi.Core.Shared.Contracts
-const PROVIDER_TYPE_MAP: Record<number, ProviderDto['providerType']> = {
-    0: 'None',
-    1: 'Individual',
-    2: 'Company',
-    3: 'Cooperative',
-    4: 'Freelancer',
-};
+// Mapeamento de ProviderType (backend enum) para frontend Enum
+import {
+    EProviderType,
+    EProviderStatus,
+    EVerificationStatus,
+    EProviderTier,
+    EDocumentType,
+    EDocumentStatus
+} from '@/types/api/provider';
 
 // Mock de serviços para mapeamento visual
 // TODO: Remover quando a API retornar os nomes dos serviços
@@ -40,64 +39,173 @@ export function mapSearchableProviderToProvider(
 ): ProviderDto {
     return {
         id: dto.providerId ?? '',
+        userId: '', // SearchableProvider doesn't expose UserID directly usually
         name: dto.name ?? '',
-        // SearchableProviderDto não expõe email por privacidade
         email: '',
-        // SearchableProviderDto atual não retorna avatarUrl
-        // Mock visual para testes: atribui uma imagem estática (1-10) baseada no hash do ID
         avatarUrl: getMockAvatarUrl(dto.providerId),
         averageRating: dto.averageRating ?? 0,
-        // Mapeando totalReviews para reviewCount
         reviewCount: dto.totalReviews ?? 0,
-        // SearchableProviderDto retorna apenas serviceIds
-        // Mapeando para nomes mockados baseados no ID para visualização
+
+        // Mapeando para ProviderServiceDto
         services: dto.serviceIds?.map(id => ({
-            id: id,
-            name: getMockServiceName(id),
-            description: '',
-            category: { id: '', name: 'Geral', description: '' }
+            serviceId: id,
+            serviceName: getMockServiceName(id)
         })) ?? [],
+
         city: dto.city ?? '',
         state: dto.state ?? '',
-        description: dto.description ?? undefined,
-        // TODO: Mapear providerType quando SearchableProviderDto incluir essa informação
-        providerType: 'Individual',
+        businessProfile: {
+            legalName: dto.name ?? '',
+            contactInfo: { email: '', phoneNumber: undefined }, // Typed to indicate partial structure
+            primaryAddress: {
+                street: '', number: '', neighborhood: '', city: dto.city ?? '', state: dto.state ?? '', zipCode: '', country: 'Brasil'
+            }
+        } as unknown as BusinessProfileDto, // Explicit unknown cast for partial mock
+
+        type: EProviderType.Individual, // Default or map if available
+        status: EProviderStatus.Active, // Default to Active so it shows in search results
+        verificationStatus: EVerificationStatus.Pending, // Default safe
+        tier: EProviderTier.Standard,
+        documents: [],
+        qualifications: [],
+        createdAt: "" // Do not fabricate date for search results
     };
 }
+
+// Local type definition to extend generated types with missing runtime fields
+// This is necessary because the generated SDK types are currently missing these fields
+// that are returned by the API at runtime.
+// TODO: Remove ExtendedProviderDto after SDK regeneration (see GitHub issue #42)
+type ExtendedProviderDto = Omit<MeAjudaAiModulesProvidersApplicationDtosProviderDto, 'documents' | 'qualifications'> & {
+    services?: {
+        serviceId?: string;
+        price?: number;
+        currency?: string;
+        serviceName?: string;
+    }[];
+    averageRating?: number;
+    reviewCount?: number;
+    rejectionReason?: string;
+    suspensionReason?: string;
+    tier?: EProviderTier | number;
+    profilePictureUrl?: string;
+    // Documents in ProviderDto seems to be using a different DTO in the spec than what is returned or expected here
+    documents?: {
+        id?: string;
+        providerId?: string;
+        documentType?: number;
+        fileName?: string;
+        fileUrl?: string;
+        status?: number;
+        uploadedAt?: string;
+        verifiedAt?: string;
+        rejectionReason?: string;
+        ocrData?: string;
+        number?: string;
+        isPrimary?: boolean;
+    }[];
+    qualifications?: {
+        name?: string;
+        description?: string;
+        issuingOrganization?: string;
+        issueDate?: string;
+        expirationDate?: string;
+        documentNumber?: string;
+    }[];
+};
 
 /**
  * Converte ProviderDto (da API de detalhes) para ProviderDto (tipo da aplicação)
  */
 export function mapApiProviderToProvider(
-    dto: MeAjudaAiModulesProvidersApplicationDtosProviderDto
+    rawDto: MeAjudaAiModulesProvidersApplicationDtosProviderDto
 ): ProviderDto {
-    const businessProfile = dto.businessProfile;
+    // Cast to extended interface to access missing properties safely
+    const dto = rawDto as unknown as ExtendedProviderDto;
+
+    const businessProfile = dto.businessProfile as unknown as BusinessProfileDto;
     const contactInfo = businessProfile?.contactInfo;
     const address = businessProfile?.primaryAddress;
 
-    // Nome de exibição: fantasia, razão social ou nome do usuário
     const displayName = businessProfile?.fantasyName || businessProfile?.legalName || dto.name || "Prestador";
+    const services = dto.services || [];
 
     return {
         id: dto.id ?? '',
+        userId: dto.userId ?? '',
         name: displayName,
-        // ProviderDto não tem email na raiz, apenas em businessProfile.contactInfo
+
+        // Helper accessors
         email: contactInfo?.email ?? '',
-        phone: contactInfo?.phoneNumber ?? undefined,
-        // ProviderDto não tem profilePictureUrl na raiz
-        // Mock visual para testes: atribui uma imagem estática (1-10) baseada no hash do ID
-        avatarUrl: getMockAvatarUrl(dto.id),
-        // ProviderDto não tem averageRating/reviewCount na raiz. Assumimos 0 por enquanto.
-        // TODO: Enriquecer com dados reais quando API retornar rating e reviews no detalhe
-        averageRating: 0,
-        reviewCount: 0,
-        // ProviderDto não tem services na raiz. Retornando vazio.
-        // TODO: Enriquecer com dados reais quando API retornar services no detalhe
-        services: [],
+        phone: contactInfo?.phoneNumber,
+        avatarUrl: dto.profilePictureUrl ?? getMockAvatarUrl(dto.id),
+        description: businessProfile?.description || '',
+
+        averageRating: dto.averageRating ?? 0,
+        reviewCount: dto.reviewCount ?? 0,
+        rejectionReason: dto.rejectionReason,
+        suspensionReason: dto.suspensionReason,
+
+        // Map services
+        services: services.map(s => ({
+            serviceId: s.serviceId ?? '',
+            serviceName: s.serviceName ?? ''
+        })),
 
         city: address?.city ?? '',
         state: address?.state ?? '',
 
-        providerType: PROVIDER_TYPE_MAP[dto.type ?? 0] ?? 'Individual',
+        // Cast int to Enum (Backend enums map to numbers in JSON)
+        type: (dto.type as unknown as EProviderType) ?? EProviderType.Individual,
+
+        // Map full objects
+        businessProfile: {
+            legalName: businessProfile?.legalName ?? '',
+            fantasyName: businessProfile?.fantasyName,
+            description: businessProfile?.description,
+            contactInfo: {
+                email: contactInfo?.email ?? '',
+                phoneNumber: contactInfo?.phoneNumber,
+                website: contactInfo?.website
+            },
+            primaryAddress: {
+                street: address?.street ?? '',
+                number: address?.number ?? '',
+                complement: address?.complement,
+                neighborhood: address?.neighborhood ?? '',
+                city: address?.city ?? '',
+                state: address?.state ?? '',
+                zipCode: address?.zipCode ?? '',
+                country: address?.country ?? ''
+            }
+        },
+        status: (dto.status as unknown as EProviderStatus) ?? EProviderStatus.PendingBasicInfo,
+        verificationStatus: (dto.verificationStatus as unknown as EVerificationStatus) ?? EVerificationStatus.Pending,
+        tier: (dto.tier as unknown as EProviderTier) ?? EProviderTier.Standard,
+        documents: dto.documents?.map(d => ({
+            id: d.id,
+            providerId: d.providerId,
+            documentType: (d.documentType as unknown as EDocumentType) ?? EDocumentType.Other,
+            fileName: d.fileName ?? '',
+            fileUrl: d.fileUrl ?? '',
+            status: (d.status as unknown as EDocumentStatus) ?? EDocumentStatus.PendingVerification,
+            uploadedAt: d.uploadedAt,
+            verifiedAt: d.verifiedAt,
+            rejectionReason: d.rejectionReason,
+            ocrData: d.ocrData,
+            number: d.number,
+            isPrimary: d.isPrimary
+        })) || [],
+        qualifications: dto.qualifications?.map(q => ({
+            name: q.name ?? '',
+            description: q.description,
+            issuingOrganization: q.issuingOrganization,
+            issueDate: q.issueDate,
+            expirationDate: q.expirationDate,
+            documentNumber: q.documentNumber
+        })) || [],
+
+        createdAt: dto.createdAt ?? "",
+        updatedAt: dto.updatedAt
     };
 }

@@ -11,14 +11,17 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Briefcase } from "lucide-react";
 import Link from "next/link";
+import { useProviderStatus } from "@/hooks/use-provider-status";
+import { EProviderStatus, PROVIDER_STATUS_LABELS, PROVIDER_TIER_LABELS } from "@/types/provider";
+import { AuthSelectionDropdown } from "@/components/auth/auth-selection-dropdown";
 
 export function UserMenu() {
     const { data: session, status } = useSession();
+    const { data: providerStatus, isLoading: isLoadingProvider } = useProviderStatus();
     // Fail-safe: Show buttons by default (avoids infinite loading if JS fails)
     // If authenticated, we show the avatar.
-    // Loading state - prevent flash of unauthenticated UI
     // Loading state - prevent flash of unauthenticated UI
     if (status === "loading") {
         return (
@@ -61,6 +64,47 @@ export function UserMenu() {
                             <span>Meu Perfil</span>
                         </Link>
                     </DropdownMenuItem>
+
+                    {/* Show provider details when loaded and exists; otherwise render 'Quero trabalhar' fallback */}
+                    {!isLoadingProvider && <DropdownMenuSeparator />}
+
+                    {isLoadingProvider ? (
+                        // Loading state handled or just suppress
+                        null
+                    ) : providerStatus ? (
+                        <>
+                            <DropdownMenuLabel className="font-normal">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm font-medium">Conta Prestador</span>
+                                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full capitalize border border-primary/20">
+                                        {PROVIDER_TIER_LABELS[providerStatus.tier] ?? "Desconhecido"}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    Status: <span className={
+                                        providerStatus.status === EProviderStatus.Active ? "text-green-600 font-medium" :
+                                            (providerStatus.status === EProviderStatus.Rejected || providerStatus.status === EProviderStatus.Suspended) ? "text-red-600 font-medium" :
+                                                "text-amber-600"
+                                    }>
+                                        {PROVIDER_STATUS_LABELS[providerStatus.status] ?? "Desconhecido"}
+                                    </span>
+                                </p>
+                            </DropdownMenuLabel>
+                            <DropdownMenuItem asChild>
+                                <Link href={providerStatus.status === EProviderStatus.Active ? "/prestador/dashboard" : "/cadastro/prestador/perfil"}>
+                                    <Briefcase className="mr-2 h-4 w-4" />
+                                    <span>{providerStatus.status === EProviderStatus.Active ? "Painel do Prestador" : "Continuar Cadastro"}</span>
+                                </Link>
+                            </DropdownMenuItem>
+                        </>
+                    ) : (
+                        <DropdownMenuItem asChild>
+                            <Link href="/cadastro/prestador">
+                                <Briefcase className="mr-2 h-4 w-4" />
+                                <span>Quero trabalhar</span>
+                            </Link>
+                        </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })}>
                         <LogOut className="mr-2 h-4 w-4" />
@@ -74,9 +118,7 @@ export function UserMenu() {
     // Default view: Unauthenticated / Loading / Error
     return (
         <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" asChild>
-                <Link href="/cadastro">Cadastre-se grátis</Link>
-            </Button>
+            <AuthSelectionDropdown />
             <Button variant="secondary" size="sm" onClick={() => signIn("keycloak")}>
                 Login
             </Button>

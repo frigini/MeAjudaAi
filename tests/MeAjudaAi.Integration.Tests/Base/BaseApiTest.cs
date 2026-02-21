@@ -472,6 +472,19 @@ public abstract class BaseApiTest : IAsyncLifetime
             if (modules.HasFlag(TestModule.SearchProviders))
             {
                 var context = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
+                
+                // Garante que a extensão PostGIS exista (necessária para tipos geométricos)
+                // Isso é necessário porque o EnsureDeletedAsync apaga o banco de dados e a extensão
+                // E precisamos dela antes das migrations do SearchProviders se elas usarem tipos geométricos
+                try 
+                {
+                   await context.Database.ExecuteSqlRawAsync("CREATE EXTENSION IF NOT EXISTS postgis;");
+                } 
+                catch (Npgsql.PostgresException ex)
+                {
+                   logger?.LogWarning(ex, "⚠️ Failed to explicitly create PostGIS extension. Migrations might fail if not included.");
+                }
+
                 await ApplyMigrationForContextAsync(context, "SearchProviders", logger, "SearchProvidersDbContext");
                 await context.Database.CloseConnectionAsync();
             }

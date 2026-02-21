@@ -3,6 +3,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
+using Testcontainers.RabbitMq;
 
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Containers;
 
@@ -15,6 +16,7 @@ public static class SharedTestContainers
 {
     private static PostgreSqlContainer? _postgreSqlContainer;
     private static AzuriteContainer? _azuriteContainer;
+    private static RabbitMqContainer? _rabbitMqContainer;
     private static TestDatabaseOptions? _databaseOptions;
     private static readonly Lock _lock = new();
     private static bool _isInitialized;
@@ -40,6 +42,18 @@ public static class SharedTestContainers
         {
             EnsureInitialized();
             return _azuriteContainer!;
+        }
+    }
+
+    /// <summary>
+    /// Container RabbitMQ compartilhado para testes de mensageria
+    /// </summary>
+    public static RabbitMqContainer RabbitMq
+    {
+        get
+        {
+            EnsureInitialized();
+            return _rabbitMqContainer!;
         }
     }
 
@@ -90,6 +104,12 @@ public static class SharedTestContainers
             _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.33.0")
                 .Build();
 
+            // RabbitMQ para testes de mensageria
+            _rabbitMqContainer = new RabbitMqBuilder("rabbitmq:4.0-management")
+                .WithUsername("guest")
+                .WithPassword("guest")
+                .Build();
+
             _isInitialized = true;
         }
     }
@@ -104,12 +124,16 @@ public static class SharedTestContainers
         // Inicia containers em paralelo para performance
         await Task.WhenAll(
             _postgreSqlContainer!.StartAsync(),
-            _azuriteContainer!.StartAsync()
+            _azuriteContainer!.StartAsync(),
+            _rabbitMqContainer!.StartAsync()
         );
 
         // Verifica se os containers estão realmente prontos
-        await ValidateContainerHealthAsync();
-        await ValidateAzuriteHealthAsync();
+        await Task.WhenAll(
+            ValidateContainerHealthAsync(),
+            ValidateAzuriteHealthAsync(),
+            ValidateRabbitMqHealthAsync()
+        );
     }
 
     /// <summary>
@@ -191,6 +215,9 @@ public static class SharedTestContainers
         if (_azuriteContainer != null)
             stopTasks.Add(_azuriteContainer.StopAsync());
 
+        if (_rabbitMqContainer != null)
+            stopTasks.Add(_rabbitMqContainer.StopAsync());
+
         await Task.WhenAll(stopTasks);
     }
 
@@ -214,6 +241,53 @@ public static class SharedTestContainers
                 $"DROP SCHEMA IF EXISTS {schemaToClean} CASCADE; CREATE SCHEMA {schemaToClean};"
             ]);
         }
+    }
+
+    /// <summary>
+    /// Valida se o container RabbitMQ está saudável e pronto para conexões
+    /// </summary>
+    private static async Task ValidateRabbitMqHealthAsync()
+    {
+        if (_rabbitMqContainer == null) return;
+
+        const int maxRetries = 30;
+        const int delayMs = 1000;
+
+        for (int i = 0; i < maxRetries; i++)
+        {
+            try
+            {
+                // Tenta obter a connection string e validá-la
+                var connectionString = _rabbitMqContainer.GetConnectionString();
+                
+                // Tenta fazer uma conexão básica com a string obtida
+                if (!string.IsNullOrEmpty(connectionString))
+                {
+                    // A string deve ser válida para AMQP
+                    var uri = new Uri(connectionString);
+                    if (uri.Scheme == "amqp" || uri.Scheme == "amqps")
+                    {
+                        Console.WriteLine($"Container RabbitMQ ready! Connection String: {connectionString}");
+                        return;
+                    }
+                }
+                
+                Console.WriteLine($"RabbitMQ not ready yet - invalid connection string (attempt {i + 1}/{maxRetries})");
+                await Task.Delay(delayMs);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"RabbitMQ not ready yet (attempt {i + 1}/{maxRetries}): {ex.Message}");
+                await Task.Delay(delayMs);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"RabbitMQ validation error (attempt {i + 1}/{maxRetries}): {ex.Message}");
+                await Task.Delay(delayMs);
+            }
+        }
+
+        throw new InvalidOperationException("RabbitMQ container failed to become ready after maximum retries.");
     }
 
     /// <summary>

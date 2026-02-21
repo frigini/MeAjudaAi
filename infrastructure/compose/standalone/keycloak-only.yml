@@ -1,14 +1,13 @@
 # Standalone Keycloak for development
-# Minimal setup with embedded H2 database for quick testing
+# Minimal setup with Postgres database for quick testing
 # 
-# REQUIRED: Set KEYCLOAK_ADMIN_PASSWORD before running
-# OPTIONAL: Set KEYCLOAK_ADMIN (defaults to 'admin', consider using a custom username)
+# REQUIRED: Set KEYCLOAK_ADMIN_PASSWORD and KEYCLOAK_ADMIN in environment or .env
 # OPTIONAL: Set KEYCLOAK_PORT (defaults to 8081 to avoid conflicts with development.yml)
 #
 # Usage:
 #   export KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 32)
-#   export KEYCLOAK_ADMIN="meajudaai_admin"  # Recommended: avoid 'admin'
-#   export KEYCLOAK_PORT=8081                # Avoid port conflicts
+#   export KEYCLOAK_ADMIN="meajudaai_admin"
+#   export KEYCLOAK_PORT=8081
 #   docker compose -f standalone/keycloak-only.yml up -d
 #
 # Or use .env file with secure credentials
@@ -18,17 +17,35 @@ services:
     image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-26.0.2}
     container_name: meajudaai-keycloak-standalone
     environment:
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Missing KEYCLOAK_ADMIN_PASSWORD environment variable}
+      KC_DB: postgres
+      # Aponta para o host porque o Postgres está rodando fora deste compose (via Aspire ou outro)
+      KC_DB_URL: jdbc:postgresql://host.docker.internal:5432/meajudaai
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      KC_DB_SCHEMA: identity
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME: localhost
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
-      KC_HTTP_ENABLED: true
+      KC_LOG_LEVEL: info
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin123}
+      # Identity Providers (Optional for standalone)
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET:-}
+      INSTAGRAM_CLIENT_ID: ${INSTAGRAM_CLIENT_ID:-}
+      INSTAGRAM_CLIENT_SECRET: ${INSTAGRAM_CLIENT_SECRET:-}
     command: ["start-dev", "--import-realm"]
     ports:
       - "${KEYCLOAK_PORT:-8081}:8080"
+      # - "8443:8443" # HTTPS disabled
     volumes:
       - keycloak_standalone_data:/opt/keycloak/data
-      - ../../keycloak/realms:/opt/keycloak/data/import
+      - ../environments/keycloak/imports:/opt/keycloak/data/import
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health/ready || exit 1"]

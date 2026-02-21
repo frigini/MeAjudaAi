@@ -1,27 +1,32 @@
 import { twMerge } from "tailwind-merge";
-import type { ComponentProps } from "react";
+import Image, { ImageProps } from "next/image";
+import type { CSSProperties } from "react";
 
-export interface AvatarProps extends Omit<ComponentProps<"img">, "src"> {
+export interface AvatarProps extends Omit<ImageProps, "src" | "alt" | "width" | "height" | "fill" | "style"> {
     src?: string | null;
     alt: string;
     size?: "sm" | "md" | "lg" | "xl";
     fallback?: string;
+    containerClassName?: string;
+    containerStyle?: CSSProperties;
 }
 
-const sizeClasses = {
-    sm: "size-8",
-    md: "size-10",
-    lg: "size-12",
-    xl: "size-16",
-};
+const SIZE_CONFIG = {
+    sm: { classes: "size-8", px: 32 },
+    md: { classes: "size-10", px: 40 },
+    lg: { classes: "size-12", px: 48 },
+    xl: { classes: "size-16", px: 64 },
+} as const;
 
 export function Avatar({
     src,
     alt,
     size = "md",
     fallback,
+    containerClassName,
+    containerStyle,
     className,
-    ...props
+    ...rest // Forward remaining props (img props) to Image
 }: AvatarProps) {
     const initials =
         fallback ||
@@ -39,19 +44,22 @@ export function Avatar({
         <div
             className={twMerge(
                 "relative inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground font-medium overflow-hidden",
-                sizeClasses[size],
-                className
+                SIZE_CONFIG[size].classes,
+                containerClassName
             )}
+            style={containerStyle}
         >
             {src ? (
-                <img
+                <Image
                     src={src}
                     alt={alt}
-                    className="size-full object-cover"
-                    {...props}
+                    width={SIZE_CONFIG[size].px}
+                    height={SIZE_CONFIG[size].px}
+                    className={twMerge("size-full object-cover", className)}
+                    {...rest}
                 />
             ) : (
-                <span className="text-sm">{initials}</span>
+                <span className="text-sm select-none">{initials}</span>
             )}
         </div>
     );

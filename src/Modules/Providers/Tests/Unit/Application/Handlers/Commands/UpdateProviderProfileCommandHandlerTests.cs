@@ -58,6 +58,7 @@ public class UpdateProviderProfileCommandHandlerTests
             ProviderId: providerId,
             Name: "Prestador Atualizado",
             BusinessProfile: businessProfileDto,
+            Services: null,
             UpdatedBy: updatedBy.ToString()
         );
 
@@ -119,6 +120,7 @@ public class UpdateProviderProfileCommandHandlerTests
             ProviderId: providerId,
             Name: "Prestador Atualizado",
             BusinessProfile: businessProfileDto,
+            Services: null,
             UpdatedBy: updatedBy.ToString()
         );
 
@@ -177,6 +179,7 @@ public class UpdateProviderProfileCommandHandlerTests
             ProviderId: providerId,
             Name: invalidName,
             BusinessProfile: businessProfileDto,
+            Services: null,
             UpdatedBy: updatedBy.ToString()
         );
 
@@ -232,6 +235,7 @@ public class UpdateProviderProfileCommandHandlerTests
             ProviderId: providerId,
             Name: "Prestador Atualizado",
             BusinessProfile: businessProfileDto,
+            Services: null,
             UpdatedBy: updatedBy.ToString()
         );
 
@@ -249,5 +253,62 @@ public class UpdateProviderProfileCommandHandlerTests
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
             Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithServices_ShouldUpdateServices()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var updatedBy = Guid.NewGuid();
+        Provider provider = ProviderBuilder.Create().WithId(providerId);
+
+        var businessProfileDto = new BusinessProfileDto(
+            LegalName: "Prestador",
+            FantasyName: "Prestador",
+            Description: "Descrição",
+            ContactInfo: new ContactInfoDto("test@test.com", "(11) 99999-9999", null),
+            PrimaryAddress: new AddressDto("Rua", "123", null, "Bairro", "Cidade", "SP", "00000-000", "Brasil")
+        );
+
+        var servicesList = new List<ProviderServiceDto>
+        {
+            new ProviderServiceDto(Guid.NewGuid(), "Service A"),
+            new ProviderServiceDto(Guid.NewGuid(), "Service B")
+        };
+
+        var command = new UpdateProviderProfileCommand(
+            ProviderId: providerId,
+            Name: "Prestador Atualizado",
+            BusinessProfile: businessProfileDto,
+            Services: servicesList,
+            UpdatedBy: updatedBy.ToString()
+        );
+
+        _providerRepositoryMock
+            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(provider);
+
+        _providerRepositoryMock
+            .Setup(r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        provider.Services.Should().HaveCount(2);
+        provider.Services.Select(s => s.ServiceName).Should().Contain(new[] { "Service A", "Service B" });
+        provider.Services.Select(s => s.ServiceId).Should().Contain(servicesList.Select(s => s.ServiceId));
+
+        _providerRepositoryMock.Verify(
+            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _providerRepositoryMock.Verify(
+            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 }

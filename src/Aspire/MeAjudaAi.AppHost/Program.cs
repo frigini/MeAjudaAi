@@ -136,6 +136,14 @@ internal static class Program
             // Importar realm de desenvolvimento automaticamente
             options.ImportRealm = "/opt/keycloak/data/import/meajudaai-realm.dev.json";
         });
+        
+        keycloak.Keycloak
+            .WithEnvironment("GOOGLE_CLIENT_ID", builder.Configuration["GOOGLE_CLIENT_ID"] ?? "")
+            .WithEnvironment("GOOGLE_CLIENT_SECRET", builder.Configuration["GOOGLE_CLIENT_SECRET"] ?? "")
+            .WithEnvironment("FACEBOOK_APP_ID", builder.Configuration["FACEBOOK_APP_ID"] ?? "")
+            .WithEnvironment("FACEBOOK_APP_SECRET", builder.Configuration["FACEBOOK_APP_SECRET"] ?? "")
+            .WithEnvironment("INSTAGRAM_CLIENT_ID", builder.Configuration["INSTAGRAM_CLIENT_ID"] ?? "")
+            .WithEnvironment("INSTAGRAM_CLIENT_SECRET", builder.Configuration["INSTAGRAM_CLIENT_SECRET"] ?? "");
 
         // Garantir que Keycloak aguarde o Postgres estar pronto
         keycloak.Keycloak.WaitFor(postgresql.MainDatabase);

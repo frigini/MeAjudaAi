@@ -61,6 +61,14 @@ public sealed class Provider : AggregateRoot<ProviderId>
     public EVerificationStatus VerificationStatus { get; private set; }
 
     /// <summary>
+    /// Tier de assinatura do prestador de serviços.
+    /// </summary>
+    /// <remarks>
+    /// Padrão: Standard (plano gratuito). Promovido automaticamente via Stripe webhook.
+    /// </remarks>
+    public EProviderTier Tier { get; private set; }
+
+    /// <summary>
     /// Coleção de documentos validados do prestador de serviços.
     /// </summary>
     private readonly List<Document> _documents = [];
@@ -125,6 +133,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
         BusinessProfile = businessProfile;
         Status = EProviderStatus.PendingBasicInfo;
         VerificationStatus = EVerificationStatus.Pending;
+        Tier = EProviderTier.Standard;
 
         // Não adiciona eventos de domínio para testes
     }
@@ -158,6 +167,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
         BusinessProfile = businessProfile;
         Status = EProviderStatus.PendingBasicInfo;
         VerificationStatus = EVerificationStatus.Pending;
+        Tier = EProviderTier.Standard;
 
         AddDomainEvent(new ProviderRegisteredDomainEvent(
             Id.Value,
@@ -493,6 +503,36 @@ public sealed class Provider : AggregateRoot<ProviderId>
     }
 
     /// <summary>
+    /// Promove ou rebaixa o tier do prestador de serviços.
+    /// </summary>
+    /// <param name="newTier">Novo tier a ser atribuído</param>
+    /// <param name="updatedBy">Quem está fazendo a atualização (ex: "stripe-webhook")</param>
+    /// <remarks>
+    /// Normalmente chamado via webhook do Stripe após confirmação de pagamento.
+    /// Não há restrição de progressão — pode promover ou rebaixar livremente.
+    /// </remarks>
+    public void PromoteTier(EProviderTier newTier, string? updatedBy = null)
+    {
+        if (IsDeleted)
+            throw new ProviderDomainException("Cannot update tier of deleted provider");
+
+        if (Tier == newTier)
+            return;
+
+        var previousTier = Tier;
+        Tier = newTier;
+        MarkAsUpdated();
+
+        AddDomainEvent(new ProviderTierUpdatedDomainEvent(
+            Id.Value,
+            1,
+            UserId,
+            previousTier,
+            newTier,
+            updatedBy));
+    }
+
+    /// <summary>
     /// Suspende o prestador de serviços.
     /// </summary>
     /// <param name="reason">Motivo da suspensão (obrigatório)</param>
@@ -610,6 +650,38 @@ public sealed class Provider : AggregateRoot<ProviderId>
     public Guid[] GetServiceIds()
     {
         return _services.Select(s => s.ServiceId).ToArray();
+    }
+
+    /// <summary>
+    /// Atualiza a lista de serviços oferecidos pelo prestador.
+    /// </summary>
+    /// <param name="newServices">Nova lista de serviços (ID e Nome)</param>
+    public void UpdateServices(IEnumerable<(Guid ServiceId, string ServiceName)> newServices)
+    {
+        if (IsDeleted)
+            throw new ProviderDomainException("Cannot update services of deleted provider");
+
+        var currentServiceIds = _services.Select(s => s.ServiceId).ToHashSet();
+        var newServiceList = newServices.GroupBy(s => s.ServiceId).Select(g => g.First()).ToList();
+        var newServiceIds = newServiceList.Select(s => s.ServiceId).ToHashSet();
+
+        // Identify services to remove
+        var servicesToRemove = currentServiceIds.Except(newServiceIds).ToList();
+        foreach (var serviceId in servicesToRemove)
+        {
+            RemoveService(serviceId);
+        }
+
+        // Identify services to add
+        // Note: For existing services, we don't update names here as they come from catalog
+        // Only add new ones that are not present
+        foreach (var (serviceId, serviceName) in newServiceList)
+        {
+            if (!currentServiceIds.Contains(serviceId))
+            {
+                AddService(serviceId, serviceName);
+            }
+        }
     }
 
     /// <summary>

@@ -2,8 +2,8 @@ using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
-using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using Xunit;
 
@@ -46,6 +46,7 @@ public class ProviderMapperTests
         dto.DeletedAt.Should().Be(provider.DeletedAt);
         dto.SuspensionReason.Should().Be(provider.SuspensionReason);
         dto.RejectionReason.Should().Be(provider.RejectionReason);
+        dto.Tier.Should().Be(provider.Tier);
 
         // Assert nested BusinessProfile mapping
         dto.BusinessProfile.Should().NotBeNull();
@@ -55,6 +56,21 @@ public class ProviderMapperTests
         dto.BusinessProfile.ContactInfo!.Email.Should().Be("test@example.com");
         dto.BusinessProfile.PrimaryAddress.Should().NotBeNull();
         dto.BusinessProfile.PrimaryAddress!.City.Should().Be("São Paulo");
+    }
+
+    [Fact]
+    public void ToDto_WithNonStandardTier_ShouldMapTierCorrectly()
+    {
+        // Arrange
+        var provider = ProviderBuilder.Create()
+            .WithTier(EProviderTier.Gold)
+            .Build();
+
+        // Act
+        var dto = provider.ToDto();
+
+        // Assert
+        dto.Tier.Should().Be(EProviderTier.Gold);
     }
 
     [Fact]
@@ -121,7 +137,7 @@ public class ProviderMapperTests
     public void ToDto_WithDocument_ShouldMapAllFields()
     {
         // Arrange
-        var document = new Document("12345678900", EDocumentType.CPF, isPrimary: true);
+        var document = new Document("12345678900", EDocumentType.CPF, "doc.pdf", "https://storage/doc.pdf", isPrimary: true);
 
         // Act
         var dto = document.ToDto();
@@ -130,6 +146,8 @@ public class ProviderMapperTests
         dto.Should().NotBeNull();
         dto.Number.Should().Be("12345678900");
         dto.DocumentType.Should().Be(EDocumentType.CPF);
+        dto.FileName.Should().Be("doc.pdf");
+        dto.FileUrl.Should().Be("https://storage/doc.pdf");
         dto.IsPrimary.Should().BeTrue();
     }
 
@@ -231,7 +249,13 @@ public class ProviderMapperTests
     public void ToDomain_WithDocumentDto_ShouldMapAllProperties()
     {
         // Arrange
-        var dto = new DocumentDto("12345678900", EDocumentType.CPF, true);
+        var dto = new DocumentDto(
+            Number: "12345678900",
+            DocumentType: EDocumentType.CPF,
+            FileName: "doc.pdf",
+            FileUrl: "https://storage/doc.pdf",
+            IsPrimary: true
+        );
 
         // Act
         var document = dto.ToDomain();
@@ -240,6 +264,8 @@ public class ProviderMapperTests
         document.Should().NotBeNull();
         document.Number.Should().Be("12345678900");
         document.DocumentType.Should().Be(EDocumentType.CPF);
+        document.FileName.Should().Be("doc.pdf");
+        document.FileUrl.Should().Be("https://storage/doc.pdf");
         document.IsPrimary.Should().BeTrue();
     }
 
@@ -303,8 +329,8 @@ public class ProviderMapperTests
     {
         // Arrange
         var provider = ProviderBuilder.Create()
-            .WithDocument("12345678900", EDocumentType.CPF)
-            .WithDocument("12345678000100", EDocumentType.CNPJ)
+            .WithDocument("12345678900", EDocumentType.CPF, "doc1.pdf", "https://storage/doc1.pdf")
+            .WithDocument("12345678000100", EDocumentType.CNPJ, "doc2.pdf", "https://storage/doc2.pdf")
             .Build();
 
         // Act
@@ -312,8 +338,16 @@ public class ProviderMapperTests
 
         // Assert
         dto.Documents.Should().HaveCount(2);
-        dto.Documents.Should().Contain(d => d.DocumentType == EDocumentType.CPF);
-        dto.Documents.Should().Contain(d => d.DocumentType == EDocumentType.CNPJ);
+        
+        var cpfDoc = dto.Documents.Single(d => d.DocumentType == EDocumentType.CPF);
+        cpfDoc.Number.Should().Be("12345678900");
+        cpfDoc.FileName.Should().Be("doc1.pdf");
+        cpfDoc.FileUrl.Should().Be("https://storage/doc1.pdf");
+
+        var cnpjDoc = dto.Documents.Single(d => d.DocumentType == EDocumentType.CNPJ);
+        cnpjDoc.Number.Should().Be("12345678000100");
+        cnpjDoc.FileName.Should().Be("doc2.pdf");
+        cnpjDoc.FileUrl.Should().Be("https://storage/doc2.pdf");
     }
 
     [Fact]

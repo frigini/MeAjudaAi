@@ -45,9 +45,11 @@ public class GetPublicProviderByIdEndpoint : BaseEndpoint, IEndpoint
     private static async Task<IResult> GetPublicProviderAsync(
         Guid id,
         IQueryDispatcher queryDispatcher,
+        HttpContext httpContext,
         CancellationToken cancellationToken)
     {
-        var query = new GetPublicProviderByIdQuery(id);
+        var isAuthenticated = httpContext.User.Identity?.IsAuthenticated ?? false;
+        var query = new GetPublicProviderByIdQuery(id, isAuthenticated);
         var result = await queryDispatcher.QueryAsync<GetPublicProviderByIdQuery, Result<PublicProviderDto?>>(
             query, cancellationToken);
 

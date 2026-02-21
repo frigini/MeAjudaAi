@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect, unstable_rethrow } from "next/navigation";
 import DashboardClient from "@/components/providers/dashboard-client";
-import { ProviderDto } from "@/types/api/provider";
+import { ProviderDto, EVerificationStatus } from "@/types/api/provider";
 
 export default async function DashboardPage() {
     const session = await auth();
@@ -56,13 +56,12 @@ export default async function DashboardPage() {
             throw new Error("Provider data is missing or invalid");
         }
 
-        // Normalize verificationStatus (API might return lowercase)
+        // Normalize verificationStatus (API might return lowercase or string)
         if (provider.verificationStatus && typeof provider.verificationStatus === 'string') {
-            const statusStr = provider.verificationStatus as string;
-            // Map known variants to strict ProviderDto["verificationStatus"] or normalized string
-            // Assuming ProviderDto["verificationStatus"] matches typical 'Verified', 'Pending', etc.
-            // If it's just 'string' in TS type but enum in C#, we normalize to Title Case
-            provider.verificationStatus = (statusStr.charAt(0).toUpperCase() + statusStr.slice(1).toLowerCase()) as ProviderDto["verificationStatus"];
+            const statusStr = (provider.verificationStatus as unknown as string).toLowerCase();
+            if (statusStr === 'verified') provider.verificationStatus = EVerificationStatus.Verified;
+            else if (statusStr === 'rejected') provider.verificationStatus = EVerificationStatus.Rejected;
+            else provider.verificationStatus = EVerificationStatus.Pending;
         }
 
         return <DashboardClient provider={provider} />;

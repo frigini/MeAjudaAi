@@ -22,6 +22,7 @@ public static class ProviderMapper
             provider.BusinessProfile.ToDto(),
             provider.Status,
             provider.VerificationStatus,
+            provider.Tier,
             provider.Documents.Select(d => d.ToDto()).ToList(),
             provider.Qualifications.Select(q => q.ToDto()).ToList(),
             provider.Services.Select(s => s.ToDto()).ToList(),
@@ -93,6 +94,8 @@ public static class ProviderMapper
         return new DocumentDto(
             document.Number,
             document.DocumentType,
+            document.FileName,
+            document.FileUrl,
             document.IsPrimary
         );
     }
@@ -154,7 +157,7 @@ public static class ProviderMapper
     /// </summary>
     public static Document ToDomain(this DocumentDto dto)
     {
-        return new Document(dto.Number, dto.DocumentType, dto.IsPrimary);
+        return new Document(dto.Number, dto.DocumentType, dto.FileName, dto.FileUrl, dto.IsPrimary);
     }
 
     /// <summary>
