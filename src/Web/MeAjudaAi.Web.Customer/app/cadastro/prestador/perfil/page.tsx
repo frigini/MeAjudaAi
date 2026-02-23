@@ -25,7 +25,6 @@ function getProviderStatusMessage(status: EProviderStatus): string {
 function getStatusBadgeClasses(status: EProviderStatus): string {
     if (status === EProviderStatus.Active) return "bg-green-100 text-green-800";
     if (status === EProviderStatus.Rejected) return "bg-red-100 text-red-800";
-    if (status === EProviderStatus.Suspended) return "bg-amber-100 text-amber-800";
     return "bg-amber-100 text-amber-800";
 }
 
@@ -99,7 +98,7 @@ export default function ProviderProfilePage() {
                 )}
 
                 {profile.status === EProviderStatus.Suspended && profile.suspensionReason && (
-                    <div className="mt-4 p-4 bg-red-50 text-red-800 text-sm rounded-md border border-red-200">
+                    <div className="mt-4 p-4 bg-amber-50 text-amber-800 text-sm rounded-md border border-amber-200">
                         <strong>Motivo da suspensão:</strong> {profile.suspensionReason}
                     </div>
                 )}

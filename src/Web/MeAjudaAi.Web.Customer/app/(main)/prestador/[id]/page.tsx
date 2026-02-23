@@ -32,9 +32,10 @@ const PublicProviderSchema = z.object({
             if (/^\d+$/.test(val)) {
                 return parseInt(val, 10);
             }
+            return EProviderType.None;
         }
-        return val;
-    }, z.nativeEnum(EProviderType).optional()),
+        return EProviderType.None;
+    }, z.nativeEnum(EProviderType).optional().default(EProviderType.None)),
     fantasyName: z.string().optional().nullable(),
     description: z.string().optional().nullable(),
     city: z.string().optional().nullable(),

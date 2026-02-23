@@ -128,22 +128,24 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         var gardenServiceId = await CreateServiceAsync(gardenCategoryId, "Manutenção de Jardim");
 
         // Provider com serviço de limpeza
+        var cleaningName = $"cleaning_provider_{Guid.NewGuid():N}";
         var cleaningProviderId = await CreateProviderAsync(
-            $"cleaning_provider_{Guid.NewGuid():N}",
+            cleaningName,
             -23.5605,
             -46.6433
         );
         // Inserir diretamente com ServiceIds ao invés de usar endpoint
-        await InsertSearchableProviderAsync(cleaningProviderId, $"cleaning_provider_{Guid.NewGuid():N}", -23.5605, -46.6433, serviceIds: new[] { cleaningServiceId });
+        await InsertSearchableProviderAsync(cleaningProviderId, cleaningName, -23.5605, -46.6433, serviceIds: new[] { cleaningServiceId });
 
         // Provider com serviço de jardinagem
+        var gardenName = $"garden_provider_{Guid.NewGuid():N}";
         var gardenProviderId = await CreateProviderAsync(
-            $"garden_provider_{Guid.NewGuid():N}",
+            gardenName,
             -23.5705,
             -46.6533
         );
         // Inserir diretamente com ServiceIds ao invés de usar endpoint
-        await InsertSearchableProviderAsync(gardenProviderId, $"garden_provider_{Guid.NewGuid():N}", -23.5705, -46.6533, serviceIds: new[] { gardenServiceId });
+        await InsertSearchableProviderAsync(gardenProviderId, gardenName, -23.5705, -46.6533, serviceIds: new[] { gardenServiceId });
 
         // Act - Buscar apenas por serviço de limpeza
         var response = await _fixture.ApiClient.GetAsync(

@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
@@ -102,7 +103,7 @@ public sealed partial class RegisterCustomerCommandHandler(
             firstName,
             lastName,
             command.Password,
-            new[] { "customer" }, // papel de cliente
+            new[] { UserRoles.Customer }, // papel de cliente
             command.PhoneNumber,
             cancellationToken
         );
@@ -131,7 +132,7 @@ public sealed partial class RegisterCustomerCommandHandler(
 
             // Verifica se o usuário realmente não foi salvo no repositório antes da compensação
             // Usamos CancellationToken.None para garantir que a compensação ocorra mesmo se o request original foi cancelado
-            var persistenceCheck = await userRepository.GetByIdAsync(userResult.Value.Id, CancellationToken.None);
+            var persistenceCheck = await userRepository.GetByIdNoTrackingAsync(userResult.Value.Id, CancellationToken.None);
             if (persistenceCheck == null)
             {
                 // Compensação: desativar o usuário criado no Keycloak para evitar usuário órfão "fantasma" que pode logar mas não tem dados locais

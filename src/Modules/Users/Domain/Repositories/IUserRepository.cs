@@ -13,13 +13,15 @@ namespace MeAjudaAi.Modules.Users.Domain.Repositories;
 /// </remarks>
 public interface IUserRepository
 {
+    Task<User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default);
+
     /// <summary>
-    /// Busca um usuário pelo seu identificador único.
+    /// Busca um usuário pelo seu identificador único sem rastreamento do EF Core (AsNoTracking).
     /// </summary>
     /// <param name="id">Identificador único do usuário</param>
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
     /// <returns>O usuário encontrado ou null se não existir</returns>
-    Task<User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default);
+    Task<User?> GetByIdNoTrackingAsync(UserId id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Busca um usuário pelo endereço de email.
