@@ -117,16 +117,33 @@ public sealed partial class RegisterCustomerCommandHandler(
             logger.LogError(ex, "Failed to persist customer {Email} ({Id}) to repository. Attempting Keycloak compensation.",
                 maskedEmail, userResult.Value.Id);
 
-            // Compensação: desativar o usuário criado no Keycloak para evitar órfão
-            try
+            // Verifica se o usuário realmente não foi salvo no repositório antes da compensação
+            var persistenceCheck = await userRepository.GetByIdAsync(userResult.Value.Id, cancellationToken);
+            if (persistenceCheck == null)
             {
-                await userDomainService.SyncUserWithKeycloakAsync(userResult.Value.Id, cancellationToken);
+                // Compensação: desativar o usuário criado no Keycloak para evitar usuário órfão "fantasma" que pode logar mas não tem dados locais
+                try
+                {
+                    var compensationResult = await userDomainService.DeactivateUserInKeycloakAsync(userResult.Value.Id, cancellationToken);
+                    if (compensationResult.IsFailure)
+                    {
+                        logger.LogError("Compensation failed for user {UserId}: {Error}", userResult.Value.Id, compensationResult.Error);
+                    }
+                    else
+                    {
+                        logger.LogInformation("Keycloak user {UserId} deactivated successfully as compensation.", userResult.Value.Id);
+                    }
+                }
+                catch (Exception compensationEx)
+                {
+                    logger.LogCritical(compensationEx,
+                        "CRITICAL: Failed to compensate Keycloak user {UserId} after repository failure. Manual cleanup required.",
+                        userResult.Value.Id);
+                }
             }
-            catch (Exception compensationEx)
+            else
             {
-                logger.LogCritical(compensationEx,
-                    "CRITICAL: Failed to compensate Keycloak user {UserId} after repository failure. Manual cleanup required.",
-                    userResult.Value.Id);
+                logger.LogWarning("Repository write failure reported but user {UserId} was found in DB. Skipping Keycloak compensation.", userResult.Value.Id);
             }
 
             return Result<UserDto>.Failure(Error.Internal("Falha ao salvar o cadastro. Tente novamente mais tarde."));

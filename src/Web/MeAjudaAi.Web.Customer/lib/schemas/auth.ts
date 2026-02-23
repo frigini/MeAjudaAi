@@ -131,7 +131,7 @@ export const addressSchema = z.object({
     complement: z.string().optional(),
     neighborhood: z.string().min(2, "Bairro obrigatório"),
     city: z.string().min(2, "Cidade obrigatória"),
-    state: z.string().length(2, "Estado deve ter 2 letras"),
+    state: z.string().length(2, "Estado deve ter 2 letras").regex(/^[a-zA-Z]{2}$/, "Estado deve ter 2 letras"),
 });
 
 export const registerCustomerSchema = z.object({

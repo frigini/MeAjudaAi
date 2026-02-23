@@ -8,6 +8,7 @@ using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Contracts.Modules.SearchProviders.Enums;
 
 namespace MeAjudaAi.E2E.Tests.Modules.SearchProviders;
 
@@ -20,10 +21,12 @@ namespace MeAjudaAi.E2E.Tests.Modules.SearchProviders;
 public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLifetime
 {
     private readonly TestContainerFixture _fixture;
+    private readonly ITestOutputHelper _output;
 
-    public SearchProvidersEndToEndTests(TestContainerFixture fixture)
+    public SearchProvidersEndToEndTests(TestContainerFixture fixture, ITestOutputHelper output)
     {
         _fixture = fixture;
+        _output = output;
     }
 
     public async ValueTask InitializeAsync()
@@ -75,12 +78,12 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         
         if (result!.Items.Count == 0)
         {
-            // Debugging: If empty, let's try a much larger radius to see if anything exists at all
+            // Debug: Se estiver vazio, tentamos um raio muito maior para ver se algo existe no banco
             var debugResponse = await _fixture.ApiClient.GetAsync(
                 $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm=500.0");
             var debugResult = await debugResponse.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
             
-            Console.WriteLine($"[DEBUG] Search with 10km returned 0 items. With 500km it returned {debugResult?.Items.Count ?? 0} items.");
+            _output.WriteLine($"[DEBUG] A busca com 10km retornou 0 itens. Com 500km retornou {debugResult?.Items.Count ?? 0} itens.");
         }
 
         result.Should().NotBeNull();
@@ -531,12 +534,13 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         return TestContainerFixture.ExtractIdFromLocation(location!);
     }
 
-    private static int MapSubscriptionTierToInt(string tier) => tier switch
+    private static int MapSubscriptionTierToInt(string tier)
     {
-        "Free" => 0,
-        "Standard" => 1,
-        "Gold" => 2,
-        "Platinum" => 3,
-        _ => 1 // Default to Standard (1)
-    };
+        if (Enum.TryParse<ESubscriptionTier>(tier, out var result))
+        {
+            return (int)result;
+        }
+        
+        return (int)ESubscriptionTier.Standard; // Default para Standard
+    }
 }

@@ -1,7 +1,10 @@
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Services;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Users.Domain.Entities;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Services;
 
@@ -16,7 +19,24 @@ public class KeycloakUserDomainServiceTests
     public KeycloakUserDomainServiceTests()
     {
         _keycloakServiceMock = new Mock<IKeycloakService>();
-        _service = new KeycloakUserDomainService(_keycloakServiceMock.Object);
+        _service = new KeycloakUserDomainService(_keycloakServiceMock.Object, NullLogger<KeycloakUserDomainService>.Instance);
+    }
+
+    [Fact]
+    public async Task DeactivateUserInKeycloakAsync_ShouldCallKeycloakServiceDeactivate()
+    {
+        // Arrange
+        var userId = new UserId(Guid.NewGuid());
+        _keycloakServiceMock
+            .Setup(x => x.DeactivateUserAsync(userId.Value.ToString(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success());
+
+        // Act
+        var result = await _service.DeactivateUserInKeycloakAsync(userId, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        _keycloakServiceMock.Verify(x => x.DeactivateUserAsync(userId.Value.ToString(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

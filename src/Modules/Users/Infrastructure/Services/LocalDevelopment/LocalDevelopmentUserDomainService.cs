@@ -42,4 +42,10 @@ internal class LocalDevelopmentUserDomainService : IUserDomainService
         // Para ambientes sem Keycloak, simular sincronização bem-sucedida
         return Task.FromResult(Result.Success());
     }
+
+    public Task<Result> DeactivateUserInKeycloakAsync(UserId userId, CancellationToken cancellationToken = default)
+    {
+        // Para ambientes sem Keycloak, simular desativação bem-sucedida
+        return Task.FromResult(Result.Success());
+    }
 }

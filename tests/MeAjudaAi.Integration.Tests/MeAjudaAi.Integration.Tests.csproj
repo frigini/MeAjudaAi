@@ -44,6 +44,7 @@
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.RabbitMq" />
     
     <!-- Additional packages for Infrastructure and Aspire testing -->
     <PackageReference Include="Bogus" />

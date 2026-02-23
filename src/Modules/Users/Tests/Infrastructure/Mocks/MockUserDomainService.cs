@@ -27,4 +27,10 @@ public class MockUserDomainService : IUserDomainService
         // Para testes, simular sincronização bem-sucedida
         return Task.FromResult(Result.Success());
     }
+
+    public Task<Result> DeactivateUserInKeycloakAsync(UserId userId, CancellationToken cancellationToken = default)
+    {
+        // Para testes, simular desativação bem-sucedida
+        return Task.FromResult(Result.Success());
+    }
 }
