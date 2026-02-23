@@ -358,6 +358,12 @@ public class TestContainerFixture : IAsyncLifetime
         await CleanupContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services);
         await CleanupContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
         await CleanupContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
+
+        // Clear Redis cache to avoid pollution between tests
+        if (_redisContainer != null)
+        {
+            await _redisContainer.ExecAsync(new[] { "redis-cli", "FLUSHALL" });
+        }
     }
 
     private static async Task CleanupContext<TContext>(IServiceProvider services) where TContext : DbContext
