@@ -181,9 +181,9 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
 
         services.AddSingleton(CreateTestRabbitMqOptions());
 
-        // Override retry configuration for faster testing
-        configuration["Messaging:Retry:InitialRetryDelaySeconds"] = "0";
-        configuration["Messaging:Retry:BackoffMultiplier"] = "1";
+        // Sobrescrever configuração de tentativas para testes mais rápidos
+        configuration["Messaging:DeadLetter:Retry:InitialRetryDelaySeconds"] = "0";
+        configuration["Messaging:DeadLetter:Retry:BackoffMultiplier"] = "1";
 
         MessagingExtensions.AddDeadLetterQueue(
             services, configuration);

@@ -16,11 +16,29 @@ import { getWhatsappLink } from "@/lib/utils/phone";
 
 import { EVerificationStatus, EProviderType } from "@/types/api/provider";
 
-// Zod Schema for Runtime Validation
+// Export schemas for testing
+export const VerificationStatusSchema = z.preprocess((val) => {
+    if (typeof val === 'number') return val;
+    if (typeof val === 'string') {
+        if (/^\d+$/.test(val)) {
+            return parseInt(val, 10);
+        }
+        const lower = val.toLowerCase();
+        if (lower === 'verified') return EVerificationStatus.Verified;
+        if (lower === 'rejected') return EVerificationStatus.Rejected;
+        if (lower === 'inprogress' || lower === 'in_progress') return EVerificationStatus.InProgress;
+        if (lower === 'suspended') return EVerificationStatus.Suspended;
+        if (lower === 'none') return EVerificationStatus.None;
+        return EVerificationStatus.Pending;
+    }
+    return val;
+}, z.nativeEnum(EVerificationStatus).optional().nullable());
+
 const PublicProviderSchema = z.object({
     id: z.string().uuid(),
     name: z.string(),
     type: z.preprocess((val) => {
+        if (typeof val === 'number') return val;
         if (typeof val === 'string') {
             const lower = val.toLowerCase();
             if (lower === 'none') return EProviderType.None;
@@ -45,21 +63,7 @@ const PublicProviderSchema = z.object({
     phoneNumbers: z.array(z.string()).optional().nullable(),
     services: z.array(z.string()).optional().nullable(),
     email: z.string().email().optional().nullable(),
-    verificationStatus: z.preprocess((val) => {
-        if (typeof val === 'string') {
-            if (/^\d+$/.test(val)) {
-                return parseInt(val, 10);
-            }
-            const lower = val.toLowerCase();
-            if (lower === 'verified') return EVerificationStatus.Verified;
-            if (lower === 'rejected') return EVerificationStatus.Rejected;
-            if (lower === 'inprogress' || lower === 'in_progress') return EVerificationStatus.InProgress;
-            if (lower === 'suspended') return EVerificationStatus.Suspended;
-            if (lower === 'none') return EVerificationStatus.None;
-            return EVerificationStatus.Pending;
-        }
-        return val;
-    }, z.nativeEnum(EVerificationStatus).optional().nullable())
+    verificationStatus: VerificationStatusSchema
 });
 
 type PublicProviderData = z.infer<typeof PublicProviderSchema>;

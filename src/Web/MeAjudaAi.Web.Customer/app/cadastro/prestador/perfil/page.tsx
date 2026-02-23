@@ -58,9 +58,9 @@ export default function ProviderProfilePage() {
                 <p className="text-muted-foreground mb-8">
                     Cadastre-se para começar a oferecer seus serviços na plataforma MeAjudaAi.
                 </p>
-                <Link href="/cadastro/prestador">
-                    <Button size="lg" className="w-full">Quero ser prestador</Button>
-                </Link>
+                <Button asChild size="lg" className="w-full">
+                    <Link href="/cadastro/prestador">Quero ser prestador</Link>
+                </Button>
             </div>
         );
     }
@@ -72,7 +72,7 @@ export default function ProviderProfilePage() {
     const hasAddress = !!profile.businessProfile?.primaryAddress?.street || isVerified || isSuspended;
     const hasDocuments = (profile.documents?.length ?? 0) > 0 || isVerified || isSuspended;
 
-    // Derived states for completed steps based on the user request
+    // Estados derivados para etapas concluídas com base na solicitação do usuário
     const step2Completed = hasAddress || isPendingVerification;
     const step3Completed = hasDocuments || isPendingVerification;
 
@@ -141,9 +141,9 @@ export default function ProviderProfilePage() {
                             </Link>
                         </div>
                     ) : (
-                        <Link href="/cadastro/prestador/perfil/endereco">
-                            <Button size="sm" className="w-full mt-2">Preencher Endereço</Button>
-                        </Link>
+                        <Button asChild size="sm" className="w-full mt-2">
+                            <Link href="/cadastro/prestador/perfil/endereco">Preencher Endereço</Link>
+                        </Button>
                     )}
                 </div>
 
@@ -179,17 +179,17 @@ export default function ProviderProfilePage() {
                     ) : !hasAddress ? (
                         <p className="text-sm text-muted-foreground">Bloqueado</p>
                     ) : (
-                        <Link href="/cadastro/prestador/perfil/documentos">
-                            <Button size="sm" className="w-full mt-2">Enviar Documentos</Button>
-                        </Link>
+                        <Button asChild size="sm" className="w-full mt-2">
+                            <Link href="/cadastro/prestador/perfil/documentos">Enviar Documentos</Link>
+                        </Button>
                     )}
                 </div>
             </div>
 
             <div className="mt-12 text-center">
-                <Link href="/">
-                    <Button variant="link">Voltar para a Home</Button>
-                </Link>
+                <Button asChild variant="link">
+                    <Link href="/">Voltar para a Home</Link>
+                </Button>
             </div>
         </div>
     );

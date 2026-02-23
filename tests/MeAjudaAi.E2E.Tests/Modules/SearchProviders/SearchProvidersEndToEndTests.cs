@@ -177,13 +177,15 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         var electricalServiceId = await CreateServiceAsync(categoryId, "Elétrica");
         var plumbingServiceId = await CreateServiceAsync(categoryId, "Hidráulica");
 
-        var electricianId = await CreateProviderAsync($"electrician_{Guid.NewGuid():N}", -23.5605, -46.6433);
+        var electricianName = $"electrician_{Guid.NewGuid():N}";
+        var electricianId = await CreateProviderAsync(electricianName, -23.5605, -46.6433);
         // Inserir diretamente com ServiceIds ao invés de usar endpoint
-        await InsertSearchableProviderAsync(electricianId, $"electrician_{Guid.NewGuid():N}", -23.5605, -46.6433, serviceIds: new[] { electricalServiceId });
+        await InsertSearchableProviderAsync(electricianId, electricianName, -23.5605, -46.6433, serviceIds: new[] { electricalServiceId });
 
-        var plumberId = await CreateProviderAsync($"plumber_{Guid.NewGuid():N}", -23.5705, -46.6533);
+        var plumberName = $"plumber_{Guid.NewGuid():N}";
+        var plumberId = await CreateProviderAsync(plumberName, -23.5705, -46.6533);
         // Inserir diretamente com ServiceIds ao invés de usar endpoint
-        await InsertSearchableProviderAsync(plumberId, $"plumber_{Guid.NewGuid():N}", -23.5705, -46.6533, serviceIds: new[] { plumbingServiceId });
+        await InsertSearchableProviderAsync(plumberId, plumberName, -23.5705, -46.6533, serviceIds: new[] { plumbingServiceId });
 
         // Act - Buscar por ambos os serviços
         var response = await _fixture.ApiClient.GetAsync(
