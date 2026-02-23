@@ -43,6 +43,13 @@ internal class LocalDevelopmentUserDomainService : IUserDomainService
         return Task.FromResult(Result.Success());
     }
 
+    /// <summary>
+    /// Simula a desativação de um usuário no Keycloak para ambiente de desenvolvimento local.
+    /// Sempre retorna sucesso.
+    /// </summary>
+    /// <param name="userId">ID do usuário a ser desativado.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <returns>Resultado simulado (sempre sucesso).</returns>
     public Task<Result> DeactivateUserInKeycloakAsync(UserId userId, CancellationToken cancellationToken = default)
     {
         // Para ambientes sem Keycloak, simular desativação bem-sucedida

@@ -17,6 +17,7 @@ namespace MeAjudaAi.Modules.Users.Infrastructure.Services;
 /// entre o domínio local e o sistema de autenticação.
 /// </remarks>
 /// <param name="keycloakService">Serviço de integração com Keycloak</param>
+/// <param name="logger">Logger para registro de operações e erros</param>
 internal class KeycloakUserDomainService(
     IKeycloakService keycloakService,
     ILogger<KeycloakUserDomainService> logger) : IUserDomainService

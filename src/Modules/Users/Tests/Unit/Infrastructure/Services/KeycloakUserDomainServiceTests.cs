@@ -40,6 +40,23 @@ public class KeycloakUserDomainServiceTests
     }
 
     [Fact]
+    public async Task DeactivateUserInKeycloakAsync_ShouldReturnFailure_WhenKeycloakServiceFails()
+    {
+        // Arrange
+        var userId = new UserId(Guid.NewGuid());
+        var errorMessage = "Keycloak error";
+        _keycloakServiceMock
+            .Setup(x => x.DeactivateUserAsync(userId.Value.ToString(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Failure(errorMessage));
+
+        // Act
+        var result = await _service.DeactivateUserInKeycloakAsync(userId, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsFailure);
+        Assert.Equal(errorMessage, result.Error.Message);
+    }
+    [Fact]
     public async Task CreateUserAsync_WhenKeycloakCreationSucceeds_ShouldReturnUserWithKeycloakId()
     {
         // Arrange

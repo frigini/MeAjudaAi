@@ -11,7 +11,8 @@ public class RegisterCustomerCommandValidator : AbstractValidator<RegisterCustom
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Nome é obrigatório")
             .MinimumLength(ValidationConstants.UserLimits.FirstNameMinLength + ValidationConstants.UserLimits.LastNameMinLength).WithMessage($"Nome deve ter pelo menos {ValidationConstants.UserLimits.FirstNameMinLength + ValidationConstants.UserLimits.LastNameMinLength} caracteres")
-            .MaximumLength(ValidationConstants.UserLimits.FirstNameMaxLength + ValidationConstants.UserLimits.LastNameMaxLength).WithMessage($"Nome deve ter no máximo {ValidationConstants.UserLimits.FirstNameMaxLength + ValidationConstants.UserLimits.LastNameMaxLength} caracteres");
+            .MaximumLength(ValidationConstants.UserLimits.FirstNameMaxLength + ValidationConstants.UserLimits.LastNameMaxLength).WithMessage($"Nome deve ter no máximo {ValidationConstants.UserLimits.FirstNameMaxLength + ValidationConstants.UserLimits.LastNameMaxLength} caracteres")
+            .Matches(ValidationConstants.Patterns.Name).WithMessage("Nome deve conter apenas letras e espaços");
             
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("Email é obrigatório")
@@ -23,10 +24,16 @@ public class RegisterCustomerCommandValidator : AbstractValidator<RegisterCustom
             .When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber));
             
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Senha é obrigatória")
-            .MinimumLength(ValidationConstants.PasswordLimits.MinLength).WithMessage($"Senha deve ter pelo menos {ValidationConstants.PasswordLimits.MinLength} caracteres")
-            .Matches(@"[a-zA-Z]").WithMessage("A senha deve conter pelo menos uma letra")
-            .Matches(@"\d").WithMessage("A senha deve conter pelo menos um número")
-            .Matches(@"[^a-zA-Z0-9]").WithMessage("A senha deve conter pelo menos um caractere especial");
+            .NotEmpty().WithMessage("Senha é obrigatória");
+
+        RuleFor(x => x.Password)
+            .Matches(ValidationConstants.Patterns.Password).WithMessage("Senha deve ter pelo menos 8 caracteres, uma letra maiúscula, uma minúscula e um número")
+            .When(x => !string.IsNullOrEmpty(x.Password));
+
+        RuleFor(x => x.TermsAccepted)
+            .Equal(true).WithMessage("Você deve aceitar os termos de uso");
+
+        RuleFor(x => x.AcceptedPrivacyPolicy)
+            .Equal(true).WithMessage("Você deve aceitar a política de privacidade");
     }
 }

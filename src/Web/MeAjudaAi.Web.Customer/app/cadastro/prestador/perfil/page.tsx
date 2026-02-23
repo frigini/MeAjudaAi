@@ -24,7 +24,8 @@ function getProviderStatusMessage(status: EProviderStatus): string {
 
 function getStatusBadgeClasses(status: EProviderStatus): string {
     if (status === EProviderStatus.Active) return "bg-green-100 text-green-800";
-    if (status === EProviderStatus.Rejected || status === EProviderStatus.Suspended) return "bg-red-100 text-red-800";
+    if (status === EProviderStatus.Rejected) return "bg-red-100 text-red-800";
+    if (status === EProviderStatus.Suspended) return "bg-amber-100 text-amber-800";
     return "bg-amber-100 text-amber-800";
 }
 
@@ -66,14 +67,15 @@ export default function ProviderProfilePage() {
     }
 
     const isVerified = profile.status === EProviderStatus.Active;
-    const hasAddress = !!profile.businessProfile?.primaryAddress?.street || isVerified;
-    const hasDocuments = (profile.documents?.length ?? 0) > 0 || isVerified;
-    const isPendingVerification = profile.status === EProviderStatus.PendingDocumentVerification;
     const isSuspended = profile.status === EProviderStatus.Suspended;
+    const isPendingVerification = profile.status === EProviderStatus.PendingDocumentVerification;
+
+    const hasAddress = !!profile.businessProfile?.primaryAddress?.street || isVerified || isSuspended;
+    const hasDocuments = (profile.documents?.length ?? 0) > 0 || isVerified || isSuspended;
 
     // Derived states for completed steps based on the user request
     const step2Completed = hasAddress || isPendingVerification;
-    const step3Completed = hasDocuments || isPendingVerification || isSuspended;
+    const step3Completed = hasDocuments || isPendingVerification;
 
     return (
         <div className="container mx-auto py-10 max-w-4xl">

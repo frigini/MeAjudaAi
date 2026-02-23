@@ -12,23 +12,23 @@ function isValidCpf(cpf: string): boolean {
 
     // First check digit
     for (let i = 1; i <= 9; i++) {
-        sum += parseInt(cpf.substring(i - 1, i)) * (11 - i);
+        sum += parseInt(cpf.substring(i - 1, i), 10) * (11 - i);
     }
 
     remainder = (sum * 10) % 11;
     if (remainder === 10 || remainder === 11) remainder = 0;
-    if (remainder !== parseInt(cpf.substring(9, 10))) return false;
+    if (remainder !== parseInt(cpf.substring(9, 10), 10)) return false;
 
     sum = 0;
 
     // Second check digit
     for (let i = 1; i <= 10; i++) {
-        sum += parseInt(cpf.substring(i - 1, i)) * (12 - i);
+        sum += parseInt(cpf.substring(i - 1, i), 10) * (12 - i);
     }
 
     remainder = (sum * 10) % 11;
     if (remainder === 10 || remainder === 11) remainder = 0;
-    if (remainder !== parseInt(cpf.substring(10, 11))) return false;
+    if (remainder !== parseInt(cpf.substring(10, 11), 10)) return false;
 
     return true;
 }
@@ -45,7 +45,7 @@ function isValidCnpj(cnpj: string): boolean {
     // First check digit
     let multiplier = 5;
     for (let i = 0; i < 12; i++) {
-        sum += parseInt(cnpj[i]) * multiplier;
+        sum += parseInt(cnpj[i], 10) * multiplier;
         multiplier = multiplier === 2 ? 9 : multiplier - 1;
     }
 
@@ -53,14 +53,14 @@ function isValidCnpj(cnpj: string): boolean {
     if (remainder < 2) remainder = 0;
     else remainder = 11 - remainder;
 
-    if (remainder !== parseInt(cnpj[12])) return false;
+    if (remainder !== parseInt(cnpj[12], 10)) return false;
 
     sum = 0;
     multiplier = 6;
 
     // Second check digit
     for (let i = 0; i < 13; i++) {
-        sum += parseInt(cnpj[i]) * multiplier;
+        sum += parseInt(cnpj[i], 10) * multiplier;
         multiplier = multiplier === 2 ? 9 : multiplier - 1;
     }
 
@@ -68,7 +68,7 @@ function isValidCnpj(cnpj: string): boolean {
     if (remainder < 2) remainder = 0;
     else remainder = 11 - remainder;
 
-    if (remainder !== parseInt(cnpj[13])) return false;
+    if (remainder !== parseInt(cnpj[13], 10)) return false;
 
     return true;
 }

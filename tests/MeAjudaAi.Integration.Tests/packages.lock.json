@@ -150,6 +150,15 @@
           "Testcontainers": "4.10.0"
         }
       },
+      "Testcontainers.RabbitMq": {
+        "type": "Direct",
+        "requested": "[4.10.0, )",
+        "resolved": "4.10.0",
+        "contentHash": "psuDUrJbqaFeZ6T+kNL9rEiafyPVlQuk5xeHswuiFVMlBaihpobKTlUxWy0k9hLy6xR5Op8kGayLmsb32gDXkA==",
+        "dependencies": {
+          "Testcontainers": "4.10.0"
+        }
+      },
       "WireMock.Net": {
         "type": "Direct",
         "requested": "[1.25.0, )",
@@ -4127,15 +4136,6 @@
         "requested": "[4.10.0, )",
         "resolved": "4.10.0",
         "contentHash": "DPoTpTc6aLvl+15h2jdGOwgtfNwhlQhpRGd4hfm8nI9Kl7UbVSr/0zJeycsThOg3VrCSw4UGwdrf5lYSCKrdfA==",
-        "dependencies": {
-          "Testcontainers": "4.10.0"
-        }
-      },
-      "Testcontainers.RabbitMq": {
-        "type": "CentralTransitive",
-        "requested": "[4.10.0, )",
-        "resolved": "4.10.0",
-        "contentHash": "psuDUrJbqaFeZ6T+kNL9rEiafyPVlQuk5xeHswuiFVMlBaihpobKTlUxWy0k9hLy6xR5Op8kGayLmsb32gDXkA==",
         "dependencies": {
           "Testcontainers": "4.10.0"
         }

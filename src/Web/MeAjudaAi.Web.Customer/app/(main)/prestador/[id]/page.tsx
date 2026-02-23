@@ -12,6 +12,7 @@ import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { z } from "zod";
 import { headers } from "next/headers";
 import { auth } from "@/auth";
+import { getWhatsappLink } from "@/lib/utils/phone";
 
 import { EVerificationStatus, EProviderType } from "@/types/api/provider";
 
@@ -111,16 +112,6 @@ interface ProviderProfilePageProps {
     }>;
 }
 
-function getWhatsappLink(phone: string): string | null {
-    let cleanPhone = phone.replace(/\D/g, "");
-    // If it starts with 55 and has enough digits to be DDI(2)+DDD(2)+Phone(8-9), assume DDI exists
-    if (cleanPhone.startsWith("55") && cleanPhone.length >= 12) {
-        cleanPhone = cleanPhone.substring(2);
-    }
-
-    // Validate: Brazilian phone should have at least 10 digits (DDD + number)
-    return cleanPhone.length >= 10 ? `https://wa.me/55${cleanPhone}` : null;
-}
 
 export async function generateMetadata({
     params,

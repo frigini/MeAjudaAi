@@ -267,7 +267,7 @@ public static class SharedTestContainers
                     var uri = new Uri(connectionString);
                     if (uri.Scheme == "amqp" || uri.Scheme == "amqps")
                     {
-                        Console.WriteLine($"Container RabbitMQ pronto! Endpoint: {uri.Scheme}://{uri.Host}:{uri.Port}");
+                        Console.WriteLine($"RabbitMQ container ready! Endpoint: {uri.Scheme}://{uri.Host}:{uri.Port}");
                         return;
                     }
                 }
