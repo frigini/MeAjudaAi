@@ -105,7 +105,7 @@ public static class SharedTestContainers
                 .Build();
 
             // RabbitMQ para testes de mensageria
-            _rabbitMqContainer = new RabbitMqBuilder("rabbitmq:4.0-management")
+            _rabbitMqContainer = new RabbitMqBuilder("rabbitmq:4.0.9-management")
                 .WithUsername("guest")
                 .WithPassword("guest")
                 .Build();

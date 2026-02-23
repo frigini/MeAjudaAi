@@ -10,6 +10,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Containers;
 using Testcontainers.RabbitMq;
 
 namespace MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter;
@@ -24,23 +25,17 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
 {
     private RabbitMqOptions CreateTestRabbitMqOptions()
     {
-        // Tenta obter a connection string do container se disponível
+        // Tenta obter a connection string do container compartilhado
         string connectionString = "amqp://localhost";
+        
         try 
         {
-            var container = ServiceProvider.GetService<RabbitMqContainer>();
-            if (container != null)
-            {
-                connectionString = container.GetConnectionString();
-            }
+            // Usa o container compartilhado diretamente para evitar problemas com ServiceProvider
+            connectionString = SharedTestContainers.RabbitMq.GetConnectionString();
         }
-        catch (InvalidOperationException)
+        catch (Exception)
         {
-            // Container not available, fall back to localhost
-        }
-        catch (InvalidCastException)
-        {
-            // Service is not a RabbitMqContainer, fall back to localhost
+            // Container não disponível, volta para o padrão localhost
         }
 
         return new RabbitMqOptions

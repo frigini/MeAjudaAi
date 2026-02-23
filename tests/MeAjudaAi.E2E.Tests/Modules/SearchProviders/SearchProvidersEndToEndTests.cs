@@ -72,8 +72,19 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
         var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
+        
+        if (result!.Items.Count == 0)
+        {
+            // Debugging: If empty, let's try a much larger radius to see if anything exists at all
+            var debugResponse = await _fixture.ApiClient.GetAsync(
+                $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm=500.0");
+            var debugResult = await debugResponse.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
+            
+            Console.WriteLine($"[DEBUG] Search with 10km returned 0 items. With 500km it returned {debugResult?.Items.Count ?? 0} items.");
+        }
+
         result.Should().NotBeNull();
-        result!.Items.Should().NotBeEmpty();
+        result!.Items.Should().NotBeEmpty("Search should find at least the nearby provider within 10km");
         result.Items.Should().Contain(p => p.ProviderId == nearbyProvider);
     }
 
@@ -522,10 +533,10 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
 
     private static int MapSubscriptionTierToInt(string tier) => tier switch
     {
-        "Standard" => 0,
-        "Silver" => 1,
+        "Free" => 0,
+        "Standard" => 1,
         "Gold" => 2,
         "Platinum" => 3,
-        _ => 0 // Default to Standard
+        _ => 1 // Default to Standard (1)
     };
 }

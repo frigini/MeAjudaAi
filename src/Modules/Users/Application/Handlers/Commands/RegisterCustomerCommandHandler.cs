@@ -79,7 +79,17 @@ public sealed partial class RegisterCustomerCommandHandler(
         // Cria usuário com papel de "cliente"
         var names = command.Name.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
         var firstName = names.FirstOrDefault() ?? command.Name;
-        var lastName = names.Length > 1 && !string.IsNullOrWhiteSpace(names[1]) ? names[1] : ".";
+        
+        if (names.Length < 2 || string.IsNullOrWhiteSpace(names[1]))
+        {
+            return Result<UserDto>.Failure(Error.BadRequest($"O sobrenome é obrigatório e deve ter pelo menos {ValidationConstants.UserLimits.LastNameMinLength} caracteres."));
+        }
+
+        var lastName = names[1];
+        if (lastName.Length < ValidationConstants.UserLimits.LastNameMinLength)
+        {
+            return Result<UserDto>.Failure(Error.BadRequest($"O sobrenome deve ter pelo menos {ValidationConstants.UserLimits.LastNameMinLength} caracteres."));
+        }
         
         var userResult = await userDomainService.CreateUserAsync(
             validUsername,

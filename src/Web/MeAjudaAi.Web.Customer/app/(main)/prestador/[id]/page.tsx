@@ -11,6 +11,7 @@ import { MessageCircle } from "lucide-react";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { z } from "zod";
 import { headers } from "next/headers";
+import { auth } from "@/auth";
 
 import { EVerificationStatus, EProviderType } from "@/types/api/provider";
 
@@ -154,6 +155,8 @@ export default async function ProviderProfilePage({
     const { id } = await params;
     const requestHeaders = await headers();
     const cookieHeader = requestHeaders.get("cookie");
+    const session = await auth();
+    const isAuthenticated = !!session?.user;
 
     const providerData = await getCachedProvider(id, cookieHeader);
 
@@ -220,7 +223,7 @@ export default async function ProviderProfilePage({
                                     );
                                 })}
                             </div>
-                        ) : cookieHeader ? (
+                        ) : isAuthenticated ? (
                             <div className="w-full p-4 bg-blue-50 border border-blue-100 rounded-lg text-center">
                                 <p className="text-sm text-gray-700">Este prestador não informou contatos.</p>
                             </div>
