@@ -165,7 +165,7 @@ export default function ProviderProfilePage() {
 
                     {step3Completed ? (
                         <div className="flex flex-col gap-2">
-                            <p className={`text-sm ${profile.status === EProviderStatus.Active ? "text-green-700" :
+                            <p className={`text-sm ${profile.status === EProviderStatus.Active || profile.status === EProviderStatus.Suspended ? "text-green-700" :
                                 profile.status === EProviderStatus.Rejected ? "text-red-700" :
                                     isPendingVerification ? "text-amber-700" : "text-green-700"
                                 }`}>

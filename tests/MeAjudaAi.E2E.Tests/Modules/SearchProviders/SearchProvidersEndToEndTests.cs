@@ -21,12 +21,9 @@ namespace MeAjudaAi.E2E.Tests.Modules.SearchProviders;
 public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyncLifetime
 {
     private readonly TestContainerFixture _fixture;
-    private readonly ITestOutputHelper _output;
-
-    public SearchProvidersEndToEndTests(TestContainerFixture fixture, ITestOutputHelper output)
+    public SearchProvidersEndToEndTests(TestContainerFixture fixture)
     {
         _fixture = fixture;
-        _output = output;
     }
 
     public async ValueTask InitializeAsync()

@@ -1,7 +1,7 @@
 /**
- * Generates a WhatsApp link for a given phone number.
- * @param phone The phone number string (with or without formatting).
- * @returns A WhatsApp URL or null if the phone is invalid.
+ * Gera um link do WhatsApp para um número de telefone.
+ * @param phone O número de telefone (com ou sem formatória).
+ * @returns URL do WhatsApp ou null se o telefone for inválido.
  */
 export function getWhatsappLink(phone: string): string | null {
     let cleanPhone = phone.replace(/\D/g, "");

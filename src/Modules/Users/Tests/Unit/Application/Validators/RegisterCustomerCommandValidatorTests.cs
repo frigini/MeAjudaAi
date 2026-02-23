@@ -24,7 +24,7 @@ public class RegisterCustomerCommandValidatorTests
     [Fact]
     public void Should_Have_Error_When_Name_Is_Too_Short()
     {
-        // MinLength is FirstNameMinLength (2) + LastNameMinLength (2) = 4
+        // MinLength é a soma de FirstNameMinLength (2) e LastNameMinLength (2) = 4
         var command = new RegisterCustomerCommand("abc", "test@test.com", "Password123!", "123456789", true, true);
         var result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(x => x.Name)

@@ -82,13 +82,6 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
         services.AddSingleton(CreateTestRabbitMqOptions());
     }
 
-    [Fact]
-    public void DeadLetterSystem_WithTestingEnvironment_ResolvesNoOpService()
-    {
-        // ... (this name is better and reflects the logic)
-        // Redundant with DeadLetterSystem_WithTestingEnvironment_UsesNoOpService below,
-        // so I'll just remove this one as requested: "remover testes duplicados".
-    }
 
     [Fact]
     public void DeadLetterSystem_WithTestingEnvironment_UsesNoOpService()

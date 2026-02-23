@@ -80,6 +80,11 @@ public sealed partial class RegisterCustomerCommandHandler(
         var names = command.Name.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
         var firstName = names.FirstOrDefault() ?? command.Name;
         
+        if (firstName.Length < ValidationConstants.UserLimits.FirstNameMinLength)
+        {
+            return Result<UserDto>.Failure(Error.BadRequest($"O primeiro nome deve ter pelo menos {ValidationConstants.UserLimits.FirstNameMinLength} caracteres."));
+        }
+        
         if (names.Length < 2 || string.IsNullOrWhiteSpace(names[1]))
         {
             return Result<UserDto>.Failure(Error.BadRequest($"O sobrenome é obrigatório e deve ter pelo menos {ValidationConstants.UserLimits.LastNameMinLength} caracteres."));

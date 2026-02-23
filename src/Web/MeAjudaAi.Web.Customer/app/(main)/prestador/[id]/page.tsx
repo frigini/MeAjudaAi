@@ -237,7 +237,7 @@ export default async function ProviderProfilePage({
                         {/* Name & Badge */}
                         <div className="flex items-center gap-3">
                             <h1 className="text-3xl md:text-4xl font-bold text-[#E0702B]">{displayName}</h1>
-                            <VerifiedBadge status={providerData.verificationStatus ?? EVerificationStatus.Pending} size="lg" />
+                            <VerifiedBadge status={providerData.verificationStatus ?? undefined} size="lg" />
                         </div>
 
                         {/* Email */}

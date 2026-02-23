@@ -10,6 +10,8 @@ public class RegisterCustomerCommandValidator : AbstractValidator<RegisterCustom
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Nome é obrigatório")
+            .Must(name => !string.IsNullOrWhiteSpace(name) && System.Text.RegularExpressions.Regex.IsMatch(name, @"\p{L}"))
+            .WithMessage("Nome deve conter pelo menos uma letra e não pode ser apenas espaços")
             .MinimumLength(ValidationConstants.UserLimits.FirstNameMinLength + ValidationConstants.UserLimits.LastNameMinLength).WithMessage($"Nome deve ter pelo menos {ValidationConstants.UserLimits.FirstNameMinLength + ValidationConstants.UserLimits.LastNameMinLength} caracteres")
             .MaximumLength(ValidationConstants.UserLimits.FirstNameMaxLength + ValidationConstants.UserLimits.LastNameMaxLength).WithMessage($"Nome deve ter no máximo {ValidationConstants.UserLimits.FirstNameMaxLength + ValidationConstants.UserLimits.LastNameMaxLength} caracteres")
             .Matches(ValidationConstants.Patterns.Name).WithMessage("Nome deve conter apenas letras e espaços");

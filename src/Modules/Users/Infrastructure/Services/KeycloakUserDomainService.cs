@@ -95,13 +95,16 @@ internal class KeycloakUserDomainService(
     /// <summary>
     /// Desativa o usuário no Keycloak para compensar falha na persistência local.
     /// </summary>
+    /// <param name="userId">O identificador do usuário (ID local/Keycloak).</param>
+    /// <param name="cancellationToken">Token de cancelamento opcional.</param>
+    /// <returns>Um Result indicando o sucesso ou falha da operação obtido do serviço Keycloak.</returns>
     public async Task<Result> DeactivateUserInKeycloakAsync(
         UserId userId,
         CancellationToken cancellationToken = default)
     {
         // O ID do usuário local é o mesmo ID do Keycloak nesta implementação
         var keycloakId = userId.Value.ToString();
-        logger.LogInformation("Deactivating Keycloak user {UserId} due to local repository failure", keycloakId);
+        logger.LogWarning("Deactivating Keycloak user {UserId} due to local repository failure", keycloakId);
         
         return await keycloakService.DeactivateUserAsync(keycloakId, cancellationToken);
     }
