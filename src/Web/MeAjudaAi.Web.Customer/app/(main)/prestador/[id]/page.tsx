@@ -36,15 +36,19 @@ const PublicProviderSchema = z.object({
 
 type PublicProviderData = z.infer<typeof PublicProviderSchema>;
 
-const getCachedProvider = cache(async (id: string, cookieHeader: string | null): Promise<PublicProviderData | null> => {
+const getCachedProvider = cache(async (id: string, cookieHeader: string | null, accessToken: string | null): Promise<PublicProviderData | null> => {
     const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
     if (!apiUrl) {
         throw new Error("Missing API_URL or NEXT_PUBLIC_API_URL environment variable.");
     }
 
     try {
+        const headers: Record<string, string> = {};
+        if (cookieHeader) headers["Cookie"] = cookieHeader;
+        if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
+
         const res = await fetch(`${apiUrl}/api/v1/providers/${id}/public`, {
-            headers: cookieHeader ? { "Cookie": cookieHeader } : {},
+            headers,
             cache: 'no-store' // Do not cache auth-dependent data
         });
 
@@ -92,7 +96,8 @@ export async function generateMetadata({
     const { id } = await params;
     const requestHeaders = await headers();
     const cookieHeader = requestHeaders.get("cookie");
-    const provider = await getCachedProvider(id, cookieHeader);
+    const session = await auth();
+    const provider = await getCachedProvider(id, cookieHeader, session?.accessToken ?? null);
 
     if (!provider) {
         return {
@@ -122,7 +127,7 @@ export default async function ProviderProfilePage({
     const session = await auth();
     const isAuthenticated = !!session?.user;
 
-    const providerData = await getCachedProvider(id, cookieHeader);
+    const providerData = await getCachedProvider(id, cookieHeader, session?.accessToken ?? null);
 
     if (!providerData) {
         notFound();

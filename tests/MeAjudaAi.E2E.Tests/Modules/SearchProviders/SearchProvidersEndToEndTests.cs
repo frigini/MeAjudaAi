@@ -241,7 +241,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
 
         // Act
         var response = await _fixture.ApiClient.GetAsync(
-            $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&page=1&pageSize={50.ToString(CultureInfo.InvariantCulture)}");
+            $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&page=1&pageSize=50");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -531,7 +531,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
 
     private static int MapSubscriptionTierToInt(string tier)
     {
-        if (Enum.TryParse<ESubscriptionTier>(tier, out var result))
+        if (Enum.TryParse<ESubscriptionTier>(tier, ignoreCase: true, out var result))
         {
             return (int)result;
         }

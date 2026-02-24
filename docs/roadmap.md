@@ -2162,10 +2162,10 @@ Frontend Blazor WASM + MAUI Hybrid:
 - Sprint 7.16: Technical Debt Sprint (17-21 Jan 2026) - 🔄 EM PROGRESSO (Task 5 movida p/ Sprint 9)
 - Sprint 8: Customer App (5-18 Fev 2026) - ✅ Concluído
 - Sprint 8B: Mobile App (19 Fev - 4 Mar 2026) - ⏳ Planejado
-- Sprint 8D: Admin Portal Migration (19 Mar - 1 Abr 2026) - ⏳ Planejado
+- Sprint 8D: Admin Portal Migration - 🚫 **CANCELADO**
 - Sprint 9: Buffer/Polishing (5-11 Mar 2026) - ⏳ Planejado
-- MVP Final: 14 de Março de 2026
-- *Nota: Data de MVP atualizada para 14 de Março de 2026 para acomodar migração Nx e Mobile App.*
+- MVP Final: 28 de Março de 2026
+- *Nota: Data de MVP atualizada para 28 de Março de 2026 para acomodar migração Nx e Mobile App.*
 
 **⚠️ Risk Assessment**: Estimativas assumem velocidade consistente. Primeiro projeto Blazor WASM pode revelar complexidades não previstas (integração Keycloak, curva de aprendizado MudBlazor). Sprint 9 reservado como buffer de contingência.
 
@@ -2203,7 +2203,7 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 8** | 2 semanas | 5 - 18 Fev | Customer Web App (Web) | ✅ CONCLUÍDO |
 | **Sprint 8B** | 2 semanas | 19 Fev - 4 Mar | Authentication & Onboarding | 🔄 EM ANDAMENTO |
 | **Sprint 9** | 1 semana | 5-11 Mar | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
-| **MVP Launch** | - | 14 Mar | Final deployment & launch preparation | 🎯 Target |
+| **MVP Launch** | - | 28 de Março de 2026 | Final deployment & launch preparation | 🎯 Target |
 
 **MVP Launch Target**: 28 de Março de 2026 🎯  
 *Atualizado para 28 de Março de 2026.*
@@ -5021,7 +5021,7 @@ public class ActivityHub : Hub
 4. 📋 **Sprint 8: Customer Portal** - React/Next.js (Planejado - Fev/Mar 2026)
    - Busca de prestadores
    - Gestão de perfil
-5. 📋 **Sprint 8D: Admin Portal Migration** - React/Nx (Planejado - Mar/Abr 2026)
+5. 🚫 **Sprint 8D: Admin Portal Migration** - **CANCELADO**
    - Migração completa de Blazor para React
 6. 📋 API Collections - Bruno .bru files para todos os módulos
 
@@ -5083,6 +5083,6 @@ public class ActivityHub : Hub
 
 ---
 
-*📅 Última atualização: 9 de Janeiro de 2026 (Sprint 7.5 - Correções de Inicialização e Build)*  
+*📅 Última atualização: 24 de Fevereiro de 2026 (Round 11 Code Review)*  
 *🔄 Roadmap em constante evolução baseado em feedback, métricas e aprendizados*
-*📊 Status atual: Sprint 6 CONCLUÍDA (5 Jan 2026) | Sprint 7 - Blazor Admin Portal Features (próxima)*
+*📊 Status atual: Sprint 8B 🔄 EM ANDAMENTO | MVP Launch em 28 de Março de 2026*

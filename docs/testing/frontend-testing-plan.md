@@ -9,11 +9,10 @@
 4. [Estrutura de Pastas](#estrutura-de-pastas)
 5. [Configuração](#configuração)
 6. [Estrutura dos Arquivos de Teste](#estrutura-dos-arquivos-de-teste)
-7. [Exemplos Práticos](#exemplos-práticos)
-8. [Integração com Pipeline CI/CD](#integração-com-pipeline-cicd)
-10. [Pipeline CI/CD Robusta (Ref. Medium)](#pipeline-cicd-robusta-ref-medium)
-11. [Comandos Úteis](#comandos-úteis)
-12. [Boas Práticas](#boas-práticas)
+7. [Integração com Pipeline CI/CD](#integração-com-pipeline-cicd)
+8. [Pipeline CI/CD Robusta (Ref. Medium)](#pipeline-cicd-robusta-ref-medium)
+9. [Comandos Úteis](#comandos-úteis)
+10. [Boas Práticas](#boas-práticas)
 
 ---
 
@@ -51,7 +50,7 @@ O projeto está integrado em um **monorepo .NET** com arquitetura de **monolito 
 
 ### Estrutura Completa do Monorepo
 
-```
+```text
 MeAjudaAi/
 ├── src/
 │   ├── Web/
@@ -126,8 +125,8 @@ npm install --save-dev jest-axe
 # Para snapshots visuais
 npm install --save-dev @storybook/test-runner
 
-# Para testes de performance
-npm install --save-dev @testing-library/react-hooks
+# Nota: O pacote @testing-library/react-hooks está depreciado.
+# Para testar hooks, use renderHook diretamente de '@testing-library/react' (v13.1+).
 ```
 
 ---
@@ -136,7 +135,7 @@ npm install --save-dev @testing-library/react-hooks
 
 ### Estrutura do Projeto de Testes: `tests/MeAjudaAi.Web.Consumer.Tests/`
 
-```
+```text
 MeAjudaAi.Web.Consumer.Tests/
 ├── src/
 │   ├── components/
@@ -277,11 +276,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@components': path.resolve(__dirname, './src/components'),
-      '@hooks': path.resolve(__dirname, './src/hooks'),
-      '@utils': path.resolve(__dirname, './src/utils'),
-      '@pages': path.resolve(__dirname, './src/pages'),
-      '@services': path.resolve(__dirname, './src/services'),
+      '@src': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Consumer/src'),
+      '@components': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Consumer/src/components'),
+      '@hooks': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Consumer/src/hooks'),
+      '@utils': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Consumer/src/utils'),
+      '@pages': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Consumer/src/pages'),
     },
   },
 });
@@ -540,7 +539,7 @@ export function Button({
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@/__tests__/helpers/test-utils';
 import userEvent from '@testing-library/user-event';
-import { Button } from './Button';
+import { Button } from '@src/components/Button/Button';
 
 describe('Button Component', () => {
   it('deve renderizar corretamente', () => {
@@ -661,7 +660,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
 ```typescript
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useLocalStorage } from './useLocalStorage';
+import { useLocalStorage } from '@src/hooks/useLocalStorage';
 
 describe('useLocalStorage Hook', () => {
   beforeEach(() => {
@@ -730,7 +729,7 @@ describe('useLocalStorage Hook', () => {
 
 ```typescript
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/Button';
+import { Button } from '@src/components/Button/Button';
 
 interface User {
   id: number;
@@ -782,7 +781,7 @@ export function Users() {
 ```typescript
 import { describe, it, expect } from 'vitest';
 import { render, screen, waitFor } from '@/__tests__/helpers/test-utils';
-import { Users } from './Users';
+import { Users } from '@src/pages/Users/Users';
 
 describe('Users Page', () => {
   it('deve mostrar loading inicialmente', () => {
@@ -924,7 +923,7 @@ Além do ESLint, o projeto deve integrar o **SonarScanner** no pipeline para:
 Diferente de um pipeline simples de build, o fluxo robusto implementado seguirá:
 1. **Lint & Static Analysis**: ESLint + Prettier + SonarQube Scan.
 2. **Unit & Integration Tests**: Execução com Vitest (com geração de relatório LCOV para o Sonar).
-3. **Build & Package**: Geração da build de produção do Next.js.
+3. **Build & Package**: Geração da build de produção do Next.js para MeAjudaAi.Web.Consumer.
 4. **Containerization (Contexto Aspire)**: O `dotnet aspire` facilita a geração de imagens Docker que serão enviadas para o Registry (Azure Container Registry).
 5. **E2E Testing**: Execução do Playwright contra o container de staging.
 6. **Deployment**: Via `azd deploy` para Azure Container Apps.
@@ -969,16 +968,19 @@ O projeto está em um monorepo .NET e usa GitHub Actions para CI/CD. A integraç
   },
   "dependencies": {},
   "devDependencies": {
+    "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.1.5",
-    "@testing-library/react": "^14.1.2",
+    "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^14.5.1",
-    "@types/jest": "^29.5.11",
-    "@vitest/coverage-v8": "^1.1.0",
-    "@vitest/ui": "^1.1.0",
-    "@playwright/test": "^1.40.1",
-    "jsdom": "^23.0.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^3.0.0",
+    "@vitest/ui": "^3.0.0",
+    "@playwright/test": "^1.50.0",
+    "jsdom": "^26.0.0",
     "msw": "^2.0.11",
-    "vitest": "^1.1.0"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "vitest": "^3.0.0"
   }
 }
 ```
@@ -992,12 +994,12 @@ name: Tests
 
 on:
   push:
-    branches: [main, develop]
+    branches: [master, main, develop]
     paths:
       - 'src/Web/MeAjudaAi.Web.Consumer/**'
       - 'tests/MeAjudaAi.Web.Consumer.Tests/**'
   pull_request:
-    branches: [main, develop]
+    branches: [master, main, develop]
 
 jobs:
   backend-tests:
@@ -1686,7 +1688,6 @@ npm run test:coverage
 
 # Dependencies
 node_modules/
-package-lock.json
 
 # Coverage
 coverage/

@@ -23,7 +23,7 @@ export function normalizeProviderType(val: unknown): EProviderType {
 /**
  * Normaliza valores de entrada para o enum EVerificationStatus.
  */
-export function normalizeVerificationStatus(val: unknown): EVerificationStatus {
+export function normalizeVerificationStatus(val: unknown): EVerificationStatus | undefined {
     if (typeof val === 'number') return val as EVerificationStatus;
     if (typeof val === 'string') {
         if (/^\d+$/.test(val)) {
@@ -35,7 +35,7 @@ export function normalizeVerificationStatus(val: unknown): EVerificationStatus {
         if (lower === 'inprogress' || lower === 'in_progress') return EVerificationStatus.InProgress;
         if (lower === 'suspended') return EVerificationStatus.Suspended;
         if (lower === 'none') return EVerificationStatus.None;
-        return EVerificationStatus.Pending;
+        return undefined;
     }
     return val as EVerificationStatus;
 }
