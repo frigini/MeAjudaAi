@@ -323,7 +323,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
 
         // Act - Página 2
         var page2Response = await _fixture.ApiClient.GetAsync(
-            $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&page=2&pageSize={pageSize.ToString(CultureInfo.InvariantCulture)}");
+            $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&page=2&pageSize={pageSize}");
 
         // Assert
         page1Response.StatusCode.Should().Be(HttpStatusCode.OK);

@@ -136,12 +136,12 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 2. ⏳ **Messaging Unification (RabbitMQ Only)**: Remover completamente o Azure Service Bus da solução.
     - **Execução**:
         - Remover pacotes `.Azure.ServiceBus` de todos os projetos.
-        - Unificar `MassTransist` configuration em `ServiceDefaults`.
+        - Unificar `MassTransit` configuration em `ServiceDefaults`.
         - Atualizar scripts de infra (`docker-compose.yaml`) para foco total em RabbitMQ.
         - Remover segredos e vars de ambiente do ASB no Azure/Staging.
     - **Sucesso**: Aplicação funcionando sem dependência do Azure Service Bus local ou remoto.
 3. ⏳ **Frontend Testing & CI/CD Suite**: Implementar suíte completa de testes no Next.js.
-    - **Contexto**: Baseado no [Plano de Testes Robusto](file:///C:/Code/MeAjudaAi/docs/testing/frontend-testing-plan.md).
+    - **Contexto**: Baseado no [Plano de Testes Robusto](./testing/frontend-testing-plan.md).
     - **Execução**:
         - Setup do projeto `tests/MeAjudaAi.Web.Consumer.Tests`.
         - Implementar Mocks de API com MSW para os fluxos de busca e perfil.
@@ -2161,7 +2161,8 @@ Frontend Blazor WASM + MAUI Hybrid:
 - Sprint 7: Blazor Admin Portal Features (6-24 Jan 2026) - ✅ CONCLUÍDO
 - Sprint 7.16: Technical Debt Sprint (17-21 Jan 2026) - 🔄 EM PROGRESSO (Task 5 movida p/ Sprint 9)
 - Sprint 8: Customer App (5-18 Fev 2026) - ✅ Concluído
-- Sprint 8B: Mobile App (19 Fev - 4 Mar 2026) - ⏳ Planejado
+- Sprint 8B: Authentication & Onboarding (19 Fev - 4 Mar 2026) - 🔄 EM ANDAMENTO
+- Sprint 8C: Mobile App (19 Fev - 4 Mar 2026) - ⏳ Planejado
 - Sprint 8D: Admin Portal Migration - 🚫 **CANCELADO**
 - Sprint 9: Buffer/Polishing (5-11 Mar 2026) - ⏳ Planejado
 - MVP Final: 28 de Março de 2026
@@ -2202,6 +2203,7 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 7.16** | 1 semana | 17-21 Jan | Technical Debt Sprint | 🔄 EM PROGRESSO |
 | **Sprint 8** | 2 semanas | 5 - 18 Fev | Customer Web App (Web) | ✅ CONCLUÍDO |
 | **Sprint 8B** | 2 semanas | 19 Fev - 4 Mar | Authentication & Onboarding | 🔄 EM ANDAMENTO |
+| **Sprint 8C** | 1 semana | 5-11 Mar | Mobile App | ⏳ Planejado |
 | **Sprint 9** | 1 semana | 5-11 Mar | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
 | **MVP Launch** | - | 28 de Março de 2026 | Final deployment & launch preparation | 🎯 Target |
 

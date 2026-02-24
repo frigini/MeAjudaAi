@@ -9,8 +9,8 @@
 4. [Estrutura de Pastas](#estrutura-de-pastas)
 5. [Configuração](#configuração)
 6. [Estrutura dos Arquivos de Teste](#estrutura-dos-arquivos-de-teste)
-7. [Integração com Pipeline CI/CD](#integração-com-pipeline-cicd)
-8. [Pipeline CI/CD Robusta (Ref. Medium)](#pipeline-cicd-robusta-ref-medium)
+7. [Pipeline CI/CD Robusta (Ref. Medium)](#pipeline-cicd-robusta-ref-medium)
+8. [Integração com Pipeline CI/CD](#integração-com-pipeline-cicd)
 9. [Comandos Úteis](#comandos-úteis)
 10. [Boas Práticas](#boas-práticas)
 
@@ -104,7 +104,7 @@ npm install --save-dev vitest @vitest/ui jsdom
 npm install --save-dev @testing-library/react @testing-library/jest-dom @testing-library/user-event
 
 # Suporte a TypeScript para testes
-npm install --save-dev @types/jest
+npm install --save-dev @testing-library/dom@^10.x
 
 # Cobertura de código
 npm install --save-dev @vitest/coverage-v8
@@ -213,7 +213,7 @@ MeAjudaAi.Web.Consumer.Tests/
 
 Os testes espelham a estrutura do projeto principal:
 
-```
+```text
 src/Web/MeAjudaAi.Web.Consumer/src/     →  tests/MeAjudaAi.Web.Consumer.Tests/src/
     components/Button/Button.tsx        →      components/Button/Button.test.tsx
     hooks/useAuth.ts                    →      hooks/useAuth.test.ts
@@ -837,7 +837,7 @@ export function truncateText(text: string, maxLength: number): string {
 
 ```typescript
 import { describe, it, expect } from 'vitest';
-import { formatCurrency, formatDate, truncateText } from './formatters';
+import { formatCurrency, formatDate, truncateText } from '@src/utils/formatters';
 
 describe('formatCurrency', () => {
   it('deve formatar número como moeda brasileira', () => {
@@ -909,36 +909,6 @@ test.describe('Fluxo de Usuário', () => {
 
 ---
 
-## 🚀 Pipeline CI/CD Robusta (Ref. Medium)
-
-Baseado no guia "[Building a Robust CI/CD Pipeline for React Apps](https://medium.com/@lamjed.gaidi070/building-a-robust-ci-cd-pipeline-for-react-apps-with-testing-and-static-analysis-05e14735f8f0)", nossa estratégia inclui as seguintes considerações:
-
-### 1. Análise Estática com SonarQube
-Além do ESLint, o projeto deve integrar o **SonarScanner** no pipeline para:
-- Monitorar a saúde do código a longo prazo.
-- Definir **Quality Gates** (ex: falhar build se cobertura cair de 80%).
-- Detectar vulnerabilidades de segurança (Security Hotspots).
-
-### 2. Fluxo Completo do Pipeline
-Diferente de um pipeline simples de build, o fluxo robusto implementado seguirá:
-1. **Lint & Static Analysis**: ESLint + Prettier + SonarQube Scan.
-2. **Unit & Integration Tests**: Execução com Vitest (com geração de relatório LCOV para o Sonar).
-3. **Build & Package**: Geração da build de produção do Next.js para MeAjudaAi.Web.Consumer.
-4. **Containerization (Contexto Aspire)**: O `dotnet aspire` facilita a geração de imagens Docker que serão enviadas para o Registry (Azure Container Registry).
-5. **E2E Testing**: Execução do Playwright contra o container de staging.
-6. **Deployment**: Via `azd deploy` para Azure Container Apps.
-
-### 3. Comparativo de Ferramentas
-
-| Ferramenta Artigo | Nossa Escolha | Justificativa |
-|-------------------|---------------|---------------|
-| Jest | **Vitest** | Nativo para Vite/Next.js, performance significativamente superior. |
-| Cypress / Selenium | **Playwright** | Melhor suporte a múltiplos browsers, mais rápido e resiliente. |
-| SonarQube | **SonarQube** | Mantido como padrão para métricas de qualidade. |
-| Docker / K8s | **Docker / Aspire** | Usamos Docker via Aspire, que abstrai a complexidade do K8s facilitando o deploy. |
-
----
-
 ## 🔄 Integração com Pipeline CI/CD
 
 ### Integração com o Monorepo .NET
@@ -960,7 +930,7 @@ O projeto está em um monorepo .NET e usa GitHub Actions para CI/CD. A integraç
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "test:ci": "vitest run --coverage --reporter=junit --reporter=json-summary",
+    "test:ci": "vitest run --coverage --reporter=junit",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:ci": "playwright test --reporter=html --reporter=junit",
@@ -1020,10 +990,11 @@ jobs:
         run: dotnet test --no-restore --verbosity normal --collect:"XPlat Code Coverage"
       
       - name: Upload coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           files: '**/coverage.cobertura.xml'
           flags: backend
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   frontend-unit-tests:
     name: Frontend Unit Tests (React)
@@ -1047,10 +1018,11 @@ jobs:
         run: npm run test:ci
       
       - name: Upload coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           files: tests/MeAjudaAi.Web.Consumer.Tests/coverage/coverage-final.json
           flags: frontend
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   frontend-e2e-tests:
     name: Frontend E2E Tests (Playwright)
@@ -1078,13 +1050,46 @@ jobs:
         run: npm run test:e2e:ci
       
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report
           path: tests/MeAjudaAi.Web.Consumer.Tests/playwright-report/
           retention-days: 30
 ```
+
+---
+
+## 🚀 Pipeline CI/CD Robusta (Ref. Medium)
+
+Baseado no guia "[Building a Robust CI/CD Pipeline for React Apps](https://medium.com/@lamjed.gaidi070/building-a-robust-ci-cd-pipeline-for-react-apps-with-testing-and-static-analysis-05e14735f8f0)", nossa estratégia inclui as seguintes considerações:
+
+### 1. Análise Estática com SonarQube
+Além do ESLint, o projeto deve integrar o **SonarScanner** no pipeline para:
+- Monitorar a saúde do código a longo prazo.
+- Definir **Quality Gates** (ex: falhar build se cobertura cair de 80%).
+- Detectar vulnerabilidades de segurança (Security Hotspots).
+
+### 2. Fluxo Completo do Pipeline
+Diferente de um pipeline simples de build, o fluxo robusto implementado seguirá:
+1. **Lint & Static Analysis**: ESLint + Prettier + SonarQube Scan.
+2. **Unit & Integration Tests**: Execução com Vitest (com geração de relatório LCOV para o Sonar).
+3. **Build & Package**: Geração da build de produção do Vite para MeAjudaAi.Web.Consumer.
+4. **Containerization (Contexto Aspire)**: O `dotnet aspire` facilita a geração de imagens Docker que serão enviadas para o Registry (Azure Container Registry).
+5. **E2E Testing**: Execução do Playwright contra o container de staging.
+6. **Deployment**: Via `azd deploy` para Azure Container Apps.
+
+### 3. Comparativo de Ferramentas
+
+| Ferramenta Artigo | Nossa Escolha | Justificativa |
+|-------------------|---------------|---------------|
+| Jest | **Vitest** | Nativo para Vite, performance significativamente superior. |
+| Cypress / Selenium | **Playwright** | Melhor suporte a múltiplos browsers, mais rápido e resiliente. |
+| SonarQube | **SonarQube** | Mantido como padrão para métricas de qualidade. |
+| Docker / K8s | **Docker / Aspire** | Usamos Docker via Aspire, que abstrai a complexidade do K8s facilitando o deploy. |
+
+
+---
 
 ### 3. Configuração de Reports para CI/CD
 
@@ -1128,7 +1133,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Consumer/src'),
+      '@': path.resolve(__dirname, './src'),
+      '@src': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Consumer/src'),
     },
   },
 });
@@ -1497,7 +1503,7 @@ it('deve corresponder ao snapshot', () => {
 - **Lines**: 80%
 
 ### Pirâmide de Testes
-```
+```text
        /\
       /E2E\         10% - Testes E2E (fluxos críticos)
      /------\
