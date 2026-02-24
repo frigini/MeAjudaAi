@@ -1,7 +1,10 @@
-import { VerificationStatusSchema } from "@/app/(main)/prestador/[id]/page";
+import { VerificationStatusSchema } from "@/lib/schemas/verification-status";
 import { EVerificationStatus } from "@/types/api/provider";
 
-// Test-only execution logic
+/**
+ * Suite de testes para a conversão de status de verificação.
+ * Lançará um erro se qualquer caso falhar, interrompendo o build/CI.
+ */
 export const testVerificationStatusConversion = () => {
     const cases = [
         { input: 0, expected: EVerificationStatus.None },
@@ -20,17 +23,21 @@ export const testVerificationStatusConversion = () => {
         { input: 3, expected: EVerificationStatus.Verified }
     ];
 
-    console.log("Starting verificationStatus conversion tests...");
+    console.log("Iniciando testes de conversão de verificationStatus...");
 
     cases.forEach(({ input, expected }, index) => {
         const result = VerificationStatusSchema.safeParse(input);
         if (!result.success || result.data !== expected) {
-            const actual = result.success ? result.data : "PARSE_ERROR";
-            throw new Error(`Test case ${index} FAILED: Input "${input}" -> Expected ${expected}, but got ${actual}`);
+            const actual = result.success ? result.data : "PARSING_FAILED";
+            const errorMsg = `Caso de teste ${index} FALHOU: Entrada "${input}" -> Esperado ${expected}, mas obteve ${actual}`;
+            console.error(errorMsg);
+            throw new Error(errorMsg);
         }
-        console.log(`Test case ${index} passed: Input "${input}" -> Expected ${expected}`);
+        console.log(`Caso de teste ${index} passou: Entrada "${input}" -> Esperado ${expected}`);
     });
+
+    console.log("Todos os testes de conversão passaram.");
 };
 
-// Run tests immediately on load to break CI if they fail
+// Executa os testes imediatamente ao carregar o módulo
 testVerificationStatusConversion();

@@ -134,7 +134,8 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
             -23.5605,
             -46.6433
         );
-        // Inserir diretamente com ServiceIds ao invés de usar endpoint
+        // Inserir diretamente com ServiceIds ao invés de usar endpoint.
+        // O subscription_tier é preservado do CreateProviderAsync pois não é atualizado no ON CONFLICT.
         await InsertSearchableProviderAsync(cleaningProviderId, cleaningName, -23.5605, -46.6433, serviceIds: new[] { cleaningServiceId });
 
         // Provider com serviço de jardinagem
@@ -144,7 +145,8 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
             -23.5705,
             -46.6533
         );
-        // Inserir diretamente com ServiceIds ao invés de usar endpoint
+        // Inserir diretamente com ServiceIds ao invés de usar endpoint.
+        // O subscription_tier é preservado do CreateProviderAsync pois não é atualizado no ON CONFLICT.
         await InsertSearchableProviderAsync(gardenProviderId, gardenName, -23.5705, -46.6533, serviceIds: new[] { gardenServiceId });
 
         // Act - Buscar apenas por serviço de limpeza
@@ -179,12 +181,14 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
 
         var electricianName = $"electrician_{Guid.NewGuid():N}";
         var electricianId = await CreateProviderAsync(electricianName, -23.5605, -46.6433);
-        // Inserir diretamente com ServiceIds ao invés de usar endpoint
+        // Inserir diretamente com ServiceIds ao invés de usar endpoint.
+        // O subscription_tier é preservado do CreateProviderAsync pois não é atualizado no ON CONFLICT.
         await InsertSearchableProviderAsync(electricianId, electricianName, -23.5605, -46.6433, serviceIds: new[] { electricalServiceId });
 
         var plumberName = $"plumber_{Guid.NewGuid():N}";
         var plumberId = await CreateProviderAsync(plumberName, -23.5705, -46.6533);
-        // Inserir diretamente com ServiceIds ao invés de usar endpoint
+        // Inserir diretamente com ServiceIds ao invés de usar endpoint.
+        // O subscription_tier é preservado do CreateProviderAsync pois não é atualizado no ON CONFLICT.
         await InsertSearchableProviderAsync(plumberId, plumberName, -23.5705, -46.6533, serviceIds: new[] { plumbingServiceId });
 
         // Act - Buscar por ambos os serviços
@@ -237,7 +241,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
 
         // Act
         var response = await _fixture.ApiClient.GetAsync(
-            $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&page=1&pageSize=50");
+            $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&page=1&pageSize={50.ToString(CultureInfo.InvariantCulture)}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -315,11 +319,11 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
 
         // Act - Página 1
         var page1Response = await _fixture.ApiClient.GetAsync(
-            $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&page=1&pageSize={pageSize}");
+            $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&page=1&pageSize={pageSize.ToString(CultureInfo.InvariantCulture)}");
 
         // Act - Página 2
         var page2Response = await _fixture.ApiClient.GetAsync(
-            $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&page=2&pageSize={pageSize}");
+            $"/api/v1/search/providers?latitude={searchLatitude.ToString(CultureInfo.InvariantCulture)}&longitude={searchLongitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&page=2&pageSize={pageSize.ToString(CultureInfo.InvariantCulture)}");
 
         // Assert
         page1Response.StatusCode.Should().Be(HttpStatusCode.OK);

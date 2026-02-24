@@ -15,45 +15,13 @@ import { auth } from "@/auth";
 import { getWhatsappLink } from "@/lib/utils/phone";
 
 import { EVerificationStatus, EProviderType } from "@/types/api/provider";
-
-// Export schemas for testing
-export const VerificationStatusSchema = z.preprocess((val) => {
-    if (typeof val === 'number') return val;
-    if (typeof val === 'string') {
-        if (/^\d+$/.test(val)) {
-            return parseInt(val, 10);
-        }
-        const lower = val.toLowerCase();
-        if (lower === 'verified') return EVerificationStatus.Verified;
-        if (lower === 'rejected') return EVerificationStatus.Rejected;
-        if (lower === 'inprogress' || lower === 'in_progress') return EVerificationStatus.InProgress;
-        if (lower === 'suspended') return EVerificationStatus.Suspended;
-        if (lower === 'none') return EVerificationStatus.None;
-        return EVerificationStatus.Pending;
-    }
-    return val;
-}, z.nativeEnum(EVerificationStatus).optional().nullable());
+import { normalizeProviderType } from "@/lib/utils/normalization";
+import { VerificationStatusSchema } from "@/lib/schemas/verification-status";
 
 const PublicProviderSchema = z.object({
     id: z.string().uuid(),
     name: z.string(),
-    type: z.preprocess((val) => {
-        if (typeof val === 'number') return val;
-        if (typeof val === 'string') {
-            const lower = val.toLowerCase();
-            if (lower === 'none') return EProviderType.None;
-            if (lower === 'individual' || lower === 'pessoafisica') return EProviderType.Individual;
-            if (lower === 'company' || lower === 'pessoajuridica') return EProviderType.Company;
-            if (lower === 'freelancer' || lower === 'autonomo') return EProviderType.Freelancer;
-            if (lower === 'cooperative' || lower === 'cooperativa') return EProviderType.Cooperative;
-
-            if (/^\d+$/.test(val)) {
-                return parseInt(val, 10);
-            }
-            return EProviderType.None;
-        }
-        return EProviderType.None;
-    }, z.nativeEnum(EProviderType).optional().default(EProviderType.None)),
+    type: z.preprocess(normalizeProviderType, z.nativeEnum(EProviderType).optional().default(EProviderType.None)),
     fantasyName: z.string().optional().nullable(),
     description: z.string().optional().nullable(),
     city: z.string().optional().nullable(),
