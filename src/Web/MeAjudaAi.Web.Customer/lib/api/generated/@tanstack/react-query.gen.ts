@@ -3,8 +3,27 @@
 import { type DefaultError, type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { apiActivatePost, apiActivatePost2, apiAllowedCitiesDelete, apiAllowedCitiesGet, apiAllowedCitiesGet2, apiAllowedCitiesPatch, apiAllowedCitiesPost, apiAllowedCitiesPut, apiByCityGet, apiByEmailGet, apiByStateGet, apiByTypeGet, apiByUserGet, apiCategoriesDelete, apiCategoriesGet, apiCategoriesGet2, apiCategoriesPost, apiCategoriesPut, apiCategoryGet, apiChangeCategoryPost, apiClientGet, apiCspReportPost, apiDeactivatePost, apiDeactivatePost2, apiDocumentsDelete, apiDocumentsPost, apiProfilePut, apiProviderGet, apiProvidersDelete, apiProvidersGet, apiProvidersGet2, apiProvidersGet3, apiProvidersPost, apiProvidersPut, apiRequestVerificationPost, apiRequireBasicInfoCorrectionPost, apiSearchGet, apiServicesDelete, apiServicesDelete2, apiServicesGet, apiServicesGet2, apiServicesPost, apiServicesPost2, apiServicesPut, apiStatusGet, apiUploadPost, apiUsersDelete, apiUsersGet, apiUsersGet2, apiUsersPost, apiValidatePost, apiVerificationStatusGet, apiVerificationStatusPut, apiVerifyPost, type Options } from '../sdk.gen';
-import type { ApiActivatePost2Data, ApiActivatePost2Response, ApiActivatePostData, ApiActivatePostResponse, ApiAllowedCitiesDeleteData, ApiAllowedCitiesDeleteResponse, ApiAllowedCitiesGet2Data, ApiAllowedCitiesGet2Response, ApiAllowedCitiesGetData, ApiAllowedCitiesGetResponse, ApiAllowedCitiesPatchData, ApiAllowedCitiesPatchError, ApiAllowedCitiesPatchResponse, ApiAllowedCitiesPostData, ApiAllowedCitiesPostError, ApiAllowedCitiesPostResponse, ApiAllowedCitiesPutData, ApiAllowedCitiesPutResponse, ApiByCityGetData, ApiByCityGetResponse, ApiByEmailGetData, ApiByEmailGetResponse, ApiByStateGetData, ApiByStateGetResponse, ApiByTypeGetData, ApiByTypeGetResponse, ApiByUserGetData, ApiByUserGetResponse, ApiCategoriesDeleteData, ApiCategoriesDeleteResponse, ApiCategoriesGet2Data, ApiCategoriesGet2Response, ApiCategoriesGetData, ApiCategoriesGetResponse, ApiCategoriesPostData, ApiCategoriesPostResponse, ApiCategoriesPutData, ApiCategoriesPutResponse, ApiCategoryGetData, ApiCategoryGetResponse, ApiChangeCategoryPostData, ApiChangeCategoryPostResponse, ApiClientGetData, ApiClientGetResponse, ApiCspReportPostData, ApiDeactivatePost2Data, ApiDeactivatePost2Response, ApiDeactivatePostData, ApiDeactivatePostResponse, ApiDocumentsDeleteData, ApiDocumentsDeleteResponse, ApiDocumentsPostData, ApiDocumentsPostResponse, ApiProfilePutData, ApiProfilePutResponse, ApiProviderGetData, ApiProviderGetResponse, ApiProvidersDeleteData, ApiProvidersDeleteResponse, ApiProvidersGet2Data, ApiProvidersGet2Response, ApiProvidersGet3Data, ApiProvidersGet3Error, ApiProvidersGet3Response, ApiProvidersGetData, ApiProvidersGetError, ApiProvidersGetResponse, ApiProvidersPostData, ApiProvidersPostResponse, ApiProvidersPutData, ApiProvidersPutResponse, ApiRequestVerificationPostData, ApiRequestVerificationPostError, ApiRequireBasicInfoCorrectionPostData, ApiSearchGetData, ApiSearchGetResponse, ApiServicesDelete2Data, ApiServicesDelete2Response, ApiServicesDeleteData, ApiServicesDeleteResponse, ApiServicesGet2Data, ApiServicesGet2Response, ApiServicesGetData, ApiServicesGetResponse, ApiServicesPost2Data, ApiServicesPost2Response, ApiServicesPostData, ApiServicesPostResponse, ApiServicesPutData, ApiServicesPutResponse, ApiStatusGetData, ApiStatusGetResponse, ApiUploadPostData, ApiUploadPostResponse, ApiUsersDeleteData, ApiUsersDeleteResponse, ApiUsersGet2Data, ApiUsersGet2Response, ApiUsersGetData, ApiUsersGetError, ApiUsersGetResponse, ApiUsersPostData, ApiUsersPostResponse, ApiValidatePostData, ApiValidatePostResponse, ApiVerificationStatusGetData, ApiVerificationStatusGetError, ApiVerificationStatusGetResponse, ApiVerificationStatusPutData, ApiVerificationStatusPutResponse, ApiVerifyPostData } from '../types.gen';
+import { deleteApiV1UsersById, getApiV1Users, getApiV1UsersByEmailByEmail, getApiV1UsersById, getHealth, getHealthLive, getHealthReady, type Options, postApiV1Users, putApiV1UsersById } from '../sdk.gen';
+import type { DeleteApiV1UsersByIdData, DeleteApiV1UsersByIdResponse, GetApiV1UsersByEmailByEmailData, GetApiV1UsersByEmailByEmailResponse, GetApiV1UsersByIdData, GetApiV1UsersByIdResponse, GetApiV1UsersData, GetApiV1UsersResponse, GetHealthData, GetHealthLiveData, GetHealthReadyData, GetHealthResponse, PostApiV1UsersData, PostApiV1UsersResponse, PutApiV1UsersByIdData, PutApiV1UsersByIdResponse } from '../types.gen';
+
+/**
+ * Excluir usuário
+ *
+ * Realiza exclusão lógica (soft delete) de um usuário específico
+ */
+export const deleteApiV1UsersByIdMutation = (options?: Partial<Options<DeleteApiV1UsersByIdData>>): UseMutationOptions<DeleteApiV1UsersByIdResponse, DefaultError, Options<DeleteApiV1UsersByIdData>> => {
+    const mutationOptions: UseMutationOptions<DeleteApiV1UsersByIdResponse, DefaultError, Options<DeleteApiV1UsersByIdData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteApiV1UsersById({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -39,16 +58,14 @@ const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions
     return [params];
 };
 
-export const apiAllowedCitiesGetQueryKey = (options?: Options<ApiAllowedCitiesGetData>) => createQueryKey('apiAllowedCitiesGet', options);
+export const getApiV1UsersByIdQueryKey = (options: Options<GetApiV1UsersByIdData>) => createQueryKey('getApiV1UsersById', options);
 
 /**
- * Listar todas as cidades permitidas
- *
- * Recupera todas as cidades permitidas (opcionalmente apenas as ativas)
+ * Obter usuário por ID
  */
-export const apiAllowedCitiesGetOptions = (options?: Options<ApiAllowedCitiesGetData>) => queryOptions<ApiAllowedCitiesGetResponse, DefaultError, ApiAllowedCitiesGetResponse, ReturnType<typeof apiAllowedCitiesGetQueryKey>>({
+export const getApiV1UsersByIdOptions = (options: Options<GetApiV1UsersByIdData>) => queryOptions<GetApiV1UsersByIdResponse, DefaultError, GetApiV1UsersByIdResponse, ReturnType<typeof getApiV1UsersByIdQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiAllowedCitiesGet({
+        const { data } = await getApiV1UsersById({
             ...options,
             ...queryKey[0],
             signal,
@@ -56,18 +73,18 @@ export const apiAllowedCitiesGetOptions = (options?: Options<ApiAllowedCitiesGet
         });
         return data;
     },
-    queryKey: apiAllowedCitiesGetQueryKey(options)
+    queryKey: getApiV1UsersByIdQueryKey(options)
 });
 
 /**
- * Criar nova cidade permitida
+ * Atualizar perfil do usuário
  *
- * Cria uma nova cidade permitida para operações de prestadores (apenas Admin)
+ * Atualiza informações do perfil de um usuário existente
  */
-export const apiAllowedCitiesPostMutation = (options?: Partial<Options<ApiAllowedCitiesPostData>>): UseMutationOptions<ApiAllowedCitiesPostResponse, ApiAllowedCitiesPostError, Options<ApiAllowedCitiesPostData>> => {
-    const mutationOptions: UseMutationOptions<ApiAllowedCitiesPostResponse, ApiAllowedCitiesPostError, Options<ApiAllowedCitiesPostData>> = {
+export const putApiV1UsersByIdMutation = (options?: Partial<Options<PutApiV1UsersByIdData>>): UseMutationOptions<PutApiV1UsersByIdResponse, DefaultError, Options<PutApiV1UsersByIdData>> => {
+    const mutationOptions: UseMutationOptions<PutApiV1UsersByIdResponse, DefaultError, Options<PutApiV1UsersByIdData>> = {
         mutationFn: async (fnOptions) => {
-            const { data } = await apiAllowedCitiesPost({
+            const { data } = await putApiV1UsersById({
                 ...options,
                 ...fnOptions,
                 throwOnError: true
@@ -78,35 +95,16 @@ export const apiAllowedCitiesPostMutation = (options?: Partial<Options<ApiAllowe
     return mutationOptions;
 };
 
-/**
- * Deletar cidade permitida
- *
- * Deleta uma cidade permitida
- */
-export const apiAllowedCitiesDeleteMutation = (options?: Partial<Options<ApiAllowedCitiesDeleteData>>): UseMutationOptions<ApiAllowedCitiesDeleteResponse, DefaultError, Options<ApiAllowedCitiesDeleteData>> => {
-    const mutationOptions: UseMutationOptions<ApiAllowedCitiesDeleteResponse, DefaultError, Options<ApiAllowedCitiesDeleteData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiAllowedCitiesDelete({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-export const apiAllowedCitiesGet2QueryKey = (options: Options<ApiAllowedCitiesGet2Data>) => createQueryKey('apiAllowedCitiesGet2', options);
+export const getApiV1UsersQueryKey = (options?: Options<GetApiV1UsersData>) => createQueryKey('getApiV1Users', options);
 
 /**
- * Buscar cidade permitida por ID
+ * Listar usuários
  *
- * Recupera uma cidade permitida específica pelo seu ID
+ * Retorna lista paginada de usuários
  */
-export const apiAllowedCitiesGet2Options = (options: Options<ApiAllowedCitiesGet2Data>) => queryOptions<ApiAllowedCitiesGet2Response, DefaultError, ApiAllowedCitiesGet2Response, ReturnType<typeof apiAllowedCitiesGet2QueryKey>>({
+export const getApiV1UsersOptions = (options?: Options<GetApiV1UsersData>) => queryOptions<GetApiV1UsersResponse, DefaultError, GetApiV1UsersResponse, ReturnType<typeof getApiV1UsersQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiAllowedCitiesGet2({
+        const { data } = await getApiV1Users({
             ...options,
             ...queryKey[0],
             signal,
@@ -114,707 +112,7 @@ export const apiAllowedCitiesGet2Options = (options: Options<ApiAllowedCitiesGet
         });
         return data;
     },
-    queryKey: apiAllowedCitiesGet2QueryKey(options)
-});
-
-/**
- * Atualizar parcialmente cidade permitida
- *
- * Atualiza campos específicos de uma cidade permitida (Raio, Ativo)
- */
-export const apiAllowedCitiesPatchMutation = (options?: Partial<Options<ApiAllowedCitiesPatchData>>): UseMutationOptions<ApiAllowedCitiesPatchResponse, ApiAllowedCitiesPatchError, Options<ApiAllowedCitiesPatchData>> => {
-    const mutationOptions: UseMutationOptions<ApiAllowedCitiesPatchResponse, ApiAllowedCitiesPatchError, Options<ApiAllowedCitiesPatchData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiAllowedCitiesPatch({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-/**
- * Atualizar cidade permitida
- *
- * Atualiza uma cidade permitida existente
- */
-export const apiAllowedCitiesPutMutation = (options?: Partial<Options<ApiAllowedCitiesPutData>>): UseMutationOptions<ApiAllowedCitiesPutResponse, DefaultError, Options<ApiAllowedCitiesPutData>> => {
-    const mutationOptions: UseMutationOptions<ApiAllowedCitiesPutResponse, DefaultError, Options<ApiAllowedCitiesPutData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiAllowedCitiesPut({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-export const apiClientGetQueryKey = (options?: Options<ApiClientGetData>) => createQueryKey('apiClientGet', options);
-
-/**
- * Retorna a configuração do cliente.
- * Apenas informações não-sensíveis são expostas.
- *
- * Retorna configurações não-sensíveis necessárias para o frontend (Keycloak, URLs, feature flags)
- */
-export const apiClientGetOptions = (options?: Options<ApiClientGetData>) => queryOptions<ApiClientGetResponse, DefaultError, ApiClientGetResponse, ReturnType<typeof apiClientGetQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiClientGet({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: apiClientGetQueryKey(options)
-});
-
-/**
- * Gerar URL de upload com SAS token
- *
- * Gera uma URL de upload com SAS token para envio direto ao Azure Blob Storage.
- *
- * **Fluxo:**
- * 1. Valida informações do documento
- * 2. Gera SAS token com 1 hora de validade
- * 3. Cria registro de documento no banco com status Uploaded
- * 4. Retorna URL de upload (com blob name e data de expiração)
- *
- * **Tipos de documentos suportados:**
- * - IdentityDocument: RG, CNH, CPF
- * - ProofOfResidence: Comprovante de residência
- * - CriminalRecord: Certidão de antecedentes
- * - Other: Outros documentos
- */
-export const apiUploadPostMutation = (options?: Partial<Options<ApiUploadPostData>>): UseMutationOptions<ApiUploadPostResponse, DefaultError, Options<ApiUploadPostData>> => {
-    const mutationOptions: UseMutationOptions<ApiUploadPostResponse, DefaultError, Options<ApiUploadPostData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiUploadPost({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-export const apiStatusGetQueryKey = (options: Options<ApiStatusGetData>) => createQueryKey('apiStatusGet', options);
-
-/**
- * Consultar status de documento
- *
- * Retorna informações detalhadas sobre um documento específico.
- *
- * **Informações retornadas:**
- * - Status atual (Uploaded, PendingVerification, Verified, Rejected, Failed)
- * - Datas de upload e verificação
- * - Motivo de rejeição (se aplicável)
- * - Dados extraídos por OCR (se disponível)
- * - URLs de acesso ao documento
- */
-export const apiStatusGetOptions = (options: Options<ApiStatusGetData>) => queryOptions<ApiStatusGetResponse, DefaultError, ApiStatusGetResponse, ReturnType<typeof apiStatusGetQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiStatusGet({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: apiStatusGetQueryKey(options)
-});
-
-export const apiProviderGetQueryKey = (options: Options<ApiProviderGetData>) => createQueryKey('apiProviderGet', options);
-
-/**
- * Listar documentos de um prestador
- *
- * Retorna todos os documentos associados a um prestador específico.
- *
- * **Casos de uso:**
- * - Visualizar todos os documentos enviados
- * - Verificar status de verificação de documentos
- * - Acompanhar progresso de validação de cadastro
- */
-export const apiProviderGetOptions = (options: Options<ApiProviderGetData>) => queryOptions<ApiProviderGetResponse, DefaultError, ApiProviderGetResponse, ReturnType<typeof apiProviderGetQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiProviderGet({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: apiProviderGetQueryKey(options)
-});
-
-/**
- * Solicitar verificação manual
- *
- * Solicita verificação manual de um documento quando OCR falha ou precisa validação adicional.
- *
- * **Quando usar:**
- * - OCR não conseguiu extrair dados do documento
- * - Documento foi rejeitado automaticamente mas precisa revisão
- * - Necessidade de validação humana adicional
- *
- * **Resultado:**
- * - Documento entra em fila de verificação manual
- * - Status alterado para PendingVerification
- * - Administrador será notificado para análise
- */
-export const apiRequestVerificationPostMutation = (options?: Partial<Options<ApiRequestVerificationPostData>>): UseMutationOptions<unknown, ApiRequestVerificationPostError, Options<ApiRequestVerificationPostData>> => {
-    const mutationOptions: UseMutationOptions<unknown, ApiRequestVerificationPostError, Options<ApiRequestVerificationPostData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiRequestVerificationPost({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-/**
- * Aprovar ou rejeitar documento
- *
- * Aprova ou rejeita um documento após verificação manual.
- *
- * **Aprovar documento:**
- * ```json
- * {
- * "IsVerified": true,
- * "VerificationNotes": "Documento válido e legível"
- * }
- * ```
- *
- * **Rejeitar documento:**
- * ```json
- * {
- * "IsVerified": false,
- * "VerificationNotes": "Documento ilegível ou inválido"
- * }
- * ```
- *
- * **Requisitos:**
- * - Documento deve estar em status PendingVerification
- * - Apenas administradores podem executar esta ação
- */
-export const apiVerifyPostMutation = (options?: Partial<Options<ApiVerifyPostData>>): UseMutationOptions<unknown, DefaultError, Options<ApiVerifyPostData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<ApiVerifyPostData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiVerifyPost({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-export const apiSearchGetQueryKey = (options: Options<ApiSearchGetData>) => createQueryKey('apiSearchGet', options);
-
-/**
- * Busca cidades/endereços para cadastro
- *
- * Retorna candidatos de localização baseados na query
- */
-export const apiSearchGetOptions = (options: Options<ApiSearchGetData>) => queryOptions<ApiSearchGetResponse, DefaultError, ApiSearchGetResponse, ReturnType<typeof apiSearchGetQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiSearchGet({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: apiSearchGetQueryKey(options)
-});
-
-export const apiProvidersGetQueryKey = (options?: Options<ApiProvidersGetData>) => createQueryKey('apiProvidersGet', options);
-
-/**
- * Consultar prestadores paginados
- *
- * Recupera uma lista paginada de prestadores de serviços do sistema com suporte a filtros de busca.
- *
- * **Características:**
- * - 🔍 Busca por nome, tipo de serviço e status de verificação
- * - 📄 Paginação otimizada com metadados
- * - ⚡ Cache automático para consultas frequentes
- * - 🔒 Controle de acesso baseado em papéis
- * - 🌍 Restrição geográfica (piloto em cidades específicas)
- *
- * **Restrição geográfica (HTTP 451):**
- *
- * Este endpoint está sujeito a restrições geográficas durante a fase piloto.
- * O acesso é permitido apenas para usuários nas seguintes cidades:
- *
- * - **Muriaé** (MG) - IBGE: 3143906
- * - **Itaperuna** (RJ) - IBGE: 3302205
- * - **Linhares** (ES) - IBGE: 3203205
- *
- * A localização é determinada através dos headers HTTP:
- * - `X-User-City`: Nome da cidade
- * - `X-User-State`: Sigla do estado (UF)
- * - `X-User-Location`: Combinação "cidade|estado"
- *
- * Se o acesso for bloqueado, você receberá HTTP 451 com detalhes:
- * - Sua localização detectada
- * - Lista de cidades permitidas
- * - Códigos IBGE para validação
- *
- * **Parâmetros de busca:**
- * - `name`: Termo para filtrar prestadores por nome
- * - `type`: Filtro por tipo de serviço (ID numérico)
- * - `verificationStatus`: Status de verificação (ID numérico)
- * - `pageNumber`: Número da página (padrão: 1)
- * - `pageSize`: Tamanho da página (padrão: 10, máximo: 100)
- *
- * **Exemplos de uso:**
- * - Buscar prestadores: `?name=joão`
- * - Por tipo: `?type=1`
- * - Por status: `?verificationStatus=2`
- * - Paginação: `?pageNumber=2&pageSize=20`
- * - Combinado: `?name=médico&type=1&pageNumber=1&pageSize=10`
- */
-export const apiProvidersGetOptions = (options?: Options<ApiProvidersGetData>) => queryOptions<ApiProvidersGetResponse, ApiProvidersGetError, ApiProvidersGetResponse, ReturnType<typeof apiProvidersGetQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiProvidersGet({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: apiProvidersGetQueryKey(options)
-});
-
-/**
- * Processa requisição de criação de prestador de forma assíncrona.
- *
- * Fluxo de execução:
- * 1. Converte request em comando CQRS
- * 2. Envia comando através do dispatcher
- * 3. Processa resultado e retorna resposta HTTP apropriada
- * 4. Inclui localização do recurso criado no header
- */
-export const apiProvidersPostMutation = (options?: Partial<Options<ApiProvidersPostData>>): UseMutationOptions<ApiProvidersPostResponse, DefaultError, Options<ApiProvidersPostData>> => {
-    const mutationOptions: UseMutationOptions<ApiProvidersPostResponse, DefaultError, Options<ApiProvidersPostData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiProvidersPost({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-/**
- * Processa requisição de exclusão de prestador de forma assíncrona.
- *
- * Fluxo de execução:
- * 1. Valida ID do prestador e autorização administrativa
- * 2. Cria comando usando mapper ToDeleteCommand
- * 3. Envia comando através do dispatcher
- * 4. Processa resultado e retorna status apropriado
- * 5. Registra evento de auditoria (futuro)
- */
-export const apiProvidersDeleteMutation = (options?: Partial<Options<ApiProvidersDeleteData>>): UseMutationOptions<ApiProvidersDeleteResponse, DefaultError, Options<ApiProvidersDeleteData>> => {
-    const mutationOptions: UseMutationOptions<ApiProvidersDeleteResponse, DefaultError, Options<ApiProvidersDeleteData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiProvidersDelete({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-export const apiProvidersGet2QueryKey = (options: Options<ApiProvidersGet2Data>) => createQueryKey('apiProvidersGet2', options);
-
-/**
- * Implementa a lógica de consulta de prestador por ID.
- *
- * Processo da consulta:
- * 1. Valida ID do prestador no formato GUID
- * 2. Cria query usando mapper ToQuery
- * 3. Envia query através do dispatcher CQRS
- * 4. Retorna resposta HTTP com dados do prestador ou NotFound
- */
-export const apiProvidersGet2Options = (options: Options<ApiProvidersGet2Data>) => queryOptions<ApiProvidersGet2Response, DefaultError, ApiProvidersGet2Response, ReturnType<typeof apiProvidersGet2QueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiProvidersGet2({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: apiProvidersGet2QueryKey(options)
-});
-
-/**
- * Processa requisição de atualização de perfil de forma assíncrona.
- *
- * Fluxo de execução:
- * 1. Valida ID do prestador e autorização
- * 2. Converte request em comando CQRS
- * 3. Envia comando através do dispatcher
- * 4. Processa resultado e retorna resposta HTTP apropriada
- */
-export const apiProvidersPutMutation = (options?: Partial<Options<ApiProvidersPutData>>): UseMutationOptions<ApiProvidersPutResponse, DefaultError, Options<ApiProvidersPutData>> => {
-    const mutationOptions: UseMutationOptions<ApiProvidersPutResponse, DefaultError, Options<ApiProvidersPutData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiProvidersPut({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-export const apiByUserGetQueryKey = (options: Options<ApiByUserGetData>) => createQueryKey('apiByUserGet', options);
-
-/**
- * Implementa a lógica de consulta de prestador por ID do usuário.
- *
- * Processo da consulta:
- * 1. Valida ID do usuário no formato GUID
- * 2. Cria query usando mapper ToUserQuery
- * 3. Envia query através do dispatcher CQRS
- * 4. Retorna resposta HTTP com dados do prestador ou NotFound
- */
-export const apiByUserGetOptions = (options: Options<ApiByUserGetData>) => queryOptions<ApiByUserGetResponse, DefaultError, ApiByUserGetResponse, ReturnType<typeof apiByUserGetQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiByUserGet({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: apiByUserGetQueryKey(options)
-});
-
-export const apiByCityGetQueryKey = (options: Options<ApiByCityGetData>) => createQueryKey('apiByCityGet', options);
-
-/**
- * Implementa a lógica de consulta de prestadores por cidade.
- *
- * Processo da consulta:
- * 1. Valida parâmetro de cidade
- * 2. Cria query usando mapper ToCityQuery
- * 3. Envia query através do dispatcher CQRS
- * 4. Retorna resposta HTTP com lista de prestadores
- */
-export const apiByCityGetOptions = (options: Options<ApiByCityGetData>) => queryOptions<ApiByCityGetResponse, DefaultError, ApiByCityGetResponse, ReturnType<typeof apiByCityGetQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiByCityGet({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: apiByCityGetQueryKey(options)
-});
-
-export const apiByStateGetQueryKey = (options: Options<ApiByStateGetData>) => createQueryKey('apiByStateGet', options);
-
-/**
- * Implementa a lógica de consulta de prestadores por estado.
- *
- * Processo da consulta:
- * 1. Valida parâmetro de estado
- * 2. Cria query usando mapper ToStateQuery
- * 3. Envia query através do dispatcher CQRS
- * 4. Retorna resposta HTTP com lista de prestadores
- */
-export const apiByStateGetOptions = (options: Options<ApiByStateGetData>) => queryOptions<ApiByStateGetResponse, DefaultError, ApiByStateGetResponse, ReturnType<typeof apiByStateGetQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiByStateGet({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: apiByStateGetQueryKey(options)
-});
-
-export const apiByTypeGetQueryKey = (options: Options<ApiByTypeGetData>) => createQueryKey('apiByTypeGet', options);
-
-/**
- * Implementa a lógica de consulta de prestadores por tipo.
- *
- * Processo da consulta:
- * 1. Valida enum de tipo do prestador
- * 2. Cria query usando mapper ToTypeQuery
- * 3. Envia query através do dispatcher CQRS
- * 4. Retorna resposta HTTP com lista de prestadores
- */
-export const apiByTypeGetOptions = (options: Options<ApiByTypeGetData>) => queryOptions<ApiByTypeGetResponse, DefaultError, ApiByTypeGetResponse, ReturnType<typeof apiByTypeGetQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiByTypeGet({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: apiByTypeGetQueryKey(options)
-});
-
-export const apiVerificationStatusGetQueryKey = (options: Options<ApiVerificationStatusGetData>) => createQueryKey('apiVerificationStatusGet', options);
-
-/**
- * Implementa a lógica de consulta de prestadores por status de verificação.
- *
- * Processo da consulta:
- * 1. Valida enum de status de verificação
- * 2. Cria query usando mapper ToVerificationStatusQuery
- * 3. Envia query através do dispatcher CQRS
- * 4. Retorna resposta HTTP com lista de prestadores
- */
-export const apiVerificationStatusGetOptions = (options: Options<ApiVerificationStatusGetData>) => queryOptions<ApiVerificationStatusGetResponse, ApiVerificationStatusGetError, ApiVerificationStatusGetResponse, ReturnType<typeof apiVerificationStatusGetQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiVerificationStatusGet({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: apiVerificationStatusGetQueryKey(options)
-});
-
-/**
- * Processa requisição de adição de documento de forma assíncrona.
- *
- * Fluxo de execução:
- * 1. Valida ID do prestador e autorização
- * 2. Converte request em comando CQRS
- * 3. Envia comando através do dispatcher
- * 4. Processa resultado e retorna prestador atualizado
- */
-export const apiDocumentsPostMutation = (options?: Partial<Options<ApiDocumentsPostData>>): UseMutationOptions<ApiDocumentsPostResponse, DefaultError, Options<ApiDocumentsPostData>> => {
-    const mutationOptions: UseMutationOptions<ApiDocumentsPostResponse, DefaultError, Options<ApiDocumentsPostData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiDocumentsPost({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-/**
- * Processa requisição de remoção de documento de forma assíncrona.
- *
- * Fluxo de execução:
- * 1. Valida ID do prestador e autorização
- * 2. Cria comando usando mapper ToRemoveDocumentCommand
- * 3. Envia comando através do dispatcher
- * 4. Processa resultado e retorna prestador atualizado
- */
-export const apiDocumentsDeleteMutation = (options?: Partial<Options<ApiDocumentsDeleteData>>): UseMutationOptions<ApiDocumentsDeleteResponse, DefaultError, Options<ApiDocumentsDeleteData>> => {
-    const mutationOptions: UseMutationOptions<ApiDocumentsDeleteResponse, DefaultError, Options<ApiDocumentsDeleteData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiDocumentsDelete({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-/**
- * Processa requisição de atualização de status de forma assíncrona.
- *
- * Fluxo de execução:
- * 1. Valida ID do prestador e autorização administrativa
- * 2. Converte request em comando CQRS
- * 3. Envia comando através do dispatcher
- * 4. Processa resultado e retorna prestador atualizado
- * 5. Registra evento de auditoria (futuro)
- */
-export const apiVerificationStatusPutMutation = (options?: Partial<Options<ApiVerificationStatusPutData>>): UseMutationOptions<ApiVerificationStatusPutResponse, DefaultError, Options<ApiVerificationStatusPutData>> => {
-    const mutationOptions: UseMutationOptions<ApiVerificationStatusPutResponse, DefaultError, Options<ApiVerificationStatusPutData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiVerificationStatusPut({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-/**
- * Processa requisição de solicitação de correção de forma assíncrona.
- *
- * Fluxo de execução:
- * 1. Valida ID do prestador e autorização
- * 2. Extrai identidade do usuário autenticado do contexto HTTP
- * 3. Converte request em comando CQRS com identidade verificada
- * 4. Envia comando através do dispatcher
- * 5. Processa resultado e retorna confirmação
- * 6. Emite evento de domínio para notificação
- */
-export const apiRequireBasicInfoCorrectionPostMutation = (options?: Partial<Options<ApiRequireBasicInfoCorrectionPostData>>): UseMutationOptions<unknown, DefaultError, Options<ApiRequireBasicInfoCorrectionPostData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<ApiRequireBasicInfoCorrectionPostData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiRequireBasicInfoCorrectionPost({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-/**
- * Processa requisição de remoção de serviço do provider.
- *
- * ### Remove um serviço do catálogo do provider
- *
- * **Funcionalidades:**
- * - ✅ Remove associação entre provider e serviço
- * - ✅ Emite evento de domínio ProviderServiceRemovedDomainEvent
- * - ✅ Valida que o provider oferece o serviço antes de remover
- *
- * **Campos obrigatórios:**
- * - providerId: ID do provider (UUID)
- * - serviceId: ID do serviço do catálogo (UUID)
- *
- * **Validações:**
- * - Provider deve existir
- * - Provider deve oferecer o serviço
- * - Provider não pode estar deletado
- */
-export const apiServicesDeleteMutation = (options?: Partial<Options<ApiServicesDeleteData>>): UseMutationOptions<ApiServicesDeleteResponse, DefaultError, Options<ApiServicesDeleteData>> => {
-    const mutationOptions: UseMutationOptions<ApiServicesDeleteResponse, DefaultError, Options<ApiServicesDeleteData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiServicesDelete({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-/**
- * Processa requisição de adição de serviço ao provider.
- *
- * ### Adiciona um serviço do catálogo ao provider
- *
- * **Funcionalidades:**
- * - ✅ Valida existência e status do serviço via IServiceCatalogsModuleApi
- * - ✅ Verifica se o serviço está ativo
- * - ✅ Previne duplicação de serviços
- * - ✅ Emite evento de domínio ProviderServiceAddedDomainEvent
- *
- * **Campos obrigatórios:**
- * - providerId: ID do provider (UUID)
- * - serviceId: ID do serviço do catálogo (UUID)
- *
- * **Validações:**
- * - Serviço deve existir no catálogo
- * - Serviço deve estar ativo
- * - Provider não pode já oferecer o serviço
- * - Provider não pode estar deletado
- */
-export const apiServicesPostMutation = (options?: Partial<Options<ApiServicesPostData>>): UseMutationOptions<ApiServicesPostResponse, DefaultError, Options<ApiServicesPostData>> => {
-    const mutationOptions: UseMutationOptions<ApiServicesPostResponse, DefaultError, Options<ApiServicesPostData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiServicesPost({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-export const apiProvidersGet3QueryKey = (options: Options<ApiProvidersGet3Data>) => createQueryKey('apiProvidersGet3', options);
-
-/**
- * Buscar prestadores de serviço
- *
- * Busca prestadores de serviço ativos com base em geolocalização e filtros.
- *
- * **Algoritmo de Busca:**
- * 1. Filtrar por raio a partir da localização de busca
- * 2. Aplicar filtros opcionais (serviços, avaliação, nível de assinatura)
- * 3. Classificar resultados por:
- * - Nível de assinatura (Platinum > Gold > Standard > Free)
- * - Avaliação média (maior primeiro)
- * - Distância (mais próximo primeiro)
- *
- * **Casos de Uso:**
- * - Encontrar prestadores próximos a uma localização específica
- * - Buscar prestadores que oferecem serviços específicos
- * - Filtrar por avaliação mínima ou nível de assinatura
- */
-export const apiProvidersGet3Options = (options: Options<ApiProvidersGet3Data>) => queryOptions<ApiProvidersGet3Response, ApiProvidersGet3Error, ApiProvidersGet3Response, ReturnType<typeof apiProvidersGet3QueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiProvidersGet3({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: apiProvidersGet3QueryKey(options)
+    queryKey: getApiV1UsersQueryKey(options)
 });
 
 const createInfiniteParams = <K extends Pick<QueryKey<Options>[0], 'body' | 'headers' | 'path' | 'query'>>(queryKey: QueryKey<Options>, page: K) => {
@@ -846,38 +144,25 @@ const createInfiniteParams = <K extends Pick<QueryKey<Options>[0], 'body' | 'hea
     return params as unknown as typeof page;
 };
 
-export const apiProvidersGet3InfiniteQueryKey = (options: Options<ApiProvidersGet3Data>): QueryKey<Options<ApiProvidersGet3Data>> => createQueryKey('apiProvidersGet3', options, true);
+export const getApiV1UsersInfiniteQueryKey = (options?: Options<GetApiV1UsersData>): QueryKey<Options<GetApiV1UsersData>> => createQueryKey('getApiV1Users', options, true);
 
 /**
- * Buscar prestadores de serviço
+ * Listar usuários
  *
- * Busca prestadores de serviço ativos com base em geolocalização e filtros.
- *
- * **Algoritmo de Busca:**
- * 1. Filtrar por raio a partir da localização de busca
- * 2. Aplicar filtros opcionais (serviços, avaliação, nível de assinatura)
- * 3. Classificar resultados por:
- * - Nível de assinatura (Platinum > Gold > Standard > Free)
- * - Avaliação média (maior primeiro)
- * - Distância (mais próximo primeiro)
- *
- * **Casos de Uso:**
- * - Encontrar prestadores próximos a uma localização específica
- * - Buscar prestadores que oferecem serviços específicos
- * - Filtrar por avaliação mínima ou nível de assinatura
+ * Retorna lista paginada de usuários
  */
-export const apiProvidersGet3InfiniteOptions = (options: Options<ApiProvidersGet3Data>) => infiniteQueryOptions<ApiProvidersGet3Response, ApiProvidersGet3Error, InfiniteData<ApiProvidersGet3Response>, QueryKey<Options<ApiProvidersGet3Data>>, number | Pick<QueryKey<Options<ApiProvidersGet3Data>>[0], 'body' | 'headers' | 'path' | 'query'>>(
+export const getApiV1UsersInfiniteOptions = (options?: Options<GetApiV1UsersData>) => infiniteQueryOptions<GetApiV1UsersResponse, DefaultError, InfiniteData<GetApiV1UsersResponse>, QueryKey<Options<GetApiV1UsersData>>, number | Pick<QueryKey<Options<GetApiV1UsersData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
 // @ts-ignore
 {
     queryFn: async ({ pageParam, queryKey, signal }) => {
         // @ts-ignore
-        const page: Pick<QueryKey<Options<ApiProvidersGet3Data>>[0], 'body' | 'headers' | 'path' | 'query'> = typeof pageParam === 'object' ? pageParam : {
+        const page: Pick<QueryKey<Options<GetApiV1UsersData>>[0], 'body' | 'headers' | 'path' | 'query'> = typeof pageParam === 'object' ? pageParam : {
             query: {
                 page: pageParam
             }
         };
         const params = createInfiniteParams(queryKey, page);
-        const { data } = await apiProvidersGet3({
+        const { data } = await getApiV1Users({
             ...options,
             ...params,
             signal,
@@ -885,16 +170,16 @@ export const apiProvidersGet3InfiniteOptions = (options: Options<ApiProvidersGet
         });
         return data;
     },
-    queryKey: apiProvidersGet3InfiniteQueryKey(options)
+    queryKey: getApiV1UsersInfiniteQueryKey(options)
 });
 
 /**
- * Recebe e registra violações de CSP.
+ * Criar usuário
  */
-export const apiCspReportPostMutation = (options?: Partial<Options<ApiCspReportPostData>>): UseMutationOptions<unknown, DefaultError, Options<ApiCspReportPostData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<ApiCspReportPostData>> = {
+export const postApiV1UsersMutation = (options?: Partial<Options<PostApiV1UsersData>>): UseMutationOptions<PostApiV1UsersResponse, DefaultError, Options<PostApiV1UsersData>> => {
+    const mutationOptions: UseMutationOptions<PostApiV1UsersResponse, DefaultError, Options<PostApiV1UsersData>> = {
         mutationFn: async (fnOptions) => {
-            const { data } = await apiCspReportPost({
+            const { data } = await postApiV1Users({
                 ...options,
                 ...fnOptions,
                 throwOnError: true
@@ -905,27 +190,16 @@ export const apiCspReportPostMutation = (options?: Partial<Options<ApiCspReportP
     return mutationOptions;
 };
 
-export const apiCategoriesGetQueryKey = (options?: Options<ApiCategoriesGetData>) => createQueryKey('apiCategoriesGet', options);
+export const getApiV1UsersByEmailByEmailQueryKey = (options: Options<GetApiV1UsersByEmailByEmailData>) => createQueryKey('getApiV1UsersByEmailByEmail', options);
 
 /**
- * Listar todas as categorias
+ * Consultar usuário por email
  *
- * Retorna todas as categorias de serviços do catálogo.
- *
- * **Filtros Opcionais:**
- * - `activeOnly` (bool): Filtra apenas categorias ativas (padrão: false)
- *
- * **Ordenação:**
- * - Categorias são ordenadas por DisplayOrder (crescente)
- *
- * **Casos de Uso:**
- * - Exibir menu de categorias para usuários
- * - Administração do catálogo de categorias
- * - Seleção de categoria ao criar serviço
+ * Recupera dados completos de um usuário através do endereço de email
  */
-export const apiCategoriesGetOptions = (options?: Options<ApiCategoriesGetData>) => queryOptions<ApiCategoriesGetResponse, DefaultError, ApiCategoriesGetResponse, ReturnType<typeof apiCategoriesGetQueryKey>>({
+export const getApiV1UsersByEmailByEmailOptions = (options: Options<GetApiV1UsersByEmailByEmailData>) => queryOptions<GetApiV1UsersByEmailByEmailResponse, DefaultError, GetApiV1UsersByEmailByEmailResponse, ReturnType<typeof getApiV1UsersByEmailByEmailQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiCategoriesGet({
+        const { data } = await getApiV1UsersByEmailByEmail({
             ...options,
             ...queryKey[0],
             signal,
@@ -933,90 +207,19 @@ export const apiCategoriesGetOptions = (options?: Options<ApiCategoriesGetData>)
         });
         return data;
     },
-    queryKey: apiCategoriesGetQueryKey(options)
+    queryKey: getApiV1UsersByEmailByEmailQueryKey(options)
 });
 
-/**
- * Criar categoria de serviço
- *
- * Cria uma nova categoria de serviços no catálogo.
- *
- * **Validações:**
- * - Nome é obrigatório (máximo 100 caracteres)
- * - Descrição opcional (máximo 500 caracteres)
- * - DisplayOrder deve ser >= 0
- * - Nome deve ser único no sistema
- *
- * **Efeitos:**
- * - Categoria criada como ativa por padrão
- * - Pode receber serviços imediatamente
- *
- * **Permissões:** Requer privilégios de administrador
- */
-export const apiCategoriesPostMutation = (options?: Partial<Options<ApiCategoriesPostData>>): UseMutationOptions<ApiCategoriesPostResponse, DefaultError, Options<ApiCategoriesPostData>> => {
-    const mutationOptions: UseMutationOptions<ApiCategoriesPostResponse, DefaultError, Options<ApiCategoriesPostData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiCategoriesPost({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
+export const getHealthLiveQueryKey = (options?: Options<GetHealthLiveData>) => createQueryKey('getHealthLive', options);
 
 /**
- * Deletar categoria de serviço
+ * Liveness Check
  *
- * Deleta uma categoria de serviços permanentemente.
- *
- * **Validações:**
- * - ID não pode ser vazio
- * - Categoria deve existir
- * - Categoria não pode ter serviços associados
- *
- * **Importante:** Operação destrutiva. Categorias com serviços não podem
- * ser deletadas. Use desativação ou mova os serviços primeiro.
- *
- * **Permissões:** Requer privilégios de administrador
+ * Verifica se aplicação está viva
  */
-export const apiCategoriesDeleteMutation = (options?: Partial<Options<ApiCategoriesDeleteData>>): UseMutationOptions<ApiCategoriesDeleteResponse, DefaultError, Options<ApiCategoriesDeleteData>> => {
-    const mutationOptions: UseMutationOptions<ApiCategoriesDeleteResponse, DefaultError, Options<ApiCategoriesDeleteData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiCategoriesDelete({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-export const apiCategoriesGet2QueryKey = (options: Options<ApiCategoriesGet2Data>) => createQueryKey('apiCategoriesGet2', options);
-
-/**
- * Buscar categoria por ID
- *
- * Retorna os detalhes completos de uma categoria específica.
- *
- * **Retorno:**
- * - Informações completas da categoria
- * - Status de ativação
- * - DisplayOrder para ordenação
- * - Datas de criação e atualização
- *
- * **Casos de Uso:**
- * - Exibir detalhes da categoria para edição
- * - Validar existência de categoria
- * - Visualizar informações completas
- */
-export const apiCategoriesGet2Options = (options: Options<ApiCategoriesGet2Data>) => queryOptions<ApiCategoriesGet2Response, DefaultError, ApiCategoriesGet2Response, ReturnType<typeof apiCategoriesGet2QueryKey>>({
+export const getHealthLiveOptions = (options?: Options<GetHealthLiveData>) => queryOptions<unknown, DefaultError, unknown, ReturnType<typeof getHealthLiveQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiCategoriesGet2({
+        const { data } = await getHealthLive({
             ...options,
             ...queryKey[0],
             signal,
@@ -1024,112 +227,19 @@ export const apiCategoriesGet2Options = (options: Options<ApiCategoriesGet2Data>
         });
         return data;
     },
-    queryKey: apiCategoriesGet2QueryKey(options)
+    queryKey: getHealthLiveQueryKey(options)
 });
 
-/**
- * Atualizar categoria de serviço
- *
- * Atualiza as informações de uma categoria existente.
- *
- * **Validações:**
- * - ID não pode ser vazio
- * - Categoria deve existir
- * - Nome é obrigatório (máximo 100 caracteres)
- * - Descrição opcional (máximo 500 caracteres)
- * - DisplayOrder deve ser >= 0
- *
- * **Nota:** Requer atualização completa (full-update pattern).
- * Todos os campos devem ser fornecidos.
- *
- * **Permissões:** Requer privilégios de administrador
- */
-export const apiCategoriesPutMutation = (options?: Partial<Options<ApiCategoriesPutData>>): UseMutationOptions<ApiCategoriesPutResponse, DefaultError, Options<ApiCategoriesPutData>> => {
-    const mutationOptions: UseMutationOptions<ApiCategoriesPutResponse, DefaultError, Options<ApiCategoriesPutData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiCategoriesPut({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
+export const getHealthQueryKey = (options?: Options<GetHealthData>) => createQueryKey('getHealth', options);
 
 /**
- * Ativar categoria de serviço
+ * Health Check Geral
  *
- * Ativa uma categoria de serviços.
- *
- * **Efeitos:**
- * - Categoria fica visível em listagens públicas
- * - Permite criação de novos serviços nesta categoria
- * - Serviços existentes na categoria voltam a ser acessíveis
- *
- * **Permissões:** Requer privilégios de administrador
+ * Verifica status geral da aplicação
  */
-export const apiActivatePostMutation = (options?: Partial<Options<ApiActivatePostData>>): UseMutationOptions<ApiActivatePostResponse, DefaultError, Options<ApiActivatePostData>> => {
-    const mutationOptions: UseMutationOptions<ApiActivatePostResponse, DefaultError, Options<ApiActivatePostData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiActivatePost({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-/**
- * Desativar categoria de serviço
- *
- * Desativa uma categoria de serviços.
- *
- * **Efeitos:**
- * - Categoria não aparece em listagens públicas
- * - Impede criação de novos serviços nesta categoria
- * - Serviços existentes permanecem no sistema (soft-delete)
- *
- * **Nota:** Preferível à deleção quando há serviços associados.
- *
- * **Permissões:** Requer privilégios de administrador
- */
-export const apiDeactivatePostMutation = (options?: Partial<Options<ApiDeactivatePostData>>): UseMutationOptions<ApiDeactivatePostResponse, DefaultError, Options<ApiDeactivatePostData>> => {
-    const mutationOptions: UseMutationOptions<ApiDeactivatePostResponse, DefaultError, Options<ApiDeactivatePostData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiDeactivatePost({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-export const apiServicesGetQueryKey = (options?: Options<ApiServicesGetData>) => createQueryKey('apiServicesGet', options);
-
-/**
- * Listar todos os serviços
- *
- * Retorna todos os serviços do catálogo.
- *
- * **Filtros Opcionais:**
- * - `activeOnly` (bool): Filtra apenas serviços ativos (padrão: false)
- *
- * **Casos de Uso:**
- * - Listar todo o catálogo de serviços
- * - Obter apenas serviços ativos para exibição pública
- * - Administração do catálogo completo
- */
-export const apiServicesGetOptions = (options?: Options<ApiServicesGetData>) => queryOptions<ApiServicesGetResponse, DefaultError, ApiServicesGetResponse, ReturnType<typeof apiServicesGetQueryKey>>({
+export const getHealthOptions = (options?: Options<GetHealthData>) => queryOptions<GetHealthResponse, DefaultError, GetHealthResponse, ReturnType<typeof getHealthQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiServicesGet({
+        const { data } = await getHealth({
             ...options,
             ...queryKey[0],
             signal,
@@ -1137,85 +247,19 @@ export const apiServicesGetOptions = (options?: Options<ApiServicesGetData>) => 
         });
         return data;
     },
-    queryKey: apiServicesGetQueryKey(options)
+    queryKey: getHealthQueryKey(options)
 });
 
-/**
- * Criar serviço
- *
- * Cria um novo serviço no catálogo.
- *
- * **Validações:**
- * - Nome é obrigatório (máximo 150 caracteres)
- * - Descrição opcional (máximo 1000 caracteres)
- * - DisplayOrder deve ser >= 0
- * - Categoria deve existir e estar ativa
- *
- * **Permissões:** Requer privilégios de administrador
- */
-export const apiServicesPost2Mutation = (options?: Partial<Options<ApiServicesPost2Data>>): UseMutationOptions<ApiServicesPost2Response, DefaultError, Options<ApiServicesPost2Data>> => {
-    const mutationOptions: UseMutationOptions<ApiServicesPost2Response, DefaultError, Options<ApiServicesPost2Data>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiServicesPost2({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
+export const getHealthReadyQueryKey = (options?: Options<GetHealthReadyData>) => createQueryKey('getHealthReady', options);
 
 /**
- * Deletar serviço
+ * Readiness Check
  *
- * Deleta um serviço do catálogo permanentemente.
- *
- * **Validações:**
- * - ID não pode ser vazio
- * - Serviço deve existir
- * - Nenhum provedor pode estar oferecendo este serviço
- *
- * **Importante:** Operação destrutiva. Se provedores oferecem o serviço,
- * use desativação em vez de deleção para preservar dados históricos.
- *
- * **Permissões:** Requer privilégios de administrador
+ * Verifica se aplicação está pronta para receber tráfego
  */
-export const apiServicesDelete2Mutation = (options?: Partial<Options<ApiServicesDelete2Data>>): UseMutationOptions<ApiServicesDelete2Response, DefaultError, Options<ApiServicesDelete2Data>> => {
-    const mutationOptions: UseMutationOptions<ApiServicesDelete2Response, DefaultError, Options<ApiServicesDelete2Data>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiServicesDelete2({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-export const apiServicesGet2QueryKey = (options: Options<ApiServicesGet2Data>) => createQueryKey('apiServicesGet2', options);
-
-/**
- * Buscar serviço por ID
- *
- * Retorna os detalhes completos de um serviço específico.
- *
- * **Retorno:**
- * - Informações completas do serviço incluindo categoria
- * - Status de ativação
- * - Datas de criação e atualização
- *
- * **Casos de Uso:**
- * - Exibir detalhes do serviço para edição
- * - Visualizar informações completas do serviço
- * - Validar existência do serviço
- */
-export const apiServicesGet2Options = (options: Options<ApiServicesGet2Data>) => queryOptions<ApiServicesGet2Response, DefaultError, ApiServicesGet2Response, ReturnType<typeof apiServicesGet2QueryKey>>({
+export const getHealthReadyOptions = (options?: Options<GetHealthReadyData>) => queryOptions<unknown, DefaultError, unknown, ReturnType<typeof getHealthReadyQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiServicesGet2({
+        const { data } = await getHealthReady({
             ...options,
             ...queryKey[0],
             signal,
@@ -1223,325 +267,5 @@ export const apiServicesGet2Options = (options: Options<ApiServicesGet2Data>) =>
         });
         return data;
     },
-    queryKey: apiServicesGet2QueryKey(options)
+    queryKey: getHealthReadyQueryKey(options)
 });
-
-/**
- * Atualizar serviço
- *
- * Atualiza as informações de um serviço existente.
- *
- * **Validações:**
- * - ID não pode ser vazio
- * - Serviço deve existir
- * - Nome é obrigatório (máximo 150 caracteres)
- * - Descrição opcional (máximo 1000 caracteres)
- * - DisplayOrder deve ser >= 0
- *
- * **Nota:** Não altera a categoria do serviço. Use ChangeServiceCategory para isso.
- *
- * **Permissões:** Requer privilégios de administrador
- */
-export const apiServicesPutMutation = (options?: Partial<Options<ApiServicesPutData>>): UseMutationOptions<ApiServicesPutResponse, DefaultError, Options<ApiServicesPutData>> => {
-    const mutationOptions: UseMutationOptions<ApiServicesPutResponse, DefaultError, Options<ApiServicesPutData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiServicesPut({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-export const apiCategoryGetQueryKey = (options: Options<ApiCategoryGetData>) => createQueryKey('apiCategoryGet', options);
-
-/**
- * Listar serviços por categoria
- *
- * Retorna todos os serviços de uma categoria específica.
- *
- * **Parâmetros:**
- * - `categoryId` (route): ID da categoria
- * - `activeOnly` (query, opcional): Filtrar apenas serviços ativos (padrão: false)
- *
- * **Casos de Uso:**
- * - Exibir serviços disponíveis em uma categoria
- * - Listar ofertas por categoria para provedores
- * - Gestão de catálogo segmentado por categoria
- */
-export const apiCategoryGetOptions = (options: Options<ApiCategoryGetData>) => queryOptions<ApiCategoryGetResponse, DefaultError, ApiCategoryGetResponse, ReturnType<typeof apiCategoryGetQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiCategoryGet({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: apiCategoryGetQueryKey(options)
-});
-
-/**
- * Alterar categoria do serviço
- *
- * Move um serviço para uma categoria diferente.
- *
- * **Validações:**
- * - Serviço deve existir
- * - Nova categoria deve existir e estar ativa
- * - Nova categoria não pode ser a mesma que a atual
- *
- * **Casos de Uso:**
- * - Reorganizar catálogo de serviços
- * - Corrigir categorização incorreta
- * - Adaptar estrutura de categorias
- *
- * **Permissões:** Requer privilégios de administrador
- */
-export const apiChangeCategoryPostMutation = (options?: Partial<Options<ApiChangeCategoryPostData>>): UseMutationOptions<ApiChangeCategoryPostResponse, DefaultError, Options<ApiChangeCategoryPostData>> => {
-    const mutationOptions: UseMutationOptions<ApiChangeCategoryPostResponse, DefaultError, Options<ApiChangeCategoryPostData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiChangeCategoryPost({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-/**
- * Ativar serviço
- *
- * Ativa um serviço, tornando-o disponível no catálogo.
- *
- * **Efeitos:**
- * - Serviço fica visível em listagens públicas
- * - Provedores podem adicionar este serviço às suas ofertas
- * - Serviço aparece em buscas de serviços ativos
- *
- * **Permissões:** Requer privilégios de administrador
- */
-export const apiActivatePost2Mutation = (options?: Partial<Options<ApiActivatePost2Data>>): UseMutationOptions<ApiActivatePost2Response, DefaultError, Options<ApiActivatePost2Data>> => {
-    const mutationOptions: UseMutationOptions<ApiActivatePost2Response, DefaultError, Options<ApiActivatePost2Data>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiActivatePost2({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-/**
- * Desativar serviço
- *
- * Desativa um serviço, removendo-o do catálogo ativo.
- *
- * **Efeitos:**
- * - Serviço não aparece em listagens públicas
- * - Provedores não podem adicionar este serviço a novas ofertas
- * - Serviço preserva dados históricos (soft-delete)
- *
- * **Nota:** Preferível à deleção quando provedores já oferecem o serviço.
- *
- * **Permissões:** Requer privilégios de administrador
- */
-export const apiDeactivatePost2Mutation = (options?: Partial<Options<ApiDeactivatePost2Data>>): UseMutationOptions<ApiDeactivatePost2Response, DefaultError, Options<ApiDeactivatePost2Data>> => {
-    const mutationOptions: UseMutationOptions<ApiDeactivatePost2Response, DefaultError, Options<ApiDeactivatePost2Data>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiDeactivatePost2({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-/**
- * Validar múltiplos serviços
- *
- * Valida a existência e status de uma lista de serviços.
- *
- * **Funcionalidade:**
- * - Verifica se todos os IDs existem no catálogo
- * - Retorna quais serviços são válidos e quais são inválidos
- * - Indica serviços inativos separadamente
- *
- * **Casos de Uso:**
- * - Validar serviços antes de adicionar a um provedor
- * - Verificação em lote para importação de dados
- * - Garantir integridade referencial entre módulos
- *
- * **Permissões:** Requer privilégios de administrador
- */
-export const apiValidatePostMutation = (options?: Partial<Options<ApiValidatePostData>>): UseMutationOptions<ApiValidatePostResponse, DefaultError, Options<ApiValidatePostData>> => {
-    const mutationOptions: UseMutationOptions<ApiValidatePostResponse, DefaultError, Options<ApiValidatePostData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiValidatePost({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-export const apiUsersGetQueryKey = (options?: Options<ApiUsersGetData>) => createQueryKey('apiUsersGet', options);
-
-/**
- * Processa requisição de consulta de usuários de forma assíncrona.
- *
- * Fluxo de execução:
- * 1. Extrai parâmetros de paginação da query string
- * 2. Cria query CQRS com parâmetros validados
- * 3. Envia query através do dispatcher
- * 4. Retorna resposta paginada estruturada com metadados
- *
- * Suporta parâmetros: PageNumber, PageSize, SearchTerm
- */
-export const apiUsersGetOptions = (options?: Options<ApiUsersGetData>) => queryOptions<ApiUsersGetResponse, ApiUsersGetError, ApiUsersGetResponse, ReturnType<typeof apiUsersGetQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiUsersGet({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: apiUsersGetQueryKey(options)
-});
-
-/**
- * Processa requisição de criação de usuário de forma assíncrona.
- *
- * Fluxo de execução:
- * 1. Converte request em comando CQRS
- * 2. Envia comando através do dispatcher
- * 3. Processa resultado e retorna resposta HTTP apropriada
- * 4. Inclui localização do recurso criado no header
- */
-export const apiUsersPostMutation = (options?: Partial<Options<ApiUsersPostData>>): UseMutationOptions<ApiUsersPostResponse, DefaultError, Options<ApiUsersPostData>> => {
-    const mutationOptions: UseMutationOptions<ApiUsersPostResponse, DefaultError, Options<ApiUsersPostData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiUsersPost({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-/**
- * Implementa a lógica de exclusão de usuário.
- *
- * Processo de exclusão:
- * 1. Valida ID do usuário no formato GUID
- * 2. Cria command usando mapper ToDeleteCommand
- * 3. Envia command através do dispatcher CQRS
- * 4. Retorna resposta HTTP 204 No Content
- */
-export const apiUsersDeleteMutation = (options?: Partial<Options<ApiUsersDeleteData>>): UseMutationOptions<ApiUsersDeleteResponse, DefaultError, Options<ApiUsersDeleteData>> => {
-    const mutationOptions: UseMutationOptions<ApiUsersDeleteResponse, DefaultError, Options<ApiUsersDeleteData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiUsersDelete({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-export const apiUsersGet2QueryKey = (options: Options<ApiUsersGet2Data>) => createQueryKey('apiUsersGet2', options);
-
-/**
- * Implementa a lógica de consulta de usuário por ID.
- *
- * Processo da consulta:
- * 1. Valida ID do usuário no formato GUID
- * 2. Cria query usando mapper ToQuery
- * 3. Envia query através do dispatcher CQRS
- * 4. Retorna resposta HTTP com dados do usuário
- */
-export const apiUsersGet2Options = (options: Options<ApiUsersGet2Data>) => queryOptions<ApiUsersGet2Response, DefaultError, ApiUsersGet2Response, ReturnType<typeof apiUsersGet2QueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiUsersGet2({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: apiUsersGet2QueryKey(options)
-});
-
-export const apiByEmailGetQueryKey = (options: Options<ApiByEmailGetData>) => createQueryKey('apiByEmailGet', options);
-
-/**
- * Implementa a lógica de consulta de usuário por email.
- *
- * Processo da consulta:
- * 1. Valida formato do email
- * 2. Cria query usando mapper ToEmailQuery
- * 3. Envia query através do dispatcher CQRS
- * 4. Retorna resposta HTTP com dados do usuário
- */
-export const apiByEmailGetOptions = (options: Options<ApiByEmailGetData>) => queryOptions<ApiByEmailGetResponse, DefaultError, ApiByEmailGetResponse, ReturnType<typeof apiByEmailGetQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await apiByEmailGet({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: apiByEmailGetQueryKey(options)
-});
-
-/**
- * Processa requisição de atualização de perfil de usuário de forma assíncrona.
- *
- * Fluxo de execução:
- * 1. Valida ID do usuário no formato GUID
- * 2. Cria comando de atualização com dados da requisição
- * 3. Envia comando através do dispatcher CQRS
- * 4. Retorna resposta HTTP com dados atualizados
- *
- * Dados atualizáveis: FirstName, LastName, Email, PhoneNumber
- */
-export const apiProfilePutMutation = (options?: Partial<Options<ApiProfilePutData>>): UseMutationOptions<ApiProfilePutResponse, DefaultError, Options<ApiProfilePutData>> => {
-    const mutationOptions: UseMutationOptions<ApiProfilePutResponse, DefaultError, Options<ApiProfilePutData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await apiProfilePut({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};

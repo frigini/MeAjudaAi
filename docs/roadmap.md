@@ -39,6 +39,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **5 Fev 2026**: Sprint 7.21 - Package Updates & Bug Fixes (CONCLUÍDO - Microsoft.OpenApi 2.6.1, Aspire.Hosting.Redis 13.1.0, SonarAnalyzer.CSharp 10.19.0)
 - ✅ **5-13 Fev 2026**: Sprint 8A - Customer Web App (React + Next.js) (CONCLUÍDO - Features & Test Optimization)
 - 🔄 **19 Fev - 4 Mar 2026**: Sprint 8B - Authentication & Onboarding Flow (EM ANDAMENTO)
+- ⏳ **Sprint 8B.2**: Technical Excellence & Infrastructure (Slugs, ASB Cleanup, Frontend Tests, Test Optimization)
 - ⏳ **5-18 Mar 2026**: Sprint 8C - Mobile App (React Native + Expo) (PLANEJADO)
 - 🚫 **CANCELADO**: Sprint 8D - Admin Portal Migration (Manter Blazor)
 - ⏳ **19-25 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
@@ -118,7 +119,41 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - **Problema**: Testes E2E lentos devido a acúmulo de dados (40m+).
 - **Solução**: Implementado `IAsyncLifetime` e `CleanupDatabaseAsync()` em **todas** as classes de teste E2E (`Documents`, `Locations`, `Providers`, `ServiceCatalogs`, `Users`).
 - **Resultado**: Testes rodam com banco limpo a cada execução, prevenindo degradação de performance e falhas por dados sujos (Race Conditions).
-- **Parallelization**: Confirmado que `parallelizeTestCollections: false` é necessário devido ao uso de container de banco compartilhado.
+- **Parallelization**: Confirmado que `parallelizeTestCollections: false` is necessário devido ao uso de container de banco compartilhado.
+
+---
+
+### ⏳ Sprint 8B.2 - Technical Excellence & Infrastructure (Planejado - Antes do Mobile)
+
+**Objetivos**:
+1. ⏳ **Slug Implementation**: Substituir IDs por Slugs nas rotas de perfil de prestador para maior segurança e SEO.
+    - **Execução**:
+        - Backend: Adicionar `Slug` ao `BusinessProfile` entity.
+        - Backend: Implementar `slugify` logic e garantir unicidade no Persistence layer.
+        - UI: Alterar rotas de `/prestador/[id]` para `/prestador/[slug]`.
+        - SEO: Adicionar canonical tags e metadados dinâmicos baseados no slug.
+    - **Sucesso**: Navegar via slug e manter compatibilidade com IDs antigos (301 redirect).
+2. ⏳ **Messaging Unification (RabbitMQ Only)**: Remover completamente o Azure Service Bus da solução.
+    - **Execução**:
+        - Remover pacotes `.Azure.ServiceBus` de todos os projetos.
+        - Unificar `MassTransist` configuration em `ServiceDefaults`.
+        - Atualizar scripts de infra (`docker-compose.yaml`) para foco total em RabbitMQ.
+        - Remover segredos e vars de ambiente do ASB no Azure/Staging.
+    - **Sucesso**: Aplicação funcionando sem dependência do Azure Service Bus local ou remoto.
+3. ⏳ **Frontend Testing & CI/CD Suite**: Implementar suíte completa de testes no Next.js.
+    - **Contexto**: Baseado no [Plano de Testes Robusto](file:///C:/Code/MeAjudaAi/docs/testing/frontend-testing-plan.md).
+    - **Execução**:
+        - Setup do projeto `tests/MeAjudaAi.Web.Consumer.Tests`.
+        - Implementar Mocks de API com MSW para os fluxos de busca e perfil.
+        - Criar o primeiro pipeline `.github/workflows/frontend-quality.yml`.
+        - Integrar SonarCloud (SonarQube) para análise estática de TS/React.
+    - **Sucesso**: Pipeline falhando se testes não passarem ou qualidade cair.
+4. ⏳ **Backend Integration Test Optimization**: Reduzir o tempo de execução (hoje ~30 min).
+    - **Execução**:
+        - Migrar os ~20 projetos de teste restantes para o padrão `RequiredModules`.
+        - Implementar `Respawn` ou similar para limpeza ultra-rápida de banco em vez de migrations completas.
+        - Otimizar recursos do TestContainers (reuse containers entre runs se possível).
+    - **Sucesso**: Suíte completa de integração rodando em < 10 minutos.
 
 ---
 
