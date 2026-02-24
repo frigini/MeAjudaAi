@@ -15,7 +15,7 @@
     <PackageVersion Include="HtmlSanitizer" Version="9.0.892" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.3" />
     <!-- .NET & Microsoft Core -->
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
     <!-- Microsoft.Build packages - updated to 18.0.2 (CVE-2025-55247 resolved) -->
     <PackageVersion Include="Microsoft.Build" Version="18.0.2" />
