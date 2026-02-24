@@ -289,7 +289,7 @@ export default defineConfig({
 ### 2. `src/__tests__/setup.ts`
 
 ```typescript
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterEach, beforeAll, afterAll } from 'vitest';
 import { server } from './mocks/server';
@@ -933,7 +933,7 @@ O projeto está em um monorepo .NET e usa GitHub Actions para CI/CD. A integraç
     "test:ci": "vitest run --coverage --reporter=junit",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:ci": "playwright test --reporter=html --reporter=junit",
+    "test:e2e:ci": "playwright test --reporter=html,junit",
     "test:e2e:report": "playwright show-report"
   },
   "dependencies": {},
