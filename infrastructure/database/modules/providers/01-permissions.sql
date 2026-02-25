@@ -20,10 +20,6 @@ BEGIN
         GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA providers TO meajudaai_app_role;
         GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA providers TO meajudaai_app_role;
         
-        -- Grant read-only access to existing tables for catalogs_role (cross-module read access)
-        GRANT SELECT ON ALL TABLES IN SCHEMA providers TO catalogs_role;
-        GRANT SELECT ON ALL SEQUENCES IN SCHEMA providers TO catalogs_role;
-        
         -- Set default privileges for future tables and sequences created by providers_owner
         ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO providers_role;
         ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT USAGE, SELECT ON SEQUENCES TO providers_role;
@@ -31,10 +27,6 @@ BEGIN
         -- Set default privileges for app role on objects created by providers_owner
         ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO meajudaai_app_role;
         ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT USAGE, SELECT ON SEQUENCES TO meajudaai_app_role;
-        
-        -- Set default privileges for catalogs_role on future tables (cross-module read access)
-        ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT SELECT ON TABLES TO catalogs_role;
-        ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT SELECT ON SEQUENCES TO catalogs_role;
         
         -- Set default search path
         ALTER ROLE providers_role SET search_path = providers, public;

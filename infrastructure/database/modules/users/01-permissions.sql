@@ -35,22 +35,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create dedicated application schema for cross-cutting objects
-CREATE SCHEMA IF NOT EXISTS meajudaai_app;
-
--- Set explicit schema ownership
-ALTER SCHEMA meajudaai_app OWNER TO meajudaai_app_owner;
-
--- Grant permissions on dedicated application schema
-GRANT USAGE, CREATE ON SCHEMA meajudaai_app TO meajudaai_app_role;
-
--- NOTE: search_path for meajudaai_app_role is set in documents/01-permissions.sql
--- to avoid conflicts. Documents module runs last alphabetically and sets the
--- complete path: meajudaai_app, documents, users, providers, hangfire, public
-
--- Grant limited permissions on public schema (read-only)
-GRANT USAGE ON SCHEMA public TO users_role;
-GRANT USAGE ON SCHEMA public TO meajudaai_app_role;
-
--- Harden public schema by revoking CREATE from PUBLIC (security best practice)
-REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+-- NOTE: The meajudaai_app schema, its ownership, grants, search_path, and public
+-- schema hardening are all managed by documents/01-permissions.sql, which runs
+-- last alphabetically and is the authoritative location for these cross-cutting settings.

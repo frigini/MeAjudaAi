@@ -31,12 +31,6 @@ if [ -d "${MODULES_DIR}" ]; then
     done
 fi
 
-# Execute cross-module views
-echo "🔗 Setting up cross-module views..."
-if [ -f "/docker-entrypoint-initdb.d/views/cross-module-views.sql" ]; then
-    execute_sql "/docker-entrypoint-initdb.d/views/cross-module-views.sql"
-fi
-
 # Execute data seeds (essential domain data)
 echo "🌱 Seeding essential domain data..."
 SEEDS_DIR="/docker-entrypoint-initdb.d/seeds"
