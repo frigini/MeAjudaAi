@@ -122,10 +122,9 @@ export function LoginForm({
                     <p className="text-sm text-red-600 text-center">{error}</p>
                 )}
 
-                {/* Forgot password */}
                 <div className="text-center pt-1">
                     <Link
-                        href={`${process.env.NEXT_PUBLIC_KEYCLOAK_URL || "http://localhost:8080"}/realms/meajudaai/login-actions/reset-credentials?client_id=customer-app`}
+                        href={`${process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER || process.env.KEYCLOAK_ISSUER || "http://localhost:8080/realms/meajudaai"}/login-actions/reset-credentials?client_id=${process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_CLIENT_ID || "customer-app"}`}
                         className="text-sm font-medium underline underline-offset-4 hover:text-primary"
                     >
                         Esqueci minha senha
@@ -168,6 +167,7 @@ export function LoginForm({
                         variant="outline"
                         className="w-full shadow-sm"
                         onClick={() => handleSocialLogin("google")}
+                        disabled={isLoading}
                     >
                         <GoogleIcon className="mr-2 h-5 w-5" />
                         Entrar com o Google
@@ -176,6 +176,7 @@ export function LoginForm({
                         variant="outline"
                         className="w-full shadow-sm"
                         onClick={() => handleSocialLogin("facebook")}
+                        disabled={isLoading}
                     >
                         <FacebookIcon className="mr-2 h-5 w-5" />
                         Entrar com o Facebook

@@ -27,10 +27,10 @@ export function Header({ className }: HeaderProps) {
     };
 
     return (
-        <header className={cn("z-50 border-b border-[#E0702B] bg-white shadow-sm", className)}>
+        <header className={cn("border-b border-[#E0702B] bg-white shadow-sm", className)}>
             <div className="container mx-auto flex h-24 items-center justify-between px-4">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-4 cursor-pointer" aria-label="Ir para a página inicial">
+                <Link href="/" className="flex items-center gap-4 cursor-pointer shrink-0" aria-label="Ir para a página inicial">
                     <Image
                         src="/logo-icon-azul.png"
                         alt="Logo Icon"
@@ -55,7 +55,7 @@ export function Header({ className }: HeaderProps) {
 
                 {/* Search Bar - Hidden on mobile and on search page */}
                 {!pathname?.startsWith("/buscar") && (
-                    <div className="hidden md:flex flex-1 max-w-2xl mx-8">
+                    <div className="hidden md:flex flex-1 max-w-2xl px-8 min-w-0">
                         <form onSubmit={handleSearch} className="relative w-full">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-foreground-subtle" />
                             <Input
@@ -71,7 +71,9 @@ export function Header({ className }: HeaderProps) {
                 )}
 
                 {/* Actions */}
-                <UserMenu />
+                <div className="flex items-center shrink-0">
+                    <UserMenu />
+                </div>
             </div>
         </header>
     );

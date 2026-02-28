@@ -43,7 +43,7 @@ export function Avatar({
     return (
         <div
             className={twMerge(
-                "relative inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground font-medium overflow-hidden",
+                "relative inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground font-medium overflow-hidden shrink-0 w-full h-full",
                 SIZE_CONFIG[size].classes,
                 containerClassName
             )}
@@ -59,7 +59,7 @@ export function Avatar({
                     {...rest}
                 />
             ) : (
-                <span className="text-sm select-none">{initials}</span>
+                <span className="text-sm select-none flex items-center justify-center h-full w-full">{initials}</span>
             )}
         </div>
     );

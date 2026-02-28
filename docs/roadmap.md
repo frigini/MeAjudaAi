@@ -74,7 +74,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - Atualizar `.NET Aspire AppHost` para apontar para nova estrutura
 - Atualizar CI/CD para usar `nx affected`
 
-**Timing recomendado**: Antes de iniciar o Provider App (Sprint 8C+), pois o NX facilita exatamente o compartilhamento entre Customer e Provider.
+**Timing recomendado**: Pós-MVP (Sprint Infra), pois o NX facilita exatamente o compartilhamento entre Customer e Provider.
 
 ---
 
@@ -144,7 +144,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 3. ⏳ **Frontend Testing & CI/CD Suite**: Implementar suíte completa de testes no Next.js.
     - **Contexto**: Baseado no [Plano de Testes Robusto](./testing/frontend-testing-plan.md).
     - **Execução**:
-        - Setup do projeto `tests/MeAjudaAi.Web.Consumer.Tests`.
+        - Setup do projeto `tests/MeAjudaAi.Web.Customer.Tests`.
         - Implementar Mocks de API com MSW para os fluxos de busca e perfil.
         - Criar o primeiro pipeline `.github/workflows/frontend-quality.yml`.
         - Integrar SonarCloud (SonarQube) para análise estática de TS/React.

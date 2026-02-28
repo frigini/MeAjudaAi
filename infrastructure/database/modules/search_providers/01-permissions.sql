@@ -62,8 +62,11 @@ BEGIN
         SELECT n.nspname AS schema_name
         FROM pg_catalog.pg_class c
         JOIN pg_catalog.pg_namespace n ON c.relnamespace = n.oid
+        JOIN pg_catalog.pg_depend d ON c.oid = d.objid
+        JOIN pg_catalog.pg_extension e ON d.refobjid = e.oid
         WHERE c.relname = 'spatial_ref_sys'
           AND c.relkind = 'r'
+          AND d.deptype = 'e'
     LOOP
         EXECUTE format('GRANT SELECT ON %I.spatial_ref_sys TO search_role', rec.schema_name);
         EXECUTE format('GRANT SELECT ON %I.spatial_ref_sys TO meajudaai_app_role', rec.schema_name);

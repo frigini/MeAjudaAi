@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import {
@@ -19,13 +19,13 @@ import { AuthSelectionDropdown } from "@/components/auth/auth-selection-dropdown
 
 export function UserMenu() {
     const { data: session, status } = useSession();
-    const { data: providerStatus, isLoading: isLoadingProvider } = useProviderStatus();
+    const { data: providerStatus, isLoading: isLoadingProvider, isError: isProviderStatusError } = useProviderStatus();
     // Fail-safe: Show buttons by default (avoids infinite loading if JS fails)
     // If authenticated, we show the avatar.
     // Loading state - prevent flash of unauthenticated UI
     if (status === "loading") {
         return (
-            <div className="h-10 w-10 rounded-full bg-secondary/20 animate-pulse" />
+            <div className="h-10 w-10 rounded-full bg-secondary/20 animate-pulse shrink-0" />
         );
     }
 
@@ -41,7 +41,10 @@ export function UserMenu() {
 
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Button variant="ghost" className="relative h-10 shrink-0 px-2 rounded-full flex items-center gap-2 max-w-48 overflow-hidden">
+                        <span className="hidden sm:inline-block text-sm font-medium truncate">
+                            {session?.user?.name?.split(" ")[0] ?? "Usuário"}
+                        </span>
                         <Avatar
                             src={session?.user?.image}
                             alt={session?.user?.name ?? "Usuário"}
@@ -68,7 +71,11 @@ export function UserMenu() {
                     {/* Show provider details when loaded and exists; otherwise render 'Quero trabalhar' fallback */}
                     {!isLoadingProvider && <DropdownMenuSeparator />}
 
-                    {isLoadingProvider ? (
+                    {isProviderStatusError ? (
+                        <DropdownMenuItem disabled>
+                            <span className="text-red-500">Erro ao carregar dados do prestador</span>
+                        </DropdownMenuItem>
+                    ) : isLoadingProvider ? (
                         // Loading state handled or just suppress
                         null
                     ) : providerStatus ? (
@@ -97,14 +104,14 @@ export function UserMenu() {
                                 </Link>
                             </DropdownMenuItem>
                         </>
-                    ) : (
+                    ) : providerStatus === null ? (
                         <DropdownMenuItem asChild>
                             <Link href="/cadastro/prestador">
                                 <Briefcase className="mr-2 h-4 w-4" />
                                 <span>Quero trabalhar</span>
                             </Link>
                         </DropdownMenuItem>
-                    )}
+                    ) : null}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })}>
                         <LogOut className="mr-2 h-4 w-4" />
@@ -117,9 +124,9 @@ export function UserMenu() {
 
     // Default view: Unauthenticated / Loading / Error
     return (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0 whitespace-nowrap">
             <AuthSelectionDropdown />
-            <Button variant="secondary" size="sm" asChild>
+            <Button variant="secondary" size="sm" asChild className="shrink-0">
                 <Link href="/auth/signin">Login</Link>
             </Button>
         </div>

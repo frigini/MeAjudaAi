@@ -14,7 +14,7 @@ import { headers } from "next/headers";
 import { auth } from "@/auth";
 import { getWhatsappLink } from "@/lib/utils/phone";
 
-import { EVerificationStatus, EProviderType } from "@/types/api/provider";
+import { EProviderType } from "@/types/api/provider";
 import { normalizeProviderType } from "@/lib/utils/normalization";
 import { VerificationStatusSchema } from "@/lib/schemas/verification-status";
 

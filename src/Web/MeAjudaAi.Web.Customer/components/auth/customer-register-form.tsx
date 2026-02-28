@@ -18,7 +18,7 @@ import { registerCustomerSchema, RegisterCustomerSchema } from "@/lib/schemas/au
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ApiError, publicFetch } from "@/lib/api/fetch-client";
-import { signIn } from "next-auth/react";
+
 import { toast } from "sonner";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";

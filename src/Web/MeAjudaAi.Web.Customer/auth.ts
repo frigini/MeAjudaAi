@@ -2,6 +2,7 @@ import NextAuth from "next-auth"
 import Keycloak from "next-auth/providers/keycloak"
 import Credentials from "next-auth/providers/credentials"
 import { JWT } from "next-auth/jwt"
+import { decodeJwt } from "jose"
 
 async function refreshAccessToken(token: JWT): Promise<JWT> {
     try {
@@ -74,6 +75,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                             headers: { "Content-Type": "application/x-www-form-urlencoded" },
                             body: new URLSearchParams({
                                 client_id: process.env.KEYCLOAK_CLIENT_ID ?? "",
+                                client_secret: process.env.KEYCLOAK_CLIENT_SECRET ?? "",
                                 grant_type: "password",
                                 username: credentials.email as string,
                                 password: credentials.password as string,
@@ -87,9 +89,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     const tokens = await res.json();
 
                     // Decode the access token to get user info
-                    const payload = JSON.parse(
-                        Buffer.from(tokens.access_token.split(".")[1], "base64url").toString()
-                    );
+                    let payload: any;
+                    try {
+                        payload = decodeJwt(tokens.access_token);
+                    } catch (err) {
+                        console.error("TokenDecodeError", { error: "Failed to decode JWT token" });
+                        return null;
+                    }
 
                     return {
                         id: payload.sub,
@@ -100,8 +106,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         refreshToken: tokens.refresh_token,
                         expiresAt: Date.now() + (tokens.expires_in * 1000),
                     } as any;
-                } catch (error) {
-                    console.error("Credentials auth error:", error);
+                } catch (error: any) {
+                    console.error("CredentialsAuthError", {
+                        error: error.name || "UnknownError",
+                        message: error.message || "An error occurred during authentication",
+                    });
                     return null;
                 }
             },

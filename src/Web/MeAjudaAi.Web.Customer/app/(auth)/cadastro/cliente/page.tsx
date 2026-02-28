@@ -4,7 +4,7 @@ import { CustomerRegisterForm } from "@/components/auth/customer-register-form";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { signIn } from "next-auth/react";
-import { ShieldCheck, Info, Phone, Mail } from "lucide-react";
+import { ShieldCheck, Info } from "lucide-react";
 import { useState } from "react";
 
 function GoogleIcon({ className }: { className?: string }) {

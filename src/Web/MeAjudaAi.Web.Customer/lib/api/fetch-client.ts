@@ -20,6 +20,68 @@ interface FetchOptions {
     token?: string | null;
 }
 
+async function mapErrorResponse(response: Response): Promise<never> {
+    const error = await response.json().catch(() => ({}));
+
+    let userMessage = error.message || error.detail;
+
+    // Handle Result<T> failure pattern from .NET Minimal APIs
+    if (!userMessage && error.error && typeof error.error === 'object' && error.error.description) {
+        userMessage = error.error.description;
+    }
+
+    // Handle .NET ValidationProblemDetails
+    if (!userMessage && error.errors && typeof error.errors === 'object') {
+        const errorMessages = Object.values(error.errors).flat();
+        if (errorMessages.length > 0) {
+            userMessage = errorMessages.join(", ");
+        }
+    }
+
+    if (!userMessage) {
+        userMessage = error.title || `Request failed: ${response.statusText}`;
+    }
+
+    throw new ApiError(userMessage, response.status);
+}
+
+async function normalizeResponse(response: Response): Promise<unknown> {
+    // Check for empty body responses before parsing JSON
+    const contentLength = response.headers.get("Content-Length");
+    const contentType = response.headers.get("Content-Type");
+
+    if (
+        response.status === 204 ||
+        response.status === 205 ||
+        contentLength === "0" ||
+        (contentType && !contentType.includes("application/json"))
+    ) {
+        return undefined;
+    }
+
+    const json = await response.json();
+
+    // Normalize Result<T> wrapper
+    if (json && typeof json === 'object' && 'value' in json) {
+        const value = (json as Record<string, unknown>).value;
+        if (value === null || value === undefined) {
+            throw new Error("Response contained null/undefined value for expected Result<T>");
+        }
+        return value;
+    }
+
+    // Handle ApiResponse<T> wrapper
+    if (json && typeof json === 'object' && 'data' in json) {
+        const apiRes = json as ApiResponse<unknown>;
+        if (apiRes.data === null || apiRes.data === undefined) {
+            throw new Error(apiRes.message || "API interaction failed");
+        }
+        return apiRes.data;
+    }
+
+    return json;
+}
+
 export async function authenticatedFetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T | undefined> {
     const { method = "GET", body, headers = {}, token } = options;
 
@@ -46,56 +108,10 @@ export async function authenticatedFetch<T>(endpoint: string, options: FetchOpti
     });
 
     if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-
-        let userMessage = error.message || error.detail;
-
-        // Handle Result<T> failure pattern from .NET Minimal APIs
-        if (!userMessage && error.error && typeof error.error === 'object' && error.error.description) {
-            userMessage = error.error.description;
-        }
-
-        // Handle .NET ValidationProblemDetails
-        if (!userMessage && error.errors && typeof error.errors === 'object') {
-            const errorMessages = Object.values(error.errors).flat();
-            if (errorMessages.length > 0) {
-                userMessage = errorMessages.join(", ");
-            }
-        }
-
-        if (!userMessage) {
-            userMessage = error.title || `Request failed: ${response.statusText}`;
-        }
-
-        throw new ApiError(userMessage, response.status);
+        await mapErrorResponse(response);
     }
 
-    // Handle 204 No Content
-    if (response.status === 204) {
-        return undefined;
-    }
-
-    const json = await response.json();
-
-    // Normalize Result<T> wrapper
-    if (json && typeof json === 'object' && 'value' in json) {
-        const value = (json as Record<string, unknown>).value;
-        if (value === null || value === undefined) {
-            throw new Error("Response contained null/undefined value for expected Result<T>");
-        }
-        return value as T;
-    }
-
-    // Handle ApiResponse<T> wrapper
-    if (json && typeof json === 'object' && 'data' in json) {
-        const apiRes = json as ApiResponse<T>;
-        if (apiRes.data === null) {
-            throw new Error(apiRes.message || "API interaction failed");
-        }
-        return apiRes.data as T;
-    }
-
-    return json as T;
+    return (await normalizeResponse(response)) as T | undefined;
 }
 
 export async function publicFetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T | undefined> {
@@ -119,47 +135,8 @@ export async function publicFetch<T>(endpoint: string, options: FetchOptions = {
     });
 
     if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-
-        let userMessage = error.message || error.detail;
-
-        // Handle Result<T> failure pattern from .NET Minimal APIs
-        if (!userMessage && error.error && typeof error.error === 'object' && error.error.description) {
-            userMessage = error.error.description;
-        }
-
-        // Handle .NET ValidationProblemDetails
-        if (!userMessage && error.errors && typeof error.errors === 'object') {
-            const errorMessages = Object.values(error.errors).flat();
-            if (errorMessages.length > 0) {
-                userMessage = errorMessages.join(", ");
-            }
-        }
-
-        if (!userMessage) {
-            userMessage = error.title || `Request failed: ${response.statusText}`;
-        }
-
-        throw new ApiError(userMessage, response.status);
+        await mapErrorResponse(response);
     }
 
-    const json = await response.json();
-
-    if (json && typeof json === 'object' && 'value' in json) {
-        const value = (json as Record<string, unknown>).value;
-        if (value === null || value === undefined) {
-            throw new Error("Response contained null/undefined value for expected Result<T>");
-        }
-        return value as T;
-    }
-
-    if (json && typeof json === 'object' && 'data' in json) {
-        const apiRes = json as ApiResponse<T>;
-        if (apiRes.data === null || apiRes.data === undefined) {
-            throw new Error(apiRes.message || "API interaction failed");
-        }
-        return apiRes.data as T;
-    }
-
-    return json as T;
+    return (await normalizeResponse(response)) as T | undefined;
 }
