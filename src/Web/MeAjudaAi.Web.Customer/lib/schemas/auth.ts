@@ -135,17 +135,22 @@ export const addressSchema = z.object({
 });
 
 export const registerCustomerSchema = z.object({
-    name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+    name: z.string()
+        .min(4, "Nome deve ter pelo menos 4 caracteres")
+        .regex(/^[a-zA-ZÀ-ÿ\s]+$/, "Nome deve conter apenas letras e espaços"),
     email: z.string().email("Email inválido"),
-    phoneNumber: z.string().min(10, "Telefone inválido (mínimo 10 dígitos)").max(11, "Telefone inválido (máximo 11 dígitos)").regex(/^\d+$/, "Apenas dígitos são permitidos"),
+    phoneNumber: z.string()
+        .min(1, "Telefone obrigatório")
+        .transform(v => v.replace(/\D/g, ""))
+        .pipe(z.string().min(10, "Telefone inválido (mínimo 10 dígitos)").max(11, "Telefone inválido (máximo 11 dígitos)")),
+
     password: z.string()
         .min(8, "Senha deve ter pelo menos 8 caracteres")
-        .regex(/[a-zA-Z]/, "A senha deve conter pelo menos uma letra")
-        .regex(/[0-9]/, "A senha deve conter pelo menos um número")
-        .regex(/[^a-zA-Z0-9]/, "A senha deve conter pelo menos um caractere especial"),
+        .regex(/[a-z]/, "A senha deve conter pelo menos uma letra minúscula")
+        .regex(/[A-Z]/, "A senha deve conter pelo menos uma letra maiúscula")
+        .regex(/[0-9]/, "A senha deve conter pelo menos um número"),
     confirmPassword: z.string(),
     acceptedTerms: z.boolean().refine((val) => val === true, "Você deve aceitar os termos de uso"),
-    acceptedPrivacyPolicy: z.boolean().refine((val) => val === true, "Você deve aceitar a política de privacidade"),
 }).refine((data) => data.password === data.confirmPassword, {
     message: "As senhas não conferem",
     path: ["confirmPassword"],

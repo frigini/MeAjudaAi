@@ -36,5 +36,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- NOTE: The meajudaai_app schema, its ownership, grants, search_path, and public
--- schema hardening are all managed by documents/01-permissions.sql, which runs
--- last alphabetically and is the authoritative location for these cross-cutting settings.
+-- schema hardening are all managed by documents/01-permissions.sql, which
+-- precedes users/01-permissions.sql alphabetically (d < u) and is the
+-- authoritative location for these cross-cutting settings.

@@ -119,8 +119,8 @@ export function UserMenu() {
     return (
         <div className="flex items-center gap-3">
             <AuthSelectionDropdown />
-            <Button variant="secondary" size="sm" onClick={() => signIn("keycloak")}>
-                Login
+            <Button variant="secondary" size="sm" asChild>
+                <Link href="/auth/signin">Login</Link>
             </Button>
         </div>
     );

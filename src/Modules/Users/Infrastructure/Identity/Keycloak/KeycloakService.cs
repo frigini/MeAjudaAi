@@ -263,14 +263,13 @@ public class KeycloakService(
             var tokenRequest = new List<KeyValuePair<string, string>>
             {
                 new("grant_type", "password"),
-                new("client_id", _options.ClientId),
-                new("client_secret", _options.ClientSecret),
+                new("client_id", "admin-cli"),
                 new("username", _options.AdminUsername),
                 new("password", _options.AdminPassword)
             };
 
             using var content = new FormUrlEncodedContent(tokenRequest);
-            var response = await httpClient.PostAsync(_options.TokenUrl, content, cancellationToken);
+            var response = await httpClient.PostAsync(_options.AdminTokenUrl, content, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {

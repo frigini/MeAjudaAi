@@ -18,6 +18,7 @@ import { registerCustomerSchema, RegisterCustomerSchema } from "@/lib/schemas/au
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ApiError, publicFetch } from "@/lib/api/fetch-client";
+import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -46,7 +47,6 @@ export function CustomerRegisterForm() {
             password: "",
             confirmPassword: "",
             acceptedTerms: false,
-            acceptedPrivacyPolicy: false,
         },
     });
 
@@ -61,8 +61,8 @@ export function CustomerRegisterForm() {
                     email: data.email,
                     phoneNumber: data.phoneNumber.replace(/\D/g, ""),
                     password: data.password,
-                    acceptedTerms: data.acceptedTerms,
-                    acceptedPrivacyPolicy: data.acceptedPrivacyPolicy,
+                    termsAccepted: data.acceptedTerms,
+                    acceptedPrivacyPolicy: true,
                 },
             });
 
@@ -70,9 +70,9 @@ export function CustomerRegisterForm() {
                 description: "Redirecionando para login...",
             });
 
-            // Delay redirect to allow toast to be visible
+            // Delay redirect to allow toast to be visible, then navigate to custom login
             timerRef.current = setTimeout(() => {
-                router.replace("/api/auth/signin");
+                router.push("/auth/signin");
             }, 1000);
 
         } catch (error) {
@@ -234,27 +234,6 @@ export function CustomerRegisterForm() {
                             <div className="space-y-1 leading-none">
                                 <FormLabel>
                                     Li e aceito os <Link href="/termos" className="text-primary hover:underline">Termos de Uso</Link>
-                                </FormLabel>
-                                <FormMessage />
-                            </div>
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="acceptedPrivacyPolicy"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-2">
-                            <FormControl>
-                                <Checkbox
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                                <FormLabel>
-                                    Li e aceito a <Link href="/privacidade" className="text-primary hover:underline">Política de Privacidade</Link>
                                 </FormLabel>
                                 <FormMessage />
                             </div>

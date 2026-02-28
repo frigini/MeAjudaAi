@@ -451,6 +451,18 @@ public static class SecurityExtensions
                 opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
             });
 
+            // Política para registro de clientes (restritiva para evitar spam de contas)
+            options.AddPolicy(RateLimitPolicies.Registration, context =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Connection.Id,
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 2,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+                    }));
+
             // Política específica para registro de prestadores (mais restritiva para evitar spam)
             options.AddPolicy(RateLimitPolicies.ProviderRegistration, context =>
                 RateLimitPartition.GetFixedWindowLimiter(

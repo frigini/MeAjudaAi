@@ -53,13 +53,21 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- PostGIS spatial reference system access (only if PostGIS is installed)
+-- PostGIS spatial reference system access (dynamically detect containing schema)
 DO $$
+DECLARE
+    rec RECORD;
 BEGIN
-    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'spatial_ref_sys') THEN
-        GRANT SELECT ON TABLE public.spatial_ref_sys TO search_role;
-        GRANT SELECT ON TABLE public.spatial_ref_sys TO meajudaai_app_role;
-    END IF;
+    FOR rec IN
+        SELECT n.nspname AS schema_name
+        FROM pg_catalog.pg_class c
+        JOIN pg_catalog.pg_namespace n ON c.relnamespace = n.oid
+        WHERE c.relname = 'spatial_ref_sys'
+          AND c.relkind = 'r'
+    LOOP
+        EXECUTE format('GRANT SELECT ON %I.spatial_ref_sys TO search_role', rec.schema_name);
+        EXECUTE format('GRANT SELECT ON %I.spatial_ref_sys TO meajudaai_app_role', rec.schema_name);
+    END LOOP;
 END;
 $$ LANGUAGE plpgsql;
 

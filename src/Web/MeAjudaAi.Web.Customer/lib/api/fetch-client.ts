@@ -47,7 +47,26 @@ export async function authenticatedFetch<T>(endpoint: string, options: FetchOpti
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({}));
-        const userMessage = error.message || error.detail || `Request failed: ${response.statusText}`;
+
+        let userMessage = error.message || error.detail;
+
+        // Handle Result<T> failure pattern from .NET Minimal APIs
+        if (!userMessage && error.error && typeof error.error === 'object' && error.error.description) {
+            userMessage = error.error.description;
+        }
+
+        // Handle .NET ValidationProblemDetails
+        if (!userMessage && error.errors && typeof error.errors === 'object') {
+            const errorMessages = Object.values(error.errors).flat();
+            if (errorMessages.length > 0) {
+                userMessage = errorMessages.join(", ");
+            }
+        }
+
+        if (!userMessage) {
+            userMessage = error.title || `Request failed: ${response.statusText}`;
+        }
+
         throw new ApiError(userMessage, response.status);
     }
 
@@ -101,12 +120,27 @@ export async function publicFetch<T>(endpoint: string, options: FetchOptions = {
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({}));
-        const userMessage = error.message || error.detail || `Request failed: ${response.statusText}`;
-        throw new ApiError(userMessage, response.status);
-    }
 
-    if (response.status === 204) {
-        return undefined;
+        let userMessage = error.message || error.detail;
+
+        // Handle Result<T> failure pattern from .NET Minimal APIs
+        if (!userMessage && error.error && typeof error.error === 'object' && error.error.description) {
+            userMessage = error.error.description;
+        }
+
+        // Handle .NET ValidationProblemDetails
+        if (!userMessage && error.errors && typeof error.errors === 'object') {
+            const errorMessages = Object.values(error.errors).flat();
+            if (errorMessages.length > 0) {
+                userMessage = errorMessages.join(", ");
+            }
+        }
+
+        if (!userMessage) {
+            userMessage = error.title || `Request failed: ${response.statusText}`;
+        }
+
+        throw new ApiError(userMessage, response.status);
     }
 
     const json = await response.json();
