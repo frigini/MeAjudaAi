@@ -136,7 +136,7 @@ public sealed class User : AggregateRoot<UserId>
     /// </remarks>
     /// <exception cref="UserDomainException">Thrown when business rules are violated</exception>
     public User(Username username, Email email, string firstName, string lastName, string keycloakId, string? phoneNumber = null)
-        : base(UserId.New())
+        : base(new UserId(Guid.Parse(keycloakId)))
     {
         ArgumentNullException.ThrowIfNull(username);
         ArgumentNullException.ThrowIfNull(email);

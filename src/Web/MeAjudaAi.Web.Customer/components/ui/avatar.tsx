@@ -43,7 +43,7 @@ export function Avatar({
     return (
         <div
             className={twMerge(
-                "relative inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground font-medium overflow-hidden shrink-0 w-full h-full",
+                "relative inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground font-medium overflow-hidden shrink-0",
                 SIZE_CONFIG[size].classes,
                 containerClassName
             )}

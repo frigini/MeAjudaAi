@@ -48,18 +48,20 @@ async function mapErrorResponse(response: Response): Promise<never> {
 async function normalizeResponse(response: Response): Promise<unknown> {
     // Check for empty body responses before parsing JSON
     const contentLength = response.headers.get("Content-Length");
-    const contentType = response.headers.get("Content-Type");
-
     if (
         response.status === 204 ||
         response.status === 205 ||
-        contentLength === "0" ||
-        (contentType && !contentType.includes("application/json"))
+        contentLength === "0"
     ) {
         return undefined;
     }
 
-    const json = await response.json();
+    let json;
+    try {
+        json = await response.json();
+    } catch {
+        return undefined;
+    }
 
     // Normalize Result<T> wrapper
     if (json && typeof json === 'object' && 'value' in json) {
@@ -82,20 +84,24 @@ async function normalizeResponse(response: Response): Promise<unknown> {
     return json;
 }
 
-export async function authenticatedFetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T | undefined> {
-    const { method = "GET", body, headers = {}, token } = options;
+interface BaseFetchOptions extends FetchOptions {
+    requireAuth?: boolean;
+}
 
+async function baseFetch<T>(endpoint: string, options: BaseFetchOptions): Promise<T | undefined> {
+    const { method = "GET", body, headers = {}, token, requireAuth = false } = options;
     const config = client.getConfig();
-    const baseUrl = config.baseUrl || process.env.NEXT_PUBLIC_API_URL || "http://localhost:7002"; // Default call
+    const baseUrl = config.baseUrl || process.env.NEXT_PUBLIC_API_URL || "http://localhost:7002";
 
-    if (!token) {
+    if (requireAuth && !token) {
         throw new Error("Missing access token");
     }
 
-    const requestHeaders: Record<string, string> = {
-        Authorization: `Bearer ${token}`,
-        ...headers,
-    };
+    const requestHeaders: Record<string, string> = { ...headers };
+
+    if (requireAuth && token) {
+        requestHeaders.Authorization = `Bearer ${token}`;
+    }
 
     if (body) {
         requestHeaders["Content-Type"] = "application/json";
@@ -114,29 +120,10 @@ export async function authenticatedFetch<T>(endpoint: string, options: FetchOpti
     return (await normalizeResponse(response)) as T | undefined;
 }
 
+export async function authenticatedFetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T | undefined> {
+    return baseFetch<T>(endpoint, { ...options, requireAuth: true });
+}
+
 export async function publicFetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T | undefined> {
-    const { method = "GET", body, headers = {} } = options;
-
-    const config = client.getConfig();
-    const baseUrl = config.baseUrl || process.env.NEXT_PUBLIC_API_URL || "http://localhost:7002";
-
-    const requestHeaders: Record<string, string> = {
-        ...headers,
-    };
-
-    if (body) {
-        requestHeaders["Content-Type"] = "application/json";
-    }
-
-    const response = await fetch(`${baseUrl}${endpoint}`, {
-        method,
-        headers: requestHeaders,
-        body: body ? JSON.stringify(body) : undefined,
-    });
-
-    if (!response.ok) {
-        await mapErrorResponse(response);
-    }
-
-    return (await normalizeResponse(response)) as T | undefined;
+    return baseFetch<T>(endpoint, { ...options, requireAuth: false });
 }

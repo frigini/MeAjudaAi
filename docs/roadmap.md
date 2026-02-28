@@ -2165,7 +2165,7 @@ Frontend Blazor WASM + MAUI Hybrid:
 - Sprint 8B: Authentication & Onboarding (19 Fev - 4 Mar 2026) - 🔄 EM ANDAMENTO
 - Sprint 8C: Mobile App (5-18 Mar 2026) - ⏳ Planejado
 - Sprint 8D: Admin Portal Migration - 🚫 **CANCELADO**
-- Sprint 9: Buffer/Polishing (19-25 Mar 2026) - ⏳ Planejado
+- ⏳ **19-25 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
 - MVP Final: 28 de Março de 2026
 - *Nota: Data de MVP atualizada para 28 de Março de 2026 para acomodar migração Nx e Mobile App.*
 
@@ -4426,10 +4426,10 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 
 ---
 
-### 📅 Sprint 9: Buffer - Polishing, Risk Mitigation & Refactoring (3 semanas) 🎯
+### ⏳ **19-25 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
 
 **Status**: 📋 PLANEJADO PARA MARÇO 2026  
-**Duração**: 1 semana (5-11 Mar 2026)  
+**Duração**: 1 semana (19-25 Mar 2026)  
 **Dependências**: Sprints 6-8 completos  
 **Natureza**: **BUFFER DE CONTINGÊNCIA** - não alocar novas features
 

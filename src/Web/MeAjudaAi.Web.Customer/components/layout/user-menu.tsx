@@ -72,9 +72,7 @@ export function UserMenu() {
                     {!isLoadingProvider && <DropdownMenuSeparator />}
 
                     {isProviderStatusError ? (
-                        <DropdownMenuItem disabled>
-                            <span className="text-red-500">Erro ao carregar dados do prestador</span>
-                        </DropdownMenuItem>
+                        null
                     ) : isLoadingProvider ? (
                         // Loading state handled or just suppress
                         null

@@ -288,6 +288,7 @@ public static class SecurityExtensions
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
+                options.MapInboundClaims = false;
                 options.Authority = keycloakOptions.AuthorityUrl;
                 options.Audience = keycloakOptions.ClientId;
                 options.RequireHttpsMetadata = keycloakOptions.RequireHttpsMetadata;

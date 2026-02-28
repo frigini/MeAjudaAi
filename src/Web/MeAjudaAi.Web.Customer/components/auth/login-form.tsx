@@ -124,7 +124,7 @@ export function LoginForm({
 
                 <div className="text-center pt-1">
                     <Link
-                        href={`${process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER || process.env.KEYCLOAK_ISSUER || "http://localhost:8080/realms/meajudaai"}/login-actions/reset-credentials?client_id=${process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_CLIENT_ID || "customer-app"}`}
+                        href={`${process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER || "http://localhost:8080/realms/meajudaai"}/login-actions/reset-credentials?client_id=${process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || "customer-app"}`}
                         className="text-sm font-medium underline underline-offset-4 hover:text-primary"
                     >
                         Esqueci minha senha

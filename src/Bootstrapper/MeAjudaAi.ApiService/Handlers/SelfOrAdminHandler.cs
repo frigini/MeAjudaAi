@@ -17,8 +17,12 @@ public class SelfOrAdminHandler : AuthorizationHandler<SelfOrAdminRequirement>
             return Task.CompletedTask;
         }
 
-        var userIdClaim = context.User.FindFirst("sub")?.Value;
-        var roles = context.User.FindAll("roles").Select(c => c.Value);
+        var userIdClaim = context.User.FindFirst("sub")?.Value 
+                          ?? context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        
+        var roles = context.User.FindAll("roles")
+            .Concat(context.User.FindAll(System.Security.Claims.ClaimTypes.Role))
+            .Select(c => c.Value);
 
         // Verifica se o usuário é admin
         if (roles.Any(r =>
@@ -38,7 +42,7 @@ public class SelfOrAdminHandler : AuthorizationHandler<SelfOrAdminRequirement>
             // Só permite acesso se ambos os IDs estão presentes e são iguais
             if (!string.IsNullOrWhiteSpace(userIdClaim) &&
                 !string.IsNullOrWhiteSpace(routeUserId) &&
-                string.Equals(userIdClaim, routeUserId, StringComparison.Ordinal))
+                string.Equals(userIdClaim, routeUserId, StringComparison.OrdinalIgnoreCase))
             {
                 context.Succeed(requirement);
                 return Task.CompletedTask;

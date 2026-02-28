@@ -262,7 +262,7 @@ public class KeycloakService(
         await _adminTokenSemaphore.WaitAsync(cancellationToken);
         try
         {
-            // Double check
+            // Verificar novamente
             if (!string.IsNullOrEmpty(_adminToken) && _adminTokenExpiry > DateTime.UtcNow.AddMinutes(5))
                 return Result<string>.Success(_adminToken);
 
