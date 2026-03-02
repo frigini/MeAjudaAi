@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { authenticatedFetch } from "@/lib/api/fetch-client";
-import { ApiUsersGet2Responses } from "@/lib/api/generated/types.gen";
+import { MeAjudaAiModulesUsersApplicationDtosUserDto } from "@/lib/api/generated/types.gen";
 import { unwrapResponse } from "@/lib/api/response-utils";
 import Link from "next/link";
 import { User, Mail, Phone, MapPin, Pencil } from "lucide-react";
@@ -23,11 +23,11 @@ export default async function ProfilePage() {
     try {
         const token = session.accessToken;
 
-        const data = await authenticatedFetch<ApiUsersGet2Responses>(`/api/v1/users/${session.user.id}`, {
+        const data = await authenticatedFetch<MeAjudaAiModulesUsersApplicationDtosUserDto>(`/api/v1/users/${session.user.id}`, {
             token: token
         });
 
-        user = unwrapResponse<any>(data);
+        user = unwrapResponse<MeAjudaAiModulesUsersApplicationDtosUserDto>(data);
     } catch (e) {
         console.error("Failed to fetch user profile", e);
     }

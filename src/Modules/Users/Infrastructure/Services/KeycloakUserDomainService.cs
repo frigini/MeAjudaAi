@@ -68,10 +68,11 @@ internal class KeycloakUserDomainService(
         {
             try
             {
-                await keycloakService.DeleteUserAsync(keycloakResult.Value, cancellationToken);
+                await keycloakService.DeactivateUserAsync(keycloakResult.Value, cancellationToken);
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogWarning(ex, "Failed to deactivate Keycloak user {KeycloakId} during compensation for local user creation failure.", keycloakResult.Value);
                 // Silence compensation failures to prevent masking the original validation error
             }
             return Result<User>.Failure(userResult.Error);

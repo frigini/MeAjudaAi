@@ -38,7 +38,7 @@ export function useDocumentUpload(options?: UseDocumentUploadOptions) {
         try {
             // 1. Get SAS Token (Upload URL)
             const uploadResponse = await authenticatedFetch<UploadDocumentResponse>("/api/v1/documents/upload", {
-                method: "POST",
+                method: "post",
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -59,7 +59,7 @@ export function useDocumentUpload(options?: UseDocumentUploadOptions) {
             // 2. Upload file to Azure Blob Storage using SAS URL
             // Direct fetch to Azure, no auth header needed (handled by SAS)
             const blobResponse = await fetch(uploadResponse.uploadUrl, {
-                method: "PUT",
+                method: "put",
                 headers: {
                     "x-ms-blob-type": "BlockBlob",
                     "Content-Type": file.type || "application/octet-stream",
@@ -74,7 +74,7 @@ export function useDocumentUpload(options?: UseDocumentUploadOptions) {
 
             // 3. Register document in Provider Profile (using UploadMyDocumentEndpoint)
             await authenticatedFetch("/api/v1/providers/me/documents", {
-                method: "POST",
+                method: "post",
                 headers: {
                     "Content-Type": "application/json",
                 },

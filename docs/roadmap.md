@@ -45,7 +45,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ⏳ **19-25 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
 - 🎯 **28 Março 2026**: MVP Launch (Admin Portal + Customer App Web + Mobile)
 - ⏳ **Pós-MVP**: Sprint Infra - NX Monorepo (unificar Customer Web + Provider App + Mobile em workspace compartilhado)
-- 🔮 **Março 2026+**: Fase 3 - Reviews, Assinaturas (Stripe), Agendamentos
+- 🔮 **Pós-MVP (Abril 2026+)**: Fase 3 - Reviews, Assinaturas (Stripe), Agendamentos
 - 💡 **Pós-MVP**: Verificação OTP (Email → SMS) - Fluxo de cadastro com código de verificação por email (Keycloak nativo) e futuramente por SMS (Firebase Auth free tier 10k/mês ou AWS SNS ~R$0,03-0,05/SMS)
 
 ## ⚠️ Notas de Risco

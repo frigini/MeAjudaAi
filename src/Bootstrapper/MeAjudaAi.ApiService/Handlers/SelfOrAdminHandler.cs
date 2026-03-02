@@ -28,7 +28,7 @@ public class SelfOrAdminHandler : AuthorizationHandler<SelfOrAdminRequirement>
         // Verifica se o usuário é admin
         if (roles.Any(r =>
             string.Equals(r, MeAjudaAi.Shared.Utilities.UserRoles.Admin, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(r, "super-admin", StringComparison.OrdinalIgnoreCase)))
+            string.Equals(r, MeAjudaAi.Shared.Utilities.UserRoles.SuperAdmin, StringComparison.OrdinalIgnoreCase)))
         {
             context.Succeed(requirement);
             return Task.CompletedTask;

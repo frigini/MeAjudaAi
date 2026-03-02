@@ -1,8 +1,9 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { unwrapResponse } from "@/lib/api/response-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { authenticatedFetch } from "@/lib/api/fetch-client";
-import { ApiUsersGet2Responses } from "@/lib/api/generated/types.gen";
+import { MeAjudaAiModulesUsersApplicationDtosUserDto } from "@/lib/api/generated/types.gen";
 import { EditProfileForm } from "@/components/profile/edit-profile-form";
 
 export const dynamic = "force-dynamic";
@@ -18,15 +19,13 @@ export default async function EditProfilePage() {
     let user = null;
 
     try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const token = (session as any).accessToken;
+        const token = session.accessToken;
 
-        const data = await authenticatedFetch<ApiUsersGet2Responses>(`/api/v1/users/${session.user.id}`, {
+        const data = await authenticatedFetch<MeAjudaAiModulesUsersApplicationDtosUserDto>(`/api/v1/users/${session.user.id}`, {
             token: token
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        user = (data as any)?.value || (data as any)?.result || data;
+        user = unwrapResponse<MeAjudaAiModulesUsersApplicationDtosUserDto>(data);
     } catch (e) {
         console.error("Failed to fetch user profile", e);
     }
@@ -52,9 +51,9 @@ export default async function EditProfilePage() {
                     <EditProfileForm
                         userId={session.user.id}
                         initialData={{
-                            firstName: user.firstName,
-                            lastName: user.lastName,
-                            email: user.email,
+                            firstName: user.firstName ?? "",
+                            lastName: user.lastName ?? "",
+                            email: user.email ?? "",
                             // phoneNumber: user.phoneNumber // Missing in DTO
                         }}
                     />

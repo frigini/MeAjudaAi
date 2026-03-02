@@ -14,7 +14,7 @@ export function useRegisterProvider() {
             }
 
             const result = await authenticatedFetch<ProviderDto>("/api/v1/providers/register", {
-                method: "POST",
+                method: "post",
                 body: data,
                 token: session.accessToken,
             });

@@ -12,7 +12,7 @@ public class GetAuthProvidersEndpoint : IEndpoint
     {
         app.MapGet("auth/providers", () =>
         {
-            var providers = Enum.GetValues<EAuthProvider>();
+            var providers = Enum.GetNames<EAuthProvider>();
             return Results.Ok(providers);
         })
         .AllowAnonymous()

@@ -55,7 +55,7 @@ export function CustomerRegisterForm() {
         try {
             // Call API
             await publicFetch("/api/v1/users/register", {
-                method: "POST",
+                method: "post",
                 body: {
                     name: data.name,
                     email: data.email,

@@ -1,7 +1,6 @@
 import { client } from "@/lib/api/client";
 import { ApiResponse } from "@/types/api";
-
-type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+import { HttpMethod } from "@/lib/api/generated/core/types.gen";
 
 export class ApiError extends Error {
     public status?: number;
@@ -67,7 +66,7 @@ async function normalizeResponse(response: Response): Promise<unknown> {
     if (json && typeof json === 'object' && 'value' in json) {
         const value = (json as Record<string, unknown>).value;
         if (value === null || value === undefined) {
-            throw new Error("Response contained null/undefined value for expected Result<T>");
+            throw new ApiError("Response contained null/undefined value for expected Result<T>");
         }
         return value;
     }
@@ -76,7 +75,7 @@ async function normalizeResponse(response: Response): Promise<unknown> {
     if (json && typeof json === 'object' && 'data' in json) {
         const apiRes = json as ApiResponse<unknown>;
         if (apiRes.data === null || apiRes.data === undefined) {
-            throw new Error(apiRes.message || "API interaction failed");
+            throw new ApiError(apiRes.message || "API interaction failed");
         }
         return apiRes.data;
     }
@@ -89,12 +88,12 @@ interface BaseFetchOptions extends FetchOptions {
 }
 
 export async function baseFetch<T>(endpoint: string, options: BaseFetchOptions): Promise<T | undefined> {
-    const { method = "GET", body, headers = {}, token, requireAuth = false } = options;
+    const { method = "get", body, headers = {}, token, requireAuth = false } = options;
     const config = client.getConfig();
     const baseUrl = config.baseUrl || process.env.NEXT_PUBLIC_API_URL || "http://localhost:7002";
 
     if (requireAuth && !token) {
-        throw new Error("Missing access token");
+        throw new ApiError("Missing access token");
     }
 
     const requestHeaders: Record<string, string> = { ...headers };
@@ -103,14 +102,14 @@ export async function baseFetch<T>(endpoint: string, options: BaseFetchOptions):
         requestHeaders.Authorization = `Bearer ${token}`;
     }
 
-    if (body) {
+    if (body !== undefined) {
         requestHeaders["Content-Type"] = "application/json";
     }
 
     const response = await fetch(`${baseUrl}${endpoint}`, {
         method,
         headers: requestHeaders,
-        body: body ? JSON.stringify(body) : undefined,
+        body: body !== undefined ? JSON.stringify(body) : undefined,
     });
 
     if (!response.ok) {

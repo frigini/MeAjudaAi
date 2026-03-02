@@ -49,15 +49,15 @@ export function LoginForm({
         const fetchProviders = async () => {
             try {
                 const data = await baseFetch<string[]>("/api/v1/auth/providers", {
-                    method: "GET"
+                    method: "get"
                 });
                 if (data && Array.isArray(data)) {
-                    setProviders(data);
+                    setProviders(data.map(p => p.toLowerCase()));
                 }
             } catch (e) {
                 console.error("Failed to fetch auth providers", e);
                 // Fallback if endpoint is unreachable during dev
-                setProviders(["Google", "Facebook", "Microsoft", "Apple"]);
+                setProviders(["google", "facebook", "microsoft", "apple"]);
             }
         };
         fetchProviders();
@@ -92,9 +92,10 @@ export function LoginForm({
         if (isLoading) return;
         setIsLoading(true);
         try {
-            await signIn("keycloak", { callbackUrl }, { kc_idp_hint: provider.toLowerCase() });
+            await signIn("keycloak", { callbackUrl }, { kc_idp_hint: provider });
         } catch {
             setError("Ocorreu um erro. Tente novamente.");
+        } finally {
             setIsLoading(false);
         }
     }
@@ -190,7 +191,7 @@ export function LoginForm({
 
                 {/* Social Login */}
                 <div className="flex flex-col gap-2.5">
-                    {providers.includes("Google") && (
+                    {providers.includes("google") && (
                         <Button
                             variant="outline"
                             className="w-full shadow-sm"
@@ -201,7 +202,7 @@ export function LoginForm({
                             Entrar com o Google
                         </Button>
                     )}
-                    {providers.includes("Facebook") && (
+                    {providers.includes("facebook") && (
                         <Button
                             variant="outline"
                             className="w-full shadow-sm"

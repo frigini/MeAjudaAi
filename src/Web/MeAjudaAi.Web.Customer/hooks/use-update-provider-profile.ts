@@ -27,7 +27,7 @@ export function useUpdateProviderProfile() {
             }
 
             const result = await authenticatedFetch<ProviderDto>("/api/v1/providers/me", {
-                method: "PUT",
+                method: "put",
                 body: data,
                 token: session.accessToken,
             });
