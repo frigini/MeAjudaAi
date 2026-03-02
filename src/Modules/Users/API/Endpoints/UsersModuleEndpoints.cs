@@ -19,6 +19,7 @@ public static class UsersModuleEndpoints
             .MapEndpoint<GetUserByIdEndpoint>()
             .MapEndpoint<GetUsersEndpoint>()
             .MapEndpoint<UpdateUserProfileEndpoint>()
-            .MapEndpoint<RegisterCustomerEndpoint>();
+            .MapEndpoint<RegisterCustomerEndpoint>()
+            .MapEndpoint<GetAuthProvidersEndpoint>();
     }
 }

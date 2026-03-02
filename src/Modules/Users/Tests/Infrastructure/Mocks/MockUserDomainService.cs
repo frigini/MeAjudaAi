@@ -19,6 +19,7 @@ public class MockUserDomainService : IUserDomainService
     {
         // Para testes, criar usuário mock
         var userResult = User.Create(username, email, firstName, lastName, Guid.NewGuid().ToString(), phoneNumber);
+        if (userResult.IsFailure) return Task.FromResult(Result<User>.Failure(userResult.Error));
         return Task.FromResult(Result<User>.Success(userResult.Value));
     }
 

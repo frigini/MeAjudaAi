@@ -3,9 +3,10 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useSearchParams } from "next/navigation"
-import { EAuthProvider } from "@/lib/constants/auth"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { signIn } from "next-auth/react"
 import { Loader2, Eye, EyeOff, Mail, Lock } from "lucide-react"
+import { baseFetch } from "@/lib/api/fetch-client"
 import Link from "next/link"
 
 function GoogleIcon({ className }: { className?: string }) {
@@ -42,6 +43,25 @@ export function LoginForm({
     const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState("")
+    const [providers, setProviders] = useState<string[]>([])
+
+    useEffect(() => {
+        const fetchProviders = async () => {
+            try {
+                const data = await baseFetch<string[]>("/api/v1/auth/providers", {
+                    method: "GET"
+                });
+                if (data && Array.isArray(data)) {
+                    setProviders(data);
+                }
+            } catch (e) {
+                console.error("Failed to fetch auth providers", e);
+                // Fallback if endpoint is unreachable during dev
+                setProviders(["Google", "Facebook", "Microsoft", "Apple"]);
+            }
+        };
+        fetchProviders();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -72,7 +92,7 @@ export function LoginForm({
         if (isLoading) return;
         setIsLoading(true);
         try {
-            await signIn("keycloak", { callbackUrl }, { kc_idp_hint: provider });
+            await signIn("keycloak", { callbackUrl }, { kc_idp_hint: provider.toLowerCase() });
         } catch {
             setError("Ocorreu um erro. Tente novamente.");
             setIsLoading(false);
@@ -170,24 +190,28 @@ export function LoginForm({
 
                 {/* Social Login */}
                 <div className="flex flex-col gap-2.5">
-                    <Button
-                        variant="outline"
-                        className="w-full shadow-sm"
-                        onClick={() => handleSocialLogin(EAuthProvider.Google)}
-                        disabled={isLoading}
-                    >
-                        <GoogleIcon className="mr-2 h-5 w-5" />
-                        Entrar com o Google
-                    </Button>
-                    <Button
-                        variant="outline"
-                        className="w-full shadow-sm"
-                        onClick={() => handleSocialLogin(EAuthProvider.Facebook)}
-                        disabled={isLoading}
-                    >
-                        <FacebookIcon className="mr-2 h-5 w-5" />
-                        Entrar com o Facebook
-                    </Button>
+                    {providers.includes("Google") && (
+                        <Button
+                            variant="outline"
+                            className="w-full shadow-sm"
+                            onClick={() => handleSocialLogin("google")}
+                            disabled={isLoading}
+                        >
+                            <GoogleIcon className="mr-2 h-5 w-5" />
+                            Entrar com o Google
+                        </Button>
+                    )}
+                    {providers.includes("Facebook") && (
+                        <Button
+                            variant="outline"
+                            className="w-full shadow-sm"
+                            onClick={() => handleSocialLogin("facebook")}
+                            disabled={isLoading}
+                        >
+                            <FacebookIcon className="mr-2 h-5 w-5" />
+                            Entrar com o Facebook
+                        </Button>
+                    )}
                 </div>
 
                 {/* Terms footer */}

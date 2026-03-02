@@ -99,6 +99,29 @@ public sealed class User : AggregateRoot<UserId>
     private User() { }
 
     /// <summary>
+    /// Instancia um novo usuário já com o ID formatado. Usado internamente pelo Factory Method <see cref="Create"/>.
+    /// </summary>
+    private User(UserId id, Username username, Email email, string firstName, string lastName, string keycloakId, string? phoneNumber = null)
+        : base(id)
+    {
+        ArgumentNullException.ThrowIfNull(username);
+        ArgumentNullException.ThrowIfNull(email);
+
+        Username = username;
+        Email = email;
+        FirstName = firstName;
+        LastName = lastName;
+        KeycloakId = keycloakId;
+        
+        if (!string.IsNullOrWhiteSpace(phoneNumber))
+        {
+            PhoneNumber = new PhoneNumber(phoneNumber);
+        }
+
+        AddDomainEvent(new UserRegisteredDomainEvent(Id.Value, 1, email.Value, username.Value, firstName, lastName));
+    }
+
+    /// <summary>
     /// Helper interno de testes para definir o Id. Acessível apenas a partir de assemblies de teste.
     /// </summary>
     internal void SetIdForTesting(UserId id)
@@ -122,28 +145,6 @@ public sealed class User : AggregateRoot<UserId>
         UpdatedAt = updatedAt;
     }
 
-    /// <summary>
-    /// Instancia um novo usuário já com o ID formatado. Usado internamente pelo Factory Method <see cref="Create"/>.
-    /// </summary>
-    private User(UserId id, Username username, Email email, string firstName, string lastName, string keycloakId, string? phoneNumber = null)
-        : base(id)
-    {
-        ArgumentNullException.ThrowIfNull(username);
-        ArgumentNullException.ThrowIfNull(email);
-
-        Username = username;
-        Email = email;
-        FirstName = firstName;
-        LastName = lastName;
-        KeycloakId = keycloakId;
-        
-        if (!string.IsNullOrWhiteSpace(phoneNumber))
-        {
-            PhoneNumber = new PhoneNumber(phoneNumber);
-        }
-
-        AddDomainEvent(new UserRegisteredDomainEvent(Id.Value, 1, email.Value, username.Value, firstName, lastName));
-    }
 
     /// <summary>
     /// Cria um novo usuário no sistema validando as regras de negócio primeiro.
@@ -172,11 +173,18 @@ public sealed class User : AggregateRoot<UserId>
 
         if (!Guid.TryParse(keycloakId, out var parsedGuid))
         {
-            return MeAjudaAi.Contracts.Functional.Result<User>.Failure(MeAjudaAi.Contracts.Functional.Error.BadRequest("Keycloak ID must be a valid GUID."));
+            return MeAjudaAi.Contracts.Functional.Result<User>.Failure(MeAjudaAi.Contracts.Functional.Error.BadRequest("O ID do Keycloak deve ser um GUID válido."));
         }
 
-        var user = new User(new UserId(parsedGuid), username, email, firstName, lastName, keycloakId, phoneNumber);
-        return MeAjudaAi.Contracts.Functional.Result<User>.Success(user);
+        try
+        {
+            var user = new User(new UserId(parsedGuid), username, email, firstName, lastName, keycloakId, phoneNumber);
+            return MeAjudaAi.Contracts.Functional.Result<User>.Success(user);
+        }
+        catch (Exception ex)
+        {
+            return MeAjudaAi.Contracts.Functional.Result<User>.Failure(MeAjudaAi.Contracts.Functional.Error.BadRequest(ex.Message));
+        }
     }
 
     /// <summary>

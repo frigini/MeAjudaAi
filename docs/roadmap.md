@@ -120,8 +120,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - **Problema**: Testes E2E lentos devido a acúmulo de dados (40m+).
 - **Solução**: Implementado `IAsyncLifetime` e `CleanupDatabaseAsync()` em **todas** as classes de teste E2E (`Documents`, `Locations`, `Providers`, `ServiceCatalogs`, `Users`).
 - **Resultado**: Testes rodam com banco limpo a cada execução, prevenindo degradação de performance e falhas por dados sujos (Race Conditions).
-- **Parallelization**: Confirmado que `parallelizeTestCollections: false` is necessário devido ao uso de container de banco compartilhado.
-
+- `parallelizeTestCollections`: Controla se coleções de teste executam em paralelo no xUnit. Confirmado que `parallelizeTestCollections: false` é necessário para DbContext com TestContainers, pois banco compartilhado causa lock conflicts.
 ---
 
 ### ⏳ Sprint 8B.2 - Technical Excellence & Infrastructure (Planejado - Antes do Mobile)

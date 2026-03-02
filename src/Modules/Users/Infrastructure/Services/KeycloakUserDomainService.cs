@@ -64,7 +64,19 @@ internal class KeycloakUserDomainService(
 
         // Cria a entidade User local com o ID retornado pelo Keycloak
         var userResult = User.Create(username, email, firstName, lastName, keycloakResult.Value, phoneNumber);
-        if (userResult.IsFailure) return Result<User>.Failure(userResult.Error);
+        if (userResult.IsFailure)
+        {
+            try
+            {
+                await keycloakService.DeleteUserAsync(keycloakResult.Value, cancellationToken);
+            }
+            catch
+            {
+                // Silence compensation failures to prevent masking the original validation error
+            }
+            return Result<User>.Failure(userResult.Error);
+        }
+        
         return Result<User>.Success(userResult.Value);
     }
 

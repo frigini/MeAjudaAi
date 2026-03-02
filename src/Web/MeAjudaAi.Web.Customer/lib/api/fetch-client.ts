@@ -88,7 +88,7 @@ interface BaseFetchOptions extends FetchOptions {
     requireAuth?: boolean;
 }
 
-async function baseFetch<T>(endpoint: string, options: BaseFetchOptions): Promise<T | undefined> {
+export async function baseFetch<T>(endpoint: string, options: BaseFetchOptions): Promise<T | undefined> {
     const { method = "GET", body, headers = {}, token, requireAuth = false } = options;
     const config = client.getConfig();
     const baseUrl = config.baseUrl || process.env.NEXT_PUBLIC_API_URL || "http://localhost:7002";

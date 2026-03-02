@@ -1,28 +1,28 @@
 namespace MeAjudaAi.Contracts.Identity.Enums;
 
 /// <summary>
-/// Specifies the different identity providers available via Keycloak.
-/// Used to type the identity provider hints across frontend and backend.
+/// Especifica os diferentes provedores de identidade disponíveis via Keycloak.
+/// Utilizado para tipar as indicações de provedor de identidade entre o frontend e o backend.
 /// </summary>
 public enum EAuthProvider
 {
     /// <summary>
-    /// Google Social Login
+    /// Login social do Google
     /// </summary>
     Google,
     
     /// <summary>
-    /// Microsoft Social Login
+    /// Login social da Microsoft
     /// </summary>
     Microsoft,
 
     /// <summary>
-    /// Facebook Social Login
+    /// Login social do Facebook
     /// </summary>
     Facebook,
 
     /// <summary>
-    /// Apple Social Login
+    /// Login social da Apple
     /// </summary>
     Apple
 }

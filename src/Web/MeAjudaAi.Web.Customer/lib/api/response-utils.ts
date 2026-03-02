@@ -3,7 +3,7 @@
  * without resorting to 'any'.
  */
 export function unwrapResponse<T>(response: unknown): T | undefined {
-    if (!response) {
+    if (response == null) {
         return undefined;
     }
 

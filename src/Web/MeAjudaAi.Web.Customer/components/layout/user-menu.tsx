@@ -69,7 +69,7 @@ export function UserMenu() {
                     </DropdownMenuItem>
 
                     {/* Show provider details when loaded and exists; otherwise render 'Quero trabalhar' fallback */}
-                    {!isLoadingProvider && !isProviderStatusError && <DropdownMenuSeparator />}
+                    {!isLoadingProvider && <DropdownMenuSeparator />}
 
                     {isProviderStatusError ? (
                         <DropdownMenuItem disabled>
