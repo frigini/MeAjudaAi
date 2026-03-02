@@ -2167,7 +2167,7 @@ Frontend Blazor WASM + MAUI Hybrid:
 - Sprint 8D: Admin Portal Migration - 🚫 **CANCELADO**
 - ⏳ **19-25 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
 - MVP Final: 28 de Março de 2026
-- *Nota: Data de MVP atualizada para 28 de Março de 2026 para acomodar migração Nx e Mobile App.*
+- *Nota: Data de MVP atualizada para 28 de Março de 2026 para acomodar buffer do Sprint 9 e Mobile App.*
 
 **⚠️ Risk Assessment**: Estimativas assumem velocidade consistente. Primeiro projeto Blazor WASM pode revelar complexidades não previstas (integração Keycloak, curva de aprendizado MudBlazor). Sprint 9 reservado como buffer de contingência.
 

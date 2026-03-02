@@ -69,9 +69,9 @@ public abstract class UsersIntegrationTestBase : BaseIntegrationTest
     {
         var usernameVO = new Username(username);
         var emailVO = new Email(email);
-        var keycloakId = $"keycloak_{UuidGenerator.NewId()}";
+        var keycloakId = UuidGenerator.NewId().ToString();
 
-        var user = new User(usernameVO, emailVO, firstName, lastName, keycloakId);
+        var user = User.Create(usernameVO, emailVO, firstName, lastName, keycloakId).Value;
 
         // Obter contexto
         var dbContext = GetService<UsersDbContext>();

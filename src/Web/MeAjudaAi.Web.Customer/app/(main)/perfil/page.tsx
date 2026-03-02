@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { authenticatedFetch } from "@/lib/api/fetch-client";
 import { ApiUsersGet2Responses } from "@/lib/api/generated/types.gen";
+import { unwrapResponse } from "@/lib/api/response-utils";
 import Link from "next/link";
 import { User, Mail, Phone, MapPin, Pencil } from "lucide-react";
 
@@ -20,17 +21,13 @@ export default async function ProfilePage() {
     let user = null;
 
     try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const token = (session as any).accessToken;
-
-        console.log("[PerfilPage] Token is valid:", !!token);
+        const token = session.accessToken;
 
         const data = await authenticatedFetch<ApiUsersGet2Responses>(`/api/v1/users/${session.user.id}`, {
             token: token
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        user = (data as any)?.value || (data as any)?.result || data;
+        user = unwrapResponse<any>(data);
     } catch (e) {
         console.error("Failed to fetch user profile", e);
     }

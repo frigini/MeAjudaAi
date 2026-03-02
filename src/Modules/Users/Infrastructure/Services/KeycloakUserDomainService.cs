@@ -63,8 +63,9 @@ internal class KeycloakUserDomainService(
             return Result<User>.Failure(keycloakResult.Error);
 
         // Cria a entidade User local com o ID retornado pelo Keycloak
-        var user = new User(username, email, firstName, lastName, keycloakResult.Value, phoneNumber);
-        return Result<User>.Success(user);
+        var userResult = User.Create(username, email, firstName, lastName, keycloakResult.Value, phoneNumber);
+        if (userResult.IsFailure) return Result<User>.Failure(userResult.Error);
+        return Result<User>.Success(userResult.Value);
     }
 
     /// <summary>

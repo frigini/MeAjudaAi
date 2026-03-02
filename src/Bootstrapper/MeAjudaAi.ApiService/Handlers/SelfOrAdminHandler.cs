@@ -17,12 +17,13 @@ public class SelfOrAdminHandler : AuthorizationHandler<SelfOrAdminRequirement>
             return Task.CompletedTask;
         }
 
-        var userIdClaim = context.User.FindFirst("sub")?.Value 
+        var userIdClaim = context.User.FindFirst(MeAjudaAi.Shared.Utilities.Constants.AuthConstants.Claims.Subject)?.Value 
                           ?? context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         
-        var roles = context.User.FindAll("roles")
+        var roles = context.User.FindAll(MeAjudaAi.Shared.Utilities.Constants.AuthConstants.Claims.Roles)
             .Concat(context.User.FindAll(System.Security.Claims.ClaimTypes.Role))
-            .Select(c => c.Value);
+            .Select(c => c.Value)
+            .Distinct();
 
         // Verifica se o usuário é admin
         if (roles.Any(r =>

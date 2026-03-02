@@ -69,10 +69,12 @@ export function UserMenu() {
                     </DropdownMenuItem>
 
                     {/* Show provider details when loaded and exists; otherwise render 'Quero trabalhar' fallback */}
-                    {!isLoadingProvider && <DropdownMenuSeparator />}
+                    {!isLoadingProvider && !isProviderStatusError && <DropdownMenuSeparator />}
 
                     {isProviderStatusError ? (
-                        null
+                        <DropdownMenuItem disabled>
+                            <span className="text-destructive">Erro ao carregar provedor</span>
+                        </DropdownMenuItem>
                     ) : isLoadingProvider ? (
                         // Loading state handled or just suppress
                         null
@@ -96,10 +98,22 @@ export function UserMenu() {
                                 </p>
                             </DropdownMenuLabel>
                             <DropdownMenuItem asChild>
-                                <Link href={providerStatus.status === EProviderStatus.Active ? "/prestador/dashboard" : "/cadastro/prestador/perfil"}>
-                                    <Briefcase className="mr-2 h-4 w-4" />
-                                    <span>{providerStatus.status === EProviderStatus.Active ? "Painel do Prestador" : "Continuar Cadastro"}</span>
-                                </Link>
+                                {providerStatus.status === EProviderStatus.Rejected ? (
+                                    <Link href="/suporte/recurso">
+                                        <Briefcase className="mr-2 h-4 w-4" />
+                                        <span>Apelar / Recurso</span>
+                                    </Link>
+                                ) : providerStatus.status === EProviderStatus.Suspended ? (
+                                    <Link href="/suporte/conta-suspensa">
+                                        <Briefcase className="mr-2 h-4 w-4" />
+                                        <span>Conta Suspensa</span>
+                                    </Link>
+                                ) : (
+                                    <Link href={providerStatus.status === EProviderStatus.Active ? "/prestador/dashboard" : "/cadastro/prestador/perfil"}>
+                                        <Briefcase className="mr-2 h-4 w-4" />
+                                        <span>{providerStatus.status === EProviderStatus.Active ? "Painel do Prestador" : "Continuar Cadastro"}</span>
+                                    </Link>
+                                )}
                             </DropdownMenuItem>
                         </>
                     ) : providerStatus === null ? (

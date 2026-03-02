@@ -239,12 +239,12 @@ public class GetUsersQueryHandlerTests
 
     private static User CreateTestUser(string username, string email, string firstName, string lastName)
     {
-        return new User(
+        return User.Create(
             username: new Username(username),
             email: new Email(email),
             firstName: firstName,
             lastName: lastName,
             keycloakId: Guid.NewGuid().ToString()
-        );
+        ).Value;
     }
 }

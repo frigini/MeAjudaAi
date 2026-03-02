@@ -2,8 +2,8 @@
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
+import { EAuthProvider } from "@/lib/constants/auth"
 import { useState } from "react"
 import { Loader2, Eye, EyeOff, Mail, Lock } from "lucide-react"
 import Link from "next/link"
@@ -68,8 +68,15 @@ export function LoginForm({
         }
     }
 
-    const handleSocialLogin = (provider: string) => {
-        signIn("keycloak", { callbackUrl }, { kc_idp_hint: provider })
+    const handleSocialLogin = async (provider: string) => {
+        if (isLoading) return;
+        setIsLoading(true);
+        try {
+            await signIn("keycloak", { callbackUrl }, { kc_idp_hint: provider });
+        } catch {
+            setError("Ocorreu um erro. Tente novamente.");
+            setIsLoading(false);
+        }
     }
 
     return (
@@ -119,12 +126,12 @@ export function LoginForm({
 
                 {/* Error message */}
                 {error && (
-                    <p className="text-sm text-red-600 text-center">{error}</p>
+                    <p className="text-sm text-red-600 text-center" role="alert" aria-live="assertive">{error}</p>
                 )}
 
                 <div className="text-center pt-1">
                     <Link
-                        href={`${process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER || "http://localhost:8080/realms/meajudaai"}/login-actions/reset-credentials?client_id=${process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || "customer-app"}`}
+                        href={`${process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER || "http://localhost:8080/realms/meajudaai"}/login-actions/reset-credentials?client_id=${encodeURIComponent(process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || "customer-app")}`}
                         className="text-sm font-medium underline underline-offset-4 hover:text-primary"
                     >
                         Esqueci minha senha
@@ -166,7 +173,7 @@ export function LoginForm({
                     <Button
                         variant="outline"
                         className="w-full shadow-sm"
-                        onClick={() => handleSocialLogin("google")}
+                        onClick={() => handleSocialLogin(EAuthProvider.Google)}
                         disabled={isLoading}
                     >
                         <GoogleIcon className="mr-2 h-5 w-5" />
@@ -175,7 +182,7 @@ export function LoginForm({
                     <Button
                         variant="outline"
                         className="w-full shadow-sm"
-                        onClick={() => handleSocialLogin("facebook")}
+                        onClick={() => handleSocialLogin(EAuthProvider.Facebook)}
                         disabled={isLoading}
                     >
                         <FacebookIcon className="mr-2 h-5 w-5" />

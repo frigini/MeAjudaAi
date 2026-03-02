@@ -123,26 +123,13 @@ public sealed class User : AggregateRoot<UserId>
     }
 
     /// <summary>
-    /// Cria um novo usuário no sistema.
+    /// Instancia um novo usuário já com o ID formatado. Usado internamente pelo Factory Method <see cref="Create"/>.
     /// </summary>
-    /// <param name="username">Nome de usuário único</param>
-    /// <param name="email">Endereço de email único</param>
-    /// <param name="firstName">Primeiro nome</param>
-    /// <param name="lastName">Sobrenome</param>
-    /// <param name="keycloakId">ID do usuário no Keycloak</param>
-    /// <param name="phoneNumber">Número de telefone (opcional)</param>
-    /// <remarks>
-    /// Este construtor dispara automaticamente o evento UserRegisteredDomainEvent.
-    /// </remarks>
-    /// <exception cref="UserDomainException">Thrown when business rules are violated</exception>
-    public User(Username username, Email email, string firstName, string lastName, string keycloakId, string? phoneNumber = null)
-        : base(new UserId(Guid.Parse(keycloakId)))
+    private User(UserId id, Username username, Email email, string firstName, string lastName, string keycloakId, string? phoneNumber = null)
+        : base(id)
     {
         ArgumentNullException.ThrowIfNull(username);
         ArgumentNullException.ThrowIfNull(email);
-
-        // Validações de regras de negócio específicas para criação
-        ValidateUserCreation(keycloakId);
 
         Username = username;
         Email = email;
@@ -150,13 +137,46 @@ public sealed class User : AggregateRoot<UserId>
         LastName = lastName;
         KeycloakId = keycloakId;
         
-        // Define PhoneNumber se fornecido
         if (!string.IsNullOrWhiteSpace(phoneNumber))
         {
             PhoneNumber = new PhoneNumber(phoneNumber);
         }
 
         AddDomainEvent(new UserRegisteredDomainEvent(Id.Value, 1, email.Value, username.Value, firstName, lastName));
+    }
+
+    /// <summary>
+    /// Cria um novo usuário no sistema validando as regras de negócio primeiro.
+    /// </summary>
+    /// <param name="username">Nome de usuário único</param>
+    /// <param name="email">Endereço de email único</param>
+    /// <param name="firstName">Primeiro nome</param>
+    /// <param name="lastName">Sobrenome</param>
+    /// <param name="keycloakId">ID do usuário no Keycloak (formato UUID)</param>
+    /// <param name="phoneNumber">Número de telefone (opcional)</param>
+    /// <returns>Result indicando sucesso com a entidade ou falha com erro de domínio.</returns>
+    /// <remarks>
+    /// Este método valida o formato do Keycloak ID antes de criar a entidade base, prevenindo
+    /// exceções de formatação prematuras.
+    /// </remarks>
+    public static MeAjudaAi.Contracts.Functional.Result<User> Create(Username username, Email email, string firstName, string lastName, string keycloakId, string? phoneNumber = null)
+    {
+        try
+        {
+            ValidateUserCreation(keycloakId);
+        }
+        catch (UserDomainException ex)
+        {
+            return MeAjudaAi.Contracts.Functional.Result<User>.Failure(MeAjudaAi.Contracts.Functional.Error.BadRequest(ex.Message));
+        }
+
+        if (!Guid.TryParse(keycloakId, out var parsedGuid))
+        {
+            return MeAjudaAi.Contracts.Functional.Result<User>.Failure(MeAjudaAi.Contracts.Functional.Error.BadRequest("Keycloak ID must be a valid GUID."));
+        }
+
+        var user = new User(new UserId(parsedGuid), username, email, firstName, lastName, keycloakId, phoneNumber);
+        return MeAjudaAi.Contracts.Functional.Result<User>.Success(user);
     }
 
     /// <summary>
