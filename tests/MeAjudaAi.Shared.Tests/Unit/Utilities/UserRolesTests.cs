@@ -58,6 +58,7 @@ public class UserRolesTests
     public void RoleConstants_ShouldHaveExpectedValues()
     {
         // Assert
+        UserRoles.SuperAdmin.Should().Be("super-admin");
         UserRoles.Admin.Should().Be("admin");
         UserRoles.ProviderManager.Should().Be("provider-manager");
         UserRoles.DocumentReviewer.Should().Be("document-reviewer");
@@ -145,6 +146,7 @@ public class UserRolesTests
     #region IsAdminRole Tests
 
     [Theory]
+    [InlineData("super-admin")]
     [InlineData("admin")]
     [InlineData("provider-manager")]
     [InlineData("document-reviewer")]

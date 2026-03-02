@@ -9,6 +9,7 @@ using MeAjudaAi.Contracts.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.ApiService.Endpoints;
 
@@ -33,7 +34,7 @@ public static class ProviderRegistrationEndpoints
             .Produces<Response<ProviderDto>>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
             .AllowAnonymous()
-            .RequireRateLimiting("provider-registration");
+            .RequireRateLimiting(RateLimitPolicies.ProviderRegistration);
 
         return endpoints;
     }
@@ -52,12 +53,12 @@ public static class ProviderRegistrationEndpoints
         // Passo 1: Criar usuário no Keycloak com role provider-standard (módulo Users)
         // Sanitiza telefone mantendo apenas números
         var phone = System.Text.RegularExpressions.Regex.Replace(request.PhoneNumber, @"\D", "");
-        var username = $"provider_{phone}";
+        var username = string.IsNullOrEmpty(phone) ? $"provider_{Guid.NewGuid():N}" : $"provider_{phone}";
 
-        // Use First Name as placeholder for Last Name to satisfy validation
+        // Usa o Primeiro Nome como fallback para o Sobrenome para satisfazer a validação do Keycloak
         var nameParts = request.Name.Trim().Split(' ', 2);
         var firstName = nameParts[0];
-        var lastName = nameParts.Length > 1 ? nameParts[1] : firstName; // Fallback to firstname if no lastname
+        var lastName = nameParts.Length > 1 ? nameParts[1] : firstName; // Fallback para firstname se não houver lastname
 
         var createUserCommand = new CreateUserCommand(
             Username: username,
@@ -113,7 +114,12 @@ public static class ProviderRegistrationEndpoints
             try 
             {
                 var deleteUserCommand = new DeleteUserCommand(userResult.Value!.Id);
-                await commandDispatcher.SendAsync<DeleteUserCommand, Result>(deleteUserCommand, cancellationToken);
+                var deleteResult = await commandDispatcher.SendAsync<DeleteUserCommand, Result>(deleteUserCommand, cancellationToken);
+                
+                if (deleteResult.IsFailure)
+                {
+                    logger.LogError("Compensation failed: Could not delete orphaned user {UserId}. Error: {Error}", userResult.Value!.Id, deleteResult.Error.Message);
+                }
             }
             catch (Exception ex)
             {

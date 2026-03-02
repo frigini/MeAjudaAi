@@ -46,29 +46,37 @@ export function LoginForm({
     const [providers, setProviders] = useState<string[]>([])
 
     useEffect(() => {
+        let isMounted = true;
         const fetchProviders = async () => {
             try {
                 const data = await baseFetch<string[]>("/api/v1/auth/providers", {
                     method: "get"
                 });
-                if (data && Array.isArray(data)) {
+                if (isMounted && data && Array.isArray(data)) {
                     setProviders(data.map(p => p.toLowerCase()));
                 }
             } catch (e) {
                 console.error("Failed to fetch auth providers", e);
                 // Fallback se ocorrer erro (apenas em dev/local)
-                if (process.env.NODE_ENV !== "production") {
-                    setProviders(["google", "facebook"]);
-                } else {
-                    setProviders([]);
+                if (isMounted) {
+                    if (process.env.NODE_ENV !== "production") {
+                        setProviders(["google", "facebook"]);
+                    } else {
+                        setProviders([]);
+                    }
                 }
             }
         };
         fetchProviders();
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (isLoading) return;
+
         setError("")
         setIsLoading(true)
 

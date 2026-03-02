@@ -25,23 +25,29 @@ public static class ProviderTierExtensions
     /// </summary>
     public static bool TryParseRole(string role, out EProviderTier tier)
     {
-        switch (role?.ToLowerInvariant())
+        var trimmed = role?.Trim();
+        if (string.Equals(trimmed, UserRoles.ProviderStandard, StringComparison.OrdinalIgnoreCase))
         {
-            case UserRoles.ProviderStandard:
-                tier = EProviderTier.Standard;
-                return true;
-            case UserRoles.ProviderSilver:
-                tier = EProviderTier.Silver;
-                return true;
-            case UserRoles.ProviderGold:
-                tier = EProviderTier.Gold;
-                return true;
-            case UserRoles.ProviderPlatinum:
-                tier = EProviderTier.Platinum;
-                return true;
-            default:
-                tier = default;
-                return false;
+            tier = EProviderTier.Standard;
+            return true;
         }
+        else if (string.Equals(trimmed, UserRoles.ProviderSilver, StringComparison.OrdinalIgnoreCase))
+        {
+            tier = EProviderTier.Silver;
+            return true;
+        }
+        else if (string.Equals(trimmed, UserRoles.ProviderGold, StringComparison.OrdinalIgnoreCase))
+        {
+            tier = EProviderTier.Gold;
+            return true;
+        }
+        else if (string.Equals(trimmed, UserRoles.ProviderPlatinum, StringComparison.OrdinalIgnoreCase))
+        {
+            tier = EProviderTier.Platinum;
+            return true;
+        }
+
+        tier = default;
+        return false;
     }
 }
