@@ -72,7 +72,7 @@ public class UserRepositoryTests
         result.Username.Value.Should().Be("testuser");
         result.FirstName.Should().Be("John");
         result.LastName.Should().Be("Doe");
-        result.KeycloakId.Should().NotBeNull();
+        result!.KeycloakId.Should().Be(user.KeycloakId);
     }
 
     [Fact]

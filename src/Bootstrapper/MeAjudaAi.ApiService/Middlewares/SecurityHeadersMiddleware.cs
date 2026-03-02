@@ -26,6 +26,7 @@ public class SecurityHeadersMiddleware(RequestDelegate next, IWebHostEnvironment
             "frame-ancestors 'none';")
     ];
 
+    private const string HstsHeaderName = "Strict-Transport-Security";
     private const string HstsHeader = "max-age=31536000; includeSubDomains";
 
     // Cabeçalhos para remover - usando array para iteração mais rápida
@@ -50,9 +51,9 @@ public class SecurityHeadersMiddleware(RequestDelegate next, IWebHostEnvironment
             }
 
             // HSTS apenas em produção e HTTPS - usando verificação de ambiente em cache
-            if (ctx.Request.IsHttps && !_isDevelopment && !headers.ContainsKey("Strict-Transport-Security"))
+            if (ctx.Request.IsHttps && !_isDevelopment && !headers.ContainsKey(HstsHeaderName))
             {
-                headers.Append("Strict-Transport-Security", HstsHeader);
+                headers.Append(HstsHeaderName, HstsHeader);
             }
 
             // Remove cabeçalhos de exposição de informações eficientemente

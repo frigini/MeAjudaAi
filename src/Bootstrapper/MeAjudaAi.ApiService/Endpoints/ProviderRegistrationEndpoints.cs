@@ -8,6 +8,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Modules.Providers.Domain.Enums;
 
 namespace MeAjudaAi.ApiService.Endpoints;
 
@@ -64,7 +65,7 @@ public static class ProviderRegistrationEndpoints
             FirstName: firstName,
             LastName: lastName,
             Password: GenerateTemporaryPassword(), // Senha temporária forte gerada dinamicamente
-            Roles: [UserRoles.ProviderStandard],
+            Roles: [EProviderTier.Standard.ToRoleString()],
             PhoneNumber: request.PhoneNumber
         );
 

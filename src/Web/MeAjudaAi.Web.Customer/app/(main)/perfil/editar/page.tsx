@@ -19,10 +19,8 @@ export default async function EditProfilePage() {
     let user = null;
 
     try {
-        const token = session.accessToken;
-
         const data = await authenticatedFetch<MeAjudaAiModulesUsersApplicationDtosUserDto>(`/api/v1/users/${session.user.id}`, {
-            token: token
+            token: session.accessToken
         });
 
         user = unwrapResponse<MeAjudaAiModulesUsersApplicationDtosUserDto>(data);

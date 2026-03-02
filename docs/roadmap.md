@@ -7,13 +7,13 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Consulte a [Tabela de Sprints](#cronograma-de-sprints-novembro-2025-março-2026) para o status detalhado atualizado.
+**Status Geral**: Consulte a [Tabela de Sprints](#cronograma-de-sprints) para o status detalhado atualizado.
 **Cobertura de Testes**: Backend 90.56% | Frontend 30 testes bUnit  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM (Admin) + React 19 + Next.js 15 (Customer) + Tailwind v4
 
 ### Marcos Principais
 
-Consulte a seção [Cronograma de Sprints](#cronograma-de-sprints-novembro-2025-março-2026) abaixo para o status detalhado e atualizado de cada sprint, e datas alvo (incluindo o MVP Launch).
+Consulte a seção [Cronograma de Sprints](#cronograma-de-sprints) abaixo para o status detalhado e atualizado de cada sprint, e datas alvo (incluindo o MVP Launch).
 
 **Procedimento de Revisão de Sprints**
 As futuras atualizações da tabela de sprints devem observar a política: análise commit-by-commit newest-first, apresentando um veredicto conciso e resolvendo os follow-ups.
@@ -2156,6 +2156,7 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 
 ---
 
+<a id="cronograma-de-sprints"></a>
 ## 📅 Cronograma de Sprints (Novembro 2025-Março 2026)
 
 | Sprint | Duração | Período | Objetivo | Status |

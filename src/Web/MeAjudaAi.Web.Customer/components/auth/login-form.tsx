@@ -110,8 +110,10 @@ export function LoginForm({
             <form onSubmit={handleSubmit} className="space-y-3.5 mt-6">
                 {/* Email */}
                 <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <label className="sr-only" htmlFor="email">E-mail</label>
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                     <Input
+                        id="email"
                         type="email"
                         placeholder="Insira seu e-mail"
                         value={email}
@@ -124,8 +126,10 @@ export function LoginForm({
 
                 {/* Password */}
                 <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <label className="sr-only" htmlFor="password">Senha</label>
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                     <Input
+                        id="password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Insira sua senha"
                         value={password}
@@ -143,9 +147,9 @@ export function LoginForm({
                         aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                     >
                         {showPassword ? (
-                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            <EyeOff className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                         ) : (
-                            <Eye className="h-4 w-4 text-muted-foreground" />
+                            <Eye className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                         )}
                     </Button>
                 </div>
@@ -156,14 +160,18 @@ export function LoginForm({
                 )}
 
                 <div className="text-center pt-1">
-                    <Link
-                        href={process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER
-                            ? `${process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER}/login-actions/reset-credentials?client_id=${encodeURIComponent(process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || "customer-app")}`
-                            : "#"}
-                        className="text-sm font-medium underline underline-offset-4 hover:text-primary"
-                    >
-                        Esqueci minha senha
-                    </Link>
+                    {process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER ? (
+                        <Link
+                            href={`${process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER}/login-actions/reset-credentials?client_id=${encodeURIComponent(process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || "customer-app")}`}
+                            className="text-sm font-medium underline underline-offset-4 hover:text-primary"
+                        >
+                            Esqueci minha senha
+                        </Link>
+                    ) : (
+                        <span className="text-sm font-medium opacity-50 cursor-not-allowed" aria-disabled="true">
+                            Esqueci minha senha
+                        </span>
+                    )}
                 </div>
 
                 {/* Submit */}

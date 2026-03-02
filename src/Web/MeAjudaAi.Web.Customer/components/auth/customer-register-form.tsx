@@ -51,6 +51,7 @@ export function CustomerRegisterForm() {
     });
 
     async function onSubmit(data: RegisterCustomerSchema) {
+        if (isLoading) return;
         setIsLoading(true);
         try {
             // Call API
@@ -135,8 +136,13 @@ export function CustomerRegisterForm() {
                                     onChange={(e) => {
                                         // Simple mask
                                         let v = e.target.value.replace(/\D/g, "");
-                                        v = v.replace(/^(\d\d)(\d)/g, "($1) $2");
-                                        v = v.replace(/(\d{5})(\d)/, "$1-$2");
+                                        if (v.length >= 11) {
+                                            v = v.replace(/^(\d\d)(\d)/g, "($1) $2");
+                                            v = v.replace(/(\d{5})(\d)/, "$1-$2");
+                                        } else {
+                                            v = v.replace(/^(\d\d)(\d)/g, "($1) $2");
+                                            v = v.replace(/(\d{4})(\d)/, "$1-$2");
+                                        }
                                         field.onChange(v.substring(0, 15));
                                     }}
                                 />
