@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export default async function ProfilePage() {
     const session = await auth();
 
-    if (!session?.user?.id) {
+    if (!session?.user?.id || !session?.accessToken || session.error) {
         redirect("/auth/signin");
     }
 

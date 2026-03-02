@@ -56,8 +56,12 @@ export function LoginForm({
                 }
             } catch (e) {
                 console.error("Failed to fetch auth providers", e);
-                // Fallback if endpoint is unreachable during dev
-                setProviders(["google", "facebook", "microsoft", "apple"]);
+                // Fallback se ocorrer erro (apenas em dev/local)
+                if (process.env.NODE_ENV !== "production") {
+                    setProviders(["google", "facebook"]);
+                } else {
+                    setProviders([]);
+                }
             }
         };
         fetchProviders();
@@ -90,6 +94,7 @@ export function LoginForm({
 
     const handleSocialLogin = async (provider: string) => {
         if (isLoading) return;
+        setError(""); // Clear any stale auth errors before starting sign-in
         setIsLoading(true);
         try {
             await signIn("keycloak", { callbackUrl }, { kc_idp_hint: provider });
@@ -152,7 +157,9 @@ export function LoginForm({
 
                 <div className="text-center pt-1">
                     <Link
-                        href={`${process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER || "http://localhost:8080/realms/meajudaai"}/login-actions/reset-credentials?client_id=${encodeURIComponent(process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || "customer-app")}`}
+                        href={process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER
+                            ? `${process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER}/login-actions/reset-credentials?client_id=${encodeURIComponent(process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || "customer-app")}`
+                            : "#"}
                         className="text-sm font-medium underline underline-offset-4 hover:text-primary"
                     >
                         Esqueci minha senha

@@ -16,7 +16,7 @@ public class UserMappersTests
             .WithEmail("john.doe@example.com")
             .WithUsername("johndoe")
             .WithFullName("John", "Doe")
-            .WithKeycloakId("keycloak-123")
+            .WithKeycloakId(Guid.NewGuid().ToString())
             .Build();
 
         // Act
@@ -43,7 +43,7 @@ public class UserMappersTests
             .WithEmail("test@example.com")
             .WithUsername("testuser")
             .WithFullName("", "Doe")
-            .WithKeycloakId("keycloak-456")
+            .WithKeycloakId(Guid.NewGuid().ToString())
             .Build();
 
         // Act
@@ -64,7 +64,7 @@ public class UserMappersTests
             .WithEmail("test@example.com")
             .WithUsername("testuser")
             .WithFullName("John", "")
-            .WithKeycloakId("keycloak-789")
+            .WithKeycloakId(Guid.NewGuid().ToString())
             .Build();
 
         // Act
@@ -85,7 +85,7 @@ public class UserMappersTests
             .WithEmail("jose@example.com") // Email válido sem caracteres especiais
             .WithUsername("jose_silva")
             .WithFullName("José Carlos", "da Silva")
-            .WithKeycloakId("keycloak-special")
+            .WithKeycloakId(Guid.NewGuid().ToString())
             .Build();
 
         // Act
@@ -111,7 +111,7 @@ public class UserMappersTests
             .WithEmail("timestamp@example.com")
             .WithUsername("timestampuser")
             .WithFullName("Time", "Stamp")
-            .WithKeycloakId("keycloak-time")
+            .WithKeycloakId(Guid.NewGuid().ToString())
             .WithCreatedAt(createdAt)
             .WithUpdatedAt(updatedAt)
             .Build();

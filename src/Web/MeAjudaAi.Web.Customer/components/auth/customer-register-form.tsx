@@ -62,7 +62,7 @@ export function CustomerRegisterForm() {
                     phoneNumber: data.phoneNumber.replace(/\D/g, ""),
                     password: data.password,
                     termsAccepted: data.acceptedTerms,
-                    acceptedPrivacyPolicy: true,
+                    acceptedPrivacyPolicy: data.acceptedTerms,
                 },
             });
 
@@ -233,7 +233,7 @@ export function CustomerRegisterForm() {
                             </FormControl>
                             <div className="space-y-1 leading-none">
                                 <FormLabel>
-                                    Li e aceito os <Link href="/termos" className="text-primary hover:underline">Termos de Uso</Link>
+                                    Li e aceito os <Link href="/termos" className="text-primary hover:underline">Termos de Uso</Link> e a <Link href="/privacidade" className="text-primary hover:underline">Política de Privacidade</Link>
                                 </FormLabel>
                                 <FormMessage />
                             </div>

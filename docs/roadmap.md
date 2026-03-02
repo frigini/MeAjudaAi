@@ -7,46 +7,16 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ | Sprint 7-7.16 ✅ | Sprint 8A ✅ CONCLUÍDO | Sprint 8B 🔄 EM ANDAMENTO | MVP Target: 28/Março/2026  
+**Status Geral**: Consulte a [Tabela de Sprints](#cronograma-de-sprints-novembro-2025-março-2026) para o status detalhado atualizado.
 **Cobertura de Testes**: Backend 90.56% | Frontend 30 testes bUnit  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM (Admin) + React 19 + Next.js 15 (Customer) + Tailwind v4
 
 ### Marcos Principais
-- ✅ **Janeiro 2025**: Fase 1 concluída - 6 módulos core implementados
-- ✅ **Jan 20 - 21 Nov**: Sprint 0 - Migration .NET 10 + Aspire 13 (CONCLUÍDO e MERGED)
-- ✅ **22 Nov - 2 Dez**: Sprint 1 - Geographic Restriction + Module Integration (CONCLUÍDO e MERGED)
-- ✅ **3 Dez - 10 Dez**: Sprint 2 - Test Coverage 90.56% (CONCLUÍDO - META 35% SUPERADA!)
-- ✅ **10 Dez - 11 Dez**: Sprint 3 Parte 1 - GitHub Pages Migration (CONCLUÍDO - DEPLOYED!)
-- ✅ **11 Dez - 13 Dez**: Sprint 3 Parte 2 - Admin Endpoints & Tools (CONCLUÍDO - MERGED!)
-- ✅ **14 Dez - 18 Dez**: Sprint 4 - Health Checks + Data Seeding + Code Review (CONCLUÍDO - MERGED!)
-- ✅ **Sprint 5**: Tarefas completadas antecipadamente (NSubstitute→Moq, .slnx, UuidGenerator, Design Patterns, Bruno)
-- ✅ **19 Dez - 30 Dez**: Sprint 5.5 - Refactor & Cleanup (CONCLUÍDO - Technical Debt Reduction)
-- ✅ **30 Dez - 5 Jan 2026**: Sprint 6 - Blazor Admin Portal Setup (CONCLUÍDO - 5 Jan 2026, MERGED!)
-- ✅ **6 Jan - 7 Jan 2026**: Sprint 7 - Blazor Admin Portal Features (CONCLUÍDO - 7 Jan 2026, 100%)
-- ✅ **9 Jan 2026**: Sprint 7.5 - Correções de Inicialização e Build (CONCLUÍDO - 0 warnings, 0 erros)
-- ✅ **12 Jan 2026**: Sprint 7.6 - Otimização de Testes de Integração (CONCLUÍDO - 83% faster)
-- ✅ **15-16 Jan 2026**: Sprint 7.7 - Flux Pattern Refactoring (CONCLUÍDO - 5 páginas refatoradas, 87% code reduction)
-- ✅ **16 Jan 2026**: Sprint 7.8 - Dialog Implementation Verification (CONCLUÍDO - 5 dialogs verificados, build fixes)
-- ✅ **16 Jan 2026**: Sprint 7.9 - Magic Strings Elimination (CONCLUÍDO - 30+ strings eliminados, constants centralizados)
-- ✅ **16 Jan 2026**: Sprint 7.10 - Accessibility Features (CONCLUÍDO - WCAG 2.1 AA compliance, ARIA labels, screen reader support)
-- ✅ **16 Jan 2026**: Sprint 7.11 - Error Boundaries (CONCLUÍDO - Global error handling, Fluxor error state, recovery options)
-- ✅ **16 Jan 2026**: Sprint 7.12 - Performance Optimizations (CONCLUÍDO - Virtualization, debounced search, memoization)
-- ✅ **16 Jan 2026**: Sprint 7.13 - Standardized Error Handling (CONCLUÍDO - Retry logic, correlation IDs, HTTP status mapping)
-- ✅ **16 Jan 2026**: Sprint 7.14 - Complete Localization (CONCLUÍDO - pt-BR/en-US, 140+ strings, culture switching)
-- ✅ **16 Jan 2026**: Sprint 7.15 - Package Updates & Resilience Migration (CONCLUÍDO - .NET 10.0.2, deprecated packages removed)
-- ✅ **17-21 Jan 2026**: Sprint 7.16 - Technical Debt Sprint (CONCLUÍDO - Keycloak automation, warnings, tests, records)
-- ✅ **5 Fev 2026**: Sprint 7.20 - Dashboard Charts & Data Mapping Fixes (CONCLUÍDO - JSON property mapping, debug messages removed)
-- ✅ **5 Fev 2026**: Sprint 7.21 - Package Updates & Bug Fixes (CONCLUÍDO - Microsoft.OpenApi 2.6.1, Aspire.Hosting.Redis 13.1.0, SonarAnalyzer.CSharp 10.19.0)
-- ✅ **5-13 Fev 2026**: Sprint 8A - Customer Web App (React + Next.js) (CONCLUÍDO - Features & Test Optimization)
-- 🔄 **19 Fev - 4 Mar 2026**: Sprint 8B - Authentication & Onboarding Flow (EM ANDAMENTO)
-- ⏳ **Sprint 8B.2**: Technical Excellence & Infrastructure (Slugs, ASB Cleanup, Frontend Tests, Test Optimization)
-- ⏳ **5-18 Mar 2026**: Sprint 8C - Mobile App (React Native + Expo) (PLANEJADO)
-- 🚫 **CANCELADO**: Sprint 8D - Admin Portal Migration (Manter Blazor)
-- ⏳ **19-25 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
-- 🎯 **28 Março 2026**: MVP Launch (Admin Portal + Customer App Web + Mobile)
-- ⏳ **Pós-MVP**: Sprint Infra - NX Monorepo (unificar Customer Web + Provider App + Mobile em workspace compartilhado)
-- 🔮 **Pós-MVP (Abril 2026+)**: Fase 3 - Reviews, Assinaturas (Stripe), Agendamentos
-- 💡 **Pós-MVP**: Verificação OTP (Email → SMS) - Fluxo de cadastro com código de verificação por email (Keycloak nativo) e futuramente por SMS (Firebase Auth free tier 10k/mês ou AWS SNS ~R$0,03-0,05/SMS)
+
+Consulte a seção [Cronograma de Sprints](#cronograma-de-sprints-novembro-2025-março-2026) abaixo para o status detalhado e atualizado de cada sprint, e datas alvo (incluindo o MVP Launch).
+
+**Procedimento de Revisão de Sprints**
+As futuras atualizações da tabela de sprints devem observar a política: análise commit-by-commit newest-first, apresentando um veredicto conciso e resolvendo os follow-ups.
 
 ## ⚠️ Notas de Risco
 
@@ -2210,7 +2180,7 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 **MVP Launch Target**: 28 de Março de 2026 🎯  
 *Atualizado para 28 de Março de 2026.*
 
-**Post-MVP (Fase 3+)**: Reviews, Assinaturas, Agendamentos (Fevereiro 2026+)
+**Post-MVP (Fase 3+)**: Reviews, Assinaturas, Agendamentos (Abril 2026+)
 
 ---
 

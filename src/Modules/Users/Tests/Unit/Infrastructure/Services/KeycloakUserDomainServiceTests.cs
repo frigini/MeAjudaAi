@@ -66,7 +66,7 @@ public class KeycloakUserDomainServiceTests
         var lastName = "User";
         var password = "SecurePassword123!";
         var roles = new[] { "User" };
-        var keycloakId = "keycloak-id-123";
+        var keycloakId = Guid.NewGuid().ToString();
 
         _keycloakServiceMock
             .Setup(x => x.CreateUserAsync(
@@ -149,7 +149,7 @@ public class KeycloakUserDomainServiceTests
         var lastName = "User";
         var password = "SecurePassword123!";
         var roles = new[] { "User", "Customer" };
-        var keycloakId = "keycloak-id-123";
+        var keycloakId = Guid.NewGuid().ToString();
 
         _keycloakServiceMock
             .Setup(x => x.CreateUserAsync(
@@ -223,7 +223,7 @@ public class KeycloakUserDomainServiceTests
         var firstName = "Test";
         var lastName = "User";
         var roles = new[] { "User" };
-        var keycloakId = "keycloak-id-123";
+        var keycloakId = Guid.NewGuid().ToString();
 
         _keycloakServiceMock
             .Setup(x => x.CreateUserAsync(
@@ -271,7 +271,7 @@ public class KeycloakUserDomainServiceTests
         var lastName = "User";
         var password = "SecurePassword123!";
         var roles = Array.Empty<string>();
-        var keycloakId = "keycloak-id-123";
+        var keycloakId = Guid.NewGuid().ToString();
 
         _keycloakServiceMock
             .Setup(x => x.CreateUserAsync(
@@ -319,7 +319,7 @@ public class KeycloakUserDomainServiceTests
         var lastName = "User";
         var password = "SecurePassword123!";
         var roles = new[] { "User" };
-        var keycloakId = "keycloak-id-123";
+        var keycloakId = Guid.NewGuid().ToString();
         var cancellationToken = new CancellationToken(true);
 
         _keycloakServiceMock

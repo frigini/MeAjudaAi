@@ -75,6 +75,7 @@ public static class UserRoles
     /// </summary>
     public static readonly string[] AllRoles =
     [
+        SuperAdmin,
         Admin,
         ProviderManager,
         DocumentReviewer,
@@ -93,6 +94,7 @@ public static class UserRoles
     /// </summary>
     public static readonly string[] AdminRoles =
     [
+        SuperAdmin,
         Admin,
         ProviderManager,
         DocumentReviewer,

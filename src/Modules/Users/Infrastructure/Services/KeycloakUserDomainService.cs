@@ -66,14 +66,11 @@ internal class KeycloakUserDomainService(
         var userResult = User.Create(username, email, firstName, lastName, keycloakResult.Value, phoneNumber);
         if (userResult.IsFailure)
         {
-            try
+            var deactivationResult = await keycloakService.DeactivateUserAsync(keycloakResult.Value, CancellationToken.None);
+            if (deactivationResult.IsFailure)
             {
-                await keycloakService.DeactivateUserAsync(keycloakResult.Value, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Failed to deactivate Keycloak user {KeycloakId} during compensation for local user creation failure.", keycloakResult.Value);
-                // Silence compensation failures to prevent masking the original validation error
+                logger.LogWarning("Failed to deactivate Keycloak user {KeycloakId} during compensation for local user creation failure. Error: {Error}", keycloakResult.Value, deactivationResult.Error.Message);
+                // Silenciar falhas de compensação para evitar mascarar o erro de validação original
             }
             return Result<User>.Failure(userResult.Error);
         }
@@ -120,6 +117,13 @@ internal class KeycloakUserDomainService(
         var keycloakId = userId.Value.ToString();
         logger.LogWarning("Deactivating Keycloak user {UserId} due to local repository failure", keycloakId);
         
-        return await keycloakService.DeactivateUserAsync(keycloakId, cancellationToken);
+        var result = await keycloakService.DeactivateUserAsync(keycloakId, CancellationToken.None);
+        if (result.IsFailure)
+        {
+            logger.LogWarning("Failed to deactivate Keycloak user {UserId} due to local repository failure. Error: {Error}", keycloakId, result.Error.Message);
+            // Silenciar falhas de compensação para evitar mascarar o erro de validação original
+        }
+        
+        return result;
     }
 }

@@ -33,12 +33,12 @@ public class UserRepositoryTests : BaseDatabaseTest
     public async Task AddAsync_WithValidUser_ShouldPersistUser()
     {
         // Arrange
+        var keycloakId = Guid.NewGuid().ToString();
         var user = new UserBuilder()
-            .WithUsername("testuser")
             .WithEmail("test@example.com")
-            .WithFirstName("John")
-            .WithLastName("Doe")
-            .WithKeycloakId("keycloak-123")
+            .WithUsername("testuser")
+            .WithFullName("John", "Doe")
+            .WithKeycloakId(keycloakId)
             .Build();
 
         // Act
@@ -51,7 +51,7 @@ public class UserRepositoryTests : BaseDatabaseTest
         savedUser.Email.Value.Should().Be("test@example.com");
         savedUser.FirstName.Should().Be("John");
         savedUser.LastName.Should().Be("Doe");
-        savedUser.KeycloakId.Should().Be("keycloak-123");
+        savedUser.KeycloakId.Should().Be(keycloakId);
     }
 
     [Fact]
@@ -152,7 +152,7 @@ public class UserRepositoryTests : BaseDatabaseTest
     public async Task GetByKeycloakIdAsync_WithExistingKeycloakId_ShouldReturnUser()
     {
         // Arrange
-        var keycloakId = "keycloak-123";
+        var keycloakId = Guid.NewGuid().ToString();
         var user = new UserBuilder()
             .WithKeycloakId(keycloakId)
             .Build();

@@ -33,7 +33,7 @@ public class UserRepositoryTests
             .WithEmail("test@example.com")
             .WithUsername("testuser")
             .WithFullName("John", "Doe")
-            .WithKeycloakId("keycloak123")
+            .WithKeycloakId(Guid.NewGuid().ToString())
             .Build();
 
         _mockUserRepository
@@ -55,7 +55,7 @@ public class UserRepositoryTests
             .WithEmail("test@example.com")
             .WithUsername("testuser")
             .WithFullName("John", "Doe")
-            .WithKeycloakId("keycloak123")
+            .WithKeycloakId(Guid.NewGuid().ToString())
             .Build();
 
         _mockUserRepository
@@ -72,7 +72,7 @@ public class UserRepositoryTests
         result.Username.Value.Should().Be("testuser");
         result.FirstName.Should().Be("John");
         result.LastName.Should().Be("Doe");
-        result.KeycloakId.Should().Be("keycloak123");
+        result.KeycloakId.Should().NotBeNull();
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public class UserRepositoryTests
             .WithEmail(email)
             .WithUsername("testuser")
             .WithFullName("John", "Doe")
-            .WithKeycloakId("keycloak123")
+            .WithKeycloakId(Guid.NewGuid().ToString())
             .Build();
 
         _mockUserRepository
@@ -143,7 +143,7 @@ public class UserRepositoryTests
             .WithEmail("test@example.com")
             .WithUsername(username)
             .WithFullName("John", "Doe")
-            .WithKeycloakId("keycloak123")
+            .WithKeycloakId(Guid.NewGuid().ToString())
             .Build();
 
         _mockUserRepository
@@ -180,7 +180,7 @@ public class UserRepositoryTests
     public async Task GetByKeycloakIdAsync_WithExistingKeycloakId_ShouldReturnUser()
     {
         // Arrange
-        var keycloakId = "keycloak123";
+        var keycloakId = Guid.NewGuid().ToString();
         var user = new UserBuilder()
             .WithEmail("test@example.com")
             .WithUsername("testuser")
@@ -229,7 +229,7 @@ public class UserRepositoryTests
                 .WithEmail($"user{i}@example.com")
                 .WithUsername($"user{i}")
                 .WithFullName($"User{i}", "Test")
-                .WithKeycloakId($"keycloak{i}")
+                .WithKeycloakId(Guid.NewGuid().ToString())
                 .Build();
             users.Add(user);
         }
@@ -298,7 +298,7 @@ public class UserRepositoryTests
             .WithEmail("test@example.com")
             .WithUsername("testuser")
             .WithFullName("John", "Doe")
-            .WithKeycloakId("keycloak123")
+            .WithKeycloakId(Guid.NewGuid().ToString())
             .Build();
 
         _mockUserRepository

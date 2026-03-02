@@ -180,9 +180,9 @@ public class UserRegisteredDomainEventHandlerTests : IDisposable
     [Fact]
     public async Task HandleAsync_WithUserWithKeycloakId_ShouldIncludeKeycloakId()
     {
-        // Arrange
+        var keycloakId = Guid.NewGuid().ToString();
         var user = new UserBuilder()
-            .WithKeycloakId("keycloak-123")
+            .WithKeycloakId(keycloakId)
             .Build();
 
         await _context.Users.AddAsync(user);
@@ -204,7 +204,7 @@ public class UserRegisteredDomainEventHandlerTests : IDisposable
         _messageBusMock.Verify(
             x => x.PublishAsync(
                 It.Is<UserRegisteredIntegrationEvent>(e =>
-                    e.KeycloakId == "keycloak-123"
+                    e.KeycloakId == keycloakId
                 ),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()

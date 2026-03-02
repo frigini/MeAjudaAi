@@ -55,7 +55,7 @@ public class LocalDevelopmentServicesIntegrationTests : UsersIntegrationTestBase
         result.Value.Email.Should().Be(email);
         result.Value.FirstName.Should().Be(firstName);
         result.Value.LastName.Should().Be(lastName);
-        result.Value.KeycloakId.Should().StartWith("mock_keycloak_");
+        Guid.TryParse(result.Value.KeycloakId, out _).Should().BeTrue();
     }
 
     [Fact]
@@ -79,8 +79,8 @@ public class LocalDevelopmentServicesIntegrationTests : UsersIntegrationTestBase
         result1.Value!.KeycloakId.Should().NotBe(result2.Value!.KeycloakId);
 
         // Verify both use UUID v7 format
-        var guid1 = Guid.Parse(result1.Value.KeycloakId.Replace("mock_keycloak_", ""));
-        var guid2 = Guid.Parse(result2.Value.KeycloakId.Replace("mock_keycloak_", ""));
+        var guid1 = Guid.Parse(result1.Value.KeycloakId);
+        var guid2 = Guid.Parse(result2.Value.KeycloakId);
         IsUuidVersion7(guid1).Should().BeTrue("First Keycloak ID should use UUID v7");
         IsUuidVersion7(guid2).Should().BeTrue("Second Keycloak ID should use UUID v7");
     }
