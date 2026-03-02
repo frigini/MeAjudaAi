@@ -6,6 +6,11 @@ namespace MeAjudaAi.Shared.Utilities;
 public static class UserRoles
 {
     /// <summary>
+    /// Super Administrador - acesso irrestrito ao sistema inteiro
+    /// </summary>
+    public const string SuperAdmin = "super-admin";
+
+    /// <summary>
     /// Administrador com permissões elevadas - acesso total ao Admin Portal
     /// </summary>
     public const string Admin = "admin";

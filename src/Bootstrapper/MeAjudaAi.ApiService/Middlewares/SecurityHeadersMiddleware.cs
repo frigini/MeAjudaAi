@@ -49,7 +49,7 @@ public class SecurityHeadersMiddleware(RequestDelegate next, IWebHostEnvironment
             // HSTS apenas em produção e HTTPS - usando verificação de ambiente em cache
             if (ctx.Request.IsHttps && !_isDevelopment)
             {
-                headers["Strict-Transport-Security"] = HstsHeader;
+                headers.StrictTransportSecurity = HstsHeader;
             }
 
             // Remove cabeçalhos de exposição de informações eficientemente
