@@ -33,6 +33,7 @@ public static class Extensions
 
         // Command Handlers - registro manual para garantir disponibilidade
         services.AddScoped<ICommandHandler<CreateProviderCommand, Result<ProviderDto>>, CreateProviderCommandHandler>();
+        services.AddScoped<ICommandHandler<RegisterProviderCommand, Result<ProviderDto>>, RegisterProviderCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateProviderProfileCommand, Result<ProviderDto>>, UpdateProviderProfileCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteProviderCommand, Result>, DeleteProviderCommandHandler>();
         services.AddScoped<ICommandHandler<AddDocumentCommand, Result<ProviderDto>>, AddDocumentCommandHandler>();

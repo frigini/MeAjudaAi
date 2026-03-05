@@ -32,13 +32,13 @@
     --border: #404040;
     --input: #404040;
     --popover: #1a1a1a;
-    --popover-foreground: #ededed;
+    --popover-foreground: var(--foreground);
     --card: #1a1a1a;
-    --card-foreground: #ededed;
+    --card-foreground: var(--foreground);
     --muted: #262626;
     --muted-foreground: #a3a3a3;
     --accent: #262626;
-    --accent-foreground: #ededed;
+    --accent-foreground: var(--foreground);
   }
 }
 

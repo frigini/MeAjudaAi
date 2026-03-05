@@ -3,7 +3,7 @@
 import { useMyProviderProfile } from "@/hooks/use-my-provider-profile";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { EProviderStatus, PROVIDER_STATUS_LABELS, PROVIDER_TIER_LABELS } from "@/types/api/provider";
+import { EProviderStatus, PROVIDER_STATUS_LABELS, PROVIDER_TIER_LABELS, EDocumentStatus } from "@/types/api/provider";
 
 function getProviderStatusMessage(status: EProviderStatus): string {
     switch (status) {
@@ -65,16 +65,21 @@ export default function ProviderProfilePage() {
         );
     }
 
-    const isVerified = profile.status === EProviderStatus.Active;
-    const isSuspended = profile.status === EProviderStatus.Suspended;
     const isPendingVerification = profile.status === EProviderStatus.PendingDocumentVerification;
 
-    const hasAddress = !!profile.businessProfile?.primaryAddress?.street || isVerified || isSuspended;
-    const hasDocuments = (profile.documents?.length ?? 0) > 0 || isVerified || isSuspended;
+    const primaryAddress = profile.businessProfile?.primaryAddress;
+    const hasAddress = primaryAddress &&
+        primaryAddress.street?.trim() && primaryAddress.street !== "-" && primaryAddress.street !== "N/A" && primaryAddress.street !== "unknown" &&
+        primaryAddress.number?.trim() && primaryAddress.number !== "-" && primaryAddress.number !== "N/A" &&
+        primaryAddress.city?.trim() && primaryAddress.city !== "-" && primaryAddress.city !== "N/A" &&
+        primaryAddress.zipCode?.trim() && primaryAddress.zipCode !== "-" && primaryAddress.zipCode !== "N/A";
+
+    const hasDocuments = profile.documents?.length > 0 &&
+        profile.documents.some(doc => doc.documentType && (doc.status === EDocumentStatus.Uploaded || doc.fileUrl));
 
     // Estados derivados para etapas concluídas com base na solicitação do usuário
-    const step2Completed = hasAddress || isPendingVerification;
-    const step3Completed = hasDocuments || isPendingVerification;
+    const step2Completed = !!hasAddress || isPendingVerification;
+    const step3Completed = !!hasDocuments || isPendingVerification;
 
     return (
         <div className="container mx-auto py-10 max-w-4xl">

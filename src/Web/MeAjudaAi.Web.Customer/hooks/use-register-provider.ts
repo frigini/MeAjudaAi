@@ -13,7 +13,7 @@ export function useRegisterProvider() {
                 throw new Error("Missing access token");
             }
 
-            const result = await authenticatedFetch<ProviderDto>("/api/v1/providers/register", {
+            const result = await authenticatedFetch<ProviderDto>("/api/v1/providers/become", {
                 method: "post",
                 body: data,
                 token: session.accessToken,

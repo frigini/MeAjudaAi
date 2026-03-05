@@ -27,8 +27,10 @@ Write-Host "🔍 Procurando .env em: $envFilePath" -ForegroundColor Gray
 
 if (Test-Path $envFilePath) {
     Write-Host "🔧 Carregando variáveis de ambiente do .env..." -ForegroundColor Cyan
-    Get-Content $envFilePath | Where-Object { $_ -match '^[\w-]+=' } | ForEach-Object {
-        $name, $value = $_.Split('=', 2)
+    Get-Content $envFilePath | Where-Object { $_ -match '^\s*[\w-]+\s*=' } | ForEach-Object {
+        $parts = $_.Split('=', 2)
+        $name = $parts[0].Trim()
+        $value = $parts[1].Trim()
         $cleanValue = $value.Trim()
         if (($cleanValue.StartsWith('"') -and $cleanValue.EndsWith('"')) -or ($cleanValue.StartsWith("'") -and $cleanValue.EndsWith("'"))) {
             if ($cleanValue.Length -ge 2) {

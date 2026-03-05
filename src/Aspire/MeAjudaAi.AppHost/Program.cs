@@ -137,44 +137,25 @@ internal static class Program
             options.ImportRealm = "/opt/keycloak/data/import/meajudaai-realm.dev.json";
         });
         
-        var googleClientId = builder.Configuration["GOOGLE_CLIENT_ID"];
-        var googleClientSecret = builder.Configuration["GOOGLE_CLIENT_SECRET"];
-        if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret))
+        void AddSocialProviderEnv(string providerName, string clientIdKey, string clientSecretKey)
         {
-            keycloak.Keycloak
-                .WithEnvironment("GOOGLE_CLIENT_ID", googleClientId)
-                .WithEnvironment("GOOGLE_CLIENT_SECRET", googleClientSecret);
-        }
-        else
-        {
-            Console.WriteLine("⚠️ WARNING: Google OAuth credentials are missing. Google Login may fail.");
-        }
-
-        var facebookAppId = builder.Configuration["FACEBOOK_APP_ID"];
-        var facebookAppSecret = builder.Configuration["FACEBOOK_APP_SECRET"];
-        if (!string.IsNullOrWhiteSpace(facebookAppId) && !string.IsNullOrWhiteSpace(facebookAppSecret))
-        {
-            keycloak.Keycloak
-                .WithEnvironment("FACEBOOK_APP_ID", facebookAppId)
-                .WithEnvironment("FACEBOOK_APP_SECRET", facebookAppSecret);
-        }
-        else
-        {
-            Console.WriteLine("⚠️ WARNING: Facebook OAuth credentials are missing. Facebook Login may fail.");
+            var clientId = builder.Configuration[clientIdKey];
+            var clientSecret = builder.Configuration[clientSecretKey];
+            if (!string.IsNullOrWhiteSpace(clientId) && !string.IsNullOrWhiteSpace(clientSecret))
+            {
+                keycloak.Keycloak
+                    .WithEnvironment(clientIdKey, clientId)
+                    .WithEnvironment(clientSecretKey, clientSecret);
+            }
+            else
+            {
+                Console.WriteLine($"⚠️ WARNING: {providerName} OAuth credentials are missing. {providerName} Login may fail.");
+            }
         }
 
-        var instagramClientId = builder.Configuration["INSTAGRAM_CLIENT_ID"];
-        var instagramClientSecret = builder.Configuration["INSTAGRAM_CLIENT_SECRET"];
-        if (!string.IsNullOrWhiteSpace(instagramClientId) && !string.IsNullOrWhiteSpace(instagramClientSecret))
-        {
-            keycloak.Keycloak
-                .WithEnvironment("INSTAGRAM_CLIENT_ID", instagramClientId)
-                .WithEnvironment("INSTAGRAM_CLIENT_SECRET", instagramClientSecret);
-        }
-        else
-        {
-            Console.WriteLine("⚠️ WARNING: Instagram OAuth credentials are missing. Instagram Login may fail.");
-        }
+        AddSocialProviderEnv("Google", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET");
+        AddSocialProviderEnv("Facebook", "FACEBOOK_APP_ID", "FACEBOOK_APP_SECRET");
+
 
         // Garantir que Keycloak aguarde o Postgres estar pronto
         keycloak.Keycloak.WaitFor(postgresql.MainDatabase);

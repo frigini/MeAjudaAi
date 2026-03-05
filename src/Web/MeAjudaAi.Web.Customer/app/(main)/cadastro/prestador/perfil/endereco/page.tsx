@@ -62,8 +62,8 @@ export default function ProviderAddressPage() {
     ]); // Specific scalar deps
 
     const handleCepBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
-        const cep = e.target.value;
-        if (cep.length >= 8) {
+        const cep = e.target.value.replace(/\D/g, "");
+        if (cep.length === 8) {
             const data = await fetchAddress(cep);
             if (data) {
                 // shouldValidate: true ensures errors are cleared if field becomes valid
@@ -260,7 +260,7 @@ export default function ProviderAddressPage() {
                                     <FormItem>
                                         <FormLabel>Cidade</FormLabel>
                                         <FormControl>
-                                            <Input {...field} readOnly className="bg-slate-50" />
+                                            <Input {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -275,7 +275,7 @@ export default function ProviderAddressPage() {
                                     <FormItem>
                                         <FormLabel>UF</FormLabel>
                                         <FormControl>
-                                            <Input {...field} readOnly className="bg-slate-50" maxLength={2} />
+                                            <Input {...field} maxLength={2} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

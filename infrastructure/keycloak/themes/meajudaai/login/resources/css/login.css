@@ -18,6 +18,7 @@
     --error-red: #dc2626;
     --success-green: #10B981;
     --border-radius: 12px;
+    --ma-login-hover-bg: rgba(57, 88, 115, 0.05);
 }
 
 * {
@@ -202,9 +203,16 @@ button[type="submit"]:hover {
 }
 
 #updateProfile:hover {
-    background: rgba(57, 88, 115, 0.05) !important;
+    background: var(--ma-login-hover-bg, rgba(57, 88, 115, 0.05)) !important;
     border-color: var(--primary-blue-dark) !important;
     color: var(--primary-blue-dark) !important;
+}
+
+#updateProfile:focus-visible {
+    outline: 2px solid var(--primary-blue-dark) !important;
+    outline-offset: 2px;
+    background: var(--ma-login-hover-bg, rgba(57, 88, 115, 0.05)) !important;
+    box-shadow: 0 0 0 4px rgba(46, 71, 96, 0.1) !important;
 }
 
 /* ============================================
