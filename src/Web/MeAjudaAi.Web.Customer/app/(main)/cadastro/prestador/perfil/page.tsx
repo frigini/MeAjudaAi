@@ -72,10 +72,11 @@ export default function ProviderProfilePage() {
         primaryAddress.street?.trim() && primaryAddress.street !== "-" && primaryAddress.street !== "N/A" && primaryAddress.street !== "unknown" &&
         primaryAddress.number?.trim() && primaryAddress.number !== "-" && primaryAddress.number !== "N/A" &&
         primaryAddress.city?.trim() && primaryAddress.city !== "-" && primaryAddress.city !== "N/A" &&
+        primaryAddress.state?.trim() && primaryAddress.state !== "-" && primaryAddress.state !== "N/A" && primaryAddress.state !== "unknown" &&
         primaryAddress.zipCode?.trim() && primaryAddress.zipCode !== "-" && primaryAddress.zipCode !== "N/A";
 
     const hasDocuments = profile.documents?.length > 0 &&
-        profile.documents.some(doc => doc.documentType && (doc.status === EDocumentStatus.Uploaded || doc.fileUrl));
+        profile.documents.some(doc => doc.documentType && (doc.status === EDocumentStatus.Uploaded || doc.fileUrl?.trim()));
 
     // Estados derivados para etapas concluídas com base na solicitação do usuário
     const step2Completed = !!hasAddress || isPendingVerification;

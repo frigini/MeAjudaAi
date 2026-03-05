@@ -31,7 +31,7 @@ if (Test-Path $envFilePath) {
         $parts = $_.Split('=', 2)
         $name = $parts[0].Trim()
         $value = $parts[1].Trim()
-        $cleanValue = $value.Trim()
+        $cleanValue = $value
         if (($cleanValue.StartsWith('"') -and $cleanValue.EndsWith('"')) -or ($cleanValue.StartsWith("'") -and $cleanValue.EndsWith("'"))) {
             if ($cleanValue.Length -ge 2) {
                 $cleanValue = $cleanValue.Substring(1, $cleanValue.Length - 2)

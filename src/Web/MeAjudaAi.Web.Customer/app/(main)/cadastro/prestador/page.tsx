@@ -297,9 +297,9 @@ export default function RegisterProviderPage() {
             {/* Passive consent footer */}
             <p className="text-center text-xs text-muted-foreground mt-6">
                 Ao criar sua conta, você concorda com nossos{" "}
-                <Link href="/termos" className="underline hover:text-primary">Termos de Uso</Link>{" "}
+                <Link href="/termos-de-uso" className="underline hover:text-primary">Termos de Uso</Link>{" "}
                 e{" "}
-                <Link href="/privacidade" className="underline hover:text-primary">Política de Privacidade</Link>.
+                <Link href="/politica-de-privacidade" className="underline hover:text-primary">Política de Privacidade</Link>.
             </p>
         </div>
     );

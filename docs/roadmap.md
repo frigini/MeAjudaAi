@@ -93,6 +93,26 @@ As futuras atualizações da tabela de sprints devem observar a política: anál
 - `parallelizeTestCollections`: Controla se coleções de teste executam em paralelo no xUnit. Confirmado que `parallelizeTestCollections: false` é necessário para DbContext com TestContainers, pois banco compartilhado causa lock conflicts.
 ---
 
+### ✅ Sprint 8B.1 - Provider Onboarding & Registration Experience - CONCLUÍDA (Março 2026)
+
+**Objetivos**:
+1. ✅ **Multi-step Provider Registration**: Implementar UI de "Torne-se um Prestador" com Stepper unificado.
+2. ✅ **Fix Backend Reliability**: Resolver erros 500 nos endpoints críticos de prestador.
+3. ✅ **Visual Alignment**: Alinhar design do prestador com o fluxo de cliente.
+
+**Avanços Entregues**:
+- **Stepper UI**: Componente de linha do tempo implementado em `/cadastro/prestador`, guiando o usuário pelas etapas de Dados Básicos, Endereço e Documentos.
+- **Correção de API (Critical)**: Resolvido erro de resolução de DI para `RegisterProviderCommandHandler`, permitindo a criação de perfis sem falhas internas (500).
+- **Onboarding Flow**: Implementação da lógica de transição entre passos 1 (Dados Básicos) e 2 (Endereço), com persistência correta no banco de dados.
+- **Validation**: Integração com esquema de validação existente e tratamento de erros amigável no frontend.
+
+**Próximos Passos (Pendentes)**:
+- ⏳ **Document Upload (Step 3)**: Implementar componente de upload de documentos no fluxo de onboarding do prestador.
+- ⏳ **Review Dashboard**: Criar interface para o prestador acompanhar o status de sua verificação (hoje parado em `pendingBasicInfo`).
+- ⏳ **Professional Profile Setup**: Permitir que o prestador selecione categorias e serviços logo após o credenciamento básico.
+
+---
+
 ### ⏳ Sprint 8B.2 - Technical Excellence & Infrastructure (Planejado - Antes do Mobile)
 
 **Objetivos**:
