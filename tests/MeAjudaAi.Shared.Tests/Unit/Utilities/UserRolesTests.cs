@@ -77,6 +77,7 @@ public class UserRolesTests
     #region IsValidRole Tests
 
     [Theory]
+    [InlineData("super-admin")]
     [InlineData("admin")]
     [InlineData("provider-manager")]
     [InlineData("document-reviewer")]
@@ -98,6 +99,7 @@ public class UserRolesTests
     }
 
     [Theory]
+    [InlineData("Super-Admin")]
     [InlineData("ADMIN")]
     [InlineData("Provider-Manager")]
     [InlineData("DOCUMENT-REVIEWER")]

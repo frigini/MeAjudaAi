@@ -19,6 +19,23 @@ public static class MigrationExtensions
 
         var dbContextTypes = DiscoverDbContextTypes(logger);
         
+        // Ensure ServiceCatalogs runs before Providers (cross-module SQL dependency in migrations)
+        var modulePriority = new Dictionary<string, int>
+        {
+            { "Users", 1 },
+            { "ServiceCatalogs", 2 },
+            { "Locations", 3 },
+            { "Documents", 4 },
+            { "Providers", 5 },
+            { "SearchProviders", 6 }
+        };
+
+        dbContextTypes = dbContextTypes.OrderBy(t => 
+        {
+            var moduleName = ExtractModuleName(t);
+            return modulePriority.TryGetValue(moduleName, out var p) ? p : 99;
+        }).ToList();
+
         if (dbContextTypes.Count == 0)
         {
             logger.LogWarning("⚠️ No DbContext found for migration");
@@ -151,7 +168,7 @@ public static class MigrationExtensions
             logger.LogInformation("📦 {Module}: {Count} pending migrations", moduleName, pendingMigrations.Count);
             foreach (var migration in pendingMigrations)
             {
-                logger.LogDebug("   - {Migration}", migration);
+                logger.LogInformation("   - Applying {Migration}", migration);
             }
 
             await dbContext.Database.MigrateAsync(cancellationToken);

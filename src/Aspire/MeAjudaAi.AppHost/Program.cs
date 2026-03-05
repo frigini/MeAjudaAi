@@ -137,6 +137,7 @@ internal static class Program
             options.ImportRealm = "/opt/keycloak/data/import/meajudaai-realm.dev.json";
         });
         
+        Console.WriteLine($"[Aspire Debug] GOOGLE_CLIENT_ID = '{builder.Configuration["GOOGLE_CLIENT_ID"]}'");
         keycloak.Keycloak
             .WithEnvironment("GOOGLE_CLIENT_ID", builder.Configuration["GOOGLE_CLIENT_ID"] ?? "")
             .WithEnvironment("GOOGLE_CLIENT_SECRET", builder.Configuration["GOOGLE_CLIENT_SECRET"] ?? "")

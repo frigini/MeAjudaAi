@@ -85,6 +85,12 @@
         "resolved": "10.0.3",
         "contentHash": "BYWLabl3xbopAqRu1ZZaYiur0J9Hp9oRDq6AfmMI/Q8pVeTRXUhtJwzVpQdyc9e8PNO44xWM8imbe+L41zfB0Q=="
       },
+      "Microsoft.DotNet.HotReload.WebAssembly.Browser": {
+        "type": "Direct",
+        "requested": "[10.0.103, )",
+        "resolved": "10.0.103",
+        "contentHash": "tIq6T4oyBMjxxxllslJu2fOJqEj8SOW29IfWqHYxubreOVlFWnxPN2PjDMuwoHjkrOnPKyuqoNcVYh5YOZcs0Q=="
+      },
       "Microsoft.Extensions.Http.Resilience": {
         "type": "Direct",
         "requested": "[10.3.0, )",

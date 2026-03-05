@@ -15,6 +15,26 @@ $env:DOTNET_ENVIRONMENT = "Development"
 $env:POSTGRES_PASSWORD = "postgres"
 $env:DB_PASSWORD = $env:POSTGRES_PASSWORD  # Program.cs reads DB_PASSWORD
 
+# Add social login variables from .env if present
+$baseDir = $PSScriptRoot
+if ([string]::IsNullOrEmpty($baseDir)) {
+    $baseDir = $PWD
+}
+$envFilePath = Join-Path $baseDir "..\infrastructure\compose\environments\.env"
+$envFilePath = [System.IO.Path]::GetFullPath($envFilePath)
+
+Write-Host "🔍 Procurando .env em: $envFilePath" -ForegroundColor Gray
+
+if (Test-Path $envFilePath) {
+    Write-Host "🔧 Carregando variáveis de ambiente do .env..." -ForegroundColor Cyan
+    Get-Content $envFilePath | Where-Object { $_ -match '^[\w-]+=' } | ForEach-Object {
+        $name, $value = $_.Split('=', 2)
+        Set-Item -Path "env:$name" -Value $value.Trim()
+    }
+} else {
+    Write-Host "⚠️ Arquivo .env não encontrado em $envFilePath. Lógicas que dependem dele podem falhar." -ForegroundColor Yellow
+}
+
 Write-Host "🚀 Iniciando MeAjudaAi - Ambiente de Desenvolvimento" -ForegroundColor Cyan
 Write-Host "=================================================" -ForegroundColor Cyan
 Write-Host ""
