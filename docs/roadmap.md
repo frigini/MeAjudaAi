@@ -1530,7 +1530,7 @@ Get-ChildItem -Recurse -Include *.cs | Select-String "record "
 
 ---
 
-### 🔄 Sprint 8B - Authentication & Onboarding Flow (EM ANDAMENTO)
+### ✅ Sprint 8B - Authentication & Onboarding Flow - CONCLUÍDO
 
 **Periodo Estimado**: 19 Fev - 4 Mar 2026
 **Foco**: Fluxos de Cadastro e Login Segmentados (Cliente vs Prestador)
@@ -2151,7 +2151,7 @@ Frontend Blazor WASM + MAUI Hybrid:
 - Sprint 7: Blazor Admin Portal Features (6-24 Jan 2026) - ✅ CONCLUÍDO
 - Sprint 7.16: Technical Debt Sprint (17-21 Jan 2026) - 🔄 EM PROGRESSO (Task 5 movida p/ Sprint 9)
 - Sprint 8: Customer App (5-18 Fev 2026) - ✅ Concluído
-- Sprint 8B: Authentication & Onboarding (19 Fev - 4 Mar 2026) - 🔄 EM ANDAMENTO
+- Sprint 8B: Authentication & Onboarding (19 Fev - 4 Mar 2026) - ✅ CONCLUÍDO
 - Sprint 8C: Mobile App (5-18 Mar 2026) - ⏳ Planejado
 - Sprint 8D: Admin Portal Migration - 🚫 **CANCELADO**
 - ⏳ **19-25 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
@@ -2193,7 +2193,7 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 7** | 3 semanas | 6 - 24 Jan | Blazor Admin Portal - Features | ✅ CONCLUÍDO |
 | **Sprint 7.16** | 1 semana | 17-21 Jan | Technical Debt Sprint | 🔄 EM PROGRESSO |
 | **Sprint 8** | 2 semanas | 5 - 18 Fev | Customer Web App (Web) | ✅ CONCLUÍDO |
-| **Sprint 8B** | 2 semanas | 19 Fev - 4 Mar | Authentication & Onboarding | 🔄 EM ANDAMENTO |
+| **Sprint 8B** | 2 semanas | 19 Fev - 4 Mar | Authentication & Onboarding | ✅ CONCLUÍDO |
 | **Sprint 8C** | 2 semanas | 5-18 Mar | Mobile App | ⏳ Planejado |
 | **Sprint 9** | 1 semana | 19-25 Mar | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
 | **MVP Launch** | - | 28 de Março de 2026 | Final deployment & launch preparation | 🎯 Target |
