@@ -79,8 +79,9 @@ export default function ProviderProfilePage() {
         profile.documents.some(doc => doc.documentType && (doc.status === EDocumentStatus.Uploaded || doc.fileUrl?.trim()));
 
     // Estados derivados para etapas concluídas com base na solicitação do usuário
-    const step2Completed = !!hasAddress || isPendingVerification;
-    const step3Completed = !!hasDocuments || isPendingVerification;
+    const isVerifiedOrSuspended = profile.status === EProviderStatus.Active || profile.status === EProviderStatus.Suspended;
+    const step2Completed = !!hasAddress || isPendingVerification || isVerifiedOrSuspended;
+    const step3Completed = !!hasDocuments || isPendingVerification || isVerifiedOrSuspended;
 
     return (
         <div className="container mx-auto py-10 max-w-4xl">

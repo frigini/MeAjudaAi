@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Inicia o ambiente de desenvolvimento do MeAjudaAi
 .DESCRIPTION
@@ -31,6 +31,23 @@ if (Test-Path $envFilePath) {
         $parts = $_.Split('=', 2)
         $name = $parts[0].Trim()
         $value = $parts[1].Trim()
+        
+        # Strip inline comments
+        if ($value -match '#') {
+            # Find first # not inside quotes
+            $inSingle = $false
+            $inDouble = $false
+            for ($i = 0; $i -lt $value.Length; $i++) {
+                $char = $value[$i]
+                if ($char -eq "'" -and -not $inDouble) { $inSingle = -not $inSingle }
+                elseif ($char -eq '"' -and -not $inSingle) { $inDouble = -not $inDouble }
+                elseif ($char -eq '#' -and -not $inSingle -and -not $inDouble) {
+                    $value = $value.Substring(0, $i).Trim()
+                    break
+                }
+            }
+        }
+
         $cleanValue = $value
         if (($cleanValue.StartsWith('"') -and $cleanValue.EndsWith('"')) -or ($cleanValue.StartsWith("'") -and $cleanValue.EndsWith("'"))) {
             if ($cleanValue.Length -ge 2) {
