@@ -8,8 +8,15 @@ namespace MeAjudaAi.Modules.Providers.Application.Commands;
 /// <summary>
 /// Comando para adição de documento ao prestador de serviços.
 /// </summary>
+/// <param name="ProviderId">O ID do prestador.</param>
+/// <param name="DocumentNumber">O número do documento.</param>
+/// <param name="DocumentType">O tipo do documento.</param>
+/// <param name="FileName">Nome do ficheiro, opcional.</param>
+/// <param name="FileUrl">URL do ficheiro, opcional.</param>
 public sealed record AddDocumentCommand(
     Guid ProviderId,
     string DocumentNumber,
-    EDocumentType DocumentType
+    EDocumentType DocumentType,
+    string? FileName = null,
+    string? FileUrl = null
 ) : Command<Result<ProviderDto>>;

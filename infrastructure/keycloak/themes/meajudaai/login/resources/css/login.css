@@ -7,17 +7,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap');
 
 :root {
-    --primary-blue: #3D5A80;
-    --primary-blue-dark: #2E4057;
-    --secondary-orange: #E07A5F;
-    --secondary-orange-dark: #C66850;
-    --background-cream: #F4F1DE;
-    --text-dark: #3D5A80;
+    --primary-blue: #395873;
+    --primary-blue-dark: #2E4760;
+    --secondary-orange: #E0702B;
+    --secondary-orange-dark: #c56226;
+    --background-cream: #FFFFFF;
+    --text-dark: #2e2e2e;
     --text-light: #FFFFFF;
-    --border-color: #CED4DA;
-    --error-red: #DC2626;
+    --border-color: #e0e0e0;
+    --error-red: #dc2626;
     --success-green: #10B981;
-    --border-radius: 8px;
+    --border-radius: 12px;
+    --ma-login-hover-bg: rgba(57, 88, 115, 0.05);
 }
 
 * {
@@ -60,7 +61,7 @@ html {
     font-size: 0;
     text-indent: -9999px;
     overflow: hidden;
-    
+
     /* Mostrar logo - responsivo */
     display: block;
     max-width: 100%;
@@ -102,6 +103,7 @@ html {
         opacity: 0;
         transform: translateY(-20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -159,7 +161,7 @@ input:focus {
 }
 
 /* ============================================
-   BOTÃO PRINCIPAL - LARANJA
+   BOTÃO PRINCIPAL E SECUNDÁRIO
    ============================================ */
 .pf-c-button.pf-m-primary,
 #kc-login,
@@ -184,12 +186,33 @@ button[type="submit"] {
 button[type="submit"]:hover {
     background: linear-gradient(135deg, var(--secondary-orange-dark) 0%, var(--secondary-orange) 100%);
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(230, 126, 34, 0.4);
+    box-shadow: 0 4px 12px rgba(224, 112, 43, 0.3);
 }
 
 .pf-c-button.pf-m-primary:active,
 #kc-login:active {
     transform: translateY(0);
+}
+
+/* Override para o botão secundário de Revisar Perfil na tela de conflito de conta */
+#updateProfile {
+    background: transparent !important;
+    border: 2px solid var(--primary-blue) !important;
+    color: var(--primary-blue) !important;
+    box-shadow: none !important;
+}
+
+#updateProfile:hover {
+    background: var(--ma-login-hover-bg, rgba(57, 88, 115, 0.05)) !important;
+    border-color: var(--primary-blue-dark) !important;
+    color: var(--primary-blue-dark) !important;
+}
+
+#updateProfile:focus-visible {
+    outline: 2px solid var(--primary-blue-dark) !important;
+    outline-offset: 2px;
+    background: var(--ma-login-hover-bg, rgba(57, 88, 115, 0.05)) !important;
+    box-shadow: 0 0 0 4px rgba(46, 71, 96, 0.1) !important;
 }
 
 /* ============================================
@@ -329,17 +352,18 @@ a:hover,
    RESPONSIVIDADE
    ============================================ */
 @media (max-width: 768px) {
+
     #kc-content-wrapper,
     .login-pf-page .card-pf {
         padding: 32px 24px;
         margin: 20px;
         max-width: calc(100% - 40px);
     }
-    
+
     #kc-header-wrapper {
         font-size: 24px;
     }
-    
+
     #kc-form-login h1,
     #kc-page-title {
         font-size: 20px;
@@ -347,6 +371,7 @@ a:hover,
 }
 
 @media (max-width: 480px) {
+
     #kc-content-wrapper,
     .login-pf-page .card-pf {
         padding: 24px 20px;

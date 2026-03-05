@@ -39,7 +39,7 @@ public class UpdateMyProviderProfileIntegrationTests : ProvidersIntegrationTestB
             new AddressDto("Street", "1", "Comp", "Neigh", "City", "ST", "12345678", "BR")
         );
 
-        var command = new UpdateProviderProfileCommand(provider.Id.Value, newName, businessProfileDto);
+        var command = new UpdateProviderProfileCommand(provider.Id.Value, newName, businessProfileDto, new List<ProviderServiceDto>());
 
         using var scope = CreateScope();
         var commandDispatcher = scope.ServiceProvider.GetRequiredService<ICommandDispatcher>();

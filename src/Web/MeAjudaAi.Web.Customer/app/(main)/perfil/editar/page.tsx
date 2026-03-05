@@ -1,7 +1,9 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { unwrapResponse } from "@/lib/api/response-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { apiUsersGet2 } from "@/lib/api/generated/sdk.gen";
+import { authenticatedFetch } from "@/lib/api/fetch-client";
+import { MeAjudaAiModulesUsersApplicationDtosUserDto } from "@/lib/api/generated/types.gen";
 import { EditProfileForm } from "@/components/profile/edit-profile-form";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function EditProfilePage() {
     const session = await auth();
 
-    if (!session?.user?.id) {
+    if (!session?.user?.id || !session?.accessToken || session.error) {
         redirect("/auth/signin");
     }
 
@@ -17,16 +19,11 @@ export default async function EditProfilePage() {
     let user = null;
 
     try {
-        const response = await apiUsersGet2({
-            path: { id: session.user.id },
-            headers: {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                'Authorization': `Bearer ${(session as any).accessToken}`
-            }
+        const data = await authenticatedFetch<MeAjudaAiModulesUsersApplicationDtosUserDto>(`/api/v1/users/${session.user.id}`, {
+            token: session.accessToken
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        user = (response.data as any)?.result;
+        user = unwrapResponse<MeAjudaAiModulesUsersApplicationDtosUserDto>(data);
     } catch (e) {
         console.error("Failed to fetch user profile", e);
     }
@@ -52,9 +49,9 @@ export default async function EditProfilePage() {
                     <EditProfileForm
                         userId={session.user.id}
                         initialData={{
-                            firstName: user.firstName,
-                            lastName: user.lastName,
-                            email: user.email,
+                            firstName: user.firstName ?? "",
+                            lastName: user.lastName ?? "",
+                            email: user.email ?? "",
                             // phoneNumber: user.phoneNumber // Missing in DTO
                         }}
                     />

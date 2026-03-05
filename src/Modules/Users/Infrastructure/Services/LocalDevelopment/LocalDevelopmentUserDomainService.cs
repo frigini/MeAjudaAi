@@ -29,8 +29,9 @@ internal class LocalDevelopmentUserDomainService : IUserDomainService
     {
         // Para ambientes sem Keycloak, criar usuário mock com ID simulado
         // Using UuidGenerator.NewId() for better time-based ordering and performance
-        var user = new User(username, email, firstName, lastName, $"mock_keycloak_{UuidGenerator.NewId()}", phoneNumber);
-        return Task.FromResult(Result<User>.Success(user));
+        var userResult = User.Create(username, email, firstName, lastName, UuidGenerator.NewId().ToString(), phoneNumber);
+        if (userResult.IsFailure) return Task.FromResult(Result<User>.Failure(userResult.Error));
+        return Task.FromResult(Result<User>.Success(userResult.Value));
     }
 
     /// <summary>
@@ -40,6 +41,19 @@ internal class LocalDevelopmentUserDomainService : IUserDomainService
     public Task<Result> SyncUserWithKeycloakAsync(UserId userId, CancellationToken cancellationToken = default)
     {
         // Para ambientes sem Keycloak, simular sincronização bem-sucedida
+        return Task.FromResult(Result.Success());
+    }
+
+    /// <summary>
+    /// Simula a desativação de um usuário no Keycloak para ambiente de desenvolvimento local.
+    /// Sempre retorna sucesso.
+    /// </summary>
+    /// <param name="userId">ID do usuário a ser desativado.</param>
+    /// <param name="cancellationToken">Token de cancelamento.</param>
+    /// <returns>Resultado simulado (sempre sucesso).</returns>
+    public Task<Result> DeactivateUserInKeycloakAsync(UserId userId, CancellationToken cancellationToken = default)
+    {
+        // Para ambientes sem Keycloak, simular desativação bem-sucedida
         return Task.FromResult(Result.Success());
     }
 }

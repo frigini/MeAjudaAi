@@ -16,6 +16,13 @@ internal sealed class UserRepository(UsersDbContext context, TimeProvider timePr
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 
+    public async Task<User?> GetByIdNoTrackingAsync(UserId id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+    }
+
     public async Task<User?> GetByEmailAsync(Email email, CancellationToken cancellationToken = default)
     {
         return await _context.Users

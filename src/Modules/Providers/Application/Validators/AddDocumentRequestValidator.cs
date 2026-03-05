@@ -14,17 +14,17 @@ public class AddDocumentRequestValidator : AbstractValidator<AddDocumentRequest>
     {
         RuleFor(x => x.Number)
             .NotEmpty()
-            .WithMessage("Document number is required")
+            .WithMessage("Número do documento é obrigatório")
             .MinimumLength(3)
-            .WithMessage("Document number must be at least 3 characters long")
+            .WithMessage("Número do documento deve ter pelo menos 3 caracteres")
             .MaximumLength(50)
-            .WithMessage("Document number cannot exceed 50 characters")
+            .WithMessage("Número do documento não pode exceder 50 caracteres")
             .Matches(@"^[a-zA-Z0-9\-\.]+$")
-            .WithMessage("Document number can only contain letters, numbers, hyphens and dots");
+            .WithMessage("Número do documento deve conter apenas letras, números, hífens e pontos");
 
         RuleFor(x => x.DocumentType)
             .Must(BeValidDocumentType)
-            .WithMessage($"DocumentType must be a valid document type. {EnumExtensions.GetValidValuesDescription<EDocumentType>()}");
+            .WithMessage("Tipo de documento inválido. Valores aceitos: None, CPF, CNPJ, RG, CNH, Passport, Other");
     }
 
     private static bool BeValidDocumentType(EDocumentType documentType)

@@ -51,9 +51,12 @@ public sealed class GetPublicProviderByIdQueryHandler : IQueryHandler<GetPublicP
         // Verifica se a privacidade restrita está habilitada via feature flag
         var isPrivacyEnabled = await _featureManager.IsEnabledAsync(FeatureFlags.PublicProfilePrivacy);
 
-        var phoneNumbers = ResolvePhoneNumbers(isPrivacyEnabled, businessProfile);
+        // A privacidade é forçada se a feature flag estiver ligada OU se o usuário não estiver autenticado
+        var shouldRedactContactInfo = isPrivacyEnabled || !query.IsAuthenticated;
+
+        var phoneNumbers = ResolvePhoneNumbers(shouldRedactContactInfo, businessProfile);
         
-        var email = !isPrivacyEnabled && businessProfile.ContactInfo != null
+        var email = !shouldRedactContactInfo && businessProfile.ContactInfo != null
             ? businessProfile.ContactInfo.Email
             : null;
             

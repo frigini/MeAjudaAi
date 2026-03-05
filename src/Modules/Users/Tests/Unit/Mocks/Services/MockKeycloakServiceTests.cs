@@ -35,7 +35,7 @@ public class MockKeycloakServiceTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNullOrEmpty();
-        result.Value.Should().StartWith("keycloak_");
+        Guid.TryParse(result.Value, out _).Should().BeTrue();
     }
 
     [Fact]

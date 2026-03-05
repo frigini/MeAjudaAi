@@ -24,13 +24,13 @@ public sealed class DbContextConcurrencyTests : BaseApiTest
         using (var setupScope = Services.CreateScope())
         {
             var setupContext = setupScope.ServiceProvider.GetRequiredService<UsersDbContext>();
-            var user = new User(
+            var user = User.Create(
                 new Username(username),
                 new Email(email),
                 "Concurrent",
                 "Test",
-                $"keycloak-{Guid.NewGuid():N}"
-            );
+                Guid.NewGuid().ToString()
+            ).Value;
 
             setupContext.Users.Add(user);
             await setupContext.SaveChangesAsync();
@@ -92,13 +92,13 @@ public sealed class DbContextConcurrencyTests : BaseApiTest
         {
             var context1 = scope1.ServiceProvider.GetRequiredService<UsersDbContext>();
 
-            var user = new User(
+            var user = User.Create(
                 new Username(username),
                 new Email(email),
                 "NoConflict",
                 "Test",
-                $"keycloak-{Guid.NewGuid():N}"
-            );
+                Guid.NewGuid().ToString()
+            ).Value;
 
             context1.Users.Add(user);
             await context1.SaveChangesAsync();

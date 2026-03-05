@@ -38,7 +38,7 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
             firstName = "Test",
             lastName = "User",
             password = "Test1234",
-            keycloakId = $"keycloak-{Guid.NewGuid()}"
+            keycloakId = Guid.NewGuid().ToString()
         };
 
         // Act
@@ -167,7 +167,7 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
             firstName = "Test",
             lastName = "User",
             password = "Test1234",
-            keycloakId = $"keycloak-{Guid.NewGuid()}"
+            keycloakId = Guid.NewGuid().ToString()
         };
 
         try
@@ -237,7 +237,7 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
             email = email,
             firstName = "Test",
             lastName = "User",
-            keycloakId = $"keycloak-{Guid.NewGuid()}"
+            keycloakId = Guid.NewGuid().ToString()
         };
 
         var response = await Client.PostAsJsonAsync("/api/v1/users", userData);
@@ -279,13 +279,13 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
         {
             var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
 
-            var user = new User(
-                username: username,
-                email: email,
-                firstName: "Database",
-                lastName: "Test",
-                keycloakId: $"keycloak-{Guid.NewGuid():N}"
-            );
+            var user = User.Create(
+                username,
+                email,
+                "Database",
+                "Test",
+                Guid.NewGuid().ToString()
+            ).Value;
 
             context.Users.Add(user);
             await context.SaveChangesAsync();

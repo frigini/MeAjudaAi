@@ -44,7 +44,7 @@ public class GetUserByIdQueryHandlerTests
             "Test",
             "User",
             "Test User",
-            "keycloak-id-123",
+            Guid.NewGuid().ToString(),
             DateTime.UtcNow,
             DateTime.UtcNow
         );

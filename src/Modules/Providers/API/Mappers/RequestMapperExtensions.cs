@@ -43,7 +43,8 @@ public static class RequestMapperExtensions
         return new UpdateProviderProfileCommand(
             providerId,
             request.Name,
-            request.BusinessProfile
+            request.BusinessProfile,
+            request.Services
         );
     }
 
@@ -58,7 +59,9 @@ public static class RequestMapperExtensions
         return new AddDocumentCommand(
             providerId,
             request.Number,
-            request.DocumentType
+            request.DocumentType,
+            request.FileName,
+            request.FileUrl
         );
     }
 

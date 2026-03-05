@@ -26,6 +26,7 @@ public class KeycloakService(
     private readonly KeycloakOptions _options = options;
     private string? _adminToken;
     private DateTime _adminTokenExpiry = DateTime.MinValue;
+    private readonly SemaphoreSlim _adminTokenSemaphore = new(1, 1);
 
     // Usando configurações padrão de serialização do projeto
     private static readonly JsonSerializerOptions JsonOptions = SerializationDefaults.Api;
@@ -258,19 +259,23 @@ public class KeycloakService(
         if (!string.IsNullOrEmpty(_adminToken) && _adminTokenExpiry > DateTime.UtcNow.AddMinutes(5))
             return Result<string>.Success(_adminToken);
 
+        await _adminTokenSemaphore.WaitAsync(cancellationToken);
         try
         {
+            // Verificar novamente
+            if (!string.IsNullOrEmpty(_adminToken) && _adminTokenExpiry > DateTime.UtcNow.AddMinutes(5))
+                return Result<string>.Success(_adminToken);
+
             var tokenRequest = new List<KeyValuePair<string, string>>
             {
                 new("grant_type", "password"),
-                new("client_id", _options.ClientId),
-                new("client_secret", _options.ClientSecret),
+                new("client_id", "admin-cli"),
                 new("username", _options.AdminUsername),
                 new("password", _options.AdminPassword)
             };
 
             using var content = new FormUrlEncodedContent(tokenRequest);
-            var response = await httpClient.PostAsync(_options.TokenUrl, content, cancellationToken);
+            var response = await httpClient.PostAsync(_options.AdminTokenUrl, content, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -294,6 +299,10 @@ public class KeycloakService(
         {
             logger.LogError(ex, "Exception occurred while getting admin token");
             return Result<string>.Failure($"Admin token request failed: {ex.Message}");
+        }
+        finally
+        {
+            _adminTokenSemaphore.Release();
         }
     }
 

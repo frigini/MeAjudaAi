@@ -44,6 +44,10 @@ export type MeAjudaAiContractsConfigurationFeatureFlags = {
      * Habilita mode de debug/diagnóstico.
      */
     enableDebugMode?: boolean;
+    /**
+     * Habilita autenticação fake para desenvolvimento local.
+     */
+    enableFakeAuth?: boolean;
 };
 
 /**
@@ -493,6 +497,44 @@ export type MeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicatio
 /**
  * Envelope padrão para respostas da API
  */
+export type MeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosProviderStatusDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null = {
+    data?: MeAjudaAiModulesProvidersApplicationDtosProviderStatusDto;
+    /**
+     * Código HTTP da resposta
+     */
+    statusCode?: number;
+    /**
+     * Mensagem descritiva (opcional)
+     */
+    message?: string | null;
+    /**
+     * Indica se a resposta representa sucesso (status code 2xx)
+     */
+    readonly isSuccess?: boolean;
+};
+
+/**
+ * Envelope padrão para respostas da API
+ */
+export type MeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosPublicProviderDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null = {
+    data?: MeAjudaAiModulesProvidersApplicationDtosPublicProviderDto;
+    /**
+     * Código HTTP da resposta
+     */
+    statusCode?: number;
+    /**
+     * Mensagem descritiva (opcional)
+     */
+    message?: string | null;
+    /**
+     * Indica se a resposta representa sucesso (status code 2xx)
+     */
+    readonly isSuccess?: boolean;
+};
+
+/**
+ * Envelope padrão para respostas da API
+ */
 export type MeAjudaAiContractsModelsResponse1MeAjudaAiModulesServiceCatalogsApplicationDtosRequestsServiceValidateServicesResponse_MeAjudaAiModulesServiceCatalogsApplication_Version_0000_Culture_neutral_PublicKeyToken_null = {
     data?: MeAjudaAiModulesServiceCatalogsApplicationDtosRequestsServiceValidateServicesResponse;
     /**
@@ -655,6 +697,28 @@ export type MeAjudaAiContractsModelsResponse1SystemGuid_SystemPrivateCoreLib_Ver
 };
 
 /**
+ * Envelope padrão para respostas da API
+ */
+export type MeAjudaAiContractsModelsResponse1SystemObject_SystemPrivateCoreLib_Version_10000_Culture_neutral_PublicKeyToken_7Cec85D7Bea7798E = {
+    /**
+     * Dados da resposta
+     */
+    data?: unknown;
+    /**
+     * Código HTTP da resposta
+     */
+    statusCode?: number;
+    /**
+     * Mensagem descritiva (opcional)
+     */
+    message?: string | null;
+    /**
+     * Indica se a resposta representa sucesso (status code 2xx)
+     */
+    readonly isSuccess?: boolean;
+};
+
+/**
  * Representa a localização detectada do usuário.
  */
 export type MeAjudaAiContractsModelsUserLocation = {
@@ -765,6 +829,16 @@ export type MeAjudaAiModulesLocationsApplicationDtosRequestsUpdateAllowedCityReq
     isActive?: boolean;
 };
 
+export type MeAjudaAiModulesProvidersApiEndpointsPublicRegisterProviderApiRequest = {
+    name?: string | null;
+    /**
+     * Tipo de prestador de serviços: None, Individual, Company, Cooperative, Freelancer.
+     */
+    type?: 0 | 1 | 2 | 3 | 4;
+    documentNumber?: string | null;
+    phoneNumber?: string | null;
+};
+
 /**
  * DTO para endereço.
  */
@@ -808,6 +882,8 @@ export type MeAjudaAiModulesProvidersApplicationDtosDocumentDto = {
      * Tipos de documentos suportados pelo sistema.
      */
     documentType?: 0 | 1 | 2 | 3 | 4 | 5 | 99;
+    fileName?: string | null;
+    fileUrl?: string | null;
     isPrimary?: boolean;
 };
 
@@ -831,14 +907,74 @@ export type MeAjudaAiModulesProvidersApplicationDtosProviderDto = {
      * Status de verificação do prestador de serviços.
      */
     verificationStatus?: 0 | 1 | 2 | 3 | 4 | 5;
+    /**
+     * Tier de assinatura do prestador de serviços.
+     */
+    tier?: 0 | 1 | 2 | 3;
     documents?: Array<MeAjudaAiModulesProvidersApplicationDtosDocumentDto> | null;
     qualifications?: Array<MeAjudaAiModulesProvidersApplicationDtosQualificationDto> | null;
+    services?: Array<MeAjudaAiModulesProvidersApplicationDtosProviderServiceDto> | null;
     createdAt?: string;
     updatedAt?: string | null;
     isDeleted?: boolean;
     deletedAt?: string | null;
     suspensionReason?: string | null;
     rejectionReason?: string | null;
+};
+
+/**
+ * DTO para serviço de um prestador.
+ */
+export type MeAjudaAiModulesProvidersApplicationDtosProviderServiceDto = {
+    serviceId?: string;
+    serviceName?: string | null;
+};
+
+/**
+ * DTO leve para consulta de status de aprovação e tier do prestador.
+ * Usado pelo endpoint GET /api/v1/providers/me/status.
+ */
+export type MeAjudaAiModulesProvidersApplicationDtosProviderStatusDto = {
+    /**
+     * Status do fluxo de registro do prestador de serviços.
+     */
+    status?: 0 | 1 | 2 | 3 | 4 | 5;
+    /**
+     * Tier de assinatura do prestador de serviços.
+     */
+    tier?: 0 | 1 | 2 | 3;
+    /**
+     * Status de verificação do prestador de serviços.
+     */
+    verificationStatus?: 0 | 1 | 2 | 3 | 4 | 5;
+    rejectionReason?: string | null;
+};
+
+/**
+ * DTO seguro para exibição pública de dados do prestador.
+ * Remove informações sensíveis como documentos, motivo de rejeição, etc.
+ */
+export type MeAjudaAiModulesProvidersApplicationDtosPublicProviderDto = {
+    id?: string;
+    name?: string | null;
+    /**
+     * Tipo de prestador de serviços: None, Individual, Company, Cooperative, Freelancer.
+     */
+    type?: 0 | 1 | 2 | 3 | 4;
+    fantasyName?: string | null;
+    description?: string | null;
+    city?: string | null;
+    state?: string | null;
+    createdAt?: string;
+    rating?: number | null;
+    reviewCount?: number;
+    services?: Array<string> | null;
+    phoneNumbers?: Array<string> | null;
+    email?: string | null;
+    /**
+     * Status de verificação do prestador de serviços.
+     */
+    verificationStatus?: 0 | 1 | 2 | 3 | 4 | 5;
 };
 
 /**
@@ -858,13 +994,21 @@ export type MeAjudaAiModulesProvidersApplicationDtosQualificationDto = {
  */
 export type MeAjudaAiModulesProvidersApplicationDtosRequestsAddDocumentRequest = {
     /**
-     * Número do documento.
+     * Número do documento
      */
     number?: string | null;
     /**
      * Tipos de documentos suportados pelo sistema.
      */
     documentType?: 0 | 1 | 2 | 3 | 4 | 5 | 99;
+    /**
+     * Nome do arquivo (opcional para documentos apenas numéricos)
+     */
+    fileName?: string | null;
+    /**
+     * URL do arquivo (opcional para documentos apenas numéricos)
+     */
+    fileUrl?: string | null;
 };
 
 /**
@@ -887,6 +1031,41 @@ export type MeAjudaAiModulesProvidersApplicationDtosRequestsCreateProviderReques
 };
 
 /**
+ * Request para auto-registro de um novo prestador de serviços na plataforma.
+ * Endpoint público — não requer autenticação.
+ */
+export type MeAjudaAiModulesProvidersApplicationDtosRequestsRegisterProviderRequest = {
+    /**
+     * Nome completo ou nome fantasia do prestador.
+     */
+    name?: string | null;
+    /**
+     * Tipo de prestador de serviços: None, Individual, Company, Cooperative, Freelancer.
+     */
+    type?: 0 | 1 | 2 | 3 | 4;
+    /**
+     * Número de telefone profissional (obrigatório).
+     */
+    phoneNumber?: string | null;
+    /**
+     * Email profissional do prestador.
+     */
+    email?: string | null;
+    /**
+     * Indica que o prestador aceitou os Termos de Uso (obrigatório).
+     */
+    acceptedTerms?: boolean;
+    /**
+     * Indica que o prestador aceitou a Política de Privacidade/LGPD (obrigatório).
+     */
+    acceptedPrivacyPolicy?: boolean;
+    /**
+     * Número do documento (CPF/CNPJ) do prestador.
+     */
+    documentNumber?: string | null;
+};
+
+/**
  * Request para solicitar correção de informações básicas de um prestador de serviços.
  */
 export type MeAjudaAiModulesProvidersApplicationDtosRequestsRequireBasicInfoCorrectionRequest = {
@@ -905,6 +1084,10 @@ export type MeAjudaAiModulesProvidersApplicationDtosRequestsUpdateProviderProfil
      */
     name?: string | null;
     businessProfile?: MeAjudaAiModulesProvidersApplicationDtosBusinessProfileDto;
+    /**
+     * Lista de serviços oferecidos pelo prestador. Pode ser nulo se não houver alteração.
+     */
+    services?: Array<MeAjudaAiModulesProvidersApplicationDtosProviderServiceDto> | null;
 };
 
 /**
@@ -1043,6 +1226,15 @@ export type MeAjudaAiModulesServiceCatalogsApplicationDtosServiceListDto = {
     description?: string | null;
     displayOrder?: number;
     isActive?: boolean;
+};
+
+export type MeAjudaAiModulesUsersApiEndpointsPublicRegisterCustomerRequest = {
+    name?: string | null;
+    email?: string | null;
+    password?: string | null;
+    phoneNumber?: string | null;
+    termsAccepted?: boolean;
+    acceptedPrivacyPolicy?: boolean;
 };
 
 export type MeAjudaAiModulesUsersApplicationDtosRequestsCreateUserRequest = {
@@ -1230,6 +1422,36 @@ export type MeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicatio
 /**
  * Envelope padrão para respostas da API
  */
+export type MeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosProviderStatusDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_nullWritable = {
+    data?: MeAjudaAiModulesProvidersApplicationDtosProviderStatusDto;
+    /**
+     * Código HTTP da resposta
+     */
+    statusCode?: number;
+    /**
+     * Mensagem descritiva (opcional)
+     */
+    message?: string | null;
+};
+
+/**
+ * Envelope padrão para respostas da API
+ */
+export type MeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosPublicProviderDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_nullWritable = {
+    data?: MeAjudaAiModulesProvidersApplicationDtosPublicProviderDto;
+    /**
+     * Código HTTP da resposta
+     */
+    statusCode?: number;
+    /**
+     * Mensagem descritiva (opcional)
+     */
+    message?: string | null;
+};
+
+/**
+ * Envelope padrão para respostas da API
+ */
 export type MeAjudaAiContractsModelsResponse1MeAjudaAiModulesServiceCatalogsApplicationDtosRequestsServiceValidateServicesResponse_MeAjudaAiModulesServiceCatalogsApplication_Version_0000_Culture_neutral_PublicKeyToken_nullWritable = {
     data?: MeAjudaAiModulesServiceCatalogsApplicationDtosRequestsServiceValidateServicesResponse;
     /**
@@ -1349,6 +1571,24 @@ export type MeAjudaAiContractsModelsResponse1SystemGuid_SystemPrivateCoreLib_Ver
      * Dados da resposta
      */
     data?: string;
+    /**
+     * Código HTTP da resposta
+     */
+    statusCode?: number;
+    /**
+     * Mensagem descritiva (opcional)
+     */
+    message?: string | null;
+};
+
+/**
+ * Envelope padrão para respostas da API
+ */
+export type MeAjudaAiContractsModelsResponse1SystemObject_SystemPrivateCoreLib_Version_10000_Culture_neutral_PublicKeyToken_7Cec85D7Bea7798EWritable = {
+    /**
+     * Dados da resposta
+     */
+    data?: unknown;
     /**
      * Código HTTP da resposta
      */
@@ -1860,6 +2100,60 @@ export type ApiProvidersPutResponses = {
 
 export type ApiProvidersPutResponse = ApiProvidersPutResponses[keyof ApiProvidersPutResponses];
 
+export type ApiPublicGetData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/providers/{id}/public';
+};
+
+export type ApiPublicGetErrors = {
+    /**
+     * Not Found
+     */
+    404: unknown;
+};
+
+export type ApiPublicGetResponses = {
+    /**
+     * OK
+     */
+    200: MeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosPublicProviderDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null;
+};
+
+export type ApiPublicGetResponse = ApiPublicGetResponses[keyof ApiPublicGetResponses];
+
+export type ApiBecomePostData = {
+    body: MeAjudaAiModulesProvidersApiEndpointsPublicRegisterProviderApiRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/providers/become';
+};
+
+export type ApiBecomePostErrors = {
+    /**
+     * Bad Request
+     */
+    400: MeAjudaAiContractsModelsResponse1SystemObject_SystemPrivateCoreLib_Version_10000_Culture_neutral_PublicKeyToken_7Cec85D7Bea7798E;
+    /**
+     * Unauthorized
+     */
+    401: unknown;
+};
+
+export type ApiBecomePostError = ApiBecomePostErrors[keyof ApiBecomePostErrors];
+
+export type ApiBecomePostResponses = {
+    /**
+     * Created
+     */
+    201: MeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosProviderDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null;
+};
+
+export type ApiBecomePostResponse = ApiBecomePostResponses[keyof ApiBecomePostResponses];
+
 export type ApiByUserGetData = {
     body?: never;
     path: {
@@ -2145,6 +2439,133 @@ export type ApiRequireBasicInfoCorrectionPostResponses = {
     200: unknown;
 };
 
+export type ApiMeGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/providers/me';
+};
+
+export type ApiMeGetErrors = {
+    /**
+     * Not Found
+     */
+    404: unknown;
+};
+
+export type ApiMeGetResponses = {
+    /**
+     * OK
+     */
+    200: MeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosProviderDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null;
+};
+
+export type ApiMeGetResponse = ApiMeGetResponses[keyof ApiMeGetResponses];
+
+export type ApiMePutData = {
+    body: MeAjudaAiModulesProvidersApplicationDtosRequestsUpdateProviderProfileRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/providers/me';
+};
+
+export type ApiMePutErrors = {
+    /**
+     * Bad Request
+     */
+    400: unknown;
+    /**
+     * Not Found
+     */
+    404: unknown;
+};
+
+export type ApiMePutResponses = {
+    /**
+     * OK
+     */
+    200: MeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosProviderDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null;
+};
+
+export type ApiMePutResponse = ApiMePutResponses[keyof ApiMePutResponses];
+
+export type ApiDocumentsPost2Data = {
+    body: MeAjudaAiModulesProvidersApplicationDtosRequestsAddDocumentRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/providers/me/documents';
+};
+
+export type ApiDocumentsPost2Errors = {
+    /**
+     * Bad Request
+     */
+    400: unknown;
+    /**
+     * Not Found
+     */
+    404: unknown;
+};
+
+export type ApiDocumentsPost2Responses = {
+    /**
+     * OK
+     */
+    200: MeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosProviderDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null;
+};
+
+export type ApiDocumentsPost2Response = ApiDocumentsPost2Responses[keyof ApiDocumentsPost2Responses];
+
+export type ApiStatusGet2Data = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/providers/me/status';
+};
+
+export type ApiStatusGet2Errors = {
+    /**
+     * Bad Request
+     */
+    400: unknown;
+    /**
+     * Not Found
+     */
+    404: unknown;
+};
+
+export type ApiStatusGet2Responses = {
+    /**
+     * OK
+     */
+    200: MeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosProviderStatusDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null;
+};
+
+export type ApiStatusGet2Response = ApiStatusGet2Responses[keyof ApiStatusGet2Responses];
+
+export type ApiRegisterPostData = {
+    body: MeAjudaAiModulesProvidersApplicationDtosRequestsRegisterProviderRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/providers/register';
+};
+
+export type ApiRegisterPostErrors = {
+    /**
+     * Bad Request
+     */
+    400: unknown;
+};
+
+export type ApiRegisterPostResponses = {
+    /**
+     * Created
+     */
+    201: MeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosProviderDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null;
+};
+
+export type ApiRegisterPostResponse = ApiRegisterPostResponses[keyof ApiRegisterPostResponses];
+
 export type ApiServicesDeleteData = {
     body?: never;
     path: {
@@ -2212,6 +2633,7 @@ export type ApiProvidersGet3Data = {
         latitude: number;
         longitude: number;
         radiusInKm: number;
+        term?: string;
         serviceIds?: Array<string>;
         minRating?: number;
         subscriptionTiers?: Array<0 | 1 | 2 | 3>;
@@ -2389,6 +2811,7 @@ export type ApiServicesGetData = {
     path?: never;
     query?: {
         activeOnly?: boolean;
+        name?: string;
     };
     url: '/api/v1/service-catalogs/services';
 };
@@ -2763,3 +3186,17 @@ export type ApiProfilePutResponses = {
 };
 
 export type ApiProfilePutResponse = ApiProfilePutResponses[keyof ApiProfilePutResponses];
+
+export type ApiRegisterPost2Data = {
+    body: MeAjudaAiModulesUsersApiEndpointsPublicRegisterCustomerRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/register';
+};
+
+export type ApiRegisterPost2Responses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};

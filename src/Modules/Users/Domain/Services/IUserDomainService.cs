@@ -34,4 +34,14 @@ public interface IUserDomainService
     Task<Result> SyncUserWithKeycloakAsync(
         UserId userId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Desativa o usuário no Keycloak (utilizado para compensação em caso de erro).
+    /// </summary>
+    /// <param name="userId">ID do usuário no sistema local</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>Resultado da operação</returns>
+    Task<Result> DeactivateUserInKeycloakAsync(
+        UserId userId,
+        CancellationToken cancellationToken = default);
 }

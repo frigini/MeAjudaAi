@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { ApiActivatePost2Data, ApiActivatePost2Responses, ApiActivatePostData, ApiActivatePostResponses, ApiAllowedCitiesDeleteData, ApiAllowedCitiesDeleteErrors, ApiAllowedCitiesDeleteResponses, ApiAllowedCitiesGet2Data, ApiAllowedCitiesGet2Errors, ApiAllowedCitiesGet2Responses, ApiAllowedCitiesGetData, ApiAllowedCitiesGetResponses, ApiAllowedCitiesPatchData, ApiAllowedCitiesPatchErrors, ApiAllowedCitiesPatchResponses, ApiAllowedCitiesPostData, ApiAllowedCitiesPostErrors, ApiAllowedCitiesPostResponses, ApiAllowedCitiesPutData, ApiAllowedCitiesPutErrors, ApiAllowedCitiesPutResponses, ApiByCityGetData, ApiByCityGetErrors, ApiByCityGetResponses, ApiByEmailGetData, ApiByEmailGetErrors, ApiByEmailGetResponses, ApiByStateGetData, ApiByStateGetErrors, ApiByStateGetResponses, ApiByTypeGetData, ApiByTypeGetErrors, ApiByTypeGetResponses, ApiByUserGetData, ApiByUserGetErrors, ApiByUserGetResponses, ApiCategoriesDeleteData, ApiCategoriesDeleteResponses, ApiCategoriesGet2Data, ApiCategoriesGet2Errors, ApiCategoriesGet2Responses, ApiCategoriesGetData, ApiCategoriesGetResponses, ApiCategoriesPostData, ApiCategoriesPostResponses, ApiCategoriesPutData, ApiCategoriesPutResponses, ApiCategoryGetData, ApiCategoryGetResponses, ApiChangeCategoryPostData, ApiChangeCategoryPostResponses, ApiClientGetData, ApiClientGetResponses, ApiCspReportPostData, ApiCspReportPostResponses, ApiDeactivatePost2Data, ApiDeactivatePost2Responses, ApiDeactivatePostData, ApiDeactivatePostResponses, ApiDocumentsDeleteData, ApiDocumentsDeleteErrors, ApiDocumentsDeleteResponses, ApiDocumentsPostData, ApiDocumentsPostErrors, ApiDocumentsPostResponses, ApiProfilePutData, ApiProfilePutErrors, ApiProfilePutResponses, ApiProviderGetData, ApiProviderGetResponses, ApiProvidersDeleteData, ApiProvidersDeleteErrors, ApiProvidersDeleteResponses, ApiProvidersGet2Data, ApiProvidersGet2Errors, ApiProvidersGet2Responses, ApiProvidersGet3Data, ApiProvidersGet3Errors, ApiProvidersGet3Responses, ApiProvidersGetData, ApiProvidersGetErrors, ApiProvidersGetResponses, ApiProvidersPostData, ApiProvidersPostErrors, ApiProvidersPostResponses, ApiProvidersPutData, ApiProvidersPutErrors, ApiProvidersPutResponses, ApiRequestVerificationPostData, ApiRequestVerificationPostErrors, ApiRequestVerificationPostResponses, ApiRequireBasicInfoCorrectionPostData, ApiRequireBasicInfoCorrectionPostErrors, ApiRequireBasicInfoCorrectionPostResponses, ApiSearchGetData, ApiSearchGetResponses, ApiServicesDelete2Data, ApiServicesDelete2Responses, ApiServicesDeleteData, ApiServicesDeleteErrors, ApiServicesDeleteResponses, ApiServicesGet2Data, ApiServicesGet2Errors, ApiServicesGet2Responses, ApiServicesGetData, ApiServicesGetResponses, ApiServicesPost2Data, ApiServicesPost2Responses, ApiServicesPostData, ApiServicesPostErrors, ApiServicesPostResponses, ApiServicesPutData, ApiServicesPutResponses, ApiStatusGetData, ApiStatusGetErrors, ApiStatusGetResponses, ApiUploadPostData, ApiUploadPostErrors, ApiUploadPostResponses, ApiUsersDeleteData, ApiUsersDeleteErrors, ApiUsersDeleteResponses, ApiUsersGet2Data, ApiUsersGet2Errors, ApiUsersGet2Responses, ApiUsersGetData, ApiUsersGetErrors, ApiUsersGetResponses, ApiUsersPostData, ApiUsersPostErrors, ApiUsersPostResponses, ApiValidatePostData, ApiValidatePostResponses, ApiVerificationStatusGetData, ApiVerificationStatusGetErrors, ApiVerificationStatusGetResponses, ApiVerificationStatusPutData, ApiVerificationStatusPutErrors, ApiVerificationStatusPutResponses, ApiVerifyPostData, ApiVerifyPostErrors, ApiVerifyPostResponses } from './types.gen';
+import type { ApiActivatePost2Data, ApiActivatePost2Responses, ApiActivatePostData, ApiActivatePostResponses, ApiAllowedCitiesDeleteData, ApiAllowedCitiesDeleteErrors, ApiAllowedCitiesDeleteResponses, ApiAllowedCitiesGet2Data, ApiAllowedCitiesGet2Errors, ApiAllowedCitiesGet2Responses, ApiAllowedCitiesGetData, ApiAllowedCitiesGetResponses, ApiAllowedCitiesPatchData, ApiAllowedCitiesPatchErrors, ApiAllowedCitiesPatchResponses, ApiAllowedCitiesPostData, ApiAllowedCitiesPostErrors, ApiAllowedCitiesPostResponses, ApiAllowedCitiesPutData, ApiAllowedCitiesPutErrors, ApiAllowedCitiesPutResponses, ApiBecomePostData, ApiBecomePostErrors, ApiBecomePostResponses, ApiByCityGetData, ApiByCityGetErrors, ApiByCityGetResponses, ApiByEmailGetData, ApiByEmailGetErrors, ApiByEmailGetResponses, ApiByStateGetData, ApiByStateGetErrors, ApiByStateGetResponses, ApiByTypeGetData, ApiByTypeGetErrors, ApiByTypeGetResponses, ApiByUserGetData, ApiByUserGetErrors, ApiByUserGetResponses, ApiCategoriesDeleteData, ApiCategoriesDeleteResponses, ApiCategoriesGet2Data, ApiCategoriesGet2Errors, ApiCategoriesGet2Responses, ApiCategoriesGetData, ApiCategoriesGetResponses, ApiCategoriesPostData, ApiCategoriesPostResponses, ApiCategoriesPutData, ApiCategoriesPutResponses, ApiCategoryGetData, ApiCategoryGetResponses, ApiChangeCategoryPostData, ApiChangeCategoryPostResponses, ApiClientGetData, ApiClientGetResponses, ApiCspReportPostData, ApiCspReportPostResponses, ApiDeactivatePost2Data, ApiDeactivatePost2Responses, ApiDeactivatePostData, ApiDeactivatePostResponses, ApiDocumentsDeleteData, ApiDocumentsDeleteErrors, ApiDocumentsDeleteResponses, ApiDocumentsPost2Data, ApiDocumentsPost2Errors, ApiDocumentsPost2Responses, ApiDocumentsPostData, ApiDocumentsPostErrors, ApiDocumentsPostResponses, ApiMeGetData, ApiMeGetErrors, ApiMeGetResponses, ApiMePutData, ApiMePutErrors, ApiMePutResponses, ApiProfilePutData, ApiProfilePutErrors, ApiProfilePutResponses, ApiProviderGetData, ApiProviderGetResponses, ApiProvidersDeleteData, ApiProvidersDeleteErrors, ApiProvidersDeleteResponses, ApiProvidersGet2Data, ApiProvidersGet2Errors, ApiProvidersGet2Responses, ApiProvidersGet3Data, ApiProvidersGet3Errors, ApiProvidersGet3Responses, ApiProvidersGetData, ApiProvidersGetErrors, ApiProvidersGetResponses, ApiProvidersPostData, ApiProvidersPostErrors, ApiProvidersPostResponses, ApiProvidersPutData, ApiProvidersPutErrors, ApiProvidersPutResponses, ApiPublicGetData, ApiPublicGetErrors, ApiPublicGetResponses, ApiRegisterPost2Data, ApiRegisterPost2Responses, ApiRegisterPostData, ApiRegisterPostErrors, ApiRegisterPostResponses, ApiRequestVerificationPostData, ApiRequestVerificationPostErrors, ApiRequestVerificationPostResponses, ApiRequireBasicInfoCorrectionPostData, ApiRequireBasicInfoCorrectionPostErrors, ApiRequireBasicInfoCorrectionPostResponses, ApiSearchGetData, ApiSearchGetResponses, ApiServicesDelete2Data, ApiServicesDelete2Responses, ApiServicesDeleteData, ApiServicesDeleteErrors, ApiServicesDeleteResponses, ApiServicesGet2Data, ApiServicesGet2Errors, ApiServicesGet2Responses, ApiServicesGetData, ApiServicesGetResponses, ApiServicesPost2Data, ApiServicesPost2Responses, ApiServicesPostData, ApiServicesPostErrors, ApiServicesPostResponses, ApiServicesPutData, ApiServicesPutResponses, ApiStatusGet2Data, ApiStatusGet2Errors, ApiStatusGet2Responses, ApiStatusGetData, ApiStatusGetErrors, ApiStatusGetResponses, ApiUploadPostData, ApiUploadPostErrors, ApiUploadPostResponses, ApiUsersDeleteData, ApiUsersDeleteErrors, ApiUsersDeleteResponses, ApiUsersGet2Data, ApiUsersGet2Errors, ApiUsersGet2Responses, ApiUsersGetData, ApiUsersGetErrors, ApiUsersGetResponses, ApiUsersPostData, ApiUsersPostErrors, ApiUsersPostResponses, ApiValidatePostData, ApiValidatePostResponses, ApiVerificationStatusGetData, ApiVerificationStatusGetErrors, ApiVerificationStatusGetResponses, ApiVerificationStatusPutData, ApiVerificationStatusPutErrors, ApiVerificationStatusPutResponses, ApiVerifyPostData, ApiVerifyPostErrors, ApiVerifyPostResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -306,6 +306,39 @@ export const apiProvidersPut = <ThrowOnError extends boolean = false>(options: O
 });
 
 /**
+ * Consultar perfil público do prestador
+ *
+ * Recupera dados públicos e seguros de um prestador para exibição no site.
+ * Não requer autenticação.
+ *
+ * **Dados Retornados:**
+ * - Informações básicas (Nome, Fantasia, Descrição)
+ * - Localização aproximada (Cidade/Estado)
+ * - Avaliação média e contagem de reviews
+ * - Lista de serviços oferecidos
+ *
+ * **Dados Ocultados (Privacidade):**
+ * - Documentos (CPF/CNPJ)
+ * - Endereço completo (Rua/Número)
+ * - Dados de auditoria interna
+ */
+export const apiPublicGet = <ThrowOnError extends boolean = false>(options: Options<ApiPublicGetData, ThrowOnError>) => (options.client ?? client).get<ApiPublicGetResponses, ApiPublicGetErrors, ThrowOnError>({ url: '/api/v1/providers/{id}/public', ...options });
+
+/**
+ * Tornar-se prestador (usuário já autenticado)
+ *
+ * Transforma o usuário autenticado em um prestador de serviços. Requer token de usuário.
+ */
+export const apiBecomePost = <ThrowOnError extends boolean = false>(options: Options<ApiBecomePostData, ThrowOnError>) => (options.client ?? client).post<ApiBecomePostResponses, ApiBecomePostErrors, ThrowOnError>({
+    url: '/api/v1/providers/become',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Implementa a lógica de consulta de prestador por ID do usuário.
  *
  * Processo da consulta:
@@ -428,6 +461,52 @@ export const apiRequireBasicInfoCorrectionPost = <ThrowOnError extends boolean =
     }
 });
 
+export const apiMeGet = <ThrowOnError extends boolean = false>(options?: Options<ApiMeGetData, ThrowOnError>) => (options?.client ?? client).get<ApiMeGetResponses, ApiMeGetErrors, ThrowOnError>({ url: '/api/v1/providers/me', ...options });
+
+export const apiMePut = <ThrowOnError extends boolean = false>(options: Options<ApiMePutData, ThrowOnError>) => (options.client ?? client).put<ApiMePutResponses, ApiMePutErrors, ThrowOnError>({
+    url: '/api/v1/providers/me',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Upload de documento pelo próprio prestador
+ *
+ * Permite que o prestador adicione documentos ao seu próprio perfil.
+ */
+export const apiDocumentsPost2 = <ThrowOnError extends boolean = false>(options: Options<ApiDocumentsPost2Data, ThrowOnError>) => (options.client ?? client).post<ApiDocumentsPost2Responses, ApiDocumentsPost2Errors, ThrowOnError>({
+    url: '/api/v1/providers/me/documents',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Status de aprovação do prestador
+ *
+ * Retorna o status atual de aprovação e tier do prestador autenticado.
+ */
+export const apiStatusGet2 = <ThrowOnError extends boolean = false>(options?: Options<ApiStatusGet2Data, ThrowOnError>) => (options?.client ?? client).get<ApiStatusGet2Responses, ApiStatusGet2Errors, ThrowOnError>({ url: '/api/v1/providers/me/status', ...options });
+
+/**
+ * Auto-registro de prestador de serviços
+ *
+ * Inicia o cadastro de um prestador. Cria usuário no Keycloak com role 'provider-standard' e a entidade Provider com Tier=Standard. Endpoint público, sem autenticação.
+ */
+export const apiRegisterPost = <ThrowOnError extends boolean = false>(options: Options<ApiRegisterPostData, ThrowOnError>) => (options.client ?? client).post<ApiRegisterPostResponses, ApiRegisterPostErrors, ThrowOnError>({
+    url: '/api/v1/providers/register',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
 /**
  * Processa requisição de remoção de serviço do provider.
  *
@@ -479,14 +558,16 @@ export const apiServicesPost = <ThrowOnError extends boolean = false>(options: O
  *
  * **Algoritmo de Busca:**
  * 1. Filtrar por raio a partir da localização de busca
- * 2. Aplicar filtros opcionais (serviços, avaliação, nível de assinatura)
- * 3. Classificar resultados por:
+ * 2. Aplicar filtro textual (nome, descrição) se fornecido
+ * 3. Aplicar filtros opcionais (serviços, avaliação, nível de assinatura)
+ * 4. Classificar resultados por:
  * - Nível de assinatura (Platinum > Gold > Standard > Free)
  * - Avaliação média (maior primeiro)
  * - Distância (mais próximo primeiro)
  *
  * **Casos de Uso:**
  * - Encontrar prestadores próximos a uma localização específica
+ * - Buscar prestadores por nome ou termo (ex: "Eletricista", "João")
  * - Buscar prestadores que oferecem serviços específicos
  * - Filtrar por avaliação mínima ou nível de assinatura
  */
@@ -903,6 +984,20 @@ export const apiByEmailGet = <ThrowOnError extends boolean = false>(options: Opt
  */
 export const apiProfilePut = <ThrowOnError extends boolean = false>(options: Options<ApiProfilePutData, ThrowOnError>) => (options.client ?? client).put<ApiProfilePutResponses, ApiProfilePutErrors, ThrowOnError>({
     url: '/api/v1/users/{id}/profile',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Registers a new customer
+ *
+ * Creates a new user account with 'customer' role.
+ */
+export const apiRegisterPost2 = <ThrowOnError extends boolean = false>(options: Options<ApiRegisterPost2Data, ThrowOnError>) => (options.client ?? client).post<ApiRegisterPost2Responses, unknown, ThrowOnError>({
+    url: '/api/v1/users/register',
     ...options,
     headers: {
         'Content-Type': 'application/json',

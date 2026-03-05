@@ -36,7 +36,8 @@ public class ProvidersDbContextFactory : IDesignTimeDbContextFactory<ProvidersDb
         optionsBuilder.UseNpgsql(connectionString, options =>
         {
             options.MigrationsHistoryTable("__EFMigrationsHistory", "providers");
-        });
+        })
+        .UseSnakeCaseNamingConvention();
 
         return new ProvidersDbContext(optionsBuilder.Options);
     }

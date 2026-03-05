@@ -99,6 +99,29 @@ public sealed class User : AggregateRoot<UserId>
     private User() { }
 
     /// <summary>
+    /// Instancia um novo usuário já com o ID formatado. Usado internamente pelo Factory Method <see cref="Create"/>.
+    /// </summary>
+    private User(UserId id, Username username, Email email, string firstName, string lastName, string keycloakId, string? phoneNumber = null)
+        : base(id)
+    {
+        ArgumentNullException.ThrowIfNull(username);
+        ArgumentNullException.ThrowIfNull(email);
+
+        Username = username;
+        Email = email;
+        FirstName = firstName;
+        LastName = lastName;
+        KeycloakId = keycloakId;
+        
+        if (!string.IsNullOrWhiteSpace(phoneNumber))
+        {
+            PhoneNumber = new PhoneNumber(phoneNumber);
+        }
+
+        AddDomainEvent(new UserRegisteredDomainEvent(Id.Value, 1, email.Value, username.Value, firstName, lastName));
+    }
+
+    /// <summary>
     /// Helper interno de testes para definir o Id. Acessível apenas a partir de assemblies de teste.
     /// </summary>
     internal void SetIdForTesting(UserId id)
@@ -122,41 +145,46 @@ public sealed class User : AggregateRoot<UserId>
         UpdatedAt = updatedAt;
     }
 
+
     /// <summary>
-    /// Cria um novo usuário no sistema.
+    /// Cria um novo usuário no sistema validando as regras de negócio primeiro.
     /// </summary>
     /// <param name="username">Nome de usuário único</param>
     /// <param name="email">Endereço de email único</param>
     /// <param name="firstName">Primeiro nome</param>
     /// <param name="lastName">Sobrenome</param>
-    /// <param name="keycloakId">ID do usuário no Keycloak</param>
+    /// <param name="keycloakId">ID do usuário no Keycloak (formato UUID)</param>
     /// <param name="phoneNumber">Número de telefone (opcional)</param>
+    /// <returns>Result indicando sucesso com a entidade ou falha com erro de domínio.</returns>
     /// <remarks>
-    /// Este construtor dispara automaticamente o evento UserRegisteredDomainEvent.
+    /// Este método valida o formato do Keycloak ID antes de criar a entidade base, prevenindo
+    /// exceções de formatação prematuras.
     /// </remarks>
-    /// <exception cref="UserDomainException">Thrown when business rules are violated</exception>
-    public User(Username username, Email email, string firstName, string lastName, string keycloakId, string? phoneNumber = null)
-        : base(UserId.New())
+    public static MeAjudaAi.Contracts.Functional.Result<User> Create(Username username, Email email, string firstName, string lastName, string keycloakId, string? phoneNumber = null)
     {
-        ArgumentNullException.ThrowIfNull(username);
-        ArgumentNullException.ThrowIfNull(email);
-
-        // Validações de regras de negócio específicas para criação
-        ValidateUserCreation(keycloakId);
-
-        Username = username;
-        Email = email;
-        FirstName = firstName;
-        LastName = lastName;
-        KeycloakId = keycloakId;
-        
-        // Define PhoneNumber se fornecido
-        if (!string.IsNullOrWhiteSpace(phoneNumber))
+        try
         {
-            PhoneNumber = new PhoneNumber(phoneNumber);
+            ValidateUserCreation(keycloakId);
+        }
+        catch (UserDomainException ex)
+        {
+            return MeAjudaAi.Contracts.Functional.Result<User>.Failure(MeAjudaAi.Contracts.Functional.Error.BadRequest(ex.Message));
         }
 
-        AddDomainEvent(new UserRegisteredDomainEvent(Id.Value, 1, email.Value, username.Value, firstName, lastName));
+        if (!Guid.TryParse(keycloakId, out var parsedGuid))
+        {
+            return MeAjudaAi.Contracts.Functional.Result<User>.Failure(MeAjudaAi.Contracts.Functional.Error.BadRequest("O ID do Keycloak deve ser um GUID válido."));
+        }
+
+        try
+        {
+            var user = new User(new UserId(parsedGuid), username, email, firstName, lastName, keycloakId, phoneNumber);
+            return MeAjudaAi.Contracts.Functional.Result<User>.Success(user);
+        }
+        catch (Exception ex)
+        {
+            return MeAjudaAi.Contracts.Functional.Result<User>.Failure(MeAjudaAi.Contracts.Functional.Error.BadRequest(ex.Message));
+        }
     }
 
     /// <summary>

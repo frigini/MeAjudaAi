@@ -25,6 +25,9 @@ public static class ValidationConstants
         // Baseado em: .HasMaxLength(100) nas migrations
         public const int LastNameMaxLength = 100;
 
+        // Baseado em: .HasMaxLength(20) nas migrations (implicit/expected)
+        public const int PhoneNumberMaxLength = 20;
+
         // Baseado em: .HasMaxLength(50) nas migrations
         public const int KeycloakIdMaxLength = 50;
 

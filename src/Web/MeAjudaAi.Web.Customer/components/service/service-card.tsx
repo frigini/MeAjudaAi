@@ -35,7 +35,8 @@ export function ServiceCard({
                         <Avatar
                             src={avatarUrl}
                             alt={name}
-                            className="h-24 w-24 md:h-32 md:w-32 rounded-full object-cover border-4 border-white shadow-sm"
+                            containerClassName="h-24 w-24 md:h-32 md:w-32 rounded-full border-4 border-white shadow-sm"
+                            className="object-cover"
                             fallback={name.substring(0, 2).toUpperCase()}
                         />
                     </div>

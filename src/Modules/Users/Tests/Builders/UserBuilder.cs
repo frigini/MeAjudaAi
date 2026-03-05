@@ -21,13 +21,20 @@ public class UserBuilder : BaseBuilder<User>
         Faker = new Faker<User>()
             .CustomInstantiator(f =>
             {
-                var user = new User(
+                var userResult = User.Create(
                     _username ?? new Username(f.Internet.UserName()),
                     _email ?? new Email(f.Internet.Email()),
                     _firstName ?? f.Name.FirstName(),
                     _lastName ?? f.Name.LastName(),
-                    _keycloakId ?? f.Random.Guid().ToString()
+                    _keycloakId ?? Guid.NewGuid().ToString()
                 );
+
+                if (userResult.IsFailure)
+                {
+                    throw new InvalidOperationException(userResult.Error.Message);
+                }
+
+                var user = userResult.Value;
 
                 // Se um ID específico foi definido, usa helper interno
                 if (_id.HasValue)

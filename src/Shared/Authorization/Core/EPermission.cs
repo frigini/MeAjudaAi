@@ -121,6 +121,25 @@ public enum EPermission
     LocationsRead,
 
     [Display(Name = "locations:manage")]
-    LocationsManage
-}
+    LocationsManage,
 
+    // ===== SELF-REGISTRATION (PUBLIC) =====
+
+    /// <summary>Auto-registro de cliente — endpoint público, sem autenticação.</summary>
+    [Display(Name = "users:register")]
+    UsersRegister,
+
+    /// <summary>Auto-registro de prestador — endpoint público, sem autenticação.</summary>
+    [Display(Name = "providers:register")]
+    ProvidersRegister,
+
+    // ===== PROVIDER SELF-SERVICE (AUTENTICADO) =====
+
+    /// <summary>Upload de documentos pelo próprio prestador.</summary>
+    [Display(Name = "providers:upload-documents")]
+    ProvidersUploadDocuments,
+
+    /// <summary>Gestão de tier pelo sistema (Stripe webhook).</summary>
+    [Display(Name = "providers:manage-tier")]
+    ProvidersManageTier,
+}

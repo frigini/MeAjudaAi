@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +15,7 @@ import { DEFAULT_VERIFICATION_STATUS } from "@/lib/constants";
 
 
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 
 interface ProviderDashboardClientProps {
     provider: ProviderDto;
@@ -51,7 +50,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
             const currentProvider: ProviderDto = await fetchRes.json();
 
             const res = await fetch(`/api/providers/me`, {
-                method: "PUT",
+                method: "put",
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -99,7 +98,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
             // Using local proxy route: /api/providers/[id]/services/[serviceId]
             // We use POST to this route
             const res = await fetch(`/api/providers/${provider.id}/services/${selectedServiceId}`, {
-                method: "POST"
+                method: "post"
             });
 
             if (!res.ok) {
@@ -123,7 +122,7 @@ export default function ProviderDashboardClient({ provider }: ProviderDashboardC
         setIsRemovingService(prev => new Set(prev).add(serviceId));
         try {
             const res = await fetch(`/api/providers/${provider.id}/services/${serviceId}`, {
-                method: "DELETE"
+                method: "delete"
             });
 
             if (!res.ok) throw new Error("Failed to remove service");

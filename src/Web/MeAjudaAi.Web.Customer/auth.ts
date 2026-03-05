@@ -1,6 +1,8 @@
 import NextAuth from "next-auth"
 import Keycloak from "next-auth/providers/keycloak"
+import Credentials from "next-auth/providers/credentials"
 import { JWT } from "next-auth/jwt"
+import { decodeJwt } from "jose"
 
 async function refreshAccessToken(token: JWT): Promise<JWT> {
     try {
@@ -55,20 +57,90 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             clientSecret: requireEnv("KEYCLOAK_CLIENT_SECRET"),
             issuer: requireEnv("KEYCLOAK_ISSUER"),
         }),
+        Credentials({
+            id: "credentials",
+            name: "Credentials",
+            credentials: {
+                email: { label: "Email", type: "email" },
+                password: { label: "Senha", type: "password" },
+            },
+            async authorize(credentials) {
+                if (!credentials?.email || !credentials?.password) return null;
+
+                try {
+                    const res = await fetch(
+                        `${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/token`,
+                        {
+                            method: "POST",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: new URLSearchParams({
+                                client_id: process.env.KEYCLOAK_CLIENT_ID ?? "",
+                                client_secret: process.env.KEYCLOAK_CLIENT_SECRET ?? "",
+                                grant_type: "password",
+                                username: credentials.email as string,
+                                password: credentials.password as string,
+                                scope: "openid profile email",
+                            }),
+                        }
+                    );
+
+                    if (!res.ok) return null;
+
+                    const tokens = await res.json();
+
+                    // Decode the access token to get user info
+                    let payload: any;
+                    try {
+                        payload = decodeJwt(tokens.access_token);
+                    } catch (err) {
+                        console.error("TokenDecodeError", { error: "Failed to decode JWT token" });
+                        return null;
+                    }
+
+                    return {
+                        id: payload.sub,
+                        name: payload.name || payload.preferred_username,
+                        email: payload.email,
+                        // Custom fields to pass to jwt callback
+                        accessToken: tokens.access_token,
+                        refreshToken: tokens.refresh_token,
+                        expiresAt: Date.now() + (tokens.expires_in * 1000),
+                    } as any;
+                } catch (error: any) {
+                    console.error("CredentialsAuthError", {
+                        error: error.name || "UnknownError",
+                        message: error.message || "An error occurred during authentication",
+                    });
+                    return null;
+                }
+            },
+        }),
     ],
     pages: {
         signIn: "/auth/signin",
     },
     callbacks: {
-        async jwt({ token, account, profile }) {
-            // Initial sign in
-            if (account && profile) {
+        async jwt({ token, account, profile, user }) {
+            // Initial sign in via OAuth (Keycloak OIDC)
+            if (account && account.provider === "keycloak" && profile) {
                 return {
                     ...token,
                     accessToken: account.access_token ?? "",
                     refreshToken: account.refresh_token ?? "",
                     expiresAt: account.expires_at ? account.expires_at * 1000 : Date.now() + 3600000,
                     id: profile.sub ?? "",
+                }
+            }
+
+            // Initial sign in via Credentials (ROPC against Keycloak)
+            if (account && account.provider === "credentials" && user) {
+                const u = user as any;
+                return {
+                    ...token,
+                    accessToken: u.accessToken ?? "",
+                    refreshToken: u.refreshToken ?? "",
+                    expiresAt: u.expiresAt ?? Date.now() + 3600000,
+                    id: u.id ?? "",
                 }
             }
 

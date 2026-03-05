@@ -6,6 +6,11 @@ namespace MeAjudaAi.Shared.Utilities;
 public static class UserRoles
 {
     /// <summary>
+    /// Super Administrador - acesso irrestrito ao sistema inteiro
+    /// </summary>
+    public const string SuperAdmin = "super-admin";
+
+    /// <summary>
     /// Administrador com permissões elevadas - acesso total ao Admin Portal
     /// </summary>
     public const string Admin = "admin";
@@ -40,18 +45,48 @@ public static class UserRoles
     /// </summary>
     public const string Customer = "customer";
 
+    // ===== PROVIDER TIER ROLES =====
+    // Gerenciados automaticamente via webhook Stripe (módulo de pagamentos futuro).
+    // Todo prestador começa como provider-standard (plano gratuito).
+
+    /// <summary>
+    /// Prestador de serviços no plano gratuito (Standard).
+    /// Atribuído automaticamente no auto-registro.
+    /// </summary>
+    public const string ProviderStandard = "provider-standard";
+
+    /// <summary>
+    /// Prestador de serviços no plano Silver (pago via Stripe).
+    /// </summary>
+    public const string ProviderSilver = "provider-silver";
+
+    /// <summary>
+    /// Prestador de serviços no plano Gold (pago via Stripe).
+    /// </summary>
+    public const string ProviderGold = "provider-gold";
+
+    /// <summary>
+    /// Prestador de serviços no plano Platinum (pago via Stripe).
+    /// </summary>
+    public const string ProviderPlatinum = "provider-platinum";
+
     /// <summary>
     /// Obtém todos os papéis disponíveis no sistema
     /// </summary>
     public static readonly string[] AllRoles =
     [
+        SuperAdmin,
         Admin,
         ProviderManager,
         DocumentReviewer,
         CatalogManager,
         Operator,
         Viewer,
-        Customer
+        Customer,
+        ProviderStandard,
+        ProviderSilver,
+        ProviderGold,
+        ProviderPlatinum
     ];
 
     /// <summary>
@@ -59,6 +94,7 @@ public static class UserRoles
     /// </summary>
     public static readonly string[] AdminRoles =
     [
+        SuperAdmin,
         Admin,
         ProviderManager,
         DocumentReviewer,
@@ -72,6 +108,17 @@ public static class UserRoles
     public static readonly string[] CustomerRoles =
     [
         Customer
+    ];
+
+    /// <summary>
+    /// Obtém todos os papéis de prestador (qualquer tier)
+    /// </summary>
+    public static readonly string[] ProviderRoles =
+    [
+        ProviderStandard,
+        ProviderSilver,
+        ProviderGold,
+        ProviderPlatinum
     ];
 
     /// <summary>
@@ -92,5 +139,13 @@ public static class UserRoles
     public static bool IsAdminRole(string role)
     {
         return AdminRoles.Contains(role, StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Valida se um papel é de prestador de serviços (qualquer tier)
+    /// </summary>
+    public static bool IsProviderRole(string role)
+    {
+        return ProviderRoles.Contains(role, StringComparer.OrdinalIgnoreCase);
     }
 }

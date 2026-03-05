@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Inicia o ambiente de desenvolvimento do MeAjudaAi
 .DESCRIPTION
@@ -14,6 +14,51 @@ $env:ASPNETCORE_ENVIRONMENT = "Development"
 $env:DOTNET_ENVIRONMENT = "Development"
 $env:POSTGRES_PASSWORD = "postgres"
 $env:DB_PASSWORD = $env:POSTGRES_PASSWORD  # Program.cs reads DB_PASSWORD
+
+# Add social login variables from .env if present
+$baseDir = $PSScriptRoot
+if ([string]::IsNullOrEmpty($baseDir)) {
+    $baseDir = $PWD
+}
+$envFilePath = Join-Path $baseDir "..\infrastructure\compose\environments\.env"
+$envFilePath = [System.IO.Path]::GetFullPath($envFilePath)
+
+Write-Host "🔍 Procurando .env em: $envFilePath" -ForegroundColor Gray
+
+if (Test-Path $envFilePath) {
+    Write-Host "🔧 Carregando variáveis de ambiente do .env..." -ForegroundColor Cyan
+    Get-Content $envFilePath | Where-Object { $_ -match '^\s*[\w-]+\s*=' } | ForEach-Object {
+        $parts = $_.Split('=', 2)
+        $name = $parts[0].Trim()
+        $value = $parts[1].Trim()
+        
+        # Strip inline comments
+        if ($value -match '#') {
+            # Find first # not inside quotes
+            $inSingle = $false
+            $inDouble = $false
+            for ($i = 0; $i -lt $value.Length; $i++) {
+                $char = $value[$i]
+                if ($char -eq "'" -and -not $inDouble) { $inSingle = -not $inSingle }
+                elseif ($char -eq '"' -and -not $inSingle) { $inDouble = -not $inDouble }
+                elseif ($char -eq '#' -and -not $inSingle -and -not $inDouble) {
+                    $value = $value.Substring(0, $i).Trim()
+                    break
+                }
+            }
+        }
+
+        $cleanValue = $value
+        if (($cleanValue.StartsWith('"') -and $cleanValue.EndsWith('"')) -or ($cleanValue.StartsWith("'") -and $cleanValue.EndsWith("'"))) {
+            if ($cleanValue.Length -ge 2) {
+                $cleanValue = $cleanValue.Substring(1, $cleanValue.Length - 2)
+            }
+        }
+        Set-Item -Path "env:$name" -Value $cleanValue
+    }
+} else {
+    Write-Host "⚠️ Arquivo .env não encontrado em $envFilePath. Lógicas que dependem dele podem falhar." -ForegroundColor Yellow
+}
 
 Write-Host "🚀 Iniciando MeAjudaAi - Ambiente de Desenvolvimento" -ForegroundColor Cyan
 Write-Host "=================================================" -ForegroundColor Cyan

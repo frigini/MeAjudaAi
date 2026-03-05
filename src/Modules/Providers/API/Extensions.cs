@@ -35,55 +35,9 @@ public static class Extensions
     /// <returns>Aplicação web para encadeamento</returns>
     public static WebApplication UseProvidersModule(this WebApplication app)
     {
-        // Garantir que as migrações estão aplicadas
-        EnsureDatabaseMigrations(app);
-
         app.MapProvidersEndpoints();
 
         return app;
-    }
-
-    private static void EnsureDatabaseMigrations(WebApplication app)
-    {
-        // Só aplica migrações se não estivermos em ambiente de testes unitários
-        if (app?.Services == null) return;
-
-        try
-        {
-            // Criar um escopo para obter o context e aplicar migrações
-            using var scope = app.Services.CreateScope();
-            var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.ProvidersDbContext>();
-            if (context == null) return;
-
-            // Em ambiente de teste E2E, pular migrações automáticas - elas são gerenciadas pelo TestContainer
-            if (app.Environment.IsEnvironment("Test") || app.Environment.IsEnvironment("Testing"))
-            {
-                return;
-            }
-
-            // Em produção, usar migrações normais
-            context.Database.Migrate();
-        }
-        catch (Exception ex)
-        {
-            // Em caso de erro, log mas não quebra a aplicação
-            try
-            {
-                using var scope = app.Services.CreateScope();
-                var logger = scope.ServiceProvider.GetService<ILogger<Infrastructure.Persistence.ProvidersDbContext>>();
-                logger?.LogWarning(ex, "Failed to apply migrations for Providers module. Using EnsureCreated as fallback.");
-
-                var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.ProvidersDbContext>();
-                if (context != null)
-                {
-                    context.Database.EnsureCreated();
-                }
-            }
-            catch
-            {
-                // Se ainda falhar, ignora silenciosamente para não quebrar testes unitários
-            }
-        }
     }
 }
 

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using MeAjudaAi.ApiService.Endpoints;
 using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.Modules.Documents.API;
 using MeAjudaAi.Modules.Locations.API;
@@ -24,6 +25,8 @@ public partial class Program
         try
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.WebHost.ConfigureKestrel(opts => opts.AddServerHeader = false);
 
             ConfigureLogging(builder);
 
@@ -122,6 +125,9 @@ public partial class Program
         app.UseSearchProvidersModule();
         app.UseLocationsModule();
         app.UseServiceCatalogsModule();
+
+        // Endpoints de orquestração cross-módulo (ficam no ApiService)
+        app.MapProviderRegistrationEndpoints();
     }
 
     private static void LogStartupComplete(WebApplication app)

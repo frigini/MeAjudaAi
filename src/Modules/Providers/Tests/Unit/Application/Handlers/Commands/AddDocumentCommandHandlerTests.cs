@@ -34,7 +34,9 @@ public class AddDocumentCommandHandlerTests
         var command = new AddDocumentCommand(
             ProviderId: providerId,
             DocumentNumber: "11144477735",
-            DocumentType: EDocumentType.CPF
+            DocumentType: EDocumentType.CPF,
+            FileName: "doc.pdf",
+            FileUrl: "https://storage/doc.pdf"
         );
 
         _providerRepositoryMock
@@ -52,6 +54,10 @@ public class AddDocumentCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(providerId);
+        result.Value.Documents.Should().NotBeEmpty();
+        var doc = result.Value.Documents.First();
+        doc.FileName.Should().Be("doc.pdf");
+        doc.FileUrl.Should().Be("https://storage/doc.pdf");
 
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -82,7 +88,7 @@ public class AddDocumentCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Provider not found");
+        result.Error.Message.Should().Contain("Fornecedor não encontrado");
 
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -117,7 +123,7 @@ public class AddDocumentCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("An error occurred while adding the document");
+        result.Error.Message.Should().Contain("Ocorreu um erro ao adicionar o documento");
 
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -148,7 +154,7 @@ public class AddDocumentCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("An error occurred while adding the document");
+        result.Error.Message.Should().Contain("Ocorreu um erro ao adicionar o documento");
 
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
@@ -179,7 +185,7 @@ public class AddDocumentCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("An error occurred while adding the document");
+        result.Error.Message.Should().Contain("Ocorreu um erro ao adicionar o documento");
 
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),

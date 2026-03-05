@@ -136,6 +136,26 @@ internal static class Program
             // Importar realm de desenvolvimento automaticamente
             options.ImportRealm = "/opt/keycloak/data/import/meajudaai-realm.dev.json";
         });
+        
+        void AddSocialProviderEnv(string providerName, string clientIdKey, string clientSecretKey)
+        {
+            var clientId = builder.Configuration[clientIdKey];
+            var clientSecret = builder.Configuration[clientSecretKey];
+            if (!string.IsNullOrWhiteSpace(clientId) && !string.IsNullOrWhiteSpace(clientSecret))
+            {
+                keycloak.Keycloak
+                    .WithEnvironment(clientIdKey, clientId)
+                    .WithEnvironment(clientSecretKey, clientSecret);
+            }
+            else
+            {
+                Console.WriteLine($"⚠️ WARNING: {providerName} OAuth credentials are missing. {providerName} Login may fail.");
+            }
+        }
+
+        AddSocialProviderEnv("Google", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET");
+        AddSocialProviderEnv("Facebook", "FACEBOOK_APP_ID", "FACEBOOK_APP_SECRET");
+
 
         // Garantir que Keycloak aguarde o Postgres estar pronto
         keycloak.Keycloak.WaitFor(postgresql.MainDatabase);

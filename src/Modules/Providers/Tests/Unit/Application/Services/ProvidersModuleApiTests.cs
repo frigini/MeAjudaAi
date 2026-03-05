@@ -240,11 +240,14 @@ public class ProvidersModuleApiTests
             ),
             Status: EProviderStatus.PendingBasicInfo,
             VerificationStatus: EVerificationStatus.Pending,
+            Tier: EProviderTier.Standard,
             Documents: new List<DocumentDto>
             {
                 new DocumentDto(
                     Number: "12345678901",
                     DocumentType: EDocumentType.CPF,
+                    FileName: "cpf.pdf",
+                    FileUrl: "https://storage.blob.core.windows.net/docs/cpf.pdf",
                     IsPrimary: true
                 )
             },

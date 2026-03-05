@@ -2,6 +2,7 @@ using FluentAssertions;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Messaging.Factories;
+using MeAjudaAi.Shared.Messaging.Handlers;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using MeAjudaAi.Shared.Tests.TestInfrastructure;
@@ -9,6 +10,8 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Containers;
+using Testcontainers.RabbitMq;
 
 namespace MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter;
 
@@ -20,14 +23,29 @@ namespace MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter;
 [Trait("Component", "DeadLetterSystem")]
 public class DeadLetterIntegrationTests : BaseIntegrationTest
 {
-    private static RabbitMqOptions CreateTestRabbitMqOptions()
+    private RabbitMqOptions CreateTestRabbitMqOptions()
     {
+        // Tenta obter a connection string do container compartilhado
+        string connectionString = "amqp://localhost";
+        
+        try 
+        {
+            // Usa o container compartilhado diretamente para evitar problemas com ServiceProvider
+            var containerString = SharedTestContainers.RabbitMq.GetConnectionString();
+            if (!string.IsNullOrEmpty(containerString))
+            {
+                connectionString = containerString;
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            // Container não disponível ou não iniciado, volta para o padrão localhost
+        }
+
         return new RabbitMqOptions
         {
-            ConnectionString = "amqp://localhost",
+            ConnectionString = connectionString,
             DefaultQueueName = "test-queue",
-            Host = "localhost",
-            Port = 5672,
             Username = "guest",
             Password = "guest",
             VirtualHost = "/",
@@ -64,33 +82,6 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
         services.AddSingleton(CreateTestRabbitMqOptions());
     }
 
-    #pragma warning disable xUnit1004
-    [Fact(Skip = "Necessita RabbitMQ")]
-    public async Task DeadLetter_ShouldMoveMessageToDlq_AfterMaxRetries()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        var configuration = CreateConfiguration();
-        var environment = CreateHostEnvironment("Testing"); // Usa ambiente Testing para NoOpService
-
-        services.AddLogging();
-        services.AddSingleton(configuration);
-        services.AddSingleton(environment);
-
-        services.AddSingleton(CreateTestRabbitMqOptions());
-
-        // Act
-        MessagingExtensions.AddDeadLetterQueue(
-            services, configuration);
-
-        var serviceProvider = services.BuildServiceProvider();
-        var deadLetterService = serviceProvider.GetRequiredService<IDeadLetterService>();
-
-        // Assert
-        deadLetterService.Should().NotBeNull();
-        deadLetterService.Should().BeOfType<NoOpDeadLetterService>();
-    }
-    #pragma warning restore xUnit1004
 
     [Fact]
     public void DeadLetterSystem_WithTestingEnvironment_UsesNoOpService()
@@ -176,9 +167,8 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
         shouldRetryPermanent.Should().BeFalse();
     }
 
-    #pragma warning disable xUnit1004
-    [Fact(Skip = "Implementation pending - requires actual retry middleware logic")]
-    public void MessageRetryMiddleware_EndToEnd_WorksWithDeadLetterSystem()
+    [Fact]
+    public async Task MessageRetryMiddleware_EndToEnd_WorksWithDeadLetterSystem()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -191,19 +181,32 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
 
         services.AddSingleton(CreateTestRabbitMqOptions());
 
+        // Sobrescrever configuração de tentativas para testes mais rápidos
+        configuration["Messaging:DeadLetter:InitialRetryDelaySeconds"] = "0";
+        configuration["Messaging:DeadLetter:BackoffMultiplier"] = "1";
+
         MessagingExtensions.AddDeadLetterQueue(
             services, configuration);
 
         var serviceProvider = services.BuildServiceProvider();
         var message = new TestMessage { Id = "integration-test" };
+        var middlewareFactory = serviceProvider.GetRequiredService<IMessageRetryMiddlewareFactory>();
+        var middleware = middlewareFactory.CreateMiddleware<TestMessage>("TestHandler", "test-queue");
+        
+        var failureCount = 0;
+        Func<TestMessage, CancellationToken, Task> failingHandler = (msg, ct) => 
+        {
+            failureCount++;
+            throw new TimeoutException("Simulated transient failure");
+        };
 
-        // TODO: Implementar lógica end-to-end real para MessageRetryMiddleware
-        // Este teste requer implementar:
-        // 1. Simular falha no processamento da mensagem
-        // 2. Verificar tentativas de retry
-        // 3. Confirmar que a mensagem vai para a fila de dead letter após o número máximo de tentativas
+        // Act
+        var result = await middleware.ExecuteWithRetryAsync(message, failingHandler, CancellationToken.None);
+
+        // Assert
+        result.Should().BeFalse("Message should be sent to DLQ after max retries");
+        failureCount.Should().Be(4); // 1 original + 3 retries (based on config in CreateConfiguration)
     }
-    #pragma warning restore xUnit1004
 
     [Fact]
     public void FailedMessageInfo_Serialization_WorksCorrectly()
@@ -246,6 +249,7 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
     [InlineData("System.TimeoutException", EFailureType.Transient)]
     [InlineData("System.ArgumentException", EFailureType.Permanent)]
     [InlineData("System.OutOfMemoryException", EFailureType.Critical)]
+    [InlineData("System.InvalidOperationException", EFailureType.Permanent)]
     [InlineData("UnknownException", EFailureType.Unknown)]
     public void FailureClassification_WithDifferentExceptions_ReturnsCorrectType(string exceptionTypeName, EFailureType expectedType)
     {

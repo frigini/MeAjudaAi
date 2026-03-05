@@ -790,6 +790,66 @@ public class ProviderTests
 
     #endregion
 
+    #region Tier Tests
+
+    [Fact]
+    public void PromoteTier_ShouldUpdateTierAndAddEvent()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        var initialTier = provider.Tier;
+        var newTier = EProviderTier.Gold;
+        var updatedBy = "stripe-webhook";
+
+        // Act
+        provider.PromoteTier(newTier, updatedBy);
+
+        // Assert
+        provider.Tier.Should().Be(newTier);
+        
+        var tierEvent = provider.DomainEvents.Last();
+        tierEvent.Should().BeOfType<ProviderTierUpdatedDomainEvent>();
+
+        var updatedEvent = (ProviderTierUpdatedDomainEvent)tierEvent;
+        updatedEvent.PreviousTier.Should().Be(initialTier);
+        updatedEvent.NewTier.Should().Be(newTier);
+        updatedEvent.UpdatedBy.Should().Be(updatedBy);
+    }
+
+    [Fact]
+    public void PromoteTier_WithSameTier_ShouldDoNothing()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        var initialTier = provider.Tier;
+        var initialEventsCount = provider.DomainEvents.Count;
+
+        // Act
+        provider.PromoteTier(initialTier, "system");
+
+        // Assert
+        provider.Tier.Should().Be(initialTier);
+        provider.DomainEvents.Should().HaveCount(initialEventsCount);
+    }
+
+    [Fact]
+    public void PromoteTier_WhenDeleted_ShouldThrowException()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        var dateTimeProvider = CreateMockDateTimeProvider();
+        provider.Delete(dateTimeProvider);
+
+        // Act
+        var act = () => provider.PromoteTier(EProviderTier.Platinum, "system");
+
+        // Assert
+        act.Should().Throw<ProviderDomainException>()
+            .WithMessage("Cannot update tier of deleted provider");
+    }
+
+    #endregion
+
     #region ProviderServices Tests
 
     [Fact]

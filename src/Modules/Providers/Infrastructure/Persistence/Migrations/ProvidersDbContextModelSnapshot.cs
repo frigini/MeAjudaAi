@@ -18,7 +18,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("providers")
-                .HasAnnotation("ProductVersion", "10.0.2")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -63,6 +63,14 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(1000)")
                         .HasColumnName("suspension_reason");
 
+                    b.Property<string>("Tier")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Standard")
+                        .HasColumnName("tier");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -83,7 +91,8 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("verification_status");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_providers");
 
                     b.HasIndex("IsDeleted")
                         .HasDatabaseName("ix_providers_is_deleted");
@@ -127,7 +136,8 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("service_name");
 
-                    b.HasKey("ProviderId", "ServiceId");
+                    b.HasKey("ProviderId", "ServiceId")
+                        .HasName("pk_provider_services");
 
                     b.HasIndex("ServiceId")
                         .HasDatabaseName("ix_provider_services_service_id");
@@ -140,7 +150,8 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                     b.OwnsOne("MeAjudaAi.Modules.Providers.Domain.ValueObjects.BusinessProfile", "BusinessProfile", b1 =>
                         {
                             b1.Property<Guid>("ProviderId")
-                                .HasColumnType("uuid");
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
 
                             b1.Property<string>("Description")
                                 .HasMaxLength(1000)
@@ -163,12 +174,14 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                             b1.ToTable("providers", "providers");
 
                             b1.WithOwner()
-                                .HasForeignKey("ProviderId");
+                                .HasForeignKey("ProviderId")
+                                .HasConstraintName("fk_providers_providers_id");
 
                             b1.OwnsOne("MeAjudaAi.Modules.Providers.Domain.ValueObjects.Address", "PrimaryAddress", b2 =>
                                 {
                                     b2.Property<Guid>("BusinessProfileProviderId")
-                                        .HasColumnType("uuid");
+                                        .HasColumnType("uuid")
+                                        .HasColumnName("id");
 
                                     b2.Property<string>("City")
                                         .IsRequired()
@@ -222,13 +235,15 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                                     b2.ToTable("providers", "providers");
 
                                     b2.WithOwner()
-                                        .HasForeignKey("BusinessProfileProviderId");
+                                        .HasForeignKey("BusinessProfileProviderId")
+                                        .HasConstraintName("fk_providers_providers_id");
                                 });
 
                             b1.OwnsOne("MeAjudaAi.Modules.Providers.Domain.ValueObjects.ContactInfo", "ContactInfo", b2 =>
                                 {
                                     b2.Property<Guid>("BusinessProfileProviderId")
-                                        .HasColumnType("uuid");
+                                        .HasColumnType("uuid")
+                                        .HasColumnName("id");
 
                                     b2.Property<string>("AdditionalPhoneNumbers")
                                         .IsRequired()
@@ -256,7 +271,8 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                                     b2.ToTable("providers", "providers");
 
                                     b2.WithOwner()
-                                        .HasForeignKey("BusinessProfileProviderId");
+                                        .HasForeignKey("BusinessProfileProviderId")
+                                        .HasConstraintName("fk_providers_providers_id");
                                 });
 
                             b1.Navigation("ContactInfo")
@@ -285,6 +301,16 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                                 .HasColumnType("character varying(20)")
                                 .HasColumnName("document_type");
 
+                            b1.Property<string>("FileName")
+                                .HasMaxLength(255)
+                                .HasColumnType("character varying(255)")
+                                .HasColumnName("file_name");
+
+                            b1.Property<string>("FileUrl")
+                                .HasMaxLength(2048)
+                                .HasColumnType("character varying(2048)")
+                                .HasColumnName("file_url");
+
                             b1.Property<bool>("IsPrimary")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("boolean")
@@ -297,15 +323,18 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                                 .HasColumnType("character varying(50)")
                                 .HasColumnName("number");
 
-                            b1.HasKey("ProviderId", "Id");
+                            b1.HasKey("ProviderId", "Id")
+                                .HasName("pk_document");
 
                             b1.HasIndex("ProviderId", "DocumentType")
-                                .IsUnique();
+                                .IsUnique()
+                                .HasDatabaseName("ix_document_provider_id_document_type");
 
                             b1.ToTable("document", "providers");
 
                             b1.WithOwner()
-                                .HasForeignKey("ProviderId");
+                                .HasForeignKey("ProviderId")
+                                .HasConstraintName("fk_document_providers_provider_id");
                         });
 
                     b.OwnsMany("MeAjudaAi.Modules.Providers.Domain.ValueObjects.Qualification", "Qualifications", b1 =>
@@ -350,12 +379,14 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                                 .HasColumnType("character varying(200)")
                                 .HasColumnName("name");
 
-                            b1.HasKey("ProviderId", "Id");
+                            b1.HasKey("ProviderId", "Id")
+                                .HasName("pk_qualification");
 
                             b1.ToTable("qualification", "providers");
 
                             b1.WithOwner()
-                                .HasForeignKey("ProviderId");
+                                .HasForeignKey("ProviderId")
+                                .HasConstraintName("fk_qualification_providers_provider_id");
                         });
 
                     b.Navigation("BusinessProfile")
@@ -372,7 +403,8 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                         .WithMany("Services")
                         .HasForeignKey("ProviderId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_provider_services_providers_provider_id");
 
                     b.Navigation("Provider");
                 });

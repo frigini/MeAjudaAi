@@ -7,41 +7,16 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0-5.5 ✅ | Sprint 6 ✅ | Sprint 7-7.15 ✅ CONCLUÍDO | MVP Target: 14/Março/2026  
+**Status Geral**: Consulte a [Tabela de Sprints](#cronograma-de-sprints) para o status detalhado atualizado.
 **Cobertura de Testes**: Backend 90.56% | Frontend 30 testes bUnit  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM (Admin) + React 19 + Next.js 15 (Customer) + Tailwind v4
 
 ### Marcos Principais
-- ✅ **Janeiro 2025**: Fase 1 concluída - 6 módulos core implementados
-- ✅ **Jan 20 - 21 Nov**: Sprint 0 - Migration .NET 10 + Aspire 13 (CONCLUÍDO e MERGED)
-- ✅ **22 Nov - 2 Dez**: Sprint 1 - Geographic Restriction + Module Integration (CONCLUÍDO e MERGED)
-- ✅ **3 Dez - 10 Dez**: Sprint 2 - Test Coverage 90.56% (CONCLUÍDO - META 35% SUPERADA!)
-- ✅ **10 Dez - 11 Dez**: Sprint 3 Parte 1 - GitHub Pages Migration (CONCLUÍDO - DEPLOYED!)
-- ✅ **11 Dez - 13 Dez**: Sprint 3 Parte 2 - Admin Endpoints & Tools (CONCLUÍDO - MERGED!)
-- ✅ **14 Dez - 18 Dez**: Sprint 4 - Health Checks + Data Seeding + Code Review (CONCLUÍDO - MERGED!)
-- ✅ **Sprint 5**: Tarefas completadas antecipadamente (NSubstitute→Moq, .slnx, UuidGenerator, Design Patterns, Bruno)
-- ✅ **19 Dez - 30 Dez**: Sprint 5.5 - Refactor & Cleanup (CONCLUÍDO - Technical Debt Reduction)
-- ✅ **30 Dez - 5 Jan 2026**: Sprint 6 - Blazor Admin Portal Setup (CONCLUÍDO - 5 Jan 2026, MERGED!)
-- ✅ **6 Jan - 7 Jan 2026**: Sprint 7 - Blazor Admin Portal Features (CONCLUÍDO - 7 Jan 2026, 100%)
-- ✅ **9 Jan 2026**: Sprint 7.5 - Correções de Inicialização e Build (CONCLUÍDO - 0 warnings, 0 erros)
-- ✅ **12 Jan 2026**: Sprint 7.6 - Otimização de Testes de Integração (CONCLUÍDO - 83% faster)
-- ✅ **15-16 Jan 2026**: Sprint 7.7 - Flux Pattern Refactoring (CONCLUÍDO - 5 páginas refatoradas, 87% code reduction)
-- ✅ **16 Jan 2026**: Sprint 7.8 - Dialog Implementation Verification (CONCLUÍDO - 5 dialogs verificados, build fixes)
-- ✅ **16 Jan 2026**: Sprint 7.9 - Magic Strings Elimination (CONCLUÍDO - 30+ strings eliminados, constants centralizados)
-- ✅ **16 Jan 2026**: Sprint 7.10 - Accessibility Features (CONCLUÍDO - WCAG 2.1 AA compliance, ARIA labels, screen reader support)
-- ✅ **16 Jan 2026**: Sprint 7.11 - Error Boundaries (CONCLUÍDO - Global error handling, Fluxor error state, recovery options)
-- ✅ **16 Jan 2026**: Sprint 7.12 - Performance Optimizations (CONCLUÍDO - Virtualization, debounced search, memoization)
-- ✅ **16 Jan 2026**: Sprint 7.13 - Standardized Error Handling (CONCLUÍDO - Retry logic, correlation IDs, HTTP status mapping)
-- ✅ **16 Jan 2026**: Sprint 7.14 - Complete Localization (CONCLUÍDO - pt-BR/en-US, 140+ strings, culture switching)
-- ✅ **16 Jan 2026**: Sprint 7.15 - Package Updates & Resilience Migration (CONCLUÍDO - .NET 10.0.2, deprecated packages removed)
-- ✅ **17-21 Jan 2026**: Sprint 7.16 - Technical Debt Sprint (CONCLUÍDO - Keycloak automation, warnings, tests, records)
-- ✅ **5 Fev 2026**: Sprint 7.20 - Dashboard Charts & Data Mapping Fixes (CONCLUÍDO - JSON property mapping, debug messages removed)
-- ✅ **5 Fev 2026**: Sprint 7.21 - Package Updates & Bug Fixes (CONCLUÍDO - Microsoft.OpenApi 2.6.1, Aspire.Hosting.Redis 13.1.0, SonarAnalyzer.CSharp 10.19.0)
-- ✅ **5-13 Fev 2026**: Sprint 8A - Customer Web App (React + Next.js) (CONCLUÍDO - Features & Test Optimization)
-- ⏳ **19 Fev - 4 Mar 2026**: Sprint 8B - Mobile App (React Native + Expo)
-- ⏳ **5-11 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
-- 🎯 **14 Março 2026**: MVP Launch (Admin Portal + Customer App Web + Mobile)
-- 🔮 **Março 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
+
+Consulte a seção [Cronograma de Sprints](#cronograma-de-sprints) abaixo para o status detalhado e atualizado de cada sprint, e datas alvo (incluindo o MVP Launch).
+
+**Procedimento de Revisão de Sprints**
+As futuras atualizações da tabela de sprints devem observar a política: análise commit-by-commit newest-first, apresentando um veredicto conciso e resolvendo os follow-ups.
 
 ## ⚠️ Notas de Risco
 
@@ -49,11 +24,53 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - Primeiro projeto Blazor WASM pode revelar complexidade não prevista
 - Sprint 9 reservado como buffer de contingência (não para novas features)
 
+## 🏗️ Decisões Arquiteturais Futuras
+
+### NX Monorepo (Frontend)
+
+**Status**: ⏳ Planejado pós-MVP  
+**Branch**: `infra/nx-monorepo` (separada do Sprint 8B)
+
+**Motivação**: Com Customer Web App (Next.js), Provider App (futuro) e Mobile (React Native + Expo), o compartilhamento de código (componentes, hooks, tipos TypeScript, schemas Zod) entre os projetos se torna crítico. NX oferece:
+- Workspace unificado com `libs/` compartilhadas
+- Build cache inteligente (só reconstrói o que mudou)
+- Dependency graph entre projetos
+- Geração de código consistente
+
+**Escopo da Sprint NX**:
+- Migrar `MeAjudaAi.Web.Customer` para workspace NX
+- Criar `apps/customer-web`, `apps/provider-web` (futuro), `apps/mobile`
+- Criar `libs/ui` (componentes compartilhados), `libs/auth`, `libs/api-client`
+- Atualizar `.NET Aspire AppHost` para apontar para nova estrutura
+- Atualizar CI/CD para usar `nx affected`
+
+**Timing recomendado**: Pós-MVP (Sprint Infra), pois o NX facilita exatamente o compartilhamento entre Customer e Provider.
+
+---
+
+### Migração Admin Portal: Blazor WASM → React?
+
+**Status**: ⚪ Não planejado — decisão deliberada manter Blazor
+
+**Análise**:
+
+| Fator | Manter Blazor | Migrar para React |
+|-------|--------------|-------------------|
+| Custo | ✅ Zero | ❌ Alto (reescrever ~5000+ linhas) |
+| Compartilhamento C# DTOs | ✅ Nativo | ❌ Requer geração OpenAPI |
+| Uso interno (não SEO) | ✅ Blazor adequado | ⚠️ React seria over-engineering |
+| Unificação de stack | ⚠️ Dual-stack | ✅ Single-stack |
+| Hiring | ⚠️ Blazor nicho | ✅ React mais fácil |
+
+**Decisão**: **Manter Blazor WASM** para o Admin Portal. O Admin é uma ferramenta interna sem requisitos de SEO ou performance de carga inicial. A vantagem de compartilhar C# DTOs diretamente supera o custo de manter dual-stack. Migração só faria sentido se o time crescer e a curva de aprendizado Blazor se tornar um gargalo real de contratação.
+
+**Revisitar se**: time crescer >5 devs frontend e Blazor se tornar bloqueador de contratação.
+
 ---
 
 ## 🎯 Status Atual
 
-**📅 Sprint 8B pré-início**: Fevereiro de 2026
+**📅 Sprint 8B concluído**: Fevereiro/Março de 2026 (Finalizado em 4 de Março de 2026)
 
 ### ✅ Sprint 8A - Customer Web App & Test Optimization - CONCLUÍDA (5-13 Fev 2026)
 
@@ -73,7 +90,60 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - **Problema**: Testes E2E lentos devido a acúmulo de dados (40m+).
 - **Solução**: Implementado `IAsyncLifetime` e `CleanupDatabaseAsync()` em **todas** as classes de teste E2E (`Documents`, `Locations`, `Providers`, `ServiceCatalogs`, `Users`).
 - **Resultado**: Testes rodam com banco limpo a cada execução, prevenindo degradação de performance e falhas por dados sujos (Race Conditions).
-- **Parallelization**: Confirmado que `parallelizeTestCollections: false` é necessário devido ao uso de container de banco compartilhado.
+- `parallelizeTestCollections`: Controla se coleções de teste executam em paralelo no xUnit. Confirmado que `parallelizeTestCollections: false` é necessário para DbContext com TestContainers, pois banco compartilhado causa lock conflicts.
+---
+
+### ✅ Sprint 8B.1 - Provider Onboarding & Registration Experience - CONCLUÍDA (Março 2026)
+
+**Objetivos**:
+1. ✅ **Multi-step Provider Registration**: Implementar UI de "Torne-se um Prestador" com Stepper unificado.
+2. ✅ **Fix Backend Reliability**: Resolver erros 500 nos endpoints críticos de prestador.
+3. ✅ **Visual Alignment**: Alinhar design do prestador com o fluxo de cliente.
+
+**Avanços Entregues**:
+- **Stepper UI**: Componente de linha do tempo implementado em `/cadastro/prestador`, guiando o usuário pelas etapas de Dados Básicos, Endereço e Documentos.
+- **Correção de API (Critical)**: Resolvido erro de resolução de DI para `RegisterProviderCommandHandler`, permitindo a criação de perfis sem falhas internas (500).
+- **Onboarding Flow**: Implementação da lógica de transição entre passos 1 (Dados Básicos) e 2 (Endereço), com persistência correta no banco de dados.
+- **Validation**: Integração com esquema de validação existente e tratamento de erros amigável no frontend.
+
+**Próximos Passos (Pendentes)**:
+- ⏳ **Document Upload (Step 3)**: Implementar componente de upload de documentos no fluxo de onboarding do prestador.
+- ⏳ **Review Dashboard**: Criar interface para o prestador acompanhar o status de sua verificação (hoje parado em `pendingBasicInfo`).
+- ⏳ **Professional Profile Setup**: Permitir que o prestador selecione categorias e serviços logo após o credenciamento básico.
+
+---
+
+### ⏳ Sprint 8B.2 - Technical Excellence & Infrastructure (Planejado - Antes do Mobile)
+
+**Objetivos**:
+1. ⏳ **Slug Implementation**: Substituir IDs por Slugs nas rotas de perfil de prestador para maior segurança e SEO.
+    - **Execução**:
+        - Backend: Adicionar `Slug` ao `BusinessProfile` entity.
+        - Backend: Implementar `slugify` logic e garantir unicidade no Persistence layer.
+        - UI: Alterar rotas de `/prestador/[id]` para `/prestador/[slug]`.
+        - SEO: Adicionar canonical tags e metadados dinâmicos baseados no slug.
+    - **Sucesso**: Navegar via slug e manter compatibilidade com IDs antigos (301 redirect).
+2. ⏳ **Messaging Unification (RabbitMQ Only)**: Remover completamente o Azure Service Bus da solução.
+    - **Execução**:
+        - Remover pacotes `.Azure.ServiceBus` de todos os projetos.
+        - Unificar `MassTransit` configuration em `ServiceDefaults`.
+        - Atualizar scripts de infra (`docker-compose.yaml`) para foco total em RabbitMQ.
+        - Remover segredos e vars de ambiente do ASB no Azure/Staging.
+    - **Sucesso**: Aplicação funcionando sem dependência do Azure Service Bus local ou remoto.
+3. ⏳ **Frontend Testing & CI/CD Suite**: Implementar suíte completa de testes no Next.js.
+    - **Contexto**: Baseado no [Plano de Testes Robusto](./testing/frontend-testing-plan.md).
+    - **Execução**:
+        - Setup do projeto `tests/MeAjudaAi.Web.Customer.Tests`.
+        - Implementar Mocks de API com MSW para os fluxos de busca e perfil.
+        - Criar o primeiro pipeline `.github/workflows/frontend-quality.yml`.
+        - Integrar SonarCloud (SonarQube) para análise estática de TS/React.
+    - **Sucesso**: Pipeline falhando se testes não passarem ou qualidade cair.
+4. ⏳ **Backend Integration Test Optimization**: Reduzir o tempo de execução (hoje ~30 min).
+    - **Execução**:
+        - Migrar os ~20 projetos de teste restantes para o padrão `RequiredModules`.
+        - Implementar `Respawn` ou similar para limpeza ultra-rápida de banco em vez de migrations completas.
+        - Otimizar recursos do TestContainers (reuse containers entre runs se possível).
+    - **Sucesso**: Suíte completa de integração rodando em < 10 minutos.
 
 ---
 
@@ -1460,7 +1530,7 @@ Get-ChildItem -Recurse -Include *.cs | Select-String "record "
 
 ---
 
-### ⏳ Sprint 8B - Authentication & Onboarding Flow (Novo)
+### ✅ Sprint 8B - Authentication & Onboarding Flow - CONCLUÍDO
 
 **Periodo Estimado**: 19 Fev - 4 Mar 2026
 **Foco**: Fluxos de Cadastro e Login Segmentados (Cliente vs Prestador)
@@ -1508,7 +1578,7 @@ Get-ChildItem -Recurse -Include *.cs | Select-String "record "
 
 ### ⏳ Sprint 8C - Mobile App (React Native)
 
-**Periodo Estimado**: 5 Mar - 18 Mar 2026 (Deslocado)
+**Periodo Estimado**: 5 Mar - 18 Mar 2026
 **Foco**: App Mobile Nativo (iOS/Android) com Expo
 
 **Escopo**:
@@ -2081,11 +2151,12 @@ Frontend Blazor WASM + MAUI Hybrid:
 - Sprint 7: Blazor Admin Portal Features (6-24 Jan 2026) - ✅ CONCLUÍDO
 - Sprint 7.16: Technical Debt Sprint (17-21 Jan 2026) - 🔄 EM PROGRESSO (Task 5 movida p/ Sprint 9)
 - Sprint 8: Customer App (5-18 Fev 2026) - ✅ Concluído
-- Sprint 8B: Mobile App (19 Fev - 4 Mar 2026) - ⏳ Planejado
-- Sprint 8D: Admin Portal Migration (19 Mar - 1 Abr 2026) - ⏳ Planejado
-- Sprint 9: Buffer/Polishing (5-11 Mar 2026) - ⏳ Planejado
-- MVP Final: 14 de Março de 2026
-- *Nota: Data de MVP atualizada para 14 de Março de 2026 para acomodar migração Nx e Mobile App.*
+- Sprint 8B: Authentication & Onboarding (19 Fev - 4 Mar 2026) - ✅ CONCLUÍDO
+- Sprint 8C: Mobile App (5-18 Mar 2026) - ⏳ Planejado
+- Sprint 8D: Admin Portal Migration - 🚫 **CANCELADO**
+- ⏳ **19-25 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
+- MVP Final: 28 de Março de 2026
+- *Nota: Data de MVP atualizada para 28 de Março de 2026 para acomodar buffer do Sprint 9 e Mobile App.*
 
 **⚠️ Risk Assessment**: Estimativas assumem velocidade consistente. Primeiro projeto Blazor WASM pode revelar complexidades não previstas (integração Keycloak, curva de aprendizado MudBlazor). Sprint 9 reservado como buffer de contingência.
 
@@ -2105,6 +2176,7 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 
 ---
 
+<a id="cronograma-de-sprints"></a>
 ## 📅 Cronograma de Sprints (Novembro 2025-Março 2026)
 
 | Sprint | Duração | Período | Objetivo | Status |
@@ -2121,14 +2193,15 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 7** | 3 semanas | 6 - 24 Jan | Blazor Admin Portal - Features | ✅ CONCLUÍDO |
 | **Sprint 7.16** | 1 semana | 17-21 Jan | Technical Debt Sprint | 🔄 EM PROGRESSO |
 | **Sprint 8** | 2 semanas | 5 - 18 Fev | Customer Web App (Web) | ✅ CONCLUÍDO |
-| **Sprint 8B** | 2 semanas | 19 Fev - 4 Mar | Mobile App (React Native) | ⏳ Planejado |
-| **Sprint 9** | 1 semana | 5-11 Mar | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
-| **MVP Launch** | - | 14 Mar | Final deployment & launch preparation | 🎯 Target |
+| **Sprint 8B** | 2 semanas | 19 Fev - 4 Mar | Authentication & Onboarding | ✅ CONCLUÍDO |
+| **Sprint 8C** | 2 semanas | 5-18 Mar | Mobile App | ⏳ Planejado |
+| **Sprint 9** | 1 semana | 19-25 Mar | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
+| **MVP Launch** | - | 28 de Março de 2026 | Final deployment & launch preparation | 🎯 Target |
 
-**MVP Launch Target**: 14 de Março de 2026 🎯  
-*Atualizado para 14 de Março de 2026.*
+**MVP Launch Target**: 28 de Março de 2026 🎯  
+*Atualizado para 28 de Março de 2026.*
 
-**Post-MVP (Fase 3+)**: Reviews, Assinaturas, Agendamentos (Fevereiro 2026+)
+**Post-MVP (Fase 3+)**: Reviews, Assinaturas, Agendamentos (Abril 2026+)
 
 ---
 
@@ -4187,15 +4260,6 @@ public class GeographicRestrictionMiddleware
 
 ---
 
-### ⏳ Sprint 8D - Admin Portal Migration (Novo)
-
-**Periodo Estimado**: 19 Mar - 1 Abr 2026
-**Foco**: Migração do Admin Portal para React e integração no monorepo Nx.
-
-**Objetivos**:
-1. **Nx Workspace Setup**: Garantir suporte a múltiplos apps (Admin + Customer).
-2. **Admin Portal Migration**: Portar Blazor Admin para React (`apps/admin-portal`).
-3. **Shared Components**: Extrair UI kit para `libs/shared-ui`.
 4. **Auth Migration**: Configurar Keycloak no novo app React.
 
 **Entregáveis**:
@@ -4352,10 +4416,10 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 
 ---
 
-### 📅 Sprint 9: Buffer - Polishing, Risk Mitigation & Refactoring (3 semanas) 🎯
+### ⏳ **19-25 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
 
 **Status**: 📋 PLANEJADO PARA MARÇO 2026  
-**Duração**: 1 semana (5-11 Mar 2026)  
+**Duração**: 1 semana (19-25 Mar 2026)  
 **Dependências**: Sprints 6-8 completos  
 **Natureza**: **BUFFER DE CONTINGÊNCIA** - não alocar novas features
 
@@ -4485,7 +4549,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - ✅ Segurança e performance hardened
 - ✅ Documentação completa para usuários e desenvolvedores
 - ✅ Monitoring e observabilidade configurados
-- 🎯 **PRONTO PARA LAUNCH EM 14 DE MARÇO DE 2026**
+- 🎯 **PRONTO PARA LAUNCH EM 28 DE MARÇO DE 2026**
 
 > **⚠️ CRITICAL**: Se Sprint 9 não for suficiente para completar todos os itens, considerar delay do MVP launch ou reduzir escopo (mover features não-críticas para post-MVP). A qualidade e estabilidade do MVP são mais importantes que a data de lançamento.
 
@@ -4950,7 +5014,7 @@ public class ActivityHub : Hub
 4. 📋 **Sprint 8: Customer Portal** - React/Next.js (Planejado - Fev/Mar 2026)
    - Busca de prestadores
    - Gestão de perfil
-5. 📋 **Sprint 8D: Admin Portal Migration** - React/Nx (Planejado - Mar/Abr 2026)
+5. 🚫 **Sprint 8D: Admin Portal Migration** - **CANCELADO**
    - Migração completa de Blazor para React
 6. 📋 API Collections - Bruno .bru files para todos os módulos
 
@@ -5012,6 +5076,6 @@ public class ActivityHub : Hub
 
 ---
 
-*📅 Última atualização: 9 de Janeiro de 2026 (Sprint 7.5 - Correções de Inicialização e Build)*  
+*📅 Última atualização: 5 de Março de 2026 (Sprint 8B Conclusion Review)*  
 *🔄 Roadmap em constante evolução baseado em feedback, métricas e aprendizados*
-*📊 Status atual: Sprint 6 CONCLUÍDA (5 Jan 2026) | Sprint 7 - Blazor Admin Portal Features (próxima)*
+*📊 Status atual: Sprint 8B ✅ CONCLUÍDO | MVP Launch em 28 de Março de 2026*

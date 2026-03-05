@@ -40,6 +40,7 @@ public class UpdateProviderProfileCommandHandlerTests
                 new ContactInfoDto("test@example.com", "1234567890", "site.com"),
                 new AddressDto("Street", "123", "Comp", "Neighborhood", "City", "ST", "12345678", "Country")
             ),
+            new List<ProviderServiceDto>(),
             "Tester"
         );
 
@@ -78,6 +79,7 @@ public class UpdateProviderProfileCommandHandlerTests
                 new ContactInfoDto("e@e.com", null, null),
                 new AddressDto("S", "1", null, "N", "C", "S", "Z", "C")
             ),
+            new List<ProviderServiceDto>(),
             "Tester"
         );
 
@@ -106,6 +108,7 @@ public class UpdateProviderProfileCommandHandlerTests
                 new ContactInfoDto("e@e.com", null, null),
                 new AddressDto("S", "1", null, "N", "C", "S", "Z", "C")
             ),
+            new List<ProviderServiceDto>(),
             "Tester"
         );
 

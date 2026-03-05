@@ -18,5 +18,9 @@ public class KeycloakOptions
 
     public string AuthorityUrl => $"{BaseUrl}/realms/{Realm}";
     public string TokenUrl => $"{AuthorityUrl}/protocol/openid-connect/token";
+    /// <summary>
+    /// URL do token para autenticação admin (sempre usa o realm master)
+    /// </summary>
+    public string AdminTokenUrl => $"{BaseUrl}/realms/master/protocol/openid-connect/token";
     public string UsersUrl => $"{BaseUrl}/admin/realms/{Realm}/users";
 }

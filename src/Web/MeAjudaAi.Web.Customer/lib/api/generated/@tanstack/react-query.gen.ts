@@ -3,8 +3,8 @@
 import { type DefaultError, type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { apiActivatePost, apiActivatePost2, apiAllowedCitiesDelete, apiAllowedCitiesGet, apiAllowedCitiesGet2, apiAllowedCitiesPatch, apiAllowedCitiesPost, apiAllowedCitiesPut, apiByCityGet, apiByEmailGet, apiByStateGet, apiByTypeGet, apiByUserGet, apiCategoriesDelete, apiCategoriesGet, apiCategoriesGet2, apiCategoriesPost, apiCategoriesPut, apiCategoryGet, apiChangeCategoryPost, apiClientGet, apiCspReportPost, apiDeactivatePost, apiDeactivatePost2, apiDocumentsDelete, apiDocumentsPost, apiProfilePut, apiProviderGet, apiProvidersDelete, apiProvidersGet, apiProvidersGet2, apiProvidersGet3, apiProvidersPost, apiProvidersPut, apiRequestVerificationPost, apiRequireBasicInfoCorrectionPost, apiSearchGet, apiServicesDelete, apiServicesDelete2, apiServicesGet, apiServicesGet2, apiServicesPost, apiServicesPost2, apiServicesPut, apiStatusGet, apiUploadPost, apiUsersDelete, apiUsersGet, apiUsersGet2, apiUsersPost, apiValidatePost, apiVerificationStatusGet, apiVerificationStatusPut, apiVerifyPost, type Options } from '../sdk.gen';
-import type { ApiActivatePost2Data, ApiActivatePost2Response, ApiActivatePostData, ApiActivatePostResponse, ApiAllowedCitiesDeleteData, ApiAllowedCitiesDeleteResponse, ApiAllowedCitiesGet2Data, ApiAllowedCitiesGet2Response, ApiAllowedCitiesGetData, ApiAllowedCitiesGetResponse, ApiAllowedCitiesPatchData, ApiAllowedCitiesPatchError, ApiAllowedCitiesPatchResponse, ApiAllowedCitiesPostData, ApiAllowedCitiesPostError, ApiAllowedCitiesPostResponse, ApiAllowedCitiesPutData, ApiAllowedCitiesPutResponse, ApiByCityGetData, ApiByCityGetResponse, ApiByEmailGetData, ApiByEmailGetResponse, ApiByStateGetData, ApiByStateGetResponse, ApiByTypeGetData, ApiByTypeGetResponse, ApiByUserGetData, ApiByUserGetResponse, ApiCategoriesDeleteData, ApiCategoriesDeleteResponse, ApiCategoriesGet2Data, ApiCategoriesGet2Response, ApiCategoriesGetData, ApiCategoriesGetResponse, ApiCategoriesPostData, ApiCategoriesPostResponse, ApiCategoriesPutData, ApiCategoriesPutResponse, ApiCategoryGetData, ApiCategoryGetResponse, ApiChangeCategoryPostData, ApiChangeCategoryPostResponse, ApiClientGetData, ApiClientGetResponse, ApiCspReportPostData, ApiDeactivatePost2Data, ApiDeactivatePost2Response, ApiDeactivatePostData, ApiDeactivatePostResponse, ApiDocumentsDeleteData, ApiDocumentsDeleteResponse, ApiDocumentsPostData, ApiDocumentsPostResponse, ApiProfilePutData, ApiProfilePutResponse, ApiProviderGetData, ApiProviderGetResponse, ApiProvidersDeleteData, ApiProvidersDeleteResponse, ApiProvidersGet2Data, ApiProvidersGet2Response, ApiProvidersGet3Data, ApiProvidersGet3Error, ApiProvidersGet3Response, ApiProvidersGetData, ApiProvidersGetError, ApiProvidersGetResponse, ApiProvidersPostData, ApiProvidersPostResponse, ApiProvidersPutData, ApiProvidersPutResponse, ApiRequestVerificationPostData, ApiRequestVerificationPostError, ApiRequireBasicInfoCorrectionPostData, ApiSearchGetData, ApiSearchGetResponse, ApiServicesDelete2Data, ApiServicesDelete2Response, ApiServicesDeleteData, ApiServicesDeleteResponse, ApiServicesGet2Data, ApiServicesGet2Response, ApiServicesGetData, ApiServicesGetResponse, ApiServicesPost2Data, ApiServicesPost2Response, ApiServicesPostData, ApiServicesPostResponse, ApiServicesPutData, ApiServicesPutResponse, ApiStatusGetData, ApiStatusGetResponse, ApiUploadPostData, ApiUploadPostResponse, ApiUsersDeleteData, ApiUsersDeleteResponse, ApiUsersGet2Data, ApiUsersGet2Response, ApiUsersGetData, ApiUsersGetError, ApiUsersGetResponse, ApiUsersPostData, ApiUsersPostResponse, ApiValidatePostData, ApiValidatePostResponse, ApiVerificationStatusGetData, ApiVerificationStatusGetError, ApiVerificationStatusGetResponse, ApiVerificationStatusPutData, ApiVerificationStatusPutResponse, ApiVerifyPostData } from '../types.gen';
+import { apiActivatePost, apiActivatePost2, apiAllowedCitiesDelete, apiAllowedCitiesGet, apiAllowedCitiesGet2, apiAllowedCitiesPatch, apiAllowedCitiesPost, apiAllowedCitiesPut, apiBecomePost, apiByCityGet, apiByEmailGet, apiByStateGet, apiByTypeGet, apiByUserGet, apiCategoriesDelete, apiCategoriesGet, apiCategoriesGet2, apiCategoriesPost, apiCategoriesPut, apiCategoryGet, apiChangeCategoryPost, apiClientGet, apiCspReportPost, apiDeactivatePost, apiDeactivatePost2, apiDocumentsDelete, apiDocumentsPost, apiDocumentsPost2, apiMeGet, apiMePut, apiProfilePut, apiProviderGet, apiProvidersDelete, apiProvidersGet, apiProvidersGet2, apiProvidersGet3, apiProvidersPost, apiProvidersPut, apiPublicGet, apiRegisterPost, apiRegisterPost2, apiRequestVerificationPost, apiRequireBasicInfoCorrectionPost, apiSearchGet, apiServicesDelete, apiServicesDelete2, apiServicesGet, apiServicesGet2, apiServicesPost, apiServicesPost2, apiServicesPut, apiStatusGet, apiStatusGet2, apiUploadPost, apiUsersDelete, apiUsersGet, apiUsersGet2, apiUsersPost, apiValidatePost, apiVerificationStatusGet, apiVerificationStatusPut, apiVerifyPost, type Options } from '../sdk.gen';
+import type { ApiActivatePost2Data, ApiActivatePost2Response, ApiActivatePostData, ApiActivatePostResponse, ApiAllowedCitiesDeleteData, ApiAllowedCitiesDeleteResponse, ApiAllowedCitiesGet2Data, ApiAllowedCitiesGet2Response, ApiAllowedCitiesGetData, ApiAllowedCitiesGetResponse, ApiAllowedCitiesPatchData, ApiAllowedCitiesPatchError, ApiAllowedCitiesPatchResponse, ApiAllowedCitiesPostData, ApiAllowedCitiesPostError, ApiAllowedCitiesPostResponse, ApiAllowedCitiesPutData, ApiAllowedCitiesPutResponse, ApiBecomePostData, ApiBecomePostError, ApiBecomePostResponse, ApiByCityGetData, ApiByCityGetResponse, ApiByEmailGetData, ApiByEmailGetResponse, ApiByStateGetData, ApiByStateGetResponse, ApiByTypeGetData, ApiByTypeGetResponse, ApiByUserGetData, ApiByUserGetResponse, ApiCategoriesDeleteData, ApiCategoriesDeleteResponse, ApiCategoriesGet2Data, ApiCategoriesGet2Response, ApiCategoriesGetData, ApiCategoriesGetResponse, ApiCategoriesPostData, ApiCategoriesPostResponse, ApiCategoriesPutData, ApiCategoriesPutResponse, ApiCategoryGetData, ApiCategoryGetResponse, ApiChangeCategoryPostData, ApiChangeCategoryPostResponse, ApiClientGetData, ApiClientGetResponse, ApiCspReportPostData, ApiDeactivatePost2Data, ApiDeactivatePost2Response, ApiDeactivatePostData, ApiDeactivatePostResponse, ApiDocumentsDeleteData, ApiDocumentsDeleteResponse, ApiDocumentsPost2Data, ApiDocumentsPost2Response, ApiDocumentsPostData, ApiDocumentsPostResponse, ApiMeGetData, ApiMeGetResponse, ApiMePutData, ApiMePutResponse, ApiProfilePutData, ApiProfilePutResponse, ApiProviderGetData, ApiProviderGetResponse, ApiProvidersDeleteData, ApiProvidersDeleteResponse, ApiProvidersGet2Data, ApiProvidersGet2Response, ApiProvidersGet3Data, ApiProvidersGet3Error, ApiProvidersGet3Response, ApiProvidersGetData, ApiProvidersGetError, ApiProvidersGetResponse, ApiProvidersPostData, ApiProvidersPostResponse, ApiProvidersPutData, ApiProvidersPutResponse, ApiPublicGetData, ApiPublicGetResponse, ApiRegisterPost2Data, ApiRegisterPostData, ApiRegisterPostResponse, ApiRequestVerificationPostData, ApiRequestVerificationPostError, ApiRequireBasicInfoCorrectionPostData, ApiSearchGetData, ApiSearchGetResponse, ApiServicesDelete2Data, ApiServicesDelete2Response, ApiServicesDeleteData, ApiServicesDeleteResponse, ApiServicesGet2Data, ApiServicesGet2Response, ApiServicesGetData, ApiServicesGetResponse, ApiServicesPost2Data, ApiServicesPost2Response, ApiServicesPostData, ApiServicesPostResponse, ApiServicesPutData, ApiServicesPutResponse, ApiStatusGet2Data, ApiStatusGet2Response, ApiStatusGetData, ApiStatusGetResponse, ApiUploadPostData, ApiUploadPostResponse, ApiUsersDeleteData, ApiUsersDeleteResponse, ApiUsersGet2Data, ApiUsersGet2Response, ApiUsersGetData, ApiUsersGetError, ApiUsersGetResponse, ApiUsersPostData, ApiUsersPostResponse, ApiValidatePostData, ApiValidatePostResponse, ApiVerificationStatusGetData, ApiVerificationStatusGetError, ApiVerificationStatusGetResponse, ApiVerificationStatusPutData, ApiVerificationStatusPutResponse, ApiVerifyPostData } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -501,6 +501,57 @@ export const apiProvidersPutMutation = (options?: Partial<Options<ApiProvidersPu
     return mutationOptions;
 };
 
+export const apiPublicGetQueryKey = (options: Options<ApiPublicGetData>) => createQueryKey('apiPublicGet', options);
+
+/**
+ * Consultar perfil público do prestador
+ *
+ * Recupera dados públicos e seguros de um prestador para exibição no site.
+ * Não requer autenticação.
+ *
+ * **Dados Retornados:**
+ * - Informações básicas (Nome, Fantasia, Descrição)
+ * - Localização aproximada (Cidade/Estado)
+ * - Avaliação média e contagem de reviews
+ * - Lista de serviços oferecidos
+ *
+ * **Dados Ocultados (Privacidade):**
+ * - Documentos (CPF/CNPJ)
+ * - Endereço completo (Rua/Número)
+ * - Dados de auditoria interna
+ */
+export const apiPublicGetOptions = (options: Options<ApiPublicGetData>) => queryOptions<ApiPublicGetResponse, DefaultError, ApiPublicGetResponse, ReturnType<typeof apiPublicGetQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await apiPublicGet({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: apiPublicGetQueryKey(options)
+});
+
+/**
+ * Tornar-se prestador (usuário já autenticado)
+ *
+ * Transforma o usuário autenticado em um prestador de serviços. Requer token de usuário.
+ */
+export const apiBecomePostMutation = (options?: Partial<Options<ApiBecomePostData>>): UseMutationOptions<ApiBecomePostResponse, ApiBecomePostError, Options<ApiBecomePostData>> => {
+    const mutationOptions: UseMutationOptions<ApiBecomePostResponse, ApiBecomePostError, Options<ApiBecomePostData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await apiBecomePost({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
 export const apiByUserGetQueryKey = (options: Options<ApiByUserGetData>) => createQueryKey('apiByUserGet', options);
 
 /**
@@ -716,6 +767,93 @@ export const apiRequireBasicInfoCorrectionPostMutation = (options?: Partial<Opti
     return mutationOptions;
 };
 
+export const apiMeGetQueryKey = (options?: Options<ApiMeGetData>) => createQueryKey('apiMeGet', options);
+
+export const apiMeGetOptions = (options?: Options<ApiMeGetData>) => queryOptions<ApiMeGetResponse, DefaultError, ApiMeGetResponse, ReturnType<typeof apiMeGetQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await apiMeGet({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: apiMeGetQueryKey(options)
+});
+
+export const apiMePutMutation = (options?: Partial<Options<ApiMePutData>>): UseMutationOptions<ApiMePutResponse, DefaultError, Options<ApiMePutData>> => {
+    const mutationOptions: UseMutationOptions<ApiMePutResponse, DefaultError, Options<ApiMePutData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await apiMePut({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Upload de documento pelo próprio prestador
+ *
+ * Permite que o prestador adicione documentos ao seu próprio perfil.
+ */
+export const apiDocumentsPost2Mutation = (options?: Partial<Options<ApiDocumentsPost2Data>>): UseMutationOptions<ApiDocumentsPost2Response, DefaultError, Options<ApiDocumentsPost2Data>> => {
+    const mutationOptions: UseMutationOptions<ApiDocumentsPost2Response, DefaultError, Options<ApiDocumentsPost2Data>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await apiDocumentsPost2({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const apiStatusGet2QueryKey = (options?: Options<ApiStatusGet2Data>) => createQueryKey('apiStatusGet2', options);
+
+/**
+ * Status de aprovação do prestador
+ *
+ * Retorna o status atual de aprovação e tier do prestador autenticado.
+ */
+export const apiStatusGet2Options = (options?: Options<ApiStatusGet2Data>) => queryOptions<ApiStatusGet2Response, DefaultError, ApiStatusGet2Response, ReturnType<typeof apiStatusGet2QueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await apiStatusGet2({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: apiStatusGet2QueryKey(options)
+});
+
+/**
+ * Auto-registro de prestador de serviços
+ *
+ * Inicia o cadastro de um prestador. Cria usuário no Keycloak com role 'provider-standard' e a entidade Provider com Tier=Standard. Endpoint público, sem autenticação.
+ */
+export const apiRegisterPostMutation = (options?: Partial<Options<ApiRegisterPostData>>): UseMutationOptions<ApiRegisterPostResponse, DefaultError, Options<ApiRegisterPostData>> => {
+    const mutationOptions: UseMutationOptions<ApiRegisterPostResponse, DefaultError, Options<ApiRegisterPostData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await apiRegisterPost({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
 /**
  * Processa requisição de remoção de serviço do provider.
  *
@@ -793,14 +931,16 @@ export const apiProvidersGet3QueryKey = (options: Options<ApiProvidersGet3Data>)
  *
  * **Algoritmo de Busca:**
  * 1. Filtrar por raio a partir da localização de busca
- * 2. Aplicar filtros opcionais (serviços, avaliação, nível de assinatura)
- * 3. Classificar resultados por:
+ * 2. Aplicar filtro textual (nome, descrição) se fornecido
+ * 3. Aplicar filtros opcionais (serviços, avaliação, nível de assinatura)
+ * 4. Classificar resultados por:
  * - Nível de assinatura (Platinum > Gold > Standard > Free)
  * - Avaliação média (maior primeiro)
  * - Distância (mais próximo primeiro)
  *
  * **Casos de Uso:**
  * - Encontrar prestadores próximos a uma localização específica
+ * - Buscar prestadores por nome ou termo (ex: "Eletricista", "João")
  * - Buscar prestadores que oferecem serviços específicos
  * - Filtrar por avaliação mínima ou nível de assinatura
  */
@@ -855,14 +995,16 @@ export const apiProvidersGet3InfiniteQueryKey = (options: Options<ApiProvidersGe
  *
  * **Algoritmo de Busca:**
  * 1. Filtrar por raio a partir da localização de busca
- * 2. Aplicar filtros opcionais (serviços, avaliação, nível de assinatura)
- * 3. Classificar resultados por:
+ * 2. Aplicar filtro textual (nome, descrição) se fornecido
+ * 3. Aplicar filtros opcionais (serviços, avaliação, nível de assinatura)
+ * 4. Classificar resultados por:
  * - Nível de assinatura (Platinum > Gold > Standard > Free)
  * - Avaliação média (maior primeiro)
  * - Distância (mais próximo primeiro)
  *
  * **Casos de Uso:**
  * - Encontrar prestadores próximos a uma localização específica
+ * - Buscar prestadores por nome ou termo (ex: "Eletricista", "João")
  * - Buscar prestadores que oferecem serviços específicos
  * - Filtrar por avaliação mínima ou nível de assinatura
  */
@@ -1536,6 +1678,25 @@ export const apiProfilePutMutation = (options?: Partial<Options<ApiProfilePutDat
     const mutationOptions: UseMutationOptions<ApiProfilePutResponse, DefaultError, Options<ApiProfilePutData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await apiProfilePut({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Registers a new customer
+ *
+ * Creates a new user account with 'customer' role.
+ */
+export const apiRegisterPost2Mutation = (options?: Partial<Options<ApiRegisterPost2Data>>): UseMutationOptions<unknown, DefaultError, Options<ApiRegisterPost2Data>> => {
+    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<ApiRegisterPost2Data>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await apiRegisterPost2({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

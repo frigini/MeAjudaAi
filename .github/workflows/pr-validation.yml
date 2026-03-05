@@ -2,8 +2,10 @@
 name: Pull Request Validation
 
 "on":
-  pull_request:
+  push:
     branches: [master, develop]
+  pull_request:
+    branches: ['**']
   # Manual trigger for testing workflow changes
   workflow_dispatch:
 

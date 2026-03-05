@@ -150,6 +150,15 @@
           "Testcontainers": "4.10.0"
         }
       },
+      "Testcontainers.RabbitMq": {
+        "type": "Direct",
+        "requested": "[4.10.0, )",
+        "resolved": "4.10.0",
+        "contentHash": "psuDUrJbqaFeZ6T+kNL9rEiafyPVlQuk5xeHswuiFVMlBaihpobKTlUxWy0k9hLy6xR5Op8kGayLmsb32gDXkA==",
+        "dependencies": {
+          "Testcontainers": "4.10.0"
+        }
+      },
       "WireMock.Net": {
         "type": "Direct",
         "requested": "[1.25.0, )",
@@ -2911,6 +2920,7 @@
           "Scrutor": "[7.0.0, )",
           "Testcontainers.Azurite": "[4.10.0, )",
           "Testcontainers.PostgreSql": "[4.10.0, )",
+          "Testcontainers.RabbitMq": "[4.10.0, )",
           "xunit.v3": "[3.2.2, )"
         }
       },

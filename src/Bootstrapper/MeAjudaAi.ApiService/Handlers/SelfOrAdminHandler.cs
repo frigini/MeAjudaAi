@@ -17,13 +17,18 @@ public class SelfOrAdminHandler : AuthorizationHandler<SelfOrAdminRequirement>
             return Task.CompletedTask;
         }
 
-        var userIdClaim = context.User.FindFirst("sub")?.Value;
-        var roles = context.User.FindAll("roles").Select(c => c.Value);
+        var userIdClaim = context.User.FindFirst(MeAjudaAi.Shared.Utilities.Constants.AuthConstants.Claims.Subject)?.Value 
+                          ?? context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        
+        var roles = context.User.FindAll(MeAjudaAi.Shared.Utilities.Constants.AuthConstants.Claims.Roles)
+            .Concat(context.User.FindAll(System.Security.Claims.ClaimTypes.Role))
+            .Select(c => c.Value)
+            .Distinct();
 
         // Verifica se o usuário é admin
         if (roles.Any(r =>
-            string.Equals(r, "admin", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(r, "super-admin", StringComparison.OrdinalIgnoreCase)))
+            string.Equals(r, MeAjudaAi.Shared.Utilities.UserRoles.Admin, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(r, MeAjudaAi.Shared.Utilities.UserRoles.SuperAdmin, StringComparison.OrdinalIgnoreCase)))
         {
             context.Succeed(requirement);
             return Task.CompletedTask;
@@ -38,7 +43,7 @@ public class SelfOrAdminHandler : AuthorizationHandler<SelfOrAdminRequirement>
             // Só permite acesso se ambos os IDs estão presentes e são iguais
             if (!string.IsNullOrWhiteSpace(userIdClaim) &&
                 !string.IsNullOrWhiteSpace(routeUserId) &&
-                string.Equals(userIdClaim, routeUserId, StringComparison.Ordinal))
+                string.Equals(userIdClaim, routeUserId, StringComparison.OrdinalIgnoreCase))
             {
                 context.Succeed(requirement);
                 return Task.CompletedTask;

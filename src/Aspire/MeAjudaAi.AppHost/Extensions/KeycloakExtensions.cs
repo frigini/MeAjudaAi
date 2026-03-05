@@ -55,8 +55,12 @@ public static class MeAjudaAiKeycloakExtensions
             .WithEnvironment("KC_DB_PASSWORD", options.DatabasePassword)
             .WithEnvironment("KC_DB_SCHEMA", options.DatabaseSchema)
             // Credenciais do admin
+            // NOTA: Keycloak 26+ usa KC_BOOTSTRAP_ADMIN_* em vez dos legados KEYCLOAK_ADMIN_*
+            // Aspire.Hosting.Keycloak auto-gera KC_BOOTSTRAP_ADMIN_PASSWORD, precisamos sobrescrever
             .WithEnvironment("KEYCLOAK_ADMIN", options.AdminUsername)
             .WithEnvironment("KEYCLOAK_ADMIN_PASSWORD", options.AdminPassword)
+            .WithEnvironment("KC_BOOTSTRAP_ADMIN_USERNAME", options.AdminUsername)
+            .WithEnvironment("KC_BOOTSTRAP_ADMIN_PASSWORD", options.AdminPassword)
             // Configurações de desenvolvimento
             .WithEnvironment("KC_HOSTNAME_STRICT", "false")
             .WithEnvironment("KC_HOSTNAME_STRICT_HTTPS", "false")
@@ -174,6 +178,8 @@ public static class MeAjudaAiKeycloakExtensions
             // Credenciais do admin usando parâmetros secretos
             .WithEnvironment("KEYCLOAK_ADMIN", options.AdminUsername)
             .WithEnvironment("KEYCLOAK_ADMIN_PASSWORD", keycloakAdminPassword)
+            .WithEnvironment("KC_BOOTSTRAP_ADMIN_USERNAME", options.AdminUsername)
+            .WithEnvironment("KC_BOOTSTRAP_ADMIN_PASSWORD", keycloakAdminPassword)
             // Configurações de produção
             .WithEnvironment("KC_HOSTNAME_STRICT", "true")
             .WithEnvironment("KC_HOSTNAME_STRICT_HTTPS", "true")

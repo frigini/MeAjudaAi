@@ -19,7 +19,7 @@ public class MockKeycloakService : IKeycloakService
         CancellationToken cancellationToken = default)
     {
         // Para testes, simular criação bem-sucedida
-        var keycloakId = $"keycloak_{Guid.NewGuid()}";
+        var keycloakId = Guid.NewGuid().ToString();
         return Task.FromResult(Result<string>.Success(keycloakId));
     }
 

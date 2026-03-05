@@ -13,6 +13,7 @@ public sealed record ProviderDto(
     BusinessProfileDto BusinessProfile,
     EProviderStatus Status,
     EVerificationStatus VerificationStatus,
+    EProviderTier Tier,
     IReadOnlyList<DocumentDto> Documents,
     IReadOnlyList<QualificationDto> Qualifications,
     IReadOnlyList<ProviderServiceDto> Services,

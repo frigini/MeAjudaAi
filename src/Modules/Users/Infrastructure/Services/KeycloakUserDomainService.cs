@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Contracts.Functional;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Services;
 
@@ -16,7 +17,10 @@ namespace MeAjudaAi.Modules.Users.Infrastructure.Services;
 /// entre o domínio local e o sistema de autenticação.
 /// </remarks>
 /// <param name="keycloakService">Serviço de integração com Keycloak</param>
-internal class KeycloakUserDomainService(IKeycloakService keycloakService) : IUserDomainService
+/// <param name="logger">Logger para registro de operações e erros</param>
+internal class KeycloakUserDomainService(
+    IKeycloakService keycloakService,
+    ILogger<KeycloakUserDomainService> logger) : IUserDomainService
 {
     /// <summary>
     /// Cria um novo usuário com sincronização automática no Keycloak.
@@ -59,8 +63,19 @@ internal class KeycloakUserDomainService(IKeycloakService keycloakService) : IUs
             return Result<User>.Failure(keycloakResult.Error);
 
         // Cria a entidade User local com o ID retornado pelo Keycloak
-        var user = new User(username, email, firstName, lastName, keycloakResult.Value, phoneNumber);
-        return Result<User>.Success(user);
+        var userResult = User.Create(username, email, firstName, lastName, keycloakResult.Value, phoneNumber);
+        if (userResult.IsFailure)
+        {
+            var deactivationResult = await keycloakService.DeactivateUserAsync(keycloakResult.Value, CancellationToken.None);
+            if (deactivationResult.IsFailure)
+            {
+                logger.LogWarning("Failed to deactivate Keycloak user {KeycloakId} during compensation for local user creation failure. Error: {Error}", keycloakResult.Value, deactivationResult.Error.Message);
+                // Silenciar falhas de compensação para evitar mascarar o erro de validação original
+            }
+            return Result<User>.Failure(userResult.Error);
+        }
+        
+        return Result<User>.Success(userResult.Value);
     }
 
     /// <summary>
@@ -83,8 +98,32 @@ internal class KeycloakUserDomainService(IKeycloakService keycloakService) : IUs
         CancellationToken cancellationToken = default)
     {
         // Implementação para sincronização de dados do usuário com Keycloak
-        // Pode incluir: desativação de usuário, atualização de papéis, etc.
+        // Por exemplo, garante que o usuário está habilitado
         await Task.CompletedTask;
         return Result.Success();
+    }
+
+    /// <summary>
+    /// Desativa o usuário no Keycloak para compensar falha na persistência local.
+    /// </summary>
+    /// <param name="userId">O identificador do usuário (ID local/Keycloak).</param>
+    /// <param name="cancellationToken">Token de cancelamento opcional.</param>
+    /// <returns>Um Result indicando o sucesso ou falha da operação obtido do serviço Keycloak.</returns>
+    public async Task<Result> DeactivateUserInKeycloakAsync(
+        UserId userId,
+        CancellationToken cancellationToken = default)
+    {
+        // O ID do usuário local é o mesmo ID do Keycloak nesta implementação
+        var keycloakId = userId.Value.ToString();
+        logger.LogWarning("Deactivating Keycloak user {UserId} due to local repository failure", keycloakId);
+        
+        var result = await keycloakService.DeactivateUserAsync(keycloakId, CancellationToken.None);
+        if (result.IsFailure)
+        {
+            logger.LogWarning("Failed to deactivate Keycloak user {UserId} due to local repository failure. Error: {Error}", keycloakId, result.Error.Message);
+            // Silenciar falhas de compensação para evitar mascarar o erro de validação original
+        }
+        
+        return result;
     }
 }

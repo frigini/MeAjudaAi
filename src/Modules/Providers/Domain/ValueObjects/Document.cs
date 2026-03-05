@@ -14,6 +14,8 @@ public sealed class Document : ValueObject
 {
     public string Number { get; private set; }
     public EDocumentType DocumentType { get; private set; }
+    public string? FileName { get; private set; }
+    public string? FileUrl { get; private set; }
     public bool IsPrimary { get; private set; }
 
     /// <summary>
@@ -27,7 +29,7 @@ public sealed class Document : ValueObject
     }
 
     [JsonConstructor]
-    public Document(string number, EDocumentType documentType, bool isPrimary = false)
+    public Document(string number, EDocumentType documentType, string? fileName = null, string? fileUrl = null, bool isPrimary = false)
     {
         if (string.IsNullOrWhiteSpace(number))
             throw new ArgumentException("Número do documento não pode ser vazio", nameof(number));
@@ -40,6 +42,8 @@ public sealed class Document : ValueObject
         };
 
         DocumentType = documentType;
+        FileName = fileName;
+        FileUrl = fileUrl;
         IsPrimary = isPrimary;
 
         if (!IsValid())
@@ -53,7 +57,7 @@ public sealed class Document : ValueObject
     /// <returns>Nova instância do documento com o status primário atualizado</returns>
     public Document WithPrimaryStatus(bool isPrimary)
     {
-        return new Document(Number, DocumentType, isPrimary);
+        return new Document(Number, DocumentType, FileName, FileUrl, isPrimary);
     }
 
     private bool IsValid()
@@ -104,6 +108,8 @@ public sealed class Document : ValueObject
     {
         yield return Number;
         yield return DocumentType;
+        yield return FileName ?? string.Empty;
+        yield return FileUrl ?? string.Empty;
         yield return IsPrimary;
     }
 

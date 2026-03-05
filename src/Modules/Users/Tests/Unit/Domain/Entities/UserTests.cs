@@ -25,10 +25,10 @@ public class UserTests
         var email = new Email("test@example.com");
         var firstName = "John";
         var lastName = "Doe";
-        var keycloakId = "keycloak-123";
+        var keycloakId = Guid.NewGuid().ToString();
 
         // Act
-        var user = new User(username, email, firstName, lastName, keycloakId);
+        var user = User.Create(username, email, firstName, lastName, keycloakId).Value;
 
         // Assert
         user.Id.Should().NotBeNull();
@@ -51,10 +51,10 @@ public class UserTests
         var email = new Email("test@example.com");
         var firstName = "John";
         var lastName = "Doe";
-        var keycloakId = "keycloak-123";
+        var keycloakId = Guid.NewGuid().ToString();
 
         // Act
-        var user = new User(username, email, firstName, lastName, keycloakId);
+        var user = User.Create(username, email, firstName, lastName, keycloakId).Value;
 
         // Assert
         user.DomainEvents.Should().HaveCount(1);
@@ -403,12 +403,12 @@ public class UserTests
     // Cria um usuário de teste
     private static User CreateTestUser(string firstName = "John", string lastName = "Doe")
     {
-        return new User(
+        return User.Create(
             new Username("testuser"),
             new Email("test@example.com"),
             firstName,
             lastName,
-            "keycloak-123"
-        );
+            Guid.NewGuid().ToString()
+        ).Value;
     }
 }

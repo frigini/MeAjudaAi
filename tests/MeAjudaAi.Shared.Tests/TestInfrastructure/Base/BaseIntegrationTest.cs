@@ -44,6 +44,8 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
 
         // Usa containers compartilhados - adiciona como singletons
         services.AddSingleton(SharedTestContainers.PostgreSql);
+        services.AddSingleton(SharedTestContainers.RabbitMq);
+        services.AddSingleton(SharedTestContainers.Azurite);
 
         // Configurar logging otimizado para testes
         services.AddLogging(builder =>

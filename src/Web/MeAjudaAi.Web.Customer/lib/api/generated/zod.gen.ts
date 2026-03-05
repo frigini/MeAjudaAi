@@ -21,7 +21,8 @@ export const zMeAjudaAiContractsConfigurationExternalResources = z.object({
  */
 export const zMeAjudaAiContractsConfigurationFeatureFlags = z.object({
     enableReduxDevTools: z.boolean().optional(),
-    enableDebugMode: z.boolean().optional()
+    enableDebugMode: z.boolean().optional(),
+    enableFakeAuth: z.boolean().optional()
 });
 
 /**
@@ -331,6 +332,19 @@ export const zMeAjudaAiContractsModelsResponse1SystemGuid_SystemPrivateCoreLib_V
 });
 
 /**
+ * Envelope padrão para respostas da API
+ */
+export const zMeAjudaAiContractsModelsResponse1SystemObject_SystemPrivateCoreLib_Version_10000_Culture_neutral_PublicKeyToken_7Cec85D7Bea7798E = z.object({
+    data: z.unknown().optional(),
+    statusCode: z.number().int().min(-2147483648, { message: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { message: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
+    message: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    isSuccess: z.boolean().readonly().optional()
+});
+
+/**
  * Representa a localização detectada do usuário.
  */
 export const zMeAjudaAiContractsModelsUserLocation = z.object({
@@ -537,6 +551,28 @@ export const zMeAjudaAiModulesLocationsApplicationDtosRequestsUpdateAllowedCityR
     isActive: z.boolean().optional()
 });
 
+export const zMeAjudaAiModulesProvidersApiEndpointsPublicRegisterProviderApiRequest = z.object({
+    name: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    type: z.union([
+        z.literal(0),
+        z.literal(1),
+        z.literal(2),
+        z.literal(3),
+        z.literal(4)
+    ]).optional(),
+    documentNumber: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    phoneNumber: z.union([
+        z.string(),
+        z.null()
+    ]).optional()
+});
+
 /**
  * DTO para endereço.
  */
@@ -630,7 +666,146 @@ export const zMeAjudaAiModulesProvidersApplicationDtosDocumentDto = z.object({
         z.literal(5),
         z.literal(99)
     ]).optional(),
+    fileName: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    fileUrl: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
     isPrimary: z.boolean().optional()
+});
+
+/**
+ * DTO para serviço de um prestador.
+ */
+export const zMeAjudaAiModulesProvidersApplicationDtosProviderServiceDto = z.object({
+    serviceId: z.string().uuid().optional(),
+    serviceName: z.union([
+        z.string(),
+        z.null()
+    ]).optional()
+});
+
+/**
+ * DTO leve para consulta de status de aprovação e tier do prestador.
+ * Usado pelo endpoint GET /api/v1/providers/me/status.
+ */
+export const zMeAjudaAiModulesProvidersApplicationDtosProviderStatusDto = z.object({
+    status: z.union([
+        z.literal(0),
+        z.literal(1),
+        z.literal(2),
+        z.literal(3),
+        z.literal(4),
+        z.literal(5)
+    ]).optional(),
+    tier: z.union([
+        z.literal(0),
+        z.literal(1),
+        z.literal(2),
+        z.literal(3)
+    ]).optional(),
+    verificationStatus: z.union([
+        z.literal(0),
+        z.literal(1),
+        z.literal(2),
+        z.literal(3),
+        z.literal(4),
+        z.literal(5)
+    ]).optional(),
+    rejectionReason: z.union([
+        z.string(),
+        z.null()
+    ]).optional()
+});
+
+/**
+ * Envelope padrão para respostas da API
+ */
+export const zMeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosProviderStatusDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null = z.object({
+    data: zMeAjudaAiModulesProvidersApplicationDtosProviderStatusDto.optional(),
+    statusCode: z.number().int().min(-2147483648, { message: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { message: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
+    message: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    isSuccess: z.boolean().readonly().optional()
+});
+
+/**
+ * DTO seguro para exibição pública de dados do prestador.
+ * Remove informações sensíveis como documentos, motivo de rejeição, etc.
+ */
+export const zMeAjudaAiModulesProvidersApplicationDtosPublicProviderDto = z.object({
+    id: z.string().uuid().optional(),
+    name: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    type: z.union([
+        z.literal(0),
+        z.literal(1),
+        z.literal(2),
+        z.literal(3),
+        z.literal(4)
+    ]).optional(),
+    fantasyName: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    description: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    city: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    state: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    createdAt: z.string().datetime().optional(),
+    rating: z.union([
+        z.number(),
+        z.null()
+    ]).optional(),
+    reviewCount: z.number().int().min(-2147483648, { message: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { message: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
+    services: z.union([
+        z.array(z.string()),
+        z.null()
+    ]).optional(),
+    phoneNumbers: z.union([
+        z.array(z.string()),
+        z.null()
+    ]).optional(),
+    email: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    verificationStatus: z.union([
+        z.literal(0),
+        z.literal(1),
+        z.literal(2),
+        z.literal(3),
+        z.literal(4),
+        z.literal(5)
+    ]).optional()
+});
+
+/**
+ * Envelope padrão para respostas da API
+ */
+export const zMeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosPublicProviderDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null = z.object({
+    data: zMeAjudaAiModulesProvidersApplicationDtosPublicProviderDto.optional(),
+    statusCode: z.number().int().min(-2147483648, { message: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { message: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
+    message: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    isSuccess: z.boolean().readonly().optional()
 });
 
 /**
@@ -697,12 +872,22 @@ export const zMeAjudaAiModulesProvidersApplicationDtosProviderDto = z.object({
         z.literal(4),
         z.literal(5)
     ]).optional(),
+    tier: z.union([
+        z.literal(0),
+        z.literal(1),
+        z.literal(2),
+        z.literal(3)
+    ]).optional(),
     documents: z.union([
         z.array(zMeAjudaAiModulesProvidersApplicationDtosDocumentDto),
         z.null()
     ]).optional(),
     qualifications: z.union([
         z.array(zMeAjudaAiModulesProvidersApplicationDtosQualificationDto),
+        z.null()
+    ]).optional(),
+    services: z.union([
+        z.array(zMeAjudaAiModulesProvidersApplicationDtosProviderServiceDto),
         z.null()
     ]).optional(),
     createdAt: z.string().datetime().optional(),
@@ -784,6 +969,14 @@ export const zMeAjudaAiModulesProvidersApplicationDtosRequestsAddDocumentRequest
         z.literal(4),
         z.literal(5),
         z.literal(99)
+    ]).optional(),
+    fileName: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    fileUrl: z.union([
+        z.string(),
+        z.null()
     ]).optional()
 });
 
@@ -807,6 +1000,38 @@ export const zMeAjudaAiModulesProvidersApplicationDtosRequestsCreateProviderRequ
 });
 
 /**
+ * Request para auto-registro de um novo prestador de serviços na plataforma.
+ * Endpoint público — não requer autenticação.
+ */
+export const zMeAjudaAiModulesProvidersApplicationDtosRequestsRegisterProviderRequest = z.object({
+    name: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    type: z.union([
+        z.literal(0),
+        z.literal(1),
+        z.literal(2),
+        z.literal(3),
+        z.literal(4)
+    ]).optional(),
+    phoneNumber: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    email: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    acceptedTerms: z.boolean().optional(),
+    acceptedPrivacyPolicy: z.boolean().optional(),
+    documentNumber: z.union([
+        z.string(),
+        z.null()
+    ]).optional()
+});
+
+/**
  * Request para solicitar correção de informações básicas de um prestador de serviços.
  */
 export const zMeAjudaAiModulesProvidersApplicationDtosRequestsRequireBasicInfoCorrectionRequest = z.object({
@@ -824,7 +1049,11 @@ export const zMeAjudaAiModulesProvidersApplicationDtosRequestsUpdateProviderProf
         z.string(),
         z.null()
     ]).optional(),
-    businessProfile: zMeAjudaAiModulesProvidersApplicationDtosBusinessProfileDto.optional()
+    businessProfile: zMeAjudaAiModulesProvidersApplicationDtosBusinessProfileDto.optional(),
+    services: z.union([
+        z.array(zMeAjudaAiModulesProvidersApplicationDtosProviderServiceDto),
+        z.null()
+    ]).optional()
 });
 
 /**
@@ -1126,6 +1355,27 @@ export const zMeAjudaAiContractsModelsResponse1SystemCollectionsGenericIReadOnly
     isSuccess: z.boolean().readonly().optional()
 });
 
+export const zMeAjudaAiModulesUsersApiEndpointsPublicRegisterCustomerRequest = z.object({
+    name: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    email: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    password: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    phoneNumber: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    termsAccepted: z.boolean().optional(),
+    acceptedPrivacyPolicy: z.boolean().optional()
+});
+
 export const zMeAjudaAiModulesUsersApplicationDtosRequestsCreateUserRequest = z.object({
     username: z.union([
         z.string(),
@@ -1375,6 +1625,30 @@ export const zMeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicat
 /**
  * Envelope padrão para respostas da API
  */
+export const zMeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosProviderStatusDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_nullWritable = z.object({
+    data: zMeAjudaAiModulesProvidersApplicationDtosProviderStatusDto.optional(),
+    statusCode: z.number().int().min(-2147483648, { message: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { message: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
+    message: z.union([
+        z.string(),
+        z.null()
+    ]).optional()
+});
+
+/**
+ * Envelope padrão para respostas da API
+ */
+export const zMeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosPublicProviderDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_nullWritable = z.object({
+    data: zMeAjudaAiModulesProvidersApplicationDtosPublicProviderDto.optional(),
+    statusCode: z.number().int().min(-2147483648, { message: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { message: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
+    message: z.union([
+        z.string(),
+        z.null()
+    ]).optional()
+});
+
+/**
+ * Envelope padrão para respostas da API
+ */
 export const zMeAjudaAiContractsModelsResponse1MeAjudaAiModulesServiceCatalogsApplicationDtosRequestsServiceValidateServicesResponse_MeAjudaAiModulesServiceCatalogsApplication_Version_0000_Culture_neutral_PublicKeyToken_nullWritable = z.object({
     data: zMeAjudaAiModulesServiceCatalogsApplicationDtosRequestsServiceValidateServicesResponse.optional(),
     statusCode: z.number().int().min(-2147483648, { message: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { message: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
@@ -1470,6 +1744,18 @@ export const zMeAjudaAiContractsModelsResponse1SystemCollectionsGenericIReadOnly
  */
 export const zMeAjudaAiContractsModelsResponse1SystemGuid_SystemPrivateCoreLib_Version_10000_Culture_neutral_PublicKeyToken_7Cec85D7Bea7798EWritable = z.object({
     data: z.string().uuid().optional(),
+    statusCode: z.number().int().min(-2147483648, { message: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { message: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
+    message: z.union([
+        z.string(),
+        z.null()
+    ]).optional()
+});
+
+/**
+ * Envelope padrão para respostas da API
+ */
+export const zMeAjudaAiContractsModelsResponse1SystemObject_SystemPrivateCoreLib_Version_10000_Culture_neutral_PublicKeyToken_7Cec85D7Bea7798EWritable = z.object({
+    data: z.unknown().optional(),
     statusCode: z.number().int().min(-2147483648, { message: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { message: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
     message: z.union([
         z.string(),
@@ -1697,6 +1983,30 @@ export const zApiProvidersPutData = z.object({
  */
 export const zApiProvidersPutResponse = zMeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosProviderDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null;
 
+export const zApiPublicGetData = z.object({
+    body: z.never().optional(),
+    path: z.object({
+        id: z.string().uuid()
+    }),
+    query: z.never().optional()
+});
+
+/**
+ * OK
+ */
+export const zApiPublicGetResponse = zMeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosPublicProviderDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null;
+
+export const zApiBecomePostData = z.object({
+    body: zMeAjudaAiModulesProvidersApiEndpointsPublicRegisterProviderApiRequest,
+    path: z.never().optional(),
+    query: z.never().optional()
+});
+
+/**
+ * Created
+ */
+export const zApiBecomePostResponse = zMeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosProviderDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null;
+
 export const zApiByUserGetData = z.object({
     body: z.never().optional(),
     path: z.object({
@@ -1831,6 +2141,61 @@ export const zApiRequireBasicInfoCorrectionPostData = z.object({
     query: z.never().optional()
 });
 
+export const zApiMeGetData = z.object({
+    body: z.never().optional(),
+    path: z.never().optional(),
+    query: z.never().optional()
+});
+
+/**
+ * OK
+ */
+export const zApiMeGetResponse = zMeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosProviderDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null;
+
+export const zApiMePutData = z.object({
+    body: zMeAjudaAiModulesProvidersApplicationDtosRequestsUpdateProviderProfileRequest,
+    path: z.never().optional(),
+    query: z.never().optional()
+});
+
+/**
+ * OK
+ */
+export const zApiMePutResponse = zMeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosProviderDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null;
+
+export const zApiDocumentsPost2Data = z.object({
+    body: zMeAjudaAiModulesProvidersApplicationDtosRequestsAddDocumentRequest,
+    path: z.never().optional(),
+    query: z.never().optional()
+});
+
+/**
+ * OK
+ */
+export const zApiDocumentsPost2Response = zMeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosProviderDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null;
+
+export const zApiStatusGet2Data = z.object({
+    body: z.never().optional(),
+    path: z.never().optional(),
+    query: z.never().optional()
+});
+
+/**
+ * OK
+ */
+export const zApiStatusGet2Response = zMeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosProviderStatusDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null;
+
+export const zApiRegisterPostData = z.object({
+    body: zMeAjudaAiModulesProvidersApplicationDtosRequestsRegisterProviderRequest,
+    path: z.never().optional(),
+    query: z.never().optional()
+});
+
+/**
+ * Created
+ */
+export const zApiRegisterPostResponse = zMeAjudaAiContractsModelsResponse1MeAjudaAiModulesProvidersApplicationDtosProviderDto_MeAjudaAiModulesProvidersApplication_Version_0000_Culture_neutral_PublicKeyToken_null;
+
 export const zApiServicesDeleteData = z.object({
     body: z.never().optional(),
     path: z.object({
@@ -1866,6 +2231,7 @@ export const zApiProvidersGet3Data = z.object({
         latitude: z.number(),
         longitude: z.number(),
         radiusInKm: z.number(),
+        term: z.string().optional(),
         serviceIds: z.array(z.string().uuid()).optional(),
         minRating: z.number().optional(),
         subscriptionTiers: z.array(z.union([
@@ -1983,7 +2349,8 @@ export const zApiServicesGetData = z.object({
     body: z.never().optional(),
     path: z.never().optional(),
     query: z.object({
-        activeOnly: z.boolean().optional()
+        activeOnly: z.boolean().optional(),
+        name: z.string().optional()
     }).optional()
 });
 
@@ -2184,3 +2551,9 @@ export const zApiProfilePutData = z.object({
  * OK
  */
 export const zApiProfilePutResponse = zMeAjudaAiContractsModelsResponse1MeAjudaAiModulesUsersApplicationDtosUserDto_MeAjudaAiModulesUsersApplication_Version_0000_Culture_neutral_PublicKeyToken_null;
+
+export const zApiRegisterPost2Data = z.object({
+    body: zMeAjudaAiModulesUsersApiEndpointsPublicRegisterCustomerRequest,
+    path: z.never().optional(),
+    query: z.never().optional()
+});
