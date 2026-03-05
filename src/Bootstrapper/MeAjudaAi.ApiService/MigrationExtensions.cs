@@ -19,7 +19,7 @@ public static class MigrationExtensions
 
         var dbContextTypes = DiscoverDbContextTypes(logger);
         
-        // Ensure ServiceCatalogs runs before Providers (cross-module SQL dependency in migrations)
+        // Garantir que ServiceCatalogs rode antes de Providers (dependência SQL entre módulos nas migrations)
         var modulePriority = new Dictionary<string, int>
         {
             { "Users", 1 },
@@ -34,7 +34,7 @@ public static class MigrationExtensions
         {
             var moduleName = ExtractModuleName(t);
             return modulePriority.TryGetValue(moduleName, out var p) ? p : 99;
-        }).ToList();
+        }).ThenBy(t => t.FullName).ToList();
 
         if (dbContextTypes.Count == 0)
         {

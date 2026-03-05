@@ -29,7 +29,13 @@ if (Test-Path $envFilePath) {
     Write-Host "🔧 Carregando variáveis de ambiente do .env..." -ForegroundColor Cyan
     Get-Content $envFilePath | Where-Object { $_ -match '^[\w-]+=' } | ForEach-Object {
         $name, $value = $_.Split('=', 2)
-        Set-Item -Path "env:$name" -Value $value.Trim()
+        $cleanValue = $value.Trim()
+        if (($cleanValue.StartsWith('"') -and $cleanValue.EndsWith('"')) -or ($cleanValue.StartsWith("'") -and $cleanValue.EndsWith("'"))) {
+            if ($cleanValue.Length -ge 2) {
+                $cleanValue = $cleanValue.Substring(1, $cleanValue.Length - 2)
+            }
+        }
+        Set-Item -Path "env:$name" -Value $cleanValue
     }
 } else {
     Write-Host "⚠️ Arquivo .env não encontrado em $envFilePath. Lógicas que dependem dele podem falhar." -ForegroundColor Yellow

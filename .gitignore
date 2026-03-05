@@ -145,3 +145,5 @@ legacy-analysis-report.*
 
 # MkDocs build output
 site/
+
+/src/Web/MeAjudaAi.Web.Customer/layout.css

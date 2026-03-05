@@ -234,6 +234,7 @@ public class UserRolesTests
     }
 
     [Theory]
+    [InlineData("super-admin")]
     [InlineData("admin")]
     [InlineData("provider-manager")]
     [InlineData("document-reviewer")]
