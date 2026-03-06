@@ -1,22 +1,22 @@
 # Plano de Implementação de Testes - React 19 + TypeScript
 ## Projeto: MeAjudaAi.Web.Consumer (Monorepo .NET)
 
-## 📋 Sumário
+## Sumário
 
 1. [Contexto do Projeto](#contexto-do-projeto)
-2. [Decisão Arquitetural](#decisão-arquitetural)
-3. [Bibliotecas e Dependências](#bibliotecas-e-dependências)
+2. [Decisao Arquitetural](#decisao-arquitetural)
+3. [Bibliotecas e Dependencias](#bibliotecas-e-dependencias)
 4. [Estrutura de Pastas](#estrutura-de-pastas)
-5. [Configuração](#configuração)
+5. [Configuracao](#configuracao)
 6. [Estrutura dos Arquivos de Teste](#estrutura-dos-arquivos-de-teste)
-7. [Pipeline CI/CD Robusta (Ref. Medium)](#pipeline-cicd-robusta-ref-medium)
-8. [Integração com Pipeline CI/CD](#integração-com-pipeline-cicd)
+7. [Integração com Pipeline CI/CD](#integração-com-pipeline-cicd)
+8. [Pipeline CI/CD Robusta (Ref. Medium)](#pipeline-cicd-robusta-ref-medium)
 9. [Comandos Úteis](#comandos-úteis)
 10. [Boas Práticas](#boas-práticas)
 
 ---
 
-## 🏗️ Contexto do Projeto
+## Contexto do Projeto
 
 O projeto está integrado em um **monorepo .NET** com arquitetura de **monolito modular**. A estrutura atual já possui:
 
@@ -33,7 +33,7 @@ O projeto está integrado em um **monorepo .NET** com arquitetura de **monolito 
 
 ---
 
-## 🎯 Decisão Arquitetural
+## Decisao Arquitetural
 
 ### ✅ Recomendação: Criar Projeto Separado de Testes
 
@@ -92,7 +92,7 @@ MeAjudaAi/
 
 ---
 
-## 📦 Bibliotecas e Dependências
+## Bibliotecas e Dependencias
 
 ### Instalação Básica
 
@@ -131,7 +131,7 @@ npm install --save-dev @storybook/test-runner
 
 ---
 
-## 📁 Estrutura de Pastas
+## Estrutura de Pastas
 
 ### Estrutura do Projeto de Testes: `tests/MeAjudaAi.Web.Consumer.Tests/`
 
@@ -238,7 +238,7 @@ src/Web/MeAjudaAi.Web.Consumer/src/     →  tests/MeAjudaAi.Web.Consumer.Tests/
 
 ---
 
-## ⚙️ Configuração
+## Configuracao
 
 ### 1. `vitest.config.ts`
 
@@ -475,7 +475,7 @@ export default defineConfig({
 
 ---
 
-## 📝 Estrutura dos Arquivos de Teste
+## Estrutura dos Arquivos de Teste
 
 ### Teste de Componente com Base UI React
 
@@ -909,7 +909,7 @@ test.describe('Fluxo de Usuário', () => {
 
 ---
 
-## 🔄 Integração com Pipeline CI/CD
+## Integração com Pipeline CI/CD
 
 ### Integração com o Monorepo .NET
 
@@ -1060,7 +1060,7 @@ jobs:
 
 ---
 
-## 🚀 Pipeline CI/CD Robusta (Ref. Medium)
+## Pipeline CI/CD Robusta (Ref. Medium)
 
 Baseado no guia "[Building a Robust CI/CD Pipeline for React Apps](https://medium.com/@lamjed.gaidi070/building-a-robust-ci-cd-pipeline-for-react-apps-with-testing-and-static-analysis-05e14735f8f0)", nossa estratégia inclui as seguintes considerações:
 
@@ -1212,7 +1212,7 @@ echo "✅ Todos os testes concluídos!"
 
 ---
 
-## 🎯 Comandos Úteis
+## Comandos Úteis
 
 ### Navegação e Setup Inicial
 
@@ -1376,7 +1376,7 @@ Configuração de tasks:
 
 ---
 
-## ✅ Boas Práticas
+## Boas Práticas
 
 ### 1. **Nomenclatura**
 - Arquivos de teste: `ComponentName.test.tsx`
@@ -1562,7 +1562,7 @@ import { Component } from './Component';
 
 ---
 
-## 📋 Checklist de Implementação
+## Checklist de Implementação
 
 ### Fase 1: Setup Inicial ✅
 
@@ -1616,7 +1616,7 @@ import { Component } from './Component';
 
 ---
 
-## 🚀 Próximos Passos Recomendados
+## Próximos Passos Recomendados
 
 ### 1. Criar o Projeto de Testes
 
@@ -1745,7 +1745,7 @@ npx husky add .husky/pre-commit "cd tests/MeAjudaAi.Web.Consumer.Tests && npx li
 
 ---
 
-## 💡 Dicas de Implementação
+## Dicas de Implementação
 
 ### Comece Pequeno
 
@@ -1769,7 +1769,7 @@ npx husky add .husky/pre-commit "cd tests/MeAjudaAi.Web.Consumer.Tests && npx li
 
 ---
 
-## 🤝 Alinhamento com Backend (.NET)
+## Alinhamento com Backend (.NET)
 
 ### Similaridades Intencionais
 
