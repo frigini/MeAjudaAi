@@ -1,34 +1,34 @@
-## ≡ƒÄ¿ Fase 2: Frontend & Experi├¬ncia
+## ≡ƒÄ¿ Fase 2: Frontend & Experiência
 
-**Status**: ≡ƒöä Em andamento (JanΓÇôMar 2026)
+**Status**: 🔄 Em andamento (Jan–Mar 2026)
 
 ### Objetivo
-Desenvolver aplica├º├╡es frontend usando **Blazor WebAssembly** (Admin Portal) e **React + Next.js** (Customer Web App) + **React Native** (Mobile App).
+Desenvolver aplicações frontend usando **Blazor WebAssembly** (Admin Portal) e **React + Next.js** (Customer Web App) + **React Native** (Mobile App).
 
-> **≡ƒôà Status Atual**: Sprint 7 conclu├¡da (7 Jan 2026), Sprint 7.16 conclu├¡da (21 Jan 2026), Sprint 7.20 conclu├¡da (5 Fev 2026), Sprint 7.21 conclu├¡da (5 Fev 2026)  
-> **≡ƒô¥ Decis├úo T├⌐cnica** (5 Fev 2026): Customer App usar├í **React 19 + Next.js 15 + Tailwind v4** (SEO, performance, ecosystem)  
-> Pr├│ximo foco: Sprint 8A - Customer Web App (React + Next.js).
+> **📅 Status Atual**: Sprint 7 concluída (7 Jan 2026), Sprint 7.16 concluída (21 Jan 2026), Sprint 7.20 concluída (5 Fev 2026), Sprint 7.21 concluída (5 Fev 2026)  
+> **📝 Decisão Técnica** (5 Fev 2026): Customer App usará **React 19 + Next.js 15 + Tailwind v4** (SEO, performance, ecosystem)  
+> Próximo foco: Sprint 8A - Customer Web App (React + Next.js).
 
 ---
 
-### ≡ƒô▒ Stack Tecnol├│gico ATUALIZADO (5 Fev 2026)
+### 📱 Stack Tecnológico ATUALIZADO (5 Fev 2026)
 
-> **≡ƒô¥ Decis├úo T├⌐cnica** (5 Fevereiro 2026):  
+> **📝 Decisão Técnica** (5 Fevereiro 2026):  
 > Stack de Customer App definida como **React 19 + Next.js 15 + Tailwind CSS v4**.  
-> **Admin Portal** permanece em **Blazor WASM** (j├í implementado, interno, est├ível).  
+> **Admin Portal** permanece em **Blazor WASM** (já implementado, interno, estável).  
 > *Migration to React planned for Sprint 8D to unify the stack.*
-> **Raz├úo**: SEO cr├¡tico para Customer App, performance inicial, ecosystem maduro, hiring facilitado.
+> **Razão**: SEO crítico para Customer App, performance inicial, ecosystem maduro, hiring facilitado.
 
-**Decis├úo Estrat├⌐gica**: Dual Stack (Blazor para Admin, React para Customer)
+**Decisão Estratégica**: Dual Stack (Blazor para Admin, React para Customer)
 
 **Justificativa**:
-- Γ£à **SEO**: Customer App precisa aparecer no Google ("eletricista RJ") - Next.js SSR/SSG resolve
-- Γ£à **Performance**: Initial load r├ípido cr├¡tico para convers├úo mobile - code splitting + lazy loading
-- Γ£à **Ecosystem**: Massivo - geolocation, maps, payments, qualquer problema j├í resolvido
-- Γ£à **Hiring**: F├ícil escalar time - React devs abundantes vs Blazor devs raros
-- Γ£à **Mobile**: React Native maduro e testado vs MAUI Hybrid ainda novo
-- Γ£à **Modern Stack**: React 19 + Tailwind v4 ├⌐ estado da arte (2026)
-- ΓÜá∩╕Å **Trade-off**: DTOs duplicados (C# backend, TS frontend) - mitigado com OpenAPI TypeScript Generator
+- ✅ **SEO**: Customer App precisa aparecer no Google ("eletricista RJ") - Next.js SSR/SSG resolve
+- ✅ **Performance**: Initial load rápido crítico para conversão mobile - code splitting + lazy loading
+- ✅ **Ecosystem**: Massivo - geolocation, maps, payments, qualquer problema já resolvido
+- ✅ **Hiring**: Fácil escalar time - React devs abundantes vs Blazor devs raros
+- ✅ **Mobile**: React Native maduro e testado vs MAUI Hybrid ainda novo
+- ✅ **Modern Stack**: React 19 + Tailwind v4 é estado da arte (2026)
+- ⚠️∩╕Å **Trade-off**: DTOs duplicados (C# backend, TS frontend) - mitigado com OpenAPI TypeScript Generator
 
 **Stack Completa**:
 
@@ -51,20 +51,20 @@ Desenvolver aplica├º├╡es frontend usando **Blazor WebAssembly** (Admin Po
 **Mobile Customer App** (novo):
 - React Native + Expo
 - Compartilha componentes com Customer Web App
-- Geolocaliza├º├úo nativa
-- Notifica├º├╡es push
+- Geolocalização nativa
+- Notificações push
 - Secure Storage para tokens
 
 
 **Shared**:
-- **OpenAPI TypeScript Generator**: Sincroniza tipos C# ΓåÆ TypeScript automaticamente
+- **OpenAPI TypeScript Generator**: Sincroniza tipos C# → TypeScript automaticamente
   - **Tooling**: `openapi-typescript-codegen` ou `@hey-api/openapi-ts`
   - **Trigger**: CI/CD job on `api/swagger/v1/swagger.json` changes
   - **Output**: `MeAjudaAi.Web.Customer/types/api/generated/`
   - **Versioning**: API versions `v1`, `v2` (breaking changes require version bump)
   - **Breaking Change Gating**: OpenAPI diff in CI fails PR without version bump
-- Keycloak OIDC (autentica├º├úo unificada)
-- PostgreSQL (backend ├║nico)
+- Keycloak OIDC (autenticação unificada)
+- PostgreSQL (backend único)
 
 **Code Sharing Strategy (C# Γåö TypeScript)**:
 
@@ -78,7 +78,7 @@ Desenvolver aplica├º├╡es frontend usando **Blazor WebAssembly** (Admin Po
 **Generation Plan**:
 1. Implementar ferramenta CLI para converter `Shared.Contracts` Enums e Constants em `types/enums.ts` e `lib/constants.ts`.
 2. Implementar conversor de metadados FluentValidation para Zod schemas em `types/api/validation.ts`.
-3. Adicionar tickets no backlog para verifica├º├úo em CI e versionamento sem├óntico dos artefatos gerados.
+3. Adicionar tickets no backlog para verificação em CI e versionamento sem├óntico dos artefatos gerados.
 
 **Strategy Note**: We prioritize reusing `MeAjudaAi.Shared.Contracts` for enums and constants to keep the Frontend aligned with the Backend and avoid drift.
 
@@ -89,16 +89,16 @@ src/
 Γö£ΓöÇΓöÇ Web/
 Γöé   Γö£ΓöÇΓöÇ MeAjudaAi.Web.Admin/         # Blazor (consumes Contracts via Refit)
 Γöé   ΓööΓöÇΓöÇ MeAjudaAi.Web.Customer/      # Next.js
-Γöé       ΓööΓöÇΓöÇ types/api/generated/     # ΓåÉ OpenAPI generated types
+Γöé       ΓööΓöÇΓöÇ types/api/generated/     # ← OpenAPI generated types
 ΓööΓöÇΓöÇ Mobile/
     ΓööΓöÇΓöÇ MeAjudaAi.Mobile.Customer/   # React Native
-        ΓööΓöÇΓöÇ src/types/api/           # ΓåÉ Same OpenAPI generated types
+        ΓööΓöÇΓöÇ src/types/api/           # ← Same OpenAPI generated types
 ```
 
 **CI/CD Pipeline** (GitHub Actions):
-1. Backend changes ΓåÆ Swagger JSON updated
+1. Backend changes → Swagger JSON updated
 2. OpenAPI diff check (breaking changes?)
-3. If breaking ΓåÆ Require API version bump (`v1` ΓåÆ `v2`)
+3. If breaking → Require API version bump (`v1` → `v2`)
 4. Generate TypeScript types
 5. Commit to `types/api/generated/` (auto-commit bot)
 6. Frontend tests run with new types
@@ -113,10 +113,10 @@ src/
 Γöé   ΓööΓöÇΓöÇ MeAjudaAi.Mobile.Customer/    # ≡ƒåò React Native + Expo (Sprint 8B)
 ΓööΓöÇΓöÇ Shared/
     Γö£ΓöÇΓöÇ MeAjudaAi.Shared.DTOs/        # DTOs C# (backend)
-    ΓööΓöÇΓöÇ MeAjudaAi.Shared.Contracts/   # OpenAPI spec ΓåÆ TypeScript types
+    ΓööΓöÇΓöÇ MeAjudaAi.Shared.Contracts/   # OpenAPI spec → TypeScript types
 ```
 
-### ≡ƒöÉ Autentica├º├úo Unificada
+### ≡ƒöÉ Autenticação Unificada
 
 **Cross-Platform Authentication Consistency**:
 
@@ -141,7 +141,7 @@ src/
 - **Admin Portal**: `Microsoft.AspNetCore.Components.WebAssembly.Authentication` (Blazor)
 - **Customer Web**: NextAuth.js v5 (Next.js)
 - **Customer Mobile**: React Native OIDC Client
-- **Refresh**: Autom├ítico via OIDC interceptor
+- **Refresh**: Automático via OIDC interceptor
 
 **Migration Guide**: See `docs/authentication-migration.md` (to be created Sprint 8A)
 
@@ -149,82 +149,82 @@ src/
 
 ---
 
-### ≡ƒåò Gest├úo de Restri├º├╡es Geogr├íficas
+### ≡ƒåò Gestão de Restrições Geográficas
 
-**Resumo**: Restri├º├╡es geogr├íficas podem ser configuradas via `appsettings.json` (Fase 1, MVP atual) ou gerenciadas dinamicamente via Blazor Admin Portal com banco de dados (Fase 2, planejado Sprint 7+). O middleware `GeographicRestrictionMiddleware` valida cidades/estados permitidos usando IBGE API.
+**Resumo**: Restrições geográficas podem ser configuradas via `appsettings.json` (Fase 1, MVP atual) ou gerenciadas dinamicamente via Blazor Admin Portal com banco de dados (Fase 2, planejado Sprint 7+). O middleware `GeographicRestrictionMiddleware` valida cidades/estados permitidos usando IBGE API.
 
-**Contexto**: O middleware `GeographicRestrictionMiddleware` suporta configura├º├úo din├ómica via `Microsoft.FeatureManagement`. Este recurso foi implementado em duas fases:
+**Contexto**: O middleware `GeographicRestrictionMiddleware` suporta configuração din├ómica via `Microsoft.FeatureManagement`. Este recurso foi implementado em duas fases:
 
-#### Γ£à Fase 1: Middleware com appsettings (CONCLU├ìDA - Sprint 1 Dia 1, 21 Nov 2025)
+#### ✅ Fase 1: Middleware com appsettings (CONCLU├ìDA - Sprint 1 Dia 1, 21 Nov 2025)
 
-**Implementa├º├úo Atual**: Restri├º├╡es geogr├íficas baseadas em `appsettings.json` com middleware HTTP e integra├º├úo IBGE API.
+**Implementação Atual**: Restrições geográficas baseadas em `appsettings.json` com middleware HTTP e integração IBGE API.
 
-**Decis├╡es de Arquitetura**:
+**Decisões de Arquitetura**:
 
-1. **Localiza├º├úo de C├│digo** Γ£à **ATUALIZADO 21 Nov 2025**
-   - Γ£à **MOVIDO** `GeographicRestrictionMiddleware` para `ApiService/Middlewares` (espec├¡fico para API HTTP)
-   - Γ£à **MOVIDO** `GeographicRestrictionOptions` para `ApiService/Options` (configura├º├úo lida de appsettings da API)
-   - Γ£à **MOVIDO** `FeatureFlags.cs` para `Shared/Constants` (constantes globais como AuthConstants, ValidationConstants)
-   - Γ¥î **DELETADO** `Shared/Configuration/` (pasta vazia ap├│s movimenta├º├╡es)
-   - Γ¥î **DELETADO** `Shared/Middleware/` (pasta vazia, middleware ├║nico movido para ApiService)
+1. **Localização de Código** ✅ **ATUALIZADO 21 Nov 2025**
+   - ✅ **MOVIDO** `GeographicRestrictionMiddleware` para `ApiService/Middlewares` (específico para API HTTP)
+   - ✅ **MOVIDO** `GeographicRestrictionOptions` para `ApiService/Options` (configuração lida de appsettings da API)
+   - ✅ **MOVIDO** `FeatureFlags.cs` para `Shared/Constants` (constantes globais como AuthConstants, ValidationConstants)
+   - ❌ **DELETADO** `Shared/Configuration/` (pasta vazia após movimentações)
+   - ❌ **DELETADO** `Shared/Middleware/` (pasta vazia, middleware único movido para ApiService)
    - **Justificativa**: 
-     - GeographicRestriction ├⌐ feature **exclusiva da API HTTP** (n├úo ser├í usada por Workers/Background Jobs)
-     - Options s├úo lidas de appsettings que s├│ existem em ApiService
-     - FeatureFlags s├úo constantes (similar a `AuthConstants.Claims.*`, `ValidationConstants.MaxLength.*`)
-     - Middlewares gen├⌐ricos j├í est├úo em pastas tem├íticas (Authorization/Middleware, Logging/, Monitoring/)
+     - GeographicRestriction é feature **exclusiva da API HTTP** (não será usada por Workers/Background Jobs)
+     - Options são lidas de appsettings que só existem em ApiService
+     - FeatureFlags são constantes (similar a `AuthConstants.Claims.*`, `ValidationConstants.MaxLength.*`)
+     - Middlewares genéricos já estão em pastas temáticas (Authorization/Middleware, Logging/, Monitoring/)
 
-2. **Prop├│sito da Feature Toggle** Γ£à
-   - Γ£à **Feature flag ativa/desativa TODA a restri├º├úo geogr├ífica** (on/off global)
-   - Γ£à **Cidades individuais controladas via banco de dados** (Sprint 3 - tabela `allowed_regions`)
-   - Γ£à **Arquitetura proposta**:
+2. **Propósito da Feature Toggle** ✅
+   - ✅ **Feature flag ativa/desativa TODA a restrição geográfica** (on/off global)
+   - ✅ **Cidades individuais controladas via banco de dados** (Sprint 3 - tabela `allowed_regions`)
+   - ✅ **Arquitetura proposta**:
      ```
-     FeatureManagement:GeographicRestriction = true  ΓåÆ Liga TODA valida├º├úo
-         Γåô
-     allowed_regions.is_active = true              ΓåÆ Ativa cidade ESPEC├ìFICA
+     FeatureManagement:GeographicRestriction = true  → Liga TODA validação
+         ↓
+     allowed_regions.is_active = true              → Ativa cidade ESPEC├ìFICA
      ```
    - **MVP (Sprint 1)**: Feature toggle + appsettings (hardcoded cities)
    - **Sprint 3**: Migration para database-backed + Admin Portal UI
 
-3. **Remo├º├úo de Redund├óncia** Γ£à **J├ü REMOVIDO**
-   - Γ¥î **REMOVIDO**: Propriedade `GeographicRestrictionOptions.Enabled` (redundante com feature flag)
-   - Γ¥î **REMOVIDO**: Verifica├º├úo `|| !_options.Enabled` do middleware
-   - Γ£à **├ÜNICA FONTE DE VERDADE**: `FeatureManagement:GeographicRestriction` (feature toggle)
-   - **Justificativa**: Ter duas formas de habilitar/desabilitar causa confus├úo e potenciais conflitos.
-   - **Benef├¡cio**: Menos configura├º├╡es duplicadas, arquitetura mais clara e segura.
+3. **Remoção de Redund├óncia** ✅ **J├ü REMOVIDO**
+   - ❌ **REMOVIDO**: Propriedade `GeographicRestrictionOptions.Enabled` (redundante com feature flag)
+   - ❌ **REMOVIDO**: Verificação `|| !_options.Enabled` do middleware
+   - ✅ **ÚNICA FONTE DE VERDADE**: `FeatureManagement:GeographicRestriction` (feature toggle)
+   - **Justificativa**: Ter duas formas de habilitar/desabilitar causa confusão e potenciais conflitos.
+   - **Benefício**: Menos configurações duplicadas, arquitetura mais clara e segura.
 
-**Organiza├º├úo de Pastas** (21 Nov 2025):
-```
+**Organização de Pastas** (21 Nov 2025):
+```text
 src/
   Shared/
     Constants/
-      FeatureFlags.cs          ΓåÉ MOVIDO de Configuration/ (constantes globais)
+      FeatureFlags.cs          ← MOVIDO de Configuration/ (constantes globais)
       AuthConstants.cs         (existente)
       ValidationConstants.cs   (existente)
-    Authorization/Middleware/  (middlewares de autoriza├º├úo)
+    Authorization/Middleware/  (middlewares de autorização)
     Logging/                   (LoggingContextMiddleware)
     Monitoring/                (BusinessMetricsMiddleware)
     Messaging/Handlers/        (MessageRetryMiddleware)
   
   Bootstrapper/MeAjudaAi.ApiService/
     Middlewares/
-      GeographicRestrictionMiddleware.cs  ΓåÉ MOVIDO de Shared/Middleware/
-      RateLimitingMiddleware.cs           (espec├¡fico HTTP)
-      SecurityHeadersMiddleware.cs        (espec├¡fico HTTP)
+      GeographicRestrictionMiddleware.cs  ← MOVIDO de Shared/Middleware/
+      RateLimitingMiddleware.cs           (específico HTTP)
+      SecurityHeadersMiddleware.cs        (específico HTTP)
     Options/
-      GeographicRestrictionOptions.cs     ΓåÉ MOVIDO de Shared/Configuration/
+      GeographicRestrictionOptions.cs     ← MOVIDO de Shared/Configuration/
       RateLimitOptions.cs                 (existente)
       CorsOptions.cs                      (existente)
 ```
 
-**Resultado Sprint 1**: Middleware funcional com valida├º├úo via IBGE API, feature toggle integrado, e lista de cidades configur├ível via appsettings (requer redeploy para altera├º├╡es).
+**Resultado Sprint 1**: Middleware funcional com validação via IBGE API, feature toggle integrado, e lista de cidades configurável via appsettings (requer redeploy para alterações).
 
 ---
 
-#### Γ£à Fase 2: Database-Backed + Admin Portal UI (CONCLU├ìDO - Sprint 7, 7 Jan 2026)
+#### ✅ Fase 2: Database-Backed + Admin Portal UI (CONCLU├ìDO - Sprint 7, 7 Jan 2026)
 
-**Contexto**: Migrar lista de cidades/estados de `appsettings.json` para banco de dados, permitindo gest├úo din├ómica via Blazor Admin Portal sem necessidade de redeploy.
+**Contexto**: Migrar lista de cidades/estados de `appsettings.json` para banco de dados, permitindo gestão din├ómica via Blazor Admin Portal sem necessidade de redeploy.
 
-**Status**: Γ£à IMPLEMENTADO - AllowedCities UI completa com CRUD, coordenadas geogr├íficas, e raio de servi├ºo.
+**Status**: ✅ IMPLEMENTADO - AllowedCities UI completa com CRUD, coordenadas geográficas, e raio de serviço.
 
 **Arquitetura Proposta**:
 ```sql
@@ -246,10 +246,10 @@ CREATE INDEX idx_allowed_regions_active ON geographic_restrictions.allowed_regio
 
 **Funcionalidades Admin Portal**:
 
-- [ ] **Visualiza├º├úo de Restri├º├╡es Atuais**
+- [ ] **Visualização de Restrições Atuais**
   - [ ] Tabela com cidades/estados permitidos
   - [ ] Filtros: Tipo (Cidade/Estado), Estado, Status (Ativo/Inativo)
-  - [ ] Ordena├º├úo: Alfab├⌐tica, Data de Adi├º├úo
+  - [ ] Ordenação: Alfabética, Data de Adição
   - [ ] Indicador visual: Badgets para "Cidade" vs "Estado"
 
 - [ ] **Adicionar Cidade/Estado**
@@ -258,28 +258,28 @@ CREATE INDEX idx_allowed_regions_active ON geographic_restrictions.allowed_regio
     - Estado: Dropdown preenchido via IBGE API (27 UFs)
     - Cidade: Autocomplete via IBGE API (se tipo=Cidade)
     - Notas: Campo opcional (ex: "Piloto Beta Q1 2025")
-  - [ ] Valida├º├╡es:
-    - Estado deve ser sigla v├ílida (RJ, SP, MG, etc.)
-    - Cidade deve existir no IBGE (valida├º├úo server-side)
-    - N├úo permitir duplicatas (cidade+estado ├║nico)
-  - [ ] Preview: "Voc├¬ est├í adicionando: Muria├⌐/MG"
+  - [ ] Validações:
+    - Estado deve ser sigla válida (RJ, SP, MG, etc.)
+    - Cidade deve existir no IBGE (validação server-side)
+    - Não permitir duplicatas (cidade+estado único)
+  - [ ] Preview: "Você está adicionando: Muriaé/MG"
 
-- [ ] **Editar Regi├úo**
+- [ ] **Editar Região**
   - [ ] Apenas permitir editar "Notas" e "Status"
-  - [ ] Cidade/Estado s├úo imut├íveis (delete + re-add se necess├írio)
-  - [ ] Confirma├º├úo antes de desativar regi├úo com prestadores ativos
+  - [ ] Cidade/Estado são imutáveis (delete + re-add se necessário)
+  - [ ] Confirmação antes de desativar região com prestadores ativos
 
-- [ ] **Ativar/Desativar Regi├úo**
+- [ ] **Ativar/Desativar Região**
   - [ ] Toggle switch inline na tabela
-  - [ ] Confirma├º├úo: "Desativar [Cidade/Estado] ir├í bloquear novos registros. Prestadores existentes n├úo ser├úo afetados."
+  - [ ] Confirmação: "Desativar [Cidade/Estado] irá bloquear novos registros. Prestadores existentes não serão afetados."
   - [ ] Audit log: Registrar quem ativou/desativou e quando
 
-- [ ] **Remover Regi├úo**
-  - [ ] Bot├úo de exclus├úo com confirma├º├úo dupla
-  - [ ] Valida├º├úo: Bloquear remo├º├úo se houver prestadores registrados nesta regi├úo
-  - [ ] Mensagem: "N├úo ├⌐ poss├¡vel remover [Cidade]. Existem 15 prestadores registrados."
+- [ ] **Remover Região**
+  - [ ] Botão de exclusão com confirmação dupla
+  - [ ] Validação: Bloquear remoção se houver prestadores registrados nesta região
+  - [ ] Mensagem: "Não é possível remover [Cidade]. Existem 15 prestadores registrados."
 
-**Integra├º├úo com Middleware** (Refactor Necess├írio):
+**Integração com Middleware** (Refactor Necessário):
 
 **Abordagem 1: Database-First (Recomendado)**
 ```csharp
@@ -289,14 +289,14 @@ public class GeographicRestrictionOptions
     public bool Enabled { get; set; }
     public string BlockedMessage { get; set; } = "...";
     
-    // DEPRECATED: Remover ap├│s migration para database
+    // DEPRECATED: Remover após migration para database
     [Obsolete("Use database-backed AllowedRegionsService instead")]
     public List<string> AllowedCities { get; set; } = new();
     [Obsolete("Use database-backed AllowedRegionsService instead")]
     public List<string> AllowedStates { get; set; } = new();
 }
 
-// Novo servi├ºo
+// Novo serviço
 public interface IAllowedRegionsService
 {
     Task<List<string>> GetAllowedCitiesAsync(CancellationToken ct = default);
@@ -314,7 +314,7 @@ public class GeographicRestrictionMiddleware
         var allowedCities = await _regionsService.GetAllowedCitiesAsync(ct);
         var allowedStates = await _regionsService.GetAllowedStatesAsync(ct);
         
-        // L├│gica de valida├º├úo permanece igual
+        // Lógica de validação permanece igual
         if (!allowedCities.Contains(userCity) && !allowedStates.Contains(userState))
         {
             // Bloquear
@@ -325,37 +325,37 @@ public class GeographicRestrictionMiddleware
 
 **Abordagem 2: Hybrid (Fallback para appsettings)**
 - Se banco estiver vazio, usar `appsettings.json`
-- Migra├º├úo gradual: Admin adiciona regi├╡es no portal, depois remove de appsettings
+- Migração gradual: Admin adiciona regiões no portal, depois remove de appsettings
 
 **Cache Strategy**:
-- Usar `HybridCache` (j├í implementado no `IbgeService`)
-- TTL: 5 minutos (balan├ºo entre performance e fresh data)
-- Invalida├º├úo: Ao adicionar/remover/editar regi├úo no admin portal
+- Usar `HybridCache` (já implementado no `IbgeService`)
+- TTL: 5 minutos (balanço entre performance e fresh data)
+- Invalidação: Ao adicionar/remover/editar região no admin portal
 
 **Migration Path**:
 1. **Sprint 3 Semana 1**: Criar schema `geographic_restrictions` + tabela
 2. **Sprint 3 Semana 1**: Implementar `AllowedRegionsService` com cache
-3. **Sprint 3 Semana 1**: Refactor middleware para usar servi├ºo (mant├⌐m fallback appsettings)
+3. **Sprint 3 Semana 1**: Refactor middleware para usar serviço (mantém fallback appsettings)
 4. **Sprint 3 Semana 2**: Implementar CRUD endpoints no Admin API
 5. **Sprint 3 Semana 2**: Implementar UI no Blazor Admin Portal
-6. **Sprint 3 P├│s-Deploy**: Popular banco com dados iniciais (Muria├⌐, Itaperuna, Linhares)
+6. **Sprint 3 Pós-Deploy**: Popular banco com dados iniciais (Muriaé, Itaperuna, Linhares)
 7. **Sprint 4**: Remover valores de appsettings.json (obsoleto)
 
-**Testes Necess├írios**:
+**Testes Necessários**:
 - [ ] Unit tests: `AllowedRegionsService` (CRUD + cache invalidation)
 - [ ] Integration tests: Middleware com banco populado vs vazio
-- [ ] E2E tests: Admin adiciona cidade ΓåÆ Middleware bloqueia outras cidades
+- [ ] E2E tests: Admin adiciona cidade → Middleware bloqueia outras cidades
 
-**Documenta├º├úo**:
+**Documentação**:
 - [ ] Admin User Guide: Como adicionar/remover cidades piloto
 - [ ] Technical Debt: Marcar `AllowedCities` e `AllowedStates` como obsoletos
 
-**ΓÜá∩╕Å Breaking Changes**:
-- ~~`GeographicRestrictionOptions.Enabled` ser├í removido~~ Γ£à **J├ü REMOVIDO** (Sprint 1 Dia 1)
-  - **Motivo**: Redundante com feature toggle - fonte de verdade ├║nica
-  - **Migra├º├úo**: Usar apenas `FeatureManagement:GeographicRestriction` em appsettings
-- `GeographicRestrictionOptions.AllowedCities/AllowedStates` ser├í deprecado (Sprint 3)
-  - **Migra├º├úo**: Admin Portal popular├í tabela `allowed_regions` via UI
+**⚠️∩╕Å Breaking Changes**:
+- ~~`GeographicRestrictionOptions.Enabled` será removido~~ ✅ **J├ü REMOVIDO** (Sprint 1 Dia 1)
+  - **Motivo**: Redundante com feature toggle - fonte de verdade única
+  - **Migração**: Usar apenas `FeatureManagement:GeographicRestriction` em appsettings
+- `GeographicRestrictionOptions.AllowedCities/AllowedStates` será deprecado (Sprint 3)
+  - **Migração**: Admin Portal populará tabela `allowed_regions` via UI
 
 **Estimativa**:
 - **Backend (API + Service)**: 2 dias
@@ -363,10 +363,10 @@ public class GeographicRestrictionMiddleware
 - **Migration + Testes**: 1 dia
 - **Total**: 5 dias (dentro do Sprint 3 de 2 semanas)
 
-#### 7. Modera├º├úo de Reviews (Prepara├º├úo para Fase 3)
+#### 7. Moderação de Reviews (Preparação para Fase 3)
 - [ ] **Listagem**: Reviews flagged/reportados
-- [ ] **A├º├╡es**: Aprovar, Remover, Banir usu├írio
-- [ ] Stub para m├│dulo Reviews (a ser implementado na Fase 3)
+- [ ] **Ações**: Aprovar, Remover, Banir usuário
+- [ ] Stub para módulo Reviews (a ser implementado na Fase 3)
 
 **Tecnologias**:
 - **Framework**: Blazor WebAssembly (.NET 10)
@@ -376,44 +376,44 @@ public class GeographicRestrictionMiddleware
 - **Charts**: ApexCharts.Blazor
 
 **Resultado Esperado**:
-- Γ£à Admin Portal funcional e responsivo
-- Γ£à Todas opera├º├╡es CRUD implementadas
-- Γ£à Dashboard com m├⌐tricas em tempo real
-- Γ£à Deploy em Azure Container Apps
+- ✅ Admin Portal funcional e responsivo
+- ✅ Todas operações CRUD implementadas
+- ✅ Dashboard com métricas em tempo real
+- ✅ Deploy em Azure Container Apps
 
 ---
 
-### ≡ƒôà Sprint 8A: Customer App & Nx Setup (2 semanas) ΓÅ│ ATUALIZADO
+### 📅 Sprint 8A: Customer App & Nx Setup (2 semanas) ⏳ ATUALIZADO
 
 **Status**: CONCLU├ìDA (5-13 Fev 2026)
-**Depend├¬ncias**: Sprint 7.16 conclu├¡do Γ£à  
-**Dura├º├úo**: 2 semanas
+**Dependências**: Sprint 7.16 concluído ✅  
+**Duração**: 2 semanas
 
-**Contexto**: Sprint dividida em duas partes para acomodar a migra├º├úo para Nx monorepo.
+**Contexto**: Sprint dividida em duas partes para acomodar a migração para Nx monorepo.
 
 ---
 
-#### ≡ƒô▒ Parte 1: Customer App Development (Focus)
+#### 📱 Parte 1: Customer App Development (Focus)
 
 **Home & Busca** (Semana 1):
-- [ ] **Landing Page**: Hero section + busca r├ípida
-- [ ] **Busca Geolocalizada**: Campo de endere├ºo/CEP + raio + servi├ºos
+- [ ] **Landing Page**: Hero section + busca rápida
+- [ ] **Busca Geolocalizada**: Campo de endereço/CEP + raio + serviços
 - [ ] **Mapa Interativo**: Exibir prestadores no mapa (Leaflet.Blazor)
-- [ ] **Listagem de Resultados**: Cards com foto, nome, rating, dist├óncia, tier badge
-- [ ] **Filtros**: Rating m├¡nimo, tier, disponibilidade
-- [ ] **Ordena├º├úo**: Dist├óncia, Rating, Tier
+- [ ] **Listagem de Resultados**: Cards com foto, nome, rating, distância, tier badge
+- [ ] **Filtros**: Rating mínimo, tier, disponibilidade
+- [ ] **Ordenação**: Dist├óncia, Rating, Tier
 
 **Perfil de Prestador** (Semana 1-2):
-- [ ] **Visualiza├º├úo**: Foto, nome, descri├º├úo, servi├ºos, rating, reviews
-- [ ] **Contato**: Bot├úo WhatsApp, telefone, email (MVP: links externos)
-- [ ] **Galeria**: Fotos do trabalho (se dispon├¡vel)
-- [ ] **Reviews**: Listar avalia├º├╡es de outros clientes (read-only, write em Fase 3)
-- [ ] **Meu Perfil**: Editar informa├º├╡es b├ísicas
+- [ ] **Visualização**: Foto, nome, descrição, serviços, rating, reviews
+- [ ] **Contato**: Botão WhatsApp, telefone, email (MVP: links externos)
+- [ ] **Galeria**: Fotos do trabalho (se disponível)
+- [ ] **Reviews**: Listar avaliações de outros clientes (read-only, write em Fase 3)
+- [ ] **Meu Perfil**: Editar informações básicas
 
-#### ≡ƒ¢á∩╕Å Parte 2: Nx Monorepo Setup
+#### 🛠️ Parte 2: Nx Monorepo Setup
 **Status**: 🔄 EM PROGRESSO (Março 2026)
 
-### 🔄 Sprint 8B.2 - Technical Excellence & NX Monorepo (5 - 18 Mar 2026)
+### 🔄 Sprint 8B.2 - NX Scaffolding & Initial Migration (5 - 18 Mar 2026)
 **Branch**: `feature/sprint-8b2-technical-excellence`
 **Status**: 🔄 EM PROGRESSO
 
@@ -421,170 +421,162 @@ public class GeographicRestrictionMiddleware
 1. 🔴 **MUST-HAVE**: **NX Monorepo Setup** (Effort: Large)
     - Initialize workspace.
     - **Migrate** existing `MeAjudaAi.Web.Customer` to `apps/customer-web`.
-    - **Scaffolding** (empty placeholders): `apps/provider-web` (8C), `apps/admin-web` (8D).
-    - Extract `libs/ui`, `libs/auth`, `libs/api-client`.
+    - **Scaffolding** (empty placeholders): `apps/provider-web` and `apps/admin-portal`.
+    - Extract shared libraries: `libs/ui`, `libs/auth`, `libs/api-client`.
 2. 🔴 **MUST-HAVE**: **Messaging Unification** (Effort: Medium)
     - Remove Azure Service Bus, unify on RabbitMQ only.
-3. 🟡 **RECOMMENDED**: **Slug Implementation** (MOVED TO SPRINT 8C)
-4. 🟢 **OPTIONAL**: **Backend Integration Test Optimization** (MOVED TO SPRINT 9)
-5. 🟢 **OPTIONAL**: **Frontend Testing & CI/CD Suite** (MOVED TO SPRINT 9)
-    - *Dependency*: NX Setup must precede Frontend Testing changes.
+3. 🔴 **MUST-HAVE**: **Technical Excellence Pack** (Effort: Medium)
+    - [**TD**] **Keycloak Automation**: `setup-keycloak-clients.ps1` for local dev.
+    - [**TD**] **Analyzer Cleanup**: Fix MudBlazor/SonarLint warnings in Admin & Contracts.
+    - [**TD**] **Refactor Extensions**: Extract `BusinessMetricsMiddlewareExtensions`.
+    - [**TD**] **Polly Logging**: Migrate resilience logging to ILogger (Issue #113).
+    - [**TD**] **Standardization**: Record syntax alignment in `Contracts`.
 
 ---
 
-4. **Auth Migration**: Configurar Keycloak no novo app React.
-
-**Entreg├íveis**:
-- [ ] Nx workspace com `apps/admin-portal` e `libs/shared-ui`.
-- [ ] Admin Portal React funcional (Providers, ServiceCatalogs).
-- [ ] Componentes reutiliz├íveis em biblioteca compartilhada.
-- [ ] Testes unit├írios/integra├º├úo configurados.
-
+**Entregáveis**:
+- [x] Nx workspace com `apps/customer-web` e `libs/shared-ui` placeholders.
+- [ ] Placeholders para `apps/provider-web` e `apps/admin-portal`.
+- [ ] Bibliotecas extraídas para `libs/`.
 ---
 
-## ≡ƒöº Tarefas T├⌐cnicas Cross-Module ΓÅ│ ATUALIZADO
+## 🔥 Tarefas Técnicas Cross-Module ⏳ ATUALIZADO
 
-**Status**: ≡ƒöä EM ANDAMENTO (Sprint 5.5 - 19 Dez 2025)
+**Status**: 🔄 EM ANDAMENTO (Sprint 5.5 - 19 Dez 2025)
 
 **Contexto Atual**:
-- Γ£à Lock files regenerados em todos os m├│dulos (37 arquivos atualizados)
-- Γ£à PR #81 (Aspire 13.1.0) atualizado com lock files corretos
-- Γ£à PR #82 (FeatureManagement 4.4.0) atualizado com lock files corretos
-- ΓÅ│ Aguardando valida├º├úo CI/CD antes do merge
-- ≡ƒôï Desenvolvimento frontend aguardando conclus├úo desta sprint
+- ✅ Lock files regenerados em todos os módulos (37 arquivos atualizados)
+- ✅ PR #81 (Aspire 13.1.0) atualizado com lock files corretos
+- ✅ PR #82 (FeatureManagement 4.4.0) atualizado com lock files corretos
+- ⏳ Aguardando validação CI/CD antes do merge
+- 📋 Desenvolvimento frontend aguardando conclusão desta sprint
 
-Tarefas t├⌐cnicas que devem ser aplicadas em todos os m├│dulos para consist├¬ncia e melhores pr├íticas.
+Tarefas técnicas que devem ser aplicadas em todos os módulos para consistência e melhores práticas.
 
-### Migration Control em Produ├º├úo
+### Migration Control em Produção
 
-**Issue**: Implementar controle `APPLY_MIGRATIONS` nos m├│dulos restantes
+**Issue**: Implementar controle `APPLY_MIGRATIONS` nos módulos restantes
 
-**Contexto**: O m├│dulo Documents j├í implementa controle via vari├ível de ambiente `APPLY_MIGRATIONS` para desabilitar migrations autom├íticas em produ├º├úo. Isso ├⌐ essencial para:
-- Ambientes com m├║ltiplas inst├óncias (evita race conditions)
-- Deployments controlados via pipeline de CI/CD
-- Blue-green deployments onde migrations devem rodar antes do switch
+**Contexto**: O módulo Documents já implementa controle via variável de ambiente `APPLY_MIGRATIONS` para desabilitar migrations automáticas em produção.
 
-**Implementa├º├úo** (padr├úo estabelecido em `Documents/API/Extensions.cs`):
+**Implementação** (padrão estabelecido em `Documents/API/Extensions.cs`):
 
 ```csharp
 private static void EnsureDatabaseMigrations(WebApplication app)
 {
-    Keycloak client automation script (setup em 1 comando) - **DAY 1**
-- Γ£à 0 analyzer warnings no Admin Portal (S2094, S2953, S2933, MUD0002 resolvidos)
-- Γ£à 30-40 testes bUnit (10 ΓåÆ 30+, +200% cobertura)
+    // Read the environment variable (or from IConfiguration)
+    var applyMigrations = app.Configuration["APPLY_MIGRATIONS"] 
+                          ?? Environment.GetEnvironmentVariable("APPLY_MIGRATIONS");
 
-**Timeline**:
-- **Dia 1** (17 Jan): Keycloak automation script - **CRITICAL PATH**
-- **Semana 1** (17-24 Jan): Customer App Home + Busca + Warnings fix
-- **Semana 2** (24-31 Jan): Customer App Perfil + Mobile + Testes
-- **Semana 3** (31 Jan): PolishingVariable("APPLY_MIGRATIONS");
     if (!string.IsNullOrEmpty(applyMigrations) && 
         bool.TryParse(applyMigrations, out var shouldApply) && !shouldApply)
     {
-        logger?.LogInformation("Migra├º├╡es autom├íticas desabilitadas via APPLY_MIGRATIONS=false");
+        app.Logger.LogInformation("Automatic migrations disabled via APPLY_MIGRATIONS=false");
         return;
     }
 
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<DocumentDbContext>();
     // Aplicar migrations normalmente
     context.Database.Migrate();
 }
 ```
 
-**Status por M├│dulo**:
-- Γ£à **Documents**: Implementado (Sprint 4 - 16 Dez 2025)
-- ΓÅ│ **Users**: Pendente
-- ΓÅ│ **Providers**: Pendente  
-- ΓÅ│ **ServiceCatalogs**: Pendente
-- ΓÅ│ **Locations**: Pendente
-- ΓÅ│ **SearchProviders**: Pendente
+**Status por Módulo**:
+- ✅ **Documents**: Implementado (Sprint 4 - 16 Dez 2025)
+- ⏳ **Users**: Pendente
+- ⏳ **Providers**: Pendente  
+- ⏳ **ServiceCatalogs**: Pendente
+- ⏳ **Locations**: Pendente
+- ⏳ **SearchProviders**: Pendente
 
-**Esfor├ºo Estimado**: 15 minutos por m├│dulo (copiar padr├úo do Documents)
+**Esforço Estimado**: 15 minutos por módulo (copiar padrão do Documents)
 
-**Documenta├º├úo**: Padr├úo documentado em `docs/database.md` se├º├úo "Controle de Migrations em Produ├º├úo"
+**Documentação**: Padrão documentado em `docs/database.md` seção "Controle de Migrations em Produção"
 
-**Prioridade**: M├ëDIA - Implementar antes do primeiro deployment em produ├º├úo
+**Prioridade**: MÉDIA - Implementar antes do primeiro deployment em produção
 
 ---
 
-## ≡ƒôï Sprint 5.5: Package Lock Files & Dependency Updates (19 Dez 2025)
+## 📋 Sprint 5.5: Package Lock Files & Dependency Updates (19 Dez 2025)
 
-**Status**: ≡ƒöä EM ANDAMENTO - Aguardando CI/CD  
-**Dura├º├úo**: 1 dia  
-**Objetivo**: Resolver conflitos de package lock files e atualizar depend├¬ncias
+**Status**: 🔄 EM ANDAMENTO - Aguardando CI/CD  
+**Duração**: 1 dia  
+**Objetivo**: Resolver conflitos de package lock files e atualizar dependências
 
 ### Contexto
 
-Durante o processo de atualiza├º├úo autom├ítica de depend├¬ncias pelo Dependabot, foram identificados conflitos nos arquivos `packages.lock.json` causados por incompatibilidade de vers├╡es do pacote `Microsoft.OpenApi`.
+Durante o processo de atualização automática de dependências pelo Dependabot, foram identificados conflitos nos arquivos `packages.lock.json` causados por incompatibilidade de versões do pacote `Microsoft.OpenApi`.
 
 **Problema Raiz**:
-- Lock files esperavam vers├úo `[2.3.12, )` 
+- Lock files esperavam versão `[2.3.12, )` 
 - Central Package Management especificava `[2.3.0, )`
 - Isso causava erros NU1004 em todos os projetos, impedindo build e testes
 
-### A├º├╡es Executadas
+### Ações Executadas
 
-#### Γ£à Corre├º├╡es Implementadas
+#### ✅ Correções Implementadas
 
 1. **Branch feature/refactor-and-cleanup**
-   - Γ£à 37 arquivos `packages.lock.json` regenerados
-   - Γ£à Commit: "chore: regenerate package lock files to fix version conflicts"
-   - Γ£à Push para origin conclu├¡do
+   - ✅ 37 arquivos `packages.lock.json` regenerados
+   - ✅ Commit: "chore: regenerate package lock files to fix version conflicts"
+   - ✅ Push para origin concluído
 
 2. **Branch master**
-   - Γ£à Merge de feature/refactor-and-cleanup ΓåÆ master
-   - Γ£à Push para origin/master conclu├¡do
-   - Γ£à Todos os lock files atualizados na branch principal
+   - ✅ Merge de feature/refactor-and-cleanup → master
+   - ✅ Push para origin/master concluído
+   - ✅ Todos os lock files atualizados na branch principal
 
 3. **PR #81 - Aspire 13.1.0 Update**
    - Branch: `dependabot/nuget/aspire-f7089cdef2`
-   - Γ£à Lock files regenerados (37 arquivos)
-   - Γ£à Commit: "fix: regenerate package lock files after Aspire 13.1.0 update"
-   - Γ£à Force push conclu├¡do
-   - ΓÅ│ Aguardando CI/CD (Code Quality Checks, Security Scan)
+   - ✅ Lock files regenerados (37 arquivos)
+   - ✅ Commit: "fix: regenerate package lock files after Aspire 13.1.0 update"
+   - ✅ Force push concluído
+   - ⏳ Aguardando CI/CD (Code Quality Checks, Security Scan)
 
 4. **PR #82 - FeatureManagement 4.4.0 Update**
    - Branch: `dependabot/nuget/Microsoft.FeatureManagement.AspNetCore-4.4.0`
-   - Γ£à Lock files regenerados (36 arquivos)
-   - Γ£à Commit: "fix: regenerate package lock files after FeatureManagement update"
-   - Γ£à Push conclu├¡do
-   - ΓÅ│ Aguardando CI/CD (Code Quality Checks, Security Scan)
+   - ✅ Lock files regenerados (36 arquivos)
+   - ✅ Commit: "fix: regenerate package lock files after FeatureManagement update"
+   - ✅ Push concluído
+   - ⏳ Aguardando CI/CD (Code Quality Checks, Security Scan)
 
-### Pr├│ximos Passos
+### Próximos Passos
 
-1. Γ£à **Merge PRs #81 e #82** - Conclu├¡do (19 Dez 2025)
-2. Γ£à **Atualizar feature branch** - Merge master ΓåÆ feature/refactor-and-cleanup
-3. Γ£à **Criar PR #83** - Branch feature/refactor-and-cleanup ΓåÆ master
-4. ΓÅ│ **Aguardar review e merge PR #83**
-5. ≡ƒôï **Iniciar Sprint 6** - GitHub Pages Documentation (Q1 2026)
-6. ≡ƒôï **Planejar Sprint 7** - Blazor Admin Portal (Q1 2026)
+1. ✅ **Merge PRs #81 e #82** - Concluído (19 Dez 2025)
+2. ✅ **Atualizar feature branch** - Merge master → feature/refactor-and-cleanup
+3. ✅ **Criar PR #83** - Branch feature/refactor-and-cleanup → master
+4. ⏳ **Aguardar review e merge PR #83**
+5. 📋 **Iniciar Sprint 6** - GitHub Pages Documentation (Q1 2026)
+6. 📋 **Planejar Sprint 7** - Blazor Admin Portal (Q1 2026)
 
-#### Γ£à Atualiza├º├╡es de Documenta├º├úo (19 Dez 2025)
+#### ✅ Atualizações de Documentação (19 Dez 2025)
 
 **Roadmap**:
-- Γ£à Atualizada se├º├úo Sprint 5.5 com todas as a├º├╡es executadas
-- Γ£à Atualizado status de Fase 2 para "Em Planejamento - Q1 2026"
-- Γ£à Atualizados Sprints 3-5 com depend├¬ncias e novas timelines
-- Γ£à Atualizada ├║ltima modifica├º├úo para 19 de Dezembro de 2025
+- ✅ Atualizada seção Sprint 5.5 com todas as ações executadas
+- ✅ Atualizado status de Fase 2 para "Em Planejamento - Q1 2026"
+- ✅ Atualizados Sprints 3-5 com dependências e novas timelines
+- ✅ Atualizada última modificação para 19 de Dezembro de 2025
 
 **Limpeza de Templates**:
-- Γ£à Removido `.github/pull-request-template-coverage.md` (template espec├¡fico de outro PR)
-- Γ£à Removida pasta `.github/issue-template/` (issues obsoletas: EFCore.NamingConventions, Npgsql j├í resolvidas)
-- Γ£à Criado `.github/pull_request_template.md` (template gen├⌐rico para futuros PRs)
-- Γ£à Commit: "chore: remove obsolete templates and create proper PR template"
+- ✅ Removido `.github/pull-request-template-coverage.md` (template específico de outro PR)
+- ✅ Removida pasta `.github/issue-template/` (issues obsoletas: EFCore.NamingConventions, Npgsql já resolvidas)
+- ✅ Criado `.github/pull_request_template.md` (template genérico para futuros PRs)
+- ✅ Commit: "chore: remove obsolete templates and create proper PR template"
 
 **Pull Request #83**:
-- Γ£à PR criado: feature/refactor-and-cleanup ΓåÆ master
-- Γ£à T├¡tulo: "feat: refactoring and cleanup sprint 5.5"
-- Γ£à Descri├º├úo atualizada refletindo escopo real (documenta├º├úo + merge PRs #81/#82 + limpeza templates)
-- ΓÅ│ Aguardando review e CI/CD validation
+- ✅ PR criado: feature/refactor-and-cleanup → master
+- ✅ Título: "feat: refactoring and cleanup sprint 5.5"
+- ✅ Descrição atualizada refletindo escopo real (documentação + merge PRs #81/#82 + limpeza templates)
+- ⏳ Aguardando review e CI/CD validation
 
-### Li├º├╡es Aprendidas
+### Lições Aprendidas
 
-- **Dependabot**: Regenerar lock files manualmente ap├│s updates de vers├╡es com conflicts
-- **CI/CD**: Valida├º├úo rigorosa de package locks previne deployments quebrados
-- **Central Package Management**: Manter sincroniza├º├úo entre lock files e Directory.Packages.props
-- **Template Management**: Manter apenas templates gen├⌐ricos e reutiliz├íveis em `.github/`
-- **Documentation-First**: Documentar a├º├╡es executadas imediatamente no roadmap para rastreabilidade
+- **Dependabot**: Regenerar lock files manualmente após updates de versões com conflicts
+- **CI/CD**: Validação rigorosa de package locks previne deployments quebrados
+- **Central Package Management**: Manter sincronização entre lock files e Directory.Packages.props
+- **Template Management**: Manter apenas templates genéricos e reutilizáveis em `.github/`
+- **Documentation-First**: Documentar ações executadas imediatamente no roadmap para rastreabilidade
 
 ---
 
@@ -594,23 +586,27 @@ Durante o processo de atualiza├º├úo autom├ítica de depend├¬ncias pel
 - **Slug Implementation**: Replace IDs with Slugs for SEO/Security.
 
 ### ⏳ Sprint 8D - Admin Portal Migration (2 - 22 Abr 2026)
+
 **Status**: ⏳ Planned (+1 week buffer added)
 **Foco**: Phased migration from Blazor WASM to React.
 
 **Scope (Prioritized)**:
+- **Admin Portal Deliverable**: Functional `apps/admin-portal` in React.
 - Providers CRUD + Document Management (Critical).
 - Service Catalogs + Allowed Cities.
 - Dashboard with KPIs.
+- Unit/Integration tests for Admin modules.
 
-> [!IMPORTANT]
-> **Fallback Plan**: If Admin Migration slips >5 days by April 10th, choose:
 > 1. Ship MVP with current Blazor Admin.
 > 2. Reduce scope to only Providers CRUD.
 
 ### ⌛ Sprint 9 - BUFFER & Risk Mitigation (23 Abr - 11 Mai 2026)
+
+**Status**: 📋 PLANEJADO PARA MAIO 2026
 **Duration**: 12 days buffer (Extended)
 - Polishing, Refactoring, and Fixing.
 - Move Optional tasks from 8B.2 here if needed.
+- Rate limiting and advanced security/monitoring.
 
 ## 🎯 MVP Final Launch: 12 - 16 de Maio de 2026 🎯
 
@@ -620,37 +616,15 @@ Durante o processo de atualiza├º├úo autom├ítica de depend├¬ncias pel
 - **Contingency Branching**: If major tasks (Admin Migration, NX Setup) slip, we prioritize essential Player flows (Customer/Provider) and fallback to existing Admin solutions.
 - **Sprint 8E (Mobile)**: De-scoped from MVP to Phase 2 to ensure web platform stability.
 - **Buffer**: Sprint 9 is strictly for stability, no new features.
+- Documentação final para MVP
 
----
-
-### ΓÅ│ **19-25 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
-
-**Status**: ≡ƒôï PLANEJADO PARA MAR├çO 2026  
-**Dura├º├úo**: 1 semana (19-25 Mar 2026)  
-**Depend├¬ncias**: Sprints 6-8 completos  
-**Natureza**: **BUFFER DE CONTING├èNCIA** - n├úo alocar novas features
-
-> **ΓÜá∩╕Å IMPORTANTE**: Sprint 9 ├⌐ um buffer de conting├¬ncia para absorver riscos e complexidades n├úo previstas dos Sprints 6-8 (primeiro projeto Blazor WASM). N├úo deve ser usado para novas funcionalidades, apenas para:
-> - Completar work-in-progress dos sprints anteriores
-> - Resolver d├⌐bitos t├⌐cnicos acumulados
-> - Mitigar riscos identificados durante implementa├º├úo
-> - Polishing e hardening para MVP
-
-**Objetivos**:
-- Completar funcionalidades pendentes de Sprints 6-8
-- Resolver d├⌐bitos t├⌐cnicos acumulados
-- Melhorias de UX/UI identificadas durante desenvolvimento
-- Rate limiting e seguran├ºa adicional
-- Logging e monitoramento avan├ºado
-- Documenta├º├úo final para MVP
-
-### Cen├írios de Risco Documentados
+### Cenários de Risco Documentados
 
 ### Risk Scenario 1: Keycloak Integration Complexity
 
-- **Problema Potencial**: OIDC flows em Blazor WASM com refresh tokens podem exigir configura├º├úo complexa
-- **Impacto**: +2-3 dias al├⌐m do planejado no Sprint 6
-- **Mitiga├º├úo Sprint 9**: 
+- **Problema Potencial**: OIDC flows em Blazor WASM com refresh tokens podem exigir configuração complexa
+- **Impacto**: +2-3 dias além do planejado no Sprint 6
+- **Mitigação Sprint 9**: 
   - Usar Sprint 9 para refinar authentication flows
   - Implementar proper token refresh handling
   - Adicionar fallback mechanisms
@@ -658,124 +632,124 @@ Durante o processo de atualiza├º├úo autom├ítica de depend├¬ncias pel
 ### Risk Scenario 2: MudBlazor Learning Curve
 
 - **Problema Potencial**: Primeira vez usando MudBlazor; componentes complexos (DataGrid, Forms) podem ter comportamentos inesperados
-- **Impacto**: +3-4 dias al├⌐m do planejado nos Sprints 6-7
-- **Mitiga├º├úo Sprint 9**:
+- **Impacto**: +3-4 dias além do planejado nos Sprints 6-7
+- **Mitigação Sprint 9**:
   - Refatorar componentes para seguir best practices MudBlazor
-  - Implementar componentes reutiliz├íveis otimizados
+  - Implementar componentes reutilizáveis otimizados
   - Documentar patterns e anti-patterns identificados
 
 ### Risk Scenario 3: Blazor WASM Performance Issues
 
-- **Problema Potencial**: App bundle size > 5MB, lazy loading n├úo configurado corretamente
-- **Impacto**: UX ruim, +2-3 dias de otimiza├º├úo
-- **Mitiga├º├úo Sprint 9**:
+- **Problema Potencial**: App bundle size > 5MB, lazy loading não configurado corretamente
+- **Impacto**: UX ruim, +2-3 dias de otimização
+- **Mitigação Sprint 9**:
   - Implementar lazy loading de assemblies
   - Otimizar bundle size (tree shaking, AOT compilation)
   - Adicionar loading indicators e progressive loading
 
 ### Risk Scenario 4: MAUI Hybrid Platform-Specific Issues
 
-- **Problema Potencial**: Diferen├ºas de comportamento iOS vs Android (permiss├╡es, geolocation, file access)
+- **Problema Potencial**: Diferenças de comportamento iOS vs Android (permissões, geolocation, file access)
 - **Impacto**: +4-5 dias de debugging platform-specific
-- **Mitiga├º├úo Sprint 9**:
+- **Mitigação Sprint 9**:
   - Criar abstractions para platform-specific APIs
-  - Implementar fallbacks para features n├úo suportadas
-  - Testes em devices reais (n├úo apenas emuladores)
+  - Implementar fallbacks para features não suportadas
+  - Testes em devices reais (não apenas emuladores)
 
 ### Risk Scenario 5: API Integration Edge Cases
 
-- **Problema Potencial**: Casos de erro n├úo cobertos (timeouts, network failures, concurrent updates)
+- **Problema Potencial**: Casos de erro não cobertos (timeouts, network failures, concurrent updates)
 - **Impacto**: +2-3 dias de hardening
-- **Mitiga├º├úo Sprint 9**:
+- **Mitigação Sprint 9**:
   - Implementar retry policies com Polly
   - Adicionar optimistic concurrency handling
   - Melhorar error messages e user feedback
 
-### Tarefas Sprint 9 (Executar conforme necess├írio)
+### Tarefas Sprint 9 (Executar conforme necessário)
 
 #### 1. Work-in-Progress Completion
 - [ ] Completar funcionalidades parciais de Sprints 6-8
-- [ ] Resolver todos os TODOs/FIXMEs adicionados durante implementa├º├úo
+- [ ] Resolver todos os TODOs/FIXMEs adicionados durante implementação
 - [ ] Fechar issues abertas durante desenvolvimento frontend
 
 #### 1.1. ≡ƒº¬ SearchProviders E2E Tests (Movido da Sprint 7.16)
-**Prioridade**: M├ëDIA - Technical Debt da Sprint 7.16  
+**Prioridade**: MÉDIA - Technical Debt da Sprint 7.16  
 **Estimativa**: 1-2 dias
 
 **Objetivo**: Testar busca geolocalizada end-to-end.
 
-**Contexto**: Task 5 da Sprint 7.16 foi marcada como OPCIONAL e movida para Sprint 9 para permitir execu├º├úo com qualidade sem press├úo de deadline. Sprint 7.16 completou 4/4 tarefas obrigat├│rias.
+**Contexto**: Task 5 da Sprint 7.16 foi marcada como OPCIONAL e movida para Sprint 9 para permitir execução com qualidade sem pressão de deadline. Sprint 7.16 completou 4/4 tarefas obrigatórias.
 
-**Entreg├íveis**:
-- [ ] Teste E2E: Buscar providers por servi├ºo + raio (2km, 5km, 10km)
-- [ ] Teste E2E: Validar ordena├º├úo por dist├óncia crescente
-- [ ] Teste E2E: Validar restri├º├úo geogr├ífica (AllowedCities) - providers fora da cidade n├úo aparecem
+**Entregáveis**:
+- [ ] Teste E2E: Buscar providers por serviço + raio (2km, 5km, 10km)
+- [ ] Teste E2E: Validar ordenação por distância crescente
+- [ ] Teste E2E: Validar restrição geográfica (AllowedCities) - providers fora da cidade não aparecem
 - [ ] Teste E2E: Performance (<500ms para 1000 providers em raio de 10km)
-- [ ] Teste E2E: Cen├írio sem resultados (nenhum provider no raio)
-- [ ] Teste E2E: Validar pagina├º├úo de resultados (10, 20, 50 items por p├ígina)
+- [ ] Teste E2E: Cenário sem resultados (nenhum provider no raio)
+- [ ] Teste E2E: Validar paginação de resultados (10, 20, 50 items por página)
 
 **Infraestrutura**:
 - Usar `TestcontainersFixture` com PostGIS 16-3.4
-- Seed database com providers em localiza├º├╡es conhecidas (lat/lon)
+- Seed database com providers em localizações conhecidas (lat/lon)
 - Usar `HttpClient` para chamar endpoint `/api/search-providers/search`
 - Validar JSON response com FluentAssertions
 
-**Crit├⌐rios de Aceita├º├úo**:
-- Γ£à 6 testes E2E passando com 100% de cobertura dos cen├írios
-- Γ£à Performance validada (95th percentile < 500ms)
-- Γ£à Documenta├º├úo em `docs/testing/e2e-tests.md`
-- Γ£à CI/CD executando testes E2E na pipeline
+**Critérios de Aceitação**:
+- ✅ 6 testes E2E passando com 100% de cobertura dos cenários
+- ✅ Performance validada (95th percentile < 500ms)
+- ✅ Documentação em `docs/testing/e2e-tests.md`
+- ✅ CI/CD executando testes E2E na pipeline
 
 #### 2. UX/UI Improvements
-- [ ] **Loading States**: Skeletons em todas cargas ass├¡ncronas
-- [ ] **Error Handling**: Mensagens friendly para todos erros (n├úo mostrar stack traces)
+- [ ] **Loading States**: Skeletons em todas cargas assíncronas
+- [ ] **Error Handling**: Mensagens friendly para todos erros (não mostrar stack traces)
 #### 3. Security & Performance Hardening
 - [ ] **API Rate Limiting**: Aspire middleware (100 req/min por IP, 1000 req/min para authenticated users)
-- [ ] **CORS**: Configurar origens permitidas (apenas dom├¡nios de produ├º├úo)
+- [ ] **CORS**: Configurar origens permitidas (apenas domínios de produção)
 - [ ] **CSRF Protection**: Tokens anti-forgery em forms
 - [ ] **Security Headers**: HSTS, X-Frame-Options, CSP
 - [ ] **Bundle Optimization**: Lazy loading, AOT compilation, tree shaking
-- [ ] **Cache Strategy**: Implementar cache HTTP para assets est├íticos
+- [ ] **Cache Strategy**: Implementar cache HTTP para assets estáticos
 
 #### 4. Logging & Monitoring
-- [ ] **Frontend Logging**: Integra├º├úo com Application Insights (Blazor WASM)
-- [ ] **Error Tracking**: Sentry ou similar para erros em produ├º├úo
+- [ ] **Frontend Logging**: Integração com Application Insights (Blazor WASM)
+- [ ] **Error Tracking**: Sentry ou similar para erros em produção
 - [ ] **Analytics**: Google Analytics ou Plausible para usage tracking
 - [ ] **Performance Monitoring**: Web Vitals tracking (LCP, FID, CLS)
 
-#### 5. Documenta├º├úo Final MVP
+#### 5. Documentação Final MVP
 - [ ] **API Documentation**: Swagger/OpenAPI atualizado com exemplos
 - [ ] **User Guide**: Guia de uso para Admin Portal e Customer App
 - [ ] **Developer Guide**: Como rodar localmente, como contribuir
 - [ ] **Deployment Guide**: Deploy em Azure Container Apps (ARM templates ou Bicep)
-- [ ] **Lessons Learned**: Documentar decis├╡es de arquitetura e trade-offs
+- [ ] **Lessons Learned**: Documentar decisões de arquitetura e trade-offs
 
 **Resultado Esperado Sprint 9**:
-- Γ£à MVP production-ready e polished
-- Γ£à Todos os cen├írios de risco mitigados ou resolvidos
-- Γ£à Seguran├ºa e performance hardened
-- Γ£à Documenta├º├úo completa para usu├írios e desenvolvedores
-- Γ£à Monitoring e observabilidade configurados
-- ≡ƒÄ» **PRONTO PARA LAUNCH EM 12-16 DE MAIO DE 2026**
+- ✅ MVP production-ready e polished
+- ✅ Todos os cenários de risco mitigados ou resolvidos
+- ✅ Segurança e performance hardened
+- ✅ Documentação completa para usuários e desenvolvedores
+- ✅ Monitoring e observabilidade configurados
+- 🎯 **PRONTO PARA LAUNCH EM 12-16 DE MAIO DE 2026**
 
-> **ΓÜá∩╕Å CRITICAL**: Se Sprint 9 n├úo for suficiente para completar todos os itens, considerar delay do MVP launch ou reduzir escopo (mover features n├úo-cr├¡ticas para post-MVP). A qualidade e estabilidade do MVP s├úo mais importantes que a data de lan├ºamento.
+> **⚠️∩╕Å CRITICAL**: Se Sprint 9 não for suficiente para completar todos os itens, considerar delay do MVP launch ou reduzir escopo (mover features não-críticas para post-MVP). A qualidade e estabilidade do MVP são mais importantes que a data de lançamento.
 
 ---
 
-## ≡ƒÄ» Fase 3: Qualidade e Monetiza├º├úo
+## 🎯 Fase 3: Qualidade e Monetização
 
 ### Objetivo
-Introduzir sistema de avalia├º├╡es para ranking, modelo de assinaturas premium via Stripe, e verifica├º├úo automatizada de documentos.
+Introduzir sistema de avaliações para ranking, modelo de assinaturas premium via Stripe, e verificação automatizada de documentos.
 
-### 3.1. Γ¡É M├│dulo Reviews & Ratings (Planejado)
+### 3.1. Γ¡É Módulo Reviews & Ratings (Planejado)
 
 **Objetivo**: Permitir que clientes avaliem prestadores, influenciando ranking de busca.
 
 #### **Arquitetura Proposta**
-- **Padr├úo**: Simple layered architecture
-- **Agrega├º├úo**: C├ílculo de `AverageRating` via integration events (n├úo real-time)
+- **Padrão**: Simple layered architecture
+- **Agregação**: Cálculo de `AverageRating` via integration events (não real-time)
 
-#### **Entidades de Dom├¡nio**
+#### **Entidades de Domínio**
 ```csharp
 // Review: Aggregate Root
 public class Review
@@ -786,7 +760,7 @@ public class Review
     public int Rating { get; } // 1-5
     public string? Comment { get; }
     public DateTime CreatedAt { get; }
-    public bool IsFlagged { get; } // Para modera├º├úo
+    public bool IsFlagged { get; } // Para moderação
 }
 
 // ProviderRating: Aggregate (ou parte do read model)
@@ -799,7 +773,7 @@ public class ProviderRating
 }
 ```
 
-#### **API P├║blica (IReviewsModuleApi)**
+#### **API Pública (IReviewsModuleApi)**
 ```csharp
 public interface IReviewsModuleApi : IModuleApi
 {
@@ -813,24 +787,24 @@ public interface IReviewsModuleApi : IModuleApi
 }
 ```
 
-#### **Implementa├º├úo**
+#### **Implementação**
 1. **Schema**: Criar `meajudaai_reviews` com `reviews`, `provider_ratings`
-2. **Submit Endpoint**: Validar que cliente pode avaliar (servi├ºo contratado?)
-3. **Rating Calculation**: Publicar `ReviewAddedIntegrationEvent` ΓåÆ Search module atualiza `AverageRating`
-4. **Modera├º├úo**: Sistema de flag para reviews inapropriados
-5. **Testes**: Unit tests para c├ílculo de m├⌐dia + integration tests para submission
+2. **Submit Endpoint**: Validar que cliente pode avaliar (serviço contratado?)
+3. **Rating Calculation**: Publicar `ReviewAddedIntegrationEvent` → Search module atualiza `AverageRating`
+4. **Moderação**: Sistema de flag para reviews inapropriados
+5. **Testes**: Unit tests para cálculo de média + integration tests para submission
 
 ---
 
-### 3.2. ≡ƒÆ│ M├│dulo Payments & Billing (Planejado)
+### 3.2. ≡ƒÆ│ Módulo Payments & Billing (Planejado)
 
 **Objetivo**: Gerenciar assinaturas de prestadores via Stripe (Free, Standard, Gold, Platinum).
 
 #### **Arquitetura Proposta**
-- **Padr├úo**: Anti-Corruption Layer (ACL) sobre Stripe API
-- **Isolamento**: L├│gica de dom├¡nio protegida de mudan├ºas na Stripe
+- **Padrão**: Anti-Corruption Layer (ACL) sobre Stripe API
+- **Isolamento**: Lógica de domínio protegida de mudanças na Stripe
 
-#### **Entidades de Dom├¡nio**
+#### **Entidades de Domínio**
 ```csharp
 // Subscription: Aggregate Root
 public class Subscription
@@ -855,7 +829,7 @@ public class BillingAttempt
 }
 ```
 
-#### **API P├║blica (IBillingModuleApi)**
+#### **API Pública (IBillingModuleApi)**
 ```csharp
 public interface IBillingModuleApi : IModuleApi
 {
@@ -868,73 +842,73 @@ public interface IBillingModuleApi : IModuleApi
 }
 ```
 
-#### **Implementa├º├úo**
+#### **Implementação**
 1. **Stripe Setup**: Configurar produtos e pricing plans no dashboard
 2. **Webhook Endpoint**: Receber eventos Stripe (`checkout.session.completed`, `invoice.payment_succeeded`, `customer.subscription.deleted`)
 3. **Event Handlers**: Atualizar status de `Subscription` baseado em eventos
 4. **Checkout Session**: Gerar URL de checkout para frontend
-5. **Integration Events**: Publicar `SubscriptionTierChangedIntegrationEvent` ΓåÆ Search module atualiza ranking
+5. **Integration Events**: Publicar `SubscriptionTierChangedIntegrationEvent` → Search module atualiza ranking
 6. **Testes**: Integration tests com mock events da Stripe testing library
 
 ---
 
-### 3.3. ≡ƒñû Documents - Verifica├º├úo Automatizada (Planejado - Fase 2)
+### 3.3. ≡ƒñû Documents - Verificação Automatizada (Planejado - Fase 2)
 
-**Objetivo**: Automatizar verifica├º├úo de documentos via OCR e APIs governamentais.
+**Objetivo**: Automatizar verificação de documentos via OCR e APIs governamentais.
 
 **Funcionalidades Planejadas**:
 - **OCR Inteligente**: Azure AI Vision para extrair texto de documentos
-- **Valida├º├úo de Dados**: Cross-check com dados fornecidos pelo prestador
-- **Background Checks**: Integra├º├úo com APIs de antecedentes criminais
-- **Scoring Autom├ítico**: Sistema de pontua├º├úo baseado em qualidade de documentos
+- **Validação de Dados**: Cross-check com dados fornecidos pelo prestador
+- **Background Checks**: Integração com APIs de antecedentes criminais
+- **Scoring Automático**: Sistema de pontuação baseado em qualidade de documentos
 
 **Background Jobs**:
 1. **DocumentUploadedHandler**: Trigger OCR processing
-2. **OcrCompletedHandler**: Validar campos extra├¡dos
-3. **VerificationScheduler**: Agendar verifica├º├╡es peri├│dicas
+2. **OcrCompletedHandler**: Validar campos extraídos
+3. **VerificationScheduler**: Agendar verificações periódicas
 
-**Nota**: Infraestrutura b├ísica j├í existe (campo OcrData, estados de verifica├º├úo), falta implementar workers e integra├º├╡es.
+**Nota**: Infraestrutura básica já existe (campo OcrData, estados de verificação), falta implementar workers e integrações.
 
 ---
 
 ### 3.4. ≡ƒÅ╖∩╕Å Dynamic Service Tags (Planejado - Fase 3)
 
-**Objetivo**: Exibir tags de servi├ºos baseadas na popularidade real por regi├úo.
+**Objetivo**: Exibir tags de serviços baseadas na popularidade real por região.
 
 **Funcionalidades**:
 - **Endpoint**: `GET /services/top-region?city=SP` (ou lat/lon)
-- **L├│gica**: Calcular servi├ºos com maior volume de buscas/contrata├º├╡es na regi├úo do usu├írio.
+- **Lógica**: Calcular serviços com maior volume de buscas/contratações na região do usuário.
 - **Fallback**: Exibir "Top Globais" se dados regionais insuficientes.
 - **Cache**: TTL curto (ex: 1h) para manter relev├óncia sem comprometer performance.
 
 ---
 
-## ≡ƒÜÇ Fase 4: Experi├¬ncia e Engajamento (Post-MVP)
+## ≡ƒÜÇ Fase 4: Experiência e Engajamento (Post-MVP)
 
 ### Objetivo
-Melhorar experi├¬ncia do usu├írio com agendamentos, comunica├º├╡es centralizadas e analytics avan├ºado.
+Melhorar experiência do usuário com agendamentos, comunicações centralizadas e analytics avançado.
 
-### 4.1. ≡ƒôà M├│dulo Service Requests & Booking (Planejado)
+### 4.1. 📅 Módulo Service Requests & Booking (Planejado)
 
-**Objetivo**: Permitir que clientes solicitem servi├ºos e agendem hor├írios com prestadores.
+**Objetivo**: Permitir que clientes solicitem serviços e agendem horários com prestadores.
 
 #### **Funcionalidades**
-- **Solicita├º├úo de Servi├ºo**: Cliente descreve necessidade e localiza├º├úo
-- **Matching**: Sistema sugere prestadores compat├¡veis
-- **Agendamento**: Calend├írio integrado com disponibilidade de prestador
-- **Notifica├º├╡es**: Lembretes autom├íticos via Communications module
+- **Solicitação de Serviço**: Cliente descreve necessidade e localização
+- **Matching**: Sistema sugere prestadores compatíveis
+- **Agendamento**: Calendário integrado com disponibilidade de prestador
+- **Notificações**: Lembretes automáticos via Communications module
 
 ---
 
-### 4.2. ≡ƒôº M├│dulo Communications (Planejado)
+### 4.2. ≡ƒôº Módulo Communications (Planejado)
 
-**Objetivo**: Centralizar e orquestrar todas as comunica├º├╡es da plataforma (email, SMS, push).
+**Objetivo**: Centralizar e orquestrar todas as comunicações da plataforma (email, SMS, push).
 
 #### **Arquitetura Proposta**
-- **Padr├úo**: Orchestrator Pattern
+- **Padrão**: Orchestrator Pattern
 - **Canais**: Email (SendGrid/Mailgun), SMS (Twilio), Push (Firebase)
 
-#### **API P├║blica (ICommunicationsModuleApi)**
+#### **API Pública (ICommunicationsModuleApi)**
 ```csharp
 public interface ICommunicationsModuleApi : IModuleApi
 {
@@ -945,11 +919,11 @@ public interface ICommunicationsModuleApi : IModuleApi
 ```
 
 #### **Event Handlers**
-- `UserRegisteredIntegrationEvent` ΓåÆ Email de boas-vindas
-- `ProviderVerificationFailedIntegrationEvent` ΓåÆ Notifica├º├úo de rejei├º├úo
-- `BookingConfirmedIntegrationEvent` ΓåÆ Lembrete de agendamento
+- `UserRegisteredIntegrationEvent` → Email de boas-vindas
+- `ProviderVerificationFailedIntegrationEvent` → Notificação de rejeição
+- `BookingConfirmedIntegrationEvent` → Lembrete de agendamento
 
-#### **Implementa├º├úo**
+#### **Implementação**
 1. **Channel Handlers**: Implementar `IEmailService`, `ISmsService`, `IPushService`
 2. **Template Engine**: Sistema de templates para mensagens (Razor, Handlebars)
 3. **Queue Processing**: Background worker para processar fila de mensagens
@@ -958,17 +932,17 @@ public interface ICommunicationsModuleApi : IModuleApi
 
 ---
 
-### 4.3. ≡ƒôè M├│dulo Analytics & Reporting (Planejado)
+### 4.3. 📊 Módulo Analytics & Reporting (Planejado)
 
-**Objetivo**: Capturar, processar e visualizar dados de neg├│cio e operacionais.
+**Objetivo**: Capturar, processar e visualizar dados de negócio e operacionais.
 
 #### **Arquitetura Proposta**
-- **Padr├úo**: CQRS + Event Sourcing (para audit)
-- **Metrics**: Fa├ºade sobre OpenTelemetry/Aspire
+- **Padrão**: CQRS + Event Sourcing (para audit)
+- **Metrics**: Façade sobre OpenTelemetry/Aspire
 - **Audit**: Immutable event log de todas as atividades
-- **Reporting**: Denormalized read models para queries r├ípidos
+- **Reporting**: Denormalized read models para queries rápidos
 
-#### **API P├║blica (IAnalyticsModuleApi)**
+#### **API Pública (IAnalyticsModuleApi)**
 ```csharp
 public interface IAnalyticsModuleApi : IModuleApi
 {
@@ -981,7 +955,7 @@ public interface IAnalyticsModuleApi : IModuleApi
 
 #### **Database Views**
 ```sql
--- vw_provider_summary: Vis├úo hol├¡stica de cada prestador
+-- vw_provider_summary: Visão holística de cada prestador
 CREATE VIEW meajudaai_analytics.vw_provider_summary AS
 SELECT 
     p.provider_id,
@@ -995,7 +969,7 @@ FROM providers.providers p
 LEFT JOIN meajudaai_billing.subscriptions s ON p.provider_id = s.provider_id
 LEFT JOIN meajudaai_reviews.provider_ratings pr ON p.provider_id = pr.provider_id;
 
--- vw_financial_transactions: Consolida├º├úo de eventos financeiros
+-- vw_financial_transactions: Consolidação de eventos financeiros
 CREATE VIEW meajudaai_analytics.vw_financial_transactions AS
 SELECT 
     ba.attempt_id AS transaction_id,
@@ -1007,7 +981,7 @@ SELECT
 FROM meajudaai_billing.billing_attempts ba
 JOIN meajudaai_billing.subscriptions s ON ba.subscription_id = s.subscription_id;
 
--- vw_audit_log_enriched: Audit log leg├¡vel
+-- vw_audit_log_enriched: Audit log legível
 CREATE VIEW meajudaai_analytics.vw_audit_log_enriched AS
 SELECT 
     al.log_id,
@@ -1022,45 +996,45 @@ LEFT JOIN users.users u ON al.actor_id = u.user_id
 LEFT JOIN providers.providers p ON al.actor_id = p.provider_id;
 ```
 
-#### **Implementa├º├úo**
+#### **Implementação**
 1. **Schema**: Criar `meajudaai_analytics` com `audit_log`, reporting tables
 2. **Event Handlers**: Consumir todos integration events relevantes
-3. **Metrics Integration**: Expor m├⌐tricas customizadas via OpenTelemetry
-4. **Reporting API**: Endpoints otimizados para leitura de relat├│rios
-5. **Dashboards**: Integra├º├úo com Aspire Dashboard e Grafana
+3. **Metrics Integration**: Expor métricas customizadas via OpenTelemetry
+4. **Reporting API**: Endpoints otimizados para leitura de relatórios
+5. **Dashboards**: Integração com Aspire Dashboard e Grafana
 6. **Testes**: Integration tests para event handlers + performance tests para reporting
 
 ---
 
-## ≡ƒÄ» Funcionalidades Adicionais Recomendadas (Fase 4+)
+## 🎯 Funcionalidades Adicionais Recomendadas (Fase 4+)
 
-### ≡ƒ¢í∩╕Å Admin Portal - M├│dulos Avan├ºados
-**Funcionalidades Adicionais (P├│s-MVP)**:
-- **Recent Activity Dashboard Widget**: Feed de atividades recentes (registros, uploads, verifica├º├╡es, mudan├ºas de status) com atualiza├º├╡es em tempo real via SignalR
-- **User & Provider Analytics**: Dashboards avan├ºados com Grafana
+### ≡ƒ¢í∩╕Å Admin Portal - Módulos Avançados
+**Funcionalidades Adicionais (Pós-MVP)**:
+- **Recent Activity Dashboard Widget**: Feed de atividades recentes (registros, uploads, verificações, mudanças de status) com atualizações em tempo real via SignalR
+- **User & Provider Analytics**: Dashboards avançados com Grafana
 - **Fraud Detection**: Sistema de scoring para detectar perfis suspeitos
-- **Bulk Operations**: A├º├╡es em lote (ex: aprovar m├║ltiplos documentos)
-- **Audit Trail**: Hist├│rico completo de todas a├º├╡es administrativas
+- **Bulk Operations**: Ações em lote (ex: aprovar múltiplos documentos)
+- **Audit Trail**: Histórico completo de todas ações administrativas
 
-#### ≡ƒôè Recent Activity Widget (Prioridade: M├ëDIA)
+#### 📊 Recent Activity Widget (Prioridade: MÉDIA)
 
-**Contexto**: Atualmente o Dashboard exibe apenas gr├íficos est├íticos. Um feed de atividades recentes melhoraria a visibilidade operacional.
+**Contexto**: Atualmente o Dashboard exibe apenas gráficos estáticos. Um feed de atividades recentes melhoraria a visibilidade operacional.
 
 **Funcionalidades Core**:
-- **Timeline de Eventos**: Feed cronol├│gico de atividades do sistema
+- **Timeline de Eventos**: Feed cronológico de atividades do sistema
 - **Tipos de Eventos**:
   - Novos registros de prestadores
   - Uploads de documentos
-  - Mudan├ºas de status de verifica├º├úo
-  - A├º├╡es administrativas (aprova├º├╡es/rejei├º├╡es)
-  - Adi├º├╡es/remo├º├╡es de servi├ºos
-- **Filtros**: Por tipo de evento, m├│dulo, data
-- **Real-time Updates**: SignalR para atualiza├º├úo autom├ítica
-- **Pagina├º├úo**: Carregar mais atividades sob demanda
+  - Mudanças de status de verificação
+  - Ações administrativas (aprovações/rejeições)
+  - Adições/remoções de serviços
+- **Filtros**: Por tipo de evento, módulo, data
+- **Real-time Updates**: SignalR para atualização automática
+- **Paginação**: Carregar mais atividades sob demanda
 
-**Implementa├º├úo T├⌐cnica**:
+**Implementação Técnica**:
 ```csharp
-// Domain Events ΓåÆ Integration Events ΓåÆ SignalR Hub
+// Domain Events → Integration Events → SignalR Hub
 public record ProviderRegisteredEvent(Guid ProviderId, string Name, DateTime Timestamp);
 public record DocumentUploadedEvent(Guid DocumentId, string Type, DateTime Timestamp);
 public record VerificationStatusChangedEvent(Guid ProviderId, string OldStatus, string NewStatus);
@@ -1102,110 +1076,110 @@ public class ActivityHub : Hub
 
 **Estimativa**: 3-5 dias (1 dia backend events, 1 dia SignalR, 2-3 dias frontend)
 
-**Depend├¬ncias**:
+**Dependências**:
 - SignalR configurado no backend
 - Event bus consumindo domain events
 - ActivityDto contract definido
 
 ---
 
-### ≡ƒæñ Customer Profile Management (Alta Prioridade)
-**Por qu├¬**: Plano atual ├⌐ muito focado em prestadores; clientes tamb├⌐m precisam de gest├úo de perfil.
+### 👤 Customer Profile Management (Alta Prioridade)
+**Por quê**: Plano atual é muito focado em prestadores; clientes também precisam de gestão de perfil.
 
 **Funcionalidades Core**:
-- Editar informa├º├╡es b├ísicas (nome, foto)
-- Ver hist├│rico de prestadores contatados
+- Editar informações básicas (nome, foto)
+- Ver histórico de prestadores contatados
 - Gerenciar reviews escritos
-- Prefer├¬ncias de notifica├º├╡es
+- Preferências de notificações
 
-**Implementa├º├úo**: Enhancement ao m├│dulo Users existente
+**Implementação**: Enhancement ao módulo Users existente
 
 ---
 
-### ΓÜû∩╕Å Dispute Resolution System (M├⌐dia Prioridade)
-**Por qu├¬**: Mesmo sem pagamentos in-app, disputas podem ocorrer (reviews injustos, m├í conduta).
+### ⚖️∩╕Å Dispute Resolution System (Média Prioridade)
+**Por quê**: Mesmo sem pagamentos in-app, disputas podem ocorrer (reviews injustos, má conduta).
 
 **Funcionalidades Core**:
-- Bot├úo "Reportar" em perfis de prestadores e reviews
-- Formul├írio para descrever problema
+- Botão "Reportar" em perfis de prestadores e reviews
+- Formulário para descrever problema
 - Fila no Admin Portal para moderadores
 
-**Implementa├º├úo**: Novo m├│dulo pequeno ou extens├úo do m├│dulo Reviews
+**Implementação**: Novo módulo pequeno ou extensão do módulo Reviews
 
 ---
 
-## ≡ƒôè M├⌐tricas de Sucesso
+## 📊 Métricas de Sucesso
 
-### ≡ƒôê M├⌐tricas de Produto
-- **Crescimento de usu├írios**: 20% ao m├¬s
-- **Reten├º├úo de prestadores**: 85%
-- **Satisfa├º├úo m├⌐dia**: 4.5+ estrelas
-- **Taxa de convers├úo (Free ΓåÆ Paid)**: 15%
+### 📈 Métricas de Produto
+- **Crescimento de usuários**: 20% ao mês
+- **Retenção de prestadores**: 85%
+- **Satisfação média**: 4.5+ estrelas
+- **Taxa de conversão (Free → Paid)**: 15%
 
-### ΓÜí M├⌐tricas T├⌐cnicas (SLOs)
+### ⚡ Métricas Técnicas (SLOs)
 
 #### **Tiered Performance Targets**
 
 | Categoria | Tempo Alvo | Exemplo |
 |-----------|------------|---------|
 | **Consultas Simples** | <200ms | Busca por ID, dados em cache |
-| **Consultas M├⌐dias** | <500ms | Listagens com filtros b├ísicos |
-| **Consultas Complexas** | <1000ms | Busca cross-module, agrega├º├╡es |
-| **Consultas Anal├¡ticas** | <3000ms | Relat├│rios, dashboards |
+| **Consultas Médias** | <500ms | Listagens com filtros básicos |
+| **Consultas Complexas** | <1000ms | Busca cross-module, agregações |
+| **Consultas Analíticas** | <3000ms | Relatórios, dashboards |
 
 #### **Baseline de Desempenho**
-- **Assumindo**: Cache distribu├¡do configurado, ├¡ndices otimizados
-- **Revis├úo Trimestral**: Ajustes baseados em m├⌐tricas reais
-  - **Percentis monitorados**: P50, P95, P99 (lat├¬ncia de queries)
-  - **Frequ├¬ncia**: An├ílise e ajuste a cada 3 meses
-  - **Processo**: Feedback loop ΓåÆ identificar outliers ΓåÆ otimizar queries lentas
+- **Assumindo**: Cache distribuído configurado, índices otimizados
+- **Revisão Trimestral**: Ajustes baseados em métricas reais
+  - **Percentis monitorados**: P50, P95, P99 (latência de queries)
+  - **Frequência**: Análise e ajuste a cada 3 meses
+  - **Processo**: Feedback loop → identificar outliers → otimizar queries lentas
 - **Monitoramento**: OpenTelemetry + Aspire Dashboard + Application Insights
 
 #### **Outros SLOs**
 - **Disponibilidade**: 99.9% uptime
-- **Seguran├ºa**: Zero vulnerabilidades cr├¡ticas
-- **Cobertura de Testes**: >80% para c├│digo cr├¡tico
+- **Segurança**: Zero vulnerabilidades críticas
+- **Cobertura de Testes**: >80% para código crítico
 
 ---
 
-## ≡ƒöä Processo de Gest├úo do Roadmap
+## 🔄 Processo de Gestão do Roadmap
 
-### ≡ƒôà Revis├úo Trimestral
-- Avalia├º├úo de progresso contra milestones
-- Ajuste de prioridades baseado em m├⌐tricas
-- An├ílise de feedback de usu├írios e prestadores
+### 📅 Revisão Trimestral
+- Avaliação de progresso contra milestones
+- Ajuste de prioridades baseado em métricas
+- Análise de feedback de usuários e prestadores
 
-### ≡ƒÆ¼ Feedback Cont├¡nuo
+### 💬 Feedback Contínuo
 - **Input da comunidade**: Surveys, suporte, analytics
-- **Feedback de prestadores**: Portal dedicado para sugest├╡es
-- **Necessidades de neg├│cio**: Alinhamento com stakeholders
+- **Feedback de prestadores**: Portal dedicado para sugestões
+- **Necessidades de negócio**: Alinhamento com stakeholders
 
-### ≡ƒÄ» Crit├⌐rios de Prioriza├º├úo
-1. **Impacto no MVP**: Funcionalidade ├⌐ cr├¡tica para lan├ºamento?
-2. **Esfor├ºo de Implementa├º├úo**: Complexidade t├⌐cnica e tempo estimado
-3. **Depend├¬ncias**: Quais m├│dulos dependem desta funcionalidade?
-4. **Valor para Usu├írio**: Feedback qualitativo e quantitativo
+### 🎯 Critérios de Priorização
+1. **Impacto no MVP**: Funcionalidade é crítica para lançamento?
+2. **Esforço de Implementação**: Complexidade técnica e tempo estimado
+3. **Dependências**: Quais módulos dependem desta funcionalidade?
+4. **Valor para Usuário**: Feedback qualitativo e quantitativo
 
 ---
 
-## ≡ƒôï Sum├írio Executivo de Prioridades
+## 📋 Sumário Executivo de Prioridades
 
-### Γ£à **Conclu├¡do (Set-Dez 2025)**
-1. Γ£à Sprint 0: Migration .NET 10 + Aspire 13 (21 Nov 2025 - MERGED to master)
-2. Γ£à Sprint 1: Geographic Restriction + Module Integration (2 Dez 2025 - MERGED to master)
-3. Γ£à Sprint 2: Test Coverage 90.56% (10 Dez 2025) - Meta 35% SUPERADA em 55.56pp!
-4. Γ£à Sprint 5.5: Package Lock Files Fix (19 Dez 2025)
-   - Corre├º├úo conflitos Microsoft.OpenApi (2.3.12 ΓåÆ 2.3.0)
+### ✅ **Concluído (Set-Dez 2025)**
+1. ✅ Sprint 0: Migration .NET 10 + Aspire 13 (21 Nov 2025 - MERGED to master)
+2. ✅ Sprint 1: Geographic Restriction + Module Integration (2 Dez 2025 - MERGED to master)
+3. ✅ Sprint 2: Test Coverage 90.56% (10 Dez 2025) - Meta 35% SUPERADA em 55.56pp!
+4. ✅ Sprint 5.5: Package Lock Files Fix (19 Dez 2025)
+   - Correção conflitos Microsoft.OpenApi (2.3.12 → 2.3.0)
    - 37 arquivos packages.lock.json regenerados
    - PRs #81 e #82 atualizados e aguardando merge
-5. Γ£à M├│dulo Users (Conclu├¡do)
-6. Γ£à M├│dulo Providers (Conclu├¡do)
-7. Γ£à M├│dulo Documents (Conclu├¡do)
-8. Γ£à M├│dulo Search & Discovery (Conclu├¡do)
-9. Γ£à M├│dulo Locations - CEP lookup e geocoding (Conclu├¡do)
-10. Γ£à M├│dulo ServiceCatalogs - Cat├ílogo admin-managed (Conclu├¡do)
-11. Γ£à CI/CD - GitHub Actions workflows (.NET 10 + Aspire 13)
-12. Γ£à Feature/refactor-and-cleanup branch - Merged to master (19 Dez 2025)
+5. ✅ Módulo Users (Concluído)
+6. ✅ Módulo Providers (Concluído)
+7. ✅ Módulo Documents (Concluído)
+8. ✅ Módulo Search & Discovery (Concluído)
+9. ✅ Módulo Locations - CEP lookup e geocoding (Concluído)
+10. ✅ Módulo ServiceCatalogs - Catálogo admin-managed (Concluído)
+11. ✅ CI/CD - GitHub Actions workflows (.NET 10 + Aspire 13)
+12. ✅ Feature/refactor-and-cleanup branch - Merged to master (19 Dez 2025)
 
 ### 📅 Alta Prioridade (Próximos 3 meses - Q1-Q2 2026)
 1. 🔄 **Sprint 8B.2: NX Monorepo & Technical Excellence** (Em andamento)
@@ -1213,15 +1187,15 @@ public class ActivityHub : Hub
 3. ⏳ **Sprint 8D: Admin Portal Migration** (Abril 2026)
 4. ⏳ **Sprint 9: BUFFER & RISK MITIGATION** (Abril/Maio 2026)
 5. 🎯 **MVP Final Launch: 12 - 16 de Maio de 2026**
-6. ≡ƒôï API Collections - Bruno .bru files para todos os m├│dulos
+6. 📋 API Collections - Bruno .bru files para todos os módulos
 
-### ≡ƒÄ» **M├⌐dia Prioridade (6-12 meses - Fase 2)**
-1. Γ¡É M├│dulo Reviews & Ratings
-2. ≡ƒÆ│ M├│dulo Payments & Billing (Stripe)
-3. ≡ƒñû Documents - Verifica├º├úo automatizada (OCR + Background checks)
-4. ≡ƒöä Search - Indexing worker para integration events
-5. ≡ƒôè Analytics - M├⌐tricas b├ísicas
+### 🎯 **Média Prioridade (6-12 meses - Fase 2)**
+1. Γ¡É Módulo Reviews & Ratings
+2. ≡ƒÆ│ Módulo Payments & Billing (Stripe)
+3. ≡ƒñû Documents - Verificação automatizada (OCR + Background checks)
+4. 🔄 Search - Indexing worker para integration events
+5. 📊 Analytics - Métricas básicas
 6. ≡ƒôº Communications - Email notifications
 7. ≡ƒ¢í∩╕Å Dispute Resolution System
-8. ≡ƒöº Alinhamento de middleware entre UseSharedServices() e UseSharedServicesAsync()
+8. 🔥 Alinhamento de middleware entre UseSharedServices() e UseSharedServicesAsync()
 
