@@ -499,7 +499,7 @@
           "AspNetCore.HealthChecks.Npgsql": "[9.0.0, )",
           "AspNetCore.HealthChecks.Redis": "[9.0.0, )",
           "Azure.Messaging.ServiceBus": "[7.20.1, )",
-          "Dapper": "[2.1.66, )",
+          "Dapper": "[2.1.72, )",
           "FluentValidation": "[12.1.1, )",
           "FluentValidation.DependencyInjectionExtensions": "[12.1.1, )",
           "Hangfire.AspNetCore": "[1.8.23, )",
@@ -513,7 +513,7 @@
           "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.3, )",
           "Microsoft.FeatureManagement.AspNetCore": "[4.4.0, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0, )",
-          "RabbitMQ.Client": "[7.2.0, )",
+          "RabbitMQ.Client": "[7.2.1, )",
           "Rebus": "[8.9.0, )",
           "Rebus.AzureServiceBus": "[10.5.1, )",
           "Rebus.RabbitMq": "[10.1.1, )",
@@ -589,9 +589,9 @@
       },
       "Dapper": {
         "type": "CentralTransitive",
-        "requested": "[2.1.66, )",
-        "resolved": "2.1.66",
-        "contentHash": "/q77jUgDOS+bzkmk3Vy9SiWMaetTw+NOoPAV0xPBsGVAyljd5S6P+4RUW7R3ZUGGr9lDRyPKgAMj2UAOwvqZYw=="
+        "requested": "[2.1.72, )",
+        "resolved": "2.1.72",
+        "contentHash": "ns4mGqQd9a/MhP8m6w556vVlZIa0/MfUu03zrxjZC/jlr1uVCsUac8bkdB+Fs98Llbd56rRSo1eZH5VVmeGZyw=="
       },
       "FluentValidation": {
         "type": "CentralTransitive",
@@ -828,9 +828,9 @@
       },
       "RabbitMQ.Client": {
         "type": "CentralTransitive",
-        "requested": "[7.2.0, )",
-        "resolved": "7.2.0",
-        "contentHash": "PPQ7cF7lwbhqC4up6en1bTUZlz06YqQwJecOJzsguTtyhNA7oL5uNDZIx/h6ZfcyPZV4V3DYKSCxfm4RUFLcbA==",
+        "requested": "[7.2.1, )",
+        "resolved": "7.2.1",
+        "contentHash": "YKXEfg9fVQiTKgZlvIhAfPSFaamEgi8DsQmisCH0IAsU4FYLrtoguDrDj6JtJVGUt40QPnBLRH6fTQcAC4qsOg==",
         "dependencies": {
           "System.Threading.RateLimiting": "8.0.0"
         }

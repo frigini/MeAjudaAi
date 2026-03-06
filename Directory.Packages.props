@@ -63,7 +63,7 @@
     <PackageVersion Include="Npgsql" Version="10.0.1" />
     <!-- Note: Dapper.AOT is transitively brought in by Hangfire.PostgreSql (1.21.1 -> Dapper.AOT 1.0.48) -->
     <!-- It is benign for now, as we don't enable strict AOT on backend services yet. -->
-    <PackageVersion Include="Dapper" Version="2.1.66" />
+    <PackageVersion Include="Dapper" Version="2.1.72" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.3" />
     <!-- Microsoft Extensions -->
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.3" />
@@ -85,7 +85,7 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.3" />
     <!-- Microsoft.Extensions.Http.Resilience: 10.3.0 includes critical bug fixes not in 10.0.3 -->
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.3.0" />
-    <PackageVersion Include="Polly" Version="8.6.5" />
+    <PackageVersion Include="Polly" Version="8.6.6" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Configuration" Version="10.0.3" />
@@ -123,7 +123,7 @@
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.27.0" />
     <PackageVersion Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
     <!-- Messaging -->
-    <PackageVersion Include="RabbitMQ.Client" Version="7.2.0" />
+    <PackageVersion Include="RabbitMQ.Client" Version="7.2.1" />
     <PackageVersion Include="Rebus" Version="8.9.0" />
     <PackageVersion Include="Rebus.AzureServiceBus" Version="10.5.1" />
     <PackageVersion Include="Rebus.RabbitMq" Version="10.1.1" />
@@ -201,12 +201,12 @@
     <!-- Code Analysis -->
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.20.0.135146" />
     <!-- Blazor UI & State Management -->
-    <PackageVersion Include="MudBlazor" Version="8.15.0" />
+    <PackageVersion Include="MudBlazor" Version="9.1.0" />
     <PackageVersion Include="Fluxor.Blazor.Web" Version="6.9.0" />
     <PackageVersion Include="Fluxor.Blazor.Web.ReduxDevTools" Version="6.9.0" />
     <PackageVersion Include="Refit" Version="10.0.1" />
     <PackageVersion Include="Refit.HttpClientFactory" Version="10.0.1" />
     <!-- Blazor Testing -->
-    <PackageVersion Include="bUnit" Version="2.5.3" />
+    <PackageVersion Include="bUnit" Version="2.6.2" />
   </ItemGroup>
 </Project>
