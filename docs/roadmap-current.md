@@ -438,6 +438,7 @@ public class GeographicRestrictionMiddleware
 - [x] Nx workspace com `apps/customer-web` e `libs/shared-ui` placeholders.
 - [ ] Placeholders para `apps/provider-web` e `apps/admin-portal`.
 - [ ] Bibliotecas extraídas para `libs/`.
+
 ---
 
 ## 🔥 Tarefas Técnicas Cross-Module ⏳ ATUALIZADO
