@@ -9,7 +9,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
 **Status Geral**: Consulte a [Tabela de Sprints](#cronograma-de-sprints) para o status detalhado atualizado.
 **Cobertura de Testes**: Backend 90.56% | Frontend 30 testes bUnit  
-**Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM (Admin) + React 19 + Next.js 15 (Customer) + Tailwind v4
+**Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + NX Monorepo + React 19 + Next.js 15 (Customer, Provider, Admin) + Tailwind v4
 
 ### Marcos Principais
 
@@ -28,43 +28,44 @@ As futuras atualizações da tabela de sprints devem observar a política: anál
 
 ### NX Monorepo (Frontend)
 
-**Status**: ⏳ Planejado pós-MVP  
-**Branch**: `infra/nx-monorepo` (separada do Sprint 8B)
+**Status**: ✅ Incluído no Sprint 8B.2  
+**Branch**: `feature/sprint-8b2-technical-excellence`
 
-**Motivação**: Com Customer Web App (Next.js), Provider App (futuro) e Mobile (React Native + Expo), o compartilhamento de código (componentes, hooks, tipos TypeScript, schemas Zod) entre os projetos se torna crítico. NX oferece:
+**Motivação**: Com Customer Web App (Next.js), Provider App (próximo sprint), Admin Portal (migração planejada) e Mobile (React Native + Expo), o compartilhamento de código (componentes, hooks, tipos TypeScript, schemas Zod) entre os projetos se torna crítico. NX oferece:
 - Workspace unificado com `libs/` compartilhadas
 - Build cache inteligente (só reconstrói o que mudou)
 - Dependency graph entre projetos
 - Geração de código consistente
 
-**Escopo da Sprint NX**:
+**Escopo (Sprint 8B.2)**:
 - Migrar `MeAjudaAi.Web.Customer` para workspace NX
-- Criar `apps/customer-web`, `apps/provider-web` (futuro), `apps/mobile`
+- Criar `apps/customer-web`, `apps/provider-web` (Sprint 8C), `apps/admin-web` (Sprint 8D), `apps/mobile` (Sprint 8E)
 - Criar `libs/ui` (componentes compartilhados), `libs/auth`, `libs/api-client`
 - Atualizar `.NET Aspire AppHost` para apontar para nova estrutura
 - Atualizar CI/CD para usar `nx affected`
 
-**Timing recomendado**: Pós-MVP (Sprint Infra), pois o NX facilita exatamente o compartilhamento entre Customer e Provider.
+**Decisão de antecipação**: NX foi antecipado do pós-MVP para o Sprint 8B.2 porque o Provider App (Sprint 8C) e a migração Admin (Sprint 8D) se beneficiam diretamente do workspace unificado. Criar o NX antes desses projetos evita migração posterior mais custosa.
 
 ---
 
-### Migração Admin Portal: Blazor WASM → React?
+### Migração Admin Portal: Blazor WASM → React
 
-**Status**: ⚪ Não planejado — decisão deliberada manter Blazor
+**Status**: ⏳ Planejado — Sprint 8D (após Provider App)
 
-**Análise**:
+**Análise (Atualizada Março 2026)**:
 
 | Fator | Manter Blazor | Migrar para React |
 |-------|--------------|-------------------|
 | Custo | ✅ Zero | ❌ Alto (reescrever ~5000+ linhas) |
-| Compartilhamento C# DTOs | ✅ Nativo | ❌ Requer geração OpenAPI |
-| Uso interno (não SEO) | ✅ Blazor adequado | ⚠️ React seria over-engineering |
-| Unificação de stack | ⚠️ Dual-stack | ✅ Single-stack |
+| Compartilhamento C# DTOs | ✅ Nativo | ⚠️ Requer API client gerado (libs/api-client via NX) |
+| Uso interno (não SEO) | ✅ Blazor adequado | ✅ React com NX compartilha componentes |
+| Unificação de stack | ❌ Dual-stack (Blazor + React) | ✅ Single-stack React (3 apps no NX) |
 | Hiring | ⚠️ Blazor nicho | ✅ React mais fácil |
+| Shared Components | ❌ Isolado do NX | ✅ Reutiliza libs/ui, libs/auth do NX |
 
-**Decisão**: **Manter Blazor WASM** para o Admin Portal. O Admin é uma ferramenta interna sem requisitos de SEO ou performance de carga inicial. A vantagem de compartilhar C# DTOs diretamente supera o custo de manter dual-stack. Migração só faria sentido se o time crescer e a curva de aprendizado Blazor se tornar um gargalo real de contratação.
+**Decisão Revisada (Março 2026)**: **Migrar para React** dentro do workspace NX. Com a adoção do NX Monorepo (Sprint 8B.2) e o Provider App (Sprint 8C) como segundo app React, manter o Admin em Blazor cria uma ilha isolada que não se beneficia dos componentes compartilhados (`libs/ui`, `libs/auth`, `libs/api-client`). A unificação de stack reduz complexidade operacional e facilita manutenção.
 
-**Revisitar se**: time crescer >5 devs frontend e Blazor se tornar bloqueador de contratação.
+**Sequência**: Provider App (Sprint 8C) → Admin Migration (Sprint 8D). O Provider App estabelece os padrões e shared libs que a migração Admin reutilizará.
 
 ---
 
@@ -113,24 +114,32 @@ As futuras atualizações da tabela de sprints devem observar a política: anál
 
 ---
 
-### ⏳ Sprint 8B.2 - Technical Excellence & Infrastructure (Planejado - Antes do Mobile)
+### ⏳ Sprint 8B.2 - Technical Excellence & NX Monorepo (Planejado - Antes do Provider App)
+
+**Branch**: `feature/sprint-8b2-technical-excellence`
 
 **Objetivos**:
-1. ⏳ **Slug Implementation**: Substituir IDs por Slugs nas rotas de perfil de prestador para maior segurança e SEO.
-    - **Execução**:
-        - Backend: Adicionar `Slug` ao `BusinessProfile` entity.
-        - Backend: Implementar `slugify` logic e garantir unicidade no Persistence layer.
-        - UI: Alterar rotas de `/prestador/[id]` para `/prestador/[slug]`.
-        - SEO: Adicionar canonical tags e metadados dinâmicos baseados no slug.
-    - **Sucesso**: Navegar via slug e manter compatibilidade com IDs antigos (301 redirect).
-2. ⏳ **Messaging Unification (RabbitMQ Only)**: Remover completamente o Azure Service Bus da solução.
+1. ⏳ **Messaging Unification (RabbitMQ Only)**: Remover completamente o Azure Service Bus da solução.
     - **Execução**:
         - Remover pacotes `.Azure.ServiceBus` de todos os projetos.
         - Unificar `MassTransit` configuration em `ServiceDefaults`.
         - Atualizar scripts de infra (`docker-compose.yaml`) para foco total em RabbitMQ.
         - Remover segredos e vars de ambiente do ASB no Azure/Staging.
     - **Sucesso**: Aplicação funcionando sem dependência do Azure Service Bus local ou remoto.
-3. ⏳ **Frontend Testing & CI/CD Suite**: Implementar suíte completa de testes no Next.js.
+2. ⏳ **Backend Integration Test Optimization**: Reduzir o tempo de execução (hoje ~30 min).
+    - **Execução**:
+        - Migrar os ~20 projetos de teste restantes para o padrão `RequiredModules`.
+        - Implementar `Respawn` ou similar para limpeza ultra-rápida de banco em vez de migrations completas.
+        - Otimizar recursos do TestContainers (reuse containers entre runs se possível).
+    - **Sucesso**: Suíte completa de integração rodando em < 10 minutos.
+3. ⏳ **Slug Implementation**: Substituir IDs por Slugs nas rotas de perfil de prestador para maior segurança e SEO.
+    - **Execução**:
+        - Backend: Adicionar `Slug` ao `BusinessProfile` entity.
+        - Backend: Implementar `slugify` logic e garantir unicidade no Persistence layer.
+        - UI: Alterar rotas de `/prestador/[id]` para `/prestador/[slug]`.
+        - SEO: Adicionar canonical tags e metadados dinâmicos baseados no slug.
+    - **Sucesso**: Navegar via slug e manter compatibilidade com IDs antigos (301 redirect).
+4. ⏳ **Frontend Testing & CI/CD Suite**: Implementar suíte completa de testes no Next.js.
     - **Contexto**: Baseado no [Plano de Testes Robusto](./testing/frontend-testing-plan.md).
     - **Execução**:
         - Setup do projeto `tests/MeAjudaAi.Web.Customer.Tests`.
@@ -138,12 +147,16 @@ As futuras atualizações da tabela de sprints devem observar a política: anál
         - Criar o primeiro pipeline `.github/workflows/frontend-quality.yml`.
         - Integrar SonarCloud (SonarQube) para análise estática de TS/React.
     - **Sucesso**: Pipeline falhando se testes não passarem ou qualidade cair.
-4. ⏳ **Backend Integration Test Optimization**: Reduzir o tempo de execução (hoje ~30 min).
+5. ⏳ **NX Monorepo Setup**: Configurar workspace NX para gerenciar todos os projetos frontend.
     - **Execução**:
-        - Migrar os ~20 projetos de teste restantes para o padrão `RequiredModules`.
-        - Implementar `Respawn` ou similar para limpeza ultra-rápida de banco em vez de migrations completas.
-        - Otimizar recursos do TestContainers (reuse containers entre runs se possível).
-    - **Sucesso**: Suíte completa de integração rodando em < 10 minutos.
+        - Inicializar workspace NX na raiz do projeto.
+        - Migrar `MeAjudaAi.Web.Customer` (Next.js) para `apps/customer-web`.
+        - Criar shared libs: `libs/ui`, `libs/auth`, `libs/api-client`.
+        - Extrair componentes compartilhados do Customer App para `libs/ui`.
+        - Atualizar `.NET Aspire AppHost` para apontar para nova estrutura NX.
+        - Atualizar CI/CD para usar `nx affected`.
+        - Scaffolding `apps/provider-web` (vazio, será implementado no Sprint 8C).
+    - **Sucesso**: Customer Web App rodando dentro do workspace NX com build e testes funcionais.
 
 ---
 
@@ -1576,14 +1589,60 @@ Get-ChildItem -Recurse -Include *.cs | Select-String "record "
 
 ---
 
-### ⏳ Sprint 8C - Mobile App (React Native)
+### ⏳ Sprint 8C - Provider Web App (React + NX)
 
-**Periodo Estimado**: 5 Mar - 18 Mar 2026
-**Foco**: App Mobile Nativo (iOS/Android) com Expo
+**Periodo Estimado**: 19 Mar - 1 Abr 2026
+**Foco**: App de Administração de Perfil para Prestadores
+**Branch**: (a ser criada: `feature/sprint-8c-provider-app`)
+
+**Contexto**: Segundo app React no workspace NX. Utiliza shared libs (`libs/ui`, `libs/auth`, `libs/api-client`) criadas no Sprint 8B.2. Completa os pendentes do Sprint 8B.1 (Document Upload, Review Dashboard, Professional Profile Setup).
 
 **Escopo**:
+- Criar `apps/provider-web` dentro do workspace NX (Next.js + Tailwind v4).
+- **Document Upload (Step 3)**: Componente de upload de documentos no fluxo de onboarding.
+- **Review Dashboard**: Interface para o prestador acompanhar status de verificação.
+- **Professional Profile Setup**: Seleção de categorias e serviços após credenciamento.
+- **Provider Profile Page**: Página de perfil público do prestador (com slug do Sprint 8B.2).
+- Autenticação Keycloak (cliente `meajudaai-provider`).
+- Estilo visual alinhado com Customer App (Tailwind v4 + componentes `libs/ui`).
+
+---
+
+### ⏳ Sprint 8D - Admin Portal Migration (Blazor → React + NX)
+
+**Periodo Estimado**: 2 - 15 Abr 2026
+**Foco**: Migração do Admin Portal de Blazor WASM para React dentro do workspace NX
+**Branch**: (a ser criada: `feature/sprint-8d-admin-migration`)
+
+**Contexto**: Terceiro app React no workspace NX. Reutiliza padrões e shared libs consolidados pelo Customer (Sprint 8A) e Provider App (Sprint 8C). Elimina dual-stack (Blazor + React) em favor de single-stack React.
+
+**Escopo**:
+- Criar `apps/admin-web` dentro do workspace NX (Next.js + Tailwind v4).
+- Migrar todas as funcionalidades existentes do Blazor Admin Portal:
+  - Dashboard com KPIs e gráficos (Providers por status/tipo)
+  - CRUD Providers (Create, Update, Delete, Verify)
+  - Gestão de Documentos (Upload, Verificação, Rejeição)
+  - Gestão de Service Catalogs (Categorias + Serviços)
+  - Gestão de Restrições Geográficas (AllowedCities)
+  - Dark Mode, Localização (i18n), Acessibilidade
+- Substituir Fluxor por Zustand ou Redux Toolkit (state management React).
+- Substituir Refit/C# DTOs por `libs/api-client` (gerado via OpenAPI ou manual).
+- Manter autenticação Keycloak (cliente `meajudaai-admin`).
+- Estilo visual unificado com Customer e Provider Apps.
+- Remover projeto Blazor WASM após migração completa e validação.
+
+---
+
+### ⏳ Sprint 8E - Mobile App (React Native + Expo)
+
+**Periodo Estimado**: 16 - 29 Abr 2026
+**Foco**: App Mobile Nativo (iOS/Android) com Expo
+**Branch**: (a ser criada: `feature/sprint-8e-mobile-app`)
+
+**Escopo**:
+- Criar `apps/mobile` dentro do workspace NX (React Native + Expo).
 - Portar funcionalidades do Customer Web App para Mobile.
-- Reutilizar lógica de negócio e autenticação.
+- Reutilizar lógica de negócio e autenticação via shared libs NX.
 - Notificações Push.
 
 ---
@@ -2145,20 +2204,22 @@ Todas as tarefas planejadas já foram implementadas:
 - Dependabot PRs fechados para regeneração
 - 1245/1245 testes passando
 
-**⏳ Fase 2: EM ANDAMENTO** (Janeiro–Março 2026)  
-Frontend Blazor WASM + MAUI Hybrid:
-- Sprint 6: Blazor Admin Portal Setup - ✅ CONCLUÍDO (5 Jan 2026) - [Ver conquistas detalhadas](#-sprint-6---blazor-admin-portal-setup---concluída-30-dez-2025---5-jan-2026)
+**⏳ Fase 2: EM ANDAMENTO** (Janeiro–Maio 2026)  
+Frontend React (NX Monorepo) + Mobile:
+- Sprint 6: Blazor Admin Portal Setup - ✅ CONCLUÍDO (5 Jan 2026)
 - Sprint 7: Blazor Admin Portal Features (6-24 Jan 2026) - ✅ CONCLUÍDO
 - Sprint 7.16: Technical Debt Sprint (17-21 Jan 2026) - 🔄 EM PROGRESSO (Task 5 movida p/ Sprint 9)
-- Sprint 8: Customer App (5-18 Fev 2026) - ✅ Concluído
+- Sprint 8A: Customer App (5-18 Fev 2026) - ✅ Concluído
 - Sprint 8B: Authentication & Onboarding (19 Fev - 4 Mar 2026) - ✅ CONCLUÍDO
-- Sprint 8C: Mobile App (5-18 Mar 2026) - ⏳ Planejado
-- Sprint 8D: Admin Portal Migration - 🚫 **CANCELADO**
-- ⏳ **19-25 Mar 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Final Testing)
-- MVP Final: 28 de Março de 2026
-- *Nota: Data de MVP atualizada para 28 de Março de 2026 para acomodar buffer do Sprint 9 e Mobile App.*
+- Sprint 8B.2: Technical Excellence & NX Monorepo (5-18 Mar 2026) - 🔄 EM PROGRESSO
+- Sprint 8C: Provider Web App (19 Mar - 1 Abr 2026) - ⏳ Planejado
+- Sprint 8D: Admin Portal Migration Blazor → React (2-15 Abr 2026) - ⏳ Planejado
+- Sprint 8E: Mobile App (16-29 Abr 2026) - ⏳ Planejado
+- Sprint 9: BUFFER (30 Abr - 6 Mai 2026) - ⏳ Planejado
+- MVP Final: 9 de Maio de 2026
+- *Nota: Data de MVP atualizada para 9 de Maio de 2026 para acomodar NX Monorepo, Provider App, Admin Migration e Mobile App.*
 
-**⚠️ Risk Assessment**: Estimativas assumem velocidade consistente. Primeiro projeto Blazor WASM pode revelar complexidades não previstas (integração Keycloak, curva de aprendizado MudBlazor). Sprint 9 reservado como buffer de contingência.
+**⚠️ Risk Assessment**: Estimativas assumem velocidade consistente. NX Monorepo setup e Admin Migration são os maiores riscos de escopo. Sprint 9 reservado como buffer de contingência.
 
 ---
 
