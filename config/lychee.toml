@@ -21,7 +21,7 @@ user_agent = "lychee/MeAjudaAi-CI"
 include_verbatim = false
 
 # Base directory for resolving relative file paths
-base = "."
+root_dir = "."
 
 # Check fragments but be more forgiving
 include_fragments = true
