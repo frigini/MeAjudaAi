@@ -201,7 +201,7 @@
     <!-- Code Analysis -->
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.20.0.135146" />
     <!-- Blazor UI & State Management -->
-    <PackageVersion Include="MudBlazor" Version="9.1.0" />
+    <PackageVersion Include="MudBlazor" Version="8.15.0" />
     <PackageVersion Include="Fluxor.Blazor.Web" Version="6.9.0" />
     <PackageVersion Include="Fluxor.Blazor.Web.ReduxDevTools" Version="6.9.0" />
     <PackageVersion Include="Refit" Version="10.0.1" />
