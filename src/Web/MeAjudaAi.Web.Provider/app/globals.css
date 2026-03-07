@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #2e2e2e;
+
+  /* Light mode tokens */
+  --surface: #ffffff;
+  --surface-raised: #f5f5f5;
+  --foreground-subtle: #666666;
+  --border: #e0e0e0;
+  --input: #e0e0e0;
+  --popover: #ffffff;
+  --popover-foreground: var(--foreground);
+  --card: #ffffff;
+  --card-foreground: var(--foreground);
+  --muted: #f5f5f5;
+  --muted-foreground: #666666;
+  --accent: #f5f5f5;
+  --accent-foreground: var(--foreground);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+
+    /* Dark mode overrides */
+    --surface: #1a1a1a;
+    --surface-raised: #262626;
+    --foreground-subtle: #a3a3a3;
+    --border: #404040;
+    --input: #404040;
+    --popover: #1a1a1a;
+    --popover-foreground: var(--foreground);
+    --card: #1a1a1a;
+    --card-foreground: var(--foreground);
+    --muted: #262626;
+    --muted-foreground: #a3a3a3;
+    --accent: #262626;
+    --accent-foreground: var(--foreground);
+  }
+}
+
+@theme inline {
+  /* Colors from Figma */
+  --color-primary: #395873;
+  --color-primary-foreground: #ffffff;
+  --color-primary-hover: #2E4760;
+
+  --color-secondary: #D96704;
+  --color-secondary-light: #F2AE72;
+  --color-secondary-foreground: #ffffff;
+  --color-secondary-hover: #B85703;
+
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+
+  --color-foreground: var(--foreground);
+  --color-foreground-subtle: var(--foreground-subtle);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: #D96704;
+
+  --color-brand: #E0702B;
+  --color-brand-hover: #c56226;
+
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-background: var(--background);
+  --font-sans: 'Roboto', Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}

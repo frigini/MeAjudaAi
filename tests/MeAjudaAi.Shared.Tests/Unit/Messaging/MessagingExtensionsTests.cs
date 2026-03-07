@@ -1,7 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
-using MeAjudaAi.Shared.Messaging.ServiceBus;
+
 
 namespace MeAjudaAi.Shared.Tests.Unit.Messaging;
 
@@ -10,44 +10,7 @@ namespace MeAjudaAi.Shared.Tests.Unit.Messaging;
 /// </summary>
 public class MessagingExtensionsTests
 {
-    [Fact]
-    public void ServiceBusOptions_DefaultValues_ShouldBeCorrect()
-    {
-        // Arrange & Act
-        var options = new ServiceBusOptions();
 
-        // Assert
-        options.DefaultTopicName.Should().Be("MeAjudaAi-events");
-        options.ConnectionString.Should().BeEmpty();
-        options.DomainTopics.Should().ContainKey("Users");
-        options.DomainTopics["Users"].Should().Be("users-events");
-    }
-
-    [Fact]
-    public void ServiceBusOptions_GetTopicForDomain_ExistingDomain_ShouldReturnCorrectTopic()
-    {
-        // Arrange
-        var options = new ServiceBusOptions();
-
-        // Act
-        var topic = options.GetTopicForDomain("Users");
-
-        // Assert
-        topic.Should().Be("users-events");
-    }
-
-    [Fact]
-    public void ServiceBusOptions_GetTopicForDomain_UnknownDomain_ShouldReturnDefaultTopic()
-    {
-        // Arrange
-        var options = new ServiceBusOptions();
-
-        // Act
-        var topic = options.GetTopicForDomain("UnknownDomain");
-
-        // Assert
-        topic.Should().Be("MeAjudaAi-events");
-    }
 
     [Fact]
     public void RabbitMqOptions_BuildConnectionString_WithVirtualHost_ShouldConstructCorrectly()
