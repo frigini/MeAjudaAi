@@ -19,7 +19,6 @@
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
     
     <!-- Azure Services -->
-    <PackageReference Include="Azure.Messaging.ServiceBus" />
     
     <!-- Data Access -->
     <PackageReference Include="Dapper" />
@@ -57,7 +56,6 @@
     <!-- Messaging -->
     <PackageReference Include="RabbitMQ.Client" />
     <PackageReference Include="Rebus" />
-    <PackageReference Include="Rebus.AzureServiceBus" />
     <PackageReference Include="Rebus.RabbitMq" />
     <PackageReference Include="Rebus.ServiceProvider" />
     

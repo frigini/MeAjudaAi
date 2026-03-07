@@ -4,6 +4,15 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Messaging;
 
 /// <summary>
+/// Tipo de operação de mensageria para o mock
+/// </summary>
+public enum EMessageType
+{
+    Send,
+    Publish
+}
+
+/// <summary>
 /// Mock para RabbitMQ MessageBus para uso em testes
 /// </summary>
 public class MockRabbitMqMessageBus : IMessageBus

@@ -34,18 +34,10 @@ public static class DeadLetterExtensions
 
         // Registrar implementações específicas
         services.AddScoped<RabbitMqDeadLetterService>();
-        services.AddScoped<ServiceBusDeadLetterService>();
         services.AddScoped<NoOpDeadLetterService>();
 
-        // Registrar factory
-        services.AddScoped<Factories.IDeadLetterServiceFactory, Factories.DeadLetterServiceFactory>();
-
-        // Registrar serviço principal baseado no ambiente
-        services.AddScoped<IDeadLetterService>(serviceProvider =>
-        {
-            var factory = serviceProvider.GetRequiredService<Factories.IDeadLetterServiceFactory>();
-            return factory.CreateDeadLetterService();
-        });
+        // Registrar serviço principal baseado no ambiente (RabbitMQ por padrão)
+        services.AddScoped<IDeadLetterService, RabbitMqDeadLetterService>();
 
         // Adicionar middleware de retry
         services.AddMessageRetryMiddleware();
@@ -78,30 +70,6 @@ public static class DeadLetterExtensions
         return services;
     }
 
-    /// <summary>
-    /// Configura dead letter queue específico para Azure Service Bus
-    /// </summary>
-    /// <param name="services">Service collection</param>
-    /// <param name="configuration">Configuration</param>
-    /// <param name="configureOptions">Configuração adicional das opções</param>
-    /// <returns>Service collection para chaining</returns>
-    public static IServiceCollection AddServiceBusDeadLetterQueue(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        Action<DeadLetterOptions>? configureOptions = null)
-    {
-        services.Configure<DeadLetterOptions>(configuration.GetSection(DeadLetterOptions.SectionName));
-
-        if (configureOptions != null)
-        {
-            services.Configure(configureOptions);
-        }
-
-        services.AddScoped<IDeadLetterService, ServiceBusDeadLetterService>();
-        services.AddMessageRetryMiddleware();
-
-        return services;
-    }
 
     /// <summary>
     /// Valida a configuração do Dead Letter Queue na aplicação
@@ -153,16 +121,10 @@ public static class DeadLetterExtensions
             var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
             var logger = scope.ServiceProvider.GetRequiredService<ILogger<IHostEnvironment>>();
 
-            if (environment.IsDevelopment())
+            if (environment.IsDevelopment() || environment.IsProduction())
             {
                 // Para RabbitMQ, a infraestrutura é criada dinamicamente quando necessário
                 logger.LogInformation("Dead Letter infrastructure for RabbitMQ will be created dynamically");
-            }
-            else
-            {
-                // Para Service Bus, a infraestrutura também é criada dinamicamente
-                // mas você poderia verificar se as filas existem aqui
-                logger.LogInformation("Dead Letter infrastructure for Service Bus will be created dynamically");
             }
 
             return Task.CompletedTask;
@@ -170,6 +132,36 @@ public static class DeadLetterExtensions
         catch (Exception ex)
         {
             var logger = scope.ServiceProvider.GetRequiredService<ILogger<IHostEnvironment>>();
+            logger.LogError(ex, "Failed to ensure Dead Letter Queue infrastructure");
+            throw new InvalidOperationException(
+                "Failed to ensure Dead Letter Queue infrastructure (queues, exchanges, and bindings)",
+                ex);
+        }
+    }
+
+    /// <summary>
+    /// Registra informações sobre a infraestrutura de Dead Letter Queue
+    /// </summary>
+    public static Task LogDeadLetterInfrastructureInfo(this IHost host)
+    {
+        using var scope = host.Services.CreateScope();
+
+        try
+        {
+            var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<IDeadLetterService>>();
+
+            if (environment.IsDevelopment() || environment.IsProduction())
+            {
+                // Para RabbitMQ, a infraestrutura é criada dinamicamente quando necessário
+                logger.LogInformation("Dead Letter infrastructure for RabbitMQ will be created dynamically");
+            }
+
+            return Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<IDeadLetterService>>();
             logger.LogError(ex, "Failed to ensure Dead Letter Queue infrastructure");
             throw new InvalidOperationException(
                 "Failed to ensure Dead Letter Queue infrastructure (queues, exchanges, and bindings)",

@@ -1,0 +1,874 @@
+{
+  "MeAjudaAi.Web.Customer": {
+    "root": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
+    "targets": [
+      "MeAjudaAi.Web.Customer/eslint.config.mjs",
+      "@nx/eslint/plugin"
+    ],
+    "name": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
+    "tags": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "tags.npm:private": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.0": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.1": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.2": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.3": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageName": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageVersion": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.isInPackageManagerWorkspaces": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.executor": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.options": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.metadata": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.options.script": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.metadata.scriptContent": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.metadata.runCommand": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.executor": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.options": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.metadata": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.options.script": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.metadata.scriptContent": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.metadata.runCommand": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api.executor": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api.options": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api.metadata": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api.options.script": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api.metadata.scriptContent": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api.metadata.runCommand": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api:watch": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api:watch.executor": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api:watch.options": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api:watch.metadata": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api:watch.options.script": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api:watch.metadata.scriptContent": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api:watch.metadata.runCommand": [
+      "MeAjudaAi.Web.Customer/package.json",
+      "nx/core/package-json"
+    ],
+    "$schema": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
+    "projectType": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
+    "sourceRoot": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.executor": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options.outputPath": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options.command": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.executor": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options.command": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.lint": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.lint.executor": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.lint.options": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.lint.options.command": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ]
+  },
+  "libs/api-client": {
+    "root": [
+      "libs/api-client/project.json",
+      "nx/core/project-json"
+    ],
+    "targets": [
+      "libs/api-client/.eslintrc.json",
+      "@nx/eslint/plugin"
+    ],
+    "targets.lint": [
+      "libs/api-client/.eslintrc.json",
+      "@nx/eslint/plugin"
+    ],
+    "targets.lint.cache": [
+      "libs/api-client/.eslintrc.json",
+      "@nx/eslint/plugin"
+    ],
+    "targets.lint.options": [
+      "libs/api-client/.eslintrc.json",
+      "@nx/eslint/plugin"
+    ],
+    "targets.lint.inputs": [
+      "libs/api-client/.eslintrc.json",
+      "@nx/eslint/plugin"
+    ],
+    "targets.lint.outputs": [
+      "libs/api-client/.eslintrc.json",
+      "@nx/eslint/plugin"
+    ],
+    "targets.lint.metadata": [
+      "libs/api-client/.eslintrc.json",
+      "@nx/eslint/plugin"
+    ],
+    "targets.lint.executor": [
+      "libs/api-client/.eslintrc.json",
+      "@nx/eslint/plugin"
+    ],
+    "targets.lint.options.cwd": [
+      "libs/api-client/.eslintrc.json",
+      "@nx/eslint/plugin"
+    ],
+    "targets.lint.options.command": [
+      "libs/api-client/.eslintrc.json",
+      "@nx/eslint/plugin"
+    ],
+    "targets.lint.metadata.technologies": [
+      "libs/api-client/.eslintrc.json",
+      "@nx/eslint/plugin"
+    ],
+    "targets.lint.metadata.technologies.0": [
+      "libs/api-client/.eslintrc.json",
+      "@nx/eslint/plugin"
+    ],
+    "targets.lint.metadata.description": [
+      "libs/api-client/.eslintrc.json",
+      "@nx/eslint/plugin"
+    ],
+    "targets.lint.metadata.help": [
+      "libs/api-client/.eslintrc.json",
+      "@nx/eslint/plugin"
+    ],
+    "targets.lint.metadata.help.command": [
+      "libs/api-client/.eslintrc.json",
+      "@nx/eslint/plugin"
+    ],
+    "targets.lint.metadata.help.example": [
+      "libs/api-client/.eslintrc.json",
+      "@nx/eslint/plugin"
+    ],
+    "targets.test": [
+      "libs/api-client/jest.config.cts",
+      "@nx/jest/plugin"
+    ],
+    "targets.test.options": [
+      "libs/api-client/jest.config.cts",
+      "@nx/jest/plugin"
+    ],
+    "targets.test.metadata": [
+      "libs/api-client/jest.config.cts",
+      "@nx/jest/plugin"
+    ],
+    "targets.test.cache": [
+      "libs/api-client/jest.config.cts",
+      "@nx/jest/plugin"
+    ],
+    "targets.test.inputs": [
+      "libs/api-client/jest.config.cts",
+      "@nx/jest/plugin"
+    ],
+    "targets.test.outputs": [
+      "libs/api-client/jest.config.cts",
+      "@nx/jest/plugin"
+    ],
+    "targets.test.executor": [
+      "libs/api-client/jest.config.cts",
+      "@nx/jest/plugin"
+    ],
+    "targets.test.options.cwd": [
+      "libs/api-client/jest.config.cts",
+      "@nx/jest/plugin"
+    ],
+    "targets.test.options.env": [
+      "libs/api-client/jest.config.cts",
+      "@nx/jest/plugin"
+    ],
+    "targets.test.options.command": [
+      "libs/api-client/jest.config.cts",
+      "@nx/jest/plugin"
+    ],
+    "targets.test.metadata.technologies": [
+      "libs/api-client/jest.config.cts",
+      "@nx/jest/plugin"
+    ],
+    "targets.test.metadata.technologies.0": [
+      "libs/api-client/jest.config.cts",
+      "@nx/jest/plugin"
+    ],
+    "targets.test.metadata.description": [
+      "libs/api-client/jest.config.cts",
+      "@nx/jest/plugin"
+    ],
+    "targets.test.metadata.help": [
+      "libs/api-client/jest.config.cts",
+      "@nx/jest/plugin"
+    ],
+    "targets.test.metadata.help.command": [
+      "libs/api-client/jest.config.cts",
+      "@nx/jest/plugin"
+    ],
+    "targets.test.metadata.help.example": [
+      "libs/api-client/jest.config.cts",
+      "@nx/jest/plugin"
+    ],
+    "name": [
+      "libs/api-client/project.json",
+      "nx/core/project-json"
+    ],
+    "tags": [
+      "libs/api-client/package.json",
+      "nx/core/package-json"
+    ],
+    "tags.npm:private": [
+      "libs/api-client/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups": [
+      "libs/api-client/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js": [
+      "libs/api-client/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageName": [
+      "libs/api-client/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageVersion": [
+      "libs/api-client/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageMain": [
+      "libs/api-client/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.isInPackageManagerWorkspaces": [
+      "libs/api-client/package.json",
+      "nx/core/package-json"
+    ],
+    "$schema": [
+      "libs/api-client/project.json",
+      "nx/core/project-json"
+    ],
+    "sourceRoot": [
+      "libs/api-client/project.json",
+      "nx/core/project-json"
+    ],
+    "projectType": [
+      "libs/api-client/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build": [
+      "libs/api-client/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.executor": [
+      "libs/api-client/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.outputs": [
+      "libs/api-client/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options": [
+      "libs/api-client/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options.outputPath": [
+      "libs/api-client/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options.main": [
+      "libs/api-client/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options.tsConfig": [
+      "libs/api-client/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options.assets": [
+      "libs/api-client/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.cache": [
+      "nx.json",
+      "nx/target-defaults"
+    ],
+    "targets.build.dependsOn": [
+      "nx.json",
+      "nx/target-defaults"
+    ],
+    "targets.build.inputs": [
+      "nx.json",
+      "nx/target-defaults"
+    ],
+    "targets.build.parallelism": [
+      "nx.json",
+      "nx/target-defaults"
+    ]
+  },
+  "MeAjudaAi.Web.Provider": {
+    "root": [
+      "MeAjudaAi.Web.Provider/project.json",
+      "nx/core/project-json"
+    ],
+    "name": [
+      "MeAjudaAi.Web.Provider/project.json",
+      "nx/core/project-json"
+    ],
+    "tags": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "tags.npm:private": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.0": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.1": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.2": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.3": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageName": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageVersion": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.isInPackageManagerWorkspaces": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.executor": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.options": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.metadata": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.options.script": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.metadata.scriptContent": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.metadata.runCommand": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.executor": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.options": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.metadata": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.options.script": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.metadata.scriptContent": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.start.metadata.runCommand": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api.executor": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api.options": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api.metadata": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api.options.script": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api.metadata.scriptContent": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api.metadata.runCommand": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api:watch": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api:watch.executor": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api:watch.options": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api:watch.metadata": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api:watch.options.script": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api:watch.metadata.scriptContent": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.generate:api:watch.metadata.runCommand": [
+      "MeAjudaAi.Web.Provider/package.json",
+      "nx/core/package-json"
+    ],
+    "$schema": [
+      "MeAjudaAi.Web.Provider/project.json",
+      "nx/core/project-json"
+    ],
+    "sourceRoot": [
+      "MeAjudaAi.Web.Provider/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build": [
+      "MeAjudaAi.Web.Provider/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options": [
+      "MeAjudaAi.Web.Provider/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.executor": [
+      "MeAjudaAi.Web.Provider/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options.outputPath": [
+      "MeAjudaAi.Web.Provider/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options.command": [
+      "MeAjudaAi.Web.Provider/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve": [
+      "MeAjudaAi.Web.Provider/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.executor": [
+      "MeAjudaAi.Web.Provider/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options": [
+      "MeAjudaAi.Web.Provider/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options.command": [
+      "MeAjudaAi.Web.Provider/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.lint": [
+      "MeAjudaAi.Web.Provider/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.lint.executor": [
+      "MeAjudaAi.Web.Provider/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.lint.options": [
+      "MeAjudaAi.Web.Provider/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.lint.options.command": [
+      "MeAjudaAi.Web.Provider/project.json",
+      "nx/core/project-json"
+    ]
+  },
+  ".": {
+    "root": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "name": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "tags": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "tags.npm:public": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.0": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.description": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageName": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageVersion": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageMain": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.isInPackageManagerWorkspaces": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "targets": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.executor": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.options": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.metadata": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.options.script": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.metadata.scriptContent": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.metadata.runCommand": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "targets.nx-release-publish": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "targets.nx-release-publish.executor": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "targets.nx-release-publish.dependsOn": [
+      "package.json",
+      "nx/core/package-json"
+    ],
+    "targets.nx-release-publish.options": [
+      "package.json",
+      "nx/core/package-json"
+    ]
+  },
+  "libs/auth": {
+    "root": [
+      "libs/auth/project.json",
+      "nx/core/project-json"
+    ],
+    "name": [
+      "libs/auth/project.json",
+      "nx/core/project-json"
+    ],
+    "$schema": [
+      "libs/auth/project.json",
+      "nx/core/project-json"
+    ],
+    "sourceRoot": [
+      "libs/auth/project.json",
+      "nx/core/project-json"
+    ],
+    "projectType": [
+      "libs/auth/project.json",
+      "nx/core/project-json"
+    ],
+    "// targets": [
+      "libs/auth/project.json",
+      "nx/core/project-json"
+    ],
+    "tags": [
+      "libs/auth/project.json",
+      "nx/core/project-json"
+    ],
+    "targets": [
+      "libs/auth/project.json",
+      "nx/core/project-json"
+    ]
+  },
+  "libs/ui": {
+    "root": [
+      "libs/ui/project.json",
+      "nx/core/project-json"
+    ],
+    "name": [
+      "libs/ui/project.json",
+      "nx/core/project-json"
+    ],
+    "$schema": [
+      "libs/ui/project.json",
+      "nx/core/project-json"
+    ],
+    "sourceRoot": [
+      "libs/ui/project.json",
+      "nx/core/project-json"
+    ],
+    "projectType": [
+      "libs/ui/project.json",
+      "nx/core/project-json"
+    ],
+    "// targets": [
+      "libs/ui/project.json",
+      "nx/core/project-json"
+    ],
+    "tags": [
+      "libs/ui/project.json",
+      "nx/core/project-json"
+    ],
+    "targets": [
+      "libs/ui/project.json",
+      "nx/core/project-json"
+    ]
+  }
+}

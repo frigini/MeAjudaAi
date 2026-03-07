@@ -1,5 +1,5 @@
 using System.Reflection;
-using Azure.Messaging.ServiceBus;
+
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Messaging;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +33,7 @@ public static class MessagingMockExtensions
         // Registra os mocks específicos
 
         // Registra os mocks como as implementações do IMessageBus
-        services.AddSingleton<IMessageBus>(provider => provider.GetRequiredService<MockServiceBusMessageBus>());
+        services.AddSingleton<IMessageBus>(provider => provider.GetRequiredService<MockRabbitMqMessageBus>());
 
         return services;
     }
@@ -43,12 +43,7 @@ public static class MessagingMockExtensions
     /// </summary>
     private static void RemoveRealImplementations(IServiceCollection services)
     {
-        // Remove ServiceBusClient se registrado
-        var serviceBusDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ServiceBusClient));
-        if (serviceBusDescriptor != null)
-        {
-            services.Remove(serviceBusDescriptor);
-        }
+
 
         // Remove outras implementações de IMessageBus
         var messageBusDescriptors = services.Where(d => d.ServiceType == typeof(IMessageBus)).ToList();
