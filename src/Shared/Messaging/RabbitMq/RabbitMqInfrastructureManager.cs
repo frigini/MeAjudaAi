@@ -9,18 +9,15 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
 {
     private readonly RabbitMqOptions _options;
     private readonly IEventTypeRegistry _eventRegistry;
-    private readonly ITopicStrategySelector _topicSelector;
     private readonly ILogger<RabbitMqInfrastructureManager> _logger;
 
     public RabbitMqInfrastructureManager(
         RabbitMqOptions options,
         IEventTypeRegistry eventRegistry,
-        ITopicStrategySelector topicSelector,
         ILogger<RabbitMqInfrastructureManager> logger)
     {
         _options = options;
         _eventRegistry = eventRegistry;
-        _topicSelector = topicSelector;
         _logger = logger;
     }
 
@@ -43,7 +40,7 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
             var eventTypes = await _eventRegistry.GetAllEventTypesAsync();
             foreach (var eventType in eventTypes)
             {
-                var queueName = _topicSelector.SelectTopicForEvent(eventType);
+                var queueName = _options.DefaultQueueName;
                 var exchangeName = $"{queueName}.exchange";
 
                 await CreateExchangeAsync(exchangeName, ExchangeType.Topic);

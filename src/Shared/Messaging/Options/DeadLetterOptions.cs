@@ -79,11 +79,6 @@ public sealed class DeadLetterOptions
     /// Configurações específicas para RabbitMQ
     /// </summary>
     public RabbitMqDeadLetterOptions RabbitMq { get; set; } = new();
-
-    /// <summary>
-    /// Configurações específicas para Azure Service Bus
-    /// </summary>
-    public ServiceBusDeadLetterOptions ServiceBus { get; set; } = new();
 }
 
 /// <summary>
@@ -110,25 +105,4 @@ public sealed class RabbitMqDeadLetterOptions
     /// Habilita persistência de mensagens na DLQ
     /// </summary>
     public bool EnablePersistence { get; set; } = true;
-}
-
-/// <summary>
-/// Configurações específicas de DLQ para Azure Service Bus
-/// </summary>
-public sealed class ServiceBusDeadLetterOptions
-{
-    /// <summary>
-    /// Sufixo para filas de dead letter no Service Bus
-    /// </summary>
-    public string DeadLetterQueueSuffix { get; set; } = "$DeadLetterQueue";
-
-    /// <summary>
-    /// Habilita auto-complete para mensagens processadas com sucesso
-    /// </summary>
-    public bool EnableAutoComplete { get; set; } = true;
-
-    /// <summary>
-    /// Tempo máximo de lock para mensagens (em minutos)
-    /// </summary>
-    public int MaxLockDurationMinutes { get; set; } = 5;
 }
