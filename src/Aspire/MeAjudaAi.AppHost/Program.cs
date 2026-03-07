@@ -180,7 +180,7 @@ internal static class Program
             // NOTA: Keycloak WaitFor removido - veja comentário no apiService acima
 
         // Aplicação Web do Cliente (Next.js 15)
-        var customerWebPath = Path.Combine(builder.AppHostDirectory, "..", "..", "Web", "MeAjudaAi.Web.Customer");
+        var customerWebPath = Path.Combine(builder.AppHostDirectory, "..", "..", "..", "src", "Web", "MeAjudaAi.Web.Customer");
         _ = builder.AddJavaScriptApp("customer-web", customerWebPath)
             .WithHttpEndpoint(port: 3000, env: "PORT")
             .WithExternalHttpEndpoints()
@@ -200,7 +200,7 @@ internal static class Program
 
         var redis = builder.AddRedis("redis");
 
-        var serviceBus = builder.AddAzureServiceBus("servicebus");
+        var rabbitMq = builder.AddRabbitMQ("rabbitmq");
 
         var keycloak = builder.AddMeAjudaAiKeycloakProduction();
 
@@ -209,8 +209,8 @@ internal static class Program
             .WithReference(redis)
             .WaitFor(postgresql.MainDatabase)
             .WaitFor(redis)
-            .WithReference(serviceBus)
-            .WaitFor(serviceBus)
+            .WithReference(rabbitMq)
+            .WaitFor(rabbitMq)
             .WithReference(keycloak.Keycloak)
             // NOTA: Keycloak WaitFor removido - veja comentário no ConfigureDevelopmentEnvironment
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));

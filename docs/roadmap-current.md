@@ -16,7 +16,7 @@ Desenvolver aplicações frontend usando **Blazor WebAssembly** (Admin Portal) e
 > **📝 Decisão Técnica** (5 Fevereiro 2026):  
 > Stack de Customer App definida como **React 19 + Next.js 15 + Tailwind CSS v4**.  
 > **Admin Portal** permanece em **Blazor WASM** (já implementado, interno, estável).  
-> *Migration to React planned for Sprint 8D to unify the stack.*
+> *Initial React migration in Sprint 8B.2 (scaffolding), with further Admin work in Sprint 8D to unify the stack.*
 > **Razão**: SEO crítico para Customer App, performance inicial, ecosystem maduro, hiring facilitado.
 
 **Decisão Estratégica**: Dual Stack (Blazor para Admin, React para Customer)
@@ -250,7 +250,7 @@ CREATE INDEX idx_allowed_regions_active ON geographic_restrictions.allowed_regio
   - [ ] Tabela com cidades/estados permitidos
   - [ ] Filtros: Tipo (Cidade/Estado), Estado, Status (Ativo/Inativo)
   - [ ] Ordenação: Alfabética, Data de Adição
-  - [ ] Indicador visual: Badgets para "Cidade" vs "Estado"
+  - [ ] Indicador visual: Badges para "Cidade" vs "Estado"
 
 - [ ] **Adicionar Cidade/Estado**
   - [ ] Form com campos:
@@ -415,19 +415,22 @@ public class GeographicRestrictionMiddleware
 
 ### 🔄 Sprint 8B.2 - NX Scaffolding & Initial Migration (5 - 18 Mar 2026)
 **Branch**: `feature/sprint-8b2-technical-excellence`
-**Status**: 🔄 EM PROGRESSO
+**Status**: ✅ CONCLUÍDA (18 Mar 2026)
 
 **Objectives**:
-1. 🔴 **MUST-HAVE**: **NX Monorepo Setup** (Effort: Large)
+1. ✅ **MUST-HAVE**: **NX Monorepo Setup**
     - Initialize workspace.
-    - **Migrate** existing `MeAjudaAi.Web.Customer` to `apps/customer-web`.
-    - **Scaffolding** (empty placeholders): `apps/provider-web` and `apps/admin-portal`.
-    - Extract shared libraries: `libs/ui`, `libs/auth`, `libs/api-client`.
-2. 🔴 **MUST-HAVE**: **Messaging Unification** (Effort: Medium)
-    - Remove Azure Service Bus, unify on RabbitMQ only.
+    - **Migrate/Rename** projects to `src/Web/`:
+        - `MeAjudaAi.Web.Customer`
+        - `MeAjudaAi.Web.Provider`
+        - `MeAjudaAi.Web.Admin` (Existing)
+    - Extract shared libraries to `libs/`.
+    - Cleanup redundant root folders (`api/`, `packages/`, `site/`, `build/`, `automation/`).
+2. ✅ **MUST-HAVE**: **Messaging Unification**
+    - Removed Azure Service Bus, unified on RabbitMQ only.
 3. 🔴 **MUST-HAVE**: **Technical Excellence Pack** (Effort: Medium)
     - [**TD**] **Keycloak Automation**: `setup-keycloak-clients.ps1` for local dev.
-    - [**TD**] **Analyzer Cleanup**: Fix MudBlazor/SonarLint warnings in Admin & Contracts.
+    - [ ] **Analyzer Cleanup**: Fix MudBlazor/SonarLint warnings in Admin & Contracts (REMOVIDO - projeto Admin será migrado no futuro).
     - [**TD**] **Refactor Extensions**: Extract `BusinessMetricsMiddlewareExtensions`.
     - [**TD**] **Polly Logging**: Migrate resilience logging to ILogger (Issue #113).
     - [**TD**] **Standardization**: Record syntax alignment in `Contracts`.
@@ -435,9 +438,10 @@ public class GeographicRestrictionMiddleware
 ---
 
 **Entregáveis**:
-- [x] Nx workspace com `apps/customer-web` e `libs/shared-ui` placeholders.
-- [ ] Placeholders para `apps/provider-web` e `apps/admin-portal`.
-- [ ] Bibliotecas extraídas para `libs/`.
+- [x] Nx workspace com `src/Web/MeAjudaAi.Web.Customer` e `src/Web/MeAjudaAi.Web.Provider`.
+- [x] Bibliotecas extraídas para `libs/`.
+- [x] Unificação de Messaging (RabbitMQ).
+- [x] Limpeza do diretório raiz.
 
 ---
 

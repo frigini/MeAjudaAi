@@ -16,11 +16,6 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 
 **Descrição**: Build do Admin Portal e Contracts gera warnings de analyzers (SonarLint + MudBlazor).
 
-**Warnings MudBlazor (MeAjudaAi.Web.Admin)**:
-1. **S2094** (records vazios em Actions)
-2. **S2953** (App.razor Dispose)
-3. **MUD0002** (Casing de atributos HTML em MainLayout.razor)
-
 **Warnings Analisador de Segurança (MeAjudaAi.Contracts)**:
 4. **Hard-coded Credential False Positive**: `src/Contracts/Utilities/Constants/ValidationMessages.cs`
    - **Problema**: Mensagens de erro contendo a palavra "Password" disparam o scanner.
@@ -220,6 +215,18 @@ public sealed record ModuleLocationDto
 - [ ] Standardize component styling
 
 **Origem**: Sprint 7.19
+
+---
+
+## ✅ Resumo de Débitos Técnicos Resolvidos (Sprint 8B.2)
+
+### 🏗️ NX Monorepo & Root Cleanup
+- ✅ **Organização**: Projetos movidos para `src/Web/` com nomes padronizados e estrutura NX.
+- ✅ **Limpeza**: Pastas redundantes (`api/`, `packages/`, `site/`, `build/`, `automation/`) removidas da raiz.
+
+### 🏗️ Refatoração MeAjudaAi.Shared.Messaging
+- ✅ **Unificação**: Azure Service Bus removido completamente, unificado no RabbitMQ para desenvolvimento e produção.
+- ✅ **Infrastructure-as-Code**: Arquivos Bicep de ASB removidos.
 
 ---
 
