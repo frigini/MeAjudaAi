@@ -12,30 +12,16 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 ### 🎨 Frontend - Warnings de Analyzers (BAIXA)
 
 **Severidade**: BAIXA (code quality)  
-**Sprint**: Sprint 7.16 (planejado)
+**Status**: 🔄 EM SPRINT 8B.2 (Refactoring)
 
-**Descrição**: Build do Admin Portal gera warnings de analyzers (SonarLint + MudBlazor):
+**Descrição**: Build do Admin Portal e Contracts gera warnings de analyzers (SonarLint + MudBlazor).
 
-**Warnings SonarLint**:
-1. **S2094** (6 ocorrências): Empty records em Actions
-   - `DashboardActions.cs`: `LoadDashboardStatsAction` (record vazio)
-   - `ProvidersActions.cs`: `LoadProvidersAction`, `GoToPageAction` (records vazios)
-   - `ThemeActions.cs`: `ToggleDarkModeAction`, `SetDarkModeAction` (records vazios)
-   - **Recomendação**: Converter para `interface` ou adicionar propriedades quando houver parâmetros
-   
-2. **S2953** (1 ocorrência): `App.razor:58` - Método `Dispose()` não implementa `IDisposable`
-   - **Recomendação**: Renomear método ou implementar interface corretamente
+**Warnings Analisador de Segurança (MeAjudaAi.Contracts)**:
+4. **Hard-coded Credential False Positive**: `src/Contracts/Utilities/Constants/ValidationMessages.cs`
+   - **Problema**: Mensagens de erro contendo a palavra "Password" disparam o scanner.
+   - **Ação**: Adicionar `[SuppressMessage]` ou `.editorconfig` exclusion.
 
-3. **S2933** (1 ocorrência): `App.razor:41` - Campo `_theme` deve ser `readonly`
-   - **Recomendação**: Adicionar modificador `readonly`
-
-**Warnings MudBlazor**:
-4. **MUD0002** (3 ocorrências): Atributos com casing incorreto em `MainLayout.razor`
-   - `AriaLabel` → `aria-label` (lowercase)
-   - `Direction` → `direction` (lowercase)
-   - **Recomendação**: Atualizar para lowercase conforme padrão HTML
-
-**Impacto**: Nenhum - build continua 100% funcional
+**Impacto**: Nenhum - build continua 100% funcional.
 
 ---
 
@@ -80,25 +66,16 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 ### 🔐 Keycloak Client - Configuração Manual (MÉDIA)
 
 **Severidade**: MÉDIA (developer experience)  
-**Sprint**: Sprint 7.16 (automação desejável)
+**Status**: 🔄 EM SPRINT 8B.2 (Automação)
 
 **Descrição**: Client `admin-portal` precisa ser criado MANUALMENTE no Keycloak realm `meajudaai`.
 
-**Situação Atual**:
-- ✅ Documentação completa: `docs/keycloak-admin-portal-setup.md`
-- ❌ Processo manual (8-10 passos via Admin Console)
-
-**Problemas**:
-1. **Onboarding lento**: Novo desenvolvedor precisa seguir ~10 passos
-2. **Erro humano**: Fácil esquecer redirect URIs ou roles
-3. **Reprodutibilidade**: Ambiente local pode divergir de dev/staging
-
-**Ações Recomendadas** (Sprint 7.16):
+**Ações Pendentes**:
 - [ ] Criar script de automação: `scripts/setup-keycloak-clients.ps1`
 - [ ] Usar Keycloak Admin REST API para criar client programaticamente
 - [ ] Integrar script em `dotnet run --project src/Aspire/MeAjudaAi.AppHost`
 
-**Impacto**: Developer experience - não bloqueia produção
+**Impacto**: Developer experience - não bloqueia produção.
 
 ---
 
@@ -106,78 +83,48 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 
 **Status**: Baixa prioridade, não críticos para MVP
 
-### 🏗️ Refatoração MeAjudaAi.Shared.Messaging (BACKLOG)
+### 🏗️ Refatoração MeAjudaAi.Shared.Messaging (OTIMIZADO)
 
-**Severidade**: BAIXA (manutenibilidade)  
-**Sprint**: BACKLOG
-
-**Problemas Remanescentes**:
-- `RabbitMqInfrastructureManager.cs` não possui interface separada `IRabbitMqInfrastructureManager` (avaliar necessidade)
-- Integration Events ausentes: Documents, SearchProviders, ServiceCatalogs não possuem integration events
-- Faltam event handlers para comunicação entre módulos
-
-**Ações Pendentes**:
-- [ ] Avaliar necessidade de extrair `IRabbitMqInfrastructureManager` para arquivo separado
-- [ ] Adicionar integration events para módulos faltantes (quando houver necessidade)
-- [ ] Criar testes unitários para classes de messaging (se coverage cair abaixo do threshold)
-
-**Prioridade**: BAIXA  
-**Estimativa**: 4-6 horas
+**Status**: ✅ `IRabbitMqInfrastructureManager` implementado.
+**Pendente**: Event handlers para comunicação entre novos módulos (SearchProviders, ServiceCatalogs).
 
 ---
 
 ### 🔧 Refatoração Extensions (MeAjudaAi.Shared)
 
 **Severidade**: BAIXA (manutenibilidade)  
-**Sprint**: BACKLOG
-
-**Problemas**:
-1. **Extensions dentro de classes de implementação**: `BusinessMetricsMiddlewareExtensions` está dentro de `BusinessMetricsMiddleware.cs`
-2. **Falta de consolidação**: Extensions espalhadas em múltiplos arquivos
-
+**Status**: 🔄 EM SPRINT 8B.2
 **Ações Pendentes**:
-- [ ] Extrair `BusinessMetricsMiddlewareExtensions` para arquivo próprio
-- [ ] Criar arquivos consolidados: `MonitoringExtensions.cs`, `CachingExtensions.cs`, `MessagingExtensions.cs`, `AuthorizationExtensions.cs`
-- [ ] Documentar padrão: cada funcionalidade tem seu `<Funcionalidade>Extensions.cs`
+- [ ] Extrair `BusinessMetricsMiddlewareExtensions` para arquivo próprio.
+- [ ] Consolidar extensões em `MonitoringExtensions.cs`, `CachingExtensions.cs`, etc.
 
-**Prioridade**: BAIXA  
-**Estimativa**: 4-6 horas
+---
+
+## 🔗 GitHub Issues - Débitos Técnicos Sincronizados
+
+### 🔐 [ISSUE #141] Reintegrar login social com Instagram via Keycloak OIDC
+**Severidade**: BAIXA (feature parity)
+**Status**: OPEN
+**Descrição**: Keycloak 26.x removeu built-in Instagram provider. Necessário configurar como generic OIDC.
+
+### 📊 [ISSUE #113] tech: migrar Polly resilience logging para ILogger do DI
+**Severidade**: MÉDIA (observabilidade)
+**Status**: 🔄 EM SPRINT 8B.2
+**Descrição**: `Microsoft.Extensions.Http.Resilience` não permite injetar ILogger facilmente. Necessário workaround ou custom DelegatingHandler para logar retries e circuit breakers.
+
+### 🚀 [ISSUE #112] tech: aguardar versão stable do Aspire.Hosting.Keycloak
+**Severidade**: MÉDIA (startup lifecycle)
+**Status**: OPEN
+**Descrição**: Aspire.Hosting.Keycloak (v13.1.0-preview) não suporta health checks reais. Serviços iniciam sem esperar Keycloak estar pronto.
 
 ---
 
 ## ⚠️ CRÍTICO: Hangfire + Npgsql 10.x Compatibility Risk
 
-**Arquivo**: `Directory.Packages.props`  
-**Situação**: MONITORAMENTO CONTÍNUO  
-**Severidade**: MÉDIA (funciona em desenvolvimento, não validado em produção)  
-**Status**: Sistema rodando com Npgsql 10.0 + Hangfire.PostgreSql 1.20.13
-
-**Descrição**: 
-Hangfire.PostgreSql 1.20.13 foi compilado contra Npgsql 6.x, mas o projeto está usando Npgsql 10.x (EF Core 10.0.2). A compatibilidade funciona em desenvolvimento mas não foi formalmente validada pelo mantenedor do Hangfire.
-
-**Status Atual**:
-- ✅ **Build**: Compila sem erros
-- ✅ **Desenvolvimento**: Aplicação funciona normalmente
-- ⚠️ **Produção**: Não validado com carga real
-
-**Mitigação Implementada**:
-1. ✅ Documentação detalhada em `Directory.Packages.props`
-2. ✅ Health checks configurados
-3. ✅ Procedimentos de rollback documentados
-4. ⚠️ Monitoramento de produção pendente
-
-**Ações Pendentes**:
-- [ ] Validação em ambiente staging com carga similar a produção
-- [ ] Monitoramento de taxa de falha de jobs (<5% threshold)
-- [ ] Configuração de alertas para problemas Hangfire/Npgsql
-
-**Fallback Strategies**:
-1. **Downgrade para Npgsql 8.x** (se problemas detectados)
-2. **Aguardar Hangfire.PostgreSql 2.x** (com suporte Npgsql 10)
-3. **Backend alternativo** (Hangfire.Pro.Redis, Hangfire.SqlServer)
-
-**Prioridade**: MÉDIA  
-**Monitorar**: <https://github.com/frankhommers/Hangfire.PostgreSql/issues>
+**Situação**: MONITORAMENTO CONTÍNUO (Issue #39 CLOSED, mitigado)  
+**Severidade**: MÉDIA  
+**Status**: Atualizado para **Hangfire.PostgreSql 1.21.1**.
+**Nota**: Compatibilidade com Npgsql 10.x validada em desenvolvimento. Aguardar versão 2.x para suporte oficial total.
 
 ---
 
@@ -185,7 +132,7 @@ Hangfire.PostgreSql 1.20.13 foi compilado contra Npgsql 6.x, mas o projeto está
 
 **Arquivo**: Múltiplos arquivos em `src/Shared/Contracts/**` e `src/Modules/**/Domain/**`  
 **Severidade**: MÉDIA (padronização importante)  
-**Sprint**: Sprint 7.16 (Dia 5, ~0.5 dia)
+**Status**: 🔄 EM SPRINT 8B.2
 
 **Descrição**: Existem dois padrões de sintaxe para records no projeto:
 
@@ -268,6 +215,18 @@ public sealed record ModuleLocationDto
 - [ ] Standardize component styling
 
 **Origem**: Sprint 7.19
+
+---
+
+## ✅ Resumo de Débitos Técnicos Resolvidos (Sprint 8B.2)
+
+### 🏗️ NX Monorepo & Root Cleanup
+- ✅ **Organização**: Projetos movidos para `src/Web/` com nomes padronizados e estrutura NX.
+- ✅ **Limpeza**: Pastas redundantes (`api/`, `packages/`, `site/`, `build/`, `automation/`) removidas da raiz.
+
+### 🏗️ Refatoração MeAjudaAi.Shared.Messaging
+- ✅ **Unificação**: Azure Service Bus removido completamente, unificado no RabbitMQ para desenvolvimento e produção.
+- ✅ **Infrastructure-as-Code**: Arquivos Bicep de ASB removidos.
 
 ---
 
