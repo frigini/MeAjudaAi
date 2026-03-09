@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://coderabbit.ai/export/schema.json
+language: "pt-BR"
+reviews:
+  path_filters:
+    - "!**/*.lock"
+    - "!**/package-lock.json"
+    - "!**/yarn.lock"
+    - "!**/pnpm-lock.yaml"
+    - "!**/Migrations/**"
+    - "!**/*.Designer.cs"
+    - "!**/*.generated.*"
+    - "!**/.nx/**"
+    - "!**/dist/**"
+    - "!**/bin/**"
+    - "!**/obj/**"
+    - "!**/CoverageReport/**"
+    - "!**/TestResults/**"
