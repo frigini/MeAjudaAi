@@ -12,7 +12,7 @@ internal static class Program
     {
         var builder = DistributedApplication.CreateBuilder(args);
 
-        // Register the Keycloak Bootstrap background service
+        // Registra o serviço em segundo plano Keycloak Bootstrap
         if (EnvironmentHelpers.IsDevelopment(builder))
         {
             builder.Services.AddHostedService<KeycloakBootstrapService>();
@@ -195,20 +195,24 @@ internal static class Program
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
 
         // Admin Portal (Blazor WASM)
-        _ = builder.AddProject<Projects.MeAjudaAi_Web_Admin>("admin-portal")
+        var adminPortal = builder.AddProject<Projects.MeAjudaAi_Web_Admin>("admin-portal")
             .WithExternalHttpEndpoints()
             .WaitFor(apiService);
             // NOTA: Keycloak WaitFor removido - veja comentário no apiService acima
 
         // Aplicação Web do Cliente (Next.js 15)
         var customerWebPath = Path.Combine(builder.AppHostDirectory, "..", "..", "Web", "MeAjudaAi.Web.Customer");
-        _ = builder.AddJavaScriptApp("customer-web", customerWebPath)
+        var customerWeb = builder.AddJavaScriptApp("customer-web", customerWebPath)
             .WithHttpEndpoint(port: 3000, env: "PORT")
             .WithExternalHttpEndpoints()
             .WithEnvironment("NEXT_PUBLIC_API_URL", apiService.GetEndpoint("http"))
             .WaitFor(apiService);
             // Nota: AddJavaScriptApp usa "dev" script por padrão em desenvolvimento
             // e "build" script em produção. Ver package.json para scripts configurados.
+
+        // Pass resolved endpoints to Keycloak options for bootstrap
+        keycloakSettings.AdminPortalEndpoint = adminPortal.GetEndpoint("https");
+        keycloakSettings.CustomerWebEndpoint = customerWeb.GetEndpoint("http");
     }
 
     private static void ConfigureProductionEnvironment(IDistributedApplicationBuilder builder)

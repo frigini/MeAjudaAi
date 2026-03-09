@@ -83,9 +83,12 @@ public class KeycloakBootstrapService(
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            // Carregar URLs dos clientes da configuração com fallbacks padrão
-            var adminUrl = configuration["AdminPortalUrl"] ?? "http://localhost:5030";
-            var customerUrl = configuration["CustomerWebUrl"] ?? "http://localhost:3000";
+            // Carregar URLs dos clientes a partir dos endpoints resolvidos pelo Aspire
+            var adminUrl = keycloakOptions.Value.AdminPortalEndpoint?.Url ?? "http://localhost:5030";
+            var customerUrl = keycloakOptions.Value.CustomerWebEndpoint?.Url ?? "http://localhost:3000";
+
+            logger.LogInformation("Resolved Admin Portal URL: {AdminUrl}", adminUrl);
+            logger.LogInformation("Resolved Customer Web URL: {CustomerUrl}", customerUrl);
 
             // 2. Garantir existência dos Clientes
             if (!await EnsureClientExistsAsync(httpClient, "admin-portal", adminUrl, ct)) return false;
@@ -96,8 +99,14 @@ public class KeycloakBootstrapService(
             logger.LogInformation("Keycloak bootstrap completed successfully.");
             return true;
         }
-        catch (Exception ex) when (ex is HttpRequestException || ex is TaskCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException || ex is TaskCanceledException || ex is OperationCanceledException)
         {
+            if (ct.IsCancellationRequested)
+            {
+                // Rethrow or exit silently if it's a normal shutdown
+                throw;
+            }
+
             logger.LogWarning(ex, "Transient error connecting to Keycloak during bootstrap.");
             return false;
         }
