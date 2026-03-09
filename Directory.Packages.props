@@ -121,9 +121,11 @@
     <!-- Azure -->
     <PackageVersion Include="Azure.AI.DocumentIntelligence" Version="1.0.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.27.0" />
+    <PackageVersion Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
     <!-- Messaging -->
     <PackageVersion Include="RabbitMQ.Client" Version="7.2.1" />
     <PackageVersion Include="Rebus" Version="8.9.0" />
+    <PackageVersion Include="Rebus.AzureServiceBus" Version="10.5.1" />
     <PackageVersion Include="Rebus.RabbitMq" Version="10.1.1" />
     <PackageVersion Include="Rebus.ServiceProvider" Version="10.7.2" />
     <!-- Health Checks -->
@@ -176,6 +178,7 @@
     <!--   Tested: Build + Integration tests pass without this Aspire wrapper -->
     <PackageVersion Include="Aspire.Hosting.Azure.AppContainers" Version="13.1.2" />
     <PackageVersion Include="Aspire.Hosting.Azure.PostgreSQL" Version="13.1.2" />
+    <PackageVersion Include="Aspire.Hosting.Azure.ServiceBus" Version="13.1.2" />
     <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.1.2" />
     <PackageVersion Include="Aspire.Hosting.Testing" Version="13.1.2" />
     <!-- Aspire.Hosting.Keycloak: NO STABLE VERSION EXISTS - using latest preview -->
