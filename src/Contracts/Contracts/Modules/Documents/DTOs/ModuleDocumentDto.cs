@@ -3,56 +3,24 @@ namespace MeAjudaAi.Contracts.Modules.Documents.DTOs;
 /// <summary>
 /// DTO de documento para comunicação entre módulos.
 /// </summary>
-public sealed record ModuleDocumentDto
-{
-    /// <summary>
-    /// ID único do documento.
-    /// </summary>
-    public required Guid Id { get; init; }
-
-    /// <summary>
-    /// ID do provider dono do documento.
-    /// </summary>
-    public required Guid ProviderId { get; init; }
-
-    /// <summary>
-    /// Tipo do documento (CPF, CNPJ, RG, CNH, etc).
-    /// </summary>
-    public required string DocumentType { get; init; }
-
-    /// <summary>
-    /// Nome do arquivo.
-    /// </summary>
-    public required string FileName { get; init; }
-
-    /// <summary>
-    /// URL do arquivo armazenado.
-    /// </summary>
-    public required string FileUrl { get; init; }
-
-    /// <summary>
-    /// Status do documento (Uploaded, Pending, Verified, Rejected).
-    /// </summary>
-    public required string Status { get; init; }
-
-    /// <summary>
-    /// Data de upload.
-    /// </summary>
-    public required DateTime UploadedAt { get; init; }
-
-    /// <summary>
-    /// Data de verificação (se verificado).
-    /// </summary>
-    public DateTime? VerifiedAt { get; init; }
-
-    /// <summary>
-    /// Motivo da rejeição (se rejeitado).
-    /// </summary>
-    public string? RejectionReason { get; init; }
-
-    /// <summary>
-    /// Dados extraídos por OCR (se disponível).
-    /// </summary>
-    public string? OcrData { get; init; }
-}
-
+/// <param name="Id">ID único do documento.</param>
+/// <param name="ProviderId">ID do provider dono do documento.</param>
+/// <param name="DocumentType">Tipo do documento (CPF, CNPJ, RG, CNH, etc).</param>
+/// <param name="FileName">Nome do arquivo.</param>
+/// <param name="FileUrl">URL do arquivo armazenado.</param>
+/// <param name="Status">Status do documento (Uploaded, Pending, Verified, Rejected).</param>
+/// <param name="UploadedAt">Data de upload.</param>
+/// <param name="VerifiedAt">Data de verificação (se verificado).</param>
+/// <param name="RejectionReason">Motivo da rejeição (se rejeitado).</param>
+/// <param name="OcrData">Dados extraídos por OCR (se disponível).</param>
+public sealed record ModuleDocumentDto(
+    Guid Id,
+    Guid ProviderId,
+    string DocumentType,
+    string FileName,
+    string FileUrl,
+    string Status,
+    DateTime UploadedAt,
+    DateTime? VerifiedAt = null,
+    string? RejectionReason = null,
+    string? OcrData = null);

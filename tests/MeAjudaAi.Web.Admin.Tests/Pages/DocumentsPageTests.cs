@@ -109,16 +109,15 @@ public class DocumentsPageTests
         var mockDispatcher = new Mock<IDispatcher>();
         var mockDocumentsState = new Mock<IState<DocumentsState>>();
         
-        var testDocument = new ModuleDocumentDto
-        {
-            Id = Guid.NewGuid(),
-            ProviderId = Guid.NewGuid(),
-            DocumentType = "RG",
-            FileName = "test.pdf",
-            FileUrl = "https://example.com/test.pdf",
-            Status = "Uploaded",
-            UploadedAt = DateTime.UtcNow
-        };
+        var testDocument = new ModuleDocumentDto(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "RG",
+            "test.pdf",
+            "https://example.com/test.pdf",
+            "Uploaded",
+            DateTime.UtcNow
+        );
         
         mockDocumentsState.Setup(x => x.Value).Returns(new DocumentsState 
         { 
