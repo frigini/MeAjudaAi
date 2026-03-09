@@ -17,7 +17,13 @@ internal class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger
         string usersRolePassword,
         string appRolePassword)
     {
-        logger.LogInformation("Configurando permissões para módulo Users usando scripts existentes");
+        if (string.IsNullOrWhiteSpace(usersRolePassword))
+            throw new ArgumentException("Password for users_role cannot be null or whitespace.", nameof(usersRolePassword));
+            
+        if (string.IsNullOrWhiteSpace(appRolePassword))
+            throw new ArgumentException("Password for app_role cannot be null or whitespace.", nameof(appRolePassword));
+
+        logger.LogInformation("Configuring permissions for Users module using existing scripts");
 
         using var connection = new NpgsqlConnection(adminConnectionString);
         await connection.OpenAsync();
@@ -29,11 +35,11 @@ internal class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger
             await ExecuteSchemaScript(connection, "00-roles", usersRolePassword, appRolePassword);
             await ExecuteSchemaScript(connection, "01-permissions");
 
-            logger.LogInformation("✅ Permissões configuradas com sucesso para módulo Users");
+            logger.LogInformation("✅ Permissions successfully configured for Users module");
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "❌ Erro ao configurar permissões para módulo Users");
+            logger.LogError(ex, "❌ Error configuring permissions for Users module");
             throw new InvalidOperationException(
                 "Failed to configure database schema permissions for Users module (roles: users_role, app_role)",
                 ex);

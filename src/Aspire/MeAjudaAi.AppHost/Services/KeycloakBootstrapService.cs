@@ -102,13 +102,17 @@ public class KeycloakBootstrapService(
 
     private async Task<string?> GetAdminTokenAsync(HttpClient httpClient, CancellationToken ct)
     {
+        var adminUser = configuration["Keycloak:AdminUsername"] ?? "admin";
+        var adminPass = configuration["Keycloak:AdminPassword"] ?? 
+            throw new InvalidOperationException("Keycloak admin password is not configured. Please set 'Keycloak:AdminPassword'.");
+
         var request = new HttpRequestMessage(HttpMethod.Post, "/realms/master/protocol/openid-connect/token")
         {
             Content = new FormUrlEncodedContent(
             [
                 new KeyValuePair<string, string>("client_id", "admin-cli"),
-                new KeyValuePair<string, string>("username", "admin"),      // Configuração dev local
-                new KeyValuePair<string, string>("password", "admin123"),   // Configuração dev local
+                new KeyValuePair<string, string>("username", adminUser),
+                new KeyValuePair<string, string>("password", adminPass),
                 new KeyValuePair<string, string>("grant_type", "password")
             ])
         };

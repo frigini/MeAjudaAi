@@ -81,7 +81,11 @@ public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbCo
     }
 
     /// <summary>
-    /// Obtém a string de conexão padrão para desenvolvimento local
+    /// Obtém a string de conexão padrão para desenvolvimento local.
+    /// <para>
+    /// O método <see cref="GetDefaultConnectionString"/> lê a variável de ambiente <c>DB_PASSWORD</c> e lançará uma exceção se não estiver definida.
+    /// Uma alternativa para evitar esta exceção é fornecer a string de conexão <c>DefaultConnection</c> no <c>appsettings.json</c>.
+    /// </para>
     /// </summary>
     protected virtual string GetDefaultConnectionString()
     {

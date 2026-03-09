@@ -104,9 +104,12 @@ public static class DatabaseExtensions
         }
 
         // Usar senhas da configuração
-        usersRolePassword ??= configuration["Postgres:UsersRolePassword"] ?? 
+        usersRolePassword = string.IsNullOrWhiteSpace(usersRolePassword) ? configuration["Postgres:UsersRolePassword"] : usersRolePassword;
+        if (string.IsNullOrWhiteSpace(usersRolePassword))
             throw new InvalidOperationException("Postgres:UsersRolePassword configuration is required for schema isolation.");
-        appRolePassword ??= configuration["Postgres:AppRolePassword"] ?? 
+
+        appRolePassword = string.IsNullOrWhiteSpace(appRolePassword) ? configuration["Postgres:AppRolePassword"] : appRolePassword;
+        if (string.IsNullOrWhiteSpace(appRolePassword))
             throw new InvalidOperationException("Postgres:AppRolePassword configuration is required for schema isolation.");
 
         // Configurar permissões se necessário
