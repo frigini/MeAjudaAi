@@ -17,19 +17,18 @@ public class ModuleDocumentDtosTests
     public void ModuleDocumentDto_ShouldSerializeAndDeserialize()
     {
         // Arrange
-        var dto = new ModuleDocumentDto
-        {
-            Id = Guid.NewGuid(),
-            ProviderId = Guid.NewGuid(),
-            DocumentType = "CPF",
-            FileName = "documento.pdf",
-            FileUrl = "https://storage.example.com/documento.pdf",
-            Status = "Verified",
-            UploadedAt = DateTime.UtcNow,
-            VerifiedAt = DateTime.UtcNow.AddHours(1),
-            RejectionReason = null,
-            OcrData = null
-        };
+        var dto = new ModuleDocumentDto(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "CPF",
+            "documento.pdf",
+            "https://storage.example.com/documento.pdf",
+            "Verified",
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddHours(1),
+            null,
+            null
+        );
 
         // Act
         var json = JsonSerializer.Serialize(dto);
@@ -46,19 +45,18 @@ public class ModuleDocumentDtosTests
     public void ModuleDocumentDto_WithRejectedStatus_ShouldIncludeRejectionReason()
     {
         // Arrange
-        var dto = new ModuleDocumentDto
-        {
-            Id = Guid.NewGuid(),
-            ProviderId = Guid.NewGuid(),
-            DocumentType = "RG",
-            FileName = "documento.pdf",
-            FileUrl = "https://storage.example.com/documento.pdf",
-            Status = "Rejected",
-            UploadedAt = DateTime.UtcNow,
-            VerifiedAt = null,
-            RejectionReason = "Documento ilegível",
-            OcrData = null
-        };
+        var dto = new ModuleDocumentDto(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "RG",
+            "documento.pdf",
+            "https://storage.example.com/documento.pdf",
+            "Rejected",
+            DateTime.UtcNow,
+            null,
+            "Documento ilegível",
+            null
+        );
 
         // Act
         var json = JsonSerializer.Serialize(dto);
@@ -76,19 +74,18 @@ public class ModuleDocumentDtosTests
     {
         // Arrange
         var ocrData = "{\"name\":\"João Silva\",\"cpf\":\"12345678901\"}";
-        var dto = new ModuleDocumentDto
-        {
-            Id = Guid.NewGuid(),
-            ProviderId = Guid.NewGuid(),
-            DocumentType = "CPF",
-            FileName = "cpf.pdf",
-            FileUrl = "https://storage.example.com/cpf.pdf",
-            Status = "Verified",
-            UploadedAt = DateTime.UtcNow,
-            VerifiedAt = DateTime.UtcNow,
-            RejectionReason = null,
-            OcrData = ocrData
-        };
+        var dto = new ModuleDocumentDto(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "CPF",
+            "cpf.pdf",
+            "https://storage.example.com/cpf.pdf",
+            "Verified",
+            DateTime.UtcNow,
+            DateTime.UtcNow,
+            null,
+            ocrData
+        );
 
         // Act
         var json = JsonSerializer.Serialize(dto);
@@ -107,16 +104,15 @@ public class ModuleDocumentDtosTests
     public void ModuleDocumentDto_ShouldSupportMultipleDocumentTypes(string documentType)
     {
         // Arrange & Act
-        var dto = new ModuleDocumentDto
-        {
-            Id = Guid.NewGuid(),
-            ProviderId = Guid.NewGuid(),
-            DocumentType = documentType,
-            FileName = $"{documentType}.pdf",
-            FileUrl = $"https://storage.example.com/{documentType}.pdf",
-            Status = "Uploaded",
-            UploadedAt = DateTime.UtcNow
-        };
+        var dto = new ModuleDocumentDto(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            documentType,
+            $"{documentType}.pdf",
+            $"https://storage.example.com/{documentType}.pdf",
+            "Uploaded",
+            DateTime.UtcNow
+        );
 
         // Assert
         dto.DocumentType.Should().Be(documentType);
@@ -130,16 +126,15 @@ public class ModuleDocumentDtosTests
     public void ModuleDocumentDto_ShouldSupportAllStatuses(string status)
     {
         // Arrange & Act
-        var dto = new ModuleDocumentDto
-        {
-            Id = Guid.NewGuid(),
-            ProviderId = Guid.NewGuid(),
-            DocumentType = "CPF",
-            FileName = "doc.pdf",
-            FileUrl = "https://storage.example.com/doc.pdf",
-            Status = status,
-            UploadedAt = DateTime.UtcNow
-        };
+        var dto = new ModuleDocumentDto(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "CPF",
+            "doc.pdf",
+            "https://storage.example.com/doc.pdf",
+            status,
+            DateTime.UtcNow
+        );
 
         // Assert
         dto.Status.Should().Be(status);
@@ -153,12 +148,11 @@ public class ModuleDocumentDtosTests
     public void ModuleDocumentStatusDto_ShouldSerializeAndDeserialize()
     {
         // Arrange
-        var dto = new ModuleDocumentStatusDto
-        {
-            DocumentId = Guid.NewGuid(),
-            Status = "Pending",
-            UpdatedAt = DateTime.UtcNow
-        };
+        var dto = new ModuleDocumentStatusDto(
+            Guid.NewGuid(),
+            "Pending",
+            DateTime.UtcNow
+        );
 
         // Act
         var json = JsonSerializer.Serialize(dto);
@@ -175,12 +169,11 @@ public class ModuleDocumentDtosTests
     public void ModuleDocumentStatusDto_ShouldContainOnlyEssentialFields()
     {
         // Arrange
-        var dto = new ModuleDocumentStatusDto
-        {
-            DocumentId = Guid.NewGuid(),
-            Status = "Uploaded",
-            UpdatedAt = DateTime.UtcNow
-        };
+        var dto = new ModuleDocumentStatusDto(
+            Guid.NewGuid(),
+            "Uploaded",
+            DateTime.UtcNow
+        );
 
         // Act
         var json = JsonSerializer.Serialize(dto);
@@ -201,12 +194,11 @@ public class ModuleDocumentDtosTests
     public void ModuleDocumentStatusDto_ShouldSupportValidStatuses(string status)
     {
         // Arrange & Act
-        var dto = new ModuleDocumentStatusDto
-        {
-            DocumentId = Guid.NewGuid(),
-            Status = status,
-            UpdatedAt = DateTime.UtcNow
-        };
+        var dto = new ModuleDocumentStatusDto(
+            Guid.NewGuid(),
+            status,
+            DateTime.UtcNow
+        );
 
         // Assert
         dto.Status.Should().Be(status);
@@ -220,14 +212,13 @@ public class ModuleDocumentDtosTests
     public void DocumentStatusCountDto_ShouldSerializeAndDeserialize()
     {
         // Arrange
-        var dto = new DocumentStatusCountDto
-        {
-            Total = 100,
-            Pending = 42,
-            Verified = 35,
-            Rejected = 18,
-            Uploading = 5
-        };
+        var dto = new DocumentStatusCountDto(
+            100,
+            42,
+            35,
+            18,
+            5
+        );
 
         // Act
         var json = JsonSerializer.Serialize(dto);
@@ -242,14 +233,13 @@ public class ModuleDocumentDtosTests
     public void DocumentStatusCountDto_WithAllZeroCounts_ShouldSerialize()
     {
         // Arrange
-        var dto = new DocumentStatusCountDto
-        {
-            Total = 0,
-            Pending = 0,
-            Verified = 0,
-            Rejected = 0,
-            Uploading = 0
-        };
+        var dto = new DocumentStatusCountDto(
+            0,
+            0,
+            0,
+            0,
+            0
+        );
 
         // Act
         var json = JsonSerializer.Serialize(dto);
@@ -268,14 +258,13 @@ public class ModuleDocumentDtosTests
     public void DocumentStatusCountDto_ManuallySetValues_ShouldBeConsistent()
     {
         // Arrange
-        var dto = new DocumentStatusCountDto
-        {
-            Total = 100,
-            Pending = 25,
-            Verified = 50,
-            Rejected = 15,
-            Uploading = 10
-        };
+        var dto = new DocumentStatusCountDto(
+            100,
+            25,
+            50,
+            15,
+            10
+        );
 
         // Assert - Verify manually set values are consistent
         (dto.Pending + dto.Verified + dto.Rejected + dto.Uploading).Should().Be(dto.Total);
@@ -285,14 +274,13 @@ public class ModuleDocumentDtosTests
     public void DocumentStatusCountDto_ShouldSerializeWithCamelCase()
     {
         // Arrange
-        var dto = new DocumentStatusCountDto
-        {
-            Total = 100,
-            Pending = 25,
-            Verified = 50,
-            Rejected = 15,
-            Uploading = 10
-        };
+        var dto = new DocumentStatusCountDto(
+            100,
+            25,
+            50,
+            15,
+            10
+        );
 
         var options = new JsonSerializerOptions
         {

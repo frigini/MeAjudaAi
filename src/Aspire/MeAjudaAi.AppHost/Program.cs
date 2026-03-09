@@ -1,6 +1,8 @@
+using Microsoft.Extensions.DependencyInjection;
 using Aspire.Hosting;
 using MeAjudaAi.AppHost.Extensions;
 using MeAjudaAi.AppHost.Helpers;
+using MeAjudaAi.AppHost.Services;
 
 namespace MeAjudaAi.AppHost;
 
@@ -9,6 +11,12 @@ internal static class Program
     public static void Main(string[] args)
     {
         var builder = DistributedApplication.CreateBuilder(args);
+
+        // Register the Keycloak Bootstrap background service
+        if (EnvironmentHelpers.IsDevelopment(builder) || EnvironmentHelpers.IsTesting(builder))
+        {
+            builder.Services.AddHostedService<KeycloakBootstrapService>();
+        }
 
         var isTestingEnv = EnvironmentHelpers.IsTesting(builder);
 

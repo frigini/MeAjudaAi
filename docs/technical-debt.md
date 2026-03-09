@@ -68,21 +68,6 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 
 ---
 
-### 🔐 Keycloak Client - Configuração Manual (MÉDIA)
-
-**Severidade**: MÉDIA (developer experience)  
-**Status**: 🔄 EM SPRINT 8B.2 (Automação)
-
-**Descrição**: Client `admin-portal` precisa ser criado MANUALMENTE no Keycloak realm `meajudaai`.
-
-**Ações Pendentes**:
-- [ ] Criar script de automação: `scripts/setup-keycloak-clients.ps1`
-- [ ] Usar Keycloak Admin REST API para criar client programaticamente
-- [ ] Integrar script em `dotnet run --project src/Aspire/MeAjudaAi.AppHost`
-
-**Impacto**: Developer experience - não bloqueia produção.
-
----
 
 ## 🔄 Refatorações de Código (BACKLOG)
 
@@ -95,16 +80,6 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 
 ---
 
-### 🔧 Refatoração Extensions (MeAjudaAi.Shared)
-
-**Severidade**: BAIXA (manutenibilidade)  
-**Status**: 🔄 EM SPRINT 8B.2
-**Ações Pendentes**:
-- [ ] Extrair `BusinessMetricsMiddlewareExtensions` para arquivo próprio.
-- [ ] Consolidar extensões em `MonitoringExtensions.cs`, `CachingExtensions.cs`, etc.
-
----
-
 ## 🔗 GitHub Issues - Débitos Técnicos Sincronizados
 
 ### 🔐 [ISSUE #141] Reintegrar login social com Instagram via Keycloak OIDC
@@ -112,10 +87,6 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 **Status**: OPEN
 **Descrição**: Keycloak 26.x removeu built-in Instagram provider. Necessário configurar como generic OIDC.
 
-### 📊 [ISSUE #113] tech: migrar Polly resilience logging para ILogger do DI
-**Severidade**: MÉDIA (observabilidade)
-**Status**: 🔄 EM SPRINT 8B.2
-**Descrição**: `Microsoft.Extensions.Http.Resilience` não permite injetar ILogger facilmente. Necessário workaround ou custom DelegatingHandler para logar retries e circuit breakers.
 
 ### 🚀 [ISSUE #112] tech: aguardar versão stable do Aspire.Hosting.Keycloak
 **Severidade**: MÉDIA (startup lifecycle)
@@ -133,40 +104,6 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 
 ---
 
-## 📋 Padronização de Records
-
-**Arquivo**: Múltiplos arquivos em `src/Shared/Contracts/**` e `src/Modules/**/Domain/**`  
-**Severidade**: MÉDIA (padronização importante)  
-**Status**: 🔄 EM SPRINT 8B.2
-
-**Descrição**: Existem dois padrões de sintaxe para records no projeto:
-
-**Padrão 1 - Positional Records**:
-```csharp
-public sealed record ModuleCoordinatesDto(double Latitude, double Longitude);
-```
-
-**Padrão 2 - Property-based Records**:
-```csharp
-public sealed record ModuleLocationDto
-{
-    public required double Latitude { get; init; }
-    public required double Longitude { get; init; }
-}
-```
-
-**Recomendação**:
-- DTOs simples → Positional Records
-- Value Objects com validação → Property-based Records
-
-**Ação Sugerida** (Sprint 7.16):
-- [ ] Padronizar records em `src/Shared/Contracts/**/*.cs`
-- [ ] Padronizar records em `src/Modules/**/Domain/**/*.cs`
-
-**Prioridade**: BAIXA  
-**Estimativa**: 2-3 horas
-
----
 
 ## 🔮 Melhorias Futuras (Backlog)
 
@@ -223,6 +160,13 @@ public sealed record ModuleLocationDto
 
 ---
 
+## ✅ Resumo de Débitos Técnicos Resolvidos (Sprint 8B.2 - Tech Excellence)
+
+### 🛡️ Final Technical Excellence - Automação e Padrões
+- ✅ **Automação Keycloak**: Implementado `KeycloakBootstrapService` no AppHost para criar automaticamente os clients via API REST do Keycloak durante a inicialização, substituindo a necessidade de scripts PowerShell externos.
+- ✅ **Refatoração Shared**: Extensões de monitoramento centralizadas em `MonitoringExtensions.cs`.
+- ✅ **Issue #113**: Configuração de logging de resiliência HTTP com Polly modernizada para injetar `ILogger` a partir do DI, corrigindo problemas de log tracking.
+- ✅ **Padronização de Records**: Sintaxe de DTOs atualizada para o formato "Positional Records" (ex: `ModuleDocumentDto`), mantendo a abordagem property-based apenas onde há validação complexa de domínio.
 ## 📝 Instruções para Mantenedores
 
 1. **Conversão para Issues**: Copiar descrição para GitHub issue com labels (`technical-debt`, `testing`, `enhancement`)
