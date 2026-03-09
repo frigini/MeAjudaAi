@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Aspire.Hosting.ApplicationModel;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -16,7 +15,6 @@ namespace MeAjudaAi.AppHost.Services;
 public class KeycloakBootstrapService(
     ResourceNotificationService resourceNotificationService,
     ILogger<KeycloakBootstrapService> logger,
-    IConfiguration configuration,
     Microsoft.Extensions.Options.IOptions<Options.MeAjudaAiKeycloakOptions> keycloakOptions) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
