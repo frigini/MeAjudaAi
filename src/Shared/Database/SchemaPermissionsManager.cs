@@ -14,8 +14,8 @@ internal class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger
     /// </summary>
     public async Task EnsureUsersModulePermissionsAsync(
         string adminConnectionString,
-        string usersRolePassword = "users_secret",
-        string appRolePassword = "app_secret")
+        string usersRolePassword,
+        string appRolePassword)
     {
         logger.LogInformation("Configurando permissões para módulo Users usando scripts existentes");
 
@@ -45,7 +45,7 @@ internal class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger
     /// </summary>
     public static string CreateUsersModuleConnectionString(
         string baseConnectionString,
-        string usersRolePassword = "users_secret")
+        string usersRolePassword)
     {
         var builder = new NpgsqlConnectionStringBuilder(baseConnectionString)
         {

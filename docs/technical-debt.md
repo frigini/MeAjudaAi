@@ -1,6 +1,6 @@
 # Débito Técnico e Rastreamento de Melhorias
 
-Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvidos são removidos deste documento.
+Este documento rastreia **débitos técnicos e seu histórico de otimização**. Itens podem aparecer como PENDENTES ou OTIMIZADO/FECHADO para histórico.
 
 ---
 
@@ -89,9 +89,9 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 
 
 ### 🚀 [ISSUE #112] tech: aguardar versão stable do Aspire.Hosting.Keycloak
-**Severidade**: MÉDIA (startup lifecycle)
-**Status**: OPEN
-**Descrição**: Aspire.Hosting.Keycloak (v13.1.0-preview) não suporta health checks reais. Serviços iniciam sem esperar Keycloak estar pronto.
+**Status**: 📋 OTIMIZADO (Sprint 8B.2)  
+**Descrição**: Aspire.Hosting.Keycloak (preview) não suporta health checks reais. Serviços iniciam sem esperar Keycloak estar pronto.
+**Impacto**: Console logs do backend e Admin Portal mostram falhas de conexão transientes até Keycloak inicializar.
 
 ---
 

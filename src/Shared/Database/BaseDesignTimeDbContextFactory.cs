@@ -86,7 +86,10 @@ public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbCo
     protected virtual string GetDefaultConnectionString()
     {
         var moduleName = GetModuleName().ToLowerInvariant();
-        return $"Host=localhost;Database=meajudaai_dev;Username=postgres;Password=dev123;SearchPath={moduleName},public";
+        var password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? 
+            throw new InvalidOperationException("DB_PASSWORD environment variable is required for design time operations.");
+        
+        return $"Host=localhost;Database=meajudaai_dev;Username=postgres;Password={password};SearchPath={moduleName},public";
     }
 
     /// <summary>

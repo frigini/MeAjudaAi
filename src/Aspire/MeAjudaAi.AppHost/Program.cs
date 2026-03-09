@@ -13,7 +13,7 @@ internal static class Program
         var builder = DistributedApplication.CreateBuilder(args);
 
         // Register the Keycloak Bootstrap background service
-        if (EnvironmentHelpers.IsDevelopment(builder) || EnvironmentHelpers.IsTesting(builder))
+        if (EnvironmentHelpers.IsDevelopment(builder))
         {
             builder.Services.AddHostedService<KeycloakBootstrapService>();
         }

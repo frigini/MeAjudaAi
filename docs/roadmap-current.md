@@ -1,4 +1,4 @@
-## ≡ƒÄ¿ Fase 2: Frontend & Experiência
+## 🎨 Fase 2: Frontend & Experiência
 
 **Status**: 🔄 Em andamento (Jan–Mar 2026)
 
@@ -103,20 +103,20 @@ src/
 5. Commit to `types/api/generated/` (auto-commit bot)
 6. Frontend tests run with new types
 
-### ≡ƒùé∩╕Å Estrutura de Projetos Atualizada
+### 🗂️ Estrutura de Projetos Atualizada
 ```text
 src/
-Γö£ΓöÇΓöÇ Web/
-Γöé   Γö£ΓöÇΓöÇ MeAjudaAi.Web.Admin/          # Blazor WASM Admin Portal (existente)
-Γöé   ΓööΓöÇΓöÇ MeAjudaAi.Web.Customer/       # ≡ƒåò Next.js Customer App (Sprint 8A)
-Γö£ΓöÇΓöÇ Mobile/
-Γöé   ΓööΓöÇΓöÇ MeAjudaAi.Mobile.Customer/    # ≡ƒåò React Native + Expo (Sprint 8B)
-ΓööΓöÇΓöÇ Shared/
-    Γö£ΓöÇΓöÇ MeAjudaAi.Shared.DTOs/        # DTOs C# (backend)
-    ΓööΓöÇΓöÇ MeAjudaAi.Shared.Contracts/   # OpenAPI spec → TypeScript types
+├── Web/
+│   ├── MeAjudaAi.Web.Admin/          # Blazor WASM Admin Portal (existente)
+│   └── MeAjudaAi.Web.Customer/       # 🚀 Next.js Customer App (Sprint 8A)
+├── Mobile/
+│   └── MeAjudaAi.Mobile.Customer/    # 🚀 React Native + Expo (Sprint 8B)
+└── Shared/
+    ├── MeAjudaAi.Shared.DTOs/        # DTOs C# (backend)
+    └── MeAjudaAi.Shared.Contracts/   # OpenAPI spec → TypeScript types
 ```
 
-### ≡ƒöÉ Autenticação Unificada
+### 🔐 Autenticação Unificada
 
 **Cross-Platform Authentication Consistency**:
 
@@ -149,13 +149,13 @@ src/
 
 ---
 
-### ≡ƒåò Gestão de Restrições Geográficas
+### 🚀 Gestão de Restrições Geográficas
 
 **Resumo**: Restrições geográficas podem ser configuradas via `appsettings.json` (Fase 1, MVP atual) ou gerenciadas dinamicamente via Blazor Admin Portal com banco de dados (Fase 2, planejado Sprint 7+). O middleware `GeographicRestrictionMiddleware` valida cidades/estados permitidos usando IBGE API.
 
-**Contexto**: O middleware `GeographicRestrictionMiddleware` suporta configuração din├ómica via `Microsoft.FeatureManagement`. Este recurso foi implementado em duas fases:
+**Contexto**: O middleware `GeographicRestrictionMiddleware` suporta configuração dinâmica via `Microsoft.FeatureManagement`. Este recurso foi implementado em duas fases:
 
-#### ✅ Fase 1: Middleware com appsettings (CONCLU├ìDA - Sprint 1 Dia 1, 21 Nov 2025)
+#### ✅ Fase 1: Middleware com appsettings (CONCLUÍDA - Sprint 1 Dia 1, 21 Nov 2025)
 
 **Implementação Atual**: Restrições geográficas baseadas em `appsettings.json` com middleware HTTP e integração IBGE API.
 
@@ -177,10 +177,10 @@ src/
    - ✅ **Feature flag ativa/desativa TODA a restrição geográfica** (on/off global)
    - ✅ **Cidades individuais controladas via banco de dados** (Sprint 3 - tabela `allowed_regions`)
    - ✅ **Arquitetura proposta**:
-     ```
+     ```ini
      FeatureManagement:GeographicRestriction = true  → Liga TODA validação
          ↓
-     allowed_regions.is_active = true              → Ativa cidade ESPEC├ìFICA
+     allowed_regions.is_active = true              → Ativa cidade ESPECÍFICA
      ```
    - **MVP (Sprint 1)**: Feature toggle + appsettings (hardcoded cities)
    - **Sprint 3**: Migration para database-backed + Admin Portal UI
@@ -220,9 +220,11 @@ src/
 
 ---
 
-#### ✅ Fase 2: Database-Backed + Admin Portal UI (CONCLU├ìDO - Sprint 7, 7 Jan 2026)
+### 🚀 Fase 2 Shipped (Jan-Feb 2026)
 
-**Contexto**: Migrar lista de cidades/estados de `appsettings.json` para banco de dados, permitindo gestão din├ómica via Blazor Admin Portal sem necessidade de redeploy.
+#### ✅ Fase 2: Database-Backed + Admin Portal UI (CONCLUÍDO - Sprint 7, 7 Jan 2026)
+
+**Contexto**: Migrar lista de cidades/estados de `appsettings.json` para banco de dados, permitindo gestão dinâmica via Blazor Admin Portal sem necessidade de redeploy.
 
 **Status**: ✅ IMPLEMENTADO - AllowedCities UI completa com CRUD, coordenadas geográficas, e raio de serviço.
 
@@ -243,6 +245,8 @@ CREATE TABLE geographic_restrictions.allowed_regions (
 CREATE INDEX idx_allowed_regions_state ON geographic_restrictions.allowed_regions(state_code);
 CREATE INDEX idx_allowed_regions_active ON geographic_restrictions.allowed_regions(is_active);
 ```
+
+### 🚀 Fase 2 Follow-ups (Mar 2026+)
 
 **Funcionalidades Admin Portal**:
 
@@ -401,7 +405,7 @@ public class GeographicRestrictionMiddleware
 - [ ] **Mapa Interativo**: Exibir prestadores no mapa (Leaflet.Blazor)
 - [ ] **Listagem de Resultados**: Cards com foto, nome, rating, distância, tier badge
 - [ ] **Filtros**: Rating mínimo, tier, disponibilidade
-- [ ] **Ordenação**: Dist├óncia, Rating, Tier
+- [ ] **Ordenação**: Distância, Rating, Tier
 
 **Perfil de Prestador** (Semana 1-2):
 - [ ] **Visualização**: Foto, nome, descrição, serviços, rating, reviews
@@ -443,7 +447,7 @@ public class GeographicRestrictionMiddleware
 
 ## 🔥 Tarefas Técnicas Cross-Module ⏳ ATUALIZADO
 
-**Status**: 🔄 EM ANDAMENTO (Sprint 5.5 - 19 Dez 2025)
+**Status**: ✅ CONCLUÍDO (Sprint 5.5 - 19 Dez 2025)
 
 **Contexto Atual**:
 - ✅ Lock files regenerados em todos os módulos (37 arquivos atualizados)

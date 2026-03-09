@@ -1,4 +1,4 @@
-### ≡ƒö« **Baixa Prioridade (12+ meses - Fase 3)**
+### 🔍 **Baixa Prioridade (12+ meses - Fase 3)**
 1. 📅 Service Requests & Booking
 2. 📱 Mobile Apps (iOS/Android nativo)
 3. 🧠 Recomendações com ML
@@ -46,6 +46,6 @@
 
 ---
 
-*📅 Última atualização: 5 de Março de 2026 (Sprint 8B Conclusion Review)*  
+*📅 Última atualização: 9 de Março de 2026 (Sprint 8B.2 Refinement)*  
 *🔄 Roadmap em constante evolução baseado em feedback, métricas e aprendizados*
-*📊 Status atual: Sprint 8B ✅ CONCLUÍDO | MVP Launch em 28 de Março de 2026*
+*📊 Status atual: Sprint 8B.2 🔄 EM ANDAMENTO | MVP Launch em 12-16 de Maio de 2026*

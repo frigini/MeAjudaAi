@@ -3,75 +3,101 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Aspire.Hosting.ApplicationModel;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.AppHost.Services;
 
 /// <summary>
-/// Hosted Service within the AppHost that listens for the Keycloak resource to start,
-/// then uses the Keycloak REST API to ensure that necessary OIDC clients (admin-portal, customer-web) exist.
+/// Hosted Service interno ao AppHost que aguarda o recurso do Keycloak inicializar,
+/// e então utiliza a REST API do Keycloak para garantir que os clientes OIDC necessários existam.
 /// </summary>
 public class KeycloakBootstrapService(
     ResourceNotificationService resourceNotificationService,
-    ILogger<KeycloakBootstrapService> logger) : BackgroundService
+    ILogger<KeycloakBootstrapService> logger,
+    IConfiguration configuration) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("KeycloakBootstrapService is waiting for Keycloak to become healthy/running...");
 
-        await foreach (var resourceEvent in resourceNotificationService.WatchAsync(stoppingToken))
+        try
         {
-            if (resourceEvent.Resource.Name == "keycloak" &&
-                resourceEvent.Snapshot.State?.Text == "Running")
+            await foreach (var resourceEvent in resourceNotificationService.WatchAsync(stoppingToken))
             {
-                // Give Keycloak a few seconds to fully start its internal HTTP server
-                await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
-
-                try
+                if (resourceEvent.Resource.Name == "keycloak" &&
+                    resourceEvent.Snapshot.State?.Text == "Running")
                 {
-                    if (resourceEvent.Resource is IResourceWithEndpoints resourceWithEndpoints)
-                    {
-                        var endpoint = resourceWithEndpoints.GetEndpoints().FirstOrDefault(e => e.EndpointName == "http" || e.EndpointName == "https");
-                        if (endpoint != null && endpoint.IsAllocated)
-                        {
-                            var url = $"{endpoint.Scheme}://{endpoint.Host}:{endpoint.Port}";
-                            logger.LogInformation("Keycloak is running at {Url}. Starting bootstrap process...", url);
+                    // Aguardar alguns segundos para o servidor HTTP interno iniciar completamente
+                    await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
 
-                            await BootstrapKeycloakAsync(url, stoppingToken);
-                            
-                            // Break after successful bootstrap so we don't repeat this
-                            break;
+                    try
+                    {
+                        if (resourceEvent.Resource is IResourceWithEndpoints resourceWithEndpoints)
+                        {
+                            var endpoint = resourceWithEndpoints.GetEndpoints().FirstOrDefault(e => e.EndpointName == "http" || e.EndpointName == "https");
+                            if (endpoint != null && endpoint.IsAllocated)
+                            {
+                                var url = $"{endpoint.Scheme}://{endpoint.Host}:{endpoint.Port}";
+                                logger.LogInformation("Keycloak is running at {Url}. Starting bootstrap process...", url);
+
+                                var success = await BootstrapKeycloakAsync(url, stoppingToken);
+                                
+                                // Interrompe o loop somente após sucesso na configuração
+                                if (success)
+                                {
+                                    break;
+                                }
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Failed to bootstrap Keycloak clients.");
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        logger.LogError(ex, "Failed to bootstrap Keycloak clients.");
+                    }
                 }
             }
         }
+        catch (OperationCanceledException)
+        {
+            // Ignorar exceção de cancelamento durante o shutdown normal
+            logger.LogInformation("KeycloakBootstrapService execution was cancelled.");
+        }
     }
 
-    private async Task BootstrapKeycloakAsync(string baseUrl, CancellationToken ct)
+    private async Task<bool> BootstrapKeycloakAsync(string baseUrl, CancellationToken ct)
     {
-        using var httpClient = new HttpClient { BaseAddress = new Uri(baseUrl) };
-
-        // 1. Get Admin Token
-        var token = await GetAdminTokenAsync(httpClient, ct);
-        if (string.IsNullOrEmpty(token))
+        try
         {
-            logger.LogError("Could not obtain Keycloak admin token.");
-            return;
+            using var httpClient = new HttpClient { BaseAddress = new Uri(baseUrl) };
+
+            // 1. Obter Token Admin
+            var token = await GetAdminTokenAsync(httpClient, ct);
+            if (string.IsNullOrEmpty(token))
+            {
+                logger.LogError("Could not obtain Keycloak admin token.");
+                return false;
+            }
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Carregar URLs dos clientes da configuração com fallbacks padrão
+            var adminUrl = configuration["AdminPortalUrl"] ?? "http://localhost:5030";
+            var customerUrl = configuration["CustomerWebUrl"] ?? "http://localhost:3000";
+
+            // 2. Garantir existência dos Clientes
+            await EnsureClientExistsAsync(httpClient, "admin-portal", adminUrl, ct);
+            await EnsureClientExistsAsync(httpClient, "customer-web", customerUrl, ct);
+            
+            logger.LogInformation("Keycloak bootstrap completed successfully.");
+            return true;
         }
-
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        // 2. Ensure Clients
-        await EnsureClientExistsAsync(httpClient, "admin-portal", "http://localhost:5030", ct);
-        await EnsureClientExistsAsync(httpClient, "customer-web", "http://localhost:3000", ct);
-        
-        logger.LogInformation("Keycloak bootstrap completed successfully.");
+        catch (Exception ex) when (ex is HttpRequestException || ex is TaskCanceledException)
+        {
+            logger.LogWarning(ex, "Transient error connecting to Keycloak during bootstrap.");
+            return false;
+        }
     }
 
     private async Task<string?> GetAdminTokenAsync(HttpClient httpClient, CancellationToken ct)
@@ -81,8 +107,8 @@ public class KeycloakBootstrapService(
             Content = new FormUrlEncodedContent(
             [
                 new KeyValuePair<string, string>("client_id", "admin-cli"),
-                new KeyValuePair<string, string>("username", "admin"),      // Local dev config
-                new KeyValuePair<string, string>("password", "admin123"),   // Local dev config
+                new KeyValuePair<string, string>("username", "admin"),      // Configuração dev local
+                new KeyValuePair<string, string>("password", "admin123"),   // Configuração dev local
                 new KeyValuePair<string, string>("grant_type", "password")
             ])
         };
@@ -101,7 +127,7 @@ public class KeycloakBootstrapService(
 
     private async Task EnsureClientExistsAsync(HttpClient httpClient, string clientId, string baseUrl, CancellationToken ct)
     {
-        // Check if exists
+        // Verificar se existe
         var getResponse = await httpClient.GetAsync($"/admin/realms/MeAjudaAi/clients?clientId={clientId}", ct);
         if (getResponse.IsSuccessStatusCode)
         {
@@ -117,7 +143,7 @@ public class KeycloakBootstrapService(
 
         logger.LogInformation("Creating client {ClientId}...", clientId);
 
-        // Create new client
+        // Criar novo cliente
         var newClient = new
         {
             clientId = clientId,
