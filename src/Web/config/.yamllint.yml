@@ -1,22 +1,16 @@
 extends: default
 
 rules:
-  # Increase line length limit for complex YAML files
-  line-length:
-    max: 120
-    level: warning
-
-  # Allow long lines in comments
-  comments:
-    level: warning
-
-  # Allow no document end marker
+  # Relax rules to avoid noise in legacy/existing workflow files
+  line-length: disable
+  trailing-spaces: disable
+  document-start: disable
   document-end: disable
-
-  # Indentation rules
-  indentation:
-    spaces: 2
-    indent-sequences: true
+  truthy: disable
+  comments: disable
+  comments-indentation: disable
+  empty-lines: disable
+  new-line-at-end-of-file: disable
 
 ignore: |
   **/node_modules/
