@@ -16,7 +16,8 @@ namespace MeAjudaAi.AppHost.Services;
 public class KeycloakBootstrapService(
     ResourceNotificationService resourceNotificationService,
     ILogger<KeycloakBootstrapService> logger,
-    IConfiguration configuration) : BackgroundService
+    IConfiguration configuration,
+    Microsoft.Extensions.Options.IOptions<Options.MeAjudaAiKeycloakOptions> keycloakOptions) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -87,8 +88,10 @@ public class KeycloakBootstrapService(
             var customerUrl = configuration["CustomerWebUrl"] ?? "http://localhost:3000";
 
             // 2. Garantir existência dos Clientes
-            await EnsureClientExistsAsync(httpClient, "admin-portal", adminUrl, ct);
-            await EnsureClientExistsAsync(httpClient, "customer-web", customerUrl, ct);
+            if (!await EnsureClientExistsAsync(httpClient, "admin-portal", adminUrl, ct)) return false;
+            
+            // O realm define o client name como "customer-app" de acordo com a configuração
+            if (!await EnsureClientExistsAsync(httpClient, "customer-app", customerUrl, ct)) return false;
             
             logger.LogInformation("Keycloak bootstrap completed successfully.");
             return true;
@@ -102,9 +105,8 @@ public class KeycloakBootstrapService(
 
     private async Task<string?> GetAdminTokenAsync(HttpClient httpClient, CancellationToken ct)
     {
-        var adminUser = configuration["Keycloak:AdminUsername"] ?? "admin";
-        var adminPass = configuration["Keycloak:AdminPassword"] ?? 
-            throw new InvalidOperationException("Keycloak admin password is not configured. Please set 'Keycloak:AdminPassword'.");
+        var adminUser = keycloakOptions.Value.AdminUsername;
+        var adminPass = keycloakOptions.Value.AdminPassword;
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/realms/master/protocol/openid-connect/token")
         {
@@ -129,7 +131,7 @@ public class KeycloakBootstrapService(
         return json?["access_token"]?.GetValue<string>();
     }
 
-    private async Task EnsureClientExistsAsync(HttpClient httpClient, string clientId, string baseUrl, CancellationToken ct)
+    private async Task<bool> EnsureClientExistsAsync(HttpClient httpClient, string clientId, string baseUrl, CancellationToken ct)
     {
         // Verificar se existe
         var getResponse = await httpClient.GetAsync($"/admin/realms/MeAjudaAi/clients?clientId={clientId}", ct);
@@ -141,7 +143,7 @@ public class KeycloakBootstrapService(
             if (clients != null && clients.Count > 0)
             {
                 logger.LogInformation("Client {ClientId} already exists.", clientId);
-                return;
+                return true;
             }
         }
 
@@ -157,7 +159,7 @@ public class KeycloakBootstrapService(
             standardFlowEnabled = true,
             implicitFlowEnabled = false,
             rootUrl = baseUrl,
-            validRedirectUris = new[] { $"{baseUrl}/*" },
+            redirectUris = new[] { $"{baseUrl}/*" },
             webOrigins = new[] { "+" },
             protocol = "openid-connect"
         };
@@ -172,10 +174,13 @@ public class KeycloakBootstrapService(
         if (postResponse.IsSuccessStatusCode)
         {
             logger.LogInformation("Client {ClientId} created successfully.", clientId);
+            return true;
         }
         else
         {
-            logger.LogError("Failed to create client {ClientId}. Status: {Status}", clientId, postResponse.StatusCode);
+            var errorBody = await postResponse.Content.ReadAsStringAsync(ct);
+            logger.LogError("Failed to create client {ClientId}. Status: {Status}. Error: {ErrorBody}", clientId, postResponse.StatusCode, errorBody);
+            return false;
         }
     }
 }

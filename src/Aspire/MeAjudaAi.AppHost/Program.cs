@@ -130,19 +130,32 @@ internal static class Program
 
         var rabbitMq = builder.AddRabbitMQ("rabbitmq");
 
+        var keycloakSettings = new MeAjudaAi.AppHost.Options.MeAjudaAiKeycloakOptions
+        {
+            AdminUsername = "admin",
+            AdminPassword = "admin123",
+            DatabaseHost = "postgres-local",
+            DatabasePort = "5432",
+            DatabaseName = mainDatabase,
+            DatabaseSchema = "identity",
+            DatabaseUsername = dbUsername,
+            DatabasePassword = dbPassword,
+            ImportRealm = "/opt/keycloak/data/import/meajudaai-realm.dev.json"
+        };
+
+        builder.Services.AddSingleton(Microsoft.Extensions.Options.Options.Create(keycloakSettings));
+
         var keycloak = builder.AddMeAjudaAiKeycloak(options =>
         {
-            options.AdminUsername = "admin";
-            options.AdminPassword = "admin123";
-            // Na rede Docker do Aspire, usar o nome do recurso PostgreSQL como hostname
-            options.DatabaseHost = "postgres-local";
-            options.DatabasePort = "5432";
-            options.DatabaseName = mainDatabase;
-            options.DatabaseSchema = "identity";
-            options.DatabaseUsername = dbUsername;
-            options.DatabasePassword = dbPassword;
-            // Importar realm de desenvolvimento automaticamente
-            options.ImportRealm = "/opt/keycloak/data/import/meajudaai-realm.dev.json";
+            options.AdminUsername = keycloakSettings.AdminUsername;
+            options.AdminPassword = keycloakSettings.AdminPassword;
+            options.DatabaseHost = keycloakSettings.DatabaseHost;
+            options.DatabasePort = keycloakSettings.DatabasePort;
+            options.DatabaseName = keycloakSettings.DatabaseName;
+            options.DatabaseSchema = keycloakSettings.DatabaseSchema;
+            options.DatabaseUsername = keycloakSettings.DatabaseUsername;
+            options.DatabasePassword = keycloakSettings.DatabasePassword;
+            options.ImportRealm = keycloakSettings.ImportRealm;
         });
         
         void AddSocialProviderEnv(string providerName, string clientIdKey, string clientSecretKey)
