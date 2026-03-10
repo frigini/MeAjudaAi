@@ -144,12 +144,7 @@ legacy-analysis-report.*
 .archive/
 
 # Node & Nx caching
-.nx/cache/
-.nx/workspace-data/
-
-/src/Web/MeAjudaAi.Web.Customer/layout.css
-
-.nx/installation
-.nx/cache
-.nx/workspace-data/
+**/.nx/
+**/test_results.txt
+**/zod.gen.ts.bak
 vite.config.*.timestamp*
