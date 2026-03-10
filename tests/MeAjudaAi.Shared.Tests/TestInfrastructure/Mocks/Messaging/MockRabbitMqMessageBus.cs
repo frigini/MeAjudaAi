@@ -1,5 +1,6 @@
 using MeAjudaAi.Shared.Messaging;
 using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
 
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Messaging;
 
@@ -19,13 +20,13 @@ public class MockRabbitMqMessageBus : IMessageBus
 {
     private readonly Mock<IMessageBus> _mockMessageBus;
     private readonly ILogger<MockRabbitMqMessageBus> _logger;
-    private readonly List<(object message, string? destination, EMessageType type)> _recordedMessages;
+    private readonly ConcurrentBag<(object message, string? destination, EMessageType type)> _recordedMessages;
 
     public MockRabbitMqMessageBus(ILogger<MockRabbitMqMessageBus> logger)
     {
         _mockMessageBus = new Mock<IMessageBus>();
         _logger = logger;
-        _recordedMessages = [];
+        _recordedMessages = new();
 
         SetupMockBehavior();
     }
@@ -34,7 +35,7 @@ public class MockRabbitMqMessageBus : IMessageBus
     /// Lista de mensagens enviadas e publicadas durante os testes
     /// </summary>
     public IReadOnlyList<(object message, string? destination, EMessageType type)> RecordedMessages
-        => _recordedMessages.AsReadOnly();
+        => _recordedMessages.ToList().AsReadOnly();
 
     /// <summary>
     /// Limpa a lista de mensagens enviadas e publicadas
@@ -114,9 +115,9 @@ public class MockRabbitMqMessageBus : IMessageBus
     }
 
     /// <summary>
-    /// Verifica se uma mensagem foi publicada (send ou publish)
+    /// Verifica se uma mensagem foi registrada (send ou publish)
     /// </summary>
-    public bool WasMessagePublished<T>(Func<T, bool>? predicate = null) where T : class
+    public bool WasMessageRecorded<T>(Func<T, bool>? predicate = null) where T : class
     {
         return WasMessageSent(predicate) || WasEventPublished(predicate);
     }
@@ -144,7 +145,7 @@ public class MockRabbitMqMessageBus : IMessageBus
     /// <summary>
     /// Obtém todas as mensagens de um tipo específico (send + publish)
     /// </summary>
-    public IEnumerable<T> GetPublishedMessages<T>() where T : class
+    public IEnumerable<T> GetRecordedMessages<T>() where T : class
     {
         return _recordedMessages
             .Where(x => x.message is T)

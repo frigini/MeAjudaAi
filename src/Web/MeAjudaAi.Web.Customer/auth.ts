@@ -1,8 +1,9 @@
-import NextAuth from "next-auth"
+import { type NextAuthOptions } from "next-auth"
 import Keycloak from "next-auth/providers/keycloak"
 import Credentials from "next-auth/providers/credentials"
 import { JWT } from "next-auth/jwt"
 import { decodeJwt } from "jose"
+import { getServerSession } from "next-auth/next"
 
 async function refreshAccessToken(token: JWT): Promise<JWT> {
     try {
@@ -50,7 +51,7 @@ function requireEnv(name: string): string {
     return value;
 }
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const authOptions: NextAuthOptions = {
     providers: [
         Keycloak({
             clientId: requireEnv("KEYCLOAK_CLIENT_ID"),
@@ -187,4 +188,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     // Debug in development
     debug: process.env.NODE_ENV === "development",
-});
+};
+
+import {
+    GetServerSidePropsContext,
+    NextApiRequest,
+    NextApiResponse,
+} from "next"
+
+export function auth(
+    ...args:
+        | [GetServerSidePropsContext["req"], GetServerSidePropsContext["res"]]
+        | [NextApiRequest, NextApiResponse]
+        | []
+) {
+    return getServerSession(...args, authOptions)
+}

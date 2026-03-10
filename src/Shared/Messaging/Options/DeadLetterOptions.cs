@@ -10,7 +10,7 @@ public sealed class DeadLetterOptions
     /// <summary>
     /// Habilita o sistema de Dead Letter Queue
     /// </summary>
-    public bool Enabled { get; set; } = true;
+
 
     /// <summary>
     /// Número máximo de tentativas antes de enviar para DLQ

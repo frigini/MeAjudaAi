@@ -32,11 +32,13 @@ public static class DeadLetterExtensions
             services.Configure(configureOptions);
         }
 
-        // Registrar implementações específicas
-        services.AddScoped<NoOpDeadLetterService>();
+        var isEnabled = configuration.GetValue<bool>($"{DeadLetterOptions.SectionName}:Enabled", false);
 
-        // Registrar serviço principal baseado no ambiente (RabbitMQ por padrão)
-        services.AddScoped<IDeadLetterService, RabbitMqDeadLetterService>();
+        if (isEnabled)
+        {
+            // Registrar serviço principal baseado no ambiente (RabbitMQ por padrão)
+            services.AddScoped<IDeadLetterService, RabbitMqDeadLetterService>();
+        }
 
         // Adicionar middleware de retry
         services.AddMessageRetryMiddleware();
@@ -56,7 +58,13 @@ public static class DeadLetterExtensions
 
         try
         {
-            deadLetterService = scope.ServiceProvider.GetRequiredService<IDeadLetterService>();
+            deadLetterService = scope.ServiceProvider.GetService<IDeadLetterService>();
+            
+            if (deadLetterService == null)
+            {
+                return Task.CompletedTask;
+            }
+
             var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<IDeadLetterService>>();
 
             // Teste básico para verificar se o serviço está configurado corretamente
@@ -80,24 +88,27 @@ public static class DeadLetterExtensions
         }
     }
 
-    /// <summary>
-    /// Registra informações sobre a infraestrutura de Dead Letter Queue
-    /// </summary>
     public static Task LogDeadLetterInfrastructureInfo(this IHost host)
     {
         using var scope = host.Services.CreateScope();
 
         try
         {
+            var deadLetterService = scope.ServiceProvider.GetService<IDeadLetterService>();
+            if (deadLetterService == null)
+            {
+                return Task.CompletedTask;
+            }
+
             LogRabbitMqInfrastructure<IDeadLetterService>(scope.ServiceProvider);
             return Task.CompletedTask;
         }
         catch (Exception ex)
         {
             var logger = scope.ServiceProvider.GetRequiredService<ILogger<IDeadLetterService>>();
-            logger.LogError(ex, "Failed to ensure Dead Letter Queue infrastructure");
+            logger.LogError(ex, "Failed to log Dead Letter Queue infrastructure info");
             throw new InvalidOperationException(
-                "Failed to ensure Dead Letter Queue infrastructure (queues, exchanges, and bindings)",
+                "Failed to log Dead Letter Queue infrastructure info",
                 ex);
         }
     }
@@ -110,7 +121,7 @@ public static class DeadLetterExtensions
         if (!environment.IsEnvironment("Testing"))
         {
             // Para RabbitMQ, a infraestrutura é criada dinamicamente quando necessário
-            logger.LogInformation("Dead Letter infrastructure for RabbitMQ will be created dynamically");
+            logger.LogInformation("Dead Letter infrastructure info for RabbitMQ logged successfully");
         }
     }
 
@@ -120,7 +131,6 @@ public static class DeadLetterExtensions
     /// <param name="options">Opções a serem configuradas</param>
     public static void ConfigureForDevelopment(this DeadLetterOptions options)
     {
-        options.Enabled = true;
         options.MaxRetryAttempts = 3;
         options.InitialRetryDelaySeconds = 2;
         options.BackoffMultiplier = 2.0;
@@ -136,7 +146,6 @@ public static class DeadLetterExtensions
     /// <param name="options">Opções a serem configuradas</param>
     public static void ConfigureForProduction(this DeadLetterOptions options)
     {
-        options.Enabled = true;
         options.MaxRetryAttempts = 5;
         options.InitialRetryDelaySeconds = 5;
         options.BackoffMultiplier = 2.0;

@@ -432,18 +432,20 @@ public class GeographicRestrictionMiddleware
 2. 🔴 **MUST-HAVE**: **Messaging Unification** (Effort: Medium)
     - Remove Azure Service Bus, unify on RabbitMQ only.
 3. 🔴 **MUST-HAVE**: **Technical Excellence Pack** (Effort: Medium)
-    - [x] [**TD**] **Keycloak Automation**: `setup-keycloak-clients.ps1` for local dev.
-    - [x] [**TD**] **Analyzer Cleanup**: Fix MudBlazor/SonarLint warnings in Admin & Contracts.
-    - [x] [**TD**] **Refactor Extensions**: Extract `BusinessMetricsMiddlewareExtensions`.
-    - [x] [**TD**] **Polly Logging**: Migrate resilience logging to ILogger (Issue #113).
-    - [x] [**TD**] **Standardization**: Record syntax alignment in `Contracts`.
+    - [ ] [**TD**] **Keycloak Automation**: `setup-keycloak-clients.ps1` for local dev.
+    - [ ] [**TD**] **Analyzer Cleanup**: Fix MudBlazor/SonarLint warnings in Admin & Contracts.
+    - [ ] [**TD**] **Refactor Extensions**: Extract `BusinessMetricsMiddlewareExtensions`.
+    - [ ] [**TD**] **Polly Logging**: Migrate resilience logging to ILogger (Issue #113).
+    - [ ] [**TD**] **Standardization**: Record syntax alignment in `Contracts`.
+    *(TODO: Marcar os checkboxes acima como [x] após o merge do PR na branch feature/sprint-8b2-core-tech)*
 
 ---
 
 **Entregáveis**:
-- [x] Nx workspace com `apps/customer-web` (migrado).
-- [x] Placeholders para `apps/provider-web` e `apps/admin-portal`.
-- [x] Bibliotecas extraídas para `libs/ui`, `libs/auth` e `libs/api-client`.
+- [ ] Nx workspace com `apps/customer-web` (migrado).
+- [ ] Placeholders para `apps/provider-web` e `apps/admin-portal`.
+- [ ] Bibliotecas extraídas para `libs/ui`, `libs/auth` e `libs/api-client`.
+*(TODO: Marcar os entregáveis como [x] após o merge do PR 153)*
 
 ---
 
