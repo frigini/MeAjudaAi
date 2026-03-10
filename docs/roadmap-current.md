@@ -417,9 +417,9 @@ public class GeographicRestrictionMiddleware
 #### 🛠️ Parte 2: Nx Monorepo Setup
 **Status**: 🔄 EM PROGRESSO (Março 2026)
 
-### 🔄 Sprint 8B.2 - NX Scaffolding & Initial Migration (5 - 18 Mar 2026)
+### ✅ Sprint 8B.2 - NX Scaffolding & Initial Migration (5 - 18 Mar 2026)
 **Branch**: `feature/sprint-8b2-technical-excellence`
-**Status**: 🔄 EM PROGRESSO
+**Status**: ✅ CONCLUÍDA
 
 **Objectives**:
 1. 🔴 **MUST-HAVE**: **NX Monorepo Setup** (Effort: Large)
@@ -430,11 +430,11 @@ public class GeographicRestrictionMiddleware
 2. 🔴 **MUST-HAVE**: **Messaging Unification** (Effort: Medium)
     - Remove Azure Service Bus, unify on RabbitMQ only.
 3. 🔴 **MUST-HAVE**: **Technical Excellence Pack** (Effort: Medium)
-    - [**TD**] **Keycloak Automation**: `setup-keycloak-clients.ps1` for local dev.
-    - [**TD**] **Analyzer Cleanup**: Fix MudBlazor/SonarLint warnings in Admin & Contracts.
-    - [**TD**] **Refactor Extensions**: Extract `BusinessMetricsMiddlewareExtensions`.
-    - [**TD**] **Polly Logging**: Migrate resilience logging to ILogger (Issue #113).
-    - [**TD**] **Standardization**: Record syntax alignment in `Contracts`.
+    - [x] [**TD**] **Keycloak Automation**: `setup-keycloak-clients.ps1` for local dev.
+    - [x] [**TD**] **Analyzer Cleanup**: Fix MudBlazor/SonarLint warnings in Admin & Contracts.
+    - [x] [**TD**] **Refactor Extensions**: Extract `BusinessMetricsMiddlewareExtensions`.
+    - [x] [**TD**] **Polly Logging**: Migrate resilience logging to ILogger (Issue #113).
+    - [x] [**TD**] **Standardization**: Record syntax alignment in `Contracts`.
 
 ---
 

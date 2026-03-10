@@ -26,6 +26,9 @@
       ],
       "api-client": [
         "libs/api-client/src/index.ts"
+      ],
+      "Shared.Contracts": [
+        "../Shared/MeAjudaAi.Shared.Contracts"
       ]
     }
   },

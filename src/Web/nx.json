@@ -39,6 +39,7 @@
       "!{projectRoot}/.eslintrc.json",
       "!{projectRoot}/eslint.config.mjs",
       "!{projectRoot}/jest.config.[jt]s",
+      "!{projectRoot}/jest.config.cts",
       "!{projectRoot}/test-setup.[jt]s"
     ]
   },

@@ -118,15 +118,7 @@ public static class DeadLetterExtensions
 
         try
         {
-            var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<IHostEnvironment>>();
-
-            if (environment.IsDevelopment() || environment.IsProduction())
-            {
-                // Para RabbitMQ, a infraestrutura é criada dinamicamente quando necessário
-                logger.LogInformation("Dead Letter infrastructure for RabbitMQ will be created dynamically");
-            }
-
+            LogRabbitMqInfrastructure<IHostEnvironment>(scope.ServiceProvider);
             return Task.CompletedTask;
         }
         catch (Exception ex)
@@ -148,15 +140,7 @@ public static class DeadLetterExtensions
 
         try
         {
-            var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<IDeadLetterService>>();
-
-            if (environment.IsDevelopment() || environment.IsProduction())
-            {
-                // Para RabbitMQ, a infraestrutura é criada dinamicamente quando necessário
-                logger.LogInformation("Dead Letter infrastructure for RabbitMQ will be created dynamically");
-            }
-
+            LogRabbitMqInfrastructure<IDeadLetterService>(scope.ServiceProvider);
             return Task.CompletedTask;
         }
         catch (Exception ex)
@@ -166,6 +150,18 @@ public static class DeadLetterExtensions
             throw new InvalidOperationException(
                 "Failed to ensure Dead Letter Queue infrastructure (queues, exchanges, and bindings)",
                 ex);
+        }
+    }
+
+    private static void LogRabbitMqInfrastructure<TLogger>(IServiceProvider services)
+    {
+        var environment = services.GetRequiredService<IHostEnvironment>();
+        var logger = services.GetRequiredService<ILogger<TLogger>>();
+
+        if (environment.IsDevelopment() || environment.IsProduction())
+        {
+            // Para RabbitMQ, a infraestrutura é criada dinamicamente quando necessário
+            logger.LogInformation("Dead Letter infrastructure for RabbitMQ will be created dynamically");
         }
     }
 

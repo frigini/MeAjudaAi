@@ -61,8 +61,16 @@ public class MessageBusFactory : IMessageBusFactory
         }
         else
         {
-            _logger.LogInformation("Creating RabbitMQ MessageBus as default for environment: {Environment}", _environment.EnvironmentName);
-            return _serviceProvider.GetRequiredService<RabbitMqMessageBus>();
+            try
+            {
+                _logger.LogInformation("Creating RabbitMQ MessageBus as default for environment: {Environment}", _environment.EnvironmentName);
+                return _serviceProvider.GetRequiredService<RabbitMqMessageBus>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to initialize RabbitMQ MessageBus for environment {Environment}", _environment.EnvironmentName);
+                throw new InvalidOperationException($"Failed to initialize RabbitMQ MessageBus for environment {_environment.EnvironmentName}", ex);
+            }
         }
     }
 }

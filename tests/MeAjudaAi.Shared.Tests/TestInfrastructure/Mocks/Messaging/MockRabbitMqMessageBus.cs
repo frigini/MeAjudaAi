@@ -19,13 +19,13 @@ public class MockRabbitMqMessageBus : IMessageBus
 {
     private readonly Mock<IMessageBus> _mockMessageBus;
     private readonly ILogger<MockRabbitMqMessageBus> _logger;
-    private readonly List<(object message, string? destination, EMessageType type)> _publishedMessages;
+    private readonly List<(object message, string? destination, EMessageType type)> _recordedMessages;
 
     public MockRabbitMqMessageBus(ILogger<MockRabbitMqMessageBus> logger)
     {
         _mockMessageBus = new Mock<IMessageBus>();
         _logger = logger;
-        _publishedMessages = [];
+        _recordedMessages = [];
 
         SetupMockBehavior();
     }
@@ -33,15 +33,15 @@ public class MockRabbitMqMessageBus : IMessageBus
     /// <summary>
     /// Lista de mensagens publicadas durante os testes
     /// </summary>
-    public IReadOnlyList<(object message, string? destination, EMessageType type)> PublishedMessages
-        => _publishedMessages.AsReadOnly();
+    public IReadOnlyList<(object message, string? destination, EMessageType type)> RecordedMessages
+        => _recordedMessages.AsReadOnly();
 
     /// <summary>
     /// Limpa a lista de mensagens publicadas
     /// </summary>
-    public void ClearPublishedMessages()
+    public void ClearRecordedMessages()
     {
-        _publishedMessages.Clear();
+        _recordedMessages.Clear();
     }
 
     public Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
@@ -49,7 +49,7 @@ public class MockRabbitMqMessageBus : IMessageBus
         _logger.LogInformation("Mock RabbitMQ: Sending message of type {MessageType} to queue {QueueName}",
             typeof(TMessage).Name, queueName);
 
-        _publishedMessages.Add((message!, queueName, EMessageType.Send));
+        _recordedMessages.Add((message!, queueName, EMessageType.Send));
 
         return _mockMessageBus.Object.SendAsync(message, queueName, cancellationToken);
     }
@@ -59,7 +59,7 @@ public class MockRabbitMqMessageBus : IMessageBus
         _logger.LogInformation("Mock RabbitMQ: Publishing event of type {EventType} to topic {TopicName}",
             typeof(TMessage).Name, topicName);
 
-        _publishedMessages.Add((@event!, topicName, EMessageType.Publish));
+        _recordedMessages.Add((@event!, topicName, EMessageType.Publish));
 
         return _mockMessageBus.Object.PublishAsync(@event, topicName, cancellationToken);
     }
@@ -92,7 +92,7 @@ public class MockRabbitMqMessageBus : IMessageBus
     /// </summary>
     public bool WasMessageSent<T>(Func<T, bool>? predicate = null) where T : class
     {
-        var messagesOfType = _publishedMessages
+        var messagesOfType = _recordedMessages
             .Where(x => x.message is T && x.type == EMessageType.Send)
             .Select(x => (T)x.message);
 
@@ -106,7 +106,7 @@ public class MockRabbitMqMessageBus : IMessageBus
     /// </summary>
     public bool WasEventPublished<T>(Func<T, bool>? predicate = null) where T : class
     {
-        var eventsOfType = _publishedMessages
+        var eventsOfType = _recordedMessages
             .Where(x => x.message is T && x.type == EMessageType.Publish)
             .Select(x => (T)x.message);
 
@@ -128,7 +128,7 @@ public class MockRabbitMqMessageBus : IMessageBus
     /// </summary>
     public IEnumerable<T> GetSentMessages<T>() where T : class
     {
-        return _publishedMessages
+        return _recordedMessages
             .Where(x => x.message is T && x.type == EMessageType.Send)
             .Select(x => (T)x.message);
     }
@@ -138,7 +138,7 @@ public class MockRabbitMqMessageBus : IMessageBus
     /// </summary>
     public IEnumerable<T> GetPublishedEvents<T>() where T : class
     {
-        return _publishedMessages
+        return _recordedMessages
             .Where(x => x.message is T && x.type == EMessageType.Publish)
             .Select(x => (T)x.message);
     }
@@ -148,7 +148,7 @@ public class MockRabbitMqMessageBus : IMessageBus
     /// </summary>
     public IEnumerable<T> GetPublishedMessages<T>() where T : class
     {
-        return _publishedMessages
+        return _recordedMessages
             .Where(x => x.message is T)
             .Select(x => (T)x.message);
     }
@@ -158,7 +158,7 @@ public class MockRabbitMqMessageBus : IMessageBus
     /// </summary>
     public bool WasMessageSentToQueue(string queueName)
     {
-        return _publishedMessages.Any(x => x.destination == queueName && x.type == EMessageType.Send);
+        return _recordedMessages.Any(x => x.destination == queueName && x.type == EMessageType.Send);
     }
 
     /// <summary>
@@ -166,7 +166,7 @@ public class MockRabbitMqMessageBus : IMessageBus
     /// </summary>
     public bool WasEventPublishedToTopic(string topicName)
     {
-        return _publishedMessages.Any(x => x.destination == topicName && x.type == EMessageType.Publish);
+        return _recordedMessages.Any(x => x.destination == topicName && x.type == EMessageType.Publish);
     }
 
     /// <summary>
@@ -174,7 +174,7 @@ public class MockRabbitMqMessageBus : IMessageBus
     /// </summary>
     public bool WasMessagePublishedWithDestination(string destination)
     {
-        return _publishedMessages.Any(x => x.destination == destination);
+        return _recordedMessages.Any(x => x.destination == destination);
     }
 
     /// <summary>

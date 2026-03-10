@@ -202,6 +202,11 @@ internal static class Program
 
         // Aplicação Web do Cliente (Next.js 15)
         var customerWebPath = Path.Combine(builder.AppHostDirectory, "..", "..", "..", "src", "Web", "MeAjudaAi.Web.Customer");
+        if (!Directory.Exists(customerWebPath))
+        {
+            throw new DirectoryNotFoundException($"Customer Web App directory not found at {customerWebPath}.");
+        }
+        
         var customerWeb = builder.AddJavaScriptApp("customer-web", customerWebPath)
             .WithHttpEndpoint(port: 3000, env: "PORT")
             .WithExternalHttpEndpoints()

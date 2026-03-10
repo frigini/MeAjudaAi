@@ -1,4 +1,3 @@
-using MeAjudaAi.Shared.Messaging.Strategy;
 using MeAjudaAi.Shared.Messaging.Options;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;

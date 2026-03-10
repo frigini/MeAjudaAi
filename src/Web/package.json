@@ -3,13 +3,12 @@
   "version": "1.0.0",
   "description": "Uma plataforma abrangente de serviços construída com .NET Aspire, projetada para conectar prestadores de serviços com clientes usando arquitetura monólito modular.",
   "main": "index.js",
+  "private": true,
   "directories": {
     "doc": "docs",
     "test": "tests"
   },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/frigini/MeAjudaAi.git"

@@ -5,7 +5,6 @@ using MeAjudaAi.Shared.Messaging.Handlers;
 using MeAjudaAi.Shared.Messaging.NoOp;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
-using MeAjudaAi.Shared.Messaging.RabbitMq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -65,7 +64,6 @@ public static class MessagingExtensions
         });
 
         services.AddSingleton<IEventTypeRegistry, EventTypeRegistry>();
-        // services.AddSingleton<ITopicStrategySelector, TopicStrategySelector>(); // Removed ASB Topic Strategy
 
         // Registrar implementações específicas do MessageBus condicionalmente baseado no ambiente
         // para reduzir o risco de resolução acidental em ambientes de teste
