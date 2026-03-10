@@ -47,20 +47,24 @@ public class MockRabbitMqMessageBus : IMessageBus
 
     public async Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(message);
+
         _logger.LogInformation("Mock RabbitMQ: Sending message of type {MessageType} to queue {QueueName}",
             typeof(TMessage).Name, queueName);
 
         await _mockMessageBus.Object.SendAsync(message, queueName, cancellationToken);
-        _recordedMessages.Add((message!, queueName, EMessageType.Send));
+        _recordedMessages.Add((message, queueName, EMessageType.Send));
     }
 
     public async Task PublishAsync<TMessage>(TMessage @event, string? topicName = null, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(@event);
+
         _logger.LogInformation("Mock RabbitMQ: Publishing event of type {EventType} to topic {TopicName}",
             typeof(TMessage).Name, topicName);
 
         await _mockMessageBus.Object.PublishAsync(@event, topicName, cancellationToken);
-        _recordedMessages.Add((@event!, topicName, EMessageType.Publish));
+        _recordedMessages.Add((@event, topicName, EMessageType.Publish));
     }
 
     public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task> handler, string? subscriptionName = null, CancellationToken cancellationToken = default)
@@ -173,7 +177,7 @@ public class MockRabbitMqMessageBus : IMessageBus
     /// </summary>
     public bool WasMessagePublishedWithDestination(string destination)
     {
-        return _recordedMessages.Any(x => x.destination == destination);
+        return _recordedMessages.Any(x => x.destination == destination && x.type == EMessageType.Publish);
     }
 
     /// <summary>

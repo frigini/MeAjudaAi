@@ -6,6 +6,12 @@ namespace MeAjudaAi.Shared.Messaging.Options;
 public sealed class DeadLetterOptions
 {
     public const string SectionName = "Messaging:DeadLetter";
+
+    /// <summary>
+    /// Indica se o sistema de Dead Letter Queue está habilitado
+    /// </summary>
+    public bool Enabled { get; set; } = false;
+
     /// <summary>
     /// Número máximo de tentativas antes de enviar para DLQ
     /// </summary>

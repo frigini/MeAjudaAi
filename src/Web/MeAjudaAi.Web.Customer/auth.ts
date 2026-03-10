@@ -63,6 +63,17 @@ function requireEnv(name: string): string {
     return value;
 }
 
+export function validateCriticalEnvOnStartup() {
+    // Avoid crashing during Next.js static build phase
+    if (process.env.npm_lifecycle_event === "build") return;
+
+    const requiredKeys = ["KEYCLOAK_CLIENT_ID", "KEYCLOAK_CLIENT_SECRET", "KEYCLOAK_ISSUER"];
+    const missing = requiredKeys.filter(key => requireEnv(key) === "");
+    if (missing.length > 0) {
+        throw new Error(`Critical environment variables missing at runtime: ${missing.join(", ")}`);
+    }
+}
+
 export const authOptions: NextAuthOptions = {
     providers: [
         Keycloak({
@@ -208,5 +219,6 @@ export function auth(
         | [NextApiRequest, NextApiResponse]
         | []
 ) {
+    validateCriticalEnvOnStartup();
     return getServerSession(...args, authOptions)
 }

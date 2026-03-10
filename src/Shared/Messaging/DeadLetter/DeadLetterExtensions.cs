@@ -32,9 +32,10 @@ public static class DeadLetterExtensions
             services.Configure(configureOptions);
         }
 
-        var isEnabled = configuration.GetValue<bool>($"{DeadLetterOptions.SectionName}:Enabled", false);
+        using var scope = services.BuildServiceProvider().CreateScope();
+        var options = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<DeadLetterOptions>>().Value;
 
-        if (isEnabled)
+        if (options.Enabled)
         {
             // Registrar serviço principal baseado no ambiente (RabbitMQ por padrão)
             services.AddScoped<IDeadLetterService, RabbitMqDeadLetterService>();

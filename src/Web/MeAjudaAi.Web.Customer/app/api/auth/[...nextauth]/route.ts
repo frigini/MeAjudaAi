@@ -1,6 +1,14 @@
 import NextAuth from "next-auth"
-import { authOptions } from "@/auth"
+import { authOptions, validateCriticalEnvOnStartup } from "@/auth"
 
-const handler = NextAuth(authOptions)
+const nextAuthHandler = NextAuth(authOptions)
 
-export { handler as GET, handler as POST }
+export const GET = (req: Request, res: any) => {
+    validateCriticalEnvOnStartup();
+    return nextAuthHandler(req, res);
+}
+
+export const POST = (req: Request, res: any) => {
+    validateCriticalEnvOnStartup();
+    return nextAuthHandler(req, res);
+}

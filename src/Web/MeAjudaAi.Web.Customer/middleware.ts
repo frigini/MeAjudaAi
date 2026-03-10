@@ -6,6 +6,9 @@ export default withAuth(
         // The checking logic is already handled by `withAuth` callbacks.
     },
     {
+        pages: {
+            signIn: "/auth/signin"
+        },
         callbacks: {
             authorized: ({ req, token }) => {
                 const isLoggedIn = !!token

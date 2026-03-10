@@ -437,7 +437,7 @@ public class GeographicRestrictionMiddleware
     - [ ] [**TD**] **Refactor Extensions**: Extract `BusinessMetricsMiddlewareExtensions`.
     - [ ] [**TD**] **Polly Logging**: Migrate resilience logging to ILogger (Issue #113).
     - [ ] [**TD**] **Standardization**: Record syntax alignment in `Contracts`.
-    *(TODO: Marcar os checkboxes acima como [x] após o merge do PR na branch feature/sprint-8b2-core-tech)*
+    *(TODO: Marcar os checkboxes acima como [x] após o merge do PR na branch feature/sprint-8b2-monorepo-cleanup)*
 
 ---
 
