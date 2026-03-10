@@ -40,4 +40,20 @@ public static class MonitoringExtensions
 
         return app;
     }
+
+    /// <summary>
+    /// Adiciona métricas de negócio ao DI container
+    /// </summary>
+    public static IServiceCollection AddBusinessMetrics(this IServiceCollection services)
+    {
+        return services.AddSingleton<BusinessMetrics>();
+    }
+
+    /// <summary>
+    /// Adiciona middleware de métricas de negócio
+    /// </summary>
+    public static IApplicationBuilder UseBusinessMetrics(this IApplicationBuilder app)
+    {
+        return app.UseMiddleware<BusinessMetricsMiddleware>();
+    }
 }

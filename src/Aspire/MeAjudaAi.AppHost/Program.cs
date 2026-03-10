@@ -1,6 +1,8 @@
+using Microsoft.Extensions.DependencyInjection;
 using Aspire.Hosting;
 using MeAjudaAi.AppHost.Extensions;
 using MeAjudaAi.AppHost.Helpers;
+using MeAjudaAi.AppHost.Services;
 
 namespace MeAjudaAi.AppHost;
 
@@ -9,6 +11,12 @@ internal static class Program
     public static void Main(string[] args)
     {
         var builder = DistributedApplication.CreateBuilder(args);
+
+        // Registra o serviço em segundo plano Keycloak Bootstrap
+        if (EnvironmentHelpers.IsDevelopment(builder))
+        {
+            builder.Services.AddHostedService<KeycloakBootstrapService>();
+        }
 
         var isTestingEnv = EnvironmentHelpers.IsTesting(builder);
 
@@ -122,19 +130,32 @@ internal static class Program
 
         var rabbitMq = builder.AddRabbitMQ("rabbitmq");
 
+        var keycloakSettings = new MeAjudaAi.AppHost.Options.MeAjudaAiKeycloakOptions
+        {
+            AdminUsername = "admin",
+            AdminPassword = "admin123",
+            DatabaseHost = "postgres-local",
+            DatabasePort = "5432",
+            DatabaseName = mainDatabase,
+            DatabaseSchema = "identity",
+            DatabaseUsername = dbUsername,
+            DatabasePassword = dbPassword,
+            ImportRealm = "/opt/keycloak/data/import/meajudaai-realm.dev.json"
+        };
+
+        builder.Services.AddSingleton(Microsoft.Extensions.Options.Options.Create(keycloakSettings));
+
         var keycloak = builder.AddMeAjudaAiKeycloak(options =>
         {
-            options.AdminUsername = "admin";
-            options.AdminPassword = "admin123";
-            // Na rede Docker do Aspire, usar o nome do recurso PostgreSQL como hostname
-            options.DatabaseHost = "postgres-local";
-            options.DatabasePort = "5432";
-            options.DatabaseName = mainDatabase;
-            options.DatabaseSchema = "identity";
-            options.DatabaseUsername = dbUsername;
-            options.DatabasePassword = dbPassword;
-            // Importar realm de desenvolvimento automaticamente
-            options.ImportRealm = "/opt/keycloak/data/import/meajudaai-realm.dev.json";
+            options.AdminUsername = keycloakSettings.AdminUsername;
+            options.AdminPassword = keycloakSettings.AdminPassword;
+            options.DatabaseHost = keycloakSettings.DatabaseHost;
+            options.DatabasePort = keycloakSettings.DatabasePort;
+            options.DatabaseName = keycloakSettings.DatabaseName;
+            options.DatabaseSchema = keycloakSettings.DatabaseSchema;
+            options.DatabaseUsername = keycloakSettings.DatabaseUsername;
+            options.DatabasePassword = keycloakSettings.DatabasePassword;
+            options.ImportRealm = keycloakSettings.ImportRealm;
         });
         
         void AddSocialProviderEnv(string providerName, string clientIdKey, string clientSecretKey)
@@ -174,20 +195,24 @@ internal static class Program
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
 
         // Admin Portal (Blazor WASM)
-        _ = builder.AddProject<Projects.MeAjudaAi_Web_Admin>("admin-portal")
+        var adminPortal = builder.AddProject<Projects.MeAjudaAi_Web_Admin>("admin-portal")
             .WithExternalHttpEndpoints()
             .WaitFor(apiService);
             // NOTA: Keycloak WaitFor removido - veja comentário no apiService acima
 
         // Aplicação Web do Cliente (Next.js 15)
         var customerWebPath = Path.Combine(builder.AppHostDirectory, "..", "..", "..", "src", "Web", "MeAjudaAi.Web.Customer");
-        _ = builder.AddJavaScriptApp("customer-web", customerWebPath)
+        var customerWeb = builder.AddJavaScriptApp("customer-web", customerWebPath)
             .WithHttpEndpoint(port: 3000, env: "PORT")
             .WithExternalHttpEndpoints()
             .WithEnvironment("NEXT_PUBLIC_API_URL", apiService.GetEndpoint("http"))
             .WaitFor(apiService);
             // Nota: AddJavaScriptApp usa "dev" script por padrão em desenvolvimento
             // e "build" script em produção. Ver package.json para scripts configurados.
+
+        // Pass resolved endpoints to Keycloak options for bootstrap
+        keycloakSettings.AdminPortalEndpoint = adminPortal.GetEndpoint("https");
+        keycloakSettings.CustomerWebEndpoint = customerWeb.GetEndpoint("http");
     }
 
     private static void ConfigureProductionEnvironment(IDistributedApplicationBuilder builder)
