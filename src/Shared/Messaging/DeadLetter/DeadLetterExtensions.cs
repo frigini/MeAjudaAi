@@ -33,7 +33,6 @@ public static class DeadLetterExtensions
         }
 
         // Registrar implementações específicas
-        services.AddScoped<RabbitMqDeadLetterService>();
         services.AddScoped<NoOpDeadLetterService>();
 
         // Registrar serviço principal baseado no ambiente (RabbitMQ por padrão)
@@ -158,7 +157,7 @@ public static class DeadLetterExtensions
         var environment = services.GetRequiredService<IHostEnvironment>();
         var logger = services.GetRequiredService<ILogger<TLogger>>();
 
-        if (environment.IsDevelopment() || environment.IsProduction())
+        if (!environment.IsEnvironment("Testing"))
         {
             // Para RabbitMQ, a infraestrutura é criada dinamicamente quando necessário
             logger.LogInformation("Dead Letter infrastructure for RabbitMQ will be created dynamically");

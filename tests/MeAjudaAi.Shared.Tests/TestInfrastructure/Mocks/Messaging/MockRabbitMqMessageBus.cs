@@ -31,13 +31,13 @@ public class MockRabbitMqMessageBus : IMessageBus
     }
 
     /// <summary>
-    /// Lista de mensagens publicadas durante os testes
+    /// Lista de mensagens enviadas e publicadas durante os testes
     /// </summary>
     public IReadOnlyList<(object message, string? destination, EMessageType type)> RecordedMessages
         => _recordedMessages.AsReadOnly();
 
     /// <summary>
-    /// Limpa a lista de mensagens publicadas
+    /// Limpa a lista de mensagens enviadas e publicadas
     /// </summary>
     public void ClearRecordedMessages()
     {

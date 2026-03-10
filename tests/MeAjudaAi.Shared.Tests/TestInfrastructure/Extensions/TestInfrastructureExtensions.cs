@@ -119,13 +119,15 @@ internal class MockMessageBus : IMessageBus
 
     public Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
     {
-        _recordedMessages.Add(message!);
+        ArgumentNullException.ThrowIfNull(message);
+        _recordedMessages.Add(message);
         return Task.CompletedTask;
     }
 
     public Task PublishAsync<TMessage>(TMessage @event, string? topicName = null, CancellationToken cancellationToken = default)
     {
-        _recordedMessages.Add(@event!);
+        ArgumentNullException.ThrowIfNull(@event);
+        _recordedMessages.Add(@event);
         return Task.CompletedTask;
     }
 

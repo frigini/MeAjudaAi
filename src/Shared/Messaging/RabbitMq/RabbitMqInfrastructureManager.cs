@@ -37,13 +37,14 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
 
             // Cria exchanges e bindings para tipos de eventos
             var eventTypes = await _eventRegistry.GetAllEventTypesAsync();
+            var queueName = _options.DefaultQueueName;
+            var exchangeName = $"{queueName}.exchange";
+
+            await CreateExchangeAsync(exchangeName, ExchangeType.Topic);
+            await CreateQueueAsync(queueName);
+
             foreach (var eventType in eventTypes)
             {
-                var queueName = _options.DefaultQueueName;
-                var exchangeName = $"{queueName}.exchange";
-
-                await CreateExchangeAsync(exchangeName, ExchangeType.Topic);
-                await CreateQueueAsync(queueName);
                 await BindQueueToExchangeAsync(queueName, exchangeName, eventType.Name);
 
                 _logger.LogDebug("Infrastructure created for event type {EventType}: exchange={Exchange}, queue={Queue}",

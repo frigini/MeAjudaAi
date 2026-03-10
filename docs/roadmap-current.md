@@ -418,7 +418,7 @@ public class GeographicRestrictionMiddleware
 **Status**: 🔄 EM PROGRESSO (Março 2026)
 
 ### ✅ Sprint 8B.2 - NX Scaffolding & Initial Migration (5 - 18 Mar 2026)
-**Branch**: `feature/sprint-8b2-technical-excellence`
+**Branch**: `feature/sprint-8b2-monorepo-cleanup`
 **Status**: ✅ CONCLUÍDA
 
 **Objectives**:
@@ -439,9 +439,9 @@ public class GeographicRestrictionMiddleware
 ---
 
 **Entregáveis**:
-- [x] Nx workspace com `apps/customer-web` e `libs/shared-ui` placeholders.
-- [ ] Placeholders para `apps/provider-web` e `apps/admin-portal`.
-- [ ] Bibliotecas extraídas para `libs/`.
+- [x] Nx workspace com `apps/customer-web` (migrado).
+- [x] Placeholders para `apps/provider-web` e `apps/admin-portal`.
+- [x] Bibliotecas extraídas para `libs/ui`, `libs/auth` e `libs/api-client`.
 
 ---
 
