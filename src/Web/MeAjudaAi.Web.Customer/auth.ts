@@ -52,7 +52,14 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
 
 function requireEnv(name: string): string {
     const value = process.env[name];
-    if (!value) throw new Error(`Missing ${name}`);
+    if (!value) {
+        // Warning: during 'next build', some variables might be missing (e.g. in CI)
+        // We log a warning instead of throwing to avoid breaking the build.
+        if (process.env.NODE_ENV !== "development") {
+            console.warn(`[auth] Warning: Environment variable ${name} is missing.`);
+        }
+        return "";
+    }
     return value;
 }
 

@@ -269,7 +269,7 @@ python -m http.server 8000
 ### Para Frontend
 - ✅ Specs sempre refletem backend atual
 - ✅ Importação fácil em clients (Postman, Insomnia)
-- ✅ TypeScript types podem ser gerados do spec
+- ✅ **Código gerado é ignorado pelo Git**: Os desenvolvedores devem rodar o comando `npm run generate:api` em seus ambientes locais para garantir que estão usando a última versão dos contratos. Isso mantém o repositório limpo e evita conflitos de merge em arquivos gerados.
 
 ### Para QA
 - ✅ Collections Postman atualizadas

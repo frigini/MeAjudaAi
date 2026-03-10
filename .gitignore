@@ -154,5 +154,6 @@ legacy-analysis-report.*
 **/bin/
 **/obj/
 **/out/
+**/generated/
 
 vite.config.*.timestamp*
