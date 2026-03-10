@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "description": "Uma plataforma abrangente de serviços construída com .NET Aspire, projetada para conectar prestadores de serviços com clientes usando arquitetura monólito modular.",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "libs/*",
+    "MeAjudaAi.Web.Customer"
+  ],
   "directories": {
     "doc": "docs",
     "test": "tests"
