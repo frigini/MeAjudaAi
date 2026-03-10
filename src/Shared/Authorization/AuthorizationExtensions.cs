@@ -93,10 +93,15 @@ public static class AuthorizationExtensions
         services.AddScoped<IPermissionProvider, KeycloakPermissionProvider>();
 
         // Configura opções do Keycloak a partir da configuração
-        services.AddOptions<KeycloakPermissionOptions>()
+        var optionsBuilder = services.AddOptions<KeycloakPermissionOptions>()
             .Bind(configuration.GetSection("Keycloak"))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+            .ValidateDataAnnotations();
+
+        // Evita crash durante carregamento estático do Swagger no pipeline de CI enviando ASPNETCORE_ENVIRONMENT=Testing
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Testing")
+        {
+            optionsBuilder.ValidateOnStart();
+        }
 
         return services;
     }

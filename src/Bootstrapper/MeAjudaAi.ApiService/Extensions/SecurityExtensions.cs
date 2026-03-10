@@ -32,6 +32,8 @@ public static class SecurityExtensions
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentNullException.ThrowIfNull(environment);
 
+        // Bypassa validações explicitamente em Testing (workaround para prevenir crash do Swashbuckle CLI 
+        // durante extração na pipeline CI que tenta carregar o container sem credenciais verdadeiras)
         if (environment.IsEnvironment("Testing"))
             return;
 
@@ -65,35 +67,32 @@ public static class SecurityExtensions
             errors.Add($"CORS configuration error: {ex.Message}");
         }
 
-        // Valida configuração do Keycloak (se não estiver em ambiente de teste)
-        if (!environment.IsEnvironment("Testing"))
+        // Valida configuração do Keycloak usando a exceção global de Testing já efetivada
+        try
         {
-            try
-            {
-                var keycloakOptions = configuration.GetSection(KeycloakOptions.SectionName).Get<KeycloakOptions>() ?? new KeycloakOptions();
-                ValidateKeycloakOptions(keycloakOptions);
+            var keycloakOptions = configuration.GetSection(KeycloakOptions.SectionName).Get<KeycloakOptions>() ?? new KeycloakOptions();
+            ValidateKeycloakOptions(keycloakOptions);
 
-                // Validações adicionais específicas para produção
-                if (environment.IsProduction())
-                {
-                    if (!keycloakOptions.RequireHttpsMetadata)
-                        errors.Add("RequireHttpsMetadata must be true in production environment");
-
-                    if (keycloakOptions.BaseUrl?.StartsWith("http://", StringComparison.OrdinalIgnoreCase) == true)
-                        errors.Add("Keycloak BaseUrl must use HTTPS in production environment");
-
-                    if (keycloakOptions.ClockSkew.TotalMinutes > 5)
-                        errors.Add("Keycloak ClockSkew should be minimal (≤5 minutes) in production for higher security");
-                }
-            }
-            catch (InvalidOperationException ex)
+            // Validações adicionais específicas para produção
+            if (environment.IsProduction())
             {
-                errors.Add($"Keycloak configuration error: {ex.Message}");
+                if (!keycloakOptions.RequireHttpsMetadata)
+                    errors.Add("RequireHttpsMetadata must be true in production environment");
+
+                if (keycloakOptions.BaseUrl?.StartsWith("http://", StringComparison.OrdinalIgnoreCase) == true)
+                    errors.Add("Keycloak BaseUrl must use HTTPS in production environment");
+
+                if (keycloakOptions.ClockSkew.TotalMinutes > 5)
+                    errors.Add("Keycloak ClockSkew should be minimal (≤5 minutes) in production for higher security");
             }
-            catch (ArgumentException ex)
-            {
-                errors.Add($"Keycloak configuration error: {ex.Message}");
-            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            errors.Add($"Keycloak configuration error: {ex.Message}");
+        }
+        catch (ArgumentException ex)
+        {
+            errors.Add($"Keycloak configuration error: {ex.Message}");
         }
 
         // Valida configuração de Rate Limiting

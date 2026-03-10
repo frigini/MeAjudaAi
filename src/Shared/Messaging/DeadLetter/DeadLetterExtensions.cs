@@ -33,6 +33,7 @@ public static class DeadLetterExtensions
         }
 
         var options = configuration.GetSection(DeadLetterOptions.SectionName).Get<DeadLetterOptions>() ?? new DeadLetterOptions();
+        configureOptions?.Invoke(options);
 
         if (options.Enabled)
         {
@@ -53,64 +54,77 @@ public static class DeadLetterExtensions
     /// <returns>Task de validação</returns>
     public static Task ValidateDeadLetterConfigurationAsync(this IHost host)
     {
-        using var scope = host.Services.CreateScope();
-        IDeadLetterService? deadLetterService = null;
-
-        try
+        var environment = host.Services.GetRequiredService<IHostEnvironment>();
+        if (!environment.IsEnvironment("Testing"))
         {
-            deadLetterService = scope.ServiceProvider.GetService<IDeadLetterService>();
-            
-            if (deadLetterService == null)
+            using var scope = host.Services.CreateScope();
+            IDeadLetterService? deadLetterService = null;
+
+            try
             {
+                deadLetterService = scope.ServiceProvider.GetService<IDeadLetterService>();
+                
+                if (deadLetterService == null)
+                {
+                    return Task.CompletedTask;
+                }
+
+                var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<IDeadLetterService>>();
+
+                // Teste básico para verificar se o serviço está configurado corretamente
+                var testException = new InvalidOperationException("Test exception for DLQ validation");
+                var shouldRetry = deadLetterService.ShouldRetry(testException, 1);
+                var retryDelay = deadLetterService.CalculateRetryDelay(1);
+
+                logger.LogInformation(
+                    "Dead Letter Queue validation completed. Service: {ServiceType}, ShouldRetry: {ShouldRetry}, RetryDelay: {RetryDelay}ms",
+                    deadLetterService.GetType().Name, shouldRetry, retryDelay.TotalMilliseconds);
+
                 return Task.CompletedTask;
             }
-
-            var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<IDeadLetterService>>();
-
-            // Teste básico para verificar se o serviço está configurado corretamente
-            var testException = new InvalidOperationException("Test exception for DLQ validation");
-            var shouldRetry = deadLetterService.ShouldRetry(testException, 1);
-            var retryDelay = deadLetterService.CalculateRetryDelay(1);
-
-            logger.LogInformation(
-                "Dead Letter Queue validation completed. Service: {ServiceType}, ShouldRetry: {ShouldRetry}, RetryDelay: {RetryDelay}ms",
-                deadLetterService.GetType().Name, shouldRetry, retryDelay.TotalMilliseconds);
-
-            return Task.CompletedTask;
+            catch (Exception ex)
+            {
+                var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<IDeadLetterService>>();
+                logger.LogError(ex, "Failed to validate Dead Letter Queue configuration. Service: {ServiceType}",
+                    deadLetterService?.GetType().Name ?? "unknown");
+                throw new InvalidOperationException(
+                    $"Dead Letter Queue validation failed for {deadLetterService?.GetType().Name ?? "unknown"}", ex);
+            }
         }
-        catch (Exception ex)
-        {
-            var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<IDeadLetterService>>();
-            logger.LogError(ex, "Failed to validate Dead Letter Queue configuration. Service: {ServiceType}",
-                deadLetterService?.GetType().Name ?? "unknown");
-            throw new InvalidOperationException(
-                $"Dead Letter Queue validation failed for {deadLetterService?.GetType().Name ?? "unknown"}", ex);
-        }
+        
+        return Task.CompletedTask;
     }
 
     public static Task LogDeadLetterInfrastructureInfo(this IHost host)
     {
-        using var scope = host.Services.CreateScope();
-
-        try
+        var environment = host.Services.GetRequiredService<IHostEnvironment>();
+        
+        if (!environment.IsEnvironment("Testing"))
         {
-            var deadLetterService = scope.ServiceProvider.GetService<IDeadLetterService>();
-            if (deadLetterService == null)
+            using var scope = host.Services.CreateScope();
+
+            try
             {
+                var deadLetterService = scope.ServiceProvider.GetService<IDeadLetterService>();
+                if (deadLetterService == null)
+                {
+                    return Task.CompletedTask;
+                }
+
+                LogRabbitMqInfrastructure<IDeadLetterService>(scope.ServiceProvider);
                 return Task.CompletedTask;
             }
-
-            LogRabbitMqInfrastructure<IDeadLetterService>(scope.ServiceProvider);
-            return Task.CompletedTask;
+            catch (Exception ex)
+            {
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<IDeadLetterService>>();
+                logger.LogError(ex, "Failed to log Dead Letter Queue infrastructure info");
+                throw new InvalidOperationException(
+                    "Failed to log Dead Letter Queue infrastructure info",
+                    ex);
+            }
         }
-        catch (Exception ex)
-        {
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<IDeadLetterService>>();
-            logger.LogError(ex, "Failed to log Dead Letter Queue infrastructure info");
-            throw new InvalidOperationException(
-                "Failed to log Dead Letter Queue infrastructure info",
-                ex);
-        }
+        
+        return Task.CompletedTask;
     }
 
     private static void LogRabbitMqInfrastructure<TLogger>(IServiceProvider services)
