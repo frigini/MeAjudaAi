@@ -147,4 +147,12 @@ legacy-analysis-report.*
 **/.nx/
 **/test_results.txt
 **/zod.gen.ts.bak
+
+# Build outputs
+**/dist/
+**/.next/
+**/bin/
+**/obj/
+**/out/
+
 vite.config.*.timestamp*
