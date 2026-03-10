@@ -80,12 +80,12 @@ export const registerProviderSchema = z.object({
         .max(14, "Documento inválido")
         .regex(/^\d+$/, "Apenas números são permitidos"), // CPF 11, CNPJ 14 (sem formatação)
     phoneNumber: z.string().min(10, "Telefone inválido (mínimo 10 dígitos)").max(11, "Telefone inválido (máximo 11 dígitos)").regex(/^\d+$/, "Apenas dígitos são permitidos"),
-    type: z.enum([
-        EProviderType.None as any,
-        EProviderType.Individual as any,
-        EProviderType.Company as any,
-        EProviderType.Cooperative as any,
-        EProviderType.Freelancer as any,
+    type: z.union([
+        z.literal(EProviderType.None),
+        z.literal(EProviderType.Individual),
+        z.literal(EProviderType.Company),
+        z.literal(EProviderType.Cooperative),
+        z.literal(EProviderType.Freelancer),
     ]),
     email: z.email({ message: "Email inválido" }), // Now strictly required
     acceptedTerms: z.boolean().refine(v => v === true, "Você deve aceitar os termos de uso"),

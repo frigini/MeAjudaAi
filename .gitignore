@@ -143,8 +143,9 @@ legacy-analysis-report.*
 # Archived scripts
 .archive/
 
-# MkDocs build output
-site/
+# Node & Nx caching
+.nx/cache/
+.nx/workspace-data/
 
 /src/Web/MeAjudaAi.Web.Customer/layout.css
 

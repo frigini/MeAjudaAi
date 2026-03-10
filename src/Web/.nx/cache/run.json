@@ -1,18 +1,18 @@
 {
   "run": {
-    "command": "nx run api-client:test",
-    "startTime": "2026-03-10T01:32:04.280Z",
-    "endTime": "2026-03-10T01:32:06.278Z",
+    "command": "nx run MeAjudaAi.Web.Customer:lint",
+    "startTime": "2026-03-10T13:57:22.519Z",
+    "endTime": "2026-03-10T13:57:26.836Z",
     "inner": false
   },
   "tasks": [
     {
-      "taskId": "api-client:test",
-      "target": "test",
-      "projectName": "api-client",
-      "hash": "6595496034224995433",
-      "startTime": "2026-03-10T01:32:04.288Z",
-      "endTime": "2026-03-10T01:32:06.274Z",
+      "taskId": "MeAjudaAi.Web.Customer:lint",
+      "target": "lint",
+      "projectName": "MeAjudaAi.Web.Customer",
+      "hash": "18362600111996853396",
+      "startTime": "2026-03-10T13:57:22.531Z",
+      "endTime": "2026-03-10T13:57:26.834Z",
       "params": "",
       "cacheStatus": "cache-miss",
       "status": 0

@@ -4,6 +4,11 @@ import Credentials from "next-auth/providers/credentials"
 import { JWT } from "next-auth/jwt"
 import { decodeJwt } from "jose"
 import { getServerSession } from "next-auth/next"
+import {
+    GetServerSidePropsContext,
+    NextApiRequest,
+    NextApiResponse,
+} from "next"
 
 async function refreshAccessToken(token: JWT): Promise<JWT> {
     try {
@@ -189,12 +194,6 @@ export const authOptions: NextAuthOptions = {
     // Debug in development
     debug: process.env.NODE_ENV === "development",
 };
-
-import {
-    GetServerSidePropsContext,
-    NextApiRequest,
-    NextApiResponse,
-} from "next"
 
 export function auth(
     ...args:

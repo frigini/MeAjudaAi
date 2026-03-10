@@ -120,8 +120,21 @@ public static class DeadLetterExtensions
 
         if (!environment.IsEnvironment("Testing"))
         {
-            // Para RabbitMQ, a infraestrutura é criada dinamicamente quando necessário
-            logger.LogInformation("Dead Letter infrastructure info for RabbitMQ logged successfully");
+            var rabbitMqOptions = services.GetService<Microsoft.Extensions.Options.IOptions<RabbitMqOptions>>()?.Value;
+            var dlOptions = services.GetService<Microsoft.Extensions.Options.IOptions<DeadLetterOptions>>()?.Value;
+            var dlx = dlOptions?.RabbitMq.DeadLetterExchange ?? "dlx.meajudaai";
+            var dlRoutingKey = dlOptions?.RabbitMq.DeadLetterRoutingKey ?? "deadletter";
+            var defaultQueue = rabbitMqOptions?.DefaultQueueName ?? "meajudaai.default";
+
+            logger.LogInformation(
+                "RabbitMQ infrastructure bound. Default Queue: {QueueName}. DLX Exchange: {DLX}. DL RoutingKey: {RoutingKey}. Persistence: {Persistence}. AutoDLX: {AutoDLX}. TTL: {TTLHours}h. MaxRetries: {MaxRetries}.",
+                defaultQueue,
+                dlx,
+                dlRoutingKey,
+                dlOptions?.RabbitMq.EnablePersistence ?? true,
+                dlOptions?.RabbitMq.EnableAutomaticDlx ?? true,
+                dlOptions?.DeadLetterTtlHours ?? 72,
+                dlOptions?.MaxRetryAttempts ?? 3);
         }
     }
 
