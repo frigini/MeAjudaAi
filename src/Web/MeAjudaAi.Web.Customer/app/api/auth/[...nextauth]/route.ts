@@ -1,14 +1,9 @@
 import NextAuth from "next-auth"
 import { authOptions, validateCriticalEnvOnStartup } from "@/auth"
 
-const nextAuthHandler = NextAuth(authOptions)
+// Run validation during initialization (skips Next.js build phase internally)
+validateCriticalEnvOnStartup();
 
-export const GET = (req: Request, res: any) => {
-    validateCriticalEnvOnStartup();
-    return nextAuthHandler(req, res);
-}
+const handler = NextAuth(authOptions)
 
-export const POST = (req: Request, res: any) => {
-    validateCriticalEnvOnStartup();
-    return nextAuthHandler(req, res);
-}
+export { handler as GET, handler as POST }
