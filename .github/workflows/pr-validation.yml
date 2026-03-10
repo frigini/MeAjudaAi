@@ -100,9 +100,18 @@ jobs:
       - name: Build solution
         run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
 
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ./src/Web/package-lock.json
+
       - name: 📦 Install Frontend Dependencies
         working-directory: ./src/Web
         run: npm ci
+
+      - uses: nrwl/nx-set-shas@v4
 
       - name: 🔍 Lint Frontend Workspace
         working-directory: ./src/Web

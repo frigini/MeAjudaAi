@@ -415,11 +415,13 @@ public class GeographicRestrictionMiddleware
 - [ ] **Meu Perfil**: Editar informações básicas
 
 #### 🛠️ Parte 2: Nx Monorepo Setup
-**Status**: 🔄 EM PROGRESSO (Março 2026)
+**Status**: 🔄 EM PROGRESSO (Março 2026)  
+*Nota: Este é um contêiner ampliado que representa múltiplas sprints destinadas à reestruturação modular do front-end web. A "Sprint 8B.2" encapsula a fundação inicial concluída como parte intrínseca deste arco arquitetural.*
 
 ### ✅ Sprint 8B.2 - NX Scaffolding & Initial Migration (5 - 18 Mar 2026)
 **Branch**: `feature/sprint-8b2-monorepo-cleanup`
-**Status**: ✅ CONCLUÍDA
+**Status**: 🔄 EM REVISÃO
+*Nota: A atualização final para "✅ CONCLUÍDA" deve ocorrer somente após o merge do PR ou confirmação explícita de finalização do trabalho na branch.*
 
 **Objectives**:
 1. 🔴 **MUST-HAVE**: **NX Monorepo Setup** (Effort: Large)

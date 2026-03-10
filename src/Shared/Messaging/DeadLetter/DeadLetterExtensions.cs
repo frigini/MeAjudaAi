@@ -45,32 +45,6 @@ public static class DeadLetterExtensions
     }
 
     /// <summary>
-    /// Configura dead letter queue específico para RabbitMQ
-    /// </summary>
-    /// <param name="services">Service collection</param>
-    /// <param name="configuration">Configuration</param>
-    /// <param name="configureOptions">Configuração adicional das opções</param>
-    /// <returns>Service collection para chaining</returns>
-    public static IServiceCollection AddRabbitMqDeadLetterQueue(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        Action<DeadLetterOptions>? configureOptions = null)
-    {
-        services.Configure<DeadLetterOptions>(configuration.GetSection(DeadLetterOptions.SectionName));
-
-        if (configureOptions != null)
-        {
-            services.Configure(configureOptions);
-        }
-
-        services.AddScoped<IDeadLetterService, RabbitMqDeadLetterService>();
-        services.AddMessageRetryMiddleware();
-
-        return services;
-    }
-
-
-    /// <summary>
     /// Valida a configuração do Dead Letter Queue na aplicação
     /// </summary>
     /// <param name="host">Host da aplicação</param>
@@ -103,30 +77,6 @@ public static class DeadLetterExtensions
                 deadLetterService?.GetType().Name ?? "unknown");
             throw new InvalidOperationException(
                 $"Dead Letter Queue validation failed for {deadLetterService?.GetType().Name ?? "unknown"}", ex);
-        }
-    }
-
-    /// <summary>
-    /// Garante que a infraestrutura de Dead Letter Queue está criada
-    /// </summary>
-    /// <param name="host">Host da aplicação</param>
-    /// <returns>Task de criação da infraestrutura</returns>
-    public static Task EnsureDeadLetterInfrastructureAsync(this IHost host)
-    {
-        using var scope = host.Services.CreateScope();
-
-        try
-        {
-            LogRabbitMqInfrastructure<IHostEnvironment>(scope.ServiceProvider);
-            return Task.CompletedTask;
-        }
-        catch (Exception ex)
-        {
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<IHostEnvironment>>();
-            logger.LogError(ex, "Failed to ensure Dead Letter Queue infrastructure");
-            throw new InvalidOperationException(
-                "Failed to ensure Dead Letter Queue infrastructure (queues, exchanges, and bindings)",
-                ex);
         }
     }
 

@@ -44,24 +44,22 @@ public class MockRabbitMqMessageBus : IMessageBus
         _recordedMessages.Clear();
     }
 
-    public Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
+    public async Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Mock RabbitMQ: Sending message of type {MessageType} to queue {QueueName}",
             typeof(TMessage).Name, queueName);
 
+        await _mockMessageBus.Object.SendAsync(message, queueName, cancellationToken);
         _recordedMessages.Add((message!, queueName, EMessageType.Send));
-
-        return _mockMessageBus.Object.SendAsync(message, queueName, cancellationToken);
     }
 
-    public Task PublishAsync<TMessage>(TMessage @event, string? topicName = null, CancellationToken cancellationToken = default)
+    public async Task PublishAsync<TMessage>(TMessage @event, string? topicName = null, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Mock RabbitMQ: Publishing event of type {EventType} to topic {TopicName}",
             typeof(TMessage).Name, topicName);
 
+        await _mockMessageBus.Object.PublishAsync(@event, topicName, cancellationToken);
         _recordedMessages.Add((@event!, topicName, EMessageType.Publish));
-
-        return _mockMessageBus.Object.PublishAsync(@event, topicName, cancellationToken);
     }
 
     public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task> handler, string? subscriptionName = null, CancellationToken cancellationToken = default)

@@ -41,7 +41,6 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
             var exchangeName = $"{queueName}.exchange";
 
             await CreateExchangeAsync(exchangeName, ExchangeType.Topic);
-            await CreateQueueAsync(queueName);
 
             foreach (var eventType in eventTypes)
             {
