@@ -6,7 +6,7 @@ import { AdCard } from "@/components/search/ad-card";
 import { ServiceTags } from "@/components/search/service-tags";
 import { SearchFilters } from "@/components/search/search-filters";
 
-import { apiProvidersGet3, apiCategoryGet } from "@/lib/api/generated/sdk.gen";
+import { apiProvidersGet4, apiCategoryGet } from "@/lib/api/generated/sdk.gen";
 import { mapSearchableProviderToProvider } from "@/lib/api/mappers";
 import { geocodeCity } from "@/lib/services/geocoding";
 import { getAuthHeaders } from "@/lib/api/auth-headers";
@@ -74,7 +74,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     // Fetch providers from API
     // TODO: Implement pagination controls. Currently hardcoded to page 1.
     const headers = await getAuthHeaders();
-    const { data, error } = await apiProvidersGet3({
+    const { data, error } = await apiProvidersGet4({
         query: {
             latitude,
             longitude,
