@@ -7,14 +7,21 @@
         "build": {
             "command": "next build",
             "options": {
+                "cwd": "MeAjudaAi.Web.Customer",
                 "outputPath": "dist/MeAjudaAi.Web.Customer"
             }
         },
         "serve": {
-            "command": "next dev"
+            "command": "next dev",
+            "options": {
+                "cwd": "MeAjudaAi.Web.Customer"
+            }
         },
         "lint": {
-            "command": "next lint"
+            "command": "next lint",
+            "options": {
+                "cwd": "MeAjudaAi.Web.Customer"
+            }
         }
     }
 }

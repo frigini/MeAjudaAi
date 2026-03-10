@@ -1,0 +1,21 @@
+{
+  "run": {
+    "command": "nx run api-client:lint",
+    "startTime": "2026-03-10T01:23:02.019Z",
+    "endTime": "2026-03-10T01:23:03.564Z",
+    "inner": false
+  },
+  "tasks": [
+    {
+      "taskId": "api-client:lint",
+      "target": "lint",
+      "projectName": "api-client",
+      "hash": "5750941785946575987",
+      "startTime": "2026-03-10T01:23:02.028Z",
+      "endTime": "2026-03-10T01:23:03.562Z",
+      "params": "",
+      "cacheStatus": "cache-miss",
+      "status": 0
+    }
+  ]
+}
