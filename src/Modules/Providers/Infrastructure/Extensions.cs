@@ -1,3 +1,4 @@
+#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
 using MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;

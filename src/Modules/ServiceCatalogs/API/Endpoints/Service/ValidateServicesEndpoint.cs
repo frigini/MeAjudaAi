@@ -49,7 +49,7 @@ public class ValidateServicesEndpoint : BaseEndpoint, IEndpoint
 
         // Mapear do DTO do módulo para o DTO da API
         var response = new ValidateServicesResponse(
-            result.Value!.AllValid,
+            result.Value.AllValid,
             result.Value.InvalidServiceIds,
             result.Value.InactiveServiceIds
         );

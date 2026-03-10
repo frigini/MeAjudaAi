@@ -35,7 +35,8 @@ public static class SecurityExtensions
         // Bypassa validações explicitamente em Testing (workaround para prevenir crash do Swashbuckle CLI 
         // durante extração na pipeline CI que tenta carregar o container sem credenciais verdadeiras)
         var isTesting = environment.IsEnvironment("Testing") || 
-            string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Testing", StringComparison.OrdinalIgnoreCase);
+            string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Testing", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase);
         
         if (isTesting)
             return;
@@ -390,11 +391,8 @@ public static class SecurityExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        // Sistema de permissões type-safe (único e centralizado)
-        services.AddPermissionBasedAuthorization(null, environment);
-
-        // Adiciona resolução de permissões do Keycloak
-        services.AddKeycloakPermissionResolver(configuration, environment);
+        // Sistema de permissões type-safe (único e centralizado) e Adiciona resolução de permissões do Keycloak internamente
+        services.AddPermissionBasedAuthorization(configuration, environment);
 
         // Adiciona políticas especiais que precisam de handlers customizados
         services.AddAuthorizationBuilder()

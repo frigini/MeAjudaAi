@@ -131,7 +131,7 @@ public static class DeadLetterExtensions
     {
         var logger = services.GetRequiredService<ILogger<TLogger>>();
 
-        var rabbitMqOptions = services.GetService<Microsoft.Extensions.Options.IOptions<RabbitMqOptions>>()?.Value;
+        var rabbitMqOptions = services.GetService<RabbitMqOptions>();
         var dlOptions = services.GetService<Microsoft.Extensions.Options.IOptions<DeadLetterOptions>>()?.Value;
         var dlx = dlOptions?.RabbitMq.DeadLetterExchange ?? "dlx.meajudaai";
         var dlRoutingKey = dlOptions?.RabbitMq.DeadLetterRoutingKey ?? "deadletter";

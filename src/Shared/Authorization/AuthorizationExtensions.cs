@@ -29,6 +29,7 @@ public static class AuthorizationExtensions
     /// </summary>
     /// <param name="services">Service collection</param>
     /// <param name="configuration">Configuration for Keycloak integration</param>
+    /// <param name="environment">Ambiente de hospedagem usado para bypass de validações em testes de CI</param>
     /// <returns>Service collection para chaining</returns>
     public static IServiceCollection AddPermissionBasedAuthorization(
         this IServiceCollection services,
@@ -74,6 +75,7 @@ public static class AuthorizationExtensions
     /// </summary>
     /// <param name="services">Service collection</param>
     /// <param name="configuration">Configuration para Keycloak</param>
+    /// <param name="environment">Ambiente de hospedagem usado para bypass de validações em testes de CI</param>
     /// <returns>Service collection para chaining</returns>
     public static IServiceCollection AddKeycloakPermissionResolver(
         this IServiceCollection services,
@@ -102,7 +104,7 @@ public static class AuthorizationExtensions
             .ValidateDataAnnotations();
 
         // Evita crash durante carregamento estático do Swagger no pipeline de CI enviando ASPNETCORE_ENVIRONMENT=Testing
-        var isTesting = (environment?.IsEnvironment("Testing") ?? false) || Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing";
+        var isTesting = (environment?.IsEnvironment("Testing") ?? false) || Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing" || string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase);
         if (!isTesting)
         {
             optionsBuilder.ValidateOnStart();

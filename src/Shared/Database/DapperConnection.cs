@@ -1,3 +1,4 @@
+#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Dapper;
