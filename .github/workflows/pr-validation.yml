@@ -123,7 +123,24 @@ jobs:
 
       - name: 🏗️ Build Frontend Workspace
         working-directory: ./src/Web
-        run: npx nx affected --target=build
+        run: |
+          # 1. Install Swashbuckle CLI to extract OpenAPI spec from DLL
+          dotnet tool install -g Swashbuckle.AspNetCore.Cli --version 6.5.0
+          
+          # 2. Extract OpenAPI spec (v1) to a temporary file
+          # Note: Using Release build DLL from current workspace
+          mkdir -p ../../api
+          swagger tofile --output ../../api/api-spec.json \
+            ../../src/Bootstrapper/MeAjudaAi.ApiService/bin/Release/net10.0/MeAjudaAi.ApiService.dll \
+            v1
+          
+          # 3. Generate API client for Customer Web App
+          # The generator reads OPENAPI_SPEC_URL from env
+          export OPENAPI_SPEC_URL="../../api/api-spec.json"
+          npm run generate:api --workspace=meajudaai.web.customer
+          
+          # 4. Run the affected build
+          npx nx affected --target=build
 
       - name: Prepare Aspire Integration Tests
         run: |
