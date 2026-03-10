@@ -5,7 +5,7 @@ name: Pull Request Validation
   push:
     branches: [master, develop]
   pull_request:
-    branches: ['**']
+    branches: ["**"]
   # Manual trigger for testing workflow changes
   workflow_dispatch:
 
@@ -16,7 +16,7 @@ permissions:
   statuses: write
 
 env:
-  DOTNET_VERSION: '10.0.x'
+  DOTNET_VERSION: "10.0.x"
   STRICT_COVERAGE: false # TODO: Re-set to true once coverage threshold (90%) is consistently met
   # PostgreSQL configuration (DRY principle - single source of truth)
   # Fallback credentials: Only used in fork/local dev; main repo requires secrets
@@ -29,7 +29,7 @@ jobs:
   code-quality:
     name: Code Quality Checks
     runs-on: ubuntu-latest
-    timeout-minutes: 60  # Prevent jobs from hanging indefinitely
+    timeout-minutes: 60 # Prevent jobs from hanging indefinitely
 
     services:
       postgres:
@@ -103,8 +103,8 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
           cache-dependency-path: ./src/Web/package-lock.json
 
       - name: 📦 Install Frontend Dependencies
@@ -127,20 +127,28 @@ jobs:
           set -e
           # 1. Install Swashbuckle CLI to extract OpenAPI spec from DLL
           dotnet tool install -g Swashbuckle.AspNetCore.Cli --version 10.1.4
-          
+
           # 2. Extract OpenAPI spec (v1) to a temporary file
           # Note: Using Release build DLL from current workspace
           mkdir -p ../../api
+
+          # Provide dummy env vars to allow application DI container to build successfully
+          export ASPNETCORE_ENVIRONMENT=Testing
+          export ConnectionStrings__DefaultConnection="Host=localhost;Database=dummy"
+
           swagger tofile --output ../../api/api-spec.json \
             ../../src/Bootstrapper/MeAjudaAi.ApiService/bin/Release/net10.0/MeAjudaAi.ApiService.dll \
             v1
-          
+
           # 3. Generate API client for Customer Web App
           # The generator reads OPENAPI_SPEC_URL from env
           export OPENAPI_SPEC_URL="../../../api/api-spec.json"
           npm run generate:api --workspace=meajudaai.web.customer
-          
-          # 4. Run the affected build
+
+          # 4. Explicitly build the customer web app (updates ignored files)
+          npx nx run MeAjudaAi.Web.Customer:build
+
+          # 5. Run the affected build for the rest of the workspace
           npx nx affected --target=build
 
       - name: Prepare Aspire Integration Tests
@@ -514,7 +522,7 @@ jobs:
           echo "Coverage files by module:"
           find ./coverage -type f \( -name "*.opencover.xml" -o -name "*.cobertura.xml" \) -printf "%f\n" | sort | head -20
           echo ""
-          
+
           echo "🔍 DEBUG: Verifying coverage files for CodeCoverageSummary..."
           for module in users providers documents servicecatalogs locations searchproviders shared apiservice webadmin; do
             if [ -f "coverage/${module}/${module}.opencover.xml" ]; then
@@ -591,26 +599,26 @@ jobs:
       - name: Free Disk Space for Integration Tests
         run: |
           echo "🧹 Freeing disk space before integration tests..."
-          
+
           # Show disk usage before cleanup
           echo "📊 Disk usage before cleanup:"
           df -h
-          
+
           # Remove Docker images and containers that are not needed
           echo "🗑️  Removing unused Docker resources..."
           docker system prune -af --volumes || true
-          
+
           # Remove large packages/tools not needed for tests
           echo "🗑️  Removing unnecessary packages..."
           sudo apt-get clean
           sudo rm -rf /usr/local/lib/android || true
           sudo rm -rf /opt/ghc || true
           sudo rm -rf /usr/local/.ghcup || true
-          
+
           # Show disk usage after cleanup
           echo "📊 Disk usage after cleanup:"
           df -h
-          
+
           echo "✅ Disk space cleanup completed"
 
       - name: Run Integration Tests
@@ -746,13 +754,13 @@ jobs:
         if: always()
         run: |
           echo "📊 Generating aggregated coverage report from ALL tests..."
-          
+
           # Verify .NET 10 installation
           echo "🔍 Verifying .NET installation..."
           dotnet --version
           dotnet --list-sdks
           dotnet --list-runtimes
-          
+
           # Pre-flight check: verify all expected coverage files exist
           echo "🔍 Pre-flight check: Verifying coverage files..."
           MISSING_FILES=0
@@ -764,7 +772,7 @@ jobs:
               echo "  ✅ Found coverage file(s) for ${module}"
             fi
           done
-          
+
           # Check for Integration/E2E coverage
           if find "coverage/integration" -name "*.xml" -type f | grep -q .; then
             echo "  ✅ Found Integration test coverage"
@@ -772,7 +780,7 @@ jobs:
           if find "coverage/e2e" -name "*.xml" -type f | grep -q .; then
             echo "  ✅ Found E2E test coverage"
           fi
-          
+
           if [ $MISSING_FILES -gt 0 ]; then
             echo "⚠️  Warning: $MISSING_FILES module(s) missing coverage files"
             echo "   ReportGenerator will combine only available modules"
@@ -807,14 +815,14 @@ jobs:
         env:
           DOTNET_ROOT: ${{ env.DOTNET_ROOT }}
         with:
-          reports: 'coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml'
-          targetdir: 'coverage/aggregate'
-          reporttypes: 'Cobertura;JsonSummary'
-          assemblyfilters: '+MeAjudaAi.Modules.Users.*;+MeAjudaAi.Modules.Providers.*;+MeAjudaAi.Modules.Documents.*;+MeAjudaAi.Modules.ServiceCatalogs.*;+MeAjudaAi.Modules.Locations.*;+MeAjudaAi.Modules.SearchProviders.*;+MeAjudaAi.Shared*;+MeAjudaAi.ApiService*'
-          classfilters: '-*.Tests;-*.Tests.*;-*Test*;-testhost;-xunit*;-*.Migrations.*;-*.Contracts;-*.Database;-*DbContextFactory;-*.Program;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery'
-          filefilters: '-*Migrations*'
-          verbosity: 'Info'
-          tag: '${{ github.run_number }}_${{ github.run_id }}'
+          reports: "coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml"
+          targetdir: "coverage/aggregate"
+          reporttypes: "Cobertura;JsonSummary"
+          assemblyfilters: "+MeAjudaAi.Modules.Users.*;+MeAjudaAi.Modules.Providers.*;+MeAjudaAi.Modules.Documents.*;+MeAjudaAi.Modules.ServiceCatalogs.*;+MeAjudaAi.Modules.Locations.*;+MeAjudaAi.Modules.SearchProviders.*;+MeAjudaAi.Shared*;+MeAjudaAi.ApiService*"
+          classfilters: "-*.Tests;-*.Tests.*;-*Test*;-testhost;-xunit*;-*.Migrations.*;-*.Contracts;-*.Database;-*DbContextFactory;-*.Program;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery"
+          filefilters: "-*Migrations*"
+          verbosity: "Info"
+          tag: "${{ github.run_number }}_${{ github.run_id }}"
         # Note: Backend coverage only. Frontend bUnit tests run separately without coverage (unreliable for Blazor WASM).
 
       - name: Display coverage summary
@@ -919,7 +927,7 @@ jobs:
         continue-on-error: true
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          filename: 'coverage/aggregate/Cobertura.xml'
+          filename: "coverage/aggregate/Cobertura.xml"
           badge: true
           fail_below_min: false
           format: markdown
@@ -927,14 +935,14 @@ jobs:
           hide_complexity: false
           indicators: true
           output: both
-          thresholds: '70 85'
+          thresholds: "70 85"
 
       - name: Alternative Coverage Summary (Individual modules - OpenCover)
         id: coverage_opencover_individual
         if: ${{ always() && steps.coverage_cobertura_aggregate.outcome != 'success' }}
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          filename: 'coverage/users/*.opencover.xml,coverage/providers/*.opencover.xml,coverage/documents/*.opencover.xml,coverage/servicecatalogs/*.opencover.xml,coverage/locations/*.opencover.xml,coverage/searchproviders/*.opencover.xml,coverage/shared/*.opencover.xml,coverage/apiservice/*.opencover.xml,coverage/webadmin/*.opencover.xml'
+          filename: "coverage/users/*.opencover.xml,coverage/providers/*.opencover.xml,coverage/documents/*.opencover.xml,coverage/servicecatalogs/*.opencover.xml,coverage/locations/*.opencover.xml,coverage/searchproviders/*.opencover.xml,coverage/shared/*.opencover.xml,coverage/apiservice/*.opencover.xml,coverage/webadmin/*.opencover.xml"
           badge: true
           fail_below_min: false
           format: markdown
@@ -942,7 +950,7 @@ jobs:
           hide_complexity: false
           indicators: true
           output: both
-          thresholds: '80 90'
+          thresholds: "80 90"
         continue-on-error: true
 
       - name: Alternative Coverage Summary (Cobertura format)
@@ -950,7 +958,7 @@ jobs:
         if: ${{ always() && steps.coverage_cobertura_aggregate.outcome != 'success' && steps.coverage_opencover_individual.outcome != 'success' }}
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          filename: 'coverage/users/*.cobertura.xml,coverage/providers/*.cobertura.xml,coverage/documents/*.cobertura.xml,coverage/servicecatalogs/*.cobertura.xml,coverage/locations/*.cobertura.xml,coverage/searchproviders/*.cobertura.xml,coverage/shared/*.cobertura.xml,coverage/apiservice/*.cobertura.xml,coverage/webadmin/*.cobertura.xml'
+          filename: "coverage/users/*.cobertura.xml,coverage/providers/*.cobertura.xml,coverage/documents/*.cobertura.xml,coverage/servicecatalogs/*.cobertura.xml,coverage/locations/*.cobertura.xml,coverage/searchproviders/*.cobertura.xml,coverage/shared/*.cobertura.xml,coverage/apiservice/*.cobertura.xml,coverage/webadmin/*.cobertura.xml"
           badge: true
           fail_below_min: false
           format: markdown
@@ -958,7 +966,7 @@ jobs:
           hide_complexity: false
           indicators: true
           output: both
-          thresholds: '80 90'
+          thresholds: "80 90"
         continue-on-error: true
 
       - name: Fallback Coverage Summary (any XML)
@@ -970,7 +978,7 @@ jobs:
               steps.coverage_cobertura.outcome != 'success' }}
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          filename: 'coverage/**/*.xml'
+          filename: "coverage/**/*.xml"
           badge: true
           fail_below_min: false
           format: markdown
@@ -978,7 +986,7 @@ jobs:
           hide_complexity: false
           indicators: true
           output: both
-          thresholds: '80 90'
+          thresholds: "80 90"
         continue-on-error: true
 
       - name: Display Coverage Percentages
@@ -987,10 +995,10 @@ jobs:
           echo "📊 CODE COVERAGE SUMMARY"
           echo "========================"
           echo ""
-          
+
           # Analyze coverage from the 9 main modules (8 backend + 1 frontend, exclude Integration/E2E tests)
           MODULES=("users" "providers" "documents" "servicecatalogs" "locations" "searchproviders" "shared" "apiservice" "webadmin")
-          
+
           for module in "${MODULES[@]}"; do
             coverage_file="./coverage/${module}/${module}.opencover.xml"
             if [ -f "$coverage_file" ]; then
@@ -1127,8 +1135,8 @@ jobs:
         if: always()
         uses: ./.github/actions/validate-coverage
         with:
-          coverage-directory: './coverage'
-          threshold: '90'
+          coverage-directory: "./coverage"
+          threshold: "90"
           strict-mode: ${{ env.STRICT_COVERAGE }}
           opencover-outcome: ${{ steps.coverage_opencover_individual.outcome }}
           cobertura-outcome: ${{ steps.coverage_cobertura.outcome }}
@@ -1138,7 +1146,7 @@ jobs:
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # Security scans shouldn't take more than 30 minutes
+    timeout-minutes: 30 # Security scans shouldn't take more than 30 minutes
 
     steps:
       - name: Checkout code
@@ -1290,7 +1298,7 @@ jobs:
   markdown-link-check:
     name: Validate Markdown Links
     runs-on: ubuntu-latest
-    timeout-minutes: 15  # Link validation should be quick
+    timeout-minutes: 15 # Link validation should be quick
 
     steps:
       - name: Checkout code
@@ -1331,7 +1339,7 @@ jobs:
   yaml-validation:
     name: YAML Syntax Check
     runs-on: ubuntu-latest
-    timeout-minutes: 10  # YAML validation is quick
+    timeout-minutes: 10 # YAML validation is quick
 
     steps:
       - name: Checkout code
@@ -1349,4 +1357,3 @@ jobs:
             exit 1
           fi
           echo "✅ YAML validation completed"
-

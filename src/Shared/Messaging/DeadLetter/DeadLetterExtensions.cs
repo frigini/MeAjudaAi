@@ -32,8 +32,7 @@ public static class DeadLetterExtensions
             services.Configure(configureOptions);
         }
 
-        using var scope = services.BuildServiceProvider().CreateScope();
-        var options = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<DeadLetterOptions>>().Value;
+        var options = configuration.GetSection(DeadLetterOptions.SectionName).Get<DeadLetterOptions>() ?? new DeadLetterOptions();
 
         if (options.Enabled)
         {
@@ -128,7 +127,7 @@ public static class DeadLetterExtensions
             var defaultQueue = rabbitMqOptions?.DefaultQueueName ?? "meajudaai.default";
 
             logger.LogInformation(
-                "RabbitMQ infrastructure bound. Default Queue: {QueueName}. DLX Exchange: {DLX}. DL RoutingKey: {RoutingKey}. Persistence: {Persistence}. AutoDLX: {AutoDLX}. TTL: {TTLHours}h. MaxRetries: {MaxRetries}.",
+                "RabbitMQ DeadLetter options loaded. Default Queue: {QueueName}. DLX Exchange: {DLX}. DL RoutingKey: {RoutingKey}. Persistence: {Persistence}. AutoDLX: {AutoDLX}. TTL: {TTLHours}h. MaxRetries: {MaxRetries}.",
                 defaultQueue,
                 dlx,
                 dlRoutingKey,
