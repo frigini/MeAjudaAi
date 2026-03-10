@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Shared.Authorization;
 
@@ -30,7 +32,8 @@ public static class AuthorizationExtensions
     /// <returns>Service collection para chaining</returns>
     public static IServiceCollection AddPermissionBasedAuthorization(
         this IServiceCollection services,
-        IConfiguration? configuration = null)
+        IConfiguration? configuration = null,
+        IWebHostEnvironment? environment = null)
     {
         // Registra serviços de permissão core
         services.AddScoped<IPermissionService, PermissionService>();
@@ -46,7 +49,7 @@ public static class AuthorizationExtensions
         // Adiciona integração com Keycloak se configuração estiver disponível
         if (configuration != null)
         {
-            services.AddKeycloakPermissionResolver(configuration);
+            services.AddKeycloakPermissionResolver(configuration, environment);
         }
 
         // Configura políticas de autorização
@@ -74,7 +77,8 @@ public static class AuthorizationExtensions
     /// <returns>Service collection para chaining</returns>
     public static IServiceCollection AddKeycloakPermissionResolver(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IWebHostEnvironment? environment = null)
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
@@ -98,7 +102,8 @@ public static class AuthorizationExtensions
             .ValidateDataAnnotations();
 
         // Evita crash durante carregamento estático do Swagger no pipeline de CI enviando ASPNETCORE_ENVIRONMENT=Testing
-        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Testing")
+        var isTesting = (environment?.IsEnvironment("Testing") ?? false) || Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing";
+        if (!isTesting)
         {
             optionsBuilder.ValidateOnStart();
         }

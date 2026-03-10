@@ -130,13 +130,13 @@ jobs:
 
           # 2. Extract OpenAPI spec (v1) to a temporary file
           # Note: Using Release build DLL from current workspace
-          mkdir -p ../../api
+          mkdir -p ../api
 
           # Provide dummy env vars to allow application DI container to build successfully
           export ASPNETCORE_ENVIRONMENT=Testing
           export ConnectionStrings__DefaultConnection="Host=localhost;Database=dummy"
 
-          swagger tofile --output ../../api/api-spec.json \
+          swagger tofile --output ../api/api-spec.json \
             ../../src/Bootstrapper/MeAjudaAi.ApiService/bin/Release/net10.0/MeAjudaAi.ApiService.dll \
             v1
 

@@ -34,7 +34,10 @@ public static class SecurityExtensions
 
         // Bypassa validações explicitamente em Testing (workaround para prevenir crash do Swashbuckle CLI 
         // durante extração na pipeline CI que tenta carregar o container sem credenciais verdadeiras)
-        if (environment.IsEnvironment("Testing"))
+        var isTesting = environment.IsEnvironment("Testing") || 
+            string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Testing", StringComparison.OrdinalIgnoreCase);
+        
+        if (isTesting)
             return;
 
         var errors = new List<string>();
@@ -67,7 +70,7 @@ public static class SecurityExtensions
             errors.Add($"CORS configuration error: {ex.Message}");
         }
 
-        // Valida configuração do Keycloak usando a exceção global de Testing já efetivada
+        // Valida configuração do Keycloak
         try
         {
             var keycloakOptions = configuration.GetSection(KeycloakOptions.SectionName).Get<KeycloakOptions>() ?? new KeycloakOptions();
@@ -165,12 +168,16 @@ public static class SecurityExtensions
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentNullException.ThrowIfNull(environment);
         // Registra opções de CORS usando AddOptions<>()
-        services.AddOptions<CorsOptions>()
+        var optionsBuilder = services.AddOptions<CorsOptions>()
             .Configure<IConfiguration>((opts, config) =>
             {
                 config.GetSection(CorsOptions.SectionName).Bind(opts);
-            })
-            .ValidateOnStart();
+            });
+
+        if (!environment.IsEnvironment("Testing"))
+        {
+            optionsBuilder.ValidateOnStart();
+        }
 
         // Obtém opções de CORS para uso imediato na configuração da política
         var corsOptions = configuration.GetSection(CorsOptions.SectionName).Get<CorsOptions>() ?? new CorsOptions();
@@ -377,16 +384,17 @@ public static class SecurityExtensions
     /// </summary>
     public static IServiceCollection AddAuthorizationPolicies(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IWebHostEnvironment? environment = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
         // Sistema de permissões type-safe (único e centralizado)
-        services.AddPermissionBasedAuthorization();
+        services.AddPermissionBasedAuthorization(null, environment);
 
         // Adiciona resolução de permissões do Keycloak
-        services.AddKeycloakPermissionResolver(configuration);
+        services.AddKeycloakPermissionResolver(configuration, environment);
 
         // Adiciona políticas especiais que precisam de handlers customizados
         services.AddAuthorizationBuilder()

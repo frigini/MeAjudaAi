@@ -39,10 +39,10 @@ public static class DeadLetterExtensions
         {
             // Registrar serviço principal baseado no ambiente (RabbitMQ por padrão)
             services.AddScoped<IDeadLetterService, RabbitMqDeadLetterService>();
-        }
 
-        // Adicionar middleware de retry
-        services.AddMessageRetryMiddleware();
+            // Adicionar middleware de retry
+            services.AddMessageRetryMiddleware();
+        }
 
         return services;
     }
@@ -129,27 +129,23 @@ public static class DeadLetterExtensions
 
     private static void LogRabbitMqInfrastructure<TLogger>(IServiceProvider services)
     {
-        var environment = services.GetRequiredService<IHostEnvironment>();
         var logger = services.GetRequiredService<ILogger<TLogger>>();
 
-        if (!environment.IsEnvironment("Testing"))
-        {
-            var rabbitMqOptions = services.GetService<Microsoft.Extensions.Options.IOptions<RabbitMqOptions>>()?.Value;
-            var dlOptions = services.GetService<Microsoft.Extensions.Options.IOptions<DeadLetterOptions>>()?.Value;
-            var dlx = dlOptions?.RabbitMq.DeadLetterExchange ?? "dlx.meajudaai";
-            var dlRoutingKey = dlOptions?.RabbitMq.DeadLetterRoutingKey ?? "deadletter";
-            var defaultQueue = rabbitMqOptions?.DefaultQueueName ?? "meajudaai.default";
+        var rabbitMqOptions = services.GetService<Microsoft.Extensions.Options.IOptions<RabbitMqOptions>>()?.Value;
+        var dlOptions = services.GetService<Microsoft.Extensions.Options.IOptions<DeadLetterOptions>>()?.Value;
+        var dlx = dlOptions?.RabbitMq.DeadLetterExchange ?? "dlx.meajudaai";
+        var dlRoutingKey = dlOptions?.RabbitMq.DeadLetterRoutingKey ?? "deadletter";
+        var defaultQueue = rabbitMqOptions?.DefaultQueueName ?? "meajudaai.default";
 
-            logger.LogInformation(
-                "RabbitMQ DeadLetter options loaded. Default Queue: {QueueName}. DLX Exchange: {DLX}. DL RoutingKey: {RoutingKey}. Persistence: {Persistence}. AutoDLX: {AutoDLX}. TTL: {TTLHours}h. MaxRetries: {MaxRetries}.",
-                defaultQueue,
-                dlx,
-                dlRoutingKey,
-                dlOptions?.RabbitMq.EnablePersistence ?? true,
-                dlOptions?.RabbitMq.EnableAutomaticDlx ?? true,
-                dlOptions?.DeadLetterTtlHours ?? 72,
-                dlOptions?.MaxRetryAttempts ?? 3);
-        }
+        logger.LogInformation(
+            "RabbitMQ DeadLetter options loaded. Default Queue: {QueueName}. DLX Exchange: {DLX}. DL RoutingKey: {RoutingKey}. Persistence: {Persistence}. AutoDLX: {AutoDLX}. TTL: {TTLHours}h. MaxRetries: {MaxRetries}.",
+            defaultQueue,
+            dlx,
+            dlRoutingKey,
+            dlOptions?.RabbitMq.EnablePersistence ?? true,
+            dlOptions?.RabbitMq.EnableAutomaticDlx ?? true,
+            dlOptions?.DeadLetterTtlHours ?? 72,
+            dlOptions?.MaxRetryAttempts ?? 3);
     }
 
     /// <summary>
