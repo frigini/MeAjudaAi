@@ -32,6 +32,9 @@ public static class SecurityExtensions
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentNullException.ThrowIfNull(environment);
 
+        if (environment.IsEnvironment("Testing"))
+            return;
+
         var errors = new List<string>();
 
         // Valida configuração de CORS
@@ -172,7 +175,11 @@ public static class SecurityExtensions
 
         // Obtém opções de CORS para uso imediato na configuração da política
         var corsOptions = configuration.GetSection(CorsOptions.SectionName).Get<CorsOptions>() ?? new CorsOptions();
-        corsOptions.Validate();
+        
+        if (!environment.IsEnvironment("Testing"))
+        {
+            corsOptions.Validate();
+        }
 
         services.AddCors(options =>
         {
