@@ -103,9 +103,14 @@ public static class DatabaseExtensions
             throw new InvalidOperationException("Admin connection string not found for schema permissions setup");
         }
 
-        // Usar senhas da configuração ou padrões para desenvolvimento
-        usersRolePassword ??= configuration["Postgres:UsersRolePassword"] ?? "users_secret";
-        appRolePassword ??= configuration["Postgres:AppRolePassword"] ?? "app_secret";
+        // Usar senhas da configuração
+        usersRolePassword = string.IsNullOrWhiteSpace(usersRolePassword) ? configuration["Postgres:UsersRolePassword"] : usersRolePassword;
+        if (string.IsNullOrWhiteSpace(usersRolePassword))
+            throw new InvalidOperationException("Postgres:UsersRolePassword configuration is required for schema isolation.");
+
+        appRolePassword = string.IsNullOrWhiteSpace(appRolePassword) ? configuration["Postgres:AppRolePassword"] : appRolePassword;
+        if (string.IsNullOrWhiteSpace(appRolePassword))
+            throw new InvalidOperationException("Postgres:AppRolePassword configuration is required for schema isolation.");
 
         // Configurar permissões se necessário
         using var serviceProvider = services.BuildServiceProvider();

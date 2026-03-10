@@ -81,12 +81,19 @@ public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbCo
     }
 
     /// <summary>
-    /// Obtém a string de conexão padrão para desenvolvimento local
+    /// Obtém a string de conexão padrão para desenvolvimento local.
+    /// <para>
+    /// O método <see cref="GetDefaultConnectionString"/> lê a variável de ambiente <c>DB_PASSWORD</c> e lançará uma exceção se não estiver definida.
+    /// Uma alternativa para evitar esta exceção é fornecer a string de conexão <c>DefaultConnection</c> no <c>appsettings.json</c>.
+    /// </para>
     /// </summary>
     protected virtual string GetDefaultConnectionString()
     {
         var moduleName = GetModuleName().ToLowerInvariant();
-        return $"Host=localhost;Database=meajudaai_dev;Username=postgres;Password=dev123;SearchPath={moduleName},public";
+        var password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? 
+            throw new InvalidOperationException("DB_PASSWORD environment variable is required for design time operations.");
+        
+        return $"Host=localhost;Database=meajudaai_dev;Username=postgres;Password={password};SearchPath={moduleName},public";
     }
 
     /// <summary>

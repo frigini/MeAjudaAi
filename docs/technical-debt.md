@@ -1,6 +1,6 @@
 # Débito Técnico e Rastreamento de Melhorias
 
-Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvidos são removidos deste documento.
+Este documento rastreia **débitos técnicos e seu histórico de otimização**. Itens podem aparecer como PENDENTES ou OTIMIZADO/FECHADO para histórico.
 
 ---
 
@@ -12,30 +12,21 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 ### 🎨 Frontend - Warnings de Analyzers (BAIXA)
 
 **Severidade**: BAIXA (code quality)  
-**Sprint**: Sprint 7.16 (planejado)
+**Status**: 🔄 EM SPRINT 8B.2 (Refactoring)
 
-**Descrição**: Build do Admin Portal gera warnings de analyzers (SonarLint + MudBlazor):
+**Descrição**: Build do Admin Portal e Contracts gera warnings de analyzers (SonarLint + MudBlazor).
 
-**Warnings SonarLint**:
-1. **S2094** (6 ocorrências): Empty records em Actions
-   - `DashboardActions.cs`: `LoadDashboardStatsAction` (record vazio)
-   - `ProvidersActions.cs`: `LoadProvidersAction`, `GoToPageAction` (records vazios)
-   - `ThemeActions.cs`: `ToggleDarkModeAction`, `SetDarkModeAction` (records vazios)
-   - **Recomendação**: Converter para `interface` ou adicionar propriedades quando houver parâmetros
-   
-2. **S2953** (1 ocorrência): `App.razor:58` - Método `Dispose()` não implementa `IDisposable`
-   - **Recomendação**: Renomear método ou implementar interface corretamente
+**Warnings MudBlazor (MeAjudaAi.Web.Admin)**:
+1. **S2094** (records vazios em Actions)
+2. **S2953** (App.razor Dispose)
+3. **MUD0002** (Casing de atributos HTML em MainLayout.razor)
 
-3. **S2933** (1 ocorrência): `App.razor:41` - Campo `_theme` deve ser `readonly`
-   - **Recomendação**: Adicionar modificador `readonly`
+**Warnings Analisador de Segurança (MeAjudaAi.Contracts)**:
+4. **Hard-coded Credential False Positive**: `src/Contracts/Utilities/Constants/ValidationMessages.cs`
+   - **Problema**: Mensagens de erro contendo a palavra "Password" disparam o scanner.
+   - **Ação**: Adicionar `[SuppressMessage]` ou `.editorconfig` exclusion.
 
-**Warnings MudBlazor**:
-4. **MUD0002** (3 ocorrências): Atributos com casing incorreto em `MainLayout.razor`
-   - `AriaLabel` → `aria-label` (lowercase)
-   - `Direction` → `direction` (lowercase)
-   - **Recomendação**: Atualizar para lowercase conforme padrão HTML
-
-**Impacto**: Nenhum - build continua 100% funcional
+**Impacto**: Nenhum - build continua 100% funcional.
 
 ---
 
@@ -77,144 +68,42 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
 
 ---
 
-### 🔐 Keycloak Client - Configuração Manual (MÉDIA)
-
-**Severidade**: MÉDIA (developer experience)  
-**Sprint**: Sprint 7.16 (automação desejável)
-
-**Descrição**: Client `admin-portal` precisa ser criado MANUALMENTE no Keycloak realm `meajudaai`.
-
-**Situação Atual**:
-- ✅ Documentação completa: `docs/keycloak-admin-portal-setup.md`
-- ❌ Processo manual (8-10 passos via Admin Console)
-
-**Problemas**:
-1. **Onboarding lento**: Novo desenvolvedor precisa seguir ~10 passos
-2. **Erro humano**: Fácil esquecer redirect URIs ou roles
-3. **Reprodutibilidade**: Ambiente local pode divergir de dev/staging
-
-**Ações Recomendadas** (Sprint 7.16):
-- [ ] Criar script de automação: `scripts/setup-keycloak-clients.ps1`
-- [ ] Usar Keycloak Admin REST API para criar client programaticamente
-- [ ] Integrar script em `dotnet run --project src/Aspire/MeAjudaAi.AppHost`
-
-**Impacto**: Developer experience - não bloqueia produção
-
----
 
 ## 🔄 Refatorações de Código (BACKLOG)
 
 **Status**: Baixa prioridade, não críticos para MVP
 
-### 🏗️ Refatoração MeAjudaAi.Shared.Messaging (BACKLOG)
+### 🏗️ Refatoração MeAjudaAi.Shared.Messaging (OTIMIZADO)
 
-**Severidade**: BAIXA (manutenibilidade)  
-**Sprint**: BACKLOG
-
-**Problemas Remanescentes**:
-- `RabbitMqInfrastructureManager.cs` não possui interface separada `IRabbitMqInfrastructureManager` (avaliar necessidade)
-- Integration Events ausentes: Documents, SearchProviders, ServiceCatalogs não possuem integration events
-- Faltam event handlers para comunicação entre módulos
-
-**Ações Pendentes**:
-- [ ] Avaliar necessidade de extrair `IRabbitMqInfrastructureManager` para arquivo separado
-- [ ] Adicionar integration events para módulos faltantes (quando houver necessidade)
-- [ ] Criar testes unitários para classes de messaging (se coverage cair abaixo do threshold)
-
-**Prioridade**: BAIXA  
-**Estimativa**: 4-6 horas
+**Status**: ✅ `IRabbitMqInfrastructureManager` implementado.
+**Pendente**: Event handlers para comunicação entre novos módulos (SearchProviders, ServiceCatalogs).
 
 ---
 
-### 🔧 Refatoração Extensions (MeAjudaAi.Shared)
+## 🔗 GitHub Issues - Débitos Técnicos Sincronizados
 
-**Severidade**: BAIXA (manutenibilidade)  
-**Sprint**: BACKLOG
+### 🔐 [ISSUE #141] Reintegrar login social com Instagram via Keycloak OIDC
+**Severidade**: BAIXA (feature parity)
+**Status**: OPEN
+**Descrição**: Keycloak 26.x removeu built-in Instagram provider. Necessário configurar como generic OIDC.
 
-**Problemas**:
-1. **Extensions dentro de classes de implementação**: `BusinessMetricsMiddlewareExtensions` está dentro de `BusinessMetricsMiddleware.cs`
-2. **Falta de consolidação**: Extensions espalhadas em múltiplos arquivos
 
-**Ações Pendentes**:
-- [ ] Extrair `BusinessMetricsMiddlewareExtensions` para arquivo próprio
-- [ ] Criar arquivos consolidados: `MonitoringExtensions.cs`, `CachingExtensions.cs`, `MessagingExtensions.cs`, `AuthorizationExtensions.cs`
-- [ ] Documentar padrão: cada funcionalidade tem seu `<Funcionalidade>Extensions.cs`
-
-**Prioridade**: BAIXA  
-**Estimativa**: 4-6 horas
+### 🚀 [ISSUE #112] tech: aguardar versão stable do Aspire.Hosting.Keycloak
+**Status**: 📋 OTIMIZADO (Sprint 8B.2)  
+**Descrição**: Aspire.Hosting.Keycloak (preview) não suporta health checks reais. Serviços iniciam sem esperar Keycloak estar pronto.
+**Impacto**: Console logs do backend e Admin Portal mostram falhas de conexão transientes até Keycloak inicializar.
 
 ---
 
 ## ⚠️ CRÍTICO: Hangfire + Npgsql 10.x Compatibility Risk
 
-**Arquivo**: `Directory.Packages.props`  
-**Situação**: MONITORAMENTO CONTÍNUO  
-**Severidade**: MÉDIA (funciona em desenvolvimento, não validado em produção)  
-**Status**: Sistema rodando com Npgsql 10.0 + Hangfire.PostgreSql 1.20.13
-
-**Descrição**: 
-Hangfire.PostgreSql 1.20.13 foi compilado contra Npgsql 6.x, mas o projeto está usando Npgsql 10.x (EF Core 10.0.2). A compatibilidade funciona em desenvolvimento mas não foi formalmente validada pelo mantenedor do Hangfire.
-
-**Status Atual**:
-- ✅ **Build**: Compila sem erros
-- ✅ **Desenvolvimento**: Aplicação funciona normalmente
-- ⚠️ **Produção**: Não validado com carga real
-
-**Mitigação Implementada**:
-1. ✅ Documentação detalhada em `Directory.Packages.props`
-2. ✅ Health checks configurados
-3. ✅ Procedimentos de rollback documentados
-4. ⚠️ Monitoramento de produção pendente
-
-**Ações Pendentes**:
-- [ ] Validação em ambiente staging com carga similar a produção
-- [ ] Monitoramento de taxa de falha de jobs (<5% threshold)
-- [ ] Configuração de alertas para problemas Hangfire/Npgsql
-
-**Fallback Strategies**:
-1. **Downgrade para Npgsql 8.x** (se problemas detectados)
-2. **Aguardar Hangfire.PostgreSql 2.x** (com suporte Npgsql 10)
-3. **Backend alternativo** (Hangfire.Pro.Redis, Hangfire.SqlServer)
-
-**Prioridade**: MÉDIA  
-**Monitorar**: <https://github.com/frankhommers/Hangfire.PostgreSql/issues>
+**Situação**: MONITORAMENTO CONTÍNUO (Issue #39 CLOSED, mitigado)  
+**Severidade**: MÉDIA  
+**Status**: Atualizado para **Hangfire.PostgreSql 1.21.1**.
+**Nota**: Compatibilidade com Npgsql 10.x validada em desenvolvimento. Aguardar versão 2.x para suporte oficial total.
 
 ---
 
-## 📋 Padronização de Records
-
-**Arquivo**: Múltiplos arquivos em `src/Shared/Contracts/**` e `src/Modules/**/Domain/**`  
-**Severidade**: MÉDIA (padronização importante)  
-**Sprint**: Sprint 7.16 (Dia 5, ~0.5 dia)
-
-**Descrição**: Existem dois padrões de sintaxe para records no projeto:
-
-**Padrão 1 - Positional Records**:
-```csharp
-public sealed record ModuleCoordinatesDto(double Latitude, double Longitude);
-```
-
-**Padrão 2 - Property-based Records**:
-```csharp
-public sealed record ModuleLocationDto
-{
-    public required double Latitude { get; init; }
-    public required double Longitude { get; init; }
-}
-```
-
-**Recomendação**:
-- DTOs simples → Positional Records
-- Value Objects com validação → Property-based Records
-
-**Ação Sugerida** (Sprint 7.16):
-- [ ] Padronizar records em `src/Shared/Contracts/**/*.cs`
-- [ ] Padronizar records em `src/Modules/**/Domain/**/*.cs`
-
-**Prioridade**: BAIXA  
-**Estimativa**: 2-3 horas
-
----
 
 ## 🔮 Melhorias Futuras (Backlog)
 
@@ -271,6 +160,13 @@ public sealed record ModuleLocationDto
 
 ---
 
+## ✅ Resumo de Débitos Técnicos Resolvidos (Sprint 8B.2 - Tech Excellence)
+
+### 🛡️ Final Technical Excellence - Automação e Padrões
+- ✅ **Automação Keycloak**: Implementado `KeycloakBootstrapService` no AppHost para criar automaticamente os clients via API REST do Keycloak durante a inicialização, substituindo a necessidade de scripts PowerShell externos.
+- ✅ **Refatoração Shared**: Extensões de monitoramento centralizadas em `MonitoringExtensions.cs`.
+- ✅ **Issue #113**: Configuração de logging de resiliência HTTP com Polly modernizada para injetar `ILogger` a partir do DI, corrigindo problemas de log tracking.
+- ✅ **Padronização de Records**: Sintaxe de DTOs atualizada para o formato "Positional Records" (ex: `ModuleDocumentDto`), mantendo a abordagem property-based apenas onde há validação complexa de domínio.
 ## 📝 Instruções para Mantenedores
 
 1. **Conversão para Issues**: Copiar descrição para GitHub issue com labels (`technical-debt`, `testing`, `enhancement`)

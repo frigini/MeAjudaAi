@@ -196,12 +196,11 @@ public sealed class DocumentsModuleApi(
                 return Result<ModuleDocumentStatusDto?>.Success(null);
             }
 
-            var statusDto = new ModuleDocumentStatusDto
-            {
-                DocumentId = document.Id,
-                Status = document.Status.ToString(),
-                UpdatedAt = document.VerifiedAt ?? document.UploadedAt
-            };
+            var statusDto = new ModuleDocumentStatusDto(
+                document.Id,
+                document.Status.ToString(),
+                document.VerifiedAt ?? document.UploadedAt
+            );
 
             return Result<ModuleDocumentStatusDto?>.Success(statusDto);
         }
@@ -361,14 +360,13 @@ public sealed class DocumentsModuleApi(
                 .GroupBy(d => d.Status)
                 .ToDictionary(g => g.Key, g => g.Count());
 
-            var count = new DocumentStatusCountDto
-            {
-                Total = documents.Count,
-                Pending = statusGroups.GetValueOrDefault(StatusString(EDocumentStatus.PendingVerification)),
-                Verified = statusGroups.GetValueOrDefault(StatusString(EDocumentStatus.Verified)),
-                Rejected = statusGroups.GetValueOrDefault(StatusString(EDocumentStatus.Rejected)),
-                Uploading = statusGroups.GetValueOrDefault(StatusString(EDocumentStatus.Uploaded))
-            };
+            var count = new DocumentStatusCountDto(
+                documents.Count,
+                statusGroups.GetValueOrDefault(StatusString(EDocumentStatus.PendingVerification)),
+                statusGroups.GetValueOrDefault(StatusString(EDocumentStatus.Verified)),
+                statusGroups.GetValueOrDefault(StatusString(EDocumentStatus.Rejected)),
+                statusGroups.GetValueOrDefault(StatusString(EDocumentStatus.Uploaded))
+            );
 
             return Result<DocumentStatusCountDto>.Success(count);
         }
@@ -445,18 +443,17 @@ public sealed class DocumentsModuleApi(
     /// </summary>
     private static ModuleDocumentDto MapToModuleDto(DocumentDto document)
     {
-        return new ModuleDocumentDto
-        {
-            Id = document.Id,
-            ProviderId = document.ProviderId,
-            DocumentType = TypeString(document.DocumentType),
-            FileName = document.FileName,
-            FileUrl = document.FileUrl,
-            Status = StatusString(document.Status),
-            UploadedAt = document.UploadedAt,
-            VerifiedAt = document.VerifiedAt,
-            RejectionReason = document.RejectionReason,
-            OcrData = document.OcrData
-        };
+        return new ModuleDocumentDto(
+            document.Id,
+            document.ProviderId,
+            TypeString(document.DocumentType),
+            document.FileName,
+            document.FileUrl,
+            StatusString(document.Status),
+            document.UploadedAt,
+            document.VerifiedAt,
+            document.RejectionReason,
+            document.OcrData
+        );
     }
 }

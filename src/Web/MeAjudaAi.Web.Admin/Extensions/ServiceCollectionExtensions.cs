@@ -1,5 +1,7 @@
 using MeAjudaAi.Web.Admin.Services;
 using MeAjudaAi.Web.Admin.Services.Resilience.Http;
+using Microsoft.Extensions.Http.Resilience;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Polly;
 using Refit;
@@ -38,42 +40,31 @@ public static class ServiceCollectionExtensions
             .AddHttpMessageHandler<PollyLoggingHandler>();
 
         // Adiciona políticas de resiliência baseadas no tipo de operação
-        if (useUploadPolicy)
-        {
-            // Política para uploads: retry mínimo (evita duplicação), timeout estendido, circuit breaker
-            httpClientBuilder.AddStandardResilienceHandler(options =>
+        var resilienceBuilder = httpClientBuilder.AddStandardResilienceHandler();
+        
+        services.AddOptions<HttpStandardResilienceOptions>(resilienceBuilder.PipelineName)
+            .Configure<IServiceProvider>((options, sp) =>
             {
-                // Retry mínimo (validação requer >= 1) mas ShouldHandle evita tentativas em uploads
-                options.Retry.MaxRetryAttempts = 1;
-                options.Retry.ShouldHandle = _ => PredicateResult.False();
-                
-                // Configura circuit breaker e timeout
-                // Logger injetado via ConfigurePrimaryHttpMessageHandler abaixo
-                ResiliencePolicies.ConfigureCircuitBreaker(options.CircuitBreaker, NullLogger.Instance);
-                ResiliencePolicies.ConfigureUploadTimeout(options.TotalRequestTimeout);
-            });
-        }
-        else
-        {
-            // Política padrão: retry + circuit breaker + timeout
-            httpClientBuilder.AddStandardResilienceHandler(options =>
-            {
-                // Logger injetado via ConfigurePrimaryHttpMessageHandler abaixo
-                ResiliencePolicies.ConfigureRetry(options.Retry, NullLogger.Instance);
-                ResiliencePolicies.ConfigureCircuitBreaker(options.CircuitBreaker, NullLogger.Instance);
-                ResiliencePolicies.ConfigureTimeout(options.TotalRequestTimeout);
-            });
-        }
+                var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+                var logger = loggerFactory.CreateLogger(typeof(ResiliencePolicies));
 
-        #pragma warning disable S1135 // TODOs intencionais de dívida técnica documentada
-        // TODO: Migrar logging de eventos Polly (OnRetry, OnOpened, etc.) para usar ILogger do DI
-        // LIMITAÇÃO: AddStandardResilienceHandler não suporta injeção de IServiceProvider
-        // OPÇÕES:
-        //   1. Usar ConfigurePrimaryHttpMessageHandler com factory que recebe IServiceProvider
-        //   2. Aguardar suporte em versão futura do Microsoft.Extensions.Http.Resilience
-        //   3. Implementar custom DelegatingHandler que envolve policies manualmente
-        // ATUAL: PollyLoggingHandler registra requisições HTTP (não eventos de política)
-        #pragma warning restore S1135
+                if (useUploadPolicy)
+                {
+                    // Política para uploads: retry mínimo (evita duplicação), timeout estendido, circuit breaker
+                    options.Retry.MaxRetryAttempts = 1;
+                    options.Retry.ShouldHandle = _ => PredicateResult.False();
+                    
+                    ResiliencePolicies.ConfigureCircuitBreaker(options.CircuitBreaker, logger);
+                    ResiliencePolicies.ConfigureUploadTimeout(options.TotalRequestTimeout);
+                }
+                else
+                {
+                    // Política padrão: retry + circuit breaker + timeout
+                    ResiliencePolicies.ConfigureRetry(options.Retry, logger);
+                    ResiliencePolicies.ConfigureCircuitBreaker(options.CircuitBreaker, logger);
+                    ResiliencePolicies.ConfigureTimeout(options.TotalRequestTimeout);
+                }
+            });
         
         return services;
     }

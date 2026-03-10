@@ -3,31 +3,14 @@ namespace MeAjudaAi.Contracts.Modules.Documents.DTOs;
 /// <summary>
 /// Contadores de documentos por status para um provider.
 /// </summary>
-public sealed record DocumentStatusCountDto
-{
-    /// <summary>
-    /// Total de documentos.
-    /// </summary>
-    public required int Total { get; init; }
-
-    /// <summary>
-    /// Documentos com upload completo aguardando verificação.
-    /// </summary>
-    public required int Pending { get; init; }
-
-    /// <summary>
-    /// Documentos verificados e aprovados.
-    /// </summary>
-    public required int Verified { get; init; }
-
-    /// <summary>
-    /// Documentos rejeitados.
-    /// </summary>
-    public required int Rejected { get; init; }
-
-    /// <summary>
-    /// Documentos em processo de upload.
-    /// </summary>
-    public required int Uploading { get; init; }
-}
-
+/// <param name="Total">Total de documentos.</param>
+/// <param name="Pending">Documentos com upload completo aguardando verificação.</param>
+/// <param name="Verified">Documentos verificados e aprovados.</param>
+/// <param name="Rejected">Documentos rejeitados.</param>
+/// <param name="Uploading">Documentos em processo de upload.</param>
+public sealed record DocumentStatusCountDto(
+    int Total,
+    int Pending,
+    int Verified,
+    int Rejected,
+    int Uploading);
