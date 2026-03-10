@@ -149,7 +149,7 @@ jobs:
           npx nx run MeAjudaAi.Web.Customer:build
 
           # 5. Run the affected build for the rest of the workspace
-          npx nx affected --target=build
+          npx nx affected --target=build --exclude=MeAjudaAi.Web.Customer
 
       - name: Prepare Aspire Integration Tests
         run: |
@@ -937,25 +937,9 @@ jobs:
           output: both
           thresholds: "80 90"
 
-      - name: Alternative Coverage Summary (Individual modules - OpenCover)
-        id: coverage_opencover_individual
-        if: ${{ always() && steps.coverage_cobertura_aggregate.outcome != 'success' }}
-        uses: irongut/CodeCoverageSummary@v1.3.0
-        with:
-          filename: "coverage/users/*.opencover.xml,coverage/providers/*.opencover.xml,coverage/documents/*.opencover.xml,coverage/servicecatalogs/*.opencover.xml,coverage/locations/*.opencover.xml,coverage/searchproviders/*.opencover.xml,coverage/shared/*.opencover.xml,coverage/apiservice/*.opencover.xml"
-          badge: true
-          fail_below_min: false
-          format: markdown
-          hide_branch_rate: false
-          hide_complexity: false
-          indicators: true
-          output: both
-          thresholds: "80 90"
-        continue-on-error: true
-
       - name: Alternative Coverage Summary (Cobertura format)
         id: coverage_cobertura
-        if: ${{ always() && steps.coverage_cobertura_aggregate.outcome != 'success' && steps.coverage_opencover_individual.outcome != 'success' }}
+        if: ${{ always() && steps.coverage_cobertura_aggregate.outcome != 'success' }}
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
           filename: "coverage/users/*.cobertura.xml,coverage/providers/*.cobertura.xml,coverage/documents/*.cobertura.xml,coverage/servicecatalogs/*.cobertura.xml,coverage/locations/*.cobertura.xml,coverage/searchproviders/*.cobertura.xml,coverage/shared/*.cobertura.xml,coverage/apiservice/*.cobertura.xml"
@@ -974,7 +958,6 @@ jobs:
         if: >-
           ${{ always() &&
               steps.coverage_cobertura_aggregate.outcome != 'success' &&
-              steps.coverage_opencover_individual.outcome != 'success' &&
               steps.coverage_cobertura.outcome != 'success' }}
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
@@ -1138,7 +1121,7 @@ jobs:
           coverage-directory: "./coverage"
           threshold: "90"
           strict-mode: ${{ env.STRICT_COVERAGE }}
-          opencover-outcome: ${{ steps.coverage_opencover_individual.outcome }}
+          opencover-outcome: ""
           cobertura-outcome: ${{ steps.coverage_cobertura.outcome }}
           fallback-outcome: ${{ steps.coverage_fallback.outcome }}
 

@@ -119,11 +119,11 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         if (logger.IsEnabled(LogLevel.Debug))
         {
             var sqlPreview = GetSqlPreview(sql);
-            logger.LogDebug("Operação Dapper falhou (tipo: {OperationType}). Preview do SQL: {SqlPreview}",
+            logger.LogDebug("Dapper operation failed (type: {OperationType}). SQL preview: {SqlPreview}",
                 operationType, sqlPreview);
         }
-        logger.LogError(ex, "Falha ao executar operação Dapper (tipo: {OperationType})", operationType);
-        throw new InvalidOperationException($"Falha ao executar operação Dapper (tipo: {operationType})", ex);
+        logger.LogError(ex, "Failed to execute Dapper operation (type: {OperationType})", operationType);
+        throw new InvalidOperationException($"Failed to execute Dapper operation (type: {operationType})", ex);
     }
 
     private static string? GetSqlPreview(string? sql)

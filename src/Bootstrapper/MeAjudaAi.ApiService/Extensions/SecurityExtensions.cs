@@ -175,7 +175,11 @@ public static class SecurityExtensions
                 config.GetSection(CorsOptions.SectionName).Bind(opts);
             });
 
-        if (!environment.IsEnvironment("Testing"))
+        var isTesting = environment.IsEnvironment("Testing") || 
+            string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Testing", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase);
+
+        if (!isTesting)
         {
             optionsBuilder.ValidateOnStart();
         }
@@ -183,7 +187,7 @@ public static class SecurityExtensions
         // Obtém opções de CORS para uso imediato na configuração da política
         var corsOptions = configuration.GetSection(CorsOptions.SectionName).Get<CorsOptions>() ?? new CorsOptions();
         
-        if (!environment.IsEnvironment("Testing"))
+        if (!isTesting)
         {
             corsOptions.Validate();
         }

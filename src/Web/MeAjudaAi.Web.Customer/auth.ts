@@ -68,7 +68,12 @@ export function validateCriticalEnvOnStartup() {
     if (process.env.SKIP_AUTH_ENV_VALIDATION === "true" || process.env.CI === "true") return;
 
     const requiredKeys = ["KEYCLOAK_CLIENT_ID", "KEYCLOAK_CLIENT_SECRET", "KEYCLOAK_ISSUER", "NEXTAUTH_SECRET"];
-    const missing = requiredKeys.filter(key => requireEnv(key) === "");
+    const missing = requiredKeys.filter(key => {
+        if (key === "NEXTAUTH_SECRET") {
+            return requireEnv("NEXTAUTH_SECRET") === "" && requireEnv("AUTH_SECRET") === "";
+        }
+        return requireEnv(key) === "";
+    });
     if (missing.length > 0) {
         throw new Error(`Critical environment variables missing at runtime: ${missing.join(", ")}`);
     }
@@ -218,8 +223,7 @@ export function auth(
         | [GetServerSidePropsContext["req"], GetServerSidePropsContext["res"]]
         | [NextApiRequest, NextApiResponse]
         | []
-): Promise<Session | null> {
+) {
     validateCriticalEnvOnStartup();
-    // @ts-ignore - TS has trouble with tuple spreading on overloads
-    return getServerSession(...args, authOptions)
+    return getServerSession(...args, authOptions);
 }

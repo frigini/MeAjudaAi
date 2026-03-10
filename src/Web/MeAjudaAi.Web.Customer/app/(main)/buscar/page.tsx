@@ -7,6 +7,7 @@ import { ServiceTags } from "@/components/search/service-tags";
 import { SearchFilters } from "@/components/search/search-filters";
 
 import { apiProvidersGet4, apiCategoryGet } from "@/lib/api/generated/sdk.gen";
+import type { ApiProvidersGet4Data } from "@/lib/api/generated";
 import { mapSearchableProviderToProvider } from "@/lib/api/mappers";
 import { geocodeCity } from "@/lib/services/geocoding";
 import { getAuthHeaders } from "@/lib/api/auth-headers";
@@ -84,9 +85,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             minRating: minRatingVal,
             page: 1,
             pageSize: 20,
-            // TODO: Remove 'as any' when SDK is regenerated to include 'term' in ApiProvidersGet3Data
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any,
+        } as ApiProvidersGet4Data["query"],
         headers,
     });
 

@@ -1,9 +1,11 @@
 using System.Text.Json.Serialization;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Contracts.Functional;
 
 public class Result<T>
 {
+    [MemberNotNullWhen(true, nameof(Value))]
     public bool IsSuccess { get; }
     public bool IsFailure => !IsSuccess;
     public T Value { get; }

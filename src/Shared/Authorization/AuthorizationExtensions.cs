@@ -104,7 +104,18 @@ public static class AuthorizationExtensions
             .ValidateDataAnnotations();
 
         // Evita crash durante carregamento estático do Swagger no pipeline de CI enviando ASPNETCORE_ENVIRONMENT=Testing
-        var isTesting = (environment?.IsEnvironment("Testing") ?? false) || Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing" || string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase);
+        bool isTesting = false;
+        if (environment != null)
+        {
+            isTesting = environment.IsEnvironment("Testing") || environment.IsEnvironment("Development");
+        }
+        else
+        {
+            var envVar = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            isTesting = string.Equals(envVar, "Testing", StringComparison.OrdinalIgnoreCase) || string.Equals(envVar, "Development", StringComparison.OrdinalIgnoreCase);
+        }
+        isTesting = isTesting || string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase);
+
         if (!isTesting)
         {
             optionsBuilder.ValidateOnStart();
