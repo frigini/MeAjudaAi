@@ -64,9 +64,11 @@
             "parallelism": true
           },
           "build": {
+            "outputs": [
+              "{workspaceRoot}/dist/MeAjudaAi.Web.Customer"
+            ],
             "options": {
               "cwd": "MeAjudaAi.Web.Customer",
-              "outputPath": "dist/MeAjudaAi.Web.Customer",
               "command": "next build"
             },
             "executor": "nx:run-commands",
@@ -11800,6 +11802,24 @@
         "hash": "sha512-un0zD/6qxJ+S0et7WxeI3H5XSe9lTBBR7bOHCHXkKR6luG5mwDDlIzVQ0V5cZCuoTgEdcdwzTghYkTWfubi+nA=="
       }
     },
+    "npm:jose": {
+      "type": "npm",
+      "name": "npm:jose",
+      "data": {
+        "version": "6.2.1",
+        "packageName": "jose",
+        "hash": "sha512-jUaKr1yrbfaImV7R2TN/b3IcZzsw38/chqMpo2XJ7i2F8AfM/lA4G1goC3JVEwg0H7UldTmSt3P68nt31W7/mw=="
+      }
+    },
+    "npm:jose@4.15.9": {
+      "type": "npm",
+      "name": "npm:jose@4.15.9",
+      "data": {
+        "version": "4.15.9",
+        "packageName": "jose",
+        "hash": "sha512-1vUQX+IdDMVPj4k8kOxgUqlcK518yluMuGZwqlr44FS1ppZB/5GWh4rZG89erpOBOJjU/OBsnCVFfapsRz6nEA=="
+      }
+    },
     "npm:js-tokens": {
       "type": "npm",
       "name": "npm:js-tokens",
@@ -12653,15 +12673,6 @@
         "version": "4.24.13",
         "packageName": "next-auth",
         "hash": "sha512-sgObCfcfL7BzIK76SS5TnQtc3yo2Oifp/yIpfv6fMfeBOiBJkDWF3A2y9+yqnmJ4JKc2C+nMjSjmgDeTwgN1rQ=="
-      }
-    },
-    "npm:jose@4.15.9": {
-      "type": "npm",
-      "name": "npm:jose@4.15.9",
-      "data": {
-        "version": "4.15.9",
-        "packageName": "jose",
-        "hash": "sha512-1vUQX+IdDMVPj4k8kOxgUqlcK518yluMuGZwqlr44FS1ppZB/5GWh4rZG89erpOBOJjU/OBsnCVFfapsRz6nEA=="
       }
     },
     "npm:preact-render-to-string@5.2.6": {
@@ -16008,6 +16019,11 @@
       {
         "source": "MeAjudaAi.Web.Customer",
         "target": "npm:zod",
+        "type": "static"
+      },
+      {
+        "source": "MeAjudaAi.Web.Customer",
+        "target": "npm:jose",
         "type": "static"
       },
       {
@@ -39594,5 +39610,5 @@
   },
   "version": "6.0",
   "errors": [],
-  "computedAt": 1773151018445
+  "computedAt": 1773152157434
 }

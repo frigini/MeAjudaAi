@@ -11511,6 +11511,24 @@
         "hash": "sha512-un0zD/6qxJ+S0et7WxeI3H5XSe9lTBBR7bOHCHXkKR6luG5mwDDlIzVQ0V5cZCuoTgEdcdwzTghYkTWfubi+nA=="
       }
     },
+    "npm:jose": {
+      "type": "npm",
+      "name": "npm:jose",
+      "data": {
+        "version": "6.2.1",
+        "packageName": "jose",
+        "hash": "sha512-jUaKr1yrbfaImV7R2TN/b3IcZzsw38/chqMpo2XJ7i2F8AfM/lA4G1goC3JVEwg0H7UldTmSt3P68nt31W7/mw=="
+      }
+    },
+    "npm:jose@4.15.9": {
+      "type": "npm",
+      "name": "npm:jose@4.15.9",
+      "data": {
+        "version": "4.15.9",
+        "packageName": "jose",
+        "hash": "sha512-1vUQX+IdDMVPj4k8kOxgUqlcK518yluMuGZwqlr44FS1ppZB/5GWh4rZG89erpOBOJjU/OBsnCVFfapsRz6nEA=="
+      }
+    },
     "npm:js-tokens": {
       "type": "npm",
       "name": "npm:js-tokens",
@@ -12364,15 +12382,6 @@
         "version": "4.24.13",
         "packageName": "next-auth",
         "hash": "sha512-sgObCfcfL7BzIK76SS5TnQtc3yo2Oifp/yIpfv6fMfeBOiBJkDWF3A2y9+yqnmJ4JKc2C+nMjSjmgDeTwgN1rQ=="
-      }
-    },
-    "npm:jose@4.15.9": {
-      "type": "npm",
-      "name": "npm:jose@4.15.9",
-      "data": {
-        "version": "4.15.9",
-        "packageName": "jose",
-        "hash": "sha512-1vUQX+IdDMVPj4k8kOxgUqlcK518yluMuGZwqlr44FS1ppZB/5GWh4rZG89erpOBOJjU/OBsnCVFfapsRz6nEA=="
       }
     },
     "npm:preact-render-to-string@5.2.6": {
@@ -17168,6 +17177,7 @@
     "node_modules/jest/node_modules/@jest/types": "npm:@jest/types@29.6.3",
     "node_modules/jest/node_modules/@sinclair/typebox": "npm:@sinclair/typebox@0.27.10",
     "node_modules/jiti": "npm:jiti",
+    "node_modules/jose": "npm:jose",
     "node_modules/js-tokens": "npm:js-tokens",
     "node_modules/js-yaml": "npm:js-yaml",
     "node_modules/js-yaml/node_modules/argparse": "npm:argparse@1.0.10",

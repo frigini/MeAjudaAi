@@ -188,6 +188,10 @@
       "MeAjudaAi.Web.Customer/project.json",
       "nx/core/project-json"
     ],
+    "targets.build.outputs": [
+      "MeAjudaAi.Web.Customer/project.json",
+      "nx/core/project-json"
+    ],
     "targets.build.options": [
       "MeAjudaAi.Web.Customer/project.json",
       "nx/core/project-json"
@@ -197,10 +201,6 @@
       "nx/core/project-json"
     ],
     "targets.build.options.cwd": [
-      "MeAjudaAi.Web.Customer/project.json",
-      "nx/core/project-json"
-    ],
-    "targets.build.options.outputPath": [
       "MeAjudaAi.Web.Customer/project.json",
       "nx/core/project-json"
     ],

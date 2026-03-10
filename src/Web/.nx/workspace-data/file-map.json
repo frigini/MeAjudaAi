@@ -38,40 +38,6 @@
   "fileMap": {
     "nonProjectFiles": [],
     "projectFileMap": {
-      "ui": [
-        {
-          "file": "libs/ui/.babelrc",
-          "hash": "2946678488919325452"
-        },
-        {
-          "file": "libs/ui/README.md",
-          "hash": "2776327953747952561"
-        },
-        {
-          "file": "libs/ui/project.json",
-          "hash": "12196302964876651695"
-        },
-        {
-          "file": "libs/ui/src/index.ts",
-          "hash": "5977848407072712979"
-        },
-        {
-          "file": "libs/ui/src/lib/ui.module.css",
-          "hash": "125145030238681982"
-        },
-        {
-          "file": "libs/ui/src/lib/ui.tsx",
-          "hash": "16860297995266507296"
-        },
-        {
-          "file": "libs/ui/tsconfig.json",
-          "hash": "15300829398943254843"
-        },
-        {
-          "file": "libs/ui/tsconfig.lib.json",
-          "hash": "1716960421443518508"
-        }
-      ],
       "auth": [
         {
           "file": "libs/auth/.babelrc",
@@ -304,6 +270,7 @@
           "hash": "5596004534442397248",
           "deps": [
             "npm:next-auth",
+            "npm:jose",
             "npm:next"
           ]
         },
@@ -884,7 +851,7 @@
         },
         {
           "file": "MeAjudaAi.Web.Customer/project.json",
-          "hash": "3064554064692908222"
+          "hash": "3405767268039049710"
         },
         {
           "file": "MeAjudaAi.Web.Customer/public/assets/illustrations/how-it-works-1.png",
@@ -999,7 +966,7 @@
         },
         {
           "file": "MeAjudaAi.Web.Customer/tsconfig.json",
-          "hash": "13985194767761761845"
+          "hash": "3094654780010391340"
         },
         {
           "file": "MeAjudaAi.Web.Customer/types/api.ts",
@@ -1780,18 +1747,52 @@
         },
         {
           "file": "package-lock.json",
-          "hash": "1764805315184480281"
+          "hash": "17468486807055461081"
         },
         {
           "file": "package.json",
-          "hash": "6957644746029536148"
+          "hash": "4186032710906571961"
         },
         {
           "file": "tsconfig.base.json",
           "hash": "17316861996223763565"
         }
+      ],
+      "ui": [
+        {
+          "file": "libs/ui/.babelrc",
+          "hash": "2946678488919325452"
+        },
+        {
+          "file": "libs/ui/README.md",
+          "hash": "2776327953747952561"
+        },
+        {
+          "file": "libs/ui/project.json",
+          "hash": "12196302964876651695"
+        },
+        {
+          "file": "libs/ui/src/index.ts",
+          "hash": "5977848407072712979"
+        },
+        {
+          "file": "libs/ui/src/lib/ui.module.css",
+          "hash": "125145030238681982"
+        },
+        {
+          "file": "libs/ui/src/lib/ui.tsx",
+          "hash": "16860297995266507296"
+        },
+        {
+          "file": "libs/ui/tsconfig.json",
+          "hash": "15300829398943254843"
+        },
+        {
+          "file": "libs/ui/tsconfig.lib.json",
+          "hash": "1716960421443518508"
+        }
       ]
     }
   },
-  "externalNodesHash": "16223753710437229635"
+  "externalNodesHash": "17647490876896172785"
 }

@@ -1,8 +1,8 @@
 {
   "run": {
     "command": "nx run MeAjudaAi.Web.Customer:build",
-    "startTime": "2026-03-10T14:13:21.975Z",
-    "endTime": "2026-03-10T14:13:24.936Z",
+    "startTime": "2026-03-10T14:21:35.688Z",
+    "endTime": "2026-03-10T14:22:07.163Z",
     "inner": false
   },
   "tasks": [
@@ -10,12 +10,12 @@
       "taskId": "MeAjudaAi.Web.Customer:build",
       "target": "build",
       "projectName": "MeAjudaAi.Web.Customer",
-      "hash": "17082904554382435387",
-      "startTime": "2026-03-10T14:13:21.987Z",
-      "endTime": "2026-03-10T14:13:24.933Z",
+      "hash": "1312943763128594784",
+      "startTime": "2026-03-10T14:21:35.700Z",
+      "endTime": "2026-03-10T14:22:07.160Z",
       "params": "",
       "cacheStatus": "cache-miss",
-      "status": 1
+      "status": 0
     }
   ]
 }

@@ -44,14 +44,15 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
             var allQueues = new List<string> { _options.DefaultQueueName };
             allQueues.AddRange(_options.DomainQueues.Values);
 
-            foreach (var eventType in eventTypes)
+            var eventNames = eventTypes.Select(e => e.Name);
+            foreach (var eventName in eventNames)
             {
                 foreach (var queueName in allQueues)
                 {
-                    await BindQueueToExchangeAsync(queueName, exchangeName, eventType.Name);
+                    await BindQueueToExchangeAsync(queueName, exchangeName, eventName);
 
                     _logger.LogDebug("Infrastructure created for event type {EventType}: exchange={Exchange}, queue={Queue}",
-                        eventType.Name, exchangeName, queueName);
+                        eventName, exchangeName, queueName);
                 }
             }
 
