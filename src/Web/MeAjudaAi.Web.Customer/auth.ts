@@ -1,4 +1,4 @@
-import { type NextAuthOptions } from "next-auth"
+import { type NextAuthOptions, type Session } from "next-auth"
 import Keycloak from "next-auth/providers/keycloak"
 import Credentials from "next-auth/providers/credentials"
 import { JWT } from "next-auth/jwt"
@@ -218,7 +218,8 @@ export function auth(
         | [GetServerSidePropsContext["req"], GetServerSidePropsContext["res"]]
         | [NextApiRequest, NextApiResponse]
         | []
-) {
+): Promise<Session | null> {
     validateCriticalEnvOnStartup();
+    // @ts-ignore - TS has trouble with tuple spreading on overloads
     return getServerSession(...args, authOptions)
 }
