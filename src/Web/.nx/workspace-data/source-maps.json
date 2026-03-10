@@ -319,67 +319,67 @@
       "@nx/eslint/plugin"
     ],
     "targets.test": [
-      "libs/api-client/jest.config.cts",
+      "libs/api-client/jest.config.ts",
       "@nx/jest/plugin"
     ],
     "targets.test.options": [
-      "libs/api-client/jest.config.cts",
+      "libs/api-client/jest.config.ts",
       "@nx/jest/plugin"
     ],
     "targets.test.metadata": [
-      "libs/api-client/jest.config.cts",
+      "libs/api-client/jest.config.ts",
       "@nx/jest/plugin"
     ],
     "targets.test.cache": [
-      "libs/api-client/jest.config.cts",
+      "libs/api-client/jest.config.ts",
       "@nx/jest/plugin"
     ],
     "targets.test.inputs": [
-      "libs/api-client/jest.config.cts",
+      "libs/api-client/jest.config.ts",
       "@nx/jest/plugin"
     ],
     "targets.test.outputs": [
-      "libs/api-client/jest.config.cts",
+      "libs/api-client/jest.config.ts",
       "@nx/jest/plugin"
     ],
     "targets.test.executor": [
-      "libs/api-client/jest.config.cts",
+      "libs/api-client/jest.config.ts",
       "@nx/jest/plugin"
     ],
     "targets.test.options.cwd": [
-      "libs/api-client/jest.config.cts",
+      "libs/api-client/jest.config.ts",
       "@nx/jest/plugin"
     ],
     "targets.test.options.env": [
-      "libs/api-client/jest.config.cts",
+      "libs/api-client/jest.config.ts",
       "@nx/jest/plugin"
     ],
     "targets.test.options.command": [
-      "libs/api-client/jest.config.cts",
+      "libs/api-client/jest.config.ts",
       "@nx/jest/plugin"
     ],
     "targets.test.metadata.technologies": [
-      "libs/api-client/jest.config.cts",
+      "libs/api-client/jest.config.ts",
       "@nx/jest/plugin"
     ],
     "targets.test.metadata.technologies.0": [
-      "libs/api-client/jest.config.cts",
+      "libs/api-client/jest.config.ts",
       "@nx/jest/plugin"
     ],
     "targets.test.metadata.description": [
-      "libs/api-client/jest.config.cts",
+      "libs/api-client/jest.config.ts",
       "@nx/jest/plugin"
     ],
     "targets.test.metadata.help": [
-      "libs/api-client/jest.config.cts",
+      "libs/api-client/jest.config.ts",
       "@nx/jest/plugin"
     ],
     "targets.test.metadata.help.command": [
-      "libs/api-client/jest.config.cts",
+      "libs/api-client/jest.config.ts",
       "@nx/jest/plugin"
     ],
     "targets.test.metadata.help.example": [
-      "libs/api-client/jest.config.cts",
+      "libs/api-client/jest.config.ts",
       "@nx/jest/plugin"
     ],
     "name": [

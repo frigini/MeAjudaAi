@@ -37,725 +37,121 @@
   ],
   "fileMap": {
     "projectFileMap": {
-      "meajudaai": [
+      "auth": [
         {
-          "file": ".eslintignore",
-          "hash": "7663861978715868291"
+          "file": "libs/auth/.babelrc",
+          "hash": "2946678488919325452"
         },
         {
-          "file": ".eslintrc.json",
-          "hash": "7925239667693835712"
+          "file": "libs/auth/README.md",
+          "hash": "17993389933539474821"
         },
         {
-          "file": ".prettierignore",
-          "hash": "14688272390704683536"
+          "file": "libs/auth/project.json",
+          "hash": "5557756192986611310"
         },
         {
-          "file": ".prettierrc",
-          "hash": "16267754514737964994"
+          "file": "libs/auth/src/index.ts",
+          "hash": "5372805174801174427"
         },
         {
-          "file": "MeAjudaAi.Web.Admin/.editorconfig",
-          "hash": "2489675225256057148"
+          "file": "libs/auth/src/lib/auth.module.css",
+          "hash": "7065692593190935986"
         },
         {
-          "file": "MeAjudaAi.Web.Admin/App.razor",
-          "hash": "13066508138178467452"
+          "file": "libs/auth/src/lib/auth.tsx",
+          "hash": "3082075392421887603"
         },
         {
-          "file": "MeAjudaAi.Web.Admin/Authentication/CustomAccountClaimsPrincipalFactory.cs",
-          "hash": "12863004207794078344"
+          "file": "libs/auth/tsconfig.json",
+          "hash": "14088618039610991405"
         },
         {
-          "file": "MeAjudaAi.Web.Admin/Authentication/Fakes/FakeAccessTokenProvider.cs",
-          "hash": "2054625144006197932"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Authentication/Fakes/FakeAuthenticationStateProvider.cs",
-          "hash": "2708483576996312686"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Authorization/PolicyNames.cs",
-          "hash": "8955795557243265104"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Authorization/RoleNames.cs",
-          "hash": "17866457182086873131"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Components/Accessibility/LiveRegionAnnouncer.razor",
-          "hash": "15693677401639557501"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Components/Accessibility/SkipToContent.razor",
-          "hash": "14855028826919712649"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Components/AuthorizeView.razor",
-          "hash": "3035058553928462422"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Components/Common/LanguageSwitcher.razor",
-          "hash": "10650620081743181535"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/CreateAllowedCityDialog.razor",
-          "hash": "8731632504775266964"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/CreateCategoryDialog.razor",
-          "hash": "17657006552256589612"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/CreateServiceDialog.razor",
-          "hash": "11305201248239629175"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/EditAllowedCityDialog.razor",
-          "hash": "11084983780228436302"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/EditCategoryDialog.razor",
-          "hash": "13359866047308858523"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/EditProviderDialog.razor",
-          "hash": "12996362614907532209"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/EditServiceDialog.razor",
-          "hash": "5364398040294156898"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/ProviderSelectorDialog.razor",
-          "hash": "12986005065927775903"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/UploadDocumentDialog.razor",
-          "hash": "14671271171671344723"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/VerifyProviderDialog.razor",
-          "hash": "2975113086146069390"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Components/Errors/ErrorBoundaryContent.razor",
-          "hash": "10963818740673532510"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Components/FluentValidator.razor",
-          "hash": "550071962256826013"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Configuration/ContentSecurityPolicyConfiguration.cs",
-          "hash": "13279902484553012886"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Constants/Modules/Common/CommonConstants.cs",
-          "hash": "13277574019412727181"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Constants/Modules/Documents/DocumentConstants.cs",
-          "hash": "12798369585306317854"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Constants/Modules/Providers/ProviderConstants.cs",
-          "hash": "12609499466684475068"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/DTOs/UploadDocumentDto.cs",
-          "hash": "1941213504820336374"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Directory.Build.props",
-          "hash": "5035227804152121939"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Extensions/FluxorEffectExtensions.cs",
-          "hash": "14694946205976985790"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Extensions/ServiceCollectionExtensions.cs",
-          "hash": "8610219268297451058"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Extensions/ValidationExtensions.cs",
-          "hash": "14916167236782303051"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Dashboard/DashboardActions.cs",
-          "hash": "13628563927633123721"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Dashboard/DashboardEffects.cs",
-          "hash": "12769064535505005002"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Dashboard/DashboardReducers.cs",
-          "hash": "1147274569049840350"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Dashboard/DashboardState.cs",
-          "hash": "7809508624468483839"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Errors/ErrorActions.cs",
-          "hash": "6195286510334714453"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Errors/ErrorFeature.cs",
-          "hash": "1553563787770601355"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Errors/ErrorReducers.cs",
-          "hash": "8187459441342546009"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Errors/ErrorState.cs",
-          "hash": "5619255110935453331"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Modules/Documents/DocumentsActions.cs",
-          "hash": "8790934697677140291"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Modules/Documents/DocumentsEffects.cs",
-          "hash": "15221626166337259807"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Modules/Documents/DocumentsReducers.cs",
-          "hash": "1596524500485555380"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Modules/Documents/DocumentsState.cs",
-          "hash": "608646260366661309"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Modules/Locations/LocationsActions.cs",
-          "hash": "9013720238051623618"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Modules/Locations/LocationsEffects.cs",
-          "hash": "10288651785692451700"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Modules/Locations/LocationsReducers.cs",
-          "hash": "12384685213178685382"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Modules/Locations/LocationsState.cs",
-          "hash": "1739238407288502134"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Modules/Providers/ProvidersActions.cs",
-          "hash": "8381405757922811825"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Modules/Providers/ProvidersEffects.cs",
-          "hash": "2139992946958395227"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Modules/Providers/ProvidersReducers.cs",
-          "hash": "17865063992433082964"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Modules/Providers/ProvidersState.cs",
-          "hash": "6356739617943181785"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Modules/ServiceCatalogs/ServiceCatalogsActions.cs",
-          "hash": "13812667749883882794"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Modules/ServiceCatalogs/ServiceCatalogsEffects.cs",
-          "hash": "4453448335926715208"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Modules/ServiceCatalogs/ServiceCatalogsReducers.cs",
-          "hash": "395653962904022262"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Modules/ServiceCatalogs/ServiceCatalogsState.cs",
-          "hash": "12860155259175621463"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Theme/ThemeActions.cs",
-          "hash": "15163450862931680599"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Theme/ThemeReducers.cs",
-          "hash": "10912288019018482506"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Features/Theme/ThemeState.cs",
-          "hash": "7397785852909542083"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Helpers/Accessibility/AriaHelper.cs",
-          "hash": "9991262555832808158"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Helpers/Accessibility/ColorContrastHelper.cs",
-          "hash": "7527107398288672696"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Helpers/Accessibility/KeyboardNavigationHelper.cs",
-          "hash": "12898313998505593331"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Helpers/Accessibility/LiveRegionHelper.cs",
-          "hash": "15795003797867782621"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Helpers/InputSanitizer.cs",
-          "hash": "15831049879547780249"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Helpers/PerformanceHelper.cs",
-          "hash": "3442752209379575064"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Layout/EmptyLayout.razor",
-          "hash": "3662245173339074122"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Layout/MainLayout.razor",
-          "hash": "2699211552757778785"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Layout/MainLayout.razor.css",
-          "hash": "8474610784119765016"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Layout/NavMenu.razor",
-          "hash": "7164774612255597384"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Layout/NavMenu.razor.css",
-          "hash": "16122775199391379158"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/MeAjudaAi.Web.Admin.csproj",
-          "hash": "11837234129395279952"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Pages/AllowedCities.razor",
-          "hash": "9261375243899188734"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Pages/Authentication.razor",
-          "hash": "4291366110340600490"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Pages/Categories.razor",
-          "hash": "10342262353925638108"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Pages/Dashboard.razor",
-          "hash": "10571255968327417519"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Pages/Documents.razor",
-          "hash": "1708902541396058617"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Pages/NotFound.razor",
-          "hash": "11282212579639514790"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Pages/Providers.razor",
-          "hash": "17323187587349915484"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Pages/Services.razor",
-          "hash": "13871114015303675554"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Pages/Settings.razor",
-          "hash": "13776809074973187102"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Program.cs",
-          "hash": "10391581721083757479"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/README.md",
-          "hash": "512948440462824724"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Resources/Strings.cs",
-          "hash": "15598423324646694703"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Resources/Strings.en.resx",
-          "hash": "17341432811062333016"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Resources/Strings.pt-BR.resx",
-          "hash": "12475998638430578235"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/ApiAuthorizationMessageHandler.cs",
-          "hash": "5546182192996104706"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/ConfigurationService.cs",
-          "hash": "14390755937995238121"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/CorrelationIdProvider.cs",
-          "hash": "6129448651925595455"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/ErrorHandlingService.cs",
-          "hash": "16135959762474110315"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/ErrorLoggingService.cs",
-          "hash": "14094423233937808809"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/FluentValidationValidator.cs",
-          "hash": "6613709839078471097"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/Interfaces/IConfigurationService.cs",
-          "hash": "18056356853765858530"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/Interfaces/ICorrelationIdProvider.cs",
-          "hash": "2942036002303574831"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/Interfaces/IPermissionService.cs",
-          "hash": "1751141740922972317"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/LiveRegionService.cs",
-          "hash": "5474131470569595527"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/OidcDebugService.cs",
-          "hash": "8635874601560061448"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/PermissionService.cs",
-          "hash": "1983251581582595406"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/Resilience/Http/ApiErrorMessages.cs",
-          "hash": "13492895462721676671"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/Resilience/Http/ConnectionStatus.cs",
-          "hash": "6002798255292736221"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/Resilience/Http/ConnectionStatusService.cs",
-          "hash": "15435556278394882964"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/Resilience/Http/PollyLoggingHandler.cs",
-          "hash": "774224953843150024"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/Resilience/Http/PollyPolicies.cs",
-          "hash": "5575526450684746749"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Services/Resilience/Interfaces/IConnectionStatusService.cs",
-          "hash": "15121939806020655849"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Shared/ConnectionStatusIndicator.razor",
-          "hash": "6472264855847931137"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Shared/RedirectToLogin.razor",
-          "hash": "14024780648866723868"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Themes/BrandTheme.cs",
-          "hash": "14101701033949114491"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Validators/BusinessProfileDtoValidator.cs",
-          "hash": "10521178950497564120"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Validators/BusinessProfileUpdateDtoValidator.cs",
-          "hash": "13122233100114308460"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Validators/ContactInfoDtoValidator.cs",
-          "hash": "5558611096674449585"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Validators/ContactInfoUpdateDtoValidator.cs",
-          "hash": "8117458211785213257"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Validators/CreateProviderRequestDtoValidator.cs",
-          "hash": "7998758769064764767"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Validators/PrimaryAddressDtoValidator.cs",
-          "hash": "16031722385398798277"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Validators/PrimaryAddressUpdateDtoValidator.cs",
-          "hash": "18929191843026040"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Validators/UpdateProviderRequestDtoValidator.cs",
-          "hash": "13651945439622734922"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Validators/UploadDocumentDtoValidator.cs",
-          "hash": "13153044573704204877"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/Validators/UploadDocumentValidator.cs",
-          "hash": "8183208680634954728"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/_Imports.razor",
-          "hash": "12179286396659353789"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/packages.lock.json",
-          "hash": "13020869853323377474"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/appsettings.json",
-          "hash": "18339924860334990582"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/css/app.css",
-          "hash": "14548013066918814761"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/favicon.png",
-          "hash": "9970062550746271084"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/icon-192.png",
-          "hash": "9856232370300383825"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/index.html",
-          "hash": "12618718567779959572"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.css",
-          "hash": "13361063087755040908"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.css.map",
-          "hash": "13093016512534628959"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.min.css",
-          "hash": "1298747518804534278"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.min.css.map",
-          "hash": "7504183865409037490"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.rtl.css",
-          "hash": "8058059552110470238"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.rtl.css.map",
-          "hash": "17311017314821821198"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.rtl.min.css",
-          "hash": "15491994538521677292"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.rtl.min.css.map",
-          "hash": "10558975443824107117"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.css",
-          "hash": "3986620088824398680"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.css.map",
-          "hash": "4965657789910828011"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.min.css",
-          "hash": "5967511845568572087"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.min.css.map",
-          "hash": "10226914534361362966"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.css",
-          "hash": "6641965436401681934"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.css.map",
-          "hash": "16707299635636408978"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.min.css",
-          "hash": "14323482241527641267"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.min.css.map",
-          "hash": "17579818180635891810"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.css",
-          "hash": "7565842964613439704"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.css.map",
-          "hash": "13668896650096423355"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.min.css",
-          "hash": "6442412538019938399"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.min.css.map",
-          "hash": "359690625304593706"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.rtl.css",
-          "hash": "7112993198915588424"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.rtl.css.map",
-          "hash": "15051738346593897543"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.rtl.min.css",
-          "hash": "5097029183338941435"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.rtl.min.css.map",
-          "hash": "764506484613701313"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap.css",
-          "hash": "6045139082089988151"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap.css.map",
-          "hash": "17928596059889972445"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css",
-          "hash": "6057481120139076252"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css.map",
-          "hash": "18320298362337037635"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.css",
-          "hash": "4565577310105701131"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.css.map",
-          "hash": "3039135191913743374"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.min.css",
-          "hash": "13838974934903121457"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.min.css.map",
-          "hash": "2891175286255408343"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js",
-          "hash": "4942909712610361744"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js.map",
-          "hash": "1358295619535981082"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.min.js",
-          "hash": "14311896893599484492"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.min.js.map",
-          "hash": "2980301490036357862"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js",
-          "hash": "4052980006086928140"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js.map",
-          "hash": "659676684096411414"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.min.js",
-          "hash": "2273262857717292900"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.min.js.map",
-          "hash": "13813359128624479507"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.js",
-          "hash": "7328868546195107114"
-        },
-        {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.js.map",
-          "hash": "3594757716259117406"
-        },
+          "file": "libs/auth/tsconfig.lib.json",
+          "hash": "1716960421443518508"
+        }
+      ],
+      "api-client": [
         {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.min.js",
-          "hash": "12130937542252528446"
+          "file": "libs/api-client/.eslintrc.json",
+          "hash": "4425593761835707319"
         },
         {
-          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.min.js.map",
-          "hash": "9921841260499000793"
+          "file": "libs/api-client/README.md",
+          "hash": "7690025743337817772"
         },
         {
-          "file": "config/tailwind.extension.json",
-          "hash": "18442621928245168095"
+          "file": "libs/api-client/jest.config.ts",
+          "hash": "10866030630579523546"
         },
         {
-          "file": "jest.config.ts",
-          "hash": "6870352021923392442",
+          "file": "libs/api-client/package.json",
+          "hash": "17148403056376788448",
           "deps": [
-            "npm:jest",
-            "npm:@nx/jest"
+            "npm:tslib"
           ]
         },
         {
-          "file": "jest.preset.js",
-          "hash": "9430166341120122740",
-          "deps": [
-            "npm:@nx/jest"
-          ]
+          "file": "libs/api-client/project.json",
+          "hash": "7519435240762900947"
         },
         {
-          "file": "nx.json",
-          "hash": "427843785565833278"
+          "file": "libs/api-client/src/index.ts",
+          "hash": "3652867921044571464"
         },
         {
-          "file": "package-lock.json",
-          "hash": "4363883953046576710"
+          "file": "libs/api-client/src/lib/api-client.spec.ts",
+          "hash": "10989764187796259894"
         },
         {
-          "file": "package.json",
-          "hash": "1397705712722301249"
+          "file": "libs/api-client/src/lib/api-client.ts",
+          "hash": "16389761208029192698"
         },
         {
-          "file": "tsconfig.base.json",
-          "hash": "17316861996223763565"
+          "file": "libs/api-client/tsconfig.json",
+          "hash": "12975668481162286788"
+        },
+        {
+          "file": "libs/api-client/tsconfig.lib.json",
+          "hash": "13731893420473560347"
+        },
+        {
+          "file": "libs/api-client/tsconfig.spec.json",
+          "hash": "16525625033488719121"
+        }
+      ],
+      "ui": [
+        {
+          "file": "libs/ui/.babelrc",
+          "hash": "2946678488919325452"
+        },
+        {
+          "file": "libs/ui/README.md",
+          "hash": "2776327953747952561"
+        },
+        {
+          "file": "libs/ui/project.json",
+          "hash": "12196302964876651695"
+        },
+        {
+          "file": "libs/ui/src/index.ts",
+          "hash": "5977848407072712979"
+        },
+        {
+          "file": "libs/ui/src/lib/ui.module.css",
+          "hash": "125145030238681982"
+        },
+        {
+          "file": "libs/ui/src/lib/ui.tsx",
+          "hash": "16860297995266507296"
+        },
+        {
+          "file": "libs/ui/tsconfig.json",
+          "hash": "15300829398943254843"
+        },
+        {
+          "file": "libs/ui/tsconfig.lib.json",
+          "hash": "1716960421443518508"
         }
       ],
       "MeAjudaAi.Web.Customer": [
@@ -1666,121 +1062,725 @@
           "hash": "4186011497261013548"
         }
       ],
-      "api-client": [
+      "meajudaai": [
         {
-          "file": "libs/api-client/.eslintrc.json",
-          "hash": "4425593761835707319"
+          "file": ".eslintignore",
+          "hash": "7663861978715868291"
         },
         {
-          "file": "libs/api-client/README.md",
-          "hash": "7690025743337817772"
+          "file": ".eslintrc.json",
+          "hash": "7925239667693835712"
         },
         {
-          "file": "libs/api-client/jest.config.cts",
-          "hash": "15827223624473461885"
+          "file": ".prettierignore",
+          "hash": "14688272390704683536"
         },
         {
-          "file": "libs/api-client/package.json",
-          "hash": "1521603141037218740",
+          "file": ".prettierrc",
+          "hash": "16267754514737964994"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/.editorconfig",
+          "hash": "2489675225256057148"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/App.razor",
+          "hash": "13066508138178467452"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Authentication/CustomAccountClaimsPrincipalFactory.cs",
+          "hash": "12863004207794078344"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Authentication/Fakes/FakeAccessTokenProvider.cs",
+          "hash": "2054625144006197932"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Authentication/Fakes/FakeAuthenticationStateProvider.cs",
+          "hash": "2708483576996312686"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Authorization/PolicyNames.cs",
+          "hash": "8955795557243265104"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Authorization/RoleNames.cs",
+          "hash": "17866457182086873131"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Components/Accessibility/LiveRegionAnnouncer.razor",
+          "hash": "15693677401639557501"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Components/Accessibility/SkipToContent.razor",
+          "hash": "14855028826919712649"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Components/AuthorizeView.razor",
+          "hash": "3035058553928462422"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Components/Common/LanguageSwitcher.razor",
+          "hash": "10650620081743181535"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/CreateAllowedCityDialog.razor",
+          "hash": "8731632504775266964"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/CreateCategoryDialog.razor",
+          "hash": "17657006552256589612"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/CreateServiceDialog.razor",
+          "hash": "11305201248239629175"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/EditAllowedCityDialog.razor",
+          "hash": "11084983780228436302"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/EditCategoryDialog.razor",
+          "hash": "13359866047308858523"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/EditProviderDialog.razor",
+          "hash": "12996362614907532209"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/EditServiceDialog.razor",
+          "hash": "5364398040294156898"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/ProviderSelectorDialog.razor",
+          "hash": "12986005065927775903"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/UploadDocumentDialog.razor",
+          "hash": "14671271171671344723"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Components/Dialogs/VerifyProviderDialog.razor",
+          "hash": "2975113086146069390"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Components/Errors/ErrorBoundaryContent.razor",
+          "hash": "10963818740673532510"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Components/FluentValidator.razor",
+          "hash": "550071962256826013"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Configuration/ContentSecurityPolicyConfiguration.cs",
+          "hash": "13279902484553012886"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Constants/Modules/Common/CommonConstants.cs",
+          "hash": "13277574019412727181"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Constants/Modules/Documents/DocumentConstants.cs",
+          "hash": "12798369585306317854"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Constants/Modules/Providers/ProviderConstants.cs",
+          "hash": "12609499466684475068"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/DTOs/UploadDocumentDto.cs",
+          "hash": "1941213504820336374"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Directory.Build.props",
+          "hash": "5035227804152121939"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Extensions/FluxorEffectExtensions.cs",
+          "hash": "14694946205976985790"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Extensions/ServiceCollectionExtensions.cs",
+          "hash": "8610219268297451058"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Extensions/ValidationExtensions.cs",
+          "hash": "14916167236782303051"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Dashboard/DashboardActions.cs",
+          "hash": "13628563927633123721"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Dashboard/DashboardEffects.cs",
+          "hash": "12769064535505005002"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Dashboard/DashboardReducers.cs",
+          "hash": "1147274569049840350"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Dashboard/DashboardState.cs",
+          "hash": "7809508624468483839"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Errors/ErrorActions.cs",
+          "hash": "6195286510334714453"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Errors/ErrorFeature.cs",
+          "hash": "1553563787770601355"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Errors/ErrorReducers.cs",
+          "hash": "8187459441342546009"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Errors/ErrorState.cs",
+          "hash": "5619255110935453331"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Modules/Documents/DocumentsActions.cs",
+          "hash": "8790934697677140291"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Modules/Documents/DocumentsEffects.cs",
+          "hash": "15221626166337259807"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Modules/Documents/DocumentsReducers.cs",
+          "hash": "1596524500485555380"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Modules/Documents/DocumentsState.cs",
+          "hash": "608646260366661309"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Modules/Locations/LocationsActions.cs",
+          "hash": "9013720238051623618"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Modules/Locations/LocationsEffects.cs",
+          "hash": "10288651785692451700"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Modules/Locations/LocationsReducers.cs",
+          "hash": "12384685213178685382"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Modules/Locations/LocationsState.cs",
+          "hash": "1739238407288502134"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Modules/Providers/ProvidersActions.cs",
+          "hash": "8381405757922811825"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Modules/Providers/ProvidersEffects.cs",
+          "hash": "2139992946958395227"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Modules/Providers/ProvidersReducers.cs",
+          "hash": "17865063992433082964"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Modules/Providers/ProvidersState.cs",
+          "hash": "6356739617943181785"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Modules/ServiceCatalogs/ServiceCatalogsActions.cs",
+          "hash": "13812667749883882794"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Modules/ServiceCatalogs/ServiceCatalogsEffects.cs",
+          "hash": "4453448335926715208"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Modules/ServiceCatalogs/ServiceCatalogsReducers.cs",
+          "hash": "395653962904022262"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Modules/ServiceCatalogs/ServiceCatalogsState.cs",
+          "hash": "12860155259175621463"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Theme/ThemeActions.cs",
+          "hash": "15163450862931680599"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Theme/ThemeReducers.cs",
+          "hash": "10912288019018482506"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Features/Theme/ThemeState.cs",
+          "hash": "7397785852909542083"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Helpers/Accessibility/AriaHelper.cs",
+          "hash": "9991262555832808158"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Helpers/Accessibility/ColorContrastHelper.cs",
+          "hash": "7527107398288672696"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Helpers/Accessibility/KeyboardNavigationHelper.cs",
+          "hash": "12898313998505593331"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Helpers/Accessibility/LiveRegionHelper.cs",
+          "hash": "15795003797867782621"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Helpers/InputSanitizer.cs",
+          "hash": "15831049879547780249"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Helpers/PerformanceHelper.cs",
+          "hash": "3442752209379575064"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Layout/EmptyLayout.razor",
+          "hash": "3662245173339074122"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Layout/MainLayout.razor",
+          "hash": "2699211552757778785"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Layout/MainLayout.razor.css",
+          "hash": "8474610784119765016"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Layout/NavMenu.razor",
+          "hash": "7164774612255597384"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Layout/NavMenu.razor.css",
+          "hash": "16122775199391379158"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/MeAjudaAi.Web.Admin.csproj",
+          "hash": "11837234129395279952"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Pages/AllowedCities.razor",
+          "hash": "9261375243899188734"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Pages/Authentication.razor",
+          "hash": "4291366110340600490"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Pages/Categories.razor",
+          "hash": "10342262353925638108"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Pages/Dashboard.razor",
+          "hash": "10571255968327417519"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Pages/Documents.razor",
+          "hash": "1708902541396058617"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Pages/NotFound.razor",
+          "hash": "11282212579639514790"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Pages/Providers.razor",
+          "hash": "17323187587349915484"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Pages/Services.razor",
+          "hash": "13871114015303675554"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Pages/Settings.razor",
+          "hash": "13776809074973187102"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Program.cs",
+          "hash": "10391581721083757479"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/README.md",
+          "hash": "512948440462824724"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Resources/Strings.cs",
+          "hash": "15598423324646694703"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Resources/Strings.en.resx",
+          "hash": "17341432811062333016"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Resources/Strings.pt-BR.resx",
+          "hash": "12475998638430578235"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/ApiAuthorizationMessageHandler.cs",
+          "hash": "5546182192996104706"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/ConfigurationService.cs",
+          "hash": "14390755937995238121"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/CorrelationIdProvider.cs",
+          "hash": "6129448651925595455"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/ErrorHandlingService.cs",
+          "hash": "16135959762474110315"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/ErrorLoggingService.cs",
+          "hash": "14094423233937808809"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/FluentValidationValidator.cs",
+          "hash": "6613709839078471097"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/Interfaces/IConfigurationService.cs",
+          "hash": "18056356853765858530"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/Interfaces/ICorrelationIdProvider.cs",
+          "hash": "2942036002303574831"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/Interfaces/IPermissionService.cs",
+          "hash": "1751141740922972317"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/LiveRegionService.cs",
+          "hash": "5474131470569595527"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/OidcDebugService.cs",
+          "hash": "8635874601560061448"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/PermissionService.cs",
+          "hash": "1983251581582595406"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/Resilience/Http/ApiErrorMessages.cs",
+          "hash": "13492895462721676671"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/Resilience/Http/ConnectionStatus.cs",
+          "hash": "6002798255292736221"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/Resilience/Http/ConnectionStatusService.cs",
+          "hash": "15435556278394882964"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/Resilience/Http/PollyLoggingHandler.cs",
+          "hash": "774224953843150024"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/Resilience/Http/PollyPolicies.cs",
+          "hash": "5575526450684746749"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Services/Resilience/Interfaces/IConnectionStatusService.cs",
+          "hash": "15121939806020655849"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Shared/ConnectionStatusIndicator.razor",
+          "hash": "6472264855847931137"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Shared/RedirectToLogin.razor",
+          "hash": "14024780648866723868"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Themes/BrandTheme.cs",
+          "hash": "14101701033949114491"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Validators/BusinessProfileDtoValidator.cs",
+          "hash": "10521178950497564120"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Validators/BusinessProfileUpdateDtoValidator.cs",
+          "hash": "13122233100114308460"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Validators/ContactInfoDtoValidator.cs",
+          "hash": "5558611096674449585"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Validators/ContactInfoUpdateDtoValidator.cs",
+          "hash": "8117458211785213257"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Validators/CreateProviderRequestDtoValidator.cs",
+          "hash": "7998758769064764767"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Validators/PrimaryAddressDtoValidator.cs",
+          "hash": "16031722385398798277"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Validators/PrimaryAddressUpdateDtoValidator.cs",
+          "hash": "18929191843026040"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Validators/UpdateProviderRequestDtoValidator.cs",
+          "hash": "13651945439622734922"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Validators/UploadDocumentDtoValidator.cs",
+          "hash": "13153044573704204877"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/Validators/UploadDocumentValidator.cs",
+          "hash": "8183208680634954728"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/_Imports.razor",
+          "hash": "12179286396659353789"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/packages.lock.json",
+          "hash": "13020869853323377474"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/appsettings.json",
+          "hash": "18339924860334990582"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/css/app.css",
+          "hash": "14548013066918814761"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/favicon.png",
+          "hash": "9970062550746271084"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/icon-192.png",
+          "hash": "9856232370300383825"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/index.html",
+          "hash": "12618718567779959572"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.css",
+          "hash": "13361063087755040908"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.css.map",
+          "hash": "13093016512534628959"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.min.css",
+          "hash": "1298747518804534278"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.min.css.map",
+          "hash": "7504183865409037490"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.rtl.css",
+          "hash": "8058059552110470238"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.rtl.css.map",
+          "hash": "17311017314821821198"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.rtl.min.css",
+          "hash": "15491994538521677292"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.rtl.min.css.map",
+          "hash": "10558975443824107117"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.css",
+          "hash": "3986620088824398680"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.css.map",
+          "hash": "4965657789910828011"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.min.css",
+          "hash": "5967511845568572087"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.min.css.map",
+          "hash": "10226914534361362966"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.css",
+          "hash": "6641965436401681934"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.css.map",
+          "hash": "16707299635636408978"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.min.css",
+          "hash": "14323482241527641267"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.min.css.map",
+          "hash": "17579818180635891810"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.css",
+          "hash": "7565842964613439704"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.css.map",
+          "hash": "13668896650096423355"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.min.css",
+          "hash": "6442412538019938399"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.min.css.map",
+          "hash": "359690625304593706"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.rtl.css",
+          "hash": "7112993198915588424"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.rtl.css.map",
+          "hash": "15051738346593897543"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.rtl.min.css",
+          "hash": "5097029183338941435"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.rtl.min.css.map",
+          "hash": "764506484613701313"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap.css",
+          "hash": "6045139082089988151"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap.css.map",
+          "hash": "17928596059889972445"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css",
+          "hash": "6057481120139076252"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css.map",
+          "hash": "18320298362337037635"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.css",
+          "hash": "4565577310105701131"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.css.map",
+          "hash": "3039135191913743374"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.min.css",
+          "hash": "13838974934903121457"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.min.css.map",
+          "hash": "2891175286255408343"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js",
+          "hash": "4942909712610361744"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js.map",
+          "hash": "1358295619535981082"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.min.js",
+          "hash": "14311896893599484492"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.min.js.map",
+          "hash": "2980301490036357862"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js",
+          "hash": "4052980006086928140"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js.map",
+          "hash": "659676684096411414"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.min.js",
+          "hash": "2273262857717292900"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.min.js.map",
+          "hash": "13813359128624479507"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.js",
+          "hash": "7328868546195107114"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.js.map",
+          "hash": "3594757716259117406"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.min.js",
+          "hash": "12130937542252528446"
+        },
+        {
+          "file": "MeAjudaAi.Web.Admin/wwwroot/lib/bootstrap/dist/js/bootstrap.min.js.map",
+          "hash": "9921841260499000793"
+        },
+        {
+          "file": "config/tailwind.extension.json",
+          "hash": "18442621928245168095"
+        },
+        {
+          "file": "jest.config.ts",
+          "hash": "6870352021923392442",
           "deps": [
-            "npm:tslib"
+            "npm:jest",
+            "npm:@nx/jest"
           ]
         },
         {
-          "file": "libs/api-client/project.json",
-          "hash": "7519435240762900947"
+          "file": "jest.preset.js",
+          "hash": "9430166341120122740",
+          "deps": [
+            "npm:@nx/jest"
+          ]
         },
         {
-          "file": "libs/api-client/src/index.ts",
-          "hash": "3652867921044571464"
+          "file": "nx.json",
+          "hash": "427843785565833278"
         },
         {
-          "file": "libs/api-client/src/lib/api-client.spec.ts",
-          "hash": "10989764187796259894"
+          "file": "package-lock.json",
+          "hash": "4363883953046576710"
         },
         {
-          "file": "libs/api-client/src/lib/api-client.ts",
-          "hash": "16389761208029192698"
+          "file": "package.json",
+          "hash": "1397705712722301249"
         },
         {
-          "file": "libs/api-client/tsconfig.json",
-          "hash": "12975668481162286788"
-        },
-        {
-          "file": "libs/api-client/tsconfig.lib.json",
-          "hash": "13731893420473560347"
-        },
-        {
-          "file": "libs/api-client/tsconfig.spec.json",
-          "hash": "4320585530605811940"
-        }
-      ],
-      "auth": [
-        {
-          "file": "libs/auth/.babelrc",
-          "hash": "2946678488919325452"
-        },
-        {
-          "file": "libs/auth/README.md",
-          "hash": "17993389933539474821"
-        },
-        {
-          "file": "libs/auth/project.json",
-          "hash": "5557756192986611310"
-        },
-        {
-          "file": "libs/auth/src/index.ts",
-          "hash": "5372805174801174427"
-        },
-        {
-          "file": "libs/auth/src/lib/auth.module.css",
-          "hash": "7065692593190935986"
-        },
-        {
-          "file": "libs/auth/src/lib/auth.tsx",
-          "hash": "3082075392421887603"
-        },
-        {
-          "file": "libs/auth/tsconfig.json",
-          "hash": "14088618039610991405"
-        },
-        {
-          "file": "libs/auth/tsconfig.lib.json",
-          "hash": "1716960421443518508"
-        }
-      ],
-      "ui": [
-        {
-          "file": "libs/ui/.babelrc",
-          "hash": "2946678488919325452"
-        },
-        {
-          "file": "libs/ui/README.md",
-          "hash": "2776327953747952561"
-        },
-        {
-          "file": "libs/ui/project.json",
-          "hash": "12196302964876651695"
-        },
-        {
-          "file": "libs/ui/src/index.ts",
-          "hash": "5977848407072712979"
-        },
-        {
-          "file": "libs/ui/src/lib/ui.module.css",
-          "hash": "125145030238681982"
-        },
-        {
-          "file": "libs/ui/src/lib/ui.tsx",
-          "hash": "16860297995266507296"
-        },
-        {
-          "file": "libs/ui/tsconfig.json",
-          "hash": "15300829398943254843"
-        },
-        {
-          "file": "libs/ui/tsconfig.lib.json",
-          "hash": "1716960421443518508"
+          "file": "tsconfig.base.json",
+          "hash": "17316861996223763565"
         }
       ]
     },

@@ -1,0 +1,14 @@
+[2m> [22mjest
+
+ts-jest[config] (WARN) 
+    The "ts-jest" config option "isolatedModules" is deprecated and will be removed in v30.0.0. Please use "isolatedModules: true" in C:/Code/MeAjudaAi/src/Web/libs/api-client/tsconfig.spec.json instead, see https://www.typescriptlang.org/tsconfig/#isolatedModules
+  
+[0m[7m[1m[32m PASS [39m[22m[27m[0m [0m[7m[37m api-client [39m[27m[0m [2msrc/lib/[22m[1mapi-client.spec.ts[22m
+  apiClient
+    [32m√[39m [2mshould work (3 ms)[22m
+
+[1mTest Suites: [22m[1m[32m1 passed[39m[22m, 1 total
+[1mTests:       [22m[1m[32m1 passed[39m[22m, 1 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        0.36 s
+[2mRan all test suites[22m[2m.[22m
