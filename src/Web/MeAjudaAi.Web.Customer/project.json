@@ -6,9 +6,11 @@
     "targets": {
         "build": {
             "command": "next build",
+            "outputs": [
+                "{workspaceRoot}/dist/MeAjudaAi.Web.Customer"
+            ],
             "options": {
-                "cwd": "MeAjudaAi.Web.Customer",
-                "outputPath": "dist/MeAjudaAi.Web.Customer"
+                "cwd": "MeAjudaAi.Web.Customer"
             }
         },
         "serve": {

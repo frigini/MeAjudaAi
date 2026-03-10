@@ -183,7 +183,7 @@ export const zMeAjudaAiContractsFunctionalResult1SystemCollectionsGenericIReadOn
  * Representa um tipo que não retorna valor útil.
  * Usado para padronizar interfaces que podem ou não retornar valores.
  */
-export const zMeAjudaAiContractsFunctionalUnit = z.record(z.never());
+export const zMeAjudaAiContractsFunctionalUnit = z.record(z.string(), z.never());
 
 export const zMeAjudaAiContractsFunctionalResult1MeAjudaAiContractsFunctionalUnit_MeAjudaAiContracts_Version_0000_Culture_neutral_PublicKeyToken_null = z.object({
     isSuccess: z.boolean().optional(),
@@ -229,7 +229,7 @@ export const zMeAjudaAiContractsModelsAuthenticationErrorResponse = z.object({
     ]).optional(),
     timestamp: z.string().datetime().optional(),
     validationErrors: z.union([
-        z.record(z.array(z.string())),
+        z.record(z.string(), z.array(z.string())),
         z.null()
     ]).optional()
 });
@@ -253,7 +253,7 @@ export const zMeAjudaAiContractsModelsAuthorizationErrorResponse = z.object({
     ]).optional(),
     timestamp: z.string().datetime().optional(),
     validationErrors: z.union([
-        z.record(z.array(z.string())),
+        z.record(z.string(), z.array(z.string())),
         z.null()
     ]).optional()
 });
@@ -277,7 +277,7 @@ export const zMeAjudaAiContractsModelsInternalServerErrorResponse = z.object({
     ]).optional(),
     timestamp: z.string().datetime().optional(),
     validationErrors: z.union([
-        z.record(z.array(z.string())),
+        z.record(z.string(), z.array(z.string())),
         z.null()
     ]).optional()
 });
@@ -301,7 +301,7 @@ export const zMeAjudaAiContractsModelsRateLimitErrorResponse = z.object({
     ]).optional(),
     timestamp: z.string().datetime().optional(),
     validationErrors: z.union([
-        z.record(z.array(z.string())),
+        z.record(z.string(), z.array(z.string())),
         z.null()
     ]).optional(),
     retryAfterSeconds: z.union([
@@ -377,7 +377,7 @@ export const zMeAjudaAiContractsModelsGeographicRestrictionErrorResponse = z.obj
     ]).optional(),
     timestamp: z.string().datetime().optional(),
     validationErrors: z.union([
-        z.record(z.array(z.string())),
+        z.record(z.string(), z.array(z.string())),
         z.null()
     ]).optional(),
     yourLocation: zMeAjudaAiContractsModelsUserLocation.optional(),
@@ -1511,7 +1511,7 @@ export const zMicrosoftAspNetCoreHttpHttpValidationProblemDetails = z.object({
         z.null()
     ]).optional(),
     errors: z.union([
-        z.record(z.array(z.string())),
+        z.record(z.string(), z.array(z.string())),
         z.null()
     ]).optional()
 });
