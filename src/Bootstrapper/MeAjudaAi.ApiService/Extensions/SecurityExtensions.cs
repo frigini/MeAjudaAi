@@ -34,9 +34,7 @@ public static class SecurityExtensions
 
         // Bypassa validações explicitamente em Testing (workaround para prevenir crash do Swashbuckle CLI 
         // durante extração na pipeline CI que tenta carregar o container sem credenciais verdadeiras)
-        var isTesting = environment.IsEnvironment("Testing") || 
-            string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Testing", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase);
+        var isTesting = MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
         
         if (isTesting)
             return;
@@ -175,9 +173,7 @@ public static class SecurityExtensions
                 config.GetSection(CorsOptions.SectionName).Bind(opts);
             });
 
-        var isTesting = environment.IsEnvironment("Testing") || 
-            string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Testing", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase);
+        var isTesting = MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
 
         if (!isTesting)
         {
@@ -270,7 +266,7 @@ public static class SecurityExtensions
         ArgumentNullException.ThrowIfNull(environment);
         // A autenticação específica por ambiente agora é gerenciada pelo EnvironmentSpecificExtensions
         // Aqui apenas configuramos Keycloak para ambientes não-testing
-        if (!environment.IsEnvironment("Testing"))
+        if (!MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
         {
             services.AddKeycloakAuthentication(configuration, environment);
         }

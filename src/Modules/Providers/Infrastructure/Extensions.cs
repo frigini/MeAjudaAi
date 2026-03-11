@@ -36,13 +36,13 @@ public static class Extensions
                                   ?? configuration.GetConnectionString("Providers")
                                   ?? configuration.GetConnectionString("meajudaai-db");
 
-            // Em ambientes de teste, permitir que seja configurado depois via override
-            var isTestEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing" ||
-                                   Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Testing";
+            // Em ambiente de teste, permitir inicialização sem connection string
+            // (útil para testes unitários que não acessam o banco)
+            var isTesting = MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment();
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                if (isTestEnvironment)
+                if (isTesting)
                 {
                     // Para testes, usar uma connection string temporária que será substituída
                     connectionString = "Host=localhost;Database=temp_test;Username=postgres;Password=test";

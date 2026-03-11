@@ -488,18 +488,14 @@ jobs:
                 echo "📂 Directory contents:"
                 find "$MODULE_COVERAGE_DIR" -type f -name "*.xml" | head -10
 
-                # Look for both opencover and cobertura formats (search recursively in GUID subdirs)
+                # Look for cobertura format (search recursively in GUID subdirs)
                 COVERAGE_FILE=$(find "$MODULE_COVERAGE_DIR" -type f \
-                  \( -name "coverage.opencover.xml" -o -name "coverage.cobertura.xml" \) \
+                  -name "coverage.cobertura.xml" \
                   -print -quit)
                 if [ -f "$COVERAGE_FILE" ]; then
                   echo "✅ Found coverage file: $COVERAGE_FILE"
                   # Copy to standardized name based on original format
-                  if [[ "$COVERAGE_FILE" == *"cobertura"* ]]; then
-                    cp "$COVERAGE_FILE" "$MODULE_COVERAGE_DIR/${module_name,,}.cobertura.xml"
-                  else
-                    cp "$COVERAGE_FILE" "$MODULE_COVERAGE_DIR/${module_name,,}.opencover.xml"
-                  fi
+                  cp "$COVERAGE_FILE" "$MODULE_COVERAGE_DIR/${module_name,,}.cobertura.xml"
                 else
                   echo "⚠️  Coverage file not found for $module_name"
                   echo "📋 Available XML files:"
@@ -517,22 +513,22 @@ jobs:
           echo "📊 COVERAGE FILES SUMMARY"
           echo "========================="
           echo "Total coverage XML files generated:"
-          find ./coverage -type f \( -name "*.opencover.xml" -o -name "*.cobertura.xml" \) | wc -l
+          find ./coverage -type f -name "*.cobertura.xml" | wc -l
           echo ""
           echo "Coverage files by module:"
-          find ./coverage -type f \( -name "*.opencover.xml" -o -name "*.cobertura.xml" \) -printf "%f\n" | sort | head -20
+          find ./coverage -type f -name "*.cobertura.xml" -printf "%f\n" | sort | head -20
           echo ""
 
           echo "🔍 DEBUG: Verifying coverage files for CodeCoverageSummary..."
           for module in users providers documents servicecatalogs locations searchproviders shared apiservice webadmin; do
-            if [ -f "coverage/${module}/${module}.opencover.xml" ]; then
-              echo "  ✅ coverage/${module}/${module}.opencover.xml exists"
-              # Show file size and first sequenceCoverage value as sanity check
-              FILE_SIZE=$(stat -c%s "coverage/${module}/${module}.opencover.xml" 2>/dev/null || echo "unknown")
-              COVERAGE=$(grep -o 'sequenceCoverage="[^"]*"' "coverage/${module}/${module}.opencover.xml" 2>/dev/null | head -1 | cut -d'"' -f2 || echo "N/A")
-              echo "     Size: ${FILE_SIZE} bytes, Coverage: ${COVERAGE}%"
+            if [ -f "coverage/${module}/${module}.cobertura.xml" ]; then
+              echo "  ✅ coverage/${module}/${module}.cobertura.xml exists"
+              # Show file size and first line-rate value as sanity check
+              FILE_SIZE=$(stat -c%s "coverage/${module}/${module}.cobertura.xml" 2>/dev/null || echo "unknown")
+              COVERAGE=$(grep -o 'line-rate="[^"]*"' "coverage/${module}/${module}.cobertura.xml" 2>/dev/null | head -1 | cut -d'"' -f2 || echo "N/A")
+              echo "     Size: ${FILE_SIZE} bytes, Coverage Rate: ${COVERAGE}"
             else
-              echo "  ❌ coverage/${module}/${module}.opencover.xml NOT FOUND"
+              echo "  ❌ coverage/${module}/${module}.cobertura.xml NOT FOUND"
             fi
           done
           echo ""
@@ -765,8 +761,8 @@ jobs:
           echo "🔍 Pre-flight check: Verifying coverage files..."
           MISSING_FILES=0
           for module in users providers documents servicecatalogs locations searchproviders shared apiservice webadmin; do
-            if ! find "coverage/${module}" -name "*.opencover.xml" -type f | grep -q .; then
-              echo "  ⚠️  Warning: No .opencover.xml files found for ${module}"
+            if ! find "coverage/${module}" -name "*.cobertura.xml" -type f | grep -q .; then
+              echo "  ⚠️  Warning: No .cobertura.xml files found for ${module}"
               MISSING_FILES=$((MISSING_FILES + 1))
             else
               echo "  ✅ Found coverage file(s) for ${module}"

@@ -62,6 +62,19 @@ public static class Extensions
                               ?? configuration.GetConnectionString("Users")
                               ?? configuration.GetConnectionString("meajudaai-db");
 
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment())
+            {
+                // Fallback para testes/dev quando a string de conexão não é crítica na inicialização do DI
+                connectionString = "Host=localhost;Database=test;Username=test;Password=test";
+            }
+            else
+            {
+                throw new InvalidOperationException("Conexão para o módulo Users não configurada");
+            }
+        }
+
         services.AddDbContext<UsersDbContext>((serviceProvider, options) =>
         {
             // Obter interceptor de métricas se disponível

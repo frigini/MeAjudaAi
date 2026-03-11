@@ -80,6 +80,7 @@ export function validateCriticalEnvOnStartup() {
 }
 
 export const authOptions: NextAuthOptions = {
+    secret: requireEnv("NEXTAUTH_SECRET") || requireEnv("AUTH_SECRET"),
     providers: [
         Keycloak({
             clientId: requireEnv("KEYCLOAK_CLIENT_ID"),

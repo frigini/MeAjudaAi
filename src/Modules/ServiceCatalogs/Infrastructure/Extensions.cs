@@ -45,10 +45,10 @@ public static class Extensions
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                if (isTestEnvironment)
+                if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment())
                 {
-                    // Same test fallback as DapperConnection
-                    connectionString = "Host=localhost;Port=5432;Database=meajudaai_test;Username=postgres;Password=test;";
+                    // Fallback para testes/dev quando a string de conexão não é crítica na inicialização do DI
+                    connectionString = "Host=localhost;Database=test;Username=test;Password=test";
                 }
                 else
                 {

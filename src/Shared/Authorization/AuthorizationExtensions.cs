@@ -27,10 +27,10 @@ public static class AuthorizationExtensions
     /// <summary>
     /// Configura o sistema de autorização com permissões type-safe.
     /// </summary>
-    /// <param name="services">Service collection</param>
-    /// <param name="configuration">Configuration for Keycloak integration</param>
+    /// <param name="services">Coleção de serviços para registro</param>
+    /// <param name="configuration">Configuração para integração com Keycloak</param>
     /// <param name="environment">Ambiente de hospedagem usado para bypass de validações em testes de CI</param>
-    /// <returns>Service collection para chaining</returns>
+    /// <returns>Coleção de serviços para encadeamento de chamadas</returns>
     public static IServiceCollection AddPermissionBasedAuthorization(
         this IServiceCollection services,
         IConfiguration? configuration = null,
@@ -73,10 +73,10 @@ public static class AuthorizationExtensions
     /// <summary>
     /// Adiciona resolução de permissões via Keycloak.
     /// </summary>
-    /// <param name="services">Service collection</param>
-    /// <param name="configuration">Configuration para Keycloak</param>
+    /// <param name="services">Coleção de serviços para registro</param>
+    /// <param name="configuration">Configuração para o Keycloak</param>
     /// <param name="environment">Ambiente de hospedagem usado para bypass de validações em testes de CI</param>
-    /// <returns>Service collection para chaining</returns>
+    /// <returns>Coleção de serviços para encadeamento de chamadas</returns>
     public static IServiceCollection AddKeycloakPermissionResolver(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -103,18 +103,8 @@ public static class AuthorizationExtensions
             .Bind(configuration.GetSection("Keycloak"))
             .ValidateDataAnnotations();
 
-        // Evita crash durante carregamento estático do Swagger no pipeline de CI enviando ASPNETCORE_ENVIRONMENT=Testing
-        bool isTesting = false;
-        if (environment != null)
-        {
-            isTesting = environment.IsEnvironment("Testing") || environment.IsEnvironment("Development");
-        }
-        else
-        {
-            var envVar = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            isTesting = string.Equals(envVar, "Testing", StringComparison.OrdinalIgnoreCase) || string.Equals(envVar, "Development", StringComparison.OrdinalIgnoreCase);
-        }
-        isTesting = isTesting || string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase);
+        // Evita crash durante carregamento estático do Swagger no pipeline de CI
+        bool isTesting = MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
 
         if (!isTesting)
         {

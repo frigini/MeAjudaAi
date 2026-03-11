@@ -37,8 +37,7 @@ public static class Extensions
                               ?? configuration.GetConnectionString("meajudaai-db");
 
         // In test environments, allow placeholder connection string since tests will replace the DbContext
-        var isTestEnvironment = string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Testing", StringComparison.OrdinalIgnoreCase)
-                               || string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase);
+        var isTestEnvironment = MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment();
 
         if (string.IsNullOrEmpty(connectionString))
         {
