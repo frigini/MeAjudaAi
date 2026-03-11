@@ -31,7 +31,7 @@
     <!-- Breaking changes: https://www.npgsql.org/doc/release-notes/10.0.html -->
     <!-- TODO: Implement automated pipeline gate for staging validation (Issue #39) -->
     <!-- ASP.NET Core -->
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.4" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.3" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.3" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.3" />
