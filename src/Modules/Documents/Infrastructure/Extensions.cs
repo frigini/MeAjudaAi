@@ -14,6 +14,7 @@ using MeAjudaAi.Shared.Jobs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure;
@@ -117,6 +118,13 @@ public static class Extensions
             // Azure Storage - only if configured
             services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
         }
+
+        // Fallback no-op implementations when Azure services are not configured.
+        // TryAddScoped only registers if no implementation was added above.
+        // These stubs satisfy DI validation (e.g., Swagger CLI, local dev)
+        // and log warnings if their methods are accidentally called.
+        services.TryAddScoped<IBlobStorageService, NullBlobStorageService>();
+        services.TryAddScoped<IDocumentIntelligenceService, NullDocumentIntelligenceService>();
 
         return services;
     }
