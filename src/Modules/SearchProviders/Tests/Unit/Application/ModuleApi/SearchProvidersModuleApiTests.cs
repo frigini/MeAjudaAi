@@ -419,6 +419,26 @@ public class SearchProvidersModuleApiTests
     }
 
     [Fact]
+    public async Task IndexProviderAsync_WhenProvidersApiReturnsSuccessWithNull_ShouldReturnFailure()
+    {
+        // Arrange — simulates the contract where the API returns Success but with a null payload
+        // (e.g., provider exists in the index but has no indexable data yet)
+        var providerId = Guid.NewGuid();
+
+        _providersApiMock
+            .Setup(x => x.GetProviderForIndexingAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleProviderIndexingDto?>.Success(null!));
+
+        // Act
+        var result = await _sut.IndexProviderAsync(providerId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain(providerId.ToString());
+        _repositoryMock.Verify(x => x.AddAsync(It.IsAny<SearchableProvider>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task IndexProviderAsync_WhenProvidersApiFails_ShouldReturnFailure()
     {
         // Arrange

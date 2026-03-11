@@ -133,7 +133,10 @@ jobs:
           mkdir -p ../api
 
           # Provide dummy env vars to allow application DI container to build successfully
-          export ASPNETCORE_ENVIRONMENT=Testing
+          # Note: ASPNETCORE_ENVIRONMENT must NOT be "Testing" here because Swashbuckle CLI
+          # appends the env name to "Startup" (e.g. "StartupTesting") when resolving the host,
+          # and no such class exists. Using "Development" avoids this quirk.
+          export ASPNETCORE_ENVIRONMENT=Development
           export ConnectionStrings__DefaultConnection="Host=localhost;Database=dummy"
 
           swagger tofile --output ../api/api-spec.json \
@@ -142,7 +145,7 @@ jobs:
 
           # 3. Generate API client for Customer Web App
           # The generator reads OPENAPI_SPEC_URL from env
-          export OPENAPI_SPEC_URL="../api/api-spec.json"
+          export OPENAPI_SPEC_URL="$GITHUB_WORKSPACE/src/api/api-spec.json"
           npm run generate:api --workspace=meajudaai.web.customer
 
           # 4. Explicitly build the customer web app (updates ignored files)
@@ -811,7 +814,7 @@ jobs:
         env:
           DOTNET_ROOT: ${{ env.DOTNET_ROOT }}
         with:
-          reports: "coverage/**/*.cobertura.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml"
+          reports: "coverage/**/*.cobertura.xml;coverage/integration/**/*.cobertura.xml;coverage/e2e/**/*.cobertura.xml"
           targetdir: "coverage/aggregate"
           reporttypes: "Cobertura;JsonSummary"
           assemblyfilters: "+MeAjudaAi.Modules.Users.*;+MeAjudaAi.Modules.Providers.*;+MeAjudaAi.Modules.Documents.*;+MeAjudaAi.Modules.ServiceCatalogs.*;+MeAjudaAi.Modules.Locations.*;+MeAjudaAi.Modules.SearchProviders.*;+MeAjudaAi.Shared*;+MeAjudaAi.ApiService*"

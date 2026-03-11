@@ -3,14 +3,19 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Contracts.Functional;
 
+/// <summary>
+/// Representa o resultado de uma operação que pode retornar um valor de tipo <typeparamref name="T"/>.
+/// <para>
+/// <b>Nota sobre tipos nullable:</b> quando <typeparamref name="T"/> é um tipo de referência nullable
+/// (ex.: <c>Result&lt;MyDto?&gt;</c>), <see cref="Value"/> pode ser <c>null</c> mesmo em caso de sucesso.
+/// Nesse cenário, os atributos <c>[MemberNotNullWhen]</c> não se aplicam e o chamador deve verificar a nulidade
+/// do valor separadamente. Prefira usar <c>Result&lt;MyDto&gt;</c> (não-nullable) quando o sucesso
+/// garantir um valor.
+/// </para>
+/// </summary>
 public class Result<T>
 {
-    [MemberNotNullWhen(true, nameof(Value))]
-    [MemberNotNullWhen(false, nameof(Error))]
     public bool IsSuccess { get; }
-
-    [MemberNotNullWhen(false, nameof(Value))]
-    [MemberNotNullWhen(true, nameof(Error))]
     public bool IsFailure => !IsSuccess;
 
     public T Value { get; }
@@ -21,18 +26,12 @@ public class Result<T>
     {
         if (isSuccess)
         {
-            if (EqualityComparer<T>.Default.Equals(value, default!))
-                throw new ArgumentNullException(nameof(value), "Success result must have a non-default value.");
-                
             if (error != null) 
                 throw new ArgumentException("Success result cannot have an error.", nameof(error));
         }
         else
         {
             ArgumentNullException.ThrowIfNull(error);
-            
-            if (!EqualityComparer<T>.Default.Equals(value, default!))
-                throw new ArgumentException("Failure result must have a default value.", nameof(value));
         }
 
         IsSuccess = isSuccess;
@@ -42,9 +41,6 @@ public class Result<T>
 
     private Result(T value) 
     {
-        if (EqualityComparer<T>.Default.Equals(value, default!))
-            throw new ArgumentNullException(nameof(value), "Success result must have a non-default value.");
-
         IsSuccess = true;
         Value = value;
         Error = null!;
@@ -63,7 +59,7 @@ public class Result<T>
     public static Result<T> Failure(Error error) => new(error);
     public static Result<T> Failure(string message) => new(Error.BadRequest(message));
 
-    public static implicit operator Result<T>(T value) => value is null ? throw new ArgumentNullException(nameof(value)) : Success(value);
+    public static implicit operator Result<T>(T value) => EqualityComparer<T>.Default.Equals(value, default!) ? throw new ArgumentNullException(nameof(value)) : Success(value);
     public static implicit operator Result<T>(Error error) => error is null ? throw new ArgumentNullException(nameof(error)) : Failure(error);
 
     public TResult Match<TResult>(
@@ -71,6 +67,7 @@ public class Result<T>
         Func<Error, TResult> onFailure)
         => IsSuccess ? onSuccess(Value) : onFailure(Error);
 }
+
 
 public class Result
 {
