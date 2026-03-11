@@ -1,4 +1,3 @@
-#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
@@ -48,7 +47,9 @@ public static class Extensions
                 if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment())
                 {
                     // Fallback para testes/dev quando a string de conexão não é crítica na inicialização do DI
-                    connectionString = "Host=localhost;Database=test;Username=test;Password=test";
+#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
+                    connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
+#pragma warning restore S2068
                 }
                 else
                 {

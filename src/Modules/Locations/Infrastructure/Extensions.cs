@@ -40,12 +40,12 @@ public static class Extensions
                 {
                     // Fallback para testes/dev quando a string de conexão não é crítica na inicialização do DI
 #pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
-                    connectionString = "Host=localhost;Database=test;Username=test;Password=test";
+                    connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
 #pragma warning restore S2068
                 }
                 else
                 {
-                    throw new InvalidOperationException("DefaultConnection não configurada");
+                    throw new InvalidOperationException("DefaultConnection is not configured");
                 }
             }
 

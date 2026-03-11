@@ -1,4 +1,4 @@
-import { type NextAuthOptions, type Session } from "next-auth"
+import { type NextAuthOptions } from "next-auth"
 import Keycloak from "next-auth/providers/keycloak"
 import Credentials from "next-auth/providers/credentials"
 import { JWT } from "next-auth/jwt"
@@ -36,11 +36,12 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
             refreshToken: refreshedTokens.refresh_token ?? token.refreshToken, // Fall back to old refresh token
         }
     } catch (error: any) {
+        const keycloakError = error as { error?: string; message?: string; error_description?: string; status?: number; statusCode?: number };
         // Log Keycloak error fields (error, error_description) instead of generic message/status
         console.error("RefreshAccessTokenError", {
-            error: error.error || error.message,
-            error_description: error.error_description,
-            status: error.status || error.statusCode
+            error: keycloakError.error || keycloakError.message,
+            error_description: keycloakError.error_description,
+            status: keycloakError.status || keycloakError.statusCode
         });
 
         return {
@@ -67,20 +68,22 @@ export function validateCriticalEnvOnStartup() {
     // Allows bypassing runtime verification locally or during stateless pipelines
     if (process.env.SKIP_AUTH_ENV_VALIDATION === "true" || process.env.CI === "true") return;
 
-    const requiredKeys = ["KEYCLOAK_CLIENT_ID", "KEYCLOAK_CLIENT_SECRET", "KEYCLOAK_ISSUER", "NEXTAUTH_SECRET"];
-    const missing = requiredKeys.filter(key => {
-        if (key === "NEXTAUTH_SECRET") {
-            return requireEnv("NEXTAUTH_SECRET") === "" && requireEnv("AUTH_SECRET") === "";
-        }
-        return requireEnv(key) === "";
-    });
+    const requiredKeys = ["KEYCLOAK_CLIENT_ID", "KEYCLOAK_CLIENT_SECRET", "KEYCLOAK_ISSUER"];
+    const missing = requiredKeys.filter(key => requireEnv(key) === "");
+    
+    // Check secret separately to handle both AUTH_SECRET and NEXTAUTH_SECRET correctly
+    const hasSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+    if (!hasSecret) {
+        missing.push("AUTH_SECRET (or NEXTAUTH_SECRET)");
+    }
+
     if (missing.length > 0) {
         throw new Error(`Critical environment variables missing at runtime: ${missing.join(", ")}`);
     }
 }
 
 export const authOptions: NextAuthOptions = {
-    secret: requireEnv("NEXTAUTH_SECRET") || requireEnv("AUTH_SECRET"),
+    secret: process.env.AUTH_SECRET || requireEnv("NEXTAUTH_SECRET"),
     providers: [
         Keycloak({
             clientId: requireEnv("KEYCLOAK_CLIENT_ID"),
@@ -119,27 +122,28 @@ export const authOptions: NextAuthOptions = {
                     const tokens = await res.json();
 
                     // Decode the access token to get user info
-                    let payload: any;
+                    let payload: { sub?: string; name?: string; preferred_username?: string; email?: string };
                     try {
                         payload = decodeJwt(tokens.access_token);
-                    } catch (err) {
+                    } catch {
                         console.error("TokenDecodeError", { error: "Failed to decode JWT token" });
                         return null;
                     }
 
                     return {
-                        id: payload.sub,
-                        name: payload.name || payload.preferred_username,
-                        email: payload.email,
+                        id: payload.sub || "",
+                        name: (payload.name as string) || (payload.preferred_username as string) || "",
+                        email: (payload.email as string) || "",
                         // Custom fields to pass to jwt callback
-                        accessToken: tokens.access_token,
-                        refreshToken: tokens.refresh_token,
+                        accessToken: tokens.access_token as string,
+                        refreshToken: tokens.refresh_token as string,
                         expiresAt: Date.now() + (tokens.expires_in * 1000),
-                    } as any;
+                    };
                 } catch (error: any) {
+                    const authError = error as Error;
                     console.error("CredentialsAuthError", {
-                        error: error.name || "UnknownError",
-                        message: error.message || "An error occurred during authentication",
+                        error: authError.name || "UnknownError",
+                        message: authError.message || "An error occurred during authentication",
                     });
                     return null;
                 }
@@ -164,7 +168,7 @@ export const authOptions: NextAuthOptions = {
 
             // Initial sign in via Credentials (ROPC against Keycloak)
             if (account && account.provider === "credentials" && user) {
-                const u = user as any;
+                const u = user as { accessToken?: string; refreshToken?: string; expiresAt?: number; id?: string };
                 return {
                     ...token,
                     accessToken: u.accessToken ?? "",

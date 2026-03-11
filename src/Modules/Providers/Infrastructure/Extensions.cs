@@ -1,4 +1,3 @@
-#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
 using MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
@@ -45,7 +44,9 @@ public static class Extensions
                 if (isTesting)
                 {
                     // Para testes, usar uma connection string temporária que será substituída
-                    connectionString = "Host=localhost;Database=temp_test;Username=postgres;Password=test";
+#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
+                    connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
+#pragma warning restore S2068
                 }
                 else
                 {

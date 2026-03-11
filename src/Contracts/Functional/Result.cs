@@ -8,13 +8,28 @@ public class Result<T>
     [MemberNotNullWhen(true, nameof(Value))]
     [MemberNotNullWhen(false, nameof(Error))]
     public bool IsSuccess { get; }
+
+    [MemberNotNullWhen(false, nameof(Value))]
+    [MemberNotNullWhen(true, nameof(Error))]
     public bool IsFailure => !IsSuccess;
+
     public T Value { get; }
     public Error Error { get; }
 
     [JsonConstructor]
     public Result(bool isSuccess, T value, Error error)
     {
+        if (isSuccess)
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            if (error != null) throw new ArgumentException("Success result cannot have an error.", nameof(error));
+        }
+        else
+        {
+            ArgumentNullException.ThrowIfNull(error);
+            if (value != null) throw new ArgumentException("Failure result cannot have a value.", nameof(value));
+        }
+
         IsSuccess = isSuccess;
         Value = value;
         Error = error;
@@ -38,13 +53,20 @@ public class Result<T>
 
 public class Result
 {
+    [MemberNotNullWhen(false, nameof(Error))]
     public bool IsSuccess { get; }
+
+    [MemberNotNullWhen(true, nameof(Error))]
     public bool IsFailure => !IsSuccess;
+
     public Error Error { get; }
 
     [JsonConstructor]
     public Result(bool isSuccess, Error error)
     {
+        if (isSuccess && error != null) throw new ArgumentException("Success result cannot have an error.", nameof(error));
+        if (!isSuccess && error == null) throw new ArgumentNullException(nameof(error), "Failure result must have an error.");
+
         IsSuccess = isSuccess;
         Error = error;
     }
@@ -69,7 +91,7 @@ public class Result
         if (IsSuccess)
             onSuccess();
         else
-            onFailure(Error);
+            onFailure(Error!);
     }
 
     /// <summary>
