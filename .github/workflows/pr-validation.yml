@@ -142,7 +142,7 @@ jobs:
 
           # 3. Generate API client for Customer Web App
           # The generator reads OPENAPI_SPEC_URL from env
-          export OPENAPI_SPEC_URL="../../api/api-spec.json"
+          export OPENAPI_SPEC_URL="../api/api-spec.json"
           npm run generate:api --workspace=meajudaai.web.customer
 
           # 4. Explicitly build the customer web app (updates ignored files)
@@ -520,7 +520,7 @@ jobs:
           echo ""
 
           echo "🔍 DEBUG: Verifying coverage files for CodeCoverageSummary..."
-          for module in users providers documents servicecatalogs locations searchproviders shared apiservice webadmin; do
+          for module in users providers documents servicecatalogs locations searchproviders shared apiservice; do
             if [ -f "coverage/${module}/${module}.cobertura.xml" ]; then
               echo "  ✅ coverage/${module}/${module}.cobertura.xml exists"
               # Show file size and first line-rate value as sanity check
@@ -869,8 +869,11 @@ jobs:
           echo "Coverage directory structure:"
           find ./coverage -type f 2>/dev/null | head -20 || echo "No files found in coverage directory"
           echo ""
-          echo "OpenCover XML files:"
+          echo "OpenCover XML files (Backward Compatibility):"
           find ./coverage -name "*.opencover.xml" -type f 2>/dev/null || echo "No .opencover.xml files found"
+          echo ""
+          echo "Cobertura XML files:"
+          find ./coverage -name "*.cobertura.xml" -type f 2>/dev/null || echo "No .cobertura.xml files found"
           echo ""
           echo "Any XML files:"
           find ./coverage -name "*.xml" -type f 2>/dev/null || echo "No XML files found"
@@ -998,8 +1001,6 @@ jobs:
                 fi
               fi
               echo ""
-            fi
-          done
             fi
           done
 

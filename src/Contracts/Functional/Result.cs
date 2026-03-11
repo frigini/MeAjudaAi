@@ -21,13 +21,18 @@ public class Result<T>
     {
         if (isSuccess)
         {
-            ArgumentNullException.ThrowIfNull(value);
-            if (error != null) throw new ArgumentException("Success result cannot have an error.", nameof(error));
+            if (EqualityComparer<T>.Default.Equals(value, default!))
+                throw new ArgumentNullException(nameof(value), "Success result must have a non-default value.");
+                
+            if (error != null) 
+                throw new ArgumentException("Success result cannot have an error.", nameof(error));
         }
         else
         {
             ArgumentNullException.ThrowIfNull(error);
-            if (value != null) throw new ArgumentException("Failure result cannot have a value.", nameof(value));
+            
+            if (!EqualityComparer<T>.Default.Equals(value, default!))
+                throw new ArgumentException("Failure result must have a default value.", nameof(value));
         }
 
         IsSuccess = isSuccess;
@@ -35,15 +40,31 @@ public class Result<T>
         Error = error;
     }
 
-    private Result(T value) => (IsSuccess, Value, Error) = (true, value, null!);
-    private Result(Error error) => (IsSuccess, Value, Error) = (false, default!, error);
+    private Result(T value) 
+    {
+        if (EqualityComparer<T>.Default.Equals(value, default!))
+            throw new ArgumentNullException(nameof(value), "Success result must have a non-default value.");
+
+        IsSuccess = true;
+        Value = value;
+        Error = null!;
+    }
+
+    private Result(Error error)
+    {
+        ArgumentNullException.ThrowIfNull(error);
+
+        IsSuccess = false;
+        Value = default!;
+        Error = error;
+    }
 
     public static Result<T> Success(T value) => new(value);
     public static Result<T> Failure(Error error) => new(error);
     public static Result<T> Failure(string message) => new(Error.BadRequest(message));
 
-    public static implicit operator Result<T>(T value) => Success(value);
-    public static implicit operator Result<T>(Error error) => Failure(error);
+    public static implicit operator Result<T>(T value) => value is null ? throw new ArgumentNullException(nameof(value)) : Success(value);
+    public static implicit operator Result<T>(Error error) => error is null ? throw new ArgumentNullException(nameof(error)) : Failure(error);
 
     public TResult Match<TResult>(
         Func<T, TResult> onSuccess,

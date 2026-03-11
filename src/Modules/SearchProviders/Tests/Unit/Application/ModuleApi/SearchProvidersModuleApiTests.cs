@@ -407,7 +407,7 @@ public class SearchProvidersModuleApiTests
 
         _providersApiMock
             .Setup(x => x.GetProviderForIndexingAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<ModuleProviderIndexingDto?>.Success(null));
+            .ReturnsAsync(Result<ModuleProviderIndexingDto?>.Failure(Error.NotFound("Provider not found")));
 
         // Act
         var result = await _sut.IndexProviderAsync(providerId);

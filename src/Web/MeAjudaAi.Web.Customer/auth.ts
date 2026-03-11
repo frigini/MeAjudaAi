@@ -64,9 +64,16 @@ function requireEnv(name: string): string {
     return value;
 }
 
+let criticalEnvValidated = false;
+
 export function validateCriticalEnvOnStartup() {
+    if (criticalEnvValidated) return;
+    
     // Allows bypassing runtime verification locally or during stateless pipelines
-    if (process.env.SKIP_AUTH_ENV_VALIDATION === "true" || process.env.CI === "true") return;
+    if (process.env.SKIP_AUTH_ENV_VALIDATION === "true" || process.env.CI === "true") {
+        criticalEnvValidated = true;
+        return;
+    }
 
     const requiredKeys = ["KEYCLOAK_CLIENT_ID", "KEYCLOAK_CLIENT_SECRET", "KEYCLOAK_ISSUER"];
     const missing = requiredKeys.filter(key => requireEnv(key) === "");
@@ -80,10 +87,12 @@ export function validateCriticalEnvOnStartup() {
     if (missing.length > 0) {
         throw new Error(`Critical environment variables missing at runtime: ${missing.join(", ")}`);
     }
+
+    criticalEnvValidated = true;
 }
 
 export const authOptions: NextAuthOptions = {
-    secret: process.env.AUTH_SECRET || requireEnv("NEXTAUTH_SECRET"),
+    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
     providers: [
         Keycloak({
             clientId: requireEnv("KEYCLOAK_CLIENT_ID"),
