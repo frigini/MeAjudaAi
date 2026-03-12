@@ -136,8 +136,10 @@ jobs:
           # Note: ASPNETCORE_ENVIRONMENT must NOT be "Testing" here because Swashbuckle CLI
           # appends the env name to "Startup" (e.g. "StartupTesting") when resolving the host,
           # and no such class exists. Using "Development" avoids this quirk.
+          # Migrations__Enabled=false skips ApplyModuleMigrationsAsync (no real DB in CI).
           export ASPNETCORE_ENVIRONMENT=Development
           export ConnectionStrings__DefaultConnection="Host=localhost;Database=dummy"
+          export Migrations__Enabled=false
 
           swagger tofile --output ../api/api-spec.json \
             ../../src/Bootstrapper/MeAjudaAi.ApiService/bin/Release/net10.0/MeAjudaAi.ApiService.dll \
