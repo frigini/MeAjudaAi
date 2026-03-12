@@ -45,7 +45,7 @@ public static class Extensions
             if (isTestEnvironment)
             {
                 // Use placeholder for integration tests - will be replaced by test infrastructure
-                connectionString = "Host=localhost;Database=test;Username=test;Password=test";
+                connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
             }
             else
             {
@@ -122,9 +122,9 @@ public static class Extensions
         // Registrar implementações no-op como fallback apenas em ambientes de bypass (dev/test).
         // Em produção, a ausência das credenciais do Azure é um erro de configuração e causa
         // fail-fast para evitar que o serviço inicie sem dependências essenciais.
-        var environment = services.BuildServiceProvider()
-            .GetService<IHostEnvironment>();
-        if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
+        // Nota: IsSecurityBypassEnvironment() sem parâmetros lê DOTNET_ENVIRONMENT / ASPNETCORE_ENVIRONMENT
+        // diretamente das variáveis de ambiente, sem necessidade de BuildServiceProvider().
+        if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment())
         {
             services.TryAddScoped<IBlobStorageService, NullBlobStorageService>();
             services.TryAddScoped<IDocumentIntelligenceService, NullDocumentIntelligenceService>();
@@ -132,8 +132,6 @@ public static class Extensions
         else
         {
             // Validação fail-fast: as implementações reais devem ter sido registradas acima.
-            // Se não estiverem, o container de DI falhará na validação, evidenciando a configuração ausente.
-            // O log abaixo ajuda no diagnóstico sem interromper o fluxo de registro.
             var registered = services.Any(sd => sd.ServiceType == typeof(IBlobStorageService));
             if (!registered)
                 throw new InvalidOperationException(

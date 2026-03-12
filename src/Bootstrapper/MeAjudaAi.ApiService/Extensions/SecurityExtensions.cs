@@ -270,6 +270,12 @@ public static class SecurityExtensions
         {
             services.AddKeycloakAuthentication(configuration, environment);
         }
+        else
+        {
+            // Em ambientes de bypass (dev/test/CI) sem Keycloak, registramos AddAuthentication()
+            // sem esquemas para satisfazer IAuthenticationSchemeProvider requerido pelo middleware.
+            services.AddAuthentication();
+        }
 
         return services;
     }

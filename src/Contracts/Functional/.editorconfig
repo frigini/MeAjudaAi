@@ -1,0 +1,14 @@
+# Suppressions scoped to the Result types in this directory.
+# These warnings are false positives due to the deliberate null-forgiving
+# patterns used in the Result<T> / Result classes.
+
+[Result.cs]
+
+# CS8601: "Possible null reference assignment" — Error = error in the success path
+# is intentionally null because success results don't carry an error.
+# The constructor enforces the invariant at runtime; the compiler can't track this.
+dotnet_diagnostic.CS8601.severity = none
+
+# S3877: "Remove this 'throw' expression" — the implicit operator intentionally
+# throws ArgumentNullException for null Error, which is a valid defensive guard.
+dotnet_diagnostic.S3877.severity = none

@@ -461,20 +461,36 @@ public sealed class RabbitMqDeadLetterService(
                 await _connection.CloseAsync();
                 await _connection.DisposeAsync();
             }
-
-            _connectionSemaphore?.Dispose();
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error disposing RabbitMQ dead letter service");
         }
+        finally
+        {
+            _connectionSemaphore?.Dispose();
+        }
     }
 
     /// <inheritdoc/>
-    /// <remarks>Delegates to <see cref="DisposeAsync"/> to satisfy DI scope synchronous teardown.</remarks>
+    /// <remarks>
+    /// Limpeza síncrona: libera o semáforo e anula referências sem bloquear em código assíncrono.
+    /// Recursos de rede (channel/connection) podem não ser fechados graciosamente; prefira DisposeAsync.
+    /// </remarks>
     public void Dispose()
     {
         if (_disposed) return;
-        DisposeAsync().AsTask().GetAwaiter().GetResult();
+        _disposed = true;
+
+        try
+        {
+            _connectionSemaphore?.Dispose();
+            _channel = null;
+            _connection = null;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error disposing RabbitMQ dead letter service (sync)");
+        }
     }
 }

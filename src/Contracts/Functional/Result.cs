@@ -109,7 +109,7 @@ public class Result
         if (IsSuccess)
             onSuccess();
         else
-            onFailure(Error!);
+            onFailure(Error);
     }
 
     /// <summary>

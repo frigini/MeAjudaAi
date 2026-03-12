@@ -113,15 +113,8 @@ jobs:
 
       - uses: nrwl/nx-set-shas@v4
 
-      - name: 🔍 Lint Frontend Workspace
-        working-directory: ./src/Web
-        run: npx nx affected --target=lint
-
-      - name: 🧪 Test Frontend Workspace
-        working-directory: ./src/Web
-        run: npx nx affected --target=test
-
-      - name: 🏗️ Build Frontend Workspace
+      # Generate API client BEFORE lint/test so MeAjudaAi.Web.Customer has generated types
+      - name: 🔧 Generate API Client
         working-directory: ./src/Web
         run: |
           set -e
@@ -150,10 +143,22 @@ jobs:
           export OPENAPI_SPEC_URL="$GITHUB_WORKSPACE/src/api/api-spec.json"
           npm run generate:api --workspace=meajudaai.web.customer
 
-          # 4. Explicitly build the customer web app (updates ignored files)
+      - name: 🔍 Lint Frontend Workspace
+        working-directory: ./src/Web
+        run: npx nx affected --target=lint
+
+      - name: 🧪 Test Frontend Workspace
+        working-directory: ./src/Web
+        run: npx nx affected --target=test
+
+      - name: 🏗️ Build Frontend Workspace
+        working-directory: ./src/Web
+        run: |
+          set -e
+          # 1. Explicitly build the customer web app (uses generated API types)
           npx nx run MeAjudaAi.Web.Customer:build
 
-          # 5. Run the affected build for the rest of the workspace
+          # 2. Run the affected build for the rest of the workspace
           npx nx affected --target=build --exclude=MeAjudaAi.Web.Customer
 
       - name: Prepare Aspire Integration Tests
