@@ -32,14 +32,58 @@ public static class SecurityExtensions
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentNullException.ThrowIfNull(environment);
 
-        // Bypassa validações explicitamente em Testing (workaround para prevenir crash do Swashbuckle CLI 
+        var errors = new List<string>();
+
+        // Validações de sanidade básica de Rate Limiting (configuração inválida em qualquer ambiente)
+        try
+        {
+            var rateLimitSection = configuration.GetSection("AdvancedRateLimit");
+            if (rateLimitSection.Exists())
+            {
+                var anonymousLimits = rateLimitSection.GetSection("Anonymous");
+                var authenticatedLimits = rateLimitSection.GetSection("Authenticated");
+
+                if (anonymousLimits.Exists())
+                {
+                    var anonMinute = anonymousLimits.GetValue<int>("RequestsPerMinute");
+                    var anonHour = anonymousLimits.GetValue<int>("RequestsPerHour");
+
+                    if (anonMinute <= 0 || anonHour <= 0)
+                        errors.Add("Anonymous request limits must be positive values");
+                }
+
+                if (authenticatedLimits.Exists())
+                {
+                    var authMinute = authenticatedLimits.GetValue<int>("RequestsPerMinute");
+                    var authHour = authenticatedLimits.GetValue<int>("RequestsPerHour");
+
+                    if (authMinute <= 0 || authHour <= 0)
+                        errors.Add("Authenticated request limits must be positive values");
+                }
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            errors.Add($"Rate limiting configuration error: {ex.Message}");
+        }
+        catch (ArgumentException ex)
+        {
+            errors.Add($"Rate limiting configuration error: {ex.Message}");
+        }
+
+        // Lança erros de sanidade básica antes de bypassar validações de segurança
+        if (errors.Count > 0)
+        {
+            var errorMessage = "Security configuration validation failed:\n" + string.Join("\n", errors.Select(e => $"- {e}"));
+            throw new InvalidOperationException(errorMessage);
+        }
+
+        // Bypassa validações de segurança explicitamente em Testing (workaround para prevenir crash do Swashbuckle CLI 
         // durante extração na pipeline CI que tenta carregar o container sem credenciais verdadeiras)
         var isTesting = MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
         
         if (isTesting)
             return;
-
-        var errors = new List<string>();
 
         // Valida configuração de CORS
         try
@@ -97,44 +141,31 @@ public static class SecurityExtensions
             errors.Add($"Keycloak configuration error: {ex.Message}");
         }
 
-        // Valida configuração de Rate Limiting
-        try
+        // Valida limites de Rate Limiting em produção (limites negativos já validados acima)
+        if (environment.IsProduction())
         {
-            var rateLimitSection = configuration.GetSection("AdvancedRateLimit");
-            if (rateLimitSection.Exists())
+            try
             {
-                var anonymousLimits = rateLimitSection.GetSection("Anonymous");
-                var authenticatedLimits = rateLimitSection.GetSection("Authenticated");
-
-                if (anonymousLimits.Exists())
+                var rateLimitSection = configuration.GetSection("AdvancedRateLimit");
+                if (rateLimitSection.Exists())
                 {
-                    var anonMinute = anonymousLimits.GetValue<int>("RequestsPerMinute");
-                    var anonHour = anonymousLimits.GetValue<int>("RequestsPerHour");
-
-                    if (anonMinute <= 0 || anonHour <= 0)
-                        errors.Add("Anonymous request limits must be positive values");
-
-                    if (environment.IsProduction() && anonMinute > 100)
-                        errors.Add("Anonymous request limits should be conservative in production (≤100 req/min)");
-                }
-
-                if (authenticatedLimits.Exists())
-                {
-                    var authMinute = authenticatedLimits.GetValue<int>("RequestsPerMinute");
-                    var authHour = authenticatedLimits.GetValue<int>("RequestsPerHour");
-
-                    if (authMinute <= 0 || authHour <= 0)
-                        errors.Add("Authenticated request limits must be positive values");
+                    var anonymousLimits = rateLimitSection.GetSection("Anonymous");
+                    if (anonymousLimits.Exists())
+                    {
+                        var anonMinute = anonymousLimits.GetValue<int>("RequestsPerMinute");
+                        if (anonMinute > 100)
+                            errors.Add("Anonymous request limits should be conservative in production (≤100 req/min)");
+                    }
                 }
             }
-        }
-        catch (InvalidOperationException ex)
-        {
-            errors.Add($"Rate limiting configuration error: {ex.Message}");
-        }
-        catch (ArgumentException ex)
-        {
-            errors.Add($"Rate limiting configuration error: {ex.Message}");
+            catch (InvalidOperationException ex)
+            {
+                errors.Add($"Rate limiting configuration error: {ex.Message}");
+            }
+            catch (ArgumentException ex)
+            {
+                errors.Add($"Rate limiting configuration error: {ex.Message}");
+            }
         }
 
         // Valida redirecionamento HTTPS em produção
