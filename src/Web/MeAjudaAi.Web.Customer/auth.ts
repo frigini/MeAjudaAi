@@ -177,13 +177,12 @@ export const authOptions: NextAuthOptions = {
 
             // Initial sign in via Credentials (ROPC against Keycloak)
             if (account && account.provider === "credentials" && user) {
-                const u = user as { accessToken?: string; refreshToken?: string; expiresAt?: number; id?: string };
                 return {
                     ...token,
-                    accessToken: u.accessToken ?? "",
-                    refreshToken: u.refreshToken ?? "",
-                    expiresAt: u.expiresAt ?? Date.now() + 3600000,
-                    id: u.id ?? "",
+                    accessToken: user.accessToken ?? "",
+                    refreshToken: user.refreshToken ?? "",
+                    expiresAt: user.expiresAt ?? Date.now() + 3600000,
+                    id: user.id ?? "",
                 }
             }
 

@@ -59,7 +59,7 @@ public class Result<T>
     public static Result<T> Failure(Error error) => new(error);
     public static Result<T> Failure(string message) => new(Error.BadRequest(message));
 
-    public static implicit operator Result<T>(T value) => EqualityComparer<T>.Default.Equals(value, default!) ? throw new ArgumentNullException(nameof(value)) : Success(value);
+    public static implicit operator Result<T>(T value) => Success(value);
     public static implicit operator Result<T>(Error error) => error is null ? throw new ArgumentNullException(nameof(error)) : Failure(error);
 
     public TResult Match<TResult>(

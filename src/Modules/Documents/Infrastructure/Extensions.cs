@@ -119,12 +119,31 @@ public static class Extensions
             services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
         }
 
-        // Fallback no-op implementations when Azure services are not configured.
-        // TryAddScoped only registers if no implementation was added above.
-        // These stubs satisfy DI validation (e.g., Swagger CLI, local dev)
-        // and log warnings if their methods are accidentally called.
-        services.TryAddScoped<IBlobStorageService, NullBlobStorageService>();
-        services.TryAddScoped<IDocumentIntelligenceService, NullDocumentIntelligenceService>();
+        // Registrar implementações no-op como fallback apenas em ambientes de bypass (dev/test).
+        // Em produção, a ausência das credenciais do Azure é um erro de configuração e causa
+        // fail-fast para evitar que o serviço inicie sem dependências essenciais.
+        var environment = services.BuildServiceProvider()
+            .GetService<IHostEnvironment>();
+        if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
+        {
+            services.TryAddScoped<IBlobStorageService, NullBlobStorageService>();
+            services.TryAddScoped<IDocumentIntelligenceService, NullDocumentIntelligenceService>();
+        }
+        else
+        {
+            // Validação fail-fast: as implementações reais devem ter sido registradas acima.
+            // Se não estiverem, o container de DI falhará na validação, evidenciando a configuração ausente.
+            // O log abaixo ajuda no diagnóstico sem interromper o fluxo de registro.
+            var registered = services.Any(sd => sd.ServiceType == typeof(IBlobStorageService));
+            if (!registered)
+                throw new InvalidOperationException(
+                    "IBlobStorageService não está configurado. Defina 'Azure:Storage:ConnectionString' para habilitar uploads de arquivo.");
+
+            var intelligenceRegistered = services.Any(sd => sd.ServiceType == typeof(IDocumentIntelligenceService));
+            if (!intelligenceRegistered)
+                throw new InvalidOperationException(
+                    "IDocumentIntelligenceService não está configurado. Defina 'Azure:DocumentIntelligence:Endpoint' e 'Azure:DocumentIntelligence:ApiKey' para habilitar OCR.");
+        }
 
         return services;
     }

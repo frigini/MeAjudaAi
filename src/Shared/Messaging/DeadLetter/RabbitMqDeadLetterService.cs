@@ -14,12 +14,13 @@ namespace MeAjudaAi.Shared.Messaging.DeadLetter;
 public sealed class RabbitMqDeadLetterService(
     RabbitMqOptions rabbitMqOptions,
     IOptions<DeadLetterOptions> deadLetterOptions,
-    ILogger<RabbitMqDeadLetterService> logger) : IDeadLetterService, IAsyncDisposable
+    ILogger<RabbitMqDeadLetterService> logger) : IDeadLetterService, IAsyncDisposable, IDisposable
 {
     private readonly DeadLetterOptions _deadLetterOptions = deadLetterOptions.Value;
     private IConnection? _connection;
     private IChannel? _channel;
     private readonly SemaphoreSlim _connectionSemaphore = new(1, 1);
+    private bool _disposed;
 
     public async Task SendToDeadLetterAsync<TMessage>(
         TMessage message,
@@ -444,6 +445,9 @@ public sealed class RabbitMqDeadLetterService(
 
     public async ValueTask DisposeAsync()
     {
+        if (_disposed) return;
+        _disposed = true;
+
         try
         {
             if (_channel != null)
@@ -464,5 +468,13 @@ public sealed class RabbitMqDeadLetterService(
         {
             logger.LogError(ex, "Error disposing RabbitMQ dead letter service");
         }
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>Delegates to <see cref="DisposeAsync"/> to satisfy DI scope synchronous teardown.</remarks>
+    public void Dispose()
+    {
+        if (_disposed) return;
+        DisposeAsync().AsTask().GetAwaiter().GetResult();
     }
 }

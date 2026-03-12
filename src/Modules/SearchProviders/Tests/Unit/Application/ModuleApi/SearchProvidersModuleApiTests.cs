@@ -416,13 +416,15 @@ public class SearchProvidersModuleApiTests
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain("not found");
         _repositoryMock.Verify(x => x.AddAsync(It.IsAny<SearchableProvider>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<SearchableProvider>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task IndexProviderAsync_WhenProvidersApiReturnsSuccessWithNull_ShouldReturnFailure()
     {
-        // Arrange — simulates the contract where the API returns Success but with a null payload
-        // (e.g., provider exists in the index but has no indexable data yet)
+        // Arrange — simula o contrato em que a API retorna Success mas com payload nulo
+        // (p.ex., o provedor existe no índice mas ainda não tem dados indexáveis)
         var providerId = Guid.NewGuid();
 
         _providersApiMock
@@ -436,6 +438,8 @@ public class SearchProvidersModuleApiTests
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain(providerId.ToString());
         _repositoryMock.Verify(x => x.AddAsync(It.IsAny<SearchableProvider>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<SearchableProvider>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
