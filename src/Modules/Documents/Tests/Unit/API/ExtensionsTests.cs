@@ -131,12 +131,12 @@ public sealed class ExtensionsTests
         builder.Services.AddLogging();
 
         var testEnvMock = new Mock<IWebHostEnvironment>();
-        testEnvMock.Setup(e => e.EnvironmentName).Returns("Test");
+        testEnvMock.Setup(e => e.EnvironmentName).Returns("Testing");
         testEnvMock.Setup(e => e.ApplicationName).Returns("TestApp");
         builder.Services.AddSingleton(testEnvMock.Object);
 
         var mockEnv = new Mock<IHostEnvironment>();
-        mockEnv.Setup(e => e.EnvironmentName).Returns("Test");
+        mockEnv.Setup(e => e.EnvironmentName).Returns("Testing");
         builder.Services.AddDocumentsModule(_testConfiguration, mockEnv.Object);
 
         var app = builder.Build();
@@ -203,7 +203,7 @@ public sealed class ExtensionsTests
         builder.Services.AddLogging();
 
         var testEnvMock = new Mock<IWebHostEnvironment>();
-        testEnvMock.Setup(e => e.EnvironmentName).Returns("Test");
+        testEnvMock.Setup(e => e.EnvironmentName).Returns("Testing");
         testEnvMock.Setup(e => e.ApplicationName).Returns("TestApp");
         builder.Services.AddSingleton(testEnvMock.Object);
 

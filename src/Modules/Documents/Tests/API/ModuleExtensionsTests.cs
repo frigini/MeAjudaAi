@@ -80,6 +80,21 @@ public class ModuleExtensionsTests
     }
 
     [Fact]
+    public void AddDocumentsModule_InProductionWithNoCredentials_ShouldFailFast()
+    {
+        // Arrange
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns("Production");
+
+        // Act
+        var act = () => _services.AddDocumentsModule(_configuration, mockEnv.Object);
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .And.Message.Should().Contain("IBlobStorageService is not configured");
+    }
+
+    [Fact]
     public void UseDocumentsModule_ShouldReturnWebApplication()
     {
         // Arrange

@@ -33,9 +33,16 @@ internal sealed class NullDocumentIntelligenceService : IDocumentIntelligenceSer
             throw new ArgumentException("Document type cannot be null or empty", nameof(documentType));
         }
 
-        if (!Uri.TryCreate(blobUrl, UriKind.Absolute, out _))
+        if (!Uri.TryCreate(blobUrl, UriKind.Absolute, out var uri))
         {
             throw new ArgumentException($"Invalid blob URL format: {blobUrl}", nameof(blobUrl));
+        }
+
+        if (uri.Query.Contains("sig=") || uri.Query.Contains("SharedAccessSignature"))
+        {
+            // Se parecer conter um SAS token, sanitiza para a exceção
+            var sanitizedUrl = uri.GetLeftPart(UriPartial.Path);
+            throw new ArgumentException($"Invalid blob URL format (sanitized): {sanitizedUrl}", nameof(blobUrl));
         }
 
         _logger.LogWarning(
@@ -47,8 +54,6 @@ internal sealed class NullDocumentIntelligenceService : IDocumentIntelligenceSer
             ExtractedData: null,
             Fields: null,
             Confidence: null,
-            // English message is intended for logs/operational use by developers/operators.
-            ErrorMessage: "Azure AI Document Intelligence is not configured. "
-                + "Set 'Azure:DocumentIntelligence:Endpoint' and 'Azure:DocumentIntelligence:ApiKey' to enable OCR."));
+            ErrorMessage: "Não foi possível processar o documento no momento, tente novamente mais tarde."));
     }
 }

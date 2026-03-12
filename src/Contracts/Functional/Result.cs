@@ -16,16 +16,19 @@ namespace MeAjudaAi.Contracts.Functional;
 public class Result<T>
 {
     [MemberNotNullWhen(false, nameof(Error))]
+    [MemberNotNullWhen(true, nameof(Value))]
     public bool IsSuccess { get; }
 
     [MemberNotNullWhen(true, nameof(Error))]
+    [MemberNotNullWhen(false, nameof(Value))]
     public bool IsFailure => !IsSuccess;
 
+    [MaybeNull]
     public T Value { get; }
-    public Error Error { get; }
+    public Error? Error { get; }
 
     [JsonConstructor]
-    public Result(bool isSuccess, T value, Error error)
+    public Result(bool isSuccess, [MaybeNull] T value, Error? error)
     {
         if (isSuccess)
         {
@@ -34,7 +37,8 @@ public class Result<T>
         }
         else
         {
-            ArgumentNullException.ThrowIfNull(error);
+            if (error == null)
+                throw new ArgumentNullException(nameof(error), "Failure result must have an error.");
         }
 
         IsSuccess = isSuccess;
@@ -46,7 +50,7 @@ public class Result<T>
     {
         IsSuccess = true;
         Value = value;
-        Error = null!;
+        Error = null;
     }
 
     private Result(Error error)
@@ -54,7 +58,7 @@ public class Result<T>
         ArgumentNullException.ThrowIfNull(error);
 
         IsSuccess = false;
-        Value = default!;
+        Value = default;
         Error = error;
     }
 
@@ -72,7 +76,7 @@ public class Result<T>
         ArgumentNullException.ThrowIfNull(onSuccess);
         ArgumentNullException.ThrowIfNull(onFailure);
 
-        return IsSuccess ? onSuccess(Value) : onFailure(Error);
+        return IsSuccess ? onSuccess(Value!) : onFailure(Error!);
     }
 }
 
@@ -85,10 +89,10 @@ public class Result
     [MemberNotNullWhen(true, nameof(Error))]
     public bool IsFailure => !IsSuccess;
 
-    public Error Error { get; }
+    public Error? Error { get; }
 
     [JsonConstructor]
-    public Result(bool isSuccess, Error error)
+    public Result(bool isSuccess, Error? error)
     {
         if (isSuccess && error != null) throw new ArgumentException("Success result cannot have an error.", nameof(error));
         if (!isSuccess && error == null) throw new ArgumentNullException(nameof(error), "Failure result must have an error.");
@@ -97,7 +101,7 @@ public class Result
         Error = error;
     }
 
-    public static Result Success() => new(true, null!);
+    public static Result Success() => new(true, null);
     public static Result Failure(Error error) => new(false, error);
     public static Result Failure(string message) => new(false, Error.BadRequest(message));
 
@@ -117,7 +121,7 @@ public class Result
         if (IsSuccess)
             onSuccess();
         else
-            onFailure(Error);
+            onFailure(Error!);
     }
 
     /// <summary>
