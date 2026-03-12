@@ -46,7 +46,7 @@ generate_runsettings() {
     echo '    <DataCollectors>'
     echo '      <DataCollector friendlyName="XPlat Code Coverage">'
     echo '        <Configuration>'
-    echo '          <Format>opencover</Format>'
+    echo '          <Format>cobertura</Format>'
     if [ -n "$include_filter" ]; then
       include_filter=$(escape_xml "$include_filter")
       echo "          <Include>${include_filter}</Include>"
