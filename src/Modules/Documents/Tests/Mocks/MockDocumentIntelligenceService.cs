@@ -51,6 +51,21 @@ public sealed class MockDocumentIntelligenceService : IDocumentIntelligenceServi
         string documentType,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(blobUrl))
+        {
+            throw new ArgumentException("Blob URL cannot be null or empty", nameof(blobUrl));
+        }
+
+        if (string.IsNullOrWhiteSpace(documentType))
+        {
+            throw new ArgumentException("Document type cannot be null or empty", nameof(documentType));
+        }
+
+        if (!Uri.TryCreate(blobUrl, UriKind.Absolute, out _))
+        {
+            throw new ArgumentException($"Invalid blob URL format: {blobUrl}", nameof(blobUrl));
+        }
+
         // Simular erro de API se configurado
         if (_simulateError)
         {

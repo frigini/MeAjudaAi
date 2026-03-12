@@ -20,7 +20,9 @@ public sealed class RabbitMqDeadLetterService(
     private IConnection? _connection;
     private IChannel? _channel;
     private readonly SemaphoreSlim _connectionSemaphore = new(1, 1);
-    private bool _disposed;
+    private readonly CancellationTokenSource _disposeCts = new();
+    private int _disposedValue; // 0 = not disposed, 1 = disposing/disposed
+    private bool _disposed => _disposedValue == 1;
 
     public async Task SendToDeadLetterAsync<TMessage>(
         TMessage message,
@@ -292,12 +294,14 @@ public sealed class RabbitMqDeadLetterService(
 
     private async Task EnsureConnectionAsync()
     {
+        if (_disposed) throw new ObjectDisposedException(nameof(RabbitMqDeadLetterService));
         if (_connection?.IsOpen == true && _channel?.IsOpen == true)
             return;
 
-        await _connectionSemaphore.WaitAsync();
+        await _connectionSemaphore.WaitAsync(_disposeCts.Token);
         try
         {
+            if (_disposed) throw new ObjectDisposedException(nameof(RabbitMqDeadLetterService));
             if (_connection?.IsOpen == true && _channel?.IsOpen == true)
                 return;
 
@@ -445,21 +449,25 @@ public sealed class RabbitMqDeadLetterService(
 
     public async ValueTask DisposeAsync()
     {
-        if (_disposed) return;
-        _disposed = true;
+        if (Interlocked.Exchange(ref _disposedValue, 1) == 1) return;
 
         try
         {
+            await _disposeCts.CancelAsync();
+            _disposeCts.Dispose();
+
             if (_channel != null)
             {
                 await _channel.CloseAsync();
                 await _channel.DisposeAsync();
+                _channel = null;
             }
 
             if (_connection != null)
             {
                 await _connection.CloseAsync();
                 await _connection.DisposeAsync();
+                _connection = null;
             }
         }
         catch (Exception ex)
@@ -479,12 +487,16 @@ public sealed class RabbitMqDeadLetterService(
     /// </remarks>
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
+        if (Interlocked.Exchange(ref _disposedValue, 1) == 1) return;
 
         try
         {
+            _disposeCts.Cancel();
+            _disposeCts.Dispose();
             _connectionSemaphore?.Dispose();
+
+            _channel?.Dispose();
+            _connection?.Dispose();
             _channel = null;
             _connection = null;
         }

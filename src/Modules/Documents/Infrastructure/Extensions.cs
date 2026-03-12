@@ -1,4 +1,3 @@
-#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
 using EFCore.NamingConventions;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Events;
@@ -45,7 +44,9 @@ public static class Extensions
             if (isTestEnvironment)
             {
                 // Use placeholder for integration tests - will be replaced by test infrastructure
+#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
                 connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
+#pragma warning restore S2068
             }
             else
             {
@@ -135,12 +136,12 @@ public static class Extensions
             var registered = services.Any(sd => sd.ServiceType == typeof(IBlobStorageService));
             if (!registered)
                 throw new InvalidOperationException(
-                    "IBlobStorageService não está configurado. Defina 'Azure:Storage:ConnectionString' para habilitar uploads de arquivo.");
+                    "IBlobStorageService is not configured. Set 'Azure:Storage:ConnectionString' to enable file uploads.");
 
             var intelligenceRegistered = services.Any(sd => sd.ServiceType == typeof(IDocumentIntelligenceService));
             if (!intelligenceRegistered)
                 throw new InvalidOperationException(
-                    "IDocumentIntelligenceService não está configurado. Defina 'Azure:DocumentIntelligence:Endpoint' e 'Azure:DocumentIntelligence:ApiKey' para habilitar OCR.");
+                    "IDocumentIntelligenceService is not configured. Set 'Azure:DocumentIntelligence:Endpoint' and 'Azure:DocumentIntelligence:ApiKey' to enable OCR.");
         }
 
         return services;

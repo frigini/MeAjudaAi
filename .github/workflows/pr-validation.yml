@@ -134,9 +134,16 @@ jobs:
           export ConnectionStrings__DefaultConnection="Host=localhost;Database=dummy"
           export Migrations__Enabled=false
 
-          swagger tofile --output ../api/api-spec.json \
-            ../../src/Bootstrapper/MeAjudaAi.ApiService/bin/Release/net10.0/MeAjudaAi.ApiService.dll \
-            v1
+          # Use glob to find the DLL without hardcoding TFM (e.g. net10.0)
+          # The path is relative to the current step context (root or working-directory)
+          DLL_PATH=$(find ../../src/Bootstrapper/MeAjudaAi.ApiService/bin/Release -name "MeAjudaAi.ApiService.dll" | head -n 1)
+          if [ -z "$DLL_PATH" ]; then
+            echo "Error: MeAjudaAi.ApiService.dll not found!"
+            exit 1
+          fi
+          echo "Found DLL at: $DLL_PATH"
+
+          swagger tofile --output ../api/api-spec.json "$DLL_PATH" v1
 
           # 3. Generate API client for Customer Web App
           # The generator reads OPENAPI_SPEC_URL from env

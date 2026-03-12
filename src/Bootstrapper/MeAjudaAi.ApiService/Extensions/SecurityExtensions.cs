@@ -45,8 +45,8 @@ public static class SecurityExtensions
 
                 if (anonymousLimits.Exists())
                 {
-                    var anonMinute = anonymousLimits.GetValue<int>("RequestsPerMinute");
-                    var anonHour = anonymousLimits.GetValue<int>("RequestsPerHour");
+                    var anonMinute = anonymousLimits.GetValue<int?>("RequestsPerMinute");
+                    var anonHour = anonymousLimits.GetValue<int?>("RequestsPerHour");
 
                     if (anonMinute <= 0 || anonHour <= 0)
                         errors.Add("Anonymous request limits must be positive values");
@@ -54,8 +54,8 @@ public static class SecurityExtensions
 
                 if (authenticatedLimits.Exists())
                 {
-                    var authMinute = authenticatedLimits.GetValue<int>("RequestsPerMinute");
-                    var authHour = authenticatedLimits.GetValue<int>("RequestsPerHour");
+                    var authMinute = authenticatedLimits.GetValue<int?>("RequestsPerMinute");
+                    var authHour = authenticatedLimits.GetValue<int?>("RequestsPerHour");
 
                     if (authMinute <= 0 || authHour <= 0)
                         errors.Add("Authenticated request limits must be positive values");
@@ -304,8 +304,8 @@ public static class SecurityExtensions
         else
         {
             // Em ambientes de bypass (dev/test/CI) sem Keycloak, registramos AddAuthentication()
-            // sem esquemas para satisfazer IAuthenticationSchemeProvider requerido pelo middleware.
-            services.AddAuthentication();
+            // com o esquema padrão para garantir consistência em toda a aplicação.
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
         }
 
         return services;
