@@ -20,24 +20,24 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure;
 
 public static class Extensions
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
-        services.AddPersistence(configuration);
-        services.AddServices(configuration);
+        services.AddPersistence(configuration, environment);
+        services.AddServices(configuration, environment);
         services.AddEventHandlers();
         services.AddJobs();
 
         return services;
     }
 
-    private static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection")
                               ?? configuration.GetConnectionString("Documents")
                               ?? configuration.GetConnectionString("meajudaai-db");
 
         // In test environments, allow placeholder connection string since tests will replace the DbContext
-        var isTestEnvironment = MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment();
+        var isTestEnvironment = MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
 
         if (string.IsNullOrEmpty(connectionString))
         {
@@ -72,8 +72,7 @@ public static class Extensions
             .EnableSensitiveDataLogging(false);
 
             // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
-            var environment = serviceProvider.GetService<IHostEnvironment>();
-            if (environment?.IsDevelopment() == true)
+            if (environment.IsDevelopment())
             {
                 options.ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
@@ -91,7 +90,7 @@ public static class Extensions
         return services;
     }
 
-    private static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         // Registrar Azure clients
         var storageConnectionString = configuration["Azure:Storage:ConnectionString"];
@@ -123,9 +122,7 @@ public static class Extensions
         // Registrar implementações no-op como fallback apenas em ambientes de bypass (dev/test).
         // Em produção, a ausência das credenciais do Azure é um erro de configuração e causa
         // fail-fast para evitar que o serviço inicie sem dependências essenciais.
-        // Nota: IsSecurityBypassEnvironment() sem parâmetros lê DOTNET_ENVIRONMENT / ASPNETCORE_ENVIRONMENT
-        // diretamente das variáveis de ambiente, sem necessidade de BuildServiceProvider().
-        if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment())
+        if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
         {
             services.TryAddScoped<IBlobStorageService, NullBlobStorageService>();
             services.TryAddScoped<IDocumentIntelligenceService, NullDocumentIntelligenceService>();

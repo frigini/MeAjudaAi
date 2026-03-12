@@ -47,6 +47,7 @@ internal sealed class NullDocumentIntelligenceService : IDocumentIntelligenceSer
             ExtractedData: null,
             Fields: null,
             Confidence: null,
+            // English message is intended for logs/operational use by developers/operators.
             ErrorMessage: "Azure AI Document Intelligence is not configured. "
                 + "Set 'Azure:DocumentIntelligence:Endpoint' and 'Azure:DocumentIntelligence:ApiKey' to enable OCR."));
     }

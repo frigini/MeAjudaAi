@@ -68,7 +68,12 @@ public class Result<T>
     public TResult Match<TResult>(
         Func<T, TResult> onSuccess,
         Func<Error, TResult> onFailure)
-        => IsSuccess ? onSuccess(Value) : onFailure(Error);
+    {
+        ArgumentNullException.ThrowIfNull(onSuccess);
+        ArgumentNullException.ThrowIfNull(onFailure);
+
+        return IsSuccess ? onSuccess(Value) : onFailure(Error);
+    }
 }
 
 
@@ -96,7 +101,7 @@ public class Result
     public static Result Failure(Error error) => new(false, error);
     public static Result Failure(string message) => new(false, Error.BadRequest(message));
 
-    public static implicit operator Result(Error error) => Failure(error);
+    public static implicit operator Result(Error error) => error is null ? throw new ArgumentNullException(nameof(error)) : Result.Failure(error);
 
     /// <summary>
     /// Executa ação de sucesso ou falha conforme o resultado.

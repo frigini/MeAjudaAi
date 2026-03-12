@@ -40,7 +40,9 @@ public sealed class ExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var result = services.AddDocumentsModule(_testConfiguration);
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Development);
+        var result = services.AddDocumentsModule(_testConfiguration, mockEnv.Object);
 
         // Assert
         Assert.NotNull(result);
@@ -55,7 +57,9 @@ public sealed class ExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        services.AddDocumentsModule(_testConfiguration);
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Development);
+        services.AddDocumentsModule(_testConfiguration, mockEnv.Object);
 
         // Assert
         // Verifica se IDocumentsModuleApi está registrado
@@ -69,7 +73,9 @@ public sealed class ExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var result = services.AddDocumentsModule(_testConfiguration);
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Development);
+        var result = services.AddDocumentsModule(_testConfiguration, mockEnv.Object);
 
         // Assert
         Assert.NotNull(result);
@@ -84,7 +90,9 @@ public sealed class ExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var result = services.AddDocumentsModule(_testConfiguration);
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Development);
+        var result = services.AddDocumentsModule(_testConfiguration, mockEnv.Object);
 
         // Assert
         Assert.Same(services, result);
@@ -105,7 +113,9 @@ public sealed class ExtensionsTests
             .Build();
 
         // Act
-        var result = services.AddDocumentsModule(configuration);
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Development);
+        var result = services.AddDocumentsModule(configuration, mockEnv.Object);
 
         // Assert
         Assert.NotNull(result);
@@ -125,7 +135,9 @@ public sealed class ExtensionsTests
         testEnvMock.Setup(e => e.ApplicationName).Returns("TestApp");
         builder.Services.AddSingleton(testEnvMock.Object);
 
-        builder.Services.AddDocumentsModule(_testConfiguration);
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns("Test");
+        builder.Services.AddDocumentsModule(_testConfiguration, mockEnv.Object);
 
         var app = builder.Build();
 
@@ -149,7 +161,9 @@ public sealed class ExtensionsTests
         testEnvMock.Setup(e => e.ApplicationName).Returns("TestApp");
         builder.Services.AddSingleton(testEnvMock.Object);
 
-        builder.Services.AddDocumentsModule(_testConfiguration);
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns("Testing");
+        builder.Services.AddDocumentsModule(_testConfiguration, mockEnv.Object);
 
         var app = builder.Build();
 

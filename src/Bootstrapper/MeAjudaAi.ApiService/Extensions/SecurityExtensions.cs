@@ -48,8 +48,15 @@ public static class SecurityExtensions
                     var anonMinute = anonymousLimits.GetValue<int?>("RequestsPerMinute");
                     var anonHour = anonymousLimits.GetValue<int?>("RequestsPerHour");
 
-                    if (anonMinute <= 0 || anonHour <= 0)
-                        errors.Add("Anonymous request limits must be positive values");
+                    if (anonMinute is null)
+                        errors.Add("Anonymous 'RequestsPerMinute' is missing");
+                    else if (anonMinute <= 0)
+                        errors.Add("Anonymous 'RequestsPerMinute' must be positive");
+
+                    if (anonHour is null)
+                        errors.Add("Anonymous 'RequestsPerHour' is missing");
+                    else if (anonHour <= 0)
+                        errors.Add("Anonymous 'RequestsPerHour' must be positive");
                 }
 
                 if (authenticatedLimits.Exists())
@@ -57,8 +64,15 @@ public static class SecurityExtensions
                     var authMinute = authenticatedLimits.GetValue<int?>("RequestsPerMinute");
                     var authHour = authenticatedLimits.GetValue<int?>("RequestsPerHour");
 
-                    if (authMinute <= 0 || authHour <= 0)
-                        errors.Add("Authenticated request limits must be positive values");
+                    if (authMinute is null)
+                        errors.Add("Authenticated 'RequestsPerMinute' is missing");
+                    else if (authMinute <= 0)
+                        errors.Add("Authenticated 'RequestsPerMinute' must be positive");
+
+                    if (authHour is null)
+                        errors.Add("Authenticated 'RequestsPerHour' is missing");
+                    else if (authHour <= 0)
+                        errors.Add("Authenticated 'RequestsPerHour' must be positive");
                 }
             }
         }
@@ -226,8 +240,9 @@ public static class SecurityExtensions
                 // Configura origens permitidas
                 if (corsOptions.AllowedOrigins.Contains("*"))
                 {
-                    // Só permite coringa em desenvolvimento
-                    if (environment.IsDevelopment())
+                    // Permite coringa em desenvolvimento ou ambiente de bypass (testes/CI)
+                    if (environment.IsDevelopment() || 
+                        MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
                     {
                         // AllowAnyOrigin() é incompatível com AllowCredentials()
                         if (corsOptions.AllowCredentials)
@@ -303,9 +318,20 @@ public static class SecurityExtensions
         }
         else
         {
-            // Em ambientes de bypass (dev/test/CI) sem Keycloak, registramos AddAuthentication()
-            // com o esquema padrão para garantir consistência em toda a aplicação.
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
+            // Em ambientes de bypass (dev/test/CI) sem Keycloak, registramos um handler no-op
+            // para evitar que UseAuthentication() falhe ao tentar resolver o esquema padrão.
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            // No-op - bypass real authentication logic
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
         }
 
         return services;
