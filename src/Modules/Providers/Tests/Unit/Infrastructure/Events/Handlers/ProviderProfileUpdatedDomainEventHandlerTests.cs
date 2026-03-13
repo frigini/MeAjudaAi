@@ -60,6 +60,7 @@ public class ProviderProfileUpdatedDomainEventHandlerTests : IDisposable
             1,
             "Updated Name",
             "updated@test.com",
+            "updated-name",
             null,
             new[] { "Name", "Email" }
         );
@@ -98,6 +99,7 @@ public class ProviderProfileUpdatedDomainEventHandlerTests : IDisposable
             1,
             "Updated Name",
             "updated@test.com",
+            "updated-name",
             null,
             new[] { "Name", "Email" }
         );

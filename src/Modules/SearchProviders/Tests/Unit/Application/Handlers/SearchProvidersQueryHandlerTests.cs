@@ -355,10 +355,11 @@ public class SearchProvidersQueryHandlerTests
             RadiusInKm: 500);
 
         var provider = SearchableProvider.Create(
-            Guid.NewGuid(),
-            "Test Provider",
-            new GeoPoint(-22.9068, -43.1729), // Rio de Janeiro
-            ESubscriptionTier.Free);
+            providerId: Guid.NewGuid(),
+            name: "Test Provider",
+            slug: "test-provider",
+            location: new GeoPoint(-22.9068, -43.1729), // Rio de Janeiro
+            subscriptionTier: ESubscriptionTier.Free);
 
         var distance = provider.CalculateDistanceToInKm(searchLocation);
         _repositoryMock
@@ -392,14 +393,16 @@ public class SearchProvidersQueryHandlerTests
         var providers = new List<SearchableProvider>();
         for (int i = 0; i < count; i++)
         {
+            var name = $"Provider {i + 1}";
             providers.Add(SearchableProvider.Create(
-                Guid.NewGuid(),
-                $"Provider {i + 1}",
-                new GeoPoint(-23.5505 + i * 0.01, -46.6333 + i * 0.01),
-                (ESubscriptionTier)(i % 4),
-                $"Description {i + 1}",
-                "São Paulo",
-                "SP"));
+                providerId: Guid.NewGuid(),
+                name: name,
+                slug: name.ToLower().Replace(" ", "-"),
+                location: new GeoPoint(-23.5505 + i * 0.01, -46.6333 + i * 0.01),
+                subscriptionTier: (ESubscriptionTier)(i % 4),
+                description: $"Description {i + 1}",
+                city: "São Paulo",
+                state: "SP"));
         }
         return providers;
     }

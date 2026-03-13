@@ -6,6 +6,7 @@ namespace MeAjudaAi.Contracts.Modules.Providers.DTOs;
 public sealed record ModuleProviderBasicDto(
     Guid Id,
     string Name,
+    string Slug,
     string Email,
     string ProviderType,
     string VerificationStatus,

@@ -26,6 +26,7 @@ public class SearchableProviderTests
         var provider = SearchableProvider.Create(
             providerId,
             name,
+            "test-provider",
             location,
             subscriptionTier,
             "Test description",
@@ -55,7 +56,7 @@ public class SearchableProviderTests
         var location = new GeoPoint(-23.5505, -46.6333);
 
         // Act
-        var act = () => SearchableProvider.Create(providerId, "", location);
+        var act = () => SearchableProvider.Create(providerId, "", "slug", location);
 
         // Assert
         act.Should().Throw<ArgumentException>()
@@ -70,7 +71,7 @@ public class SearchableProviderTests
         var location = new GeoPoint(-23.5505, -46.6333);
 
         // Act
-        var act = () => SearchableProvider.Create(providerId, "   ", location);
+        var act = () => SearchableProvider.Create(providerId, "   ", "slug", location);
 
         // Assert
         act.Should().Throw<ArgumentException>();
@@ -87,7 +88,7 @@ public class SearchableProviderTests
         var newState = "RJ";
 
         // Act
-        provider.UpdateBasicInfo(newName, newDescription, newCity, newState);
+        provider.UpdateBasicInfo(newName, "updated-provider", newDescription, newCity, newState);
 
         // Assert
         provider.Name.Should().Be(newName);
@@ -104,7 +105,7 @@ public class SearchableProviderTests
         var provider = CreateValidProvider();
 
         // Act
-        var act = () => provider.UpdateBasicInfo("", "desc", "city", "ST");
+        var act = () => provider.UpdateBasicInfo("", "slug", "desc", "city", "ST");
 
         // Assert
         act.Should().Throw<ArgumentException>();
@@ -296,7 +297,7 @@ public class SearchableProviderTests
     {
         // Arrange
         var location = new GeoPoint(-23.5505, -46.6333);
-        var provider = SearchableProvider.Create(Guid.NewGuid(), "Test", location);
+        var provider = SearchableProvider.Create(Guid.NewGuid(), "Test", "test", location);
 
         // Act
         var distance = provider.CalculateDistanceToInKm(location);
@@ -310,6 +311,7 @@ public class SearchableProviderTests
         return SearchableProvider.Create(
             Guid.NewGuid(),
             "Test Provider",
+            "test-provider",
             new GeoPoint(-23.5505, -46.6333), // São Paulo
             ESubscriptionTier.Free,
             "Test description",

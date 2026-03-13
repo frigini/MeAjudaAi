@@ -17,11 +17,13 @@ namespace MeAjudaAi.Modules.Providers.Domain.Events;
 /// <param name="Name">Nome do prestador de serviços</param>
 /// <param name="Type">Tipo do prestador de serviços</param>
 /// <param name="Email">Email de contato do prestador de serviços</param>
+/// <param name="Slug">Slug amigável para URL</param>
 public record ProviderRegisteredDomainEvent(
     Guid AggregateId,
     int Version,
     Guid UserId,
     string Name,
     EProviderType Type,
-    string Email
+    string Email,
+    string Slug
 ) : DomainEvent(AggregateId, Version);
