@@ -12,12 +12,17 @@ namespace MeAjudaAi.Integration.Tests.Infrastructure.Jobs;
 public class HangfirePostgreSqlTests
 {
     private readonly string _connectionString;
+    private readonly ITestOutputHelper _output;
 
-    public HangfirePostgreSqlTests()
+    public HangfirePostgreSqlTests(ITestOutputHelper output)
     {
+        _output = output;
+        
         // Prioridade para a variável de ambiente sugerida pelo usuário para validação no CI
-        _connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection") 
-                           ?? "Host=localhost;Database=meajudaai_compat;Username=postgres;Password=test123";
+        // Sanitizamos com Trim() para evitar caracteres invisíveis ou quebras de linha vindas do CI
+        var rawConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+        
+        _connectionString = (rawConnectionString?.Trim() ?? "Host=localhost;Database=meajudaai_compat;Username=postgres;Password=test123").Trim();
     }
 
     [Fact]
@@ -26,25 +31,41 @@ public class HangfirePostgreSqlTests
         // This test validates that Hangfire.PostgreSql 1.21.1 is compatible with Npgsql 10.x
         // by attempting to initialize the storage and execute a simple command.
         
-        // Arrange & Act
-        var options = new PostgreSqlStorageOptions 
-        { 
-            SchemaName = "hangfire_compat_test",
-            PrepareSchemaIfNecessary = true 
-        };
+        _output.WriteLine($"🔍 Testing Connection String Length: {_connectionString.Length}");
+        
+        try 
+        {
+            // Validamos a conexão usando NpgsqlConnectionStringBuilder antes para garantir que está íntegra
+            var builder = new NpgsqlConnectionStringBuilder(_connectionString);
+            _output.WriteLine($"✅ Connection string parsed successfully. Primary Host: {builder.Host}");
 
-        // Initialize storage using the recommended NpgsqlConnectionFactory to avoid obsolete warnings
-        var storage = new PostgreSqlStorage(new NpgsqlConnectionFactory(_connectionString, options), options);
-        
-        // Assert
-        storage.Should().NotBeNull();
-        
-        // Exercise the storage to ensure Npgsql connection works
-        // (Hangfire initializes schema lazily on first use or explicitly if configured)
-        using var connection = storage.GetConnection();
-        connection.Should().NotBeNull();
-        
-        // If we reached here without Npgsql related exceptions (MethodNotFound, etc), 
-        // the compatibility risk is significantly reduced.
+            // Arrange & Act
+            var options = new PostgreSqlStorageOptions 
+            { 
+                SchemaName = "hangfire_compat_test",
+                PrepareSchemaIfNecessary = true 
+            };
+
+            // Initialize storage using the recommended NpgsqlConnectionFactory to avoid obsolete warnings
+            var storage = new PostgreSqlStorage(new NpgsqlConnectionFactory(_connectionString, options), options);
+            
+            // Assert
+            storage.Should().NotBeNull();
+            
+            // Exercise the storage to ensure Npgsql connection works
+            using var connection = storage.GetConnection();
+            connection.Should().NotBeNull();
+        }
+        catch (Exception ex)
+        {
+            // Logamos detalhes úteis para depuração (mascarando a senha)
+            var maskedConn = _connectionString.Contains("Password=") 
+                ? _connectionString[..(_connectionString.IndexOf("Password=") + 9)] + "****"
+                : "No Password found or hidden";
+                
+            _output.WriteLine($"❌ FAILED with Connection String: {maskedConn}");
+            _output.WriteLine($"❌ Error Message: {ex.Message}");
+            throw;
+        }
     }
 }
