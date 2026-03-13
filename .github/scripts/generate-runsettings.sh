@@ -50,7 +50,7 @@ generate_runsettings() {
     # Use a temporary file to avoid partial writes if something fails
     local temp_file
     temp_file=$(mktemp)
-    trap 'rm -f "$temp_file"' EXIT
+    trap "rm -f '$temp_file'" EXIT
 
     {
         echo '<?xml version="1.0" encoding="utf-8"?>'

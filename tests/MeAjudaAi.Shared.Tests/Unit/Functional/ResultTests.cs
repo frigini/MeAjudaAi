@@ -1,4 +1,6 @@
 using MeAjudaAi.Contracts.Functional;
+using FluentAssertions;
+using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Functional;
 
@@ -51,7 +53,7 @@ public class ResultTests
         result.IsFailure.Should().BeTrue();
         result.Value.Should().BeNull();
         result.Error.Should().NotBeNull();
-        result.Error.Message.Should().Be(message);
+        result.Error!.Message.Should().Be(message);
     }
 
     [Fact]
@@ -80,6 +82,19 @@ public class ResultTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be(error);
+    }
+
+    [Fact]
+    public void ImplicitConversion_FromNullError_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        Error? error = null;
+
+        // Act
+        var act = () => { Result<string> _ = error!; };
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>().WithParameterName("error");
     }
 
     [Fact]
@@ -132,8 +147,8 @@ public class ResultTests
         var error = Error.BadRequest("Test error");
 
         // Act
-        var successResult = new Result<string>(true, value, null!);
-        var failureResult = new Result<string>(false, default!, error);
+        var successResult = new Result<string>(true, value, null);
+        var failureResult = new Result<string>(false, default, error);
 
         // Assert
         successResult.IsSuccess.Should().BeTrue();
@@ -143,6 +158,29 @@ public class ResultTests
         failureResult.IsSuccess.Should().BeFalse();
         failureResult.Value.Should().BeNull();
         failureResult.Error.Should().Be(error);
+    }
+
+    [Fact]
+    public void Constructor_SuccessWithError_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var error = Error.BadRequest("Error");
+
+        // Act
+        var act = () => new Result<string>(true, "Value", error);
+
+        // Assert
+        act.Should().Throw<ArgumentException>().WithMessage("*Success result cannot have an error.*");
+    }
+
+    [Fact]
+    public void Constructor_FailureWithoutError_ShouldThrowArgumentNullException()
+    {
+        // Act
+        var act = () => new Result<string>(false, "Value", null);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>().WithParameterName("error");
     }
 }
 
@@ -189,7 +227,7 @@ public class ResultNonGenericTests
         result.IsSuccess.Should().BeFalse();
         result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
-        result.Error.Message.Should().Be(message);
+        result.Error!.Message.Should().Be(message);
     }
 
     [Fact]
@@ -207,13 +245,26 @@ public class ResultNonGenericTests
     }
 
     [Fact]
+    public void ImplicitConversion_FromNullError_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        Error? error = null;
+
+        // Act
+        var act = () => { Result _ = error!; };
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>().WithParameterName("error");
+    }
+
+    [Fact]
     public void Constructor_WithValidParameters_ShouldCreateResultCorrectly()
     {
         // Arrange
         var error = Error.BadRequest("Test error");
 
         // Act
-        var successResult = new Result(true, null!);
+        var successResult = new Result(true, null);
         var failureResult = new Result(false, error);
 
         // Assert
@@ -223,4 +274,100 @@ public class ResultNonGenericTests
         failureResult.IsSuccess.Should().BeFalse();
         failureResult.Error.Should().Be(error);
     }
+
+    [Fact]
+    public void Constructor_SuccessWithError_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var error = Error.BadRequest("Error");
+
+        // Act
+        var act = () => new Result(true, error);
+
+        // Assert
+        act.Should().Throw<ArgumentException>().WithMessage("*Success result cannot have an error.*");
+    }
+
+    [Fact]
+    public void Constructor_FailureWithoutError_ShouldThrowArgumentNullException()
+    {
+        // Act
+        var act = () => new Result(false, null);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>().WithParameterName("error");
+    }
+
+    [Fact]
+    public void Match_Action_WithSuccessfulResult_ShouldExecuteSuccessAction()
+    {
+        // Arrange
+        var result = Result.Success();
+        var successCalled = false;
+        var errorCalled = false;
+
+        // Act
+        result.Match(
+            onSuccess: () => { successCalled = true; },
+            onFailure: e => { errorCalled = true; }
+        );
+
+        // Assert
+        successCalled.Should().BeTrue();
+        errorCalled.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Match_Action_WithFailedResult_ShouldExecuteFailureAction()
+    {
+        // Arrange
+        var error = Error.BadRequest("Error");
+        var result = Result.Failure(error);
+        var successCalled = false;
+        var errorCalled = false;
+
+        // Act
+        result.Match(
+            onSuccess: () => { successCalled = true; },
+            onFailure: e => { errorCalled = true; }
+        );
+
+        // Assert
+        successCalled.Should().BeFalse();
+        errorCalled.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Match_Func_WithSuccessfulResult_ShouldExecuteSuccessFunc()
+    {
+        // Arrange
+        var result = Result.Success();
+
+        // Act
+        var matchResult = result.Match(
+            onSuccess: () => "SUCCESS",
+            onFailure: e => "FAILURE"
+        );
+
+        // Assert
+        matchResult.Should().Be("SUCCESS");
+    }
+
+    [Fact]
+    public void Match_Func_WithFailedResult_ShouldExecuteFailureFunc()
+    {
+        // Arrange
+        var error = Error.BadRequest("Error");
+        var result = Result.Failure(error);
+
+        // Act
+        var matchResult = result.Match(
+            onSuccess: () => "SUCCESS",
+            onFailure: e => "FAILURE"
+        );
+
+        // Assert
+        matchResult.Should().Be("FAILURE");
+    }
 }
+

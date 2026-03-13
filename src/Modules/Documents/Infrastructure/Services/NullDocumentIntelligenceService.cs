@@ -1,5 +1,9 @@
+using System.Runtime.CompilerServices;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using Microsoft.Extensions.Logging;
+
+[assembly: InternalsVisibleTo("MeAjudaAi.Modules.Documents.Tests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
 
