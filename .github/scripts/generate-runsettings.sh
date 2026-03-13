@@ -47,8 +47,7 @@ generate_runsettings() {
     exclude_by_file=$(escape_xml "$exclude_by_file")
     exclude_by_attr=$(escape_xml "$exclude_by_attr")
 
-    # Use a temporary file to avoid partial writes if something fails
-    local temp_file
+    # Use a global variable for the temporary file so the EXIT trap can access it
     temp_file=$(mktemp)
     trap 'rm -f "$temp_file"' EXIT
 
