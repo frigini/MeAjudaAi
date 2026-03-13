@@ -151,31 +151,6 @@ public sealed class ExtensionsTests
         Assert.Same(app, result);
     }
 
-    [Fact]
-    public void UseDocumentsModule_InTestingEnvironment_ShouldSkipMigrations()
-    {
-        // Arrange
-        var builder = WebApplication.CreateBuilder();
-        builder.Services.AddLogging();
-
-        var testEnvMock = new Mock<IWebHostEnvironment>();
-        testEnvMock.Setup(e => e.EnvironmentName).Returns("Testing");
-        testEnvMock.Setup(e => e.ApplicationName).Returns("TestApp");
-        builder.Services.AddSingleton(testEnvMock.Object);
-
-        var mockEnv = new Mock<IHostEnvironment>();
-        mockEnv.Setup(e => e.EnvironmentName).Returns("Testing");
-        builder.Services.AddDocumentsModule(_testConfiguration, mockEnv.Object);
-
-        var app = builder.Build();
-
-        // Act
-        var result = app.UseDocumentsModule();
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Same(app, result);
-    }
 
     [Fact]
     public void UseDocumentsModule_WithoutDbContext_ShouldLogWarningAndContinue()

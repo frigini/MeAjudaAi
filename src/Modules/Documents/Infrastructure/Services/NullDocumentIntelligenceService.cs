@@ -42,12 +42,6 @@ internal sealed class NullDocumentIntelligenceService : IDocumentIntelligenceSer
             throw new ArgumentException($"Invalid blob URL format: {blobUrl}", nameof(blobUrl));
         }
 
-        if (uri.Query.Contains("sig=") || uri.Query.Contains("SharedAccessSignature"))
-        {
-            // Se parecer conter um SAS token, sanitiza para a exceção
-            var sanitizedUrl = uri.GetLeftPart(UriPartial.Path);
-            throw new ArgumentException($"Invalid blob URL format (sanitized): {sanitizedUrl}", nameof(blobUrl));
-        }
 
         _logger.LogWarning(
             "DocumentIntelligenceService not configured. OCR analysis for document type '{DocumentType}' is unavailable.",

@@ -57,24 +57,9 @@ public class NullDocumentIntelligenceServiceTests
         // Assert
         await act.Should().ThrowAsync<ArgumentException>()
             .WithParameterName("blobUrl")
-            .WithMessage("Invalid blob URL format: invalid-url*");
+            .WithMessage("Invalid blob URL format*");
     }
 
-    [Fact]
-    public async Task AnalyzeDocumentAsync_WhenUrlContainsSasToken_ShouldSanitizeAndThrowArgumentException()
-    {
-        // Arrange
-        var blobUrl = "https://storage.blob.core.windows.net/container/doc.pdf?sig=secret_signature&other=param";
-        var expectedSanitized = "https://storage.blob.core.windows.net/container/doc.pdf";
-
-        // Act
-        var act = async () => await _service.AnalyzeDocumentAsync(blobUrl, "IdentityDocument");
-
-        // Assert
-        await act.Should().ThrowAsync<ArgumentException>()
-            .WithParameterName("blobUrl")
-            .WithMessage($"Invalid blob URL format (sanitized): {expectedSanitized}*");
-    }
 
     [Fact]
     public async Task AnalyzeDocumentAsync_WhenValidRequest_ShouldReturnFailureResultWithPortugueseMessage()

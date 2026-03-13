@@ -327,7 +327,7 @@ public static class SecurityExtensions
                     {
                         OnMessageReceived = context =>
                         {
-                            // No-op - bypass real authentication logic
+                            // Sem operação — ignora a lógica real de autenticação
                             return Task.CompletedTask;
                         }
                     };

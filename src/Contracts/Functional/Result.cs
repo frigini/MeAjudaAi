@@ -16,11 +16,9 @@ namespace MeAjudaAi.Contracts.Functional;
 public class Result<T>
 {
     [MemberNotNullWhen(false, nameof(Error))]
-    [MemberNotNullWhen(true, nameof(Value))]
     public bool IsSuccess { get; }
 
     [MemberNotNullWhen(true, nameof(Error))]
-    [MemberNotNullWhen(false, nameof(Value))]
     public bool IsFailure => !IsSuccess;
 
     [MaybeNull]
