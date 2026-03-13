@@ -21,6 +21,11 @@ public class ApplicationStartupDiagnosticTests(ITestOutputHelper testOutput) : I
 
     public async ValueTask InitializeAsync()
     {
+        // Define variáveis de ambiente para o processo de teste
+        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
+        Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
+
         _databaseFixture = new SimpleDatabaseFixture();
         await _databaseFixture.InitializeAsync();
     }

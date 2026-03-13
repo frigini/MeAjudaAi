@@ -15,3 +15,5 @@ reviews:
     - "!**/obj/**"
     - "!**/CoverageReport/**"
     - "!**/TestResults/**"
+    - "!**/packages.lock.json"
+    - "!**/MeAjudaAi.Web.Provider/**"

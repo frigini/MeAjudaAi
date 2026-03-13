@@ -1,4 +1,3 @@
-using MeAjudaAi.Shared.Messaging.Strategy;
 using MeAjudaAi.Shared.Messaging.Options;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
@@ -9,18 +8,15 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
 {
     private readonly RabbitMqOptions _options;
     private readonly IEventTypeRegistry _eventRegistry;
-    private readonly ITopicStrategySelector _topicSelector;
     private readonly ILogger<RabbitMqInfrastructureManager> _logger;
 
     public RabbitMqInfrastructureManager(
         RabbitMqOptions options,
         IEventTypeRegistry eventRegistry,
-        ITopicStrategySelector topicSelector,
         ILogger<RabbitMqInfrastructureManager> logger)
     {
         _options = options;
         _eventRegistry = eventRegistry;
-        _topicSelector = topicSelector;
         _logger = logger;
     }
 
@@ -41,17 +37,23 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
 
             // Cria exchanges e bindings para tipos de eventos
             var eventTypes = await _eventRegistry.GetAllEventTypesAsync();
-            foreach (var eventType in eventTypes)
+            var exchangeName = $"{_options.DefaultQueueName}.exchange";
+
+            await CreateExchangeAsync(exchangeName, ExchangeType.Topic);
+
+            var allQueues = new List<string> { _options.DefaultQueueName };
+            allQueues.AddRange(_options.DomainQueues.Values);
+
+            var eventNames = eventTypes.Select(e => e.Name);
+            foreach (var eventName in eventNames)
             {
-                var queueName = _topicSelector.SelectTopicForEvent(eventType);
-                var exchangeName = $"{queueName}.exchange";
+                foreach (var queueName in allQueues)
+                {
+                    await BindQueueToExchangeAsync(queueName, exchangeName, eventName);
 
-                await CreateExchangeAsync(exchangeName, ExchangeType.Topic);
-                await CreateQueueAsync(queueName);
-                await BindQueueToExchangeAsync(queueName, exchangeName, eventType.Name);
-
-                _logger.LogDebug("Infrastructure created for event type {EventType}: exchange={Exchange}, queue={Queue}",
-                    eventType.Name, exchangeName, queueName);
+                    _logger.LogDebug("Infrastructure created for event type {EventType}: exchange={Exchange}, queue={Queue}",
+                        eventName, exchangeName, queueName);
+                }
             }
 
             _logger.LogWarning("RabbitMQ infrastructure setup completed (stub implementation - actual infrastructure pending)");

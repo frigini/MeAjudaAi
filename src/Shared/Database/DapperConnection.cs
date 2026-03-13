@@ -1,3 +1,4 @@
+
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Dapper;
@@ -12,11 +13,12 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
 
     private static string GetConnectionString(PostgresOptions? postgresOptions)
     {
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        if (environment == "Testing")
+        if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment())
         {
             // Em ambiente de teste, usa uma connection string mock se não houver uma configurada
-            return postgresOptions?.ConnectionString ?? "Host=localhost;Port=5432;Database=meajudaai_test;Username=postgres;Password=test;";
+#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
+            return postgresOptions?.ConnectionString ?? "Host=localhost;Database=test;Username=test;Password=test";
+#pragma warning restore S2068
         }
 
         return postgresOptions?.ConnectionString
@@ -118,11 +120,11 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         if (logger.IsEnabled(LogLevel.Debug))
         {
             var sqlPreview = GetSqlPreview(sql);
-            logger.LogDebug("Operação Dapper falhou (tipo: {OperationType}). Preview do SQL: {SqlPreview}",
+            logger.LogDebug("Dapper operation failed (type: {OperationType}). SQL preview: {SqlPreview}",
                 operationType, sqlPreview);
         }
-        logger.LogError(ex, "Falha ao executar operação Dapper (tipo: {OperationType})", operationType);
-        throw new InvalidOperationException($"Falha ao executar operação Dapper (tipo: {operationType})", ex);
+        logger.LogError(ex, "Failed to execute Dapper operation (type: {OperationType})", operationType);
+        throw new InvalidOperationException($"Failed to execute Dapper operation (type: {operationType})", ex);
     }
 
     private static string? GetSqlPreview(string? sql)

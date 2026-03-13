@@ -309,7 +309,7 @@ public class SecurityExtensionsTests
         // Act & Assert
         var action = () => SecurityExtensions.ValidateSecurityConfiguration(configuration, environment);
         action.Should().Throw<InvalidOperationException>()
-            .WithMessage("*Anonymous request limits*positive*");
+            .WithMessage("*Anonymous*must be positive*");
     }
 
     [Fact]
@@ -354,7 +354,7 @@ public class SecurityExtensionsTests
         // Act & Assert
         var action = () => SecurityExtensions.ValidateSecurityConfiguration(configuration, environment);
         action.Should().Throw<InvalidOperationException>()
-            .WithMessage("*Authenticated request limits*positive*");
+            .WithMessage("*Authenticated*must be positive*");
     }
 
     [Fact]

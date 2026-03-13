@@ -62,6 +62,21 @@ public static class Extensions
                               ?? configuration.GetConnectionString("Users")
                               ?? configuration.GetConnectionString("meajudaai-db");
 
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment())
+            {
+                // Fallback para testes/dev quando a string de conexão não é crítica na inicialização do DI
+#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
+                connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
+#pragma warning restore S2068
+            }
+            else
+            {
+                throw new InvalidOperationException("Connection for Users module not configured");
+            }
+        }
+
         services.AddDbContext<UsersDbContext>((serviceProvider, options) =>
         {
             // Obter interceptor de métricas se disponível

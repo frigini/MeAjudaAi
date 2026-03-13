@@ -1,7 +1,6 @@
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Messaging.NoOp;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
-using MeAjudaAi.Shared.Messaging.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -11,8 +10,7 @@ namespace MeAjudaAi.Shared.Messaging.Factories;
 
 /// <summary>
 /// Implementação do factory que seleciona o MessageBus baseado no ambiente:
-/// - Development/Testing: RabbitMQ (se habilitado)
-/// - Production: Azure Service Bus
+/// - Default: RabbitMQ (se habilitado)
 /// - Fallback: NoOpMessageBus para testes sem RabbitMQ
 /// </summary>
 public class MessageBusFactory : IMessageBusFactory
@@ -63,8 +61,16 @@ public class MessageBusFactory : IMessageBusFactory
         }
         else
         {
-            _logger.LogInformation("Creating Azure Service Bus MessageBus for environment: {Environment}", _environment.EnvironmentName);
-            return _serviceProvider.GetRequiredService<ServiceBusMessageBus>();
+            try
+            {
+                _logger.LogInformation("Creating RabbitMQ MessageBus as default for environment: {Environment}", _environment.EnvironmentName);
+                return _serviceProvider.GetRequiredService<RabbitMqMessageBus>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to initialize RabbitMQ MessageBus for environment {Environment}", _environment.EnvironmentName);
+                throw new InvalidOperationException($"Failed to initialize RabbitMQ MessageBus for environment {_environment.EnvironmentName}", ex);
+            }
         }
     }
 }

@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Shared.Authorization;
 
@@ -25,12 +27,14 @@ public static class AuthorizationExtensions
     /// <summary>
     /// Configura o sistema de autorização com permissões type-safe.
     /// </summary>
-    /// <param name="services">Service collection</param>
-    /// <param name="configuration">Configuration for Keycloak integration</param>
-    /// <returns>Service collection para chaining</returns>
+    /// <param name="services">Coleção de serviços para registro</param>
+    /// <param name="configuration">Configuração para integração com Keycloak</param>
+    /// <param name="environment">Ambiente de hospedagem usado para bypass de validações em testes de CI</param>
+    /// <returns>Coleção de serviços para encadeamento de chamadas</returns>
     public static IServiceCollection AddPermissionBasedAuthorization(
         this IServiceCollection services,
-        IConfiguration? configuration = null)
+        IConfiguration? configuration = null,
+        IWebHostEnvironment? environment = null)
     {
         // Registra serviços de permissão core
         services.AddScoped<IPermissionService, PermissionService>();
@@ -46,7 +50,7 @@ public static class AuthorizationExtensions
         // Adiciona integração com Keycloak se configuração estiver disponível
         if (configuration != null)
         {
-            services.AddKeycloakPermissionResolver(configuration);
+            services.AddKeycloakPermissionResolver(configuration, environment);
         }
 
         // Configura políticas de autorização
@@ -69,12 +73,14 @@ public static class AuthorizationExtensions
     /// <summary>
     /// Adiciona resolução de permissões via Keycloak.
     /// </summary>
-    /// <param name="services">Service collection</param>
-    /// <param name="configuration">Configuration para Keycloak</param>
-    /// <returns>Service collection para chaining</returns>
+    /// <param name="services">Coleção de serviços para registro</param>
+    /// <param name="configuration">Configuração para o Keycloak</param>
+    /// <param name="environment">Ambiente de hospedagem usado para bypass de validações em testes de CI</param>
+    /// <returns>Coleção de serviços para encadeamento de chamadas</returns>
     public static IServiceCollection AddKeycloakPermissionResolver(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IWebHostEnvironment? environment = null)
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
@@ -93,10 +99,17 @@ public static class AuthorizationExtensions
         services.AddScoped<IPermissionProvider, KeycloakPermissionProvider>();
 
         // Configura opções do Keycloak a partir da configuração
-        services.AddOptions<KeycloakPermissionOptions>()
+        var optionsBuilder = services.AddOptions<KeycloakPermissionOptions>()
             .Bind(configuration.GetSection("Keycloak"))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+            .ValidateDataAnnotations();
+
+        // Evita crash durante carregamento estático do Swagger no pipeline de CI
+        bool isTesting = MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
+
+        if (!isTesting)
+        {
+            optionsBuilder.ValidateOnStart();
+        }
 
         return services;
     }

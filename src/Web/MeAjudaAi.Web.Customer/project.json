@@ -1,0 +1,29 @@
+{
+    "name": "MeAjudaAi.Web.Customer",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "projectType": "application",
+    "sourceRoot": "MeAjudaAi.Web.Customer",
+    "targets": {
+        "build": {
+            "command": "next build",
+            "outputs": [
+                "{workspaceRoot}/dist/MeAjudaAi.Web.Customer"
+            ],
+            "options": {
+                "cwd": "MeAjudaAi.Web.Customer"
+            }
+        },
+        "serve": {
+            "command": "next dev",
+            "options": {
+                "cwd": "MeAjudaAi.Web.Customer"
+            }
+        },
+        "lint": {
+            "command": "next lint",
+            "options": {
+                "cwd": "MeAjudaAi.Web.Customer"
+            }
+        }
+    }
+}

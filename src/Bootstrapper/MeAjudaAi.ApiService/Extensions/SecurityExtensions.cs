@@ -34,6 +34,71 @@ public static class SecurityExtensions
 
         var errors = new List<string>();
 
+        // Validações de sanidade básica de Rate Limiting (configuração inválida em qualquer ambiente)
+        try
+        {
+            var rateLimitSection = configuration.GetSection("AdvancedRateLimit");
+            if (rateLimitSection.Exists())
+            {
+                var anonymousLimits = rateLimitSection.GetSection("Anonymous");
+                var authenticatedLimits = rateLimitSection.GetSection("Authenticated");
+
+                if (anonymousLimits.Exists())
+                {
+                    var anonMinute = anonymousLimits.GetValue<int?>("RequestsPerMinute");
+                    var anonHour = anonymousLimits.GetValue<int?>("RequestsPerHour");
+
+                    if (anonMinute is null)
+                        errors.Add("Anonymous 'RequestsPerMinute' is missing");
+                    else if (anonMinute <= 0)
+                        errors.Add("Anonymous 'RequestsPerMinute' must be positive");
+
+                    if (anonHour is null)
+                        errors.Add("Anonymous 'RequestsPerHour' is missing");
+                    else if (anonHour <= 0)
+                        errors.Add("Anonymous 'RequestsPerHour' must be positive");
+                }
+
+                if (authenticatedLimits.Exists())
+                {
+                    var authMinute = authenticatedLimits.GetValue<int?>("RequestsPerMinute");
+                    var authHour = authenticatedLimits.GetValue<int?>("RequestsPerHour");
+
+                    if (authMinute is null)
+                        errors.Add("Authenticated 'RequestsPerMinute' is missing");
+                    else if (authMinute <= 0)
+                        errors.Add("Authenticated 'RequestsPerMinute' must be positive");
+
+                    if (authHour is null)
+                        errors.Add("Authenticated 'RequestsPerHour' is missing");
+                    else if (authHour <= 0)
+                        errors.Add("Authenticated 'RequestsPerHour' must be positive");
+                }
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            errors.Add($"Rate limiting configuration error: {ex.Message}");
+        }
+        catch (ArgumentException ex)
+        {
+            errors.Add($"Rate limiting configuration error: {ex.Message}");
+        }
+
+        // Lança erros de sanidade básica antes de bypassar validações de segurança
+        if (errors.Count > 0)
+        {
+            var errorMessage = "Security configuration validation failed:\n" + string.Join("\n", errors.Select(e => $"- {e}"));
+            throw new InvalidOperationException(errorMessage);
+        }
+
+        // Bypassa validações de segurança explicitamente em Testing (workaround para prevenir crash do Swashbuckle CLI 
+        // durante extração na pipeline CI que tenta carregar o container sem credenciais verdadeiras)
+        var isTesting = MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
+        
+        if (isTesting)
+            return;
+
         // Valida configuração de CORS
         try
         {
@@ -62,75 +127,59 @@ public static class SecurityExtensions
             errors.Add($"CORS configuration error: {ex.Message}");
         }
 
-        // Valida configuração do Keycloak (se não estiver em ambiente de teste)
-        if (!environment.IsEnvironment("Testing"))
-        {
-            try
-            {
-                var keycloakOptions = configuration.GetSection(KeycloakOptions.SectionName).Get<KeycloakOptions>() ?? new KeycloakOptions();
-                ValidateKeycloakOptions(keycloakOptions);
-
-                // Validações adicionais específicas para produção
-                if (environment.IsProduction())
-                {
-                    if (!keycloakOptions.RequireHttpsMetadata)
-                        errors.Add("RequireHttpsMetadata must be true in production environment");
-
-                    if (keycloakOptions.BaseUrl?.StartsWith("http://", StringComparison.OrdinalIgnoreCase) == true)
-                        errors.Add("Keycloak BaseUrl must use HTTPS in production environment");
-
-                    if (keycloakOptions.ClockSkew.TotalMinutes > 5)
-                        errors.Add("Keycloak ClockSkew should be minimal (≤5 minutes) in production for higher security");
-                }
-            }
-            catch (InvalidOperationException ex)
-            {
-                errors.Add($"Keycloak configuration error: {ex.Message}");
-            }
-            catch (ArgumentException ex)
-            {
-                errors.Add($"Keycloak configuration error: {ex.Message}");
-            }
-        }
-
-        // Valida configuração de Rate Limiting
+        // Valida configuração do Keycloak
         try
         {
-            var rateLimitSection = configuration.GetSection("AdvancedRateLimit");
-            if (rateLimitSection.Exists())
+            var keycloakOptions = configuration.GetSection(KeycloakOptions.SectionName).Get<KeycloakOptions>() ?? new KeycloakOptions();
+            ValidateKeycloakOptions(keycloakOptions);
+
+            // Validações adicionais específicas para produção
+            if (environment.IsProduction())
             {
-                var anonymousLimits = rateLimitSection.GetSection("Anonymous");
-                var authenticatedLimits = rateLimitSection.GetSection("Authenticated");
+                if (!keycloakOptions.RequireHttpsMetadata)
+                    errors.Add("RequireHttpsMetadata must be true in production environment");
 
-                if (anonymousLimits.Exists())
-                {
-                    var anonMinute = anonymousLimits.GetValue<int>("RequestsPerMinute");
-                    var anonHour = anonymousLimits.GetValue<int>("RequestsPerHour");
+                if (keycloakOptions.BaseUrl?.StartsWith("http://", StringComparison.OrdinalIgnoreCase) == true)
+                    errors.Add("Keycloak BaseUrl must use HTTPS in production environment");
 
-                    if (anonMinute <= 0 || anonHour <= 0)
-                        errors.Add("Anonymous request limits must be positive values");
-
-                    if (environment.IsProduction() && anonMinute > 100)
-                        errors.Add("Anonymous request limits should be conservative in production (≤100 req/min)");
-                }
-
-                if (authenticatedLimits.Exists())
-                {
-                    var authMinute = authenticatedLimits.GetValue<int>("RequestsPerMinute");
-                    var authHour = authenticatedLimits.GetValue<int>("RequestsPerHour");
-
-                    if (authMinute <= 0 || authHour <= 0)
-                        errors.Add("Authenticated request limits must be positive values");
-                }
+                if (keycloakOptions.ClockSkew.TotalMinutes > 5)
+                    errors.Add("Keycloak ClockSkew should be minimal (≤5 minutes) in production for higher security");
             }
         }
         catch (InvalidOperationException ex)
         {
-            errors.Add($"Rate limiting configuration error: {ex.Message}");
+            errors.Add($"Keycloak configuration error: {ex.Message}");
         }
         catch (ArgumentException ex)
         {
-            errors.Add($"Rate limiting configuration error: {ex.Message}");
+            errors.Add($"Keycloak configuration error: {ex.Message}");
+        }
+
+        // Valida limites de Rate Limiting em produção (limites negativos já validados acima)
+        if (environment.IsProduction())
+        {
+            try
+            {
+                var rateLimitSection = configuration.GetSection("AdvancedRateLimit");
+                if (rateLimitSection.Exists())
+                {
+                    var anonymousLimits = rateLimitSection.GetSection("Anonymous");
+                    if (anonymousLimits.Exists())
+                    {
+                        var anonMinute = anonymousLimits.GetValue<int>("RequestsPerMinute");
+                        if (anonMinute > 100)
+                            errors.Add("Anonymous request limits should be conservative in production (≤100 req/min)");
+                    }
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                errors.Add($"Rate limiting configuration error: {ex.Message}");
+            }
+            catch (ArgumentException ex)
+            {
+                errors.Add($"Rate limiting configuration error: {ex.Message}");
+            }
         }
 
         // Valida redirecionamento HTTPS em produção
@@ -163,16 +212,26 @@ public static class SecurityExtensions
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentNullException.ThrowIfNull(environment);
         // Registra opções de CORS usando AddOptions<>()
-        services.AddOptions<CorsOptions>()
+        var optionsBuilder = services.AddOptions<CorsOptions>()
             .Configure<IConfiguration>((opts, config) =>
             {
                 config.GetSection(CorsOptions.SectionName).Bind(opts);
-            })
-            .ValidateOnStart();
+            });
+
+        var isTesting = MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
+
+        if (!isTesting)
+        {
+            optionsBuilder.ValidateOnStart();
+        }
 
         // Obtém opções de CORS para uso imediato na configuração da política
         var corsOptions = configuration.GetSection(CorsOptions.SectionName).Get<CorsOptions>() ?? new CorsOptions();
-        corsOptions.Validate();
+        
+        if (!isTesting)
+        {
+            corsOptions.Validate();
+        }
 
         services.AddCors(options =>
         {
@@ -181,8 +240,9 @@ public static class SecurityExtensions
                 // Configura origens permitidas
                 if (corsOptions.AllowedOrigins.Contains("*"))
                 {
-                    // Só permite coringa em desenvolvimento
-                    if (environment.IsDevelopment())
+                    // Permite coringa em desenvolvimento ou ambiente de bypass (testes/CI)
+                    if (environment.IsDevelopment() || 
+                        MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
                     {
                         // AllowAnyOrigin() é incompatível com AllowCredentials()
                         if (corsOptions.AllowCredentials)
@@ -252,9 +312,26 @@ public static class SecurityExtensions
         ArgumentNullException.ThrowIfNull(environment);
         // A autenticação específica por ambiente agora é gerenciada pelo EnvironmentSpecificExtensions
         // Aqui apenas configuramos Keycloak para ambientes não-testing
-        if (!environment.IsEnvironment("Testing"))
+        if (!MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
         {
             services.AddKeycloakAuthentication(configuration, environment);
+        }
+        else
+        {
+            // Em ambientes de bypass (dev/test/CI) sem Keycloak, registramos um handler no-op
+            // para evitar que UseAuthentication() falhe ao tentar resolver o esquema padrão.
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            // Sem operação — ignora a lógica real de autenticação
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
         }
 
         return services;
@@ -371,16 +448,14 @@ public static class SecurityExtensions
     /// </summary>
     public static IServiceCollection AddAuthorizationPolicies(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IWebHostEnvironment? environment = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        // Sistema de permissões type-safe (único e centralizado)
-        services.AddPermissionBasedAuthorization();
-
-        // Adiciona resolução de permissões do Keycloak
-        services.AddKeycloakPermissionResolver(configuration);
+        // Sistema de permissões type-safe (único e centralizado) e Adiciona resolução de permissões do Keycloak internamente
+        services.AddPermissionBasedAuthorization(configuration, environment);
 
         // Adiciona políticas especiais que precisam de handlers customizados
         services.AddAuthorizationBuilder()

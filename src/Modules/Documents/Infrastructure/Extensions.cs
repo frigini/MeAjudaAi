@@ -13,38 +13,40 @@ using MeAjudaAi.Shared.Jobs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure;
 
 public static class Extensions
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
-        services.AddPersistence(configuration);
-        services.AddServices(configuration);
+        services.AddPersistence(configuration, environment);
+        services.AddServices(configuration, environment);
         services.AddEventHandlers();
         services.AddJobs();
 
         return services;
     }
 
-    private static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection")
                               ?? configuration.GetConnectionString("Documents")
                               ?? configuration.GetConnectionString("meajudaai-db");
 
         // In test environments, allow placeholder connection string since tests will replace the DbContext
-        var isTestEnvironment = string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Testing", StringComparison.OrdinalIgnoreCase)
-                               || string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase);
+        var isTestEnvironment = MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
 
         if (string.IsNullOrEmpty(connectionString))
         {
             if (isTestEnvironment)
             {
                 // Use placeholder for integration tests - will be replaced by test infrastructure
-                connectionString = "Host=localhost;Database=test;Username=test;Password=test";
+#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
+                connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
+#pragma warning restore S2068
             }
             else
             {
@@ -70,8 +72,7 @@ public static class Extensions
             .EnableSensitiveDataLogging(false);
 
             // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
-            var environment = serviceProvider.GetService<IHostEnvironment>();
-            if (environment?.IsDevelopment() == true)
+            if (environment.IsDevelopment())
             {
                 options.ConfigureWarnings(warnings =>
                     warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
@@ -89,7 +90,7 @@ public static class Extensions
         return services;
     }
 
-    private static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         // Registrar Azure clients
         var storageConnectionString = configuration["Azure:Storage:ConnectionString"];
@@ -116,6 +117,28 @@ public static class Extensions
         {
             // Azure Storage - only if configured
             services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
+        }
+
+        // Registrar implementações no-op como fallback apenas em ambientes de bypass (dev/test).
+        // Em produção, a ausência das credenciais do Azure é um erro de configuração e causa
+        // fail-fast para evitar que o serviço inicie sem dependências essenciais.
+        if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
+        {
+            services.TryAddScoped<IBlobStorageService, NullBlobStorageService>();
+            services.TryAddScoped<IDocumentIntelligenceService, NullDocumentIntelligenceService>();
+        }
+        else
+        {
+            // Validação fail-fast: as implementações reais devem ter sido registradas acima.
+            var registered = services.Any(sd => sd.ServiceType == typeof(IBlobStorageService));
+            if (!registered)
+                throw new InvalidOperationException(
+                    "IBlobStorageService is not configured. Set 'Azure:Storage:ConnectionString' to enable file uploads.");
+
+            var intelligenceRegistered = services.Any(sd => sd.ServiceType == typeof(IDocumentIntelligenceService));
+            if (!intelligenceRegistered)
+                throw new InvalidOperationException(
+                    "IDocumentIntelligenceService is not configured. Set 'Azure:DocumentIntelligence:Endpoint' and 'Azure:DocumentIntelligence:ApiKey' to enable OCR.");
         }
 
         return services;

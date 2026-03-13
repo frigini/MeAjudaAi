@@ -7,7 +7,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Moq;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Documents.Tests.API;
 
@@ -31,7 +33,9 @@ public class ModuleExtensionsTests
     public void AddDocumentsModule_ShouldReturnServiceCollection()
     {
         // Act
-        var result = _services.AddDocumentsModule(_configuration);
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns("Development");
+        var result = _services.AddDocumentsModule(_configuration, mockEnv.Object);
 
         // Assert
         result.Should().NotBeNull();
@@ -42,7 +46,9 @@ public class ModuleExtensionsTests
     public void AddDocumentsModule_ShouldRegisterApplicationServices()
     {
         // Act
-        _services.AddDocumentsModule(_configuration);
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns("Development");
+        _services.AddDocumentsModule(_configuration, mockEnv.Object);
 
         // Assert
         _services.Should().Contain(s => s.ServiceType.Namespace != null &&
@@ -53,7 +59,9 @@ public class ModuleExtensionsTests
     public void AddDocumentsModule_ShouldRegisterModuleApi()
     {
         // Act
-        _services.AddDocumentsModule(_configuration);
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns("Development");
+        _services.AddDocumentsModule(_configuration, mockEnv.Object);
 
         // Assert
         _services.Should().Contain(s => s.ServiceType == typeof(IDocumentsModuleApi));
@@ -63,18 +71,37 @@ public class ModuleExtensionsTests
     public void AddDocumentsModule_ShouldRegisterDbContext()
     {
         // Act
-        _services.AddDocumentsModule(_configuration);
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns("Development");
+        _services.AddDocumentsModule(_configuration, mockEnv.Object);
 
         // Assert
         _services.Should().Contain(s => s.ServiceType == typeof(DocumentsDbContext));
     }
 
     [Fact]
+    public void AddDocumentsModule_InProductionWithNoCredentials_ShouldFailFast()
+    {
+        // Arrange
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns("Production");
+
+        // Act
+        var act = () => _services.AddDocumentsModule(_configuration, mockEnv.Object);
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .And.Message.Should().Contain("IBlobStorageService is not configured");
+    }
+
+    [Fact]
     public void UseDocumentsModule_ShouldReturnWebApplication()
     {
         // Arrange
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns("Testing");
         var serviceCollection = new ServiceCollection();
-        serviceCollection.AddDocumentsModule(_configuration);
+        serviceCollection.AddDocumentsModule(_configuration, mockEnv.Object);
         serviceCollection.AddLogging();
         serviceCollection.AddRouting();
 
@@ -101,8 +128,10 @@ public class ModuleExtensionsTests
     public void UseDocumentsModule_ShouldConfigureEndpoints()
     {
         // Arrange
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns("Testing");
         var serviceCollection = new ServiceCollection();
-        serviceCollection.AddDocumentsModule(_configuration);
+        serviceCollection.AddDocumentsModule(_configuration, mockEnv.Object);
         serviceCollection.AddLogging();
         serviceCollection.AddRouting();
 

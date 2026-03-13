@@ -57,8 +57,12 @@ npm run dev
 
 ### Geração e Atualização do Cliente API
 
--   Para regenerar o cliente API após mudanças no backend:
+> [!IMPORTANT]
+> **O código na pasta `./lib/api/generated` é 100% ignorado pelo Git.** 
+> Você deve gerar o cliente localmente após o clone inicial ou quando houver mudanças nos contratos do backend.
+
+- Para gerar o cliente API localmente (requer backend rodando em `http://localhost:7002`):
     ```bash
     npm run generate:api
     ```
--   Sempre que possível, reutilize enums e constantes de `Shared.Contracts` para manter alinhamento com o backend.
+- Sempre que possível, reutilize enums e constantes de `Shared.Contracts` para manter alinhamento com o backend.

@@ -40,8 +40,8 @@ public static class Extensions
 
         // Em ambiente de teste, permitir inicialização sem connection string
         // (útil para testes unitários que não acessam o banco)
-        var isTesting = environment.IsEnvironment("Testing")
-                     || string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase);
+        // Só fazemos bypass se estivermos explicitamente em Desenvolvimento e NÃO for um live environment
+        var isTesting = environment.IsDevelopment() && MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
 
         if (string.IsNullOrEmpty(connectionString) && !isTesting)
         {
@@ -55,9 +55,11 @@ public static class Extensions
         services.AddDbContext<SearchProvidersDbContext>((serviceProvider, options) =>
         {
             // Se não houver connection string, usar uma default para testes unitários
+#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
             var connStr = !string.IsNullOrEmpty(connectionString) 
                 ? connectionString 
-                : "Host=localhost;Database=meajudaai_test;";
+                : MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
+#pragma warning restore S2068
 
             options.UseNpgsql(connStr, npgsqlOptions =>
             {

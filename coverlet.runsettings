@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Include>[MeAjudaAi*]*</Include>
+          <Exclude>[*.Tests*]*,[*Test*]*,[testhost]*,[*]*Migrations*,[*]*.Database,[*]*DbContextFactory*,[*]*.Program,[*Microsoft.AspNetCore.OpenApi.Generated*]*,[*System.Runtime.CompilerServices*]*,[*System.Text.RegularExpressions.Generated*]*</Exclude>
+          <ExcludeByFile>**/Migrations/*.cs,**/Migrations/**/*.cs,**/Database/*.cs,**/*DbContextFactory.cs,**/Program.cs</ExcludeByFile>
+          <ExcludeByAttribute>Obsolete,GeneratedCode,CompilerGenerated</ExcludeByAttribute>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

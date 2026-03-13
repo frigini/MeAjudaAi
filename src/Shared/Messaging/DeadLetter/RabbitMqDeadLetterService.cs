@@ -14,12 +14,15 @@ namespace MeAjudaAi.Shared.Messaging.DeadLetter;
 public sealed class RabbitMqDeadLetterService(
     RabbitMqOptions rabbitMqOptions,
     IOptions<DeadLetterOptions> deadLetterOptions,
-    ILogger<RabbitMqDeadLetterService> logger) : IDeadLetterService, IAsyncDisposable
+    ILogger<RabbitMqDeadLetterService> logger) : IDeadLetterService, IAsyncDisposable, IDisposable
 {
     private readonly DeadLetterOptions _deadLetterOptions = deadLetterOptions.Value;
     private IConnection? _connection;
     private IChannel? _channel;
     private readonly SemaphoreSlim _connectionSemaphore = new(1, 1);
+    private readonly CancellationTokenSource _disposeCts = new();
+    private int _disposedValue; // 0 = not disposed, 1 = disposing/disposed
+    private bool _disposed => _disposedValue == 1;
 
     public async Task SendToDeadLetterAsync<TMessage>(
         TMessage message,
@@ -291,12 +294,14 @@ public sealed class RabbitMqDeadLetterService(
 
     private async Task EnsureConnectionAsync()
     {
+        if (_disposed) throw new ObjectDisposedException(nameof(RabbitMqDeadLetterService));
         if (_connection?.IsOpen == true && _channel?.IsOpen == true)
             return;
 
-        await _connectionSemaphore.WaitAsync();
+        await _connectionSemaphore.WaitAsync(_disposeCts.Token);
         try
         {
+            if (_disposed) throw new ObjectDisposedException(nameof(RabbitMqDeadLetterService));
             if (_connection?.IsOpen == true && _channel?.IsOpen == true)
                 return;
 
@@ -444,25 +449,60 @@ public sealed class RabbitMqDeadLetterService(
 
     public async ValueTask DisposeAsync()
     {
+        if (Interlocked.Exchange(ref _disposedValue, 1) == 1) return;
+
         try
         {
+            await _disposeCts.CancelAsync();
+            _disposeCts.Dispose();
+
             if (_channel != null)
             {
                 await _channel.CloseAsync();
                 await _channel.DisposeAsync();
+                _channel = null;
             }
 
             if (_connection != null)
             {
                 await _connection.CloseAsync();
                 await _connection.DisposeAsync();
+                _connection = null;
             }
-
-            _connectionSemaphore?.Dispose();
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error disposing RabbitMQ dead letter service");
+        }
+        finally
+        {
+            _connectionSemaphore?.Dispose();
+        }
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Limpeza síncrona: libera o semáforo e anula referências sem bloquear em código assíncrono.
+    /// Recursos de rede (channel/connection) podem não ser fechados graciosamente; prefira DisposeAsync.
+    /// </remarks>
+    public void Dispose()
+    {
+        if (Interlocked.Exchange(ref _disposedValue, 1) == 1) return;
+
+        try
+        {
+            _disposeCts.Cancel();
+            _disposeCts.Dispose();
+            _connectionSemaphore?.Dispose();
+
+            _channel?.Dispose();
+            _connection?.Dispose();
+            _channel = null;
+            _connection = null;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error disposing RabbitMQ dead letter service (sync)");
         }
     }
 }

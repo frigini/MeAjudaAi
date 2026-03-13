@@ -1,5 +1,7 @@
 using MeAjudaAi.Modules.Documents.API;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Documents.Infrastructure.Services;
+using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Contracts.Modules.Documents;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -40,7 +42,9 @@ public sealed class ExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var result = services.AddDocumentsModule(_testConfiguration);
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Development);
+        var result = services.AddDocumentsModule(_testConfiguration, mockEnv.Object);
 
         // Assert
         Assert.NotNull(result);
@@ -55,7 +59,9 @@ public sealed class ExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        services.AddDocumentsModule(_testConfiguration);
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Development);
+        services.AddDocumentsModule(_testConfiguration, mockEnv.Object);
 
         // Assert
         // Verifica se IDocumentsModuleApi está registrado
@@ -69,7 +75,9 @@ public sealed class ExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var result = services.AddDocumentsModule(_testConfiguration);
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Development);
+        var result = services.AddDocumentsModule(_testConfiguration, mockEnv.Object);
 
         // Assert
         Assert.NotNull(result);
@@ -84,7 +92,9 @@ public sealed class ExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var result = services.AddDocumentsModule(_testConfiguration);
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Development);
+        var result = services.AddDocumentsModule(_testConfiguration, mockEnv.Object);
 
         // Assert
         Assert.Same(services, result);
@@ -105,7 +115,9 @@ public sealed class ExtensionsTests
             .Build();
 
         // Act
-        var result = services.AddDocumentsModule(configuration);
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Development);
+        var result = services.AddDocumentsModule(configuration, mockEnv.Object);
 
         // Assert
         Assert.NotNull(result);
@@ -121,11 +133,13 @@ public sealed class ExtensionsTests
         builder.Services.AddLogging();
 
         var testEnvMock = new Mock<IWebHostEnvironment>();
-        testEnvMock.Setup(e => e.EnvironmentName).Returns("Test");
+        testEnvMock.Setup(e => e.EnvironmentName).Returns("Testing");
         testEnvMock.Setup(e => e.ApplicationName).Returns("TestApp");
         builder.Services.AddSingleton(testEnvMock.Object);
 
-        builder.Services.AddDocumentsModule(_testConfiguration);
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns("Testing");
+        builder.Services.AddDocumentsModule(_testConfiguration, mockEnv.Object);
 
         var app = builder.Build();
 
@@ -137,29 +151,6 @@ public sealed class ExtensionsTests
         Assert.Same(app, result);
     }
 
-    [Fact]
-    public void UseDocumentsModule_InTestingEnvironment_ShouldSkipMigrations()
-    {
-        // Arrange
-        var builder = WebApplication.CreateBuilder();
-        builder.Services.AddLogging();
-
-        var testEnvMock = new Mock<IWebHostEnvironment>();
-        testEnvMock.Setup(e => e.EnvironmentName).Returns("Testing");
-        testEnvMock.Setup(e => e.ApplicationName).Returns("TestApp");
-        builder.Services.AddSingleton(testEnvMock.Object);
-
-        builder.Services.AddDocumentsModule(_testConfiguration);
-
-        var app = builder.Build();
-
-        // Act
-        var result = app.UseDocumentsModule();
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Same(app, result);
-    }
 
     [Fact]
     public void UseDocumentsModule_WithoutDbContext_ShouldLogWarningAndContinue()
@@ -182,23 +173,117 @@ public sealed class ExtensionsTests
     }
 
     [Fact]
-    public void UseDocumentsModule_ShouldReturnSameAppInstance()
+    public void AddDocumentsModule_InProduction_WithFullConfiguration_ShouldRegisterRealServices()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
-        builder.Services.AddLogging();
+        var services = new ServiceCollection();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;",
+                ["Azure:Storage:ConnectionString"] = "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=test;EndpointSuffix=core.windows.net",
+                ["Azure:DocumentIntelligence:Endpoint"] = "https://test.cognitiveservices.azure.com/",
+                ["Azure:DocumentIntelligence:ApiKey"] = "test-key"
+            })
+            .Build();
 
-        var testEnvMock = new Mock<IWebHostEnvironment>();
-        testEnvMock.Setup(e => e.EnvironmentName).Returns("Test");
-        testEnvMock.Setup(e => e.ApplicationName).Returns("TestApp");
-        builder.Services.AddSingleton(testEnvMock.Object);
-
-        var app = builder.Build();
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Production);
 
         // Act
-        var result = app.UseDocumentsModule();
+        services.AddDocumentsModule(configuration, mockEnv.Object);
 
         // Assert
-        Assert.Same(app, result);
+        Assert.Contains(services, s => s.ServiceType == typeof(IBlobStorageService) && s.ImplementationType == typeof(AzureBlobStorageService));
+        Assert.Contains(services, s => s.ServiceType == typeof(IDocumentIntelligenceService) && s.ImplementationType == typeof(AzureDocumentIntelligenceService));
+    }
+
+    [Fact]
+    public void AddDocumentsModule_WithoutConnectionStrings_InProduction_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var configuration = new ConfigurationBuilder().Build();
+
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Production);
+
+        // Act
+        var act = () => services.AddDocumentsModule(configuration, mockEnv.Object);
+
+        // Assert
+        var ex = Assert.Throws<InvalidOperationException>(act);
+        Assert.Contains("Database connection string is not configured", ex.Message);
+    }
+
+    [Fact]
+    public void AddDocumentsModule_InProduction_MissingStorage_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;",
+                ["Azure:DocumentIntelligence:Endpoint"] = "https://test.cognitiveservices.azure.com/",
+                ["Azure:DocumentIntelligence:ApiKey"] = "test-key"
+            })
+            .Build();
+
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Production);
+
+        // Act
+        var act = () => services.AddDocumentsModule(configuration, mockEnv.Object);
+
+        // Assert
+        var ex = Assert.Throws<InvalidOperationException>(act);
+        Assert.Contains("IBlobStorageService is not configured", ex.Message);
+    }
+
+    [Fact]
+    public void AddDocumentsModule_InProduction_MissingIntelligence_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;",
+                ["Azure:Storage:ConnectionString"] = "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=test;EndpointSuffix=core.windows.net"
+            })
+            .Build();
+
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Production);
+
+        // Act
+        var act = () => services.AddDocumentsModule(configuration, mockEnv.Object);
+
+        // Assert
+        var ex = Assert.Throws<InvalidOperationException>(act);
+        Assert.Contains("IDocumentIntelligenceService is not configured", ex.Message);
+    }
+
+    [Fact]
+    public void AddDocumentsModule_WithMinimalConnectionStrings_ShouldRegisterDbContext()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:meajudaai-db"] = "Host=localhost;Database=test;"
+            })
+            .Build();
+
+        var mockEnv = new Mock<IHostEnvironment>();
+        mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Development);
+
+        // Act
+        services.AddDocumentsModule(configuration, mockEnv.Object);
+
+        // Assert
+        Assert.Contains(services, s => s.ServiceType == typeof(DocumentsDbContext));
     }
 }

@@ -38,7 +38,7 @@ public partial class Program
             // (exception handlers específicos devem ser registrados antes do global)
             builder.Services.AddUsersModule(builder.Configuration);
             builder.Services.AddProvidersModule(builder.Configuration);
-            builder.Services.AddDocumentsModule(builder.Configuration);
+            builder.Services.AddDocumentsModule(builder.Configuration, builder.Environment);
             builder.Services.AddSearchProvidersModule(builder.Configuration, builder.Environment);
             builder.Services.AddLocationsModule(builder.Configuration);
             builder.Services.AddServiceCatalogsModule(builder.Configuration);

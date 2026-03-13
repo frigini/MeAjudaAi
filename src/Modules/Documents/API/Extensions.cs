@@ -18,10 +18,11 @@ public static class Extensions
     /// </summary>
     public static IServiceCollection AddDocumentsModule(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
         services.AddApplication(configuration);
-        services.AddInfrastructure(configuration);
+        services.AddInfrastructure(configuration, environment);
 
         // Register module public API for cross-module communication
         services.AddScoped<IDocumentsModuleApi, Application.ModuleApi.DocumentsModuleApi>();

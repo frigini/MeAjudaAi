@@ -415,11 +415,13 @@ public class GeographicRestrictionMiddleware
 - [ ] **Meu Perfil**: Editar informações básicas
 
 #### 🛠️ Parte 2: Nx Monorepo Setup
-**Status**: 🔄 EM PROGRESSO (Março 2026)
+**Status**: 🔄 EM PROGRESSO (Março 2026)  
+*Nota: Este é um contêiner ampliado que representa múltiplas sprints destinadas à reestruturação modular do front-end web. A "Sprint 8B.2" encapsula a fundação inicial concluída como parte intrínseca deste arco arquitetural.*
 
-### 🔄 Sprint 8B.2 - NX Scaffolding & Initial Migration (5 - 18 Mar 2026)
-**Branch**: `feature/sprint-8b2-technical-excellence`
-**Status**: 🔄 EM PROGRESSO
+### ✅ Sprint 8B.2 - NX Scaffolding & Initial Migration (5 - 18 Mar 2026)
+**Branch**: `feature/sprint-8b2-monorepo-cleanup`
+**Status**: 🔄 EM REVISÃO
+*Nota: A atualização final para "✅ CONCLUÍDA" deve ocorrer somente após o merge do PR ou confirmação explícita de finalização do trabalho na branch.*
 
 **Objectives**:
 1. 🔴 **MUST-HAVE**: **NX Monorepo Setup** (Effort: Large)
@@ -430,18 +432,20 @@ public class GeographicRestrictionMiddleware
 2. 🔴 **MUST-HAVE**: **Messaging Unification** (Effort: Medium)
     - Remove Azure Service Bus, unify on RabbitMQ only.
 3. 🔴 **MUST-HAVE**: **Technical Excellence Pack** (Effort: Medium)
-    - [**TD**] **Keycloak Automation**: `setup-keycloak-clients.ps1` for local dev.
-    - [**TD**] **Analyzer Cleanup**: Fix MudBlazor/SonarLint warnings in Admin & Contracts.
-    - [**TD**] **Refactor Extensions**: Extract `BusinessMetricsMiddlewareExtensions`.
-    - [**TD**] **Polly Logging**: Migrate resilience logging to ILogger (Issue #113).
-    - [**TD**] **Standardization**: Record syntax alignment in `Contracts`.
+    - [ ] [**TD**] **Keycloak Automation**: `setup-keycloak-clients.ps1` for local dev.
+    - [ ] [**TD**] **Analyzer Cleanup**: Fix MudBlazor/SonarLint warnings in Admin & Contracts.
+    - [ ] [**TD**] **Refactor Extensions**: Extract `BusinessMetricsMiddlewareExtensions`.
+    - [ ] [**TD**] **Polly Logging**: Migrate resilience logging to ILogger (Issue #113).
+    - [ ] [**TD**] **Standardization**: Record syntax alignment in `Contracts`.
+    *(TODO: Marcar os checkboxes acima como [x] após o merge do PR na branch feature/sprint-8b2-monorepo-cleanup)*
 
 ---
 
 **Entregáveis**:
-- [x] Nx workspace com `apps/customer-web` e `libs/shared-ui` placeholders.
+- [ ] Nx workspace com `apps/customer-web` (migrado).
 - [ ] Placeholders para `apps/provider-web` e `apps/admin-portal`.
-- [ ] Bibliotecas extraídas para `libs/`.
+- [ ] Bibliotecas extraídas para `libs/ui`, `libs/auth` e `libs/api-client`.
+*(TODO: Marcar os entregáveis como [x] após o merge do PR 153)*
 
 ---
 

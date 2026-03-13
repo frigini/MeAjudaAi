@@ -1,8 +1,14 @@
-import NextAuth from "next-auth"
+import { type NextAuthOptions } from "next-auth"
 import Keycloak from "next-auth/providers/keycloak"
 import Credentials from "next-auth/providers/credentials"
 import { JWT } from "next-auth/jwt"
 import { decodeJwt } from "jose"
+import { getServerSession } from "next-auth/next"
+import {
+    GetServerSidePropsContext,
+    NextApiRequest,
+    NextApiResponse,
+} from "next"
 
 async function refreshAccessToken(token: JWT): Promise<JWT> {
     try {
@@ -30,11 +36,12 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
             refreshToken: refreshedTokens.refresh_token ?? token.refreshToken, // Fall back to old refresh token
         }
     } catch (error: any) {
+        const keycloakError = error as { error?: string; message?: string; error_description?: string; status?: number; statusCode?: number };
         // Log Keycloak error fields (error, error_description) instead of generic message/status
         console.error("RefreshAccessTokenError", {
-            error: error.error || error.message,
-            error_description: error.error_description,
-            status: error.status || error.statusCode
+            error: keycloakError.error || keycloakError.message,
+            error_description: keycloakError.error_description,
+            status: keycloakError.status || keycloakError.statusCode
         });
 
         return {
@@ -46,11 +53,46 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
 
 function requireEnv(name: string): string {
     const value = process.env[name];
-    if (!value) throw new Error(`Missing ${name}`);
+    if (!value) {
+        // Warning: during 'next build', some variables might be missing (e.g. in CI)
+        // We log a warning instead of throwing to avoid breaking the build.
+        if (process.env.NODE_ENV !== "development") {
+            console.warn(`[auth] Warning: Environment variable ${name} is missing.`);
+        }
+        return "";
+    }
     return value;
 }
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+let criticalEnvValidated = false;
+
+export function validateCriticalEnvOnStartup() {
+    if (criticalEnvValidated) return;
+    
+    // Allows bypassing runtime verification locally or during stateless pipelines
+    if (process.env.SKIP_AUTH_ENV_VALIDATION === "true" || process.env.CI === "true") {
+        criticalEnvValidated = true;
+        return;
+    }
+
+    const requiredKeys = ["KEYCLOAK_CLIENT_ID", "KEYCLOAK_CLIENT_SECRET", "KEYCLOAK_ISSUER"];
+    const missing = requiredKeys.filter(key => requireEnv(key) === "");
+    
+    // Check secret separately to handle both AUTH_SECRET and NEXTAUTH_SECRET correctly
+    const hasSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+    if (!hasSecret) {
+        missing.push("AUTH_SECRET (or NEXTAUTH_SECRET)");
+    }
+
+    if (missing.length > 0) {
+        throw new Error(`Critical environment variables missing at runtime: ${missing.join(", ")}`);
+    }
+
+    criticalEnvValidated = true;
+}
+
+export const authOptions: NextAuthOptions = {
+    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
     providers: [
         Keycloak({
             clientId: requireEnv("KEYCLOAK_CLIENT_ID"),
@@ -89,27 +131,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     const tokens = await res.json();
 
                     // Decode the access token to get user info
-                    let payload: any;
+                    let payload: { sub?: string; name?: string; preferred_username?: string; email?: string };
                     try {
                         payload = decodeJwt(tokens.access_token);
-                    } catch (err) {
+                    } catch {
                         console.error("TokenDecodeError", { error: "Failed to decode JWT token" });
                         return null;
                     }
 
                     return {
-                        id: payload.sub,
-                        name: payload.name || payload.preferred_username,
-                        email: payload.email,
+                        id: payload.sub || "",
+                        name: (payload.name as string) || (payload.preferred_username as string) || "",
+                        email: (payload.email as string) || "",
                         // Custom fields to pass to jwt callback
-                        accessToken: tokens.access_token,
-                        refreshToken: tokens.refresh_token,
+                        accessToken: tokens.access_token as string,
+                        refreshToken: tokens.refresh_token as string,
                         expiresAt: Date.now() + (tokens.expires_in * 1000),
-                    } as any;
+                    };
                 } catch (error: any) {
+                    const authError = error as Error;
                     console.error("CredentialsAuthError", {
-                        error: error.name || "UnknownError",
-                        message: error.message || "An error occurred during authentication",
+                        error: authError.name || "UnknownError",
+                        message: authError.message || "An error occurred during authentication",
                     });
                     return null;
                 }
@@ -134,13 +177,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
             // Initial sign in via Credentials (ROPC against Keycloak)
             if (account && account.provider === "credentials" && user) {
-                const u = user as any;
                 return {
                     ...token,
-                    accessToken: u.accessToken ?? "",
-                    refreshToken: u.refreshToken ?? "",
-                    expiresAt: u.expiresAt ?? Date.now() + 3600000,
-                    id: u.id ?? "",
+                    accessToken: user.accessToken ?? "",
+                    refreshToken: user.refreshToken ?? "",
+                    expiresAt: user.expiresAt ?? Date.now() + 3600000,
+                    id: user.id ?? "",
                 }
             }
 
@@ -187,4 +229,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     // Debug in development
     debug: process.env.NODE_ENV === "development",
-});
+};
+
+export function auth(
+    ...args:
+        | [GetServerSidePropsContext["req"], GetServerSidePropsContext["res"]]
+        | [NextApiRequest, NextApiResponse]
+        | []
+) {
+    validateCriticalEnvOnStartup();
+    return getServerSession(...args, authOptions);
+}

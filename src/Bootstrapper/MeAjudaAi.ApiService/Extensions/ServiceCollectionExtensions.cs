@@ -94,7 +94,7 @@ public static class ServiceCollectionExtensions
         }
 
         // Adiciona serviços de autorização
-        services.AddAuthorizationPolicies(configuration);
+        services.AddAuthorizationPolicies(configuration, environment);
 
         // Adiciona suporte a ProblemDetails para respostas de erro padronizadas
         services.AddProblemDetails();

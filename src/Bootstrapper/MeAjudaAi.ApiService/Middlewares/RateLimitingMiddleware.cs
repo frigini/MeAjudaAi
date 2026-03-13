@@ -242,12 +242,12 @@ public class RateLimitingMiddleware(
 
     private static string GetClientIpAddress(HttpContext context)
     {
-        // Use the IP already resolved by ForwardedHeadersMiddleware
-        // which validates trusted proxies via KnownProxies/KnownNetworks.
-        // This prevents malicious clients from spoofing whitelisted IPs or
-        // rotating fake IPs to evade per-IP rate limits.
-        // ForwardedHeadersMiddleware must be configured in the pipeline before
-        // this middleware with appropriate KnownProxies/KnownNetworks settings.
+        // Usa o IP já resolvido pelo ForwardedHeadersMiddleware, que valida proxies
+        // confiáveis via KnownProxies/KnownNetworks. Isso evita que clientes
+        // maliciosos forjem IPs da whitelist ou rotacionem IPs falsos para
+        // burlar os limites de taxa por IP. O ForwardedHeadersMiddleware deve
+        // estar configurado no pipeline antes deste middleware com as
+        // configurações apropriadas de KnownProxies/KnownNetworks.
         return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
     }
 

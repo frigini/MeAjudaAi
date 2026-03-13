@@ -58,7 +58,7 @@ public class BecomeProviderEndpoint : BaseEndpoint, IEndpoint
             return Handle(result);
             
         // Retorna 201 Created com a localização do recurso (perfil do prestador)
-        return Results.CreatedAtRoute("GetMyProviderProfile", null, new Response<ProviderDto>(result.Value!));
+        return Results.CreatedAtRoute("GetMyProviderProfile", null, new Response<ProviderDto>(result.Value));
     }
 }
 

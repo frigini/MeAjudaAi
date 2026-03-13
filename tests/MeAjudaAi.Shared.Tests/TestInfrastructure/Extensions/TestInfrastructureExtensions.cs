@@ -113,19 +113,21 @@ public static class TestInfrastructureExtensions
 /// </summary>
 internal class MockMessageBus : IMessageBus
 {
-    private readonly List<object> _publishedMessages = new();
+    private readonly List<object> _recordedMessages = new();
 
-    public IReadOnlyList<object> PublishedMessages => _publishedMessages.AsReadOnly();
+    public IReadOnlyList<object> RecordedMessages => _recordedMessages.AsReadOnly();
 
     public Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
     {
-        _publishedMessages.Add(message!);
+        ArgumentNullException.ThrowIfNull(message);
+        _recordedMessages.Add(message);
         return Task.CompletedTask;
     }
 
     public Task PublishAsync<TMessage>(TMessage @event, string? topicName = null, CancellationToken cancellationToken = default)
     {
-        _publishedMessages.Add(@event!);
+        ArgumentNullException.ThrowIfNull(@event);
+        _recordedMessages.Add(@event);
         return Task.CompletedTask;
     }
 
@@ -136,6 +138,6 @@ internal class MockMessageBus : IMessageBus
 
     public void ClearMessages()
     {
-        _publishedMessages.Clear();
+        _recordedMessages.Clear();
     }
 }

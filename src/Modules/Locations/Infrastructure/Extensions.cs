@@ -32,8 +32,22 @@ public static class Extensions
         // Registrar DbContext para Locations module
         services.AddDbContext<LocationsDbContext>((serviceProvider, options) =>
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection")
-                ?? throw new InvalidOperationException("DefaultConnection não configurada");
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment())
+                {
+                    // Fallback para testes/dev quando a string de conexão não é crítica na inicialização do DI
+#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
+                    connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
+#pragma warning restore S2068
+                }
+                else
+                {
+                    throw new InvalidOperationException("DefaultConnection is not configured");
+                }
+            }
 
             options.UseNpgsql(connectionString,
                 npgsqlOptions =>

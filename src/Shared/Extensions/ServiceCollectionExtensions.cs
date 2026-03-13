@@ -58,7 +58,7 @@ public static class ServiceCollectionExtensions
         {
             // Registra messaging no-op para testes
             services.AddSingleton<IMessageBus, NoOpMessageBus>();
-            services.AddSingleton<MeAjudaAi.Shared.Messaging.ServiceBus.IServiceBusTopicManager, NoOpServiceBusTopicManager>();
+
         }
 
         services.AddValidation();

@@ -70,7 +70,7 @@ public sealed class ModuleExtensionsTests
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
         var mockEnv = new Mock<IHostEnvironment>();
-        mockEnv.Setup(e => e.EnvironmentName).Returns("Development");
+        mockEnv.Setup(e => e.EnvironmentName).Returns("Production");
 
         // Act & Assert
         var exception = Assert.Throws<InvalidOperationException>(() =>

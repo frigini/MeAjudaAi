@@ -254,6 +254,12 @@ public class TestContainerFixture : IAsyncLifetime
         if (blobDescriptor != null)
             services.Remove(blobDescriptor);
         services.AddSingleton<IBlobStorageService, MockBlobStorageService>();
+
+        // Mock Document Intelligence
+        var ocrDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IDocumentIntelligenceService));
+        if (ocrDescriptor != null)
+            services.Remove(ocrDescriptor);
+        services.AddSingleton<IDocumentIntelligenceService, MockDocumentIntelligenceService>();
     }
 
     private void ReconfigureDbContexts(IServiceCollection services)

@@ -143,7 +143,17 @@ legacy-analysis-report.*
 # Archived scripts
 .archive/
 
-# MkDocs build output
-site/
+# Node & Nx caching
+**/.nx/
+**/test_results.txt
+**/zod.gen.ts.bak
 
-/src/Web/MeAjudaAi.Web.Customer/layout.css
+# Build outputs
+**/dist/
+**/.next/
+**/bin/
+**/obj/
+**/out/
+**/generated/
+
+vite.config.*.timestamp*

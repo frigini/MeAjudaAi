@@ -44,10 +44,12 @@ public static class Extensions
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                if (isTestEnvironment)
+                if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment())
                 {
-                    // Same test fallback as DapperConnection
-                    connectionString = "Host=localhost;Port=5432;Database=meajudaai_test;Username=postgres;Password=test;";
+                    // Fallback para testes/dev quando a string de conexão não é crítica na inicialização do DI
+#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
+                    connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
+#pragma warning restore S2068
                 }
                 else
                 {

@@ -46,6 +46,6 @@ public class CreateServiceEndpoint : BaseEndpoint, IEndpoint
         if (!result.IsSuccess)
             return Handle(result);
 
-        return Handle(result, "GetServiceById", new { id = result.Value!.Id });
+        return Handle(result, "GetServiceById", new { id = result.Value.Id });
     }
 }
