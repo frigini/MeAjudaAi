@@ -287,7 +287,7 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
                 Guid.NewGuid().ToString()
             ).Value;
 
-            context.Users.Add(user);
+            context.Users.Add(user!);
             await context.SaveChangesAsync();
         }
 

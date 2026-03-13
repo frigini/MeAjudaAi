@@ -273,7 +273,7 @@ jobs:
         # Excluded from coverage: Tests, Migrations, Database, Contracts, Metrics, Health Checks, Jobs, Program, AppHost, Keycloak, Monitoring, NoOp, RabbitMq, ServiceBus, Hangfire, Options, Design-time factories
 
       - name: Upload code coverage
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: code-coverage
@@ -283,7 +283,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload test results
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results
@@ -292,7 +292,54 @@ jobs:
           compression-level: 6
           if-no-files-found: warn
 
-  # Job 2: Markdown Link Validation
+  # Job 2: Compatibility Gate (Npgsql 10 + Hangfire)
+  compatibility-gate:
+    name: Compatibility Gate (Npgsql 10 + Hangfire)
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          POSTGRES_DB: meajudaai_compat
+        ports:
+          - 5432:5432
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: 🗄️ Setup PostgreSQL Connection
+        id: pg-conn
+        uses: ./.github/actions/setup-postgres-connection
+        with:
+          postgres-db: meajudaai_compat
+          postgres-user: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          postgres-password: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+
+      - name: 🧪 Run Hangfire Compatibility Tests
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          MEAJUDAAI_DB_HOST: localhost
+          MEAJUDAAI_DB_PORT: 5432
+          MEAJUDAAI_DB: meajudaai_compat
+          MEAJUDAAI_DB_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+        run: |
+          echo "================================"
+          echo "🧪 VALIDATING HANGFIRE + NPGSQL 10 COMPATIBILITY"
+          echo "================================"
+          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
+            --filter "FullyQualifiedName~HangfirePostgreSqlTests" \
+            --configuration Release --verbosity normal
+
+  # Job 3: Markdown Link Validation
   markdown-link-check:
     name: Validate Markdown Links
     runs-on: ubuntu-latest
@@ -313,7 +360,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Job 3: Infrastructure Validation (Optional)
+  # Job 4: Infrastructure Validation (Optional)
   validate-infrastructure:
     name: Validate Infrastructure
     runs-on: ubuntu-latest
@@ -342,7 +389,7 @@ jobs:
             echo "Resource group '${{ env.AZURE_RESOURCE_GROUP_DEV }}' does not exist, skipping Bicep validation"
           fi
 
-  # Job 4: Deploy to Development (Optional)
+  # Job 5: Deploy to Development (Optional)
   deploy-dev:
     name: Deploy to Development
     runs-on: ubuntu-latest
@@ -396,7 +443,7 @@ jobs:
 
       - name: Upload infrastructure outputs
         if: github.event.inputs.deploy_infrastructure == 'true' || github.event.inputs.deploy_infrastructure == ''
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: infrastructure-outputs-dev
           path: infrastructure-outputs.json

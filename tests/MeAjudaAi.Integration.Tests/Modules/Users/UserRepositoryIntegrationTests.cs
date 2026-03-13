@@ -164,6 +164,6 @@ public class UserRepositoryIntegrationTests : BaseApiTest
         var lastName = _faker.Name.LastName();
         var keycloakId = UuidGenerator.NewId().ToString();
 
-        return User.Create(username, email, firstName, lastName, keycloakId).Value;
+        return User.Create(username, email, firstName, lastName, keycloakId).Value!;
     }
 }
