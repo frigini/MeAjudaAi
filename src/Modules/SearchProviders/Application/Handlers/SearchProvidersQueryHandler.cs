@@ -87,6 +87,7 @@ public sealed class SearchProvidersQueryHandler(
                 TotalReviews: p.TotalReviews,
                 SubscriptionTier: p.SubscriptionTier,
                 ServiceIds: p.ServiceIds,
+                Slug: p.Slug,
                 Description: p.Description,
                 DistanceInKm: searchResult.DistancesInKm[index],
                 City: p.City,

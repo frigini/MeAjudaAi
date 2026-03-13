@@ -35,6 +35,14 @@ public sealed class Provider : AggregateRoot<ProviderId>
     public string Name { get; private set; } = string.Empty;
 
     /// <summary>
+    /// Slug amigável para URL.
+    /// </summary>
+    /// <remarks>
+    /// Gerado automaticamente a partir do nome. Usado para SEO e URLs públicas.
+    /// </remarks>
+    public string Slug { get; private set; } = string.Empty;
+
+    /// <summary>
     /// Tipo do prestador de serviços (Individual ou Company).
     /// </summary>
     public EProviderType Type { get; private set; }
@@ -129,6 +137,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
 
         UserId = userId;
         Name = name.Trim();
+        Slug = SlugHelper.Generate(Name);
         Type = type;
         BusinessProfile = businessProfile;
         Status = EProviderStatus.PendingBasicInfo;
@@ -163,6 +172,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
 
         UserId = userId;
         Name = name.Trim();
+        Slug = SlugHelper.Generate(Name);
         Type = type;
         BusinessProfile = businessProfile;
         Status = EProviderStatus.PendingBasicInfo;
@@ -175,7 +185,8 @@ public sealed class Provider : AggregateRoot<ProviderId>
             UserId,
             Name,
             Type,
-            BusinessProfile.ContactInfo.Email));
+            BusinessProfile.ContactInfo.Email,
+            Slug));
     }
 
     /// <summary>
@@ -199,7 +210,12 @@ public sealed class Provider : AggregateRoot<ProviderId>
 
         var newName = name.Trim();
         if (Name != newName)
+        {
             updatedFields.Add("Name");
+            Name = newName;
+            Slug = SlugHelper.Generate(Name);
+            updatedFields.Add("Slug");
+        }
 
         if (!BusinessProfile.ContactInfo.Email.Equals(businessProfile.ContactInfo.Email, StringComparison.OrdinalIgnoreCase))
             updatedFields.Add("Email");
@@ -213,7 +229,6 @@ public sealed class Provider : AggregateRoot<ProviderId>
         if (BusinessProfile.Description != businessProfile.Description)
             updatedFields.Add("Description");
 
-        Name = newName;
         BusinessProfile = businessProfile;
         MarkAsUpdated();
 
@@ -222,6 +237,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
             1,
             Name,
             BusinessProfile.ContactInfo.Email,
+            Slug,
             updatedBy,
             updatedFields.ToArray()));
     }

@@ -334,6 +334,7 @@ public sealed class ProvidersModuleApi(
         var indexingDto = new ModuleProviderIndexingDto(
             ProviderId: providerEntity.Id.Value,
             Name: providerEntity.Name,
+            Slug: providerEntity.Slug,
             Latitude: coordinates.Latitude,
             Longitude: coordinates.Longitude,
             ServiceIds: serviceIds,
@@ -360,6 +361,7 @@ public sealed class ProvidersModuleApi(
         return new ModuleProviderDto(
             Id: providerDto.Id,
             Name: providerDto.Name,
+            Slug: providerDto.Slug,
             Email: providerDto.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
             Document: GetMainDocument(providerDto)?.Number ?? string.Empty,
             ProviderType: providerDto.Type.ToString(),
@@ -378,6 +380,7 @@ public sealed class ProvidersModuleApi(
         return new ModuleProviderBasicDto(
             Id: providerDto.Id,
             Name: providerDto.Name,
+            Slug: providerDto.Slug,
             Email: providerDto.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
             ProviderType: providerDto.Type.ToString(),
             VerificationStatus: providerDto.VerificationStatus.ToString(),

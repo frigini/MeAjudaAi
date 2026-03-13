@@ -13,6 +13,7 @@ public sealed record SearchableProviderDto(
     int TotalReviews,
     ESubscriptionTier SubscriptionTier,
     IReadOnlyList<Guid> ServiceIds,
+    string Slug,
     string? Description = null,
     double? DistanceInKm = null,
     string? City = null,

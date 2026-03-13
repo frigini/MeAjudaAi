@@ -68,6 +68,7 @@ public sealed class GetPublicProviderByIdQueryHandler : IQueryHandler<GetPublicP
         var dto = new PublicProviderDto(
             provider.Id,
             provider.Name,
+            provider.Slug,
             provider.Type,
             businessProfile.FantasyName,
             businessProfile.Description,

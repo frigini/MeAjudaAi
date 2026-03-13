@@ -185,14 +185,16 @@ public class SearchResultTests
             var providerId = Guid.NewGuid();
             var location = new GeoPoint(-23.5505 + i * 0.1, -46.6333 + i * 0.1);
 
+            var providerName = _faker.Company.CompanyName();
             var provider = SearchableProvider.Create(
-                providerId,
-                _faker.Person.FullName,
-                location,
-                _faker.Random.Enum<ESubscriptionTier>(),
-                _faker.Lorem.Sentence(),
-                _faker.Address.City(),
-                _faker.Address.StateAbbr()
+                providerId: providerId,
+                name: providerName,
+                slug: providerName.ToLower().Replace(" ", "-"),
+                location: location,
+                subscriptionTier: _faker.Random.Enum<ESubscriptionTier>(),
+                description: _faker.Lorem.Sentence(),
+                city: _faker.Address.City(),
+                state: _faker.Address.StateAbbr()
             );
 
             providers.Add(provider);

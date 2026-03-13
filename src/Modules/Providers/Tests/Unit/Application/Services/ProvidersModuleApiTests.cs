@@ -217,6 +217,7 @@ public class ProvidersModuleApiTests
             Id: id,
             UserId: Guid.NewGuid(),
             Name: "Test Provider",
+            Slug: "test-provider",
             Type: EProviderType.Individual,
             BusinessProfile: new BusinessProfileDto(
                 LegalName: "Test Provider Legal Name",

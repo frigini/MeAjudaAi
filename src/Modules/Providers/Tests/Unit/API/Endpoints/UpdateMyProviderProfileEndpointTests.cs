@@ -48,9 +48,22 @@ public class UpdateMyProviderProfileEndpointTests
 
         // Setup Query to return ProviderId
         var providerDto = new ProviderDto(
-            providerId, userId, "Test", EProviderType.Individual, null!, 
-            EProviderStatus.Active, EVerificationStatus.Verified, EProviderTier.Standard,
-            new List<DocumentDto>(), new List<QualificationDto>(), new List<ProviderServiceDto>(), DateTime.UtcNow, null, false, null, null, null);
+            Id: providerId,
+            UserId: userId,
+            Name: "Test",
+            Slug: "test",
+            Type: EProviderType.Individual,
+            BusinessProfile: null!,
+            Status: EProviderStatus.Active,
+            VerificationStatus: EVerificationStatus.Verified,
+            Tier: EProviderTier.Standard,
+            Documents: new List<DocumentDto>(),
+            Qualifications: new List<QualificationDto>(),
+            Services: new List<ProviderServiceDto>(),
+            CreatedAt: DateTime.UtcNow,
+            UpdatedAt: null,
+            IsDeleted: false,
+            DeletedAt: null);
             
         _queryDispatcherMock
             .Setup(x => x.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(

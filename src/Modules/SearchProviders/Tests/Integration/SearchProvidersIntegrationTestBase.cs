@@ -162,13 +162,14 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
         var location = new GeoPoint(latitude, longitude);
 
         var provider = SearchableProvider.Create(
-            providerId,
-            name,
-            location,
-            tier,
-            description,
-            city,
-            state);
+            providerId: providerId,
+            name: name,
+            slug: name.ToLower().Replace(" ", "-"),
+            location: location,
+            subscriptionTier: tier,
+            description: description,
+            city: city,
+            state: state);
 
         return provider;
     }
@@ -189,13 +190,14 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
         var location = new GeoPoint(latitude, longitude);
 
         var provider = SearchableProvider.Create(
-            providerId,
-            name,
-            location,
-            tier,
-            description,
-            city,
-            state);
+            providerId: providerId,
+            name: name,
+            slug: name.ToLower().Replace(" ", "-"),
+            location: location,
+            subscriptionTier: tier,
+            description: description,
+            city: city,
+            state: state);
 
         return provider;
     }

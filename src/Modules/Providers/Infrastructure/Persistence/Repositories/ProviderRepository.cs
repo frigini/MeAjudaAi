@@ -47,6 +47,15 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     }
 
     /// <summary>
+    /// Busca um prestador de serviços pelo seu slug amigável.
+    /// </summary>
+    public async Task<Provider?> GetBySlugAsync(string slug, CancellationToken cancellationToken = default)
+    {
+        return await GetProvidersQuery()
+            .FirstOrDefaultAsync(p => p.Slug == slug && !p.IsDeleted, cancellationToken);
+    }
+
+    /// <summary>
     /// Busca múltiplos prestadores de serviços pelos seus identificadores únicos.
     /// </summary>
     public async Task<IReadOnlyList<Provider>> GetByIdsAsync(IReadOnlyList<Guid> ids, CancellationToken cancellationToken = default)

@@ -67,7 +67,8 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
             userId,
             "Provider Test",
             EProviderType.Individual,
-            "test@provider.com"
+            "test@provider.com",
+            "provider-test"
         );
 
         // Act
@@ -92,7 +93,8 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
             UuidGenerator.NewId(),
             "Nonexistent Provider",
             EProviderType.Individual,
-            "test@provider.com"
+            "test@provider.com",
+            "nonexistent-provider"
         );
 
         // Act
@@ -118,7 +120,8 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
             UuidGenerator.NewId(),
             "Provider Test",
             EProviderType.Individual,
-            "test@provider.com"
+            "test@provider.com",
+            "provider-test"
         );
 
         using var cts = new CancellationTokenSource();

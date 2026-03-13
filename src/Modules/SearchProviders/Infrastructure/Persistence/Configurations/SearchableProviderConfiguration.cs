@@ -41,6 +41,11 @@ internal sealed class SearchableProviderConfiguration : IEntityTypeConfiguration
             .HasMaxLength(200)
             .HasColumnName("name");
 
+        builder.Property(p => p.Slug)
+            .IsRequired()
+            .HasMaxLength(200)
+            .HasColumnName("slug");
+
         builder.Property(p => p.Description)
             .HasMaxLength(1000)
             .HasColumnName("description");

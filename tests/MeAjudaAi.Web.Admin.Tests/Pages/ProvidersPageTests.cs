@@ -60,6 +60,7 @@ public class ProvidersPageTests
         var testProvider = new ModuleProviderDto(
             Guid.NewGuid(),
             "Fornecedor Teste",
+            "fornecedor-teste",
             "teste@exemplo.com",
             "12345678901",
             "Individual",

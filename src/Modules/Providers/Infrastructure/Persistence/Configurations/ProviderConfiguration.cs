@@ -30,6 +30,11 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
             .IsRequired()
             .HasColumnName("name");
 
+        builder.Property(p => p.Slug)
+            .HasMaxLength(120)
+            .IsRequired()
+            .HasColumnName("slug");
+
         builder.Property(p => p.Type)
             .HasConversion(
                 type => type.ToString(),
@@ -241,6 +246,10 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
         builder.HasIndex(p => p.UserId)
             .IsUnique()
             .HasDatabaseName("ix_providers_user_id");
+
+        builder.HasIndex(p => p.Slug)
+            .IsUnique()
+            .HasDatabaseName("ix_providers_slug");
 
         builder.HasIndex(p => p.Name)
             .HasDatabaseName("ix_providers_name");

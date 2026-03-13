@@ -22,6 +22,11 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     public string Name { get; private set; } = string.Empty;
 
     /// <summary>
+    /// Slug amigável para URL do provedor.
+    /// </summary>
+    public string Slug { get; private set; } = string.Empty;
+
+    /// <summary>
     /// Localização geográfica do provedor.
     /// </summary>
     public GeoPoint Location { get; private set; } = null!;
@@ -95,6 +100,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     public static SearchableProvider Create(
         Guid providerId,
         string name,
+        string slug,
         GeoPoint location,
         ESubscriptionTier subscriptionTier = ESubscriptionTier.Free,
         string? description = null,
@@ -106,6 +112,11 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             throw new ArgumentException("Provider name cannot be empty.", nameof(name));
         }
 
+        if (string.IsNullOrWhiteSpace(slug))
+        {
+            throw new ArgumentException("Provider slug cannot be empty.", nameof(slug));
+        }
+
         ArgumentNullException.ThrowIfNull(location);
 
         var searchableProvider = new SearchableProvider(
@@ -115,6 +126,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             location,
             subscriptionTier)
         {
+            Slug = slug.Trim().ToLowerInvariant(),
             Description = description?.Trim(),
             City = city?.Trim(),
             State = state?.Trim()
@@ -136,6 +148,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
         Guid id,
         Guid providerId,
         string name,
+        string slug,
         GeoPoint location,
         ESubscriptionTier subscriptionTier,
         decimal averageRating,
@@ -153,6 +166,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             location,
             subscriptionTier)
         {
+            Slug = slug,
             Description = description,
             City = city,
             State = state,
@@ -168,14 +182,20 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     /// <summary>
     /// Atualiza as informações básicas do provedor.
     /// </summary>
-    public void UpdateBasicInfo(string name, string? description, string? city, string? state)
+    public void UpdateBasicInfo(string name, string slug, string? description, string? city, string? state)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
             throw new ArgumentException("Provider name cannot be empty.", nameof(name));
         }
 
+        if (string.IsNullOrWhiteSpace(slug))
+        {
+            throw new ArgumentException("Provider slug cannot be empty.", nameof(slug));
+        }
+
         Name = name.Trim();
+        Slug = slug.Trim().ToLowerInvariant();
         Description = description?.Trim();
         City = city?.Trim();
         State = state?.Trim();

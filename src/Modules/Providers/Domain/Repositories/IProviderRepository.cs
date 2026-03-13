@@ -22,6 +22,14 @@ public interface IProviderRepository
     Task<Provider?> GetByIdAsync(ProviderId id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Busca um prestador de serviços pelo seu slug amigável.
+    /// </summary>
+    /// <param name="slug">Slug amigável do prestador</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    /// <returns>O prestador encontrado ou null se não existir</returns>
+    Task<Provider?> GetBySlugAsync(string slug, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Busca múltiplos prestadores de serviços pelos seus identificadores únicos.
     /// </summary>
     /// <param name="ids">Lista de identificadores dos prestadores</param>
