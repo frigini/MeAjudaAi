@@ -315,16 +315,24 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: 🗄️ Setup PostgreSQL Connection
+        id: pg-conn
+        uses: ./.github/actions/setup-postgres-connection
+        with:
+          postgres-db: meajudaai_compat
+          postgres-user: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          postgres-password: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+
       - name: 🧪 Run Hangfire Compatibility Tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
-          ConnectionStrings__DefaultConnection: "Host=localhost;Database=meajudaai_compat;Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
+          ConnectionStrings__DefaultConnection: ${{ steps.pg-conn.outputs.connection-string }}
         run: |
           echo "================================"
           echo "🧪 VALIDATING HANGFIRE + NPGSQL 10 COMPATIBILITY"
           echo "================================"
           dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
-            --filter "FullyQualifiedName~Hangfire" \
+            --filter "FullyQualifiedName~HangfirePostgreSqlTests" \
             --configuration Release --verbosity normal
 
   # Job 3: Markdown Link Validation
