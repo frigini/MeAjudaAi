@@ -106,9 +106,9 @@
       },
       "Microsoft.Extensions.TimeProvider.Testing": {
         "type": "Direct",
-        "requested": "[10.3.0, )",
-        "resolved": "10.3.0",
-        "contentHash": "CKjS1u0JlMIA44o/0NV8nXRCaudpol3ERVlB9eu21kvq++EMt7fBavbPxWXN+nOpsdDhz/pb0MY2RBpk2/PGbA=="
+        "requested": "[10.4.0, )",
+        "resolved": "10.4.0",
+        "contentHash": "uJ8n9WUEzux9I2CjZh7imGBgZadfwhAKlxuBq7GsNGL8FJF81aHXAYaRMnwW+9EvRFQNytu7xo1ffeuuTncAzg=="
       },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
@@ -131,13 +131,13 @@
       },
       "Npgsql.EntityFrameworkCore.PostgreSQL": {
         "type": "Direct",
-        "requested": "[10.0.0, )",
-        "resolved": "10.0.0",
-        "contentHash": "E2+uSWxSB8LdsUVwPaqRWOcGOP92biry2JEwc0KJMdLJF+aZdczeIdEXVwEyv4nSVMQJH0o8tLhyAMiR6VF0lw==",
+        "requested": "[10.0.1, )",
+        "resolved": "10.0.1",
+        "contentHash": "P6EwH0Q4xkaA264iNZDqCPhWt8pscfUGxXazDQg4noBfqjoOlk4hKWfvBjF9ZX3R/9JybRmmJfmxr2iBMj0EpA==",
         "dependencies": {
-          "Microsoft.EntityFrameworkCore": "[10.0.0, 11.0.0)",
-          "Microsoft.EntityFrameworkCore.Relational": "[10.0.0, 11.0.0)",
-          "Npgsql": "10.0.0"
+          "Microsoft.EntityFrameworkCore": "[10.0.4, 11.0.0)",
+          "Microsoft.EntityFrameworkCore.Relational": "[10.0.4, 11.0.0)",
+          "Npgsql": "10.0.2"
         }
       },
       "Respawn": {
@@ -158,29 +158,29 @@
       },
       "Testcontainers.Azurite": {
         "type": "Direct",
-        "requested": "[4.10.0, )",
-        "resolved": "4.10.0",
-        "contentHash": "DPoTpTc6aLvl+15h2jdGOwgtfNwhlQhpRGd4hfm8nI9Kl7UbVSr/0zJeycsThOg3VrCSw4UGwdrf5lYSCKrdfA==",
+        "requested": "[4.11.0, )",
+        "resolved": "4.11.0",
+        "contentHash": "fDML8KiS9alTzmXD8gZziRZWNQDeElejBWr+Wg5vpg6IsK2PhM94coQDNmPyabTpuDQ8XopqxJIw2hyv7YdGqw==",
         "dependencies": {
-          "Testcontainers": "4.10.0"
+          "Testcontainers": "4.11.0"
         }
       },
       "Testcontainers.PostgreSql": {
         "type": "Direct",
-        "requested": "[4.10.0, )",
-        "resolved": "4.10.0",
-        "contentHash": "TP7j3N014O9MONT21lqZPzlVuP1LJYhkRKYZPbRdHl3VN+4RPk5Jt799WvLfxDsOFLVNibNO3B7tP1vcYQmXHA==",
+        "requested": "[4.11.0, )",
+        "resolved": "4.11.0",
+        "contentHash": "OWGi0Og+qFpr2OPDignA74aJSfUd0nvZOaXNGWXwMJR1BvpdzhCNHQB2h7yLSTb0a8JVmmQQ4mUpHAC9q27NLw==",
         "dependencies": {
-          "Testcontainers": "4.10.0"
+          "Testcontainers": "4.11.0"
         }
       },
       "Testcontainers.RabbitMq": {
         "type": "Direct",
-        "requested": "[4.10.0, )",
-        "resolved": "4.10.0",
-        "contentHash": "psuDUrJbqaFeZ6T+kNL9rEiafyPVlQuk5xeHswuiFVMlBaihpobKTlUxWy0k9hLy6xR5Op8kGayLmsb32gDXkA==",
+        "requested": "[4.11.0, )",
+        "resolved": "4.11.0",
+        "contentHash": "+4rDOXdjwwDx11vUpSAAK/gDOPtZ/LC+qj02RiulHtIMEAzC4KjyP5hEactvwSuGfcomFnmtJqYn1Pwyh+pPDw==",
         "dependencies": {
-          "Testcontainers": "4.10.0"
+          "Testcontainers": "4.11.0"
         }
       },
       "xunit.runner.visualstudio": {
@@ -771,12 +771,12 @@
       },
       "Npgsql.NetTopologySuite": {
         "type": "Transitive",
-        "resolved": "10.0.0",
-        "contentHash": "Psv48pkCHyN2ovbEQYIzKo0CAjXKXWy0pJy8HomJFbCTD3AY5J9OOzKNKXUT01W7X7qOYoqBXMxBGW9mnmw0RA==",
+        "resolved": "10.0.2",
+        "contentHash": "WNM5ZHATFj0dSMJ/4vlbgMWBgP0ElMwsGiHR0PwzwflNS+IXbX8xxNZyLp4veCLcr5tDCWwMh9Lw7nwUxWkzvg==",
         "dependencies": {
           "NetTopologySuite": "2.6.0",
           "NetTopologySuite.IO.PostGIS": "2.1.0",
-          "Npgsql": "10.0.0"
+          "Npgsql": "10.0.2"
         }
       },
       "Npgsql.OpenTelemetry": {
@@ -1014,8 +1014,8 @@
       },
       "Testcontainers": {
         "type": "Transitive",
-        "resolved": "4.10.0",
-        "contentHash": "a7tH+s9IRME6QEeMRgl/mTqQyudgtGNJmJRPn1+LwW8w/2L11cJzRJd7Io0QoSrP+i6lAOETX2SRY7cLbElcdQ==",
+        "resolved": "4.11.0",
+        "contentHash": "9pBNaK9Ra3GVnr5h6gaDJOBH0txA5G3Juho5WANPuyu38l5xyr2lCvf11oA5/uSd+Lh4Wtng34nKp3nMiea02g==",
         "dependencies": {
           "Docker.DotNet.Enhanced": "3.131.1",
           "Docker.DotNet.Enhanced.X509": "3.131.1",
@@ -1153,7 +1153,7 @@
           "MeAjudaAi.Modules.Documents.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.5, )",
-          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0, )"
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )"
         }
       },
       "meajudaai.modules.locations.api": {
@@ -1256,8 +1256,8 @@
           "MeAjudaAi.Modules.SearchProviders.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.5, )",
-          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0, )",
-          "Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite": "[10.0.0, )"
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
+          "Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite": "[10.0.1, )"
         }
       },
       "meajudaai.modules.servicecatalogs.api": {
@@ -1328,7 +1328,7 @@
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.5, )",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.5, )",
-          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0, )",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
           "System.IdentityModel.Tokens.Jwt": "[8.16.0, )"
         }
       },
@@ -1369,7 +1369,7 @@
           "Microsoft.Extensions.Caching.Hybrid": "[10.4.0, )",
           "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.5, )",
           "Microsoft.FeatureManagement.AspNetCore": "[4.4.0, )",
-          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0, )",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
           "RabbitMQ.Client": "[7.2.1, )",
           "Rebus": "[8.9.0, )",
           "Rebus.RabbitMq": "[10.1.1, )",
@@ -1898,12 +1898,12 @@
       },
       "Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite": {
         "type": "CentralTransitive",
-        "requested": "[10.0.0, )",
-        "resolved": "10.0.0",
-        "contentHash": "dSo2/nHugxyppIvEOjI2nmEHRZIQFCBrHcLe4gq+ABPp78tzbTo8cz18LOk6RpJlWFUdHyuaqvsYvVoOTYANHg==",
+        "requested": "[10.0.1, )",
+        "resolved": "10.0.1",
+        "contentHash": "Fcx8k5cSF7cGeXMeguLwyV+wTcKbmhojCse2WBXfHlEQNXILpI1My7H6rvPT8n3fI4TxZiYq/LWO2vVGBD3FHA==",
         "dependencies": {
-          "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.0",
-          "Npgsql.NetTopologySuite": "10.0.0"
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.1",
+          "Npgsql.NetTopologySuite": "10.0.2"
         }
       },
       "OpenTelemetry.Exporter.Console": {
