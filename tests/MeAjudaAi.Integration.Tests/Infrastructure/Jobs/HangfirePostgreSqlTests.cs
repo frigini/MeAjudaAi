@@ -4,6 +4,7 @@ using Hangfire.PostgreSql.Factories;
 using Xunit;
 using FluentAssertions;
 using Npgsql;
+using MeAjudaAi.Integration.Tests.Infrastructure;
 
 namespace MeAjudaAi.Integration.Tests.Infrastructure.Jobs;
 
@@ -19,10 +20,8 @@ public class HangfirePostgreSqlTests
         _output = output;
         
         // Prioridade para a variável de ambiente sugerida pelo usuário para validação no CI
-        // Sanitizamos com Trim() para evitar caracteres invisíveis ou quebras de linha vindas do CI
-        var rawConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
-        
-        _connectionString = (rawConnectionString?.Trim() ?? "Host=localhost;Database=meajudaai_compat;Username=postgres;Password=test123").Trim();
+        // Usamos TestConnectionHelper que internamente usa NpgsqlConnectionStringBuilder para maior segurança
+        _connectionString = TestConnectionHelper.GetConnectionString();
     }
 
     [Fact]

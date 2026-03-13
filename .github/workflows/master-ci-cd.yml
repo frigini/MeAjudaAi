@@ -326,7 +326,11 @@ jobs:
       - name: 🧪 Run Hangfire Compatibility Tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
-          ConnectionStrings__DefaultConnection: ${{ steps.pg-conn.outputs.connection-string }}
+          MEAJUDAAI_DB_HOST: localhost
+          MEAJUDAAI_DB_PORT: 5432
+          MEAJUDAAI_DB: meajudaai_compat
+          MEAJUDAAI_DB_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
         run: |
           echo "================================"
           echo "🧪 VALIDATING HANGFIRE + NPGSQL 10 COMPATIBILITY"
