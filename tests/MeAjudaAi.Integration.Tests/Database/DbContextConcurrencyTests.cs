@@ -32,7 +32,7 @@ public sealed class DbContextConcurrencyTests : BaseApiTest
                 Guid.NewGuid().ToString()
             ).Value;
 
-            setupContext.Users.Add(user);
+            setupContext.Users.Add(user!);
             await setupContext.SaveChangesAsync();
             userId = user.Id.Value;
         }
@@ -100,7 +100,7 @@ public sealed class DbContextConcurrencyTests : BaseApiTest
                 Guid.NewGuid().ToString()
             ).Value;
 
-            context1.Users.Add(user);
+            context1.Users.Add(user!);
             await context1.SaveChangesAsync();
             userId = user.Id.Value;
         }
