@@ -101,7 +101,7 @@ jobs:
         run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "20"
           cache: "npm"
