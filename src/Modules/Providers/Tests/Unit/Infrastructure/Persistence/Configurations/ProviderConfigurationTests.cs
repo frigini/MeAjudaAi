@@ -832,7 +832,8 @@ public sealed class ProviderConfigurationTests : IDisposable
         // 4. Status
         // 5. VerificationStatus
         // 6. IsDeleted
-        _entityType.GetIndexes().Should().HaveCount(6);
+        // 7. Slug (unique)
+        _entityType.GetIndexes().Should().HaveCount(7);
     }
 
     #endregion

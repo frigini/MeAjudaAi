@@ -15,24 +15,27 @@ using System.Linq;
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 
 /// <summary>
-/// Handler responsável por processar a query de busca de prestador público.
+/// Handler responsável por processar a query de busca de prestador público por ID ou slug.
 /// </summary>
-public sealed class GetPublicProviderByIdQueryHandler : IQueryHandler<GetPublicProviderByIdQuery, Result<PublicProviderDto?>>
+public sealed class GetPublicProviderByIdOrSlugQueryHandler : IQueryHandler<GetPublicProviderByIdOrSlugQuery, Result<PublicProviderDto?>>
 {
     private readonly IProviderRepository _providerRepository;
     private readonly IFeatureManager _featureManager;
 
-    public GetPublicProviderByIdQueryHandler(IProviderRepository providerRepository, IFeatureManager featureManager)
+    public GetPublicProviderByIdOrSlugQueryHandler(IProviderRepository providerRepository, IFeatureManager featureManager)
     {
         _providerRepository = providerRepository;
         _featureManager = featureManager;
     }
 
     public async Task<Result<PublicProviderDto?>> HandleAsync(
-        GetPublicProviderByIdQuery query, 
+        GetPublicProviderByIdOrSlugQuery query,
         CancellationToken cancellationToken)
     {
-        var provider = await _providerRepository.GetByIdAsync(query.Id, cancellationToken);
+        // Resolve por ID (GUID) ou slug — mesma lógica do padrão de filmes
+        var provider = Guid.TryParse(query.IdOrSlug, out var id)
+            ? await _providerRepository.GetByIdAsync(new ProviderId(id), cancellationToken)
+            : await _providerRepository.GetBySlugAsync(query.IdOrSlug, cancellationToken);
 
         if (provider is null)
         {

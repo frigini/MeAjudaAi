@@ -126,13 +126,21 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             location,
             subscriptionTier)
         {
-            Slug = slug.Trim().ToLowerInvariant(),
+            Slug = NormalizeSlug(slug),
             Description = description?.Trim(),
             City = city?.Trim(),
             State = state?.Trim()
         };
 
         return searchableProvider;
+    }
+
+    private static string NormalizeSlug(string slug)
+    {
+        var normalized = slug.Trim().ToLowerInvariant();
+        if (string.IsNullOrEmpty(normalized))
+            throw new ArgumentException("Provider slug cannot be empty.", nameof(slug));
+        return normalized;
     }
 
     /// <summary>
@@ -166,7 +174,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             location,
             subscriptionTier)
         {
-            Slug = slug?.Trim().ToLowerInvariant() ?? string.Empty,
+            Slug = NormalizeSlug(slug ?? string.Empty),
             Description = description,
             City = city,
             State = state,
@@ -195,7 +203,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
         }
 
         Name = name.Trim();
-        Slug = slug.Trim().ToLowerInvariant();
+        Slug = NormalizeSlug(slug);
         Description = description?.Trim();
         City = city?.Trim();
         State = state?.Trim();

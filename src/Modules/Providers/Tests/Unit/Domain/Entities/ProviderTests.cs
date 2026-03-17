@@ -168,7 +168,7 @@ public class ProviderTests
 
         var profileUpdatedEvent = (ProviderProfileUpdatedDomainEvent)updateEvent;
         profileUpdatedEvent.Name.Should().Be(newName);
-        profileUpdatedEvent.Slug.Should().StartWith("updated-provider-name-");
+        profileUpdatedEvent.Slug.Should().Be(provider.Slug);
         profileUpdatedEvent.UpdatedBy.Should().Be(updatedBy);
     }
 

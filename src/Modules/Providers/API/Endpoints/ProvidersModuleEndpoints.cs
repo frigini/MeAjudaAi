@@ -54,7 +54,7 @@ public static class ProvidersModuleEndpoints
         endpoints.MapEndpoint<GetProvidersEndpoint>()
             .MapEndpoint<CreateProviderEndpoint>()
             .MapEndpoint<GetProviderByIdEndpoint>()
-            .MapEndpoint<GetPublicProviderByIdEndpoint>() // Novo endpoint público
+            .MapEndpoint<GetPublicProviderByIdOrSlugEndpoint>() // Endpoint público por ID ou slug
             .MapEndpoint<BecomeProviderEndpoint>() // Endpoint para usuário autenticado virar prestador
             .MapEndpoint<GetMyProviderProfileEndpoint>()
             .MapEndpoint<UpdateMyProviderProfileEndpoint>()

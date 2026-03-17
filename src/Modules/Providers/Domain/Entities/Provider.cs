@@ -213,8 +213,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
         {
             updatedFields.Add("Name");
             Name = newName;
-            Slug = SlugHelper.GenerateWithSuffix(Name, Id.Value.ToString("N")[..8]);
-            updatedFields.Add("Slug");
+            // Slug é imutável após a criação — não regenerar para preservar URLs públicas
         }
 
         if (!BusinessProfile.ContactInfo.Email.Equals(businessProfile.ContactInfo.Email, StringComparison.OrdinalIgnoreCase))

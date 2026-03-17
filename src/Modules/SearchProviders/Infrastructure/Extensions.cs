@@ -41,27 +41,32 @@ public static class Extensions
         // Em ambiente de teste, permitir inicialização sem connection string
         // (útil para testes unitários que não acessam o banco)
         // Só fazemos bypass se estivermos explicitamente em Desenvolvimento e NÃO for um live environment
-        var isTesting = environment.IsDevelopment() && MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
+        var isTesting = MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
 
-        if (string.IsNullOrEmpty(connectionString) && !isTesting)
+        if (string.IsNullOrEmpty(connectionString))
         {
-            throw new InvalidOperationException(
-                "Database connection string not found. Tried: 'DefaultConnection', 'Search', 'meajudaai-db'. " +
-                "Please configure one of these connection strings in appsettings.json or environment variables.");
+            if (isTesting)
+            {
+#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
+                connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
+#pragma warning restore S2068
+            }
+            else
+            {
+                var env1 = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                var env2 = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
+                var env3 = environment?.EnvironmentName;
+                throw new InvalidOperationException(
+                    $"DEBUG: isTesting={isTesting}, ASPNETCORE={env1}, INTEGRATION_TESTS={env2}, EnvName={env3} " +
+                    "Database connection string not found. Tried: 'DefaultConnection', 'Search', 'meajudaai-db'.");
+            }
         }
 
         // Sempre registrar DbContext (mesmo que connection string seja vazia em testes unitários)
         // Em E2E tests, a connection string será fornecida via configuração
         services.AddDbContext<SearchProvidersDbContext>((serviceProvider, options) =>
         {
-            // Se não houver connection string, usar uma default para testes unitários
-#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
-            var connStr = !string.IsNullOrEmpty(connectionString) 
-                ? connectionString 
-                : MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
-#pragma warning restore S2068
-
-            options.UseNpgsql(connStr, npgsqlOptions =>
+            options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
                 npgsqlOptions.UseNetTopologySuite(); // Habilitar suporte PostGIS/geoespacial

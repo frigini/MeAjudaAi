@@ -34,10 +34,10 @@ public class GetPublicProviderByIdIntegrationTests : ProvidersIntegrationTestBas
         await DbContext.SaveChangesAsync();
 
         var dispatcher = GetService<IQueryDispatcher>();
-        var query = new GetPublicProviderByIdQuery(provider.Id);
+        var query = new GetPublicProviderByIdOrSlugQuery(provider.Id.Value.ToString());
 
         // Act
-        var result = await dispatcher.QueryAsync<GetPublicProviderByIdQuery, Result<PublicProviderDto?>>(query, CancellationToken.None);
+        var result = await dispatcher.QueryAsync<GetPublicProviderByIdOrSlugQuery, Result<PublicProviderDto?>>(query, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -68,10 +68,10 @@ public class GetPublicProviderByIdIntegrationTests : ProvidersIntegrationTestBas
         await DbContext.SaveChangesAsync();
 
         var dispatcher = GetService<IQueryDispatcher>();
-        var query = new GetPublicProviderByIdQuery(provider.Id);
+        var query = new GetPublicProviderByIdOrSlugQuery(provider.Id.Value.ToString());
 
         // Act
-        var result = await dispatcher.QueryAsync<GetPublicProviderByIdQuery, Result<PublicProviderDto?>>(query, CancellationToken.None);
+        var result = await dispatcher.QueryAsync<GetPublicProviderByIdOrSlugQuery, Result<PublicProviderDto?>>(query, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -84,10 +84,10 @@ public class GetPublicProviderByIdIntegrationTests : ProvidersIntegrationTestBas
         // Arrange
         await CleanupDatabase();
         var dispatcher = GetService<IQueryDispatcher>();
-        var query = new GetPublicProviderByIdQuery(Guid.NewGuid());
+        var query = new GetPublicProviderByIdOrSlugQuery(Guid.NewGuid().ToString());
 
         // Act
-        var result = await dispatcher.QueryAsync<GetPublicProviderByIdQuery, Result<PublicProviderDto?>>(query, CancellationToken.None);
+        var result = await dispatcher.QueryAsync<GetPublicProviderByIdOrSlugQuery, Result<PublicProviderDto?>>(query, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeFalse();

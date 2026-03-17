@@ -18,13 +18,13 @@ public class GetPublicProviderByIdQueryHandlerTests
 {
     private readonly Mock<IProviderRepository> _providerRepositoryMock;
     private readonly Mock<IFeatureManager> _featureManagerMock;
-    private readonly GetPublicProviderByIdQueryHandler _handler;
+    private readonly GetPublicProviderByIdOrSlugQueryHandler _handler;
 
     public GetPublicProviderByIdQueryHandlerTests()
     {
         _providerRepositoryMock = new Mock<IProviderRepository>();
         _featureManagerMock = new Mock<IFeatureManager>();
-        _handler = new GetPublicProviderByIdQueryHandler(_providerRepositoryMock.Object, _featureManagerMock.Object);
+        _handler = new GetPublicProviderByIdOrSlugQueryHandler(_providerRepositoryMock.Object, _featureManagerMock.Object);
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class GetPublicProviderByIdQueryHandlerTests
             .Setup(x => x.GetByIdAsync(provider.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
-        var query = new GetPublicProviderByIdQuery(provider.Id);
+        var query = new GetPublicProviderByIdOrSlugQuery(provider.Id.Value.ToString());
 
         // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
@@ -70,7 +70,7 @@ public class GetPublicProviderByIdQueryHandlerTests
             .Setup(x => x.GetByIdAsync(provider.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
-        var query = new GetPublicProviderByIdQuery(provider.Id);
+        var query = new GetPublicProviderByIdOrSlugQuery(provider.Id.Value.ToString());
 
         // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
@@ -90,7 +90,7 @@ public class GetPublicProviderByIdQueryHandlerTests
             .Setup(x => x.GetByIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
-        var query = new GetPublicProviderByIdQuery(providerId);
+        var query = new GetPublicProviderByIdOrSlugQuery(providerId.ToString());
 
         // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
@@ -125,7 +125,7 @@ public class GetPublicProviderByIdQueryHandlerTests
             .Setup(x => x.IsEnabledAsync(FeatureFlags.PublicProfilePrivacy))
             .ReturnsAsync(true);
 
-        var query = new GetPublicProviderByIdQuery(provider.Id);
+        var query = new GetPublicProviderByIdOrSlugQuery(provider.Id.Value.ToString());
 
         // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);

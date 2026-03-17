@@ -54,7 +54,10 @@ public static partial class SlugHelper
     /// <param name="suffix">Sufixo a ser anexado (ex.: primeiros 8 chars do ID)</param>
     /// <returns>Slug formatado com sufixo único</returns>
     public static string GenerateWithSuffix(string text, string suffix)
-        => $"{Generate(text)}-{suffix}";
+    {
+        var baseSlug = Generate(text);
+        return string.IsNullOrEmpty(baseSlug) ? suffix : $"{baseSlug}-{suffix}";
+    }
 
     private static string RemoveDiacritics(string text)
     {
