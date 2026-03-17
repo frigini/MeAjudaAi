@@ -49,7 +49,7 @@ public static class ApiEndpoints
         public const string AddDocument = "/{id:guid}/documents"; // POST AddDocumentEndpoint
         public const string RemoveDocument = "/{id:guid}/documents/{documentType}"; // DELETE RemoveDocumentEndpoint
         public const string RequireBasicInfoCorrection = "/{id:guid}/require-basic-info-correction"; // POST RequireBasicInfoCorrectionEndpoint
-        public const string GetPublicByIdOrSlug = "/{idOrSlug}";  // GET GetPublicProviderByIdEndpoint (aceita GUID ou slug)
+        public const string GetPublicByIdOrSlug = "/public/{idOrSlug}";  // GET GetPublicProviderByIdEndpoint
     }
 
     /// <summary>

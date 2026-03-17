@@ -823,16 +823,16 @@ public sealed class ProviderConfigurationTests : IDisposable
     }
 
     [Fact]
-    public void Configure_ShouldHaveSixIndexes()
+    public void Configure_ShouldHaveSevenIndexes()
     {
-        // Assert - 6 indexes on Provider entity itself:
+        // Assert - 7 indexes on Provider entity itself:
         // 1. UserId (unique)
         // 2. Name
         // 3. Type
         // 4. Status
         // 5. VerificationStatus
         // 6. IsDeleted
-        // 7. Slug (unique)
+        // 7. Slug (no longer unique)
         _entityType.GetIndexes().Should().HaveCount(7);
     }
 

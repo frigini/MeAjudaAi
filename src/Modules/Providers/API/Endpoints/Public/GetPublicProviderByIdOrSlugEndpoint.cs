@@ -30,7 +30,7 @@ public class GetPublicProviderByIdOrSlugEndpoint : BaseEndpoint, IEndpoint
                 - Informações básicas (Nome, Fantasia, Descrição)
                 - Localização aproximada (Cidade/Estado)
                 - Avaliação média e contagem de reviews
-                - Lista de serviços oferecidos
+                - Lista de serviços oferecidos (Nota: esta lista será vazia se a configuração PublicProfilePrivacy do provedor estiver ativa e o solicitante for anônimo)
                 
                 **Dados Ocultados (Privacidade):**
                 - Documentos (CPF/CNPJ)

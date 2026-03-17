@@ -59,6 +59,34 @@ public class GetPublicProviderByIdQueryHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_WhenProviderQueriedBySlug_ShouldReturnDto()
+    {
+        // Arrange
+        var provider = ProviderBuilder.Create()
+            .WithType(EProviderType.Individual)
+            .WithVerificationStatus(EVerificationStatus.Verified)
+            .Build();
+
+        // Bypass domain transitions to set Active status directly for test
+        var statusProp = typeof(Provider).GetProperty(nameof(Provider.Status));
+        statusProp!.SetValue(provider, EProviderStatus.Active);
+
+        _providerRepositoryMock
+            .Setup(x => x.GetBySlugAsync(provider.Slug, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(provider);
+
+        var query = new GetPublicProviderByIdOrSlugQuery(provider.Slug);
+
+        // Act
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value!.Id.Should().Be(provider.Id);
+    }
+
+    [Fact]
     public async Task HandleAsync_WhenProviderIsNotActive_ShouldReturnNotFound()
     {
         // Arrange

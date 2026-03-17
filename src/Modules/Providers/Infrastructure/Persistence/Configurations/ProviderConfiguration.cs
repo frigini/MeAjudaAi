@@ -248,7 +248,6 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
             .HasDatabaseName("ix_providers_user_id");
 
         builder.HasIndex(p => p.Slug)
-            .IsUnique()
             .HasDatabaseName("ix_providers_slug");
 
         builder.HasIndex(p => p.Name)

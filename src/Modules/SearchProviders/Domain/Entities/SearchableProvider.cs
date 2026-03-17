@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Utilities;
 
 namespace MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 
@@ -126,21 +127,13 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             location,
             subscriptionTier)
         {
-            Slug = NormalizeSlug(slug),
+            Slug = SlugHelper.Generate(slug),
             Description = description?.Trim(),
             City = city?.Trim(),
             State = state?.Trim()
         };
 
         return searchableProvider;
-    }
-
-    private static string NormalizeSlug(string slug)
-    {
-        var normalized = slug.Trim().ToLowerInvariant();
-        if (string.IsNullOrEmpty(normalized))
-            throw new ArgumentException("Provider slug cannot be empty.", nameof(slug));
-        return normalized;
     }
 
     /// <summary>
@@ -174,7 +167,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             location,
             subscriptionTier)
         {
-            Slug = NormalizeSlug(slug ?? string.Empty),
+            Slug = SlugHelper.Generate(slug ?? string.Empty),
             Description = description,
             City = city,
             State = state,
@@ -203,7 +196,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
         }
 
         Name = name.Trim();
-        Slug = NormalizeSlug(slug);
+        Slug = SlugHelper.Generate(slug);
         Description = description?.Trim();
         City = city?.Trim();
         State = state?.Trim();
