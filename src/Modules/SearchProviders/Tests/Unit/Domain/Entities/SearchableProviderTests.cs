@@ -78,6 +78,76 @@ public class SearchableProviderTests
     }
 
     [Fact]
+    public void Create_WithEmptySlug_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var location = new GeoPoint(-23.5505, -46.6333);
+
+        // Act
+        var act = () => SearchableProvider.Create(providerId, "Valid Name", "", location);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*Provider slug cannot be empty*");
+    }
+
+    [Fact]
+    public void Create_WithWhitespaceSlug_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var location = new GeoPoint(-23.5505, -46.6333);
+
+        // Act
+        var act = () => SearchableProvider.Create(providerId, "Valid Name", "   ", location);
+
+        // Assert
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void Create_WithUppercaseSlug_ShouldNormalizeToLowercase()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var location = new GeoPoint(-23.5505, -46.6333);
+
+        // Act
+        var provider = SearchableProvider.Create(providerId, "Valid Name", "My-SLUG", location);
+
+        // Assert
+        provider.Slug.Should().Be("my-slug");
+    }
+
+    [Fact]
+    public void UpdateBasicInfo_WithEmptySlug_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+
+        // Act
+        var act = () => provider.UpdateBasicInfo("Valid Name", "", "desc", "city", "ST");
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*Provider slug cannot be empty*");
+    }
+
+    [Fact]
+    public void UpdateBasicInfo_WithUppercaseSlug_ShouldNormalizeToLowercase()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+
+        // Act
+        provider.UpdateBasicInfo("Valid Name", "MY-SLUG", "desc", "city", "ST");
+
+        // Assert
+        provider.Slug.Should().Be("my-slug");
+    }
+
+    [Fact]
     public void UpdateBasicInfo_WithValidData_ShouldUpdateFields()
     {
         // Arrange

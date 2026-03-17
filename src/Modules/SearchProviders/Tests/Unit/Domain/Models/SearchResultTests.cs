@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.Models;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Utilities;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Domain.Models;
 
@@ -189,7 +190,7 @@ public class SearchResultTests
             var provider = SearchableProvider.Create(
                 providerId: providerId,
                 name: providerName,
-                slug: providerName.ToLower().Replace(" ", "-"),
+                slug: SlugHelper.Generate(providerName),
                 location: location,
                 subscriptionTier: _faker.Random.Enum<ESubscriptionTier>(),
                 description: _faker.Lorem.Sentence(),

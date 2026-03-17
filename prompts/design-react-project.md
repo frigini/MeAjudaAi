@@ -135,7 +135,7 @@ export function CardContent({ className, ...props }: ComponentProps<"div">) {
 
 ## Cores (CSS Variables)
 
-```
+```css
 bg-surface, bg-surface-raised       → fundos
 bg-primary, bg-secondary, bg-muted  → ações/estados
 bg-destructive                      → erros/danger

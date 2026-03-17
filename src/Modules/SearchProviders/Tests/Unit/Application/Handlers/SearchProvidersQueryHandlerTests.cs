@@ -8,6 +8,7 @@ using MeAjudaAi.Modules.SearchProviders.Domain.Models;
 using MeAjudaAi.Modules.SearchProviders.Domain.Repositories;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -397,7 +398,7 @@ public class SearchProvidersQueryHandlerTests
             providers.Add(SearchableProvider.Create(
                 providerId: Guid.NewGuid(),
                 name: name,
-                slug: name.ToLower().Replace(" ", "-"),
+                slug: SlugHelper.Generate(name),
                 location: new GeoPoint(-23.5505 + i * 0.01, -46.6333 + i * 0.01),
                 subscriptionTier: (ESubscriptionTier)(i % 4),
                 description: $"Description {i + 1}",

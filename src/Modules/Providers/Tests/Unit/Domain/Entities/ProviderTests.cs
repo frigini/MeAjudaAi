@@ -65,7 +65,7 @@ public class ProviderTests
         provider.Type.Should().Be(type);
         provider.BusinessProfile.Should().Be(businessProfile);
         provider.VerificationStatus.Should().Be(EVerificationStatus.Pending);
-        provider.Slug.Should().Be("john-provider");
+        provider.Slug.Should().StartWith("john-provider-");
         provider.IsDeleted.Should().BeFalse();
         provider.DeletedAt.Should().BeNull();
         provider.Documents.Should().BeEmpty();
@@ -96,7 +96,7 @@ public class ProviderTests
         registeredEvent.Name.Should().Be(name);
         registeredEvent.Type.Should().Be(type);
         registeredEvent.Email.Should().Be(businessProfile.ContactInfo.Email);
-        registeredEvent.Slug.Should().Be("john-provider");
+        registeredEvent.Slug.Should().StartWith("john-provider-");
     }
 
     [Theory]
@@ -168,7 +168,7 @@ public class ProviderTests
 
         var profileUpdatedEvent = (ProviderProfileUpdatedDomainEvent)updateEvent;
         profileUpdatedEvent.Name.Should().Be(newName);
-        profileUpdatedEvent.Slug.Should().Be("updated-provider-name");
+        profileUpdatedEvent.Slug.Should().StartWith("updated-provider-name-");
         profileUpdatedEvent.UpdatedBy.Should().Be(updatedBy);
     }
 

@@ -166,7 +166,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             location,
             subscriptionTier)
         {
-            Slug = slug,
+            Slug = slug?.Trim().ToLowerInvariant() ?? string.Empty,
             Description = description,
             City = city,
             State = state,

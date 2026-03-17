@@ -3,6 +3,7 @@ using MeAjudaAi.Shared.Utilities;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Utilities;
 
+[Trait("Category", "Unit")]
 public class SlugHelperTests
 {
     [Theory]

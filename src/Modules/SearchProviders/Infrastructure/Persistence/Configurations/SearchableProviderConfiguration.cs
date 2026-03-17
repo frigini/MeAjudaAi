@@ -43,7 +43,7 @@ internal sealed class SearchableProviderConfiguration : IEntityTypeConfiguration
 
         builder.Property(p => p.Slug)
             .IsRequired()
-            .HasMaxLength(200)
+            .HasMaxLength(120)
             .HasColumnName("slug");
 
         builder.Property(p => p.Description)

@@ -206,6 +206,7 @@ public class SearchProvidersModuleApiTests
         var provider = result.Value.Items[0];
         provider.ProviderId.Should().Be(providerId);
         provider.Name.Should().Be("Provider 1");
+        provider.Slug.Should().Be("provider-1");
         provider.Description.Should().Be("Test provider");
         provider.AverageRating.Should().Be(4.5m);
         provider.TotalReviews.Should().Be(10);

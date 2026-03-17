@@ -47,6 +47,15 @@ public static partial class SlugHelper
         return slug.Trim('-');
     }
 
+    /// <summary>
+    /// Gera um slug a partir de um texto com sufixo diferenciador.
+    /// </summary>
+    /// <param name="text">Texto original</param>
+    /// <param name="suffix">Sufixo a ser anexado (ex.: primeiros 8 chars do ID)</param>
+    /// <returns>Slug formatado com sufixo único</returns>
+    public static string GenerateWithSuffix(string text, string suffix)
+        => $"{Generate(text)}-{suffix}";
+
     private static string RemoveDiacritics(string text)
     {
         var normalizedString = text.Normalize(NormalizationForm.FormD);

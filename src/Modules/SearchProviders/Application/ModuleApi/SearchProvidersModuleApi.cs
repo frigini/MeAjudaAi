@@ -114,6 +114,7 @@ public sealed class SearchProvidersModuleApi(
             Items: result.Value!.Items.Select(p => new ModuleSearchableProviderDto(
                 ProviderId: p.ProviderId,
                 Name: p.Name,
+                Slug: p.Slug,
                 Location: new ModuleLocationDto(
                     Latitude: p.Location.Latitude,
                     Longitude: p.Location.Longitude),

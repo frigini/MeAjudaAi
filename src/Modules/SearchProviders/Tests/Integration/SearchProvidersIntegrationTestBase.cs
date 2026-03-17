@@ -8,6 +8,7 @@ using MeAjudaAi.Shared.Geolocation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Shared.Utilities;
 using Testcontainers.PostgreSql;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration;
@@ -164,7 +165,7 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
         var provider = SearchableProvider.Create(
             providerId: providerId,
             name: name,
-            slug: name.ToLower().Replace(" ", "-"),
+            slug: SlugHelper.Generate(name),
             location: location,
             subscriptionTier: tier,
             description: description,
@@ -192,7 +193,7 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
         var provider = SearchableProvider.Create(
             providerId: providerId,
             name: name,
-            slug: name.ToLower().Replace(" ", "-"),
+            slug: SlugHelper.Generate(name),
             location: location,
             subscriptionTier: tier,
             description: description,

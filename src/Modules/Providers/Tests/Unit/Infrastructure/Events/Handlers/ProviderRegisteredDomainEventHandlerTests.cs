@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -77,7 +78,9 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
         // Assert
         _messageBusMock.Verify(
             x => x.PublishAsync(
-                It.Is<object>(e => e.GetType().Name == "ProviderRegisteredIntegrationEvent"),
+                It.Is<ProviderRegisteredIntegrationEvent>(e =>
+                    e.Slug == "provider-test" &&
+                    e.Name == "Provider Test"),
                 It.IsAny<string?>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);

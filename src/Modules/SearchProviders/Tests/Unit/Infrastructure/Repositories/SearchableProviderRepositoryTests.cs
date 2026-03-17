@@ -52,7 +52,7 @@ public class SearchableProviderRepositoryTests : IDisposable, IAsyncDisposable
 
         var actualProviderId = providerId ?? UuidGenerator.NewId();
         var actualName = name ?? _faker.Company.CompanyName();
-        var actualSlug = actualName.ToLower().Replace(" ", "-");
+        var actualSlug = SlugHelper.Generate(actualName);
         var actualSubscriptionTier = tier ?? _faker.Random.Enum<ESubscriptionTier>();
 
         return SearchableProvider.Create(

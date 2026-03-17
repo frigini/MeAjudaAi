@@ -137,7 +137,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
 
         UserId = userId;
         Name = name.Trim();
-        Slug = SlugHelper.Generate(Name);
+        Slug = SlugHelper.GenerateWithSuffix(Name, Id.Value.ToString("N")[..8]);
         Type = type;
         BusinessProfile = businessProfile;
         Status = EProviderStatus.PendingBasicInfo;
@@ -172,7 +172,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
 
         UserId = userId;
         Name = name.Trim();
-        Slug = SlugHelper.Generate(Name);
+        Slug = SlugHelper.GenerateWithSuffix(Name, Id.Value.ToString("N")[..8]);
         Type = type;
         BusinessProfile = businessProfile;
         Status = EProviderStatus.PendingBasicInfo;
@@ -213,7 +213,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
         {
             updatedFields.Add("Name");
             Name = newName;
-            Slug = SlugHelper.Generate(Name);
+            Slug = SlugHelper.GenerateWithSuffix(Name, Id.Value.ToString("N")[..8]);
             updatedFields.Add("Slug");
         }
 
