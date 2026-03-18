@@ -165,7 +165,7 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
         var provider = SearchableProvider.Create(
             providerId: providerId,
             name: name,
-            slug: SlugHelper.GenerateWithSuffix(name, providerId.ToString("N")[..8]),
+            slug: BuildTestSlug(name, providerId),
             location: location,
             subscriptionTier: tier,
             description: description,
@@ -193,7 +193,7 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
         var provider = SearchableProvider.Create(
             providerId: providerId,
             name: name,
-            slug: SlugHelper.GenerateWithSuffix(name, providerId.ToString("N")[..8]),
+            slug: BuildTestSlug(name, providerId),
             location: location,
             subscriptionTier: tier,
             description: description,

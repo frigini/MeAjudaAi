@@ -113,10 +113,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             throw new ArgumentException("Provider name cannot be empty.", nameof(name));
         }
 
-        if (string.IsNullOrWhiteSpace(slug))
-        {
-            throw new ArgumentException("Provider slug cannot be empty.", nameof(slug));
-        }
+        slug = NormalizeAndValidateSlug(slug);
 
         ArgumentNullException.ThrowIfNull(location);
 
@@ -127,7 +124,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             location,
             subscriptionTier)
         {
-            Slug = SlugHelper.Generate(slug),
+            Slug = slug,
             Description = description?.Trim(),
             City = city?.Trim(),
             State = state?.Trim()
@@ -167,7 +164,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             location,
             subscriptionTier)
         {
-            Slug = SlugHelper.Generate(slug ?? string.Empty),
+            Slug = NormalizeAndValidateSlug(slug),
             Description = description,
             City = city,
             State = state,
@@ -190,13 +187,10 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             throw new ArgumentException("Provider name cannot be empty.", nameof(name));
         }
 
-        if (string.IsNullOrWhiteSpace(slug))
-        {
-            throw new ArgumentException("Provider slug cannot be empty.", nameof(slug));
-        }
+        slug = NormalizeAndValidateSlug(slug);
 
         Name = name.Trim();
-        Slug = SlugHelper.Generate(slug);
+        Slug = slug;
         Description = description?.Trim();
         City = city?.Trim();
         State = state?.Trim();
@@ -280,5 +274,16 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
         ArgumentNullException.ThrowIfNull(targetLocation);
 
         return Location.DistanceTo(targetLocation);
+    }
+
+    private static string NormalizeAndValidateSlug(string? slug)
+    {
+        var normalized = SlugHelper.Generate(slug ?? string.Empty);
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            throw new ArgumentException("O identificador do provedor não pode estar vazio.", nameof(slug));
+        }
+
+        return normalized;
     }
 }

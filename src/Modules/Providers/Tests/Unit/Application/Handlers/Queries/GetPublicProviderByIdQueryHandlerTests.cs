@@ -84,6 +84,7 @@ public class GetPublicProviderByIdQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(provider.Id);
+        result.Value.Slug.Should().Be(provider.Slug);
     }
 
     [Fact]
