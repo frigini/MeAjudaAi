@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Users.API;
+using MeAjudaAi.Shared.Database;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,7 +23,7 @@ public class APIExtensionsTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Database:ConnectionString"] = "Host=localhost;Database=test;Username=user;Password=pass",
+                ["ConnectionStrings:Users"] = DatabaseConstants.DefaultTestConnectionString,
                 ["Database:EnableSchemaIsolation"] = "false"
             })
             .Build();
@@ -47,7 +48,7 @@ public class APIExtensionsTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Database:ConnectionString"] = "Host=localhost;Database=test;Username=user;Password=pass",
+                ["ConnectionStrings:Users"] = DatabaseConstants.DefaultTestConnectionString,
                 ["Database:EnableSchemaIsolation"] = "false"
             })
             .Build();
@@ -68,7 +69,7 @@ public class APIExtensionsTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Database:ConnectionString"] = "Host=localhost;Database=test;Username=user;Password=pass",
+                ["ConnectionStrings:Users"] = DatabaseConstants.DefaultTestConnectionString,
                 ["Database:EnableSchemaIsolation"] = "false"
             })
             .Build();
@@ -109,7 +110,7 @@ public class APIExtensionsTests
 
         // Act & Assert
         var act = () => services.AddUsersModule(configuration);
-        act.Should().Throw<NullReferenceException>();
+        act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
@@ -145,7 +146,7 @@ public class APIExtensionsTests
 
         // Act & Assert
         var act = async () => await services.AddUsersModuleWithSchemaIsolationAsync(configuration);
-        await act.Should().ThrowAsync<NullReferenceException>();
+        await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
@@ -166,7 +167,7 @@ public class APIExtensionsTests
         var services = new ServiceCollection();
         var configData = new Dictionary<string, string?>
         {
-            ["Database:ConnectionString"] = "Server=localhost;Database=TestDb;Trusted_Connection=true;",
+            ["ConnectionStrings:Users"] = DatabaseConstants.DefaultTestConnectionString,
             ["Cache:RedisConnectionString"] = "localhost:6379"
         };
         var configuration = new ConfigurationBuilder()
@@ -191,7 +192,7 @@ public class APIExtensionsTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Database:ConnectionString"] = "Host=localhost;Database=test;Username=user;Password=pass"
+                ["ConnectionStrings:Users"] = DatabaseConstants.DefaultTestConnectionString
             })
             .Build();
 

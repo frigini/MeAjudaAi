@@ -275,10 +275,15 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
     }
 
     /// <summary>
+    /// Número de caracteres do GUID usados como sufixo (deve coincidir com SlugHelper.GenerateWithSuffix).
+    /// </summary>
+    private const int GuidSuffixLength = 8;
+
+    /// <summary>
     /// Constrói o slug usado nos testes a partir do nome e do ID do provedor.
     /// </summary>
     private static string BuildTestSlug(string name, Guid providerId)
     {
-        return SlugHelper.GenerateWithSuffix(name, providerId.ToString("N")[..8]);
+        return SlugHelper.GenerateWithSuffix(name, providerId.ToString("N")[..GuidSuffixLength]);
     }
 }

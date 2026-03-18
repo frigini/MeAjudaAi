@@ -32,10 +32,20 @@ public sealed class GetPublicProviderByIdOrSlugQueryHandler : IQueryHandler<GetP
         GetPublicProviderByIdOrSlugQuery query,
         CancellationToken cancellationToken)
     {
-        // Resolve por ID (GUID) ou slug — mesma lógica do padrão de filmes
-        var provider = Guid.TryParse(query.IdOrSlug, out var id)
-            ? await _providerRepository.GetByIdAsync(new ProviderId(id), cancellationToken)
-            : await _providerRepository.GetBySlugAsync(query.IdOrSlug, cancellationToken);
+        var normalizedValue = query.IdOrSlug.Trim().ToLowerInvariant();
+
+        // Tenta resolver por ID (GUID); se não encontrar, faz fallback para slug.
+        // Isso cobre o caso em que um slug tem formato de GUID válido.
+        Domain.Entities.Provider? provider;
+        if (Guid.TryParse(normalizedValue, out var id))
+        {
+            provider = await _providerRepository.GetByIdAsync(new ProviderId(id), cancellationToken)
+                       ?? await _providerRepository.GetBySlugAsync(normalizedValue, cancellationToken);
+        }
+        else
+        {
+            provider = await _providerRepository.GetBySlugAsync(normalizedValue, cancellationToken);
+        }
 
         if (provider is null)
         {

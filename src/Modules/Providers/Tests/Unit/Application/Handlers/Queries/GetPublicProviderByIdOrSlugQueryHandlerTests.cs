@@ -69,10 +69,13 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
 
         // Bypass domain transitions to set Active status directly for test
         var statusProp = typeof(Provider).GetProperty(nameof(Provider.Status));
+        statusProp.Should().NotBeNull("Provider.Status property must exist");
         statusProp!.SetValue(provider, EProviderStatus.Active);
 
+        var normalizedSlug = provider.Slug.Trim().ToLowerInvariant();
+
         _providerRepositoryMock
-            .Setup(x => x.GetBySlugAsync(provider.Slug, It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetBySlugAsync(normalizedSlug, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         var query = new GetPublicProviderByIdOrSlugQuery(provider.Slug);
@@ -85,6 +88,78 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(provider.Id);
         result.Value.Slug.Should().Be(provider.Slug);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenProviderQueriedByUpperCaseSlug_ShouldNormalizeAndReturnDto()
+    {
+        // Arrange
+        var provider = ProviderBuilder.Create()
+            .WithType(EProviderType.Individual)
+            .WithVerificationStatus(EVerificationStatus.Verified)
+            .Build();
+
+        // Bypass domain transitions to set Active status directly for test
+        var statusProp = typeof(Provider).GetProperty(nameof(Provider.Status));
+        statusProp.Should().NotBeNull("Provider.Status property must exist");
+        statusProp!.SetValue(provider, EProviderStatus.Active);
+
+        var normalizedSlug = provider.Slug.Trim().ToLowerInvariant();
+        var upperSlug = provider.Slug.ToUpperInvariant();
+
+        _providerRepositoryMock
+            .Setup(x => x.GetBySlugAsync(normalizedSlug, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(provider);
+
+        // Query uses uppercase slug — handler must normalize before calling GetBySlugAsync
+        var query = new GetPublicProviderByIdOrSlugQuery(upperSlug);
+
+        // Act
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value!.Id.Should().Be(provider.Id);
+        result.Value.Slug.Should().Be(provider.Slug);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenSlugIsValidGuidString_ShouldFallbackToSlugLookup()
+    {
+        // Arrange — slug that happens to be a valid GUID format (Guid.TryParse returns true)
+        var slugGuid = Guid.NewGuid();
+        var slugValue = slugGuid.ToString().ToLowerInvariant(); // e.g. "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+
+        var provider = ProviderBuilder.Create()
+            .WithType(EProviderType.Individual)
+            .WithVerificationStatus(EVerificationStatus.Verified)
+            .Build();
+
+        // Bypass domain transitions to set Active status directly for test
+        var statusProp = typeof(Provider).GetProperty(nameof(Provider.Status));
+        statusProp.Should().NotBeNull("Provider.Status property must exist");
+        statusProp!.SetValue(provider, EProviderStatus.Active);
+
+        // GetByIdAsync returns null (no provider with that ID)
+        _providerRepositoryMock
+            .Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Provider?)null);
+
+        // Fallback to slug lookup returns the provider
+        _providerRepositoryMock
+            .Setup(x => x.GetBySlugAsync(slugValue, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(provider);
+
+        var query = new GetPublicProviderByIdOrSlugQuery(slugValue);
+
+        // Act
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value!.Id.Should().Be(provider.Id);
     }
 
     [Fact]

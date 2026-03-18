@@ -89,7 +89,7 @@ public class SearchableProviderTests
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("*Provider slug cannot be empty*");
+            .WithMessage("*O identificador do provedor não pode estar vazio.*");
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public class SearchableProviderTests
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("*Provider slug cannot be empty*");
+            .WithMessage("*O identificador do provedor não pode estar vazio.*");
     }
 
     [Fact]
