@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using MeAjudaAi.ApiService.Endpoints;
-using MeAjudaAi.ApiService.Middleware;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.ApiService.Services.Authentication;

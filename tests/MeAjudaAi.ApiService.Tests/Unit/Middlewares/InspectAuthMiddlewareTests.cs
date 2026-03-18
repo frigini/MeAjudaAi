@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using FluentAssertions;
-using MeAjudaAi.ApiService.Middleware;
+using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;

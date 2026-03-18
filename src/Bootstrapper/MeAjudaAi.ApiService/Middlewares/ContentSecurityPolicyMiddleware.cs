@@ -1,4 +1,4 @@
-namespace MeAjudaAi.ApiService.Middleware;
+namespace MeAjudaAi.ApiService.Middlewares;
 
 /// <summary>
 /// Middleware para adicionar Content Security Policy headers.
