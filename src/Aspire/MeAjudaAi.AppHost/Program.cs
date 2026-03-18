@@ -68,7 +68,9 @@ internal static class Program
                 Console.Error.WriteLine("Please set MEAJUDAAI_DB_PASS to the database password in your CI environment.");
                 Environment.Exit(1);
             }
+#pragma warning disable S2068
             testDbPassword = "test123";
+#pragma warning restore S2068
         }
 
         var postgresql = builder.AddMeAjudaAiPostgreSQL(options =>
@@ -109,7 +111,9 @@ internal static class Program
                 Console.Error.WriteLine("Please set DB_PASSWORD to the database password in your CI environment.");
                 Environment.Exit(1);
             }
+#pragma warning disable S2068
             dbPassword = "test123";
+#pragma warning restore S2068
         }
         var includePgAdminStr = Environment.GetEnvironmentVariable("INCLUDE_PGADMIN") ?? "true";
         var includePgAdmin = !bool.TryParse(includePgAdminStr, out var pgAdminResult) || pgAdminResult;
@@ -133,7 +137,9 @@ internal static class Program
         var keycloakSettings = new MeAjudaAi.AppHost.Options.MeAjudaAiKeycloakOptions
         {
             AdminUsername = "admin",
+#pragma warning disable S2068
             AdminPassword = "admin123",
+#pragma warning restore S2068
             DatabaseHost = "postgres-local",
             DatabasePort = "5432",
             DatabaseName = mainDatabase,

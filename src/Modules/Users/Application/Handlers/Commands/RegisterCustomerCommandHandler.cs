@@ -116,7 +116,7 @@ public sealed partial class RegisterCustomerCommandHandler(
 
         try
         {
-            await userRepository.AddAsync(userResult.Value, cancellationToken);
+            await userRepository.AddAsync(userResult.Value!, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -127,12 +127,12 @@ public sealed partial class RegisterCustomerCommandHandler(
             else
             {
                 logger.LogError(ex, "Failed to persist customer {Email} ({Id}) to repository. Attempting Keycloak compensation.",
-                    maskedEmail, userResult.Value.Id);
+                    maskedEmail, userResult.Value!.Id);
             }
 
             // Verifica se o usuário realmente não foi salvo no repositório antes da compensação
             // Usamos CancellationToken.None para garantir que a compensação ocorra mesmo se o request original foi cancelado
-            var persistenceCheck = await userRepository.GetByIdNoTrackingAsync(userResult.Value.Id, CancellationToken.None);
+            var persistenceCheck = await userRepository.GetByIdNoTrackingAsync(userResult.Value!.Id, CancellationToken.None);
             if (persistenceCheck == null)
             {
                 // Compensação: desativar o usuário criado no Keycloak para evitar usuário órfão "fantasma" que pode logar mas não tem dados locais
@@ -166,8 +166,8 @@ public sealed partial class RegisterCustomerCommandHandler(
             return Result<UserDto>.Failure(Error.Internal("Falha ao salvar o cadastro. Tente novamente mais tarde."));
         }
 
-        logger.LogInformation("Customer registered successfully: {Email} ({Id})", maskedEmail, userResult.Value.Id);
+        logger.LogInformation("Customer registered successfully: {Email} ({Id})", maskedEmail, userResult.Value!.Id);
 
-        return Result<UserDto>.Success(userResult.Value.ToDto());
+        return Result<UserDto>.Success(userResult.Value!.ToDto());
     }
 }

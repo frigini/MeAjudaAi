@@ -294,14 +294,14 @@ public sealed class RabbitMqDeadLetterService(
 
     private async Task EnsureConnectionAsync()
     {
-        if (_disposed) throw new ObjectDisposedException(nameof(RabbitMqDeadLetterService));
+        ObjectDisposedException.ThrowIf(_disposed, this);
         if (_connection?.IsOpen == true && _channel?.IsOpen == true)
             return;
 
         await _connectionSemaphore.WaitAsync(_disposeCts.Token);
         try
         {
-            if (_disposed) throw new ObjectDisposedException(nameof(RabbitMqDeadLetterService));
+            ObjectDisposedException.ThrowIf(_disposed, this);
             if (_connection?.IsOpen == true && _channel?.IsOpen == true)
                 return;
 

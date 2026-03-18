@@ -62,7 +62,7 @@ public sealed class UpdateUserProfileCommandHandler(
             if (userResult.IsFailure)
                 return Result<UserDto>.Failure(userResult.Error);
 
-            var user = userResult.Value;
+            var user = userResult.Value!;
 
             // Aplicar atualização do perfil
             ApplyProfileUpdate(command, user);

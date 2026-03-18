@@ -42,7 +42,7 @@ public class UserBuilder : BaseBuilder<User>
                     user.SetIdForTesting(new UserId(_id.Value));
                 }
 
-                return user;
+                return user!;
             });
     }
 

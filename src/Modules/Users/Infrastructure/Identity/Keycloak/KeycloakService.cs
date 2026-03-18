@@ -95,7 +95,7 @@ public class KeycloakService(
             // Atribui papéis se fornecidos
             if (roles.Any())
             {
-                var roleAssignResult = await AssignRolesToUserAsync(keycloakUserId, roles, adminToken.Value, cancellationToken);
+                var roleAssignResult = await AssignRolesToUserAsync(keycloakUserId, roles, adminToken.Value!, cancellationToken);
                 if (roleAssignResult.IsFailure)
                 {
                     logger.LogWarning("User created but role assignment failed: {Error}", roleAssignResult.Error);

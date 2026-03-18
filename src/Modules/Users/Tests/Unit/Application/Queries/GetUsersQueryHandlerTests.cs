@@ -245,6 +245,6 @@ public class GetUsersQueryHandlerTests
             firstName: firstName,
             lastName: lastName,
             keycloakId: Guid.NewGuid().ToString()
-        ).Value;
+        ).Value!;
     }
 }

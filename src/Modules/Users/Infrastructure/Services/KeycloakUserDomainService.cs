@@ -63,7 +63,7 @@ internal class KeycloakUserDomainService(
             return Result<User>.Failure(keycloakResult.Error);
 
         // Cria a entidade User local com o ID retornado pelo Keycloak
-        var userResult = User.Create(username, email, firstName, lastName, keycloakResult.Value, phoneNumber);
+        var userResult = User.Create(username, email, firstName, lastName, keycloakResult.Value!, phoneNumber);
         if (userResult.IsFailure)
         {
             var deactivationResult = await keycloakService.DeactivateUserAsync(keycloakResult.Value, CancellationToken.None);
@@ -75,7 +75,7 @@ internal class KeycloakUserDomainService(
             return Result<User>.Failure(userResult.Error);
         }
         
-        return Result<User>.Success(userResult.Value);
+        return Result<User>.Success(userResult.Value!);
     }
 
     /// <summary>

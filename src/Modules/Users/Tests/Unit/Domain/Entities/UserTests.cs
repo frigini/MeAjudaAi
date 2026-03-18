@@ -409,6 +409,6 @@ public class UserTests
             firstName,
             lastName,
             Guid.NewGuid().ToString()
-        ).Value;
+        ).Value!;
     }
 }
