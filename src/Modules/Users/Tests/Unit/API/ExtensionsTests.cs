@@ -45,19 +45,17 @@ public class ExtensionsTests
     }
 
     [Fact]
-    public void AddUsersModule_WithEmptyConfiguration_ShouldRegisterServices()
+    public void AddUsersModule_WithEmptyConfiguration_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
 
-        // Act - Não deve lançar exceção durante o registro mesmo com configuração vazia
-        var result = services.AddUsersModule(configuration);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Same(services, result);
-        Assert.True(services.Count > 0, "Services should be registered even with empty configuration");
+        // Act & Assert
+        var act = () => services.AddUsersModule(configuration);
+        
+        act.Should().Throw<InvalidOperationException>()
+           .WithMessage("Connection for Users module not configured");
     }
 
     [Fact]
@@ -65,7 +63,12 @@ public class ExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder().Build();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:Users"] = "Server=localhost;Database=test;"
+            })
+            .Build();
 
         // Act
         var result = services.AddUsersModule(configuration);
@@ -109,7 +112,10 @@ public class ExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>())
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:Users"] = "Server=localhost;Database=test;"
+            })
             .Build();
 
         // Act
@@ -126,7 +132,6 @@ public class ExtensionsTests
     [Theory]
     [InlineData("Server=localhost;Database=test1;", "test-realm")]
     [InlineData("Server=localhost;Database=test2;", "another-realm")]
-    [InlineData("", "")]
     public void AddUsersModule_WithVariousConfigurations_ShouldRegisterServices(string connectionString, string realm)
     {
         // Arrange

@@ -73,7 +73,7 @@ public sealed class GetPublicProviderByIdOrSlugQueryHandler : IQueryHandler<GetP
             ? businessProfile.ContactInfo.Email
             : null;
             
-        var services = !isPrivacyEnabled
+        var services = !shouldRedactContactInfo
             ? provider.Services.Select(s => s.ServiceName).ToList()
             : new List<string>();
 

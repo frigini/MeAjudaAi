@@ -110,7 +110,7 @@ public class APIExtensionsTests
 
         // Act & Assert
         var act = () => services.AddUsersModule(configuration);
-        act.Should().Throw<InvalidOperationException>();
+        act.Should().Throw<ArgumentNullException>();
     }
 
     [Fact]
@@ -146,7 +146,7 @@ public class APIExtensionsTests
 
         // Act & Assert
         var act = async () => await services.AddUsersModuleWithSchemaIsolationAsync(configuration);
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
     [Fact]

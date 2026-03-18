@@ -16,6 +16,9 @@ public static class Extensions
 {
     public static IServiceCollection AddUsersModule(this IServiceCollection services, IConfiguration configuration)
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+
         services.AddApplication();
         services.AddInfrastructure(configuration);
         
@@ -35,6 +38,9 @@ public static class Extensions
         string? usersRolePassword = null,
         string? appRolePassword = null)
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+
         // Configurar serviços do módulo
         services.AddUsersModule(configuration);
 
