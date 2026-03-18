@@ -157,12 +157,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
         string? city = null,
         string? state = null)
     {
-        string normalizedSlug;
-        try
-        {
-            normalizedSlug = NormalizeAndValidateSlug(slug);
-        }
-        catch (ArgumentException)
+        if (!TryNormalizeSlug(slug, out var normalizedSlug))
         {
             normalizedSlug = SlugHelper.GenerateWithSuffix(name, providerId.ToString("N")[..8]);
         }
@@ -288,12 +283,17 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
 
     private static string NormalizeAndValidateSlug(string? slug)
     {
-        var normalized = SlugHelper.Generate(slug ?? string.Empty);
-        if (string.IsNullOrWhiteSpace(normalized))
+        if (!TryNormalizeSlug(slug, out var normalized))
         {
             throw new ArgumentException("O identificador do provedor não pode estar vazio.", nameof(slug));
         }
 
         return normalized;
+    }
+
+    private static bool TryNormalizeSlug(string? slug, out string normalizedSlug)
+    {
+        normalizedSlug = SlugHelper.Generate(slug ?? string.Empty);
+        return !string.IsNullOrWhiteSpace(normalizedSlug);
     }
 }

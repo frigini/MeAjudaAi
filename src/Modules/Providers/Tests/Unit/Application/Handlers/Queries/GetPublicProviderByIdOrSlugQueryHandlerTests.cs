@@ -183,7 +183,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         var providerId = Guid.NewGuid();
 
         _providerRepositoryMock
-            .Setup(x => x.GetByIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByIdAsync(new ProviderId(providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
         var query = new GetPublicProviderByIdOrSlugQuery(providerId.ToString());

@@ -5,12 +5,13 @@ using Microsoft.Extensions.DependencyInjection;
 namespace MeAjudaAi.Modules.Users.Tests.Unit.API;
 
 /// <summary>
-/// Testes de integração dos métodos de extensão do módulo Users
+/// Testes unitários dos métodos de extensão do módulo Users
 /// Foca em cenários de integração e configuração completa
 /// </summary>
 [Trait("Category", "Unit")]
 [Trait("Module", "Users")]
 [Trait("Layer", "API")]
+[Collection("NonParallel Environment Tests")]
 public class ExtensionsTests
 {
     private static IConfiguration BuildTestConfiguration()
@@ -87,11 +88,14 @@ public class ExtensionsTests
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
 
-        var originalEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var originalAspNetCoreEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var originalDotnetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        
         try
         {
             // Força ambiente não teste/dev para testar o fallback de exception
             Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Production");
 
             // Act & Assert
             var act = () => services.AddUsersModule(configuration);
@@ -101,7 +105,8 @@ public class ExtensionsTests
         }
         finally
         {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalEnv);
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalAspNetCoreEnv);
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalDotnetEnv);
         }
     }
 
