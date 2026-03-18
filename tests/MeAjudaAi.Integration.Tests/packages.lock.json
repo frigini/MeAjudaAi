@@ -47,9 +47,9 @@
       },
       "coverlet.collector": {
         "type": "Direct",
-        "requested": "[8.0.0, )",
-        "resolved": "8.0.0",
-        "contentHash": "EMkj/2F6n6IVPrvGYkqzGJs6phuGGkq6N+E7KW9rNyzNxXbwQ1KfMqWyXNf9nCNEQOA6IjFwmOLvkriwKE7Orw=="
+        "requested": "[8.0.1, )",
+        "resolved": "8.0.1",
+        "contentHash": "heVQl5tKYnnIDYlR1QMVGueYH6iriZTcZB6AjDczQNwZzxkjDIt9C84Pt4cCiZYrbo7jkZOYGWbs6Lo9wAtVLg=="
       },
       "Dapper": {
         "type": "Direct",
@@ -59,9 +59,9 @@
       },
       "FluentAssertions": {
         "type": "Direct",
-        "requested": "[8.8.0, )",
-        "resolved": "8.8.0",
-        "contentHash": "m0kwcqBwvVel03FuMa7Ozo/oTaxYbjeNlcOhQFkyQpwX/8wks6RNl/Jnn58DCZVs6c2oG1RsCZw7HfKSaxLm3w=="
+        "requested": "[8.9.0, )",
+        "resolved": "8.9.0",
+        "contentHash": "Y5RDjxaVlxWX2yy0X/ay1tJjSKMOtjepSb83mmfngFS63hm3LsoZNj6nhmImzm1ifRmpF9ouvmHjx9nNwnkpDg=="
       },
       "Microsoft.AspNetCore.Mvc.Testing": {
         "type": "Direct",
@@ -200,10 +200,10 @@
           "Microsoft.Extensions.Primitives": "8.0.0"
         }
       },
-      "Aspire.Dashboard.Sdk.win-x64": {
+      "Aspire.Dashboard.Sdk.linux-x64": {
         "type": "Transitive",
         "resolved": "13.1.0",
-        "contentHash": "rrcsI8cankYCiUlj4Ev+os9uKcutUCv+9kvHQt85RiUX/ewXsloFZy0/depKWrzdJkdJuoTbYFRlSe43TKq6aQ=="
+        "contentHash": "gIvMR7NdVGw+mUpK9qZsGuuYfDp4CHvBDLlykSSP9pCh5XGlMgDNR3uOMfvKVlqH1hAsOuecvxEcfQ9kjufrWw=="
       },
       "Aspire.Hosting": {
         "type": "Transitive",
@@ -430,10 +430,10 @@
           "System.IO.Hashing": "9.0.10"
         }
       },
-      "Aspire.Hosting.Orchestration.win-x64": {
+      "Aspire.Hosting.Orchestration.linux-x64": {
         "type": "Transitive",
         "resolved": "13.1.0",
-        "contentHash": "3w2UahEauTq719LPJ/BCySh31kz26sfjuOkRF5E4VYy1Q3xLRV43+OIGI3C5sy8feUHjrYz+DDq3DQn/2fu+4g=="
+        "contentHash": "V8u8ukncoflImciXeHG03x1pWbOiR4z1bIl2lwOKgdy7/JshFrlEaabaNuGmAIZFdWEM/fsc/hVDjecQyHF2aQ=="
       },
       "AspNetCore.HealthChecks.Rabbitmq": {
         "type": "Transitive",
@@ -2528,13 +2528,13 @@
       "meajudaai.apphost": {
         "type": "Project",
         "dependencies": {
-          "Aspire.Dashboard.Sdk.win-x64": "[13.1.0, )",
+          "Aspire.Dashboard.Sdk.linux-x64": "[13.1.0, )",
           "Aspire.Hosting.AppHost": "[13.1.0, )",
           "Aspire.Hosting.Azure.AppContainers": "[13.1.2, )",
           "Aspire.Hosting.Azure.PostgreSQL": "[13.1.2, )",
           "Aspire.Hosting.JavaScript": "[13.1.2, )",
           "Aspire.Hosting.Keycloak": "[13.1.0-preview.1.25616.3, )",
-          "Aspire.Hosting.Orchestration.win-x64": "[13.1.0, )",
+          "Aspire.Hosting.Orchestration.linux-x64": "[13.1.0, )",
           "Aspire.Hosting.PostgreSQL": "[13.1.2, )",
           "Aspire.Hosting.RabbitMQ": "[13.1.2, )",
           "Aspire.Hosting.Redis": "[13.1.2, )",
@@ -2599,7 +2599,7 @@
           "AutoFixture": "[4.18.1, )",
           "AutoFixture.AutoMoq": "[4.18.1, )",
           "Bogus": "[35.6.5, )",
-          "FluentAssertions": "[8.8.0, )",
+          "FluentAssertions": "[8.9.0, )",
           "MeAjudaAi.Modules.Documents.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.Domain": "[1.0.0, )",
@@ -2796,7 +2796,7 @@
           "AutoFixture": "[4.18.1, )",
           "AutoFixture.AutoMoq": "[4.18.1, )",
           "Bogus": "[35.6.5, )",
-          "FluentAssertions": "[8.8.0, )",
+          "FluentAssertions": "[8.9.0, )",
           "MeAjudaAi.Modules.Users.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Users.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Users.Domain": "[1.0.0, )",
@@ -2871,7 +2871,7 @@
           "AutoFixture.AutoMoq": "[4.18.1, )",
           "Bogus": "[35.6.5, )",
           "Dapper": "[2.1.72, )",
-          "FluentAssertions": "[8.8.0, )",
+          "FluentAssertions": "[8.9.0, )",
           "Hangfire.InMemory": "[1.0.0, )",
           "MeAjudaAi.ApiService": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
