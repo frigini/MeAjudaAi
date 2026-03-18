@@ -34,10 +34,9 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         var provider = ProviderBuilder.Create()
             .WithType(EProviderType.Individual)
             .WithVerificationStatus(EVerificationStatus.Verified)
+            // Ignora transições de domínio para definir o status Active diretamente no teste
+            .WithStatus(EProviderStatus.Active)
             .Build();
-
-        // Ignora transições de domínio para definir o status como Active diretamente no teste
-        SetProviderStatus(provider, EProviderStatus.Active);
 
         _providerRepositoryMock
             .Setup(x => x.GetByIdAsync(provider.Id, It.IsAny<CancellationToken>()))
@@ -63,10 +62,9 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         var provider = ProviderBuilder.Create()
             .WithType(EProviderType.Individual)
             .WithVerificationStatus(EVerificationStatus.Verified)
+            // Ignora transições de domínio para definir o status Active diretamente no teste
+            .WithStatus(EProviderStatus.Active)
             .Build();
-
-        // Ignora transições de domínio para definir o status Active diretamente para o teste
-        SetProviderStatus(provider, EProviderStatus.Active);
 
         var normalizedSlug = provider.Slug.Trim().ToLowerInvariant();
 
@@ -93,10 +91,9 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         var provider = ProviderBuilder.Create()
             .WithType(EProviderType.Individual)
             .WithVerificationStatus(EVerificationStatus.Verified)
+            // Ignora transições de domínio para definir o status Active diretamente no teste
+            .WithStatus(EProviderStatus.Active)
             .Build();
-
-        // Ignora transições de domínio para definir o status Active diretamente para o teste
-        SetProviderStatus(provider, EProviderStatus.Active);
 
         var normalizedSlug = provider.Slug.Trim().ToLowerInvariant();
         var upperSlug = provider.Slug.ToUpperInvariant();
@@ -119,6 +116,37 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_WhenProviderQueriedBySlugWithLeadingTrailingSpaces_ShouldNormalizeAndReturnDto()
+    {
+        // Arrange
+        var provider = ProviderBuilder.Create()
+            .WithType(EProviderType.Individual)
+            .WithVerificationStatus(EVerificationStatus.Verified)
+            // Ignora transições de domínio para definir o status Active diretamente no teste
+            .WithStatus(EProviderStatus.Active)
+            .Build();
+
+        var normalizedSlug = provider.Slug.Trim().ToLowerInvariant();
+        var dirtySlug = $"  {provider.Slug.ToUpperInvariant()}  ";
+
+        _providerRepositoryMock
+            .Setup(x => x.GetBySlugAsync(normalizedSlug, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(provider);
+
+        // Query usa slug com espaços em claro e em maiúsculas — o handler deve normalizar (Trim e ToLower) antes de buscar
+        var query = new GetPublicProviderByIdOrSlugQuery(dirtySlug);
+
+        // Act
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value!.Id.Should().Be(provider.Id);
+        result.Value.Slug.Should().Be(provider.Slug);
+    }
+
+    [Fact]
     public async Task HandleAsync_WhenSlugIsValidGuidString_ShouldFallbackToSlugLookup()
     {
         // Arrange — slug que possui um formato de GUID válido (Guid.TryParse retorna true)
@@ -128,10 +156,9 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         var provider = ProviderBuilder.Create()
             .WithType(EProviderType.Individual)
             .WithVerificationStatus(EVerificationStatus.Verified)
+            // Ignora transições de domínio para definir o status Active diretamente no teste
+            .WithStatus(EProviderStatus.Active)
             .Build();
-
-        // Ignora transições de domínio para definir o status Active diretamente para o teste
-        SetProviderStatus(provider, EProviderStatus.Active);
 
         // GetByIdAsync retorna null (nenhum provedor com esse ID)
         _providerRepositoryMock
@@ -209,10 +236,9 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
                 new Address("Street", "1", "Neighborhood", "City", "ST", "00000-000", "Country"), 
                 "Restricted Fantasy", 
                 "Description"))
+            // Ignora transições de domínio para definir o status Active diretamente no teste
+            .WithStatus(EProviderStatus.Active)
             .Build();
-        
-        // Bypass domain transitions to set Active status directly for test
-        SetProviderStatus(provider, EProviderStatus.Active);
         
         _providerRepositoryMock
             .Setup(x => x.GetByIdAsync(provider.Id, It.IsAny<CancellationToken>()))
@@ -247,12 +273,12 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
                 new Address("Street", "1", "Neighborhood", "City", "ST", "00000-000", "Country"), 
                 "Restricted Fantasy", 
                 "Description"))
+            // Ignora transições de domínio para definir o status Active diretamente no teste
+            .WithStatus(EProviderStatus.Active)
             .Build();
         
         var expectedServiceId = Guid.NewGuid();
         provider.AddService(expectedServiceId, "Known Service");
-
-        SetProviderStatus(provider, EProviderStatus.Active);
         
         _providerRepositoryMock
             .Setup(x => x.GetByIdAsync(provider.Id, It.IsAny<CancellationToken>()))
@@ -274,12 +300,5 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         result.Value.Email.Should().Be("privacy@test.com");
         result.Value.PhoneNumbers.Should().NotBeEmpty();
         result.Value.Services.Should().Contain("Known Service");
-    }
-
-    private static void SetProviderStatus(Provider provider, EProviderStatus status)
-    {
-        var statusProp = typeof(Provider).GetProperty(nameof(Provider.Status));
-        statusProp.Should().NotBeNull("Provider.Status property must exist");
-        statusProp!.SetValue(provider, status);
     }
 }

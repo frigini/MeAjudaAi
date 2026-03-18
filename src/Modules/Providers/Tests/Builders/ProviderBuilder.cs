@@ -16,6 +16,7 @@ public class ProviderBuilder : BaseBuilder<Provider>
     private ProviderId? _providerId;
     private EVerificationStatus? _verificationStatus;
     private EProviderTier? _tier;
+    private EProviderStatus? _status;
     private readonly List<Document> _documents = new();
     private readonly List<Qualification> _qualifications = new();
 
@@ -80,6 +81,17 @@ public class ProviderBuilder : BaseBuilder<Provider>
                     prop.SetValue(provider, _tier.Value);
                 }
 
+                // Define status se especificado
+                if (_status.HasValue)
+                {
+                    var prop = typeof(Provider).GetProperty(nameof(Provider.Status));
+                    if (prop == null)
+                    {
+                        throw new InvalidOperationException($"Property '{nameof(Provider.Status)}' was not found on class {nameof(Provider)}.");
+                    }
+                    prop.SetValue(provider, _status.Value);
+                }
+
                 return provider;
             });
     }
@@ -87,6 +99,12 @@ public class ProviderBuilder : BaseBuilder<Provider>
     public ProviderBuilder WithTier(EProviderTier tier)
     {
         _tier = tier;
+        return this;
+    }
+
+    public ProviderBuilder WithStatus(EProviderStatus status)
+    {
+        _status = status;
         return this;
     }
 

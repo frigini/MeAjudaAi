@@ -107,6 +107,21 @@ public class SearchableProviderTests
     }
 
     [Fact]
+    public void Create_WithSpecialCharactersSlug_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var location = new GeoPoint(-23.5505, -46.6333);
+
+        // Act
+        var act = () => SearchableProvider.Create(providerId, "Valid Name", "!!!", location);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*O identificador do provedor não pode estar vazio nem em formato inválido*");
+    }
+
+    [Fact]
     public void Create_WithUppercaseSlug_ShouldNormalizeToLowercase()
     {
         // Arrange
