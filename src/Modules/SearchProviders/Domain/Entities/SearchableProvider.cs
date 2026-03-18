@@ -285,7 +285,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     {
         if (!TryNormalizeSlug(slug, out var normalized))
         {
-            throw new ArgumentException("O identificador do provedor não pode estar vazio.", nameof(slug));
+            throw new ArgumentException("O identificador do provedor não pode estar vazio nem em formato inválido.", nameof(slug));
         }
 
         return normalized;

@@ -6,7 +6,7 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.API;
 
 /// <summary>
 /// Testes unitários dos métodos de extensão do módulo Users
-/// Foca em cenários de integração e configuração completa
+/// Foca em cenários unitários e configuração completa
 /// </summary>
 [Trait("Category", "Unit")]
 [Trait("Module", "Users")]
@@ -227,3 +227,6 @@ public class ExtensionsTests
         Assert.NotNull(serviceProvider);
     }
 }
+
+[CollectionDefinition("NonParallel Environment Tests", DisableParallelization = true)]
+public class NonParallelEnvironmentTestsCollection { }

@@ -65,7 +65,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
             .WithVerificationStatus(EVerificationStatus.Verified)
             .Build();
 
-        // Bypass domain transitions to set Active status directly for test
+        // Ignora transições de domínio para definir o status Active diretamente para o teste
         SetProviderStatus(provider, EProviderStatus.Active);
 
         var normalizedSlug = provider.Slug.Trim().ToLowerInvariant();
@@ -95,7 +95,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
             .WithVerificationStatus(EVerificationStatus.Verified)
             .Build();
 
-        // Bypass domain transitions to set Active status directly for test
+        // Ignora transições de domínio para definir o status Active diretamente para o teste
         SetProviderStatus(provider, EProviderStatus.Active);
 
         var normalizedSlug = provider.Slug.Trim().ToLowerInvariant();
@@ -130,7 +130,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
             .WithVerificationStatus(EVerificationStatus.Verified)
             .Build();
 
-        // Bypass domain transitions to set Active status directly for test
+        // Ignora transições de domínio para definir o status Active diretamente para o teste
         SetProviderStatus(provider, EProviderStatus.Active);
 
         // GetByIdAsync retorna null (nenhum provedor com esse ID)
@@ -152,6 +152,9 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(provider.Id);
+
+        _providerRepositoryMock.Verify(x => x.GetByIdAsync(It.Is<ProviderId>(p => p.Value == slugGuid), It.IsAny<CancellationToken>()), Times.Once);
+        _providerRepositoryMock.Verify(x => x.GetBySlugAsync(slugValue, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
