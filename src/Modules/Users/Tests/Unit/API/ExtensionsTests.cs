@@ -8,7 +8,7 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.API;
 /// Testes de integração dos métodos de extensão do módulo Users
 /// Foca em cenários de integração e configuração completa
 /// </summary>
-[Trait("Category", "Integration")]
+[Trait("Category", "Unit")]
 [Trait("Module", "Users")]
 [Trait("Layer", "API")]
 public class ExtensionsTests

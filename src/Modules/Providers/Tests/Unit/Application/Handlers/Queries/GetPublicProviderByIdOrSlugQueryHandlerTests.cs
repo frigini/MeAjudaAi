@@ -36,7 +36,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
             .WithVerificationStatus(EVerificationStatus.Verified)
             .Build();
 
-        // Bypass domain transitions to set Active status directly for test
+        // Ignora transições de domínio para definir o status como Active diretamente no teste
         SetProviderStatus(provider, EProviderStatus.Active);
 
         _providerRepositoryMock
@@ -105,7 +105,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
             .Setup(x => x.GetBySlugAsync(normalizedSlug, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
-        // Query uses uppercase slug — handler must normalize before calling GetBySlugAsync
+        // Query usa slug em maiúsculas — o handler deve normalizar antes de chamar GetBySlugAsync
         var query = new GetPublicProviderByIdOrSlugQuery(upperSlug);
 
         // Act
@@ -121,7 +121,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
     [Fact]
     public async Task HandleAsync_WhenSlugIsValidGuidString_ShouldFallbackToSlugLookup()
     {
-        // Arrange — slug that happens to be a valid GUID format (Guid.TryParse returns true)
+        // Arrange — slug que possui um formato de GUID válido (Guid.TryParse retorna true)
         var slugGuid = Guid.NewGuid();
         var slugValue = slugGuid.ToString().ToLowerInvariant(); // e.g. "3fa85f64-5717-4562-b3fc-2c963f66afa6"
 
@@ -133,12 +133,12 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         // Bypass domain transitions to set Active status directly for test
         SetProviderStatus(provider, EProviderStatus.Active);
 
-        // GetByIdAsync returns null (no provider with that ID)
+        // GetByIdAsync retorna null (nenhum provedor com esse ID)
         _providerRepositoryMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Provider?)null);
 
-        // Fallback to slug lookup returns the provider
+        // Fallback para a busca por slug retorna o provedor
         _providerRepositoryMock
             .Setup(x => x.GetBySlugAsync(slugValue, It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
@@ -160,7 +160,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         // Arrange
         var provider = ProviderBuilder.Create()
             .Build(); 
-        // Default builder status is PendingBasicInfo (not Active)
+        // O status padrão do builder é PendingBasicInfo (não Active)
 
         _providerRepositoryMock
             .Setup(x => x.GetByIdAsync(provider.Id, It.IsAny<CancellationToken>()))
@@ -246,6 +246,9 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
                 "Description"))
             .Build();
         
+        var expectedServiceId = Guid.NewGuid();
+        provider.AddService(expectedServiceId, "Known Service");
+
         SetProviderStatus(provider, EProviderStatus.Active);
         
         _providerRepositoryMock
@@ -267,6 +270,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         result.Value!.Id.Should().Be(provider.Id);
         result.Value.Email.Should().Be("privacy@test.com");
         result.Value.PhoneNumbers.Should().NotBeEmpty();
+        result.Value.Services.Should().Contain(s => s.ServiceId == expectedServiceId);
     }
 
     private static void SetProviderStatus(Provider provider, EProviderStatus status)

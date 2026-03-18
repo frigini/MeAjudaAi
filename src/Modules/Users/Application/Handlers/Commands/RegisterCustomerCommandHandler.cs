@@ -149,7 +149,7 @@ public sealed partial class RegisterCustomerCommandHandler(
                     var compensationResult = await userDomainService.DeactivateUserInKeycloakAsync(user.Id, CancellationToken.None);
                     if (compensationResult.IsFailure)
                     {
-                        logger.LogError("Compensation failed for user {UserId}: {Error}", userResult.Value.Id, compensationResult.Error);
+                        logger.LogError("Compensation failed for user {UserId}: {Error}", user.Id, compensationResult.Error);
                     }
                     else
                     {

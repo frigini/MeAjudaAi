@@ -110,7 +110,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new ArgumentException("Provider name cannot be empty.", nameof(name));
+            throw new ArgumentException("O nome do provedor não pode ficar vazio.", nameof(name));
         }
 
         slug = NormalizeAndValidateSlug(slug);
@@ -157,6 +157,16 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
         string? city = null,
         string? state = null)
     {
+        string normalizedSlug;
+        try
+        {
+            normalizedSlug = NormalizeAndValidateSlug(slug);
+        }
+        catch (ArgumentException)
+        {
+            normalizedSlug = SlugHelper.GenerateWithSuffix(name, providerId.ToString("N")[..8]);
+        }
+
         var searchableProvider = new SearchableProvider(
             new SearchableProviderId(id),
             providerId,
@@ -164,7 +174,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             location,
             subscriptionTier)
         {
-            Slug = !string.IsNullOrWhiteSpace(slug) ? slug : SlugHelper.GenerateWithSuffix(name, providerId.ToString("N")[..8]),
+            Slug = normalizedSlug,
             Description = description,
             City = city,
             State = state,
@@ -184,7 +194,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new ArgumentException("Provider name cannot be empty.", nameof(name));
+            throw new ArgumentException("O nome do provedor não pode ficar vazio.", nameof(name));
         }
 
         slug = NormalizeAndValidateSlug(slug);
