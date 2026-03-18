@@ -273,4 +273,12 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
             throw new InvalidOperationException("Service provider not initialized");
         return _serviceProvider.CreateScope();
     }
+
+    /// <summary>
+    /// Constrói o slug usado nos testes a partir do nome e do ID do provedor.
+    /// </summary>
+    private static string BuildTestSlug(string name, Guid providerId)
+    {
+        return SlugHelper.GenerateWithSuffix(name, providerId.ToString("N")[..8]);
+    }
 }

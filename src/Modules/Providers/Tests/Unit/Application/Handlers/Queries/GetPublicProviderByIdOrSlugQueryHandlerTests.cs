@@ -14,13 +14,13 @@ using Xunit;
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Queries;
 
 [Trait("Category", "Unit")]
-public class GetPublicProviderByIdQueryHandlerTests
+public class GetPublicProviderByIdOrSlugQueryHandlerTests
 {
     private readonly Mock<IProviderRepository> _providerRepositoryMock;
     private readonly Mock<IFeatureManager> _featureManagerMock;
     private readonly GetPublicProviderByIdOrSlugQueryHandler _handler;
 
-    public GetPublicProviderByIdQueryHandlerTests()
+    public GetPublicProviderByIdOrSlugQueryHandlerTests()
     {
         _providerRepositoryMock = new Mock<IProviderRepository>();
         _featureManagerMock = new Mock<IFeatureManager>();
