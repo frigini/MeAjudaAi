@@ -219,7 +219,7 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
             .Setup(x => x.IsEnabledAsync(FeatureFlags.PublicProfilePrivacy))
             .ReturnsAsync(true);
 
-        var query = new GetPublicProviderByIdOrSlugQuery(provider.Id.Value.ToString());
+        var query = new GetPublicProviderByIdOrSlugQuery(provider.Id.Value.ToString()) { IsAuthenticated = true };
 
         // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
@@ -231,6 +231,42 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         result.Value.Email.Should().BeNull();
         result.Value.PhoneNumbers.Should().BeEmpty();
         result.Value.Services.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenAuthenticatedAndPrivacyFlagDisabled_ShouldReturnFullContactInfo()
+    {
+        // Arrange
+        var provider = ProviderBuilder.Create()
+            .WithBusinessProfile(new BusinessProfile(
+                "Restricted Legal", 
+                new ContactInfo("privacy@test.com", "11999999999"), 
+                new Address("Street", "1", "Neighborhood", "City", "ST", "00000-000", "Country"), 
+                "Restricted Fantasy", 
+                "Description"))
+            .Build();
+        
+        SetProviderStatus(provider, EProviderStatus.Active);
+        
+        _providerRepositoryMock
+            .Setup(x => x.GetByIdAsync(provider.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(provider);
+            
+        _featureManagerMock
+            .Setup(x => x.IsEnabledAsync(FeatureFlags.PublicProfilePrivacy))
+            .ReturnsAsync(false);
+
+        var query = new GetPublicProviderByIdOrSlugQuery(provider.Id.Value.ToString()) { IsAuthenticated = true };
+
+        // Act
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value!.Id.Should().Be(provider.Id);
+        result.Value.Email.Should().Be("privacy@test.com");
+        result.Value.PhoneNumbers.Should().NotBeEmpty();
     }
 
     private static void SetProviderStatus(Provider provider, EProviderStatus status)

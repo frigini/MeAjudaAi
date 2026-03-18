@@ -164,7 +164,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             location,
             subscriptionTier)
         {
-            Slug = SlugHelper.GenerateWithSuffix(name, providerId.ToString("N")[..8]),
+            Slug = !string.IsNullOrWhiteSpace(slug) ? slug : SlugHelper.GenerateWithSuffix(name, providerId.ToString("N")[..8]),
             Description = description,
             City = city,
             State = state,

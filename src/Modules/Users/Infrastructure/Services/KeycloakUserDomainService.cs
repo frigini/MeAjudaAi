@@ -63,13 +63,14 @@ internal class KeycloakUserDomainService(
             return Result<User>.Failure(keycloakResult.Error);
 
         // Cria a entidade User local com o ID retornado pelo Keycloak
-        var userResult = User.Create(username, email, firstName, lastName, keycloakResult.Value!, phoneNumber);
+        var keycloakId = keycloakResult.Value!;
+        var userResult = User.Create(username, email, firstName, lastName, keycloakId, phoneNumber);
         if (userResult.IsFailure)
         {
-            var deactivationResult = await keycloakService.DeactivateUserAsync(keycloakResult.Value, CancellationToken.None);
+            var deactivationResult = await keycloakService.DeactivateUserAsync(keycloakId, CancellationToken.None);
             if (deactivationResult.IsFailure)
             {
-                logger.LogWarning("Failed to deactivate Keycloak user {KeycloakId} during compensation for local user creation failure. Error: {Error}", keycloakResult.Value, deactivationResult.Error.Message);
+                logger.LogWarning("Failed to deactivate Keycloak user {KeycloakId} during compensation for local user creation failure. Error: {Error}", keycloakId, deactivationResult.Error.Message);
                 // Silenciar falhas de compensação para evitar mascarar o erro de validação original
             }
             return Result<User>.Failure(userResult.Error);

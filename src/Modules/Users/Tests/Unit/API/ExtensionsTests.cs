@@ -13,6 +13,42 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.API;
 [Trait("Layer", "API")]
 public class ExtensionsTests
 {
+    private static IConfiguration BuildTestConfiguration()
+    {
+        return new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:Users"] = "Server=localhost;Database=test;"
+            })
+            .Build();
+    }
+
+    [Fact]
+    public void AddUsersModule_WithNullServices_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        IServiceCollection services = null!;
+        var configuration = BuildTestConfiguration();
+
+        // Act & Assert
+        var act = () => services.AddUsersModule(configuration);
+        
+        act.Should().Throw<ArgumentNullException>().WithParameterName("services");
+    }
+
+    [Fact]
+    public void AddUsersModule_WithNullConfiguration_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        IConfiguration configuration = null!;
+
+        // Act & Assert
+        var act = () => services.AddUsersModule(configuration);
+        
+        act.Should().Throw<ArgumentNullException>().WithParameterName("configuration");
+    }
+
     [Fact]
     public void AddUsersModule_ShouldAddApplicationAndInfrastructureServices()
     {
@@ -51,11 +87,22 @@ public class ExtensionsTests
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
 
-        // Act & Assert
-        var act = () => services.AddUsersModule(configuration);
-        
-        act.Should().Throw<InvalidOperationException>()
-           .WithMessage("Connection for Users module not configured");
+        var originalEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        try
+        {
+            // Força ambiente não teste/dev para testar o fallback de exception
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
+
+            // Act & Assert
+            var act = () => services.AddUsersModule(configuration);
+            
+            act.Should().Throw<InvalidOperationException>()
+               .WithMessage("Connection for Users module not configured");
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalEnv);
+        }
     }
 
     [Fact]
@@ -63,12 +110,7 @@ public class ExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:Users"] = "Server=localhost;Database=test;"
-            })
-            .Build();
+        var configuration = BuildTestConfiguration();
 
         // Act
         var result = services.AddUsersModule(configuration);
@@ -111,12 +153,7 @@ public class ExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:Users"] = "Server=localhost;Database=test;"
-            })
-            .Build();
+        var configuration = BuildTestConfiguration();
 
         // Act
         var result = services.AddUsersModule(configuration);

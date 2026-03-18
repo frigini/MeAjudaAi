@@ -68,6 +68,7 @@ internal static class Program
                 Console.Error.WriteLine("Please set MEAJUDAAI_DB_PASS to the database password in your CI environment.");
                 Environment.Exit(1);
             }
+// Suppress S2068: intentional hardcoded dev/test default credential, only used in local/dev scenarios; CI requires env var
 #pragma warning disable S2068
             testDbPassword = "test123";
 #pragma warning restore S2068

@@ -8,6 +8,7 @@ using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Modules.Providers.Domain.Constants;
 using Microsoft.FeatureManagement;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,14 +50,14 @@ public sealed class GetPublicProviderByIdOrSlugQueryHandler : IQueryHandler<GetP
 
         if (provider is null)
         {
-            return Result<PublicProviderDto?>.Failure(Error.NotFound("Prestador não encontrado."));
+            return Result<PublicProviderDto?>.Failure(Error.NotFound(ProviderErrors.ProviderNotFound));
         }
 
         // Validação adicional: Apenas prestadores ativos devem ser consultados publicamente
         // Se estiver suspenso ou rejeitado, retornamos NotFound por segurança/privacidade
         if (provider.Status != EProviderStatus.Active)
         {
-             return Result<PublicProviderDto?>.Failure(Error.NotFound("Prestador não encontrado."));
+             return Result<PublicProviderDto?>.Failure(Error.NotFound(ProviderErrors.ProviderNotFound));
         }
 
         var businessProfile = provider.BusinessProfile;
@@ -103,9 +104,9 @@ public sealed class GetPublicProviderByIdOrSlugQueryHandler : IQueryHandler<GetP
         return Result<PublicProviderDto?>.Success(dto);
     }
 
-    private static IEnumerable<string> ResolvePhoneNumbers(bool isPrivacyEnabled, BusinessProfile profile)
+    private static IEnumerable<string> ResolvePhoneNumbers(bool shouldRedactContactInfo, BusinessProfile profile)
     {
-        if (isPrivacyEnabled || profile.ContactInfo is null)
+        if (shouldRedactContactInfo || profile.ContactInfo is null)
             return Array.Empty<string>();
 
         if (string.IsNullOrWhiteSpace(profile.ContactInfo.PhoneNumber))

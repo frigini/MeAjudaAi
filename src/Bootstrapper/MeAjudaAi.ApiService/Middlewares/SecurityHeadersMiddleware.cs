@@ -42,10 +42,15 @@ public class SecurityHeadersMiddleware(RequestDelegate next, IWebHostEnvironment
             var headers = ctx.Response.Headers;
 
             // Adiciona cabeçalhos de segurança estáticos eficientemente
-            foreach (var header in StaticHeaders.Where(h => !headers.ContainsKey(h.Key)))
+#pragma warning disable S3267 // Loops should be simplified with "Where" LINQ method - avoiding LINQ allocations on hot path as requested
+            foreach (var header in StaticHeaders)
             {
-                headers.Append(header.Key, header.Value);
+                if (!headers.ContainsKey(header.Key))
+                {
+                    headers.Append(header.Key, header.Value);
+                }
             }
+#pragma warning restore S3267
 
             // HSTS apenas em produção e HTTPS - usando verificação de ambiente em cache
             if (ctx.Request.IsHttps && !_isDevelopment && !headers.ContainsKey(HstsHeaderName))
