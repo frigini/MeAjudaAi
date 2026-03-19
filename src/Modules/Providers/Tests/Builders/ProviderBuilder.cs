@@ -73,23 +73,13 @@ public class ProviderBuilder : BaseBuilder<Provider>
                 // Define tier se especificado
                 if (_tier.HasValue)
                 {
-                    var prop = typeof(Provider).GetProperty(nameof(Provider.Tier));
-                    if (prop == null)
-                    {
-                        throw new InvalidOperationException($"Property '{nameof(Provider.Tier)}' was not found on class {nameof(Provider)}.");
-                    }
-                    prop.SetValue(provider, _tier.Value);
+                    SetPropertyValue(provider, nameof(Provider.Tier), _tier.Value);
                 }
 
                 // Define status se especificado
                 if (_status.HasValue)
                 {
-                    var prop = typeof(Provider).GetProperty(nameof(Provider.Status));
-                    if (prop == null)
-                    {
-                        throw new InvalidOperationException($"Property '{nameof(Provider.Status)}' was not found on class {nameof(Provider)}.");
-                    }
-                    prop.SetValue(provider, _status.Value);
+                    SetPropertyValue(provider, nameof(Provider.Status), _status.Value);
                 }
 
                 return provider;
@@ -233,5 +223,15 @@ public class ProviderBuilder : BaseBuilder<Provider>
             legalName: faker.Company.CompanyName(),
             contactInfo: contactInfo,
             primaryAddress: address);
+    }
+
+    private static void SetPropertyValue(Provider provider, string propertyName, object value)
+    {
+        var prop = typeof(Provider).GetProperty(propertyName);
+        if (prop == null)
+        {
+            throw new InvalidOperationException($"Property '{propertyName}' was not found on class {nameof(Provider)}.");
+        }
+        prop.SetValue(provider, value);
     }
 }

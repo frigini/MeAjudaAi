@@ -190,11 +190,12 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
             
             var sql = @"
                 INSERT INTO search_providers.searchable_providers 
-                (id, provider_id, name, location, average_rating, total_reviews, subscription_tier, service_ids, is_active, created_at)
+                (id, provider_id, slug, name, location, average_rating, total_reviews, subscription_tier, service_ids, is_active, created_at)
                 VALUES 
-                (@Id, @ProviderId, @Name, ST_SetSRID(ST_MakePoint(@Longitude, @Latitude), 4326)::geography, @AvgRating, @TotalReviews, @SubscriptionTier, @ServiceIds, @IsActive, @CreatedAt)
+                (@Id, @ProviderId, @Slug, @Name, ST_SetSRID(ST_MakePoint(@Longitude, @Latitude), 4326)::geography, @AvgRating, @TotalReviews, @SubscriptionTier, @ServiceIds, @IsActive, @CreatedAt)
                 ON CONFLICT (provider_id) 
                 DO UPDATE SET 
+                    slug = EXCLUDED.slug,
                     service_ids = EXCLUDED.service_ids,
                     updated_at = CURRENT_TIMESTAMP";
             
@@ -202,6 +203,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
             {
                 Id = Guid.NewGuid(),
                 ProviderId = providerId,
+                Slug = providerRequest.Name!.ToLowerInvariant().Replace(" ", "-").Replace("_", "-"),
                 Name = providerRequest.Name,
                 Latitude = latitude,
                 Longitude = longitude,
@@ -436,19 +438,22 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
             
             var sql = @"
                 INSERT INTO search_providers.searchable_providers 
-                (id, provider_id, name, location, average_rating, total_reviews, subscription_tier, service_ids, is_active, created_at)
+                (id, provider_id, slug, name, location, average_rating, total_reviews, subscription_tier, service_ids, is_active, created_at)
                 VALUES 
-                (@Id, @ProviderId, @Name, ST_SetSRID(ST_MakePoint(@Longitude, @Latitude), 4326)::geography, @AvgRating, @TotalReviews, @SubscriptionTier, @ServiceIds, @IsActive, @CreatedAt)
+                (@Id, @ProviderId, @Slug, @Name, ST_SetSRID(ST_MakePoint(@Longitude, @Latitude), 4326)::geography, @AvgRating, @TotalReviews, @SubscriptionTier, @ServiceIds, @IsActive, @CreatedAt)
                 ON CONFLICT (provider_id) 
                 DO UPDATE SET 
+                    slug = EXCLUDED.slug,
                     service_ids = EXCLUDED.service_ids,
                     updated_at = CURRENT_TIMESTAMP";
             
+            var name = $"MultiService_{uniqueId}";
             await dapper.ExecuteAsync(sql, new
             {
                 Id = Guid.NewGuid(),
                 ProviderId = providerId1,
-                Name = $"MultiService_{uniqueId}",
+                Slug = name.ToLowerInvariant().Replace(" ", "-").Replace("_", "-"),
+                Name = name,
                 Latitude = -23.550520,
                 Longitude = -46.633308,
                 AvgRating = 0.0m,
@@ -512,19 +517,22 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
             
             var sql = @"
                 INSERT INTO search_providers.searchable_providers 
-                (id, provider_id, name, location, average_rating, total_reviews, subscription_tier, service_ids, is_active, created_at)
+                (id, provider_id, slug, name, location, average_rating, total_reviews, subscription_tier, service_ids, is_active, created_at)
                 VALUES 
-                (@Id, @ProviderId, @Name, ST_SetSRID(ST_MakePoint(@Longitude, @Latitude), 4326)::geography, @AvgRating, @TotalReviews, @SubscriptionTier, @ServiceIds, @IsActive, @CreatedAt)
+                (@Id, @ProviderId, @Slug, @Name, ST_SetSRID(ST_MakePoint(@Longitude, @Latitude), 4326)::geography, @AvgRating, @TotalReviews, @SubscriptionTier, @ServiceIds, @IsActive, @CreatedAt)
                 ON CONFLICT (provider_id) 
                 DO UPDATE SET 
+                    slug = EXCLUDED.slug,
                     service_ids = EXCLUDED.service_ids,
                     updated_at = CURRENT_TIMESTAMP";
             
+            var name = $"SingleService_{uniqueId}";
             await dapper.ExecuteAsync(sql, new
             {
                 Id = Guid.NewGuid(),
                 ProviderId = providerId2,
-                Name = $"SingleService_{uniqueId}",
+                Slug = name.ToLowerInvariant().Replace(" ", "-").Replace("_", "-"),
+                Name = name,
                 Latitude = -23.551000,
                 Longitude = -46.634000,
                 AvgRating = 0.0m,

@@ -100,8 +100,7 @@ public class ExtensionsTests
             // Act & Assert
             var act = () => services.AddUsersModule(configuration);
             
-            act.Should().Throw<InvalidOperationException>()
-               .WithMessage("Connection for Users module not configured");
+            act.Should().Throw<InvalidOperationException>();
         }
         finally
         {

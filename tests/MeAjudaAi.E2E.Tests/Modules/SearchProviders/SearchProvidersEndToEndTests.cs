@@ -461,11 +461,12 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
             // We need to ensure we set the SRID to 4326 for the geography column
             var sql = @"
                 INSERT INTO search_providers.searchable_providers 
-                (id, provider_id, name, description, city, state, location, average_rating, total_reviews, subscription_tier, service_ids, is_active, created_at, updated_at)
+                (id, provider_id, slug, name, description, city, state, location, average_rating, total_reviews, subscription_tier, service_ids, is_active, created_at, updated_at)
                 VALUES 
-                (@Id, @ProviderId, @Name, @Description, @City, @State, ST_SetSRID(ST_MakePoint(@Longitude, @Latitude), 4326)::geography, @AvgRating, @TotalReviews, @SubscriptionTier, @ServiceIds, @IsActive, @CreatedAt, @UpdatedAt)
+                (@Id, @ProviderId, @Slug, @Name, @Description, @City, @State, ST_SetSRID(ST_MakePoint(@Longitude, @Latitude), 4326)::geography, @AvgRating, @TotalReviews, @SubscriptionTier, @ServiceIds, @IsActive, @CreatedAt, @UpdatedAt)
                 ON CONFLICT (provider_id) 
                 DO UPDATE SET 
+                    slug = EXCLUDED.slug,
                     name = EXCLUDED.name,
                     location = EXCLUDED.location,
                     service_ids = EXCLUDED.service_ids,
@@ -476,6 +477,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>,
             {
                 Id = Guid.NewGuid(),
                 ProviderId = providerId,
+                Slug = name.ToLowerInvariant().Replace(" ", "-").Replace("_", "-"),
                 Name = name,
                 Description = $"Test Provider {name}",
                 City = "São Paulo",

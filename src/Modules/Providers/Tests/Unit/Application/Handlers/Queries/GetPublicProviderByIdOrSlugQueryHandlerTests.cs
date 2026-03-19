@@ -24,6 +24,11 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
     {
         _providerRepositoryMock = new Mock<IProviderRepository>();
         _featureManagerMock = new Mock<IFeatureManager>();
+        
+        _featureManagerMock
+            .Setup(x => x.IsEnabledAsync(FeatureFlags.PublicProfilePrivacy))
+            .ReturnsAsync(false);
+            
         _handler = new GetPublicProviderByIdOrSlugQueryHandler(_providerRepositoryMock.Object, _featureManagerMock.Object);
     }
 
@@ -225,6 +230,48 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error.StatusCode.Should().Be(404);
     }
+
+    [Fact]
+    public async Task HandleAsync_WhenProviderIsNotActive_BySlug_ShouldReturnNotFound()
+    {
+        // Arrange
+        var provider = ProviderBuilder.Create()
+            .Build(); 
+        // O status padrão do builder é PendingBasicInfo (não Active)
+
+        _providerRepositoryMock
+            .Setup(x => x.GetBySlugAsync(provider.Slug, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(provider);
+
+        var query = new GetPublicProviderByIdOrSlugQuery(provider.Slug);
+
+        // Act
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.StatusCode.Should().Be(404);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenProviderNotFound_BySlug_ShouldReturnNotFound()
+    {
+        // Arrange
+        var slug = "non-existent-slug";
+
+        _providerRepositoryMock
+            .Setup(x => x.GetBySlugAsync(slug, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Provider?)null);
+
+        var query = new GetPublicProviderByIdOrSlugQuery(slug);
+
+        // Act
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.StatusCode.Should().Be(404);
+    }
     [Fact]
     public async Task HandleAsync_WhenPrivacyFlagIsEnabled_ShouldReturnRestrictedProvider()
     {
@@ -239,6 +286,8 @@ public class GetPublicProviderByIdOrSlugQueryHandlerTests
             // Ignora transições de domínio para definir o status Active diretamente no teste
             .WithStatus(EProviderStatus.Active)
             .Build();
+        
+        provider.AddService(Guid.NewGuid(), "Restricted Service");
         
         _providerRepositoryMock
             .Setup(x => x.GetByIdAsync(provider.Id, It.IsAny<CancellationToken>()))
