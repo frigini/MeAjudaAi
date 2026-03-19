@@ -4,6 +4,27 @@
   "sourceRoot": "MeAjudaAi.Web.Provider",
   "projectType": "application",
   "tags": [],
-  "// targets": "to see all targets run: nx show project MeAjudaAi.Web.Provider --web",
-  "targets": {}
+  "targets": {
+    "build": {
+      "command": "next build",
+      "outputs": [
+        "{workspaceRoot}/dist/MeAjudaAi.Web.Provider"
+      ],
+      "options": {
+        "cwd": "MeAjudaAi.Web.Provider"
+      }
+    },
+    "serve": {
+      "command": "next dev",
+      "options": {
+        "cwd": "MeAjudaAi.Web.Provider"
+      }
+    },
+    "lint": {
+      "command": "next lint",
+      "options": {
+        "cwd": "MeAjudaAi.Web.Provider"
+      }
+    }
+  }
 }
