@@ -88,25 +88,10 @@ public class ExtensionsTests
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
 
-        var originalAspNetCoreEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        var originalDotnetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        // Act & Assert
+        var act = () => services.AddUsersModule(configuration);
         
-        try
-        {
-            // Força ambiente não teste/dev para testar o fallback de exception
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Production");
-
-            // Act & Assert
-            var act = () => services.AddUsersModule(configuration);
-            
-            act.Should().Throw<InvalidOperationException>();
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalAspNetCoreEnv);
-            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalDotnetEnv);
-        }
+        act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
