@@ -589,8 +589,8 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 
 ---
 
-### ⏳ Sprint 8C - Provider Web App (React + NX) (19 Mar - 1 Abr 2026)
-- Create `apps/provider-web`.
+### 🔄 Sprint 8C - Provider Web App (React + NX) (19 Mar - 1 Abr 2026)
+- **Scaffolding `apps/provider-web`** (Em andamento)
 - Implement registration steps (Upload, Dashboard).
 - **Slug Implementation**: Replace IDs with Slugs for SEO/Security.
 

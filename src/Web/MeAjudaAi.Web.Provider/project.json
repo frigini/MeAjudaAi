@@ -1,0 +1,9 @@
+{
+  "name": "MeAjudaAi.Web.Provider",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "MeAjudaAi.Web.Provider",
+  "projectType": "application",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project MeAjudaAi.Web.Provider --web",
+  "targets": {}
+}

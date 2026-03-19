@@ -1589,7 +1589,7 @@ Get-ChildItem -Recurse -Include *.cs | Select-String "record "
 
 ---
 
-### ΓÅ│ Sprint 8C - Provider Web App (React + NX)
+### ▶️ Sprint 8C - Provider Web App (React + NX) - ACTIVE
 
 **Periodo Estimado**: 19 Mar - 1 Abr 2026
 **Foco**: App de Administra├º├úo de Perfil para Prestadores
