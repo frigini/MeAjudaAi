@@ -592,6 +592,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 ### ⏳ Sprint 8C - Provider Web App (React + NX) (19 Mar - 1 Abr 2026)
 - Create `apps/provider-web`.
 - Implement registration steps (Upload, Dashboard).
+- **Provider Profile Management**: Implement complete dashboard capabilities including Profile View (online/offline states), `/alterar-dados` (Edit Profile), and `/configuracoes` (visibility toggle and account deletion).
 - **Slug Implementation**: Replace IDs with Slugs for SEO/Security.
 
 ### ⏳ Sprint 8D - Admin Portal Migration (2 - 22 Abr 2026)
