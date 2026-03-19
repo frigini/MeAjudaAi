@@ -1,6 +1,9 @@
 using MeAjudaAi.Modules.Users.API;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit;
+
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.API;
 
@@ -11,10 +14,9 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.API;
 [Trait("Category", "Unit")]
 [Trait("Module", "Users")]
 [Trait("Layer", "API")]
-[Collection("NonParallel Environment Tests")]
 public class ExtensionsTests
 {
-    private static IConfiguration BuildTestConfiguration()
+    private static IConfiguration BuildTestConfiguration_Minimal()
     {
         return new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -29,7 +31,7 @@ public class ExtensionsTests
     {
         // Arrange
         IServiceCollection services = null!;
-        var configuration = BuildTestConfiguration();
+        var configuration = BuildTestConfiguration_Minimal();
 
         // Act & Assert
         var act = () => services.AddUsersModule(configuration);
@@ -50,12 +52,9 @@ public class ExtensionsTests
         act.Should().Throw<ArgumentNullException>().WithParameterName("configuration");
     }
 
-    [Fact]
-    public void AddUsersModule_ShouldAddApplicationAndInfrastructureServices()
+    private static IConfiguration BuildTestConfiguration_Full()
     {
-        // Arrange
-        var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder()
+        return new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:DefaultConnection"] = "Server=localhost;Database=test;User Id=test;Password=test;",
@@ -65,6 +64,14 @@ public class ExtensionsTests
                 ["Keycloak:ClientSecret"] = "test-secret"
             })
             .Build();
+    }
+
+    [Fact]
+    public void AddUsersModule_ShouldAddApplicationAndInfrastructureServices()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var configuration = BuildTestConfiguration_Full();
 
         // Act
         var result = services.AddUsersModule(configuration);
@@ -88,10 +95,20 @@ public class ExtensionsTests
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
 
-        // Act & Assert
-        var act = () => services.AddUsersModule(configuration);
-        
-        act.Should().Throw<InvalidOperationException>();
+        var originalEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        try
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
+
+            // Act & Assert
+            var act = () => services.AddUsersModule(configuration);
+            
+            act.Should().Throw<InvalidOperationException>();
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalEnvironment);
+        }
     }
 
     [Fact]
@@ -99,7 +116,7 @@ public class ExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configuration = BuildTestConfiguration();
+        var configuration = BuildTestConfiguration_Minimal();
 
         // Act
         var result = services.AddUsersModule(configuration);
@@ -113,16 +130,7 @@ public class ExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:DefaultConnection"] = "Server=localhost;Database=test;User Id=test;Password=test;",
-                ["Keycloak:BaseUrl"] = "http://localhost:8080",
-                ["Keycloak:Realm"] = "test-realm",
-                ["Keycloak:ClientId"] = "test-client",
-                ["Keycloak:ClientSecret"] = "test-secret"
-            })
-            .Build();
+        var configuration = BuildTestConfiguration_Full();
 
         // Act
         services.AddUsersModule(configuration);
@@ -142,7 +150,7 @@ public class ExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configuration = BuildTestConfiguration();
+        var configuration = BuildTestConfiguration_Minimal();
 
         // Act
         var result = services.AddUsersModule(configuration);
@@ -211,6 +219,3 @@ public class ExtensionsTests
         Assert.NotNull(serviceProvider);
     }
 }
-
-[CollectionDefinition("NonParallel Environment Tests", DisableParallelization = true)]
-public class NonParallelEnvironmentTestsCollection { }
