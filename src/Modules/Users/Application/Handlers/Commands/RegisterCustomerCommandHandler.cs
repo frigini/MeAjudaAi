@@ -114,9 +114,17 @@ public sealed partial class RegisterCustomerCommandHandler(
             return Result<UserDto>.Failure(userResult.Error);
         }
 
+        if (userResult.Value is null)
+        {
+            logger.LogCritical("User returned null from success result for {Email}", maskedEmail);
+            return Result<UserDto>.Failure(Error.Internal("Falha crítica ao criar o usuário. Dados nulos retornados."));
+        }
+
+        var user = userResult.Value;
+
         try
         {
-            await userRepository.AddAsync(userResult.Value, cancellationToken);
+            await userRepository.AddAsync(user, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -127,37 +135,37 @@ public sealed partial class RegisterCustomerCommandHandler(
             else
             {
                 logger.LogError(ex, "Failed to persist customer {Email} ({Id}) to repository. Attempting Keycloak compensation.",
-                    maskedEmail, userResult.Value.Id);
+                    maskedEmail, user.Id);
             }
 
             // Verifica se o usuário realmente não foi salvo no repositório antes da compensação
             // Usamos CancellationToken.None para garantir que a compensação ocorra mesmo se o request original foi cancelado
-            var persistenceCheck = await userRepository.GetByIdNoTrackingAsync(userResult.Value.Id, CancellationToken.None);
+            var persistenceCheck = await userRepository.GetByIdNoTrackingAsync(user.Id, CancellationToken.None);
             if (persistenceCheck == null)
             {
                 // Compensação: desativar o usuário criado no Keycloak para evitar usuário órfão "fantasma" que pode logar mas não tem dados locais
                 try
                 {
-                    var compensationResult = await userDomainService.DeactivateUserInKeycloakAsync(userResult.Value.Id, CancellationToken.None);
+                    var compensationResult = await userDomainService.DeactivateUserInKeycloakAsync(user.Id, CancellationToken.None);
                     if (compensationResult.IsFailure)
                     {
-                        logger.LogError("Compensation failed for user {UserId}: {Error}", userResult.Value.Id, compensationResult.Error);
+                        logger.LogError("Compensation failed for user {UserId}: {Error}", user.Id, compensationResult.Error);
                     }
                     else
                     {
-                        logger.LogInformation("Keycloak user {UserId} deactivated successfully as compensation.", userResult.Value.Id);
+                        logger.LogInformation("Keycloak user {UserId} deactivated successfully as compensation.", user.Id);
                     }
                 }
                 catch (Exception compensationEx)
                 {
                     logger.LogCritical(compensationEx,
                         "CRITICAL: Failed to compensate Keycloak user {UserId} after repository failure. Manual cleanup required.",
-                        userResult.Value.Id);
+                        user.Id);
                 }
             }
             else
             {
-                logger.LogWarning("Repository write failure reported but user {UserId} was found in DB. Skipping Keycloak compensation.", userResult.Value.Id);
+                logger.LogWarning("Repository write failure reported but user {UserId} was found in DB. Skipping Keycloak compensation.", user.Id);
             }
 
             if (ex is OperationCanceledException)
@@ -166,8 +174,8 @@ public sealed partial class RegisterCustomerCommandHandler(
             return Result<UserDto>.Failure(Error.Internal("Falha ao salvar o cadastro. Tente novamente mais tarde."));
         }
 
-        logger.LogInformation("Customer registered successfully: {Email} ({Id})", maskedEmail, userResult.Value.Id);
+        logger.LogInformation("Customer registered successfully: {Email} ({Id})", maskedEmail, user.Id);
 
-        return Result<UserDto>.Success(userResult.Value.ToDto());
+        return Result<UserDto>.Success(user.ToDto());
     }
 }

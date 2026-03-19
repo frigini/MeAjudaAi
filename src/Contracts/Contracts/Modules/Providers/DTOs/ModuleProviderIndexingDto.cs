@@ -9,6 +9,7 @@ namespace MeAjudaAi.Contracts.Modules.Providers.DTOs;
 public sealed record ModuleProviderIndexingDto(
     Guid ProviderId,
     string Name,
+    string Slug,
     double Latitude,
     double Longitude,
     IReadOnlyCollection<Guid> ServiceIds,

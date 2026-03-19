@@ -112,7 +112,7 @@ public static class ProvidersTestInfrastructureExtensions
         services.AddScoped<ICommandDispatcher, CommandDispatcher>();
         
         // Registrar handlers de teste explicitamente
-        services.AddScoped<IQueryHandler<GetPublicProviderByIdQuery, Result<PublicProviderDto?>>, GetPublicProviderByIdQueryHandler>();
+        services.AddScoped<IQueryHandler<GetPublicProviderByIdOrSlugQuery, Result<PublicProviderDto?>>, GetPublicProviderByIdOrSlugQueryHandler>();
         services.AddScoped<IQueryHandler<GetProviderByUserIdQuery, Result<ProviderDto?>>, GetProviderByUserIdQueryHandler>();
         services.AddScoped<ICommandHandler<UpdateProviderProfileCommand, Result<ProviderDto>>, UpdateProviderProfileCommandHandler>();
 

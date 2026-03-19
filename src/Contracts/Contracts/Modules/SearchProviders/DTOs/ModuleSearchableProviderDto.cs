@@ -8,6 +8,7 @@ namespace MeAjudaAi.Contracts.Modules.SearchProviders.DTOs;
 public sealed record ModuleSearchableProviderDto(
     Guid ProviderId,
     string Name,
+    string Slug,
     ModuleLocationDto Location,
     decimal AverageRating,
     int TotalReviews,

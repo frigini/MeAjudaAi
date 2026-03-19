@@ -26,6 +26,7 @@ public class SearchableProviderTests
         var provider = SearchableProvider.Create(
             providerId,
             name,
+            "test-provider",
             location,
             subscriptionTier,
             "Test description",
@@ -45,6 +46,7 @@ public class SearchableProviderTests
         provider.AverageRating.Should().Be(0);
         provider.TotalReviews.Should().Be(0);
         provider.ServiceIds.Should().BeEmpty();
+        provider.Slug.Should().Be("test-provider");
     }
 
     [Fact]
@@ -55,11 +57,11 @@ public class SearchableProviderTests
         var location = new GeoPoint(-23.5505, -46.6333);
 
         // Act
-        var act = () => SearchableProvider.Create(providerId, "", location);
+        var act = () => SearchableProvider.Create(providerId, "", "slug", location);
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("*Provider name cannot be empty*");
+            .WithMessage("*O nome do provedor não pode ficar vazio*");
     }
 
     [Fact]
@@ -70,10 +72,96 @@ public class SearchableProviderTests
         var location = new GeoPoint(-23.5505, -46.6333);
 
         // Act
-        var act = () => SearchableProvider.Create(providerId, "   ", location);
+        var act = () => SearchableProvider.Create(providerId, "   ", "slug", location);
 
         // Assert
         act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void Create_WithEmptySlug_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var location = new GeoPoint(-23.5505, -46.6333);
+
+        // Act
+        var act = () => SearchableProvider.Create(providerId, "Valid Name", "", location);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*O identificador do provedor não pode estar vazio nem em formato inválido*");
+    }
+
+    [Fact]
+    public void Create_WithWhitespaceSlug_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var location = new GeoPoint(-23.5505, -46.6333);
+
+        // Act
+        var act = () => SearchableProvider.Create(providerId, "Valid Name", "   ", location);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*O identificador do provedor não pode estar vazio nem em formato inválido*");
+    }
+
+    [Fact]
+    public void Create_WithSpecialCharactersSlug_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var location = new GeoPoint(-23.5505, -46.6333);
+
+        // Act
+        var act = () => SearchableProvider.Create(providerId, "Valid Name", "!!!", location);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*O identificador do provedor não pode estar vazio nem em formato inválido*");
+    }
+
+    [Fact]
+    public void Create_WithUppercaseSlug_ShouldNormalizeToLowercase()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var location = new GeoPoint(-23.5505, -46.6333);
+
+        // Act
+        var provider = SearchableProvider.Create(providerId, "Valid Name", "My-SLUG", location);
+
+        // Assert
+        provider.Slug.Should().Be("my-slug");
+    }
+
+    [Fact]
+    public void UpdateBasicInfo_WithEmptySlug_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+
+        // Act
+        var act = () => provider.UpdateBasicInfo("Valid Name", "", "desc", "city", "ST");
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*O identificador do provedor não pode estar vazio nem em formato inválido*");
+    }
+
+    [Fact]
+    public void UpdateBasicInfo_WithUppercaseSlug_ShouldNormalizeToLowercase()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+
+        // Act
+        provider.UpdateBasicInfo("Valid Name", "MY-SLUG", "desc", "city", "ST");
+
+        // Assert
+        provider.Slug.Should().Be("my-slug");
     }
 
     [Fact]
@@ -87,7 +175,7 @@ public class SearchableProviderTests
         var newState = "RJ";
 
         // Act
-        provider.UpdateBasicInfo(newName, newDescription, newCity, newState);
+        provider.UpdateBasicInfo(newName, "updated-provider", newDescription, newCity, newState);
 
         // Assert
         provider.Name.Should().Be(newName);
@@ -95,6 +183,7 @@ public class SearchableProviderTests
         provider.City.Should().Be(newCity);
         provider.State.Should().Be(newState);
         provider.UpdatedAt.Should().NotBeNull();
+        provider.Slug.Should().Be("updated-provider");
     }
 
     [Fact]
@@ -104,7 +193,7 @@ public class SearchableProviderTests
         var provider = CreateValidProvider();
 
         // Act
-        var act = () => provider.UpdateBasicInfo("", "desc", "city", "ST");
+        var act = () => provider.UpdateBasicInfo("", "slug", "desc", "city", "ST");
 
         // Assert
         act.Should().Throw<ArgumentException>();
@@ -296,7 +385,7 @@ public class SearchableProviderTests
     {
         // Arrange
         var location = new GeoPoint(-23.5505, -46.6333);
-        var provider = SearchableProvider.Create(Guid.NewGuid(), "Test", location);
+        var provider = SearchableProvider.Create(Guid.NewGuid(), "Test", "test", location);
 
         // Act
         var distance = provider.CalculateDistanceToInKm(location);
@@ -310,6 +399,7 @@ public class SearchableProviderTests
         return SearchableProvider.Create(
             Guid.NewGuid(),
             "Test Provider",
+            "test-provider",
             new GeoPoint(-23.5505, -46.6333), // São Paulo
             ESubscriptionTier.Free,
             "Test description",

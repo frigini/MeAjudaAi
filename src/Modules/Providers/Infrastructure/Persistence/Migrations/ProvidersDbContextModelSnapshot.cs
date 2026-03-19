@@ -18,7 +18,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("providers")
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -51,6 +51,12 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
                         .HasColumnName("rejection_reason");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("slug");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -99,6 +105,9 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Name")
                         .HasDatabaseName("ix_providers_name");
+
+                    b.HasIndex("Slug")
+                        .HasDatabaseName("ix_providers_slug");
 
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_providers_status");
@@ -302,13 +311,11 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                                 .HasColumnName("document_type");
 
                             b1.Property<string>("FileName")
-                                .HasMaxLength(255)
-                                .HasColumnType("character varying(255)")
+                                .HasColumnType("text")
                                 .HasColumnName("file_name");
 
                             b1.Property<string>("FileUrl")
-                                .HasMaxLength(2048)
-                                .HasColumnType("character varying(2048)")
+                                .HasColumnType("text")
                                 .HasColumnName("file_url");
 
                             b1.Property<bool>("IsPrimary")

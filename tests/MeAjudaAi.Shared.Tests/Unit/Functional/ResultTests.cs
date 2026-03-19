@@ -148,7 +148,7 @@ public class ResultTests
 
         // Act
         var successResult = new Result<string>(true, value, null);
-        var failureResult = new Result<string>(false, default, error);
+        var failureResult = new Result<string>(false, default!, error);
 
         // Assert
         successResult.IsSuccess.Should().BeTrue();

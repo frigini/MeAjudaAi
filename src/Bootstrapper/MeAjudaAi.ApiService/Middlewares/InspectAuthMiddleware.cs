@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 
-namespace MeAjudaAi.ApiService.Middleware;
+namespace MeAjudaAi.ApiService.Middlewares;
 
 
 /// <summary>

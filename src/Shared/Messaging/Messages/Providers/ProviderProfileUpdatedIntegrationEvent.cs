@@ -22,5 +22,6 @@ public sealed record ProviderProfileUpdatedIntegrationEvent(
     string? UpdatedBy = null,
     string? PreviousName = null,
     string? NewEmail = null,
-    string? NewPhoneNumber = null
+    string? NewPhoneNumber = null,
+    string? Slug = null
 ) : IntegrationEvent(Source);

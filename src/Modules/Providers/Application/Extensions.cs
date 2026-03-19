@@ -29,7 +29,7 @@ public static class Extensions
         services.AddScoped<IQueryHandler<GetProvidersByStateQuery, Result<IReadOnlyList<ProviderDto>>>, GetProvidersByStateQueryHandler>();
         services.AddScoped<IQueryHandler<GetProvidersByTypeQuery, Result<IReadOnlyList<ProviderDto>>>, GetProvidersByTypeQueryHandler>();
         services.AddScoped<IQueryHandler<GetProvidersByVerificationStatusQuery, Result<IReadOnlyList<ProviderDto>>>, GetProvidersByVerificationStatusQueryHandler>();
-        services.AddScoped<IQueryHandler<GetPublicProviderByIdQuery, Result<PublicProviderDto?>>, GetPublicProviderByIdQueryHandler>();
+        services.AddScoped<IQueryHandler<GetPublicProviderByIdOrSlugQuery, Result<PublicProviderDto?>>, GetPublicProviderByIdOrSlugQueryHandler>();
 
         // Command Handlers - registro manual para garantir disponibilidade
         services.AddScoped<ICommandHandler<CreateProviderCommand, Result<ProviderDto>>, CreateProviderCommandHandler>();

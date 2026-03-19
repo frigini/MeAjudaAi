@@ -1,24 +1,34 @@
 using MeAjudaAi.Modules.Users.API;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit;
+
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.API;
 
 /// <summary>
-/// Testes de integração dos métodos de extensão do módulo Users
-/// Foca em cenários de integração e configuração completa
+/// Testes unitários dos métodos de extensão do módulo Users
+/// Foca em cenários unitários e configuração completa
 /// </summary>
-[Trait("Category", "Integration")]
+[Trait("Category", "Unit")]
 [Trait("Module", "Users")]
 [Trait("Layer", "API")]
 public class ExtensionsTests
 {
-    [Fact]
-    public void AddUsersModule_ShouldAddApplicationAndInfrastructureServices()
+    private static IConfiguration BuildTestConfiguration_Minimal()
     {
-        // Arrange
-        var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder()
+        return new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = "Server=localhost;Database=test;"
+            })
+            .Build();
+    }
+
+    private static IConfiguration BuildTestConfiguration_Full()
+    {
+        return new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:DefaultConnection"] = "Server=localhost;Database=test;User Id=test;Password=test;",
@@ -28,6 +38,40 @@ public class ExtensionsTests
                 ["Keycloak:ClientSecret"] = "test-secret"
             })
             .Build();
+    }
+
+    [Fact]
+    public void AddUsersModule_WithNullServices_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        IServiceCollection services = null!;
+        var configuration = BuildTestConfiguration_Minimal();
+
+        // Act & Assert
+        var act = () => services.AddUsersModule(configuration);
+        
+        act.Should().Throw<ArgumentNullException>().WithParameterName("services");
+    }
+
+    [Fact]
+    public void AddUsersModule_WithNullConfiguration_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        IConfiguration configuration = null!;
+
+        // Act & Assert
+        var act = () => services.AddUsersModule(configuration);
+        
+        act.Should().Throw<ArgumentNullException>().WithParameterName("configuration");
+    }
+
+    [Fact]
+    public void AddUsersModule_ShouldAddApplicationAndInfrastructureServices()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var configuration = BuildTestConfiguration_Full();
 
         // Act
         var result = services.AddUsersModule(configuration);
@@ -45,19 +89,29 @@ public class ExtensionsTests
     }
 
     [Fact]
-    public void AddUsersModule_WithEmptyConfiguration_ShouldRegisterServices()
+    public void AddUsersModule_WithEmptyConfiguration_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
 
-        // Act - Não deve lançar exceção durante o registro mesmo com configuração vazia
-        var result = services.AddUsersModule(configuration);
+        var originalAspNetCoreEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var originalDotNetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        try
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Production");
 
-        // Assert
-        Assert.NotNull(result);
-        Assert.Same(services, result);
-        Assert.True(services.Count > 0, "Services should be registered even with empty configuration");
+            // Act & Assert
+            var act = () => services.AddUsersModule(configuration);
+            
+            act.Should().Throw<InvalidOperationException>();
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalAspNetCoreEnv);
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalDotNetEnv);
+        }
     }
 
     [Fact]
@@ -65,7 +119,7 @@ public class ExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder().Build();
+        var configuration = BuildTestConfiguration_Minimal();
 
         // Act
         var result = services.AddUsersModule(configuration);
@@ -79,16 +133,7 @@ public class ExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:DefaultConnection"] = "Server=localhost;Database=test;User Id=test;Password=test;",
-                ["Keycloak:BaseUrl"] = "http://localhost:8080",
-                ["Keycloak:Realm"] = "test-realm",
-                ["Keycloak:ClientId"] = "test-client",
-                ["Keycloak:ClientSecret"] = "test-secret"
-            })
-            .Build();
+        var configuration = BuildTestConfiguration_Full();
 
         // Act
         services.AddUsersModule(configuration);
@@ -108,9 +153,7 @@ public class ExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>())
-            .Build();
+        var configuration = BuildTestConfiguration_Minimal();
 
         // Act
         var result = services.AddUsersModule(configuration);
@@ -126,7 +169,6 @@ public class ExtensionsTests
     [Theory]
     [InlineData("Server=localhost;Database=test1;", "test-realm")]
     [InlineData("Server=localhost;Database=test2;", "another-realm")]
-    [InlineData("", "")]
     public void AddUsersModule_WithVariousConfigurations_ShouldRegisterServices(string connectionString, string realm)
     {
         // Arrange

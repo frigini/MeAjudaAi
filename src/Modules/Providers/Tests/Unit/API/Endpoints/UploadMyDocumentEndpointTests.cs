@@ -54,9 +54,22 @@ public class UploadMyDocumentEndpointTests
         var request = new AddDocumentRequest("12345678909", EDocumentType.CPF);
         
         var providerDto = new ProviderDto(
-            providerId, userId, "Test", EProviderType.Individual, null!, 
-            EProviderStatus.PendingBasicInfo, EVerificationStatus.Pending, EProviderTier.Standard,
-            new List<DocumentDto>(), new List<QualificationDto>(), new List<ProviderServiceDto>(), DateTime.UtcNow, null, false, null, null, null);
+            Id: providerId,
+            UserId: userId,
+            Name: "Test",
+            Slug: "test",
+            Type: EProviderType.Individual,
+            BusinessProfile: null!,
+            Status: EProviderStatus.PendingBasicInfo,
+            VerificationStatus: EVerificationStatus.Pending,
+            Tier: EProviderTier.Standard,
+            Documents: new List<DocumentDto>(),
+            Qualifications: new List<QualificationDto>(),
+            Services: new List<ProviderServiceDto>(),
+            CreatedAt: DateTime.UtcNow,
+            UpdatedAt: null,
+            IsDeleted: false,
+            DeletedAt: null);
 
         // Mock Query (Get provider by user id)
         _queryDispatcherMock
@@ -128,9 +141,22 @@ public class UploadMyDocumentEndpointTests
         var request = new AddDocumentRequest("12345678909", EDocumentType.CPF);
         
         var providerDto = new ProviderDto(
-            providerId, userId, "Test", EProviderType.Individual, null!, 
-            EProviderStatus.PendingBasicInfo, EVerificationStatus.Pending, EProviderTier.Standard,
-            new List<DocumentDto>(), new List<QualificationDto>(), new List<ProviderServiceDto>(), DateTime.UtcNow, null, false, null, null, null);
+            Id: providerId,
+            UserId: userId,
+            Name: "Test",
+            Slug: "test",
+            Type: EProviderType.Individual,
+            BusinessProfile: null!,
+            Status: EProviderStatus.PendingBasicInfo,
+            VerificationStatus: EVerificationStatus.Pending,
+            Tier: EProviderTier.Standard,
+            Documents: new List<DocumentDto>(),
+            Qualifications: new List<QualificationDto>(),
+            Services: new List<ProviderServiceDto>(),
+            CreatedAt: DateTime.UtcNow,
+            UpdatedAt: null,
+            IsDeleted: false,
+            DeletedAt: null);
 
         _queryDispatcherMock.Setup(x => x.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(
                 It.IsAny<GetProviderByUserIdQuery>(), It.IsAny<CancellationToken>()))

@@ -31,7 +31,7 @@ internal class LocalDevelopmentUserDomainService : IUserDomainService
         // Using UuidGenerator.NewId() for better time-based ordering and performance
         var userResult = User.Create(username, email, firstName, lastName, UuidGenerator.NewId().ToString(), phoneNumber);
         if (userResult.IsFailure) return Task.FromResult(Result<User>.Failure(userResult.Error));
-        return Task.FromResult(Result<User>.Success(userResult.Value));
+        return Task.FromResult(Result<User>.Success(userResult.Value!));
     }
 
     /// <summary>

@@ -23,5 +23,6 @@ public sealed record ProviderRegisteredIntegrationEvent(
     string? PhoneNumber = null,
     string? City = null,
     string? State = null,
-    DateTime? RegisteredAt = null
+    DateTime? RegisteredAt = null,
+    string? Slug = null
 ) : IntegrationEvent(Source);

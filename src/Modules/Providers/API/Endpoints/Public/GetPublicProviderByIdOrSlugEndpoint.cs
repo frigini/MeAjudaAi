@@ -14,23 +14,23 @@ using MeAjudaAi.Shared.Utilities.Constants;
 namespace MeAjudaAi.Modules.Providers.API.Endpoints.Public;
 
 /// <summary>
-/// Endpoint público para consulta de detalhes básicos do prestador.
+/// Endpoint público para consulta de detalhes básicos do prestador por ID ou slug.
 /// </summary>
-public class GetPublicProviderByIdEndpoint : BaseEndpoint, IEndpoint
+public class GetPublicProviderByIdOrSlugEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet(ApiEndpoints.Providers.GetPublicById, GetPublicProviderAsync)
-            .WithName("GetPublicProviderById")
+        => app.MapGet(ApiEndpoints.Providers.GetPublicByIdOrSlug, GetPublicProviderAsync)
+            .WithName("GetPublicProviderByIdOrSlug")
             .WithSummary("Consultar perfil público do prestador")
             .WithDescription("""
                 Recupera dados públicos e seguros de um prestador para exibição no site.
-                Não requer autenticação.
+                Não requer autenticação. Aceita ID (GUID) ou slug amigável (ex.: "joao-silva-a1b2c3d4").
                 
                 **Dados Retornados:**
                 - Informações básicas (Nome, Fantasia, Descrição)
                 - Localização aproximada (Cidade/Estado)
                 - Avaliação média e contagem de reviews
-                - Lista de serviços oferecidos
+                - Lista de serviços oferecidos (Nota: esta lista será vazia se a configuração PublicProfilePrivacy do provedor estiver ativa e o solicitante for anônimo)
                 
                 **Dados Ocultados (Privacidade):**
                 - Documentos (CPF/CNPJ)
@@ -43,14 +43,14 @@ public class GetPublicProviderByIdEndpoint : BaseEndpoint, IEndpoint
             .Produces(StatusCodes.Status404NotFound);
 
     private static async Task<IResult> GetPublicProviderAsync(
-        Guid id,
+        string idOrSlug,
         IQueryDispatcher queryDispatcher,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
         var isAuthenticated = httpContext.User.Identity?.IsAuthenticated ?? false;
-        var query = new GetPublicProviderByIdQuery(id, isAuthenticated);
-        var result = await queryDispatcher.QueryAsync<GetPublicProviderByIdQuery, Result<PublicProviderDto?>>(
+        var query = new GetPublicProviderByIdOrSlugQuery(idOrSlug, isAuthenticated);
+        var result = await queryDispatcher.QueryAsync<GetPublicProviderByIdOrSlugQuery, Result<PublicProviderDto?>>(
             query, cancellationToken);
 
         return Handle(result);

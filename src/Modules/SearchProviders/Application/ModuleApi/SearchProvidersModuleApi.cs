@@ -114,6 +114,7 @@ public sealed class SearchProvidersModuleApi(
             Items: result.Value!.Items.Select(p => new ModuleSearchableProviderDto(
                 ProviderId: p.ProviderId,
                 Name: p.Name,
+                Slug: p.Slug,
                 Location: new ModuleLocationDto(
                     Latitude: p.Location.Latitude,
                     Longitude: p.Location.Longitude),
@@ -165,7 +166,7 @@ public sealed class SearchProvidersModuleApi(
 
                 // Atualizar informações do provider existente
                 var location = new GeoPoint(providerData.Latitude, providerData.Longitude);
-                existing.UpdateBasicInfo(providerData.Name, providerData.Description, providerData.City, providerData.State);
+                existing.UpdateBasicInfo(providerData.Name, providerData.Slug, providerData.Description, providerData.City, providerData.State);
                 existing.UpdateLocation(location);
                 existing.UpdateRating(providerData.AverageRating, providerData.TotalReviews);
                 existing.UpdateSubscriptionTier(ToDomainTier(providerData.SubscriptionTier));
@@ -187,6 +188,7 @@ public sealed class SearchProvidersModuleApi(
                 var searchableProvider = SearchableProvider.Create(
                     providerId: providerData.ProviderId,
                     name: providerData.Name,
+                    slug: providerData.Slug,
                     location: location,
                     subscriptionTier: ToDomainTier(providerData.SubscriptionTier),
                     description: providerData.Description,

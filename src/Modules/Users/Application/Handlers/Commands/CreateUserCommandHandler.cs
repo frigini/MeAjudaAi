@@ -75,13 +75,13 @@ internal sealed class CreateUserCommandHandler(
                 return Result<UserDto>.Failure(userResult.Error);
 
             // Persistir usuário no repositório
-            await PersistUserAsync(userResult.Value, stopwatch, cancellationToken);
+            await PersistUserAsync(userResult.Value!, stopwatch, cancellationToken);
 
             stopwatch.Stop();
             logger.LogInformation("User {UserId} created successfully for email {Email} in {ElapsedMs}ms",
-                userResult.Value.Id, command.Email, stopwatch.ElapsedMilliseconds);
+                userResult.Value!.Id, command.Email, stopwatch.ElapsedMilliseconds);
 
-            return Result<UserDto>.Success(userResult.Value.ToDto());
+            return Result<UserDto>.Success(userResult.Value!.ToDto());
         }
         catch (ArgumentException)
         {

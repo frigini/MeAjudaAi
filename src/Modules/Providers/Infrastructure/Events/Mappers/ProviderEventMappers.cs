@@ -22,7 +22,8 @@ public static class ProviderEventMappers
             Name: domainEvent.Name,
             ProviderType: domainEvent.Type.ToString(),
             Email: domainEvent.Email,
-            RegisteredAt: DateTime.UtcNow
+            RegisteredAt: DateTime.UtcNow,
+            Slug: domainEvent.Slug
         );
     }
 
@@ -70,7 +71,8 @@ public static class ProviderEventMappers
             Name: domainEvent.Name,
             UpdatedFields: updatedFields,
             UpdatedBy: domainEvent.UpdatedBy,
-            NewEmail: domainEvent.Email
+            NewEmail: domainEvent.Email,
+            Slug: domainEvent.Slug
         );
     }
 

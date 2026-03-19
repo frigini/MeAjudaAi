@@ -9,6 +9,7 @@ namespace MeAjudaAi.Modules.Providers.Application.DTOs;
 public sealed record PublicProviderDto(
     Guid Id,
     string Name,
+    string Slug,
     EProviderType Type,
     string? FantasyName,
     string? Description,

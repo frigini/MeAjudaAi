@@ -66,7 +66,7 @@ internal sealed class DeleteUserCommandHandler(
             if (userResult.IsFailure)
                 return Result.Failure(userResult.Error);
 
-            var user = userResult.Value;
+            var user = userResult.Value!;
 
             // Sincronizar com Keycloak
             var syncResult = await SyncWithKeycloakAsync(user, cancellationToken);

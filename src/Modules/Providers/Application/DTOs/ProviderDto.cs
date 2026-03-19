@@ -9,6 +9,7 @@ public sealed record ProviderDto(
     Guid Id,
     Guid UserId,
     string Name,
+    string Slug,
     EProviderType Type,
     BusinessProfileDto BusinessProfile,
     EProviderStatus Status,

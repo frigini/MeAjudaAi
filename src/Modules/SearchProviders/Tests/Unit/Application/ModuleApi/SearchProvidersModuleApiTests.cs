@@ -158,6 +158,7 @@ public class SearchProvidersModuleApiTests
             new(
                 ProviderId: providerId,
                 Name: "Provider 1",
+                Slug: "provider-1",
                 Location: new LocationDto(
                     Latitude: -23.5,
                     Longitude: -46.6),
@@ -205,6 +206,7 @@ public class SearchProvidersModuleApiTests
         var provider = result.Value.Items[0];
         provider.ProviderId.Should().Be(providerId);
         provider.Name.Should().Be("Provider 1");
+        provider.Slug.Should().Be("provider-1");
         provider.Description.Should().Be("Test provider");
         provider.AverageRating.Should().Be(4.5m);
         provider.TotalReviews.Should().Be(10);
@@ -323,23 +325,25 @@ public class SearchProvidersModuleApiTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var providerData = new ModuleProviderIndexingDto(
+        var dto = new ModuleProviderIndexingDto(
             ProviderId: providerId,
-            Name: "New Provider",
-            Latitude: -23.561414,
-            Longitude: -46.656559,
-            ServiceIds: new[] { Guid.NewGuid() },
+            Name: "Test Provider",
+            Slug: "test-provider",
+            Latitude: -23.55,
+            Longitude: -46.63,
+            ServiceIds: new List<Guid> { Guid.NewGuid() },
             AverageRating: 4.5m,
             TotalReviews: 10,
-            SubscriptionTier: ESubscriptionTier.Gold,
+            SubscriptionTier: MeAjudaAi.Contracts.Modules.SearchProviders.Enums.ESubscriptionTier.Gold,
             IsActive: true,
-            Description: "Test description",
+            Description: "A test provider",
             City: "São Paulo",
-            State: "SP");
+            State: "SP"
+        );
 
         _providersApiMock
             .Setup(x => x.GetProviderForIndexingAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<ModuleProviderIndexingDto?>.Success(providerData));
+            .ReturnsAsync(Result<ModuleProviderIndexingDto?>.Success(dto));
 
         _repositoryMock
             .Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
@@ -360,23 +364,25 @@ public class SearchProvidersModuleApiTests
         // Arrange
         var providerId = Guid.NewGuid();
         var existingProvider = SearchableProvider.Create(
-            providerId,
-            "Old Name",
-            new GeoPoint(-23.5, -46.6),
-            DomainEnums.ESubscriptionTier.Free,
-            "Old description",
-            "Old City",
-            "OC");
+            providerId: providerId,
+            name: "Old Name",
+            slug: "old-name",
+            location: new GeoPoint(-23.5, -46.6),
+            subscriptionTier: DomainEnums.ESubscriptionTier.Free,
+            description: "Old description",
+            city: "Old City",
+            state: "OC");
 
         var updatedData = new ModuleProviderIndexingDto(
             ProviderId: providerId,
             Name: "Updated Provider",
+            Slug: "updated-provider",
             Latitude: -23.561414,
             Longitude: -46.656559,
             ServiceIds: new[] { Guid.NewGuid(), Guid.NewGuid() },
             AverageRating: 4.8m,
             TotalReviews: 25,
-            SubscriptionTier: ESubscriptionTier.Platinum,
+            SubscriptionTier: MeAjudaAi.Contracts.Modules.SearchProviders.Enums.ESubscriptionTier.Platinum,
             IsActive: true,
             Description: "Updated description",
             City: "São Paulo",
@@ -468,12 +474,13 @@ public class SearchProvidersModuleApiTests
         var providerData = new ModuleProviderIndexingDto(
             ProviderId: providerId,
             Name: "Inactive Provider",
+            Slug: "inactive-provider",
             Latitude: -23.5,
             Longitude: -46.6,
             ServiceIds: Array.Empty<Guid>(),
             AverageRating: 0,
             TotalReviews: 0,
-            SubscriptionTier: ESubscriptionTier.Free,
+            SubscriptionTier: MeAjudaAi.Contracts.Modules.SearchProviders.Enums.ESubscriptionTier.Free,
             IsActive: false,
             Description: "Test",
             City: "São Paulo",
@@ -530,13 +537,14 @@ public class SearchProvidersModuleApiTests
         // Arrange
         var providerId = Guid.NewGuid();
         var existingProvider = SearchableProvider.Create(
-            providerId,
-            "Provider to Remove",
-            new GeoPoint(-23.5, -46.6),
-            DomainEnums.ESubscriptionTier.Free,
-            "Test",
-            "São Paulo",
-            "SP");
+            providerId: providerId,
+            name: "Provider to Remove",
+            slug: "provider-to-remove",
+            location: new GeoPoint(-23.5, -46.6),
+            subscriptionTier: DomainEnums.ESubscriptionTier.Free,
+            description: "Test",
+            city: "São Paulo",
+            state: "SP");
 
         _repositoryMock
             .Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))

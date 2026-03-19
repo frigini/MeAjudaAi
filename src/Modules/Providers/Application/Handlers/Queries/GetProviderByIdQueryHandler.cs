@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Modules.Providers.Domain.Constants;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
@@ -34,7 +35,7 @@ public sealed class GetProviderByIdQueryHandler(
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", query.ProviderId);
-                return Result<ProviderDto?>.Failure(Error.NotFound("Prestador não encontrado"));
+                return Result<ProviderDto?>.Failure(Error.NotFound(ProviderErrors.ProviderNotFound));
             }
 
             logger.LogInformation("Provider {ProviderId} found successfully", query.ProviderId);

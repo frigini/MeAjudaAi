@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Utilities;
 
 namespace MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 
@@ -20,6 +21,11 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     /// Nome do provedor para exibição nos resultados de busca.
     /// </summary>
     public string Name { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// Slug amigável para URL do provedor.
+    /// </summary>
+    public string Slug { get; private set; } = string.Empty;
 
     /// <summary>
     /// Localização geográfica do provedor.
@@ -95,6 +101,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     public static SearchableProvider Create(
         Guid providerId,
         string name,
+        string slug,
         GeoPoint location,
         ESubscriptionTier subscriptionTier = ESubscriptionTier.Free,
         string? description = null,
@@ -103,8 +110,10 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new ArgumentException("Provider name cannot be empty.", nameof(name));
+            throw new ArgumentException("O nome do provedor não pode ficar vazio.", nameof(name));
         }
+
+        slug = NormalizeAndValidateSlug(slug);
 
         ArgumentNullException.ThrowIfNull(location);
 
@@ -115,6 +124,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             location,
             subscriptionTier)
         {
+            Slug = slug,
             Description = description?.Trim(),
             City = city?.Trim(),
             State = state?.Trim()
@@ -136,6 +146,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
         Guid id,
         Guid providerId,
         string name,
+        string slug,
         GeoPoint location,
         ESubscriptionTier subscriptionTier,
         decimal averageRating,
@@ -146,6 +157,11 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
         string? city = null,
         string? state = null)
     {
+        if (!TryNormalizeSlug(slug, out var normalizedSlug))
+        {
+            normalizedSlug = SlugHelper.GenerateWithSuffix(name, providerId.ToString("N")[..8]);
+        }
+
         var searchableProvider = new SearchableProvider(
             new SearchableProviderId(id),
             providerId,
@@ -153,6 +169,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             location,
             subscriptionTier)
         {
+            Slug = normalizedSlug,
             Description = description,
             City = city,
             State = state,
@@ -168,14 +185,17 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     /// <summary>
     /// Atualiza as informações básicas do provedor.
     /// </summary>
-    public void UpdateBasicInfo(string name, string? description, string? city, string? state)
+    public void UpdateBasicInfo(string name, string slug, string? description, string? city, string? state)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new ArgumentException("Provider name cannot be empty.", nameof(name));
+            throw new ArgumentException("O nome do provedor não pode ficar vazio.", nameof(name));
         }
 
+        slug = NormalizeAndValidateSlug(slug);
+
         Name = name.Trim();
+        Slug = slug;
         Description = description?.Trim();
         City = city?.Trim();
         State = state?.Trim();
@@ -259,5 +279,21 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
         ArgumentNullException.ThrowIfNull(targetLocation);
 
         return Location.DistanceTo(targetLocation);
+    }
+
+    private static string NormalizeAndValidateSlug(string? slug)
+    {
+        if (!TryNormalizeSlug(slug, out var normalized))
+        {
+            throw new ArgumentException("O identificador do provedor não pode estar vazio nem em formato inválido.", nameof(slug));
+        }
+
+        return normalized;
+    }
+
+    private static bool TryNormalizeSlug(string? slug, out string normalizedSlug)
+    {
+        normalizedSlug = SlugHelper.Generate(slug ?? string.Empty);
+        return !string.IsNullOrWhiteSpace(normalizedSlug);
     }
 }

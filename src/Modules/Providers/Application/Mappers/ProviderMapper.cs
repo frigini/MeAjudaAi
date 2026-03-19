@@ -15,10 +15,11 @@ public static class ProviderMapper
     public static ProviderDto ToDto(this Provider provider)
     {
         return new ProviderDto(
-            provider.Id.Value,
-            provider.UserId,
-            provider.Name,
-            provider.Type,
+            Id: provider.Id.Value,
+            UserId: provider.UserId,
+            Name: provider.Name,
+            Slug: provider.Slug,
+            Type: provider.Type,
             provider.BusinessProfile.ToDto(),
             provider.Status,
             provider.VerificationStatus,

@@ -16,6 +16,7 @@ public class ProviderBuilder : BaseBuilder<Provider>
     private ProviderId? _providerId;
     private EVerificationStatus? _verificationStatus;
     private EProviderTier? _tier;
+    private EProviderStatus? _status;
     private readonly List<Document> _documents = new();
     private readonly List<Qualification> _qualifications = new();
 
@@ -70,14 +71,35 @@ public class ProviderBuilder : BaseBuilder<Provider>
                 }
 
                 // Define tier se especificado
-                if (_tier.HasValue)
+                if (_tier.HasValue && _tier.Value != EProviderTier.Standard)
                 {
-                    var prop = typeof(Provider).GetProperty(nameof(Provider.Tier));
-                    if (prop == null)
+                    provider.PromoteTier(_tier.Value, "test-builder");
+                }
+
+                // Define status se especificado seguindo a máquina de estados do domínio
+                if (_status.HasValue && _status.Value != EProviderStatus.PendingBasicInfo)
+                {
+                    switch (_status.Value)
                     {
-                        throw new InvalidOperationException($"Property '{nameof(Provider.Tier)}' was not found on class {nameof(Provider)}.");
+                        case EProviderStatus.PendingDocumentVerification:
+                            provider.CompleteBasicInfo("test-builder");
+                            break;
+                            
+                        case EProviderStatus.Active:
+                            provider.CompleteBasicInfo("test-builder");
+                            provider.Activate("test-builder");
+                            break;
+                            
+                        case EProviderStatus.Suspended:
+                            provider.CompleteBasicInfo("test-builder");
+                            provider.Activate("test-builder");
+                            provider.Suspend("Test suspension", "test-builder");
+                            break;
+                            
+                        case EProviderStatus.Rejected:
+                            provider.Reject("Test rejection", "test-builder");
+                            break;
                     }
-                    prop.SetValue(provider, _tier.Value);
                 }
 
                 return provider;
@@ -87,6 +109,12 @@ public class ProviderBuilder : BaseBuilder<Provider>
     public ProviderBuilder WithTier(EProviderTier tier)
     {
         _tier = tier;
+        return this;
+    }
+
+    public ProviderBuilder WithStatus(EProviderStatus status)
+    {
+        _status = status;
         return this;
     }
 
@@ -216,4 +244,5 @@ public class ProviderBuilder : BaseBuilder<Provider>
             contactInfo: contactInfo,
             primaryAddress: address);
     }
+
 }

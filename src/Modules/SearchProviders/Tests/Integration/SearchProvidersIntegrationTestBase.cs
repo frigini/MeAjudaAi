@@ -8,6 +8,7 @@ using MeAjudaAi.Shared.Geolocation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Shared.Utilities;
 using Testcontainers.PostgreSql;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration;
@@ -162,13 +163,14 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
         var location = new GeoPoint(latitude, longitude);
 
         var provider = SearchableProvider.Create(
-            providerId,
-            name,
-            location,
-            tier,
-            description,
-            city,
-            state);
+            providerId: providerId,
+            name: name,
+            slug: BuildTestSlug(name, providerId),
+            location: location,
+            subscriptionTier: tier,
+            description: description,
+            city: city,
+            state: state);
 
         return provider;
     }
@@ -189,13 +191,14 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
         var location = new GeoPoint(latitude, longitude);
 
         var provider = SearchableProvider.Create(
-            providerId,
-            name,
-            location,
-            tier,
-            description,
-            city,
-            state);
+            providerId: providerId,
+            name: name,
+            slug: BuildTestSlug(name, providerId),
+            location: location,
+            subscriptionTier: tier,
+            description: description,
+            city: city,
+            state: state);
 
         return provider;
     }
@@ -269,5 +272,18 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
         if (_serviceProvider == null)
             throw new InvalidOperationException("Service provider not initialized");
         return _serviceProvider.CreateScope();
+    }
+
+    /// <summary>
+    /// Número de caracteres do GUID usados como sufixo (deve coincidir com SlugHelper.GenerateWithSuffix).
+    /// </summary>
+    private const int GuidSuffixLength = 8;
+
+    /// <summary>
+    /// Constrói o slug usado nos testes a partir do nome e do ID do provedor.
+    /// </summary>
+    private static string BuildTestSlug(string name, Guid providerId)
+    {
+        return SlugHelper.GenerateWithSuffix(name, providerId.ToString("N")[..GuidSuffixLength]);
     }
 }

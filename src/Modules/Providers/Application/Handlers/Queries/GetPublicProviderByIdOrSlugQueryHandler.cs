@@ -8,6 +8,7 @@ using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Modules.Providers.Domain.Constants;
 using Microsoft.FeatureManagement;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,35 +16,48 @@ using System.Linq;
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 
 /// <summary>
-/// Handler responsável por processar a query de busca de prestador público.
+/// Handler responsável por processar a query de busca de prestador público por ID ou slug.
 /// </summary>
-public sealed class GetPublicProviderByIdQueryHandler : IQueryHandler<GetPublicProviderByIdQuery, Result<PublicProviderDto?>>
+public sealed class GetPublicProviderByIdOrSlugQueryHandler : IQueryHandler<GetPublicProviderByIdOrSlugQuery, Result<PublicProviderDto?>>
 {
     private readonly IProviderRepository _providerRepository;
     private readonly IFeatureManager _featureManager;
 
-    public GetPublicProviderByIdQueryHandler(IProviderRepository providerRepository, IFeatureManager featureManager)
+    public GetPublicProviderByIdOrSlugQueryHandler(IProviderRepository providerRepository, IFeatureManager featureManager)
     {
         _providerRepository = providerRepository;
         _featureManager = featureManager;
     }
 
     public async Task<Result<PublicProviderDto?>> HandleAsync(
-        GetPublicProviderByIdQuery query, 
+        GetPublicProviderByIdOrSlugQuery query,
         CancellationToken cancellationToken)
     {
-        var provider = await _providerRepository.GetByIdAsync(query.Id, cancellationToken);
+        var normalizedValue = query.IdOrSlug.Trim().ToLowerInvariant();
+
+        // Tenta resolver por ID (GUID); se não encontrar, faz fallback para slug.
+        // Isso cobre o caso em que um slug tem formato de GUID válido.
+        Domain.Entities.Provider? provider;
+        if (Guid.TryParse(normalizedValue, out var id))
+        {
+            provider = await _providerRepository.GetByIdAsync(new ProviderId(id), cancellationToken)
+                       ?? await _providerRepository.GetBySlugAsync(normalizedValue, cancellationToken);
+        }
+        else
+        {
+            provider = await _providerRepository.GetBySlugAsync(normalizedValue, cancellationToken);
+        }
 
         if (provider is null)
         {
-            return Result<PublicProviderDto?>.Failure(Error.NotFound("Prestador não encontrado."));
+            return Result<PublicProviderDto?>.Failure(Error.NotFound(ProviderErrors.ProviderNotFound));
         }
 
         // Validação adicional: Apenas prestadores ativos devem ser consultados publicamente
         // Se estiver suspenso ou rejeitado, retornamos NotFound por segurança/privacidade
         if (provider.Status != EProviderStatus.Active)
         {
-             return Result<PublicProviderDto?>.Failure(Error.NotFound("Prestador não encontrado."));
+             return Result<PublicProviderDto?>.Failure(Error.NotFound(ProviderErrors.ProviderNotFound));
         }
 
         var businessProfile = provider.BusinessProfile;
@@ -60,7 +74,7 @@ public sealed class GetPublicProviderByIdQueryHandler : IQueryHandler<GetPublicP
             ? businessProfile.ContactInfo.Email
             : null;
             
-        var services = !isPrivacyEnabled
+        var services = !shouldRedactContactInfo
             ? provider.Services.Select(s => s.ServiceName).ToList()
             : new List<string>();
 
@@ -68,6 +82,7 @@ public sealed class GetPublicProviderByIdQueryHandler : IQueryHandler<GetPublicP
         var dto = new PublicProviderDto(
             provider.Id,
             provider.Name,
+            provider.Slug,
             provider.Type,
             businessProfile.FantasyName,
             businessProfile.Description,
@@ -89,9 +104,9 @@ public sealed class GetPublicProviderByIdQueryHandler : IQueryHandler<GetPublicP
         return Result<PublicProviderDto?>.Success(dto);
     }
 
-    private static IEnumerable<string> ResolvePhoneNumbers(bool isPrivacyEnabled, BusinessProfile profile)
+    private static IEnumerable<string> ResolvePhoneNumbers(bool shouldRedactContactInfo, BusinessProfile profile)
     {
-        if (isPrivacyEnabled || profile.ContactInfo is null)
+        if (shouldRedactContactInfo || profile.ContactInfo is null)
             return Array.Empty<string>();
 
         if (string.IsNullOrWhiteSpace(profile.ContactInfo.PhoneNumber))

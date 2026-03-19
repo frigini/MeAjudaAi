@@ -41,8 +41,8 @@ public class ProviderProfileUpdatedDomainEventHandlerTests : IDisposable
     }
 
     /// <summary>
-    /// Verifies that HandleAsync publishes a ProviderProfileUpdatedIntegrationEvent with correct provider details
-    /// when processing a valid profile update domain event.
+    /// Verifica que HandleAsync publica um ProviderProfileUpdatedIntegrationEvent
+    /// com os detalhes corretos do provider ao processar um evento de atualização de perfil válido.
     /// </summary>
     [Fact]
     public async Task HandleAsync_ShouldPublishIntegrationEvent()
@@ -60,6 +60,7 @@ public class ProviderProfileUpdatedDomainEventHandlerTests : IDisposable
             1,
             "Updated Name",
             "updated@test.com",
+            "updated-name",
             null,
             new[] { "Name", "Email" }
         );
@@ -72,15 +73,16 @@ public class ProviderProfileUpdatedDomainEventHandlerTests : IDisposable
             x => x.PublishAsync(
                 It.Is<ProviderProfileUpdatedIntegrationEvent>(e =>
                     e.ProviderId == providerId.Value &&
-                    e.Name == "Updated Name"),
+                    e.Name == "Updated Name" &&
+                    e.Slug == "updated-name"),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
     /// <summary>
-    /// Verifies that when message bus publishing fails, the handler logs an error containing
-    /// "Error handling ProviderProfileUpdatedDomainEvent" and re-throws the exception.
+    /// Verifica que quando a publicação no message bus falha, o handler registra
+    /// um erro contendo "Error handling ProviderProfileUpdatedDomainEvent" e relança a exceção.
     /// </summary>
     [Fact]
     public async Task HandleAsync_WhenMessageBusFails_ShouldThrowException()
@@ -98,6 +100,7 @@ public class ProviderProfileUpdatedDomainEventHandlerTests : IDisposable
             1,
             "Updated Name",
             "updated@test.com",
+            "updated-name",
             null,
             new[] { "Name", "Email" }
         );

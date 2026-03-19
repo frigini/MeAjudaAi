@@ -50,14 +50,20 @@ public class SearchableProviderRepositoryTests : IDisposable, IAsyncDisposable
             longitude ?? _faker.Address.Longitude()
         );
 
+        var actualProviderId = providerId ?? UuidGenerator.NewId();
+        var actualName = name ?? _faker.Company.CompanyName();
+        var actualSlug = SlugHelper.Generate(actualName);
+        var actualSubscriptionTier = tier ?? _faker.Random.Enum<ESubscriptionTier>();
+
         return SearchableProvider.Create(
-            providerId ?? UuidGenerator.NewId(),
-            name ?? _faker.Company.CompanyName(),
-            location,
-            tier ?? ESubscriptionTier.Free,
-            _faker.Lorem.Sentence(),
-            _faker.Address.City(),
-            _faker.Address.StateAbbr()
+            providerId: actualProviderId,
+            name: actualName,
+            slug: actualSlug,
+            location: location,
+            subscriptionTier: actualSubscriptionTier,
+            description: _faker.Lorem.Sentence(),
+            city: _faker.Address.City(),
+            state: _faker.Address.StateAbbr()
         );
     }
 
@@ -187,7 +193,12 @@ public class SearchableProviderRepositoryTests : IDisposable, IAsyncDisposable
         _context.Entry(provider).State = EntityState.Detached;
 
         // Modify provider
-        provider.UpdateBasicInfo("Updated Name", "Updated Description", "São Paulo", "SP");
+        provider.UpdateBasicInfo(
+            name: "Updated Name", 
+            slug: "updated-name",
+            description: "Updated Description", 
+            city: "São Paulo", 
+            state: "SP");
 
         // Act
         await _repository.UpdateAsync(provider);
@@ -207,7 +218,12 @@ public class SearchableProviderRepositoryTests : IDisposable, IAsyncDisposable
         await _context.SaveChangesAsync();
 
         // Modify provider
-        provider.UpdateBasicInfo("Updated Name", "Updated Description", "Rio de Janeiro", "RJ");
+        provider.UpdateBasicInfo(
+            name: "Updated Name", 
+            slug: "updated-name",
+            description: "Updated Description", 
+            city: "Rio de Janeiro", 
+            state: "RJ");
 
         // Act
         await _repository.UpdateAsync(provider);
