@@ -26,6 +26,20 @@ public class ExtensionsTests
             .Build();
     }
 
+    private static IConfiguration BuildTestConfiguration_Full()
+    {
+        return new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = "Server=localhost;Database=test;User Id=test;Password=test;",
+                ["Keycloak:BaseUrl"] = "http://localhost:8080",
+                ["Keycloak:Realm"] = "test-realm",
+                ["Keycloak:ClientId"] = "test-client",
+                ["Keycloak:ClientSecret"] = "test-secret"
+            })
+            .Build();
+    }
+
     [Fact]
     public void AddUsersModule_WithNullServices_ShouldThrowArgumentNullException()
     {
@@ -50,20 +64,6 @@ public class ExtensionsTests
         var act = () => services.AddUsersModule(configuration);
         
         act.Should().Throw<ArgumentNullException>().WithParameterName("configuration");
-    }
-
-    private static IConfiguration BuildTestConfiguration_Full()
-    {
-        return new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:DefaultConnection"] = "Server=localhost;Database=test;User Id=test;Password=test;",
-                ["Keycloak:BaseUrl"] = "http://localhost:8080",
-                ["Keycloak:Realm"] = "test-realm",
-                ["Keycloak:ClientId"] = "test-client",
-                ["Keycloak:ClientSecret"] = "test-secret"
-            })
-            .Build();
     }
 
     [Fact]
@@ -95,10 +95,12 @@ public class ExtensionsTests
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
 
-        var originalEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var originalAspNetCoreEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var originalDotNetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
         try
         {
             Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Production");
 
             // Act & Assert
             var act = () => services.AddUsersModule(configuration);
@@ -107,7 +109,8 @@ public class ExtensionsTests
         }
         finally
         {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalEnvironment);
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalAspNetCoreEnv);
+            Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalDotNetEnv);
         }
     }
 
