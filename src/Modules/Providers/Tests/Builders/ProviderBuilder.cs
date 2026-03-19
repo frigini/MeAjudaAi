@@ -71,15 +71,35 @@ public class ProviderBuilder : BaseBuilder<Provider>
                 }
 
                 // Define tier se especificado
-                if (_tier.HasValue)
+                if (_tier.HasValue && _tier.Value != EProviderTier.Standard)
                 {
-                    SetPropertyValue(provider, nameof(Provider.Tier), _tier.Value);
+                    provider.PromoteTier(_tier.Value, "test-builder");
                 }
 
-                // Define status se especificado
-                if (_status.HasValue)
+                // Define status se especificado seguindo a máquina de estados do domínio
+                if (_status.HasValue && _status.Value != EProviderStatus.PendingBasicInfo)
                 {
-                    SetPropertyValue(provider, nameof(Provider.Status), _status.Value);
+                    switch (_status.Value)
+                    {
+                        case EProviderStatus.PendingDocumentVerification:
+                            provider.CompleteBasicInfo("test-builder");
+                            break;
+                            
+                        case EProviderStatus.Active:
+                            provider.CompleteBasicInfo("test-builder");
+                            provider.Activate("test-builder");
+                            break;
+                            
+                        case EProviderStatus.Suspended:
+                            provider.CompleteBasicInfo("test-builder");
+                            provider.Activate("test-builder");
+                            provider.Suspend("Test suspension", "test-builder");
+                            break;
+                            
+                        case EProviderStatus.Rejected:
+                            provider.Reject("Test rejection", "test-builder");
+                            break;
+                    }
                 }
 
                 return provider;
@@ -225,13 +245,4 @@ public class ProviderBuilder : BaseBuilder<Provider>
             primaryAddress: address);
     }
 
-    private static void SetPropertyValue(Provider provider, string propertyName, object value)
-    {
-        var prop = typeof(Provider).GetProperty(propertyName);
-        if (prop == null)
-        {
-            throw new InvalidOperationException($"Property '{propertyName}' was not found on class {nameof(Provider)}.");
-        }
-        prop.SetValue(provider, value);
-    }
 }

@@ -46,6 +46,7 @@ public class SearchableProviderTests
         provider.AverageRating.Should().Be(0);
         provider.TotalReviews.Should().Be(0);
         provider.ServiceIds.Should().BeEmpty();
+        provider.Slug.Should().Be("test-provider");
     }
 
     [Fact]
@@ -181,6 +182,7 @@ public class SearchableProviderTests
         provider.City.Should().Be(newCity);
         provider.State.Should().Be(newState);
         provider.UpdatedAt.Should().NotBeNull();
+        provider.Slug.Should().Be("updated-provider");
     }
 
     [Fact]

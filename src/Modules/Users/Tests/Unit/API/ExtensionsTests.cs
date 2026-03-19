@@ -19,7 +19,7 @@ public class ExtensionsTests
         return new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:Users"] = "Server=localhost;Database=test;"
+                ["ConnectionStrings:DefaultConnection"] = "Server=localhost;Database=test;"
             })
             .Build();
     }
