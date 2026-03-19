@@ -4,38 +4,48 @@ import { useState } from "react";
 import { Button } from "../../../components/ui/button";
 import { FileUpload } from "../../../components/ui/file-upload";
 import { useRouter } from "next/navigation";
+import { z } from "zod";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const documentSchema = z.object({
+  identityFile: z
+    .custom<File>((val) => val instanceof File, "O documento de identidade é obrigatório")
+    .refine((file) => file.size <= 5 * 1024 * 1024, "O tamanho máximo é 5MB")
+    .refine(
+      (file) => ["image/jpeg", "image/png", "application/pdf"].includes(file.type),
+      "Formato inválido. Aceitamos JPG, PNG ou PDF."
+    ),
+  certificateFile: z
+    .custom<File>((val) => val === undefined || val instanceof File, "Opcional")
+    .refine((file) => !file || file.size <= 5 * 1024 * 1024, "O tamanho máximo é 5MB")
+    .optional(),
+});
+
+type DocumentFormData = z.infer<typeof documentSchema>;
 
 export default function DocumentsPage() {
   const router = useRouter();
-  const [identityFile, setIdentityFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Exemplo de integração arquitetural com SAS Token:
-  const handleUploadAndSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!identityFile) return;
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<DocumentFormData>({
+    resolver: zodResolver(documentSchema),
+    mode: "onChange",
+  });
 
+  const onSubmit = async (data: DocumentFormData) => {
     setIsUploading(true);
 
     try {
-      // 1. Requisitar SAS Token (Presigned URL)
-      // const sasResponse = await fetch("/api/v1/documents/sas-token", { method: "POST" });
-      // const { uploadUrl, fileUrl } = await sasResponse.json();
-
-      // 2. Fazer PUT direto para o storage do Azure com as bordalas do arquivo
-      // await fetch(uploadUrl, { method: "PUT", body: identityFile, headers: { "x-ms-blob-type": "BlockBlob" }});
-
-      // 3. Confirmar anexo no backend associando a URI pública salva
-      // await fetch("/api/v1/providers/me/documents", {
-      //   method: "POST",
-      //   body: JSON.stringify({ 
-      //     documentType: "Identity", 
-      //     number: "simulated-number", 
-      //     fileName: identityFile.name,
-      //     fileUrl: fileUrl 
-      //   })
-      // });
-
+      // Exemplo de integração arquitetural com SAS Token
+      console.log("Arquivos prontos para upload:", {
+        identity: data.identityFile.name,
+        certificate: data.certificateFile?.name,
+      });
       // Simulação de espera
       await new Promise((r) => setTimeout(r, 1500));
       
@@ -48,7 +58,7 @@ export default function DocumentsPage() {
   };
 
   return (
-    <form onSubmit={handleUploadAndSave} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
       <div>
         <h2 className="text-xl font-semibold text-foreground">Documentos</h2>
         <p className="mt-1 text-sm text-foreground-subtle">
@@ -56,12 +66,40 @@ export default function DocumentsPage() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-6 border-t border-border pt-6">
-        <FileUpload
-          label="Documento de Identidade (Frente e Verso)"
-          description="Faça o upload do seu RG, CNH. Formatos aceitos: .jpg, .png, .pdf."
-          required
-          onFileSelect={setIdentityFile}
+      <div className="flex flex-col gap-8 border-t border-border pt-6">
+        <Controller
+          name="identityFile"
+          control={control}
+          render={({ field: { onChange } }) => (
+            <div>
+              <FileUpload
+                label="Documento de Identidade (Frente e Verso)"
+                description="Faça o upload do seu RG ou CNH. Formatos aceitos: .jpg, .png, .pdf."
+                required
+                onFileSelect={(file) => onChange(file)}
+              />
+              {errors.identityFile && (
+                <p className="mt-1 text-sm text-destructive">{errors.identityFile.message as string}</p>
+              )}
+            </div>
+          )}
+        />
+
+        <Controller
+          name="certificateFile"
+          control={control}
+          render={({ field: { onChange } }) => (
+            <div>
+              <FileUpload
+                label="Certificado Profissional (Opcional)"
+                description="Envie certificados ou qualificações relevantes para aumentar sua credibilidade."
+                onFileSelect={(file) => onChange(file)}
+              />
+              {errors.certificateFile && (
+                <p className="mt-1 text-sm text-destructive">{errors.certificateFile.message as string}</p>
+              )}
+            </div>
+          )}
         />
       </div>
 
@@ -69,7 +107,7 @@ export default function DocumentsPage() {
         <Button variant="ghost" type="button" onClick={() => router.back()} disabled={isUploading}>
           Voltar
         </Button>
-        <Button type="submit" disabled={!identityFile || isUploading}>
+        <Button type="submit" disabled={!isValid || isUploading}>
           {isUploading ? "Enviando para Azure..." : "Concluir Onboarding"}
         </Button>
       </div>
