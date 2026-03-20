@@ -54,30 +54,30 @@ public class CreateProviderRequestValidator : AbstractValidator<CreateProviderRe
 
             RuleFor(x => x.BusinessProfile!.PrimaryAddress)
                 .NotNull()
-                .WithMessage("BusinessProfile.PrimaryAddress is required")
+                .WithMessage("Endereço principal é obrigatório")
                 .When(x => x.BusinessProfile?.ShowAddressToClient == true);
 
             When(x => x.BusinessProfile?.PrimaryAddress != null, () =>
             {
                 RuleFor(x => x.BusinessProfile!.PrimaryAddress!.Street)
                     .NotEmpty()
-                    .WithMessage("PrimaryAddress.Street is required");
+                    .WithMessage("Rua é obrigatória");
 
                 RuleFor(x => x.BusinessProfile!.PrimaryAddress!.City)
                     .NotEmpty()
-                    .WithMessage("PrimaryAddress.City is required");
+                    .WithMessage("Cidade é obrigatória");
 
                 RuleFor(x => x.BusinessProfile!.PrimaryAddress!.State)
                     .NotEmpty()
-                    .WithMessage("PrimaryAddress.State is required");
+                    .WithMessage("Estado é obrigatório");
 
                 RuleFor(x => x.BusinessProfile!.PrimaryAddress!.ZipCode)
                     .NotEmpty()
-                    .WithMessage("PrimaryAddress.ZipCode is required");
+                    .WithMessage("CEP é obrigatório");
 
                 RuleFor(x => x.BusinessProfile!.PrimaryAddress!.Country)
                     .NotEmpty()
-                    .WithMessage("PrimaryAddress.Country is required");
+                    .WithMessage("País é obrigatório");
             });
         });
     }

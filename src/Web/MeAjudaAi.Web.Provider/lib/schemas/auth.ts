@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { EProviderType } from "@/types/provider";
+import { EProviderType } from "@/types/api/provider";
 
 // CPF validation helper
 function isValidCpf(cpf: string): boolean {

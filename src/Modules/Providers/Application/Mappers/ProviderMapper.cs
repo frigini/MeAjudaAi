@@ -47,22 +47,15 @@ public static class ProviderMapper
 
     /// <summary>
     /// Converte BusinessProfile para BusinessProfileDto.
-    /// O Endereço primário é omitido quando ShowAddressToClient é false.
     /// </summary>
     public static BusinessProfileDto ToDto(this BusinessProfile businessProfile)
     {
-        AddressDto? addressDto = null;
-        if (businessProfile.ShowAddressToClient && businessProfile.PrimaryAddress != null)
-        {
-            addressDto = businessProfile.PrimaryAddress.ToDto();
-        }
-
         return new BusinessProfileDto(
             businessProfile.LegalName,
             businessProfile.FantasyName,
             businessProfile.Description,
             businessProfile.ContactInfo.ToDto(),
-            addressDto,
+            businessProfile.PrimaryAddress?.ToDto(),
             businessProfile.ShowAddressToClient
         );
     }
@@ -144,10 +137,8 @@ public static class ProviderMapper
     {
         ArgumentNullException.ThrowIfNull(dto.ContactInfo);
 
-        Address? primaryAddress = null;
-        if (dto.ShowAddressToClient && dto.PrimaryAddress != null)
-        {
-            primaryAddress = new Address(
+        Address? primaryAddress = dto.PrimaryAddress != null
+            ? new Address(
                 dto.PrimaryAddress.Street,
                 dto.PrimaryAddress.Number,
                 dto.PrimaryAddress.Neighborhood,
@@ -155,8 +146,8 @@ public static class ProviderMapper
                 dto.PrimaryAddress.State,
                 dto.PrimaryAddress.ZipCode,
                 dto.PrimaryAddress.Country,
-                dto.PrimaryAddress.Complement);
-        }
+                dto.PrimaryAddress.Complement)
+            : null;
 
         return new BusinessProfile(
             dto.LegalName,

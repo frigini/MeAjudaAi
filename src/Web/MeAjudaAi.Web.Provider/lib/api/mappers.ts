@@ -163,10 +163,12 @@ export function mapApiProviderToProvider(
             legalName: businessProfile?.legalName ?? '',
             fantasyName: businessProfile?.fantasyName,
             description: businessProfile?.description,
+            showAddressToClient: businessProfile?.showAddressToClient ?? false,
             contactInfo: {
                 email: contactInfo?.email ?? '',
                 phoneNumber: contactInfo?.phoneNumber,
-                website: contactInfo?.website
+                website: contactInfo?.website,
+                additionalPhoneNumbers: []
             },
             primaryAddress: {
                 street: address?.street ?? '',
@@ -206,6 +208,6 @@ export function mapApiProviderToProvider(
         })) || [],
 
         createdAt: dto.createdAt ?? "",
-        updatedAt: dto.updatedAt
+        updatedAt: dto.updatedAt ?? undefined
     };
 }
