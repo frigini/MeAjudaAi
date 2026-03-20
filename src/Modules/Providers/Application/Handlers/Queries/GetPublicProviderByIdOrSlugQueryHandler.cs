@@ -12,6 +12,7 @@ using MeAjudaAi.Modules.Providers.Domain.Constants;
 using Microsoft.FeatureManagement;
 using System.Collections.Generic;
 using System.Linq;
+using MeAjudaAi.Shared.Utilities;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 
@@ -33,19 +34,19 @@ public sealed class GetPublicProviderByIdOrSlugQueryHandler : IQueryHandler<GetP
         GetPublicProviderByIdOrSlugQuery query,
         CancellationToken cancellationToken)
     {
-        var normalizedValue = query.IdOrSlug.Trim().ToLowerInvariant();
+        var normalizedSlug = SlugHelper.Generate(query.IdOrSlug);
 
         // Tenta resolver por ID (GUID); se não encontrar, faz fallback para slug.
         // Isso cobre o caso em que um slug tem formato de GUID válido.
         Domain.Entities.Provider? provider;
-        if (Guid.TryParse(normalizedValue, out var id))
+        if (Guid.TryParse(normalizedSlug, out var id))
         {
             provider = await _providerRepository.GetByIdAsync(new ProviderId(id), cancellationToken)
-                       ?? await _providerRepository.GetBySlugAsync(normalizedValue, cancellationToken);
+                       ?? await _providerRepository.GetBySlugAsync(normalizedSlug, cancellationToken);
         }
         else
         {
-            provider = await _providerRepository.GetBySlugAsync(normalizedValue, cancellationToken);
+            provider = await _providerRepository.GetBySlugAsync(normalizedSlug, cancellationToken);
         }
 
         if (provider is null)

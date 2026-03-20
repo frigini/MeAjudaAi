@@ -1,15 +1,11 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "declaration": true,
-    "declarationMap": true,
-    "inlineSources": true,
-    "isolatedModules": true,
     "moduleResolution": "bundler",
     "noEmit": false,
     "outDir": "../../dist/libs/assets",
     "rootDir": "src",
-    "strict": true,
-    "target": "es2015"
+    "strict": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "test", "**/*.spec.ts"]

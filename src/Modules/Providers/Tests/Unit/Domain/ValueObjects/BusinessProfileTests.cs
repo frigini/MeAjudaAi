@@ -1,6 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using Xunit;
+using System.ComponentModel.DataAnnotations;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Domain.ValueObjects;
 
@@ -145,6 +146,58 @@ public class BusinessProfileTests
         // Assert
         result.Should().Contain("Test Company");
         result.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Constructor_WithNullLegalName_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var contactInfo = new ContactInfo("test@example.com");
+        var address = CreateValidAddress();
+
+        // Act & Assert
+        var act = () => new BusinessProfile(null!, contactInfo, address);
+        act.Should().Throw<ArgumentException>()
+            .WithParameterName("legalName");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Constructor_WithEmptyOrWhitespaceLegalName_ShouldThrowArgumentException(string invalidLegalName)
+    {
+        // Arrange
+        var contactInfo = new ContactInfo("test@example.com");
+        var address = CreateValidAddress();
+
+        // Act & Assert
+        var act = () => new BusinessProfile(invalidLegalName, contactInfo, address);
+        act.Should().Throw<ArgumentException>()
+            .WithParameterName("legalName");
+    }
+
+    [Fact]
+    public void Constructor_WithNullContactInfo_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        var address = CreateValidAddress();
+
+        // Act & Assert
+        var act = () => new BusinessProfile("Test Company", null!, address);
+        act.Should().Throw<ArgumentNullException>()
+            .WithParameterName("contactInfo");
+    }
+
+    [Fact]
+    public void Constructor_WithNullPrimaryAddress_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        var contactInfo = new ContactInfo("test@example.com");
+
+        // Act & Assert
+        var act = () => new BusinessProfile("Test Company", contactInfo, null!);
+        act.Should().Throw<ArgumentNullException>()
+            .WithParameterName("primaryAddress");
     }
 
     private static Address CreateValidAddress()

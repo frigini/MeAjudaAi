@@ -47,6 +47,7 @@ public static class ProviderMapper
 
     /// <summary>
     /// Converte BusinessProfile para BusinessProfileDto.
+    /// O Endereço primário é omitido quando ShowAddressToClient é false.
     /// </summary>
     public static BusinessProfileDto ToDto(this BusinessProfile businessProfile)
     {
@@ -55,7 +56,7 @@ public static class ProviderMapper
             businessProfile.FantasyName,
             businessProfile.Description,
             businessProfile.ContactInfo.ToDto(),
-            businessProfile.PrimaryAddress.ToDto(),
+            businessProfile.ShowAddressToClient ? businessProfile.PrimaryAddress.ToDto() : null,
             businessProfile.ShowAddressToClient
         );
     }
@@ -136,12 +137,9 @@ public static class ProviderMapper
     public static BusinessProfile ToDomain(this BusinessProfileDto dto)
     {
         ArgumentNullException.ThrowIfNull(dto.ContactInfo);
-        ArgumentNullException.ThrowIfNull(dto.PrimaryAddress);
 
-        return new BusinessProfile(
-            dto.LegalName,
-            new ContactInfo(dto.ContactInfo.Email, dto.ContactInfo.PhoneNumber, dto.ContactInfo.Website, dto.ContactInfo.AdditionalPhones),
-            new Address(
+        var primaryAddress = dto.ShowAddressToClient && dto.PrimaryAddress != null
+            ? new Address(
                 dto.PrimaryAddress.Street,
                 dto.PrimaryAddress.Number,
                 dto.PrimaryAddress.Neighborhood,
@@ -149,8 +147,13 @@ public static class ProviderMapper
                 dto.PrimaryAddress.State,
                 dto.PrimaryAddress.ZipCode,
                 dto.PrimaryAddress.Country,
-                dto.PrimaryAddress.Complement
-            ),
+                dto.PrimaryAddress.Complement)
+            : new Address("N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", null);
+
+        return new BusinessProfile(
+            dto.LegalName,
+            new ContactInfo(dto.ContactInfo.Email, dto.ContactInfo.PhoneNumber, dto.ContactInfo.Website, dto.ContactInfo.AdditionalPhones),
+            primaryAddress,
             dto.FantasyName,
             dto.Description,
             dto.ShowAddressToClient

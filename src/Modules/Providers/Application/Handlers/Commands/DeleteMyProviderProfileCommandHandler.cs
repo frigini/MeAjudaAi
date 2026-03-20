@@ -28,7 +28,7 @@ public sealed class DeleteMyProviderProfileCommandHandler(
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure(Error.NotFound("Provider not found"));
+                return Result.Failure(Error.NotFound("Prestador não encontrado"));
             }
 
             provider.Delete(dateTimeProvider, command.DeletedBy);
@@ -39,8 +39,8 @@ public sealed class DeleteMyProviderProfileCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error self-deleting provider profile {ProviderId}", command.ProviderId);
-            return Result.Failure("Error deleting provider profile");
+            logger.LogError(ex, "Erro ao excluir o perfil do prestador {ProviderId}", command.ProviderId);
+            return Result.Failure("Erro ao excluir o perfil do prestador");
         }
     }
 }

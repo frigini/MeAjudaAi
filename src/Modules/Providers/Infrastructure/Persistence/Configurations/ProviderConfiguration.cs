@@ -107,6 +107,11 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
                 .HasMaxLength(1000)
                 .HasColumnName("description");
 
+            bp.Property(b => b.ShowAddressToClient)
+                .IsRequired()
+                .HasDefaultValue(false)
+                .HasColumnName("show_address_to_client");
+
             // Configuração do ContactInfo como owned builder
             bp.OwnsOne(b => b.ContactInfo, ci =>
             {

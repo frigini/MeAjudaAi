@@ -1,4 +1,4 @@
-export const LOGOS_PATH = '/logos/';
+export const LOGOS_PATH = '/';
 
 export const logos = {
   iconAzul: `${LOGOS_PATH}logo-icon-azul.png`,
