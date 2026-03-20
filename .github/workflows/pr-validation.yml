@@ -111,7 +111,7 @@ jobs:
         working-directory: ./src/Web
         run: npm ci
 
-      - uses: nrwl/nx-set-shas@v4
+      - uses: nrwl/nx-set-shas@v5
 
       # Generate API client BEFORE lint/test so MeAjudaAi.Web.Customer has generated types
       - name: 🔧 Generate API Client
