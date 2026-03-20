@@ -57,28 +57,31 @@ public static class Extensions
 
     private static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
-        // Usa PostgreSQL para todos os ambientes (TestContainers fornecerá database de teste)
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
-                              ?? configuration.GetConnectionString("Users")
-                              ?? configuration.GetConnectionString("meajudaai-db");
-
-        if (string.IsNullOrEmpty(connectionString))
-        {
-            if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment())
-            {
-                // Fallback para testes/dev quando a string de conexão não é crítica na inicialização do DI
-#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
-                connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
-#pragma warning restore S2068
-            }
-            else
-            {
-                throw new InvalidOperationException("Connection for Users module not configured");
-            }
-        }
-
         services.AddDbContext<UsersDbContext>((serviceProvider, options) =>
         {
+            // Usa PostgreSQL para todos os ambientes (TestContainers fornecerá database de teste)
+            // Resolve connection string from the DI configuration which includes tests overrides
+            var resolvedConfiguration = serviceProvider.GetRequiredService<IConfiguration>();
+            var connectionString = resolvedConfiguration.GetConnectionString("DefaultConnection")
+                                  ?? resolvedConfiguration.GetConnectionString("Users")
+                                  ?? resolvedConfiguration.GetConnectionString("meajudaai-db");
+
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                var env = serviceProvider.GetService<IHostEnvironment>();
+                if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(env))
+                {
+                    // Fallback para testes/dev quando a string de conexão não é crítica
+#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
+                    connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
+#pragma warning restore S2068
+                }
+                else
+                {
+                    throw new InvalidOperationException("Connection for Users module not configured");
+                }
+            }
+
             // Obter interceptor de métricas se disponível
             var metricsInterceptor = serviceProvider.GetService<DatabaseMetricsInterceptor>();
 

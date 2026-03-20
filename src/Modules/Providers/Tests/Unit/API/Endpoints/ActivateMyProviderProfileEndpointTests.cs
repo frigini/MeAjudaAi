@@ -4,7 +4,6 @@ using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Providers.API.Endpoints.Public.Me;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
-using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Commands;
@@ -12,41 +11,30 @@ using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
-using System.Security.Claims;
 using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.API.Endpoints;
 
 [Trait("Category", "Unit")]
-public class UpdateMyProviderProfileEndpointTests
+public class ActivateMyProviderProfileEndpointTests
 {
     private readonly Mock<IQueryDispatcher> _queryDispatcherMock;
     private readonly Mock<ICommandDispatcher> _commandDispatcherMock;
 
-    public UpdateMyProviderProfileEndpointTests()
+    public ActivateMyProviderProfileEndpointTests()
     {
         _queryDispatcherMock = new Mock<IQueryDispatcher>();
         _commandDispatcherMock = new Mock<ICommandDispatcher>();
     }
 
     [Fact]
-    public async Task UpdateMyProfileAsync_WithValidRequest_ShouldDispatchUpdateCommand()
+    public async Task ActivateMyProfileAsync_WithValidProvider_ShouldReturnOk()
     {
         // Arrange
         var userId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var context = EndpointTestHelpers.CreateHttpContextWithUserId(userId);
-        
-        var request = new UpdateProviderProfileRequest
-        {
-            Name = "New Name",
-            BusinessProfile = new BusinessProfileDto(
-                "Legal", "Fantasy", "Desc", 
-                new ContactInfoDto("e@e.com", "123", "site"), 
-                new AddressDto("S", "1", "C", "N", "C", "ST", "Z", "Co"))
-        };
 
-        // Setup Query to return ProviderId
         var providerDto = new ProviderDto(
             Id: providerId,
             UserId: userId,
@@ -65,48 +53,36 @@ public class UpdateMyProviderProfileEndpointTests
             IsDeleted: false,
             DeletedAt: null,
             IsActive: true);
-            
+
         _queryDispatcherMock
             .Setup(x => x.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(
                 It.Is<GetProviderByUserIdQuery>(q => q.UserId == userId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ProviderDto?>.Success(providerDto));
 
-        // Setup Command to return Success
         _commandDispatcherMock
-            .Setup(x => x.SendAsync<UpdateProviderProfileCommand, Result<ProviderDto>>(
-                It.IsAny<UpdateProviderProfileCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<ProviderDto>.Success(providerDto));
+            .Setup(x => x.SendAsync<ActivateProviderProfileCommand, Result>(
+                It.Is<ActivateProviderProfileCommand>(c => c.ProviderId == providerId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success());
 
         // Act
-        var methodInfo = typeof(UpdateMyProviderProfileEndpoint).GetMethod("UpdateMyProfileAsync", 
+        var methodInfo = typeof(ActivateMyProviderProfileEndpoint).GetMethod("ActivateMyProfileAsync",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-            
-        var task = (Task<IResult>)methodInfo!.Invoke(null, new object[] { context, request, _queryDispatcherMock.Object, _commandDispatcherMock.Object, CancellationToken.None })!;
+
+        var task = (Task<IResult>)methodInfo!.Invoke(null, new object[] { context, _queryDispatcherMock.Object, _commandDispatcherMock.Object, CancellationToken.None })!;
         var result = await task;
 
         // Assert
-        _queryDispatcherMock.Verify(x => x.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(
-                It.Is<GetProviderByUserIdQuery>(q => q.UserId == userId), It.IsAny<CancellationToken>()), Times.Once);
-                
-        _commandDispatcherMock.Verify(x => x.SendAsync<UpdateProviderProfileCommand, Result<ProviderDto>>(
-                It.Is<UpdateProviderProfileCommand>(c => c.ProviderId == providerId && c.Name == request.Name), It.IsAny<CancellationToken>()), Times.Once);
+        result.Should().BeOfType<Ok<Result>>();
+        _queryDispatcherMock.Verify(x => x.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(It.IsAny<GetProviderByUserIdQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+        _commandDispatcherMock.Verify(x => x.SendAsync<ActivateProviderProfileCommand, Result>(It.IsAny<ActivateProviderProfileCommand>(), It.IsAny<CancellationToken>()), Times.Once);
     }
-    
+
     [Fact]
-    public async Task UpdateMyProfileAsync_WhenProviderNotFound_ShouldReturnNotFound()
+    public async Task ActivateMyProfileAsync_WhenProviderNotFound_ShouldReturnNotFound()
     {
         // Arrange
         var userId = Guid.NewGuid();
         var context = EndpointTestHelpers.CreateHttpContextWithUserId(userId);
-        
-        var request = new UpdateProviderProfileRequest
-        {
-            Name = "New Name",
-            BusinessProfile = new BusinessProfileDto(
-                "Legal", "Fantasy", "Desc", 
-                new ContactInfoDto("e@e.com", "123", "site"), 
-                new AddressDto("S", "1", "C", "N", "C", "ST", "Z", "Co"))
-        };
 
         _queryDispatcherMock
             .Setup(x => x.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(
@@ -114,16 +90,14 @@ public class UpdateMyProviderProfileEndpointTests
             .ReturnsAsync(Result<ProviderDto?>.Success(null));
 
         // Act
-        var methodInfo = typeof(UpdateMyProviderProfileEndpoint).GetMethod("UpdateMyProfileAsync", 
+        var methodInfo = typeof(ActivateMyProviderProfileEndpoint).GetMethod("ActivateMyProfileAsync",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-            
-        var task = (Task<IResult>)methodInfo!.Invoke(null, new object[] { context, request, _queryDispatcherMock.Object, _commandDispatcherMock.Object, CancellationToken.None })!;
-        var result = await task; // Should be NotFound
-        
+
+        var task = (Task<IResult>)methodInfo!.Invoke(null, new object[] { context, _queryDispatcherMock.Object, _commandDispatcherMock.Object, CancellationToken.None })!;
+        var result = await task;
+
         // Assert
-        _commandDispatcherMock.Verify(x => x.SendAsync<UpdateProviderProfileCommand, Result<ProviderDto>>(
-            It.IsAny<UpdateProviderProfileCommand>(), It.IsAny<CancellationToken>()), Times.Never);
+        result.Should().BeOfType<NotFound<Response<object>>>();
+        _commandDispatcherMock.Verify(x => x.SendAsync<ActivateProviderProfileCommand, Result>(It.IsAny<ActivateProviderProfileCommand>(), It.IsAny<CancellationToken>()), Times.Never);
     }
-
-
 }

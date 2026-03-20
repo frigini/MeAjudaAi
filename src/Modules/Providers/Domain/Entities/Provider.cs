@@ -100,6 +100,12 @@ public sealed class Provider : AggregateRoot<ProviderId>
     public bool IsDeleted { get; private set; }
 
     /// <summary>
+    /// Indica se o perfil do prestador está ativo (visível no catálogo público).
+    /// Permite ao prestador pausar temporariamente suas atividades.
+    /// </summary>
+    public bool IsActive { get; private set; }
+
+    /// <summary>
     /// Data e hora da exclusão lógica do prestador de serviços (UTC).
     /// </summary>
     public DateTime? DeletedAt { get; private set; }
@@ -143,6 +149,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
         Status = EProviderStatus.PendingBasicInfo;
         VerificationStatus = EVerificationStatus.Pending;
         Tier = EProviderTier.Standard;
+        IsActive = true;
 
         // Não adiciona eventos de domínio para testes
     }
@@ -178,6 +185,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
         Status = EProviderStatus.PendingBasicInfo;
         VerificationStatus = EVerificationStatus.Pending;
         Tier = EProviderTier.Standard;
+        IsActive = true;
 
         AddDomainEvent(new ProviderRegisteredDomainEvent(
             Id.Value,
@@ -723,6 +731,42 @@ public sealed class Provider : AggregateRoot<ProviderId>
             1,
             Name,
             deletedBy));
+    }
+
+    /// <summary>
+    /// Desativa o perfil do prestador de serviços, ocultando-o do catálogo público.
+    /// </summary>
+    /// <param name="updatedBy">Quem está fazendo a desativação</param>
+    public void DeactivateProfile(string? updatedBy = null)
+    {
+        if (IsDeleted)
+            throw new ProviderDomainException("Cannot deactivate a deleted provider");
+            
+        if (!IsActive)
+            return;
+
+        IsActive = false;
+        MarkAsUpdated();
+
+        AddDomainEvent(new ProviderProfileDeactivatedDomainEvent(Id.Value, 1, updatedBy));
+    }
+
+    /// <summary>
+    /// Reativa o perfil do prestador de serviços, tornando-o visível no catálogo público.
+    /// </summary>
+    /// <param name="updatedBy">Quem está fazendo a ativação</param>
+    public void ActivateProfile(string? updatedBy = null)
+    {
+        if (IsDeleted)
+            throw new ProviderDomainException("Cannot activate a deleted provider");
+            
+        if (IsActive)
+            return;
+
+        IsActive = true;
+        MarkAsUpdated();
+
+        AddDomainEvent(new ProviderProfileActivatedDomainEvent(Id.Value, 1, updatedBy));
     }
 
     /// <summary>

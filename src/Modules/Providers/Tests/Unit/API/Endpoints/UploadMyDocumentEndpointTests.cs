@@ -69,7 +69,8 @@ public class UploadMyDocumentEndpointTests
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null,
             IsDeleted: false,
-            DeletedAt: null);
+            DeletedAt: null,
+            IsActive: true);
 
         // Mock Query (Get provider by user id)
         _queryDispatcherMock
@@ -156,7 +157,8 @@ public class UploadMyDocumentEndpointTests
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null,
             IsDeleted: false,
-            DeletedAt: null);
+            DeletedAt: null,
+            IsActive: true);
 
         _queryDispatcherMock.Setup(x => x.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(
                 It.IsAny<GetProviderByUserIdQuery>(), It.IsAny<CancellationToken>()))

@@ -155,6 +155,7 @@ public class TestContainerFixture : IAsyncLifetime
                         // All modules share the same test database instance
                         ["ConnectionStrings:DefaultConnection"] = PostgresConnectionString,
                         ["ConnectionStrings:meajudaai-db"] = PostgresConnectionString,
+                        ["ConnectionStrings:Users"] = PostgresConnectionString,
                         ["ConnectionStrings:UsersDb"] = PostgresConnectionString,
                         ["ConnectionStrings:ProvidersDb"] = PostgresConnectionString,
                         ["ConnectionStrings:DocumentsDb"] = PostgresConnectionString,

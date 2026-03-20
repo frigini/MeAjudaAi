@@ -31,6 +31,7 @@ public static class ProviderMapper
             provider.UpdatedAt,
             provider.IsDeleted,
             provider.DeletedAt,
+            provider.IsActive,
             provider.SuspensionReason,
             provider.RejectionReason
         );

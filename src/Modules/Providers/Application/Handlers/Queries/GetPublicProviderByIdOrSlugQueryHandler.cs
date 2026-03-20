@@ -55,7 +55,7 @@ public sealed class GetPublicProviderByIdOrSlugQueryHandler : IQueryHandler<GetP
 
         // Validação adicional: Apenas prestadores ativos devem ser consultados publicamente
         // Se estiver suspenso ou rejeitado, retornamos NotFound por segurança/privacidade
-        if (provider.Status != EProviderStatus.Active)
+        if (provider.Status != EProviderStatus.Active || !provider.IsActive)
         {
              return Result<PublicProviderDto?>.Failure(Error.NotFound(ProviderErrors.ProviderNotFound));
         }
@@ -98,7 +98,8 @@ public sealed class GetPublicProviderByIdOrSlugQueryHandler : IQueryHandler<GetP
             Services: services,
             PhoneNumbers: phoneNumbers,
             Email: email,
-            VerificationStatus: provider.VerificationStatus
+            VerificationStatus: provider.VerificationStatus,
+            IsActive: provider.IsActive
         );
 
         return Result<PublicProviderDto?>.Success(dto);

@@ -44,6 +44,8 @@ public static class Extensions
         services.AddScoped<ICommandHandler<UpdateVerificationStatusCommand, Result<ProviderDto>>, UpdateVerificationStatusCommandHandler>();
         services.AddScoped<ICommandHandler<AddServiceToProviderCommand, Result>, AddServiceToProviderCommandHandler>();
         services.AddScoped<ICommandHandler<RemoveServiceFromProviderCommand, Result>, RemoveServiceFromProviderCommandHandler>();
+        services.AddScoped<ICommandHandler<ActivateProviderProfileCommand, Result>, ActivateProviderProfileCommandHandler>();
+        services.AddScoped<ICommandHandler<DeactivateProviderProfileCommand, Result>, DeactivateProviderProfileCommandHandler>();
 
         // Module API - registro da API pública para comunicação entre módulos
         services.AddScoped<MeAjudaAi.Contracts.Modules.Providers.IProvidersModuleApi,
