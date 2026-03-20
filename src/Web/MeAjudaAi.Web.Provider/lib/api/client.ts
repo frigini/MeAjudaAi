@@ -8,4 +8,6 @@ client.setConfig({
     },
 });
 
+// See auth-headers.ts for authentication token handling
+
 export { client };

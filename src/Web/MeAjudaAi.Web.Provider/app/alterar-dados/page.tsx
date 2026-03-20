@@ -9,6 +9,10 @@ import { Button } from "../../components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiMeGet, apiMePut, MeAjudaAiModulesProvidersApplicationDtosRequestsUpdateProviderProfileRequest } from "../../lib/api/generated";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 const profileSchema = z.object({
   fullName: z.string().min(3, "Nome muito curto"),
@@ -34,22 +38,23 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export default function AlterarDadosPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      fullName: "Wanderley Cardoso",
-      fantasyName: "Wanderley Pedreiro",
-      email: "wanderley@cardoso.com.br",
-      cpf: "100.000.000-00",
-      phones: [{ number: "(00) 0 0000 - 0000", isWhatsapp: true }],
-      cep: "00000-000",
-      address: "Nome da rua completa vai lá ou",
-      number: "30",
-      neighborhood: "Nome do bairro",
-      city: "Nome da cidade",
-      state: "Nome do Estado",
-      showAddressToClient: true,
+      fullName: "",
+      fantasyName: "",
+      email: "",
+      cpf: "",
+      phones: [{ number: "", isWhatsapp: false }],
+      cep: "",
+      address: "",
+      number: "",
+      neighborhood: "",
+      city: "",
+      state: "",
+      showAddressToClient: false,
     },
   });
 
@@ -58,10 +63,86 @@ export default function AlterarDadosPage() {
     name: "phones",
   });
 
+  const { data: response, isLoading } = useQuery({
+    queryKey: ["providerMe"],
+    queryFn: () => apiMeGet()
+  });
+
+  useEffect(() => {
+    if (response?.data?.data) {
+      const provider = response.data.data;
+      const bp = provider.businessProfile;
+      const contact = bp?.contactInfo;
+      const addr = bp?.primaryAddress;
+
+      let mappedPhones = [];
+      if (contact?.phoneNumber) {
+         mappedPhones.push({ number: contact.phoneNumber, isWhatsapp: false });
+      }
+      if (contact?.additionalPhones && contact.additionalPhones.length > 0) {
+         contact.additionalPhones.forEach((p: string) => mappedPhones.push({ number: p, isWhatsapp: false }));
+      }
+      if (mappedPhones.length === 0) {
+         mappedPhones.push({ number: "", isWhatsapp: false });
+      }
+
+      form.reset({
+        fullName: provider.name || "",
+        fantasyName: bp?.fantasyName || "",
+        email: contact?.email || "",
+        cpf: "Não disponível na consulta pública", 
+        phones: mappedPhones,
+        cep: addr?.zipCode || "",
+        address: addr?.street || "",
+        number: addr?.number || "",
+        neighborhood: addr?.neighborhood || "",
+        city: addr?.city || "",
+        state: addr?.state || "",
+        showAddressToClient: bp?.showAddressToClient ?? false,
+      });
+    }
+  }, [response, form]);
+
+  const updateMutation = useMutation({
+    mutationFn: (req: MeAjudaAiModulesProvidersApplicationDtosRequestsUpdateProviderProfileRequest) =>
+      apiMePut({ body: req }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["providerMe"] });
+      toast.success("Perfil atualizado com sucesso!");
+      router.push("/");
+    },
+    onError: () => {
+      toast.error("Erro ao atualizar o perfil. Tente novamente mais tarde.");
+    }
+  });
+
   const onSubmit = (data: ProfileFormValues) => {
-    console.log("Salvar dados:", data);
-    // Submit to API
-    router.push("/");
+    const primaryPhone = data.phones[0]?.number || "";
+    const additionalPhones = data.phones.slice(1).map(p => p.number).filter(p => !!p);
+
+    updateMutation.mutate({
+      name: data.fullName,
+      businessProfile: {
+        fantasyName: data.fantasyName,
+        showAddressToClient: data.showAddressToClient,
+        contactInfo: {
+          email: data.email,
+          phoneNumber: primaryPhone,
+          additionalPhones: additionalPhones,
+          website: response?.data?.data?.businessProfile?.contactInfo?.website
+        },
+        primaryAddress: {
+          zipCode: data.cep,
+          street: data.address,
+          number: data.number,
+          neighborhood: data.neighborhood,
+          city: data.city,
+          state: data.state,
+          complement: response?.data?.data?.businessProfile?.primaryAddress?.complement,
+          country: response?.data?.data?.businessProfile?.primaryAddress?.country || "Brasil",
+        }
+      }
+    });
   };
 
   return (
@@ -241,8 +322,13 @@ export default function AlterarDadosPage() {
             >
               Cancelar
             </Button>
-            <Button variant="primary" type="submit" className="w-32 bg-emerald-500 hover:bg-emerald-600 border-emerald-500">
-              Salvar
+            <Button 
+              variant="primary" 
+              type="submit" 
+              disabled={updateMutation.isPending}
+              className="w-32 bg-emerald-500 hover:bg-emerald-600 border-emerald-500"
+            >
+              {updateMutation.isPending ? "Salvando..." : "Salvar"}
             </Button>
           </div>
         </form>

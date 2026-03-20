@@ -1,5 +1,8 @@
 import { Inter } from "next/font/google";
 import "./global.css";
+import { Header } from "../components/layout/header";
+import { Footer } from "../components/layout/footer";
+import { AppProviders } from "../components/providers/app-providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,10 +18,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <body className={inter.className}>
-        <div className="min-h-screen bg-surface-raised text-foreground antialiased selection:bg-primary selection:text-primary-foreground">
-          {children}
-        </div>
+      <body className={`${inter.className} min-h-screen flex flex-col bg-surface-raised text-foreground antialiased selection:bg-primary selection:text-primary-foreground`}>
+        <AppProviders>
+          <Header />
+          <main className="flex-grow">
+            {children}
+          </main>
+          <Footer />
+        </AppProviders>
       </body>
     </html>
   );
