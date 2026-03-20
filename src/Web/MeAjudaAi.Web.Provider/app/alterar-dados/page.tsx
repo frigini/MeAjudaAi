@@ -3,14 +3,14 @@
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Label } from "../../components/ui/label";
-import { Input } from "../../components/ui/input";
-import { Button } from "../../components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiMeGet, apiMePut, MeAjudaAiModulesProvidersApplicationDtosRequestsUpdateProviderProfileRequest } from "../../lib/api/generated";
+import { apiMeGet, apiMePut, MeAjudaAiModulesProvidersApplicationDtosRequestsUpdateProviderProfileRequest } from "@/lib/api/generated";
 import { toast } from "sonner";
 import { useEffect } from "react";
 
