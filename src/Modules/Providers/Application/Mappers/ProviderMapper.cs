@@ -51,12 +51,18 @@ public static class ProviderMapper
     /// </summary>
     public static BusinessProfileDto ToDto(this BusinessProfile businessProfile)
     {
+        AddressDto? addressDto = null;
+        if (businessProfile.ShowAddressToClient && businessProfile.PrimaryAddress != null)
+        {
+            addressDto = businessProfile.PrimaryAddress.ToDto();
+        }
+
         return new BusinessProfileDto(
             businessProfile.LegalName,
             businessProfile.FantasyName,
             businessProfile.Description,
             businessProfile.ContactInfo.ToDto(),
-            businessProfile.ShowAddressToClient ? businessProfile.PrimaryAddress.ToDto() : null,
+            addressDto,
             businessProfile.ShowAddressToClient
         );
     }
@@ -138,8 +144,10 @@ public static class ProviderMapper
     {
         ArgumentNullException.ThrowIfNull(dto.ContactInfo);
 
-        var primaryAddress = dto.ShowAddressToClient && dto.PrimaryAddress != null
-            ? new Address(
+        Address? primaryAddress = null;
+        if (dto.ShowAddressToClient && dto.PrimaryAddress != null)
+        {
+            primaryAddress = new Address(
                 dto.PrimaryAddress.Street,
                 dto.PrimaryAddress.Number,
                 dto.PrimaryAddress.Neighborhood,
@@ -147,8 +155,8 @@ public static class ProviderMapper
                 dto.PrimaryAddress.State,
                 dto.PrimaryAddress.ZipCode,
                 dto.PrimaryAddress.Country,
-                dto.PrimaryAddress.Complement)
-            : new Address("N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", null);
+                dto.PrimaryAddress.Complement);
+        }
 
         return new BusinessProfile(
             dto.LegalName,

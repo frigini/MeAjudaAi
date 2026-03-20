@@ -96,8 +96,8 @@ public class KeycloakBootstrapService(
             // O realm define o client name como "customer-app" de acordo com a configuração
             if (!await EnsureClientExistsAsync(httpClient, "customer-app", customerUrl, ct)) return false;
             
-            // Provider Web App OIDC client
-            if (!await EnsureClientExistsAsync(httpClient, "provider-web", providerUrl, ct)) return false;
+            // Cliente OIDC da aplicação web provedora
+            if (!await EnsureClientExistsAsync(httpClient, "provider-app", providerUrl, ct)) return false;
             
             logger.LogInformation("Keycloak bootstrap completed successfully.");
             return true;

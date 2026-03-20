@@ -73,6 +73,8 @@ public class ActivateProviderProfileCommandHandlerTests
         // Arrange
         var command = new ActivateProviderProfileCommand(Guid.NewGuid());
         var provider = new ProviderBuilder().WithId(command.ProviderId).Build();
+        provider.DeactivateProfile(); // Garante que ActivateProfile realmente alterará o estado
+        provider.ClearDomainEvents();
 
         _providerRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(), It.IsAny<CancellationToken>()))
                                .ReturnsAsync(provider);
@@ -86,5 +88,27 @@ public class ActivateProviderProfileCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
         _providerRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()), Times.Once());
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenProviderAlreadyActive_ShouldBeIdempotent()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var command = new ActivateProviderProfileCommand(providerId);
+        var provider = new ProviderBuilder().WithId(providerId).Build();
+        // Provider já está ativo por padrão (IsActive = true)
+        provider.ClearDomainEvents();
+
+        _providerRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(), It.IsAny<CancellationToken>()))
+                               .ReturnsAsync(provider);
+
+        // Act
+        var result = await _sut.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        provider.IsActive.Should().BeTrue();
+        _providerRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

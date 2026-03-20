@@ -43,7 +43,7 @@ public class DeleteMyProviderProfileEndpoint : BaseEndpoint, IEndpoint
             query, cancellationToken);
 
         if (providerResult.IsFailure)
-            return BadRequest(providerResult.Error.Message);
+            return BadRequest(providerResult.Error);
 
         if (providerResult.Value is null)
             return NotFound("Perfil do provedor não encontrado para o usuário atual.");

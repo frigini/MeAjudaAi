@@ -54,7 +54,8 @@ public class CreateProviderRequestValidator : AbstractValidator<CreateProviderRe
 
             RuleFor(x => x.BusinessProfile!.PrimaryAddress)
                 .NotNull()
-                .WithMessage("BusinessProfile.PrimaryAddress is required");
+                .WithMessage("BusinessProfile.PrimaryAddress is required")
+                .When(x => x.BusinessProfile?.ShowAddressToClient == true);
 
             When(x => x.BusinessProfile?.PrimaryAddress != null, () =>
             {

@@ -55,7 +55,8 @@ public class UpdateProviderProfileRequestValidator : AbstractValidator<UpdatePro
 
             RuleFor(x => x.BusinessProfile!.PrimaryAddress)
                 .NotNull()
-                .WithMessage("Endereço principal é obrigatório");
+                .WithMessage("Endereço principal é obrigatório")
+                .When(x => x.BusinessProfile?.ShowAddressToClient == true);
 
             When(x => x.BusinessProfile?.PrimaryAddress != null, () =>
             {

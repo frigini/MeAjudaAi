@@ -135,46 +135,47 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
                     .HasColumnName("website");
             });
 
-            // Configuração do Address como owned builder
+            // Configuração do Address como owned builder (opcional quando ShowAddressToClient=false)
             bp.OwnsOne(b => b.PrimaryAddress, addr =>
             {
                 addr.Property(a => a.Street)
                     .HasMaxLength(200)
-                    .IsRequired()
+                    .IsRequired(false)
                     .HasColumnName("street");
 
                 addr.Property(a => a.Number)
                     .HasMaxLength(20)
-                    .IsRequired()
+                    .IsRequired(false)
                     .HasColumnName("number");
 
                 addr.Property(a => a.Complement)
                     .HasMaxLength(100)
+                    .IsRequired(false)
                     .HasColumnName("complement");
 
                 addr.Property(a => a.Neighborhood)
                     .HasMaxLength(100)
-                    .IsRequired()
+                    .IsRequired(false)
                     .HasColumnName("neighborhood");
 
                 addr.Property(a => a.City)
                     .HasMaxLength(100)
-                    .IsRequired()
+                    .IsRequired(false)
                     .HasColumnName("city");
 
                 addr.Property(a => a.State)
                     .HasMaxLength(50)
-                    .IsRequired()
+                    .IsRequired(false)
                     .HasColumnName("state");
 
                 addr.Property(a => a.ZipCode)
                     .HasMaxLength(20)
-                    .IsRequired()
+                    .IsRequired(false)
                     .HasColumnName("zip_code");
 
                 addr.Property(a => a.Country)
                     .HasMaxLength(50)
-                    .IsRequired()
+                    .IsRequired(false)
                     .HasColumnName("country");
             });
         });
