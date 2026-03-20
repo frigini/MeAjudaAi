@@ -97,10 +97,12 @@ public class ExtensionsTests
 
         var originalAspNetCoreEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
         var originalDotNetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        var originalIntegrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
         try
         {
             Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
             Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Production");
+            Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "false");
 
             // Act & Assert
             var act = () => services.AddUsersModule(configuration);
@@ -111,6 +113,7 @@ public class ExtensionsTests
         {
             Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalAspNetCoreEnv);
             Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", originalDotNetEnv);
+            Environment.SetEnvironmentVariable("INTEGRATION_TESTS", originalIntegrationTests);
         }
     }
 
