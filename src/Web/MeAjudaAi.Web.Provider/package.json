@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run generate && next build",
+    "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "generate": "openapi-ts --config openapi-ts.config.ts"
+    "lint": "next lint"
   }
+}
 }
