@@ -238,6 +238,7 @@ internal static class Program
         // Pass resolved endpoints to Keycloak options for bootstrap
         keycloakSettings.AdminPortalEndpoint = adminPortal.GetEndpoint("https");
         keycloakSettings.CustomerWebEndpoint = customerWeb.GetEndpoint("http");
+        keycloakSettings.ProviderWebEndpoint = providerWeb.GetEndpoint("http");
     }
 
     private static void ConfigureProductionEnvironment(IDistributedApplicationBuilder builder)

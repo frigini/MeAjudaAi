@@ -27,7 +27,7 @@ public sealed class DeactivateProviderProfileCommandHandler(
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure(Error.NotFound("Provider not found"));
+                return Result.Failure(Error.NotFound("Prestador não encontrado"));
             }
 
             provider.DeactivateProfile(command.UpdatedBy);
@@ -39,7 +39,7 @@ public sealed class DeactivateProviderProfileCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error deactivating provider profile {ProviderId}", command.ProviderId);
-            return Result.Failure("Error deactivating provider profile");
+            return Result.Failure("Erro ao desativar perfil do prestador");
         }
     }
 }

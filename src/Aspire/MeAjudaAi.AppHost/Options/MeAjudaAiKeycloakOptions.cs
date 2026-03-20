@@ -70,6 +70,11 @@ public sealed class MeAjudaAiKeycloakOptions
     public Aspire.Hosting.ApplicationModel.EndpointReference? CustomerWebEndpoint { get; set; }
 
     /// <summary>
+    /// URL Endpoint Reference para o Provider Web
+    /// </summary>
+    public Aspire.Hosting.ApplicationModel.EndpointReference? ProviderWebEndpoint { get; set; }
+
+    /// <summary>
     /// Realm a ser importado na inicialização (configurar via KEYCLOAK_IMPORT_REALM se necessário)
     /// </summary>
     public string? ImportRealm { get; set; } = Environment.GetEnvironmentVariable("KEYCLOAK_IMPORT_REALM");

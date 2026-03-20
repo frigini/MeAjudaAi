@@ -518,10 +518,16 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             throw new Exception($"Create Provider failed. Body: {body}");
         }
 
-        // 1. Deactivate first
-        // Authenticate as the provider using the created UserId
+        // Autenticar como o provider criado
         TestContainerFixture.AuthenticateAsUser(userId.ToString(), username);
 
+        // 1. Verificar estado inicial (isActive deve ser true)
+        var getInitialResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        getInitialResponse.EnsureSuccessStatusCode();
+        var getInitialContent = await getInitialResponse.Content.ReadAsStringAsync();
+        getInitialContent.Should().Contain("\"isActive\":true");
+
+        // 2. Desativar o perfil
         var deactivateResponse = await _fixture.ApiClient.PostAsync("/api/v1/providers/me/deactivate", null);
         if (!deactivateResponse.IsSuccessStatusCode)
         {
@@ -529,13 +535,19 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             throw new Exception($"Deactivate failed. Body: {body}");
         }
 
-        // 2. Act - Activate
+        // Verificar que foi desativado
+        var getAfterDeactivateResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        getAfterDeactivateResponse.EnsureSuccessStatusCode();
+        var getAfterDeactivateContent = await getAfterDeactivateResponse.Content.ReadAsStringAsync();
+        getAfterDeactivateContent.Should().Contain("\"isActive\":false");
+
+        // 3. Ativar o perfil novamente
         var activateResponse = await _fixture.ApiClient.PostAsync("/api/v1/providers/me/activate", null);
 
         // Assert
         activateResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
         
-        // Verify via Get Profile
+        // Verificar que foi reativado
         var getProfileResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
         getProfileResponse.EnsureSuccessStatusCode();
         
@@ -595,9 +607,16 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
         }
 
         // Act - Deactivate
-        // Authenticate as the provider using the created UserId
+        // Autenticar como o provider criado
         TestContainerFixture.AuthenticateAsUser(userId.ToString(), username);
 
+        // 1. Verificar estado inicial (isActive deve ser true)
+        var getInitialResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        getInitialResponse.EnsureSuccessStatusCode();
+        var getInitialContent = await getInitialResponse.Content.ReadAsStringAsync();
+        getInitialContent.Should().Contain("\"isActive\":true");
+
+        // 2. Desativar o perfil
         var deactivateResponse = await _fixture.ApiClient.PostAsync("/api/v1/providers/me/deactivate", null);
         if (!deactivateResponse.IsSuccessStatusCode)
         {
@@ -605,7 +624,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
             throw new Exception($"Deactivate failed. Body: {body}");
         }
         
-        // Verify via Get Profile
+        // Verificar que foi desativado
         var getProfileResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
         getProfileResponse.EnsureSuccessStatusCode();
         

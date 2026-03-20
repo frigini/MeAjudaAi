@@ -20,7 +20,7 @@ public class DeactivateMyProviderProfileEndpoint : BaseEndpoint, IEndpoint
             .WithName("DeactivateMyProviderProfile")
             .WithTags("Providers - Me")
             .RequireAuthorization()
-            .Produces<Response<object>>(StatusCodes.Status200OK)
+            .Produces<Result>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
 
@@ -41,7 +41,7 @@ public class DeactivateMyProviderProfileEndpoint : BaseEndpoint, IEndpoint
 
         if (providerResult.IsFailure)
         {
-            return BadRequest(providerResult.Error.Message);
+            return BadRequest(providerResult.Error);
         }
 
         if (providerResult.Value is null)

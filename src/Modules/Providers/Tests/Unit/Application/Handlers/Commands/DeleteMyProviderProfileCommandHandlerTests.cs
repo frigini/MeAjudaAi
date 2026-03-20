@@ -12,6 +12,9 @@ using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 
+/// <summary>
+/// Testes unitários para o handler DeleteMyProviderProfileCommandHandler.
+/// </summary>
 public class DeleteMyProviderProfileCommandHandlerTests
 {
     private readonly Mock<IProviderRepository> _providerRepositoryMock;
@@ -31,6 +34,9 @@ public class DeleteMyProviderProfileCommandHandlerTests
             _loggerMock.Object);
     }
 
+    /// <summary>
+    /// Testa exclusão de perfil quando provider existe deve fazer soft delete.
+    /// </summary>
     [Fact]
     public async Task HandleAsync_WhenProviderExists_ShouldSoftDeleteProvider()
     {
@@ -53,6 +59,9 @@ public class DeleteMyProviderProfileCommandHandlerTests
         _providerRepositoryMock.Verify(x => x.UpdateAsync(It.Is<Provider>(p => p.Id.Value == providerId && p.IsDeleted), It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    /// <summary>
+    /// Testa exclusão de perfil quando provider não existe deve retornar erro.
+    /// </summary>
     [Fact]
     public async Task HandleAsync_WhenProviderDoesNotExist_ShouldReturnNotFoundError()
     {

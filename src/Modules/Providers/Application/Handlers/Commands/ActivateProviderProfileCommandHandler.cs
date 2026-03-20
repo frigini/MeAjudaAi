@@ -27,7 +27,7 @@ public sealed class ActivateProviderProfileCommandHandler(
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure(Error.NotFound("Provider not found"));
+                return Result.Failure(Error.NotFound("Prestador não encontrado"));
             }
 
             provider.ActivateProfile(command.UpdatedBy);
@@ -39,7 +39,7 @@ public sealed class ActivateProviderProfileCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error activating provider profile {ProviderId}", command.ProviderId);
-            return Result.Failure("Error activating provider profile");
+            return Result.Failure("Erro ao ativar perfil do prestador");
         }
     }
 }

@@ -15,6 +15,9 @@ using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.API.Endpoints;
 
+/// <summary>
+/// Testes unitários para o endpoint DeleteMyProviderProfileEndpoint.
+/// </summary>
 [Trait("Category", "Unit")]
 public class DeleteMyProviderProfileEndpointTests
 {
@@ -27,6 +30,9 @@ public class DeleteMyProviderProfileEndpointTests
         _commandDispatcherMock = new Mock<ICommandDispatcher>();
     }
 
+    /// <summary>
+    /// Testa exclusão de perfil com provider válido deve retornar NoContent.
+    /// </summary>
     [Fact]
     public async Task DeleteMyProfileAsync_WithValidProvider_ShouldReturnNoContent()
     {
@@ -76,6 +82,9 @@ public class DeleteMyProviderProfileEndpointTests
         _commandDispatcherMock.Verify(x => x.SendAsync<DeleteMyProviderProfileCommand, Result>(It.IsAny<DeleteMyProviderProfileCommand>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    /// <summary>
+    /// Testa exclusão de perfil quando provider não é encontrado deve retornar NotFound.
+    /// </summary>
     [Fact]
     public async Task DeleteMyProfileAsync_WhenProviderNotFound_ShouldReturnNotFound()
     {

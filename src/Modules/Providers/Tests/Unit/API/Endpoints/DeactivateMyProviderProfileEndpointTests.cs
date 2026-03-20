@@ -61,7 +61,7 @@ public class DeactivateMyProviderProfileEndpointTests
 
         _commandDispatcherMock
             .Setup(x => x.SendAsync<DeactivateProviderProfileCommand, Result>(
-                It.Is<DeactivateProviderProfileCommand>(c => c.ProviderId == providerId), It.IsAny<CancellationToken>()))
+                It.Is<DeactivateProviderProfileCommand>(c => c.ProviderId == providerId && c.UpdatedBy == userId.ToString()), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success());
 
         // Act

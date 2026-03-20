@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Shared.Commands;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
@@ -36,9 +37,10 @@ public class DeactivateMyProviderProfileIntegrationTests : ProvidersIntegrationT
         // Assert
         result.IsSuccess.Should().BeTrue();
 
-        // Verify DB
-        var dbContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
-        var updatedProvider = await dbContext.Providers.FindAsync(provider.Id);
+        // Verificar BD com cold read (novo scope para evitar cached entity)
+        using var verifyScope = CreateScope();
+        var verifyDbContext = verifyScope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
+        var updatedProvider = await verifyDbContext.Providers.AsNoTracking().FirstOrDefaultAsync(p => p.Id == provider.Id);
         updatedProvider.Should().NotBeNull();
         updatedProvider!.IsActive.Should().BeFalse();
     }
@@ -58,6 +60,6 @@ public class DeactivateMyProviderProfileIntegrationTests : ProvidersIntegrationT
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("not found");
+        result.Error!.StatusCode.Should().Be(404);
     }
 }

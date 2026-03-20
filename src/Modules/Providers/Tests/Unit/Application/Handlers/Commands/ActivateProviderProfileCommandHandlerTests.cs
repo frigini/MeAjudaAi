@@ -63,7 +63,7 @@ public class ActivateProviderProfileCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("not found");
+        result.Error!.StatusCode.Should().Be(404);
         _providerRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -85,5 +85,6 @@ public class ActivateProviderProfileCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
+        _providerRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()), Times.Once());
     }
 }

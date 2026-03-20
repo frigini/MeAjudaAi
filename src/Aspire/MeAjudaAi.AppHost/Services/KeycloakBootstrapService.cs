@@ -84,15 +84,20 @@ public class KeycloakBootstrapService(
             // Carregar URLs dos clientes a partir dos endpoints resolvidos pelo Aspire
             var adminUrl = keycloakOptions.Value.AdminPortalEndpoint?.Url ?? "http://localhost:5030";
             var customerUrl = keycloakOptions.Value.CustomerWebEndpoint?.Url ?? "http://localhost:3000";
+            var providerUrl = keycloakOptions.Value.ProviderWebEndpoint?.Url ?? "http://localhost:3001";
 
             logger.LogInformation("Resolved Admin Portal URL: {AdminUrl}", adminUrl);
             logger.LogInformation("Resolved Customer Web URL: {CustomerUrl}", customerUrl);
+            logger.LogInformation("Resolved Provider Web URL: {ProviderUrl}", providerUrl);
 
             // 2. Garantir existência dos Clientes
             if (!await EnsureClientExistsAsync(httpClient, "admin-portal", adminUrl, ct)) return false;
             
             // O realm define o client name como "customer-app" de acordo com a configuração
             if (!await EnsureClientExistsAsync(httpClient, "customer-app", customerUrl, ct)) return false;
+            
+            // Provider Web App OIDC client
+            if (!await EnsureClientExistsAsync(httpClient, "provider-web", providerUrl, ct)) return false;
             
             logger.LogInformation("Keycloak bootstrap completed successfully.");
             return true;

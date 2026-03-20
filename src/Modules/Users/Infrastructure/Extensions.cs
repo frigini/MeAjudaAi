@@ -60,7 +60,7 @@ public static class Extensions
         services.AddDbContext<UsersDbContext>((serviceProvider, options) =>
         {
             // Usa PostgreSQL para todos os ambientes (TestContainers fornecerá database de teste)
-            // Resolve connection string from the DI configuration which includes tests overrides
+            // Resolve a string de conexão a partir da configuração do DI, incluindo sobrescritas de testes
             var resolvedConfiguration = serviceProvider.GetRequiredService<IConfiguration>();
             var connectionString = resolvedConfiguration.GetConnectionString("DefaultConnection")
                                   ?? resolvedConfiguration.GetConnectionString("Users")
@@ -69,16 +69,18 @@ public static class Extensions
             if (string.IsNullOrEmpty(connectionString))
             {
                 var env = serviceProvider.GetService<IHostEnvironment>();
-                if (MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(env))
+                var isIntegrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS") == "true";
+                
+                if (isIntegrationTests && MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(env))
                 {
-                    // Fallback para testes/dev quando a string de conexão não é crítica
+                    // Fallback para testes de integração quando a flag INTEGRATION_TESTS=true é definida
 #pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
                     connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
 #pragma warning restore S2068
                 }
                 else
                 {
-                    throw new InvalidOperationException("Connection for Users module not configured");
+                    throw new InvalidOperationException("Connection string for Users module not configured. Set INTEGRATION_TESTS=true for test environments.");
                 }
             }
 
