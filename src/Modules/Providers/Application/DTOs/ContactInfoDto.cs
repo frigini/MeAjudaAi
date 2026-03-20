@@ -6,5 +6,6 @@ namespace MeAjudaAi.Modules.Providers.Application.DTOs;
 public sealed record ContactInfoDto(
     string Email,
     string? PhoneNumber,
-    string? Website
+    string? Website,
+    IEnumerable<string>? AdditionalPhones = null
 );

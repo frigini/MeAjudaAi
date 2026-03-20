@@ -55,7 +55,8 @@ public static class ProviderMapper
             businessProfile.FantasyName,
             businessProfile.Description,
             businessProfile.ContactInfo.ToDto(),
-            businessProfile.PrimaryAddress.ToDto()
+            businessProfile.PrimaryAddress.ToDto(),
+            businessProfile.ShowAddressToClient
         );
     }
 
@@ -67,7 +68,8 @@ public static class ProviderMapper
         return new ContactInfoDto(
             contactInfo.Email,
             contactInfo.PhoneNumber,
-            contactInfo.Website
+            contactInfo.Website,
+            contactInfo.AdditionalPhoneNumbers
         );
     }
 
@@ -138,7 +140,7 @@ public static class ProviderMapper
 
         return new BusinessProfile(
             dto.LegalName,
-            new ContactInfo(dto.ContactInfo.Email, dto.ContactInfo.PhoneNumber, dto.ContactInfo.Website),
+            new ContactInfo(dto.ContactInfo.Email, dto.ContactInfo.PhoneNumber, dto.ContactInfo.Website, dto.ContactInfo.AdditionalPhones),
             new Address(
                 dto.PrimaryAddress.Street,
                 dto.PrimaryAddress.Number,
@@ -150,7 +152,8 @@ public static class ProviderMapper
                 dto.PrimaryAddress.Complement
             ),
             dto.FantasyName,
-            dto.Description
+            dto.Description,
+            dto.ShowAddressToClient
         );
     }
 

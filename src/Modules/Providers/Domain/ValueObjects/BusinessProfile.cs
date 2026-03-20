@@ -13,6 +13,7 @@ public class BusinessProfile : ValueObject
     public string? Description { get; private set; }
     public ContactInfo ContactInfo { get; private set; }
     public Address PrimaryAddress { get; private set; }
+    public bool ShowAddressToClient { get; private set; }
 
     /// <summary>
     /// Construtor privado para Entity Framework
@@ -22,6 +23,7 @@ public class BusinessProfile : ValueObject
         LegalName = string.Empty;
         ContactInfo = null!;
         PrimaryAddress = null!;
+        ShowAddressToClient = false;
     }
 
     public BusinessProfile(
@@ -29,7 +31,8 @@ public class BusinessProfile : ValueObject
         ContactInfo contactInfo,
         Address primaryAddress,
         string? fantasyName = null,
-        string? description = null)
+        string? description = null,
+        bool showAddressToClient = false)
     {
         if (string.IsNullOrWhiteSpace(legalName))
             throw new ArgumentException("Razão social não pode ser vazia", nameof(legalName));
@@ -39,6 +42,7 @@ public class BusinessProfile : ValueObject
         Description = description?.Trim();
         ContactInfo = contactInfo ?? throw new ArgumentNullException(nameof(contactInfo));
         PrimaryAddress = primaryAddress ?? throw new ArgumentNullException(nameof(primaryAddress));
+        ShowAddressToClient = showAddressToClient;
     }
 
     protected override IEnumerable<object> GetEqualityComponents()
@@ -48,6 +52,7 @@ public class BusinessProfile : ValueObject
         yield return Description ?? string.Empty;
         yield return ContactInfo;
         yield return PrimaryAddress;
+        yield return ShowAddressToClient;
     }
 
     public override string ToString() =>

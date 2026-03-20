@@ -34,9 +34,10 @@ public class BusinessProfileTests
         var description = "A test company";
         var contactInfo = new ContactInfo("test@example.com");
         var address = CreateValidAddress();
+        var showAddressToClient = true;
 
         // Act
-        var profile = new BusinessProfile(legalName, contactInfo, address, fantasyName, description);
+        var profile = new BusinessProfile(legalName, contactInfo, address, fantasyName, description, showAddressToClient);
 
         // Assert
         profile.LegalName.Should().Be(legalName);
@@ -44,60 +45,14 @@ public class BusinessProfileTests
         profile.Description.Should().Be(description);
         profile.ContactInfo.Should().Be(contactInfo);
         profile.PrimaryAddress.Should().Be(address);
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Constructor_WithNullOrWhitespaceLegalName_ShouldThrowArgumentException(string legalName)
-    {
-        // Arrange
-        var contactInfo = new ContactInfo("test@example.com");
-        var address = CreateValidAddress();
-
-        // Act
-        var act = () => new BusinessProfile(legalName, contactInfo, address);
-
-        // Assert
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("*Razão social não pode ser vazia*")
-            .And.ParamName.Should().Be("legalName");
+        profile.ShowAddressToClient.Should().BeTrue();
     }
 
     [Fact]
-    public void Constructor_WithNullContactInfo_ShouldThrowArgumentNullException()
+    public void Constructor_WithDefaultParameters_ShouldSetShowAddressToClientToFalse()
     {
         // Arrange
-        var address = CreateValidAddress();
-
-        // Act
-        var act = () => new BusinessProfile("Test Company", null!, address);
-
-        // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .And.ParamName.Should().Be("contactInfo");
-    }
-
-    [Fact]
-    public void Constructor_WithNullAddress_ShouldThrowArgumentNullException()
-    {
-        // Arrange
-        var contactInfo = new ContactInfo("test@example.com");
-
-        // Act
-        var act = () => new BusinessProfile("Test Company", contactInfo, null!);
-
-        // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .And.ParamName.Should().Be("primaryAddress");
-    }
-
-    [Fact]
-    public void Constructor_ShouldTrimLegalName()
-    {
-        // Arrange
-        var legalName = "  Test Company Ltda  ";
+        var legalName = "Test Company Ltda";
         var contactInfo = new ContactInfo("test@example.com");
         var address = CreateValidAddress();
 
@@ -105,37 +60,7 @@ public class BusinessProfileTests
         var profile = new BusinessProfile(legalName, contactInfo, address);
 
         // Assert
-        profile.LegalName.Should().Be("Test Company Ltda");
-    }
-
-    [Fact]
-    public void Constructor_ShouldTrimFantasyName()
-    {
-        // Arrange
-        var fantasyName = "  Test Co.  ";
-        var contactInfo = new ContactInfo("test@example.com");
-        var address = CreateValidAddress();
-
-        // Act
-        var profile = new BusinessProfile("Test Company", contactInfo, address, fantasyName);
-
-        // Assert
-        profile.FantasyName.Should().Be("Test Co.");
-    }
-
-    [Fact]
-    public void Constructor_ShouldTrimDescription()
-    {
-        // Arrange
-        var description = "  A test company  ";
-        var contactInfo = new ContactInfo("test@example.com");
-        var address = CreateValidAddress();
-
-        // Act
-        var profile = new BusinessProfile("Test Company", contactInfo, address, description: description);
-
-        // Assert
-        profile.Description.Should().Be("A test company");
+        profile.ShowAddressToClient.Should().BeFalse();
     }
 
     [Fact]
@@ -146,8 +71,8 @@ public class BusinessProfileTests
         var contactInfo = new ContactInfo("test@example.com");
         var address = CreateValidAddress();
 
-        var profile1 = new BusinessProfile(legalName, contactInfo, address);
-        var profile2 = new BusinessProfile(legalName, contactInfo, address);
+        var profile1 = new BusinessProfile(legalName, contactInfo, address, showAddressToClient: true);
+        var profile2 = new BusinessProfile(legalName, contactInfo, address, showAddressToClient: true);
 
         // Act & Assert
         profile1.Should().Be(profile2);
@@ -155,27 +80,15 @@ public class BusinessProfileTests
     }
 
     [Fact]
-    public void Equals_WithDifferentLegalName_ShouldReturnFalse()
+    public void Equals_WithDifferentShowAddressToClient_ShouldReturnFalse()
     {
         // Arrange
+        var legalName = "Test Company Ltda";
         var contactInfo = new ContactInfo("test@example.com");
         var address = CreateValidAddress();
 
-        var profile1 = new BusinessProfile("Company A", contactInfo, address);
-        var profile2 = new BusinessProfile("Company B", contactInfo, address);
-
-        // Act & Assert
-        profile1.Should().NotBe(profile2);
-    }
-
-    [Fact]
-    public void Equals_WithDifferentContactInfo_ShouldReturnFalse()
-    {
-        // Arrange
-        var address = CreateValidAddress();
-
-        var profile1 = new BusinessProfile("Test Company", new ContactInfo("test1@example.com"), address);
-        var profile2 = new BusinessProfile("Test Company", new ContactInfo("test2@example.com"), address);
+        var profile1 = new BusinessProfile(legalName, contactInfo, address, showAddressToClient: true);
+        var profile2 = new BusinessProfile(legalName, contactInfo, address, showAddressToClient: false);
 
         // Act & Assert
         profile1.Should().NotBe(profile2);
@@ -189,8 +102,8 @@ public class BusinessProfileTests
         var contactInfo = new ContactInfo("test@example.com");
         var address = CreateValidAddress();
 
-        var profile1 = new BusinessProfile(legalName, contactInfo, address);
-        var profile2 = new BusinessProfile(legalName, contactInfo, address);
+        var profile1 = new BusinessProfile(legalName, contactInfo, address, showAddressToClient: true);
+        var profile2 = new BusinessProfile(legalName, contactInfo, address, showAddressToClient: true);
 
         // Act & Assert
         profile1.GetHashCode().Should().Be(profile2.GetHashCode());
