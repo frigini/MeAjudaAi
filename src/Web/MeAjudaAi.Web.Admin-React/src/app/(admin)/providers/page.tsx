@@ -23,6 +23,7 @@ const getVerificationBadgeVariant = (status?: VerificationStatus) => {
     case 0: return "warning" as const;
     case 3:
     case 4: return "destructive" as const;
+    case 5: return "warning" as const;
     default: return "secondary" as const;
   }
 };
@@ -37,14 +38,13 @@ const getProviderPhone = (provider: ProviderDto): string => {
 };
 
 export default function ProvidersPage() {
+  const { data, isLoading, error } = useProviders();
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const { data, isLoading, error } = useProviders();
-
-  const providers = data?.data ?? [];
+  const providers: any[] = (data as any)?.items ?? (data as any)?.value ?? (data as any) ?? [];
 
   const filteredProviders = providers.filter(
-    (p) =>
+    (p: any) =>
       (p.name?.toLowerCase() ?? "").includes(search.toLowerCase()) ||
       (p.businessProfile?.contactInfo?.email?.toLowerCase() ?? "").includes(search.toLowerCase())
   );
@@ -65,7 +65,9 @@ export default function ProvidersPage() {
           <h1 className="text-2xl font-bold text-foreground">Prestadores</h1>
           <p className="text-muted-foreground">Gerencie os prestadores de serviços</p>
         </div>
-        <Button><Plus className="mr-2 h-4 w-4" />Novo Prestador</Button>
+        <Button disabled aria-disabled="true" className="opacity-50 cursor-not-allowed">
+          <Plus className="mr-2 h-4 w-4" />Novo Prestador
+        </Button>
       </div>
 
       <Card className="mb-6">
@@ -73,6 +75,8 @@ export default function ProvidersPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
+              id="search-providers"
+              aria-label="Buscar por nome ou email"
               placeholder="Buscar por nome ou email..."
               className="pl-10"
               value={search}
@@ -111,8 +115,8 @@ export default function ProvidersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedProviders.map((provider) => (
-                    <tr key={provider.id} className="border-b border-border last:border-b-0">
+                  {paginatedProviders.map((provider: any, index: any) => (
+                    <tr key={provider.id ?? provider.businessProfile?.contactInfo?.email ?? `provider-${index}`} className="border-b border-border last:border-b-0">
                       <td className="px-4 py-3 text-sm font-medium">
                         <Link href={`/providers/${provider.id}`} className="hover:underline">
                           {provider.name ?? "-"}
@@ -134,11 +138,9 @@ export default function ProvidersPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-2">
                           <Link href={`/providers/${provider.id}`}>
-                            <Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" aria-label="Visualizar" title="Visualizar"><Eye className="h-4 w-4" /></Button>
                           </Link>
-                          <Button variant="ghost" size="icon"><CheckCircle className="h-4 w-4 text-green-500" /></Button>
-                          <Button variant="ghost" size="icon"><XCircle className="h-4 w-4 text-red-500" /></Button>
-                          <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-red-500" /></Button>
+
                         </div>
                       </td>
                     </tr>
@@ -154,10 +156,11 @@ export default function ProvidersPage() {
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="icon"
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage((p) => p - 1)}
+                    aria-label="Página anterior"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -175,19 +178,21 @@ export default function ProvidersPage() {
                     return (
                       <Button
                         key={pageNum}
-                        variant={currentPage === pageNum ? "default" : "outline"}
+                        variant={currentPage === pageNum ? "primary" : "secondary"}
                         size="icon"
                         onClick={() => setCurrentPage(pageNum)}
+                        aria-label={`Página ${pageNum}`}
                       >
                         {pageNum}
                       </Button>
                     );
                   })}
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="icon"
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage((p) => p + 1)}
+                    aria-label="Próxima página"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>

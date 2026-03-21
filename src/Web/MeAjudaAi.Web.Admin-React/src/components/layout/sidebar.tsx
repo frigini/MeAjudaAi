@@ -66,7 +66,7 @@ export function Sidebar() {
         <div className="mb-3 flex items-center justify-between px-3">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
-              {session?.user?.name?.charAt(0).toUpperCase() ?? "A"}
+              {session?.user?.name?.trim() ? session.user.name.trim().charAt(0).toUpperCase() : "A"}
             </div>
             <div className="flex-1 overflow-hidden">
               <p className="truncate text-sm font-medium">{session?.user?.name ?? "Admin"}</p>

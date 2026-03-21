@@ -4,6 +4,7 @@ import { use, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Mail, Phone, MapPin, FileText, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -48,13 +49,25 @@ export default function ProviderDetailPage({ params }: PageProps) {
   const deactivateMutation = useDeactivateProvider();
 
   const handleApprove = async () => {
-    await activateMutation.mutateAsync(id);
-    setIsApproveOpen(false);
+    try {
+      await activateMutation.mutateAsync(id);
+      toast.success("Prestador aprovado com sucesso");
+    } catch {
+      toast.error("Erro ao aprovar prestador");
+    } finally {
+      setIsApproveOpen(false);
+    }
   };
 
   const handleReject = async () => {
-    await deactivateMutation.mutateAsync(id);
-    setIsRejectOpen(false);
+    try {
+      await deactivateMutation.mutateAsync(id);
+      toast.success("Prestador suspenso com sucesso");
+    } catch {
+      toast.error("Erro ao suspender prestador");
+    } finally {
+      setIsRejectOpen(false);
+    }
   };
 
   if (isLoading) {
@@ -70,7 +83,7 @@ export default function ProviderDetailPage({ params }: PageProps) {
       <div className="p-8 text-center">
         <p className="text-destructive">Erro ao carregar prestador. Tente novamente.</p>
         <Link href="/providers">
-          <Button variant="link" className="mt-4">Voltar para lista</Button>
+          <Button variant="ghost" className="mt-4">Voltar para lista</Button>
         </Link>
       </div>
     );
@@ -97,17 +110,17 @@ export default function ProviderDetailPage({ params }: PageProps) {
               <Badge variant="secondary">
                 {providerTypeLabels[provider.type as keyof typeof providerTypeLabels] ?? "-"}
               </Badge>
-              <Badge variant="outline">
+              <Badge variant="secondary">
                 {providerTierLabels[provider.tier as keyof typeof providerTierLabels] ?? "-"}
               </Badge>
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsApproveOpen(true)}>
+            <Button variant="secondary" onClick={() => setIsApproveOpen(true)}>
               <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
               Aprovar
             </Button>
-            <Button variant="outline" onClick={() => setIsRejectOpen(true)}>
+            <Button variant="secondary" onClick={() => setIsRejectOpen(true)}>
               <XCircle className="mr-2 h-4 w-4 text-red-500" />
               Suspender
             </Button>
@@ -178,7 +191,7 @@ export default function ProviderDetailPage({ params }: PageProps) {
           <CardContent>
             {provider.documents && provider.documents.length > 0 ? (
               <div className="space-y-2">
-                {provider.documents.map((doc, index) => (
+                {provider.documents.map((doc: any, index: number) => (
                   <div key={index} className="flex items-center justify-between rounded-lg border p-3">
                     <div>
                       <p className="font-medium">{doc.documentType ?? "Documento"}</p>
@@ -203,7 +216,7 @@ export default function ProviderDetailPage({ params }: PageProps) {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                {provider.services.map((service, index) => (
+                {provider.services.map((service: any, index: number) => (
                   <Badge key={index} variant="secondary">
                     {service.serviceName ?? "Serviço"}
                   </Badge>
@@ -250,7 +263,7 @@ export default function ProviderDetailPage({ params }: PageProps) {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsApproveOpen(false)}>Cancelar</Button>
+            <Button variant="secondary" onClick={() => setIsApproveOpen(false)}>Cancelar</Button>
             <Button onClick={handleApprove} disabled={activateMutation.isPending}>
               {activateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Aprovar
@@ -269,7 +282,7 @@ export default function ProviderDetailPage({ params }: PageProps) {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsRejectOpen(false)}>Cancelar</Button>
+            <Button variant="secondary" onClick={() => setIsRejectOpen(false)}>Cancelar</Button>
             <Button variant="destructive" onClick={handleReject} disabled={deactivateMutation.isPending}>
               {deactivateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Suspender

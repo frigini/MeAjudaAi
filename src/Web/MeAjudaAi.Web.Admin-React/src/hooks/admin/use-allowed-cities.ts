@@ -30,16 +30,16 @@ export const allowedCitiesKeys = {
 export function useAllowedCities(onlyActive?: boolean) {
   return useQuery({
     queryKey: allowedCitiesKeys.list({ onlyActive }),
-    queryFn: () => apiAllowedCitiesGet({ query: { onlyActive } }),
-    select: (data) => data.data,
+    queryFn: () => apiAllowedCitiesGet({ query: { onlyActive } } as any),
+    select: (data: any) => data.data ?? data,
   });
 }
 
 export function useAllowedCityById(id: string) {
   return useQuery({
     queryKey: allowedCitiesKeys.detail(id),
-    queryFn: () => apiAllowedCitiesGet2({ path: { id } } as ApiAllowedCitiesGet2Data),
-    select: (data) => data.data,
+    queryFn: () => apiAllowedCitiesGet2({ path: { id } } as any),
+    select: (data: any) => data.data ?? data,
     enabled: !!id,
   });
 }
@@ -48,8 +48,8 @@ export function useCreateAllowedCity() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: ApiAllowedCitiesPostData["body"]) =>
-      apiAllowedCitiesPost({ body: data }),
+    mutationFn: (data: any) =>
+      apiAllowedCitiesPost(data.body ? data : { body: data } as any),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: allowedCitiesKeys.lists() });
     },
@@ -60,16 +60,13 @@ export function useUpdateAllowedCity() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      ...data
-    }: ApiAllowedCitiesPutData["path"] & { data: ApiAllowedCitiesPutData["body"] }) =>
-      apiAllowedCitiesPut({
-        path: { id },
-        body: data.data as ApiAllowedCitiesPutData["body"],
+    mutationFn: (data: any) =>
+      apiAllowedCitiesPut(data.path ? data : {
+        path: { id: data.id },
+        body: data.data,
       }),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: allowedCitiesKeys.detail(variables.id) });
+    onSuccess: (_, variables: any) => {
+      queryClient.invalidateQueries({ queryKey: allowedCitiesKeys.detail(variables?.path?.id ?? variables.id) });
       queryClient.invalidateQueries({ queryKey: allowedCitiesKeys.lists() });
     },
   });
@@ -79,16 +76,13 @@ export function usePatchAllowedCity() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      ...data
-    }: ApiAllowedCitiesPatchData["path"] & { data: ApiAllowedCitiesPatchData["body"] }) =>
-      apiAllowedCitiesPatch({
-        path: { id },
-        body: data.data as ApiAllowedCitiesPatchData["body"],
+    mutationFn: (data: any) =>
+      apiAllowedCitiesPatch(data.path ? data : {
+        path: { id: data.id },
+        body: data.data,
       }),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: allowedCitiesKeys.detail(variables.id) });
+    onSuccess: (_, variables: any) => {
+      queryClient.invalidateQueries({ queryKey: allowedCitiesKeys.detail(variables?.path?.id ?? variables.id) });
       queryClient.invalidateQueries({ queryKey: allowedCitiesKeys.lists() });
     },
   });
@@ -98,8 +92,8 @@ export function useDeleteAllowedCity() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      apiAllowedCitiesDelete({ path: { id } } as ApiAllowedCitiesDeleteData),
+    mutationFn: (data: any) =>
+      apiAllowedCitiesDelete(data.path ? data : { path: { id: data } } as any),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: allowedCitiesKeys.lists() });
     },

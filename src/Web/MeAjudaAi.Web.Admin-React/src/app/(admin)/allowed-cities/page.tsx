@@ -68,16 +68,18 @@ export default function AllowedCitiesPage() {
     defaultValues: { city: "", state: "", serviceRadiusKm: 50, isActive: true },
   });
 
-  const cities = citiesResponse?.data?.value ?? [];
+  const cities: any[] = (citiesResponse as any)?.value ?? (citiesResponse as any) ?? [];
 
   const filteredCities = cities.filter(
-    (c) =>
+    (c: any) =>
       (c.cityName?.toLowerCase() ?? "").includes(search.toLowerCase()) ||
       (c.stateSigla?.toLowerCase() ?? "").includes(search.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredCities.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const unfilteredTotalPages = Math.ceil(filteredCities.length / ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, unfilteredTotalPages);
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
   const paginatedCities = filteredCities.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const handleSearch = (value: string) => {
@@ -110,8 +112,8 @@ export default function AllowedCitiesPage() {
     try {
       await createMutation.mutateAsync({
         body: {
-          city: data.city,
-          state: data.state,
+          cityName: data.city,
+          stateSigla: data.state,
           country: "Brasil",
           serviceRadiusKm: data.serviceRadiusKm,
           isActive: data.isActive,
@@ -128,14 +130,12 @@ export default function AllowedCitiesPage() {
     if (!selectedCity?.id) return;
     try {
       await updateMutation.mutateAsync({
-        id: selectedCity.id,
-        data: {
-          data: {
-            cityName: data.city,
-            stateSigla: data.state,
-            serviceRadiusKm: data.serviceRadiusKm,
-            isActive: data.isActive,
-          },
+        path: { id: selectedCity.id },
+        body: {
+          cityName: data.city,
+          stateSigla: data.state,
+          serviceRadiusKm: data.serviceRadiusKm,
+          isActive: data.isActive,
         },
       });
       toast.success("Cidade atualizada com sucesso");
@@ -149,8 +149,8 @@ export default function AllowedCitiesPage() {
     if (!city.id) return;
     try {
       await patchMutation.mutateAsync({
-        id: city.id,
-        data: { isActive: !city.isActive },
+        path: { id: city.id },
+        body: { isActive: !city.isActive },
       });
       toast.success(`Cidade ${!city.isActive ? "ativada" : "desativada"} com sucesso`);
     } catch {
@@ -161,7 +161,7 @@ export default function AllowedCitiesPage() {
   const handleDelete = async () => {
     if (!selectedCity?.id) return;
     try {
-      await deleteMutation.mutateAsync(selectedCity.id);
+      await deleteMutation.mutateAsync({ path: { id: selectedCity.id } });
       toast.success("Cidade excluída com sucesso");
       setIsDeleteOpen(false);
     } catch {
@@ -176,7 +176,7 @@ export default function AllowedCitiesPage() {
           <h1 className="text-2xl font-bold text-foreground">Cidades Permitidas</h1>
           <p className="text-muted-foreground">Gerencie cidades atendidas pelos prestadores</p>
         </div>
-        <Button onClick={handleOpenCreate}>
+        <Button onClick={handleOpenCreate} disabled title="Criação de cidades temporariamente desabilitada">
           <Plus className="mr-2 h-4 w-4" />Nova Cidade
         </Button>
       </div>
@@ -190,6 +190,7 @@ export default function AllowedCitiesPage() {
               className="pl-10"
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
+              aria-label="Buscar por cidade ou estado"
             />
           </div>
         </div>
@@ -222,7 +223,7 @@ export default function AllowedCitiesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedCities.map((city) => (
+                  {paginatedCities.map((city: any) => (
                     <tr key={city.id} className="border-b border-border last:border-b-0">
                       <td className="px-4 py-3 text-sm font-medium">{city.cityName ?? "-"}</td>
                       <td className="px-4 py-3 text-sm text-muted-foreground">{city.stateSigla ?? "-"}</td>
@@ -234,13 +235,13 @@ export default function AllowedCitiesPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => handleToggleActive(city)}>
+                          <Button variant="ghost" size="icon" onClick={() => handleToggleActive(city)} aria-label={city.isActive ? "Desativar cidade" : "Ativar cidade"}>
                             <MapPin className={`h-4 w-4 ${city.isActive ? "text-green-500" : "text-gray-400"}`} />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(city)}>
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(city)} aria-label="Editar cidade">
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleOpenDelete(city)}>
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenDelete(city)} aria-label="Excluir cidade">
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
                         </div>
@@ -251,28 +252,28 @@ export default function AllowedCitiesPage() {
               </table>
             </div>
 
-            {totalPages > 1 && (
+            {unfilteredTotalPages > 1 && (
               <div className="flex items-center justify-between border-t border-border px-4 py-3">
                 <p className="text-sm text-muted-foreground">
                   Mostrando {startIndex + 1} - {Math.min(startIndex + ITEMS_PER_PAGE, filteredCities.length)} de {filteredCities.length}
                 </p>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
+                  <Button variant="secondary" size="icon" disabled={safePage === 1} onClick={() => setCurrentPage((p) => p - 1)} aria-label="Página anterior">
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     let pageNum;
                     if (totalPages <= 5) pageNum = i + 1;
-                    else if (currentPage <= 3) pageNum = i + 1;
-                    else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
-                    else pageNum = currentPage - 2 + i;
+                    else if (safePage <= 3) pageNum = i + 1;
+                    else if (safePage >= totalPages - 2) pageNum = totalPages - 4 + i;
+                    else pageNum = safePage - 2 + i;
                     return (
-                      <Button key={pageNum} variant={currentPage === pageNum ? "default" : "outline"} size="icon" onClick={() => setCurrentPage(pageNum)}>
+                      <Button key={pageNum} variant={safePage === pageNum ? "primary" : "secondary"} size="icon" onClick={() => setCurrentPage(pageNum)} aria-label={`Página ${pageNum}`}>
                         {pageNum}
                       </Button>
                     );
                   })}
-                  <Button variant="outline" size="icon" disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
+                  <Button variant="secondary" size="icon" disabled={safePage === totalPages} onClick={() => setCurrentPage((p) => p + 1)} aria-label="Próxima página">
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -318,7 +319,7 @@ export default function AllowedCitiesPage() {
               <label htmlFor="isActive" className="text-sm font-medium">Cidade Ativa</label>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
+              <Button type="button" variant="secondary" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
               <Button type="submit" disabled={createMutation.isPending}>
                 {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Criar
@@ -360,7 +361,7 @@ export default function AllowedCitiesPage() {
               <label htmlFor="edit-isActive" className="text-sm font-medium">Cidade Ativa</label>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
+              <Button type="button" variant="secondary" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
               <Button type="submit" disabled={updateMutation.isPending}>
                 {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Salvar
@@ -380,7 +381,7 @@ export default function AllowedCitiesPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>Cancelar</Button>
+            <Button variant="secondary" onClick={() => setIsDeleteOpen(false)}>Cancelar</Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>
               {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Excluir

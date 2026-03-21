@@ -1,8 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { apiProvidersGet } from "@/lib/api/generated";
-import type { ApiProvidersGetData } from "@/lib/api/generated";
+import { apiProvidersGet2 } from "@/lib/api/generated";
+import type { ApiProvidersGet2Data } from "@/lib/api/generated";
+import { EVerificationStatus, EProviderType } from "@/lib/types";
 
 export interface DashboardStats {
   total: number;
@@ -21,11 +22,25 @@ export function useDashboardStats() {
   return useQuery({
     queryKey: ["dashboard", "stats"],
     queryFn: async (): Promise<DashboardStats> => {
-      const response = await apiProvidersGet({} as ApiProvidersGetData);
-      const providers = response.data?.data ?? [];
+      let currentPage = 1;
+      let totalPages = 1;
+      let allProviders: any[] = [];
+
+      do {
+        const response: any = await apiProvidersGet2({
+          query: { pageNumber: currentPage, pageSize: 100 }
+        } as any);
+
+        const data = response.data?.value ?? response.data ?? response ?? {};
+        const items = data.items ?? data.data ?? [];
+        
+        allProviders = allProviders.concat(items);
+        totalPages = data.totalPages ?? 1;
+        currentPage++;
+      } while (currentPage <= totalPages);
 
       const stats: DashboardStats = {
-        total: providers.length,
+        total: allProviders.length,
         pending: 0,
         approved: 0,
         rejected: 0,
@@ -37,20 +52,20 @@ export function useDashboardStats() {
         cooperative: 0,
       };
 
-      providers.forEach((p) => {
+      allProviders.forEach((p) => {
         switch (p.verificationStatus) {
-          case 0: stats.pending++; break;
-          case 1: stats.underReview++; break;
-          case 2: stats.approved++; break;
-          case 3: stats.rejected++; break;
-          case 4: stats.suspended++; break;
+          case EVerificationStatus.Pending: stats.pending++; break;
+          case EVerificationStatus.InProgress: stats.underReview++; break;
+          case EVerificationStatus.Verified: stats.approved++; break;
+          case EVerificationStatus.Rejected: stats.rejected++; break;
+          case EVerificationStatus.Suspended: stats.suspended++; break;
         }
 
         switch (p.type) {
-          case 1: stats.individual++; break;
-          case 2: stats.company++; break;
-          case 3: stats.cooperative++; break;
-          case 4: stats.freelancer++; break;
+          case EProviderType.Individual: stats.individual++; break;
+          case EProviderType.Company: stats.company++; break;
+          case EProviderType.Cooperative: stats.cooperative++; break;
+          case EProviderType.Freelancer: stats.freelancer++; break;
         }
       });
 

@@ -18,10 +18,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem("theme") as Theme | null;
-    if (stored) {
-      setThemeState(stored);
-      document.documentElement.classList.toggle("dark", stored === "dark");
+    const stored = localStorage.getItem("theme");
+    const validTheme = stored === "light" || stored === "dark" ? stored : null;
+    
+    if (validTheme) {
+      setThemeState(validTheme);
+      document.documentElement.classList.toggle("dark", validTheme === "dark");
     } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
       setThemeState("dark");
       document.documentElement.classList.add("dark");

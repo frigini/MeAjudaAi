@@ -28,16 +28,16 @@ export const categoryKeys = {
 export function useCategories() {
   return useQuery({
     queryKey: categoryKeys.lists(),
-    queryFn: () => apiCategoriesGet(),
-    select: (data) => data.data,
+    queryFn: () => apiCategoriesGet() as any,
+    select: (data: any) => data.data ?? data,
   });
 }
 
 export function useCategoryById(id: string) {
   return useQuery({
     queryKey: categoryKeys.detail(id),
-    queryFn: () => apiCategoriesGet2({ path: { id } } as ApiCategoriesGet2Data),
-    select: (data) => data.data,
+    queryFn: () => apiCategoriesGet2({ path: { id } } as any),
+    select: (data: any) => data.data ?? data,
     enabled: !!id,
   });
 }
@@ -46,8 +46,8 @@ export function useCreateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: ApiCategoriesPostData["body"]) =>
-      apiCategoriesPost({ body: data }),
+    mutationFn: (data: any) =>
+      apiCategoriesPost(data.body ? data : { body: data } as any),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
     },
@@ -58,14 +58,15 @@ export function useUpdateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, ...body }: { id: string } & ApiCategoriesPutData["body"]) =>
-      apiCategoriesPut({
-        path: { id },
-        body: body as ApiCategoriesPutData["body"],
+    mutationFn: (data: any) =>
+      apiCategoriesPut(data.path ? data : {
+        path: { id: data.id },
+        body: data.body ?? data,
       }),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.detail(variables.id) });
+    onSuccess: (_, variables: any) => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.detail(variables?.path?.id ?? variables.id) });
       queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
     },
   });
 }
@@ -74,8 +75,8 @@ export function useDeleteCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      apiCategoriesDelete({ path: { id } } as ApiCategoriesDeleteData),
+    mutationFn: (data: any) =>
+      apiCategoriesDelete(data.path ? data : { path: { id: data } } as any),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
     },

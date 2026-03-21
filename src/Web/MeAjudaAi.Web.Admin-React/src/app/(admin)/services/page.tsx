@@ -61,19 +61,21 @@ export default function ServicesPage() {
     defaultValues: { name: "", description: "", categoryId: "", isActive: true },
   });
 
-  const services = servicesResponse?.data?.data ?? [];
-  const categories = categoriesResponse?.data?.data ?? [];
+  const services: any[] = (servicesResponse as any)?.value ?? (servicesResponse as any) ?? [];
+  const categories: any[] = (categoriesResponse as any)?.value ?? (categoriesResponse as any) ?? [];
 
   const filteredServices = services.filter(
-    (s) => (s.name?.toLowerCase() ?? "").includes(search.toLowerCase())
+    (s: any) => (s.name?.toLowerCase() ?? "").includes(search.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredServices.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const unfilteredTotalPages = Math.ceil(filteredServices.length / ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, unfilteredTotalPages);
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
   const paginatedServices = filteredServices.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const getCategoryName = (categoryId?: string) => {
-    const category = categories.find((c) => c.id === categoryId);
+    const category = categories.find((c: any) => c.id === categoryId);
     return category?.name ?? "-";
   };
 
@@ -106,12 +108,10 @@ export default function ServicesPage() {
   const handleSubmitCreate = async (data: ServiceFormData) => {
     try {
       await createMutation.mutateAsync({
-        body: {
-          name: data.name,
-          description: data.description ?? "",
-          categoryId: data.categoryId,
-          isActive: data.isActive,
-        },
+        name: data.name,
+        description: data.description ?? "",
+        categoryId: data.categoryId,
+        isActive: data.isActive,
       });
       toast.success("Serviço criado com sucesso");
       setIsCreateOpen(false);
@@ -155,7 +155,7 @@ export default function ServicesPage() {
           <h1 className="text-2xl font-bold text-foreground">Serviços</h1>
           <p className="text-muted-foreground">Gerencie serviços disponíveis</p>
         </div>
-        <Button onClick={handleOpenCreate}>
+        <Button onClick={handleOpenCreate} disabled title="Criação de serviços temporariamente desabilitada">
           <Plus className="mr-2 h-4 w-4" />Novo Serviço
         </Button>
       </div>
@@ -169,6 +169,7 @@ export default function ServicesPage() {
               className="pl-10"
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
+              aria-label="Buscar serviço por nome"
             />
           </div>
         </div>
@@ -201,7 +202,7 @@ export default function ServicesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedServices.map((service) => (
+                  {paginatedServices.map((service: any) => (
                     <tr key={service.id} className="border-b border-border last:border-b-0">
                       <td className="px-4 py-3 text-sm font-medium">{service.name ?? "-"}</td>
                       <td className="px-4 py-3 text-sm text-muted-foreground">
@@ -217,10 +218,10 @@ export default function ServicesPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(service)}>
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(service)} aria-label="Editar serviço">
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleOpenDelete(service)}>
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenDelete(service)} aria-label="Excluir serviço">
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
                         </div>
@@ -231,28 +232,28 @@ export default function ServicesPage() {
               </table>
             </div>
 
-            {totalPages > 1 && (
+            {unfilteredTotalPages > 1 && (
               <div className="flex items-center justify-between border-t border-border px-4 py-3">
                 <p className="text-sm text-muted-foreground">
                   Mostrando {startIndex + 1} - {Math.min(startIndex + ITEMS_PER_PAGE, filteredServices.length)} de {filteredServices.length}
                 </p>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
+                  <Button variant="secondary" size="icon" disabled={safePage === 1} onClick={() => setCurrentPage((p) => p - 1)} aria-label="Página anterior">
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     let pageNum;
                     if (totalPages <= 5) pageNum = i + 1;
-                    else if (currentPage <= 3) pageNum = i + 1;
-                    else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
-                    else pageNum = currentPage - 2 + i;
+                    else if (safePage <= 3) pageNum = i + 1;
+                    else if (safePage >= totalPages - 2) pageNum = totalPages - 4 + i;
+                    else pageNum = safePage - 2 + i;
                     return (
-                      <Button key={pageNum} variant={currentPage === pageNum ? "default" : "outline"} size="icon" onClick={() => setCurrentPage(pageNum)}>
+                      <Button key={pageNum} variant={safePage === pageNum ? "primary" : "secondary"} size="icon" onClick={() => setCurrentPage(pageNum)} aria-label={`Página ${pageNum}`}>
                         {pageNum}
                       </Button>
                     );
                   })}
-                  <Button variant="outline" size="icon" disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
+                  <Button variant="secondary" size="icon" disabled={safePage === totalPages} onClick={() => setCurrentPage((p) => p + 1)} aria-label="Próxima página">
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -282,7 +283,7 @@ export default function ServicesPage() {
               <label htmlFor="category" className="text-sm font-medium">Categoria</label>
               <select id="category" {...createForm.register("categoryId")} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                 <option value="">Selecione...</option>
-                {categories.map((category) => (
+                {categories.map((category: any) => (
                   <option key={category.id} value={category.id}>{category.name}</option>
                 ))}
               </select>
@@ -298,7 +299,7 @@ export default function ServicesPage() {
               <label htmlFor="isActive" className="text-sm font-medium">Serviço Ativo</label>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
+              <Button type="button" variant="secondary" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
               <Button type="submit" disabled={createMutation.isPending}>
                 {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Criar
@@ -324,7 +325,7 @@ export default function ServicesPage() {
               <label htmlFor="edit-category" className="text-sm font-medium">Categoria</label>
               <select id="edit-category" {...editForm.register("categoryId")} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                 <option value="">Selecione...</option>
-                {categories.map((category) => (
+                {categories.map((category: any) => (
                   <option key={category.id} value={category.id}>{category.name}</option>
                 ))}
               </select>
@@ -340,7 +341,7 @@ export default function ServicesPage() {
               <label htmlFor="edit-isActive" className="text-sm font-medium">Serviço Ativo</label>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
+              <Button type="button" variant="secondary" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
               <Button type="submit" disabled={updateMutation.isPending}>
                 {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Salvar
@@ -360,7 +361,7 @@ export default function ServicesPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>Cancelar</Button>
+            <Button variant="secondary" onClick={() => setIsDeleteOpen(false)}>Cancelar</Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>
               {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Excluir

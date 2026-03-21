@@ -850,7 +850,7 @@ export default function ConfiguracoesPage() {
             <p className="mb-6 text-sm text-foreground-subtle">Desativando seu perfil ele não será mais exibido em buscas.</p>
             <div className="flex justify-end gap-3">
               <Button variant="ghost" onClick={() => setShowDeactivateModal(false)}>Cancelar</Button>
-              <Button variant="destructive" onClick={confirmDeactivation} disabled={deactivateMutation.isPending}>
+              <Button variant="destructive" onClick={() => deactivateMutation.mutate()} disabled={deactivateMutation.isPending}>
                 {deactivateMutation.isPending ? "Desativando..." : "Desativar"}
               </Button>
             </div>

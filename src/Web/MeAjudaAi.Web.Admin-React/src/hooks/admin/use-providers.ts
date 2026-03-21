@@ -28,7 +28,7 @@ import type { ApiProvidersGet2Error, ApiProvidersGet4Error } from "@/lib/api/gen
 export const providerKeys = {
   all: ["providers"] as const,
   lists: () => [...providerKeys.all, "list"] as const,
-  list: (filters: ApiProvidersGetData["query"]) =>
+  list: (filters?: ApiProvidersGet2Data["query"]) =>
     [...providerKeys.lists(), filters] as const,
   details: () => [...providerKeys.all, "detail"] as const,
   detail: (id: string) => [...providerKeys.details(), id] as const,
@@ -37,19 +37,19 @@ export const providerKeys = {
   byType: (type: string) => [...providerKeys.all, "byType", type] as const,
 };
 
-export function useProviders(filters?: ApiProvidersGetData["query"]) {
+export function useProviders(filters?: any) {
   return useQuery({
     queryKey: providerKeys.list(filters),
-    queryFn: () => apiProvidersGet({ query: filters }),
-    select: (data) => data.data,
+    queryFn: () => apiProvidersGet2({ query: filters } as any) as any,
+    select: (data: any) => data.data ?? data,
   });
 }
 
 export function useProviderById(id: string) {
   return useQuery({
     queryKey: providerKeys.detail(id),
-    queryFn: () => apiProviderGet({ path: { id } }),
-    select: (data) => data.data,
+    queryFn: () => apiProvidersGet3({ path: { id } } as any) as any,
+    select: (data: any) => data.data ?? data,
     enabled: !!id,
   });
 }
@@ -60,8 +60,8 @@ export function useProvidersByStatus(status: string) {
     queryFn: () =>
       apiProvidersGet2({
         query: { verificationStatus: status },
-      } as ApiProvidersGet2Data),
-    select: (data) => data.data,
+      } as any) as any,
+    select: (data: any) => data.data ?? data,
     enabled: !!status,
   });
 }
@@ -70,10 +70,10 @@ export function useProvidersByType(type: string) {
   return useQuery({
     queryKey: providerKeys.byType(type),
     queryFn: () =>
-      apiProvidersGet3({
+      apiProvidersGet2({
         query: { type },
-      } as ApiProvidersGet3Data),
-    select: (data) => data.data,
+      } as any) as any,
+    select: (data: any) => data.data ?? data,
     enabled: !!type,
   });
 }
@@ -82,8 +82,8 @@ export function useCreateProvider() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: ApiProvidersPostData["body"]) =>
-      apiProvidersPost({ body: data }),
+    mutationFn: (data: any) =>
+      apiProvidersPost({ body: data } as any),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: providerKeys.lists() });
     },
@@ -94,12 +94,9 @@ export function useUpdateProvider() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      ...data
-    }: ApiProvidersPutData["path"] & { data: ApiProvidersPutData["body"] }) =>
-      apiProvidersPut({ path: { id }, body: data.data as ApiProvidersPutData["body"] }),
-    onSuccess: (_, variables) => {
+    mutationFn: (data: any) =>
+      apiProvidersPut({ path: { id: data.id }, body: data.data } as any),
+    onSuccess: (_, variables: any) => {
       queryClient.invalidateQueries({ queryKey: providerKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: providerKeys.lists() });
     },
@@ -111,7 +108,7 @@ export function useDeleteProvider() {
 
   return useMutation({
     mutationFn: (id: string) =>
-      apiProvidersDelete({ path: { id } } as ApiProvidersDeleteData),
+      apiProvidersDelete({ path: { id } } as any),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: providerKeys.lists() });
     },
@@ -123,7 +120,7 @@ export function useActivateProvider() {
 
   return useMutation({
     mutationFn: (id: string) =>
-      apiActivatePost({ path: { id } } as ApiActivatePostData),
+      apiActivatePost({ path: { id } } as any),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: providerKeys.lists() });
     },
@@ -135,7 +132,7 @@ export function useDeactivateProvider() {
 
   return useMutation({
     mutationFn: (id: string) =>
-      apiDeactivatePost({ path: { id } } as ApiDeactivatePostData),
+      apiDeactivatePost({ path: { id } } as any),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: providerKeys.lists() });
     },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { FileText, Upload, Info, Search, Eye, CheckCircle, XCircle, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -13,7 +13,7 @@ import type { ProviderDto } from "@/lib/types";
 const ITEMS_PER_PAGE = 10;
 
 const getProviderDocumentStatus = (provider: ProviderDto): "complete" | "pending" | "missing" => {
-  const hasCnpj = provider.businessProfile?.cnpj;
+  const hasCnpj = (provider.businessProfile as any)?.cnpj;
   const hasDocuments = provider.documents && provider.documents.length > 0;
   
   if (hasCnpj && hasDocuments) return "complete";
@@ -40,12 +40,25 @@ export default function DocumentsPage() {
   const providers = data?.data ?? [];
 
   const filteredProviders = providers.filter(
-    (p) => (p.name?.toLowerCase() ?? "").includes(search.toLowerCase())
+    (p: any) => (p.name?.toLowerCase() ?? "").includes(search.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredProviders.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const unfilteredTotalPages = Math.ceil(filteredProviders.length / ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, unfilteredTotalPages);
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
   const paginatedProviders = filteredProviders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const kpis = useMemo(() => {
+    let complete = 0, pending = 0, missing = 0;
+    providers.forEach((p: any) => {
+      const status = getProviderDocumentStatus(p);
+      if (status === "complete") complete++;
+      else if (status === "pending") pending++;
+      else missing++;
+    });
+    return { complete, pending, missing };
+  }, [providers]);
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -70,6 +83,7 @@ export default function DocumentsPage() {
               className="pl-10"
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
+              aria-label="Buscar prestador por nome"
             />
           </div>
         </div>
@@ -80,41 +94,43 @@ export default function DocumentsPage() {
           <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5" />Documentos por Prestador</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="mb-6 grid gap-4 md:grid-cols-3">
-            <div className="rounded-lg border border-border bg-muted/50 p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
+          {providers.length > 0 && (
+            <div className="mb-6 grid gap-4 md:grid-cols-3">
+              <div className="rounded-lg border border-border bg-muted/50 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{kpis.complete}</p>
+                    <p className="text-sm text-muted-foreground">Documentação Completa</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{providers.filter(p => getProviderDocumentStatus(p) === "complete").length}</p>
-                  <p className="text-sm text-muted-foreground">Documentação Completa</p>
+              </div>
+              <div className="rounded-lg border border-border bg-muted/50 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
+                    <Info className="h-5 w-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{kpis.pending}</p>
+                    <p className="text-sm text-muted-foreground">Documentação Pendente</p>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-lg border border-border bg-muted/50 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                    <XCircle className="h-5 w-5 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{kpis.missing}</p>
+                    <p className="text-sm text-muted-foreground">Documentação Ausente</p>
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="rounded-lg border border-border bg-muted/50 p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
-                  <Info className="h-5 w-5 text-yellow-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{providers.filter(p => getProviderDocumentStatus(p) === "pending").length}</p>
-                  <p className="text-sm text-muted-foreground">Documentação Pendente</p>
-                </div>
-              </div>
-            </div>
-            <div className="rounded-lg border border-border bg-muted/50 p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
-                  <XCircle className="h-5 w-5 text-red-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{providers.filter(p => getProviderDocumentStatus(p) === "missing").length}</p>
-                  <p className="text-sm text-muted-foreground">Documentação Ausente</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
 
           <p className="text-sm text-muted-foreground mb-4">
             Clique em um prestador para visualizar e gerenciar seus documentos.
@@ -149,27 +165,27 @@ export default function DocumentsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedProviders.map((provider) => {
+                  {paginatedProviders.map((provider: any) => {
                     const docStatus = getProviderDocumentStatus(provider);
                     return (
                       <tr key={provider.id} className="border-b border-border last:border-b-0">
                         <td className="px-4 py-3 text-sm font-medium">{provider.name ?? "-"}</td>
                         <td className="px-4 py-3 text-sm text-muted-foreground">
-                          {provider.businessProfile?.contactInfo?.email ?? "-"}
+                          {(provider.businessProfile as any)?.contactInfo?.email ?? "-"}
                         </td>
                         <td className="px-4 py-3 text-sm text-muted-foreground">
-                          {provider.businessProfile?.cnpj ?? "Não informado"}
+                          {(provider.businessProfile as any)?.cnpj ?? "Não informado"}
                         </td>
                         <td className="px-4 py-3">
                           {getDocumentStatusBadge(docStatus)}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-end gap-2">
-                            <Link href={`/providers/${provider.id}`}>
-                              <Button variant="ghost" size="icon">
+                            <Button variant="ghost" size="icon" aria-label="Visualizar documentos">
+                              <Link href={`/providers/${provider.id}`}>
                                 <Eye className="h-4 w-4" />
-                              </Button>
-                            </Link>
+                              </Link>
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -179,17 +195,18 @@ export default function DocumentsPage() {
               </table>
             </div>
 
-            {totalPages > 1 && (
+            {unfilteredTotalPages > 1 && (
               <div className="flex items-center justify-between border-t border-border px-4 py-3">
                 <p className="text-sm text-muted-foreground">
                   Mostrando {startIndex + 1} - {Math.min(startIndex + ITEMS_PER_PAGE, filteredProviders.length)} de {filteredProviders.length}
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="icon"
-                    disabled={currentPage === 1}
+                    disabled={safePage === 1}
                     onClick={() => setCurrentPage((p) => p - 1)}
+                    aria-label="Página anterior"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -197,29 +214,31 @@ export default function DocumentsPage() {
                     let pageNum;
                     if (totalPages <= 5) {
                       pageNum = i + 1;
-                    } else if (currentPage <= 3) {
+                    } else if (safePage <= 3) {
                       pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
+                    } else if (safePage >= totalPages - 2) {
                       pageNum = totalPages - 4 + i;
                     } else {
-                      pageNum = currentPage - 2 + i;
+                      pageNum = safePage - 2 + i;
                     }
                     return (
                       <Button
                         key={pageNum}
-                        variant={currentPage === pageNum ? "default" : "outline"}
+                        variant={safePage === pageNum ? "primary" : "secondary"}
                         size="icon"
                         onClick={() => setCurrentPage(pageNum)}
+                        aria-label={`Página ${pageNum}`}
                       >
                         {pageNum}
                       </Button>
                     );
                   })}
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="icon"
-                    disabled={currentPage === totalPages}
+                    disabled={safePage === totalPages}
                     onClick={() => setCurrentPage((p) => p + 1)}
+                    aria-label="Próxima página"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>

@@ -2,7 +2,7 @@ import type {
   MeAjudaAiModulesProvidersApplicationDtosProviderDto,
   MeAjudaAiModulesProvidersApplicationDtosBusinessProfileDto,
   MeAjudaAiModulesProvidersApplicationDtosDocumentDto,
-  MeAjudaAiModulesProvidersApplicationDtosServiceCategoryDto,
+  MeAjudaAiModulesServiceCatalogsApplicationDtosServiceCategoryDto,
   MeAjudaAiModulesLocationsApplicationDtosAllowedCityDto,
   MeAjudaAiModulesUsersApplicationDtosUserDto,
 } from "./api/generated";
@@ -10,12 +10,12 @@ import type {
 export type ProviderDto = MeAjudaAiModulesProvidersApplicationDtosProviderDto;
 export type BusinessProfileDto = MeAjudaAiModulesProvidersApplicationDtosBusinessProfileDto;
 export type DocumentDto = MeAjudaAiModulesProvidersApplicationDtosDocumentDto;
-export type ServiceCategoryDto = MeAjudaAiModulesProvidersApplicationDtosServiceCategoryDto;
+export type ServiceCategoryDto = MeAjudaAiModulesServiceCatalogsApplicationDtosServiceCategoryDto;
 export type AllowedCityDto = MeAjudaAiModulesLocationsApplicationDtosAllowedCityDto;
 export type UserDto = MeAjudaAiModulesUsersApplicationDtosUserDto;
 
 export type ProviderType = 0 | 1 | 2 | 3 | 4;
-export type ProviderStatus = 0 | 1 | 2 | 3 | 4 | 5;
+export type ProviderStatus = 1 | 2 | 3 | 4 | 5;
 export type VerificationStatus = 0 | 1 | 2 | 3 | 4 | 5;
 export type ProviderTier = 0 | 1 | 2 | 3;
 
@@ -28,21 +28,20 @@ export const EProviderType = {
 } as const;
 
 export const EProviderStatus = {
-  Pending: 0,
-  BasicInfoRequired: 1,
-  BasicInfoSubmitted: 2,
-  DocumentsRequired: 3,
-  DocumentsSubmitted: 4,
-  Active: 5,
+  PendingBasicInfo: 1,
+  PendingDocumentVerification: 2,
+  Active: 3,
+  Suspended: 4,
+  Rejected: 5,
 } as const;
 
 export const EVerificationStatus = {
-  Pending: 0,
-  UnderReview: 1,
-  Approved: 2,
-  Rejected: 3,
-  Suspended: 4,
-  BasicInfoCorrectionRequired: 5,
+  None: 0,
+  Pending: 1,
+  InProgress: 2,
+  Verified: 3,
+  Rejected: 4,
+  Suspended: 5,
 } as const;
 
 export const EProviderTier = {
@@ -61,21 +60,20 @@ export const providerTypeLabels: Record<ProviderType, string> = {
 };
 
 export const providerStatusLabels: Record<ProviderStatus, string> = {
-  0: "Pendente",
-  1: "Dados Básicos Necessários",
-  2: "Dados Básicos Enviados",
-  3: "Documentos Necessários",
-  4: "Documentos Enviados",
-  5: "Ativo",
+  1: "Pendente (Dados Básicos)",
+  2: "Em Análise",
+  3: "Ativo",
+  4: "Suspenso",
+  5: "Rejeitado",
 };
 
 export const verificationStatusLabels: Record<VerificationStatus, string> = {
-  0: "Pendente",
-  1: "Em Análise",
-  2: "Aprovado",
-  3: "Rejeitado",
-  4: "Suspenso",
-  5: "Correção de Dados Necessária",
+  0: "Não Iniciado",
+  1: "Pendente",
+  2: "Em Análise",
+  3: "Verificado",
+  4: "Rejeitado",
+  5: "Suspenso",
 };
 
 export const providerTierLabels: Record<ProviderTier, string> = {

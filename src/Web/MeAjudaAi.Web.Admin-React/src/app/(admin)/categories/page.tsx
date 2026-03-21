@@ -56,10 +56,10 @@ export default function CategoriesPage() {
     defaultValues: { name: "", description: "", isActive: true },
   });
 
-  const categories = categoriesResponse?.data?.data ?? [];
+  const categories: any[] = (categoriesResponse as any)?.value ?? (categoriesResponse as any) ?? [];
 
   const filteredCategories = categories.filter(
-    (c) => (c.name?.toLowerCase() ?? "").includes(search.toLowerCase())
+    (c: any) => (c.name?.toLowerCase() ?? "").includes(search.toLowerCase())
   );
 
   const handleOpenCreate = () => {
@@ -85,11 +85,9 @@ export default function CategoriesPage() {
   const handleSubmitCreate = async (data: CategoryFormData) => {
     try {
       await createMutation.mutateAsync({
-        body: {
-          name: data.name,
-          description: data.description ?? "",
-          isActive: data.isActive,
-        },
+        name: data.name,
+        description: data.description ?? "",
+        isActive: data.isActive,
       });
       toast.success("Categoria criada com sucesso");
       setIsCreateOpen(false);
@@ -177,7 +175,7 @@ export default function CategoriesPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredCategories.map((category) => (
+                {filteredCategories.map((category: any) => (
                   <tr key={category.id} className="border-b border-border last:border-b-0">
                     <td className="px-4 py-3 text-sm font-medium">{category.name ?? "-"}</td>
                     <td className="px-4 py-3 text-sm text-muted-foreground max-w-[300px] truncate">
@@ -252,7 +250,7 @@ export default function CategoriesPage() {
               <label htmlFor="isActive" className="text-sm font-medium">Categoria Ativa</label>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
+              <Button type="button" variant="secondary" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
               <Button type="submit" disabled={createMutation.isPending}>
                 {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Criar
@@ -299,7 +297,7 @@ export default function CategoriesPage() {
               <label htmlFor="edit-isActive" className="text-sm font-medium">Categoria Ativa</label>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
+              <Button type="button" variant="secondary" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
               <Button type="submit" disabled={updateMutation.isPending}>
                 {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Salvar
@@ -319,7 +317,7 @@ export default function CategoriesPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>Cancelar</Button>
+            <Button variant="secondary" onClick={() => setIsDeleteOpen(false)}>Cancelar</Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>
               {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Excluir

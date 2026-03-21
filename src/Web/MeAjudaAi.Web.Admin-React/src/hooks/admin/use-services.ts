@@ -25,19 +25,19 @@ export const serviceKeys = {
   detail: (id: string) => [...serviceKeys.details(), id] as const,
 };
 
-export function useServices(categoryId?: string) {
+export function useServices(categoryId?: any) {
   return useQuery({
-    queryKey: serviceKeys.list({ categoryId }),
-    queryFn: () => apiServicesGet({ query: { categoryId } } as ApiServicesGetData),
-    select: (data) => data.data,
+    queryKey: serviceKeys.list({ categoryId } as any),
+    queryFn: () => apiServicesGet(categoryId ? { query: { categoryId } as any } : {} as any) as any,
+    select: (data: any) => data.data ?? data,
   });
 }
 
 export function useServiceById(id: string) {
   return useQuery({
     queryKey: serviceKeys.detail(id),
-    queryFn: () => apiServicesGet2({ path: { id } } as ApiServicesGet2Data),
-    select: (data) => data.data,
+    queryFn: () => apiServicesGet2({ path: { id } } as any) as any,
+    select: (data: any) => data.data ?? data,
     enabled: !!id,
   });
 }
@@ -46,8 +46,8 @@ export function useCreateService() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: ApiServicesPostData["body"]) =>
-      apiServicesPost({ body: data }),
+    mutationFn: (data: any) =>
+      apiServicesPost(data.body ? data : { body: data } as any),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: serviceKeys.lists() });
     },
@@ -58,13 +58,13 @@ export function useUpdateService() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, ...body }: { id: string } & ApiServicesPutData["body"]) =>
-      apiServicesPut({
-        path: { id },
-        body: body as ApiServicesPutData["body"],
-      }),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: serviceKeys.detail(variables.id) });
+    mutationFn: (data: any) =>
+      apiServicesPut(data.path ? data : {
+        path: { id: data.id },
+        body: data.body ?? data,
+      } as any),
+    onSuccess: (_, variables: any) => {
+      queryClient.invalidateQueries({ queryKey: serviceKeys.detail(variables?.path?.id ?? variables.id) });
       queryClient.invalidateQueries({ queryKey: serviceKeys.lists() });
     },
   });
@@ -74,9 +74,10 @@ export function useDeleteService() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      apiServicesDelete({ path: { id } } as ApiServicesDeleteData),
-    onSuccess: () => {
+    mutationFn: (data: any) =>
+      apiServicesDelete(data.path ? data : { path: { id: data } } as any),
+    onSuccess: (_, id: any) => {
+      queryClient.invalidateQueries({ queryKey: serviceKeys.detail(id?.path?.id ?? id) });
       queryClient.invalidateQueries({ queryKey: serviceKeys.lists() });
     },
   });

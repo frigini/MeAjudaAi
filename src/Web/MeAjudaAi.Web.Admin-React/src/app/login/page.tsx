@@ -2,18 +2,30 @@
 
 import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Shield, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function LoginPage() {
+const ERROR_MESSAGES: Record<string, string> = {
+  OAuthSignin: "Erro ao iniciar autenticação. Tente novamente.",
+  OAuthCallback: "Erro no processo de autenticação.",
+  OAuthAccountNotLinked: "Conta não vinculada.",
+  CredentialsSignin: "Credenciais inválidas.",
+};
+
+function LoginContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignIn = async () => {
-    setIsLoading(true);
-    await signIn("keycloak", { callbackUrl: "/dashboard" });
+    try {
+      setIsLoading(true);
+      await signIn("keycloak", { callbackUrl: "/dashboard" });
+    } catch (err) {
+      console.error(err);
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -30,12 +42,7 @@ export default function LoginPage() {
         {error && (
           <div className="flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
             <AlertCircle className="h-4 w-4" />
-            {error === "OAuthSignin" && "Erro ao iniciar autenticação. Tente novamente."}
-            {error === "OAuthCallback" && "Erro no processo de autenticação."}
-            {error === "OAuthAccountNotLinked" && "Conta não vinculada."}
-            {error === "CredentialsSignin" && "Credenciais inválidas."}
-            {!["OAuthSignin", "OAuthCallback", "OAuthAccountNotLinked", "CredentialsSignin"].includes(error) &&
-              "Erro de autenticação. Tente novamente."}
+            {ERROR_MESSAGES[error] || "Erro de autenticação. Tente novamente."}
           </div>
         )}
 
@@ -55,5 +62,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Carregando...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 }
