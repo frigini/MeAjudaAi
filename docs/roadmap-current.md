@@ -603,18 +603,40 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 
 ### ⏳ Sprint 8D - Admin Portal Migration (2 - 22 Abr 2026)
 
-**Status**: ⏳ Planned (+1 week buffer added)
-**Foco**: Phased migration from Blazor WASM to React.
+**Status**: 🔄 EM ANDAMENTO
+**Branch**: `feature/sprint-8d-admin-migration`
+**Foco**: Migrar Admin Portal de Blazor WASM para React/Next.js.
 
-**Scope (Prioritized)**:
-- **Admin Portal Deliverable**: Functional `apps/admin-portal` in React.
-- Providers CRUD + Document Management (Critical).
-- Service Catalogs + Allowed Cities.
-- Dashboard with KPIs.
-- Unit/Integration tests for Admin modules.
+**Stack Técnico**:
+- React 19 + TypeScript strict
+- Tailwind CSS v4 + CSS variables
+- @base-ui/react para componentes headless
+- Recharts para gráficos
+- TanStack Query + useState para state
+- next-auth + Keycloak para autenticação
 
-> 1. Ship MVP with current Blazor Admin.
-> 2. Reduce scope to only Providers CRUD.
+**Estrutura**:
+- `src/Web/MeAjudaAi.Web.Admin/` - NOVO (React/Next.js)
+- `src/Web/MeAjudaAi.Web.Admin-Blazor/` - Renomeado (Referência, será removido)
+
+**Entregues (Foundation)**:
+- ✅ Setup projeto Next.js com Tailwind v4
+- ✅ AppProviders com TanStack Query e next-auth
+- ✅ Auth com Keycloak (Credentials para dev)
+- ✅ Layout admin com sidebar de navegação
+- ✅ Dashboard com KPI cards e gráficos (Recharts)
+- ✅ Providers page com tabela e mock data
+- ✅ Páginas placeholder (Documents, Categories, Services, Cities, Settings)
+
+**Próximos Passos**:
+- [ ] Integrar API real via OpenAPI client
+- [ ] Provider CRUD completo com dialogs
+- [ ] Document management com upload
+- [ ] Categories e Services CRUD
+- [ ] Allowed Cities CRUD com autocomplete IBGE
+- [ ] Theme toggle (dark/light)
+- [ ] Error handling e loading states
+- [ ] Remover `MeAjudaAi.Web.Admin-Blazor` após validação
 
 ### ⌛ Sprint 9 - BUFFER & Risk Mitigation (23 Abr - 11 Mai 2026)
 
@@ -1200,7 +1222,7 @@ public class ActivityHub : Hub
 ### 📅 Alta Prioridade (Próximos 3 meses - Q1-Q2 2026)
 1. ⏳ **Sprint 8B.2: NX Monorepo & Technical Excellence** (EM REVISÃO)
 2. ✅ **Sprint 8C: Provider Web App (React + NX)** (Concluída - 21 Mar 2026)
-3. ⏳ **Sprint 8D: Admin Portal Migration** (Abril 2026)
+3. 🔄 **Sprint 8D: Admin Portal Migration** (Em progresso - Abr 2026)
 4. ⏳ **Sprint 9: BUFFER & RISK MITIGATION** (Abril/Maio 2026)
 5. 🎯 **MVP Final Launch: 12 - 16 de Maio de 2026**
 6. 📋 API Collections - Bruno .bru files para todos os módulos
