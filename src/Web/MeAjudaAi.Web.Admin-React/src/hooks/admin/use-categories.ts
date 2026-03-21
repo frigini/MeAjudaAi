@@ -58,13 +58,10 @@ export function useUpdateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      ...data
-    }: ApiCategoriesPutData["path"] & { data: ApiCategoriesPutData["body"] }) =>
+    mutationFn: ({ id, ...body }: { id: string } & ApiCategoriesPutData["body"]) =>
       apiCategoriesPut({
         path: { id },
-        body: data.data as ApiCategoriesPutData["body"],
+        body: body as ApiCategoriesPutData["body"],
       }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: categoryKeys.detail(variables.id) });
