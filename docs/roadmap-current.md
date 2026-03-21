@@ -1198,7 +1198,7 @@ public class ActivityHub : Hub
 12. ✅ Feature/refactor-and-cleanup branch - Merged to master (19 Dez 2025)
 
 ### 📅 Alta Prioridade (Próximos 3 meses - Q1-Q2 2026)
-1. ✅ **Sprint 8B.2: NX Monorepo & Technical Excellence** (Concluída)
+1. ⏳ **Sprint 8B.2: NX Monorepo & Technical Excellence** (EM REVISÃO)
 2. ✅ **Sprint 8C: Provider Web App (React + NX)** (Concluída - 21 Mar 2026)
 3. ⏳ **Sprint 8D: Admin Portal Migration** (Abril 2026)
 4. ⏳ **Sprint 9: BUFFER & RISK MITIGATION** (Abril/Maio 2026)
