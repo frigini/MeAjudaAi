@@ -2,12 +2,44 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "../../components/ui/button";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { apiMeGet } from "@/lib/api/generated";
+import { signOut } from "next-auth/react";
+import { toast } from "sonner";
 
 export default function ConfiguracoesPage() {
+  const router = useRouter();
   const [isVisible, setIsVisible] = useState(true);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+
+  const { data: providerData } = useQuery({
+    queryKey: ["providerMe"],
+    queryFn: () => apiMeGet(),
+  });
+
+  const deactivateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/v1/providers/${providerData?.data?.data?.id}/deactivate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) throw new Error("Falha ao desativar");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast.success("Perfil desativado com sucesso!");
+      setIsVisible(false);
+      setShowDeactivateModal(false);
+      router.refresh();
+    },
+    onError: () => {
+      toast.error("Erro ao desativar o perfil. Tente novamente.");
+    },
+  });
 
   const handleToggleVisibility = () => {
     if (isVisible) {
@@ -18,8 +50,40 @@ export default function ConfiguracoesPage() {
   };
 
   const confirmDeactivation = () => {
-    setIsVisible(false);
-    setShowDeactivateModal(false);
+    deactivateMutation.mutate();
+  };
+
+  const confirmDelete = async () => {
+    if (deleteConfirmation !== "EXCLUIR") {
+      toast.error("Digite EXACTAMENTE EXCLUIR para confirmar");
+      return;
+    }
+
+    try {
+      const userId = providerData?.data?.data?.userId;
+      if (!userId) {
+        toast.error("ID do usuário não encontrado");
+        return;
+      }
+
+      const response = await fetch(`/api/v1/users/${userId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Falha ao excluir conta");
+      }
+
+      toast.success("Conta excluída com sucesso!");
+      setShowDeleteModal(false);
+      
+      setTimeout(() => {
+        signOut({ callbackUrl: "/" });
+      }, 1500);
+    } catch (error) {
+      console.error("Erro ao excluir conta:", error);
+      toast.error("Erro ao excluir a conta. Tente novamente mais tarde.");
+    }
   };
 
   return (
@@ -32,7 +96,12 @@ export default function ConfiguracoesPage() {
           </Link>
         </Button>
         <span className="font-bold">AjudaAí</span>
-        <div className="ml-auto text-sm font-medium hover:underline cursor-pointer">Sair</div>
+        <div 
+          className="ml-auto text-sm font-medium hover:underline cursor-pointer"
+          onClick={() => signOut({ callbackUrl: "/" })}
+        >
+          Sair
+        </div>
       </div>
 
       <main className="rounded-xl border border-border bg-surface p-6 shadow-sm sm:p-10 flex flex-col min-h-[60vh]">
@@ -85,8 +154,8 @@ export default function ConfiguracoesPage() {
               <Button variant="ghost" className="bg-muted hover:bg-muted/80" onClick={() => setShowDeactivateModal(false)}>
                 Cancelar
               </Button>
-              <Button variant="destructive" onClick={confirmDeactivation}>
-                Desativar
+              <Button variant="destructive" onClick={confirmDeactivation} disabled={deactivateMutation.isPending}>
+                {deactivateMutation.isPending ? "Desativando..." : "Desativar"}
               </Button>
             </div>
           </div>
@@ -100,25 +169,60 @@ export default function ConfiguracoesPage() {
             <div className="mb-4 flex items-start justify-between">
               <h2 className="text-lg font-bold text-foreground">Apagar perfil?</h2>
               <button 
-                onClick={() => setShowDeleteModal(false)}
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmation("");
+                }}
                 className="text-foreground-subtle hover:text-foreground"
               >
                 &times;
               </button>
             </div>
-            <p className="mb-6 text-sm text-foreground-subtle">
+            <p className="mb-4 text-sm text-foreground-subtle">
               Apagando seu perfil, iremos excluir todos os seus dados do nosso sistema e não será mais possível recuperá-los.<br/><br/>
               Em conformidade com a LGPD, seus dados serão permanentemente excluídos.
             </p>
+            
+            <div className="mb-6 rounded-lg border border-destructive/50 bg-destructive/10 p-3">
+              <p className="text-xs text-destructive font-medium mb-2">Esta ação NÃO pode ser desfeita:</p>
+              <ul className="text-xs text-destructive/80 list-disc list-inside space-y-1">
+                <li>Seu perfil de prestador será removido</li>
+                <li>Sua conta de usuário será excluída</li>
+                <li>Todos os seus dados serão apagados</li>
+                <li>Seus documentos serão removidos</li>
+              </ul>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Digite <span className="font-bold text-destructive">EXCLUIR</span> para confirmar:
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmation}
+                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:border-destructive focus:outline-none focus:ring-1 focus:ring-destructive"
+                placeholder="EXCLUIR"
+              />
+            </div>
+
             <div className="flex justify-end gap-3">
-              <Button variant="ghost" className="bg-muted hover:bg-muted/80" onClick={() => setShowDeleteModal(false)}>
+              <Button 
+                variant="ghost" 
+                className="bg-muted hover:bg-muted/80"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmation("");
+                }}
+              >
                 Cancelar
               </Button>
-              <Button variant="destructive" onClick={() => {
-                // Implement delete account logic here
-                setShowDeleteModal(false);
-              }}>
-                Excluir
+              <Button 
+                variant="destructive" 
+                onClick={confirmDelete}
+                disabled={deleteConfirmation !== "EXCLUIR"}
+              >
+                Excluir Minha Conta
               </Button>
             </div>
           </div>

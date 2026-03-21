@@ -7,6 +7,9 @@ import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { apiUploadPost, apiMeGet } from "@/lib/api/generated";
+import { toast } from "sonner";
 
 const documentSchema = z.object({
   identityFile: z
@@ -17,16 +20,27 @@ const documentSchema = z.object({
       "Formato inválido. Aceitamos JPG, PNG ou PDF."
     ),
   certificateFile: z
-    .custom<File>((val) => val === undefined || val instanceof File, "Opcional")
+    .instanceof(File)
     .refine((file) => !file || file.size <= 5 * 1024 * 1024, "O tamanho máximo é 5MB")
+    .refine(
+      (file) => !file || ["image/jpeg", "image/png", "application/pdf"].includes(file.type),
+      "Formato inválido. Aceitamos JPG, PNG ou PDF."
+    )
     .optional(),
 });
 
 type DocumentFormData = z.infer<typeof documentSchema>;
 
+const DOCUMENT_TYPES = {
+  identity: 1 as const,
+  proofOfResidence: 2 as const,
+  criminalRecord: 3 as const,
+  other: 99 as const,
+};
+
 export default function DocumentsPage() {
   const router = useRouter();
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>("");
 
   const {
     control,
@@ -37,23 +51,64 @@ export default function DocumentsPage() {
     mode: "onChange",
   });
 
+  const uploadMutation = useMutation({
+    mutationFn: async ({ file, documentType }: { file: File; documentType: 1 | 2 | 3 | 99 }) => {
+      const uploadResponse = await apiUploadPost({
+        body: {
+          documentType,
+          fileName: file.name,
+          contentType: file.type,
+          fileSizeBytes: file.size,
+        },
+      });
+
+      if (!uploadResponse.data?.uploadUrl) {
+        throw new Error("Falha ao obter URL de upload");
+      }
+
+      const { uploadUrl, documentId } = uploadResponse.data;
+
+      setUploadProgress(`Enviando ${file.name}...`);
+
+      await fetch(uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+        },
+      });
+
+      return { documentId, fileName: file.name };
+    },
+    onSuccess: () => {
+      toast.success("Documento enviado com sucesso!");
+    },
+    onError: (error) => {
+      console.error("Erro no upload", error);
+      toast.error("Erro ao enviar documento. Tente novamente.");
+    },
+  });
+
   const onSubmit = async (data: DocumentFormData) => {
-    setIsUploading(true);
+    setUploadProgress("");
 
     try {
-      // Exemplo de integração arquitetural com SAS Token
-      console.log("Arquivos prontos para upload:", {
-        identity: data.identityFile.name,
-        certificate: data.certificateFile?.name,
+      await uploadMutation.mutateAsync({
+        file: data.identityFile,
+        documentType: DOCUMENT_TYPES.identity,
       });
-      // Simulação de espera
-      await new Promise((r) => setTimeout(r, 1500));
-      
-      router.push("/"); // Volta pro Dashboard
+
+      if (data.certificateFile) {
+        await uploadMutation.mutateAsync({
+          file: data.certificateFile,
+          documentType: DOCUMENT_TYPES.proofOfResidence,
+        });
+      }
+
+      setUploadProgress("Concluindo...");
+      router.push("/");
     } catch (error) {
-      console.error("Erro no upload", error);
-    } finally {
-      setIsUploading(false);
+      console.error("Erro no processo de upload", error);
     }
   };
 
@@ -91,8 +146,8 @@ export default function DocumentsPage() {
           render={({ field: { onChange } }) => (
             <div>
               <FileUpload
-                label="Certificado Profissional (Opcional)"
-                description="Envie certificados ou qualificações relevantes para aumentar sua credibilidade."
+                label="Comprovante de Residência (Opcional)"
+                description="Envie um comprovante de residência recente para verificar seu endereço."
                 onFileSelect={(file) => onChange(file)}
               />
               {errors.certificateFile && (
@@ -103,12 +158,18 @@ export default function DocumentsPage() {
         />
       </div>
 
+      {uploadProgress && (
+        <div className="rounded-lg bg-secondary p-3 text-sm text-muted-foreground">
+          {uploadProgress}
+        </div>
+      )}
+
       <div className="mt-4 flex items-center justify-between border-t border-border pt-6">
-        <Button variant="ghost" type="button" onClick={() => router.back()} disabled={isUploading}>
+        <Button variant="ghost" type="button" onClick={() => router.back()} disabled={uploadMutation.isPending}>
           Voltar
         </Button>
-        <Button type="submit" disabled={!isValid || isUploading}>
-          {isUploading ? "Enviando para Azure..." : "Concluir Onboarding"}
+        <Button type="submit" disabled={!isValid || uploadMutation.isPending}>
+          {uploadMutation.isPending ? "Enviando para Azure..." : "Concluir Onboarding"}
         </Button>
       </div>
     </form>
