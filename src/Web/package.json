@@ -94,6 +94,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.71.2",
+    "recharts": "^2.15.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^2.6.1",
     "tailwind-variants": "^0.3.1",
