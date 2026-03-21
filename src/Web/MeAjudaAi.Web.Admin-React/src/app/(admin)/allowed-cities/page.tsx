@@ -68,10 +68,10 @@ export default function AllowedCitiesPage() {
     defaultValues: { city: "", state: "", serviceRadiusKm: 50, isActive: true },
   });
 
-  const cities: any[] = (citiesResponse as any)?.value ?? (citiesResponse as any) ?? [];
+  const cities: AllowedCityDto[] = (citiesResponse as any)?.value ?? (citiesResponse as any) ?? [];
 
   const filteredCities = cities.filter(
-    (c: any) =>
+    (c: AllowedCityDto) =>
       (c.cityName?.toLowerCase() ?? "").includes(search.toLowerCase()) ||
       (c.stateSigla?.toLowerCase() ?? "").includes(search.toLowerCase())
   );
@@ -223,7 +223,7 @@ export default function AllowedCitiesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedCities.map((city: any) => (
+                  {paginatedCities.map((city: AllowedCityDto) => (
                     <tr key={city.id} className="border-b border-border last:border-b-0">
                       <td className="px-4 py-3 text-sm font-medium">{city.cityName ?? "-"}</td>
                       <td className="px-4 py-3 text-sm text-muted-foreground">{city.stateSigla ?? "-"}</td>

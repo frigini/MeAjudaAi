@@ -52,10 +52,9 @@ export default function ProviderDetailPage({ params }: PageProps) {
     try {
       await activateMutation.mutateAsync(id);
       toast.success("Prestador aprovado com sucesso");
+      setIsApproveOpen(false);
     } catch {
       toast.error("Erro ao aprovar prestador");
-    } finally {
-      setIsApproveOpen(false);
     }
   };
 
@@ -63,10 +62,9 @@ export default function ProviderDetailPage({ params }: PageProps) {
     try {
       await deactivateMutation.mutateAsync(id);
       toast.success("Prestador suspenso com sucesso");
+      setIsRejectOpen(false);
     } catch {
       toast.error("Erro ao suspender prestador");
-    } finally {
-      setIsRejectOpen(false);
     }
   };
 
@@ -197,8 +195,8 @@ export default function ProviderDetailPage({ params }: PageProps) {
                       <p className="font-medium">{doc.documentType ?? "Documento"}</p>
                       <p className="text-sm text-muted-foreground">{doc.fileName ?? "-"}</p>
                     </div>
-                    <Badge variant={doc.verificationStatus === 2 ? "success" : "warning"}>
-                      {doc.verificationStatus === 2 ? "Verificado" : "Pendente"}
+                    <Badge variant={getVerificationBadgeVariant(doc.verificationStatus as VerificationStatus)}>
+                      {verificationStatusLabels[doc.verificationStatus as keyof typeof verificationStatusLabels] ?? "-"}
                     </Badge>
                   </div>
                 ))}

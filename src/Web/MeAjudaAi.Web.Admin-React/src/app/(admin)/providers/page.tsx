@@ -118,9 +118,13 @@ export default function ProvidersPage() {
                   {paginatedProviders.map((provider: any, index: any) => (
                     <tr key={provider.id ?? provider.businessProfile?.contactInfo?.email ?? `provider-${index}`} className="border-b border-border last:border-b-0">
                       <td className="px-4 py-3 text-sm font-medium">
-                        <Link href={`/providers/${provider.id}`} className="hover:underline">
-                          {provider.name ?? "-"}
-                        </Link>
+                        {provider.id ? (
+                          <Link href={`/providers/${provider.id}`} className="hover:underline">
+                            {provider.name ?? "-"}
+                          </Link>
+                        ) : (
+                          <span>{provider.name ?? "-"}</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-sm text-muted-foreground">
                         {provider.businessProfile?.contactInfo?.email ?? "-"}
@@ -137,10 +141,13 @@ export default function ProvidersPage() {
                       <td className="px-4 py-3 text-sm text-muted-foreground">{getProviderCity(provider)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-2">
-                          <Link href={`/providers/${provider.id}`}>
-                            <Button variant="ghost" size="icon" aria-label="Visualizar" title="Visualizar"><Eye className="h-4 w-4" /></Button>
-                          </Link>
-
+                          {provider.id ? (
+                            <Link href={`/providers/${provider.id}`}>
+                              <Button variant="ghost" size="icon" aria-label="Visualizar" title="Visualizar"><Eye className="h-4 w-4" /></Button>
+                            </Link>
+                          ) : (
+                            <Button variant="ghost" size="icon" aria-label="Visualizar" title="Visualizar" disabled><Eye className="h-4 w-4" /></Button>
+                          )}
                         </div>
                       </td>
                     </tr>

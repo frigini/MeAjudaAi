@@ -121,7 +121,8 @@ export function useActivateProvider() {
   return useMutation({
     mutationFn: (id: string) =>
       apiActivatePost({ path: { id } } as any),
-    onSuccess: () => {
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: providerKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: providerKeys.lists() });
     },
   });
@@ -133,7 +134,8 @@ export function useDeactivateProvider() {
   return useMutation({
     mutationFn: (id: string) =>
       apiDeactivatePost({ path: { id } } as any),
-    onSuccess: () => {
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: providerKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: providerKeys.lists() });
     },
   });

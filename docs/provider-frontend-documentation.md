@@ -285,26 +285,27 @@ import { useQuery } from "@tanstack/react-query";
 import { notFound } from "next/navigation";
 import { MapPin, Phone, Mail, Star, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { apiPublicGet } from "@/lib/api/generated";
+import { 
+  EVerificationStatus, 
+  verificationStatusLabels, 
+  EProviderType, 
+  providerTypeLabels 
+} from "@/lib/types";
 
 function getVerificationLabel(status?: number): { label: string; color: string } {
+  const label = verificationStatusLabels[status as EVerificationStatus] || "Não verificado";
   switch (status) {
-    case 1: return { label: "Pendente", color: "text-yellow-500" };
-    case 2: return { label: "Em análise", color: "text-blue-500" };
-    case 3: return { label: "Aprovado", color: "text-emerald-500" };
-    case 4: return { label: "Rejeitado", color: "text-red-500" };
-    case 5: return { label: "Em correção", color: "text-orange-500" };
-    default: return { label: "Não verificado", color: "text-gray-500" };
+    case EVerificationStatus.Pending: return { label, color: "text-yellow-500" };
+    case EVerificationStatus.UnderReview: return { label, color: "text-blue-500" };
+    case EVerificationStatus.Approved: return { label, color: "text-emerald-500" };
+    case EVerificationStatus.Rejected: return { label, color: "text-red-500" };
+    case EVerificationStatus.Suspended: return { label, color: "text-orange-500" };
+    default: return { label, color: "text-gray-500" };
   }
 }
 
 function getTypeLabel(type?: number): string {
-  switch (type) {
-    case 1: return "Pessoa Física";
-    case 2: return "Empresa";
-    case 3: return "Cooperativa";
-    case 4: return "Freelancer";
-    default: return "Prestador";
-  }
+  return providerTypeLabels[type as EProviderType] || "Prestador";
 }
 
 export default function ProviderPublicPage({ params }: PageProps) {
@@ -714,7 +715,8 @@ export default function DocumentsPage() {
       if (!uploadResponse.data?.uploadUrl) throw new Error("Falha ao obter URL de upload");
       const { uploadUrl, documentId } = uploadResponse.data;
       setUploadProgress(`Enviando ${file.name}...`);
-      await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+      const response = await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+      if (!response.ok) throw new Error("Falha ao fazer upload para o Azure");
       return { documentId, fileName: file.name };
     },
     onSuccess: () => toast.success("Documento enviado com sucesso!"),
@@ -794,7 +796,9 @@ export default function ConfiguracoesPage() {
 
   const deactivateMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/v1/providers/${providerData?.data?.data?.id}/deactivate`, { method: "POST" });
+      const id = providerData?.data?.data?.id;
+      if (!id) throw new Error("ID do prestador não encontrado");
+      const response = await fetch(`/api/v1/providers/${id}/deactivate`, { method: "POST" });
       if (!response.ok) throw new Error("Falha ao desativar");
       return response.json();
     },
@@ -803,9 +807,10 @@ export default function ConfiguracoesPage() {
   });
 
   const confirmDelete = async () => {
-    if (deleteConfirmation !== "EXCLUIR") { toast.error("Digite EXACTAMENTE EXCLUIR para confirmar"); return; }
+    if (deleteConfirmation !== "EXCLUIR") { toast.error("Digite EXATAMENTE EXCLUIR para confirmar"); return; }
     try {
       const userId = providerData?.data?.data?.userId;
+      if (!userId) throw new Error("ID do usuário não encontrado");
       const response = await fetch(`/api/v1/users/${userId}`, { method: "DELETE" });
       if (!response.ok) throw new Error("Falha ao excluir conta");
       toast.success("Conta excluída com sucesso!");
@@ -899,7 +904,8 @@ export default function ConfiguracoesPage() {
 ```tsx
 "use client";
 
-import { useForm, useFieldArray, useEffect } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
+import { useEffect } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Label } from "@/components/ui/label";
@@ -1164,7 +1170,7 @@ const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 );
 CardHeader.displayName = "CardHeader";
 
-const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
+const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
     <h3 ref={ref} className={cn("text-2xl font-semibold leading-none tracking-tight", className)} {...props} />
   )
@@ -1249,10 +1255,11 @@ interface FileUploadProps {
   description?: string;
   accept?: string;
   required?: boolean;
-  onFileSelect?: (file: File) => void;
+  onFileSelect?: (file: File | null) => void;
+  formHelpers?: { setValue: any; clearErrors: any; trigger?: any; fieldName: string };
 }
 
-export function FileUpload({ label, description, accept, required, onFileSelect }: FileUploadProps) {
+export function FileUpload({ label, description, accept, required, onFileSelect, formHelpers }: FileUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState<File | null>(null);
 
@@ -1283,7 +1290,15 @@ export function FileUpload({ label, description, accept, required, onFileSelect 
     }
   }, [onFileSelect]);
 
-  const removeFile = () => { setFile(null); };
+  const removeFile = () => {
+    setFile(null);
+    onFileSelect?.(null);
+    if (formHelpers) {
+      formHelpers.setValue(formHelpers.fieldName, null);
+      formHelpers.clearErrors(formHelpers.fieldName);
+      if (formHelpers.trigger) formHelpers.trigger(formHelpers.fieldName);
+    }
+  };
 
   return (
     <div>
@@ -1296,7 +1311,7 @@ export function FileUpload({ label, description, accept, required, onFileSelect 
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
-          className={cn("mt-2 flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors", dragActive ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}
+          className={cn("relative mt-2 flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors", dragActive ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}
         >
           <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">Arraste o arquivo aqui ou <span className="text-primary font-medium cursor-pointer">clique para selecionar</span></span>
@@ -1638,7 +1653,7 @@ export function ProfileServices({ services }: ProfileServicesProps) {
 ## `components/profile/profile-reviews.tsx`
 
 ```tsx
-import { Review, Star } from "lucide-react";
+import { MessageSquare, Star } from "lucide-react";
 
 interface ProfileReviewsProps {
   reviews: Array<{ id: string; author: string; rating: number; comment: string; createdAt: string }>;
@@ -1648,7 +1663,7 @@ export function ProfileReviews({ reviews }: ProfileReviewsProps) {
   return (
     <div className="mt-6 border-t pt-6">
       <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground">
-        <Review className="h-4 w-4" />
+        <MessageSquare className="h-4 w-4" />
         Avaliações
       </h2>
 

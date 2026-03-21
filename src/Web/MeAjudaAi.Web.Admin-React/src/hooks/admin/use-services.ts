@@ -7,6 +7,7 @@ import {
   apiServicesPost,
   apiServicesPut,
   apiServicesDelete,
+  apiCategoryGet,
 } from "@/lib/api/generated";
 import type {
   ApiServicesGetData,
@@ -25,10 +26,10 @@ export const serviceKeys = {
   detail: (id: string) => [...serviceKeys.details(), id] as const,
 };
 
-export function useServices(categoryId?: any) {
+export function useServices(categoryId?: string) {
   return useQuery({
     queryKey: serviceKeys.list({ categoryId } as any),
-    queryFn: () => apiServicesGet(categoryId ? { query: { categoryId } as any } : {} as any) as any,
+    queryFn: () => categoryId ? apiCategoryGet({ path: { categoryId } }) : apiServicesGet(),
     select: (data: any) => data.data ?? data,
   });
 }

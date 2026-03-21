@@ -28,7 +28,7 @@ export const categoryKeys = {
 export function useCategories() {
   return useQuery({
     queryKey: categoryKeys.lists(),
-    queryFn: () => apiCategoriesGet() as any,
+    queryFn: () => apiCategoriesGet(),
     select: (data: any) => data.data ?? data,
   });
 }
@@ -36,7 +36,7 @@ export function useCategories() {
 export function useCategoryById(id: string) {
   return useQuery({
     queryKey: categoryKeys.detail(id),
-    queryFn: () => apiCategoriesGet2({ path: { id } } as any),
+    queryFn: () => apiCategoriesGet2({ path: { id } }),
     select: (data: any) => data.data ?? data,
     enabled: !!id,
   });
@@ -77,8 +77,10 @@ export function useDeleteCategory() {
   return useMutation({
     mutationFn: (data: any) =>
       apiCategoriesDelete(data.path ? data : { path: { id: data } } as any),
-    onSuccess: () => {
+    onSuccess: (_, variables: any) => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.detail(variables?.path?.id ?? variables) });
       queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
     },
   });
 }

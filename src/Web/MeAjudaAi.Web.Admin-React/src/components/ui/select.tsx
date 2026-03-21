@@ -9,11 +9,14 @@ export interface SelectProps {
   children: React.ReactNode;
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
+  name?: string;
+  defaultValue?: string;
 }
 
-export function Select({ value, onValueChange, children, placeholder, className = "" }: SelectProps) {
+export function Select({ value, onValueChange, children, placeholder, className = "", disabled, name, defaultValue }: SelectProps) {
   return (
-    <SelectPrimitive.Root value={value} onValueChange={onValueChange}>
+    <SelectPrimitive.Root value={value} onValueChange={onValueChange} disabled={disabled} name={name} defaultValue={defaultValue}>
       <SelectPrimitive.Trigger className={`flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}>
         <SelectPrimitive.Value placeholder={placeholder} />
         <SelectPrimitive.Icon>

@@ -63,7 +63,7 @@ export function useUpdateAllowedCity() {
     mutationFn: (data: any) =>
       apiAllowedCitiesPut(data.path ? data : {
         path: { id: data.id },
-        body: data.data,
+        body: data.body ?? data,
       }),
     onSuccess: (_, variables: any) => {
       queryClient.invalidateQueries({ queryKey: allowedCitiesKeys.detail(variables?.path?.id ?? variables.id) });
@@ -79,7 +79,7 @@ export function usePatchAllowedCity() {
     mutationFn: (data: any) =>
       apiAllowedCitiesPatch(data.path ? data : {
         path: { id: data.id },
-        body: data.data,
+        body: data.body ?? data,
       }),
     onSuccess: (_, variables: any) => {
       queryClient.invalidateQueries({ queryKey: allowedCitiesKeys.detail(variables?.path?.id ?? variables.id) });

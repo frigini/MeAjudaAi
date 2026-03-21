@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Settings, User, Bell, Shield, Palette, Save, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { User, Bell, Shield, Palette, Save, Loader2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,11 +13,36 @@ type SettingsTab = "profile" | "notifications" | "security" | "appearance";
 export default function SettingsClient() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
   const [isSaving, setIsSaving] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
+  
+  const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
+
+  useEffect(() => {
+    const saved = localStorage.getItem("meajudaai-theme");
+    if (saved === "light" || saved === "dark" || saved === "system") {
+      setTheme(saved);
+    }
+  }, []);
+
+  const handleThemeChange = (newTheme: "light" | "dark" | "system") => {
+    setTheme(newTheme);
+    localStorage.setItem("meajudaai-theme", newTheme);
+    // Note: Em uma implementação real, também atualizaríamos o document.documentElement classList
+  };
 
   const handleSave = async () => {
+    if (activeTab === "security") {
+      if (passwords.new && passwords.new !== passwords.confirm) {
+        toast.error("A nova senha e a confirmação não coincidem");
+        return;
+      }
+    }
+
     setIsSaving(true);
+    // TODO: Implement actual backend API connection using server actions or React Query mutations
     await new Promise((resolve) => setTimeout(resolve, 1000));
     toast.success("Configurações salvas com sucesso");
+    if (activeTab === "security") setPasswords({ current: "", new: "", confirm: "" });
     setIsSaving(false);
   };
 
@@ -38,15 +63,20 @@ export default function SettingsClient() {
       <div className="grid gap-6 lg:grid-cols-4">
         <Card className="lg:col-span-1">
           <CardContent className="p-4">
-            <nav className="space-y-1">
+            <nav className="space-y-1" role="tablist" aria-label="Configurações">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
                 return (
                   <button
                     key={tab.id}
+                    role="tab"
+                    id={`tab-${tab.id}`}
+                    aria-selected={isActive}
+                    aria-controls={`panel-${tab.id}`}
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                      activeTab === tab.id
+                      isActive
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}
@@ -60,7 +90,12 @@ export default function SettingsClient() {
           </CardContent>
         </Card>
 
-        <div className="lg:col-span-3 space-y-6">
+        <div 
+          className="lg:col-span-3 space-y-6" 
+          role="tabpanel" 
+          id={`panel-${activeTab}`} 
+          aria-labelledby={`tab-${activeTab}`}
+        >
           {activeTab === "profile" && (
             <Card>
               <CardHeader>
@@ -70,12 +105,12 @@ export default function SettingsClient() {
               <CardContent className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Nome</label>
-                    <Input defaultValue="Administrador" />
+                    <label htmlFor="adminName" className="text-sm font-medium">Nome</label>
+                    <Input id="adminName" defaultValue="Administrador" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Email</label>
-                    <Input defaultValue="admin@meajudaai.com" type="email" />
+                    <label htmlFor="adminEmail" className="text-sm font-medium">Email</label>
+                    <Input id="adminEmail" defaultValue="admin@meajudaai.com" type="email" />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -96,25 +131,25 @@ export default function SettingsClient() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div>
+                  <label htmlFor="notifNewProviders" className="cursor-pointer">
                     <p className="font-medium">Novos cadastros de prestadores</p>
                     <p className="text-sm text-muted-foreground">Receba notificações quando um novo prestador se cadastrar</p>
-                  </div>
-                  <input type="checkbox" defaultChecked className="h-5 w-5" />
+                  </label>
+                  <input id="notifNewProviders" type="checkbox" defaultChecked className="h-5 w-5 cursor-pointer" />
                 </div>
                 <div className="flex items-center justify-between">
-                  <div>
+                  <label htmlFor="notifPendingReqs" className="cursor-pointer">
                     <p className="font-medium">Solicitações de verificação pendentes</p>
                     <p className="text-sm text-muted-foreground">Notifique quando houver solicitações pendentes de verificação</p>
-                  </div>
-                  <input type="checkbox" defaultChecked className="h-5 w-5" />
+                  </label>
+                  <input id="notifPendingReqs" type="checkbox" defaultChecked className="h-5 w-5 cursor-pointer" />
                 </div>
                 <div className="flex items-center justify-between">
-                  <div>
+                  <label htmlFor="notifDailyReports" className="cursor-pointer">
                     <p className="font-medium">Relatórios diários</p>
                     <p className="text-sm text-muted-foreground">Receba um resumo diário de atividade</p>
-                  </div>
-                  <input type="checkbox" className="h-5 w-5" />
+                  </label>
+                  <input id="notifDailyReports" type="checkbox" className="h-5 w-5 cursor-pointer" />
                 </div>
               </CardContent>
             </Card>
@@ -131,17 +166,35 @@ export default function SettingsClient() {
                   <h3 className="font-medium">Alterar senha</h3>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Senha atual</label>
-                      <Input type="password" placeholder="••••••••" />
+                      <label htmlFor="currentPassword" className="text-sm font-medium">Senha atual</label>
+                      <Input 
+                        id="currentPassword" 
+                        type="password" 
+                        placeholder="••••••••" 
+                        value={passwords.current}
+                        onChange={(e) => setPasswords({...passwords, current: e.target.value})}
+                      />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Nova senha</label>
-                      <Input type="password" placeholder="••••••••" />
+                      <label htmlFor="newPassword" className="text-sm font-medium">Nova senha</label>
+                      <Input 
+                        id="newPassword" 
+                        type="password" 
+                        placeholder="••••••••" 
+                        value={passwords.new}
+                        onChange={(e) => setPasswords({...passwords, new: e.target.value})}
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Confirmar nova senha</label>
-                    <Input type="password" placeholder="••••••••" />
+                    <label htmlFor="confirmPassword" className="text-sm font-medium">Confirmar nova senha</label>
+                    <Input 
+                      id="confirmPassword" 
+                      type="password" 
+                      placeholder="••••••••" 
+                      value={passwords.confirm}
+                      onChange={(e) => setPasswords({...passwords, confirm: e.target.value})}
+                    />
                   </div>
                 </div>
 
@@ -169,15 +222,24 @@ export default function SettingsClient() {
                 <div>
                   <h3 className="font-medium mb-4">Tema</h3>
                   <div className="grid grid-cols-3 gap-4">
-                    <button className="flex flex-col items-center gap-2 rounded-lg border-2 border-primary p-4">
+                    <button 
+                      onClick={() => handleThemeChange("light")}
+                      className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors ${theme === "light" ? "border-primary" : "border-border hover:border-primary/50"}`}
+                    >
                       <div className="h-12 w-full rounded bg-white border border-gray-200" />
                       <span className="text-sm font-medium">Claro</span>
                     </button>
-                    <button className="flex flex-col items-center gap-2 rounded-lg border border-border p-4 hover:border-primary transition-colors">
+                    <button 
+                      onClick={() => handleThemeChange("dark")}
+                      className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors ${theme === "dark" ? "border-primary" : "border-border hover:border-primary/50"}`}
+                    >
                       <div className="h-12 w-full rounded bg-gray-900" />
                       <span className="text-sm font-medium">Escuro</span>
                     </button>
-                    <button className="flex flex-col items-center gap-2 rounded-lg border border-border p-4 hover:border-primary transition-colors">
+                    <button 
+                      onClick={() => handleThemeChange("system")}
+                      className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors ${theme === "system" ? "border-primary" : "border-border hover:border-primary/50"}`}
+                    >
                       <div className="h-12 w-full rounded bg-gradient-to-r from-white to-gray-900" />
                       <span className="text-sm font-medium">Sistema</span>
                     </button>
@@ -186,7 +248,8 @@ export default function SettingsClient() {
 
                 <div>
                   <h3 className="font-medium mb-4">Idioma</h3>
-                  <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
+                  <label htmlFor="languageSelect" className="sr-only">Idioma do sistema</label>
+                  <select id="languageSelect" className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
                     <option value="pt-BR">Português (Brasil)</option>
                     <option value="en" disabled>English (Em breve)</option>
                   </select>
@@ -197,8 +260,11 @@ export default function SettingsClient() {
 
           <div className="flex justify-end">
             <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              <Save className="mr-2 h-4 w-4" />
+              {isSaving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
               Salvar Alterações
             </Button>
           </div>
