@@ -326,6 +326,20 @@ public class ProviderMapperTests
     }
 
     [Fact]
+    public void ToDomain_WithNullPrimaryAddress_WhenShowAddressToClientTrue_ShouldThrow()
+    {
+        // Arrange
+        var contactInfoDto = new ContactInfoDto("test@example.com", "+5511999999999", "https://example.com");
+        var dto = new BusinessProfileDto("Legal Name Ltd", "Fantasy Name", "Business description", contactInfoDto, null!, true);
+
+        // Act
+        var act = () => dto.ToDomain();
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>().WithParameterName("primaryAddress");
+    }
+
+    [Fact]
     public void ToDto_WithProviderWithDocuments_ShouldMapDocuments()
     {
         // Arrange

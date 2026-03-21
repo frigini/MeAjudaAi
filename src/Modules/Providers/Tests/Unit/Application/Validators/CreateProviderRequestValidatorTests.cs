@@ -208,6 +208,22 @@ public class CreateProviderRequestValidatorTests
             .WithErrorMessage("Endereço principal é obrigatório");
     }
 
+    [Fact]
+    public async Task Validate_WithNullPrimaryAddress_WhenShowAddressToClientIsFalse_ShouldNotHaveValidationError()
+    {
+        // Arrange
+        var request = CreateValidRequest() with
+        {
+            BusinessProfile = CreateValidBusinessProfile() with { ShowAddressToClient = false, PrimaryAddress = null! }
+        };
+
+        // Act
+        var result = await _validator.TestValidateAsync(request);
+
+        // Assert
+        result.ShouldNotHaveValidationErrorFor(x => x.BusinessProfile!.PrimaryAddress);
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData(null)]

@@ -168,6 +168,10 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                                 .HasColumnType("uuid")
                                 .HasColumnName("id");
 
+                            b1.Property<bool>("ShowAddressToClient")
+                                .HasColumnType("boolean")
+                                .HasColumnName("show_address_to_client");
+
                             b1.Property<string>("Description")
                                 .HasMaxLength(1000)
                                 .HasColumnType("character varying(1000)")
@@ -199,7 +203,6 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                                         .HasColumnName("id");
 
                                     b2.Property<string>("City")
-                                        .IsRequired()
                                         .HasMaxLength(100)
                                         .HasColumnType("character varying(100)")
                                         .HasColumnName("city");
@@ -210,37 +213,31 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                                         .HasColumnName("complement");
 
                                     b2.Property<string>("Country")
-                                        .IsRequired()
                                         .HasMaxLength(50)
                                         .HasColumnType("character varying(50)")
                                         .HasColumnName("country");
 
                                     b2.Property<string>("Neighborhood")
-                                        .IsRequired()
                                         .HasMaxLength(100)
                                         .HasColumnType("character varying(100)")
                                         .HasColumnName("neighborhood");
 
                                     b2.Property<string>("Number")
-                                        .IsRequired()
                                         .HasMaxLength(20)
                                         .HasColumnType("character varying(20)")
                                         .HasColumnName("number");
 
                                     b2.Property<string>("State")
-                                        .IsRequired()
                                         .HasMaxLength(50)
                                         .HasColumnType("character varying(50)")
                                         .HasColumnName("state");
 
                                     b2.Property<string>("Street")
-                                        .IsRequired()
                                         .HasMaxLength(200)
                                         .HasColumnType("character varying(200)")
                                         .HasColumnName("street");
 
                                     b2.Property<string>("ZipCode")
-                                        .IsRequired()
                                         .HasMaxLength(20)
                                         .HasColumnType("character varying(20)")
                                         .HasColumnName("zip_code");
@@ -293,8 +290,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                             b1.Navigation("ContactInfo")
                                 .IsRequired();
 
-                            b1.Navigation("PrimaryAddress")
-                                .IsRequired();
+                            b1.Navigation("PrimaryAddress");
                         });
 
                     b.OwnsMany("MeAjudaAi.Modules.Providers.Domain.ValueObjects.Document", "Documents", b1 =>
