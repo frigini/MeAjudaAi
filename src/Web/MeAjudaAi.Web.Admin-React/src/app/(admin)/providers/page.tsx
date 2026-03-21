@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Search, Plus, Pencil, Trash2, Eye, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -99,7 +100,11 @@ export default function ProvidersPage() {
               <tbody>
                 {filteredProviders.map((provider) => (
                   <tr key={provider.id} className="border-b border-border last:border-b-0">
-                    <td className="px-4 py-3 text-sm font-medium">{provider.name ?? "-"}</td>
+                    <td className="px-4 py-3 text-sm font-medium">
+                      <Link href={`/providers/${provider.id}`} className="hover:underline">
+                        {provider.name ?? "-"}
+                      </Link>
+                    </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">
                       {provider.businessProfile?.contactInfo?.email ?? "-"}
                     </td>
@@ -115,7 +120,9 @@ export default function ProvidersPage() {
                     <td className="px-4 py-3 text-sm text-muted-foreground">{getProviderCity(provider)}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button>
+                        <Link href={`/providers/${provider.id}`}>
+                          <Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button>
+                        </Link>
                         <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
                         <Button variant="ghost" size="icon"><CheckCircle className="h-4 w-4 text-green-500" /></Button>
                         <Button variant="ghost" size="icon"><XCircle className="h-4 w-4 text-red-500" /></Button>
