@@ -68,7 +68,9 @@ export default function AllowedCitiesPage() {
     defaultValues: { city: "", state: "", serviceRadiusKm: 50, isActive: true },
   });
 
-  const cities: AllowedCityDto[] = (citiesResponse as any)?.value ?? (citiesResponse as any) ?? [];
+  const cities: AllowedCityDto[] = Array.isArray(citiesResponse)
+    ? citiesResponse
+    : (citiesResponse as { value?: AllowedCityDto[] })?.value ?? [];
 
   const filteredCities = cities.filter(
     (c: AllowedCityDto) =>
@@ -112,8 +114,8 @@ export default function AllowedCitiesPage() {
     try {
       await createMutation.mutateAsync({
         body: {
-          cityName: data.city,
-          stateSigla: data.state,
+          city: data.city,
+          state: data.state,
           country: "Brasil",
           serviceRadiusKm: data.serviceRadiusKm,
           isActive: data.isActive,
@@ -296,7 +298,7 @@ export default function AllowedCitiesPage() {
           <form onSubmit={createForm.handleSubmit(handleSubmitCreate)} className="grid gap-4 py-4">
             <div className="grid gap-2">
               <label htmlFor="city" className="text-sm font-medium">Cidade</label>
-              <Input id="city" {...createForm.register("city")} placeholder="Ex: São Paulo" />
+              <Input id="city" autoFocus {...createForm.register("city")} placeholder="Ex: São Paulo" />
               {createForm.formState.errors.city && <p className="text-sm text-destructive">{createForm.formState.errors.city.message}</p>}
             </div>
             <div className="grid gap-2">

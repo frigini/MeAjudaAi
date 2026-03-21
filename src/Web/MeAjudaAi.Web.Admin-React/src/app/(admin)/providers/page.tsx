@@ -12,21 +12,10 @@ import {
   providerTypeLabels,
   verificationStatusLabels,
   type ProviderDto,
-  type VerificationStatus,
 } from "@/lib/types";
+import { getVerificationBadgeVariant } from "@/lib/utils";
 
 const ITEMS_PER_PAGE = 10;
-
-const getVerificationBadgeVariant = (status?: VerificationStatus) => {
-  switch (status) {
-    case 2: return "success" as const;
-    case 0: return "warning" as const;
-    case 3:
-    case 4: return "destructive" as const;
-    case 5: return "warning" as const;
-    default: return "secondary" as const;
-  }
-};
 
 const getProviderCity = (provider: ProviderDto): string => {
   return provider.businessProfile?.primaryAddress?.city ?? "-";
@@ -37,14 +26,29 @@ const getProviderPhone = (provider: ProviderDto): string => {
   return phone ?? "-";
 };
 
+function normalizeProvidersList(data: unknown): ProviderDto[] {
+  if (!data) return [];
+  if (Array.isArray(data)) return data as ProviderDto[];
+  if ("items" in (data as object) && Array.isArray((data as { items?: ProviderDto[] }).items)) {
+    return (data as { items: ProviderDto[] }).items;
+  }
+  if ("value" in (data as object) && Array.isArray((data as { value?: ProviderDto[] }).value)) {
+    return (data as { value: ProviderDto[] }).value;
+  }
+  if ("data" in (data as object) && Array.isArray((data as { data?: ProviderDto[] }).data)) {
+    return (data as { data: ProviderDto[] }).data;
+  }
+  return [];
+}
+
 export default function ProvidersPage() {
   const { data, isLoading, error } = useProviders();
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const providers: any[] = (data as any)?.items ?? (data as any)?.value ?? (data as any) ?? [];
+  const providers = normalizeProvidersList(data);
 
   const filteredProviders = providers.filter(
-    (p: any) =>
+    (p) =>
       (p.name?.toLowerCase() ?? "").includes(search.toLowerCase()) ||
       (p.businessProfile?.contactInfo?.email?.toLowerCase() ?? "").includes(search.toLowerCase())
   );
@@ -115,7 +119,7 @@ export default function ProvidersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedProviders.map((provider: any, index: any) => (
+                  {paginatedProviders.map((provider, index) => (
                     <tr key={provider.id ?? provider.businessProfile?.contactInfo?.email ?? `provider-${index}`} className="border-b border-border last:border-b-0">
                       <td className="px-4 py-3 text-sm font-medium">
                         {provider.id ? (

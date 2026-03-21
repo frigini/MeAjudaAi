@@ -35,7 +35,7 @@ const getDocumentStatusBadge = (status: "complete" | "pending" | "missing") => {
 export default function DocumentsPage() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const { data, isLoading, error } = useProviders();
+  const { data, isLoading, isFetching, error } = useProviders();
 
   const providers = data?.data ?? [];
 
@@ -94,7 +94,7 @@ export default function DocumentsPage() {
           <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5" />Documentos por Prestador</CardTitle>
         </CardHeader>
         <CardContent>
-          {providers.length > 0 && (
+          {(providers.length > 0 || isLoading || isFetching) && (
             <div className="mb-6 grid gap-4 md:grid-cols-3">
               <div className="rounded-lg border border-border bg-muted/50 p-4">
                 <div className="flex items-center gap-3">
@@ -181,11 +181,9 @@ export default function DocumentsPage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-end gap-2">
-                            <Button variant="ghost" size="icon" aria-label="Visualizar documentos">
-                              <Link href={`/providers/${provider.id}`}>
-                                <Eye className="h-4 w-4" />
-                              </Link>
-                            </Button>
+                            <Link href={`/providers/${provider.id}`} className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                              <Eye className="h-4 w-4" />
+                            </Link>
                           </div>
                         </td>
                       </tr>

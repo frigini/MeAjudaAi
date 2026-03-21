@@ -24,16 +24,7 @@ import {
   type VerificationStatus,
   type ProviderTier,
 } from "@/lib/types";
-
-const getVerificationBadgeVariant = (status?: VerificationStatus) => {
-  switch (status) {
-    case 2: return "success" as const;
-    case 0: return "warning" as const;
-    case 3:
-    case 4: return "destructive" as const;
-    default: return "secondary" as const;
-  }
-};
+import { getVerificationBadgeVariant } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ id: string }>;
