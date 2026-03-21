@@ -70,7 +70,9 @@ public static class ProvidersModuleEndpoints
             .MapEndpoint<RequireBasicInfoCorrectionEndpoint>()
             .MapEndpoint<DeleteProviderEndpoint>()
             .MapEndpoint<UploadMyDocumentEndpoint>()
-            .MapEndpoint<GetMyProviderStatusEndpoint>();
+            .MapEndpoint<GetMyProviderStatusEndpoint>()
+            .MapEndpoint<ActivateMyProviderProfileEndpoint>()
+            .MapEndpoint<DeactivateMyProviderProfileEndpoint>();
         
         // Endpoints de associação de serviços
         endpoints.MapEndpoint<AddServiceToProviderEndpoint>()

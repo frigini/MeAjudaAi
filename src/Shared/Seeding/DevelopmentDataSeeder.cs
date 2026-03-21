@@ -716,13 +716,13 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             // Inserir no SearchProviders
              var rowsAffected = await context.Database.ExecuteSqlRawAsync(
                 @"INSERT INTO search_providers.searchable_providers (
-                    id, provider_id, name, description, 
+                    id, provider_id, name, description, slug,
                     location, 
                     subscription_tier, average_rating, total_reviews, 
                     service_ids, is_active, city, state, created_at, updated_at
                   ) 
                   VALUES (
-                    {0}, {1}, {2}, {3}, 
+                    {0}, {1}, {2}, {3}, {14},
                     ST_SetSRID(ST_MakePoint({4}, {5}), 4326), 
                     {6}, {7}, {8}, 
                     {9}, true, {10}, {11}, {12}, {13}
@@ -730,6 +730,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                   ON CONFLICT (provider_id) DO UPDATE SET
                     name = EXCLUDED.name,
                     description = EXCLUDED.description,
+                    slug = EXCLUDED.slug,
                     location = EXCLUDED.location, 
                     average_rating = EXCLUDED.average_rating,
                     total_reviews = EXCLUDED.total_reviews,
@@ -741,7 +742,8 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                     UuidGenerator.NewId(), p.Id, p.Name, p.Description,
                     lon, lat, // PostGIS usa Longitude, Latitude
                     p.Tier, (decimal)p.Rating, p.Reviews,
-                    serviceIds.ToArray(), "Linhares", "ES", DateTime.UtcNow, DateTime.UtcNow
+                    serviceIds.ToArray(), "Linhares", "ES", DateTime.UtcNow, DateTime.UtcNow,
+                    SlugHelper.Generate(p.Name)
                 },
                 cancellationToken);
             

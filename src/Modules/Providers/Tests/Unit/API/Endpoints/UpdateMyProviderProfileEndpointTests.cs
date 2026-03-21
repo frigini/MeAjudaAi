@@ -63,7 +63,8 @@ public class UpdateMyProviderProfileEndpointTests
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null,
             IsDeleted: false,
-            DeletedAt: null);
+            DeletedAt: null,
+            IsActive: true);
             
         _queryDispatcherMock
             .Setup(x => x.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(

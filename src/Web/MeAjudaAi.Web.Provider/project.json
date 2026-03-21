@@ -1,0 +1,30 @@
+{
+  "name": "MeAjudaAi.Web.Provider",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "MeAjudaAi.Web.Provider",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "command": "next build",
+      "outputs": [
+        "{workspaceRoot}/dist/MeAjudaAi.Web.Provider"
+      ],
+      "options": {
+        "cwd": "MeAjudaAi.Web.Provider"
+      }
+    },
+    "serve": {
+      "command": "next dev -p 3001",
+      "options": {
+        "cwd": "MeAjudaAi.Web.Provider"
+      }
+    },
+    "lint": {
+      "command": "next lint",
+      "options": {
+        "cwd": "MeAjudaAi.Web.Provider"
+      }
+    }
+  }
+}

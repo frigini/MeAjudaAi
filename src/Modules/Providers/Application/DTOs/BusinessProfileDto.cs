@@ -8,5 +8,6 @@ public sealed record BusinessProfileDto(
     string? FantasyName,
     string? Description,
     ContactInfoDto ContactInfo,
-    AddressDto PrimaryAddress
+    AddressDto? PrimaryAddress,
+    bool ShowAddressToClient = false
 );

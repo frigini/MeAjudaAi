@@ -465,6 +465,175 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>, IAsyn
 
     #endregion
 
+    #region Profile Activation Operations
+
+    [Fact]
+    public async Task ActivateMyProfile_Should_Return_Success()
+    {
+        // Arrange
+        TestContainerFixture.BeforeEachTest();
+        
+        // Ensure authenticated as admin to create user and provider
+        TestContainerFixture.AuthenticateAsAdmin();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+        var username = $"prov_activ_{uniqueId}";
+        var email = $"prov_activ_{uniqueId}@example.com";
+        
+        var userId = await _fixture.CreateTestUserAsync(username, email);
+        
+        var request = new
+        {
+            UserId = userId.ToString(),
+            Name = $"ActivTest_{uniqueId}",
+            Type = 0,
+            BusinessProfile = new
+            {
+                LegalName = $"Test_{uniqueId}",
+                FantasyName = $"Test_{uniqueId}",
+                Description = "Test description",
+                ContactInfo = new
+                {
+                    Email = email,
+                    PhoneNumber = "+5511999999999",
+                    Website = "https://www.example.com"
+                },
+                PrimaryAddress = new
+                {
+                    Street = "Test Street",
+                    Number = "999",
+                    Complement = (string?)null,
+                    Neighborhood = "Test Neighborhood",
+                    City = "São Paulo",
+                    State = "SP",
+                    ZipCode = "01234-567",
+                    Country = "Brasil"
+                }
+            }
+        };
+
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request, TestContainerFixture.JsonOptions);
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Create Provider failed. Body: {body}");
+        }
+
+        // Autenticar como o provider criado
+        TestContainerFixture.AuthenticateAsUser(userId.ToString(), username);
+
+        // 1. Verificar estado inicial (isActive deve ser true)
+        var getInitialResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        getInitialResponse.EnsureSuccessStatusCode();
+        var getInitialContent = await getInitialResponse.Content.ReadAsStringAsync();
+        getInitialContent.Should().Contain("\"isActive\":true");
+
+        // 2. Desativar o perfil
+        var deactivateResponse = await _fixture.ApiClient.PostAsync("/api/v1/providers/me/deactivate", null);
+        if (!deactivateResponse.IsSuccessStatusCode)
+        {
+            var body = await deactivateResponse.Content.ReadAsStringAsync();
+            throw new Exception($"Deactivate failed. Body: {body}");
+        }
+
+        // Verificar que foi desativado
+        var getAfterDeactivateResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        getAfterDeactivateResponse.EnsureSuccessStatusCode();
+        var getAfterDeactivateContent = await getAfterDeactivateResponse.Content.ReadAsStringAsync();
+        getAfterDeactivateContent.Should().Contain("\"isActive\":false");
+
+        // 3. Ativar o perfil novamente
+        var activateResponse = await _fixture.ApiClient.PostAsync("/api/v1/providers/me/activate", null);
+
+        // Assert
+        activateResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
+        
+        // Verificar que foi reativado
+        var getProfileResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        getProfileResponse.EnsureSuccessStatusCode();
+        
+        var getProfileContent = await getProfileResponse.Content.ReadAsStringAsync();
+        getProfileContent.Should().Contain("\"isActive\":true");
+    }
+
+    [Fact]
+    public async Task DeactivateMyProfile_Should_Return_Success()
+    {
+        // Arrange
+        TestContainerFixture.BeforeEachTest();
+        
+        // Ensure authenticated as admin to create user and provider
+        TestContainerFixture.AuthenticateAsAdmin();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+        var username = $"prov_deactiv_{uniqueId}";
+        var email = $"prov_deactiv_{uniqueId}@example.com";
+        
+        var userId = await _fixture.CreateTestUserAsync(username, email);
+        
+        var request = new
+        {
+            UserId = userId.ToString(),
+            Name = $"DeactivTest_{uniqueId}",
+            Type = 0,
+            BusinessProfile = new
+            {
+                LegalName = $"Test_{uniqueId}",
+                FantasyName = $"Test_{uniqueId}",
+                Description = "Test description",
+                ContactInfo = new
+                {
+                    Email = email,
+                    PhoneNumber = "+5511999999999",
+                    Website = "https://www.example.com"
+                },
+                PrimaryAddress = new
+                {
+                    Street = "Test Street",
+                    Number = "999",
+                    Complement = (string?)null,
+                    Neighborhood = "Test Neighborhood",
+                    City = "São Paulo",
+                    State = "SP",
+                    ZipCode = "01234-567",
+                    Country = "Brasil"
+                }
+            }
+        };
+
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request, TestContainerFixture.JsonOptions);
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Create Provider failed. Body: {body}");
+        }
+
+        // Act - Deactivate
+        // Autenticar como o provider criado
+        TestContainerFixture.AuthenticateAsUser(userId.ToString(), username);
+
+        // 1. Verificar estado inicial (isActive deve ser true)
+        var getInitialResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        getInitialResponse.EnsureSuccessStatusCode();
+        var getInitialContent = await getInitialResponse.Content.ReadAsStringAsync();
+        getInitialContent.Should().Contain("\"isActive\":true");
+
+        // 2. Desativar o perfil
+        var deactivateResponse = await _fixture.ApiClient.PostAsync("/api/v1/providers/me/deactivate", null);
+        if (!deactivateResponse.IsSuccessStatusCode)
+        {
+            var body = await deactivateResponse.Content.ReadAsStringAsync();
+            throw new Exception($"Deactivate failed. Body: {body}");
+        }
+        
+        // Verificar que foi desativado
+        var getProfileResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/me");
+        getProfileResponse.EnsureSuccessStatusCode();
+        
+        var getProfileContent = await getProfileResponse.Content.ReadAsStringAsync();
+        getProfileContent.Should().Contain("\"isActive\":false");
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private async Task<Guid> CreateTestProviderAsync(string? name = null)

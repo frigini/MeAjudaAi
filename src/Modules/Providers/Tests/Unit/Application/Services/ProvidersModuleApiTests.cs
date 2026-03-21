@@ -258,6 +258,7 @@ public class ProvidersModuleApiTests
             UpdatedAt: null,
             IsDeleted: false,
             DeletedAt: null,
+            IsActive: true,
             SuspensionReason: null,
             RejectionReason: null
         );

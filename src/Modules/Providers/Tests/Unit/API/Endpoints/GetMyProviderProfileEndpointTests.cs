@@ -57,7 +57,8 @@ public class GetMyProviderProfileEndpointTests
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null,
             IsDeleted: false,
-            DeletedAt: null);
+            DeletedAt: null,
+            IsActive: true);
 
         var dispatchResult = Result<ProviderDto?>.Success(providerDto);
 

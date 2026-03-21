@@ -1,0 +1,2 @@
+# Override parent ignore for generated API client
+!lib/api/generated/

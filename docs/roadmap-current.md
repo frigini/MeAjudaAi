@@ -5,9 +5,9 @@
 ### Objetivo
 Desenvolver aplicações frontend usando **Blazor WebAssembly** (Admin Portal) e **React + Next.js** (Customer Web App) + **React Native** (Mobile App).
 
-> **📅 Status Atual**: Sprint 7 concluída (7 Jan 2026), Sprint 7.16 concluída (21 Jan 2026), Sprint 7.20 concluída (5 Fev 2026), Sprint 7.21 concluída (5 Fev 2026)  
+> **📅 Status Atual**: Sprint 8C concluída (21 Mar 2026)  
 > **📝 Decisão Técnica** (5 Fev 2026): Customer App usará **React 19 + Next.js 15 + Tailwind v4** (SEO, performance, ecosystem)  
-> Próximo foco: Sprint 8A - Customer Web App (React + Next.js).
+> Próximo foco: Sprint 8D - Admin Portal Migration (React)
 
 ---
 
@@ -589,10 +589,17 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 
 ---
 
-### ⏳ Sprint 8C - Provider Web App (React + NX) (19 Mar - 1 Abr 2026)
-- Create `apps/provider-web`.
-- Implement registration steps (Upload, Dashboard).
-- **Slug Implementation**: Replace IDs with Slugs for SEO/Security.
+### ✅ Sprint 8C - Provider Web App (React + NX) (19 Mar - 21 Mar 2026)
+- ✅ **Nx Integration**: `MeAjudaAi.Web.Provider` integrado ao workspace Nx
+- ✅ **Onboarding Integration**: 
+  - `/onboarding/basic-info` conectado à API (`apiMeGet`/`apiMePut`)
+  - `/onboarding/documents` conectado à API (upload via SAS URL para Azure Blob Storage)
+- ✅ **Dashboard Real Data**: Página principal (`/`) substituída por dados reais via `apiMeGet`
+- ✅ **Provider Public Profile**: Nova rota `/provider/[slug]` para perfis públicos com slugs SEO-friendly
+- ✅ **Provider Profile Management**:
+  - `/alterar-dados` - Edição completa via `apiMePut`
+  - `/configuracoes` - Toggle de visibilidade + delete account com confirmação LGPD
+- ✅ **Slug URLs**: Perfis públicos acessíveis via slugs (ex: `/provider/joao-silva-a1b2c3d4`)
 
 ### ⏳ Sprint 8D - Admin Portal Migration (2 - 22 Abr 2026)
 
@@ -1191,20 +1198,36 @@ public class ActivityHub : Hub
 12. ✅ Feature/refactor-and-cleanup branch - Merged to master (19 Dez 2025)
 
 ### 📅 Alta Prioridade (Próximos 3 meses - Q1-Q2 2026)
-1. 🔄 **Sprint 8B.2: NX Monorepo & Technical Excellence** (Em andamento)
-2. ⏳ **Sprint 8C: Provider Web App (React + NX)** (Abril 2026)
+1. ✅ **Sprint 8B.2: NX Monorepo & Technical Excellence** (Concluída)
+2. ✅ **Sprint 8C: Provider Web App (React + NX)** (Concluída - 21 Mar 2026)
 3. ⏳ **Sprint 8D: Admin Portal Migration** (Abril 2026)
 4. ⏳ **Sprint 9: BUFFER & RISK MITIGATION** (Abril/Maio 2026)
 5. 🎯 **MVP Final Launch: 12 - 16 de Maio de 2026**
 6. 📋 API Collections - Bruno .bru files para todos os módulos
 
 ### 🎯 **Média Prioridade (6-12 meses - Fase 2)**
-1. Γ¡É Módulo Reviews & Ratings
-2. ≡ƒÆ│ Módulo Payments & Billing (Stripe)
-3. ≡ƒñû Documents - Verificação automatizada (OCR + Background checks)
+1. 🎉 Módulo Reviews & Ratings
+2. 💳 Módulo Payments & Billing (Stripe)
+3. 🌍 Documents - Verificação automatizada (OCR + Background checks)
 4. 🔄 Search - Indexing worker para integration events
 5. 📊 Analytics - Métricas básicas
-6. ≡ƒôº Communications - Email notifications
-7. ≡ƒ¢í∩╕Å Dispute Resolution System
+6. 🎯 Communications - Email notifications
+7. 🏛️ Dispute Resolution System
 8. 🔥 Alinhamento de middleware entre UseSharedServices() e UseSharedServicesAsync()
+
+### 🔬 **Testes E2E Frontend (Pós-MVP)**
+**Projeto**: `tests/MeAjudaAi.Web.Tests`
+**Estrutura**: Uma pasta para cada projeto frontend
+- `tests/MeAjudaAi.Web.Tests/Customer/` - Testes E2E para Customer Web App
+- `tests/MeAjudaAi.Web.Tests/Provider/` - Testes E2E para Provider Web App  
+- `tests/MeAjudaAi.Web.Tests/Admin/` - Testes E2E para Admin Portal
+
+**Framework**: Playwright
+**Cenários a cobrir**:
+- [ ] Autenticação (login, logout, refresh token)
+- [ ] Fluxo de onboarding (Customer e Provider)
+- [ ] CRUD de providers e serviços
+- [ ] Busca e filtros
+- [ ] Responsividade mobile
+- [ ] Performance e Core Web Vitals
 

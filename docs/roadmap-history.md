@@ -114,7 +114,7 @@ As futuras atualiza├º├╡es da tabela de sprints devem observar a pol├¡t
 
 ---
 
-### ΓÅ│ Sprint 8B.2 - Technical Excellence & NX Monorepo (Planejado - Antes do Provider App)
+### Γ£à Sprint 8B.2 - Technical Excellence & NX Monorepo (CONCLUÍDO - 18 Mar 2026)
 
 **Branch**: `feature/sprint-8b2-technical-excellence`
 
@@ -1589,22 +1589,22 @@ Get-ChildItem -Recurse -Include *.cs | Select-String "record "
 
 ---
 
-### ΓÅ│ Sprint 8C - Provider Web App (React + NX)
+### Γ£à Sprint 8C - Provider Web App (React + NX) - CONCLUÍDO (21 Mar 2026)
 
-**Periodo Estimado**: 19 Mar - 1 Abr 2026
+**Periodo Real**: 19 Mar - 21 Mar 2026
 **Foco**: App de Administra├º├úo de Perfil para Prestadores
-**Branch**: (a ser criada: `feature/sprint-8c-provider-app`)
+**Status**: Γ£à CONCLUÍDO
 
-**Contexto**: Segundo app React no workspace NX. Utiliza shared libs (`libs/ui`, `libs/auth`, `libs/api-client`) criadas no Sprint 8B.2. Completa os pendentes do Sprint 8B.1 (Document Upload, Review Dashboard, Professional Profile Setup).
-
-**Escopo**:
-- Criar `apps/provider-web` dentro do workspace NX (Next.js + Tailwind v4).
-- **Document Upload (Step 3)**: Componente de upload de documentos no fluxo de onboarding.
-- **Review Dashboard**: Interface para o prestador acompanhar status de verifica├º├úo.
-- **Professional Profile Setup**: Sele├º├úo de categorias e servi├ºos ap├│s credenciamento.
-- **Provider Profile Page**: P├ígina de perfil p├║blico do prestador (com slug do Sprint 8B.2).
-- Autentica├º├úo Keycloak (cliente `meajudaai-provider`).
-- Estilo visual alinhado com Customer App (Tailwind v4 + componentes `libs/ui`).
+**Entregáveis Implementados**:
+- ✅ **Nx Integration**: `MeAjudaAi.Web.Provider` integrado ao workspace Nx
+- ✅ **Onboarding/basic-info**: Conectado à API (`apiMeGet`/`apiMePut`) com validação Zod
+- ✅ **Onboarding/documents**: Upload via SAS URL para Azure Blob Storage
+- ✅ **Dashboard Real Data**: Página principal (`/`) substituída por dados reais via `apiMeGet`
+- ✅ **Provider Public Profile**: Nova rota `/provider/[slug]` para perfis públicos com slugs SEO-friendly
+- ✅ **Provider Profile Management**:
+  - `/alterar-dados` - Edição completa via `apiMePut`
+  - `/configuracoes` - Toggle de visibilidade + delete account com confirmação LGPD
+- ✅ **Slug URLs**: Perfis públicos acessíveis via slugs (ex: `/provider/joao-silva-a1b2c3d4`)
 
 ---
 
@@ -2208,16 +2208,15 @@ Todas as tarefas planejadas j├í foram implementadas:
 Frontend React (NX Monorepo) + Mobile:
 - Sprint 6: Blazor Admin Portal Setup - Γ£à CONCLU├ìDO (5 Jan 2026)
 - Sprint 7: Blazor Admin Portal Features (6-24 Jan 2026) - Γ£à CONCLU├ìDO
-- Sprint 7.16: Technical Debt Sprint (17-21 Jan 2026) - ≡ƒöä EM PROGRESSO (Task 5 movida p/ Sprint 9)
-- Sprint 8A: Customer App (5-18 Fev 2026) - Γ£à Conclu├¡do
+- Sprint 7.16: Technical Debt Sprint (17-21 Jan 2026) - Γ£à CONCLU├ìDO
+- Sprint 8A: Customer App (5-18 Fev 2026) - Γ£à CONCLU├ìDO
 - Sprint 8B: Authentication & Onboarding (19 Fev - 4 Mar 2026) - Γ£à CONCLU├ìDO
-- Sprint 8B.2: Technical Excellence & NX Monorepo (5-18 Mar 2026) - ≡ƒöä EM PROGRESSO
-- Sprint 8C: Provider Web App (19 Mar - 1 Abr 2026) - ΓÅ│ Planejado
+- Sprint 8B.2: Technical Excellence & NX Monorepo (5-18 Mar 2026) - Γ£à CONCLU├ìDO
+- Sprint 8C: Provider Web App (19-21 Mar 2026) - Γ£à CONCLU├ìDO
 - Sprint 8D: Admin Portal Migration Blazor ΓåÆ React (2-15 Abr 2026) - ΓÅ│ Planejado
 - Sprint 8E: Mobile App (16-29 Abr 2026) - ΓÅ│ Planejado
 - Sprint 9: BUFFER (30 Abr - 6 Mai 2026) - ΓÅ│ Planejado
-- MVP Final: 9 de Maio de 2026
-- *Nota: Data de MVP atualizada para 9 de Maio de 2026 para acomodar NX Monorepo, Provider App, Admin Migration e Mobile App.*
+- MVP Final: 12-16 de Maio de 2026
 
 **ΓÜá∩╕Å Risk Assessment**: Estimativas assumem velocidade consistente. NX Monorepo setup e Admin Migration s├úo os maiores riscos de escopo. Sprint 9 reservado como buffer de conting├¬ncia.
 
@@ -2252,15 +2251,16 @@ A implementa├º├úo segue os princ├¡pios arquiteturais definidos em `arch
 | **Sprint 5.5** | 2 semanas | 19 Dez - 31 Dez | Refactor & Cleanup (Technical Debt) | Γ£à CONCLU├ìDO (30 Dez 2025) |
 | **Sprint 6** | 1 semana | 30 Dez - 5 Jan | Blazor Admin Portal - Setup & Core | Γ£à CONCLU├ìDO (5 Jan 2026) |
 | **Sprint 7** | 3 semanas | 6 - 24 Jan | Blazor Admin Portal - Features | Γ£à CONCLU├ìDO |
-| **Sprint 7.16** | 1 semana | 17-21 Jan | Technical Debt Sprint | ≡ƒöä EM PROGRESSO |
+| **Sprint 7.16** | 1 semana | 17-21 Jan | Technical Debt Sprint | Γ£à CONCLU├ìDO |
 | **Sprint 8** | 2 semanas | 5 - 18 Fev | Customer Web App (Web) | Γ£à CONCLU├ìDO |
 | **Sprint 8B** | 2 semanas | 19 Fev - 4 Mar | Authentication & Onboarding | Γ£à CONCLU├ìDO |
-| **Sprint 8C** | 2 semanas | 5-18 Mar | Mobile App | ΓÅ│ Planejado |
-| **Sprint 9** | 1 semana | 19-25 Mar | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ΓÅ│ Planejado |
-| **MVP Launch** | - | 28 de Mar├ºo de 2026 | Final deployment & launch preparation | ≡ƒÄ» Target |
+| **Sprint 8B.2** | 2 semanas | 5-18 Mar | Technical Excellence & NX Monorepo | Γ£à CONCLU├ìDO |
+| **Sprint 8C** | 3 dias | 19-21 Mar | Provider Web App | Γ£à CONCLU├ìDO |
+| **Sprint 8D** | 3 semanas | 2-22 Abr | Admin Portal Migration | ΓÅ│ Planejado |
+| **Sprint 9** | 2 semanas | 23 Abr - 11 Mai | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ΓÅ│ Planejado |
+| **MVP Launch** | 1 semana | 12-16 Mai 2026 | Final deployment & launch preparation | ≡ƒÄ» Target |
 
-**MVP Launch Target**: 28 de Mar├ºo de 2026 ≡ƒÄ»  
-*Atualizado para 28 de Mar├ºo de 2026.*
+**MVP Launch Target**: 12-16 de Maio de 2026 ≡ƒÄ»
 
 **Post-MVP (Fase 3+)**: Reviews, Assinaturas, Agendamentos (Abril 2026+)
 

@@ -12,7 +12,8 @@ public class BusinessProfile : ValueObject
     public string? FantasyName { get; private set; }
     public string? Description { get; private set; }
     public ContactInfo ContactInfo { get; private set; }
-    public Address PrimaryAddress { get; private set; }
+    public Address? PrimaryAddress { get; private set; }
+    public bool ShowAddressToClient { get; private set; }
 
     /// <summary>
     /// Construtor privado para Entity Framework
@@ -21,15 +22,17 @@ public class BusinessProfile : ValueObject
     {
         LegalName = string.Empty;
         ContactInfo = null!;
-        PrimaryAddress = null!;
+        PrimaryAddress = null;
+        ShowAddressToClient = false;
     }
 
     public BusinessProfile(
         string legalName,
         ContactInfo contactInfo,
-        Address primaryAddress,
+        Address? primaryAddress,
         string? fantasyName = null,
-        string? description = null)
+        string? description = null,
+        bool showAddressToClient = false)
     {
         if (string.IsNullOrWhiteSpace(legalName))
             throw new ArgumentException("Razão social não pode ser vazia", nameof(legalName));
@@ -38,16 +41,22 @@ public class BusinessProfile : ValueObject
         FantasyName = fantasyName?.Trim();
         Description = description?.Trim();
         ContactInfo = contactInfo ?? throw new ArgumentNullException(nameof(contactInfo));
-        PrimaryAddress = primaryAddress ?? throw new ArgumentNullException(nameof(primaryAddress));
+        
+        if (showAddressToClient && primaryAddress == null)
+            throw new ArgumentNullException(nameof(primaryAddress), "Endereço primário é obrigatório quando ShowAddressToClient é true");
+        
+        PrimaryAddress = primaryAddress;
+        ShowAddressToClient = showAddressToClient;
     }
 
-    protected override IEnumerable<object> GetEqualityComponents()
+    protected override IEnumerable<object?> GetEqualityComponents()
     {
         yield return LegalName;
         yield return FantasyName ?? string.Empty;
         yield return Description ?? string.Empty;
         yield return ContactInfo;
         yield return PrimaryAddress;
+        yield return ShowAddressToClient;
     }
 
     public override string ToString() =>

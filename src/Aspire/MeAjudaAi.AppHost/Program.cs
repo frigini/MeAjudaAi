@@ -222,9 +222,23 @@ internal static class Program
             // Nota: AddJavaScriptApp usa "dev" script por padrão em desenvolvimento
             // e "build" script em produção. Ver package.json para scripts configurados.
 
+        // Aplicação Web do Prestador (Next.js 15)
+        var providerWebPath = Path.Combine(builder.AppHostDirectory, "..", "..", "..", "src", "Web", "MeAjudaAi.Web.Provider");
+        if (!Directory.Exists(providerWebPath))
+        {
+            throw new DirectoryNotFoundException($"Provider Web App directory not found at {providerWebPath}.");
+        }
+
+        var providerWeb = builder.AddJavaScriptApp("provider-web", providerWebPath)
+            .WithHttpEndpoint(port: 3001, env: "PORT")
+            .WithExternalHttpEndpoints()
+            .WithEnvironment("NEXT_PUBLIC_API_URL", apiService.GetEndpoint("http"))
+            .WaitFor(apiService);
+
         // Pass resolved endpoints to Keycloak options for bootstrap
         keycloakSettings.AdminPortalEndpoint = adminPortal.GetEndpoint("https");
         keycloakSettings.CustomerWebEndpoint = customerWeb.GetEndpoint("http");
+        keycloakSettings.ProviderWebEndpoint = providerWeb.GetEndpoint("http");
     }
 
     private static void ConfigureProductionEnvironment(IDistributedApplicationBuilder builder)

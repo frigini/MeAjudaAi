@@ -39,7 +39,7 @@ public class CreateProviderRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.UserId)
-            .WithErrorMessage("UserId is required");
+            .WithErrorMessage("UserId é obrigatório");
     }
 
     [Theory]
@@ -55,7 +55,7 @@ public class CreateProviderRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Name)
-            .WithErrorMessage("Name is required");
+            .WithErrorMessage("Nome é obrigatório");
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class CreateProviderRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Name)
-            .WithErrorMessage("Name must be at least 2 characters long");
+            .WithErrorMessage("Nome deve ter no mínimo 2 caracteres");
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public class CreateProviderRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Name)
-            .WithErrorMessage("Name cannot exceed 100 characters");
+            .WithErrorMessage("Nome não pode exceder 100 caracteres");
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class CreateProviderRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.BusinessProfile)
-            .WithErrorMessage("BusinessProfile is required");
+            .WithErrorMessage("Perfil de negócio é obrigatório");
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public class CreateProviderRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.Description)
-            .WithErrorMessage("BusinessProfile.Description cannot exceed 500 characters");
+            .WithErrorMessage("Descrição não pode exceder 500 caracteres");
     }
 
     [Fact]
@@ -146,7 +146,7 @@ public class CreateProviderRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.ContactInfo)
-            .WithErrorMessage("BusinessProfile.ContactInfo is required");
+            .WithErrorMessage("Informações de contato são obrigatórias");
     }
 
     [Theory]
@@ -168,7 +168,7 @@ public class CreateProviderRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.ContactInfo!.Email)
-            .WithErrorMessage("Email is required");
+            .WithErrorMessage("E-mail é obrigatório");
     }
 
     [Fact]
@@ -188,16 +188,16 @@ public class CreateProviderRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.ContactInfo!.Email)
-            .WithErrorMessage("Email must be a valid email address");
+            .WithErrorMessage("E-mail deve ser um endereço válido");
     }
 
     [Fact]
-    public async Task Validate_WithNullPrimaryAddress_ShouldHaveValidationError()
+    public async Task Validate_WithNullPrimaryAddress_WhenShowAddressToClientIsTrue_ShouldHaveValidationError()
     {
         // Arrange
         var request = CreateValidRequest() with
         {
-            BusinessProfile = CreateValidBusinessProfile() with { PrimaryAddress = null! }
+            BusinessProfile = CreateValidBusinessProfile() with { ShowAddressToClient = true, PrimaryAddress = null! }
         };
 
         // Act
@@ -205,7 +205,23 @@ public class CreateProviderRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.PrimaryAddress)
-            .WithErrorMessage("BusinessProfile.PrimaryAddress is required");
+            .WithErrorMessage("Endereço principal é obrigatório");
+    }
+
+    [Fact]
+    public async Task Validate_WithNullPrimaryAddress_WhenShowAddressToClientIsFalse_ShouldNotHaveValidationError()
+    {
+        // Arrange
+        var request = CreateValidRequest() with
+        {
+            BusinessProfile = CreateValidBusinessProfile() with { ShowAddressToClient = false, PrimaryAddress = null! }
+        };
+
+        // Act
+        var result = await _validator.TestValidateAsync(request);
+
+        // Assert
+        result.ShouldNotHaveValidationErrorFor(x => x.BusinessProfile!.PrimaryAddress);
     }
 
     [Theory]
@@ -227,7 +243,7 @@ public class CreateProviderRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.PrimaryAddress!.Street)
-            .WithErrorMessage("PrimaryAddress.Street is required");
+            .WithErrorMessage("Rua é obrigatória");
     }
 
     [Theory]
@@ -249,7 +265,7 @@ public class CreateProviderRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.PrimaryAddress!.City)
-            .WithErrorMessage("PrimaryAddress.City is required");
+            .WithErrorMessage("Cidade é obrigatória");
     }
 
     [Theory]
@@ -271,7 +287,7 @@ public class CreateProviderRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.PrimaryAddress!.State)
-            .WithErrorMessage("PrimaryAddress.State is required");
+            .WithErrorMessage("Estado é obrigatório");
     }
 
     [Theory]
@@ -293,7 +309,7 @@ public class CreateProviderRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.PrimaryAddress!.ZipCode)
-            .WithErrorMessage("PrimaryAddress.ZipCode is required");
+            .WithErrorMessage("CEP é obrigatório");
     }
 
     [Theory]
@@ -315,7 +331,7 @@ public class CreateProviderRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.BusinessProfile!.PrimaryAddress!.Country)
-            .WithErrorMessage("PrimaryAddress.Country is required");
+            .WithErrorMessage("País é obrigatório");
     }
 
     private static CreateProviderRequest CreateValidRequest()

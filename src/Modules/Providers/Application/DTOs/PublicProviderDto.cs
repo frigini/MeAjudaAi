@@ -23,5 +23,6 @@ public sealed record PublicProviderDto(
     IEnumerable<string> Services,
     IEnumerable<string> PhoneNumbers,
     string? Email,
-    EVerificationStatus VerificationStatus
+    EVerificationStatus VerificationStatus,
+    bool IsActive
 );

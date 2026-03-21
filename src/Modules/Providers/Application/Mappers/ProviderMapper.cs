@@ -31,6 +31,7 @@ public static class ProviderMapper
             provider.UpdatedAt,
             provider.IsDeleted,
             provider.DeletedAt,
+            provider.IsActive,
             provider.SuspensionReason,
             provider.RejectionReason
         );
@@ -54,7 +55,8 @@ public static class ProviderMapper
             businessProfile.FantasyName,
             businessProfile.Description,
             businessProfile.ContactInfo.ToDto(),
-            businessProfile.PrimaryAddress.ToDto()
+            businessProfile.PrimaryAddress?.ToDto(),
+            businessProfile.ShowAddressToClient
         );
     }
 
@@ -66,7 +68,8 @@ public static class ProviderMapper
         return new ContactInfoDto(
             contactInfo.Email,
             contactInfo.PhoneNumber,
-            contactInfo.Website
+            contactInfo.Website,
+            contactInfo.AdditionalPhoneNumbers
         );
     }
 
@@ -133,12 +136,9 @@ public static class ProviderMapper
     public static BusinessProfile ToDomain(this BusinessProfileDto dto)
     {
         ArgumentNullException.ThrowIfNull(dto.ContactInfo);
-        ArgumentNullException.ThrowIfNull(dto.PrimaryAddress);
 
-        return new BusinessProfile(
-            dto.LegalName,
-            new ContactInfo(dto.ContactInfo.Email, dto.ContactInfo.PhoneNumber, dto.ContactInfo.Website),
-            new Address(
+        Address? primaryAddress = dto.PrimaryAddress != null
+            ? new Address(
                 dto.PrimaryAddress.Street,
                 dto.PrimaryAddress.Number,
                 dto.PrimaryAddress.Neighborhood,
@@ -146,10 +146,16 @@ public static class ProviderMapper
                 dto.PrimaryAddress.State,
                 dto.PrimaryAddress.ZipCode,
                 dto.PrimaryAddress.Country,
-                dto.PrimaryAddress.Complement
-            ),
+                dto.PrimaryAddress.Complement)
+            : null;
+
+        return new BusinessProfile(
+            dto.LegalName,
+            new ContactInfo(dto.ContactInfo.Email, dto.ContactInfo.PhoneNumber, dto.ContactInfo.Website, dto.ContactInfo.AdditionalPhones),
+            primaryAddress,
             dto.FantasyName,
-            dto.Description
+            dto.Description,
+            dto.ShowAddressToClient
         );
     }
 
