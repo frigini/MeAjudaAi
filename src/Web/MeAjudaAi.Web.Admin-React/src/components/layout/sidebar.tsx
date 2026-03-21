@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { twMerge } from "tailwind-merge";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -62,16 +63,19 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-border p-4">
-        <div className="mb-3 flex items-center gap-3 px-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
-            {session?.user?.name?.charAt(0).toUpperCase() ?? "A"}
+        <div className="mb-3 flex items-center justify-between px-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
+              {session?.user?.name?.charAt(0).toUpperCase() ?? "A"}
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <p className="truncate text-sm font-medium">{session?.user?.name ?? "Admin"}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {session?.user?.roles?.includes("admin") ? "Administrador" : "Usuário"}
+              </p>
+            </div>
           </div>
-          <div className="flex-1 overflow-hidden">
-            <p className="truncate text-sm font-medium">{session?.user?.name ?? "Admin"}</p>
-            <p className="truncate text-xs text-muted-foreground">
-              {session?.user?.roles?.includes("admin") ? "Administrador" : "Usuário"}
-            </p>
-          </div>
+          <ThemeToggle />
         </div>
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
