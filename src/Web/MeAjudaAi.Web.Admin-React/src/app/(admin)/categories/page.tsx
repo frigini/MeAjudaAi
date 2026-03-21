@@ -1,6 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
 import { FolderTree, Plus, Pencil, Trash2, Loader2, Search } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,17 +26,13 @@ import {
 } from "@/hooks/admin";
 import type { ServiceCategoryDto } from "@/lib/types";
 
-interface CategoryFormData {
-  name: string;
-  description: string;
-  isActive: boolean;
-}
+const categorySchema = z.object({
+  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome deve ter no máximo 100 caracteres"),
+  description: z.string().max(500, "Descrição deve ter no máximo 500 caracteres").optional(),
+  isActive: z.boolean(),
+});
 
-const initialFormData: CategoryFormData = {
-  name: "",
-  description: "",
-  isActive: true,
-};
+type CategoryFormData = z.infer<typeof categorySchema>;
 
 export default function CategoriesPage() {
   const [search, setSearch] = useState("");
@@ -40,12 +40,21 @@ export default function CategoriesPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategoryDto | null>(null);
-  const [formData, setFormData] = useState<CategoryFormData>(initialFormData);
 
   const { data: categoriesResponse, isLoading, error } = useCategories();
   const createMutation = useCreateCategory();
   const updateMutation = useUpdateCategory();
   const deleteMutation = useDeleteCategory();
+
+  const createForm = useForm<CategoryFormData>({
+    resolver: zodResolver(categorySchema),
+    defaultValues: { name: "", description: "", isActive: true },
+  });
+
+  const editForm = useForm<CategoryFormData>({
+    resolver: zodResolver(categorySchema),
+    defaultValues: { name: "", description: "", isActive: true },
+  });
 
   const categories = categoriesResponse?.data?.data ?? [];
 
@@ -54,13 +63,13 @@ export default function CategoriesPage() {
   );
 
   const handleOpenCreate = () => {
-    setFormData(initialFormData);
+    createForm.reset({ name: "", description: "", isActive: true });
     setIsCreateOpen(true);
   };
 
   const handleOpenEdit = (category: ServiceCategoryDto) => {
     setSelectedCategory(category);
-    setFormData({
+    editForm.reset({
       name: category.name ?? "",
       description: category.description ?? "",
       isActive: category.isActive ?? true,
@@ -73,32 +82,47 @@ export default function CategoriesPage() {
     setIsDeleteOpen(true);
   };
 
-  const handleSubmitCreate = async () => {
-    await createMutation.mutateAsync({
-      body: {
-        name: formData.name,
-        description: formData.description,
-        isActive: formData.isActive,
-      },
-    });
-    setIsCreateOpen(false);
+  const handleSubmitCreate = async (data: CategoryFormData) => {
+    try {
+      await createMutation.mutateAsync({
+        body: {
+          name: data.name,
+          description: data.description ?? "",
+          isActive: data.isActive,
+        },
+      });
+      toast.success("Categoria criada com sucesso");
+      setIsCreateOpen(false);
+    } catch {
+      toast.error("Erro ao criar categoria");
+    }
   };
 
-  const handleSubmitEdit = async () => {
+  const handleSubmitEdit = async (data: CategoryFormData) => {
     if (!selectedCategory?.id) return;
-    await updateMutation.mutateAsync({
-      id: selectedCategory.id,
-      name: formData.name,
-      description: formData.description,
-      isActive: formData.isActive,
-    });
-    setIsEditOpen(false);
+    try {
+      await updateMutation.mutateAsync({
+        id: selectedCategory.id,
+        name: data.name,
+        description: data.description ?? "",
+        isActive: data.isActive,
+      });
+      toast.success("Categoria atualizada com sucesso");
+      setIsEditOpen(false);
+    } catch {
+      toast.error("Erro ao atualizar categoria");
+    }
   };
 
   const handleDelete = async () => {
     if (!selectedCategory?.id) return;
-    await deleteMutation.mutateAsync(selectedCategory.id);
-    setIsDeleteOpen(false);
+    try {
+      await deleteMutation.mutateAsync(selectedCategory.id);
+      toast.success("Categoria excluída com sucesso");
+      setIsDeleteOpen(false);
+    } catch {
+      toast.error("Erro ao excluir categoria");
+    }
   };
 
   return (
@@ -195,43 +219,46 @@ export default function CategoriesPage() {
             <DialogTitle>Nova Categoria</DialogTitle>
             <DialogDescription>Adicione uma nova categoria de serviço.</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <form onSubmit={createForm.handleSubmit(handleSubmitCreate)} className="grid gap-4 py-4">
             <div className="grid gap-2">
               <label htmlFor="name" className="text-sm font-medium">Nome</label>
               <Input
                 id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                {...createForm.register("name")}
                 placeholder="Ex: Eletricista"
               />
+              {createForm.formState.errors.name && (
+                <p className="text-sm text-destructive">{createForm.formState.errors.name.message}</p>
+              )}
             </div>
             <div className="grid gap-2">
               <label htmlFor="description" className="text-sm font-medium">Descrição</label>
               <Input
                 id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                {...createForm.register("description")}
                 placeholder="Descrição da categoria..."
               />
+              {createForm.formState.errors.description && (
+                <p className="text-sm text-destructive">{createForm.formState.errors.description.message}</p>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <input
                 id="isActive"
                 type="checkbox"
-                checked={formData.isActive}
-                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                {...createForm.register("isActive")}
                 className="h-4 w-4"
               />
               <label htmlFor="isActive" className="text-sm font-medium">Categoria Ativa</label>
             </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSubmitCreate} disabled={createMutation.isPending}>
-              {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Criar
-            </Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={createMutation.isPending}>
+                {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Criar
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
@@ -241,41 +268,44 @@ export default function CategoriesPage() {
             <DialogTitle>Editar Categoria</DialogTitle>
             <DialogDescription>Atualize os dados da categoria.</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <form onSubmit={editForm.handleSubmit(handleSubmitEdit)} className="grid gap-4 py-4">
             <div className="grid gap-2">
               <label htmlFor="edit-name" className="text-sm font-medium">Nome</label>
               <Input
                 id="edit-name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                {...editForm.register("name")}
               />
+              {editForm.formState.errors.name && (
+                <p className="text-sm text-destructive">{editForm.formState.errors.name.message}</p>
+              )}
             </div>
             <div className="grid gap-2">
               <label htmlFor="edit-description" className="text-sm font-medium">Descrição</label>
               <Input
                 id="edit-description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                {...editForm.register("description")}
               />
+              {editForm.formState.errors.description && (
+                <p className="text-sm text-destructive">{editForm.formState.errors.description.message}</p>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <input
                 id="edit-isActive"
                 type="checkbox"
-                checked={formData.isActive}
-                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                {...editForm.register("isActive")}
                 className="h-4 w-4"
               />
               <label htmlFor="edit-isActive" className="text-sm font-medium">Categoria Ativa</label>
             </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSubmitEdit} disabled={updateMutation.isPending}>
-              {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar
-            </Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={updateMutation.isPending}>
+                {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Salvar
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 

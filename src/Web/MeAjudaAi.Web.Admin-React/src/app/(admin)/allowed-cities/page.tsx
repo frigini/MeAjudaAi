@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, Plus, Pencil, Trash2, Loader2, Search } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { MapPin, Plus, Pencil, Trash2, Loader2, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,39 +27,46 @@ import {
 } from "@/hooks/admin";
 import type { AllowedCityDto } from "@/lib/types";
 
+const ITEMS_PER_PAGE = 10;
+
 const brazilianStates = [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
   "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN",
   "RS", "RO", "RR", "SC", "SP", "SE", "TO"
 ];
 
-interface CityFormData {
-  city: string;
-  state: string;
-  serviceRadiusKm: number;
-  isActive: boolean;
-}
+const citySchema = z.object({
+  city: z.string().min(2, "Cidade deve ter pelo menos 2 caracteres").max(100, "Cidade deve ter no máximo 100 caracteres"),
+  state: z.string().min(1, "Selecione um estado"),
+  serviceRadiusKm: z.coerce.number().min(1, "Raio deve ser pelo menos 1 km").max(500, "Raio máximo é 500 km"),
+  isActive: z.boolean(),
+});
 
-const initialFormData: CityFormData = {
-  city: "",
-  state: "",
-  serviceRadiusKm: 50,
-  isActive: true,
-};
+type CityFormData = z.infer<typeof citySchema>;
 
 export default function AllowedCitiesPage() {
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedCity, setSelectedCity] = useState<AllowedCityDto | null>(null);
-  const [formData, setFormData] = useState<CityFormData>(initialFormData);
 
   const { data: citiesResponse, isLoading, error } = useAllowedCities();
   const createMutation = useCreateAllowedCity();
   const updateMutation = useUpdateAllowedCity();
   const patchMutation = usePatchAllowedCity();
   const deleteMutation = useDeleteAllowedCity();
+
+  const createForm = useForm<CityFormData>({
+    resolver: zodResolver(citySchema),
+    defaultValues: { city: "", state: "", serviceRadiusKm: 50, isActive: true },
+  });
+
+  const editForm = useForm<CityFormData>({
+    resolver: zodResolver(citySchema),
+    defaultValues: { city: "", state: "", serviceRadiusKm: 50, isActive: true },
+  });
 
   const cities = citiesResponse?.data?.value ?? [];
 
@@ -65,14 +76,23 @@ export default function AllowedCitiesPage() {
       (c.stateSigla?.toLowerCase() ?? "").includes(search.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filteredCities.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedCities = filteredCities.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setCurrentPage(1);
+  };
+
   const handleOpenCreate = () => {
-    setFormData(initialFormData);
+    createForm.reset({ city: "", state: "", serviceRadiusKm: 50, isActive: true });
     setIsCreateOpen(true);
   };
 
   const handleOpenEdit = (city: AllowedCityDto) => {
     setSelectedCity(city);
-    setFormData({
+    editForm.reset({
       city: city.cityName ?? "",
       state: city.stateSigla ?? "",
       serviceRadiusKm: city.serviceRadiusKm ?? 50,
@@ -86,49 +106,67 @@ export default function AllowedCitiesPage() {
     setIsDeleteOpen(true);
   };
 
-  const handleSubmitCreate = async () => {
-    await createMutation.mutateAsync({
-      body: {
-        city: formData.city,
-        state: formData.state,
-        country: "Brasil",
-        serviceRadiusKm: formData.serviceRadiusKm,
-        isActive: formData.isActive,
-      },
-    });
-    setIsCreateOpen(false);
+  const handleSubmitCreate = async (data: CityFormData) => {
+    try {
+      await createMutation.mutateAsync({
+        body: {
+          city: data.city,
+          state: data.state,
+          country: "Brasil",
+          serviceRadiusKm: data.serviceRadiusKm,
+          isActive: data.isActive,
+        },
+      });
+      toast.success("Cidade criada com sucesso");
+      setIsCreateOpen(false);
+    } catch {
+      toast.error("Erro ao criar cidade");
+    }
   };
 
-  const handleSubmitEdit = async () => {
+  const handleSubmitEdit = async (data: CityFormData) => {
     if (!selectedCity?.id) return;
-    await updateMutation.mutateAsync({
-      id: selectedCity.id,
-      data: {
+    try {
+      await updateMutation.mutateAsync({
+        id: selectedCity.id,
         data: {
-          cityName: formData.city,
-          stateSigla: formData.state,
-          serviceRadiusKm: formData.serviceRadiusKm,
-          isActive: formData.isActive,
+          data: {
+            cityName: data.city,
+            stateSigla: data.state,
+            serviceRadiusKm: data.serviceRadiusKm,
+            isActive: data.isActive,
+          },
         },
-      },
-    });
-    setIsEditOpen(false);
+      });
+      toast.success("Cidade atualizada com sucesso");
+      setIsEditOpen(false);
+    } catch {
+      toast.error("Erro ao atualizar cidade");
+    }
   };
 
   const handleToggleActive = async (city: AllowedCityDto) => {
     if (!city.id) return;
-    await patchMutation.mutateAsync({
-      id: city.id,
-      data: {
-        isActive: !city.isActive,
-      },
-    });
+    try {
+      await patchMutation.mutateAsync({
+        id: city.id,
+        data: { isActive: !city.isActive },
+      });
+      toast.success(`Cidade ${!city.isActive ? "ativada" : "desativada"} com sucesso`);
+    } catch {
+      toast.error("Erro ao atualizar cidade");
+    }
   };
 
   const handleDelete = async () => {
     if (!selectedCity?.id) return;
-    await deleteMutation.mutateAsync(selectedCity.id);
-    setIsDeleteOpen(false);
+    try {
+      await deleteMutation.mutateAsync(selectedCity.id);
+      toast.success("Cidade excluída com sucesso");
+      setIsDeleteOpen(false);
+    } catch {
+      toast.error("Erro ao excluir cidade");
+    }
   };
 
   return (
@@ -151,7 +189,7 @@ export default function AllowedCitiesPage() {
               placeholder="Buscar por cidade ou estado..."
               className="pl-10"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
             />
           </div>
         </div>
@@ -171,50 +209,76 @@ export default function AllowedCitiesPage() {
         )}
 
         {!isLoading && !error && (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Cidade</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Estado</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Raio de Serviço</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredCities.map((city) => (
-                  <tr key={city.id} className="border-b border-border last:border-b-0">
-                    <td className="px-4 py-3 text-sm font-medium">{city.cityName ?? "-"}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{city.stateSigla ?? "-"}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{city.serviceRadiusKm ?? 50} km</td>
-                    <td className="px-4 py-3">
-                      <Badge variant={city.isActive ? "success" : "secondary"}>
-                        {city.isActive ? "Ativa" : "Inativa"}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleToggleActive(city)}
-                        >
-                          <MapPin className={`h-4 w-4 ${city.isActive ? "text-green-500" : "text-gray-400"}`} />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(city)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenDelete(city)}>
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
-                      </div>
-                    </td>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Cidade</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Estado</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Raio de Serviço</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Ações</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {paginatedCities.map((city) => (
+                    <tr key={city.id} className="border-b border-border last:border-b-0">
+                      <td className="px-4 py-3 text-sm font-medium">{city.cityName ?? "-"}</td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground">{city.stateSigla ?? "-"}</td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground">{city.serviceRadiusKm ?? 50} km</td>
+                      <td className="px-4 py-3">
+                        <Badge variant={city.isActive ? "success" : "secondary"}>
+                          {city.isActive ? "Ativa" : "Inativa"}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button variant="ghost" size="icon" onClick={() => handleToggleActive(city)}>
+                            <MapPin className={`h-4 w-4 ${city.isActive ? "text-green-500" : "text-gray-400"}`} />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(city)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenDelete(city)}>
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between border-t border-border px-4 py-3">
+                <p className="text-sm text-muted-foreground">
+                  Mostrando {startIndex + 1} - {Math.min(startIndex + ITEMS_PER_PAGE, filteredCities.length)} de {filteredCities.length}
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="icon" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) pageNum = i + 1;
+                    else if (currentPage <= 3) pageNum = i + 1;
+                    else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
+                    else pageNum = currentPage - 2 + i;
+                    return (
+                      <Button key={pageNum} variant={currentPage === pageNum ? "default" : "outline"} size="icon" onClick={() => setCurrentPage(pageNum)}>
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                  <Button variant="outline" size="icon" disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {!isLoading && !error && filteredCities.length === 0 && (
@@ -228,59 +292,39 @@ export default function AllowedCitiesPage() {
             <DialogTitle>Nova Cidade Permitida</DialogTitle>
             <DialogDescription>Adicione uma nova cidade para atendimento dos prestadores.</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <form onSubmit={createForm.handleSubmit(handleSubmitCreate)} className="grid gap-4 py-4">
             <div className="grid gap-2">
               <label htmlFor="city" className="text-sm font-medium">Cidade</label>
-              <Input
-                id="city"
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                placeholder="Ex: São Paulo"
-              />
+              <Input id="city" {...createForm.register("city")} placeholder="Ex: São Paulo" />
+              {createForm.formState.errors.city && <p className="text-sm text-destructive">{createForm.formState.errors.city.message}</p>}
             </div>
             <div className="grid gap-2">
               <label htmlFor="state" className="text-sm font-medium">Estado</label>
-              <select
-                id="state"
-                value={formData.state}
-                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
+              <select id="state" {...createForm.register("state")} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                 <option value="">Selecione...</option>
                 {brazilianStates.map((state) => (
                   <option key={state} value={state}>{state}</option>
                 ))}
               </select>
+              {createForm.formState.errors.state && <p className="text-sm text-destructive">{createForm.formState.errors.state.message}</p>}
             </div>
             <div className="grid gap-2">
               <label htmlFor="radius" className="text-sm font-medium">Raio de Serviço (km)</label>
-              <Input
-                id="radius"
-                type="number"
-                value={formData.serviceRadiusKm}
-                onChange={(e) => setFormData({ ...formData, serviceRadiusKm: Number(e.target.value) })}
-                min={1}
-                max={500}
-              />
+              <Input id="radius" type="number" {...createForm.register("serviceRadiusKm")} min={1} max={500} />
+              {createForm.formState.errors.serviceRadiusKm && <p className="text-sm text-destructive">{createForm.formState.errors.serviceRadiusKm.message}</p>}
             </div>
             <div className="flex items-center gap-2">
-              <input
-                id="isActive"
-                type="checkbox"
-                checked={formData.isActive}
-                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                className="h-4 w-4"
-              />
+              <input id="isActive" type="checkbox" {...createForm.register("isActive")} className="h-4 w-4" />
               <label htmlFor="isActive" className="text-sm font-medium">Cidade Ativa</label>
             </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSubmitCreate} disabled={createMutation.isPending}>
-              {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Criar
-            </Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={createMutation.isPending}>
+                {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Criar
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
@@ -290,58 +334,39 @@ export default function AllowedCitiesPage() {
             <DialogTitle>Editar Cidade</DialogTitle>
             <DialogDescription>Atualize os dados da cidade permitida.</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <form onSubmit={editForm.handleSubmit(handleSubmitEdit)} className="grid gap-4 py-4">
             <div className="grid gap-2">
               <label htmlFor="edit-city" className="text-sm font-medium">Cidade</label>
-              <Input
-                id="edit-city"
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-              />
+              <Input id="edit-city" {...editForm.register("city")} />
+              {editForm.formState.errors.city && <p className="text-sm text-destructive">{editForm.formState.errors.city.message}</p>}
             </div>
             <div className="grid gap-2">
               <label htmlFor="edit-state" className="text-sm font-medium">Estado</label>
-              <select
-                id="edit-state"
-                value={formData.state}
-                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
+              <select id="edit-state" {...editForm.register("state")} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                 <option value="">Selecione...</option>
                 {brazilianStates.map((state) => (
                   <option key={state} value={state}>{state}</option>
                 ))}
               </select>
+              {editForm.formState.errors.state && <p className="text-sm text-destructive">{editForm.formState.errors.state.message}</p>}
             </div>
             <div className="grid gap-2">
               <label htmlFor="edit-radius" className="text-sm font-medium">Raio de Serviço (km)</label>
-              <Input
-                id="edit-radius"
-                type="number"
-                value={formData.serviceRadiusKm}
-                onChange={(e) => setFormData({ ...formData, serviceRadiusKm: Number(e.target.value) })}
-                min={1}
-                max={500}
-              />
+              <Input id="edit-radius" type="number" {...editForm.register("serviceRadiusKm")} min={1} max={500} />
+              {editForm.formState.errors.serviceRadiusKm && <p className="text-sm text-destructive">{editForm.formState.errors.serviceRadiusKm.message}</p>}
             </div>
             <div className="flex items-center gap-2">
-              <input
-                id="edit-isActive"
-                type="checkbox"
-                checked={formData.isActive}
-                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                className="h-4 w-4"
-              />
+              <input id="edit-isActive" type="checkbox" {...editForm.register("isActive")} className="h-4 w-4" />
               <label htmlFor="edit-isActive" className="text-sm font-medium">Cidade Ativa</label>
             </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSubmitEdit} disabled={updateMutation.isPending}>
-              {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar
-            </Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={updateMutation.isPending}>
+                {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Salvar
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
