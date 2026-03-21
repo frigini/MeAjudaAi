@@ -136,12 +136,12 @@
       },
       "Refit.HttpClientFactory": {
         "type": "Direct",
-        "requested": "[10.0.1, )",
-        "resolved": "10.0.1",
-        "contentHash": "l8+mhfcBm0lSuNF9g1VTEwEHYQKtdqouOybpQkuxSWafSswRmit9COjmw6vd2Odj5k/qWjzzo8EbjYbyoV2dmQ==",
+        "requested": "[10.1.6, )",
+        "resolved": "10.1.6",
+        "contentHash": "brVgMXHX2pp6pMji7tJijygbMwxccIy2vSsPurPmOZ7jSChBjYpiT9bBbJkBDc0hhnNyzvLkkbx0uiHhJuTTEQ==",
         "dependencies": {
           "Microsoft.Extensions.Http": "9.0.3",
-          "Refit": "10.0.1"
+          "Refit": "10.1.6"
         }
       },
       "SonarAnalyzer.CSharp": {
@@ -449,7 +449,7 @@
         "type": "Project",
         "dependencies": {
           "MeAjudaAi.Contracts": "[1.0.0, )",
-          "Refit": "[10.0.1, )"
+          "Refit": "[10.1.6, )"
         }
       },
       "meajudaai.contracts": {
@@ -599,9 +599,9 @@
       },
       "Refit": {
         "type": "CentralTransitive",
-        "requested": "[10.0.1, )",
-        "resolved": "10.0.1",
-        "contentHash": "AprsDMXFRU2k+sXZYfiFLYueP7ovEvoGzC2ylAV9i6xh6rcGJOgLiZdugxnEpIrH6WNbiR8OnOrAr06/pZMQaQ=="
+        "requested": "[10.1.6, )",
+        "resolved": "10.1.6",
+        "contentHash": "j82mHFcXJpiJiaLqQgiikmLAu+oYKcIM8ZafipX2s2b2soOS0OGN+Oc+BXkhsG8x6j2M1J23Eac3068yOKLPFA=="
       }
     },
     "net10.0/browser-wasm": {}
