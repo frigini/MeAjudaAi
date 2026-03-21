@@ -1,20 +1,25 @@
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class MakePrimaryAddressNullable : Migration
+    public partial class AddShowAddressToClient : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql(@"
-                UPDATE providers.providers 
-                SET street = NULL, number = NULL, neighborhood = NULL, city = NULL, state = NULL, zip_code = NULL, country = NULL
-                WHERE show_address_to_client = false OR show_address_to_client IS NULL;
-            ");
+            migrationBuilder.AlterColumn<string>(
+                name: "zip_code",
+                schema: "providers",
+                table: "providers",
+                type: "character varying(20)",
+                maxLength: 20,
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "character varying(20)",
+                oldMaxLength: 20);
 
             migrationBuilder.AlterColumn<string>(
                 name: "street",
@@ -28,6 +33,17 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                 oldMaxLength: 200);
 
             migrationBuilder.AlterColumn<string>(
+                name: "state",
+                schema: "providers",
+                table: "providers",
+                type: "character varying(50)",
+                maxLength: 50,
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "character varying(50)",
+                oldMaxLength: 50);
+
+            migrationBuilder.AlterColumn<string>(
                 name: "number",
                 schema: "providers",
                 table: "providers",
@@ -37,17 +53,6 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                 oldClrType: typeof(string),
                 oldType: "character varying(20)",
                 oldMaxLength: 20);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "complement",
-                schema: "providers",
-                table: "providers",
-                type: "character varying(100)",
-                maxLength: 100,
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "character varying(100)",
-                oldMaxLength: 100);
 
             migrationBuilder.AlterColumn<string>(
                 name: "neighborhood",
@@ -60,38 +65,15 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                 oldType: "character varying(100)",
                 oldMaxLength: 100);
 
-            migrationBuilder.AlterColumn<string>(
-                name: "city",
+            migrationBuilder.AlterColumn<bool>(
+                name: "is_active",
                 schema: "providers",
                 table: "providers",
-                type: "character varying(100)",
-                maxLength: 100,
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "character varying(100)",
-                oldMaxLength: 100);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "state",
-                schema: "providers",
-                table: "providers",
-                type: "character varying(50)",
-                maxLength: 50,
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "character varying(50)",
-                oldMaxLength: 50);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "zip_code",
-                schema: "providers",
-                table: "providers",
-                type: "character varying(20)",
-                maxLength: 20,
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "character varying(20)",
-                oldMaxLength: 20);
+                type: "boolean",
+                nullable: false,
+                oldClrType: typeof(bool),
+                oldType: "boolean",
+                oldDefaultValue: true);
 
             migrationBuilder.AlterColumn<string>(
                 name: "country",
@@ -103,21 +85,34 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                 oldClrType: typeof(string),
                 oldType: "character varying(50)",
                 oldMaxLength: 50);
+
+            migrationBuilder.AlterColumn<string>(
+                name: "city",
+                schema: "providers",
+                table: "providers",
+                type: "character varying(100)",
+                maxLength: 100,
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "character varying(100)",
+                oldMaxLength: 100);
+
+            migrationBuilder.AddColumn<bool>(
+                name: "show_address_to_client",
+                schema: "providers",
+                table: "providers",
+                type: "boolean",
+                nullable: false,
+                defaultValue: false);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<string>(
-                name: "country",
+            migrationBuilder.DropColumn(
+                name: "show_address_to_client",
                 schema: "providers",
-                table: "providers",
-                type: "character varying(50)",
-                maxLength: 50,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "character varying(50)",
-                oldMaxLength: 50);
+                table: "providers");
 
             migrationBuilder.AlterColumn<string>(
                 name: "zip_code",
@@ -126,64 +121,11 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                 type: "character varying(20)",
                 maxLength: 20,
                 nullable: false,
+                defaultValue: "",
                 oldClrType: typeof(string),
                 oldType: "character varying(20)",
-                oldMaxLength: 20);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "state",
-                schema: "providers",
-                table: "providers",
-                type: "character varying(50)",
-                maxLength: 50,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "character varying(50)",
-                oldMaxLength: 50);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "city",
-                schema: "providers",
-                table: "providers",
-                type: "character varying(100)",
-                maxLength: 100,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "character varying(100)",
-                oldMaxLength: 100);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "neighborhood",
-                schema: "providers",
-                table: "providers",
-                type: "character varying(100)",
-                maxLength: 100,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "character varying(100)",
-                oldMaxLength: 100);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "complement",
-                schema: "providers",
-                table: "providers",
-                type: "character varying(100)",
-                maxLength: 100,
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "character varying(100)",
-                oldMaxLength: 100);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "number",
-                schema: "providers",
-                table: "providers",
-                type: "character varying(20)",
-                maxLength: 20,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "character varying(20)",
-                oldMaxLength: 20);
+                oldMaxLength: 20,
+                oldNullable: true);
 
             migrationBuilder.AlterColumn<string>(
                 name: "street",
@@ -192,9 +134,86 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                 type: "character varying(200)",
                 maxLength: 200,
                 nullable: false,
+                defaultValue: "",
                 oldClrType: typeof(string),
                 oldType: "character varying(200)",
-                oldMaxLength: 200);
+                oldMaxLength: 200,
+                oldNullable: true);
+
+            migrationBuilder.AlterColumn<string>(
+                name: "state",
+                schema: "providers",
+                table: "providers",
+                type: "character varying(50)",
+                maxLength: 50,
+                nullable: false,
+                defaultValue: "",
+                oldClrType: typeof(string),
+                oldType: "character varying(50)",
+                oldMaxLength: 50,
+                oldNullable: true);
+
+            migrationBuilder.AlterColumn<string>(
+                name: "number",
+                schema: "providers",
+                table: "providers",
+                type: "character varying(20)",
+                maxLength: 20,
+                nullable: false,
+                defaultValue: "",
+                oldClrType: typeof(string),
+                oldType: "character varying(20)",
+                oldMaxLength: 20,
+                oldNullable: true);
+
+            migrationBuilder.AlterColumn<string>(
+                name: "neighborhood",
+                schema: "providers",
+                table: "providers",
+                type: "character varying(100)",
+                maxLength: 100,
+                nullable: false,
+                defaultValue: "",
+                oldClrType: typeof(string),
+                oldType: "character varying(100)",
+                oldMaxLength: 100,
+                oldNullable: true);
+
+            migrationBuilder.AlterColumn<bool>(
+                name: "is_active",
+                schema: "providers",
+                table: "providers",
+                type: "boolean",
+                nullable: false,
+                defaultValue: true,
+                oldClrType: typeof(bool),
+                oldType: "boolean");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "country",
+                schema: "providers",
+                table: "providers",
+                type: "character varying(50)",
+                maxLength: 50,
+                nullable: false,
+                defaultValue: "",
+                oldClrType: typeof(string),
+                oldType: "character varying(50)",
+                oldMaxLength: 50,
+                oldNullable: true);
+
+            migrationBuilder.AlterColumn<string>(
+                name: "city",
+                schema: "providers",
+                table: "providers",
+                type: "character varying(100)",
+                maxLength: 100,
+                nullable: false,
+                defaultValue: "",
+                oldClrType: typeof(string),
+                oldType: "character varying(100)",
+                oldMaxLength: 100,
+                oldNullable: true);
         }
     }
 }
