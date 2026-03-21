@@ -189,13 +189,28 @@ public class BusinessProfileTests
     }
 
     [Fact]
-    public void Constructor_WithNullPrimaryAddress_ShouldThrowArgumentNullException()
+    public void Constructor_WithNullPrimaryAddress_WhenShowAddressToClientFalse_ShouldWork()
+    {
+        // Arrange
+        var contactInfo = new ContactInfo("test@example.com");
+
+        // Act
+        var profile = new BusinessProfile("Test Company", contactInfo, null!, null, null, showAddressToClient: false);
+
+        // Assert
+        profile.LegalName.Should().Be("Test Company");
+        profile.PrimaryAddress.Should().BeNull();
+        profile.ShowAddressToClient.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Constructor_WithNullPrimaryAddress_WhenShowAddressToClientTrue_ShouldThrow()
     {
         // Arrange
         var contactInfo = new ContactInfo("test@example.com");
 
         // Act & Assert
-        var act = () => new BusinessProfile("Test Company", contactInfo, null!);
+        var act = () => new BusinessProfile("Test Company", contactInfo, null!, null, null, showAddressToClient: true);
         act.Should().Throw<ArgumentNullException>()
             .WithParameterName("primaryAddress");
     }

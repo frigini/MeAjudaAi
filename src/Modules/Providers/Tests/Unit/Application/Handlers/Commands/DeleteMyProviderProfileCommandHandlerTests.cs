@@ -78,7 +78,7 @@ public class DeleteMyProviderProfileCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("not found");
+        result.Error!.StatusCode.Should().Be(404);
         
         _providerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()), Times.Never);
     }

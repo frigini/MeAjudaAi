@@ -196,12 +196,12 @@ public class UpdateProviderProfileRequestValidatorTests
     }
 
     [Fact]
-    public async Task Validate_WithNullPrimaryAddress_ShouldHaveValidationError()
+    public async Task Validate_WithNullPrimaryAddress_WhenShowAddressToClientIsTrue_ShouldHaveValidationError()
     {
         // Arrange
         var request = CreateValidRequest() with
         {
-            BusinessProfile = CreateValidBusinessProfile() with { PrimaryAddress = null! }
+            BusinessProfile = CreateValidBusinessProfile() with { ShowAddressToClient = true, PrimaryAddress = null! }
         };
 
         // Act

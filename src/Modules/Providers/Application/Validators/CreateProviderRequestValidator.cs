@@ -14,42 +14,42 @@ public class CreateProviderRequestValidator : AbstractValidator<CreateProviderRe
     {
         RuleFor(x => x.UserId)
             .NotEmpty()
-            .WithMessage("UserId is required");
+            .WithMessage("UserId é obrigatório");
 
         RuleFor(x => x.Name)
             .NotEmpty()
-            .WithMessage("Name is required")
+            .WithMessage("Nome é obrigatório")
             .MinimumLength(2)
-            .WithMessage("Name must be at least 2 characters long")
+            .WithMessage("Nome deve ter no mínimo 2 caracteres")
             .MaximumLength(100)
-            .WithMessage("Name cannot exceed 100 characters");
+            .WithMessage("Nome não pode exceder 100 caracteres");
 
         RuleFor(x => x.Type)
             .Must(BeValidProviderType)
-            .WithMessage($"Type must be a valid provider type. {EnumExtensions.GetValidValuesDescription<EProviderType>()}");
+            .WithMessage($"Tipo deve ser um tipo de prestador válido. {EnumExtensions.GetValidValuesDescription<EProviderType>()}");
 
         RuleFor(x => x.BusinessProfile)
             .NotNull()
-            .WithMessage("BusinessProfile is required");
+            .WithMessage("Perfil de negócio é obrigatório");
 
         When(x => x.BusinessProfile != null, () =>
         {
             RuleFor(x => x.BusinessProfile!.Description)
                 .MaximumLength(500)
-                .WithMessage("BusinessProfile.Description cannot exceed 500 characters")
+                .WithMessage("Descrição não pode exceder 500 caracteres")
                 .When(x => !string.IsNullOrWhiteSpace(x.BusinessProfile?.Description));
 
             RuleFor(x => x.BusinessProfile!.ContactInfo)
                 .NotNull()
-                .WithMessage("BusinessProfile.ContactInfo is required");
+                .WithMessage("Informações de contato são obrigatórias");
 
             When(x => x.BusinessProfile?.ContactInfo != null, () =>
             {
                 RuleFor(x => x.BusinessProfile!.ContactInfo!.Email)
                     .NotEmpty()
-                    .WithMessage("Email is required")
+                    .WithMessage("E-mail é obrigatório")
                     .EmailAddress()
-                    .WithMessage("Email must be a valid email address");
+                    .WithMessage("E-mail deve ser um endereço válido");
             });
 
             RuleFor(x => x.BusinessProfile!.PrimaryAddress)
