@@ -1206,12 +1206,28 @@ public class ActivityHub : Hub
 6. 📋 API Collections - Bruno .bru files para todos os módulos
 
 ### 🎯 **Média Prioridade (6-12 meses - Fase 2)**
-1. Γ¡É Módulo Reviews & Ratings
-2. ≡ƒÆ│ Módulo Payments & Billing (Stripe)
-3. ≡ƒñû Documents - Verificação automatizada (OCR + Background checks)
+1. 🎉 Módulo Reviews & Ratings
+2. 💳 Módulo Payments & Billing (Stripe)
+3. 🌍 Documents - Verificação automatizada (OCR + Background checks)
 4. 🔄 Search - Indexing worker para integration events
 5. 📊 Analytics - Métricas básicas
-6. ≡ƒôº Communications - Email notifications
-7. ≡ƒ¢í∩╕Å Dispute Resolution System
+6. 🎯 Communications - Email notifications
+7. 🏛️ Dispute Resolution System
 8. 🔥 Alinhamento de middleware entre UseSharedServices() e UseSharedServicesAsync()
+
+### 🔬 **Testes E2E Frontend (Pós-MVP)**
+**Projeto**: `tests/MeAjudaAi.Web.Tests`
+**Estrutura**: Uma pasta para cada projeto frontend
+- `tests/MeAjudaAi.Web.Tests/Customer/` - Testes E2E para Customer Web App
+- `tests/MeAjudaAi.Web.Tests/Provider/` - Testes E2E para Provider Web App  
+- `tests/MeAjudaAi.Web.Tests/Admin/` - Testes E2E para Admin Portal
+
+**Framework**: Playwright
+**Cenários a cobrir**:
+- [ ] Autenticação (login, logout, refresh token)
+- [ ] Fluxo de onboarding (Customer e Provider)
+- [ ] CRUD de providers e serviços
+- [ ] Busca e filtros
+- [ ] Responsividade mobile
+- [ ] Performance e Core Web Vitals
 
