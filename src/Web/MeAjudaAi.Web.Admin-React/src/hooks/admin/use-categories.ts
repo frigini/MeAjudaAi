@@ -21,6 +21,7 @@ type CategoryCreateInput = {
   name: string;
   description?: string;
   displayOrder?: number;
+  isActive?: boolean;
 };
 
 type CategoryUpdateInput = {
@@ -28,6 +29,7 @@ type CategoryUpdateInput = {
   name: string;
   description?: string;
   displayOrder?: number;
+  isActive?: boolean;
 };
 
 export const categoryKeys = {
@@ -82,6 +84,8 @@ export function useCreateCategory() {
           name: input.name,
           description: input.description ?? null,
           displayOrder: input.displayOrder ?? 0,
+          // @ts-expect-error isActive property not yet in generated types
+          isActive: input.isActive ?? true,
         },
       }),
     onSuccess: () => {
@@ -101,6 +105,8 @@ export function useUpdateCategory() {
           name: input.name,
           description: input.description ?? null,
           displayOrder: input.displayOrder ?? 0,
+          // @ts-expect-error isActive property not yet in generated types
+          isActive: input.isActive ?? true,
         },
       }),
     onSuccess: (_, variables) => {

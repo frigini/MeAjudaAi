@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -26,10 +26,12 @@ import {
   useDeleteAllowedCity,
 } from "@/hooks/admin";
 import type { AllowedCityDto } from "@/lib/types";
+import { BRAZILIAN_STATES } from "@/lib/types";
 
 const ITEMS_PER_PAGE = 10;
 
-const brazilianStates = [
+// Utiliza o enum/constante compartilhado do backend/frontend, com fallback caso necessário
+const statesList = BRAZILIAN_STATES || [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
   "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN",
   "RS", "RO", "RR", "SC", "SP", "SE", "TO"
@@ -81,6 +83,13 @@ export default function AllowedCitiesPage() {
   const unfilteredTotalPages = Math.ceil(filteredCities.length / ITEMS_PER_PAGE);
   const totalPages = Math.max(1, unfilteredTotalPages);
   const safePage = Math.min(currentPage, totalPages);
+  
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
   const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
   const paginatedCities = filteredCities.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
@@ -148,7 +157,7 @@ export default function AllowedCitiesPage() {
   };
 
   const handleToggleActive = async (city: AllowedCityDto) => {
-    if (!city.id) return;
+    if (!city.id || (patchMutation.isPending && patchMutation.variables?.path?.id === city.id)) return;
     try {
       await patchMutation.mutateAsync({
         path: { id: city.id },
@@ -237,7 +246,13 @@ export default function AllowedCitiesPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => handleToggleActive(city)} aria-label={city.isActive ? "Desativar cidade" : "Ativar cidade"}>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleToggleActive(city)} 
+                            disabled={patchMutation.isPending && patchMutation.variables?.path?.id === city.id}
+                            aria-label={city.isActive ? "Desativar cidade" : "Ativar cidade"}
+                          >
                             <MapPin className={`h-4 w-4 ${city.isActive ? "text-green-500" : "text-gray-400"}`} />
                           </Button>
                           <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(city)} aria-label="Editar cidade">
@@ -305,7 +320,7 @@ export default function AllowedCitiesPage() {
               <label htmlFor="state" className="text-sm font-medium">Estado</label>
               <select id="state" {...createForm.register("state")} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                 <option value="">Selecione...</option>
-                {brazilianStates.map((state) => (
+                {statesList.map((state) => (
                   <option key={state} value={state}>{state}</option>
                 ))}
               </select>
@@ -347,7 +362,7 @@ export default function AllowedCitiesPage() {
               <label htmlFor="edit-state" className="text-sm font-medium">Estado</label>
               <select id="edit-state" {...editForm.register("state")} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                 <option value="">Selecione...</option>
-                {brazilianStates.map((state) => (
+                {statesList.map((state) => (
                   <option key={state} value={state}>{state}</option>
                 ))}
               </select>

@@ -26,6 +26,17 @@ import {
 } from "@/lib/types";
 import { getVerificationBadgeVariant } from "@/lib/utils";
 
+interface ProviderDocument {
+  documentType?: string | null;
+  fileName?: string | null;
+  verificationStatus?: VerificationStatus;
+}
+
+interface ProviderService {
+  serviceId?: string | null;
+  serviceName?: string | null;
+}
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -180,13 +191,13 @@ export default function ProviderDetailPage({ params }: PageProps) {
           <CardContent>
             {provider.documents && provider.documents.length > 0 ? (
               <div className="space-y-2">
-                {provider.documents.map((doc: any, index: number) => (
+                {provider.documents.map((doc: ProviderDocument, index: number) => (
                   <div key={index} className="flex items-center justify-between rounded-lg border p-3">
                     <div>
                       <p className="font-medium">{doc.documentType ?? "Documento"}</p>
                       <p className="text-sm text-muted-foreground">{doc.fileName ?? "-"}</p>
                     </div>
-                    <Badge variant={getVerificationBadgeVariant(doc.verificationStatus as VerificationStatus)}>
+                    <Badge variant={getVerificationBadgeVariant(doc.verificationStatus)}>
                       {verificationStatusLabels[doc.verificationStatus as keyof typeof verificationStatusLabels] ?? "-"}
                     </Badge>
                   </div>
@@ -205,7 +216,7 @@ export default function ProviderDetailPage({ params }: PageProps) {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                {provider.services.map((service: any, index: number) => (
+                {provider.services.map((service: ProviderService, index: number) => (
                   <Badge key={index} variant="secondary">
                     {service.serviceName ?? "Serviço"}
                   </Badge>

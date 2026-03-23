@@ -25,6 +25,7 @@ import {
   useDeleteCategory,
 } from "@/hooks/admin";
 import type { ServiceCategoryDto } from "@/lib/types";
+import { CATEGORY_STATUS_LABELS } from "@/lib/types";
 
 const categorySchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome deve ter no máximo 100 caracteres"),
@@ -56,10 +57,10 @@ export default function CategoriesPage() {
     defaultValues: { name: "", description: "", isActive: true },
   });
 
-  const categories: any[] = (categoriesResponse as any)?.value ?? (categoriesResponse as any) ?? [];
+  const categories: ServiceCategoryDto[] = categoriesResponse ?? [];
 
   const filteredCategories = categories.filter(
-    (c: any) => (c.name?.toLowerCase() ?? "").includes(search.toLowerCase())
+    (c: ServiceCategoryDto) => (c.name?.toLowerCase() ?? "").includes(search.toLowerCase())
   );
 
   const handleOpenCreate = () => {
@@ -87,6 +88,7 @@ export default function CategoriesPage() {
       await createMutation.mutateAsync({
         name: data.name,
         description: data.description ?? "",
+        isActive: data.isActive,
       });
       toast.success("Categoria criada com sucesso");
       setIsCreateOpen(false);
@@ -102,6 +104,7 @@ export default function CategoriesPage() {
         id: selectedCategory.id,
         name: data.name,
         description: data.description ?? "",
+        isActive: data.isActive,
       });
       toast.success("Categoria atualizada com sucesso");
       setIsEditOpen(false);
@@ -174,7 +177,7 @@ export default function CategoriesPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredCategories.map((category: any) => (
+                {filteredCategories.map((category: ServiceCategoryDto) => (
                   <tr key={category.id} className="border-b border-border last:border-b-0">
                     <td className="px-4 py-3 text-sm font-medium">{category.name ?? "-"}</td>
                     <td className="px-4 py-3 text-sm text-muted-foreground max-w-[300px] truncate">
@@ -184,8 +187,8 @@ export default function CategoriesPage() {
                       {category.displayOrder ?? 0}
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant={category.isActive ? "success" : "secondary"}>
-                        {category.isActive ? "Ativa" : "Inativa"}
+                      <Badge variant={category.isActive ? CATEGORY_STATUS_LABELS.ACTIVE.variant : CATEGORY_STATUS_LABELS.INACTIVE.variant}>
+                        {category.isActive ? CATEGORY_STATUS_LABELS.ACTIVE.label : CATEGORY_STATUS_LABELS.INACTIVE.label}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">

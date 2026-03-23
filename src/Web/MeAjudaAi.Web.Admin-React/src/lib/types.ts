@@ -84,3 +84,39 @@ export const providerTierLabels: Record<ProviderTier, string> = {
   2: "Premium",
   3: "Enterprise",
 };
+
+export const BRAZILIAN_STATES = [
+  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
+  "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN",
+  "RS", "RO", "RR", "SC", "SP", "SE", "TO"
+] as const;
+
+export const CATEGORY_STATUS_LABELS = {
+  ACTIVE: { label: "Ativa", variant: "success" },
+  INACTIVE: { label: "Inativa", variant: "secondary" },
+} as const;
+
+export const ROLES = {
+  ADMIN: "admin",
+  USER: "user",
+} as const;
+
+export const APP_ROUTES = {
+  DASHBOARD: "/dashboard",
+  PROVIDERS: "/providers",
+  DOCUMENTS: "/documents",
+  CATEGORIES: "/categories",
+  SERVICES: "/services",
+  CITIES: "/allowed-cities",
+  SETTINGS: "/settings",
+} as const;
+
+export const APP_ROUTE_LABELS = {
+  DASHBOARD: "Dashboard",
+  PROVIDERS: "Prestadores",
+  DOCUMENTS: "Documentos",
+  CATEGORIES: "Categorias",
+  SERVICES: "Serviços",
+  CITIES: "Cidades",
+  SETTINGS: "Configurações",
+} as const;

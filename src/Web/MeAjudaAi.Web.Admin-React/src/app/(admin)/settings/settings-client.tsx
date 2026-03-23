@@ -35,10 +35,9 @@ export default function SettingsClient() {
 
   useEffect(() => {
     const saved = localStorage.getItem("meajudaai-theme");
-    if (saved === "light" || saved === "dark" || saved === "system") {
-      setTheme(saved);
-      applyTheme(saved);
-    }
+    const resolved = (saved === "light" || saved === "dark" || saved === "system") ? saved : "system";
+    setTheme(resolved as "light" | "dark" | "system");
+    applyTheme(resolved as "light" | "dark" | "system");
   }, []);
 
   const handleThemeChange = (newTheme: "light" | "dark" | "system") => {
@@ -56,11 +55,14 @@ export default function SettingsClient() {
     }
 
     setIsSaving(true);
-    // TODO: Implement actual backend API connection using server actions or React Query mutations
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    toast.success("Configurações salvas com sucesso");
-    if (activeTab === "security") setPasswords({ current: "", new: "", confirm: "" });
-    setIsSaving(false);
+    try {
+      // TODO: Implement actual backend API connection using server actions or React Query mutations
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      toast.success("Configurações salvas com sucesso");
+      if (activeTab === "security") setPasswords({ current: "", new: "", confirm: "" });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const tabs = [
@@ -131,7 +133,7 @@ export default function SettingsClient() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Função</label>
+                  <p className="text-sm font-medium">Função</p>
                   <div>
                     <Badge variant="success">Administrador</Badge>
                   </div>
