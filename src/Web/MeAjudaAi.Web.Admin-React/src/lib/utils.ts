@@ -4,16 +4,14 @@ export type BadgeVariant = "success" | "warning" | "destructive" | "secondary";
 
 export function getVerificationBadgeVariant(status?: VerificationStatus): BadgeVariant {
   switch (status) {
-    case 2:
+    case 3: // Verified
       return "success";
-    case 0:
+    case 2: // InProgress
+    case 5: // Suspended
       return "warning";
-    case 5:
-      return "warning";
-    case 3:
-    case 4:
+    case 4: // Rejected
       return "destructive";
-    default:
+    default: // None (0), Pending (1), unknown
       return "secondary";
   }
 }

@@ -40,12 +40,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme(theme === "light" ? "dark" : "light");
   };
 
-  if (!mounted) {
-    return <>{children}</>;
-  }
+  const contextValue = mounted
+    ? { theme, setTheme, toggleTheme }
+    : { theme: "light" as Theme, setTheme: () => {}, toggleTheme: () => {} };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );

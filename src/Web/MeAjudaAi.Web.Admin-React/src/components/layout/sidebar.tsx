@@ -69,7 +69,7 @@ export function Sidebar() {
               {session?.user?.name?.trim() ? session.user.name.trim().charAt(0).toUpperCase() : "A"}
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="truncate text-sm font-medium">{session?.user?.name ?? "Admin"}</p>
+              <p className="truncate text-sm font-medium">{session?.user?.name?.trim() ? session.user.name.trim() : "Admin"}</p>
               <p className="truncate text-xs text-muted-foreground">
                 {session?.user?.roles?.includes("admin") ? "Administrador" : "Usuário"}
               </p>

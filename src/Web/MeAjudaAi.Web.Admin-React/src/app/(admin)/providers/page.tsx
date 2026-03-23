@@ -146,11 +146,18 @@ export default function ProvidersPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-2">
                           {provider.id ? (
-                            <Link href={`/providers/${provider.id}`}>
-                              <Button variant="ghost" size="icon" aria-label="Visualizar" title="Visualizar"><Eye className="h-4 w-4" /></Button>
+                            <Link
+                              href={`/providers/${provider.id}`}
+                              aria-label="Visualizar"
+                              title="Visualizar"
+                              className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                            >
+                              <Eye className="h-4 w-4" />
                             </Link>
                           ) : (
-                            <Button variant="ghost" size="icon" aria-label="Visualizar" title="Visualizar" disabled><Eye className="h-4 w-4" /></Button>
+                            <span className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground opacity-50 cursor-not-allowed">
+                              <Eye className="h-4 w-4" />
+                            </span>
                           )}
                         </div>
                       </td>

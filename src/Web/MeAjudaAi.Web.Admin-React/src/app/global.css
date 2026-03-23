@@ -56,6 +56,16 @@
   }
 }
 
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --surface: #1a1a1a;
+  --surface-raised: #262626;
+  --foreground-subtle: #a3a3a3;
+  --border: #404040;
+  --input: #404040;
+}
+
 body {
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
 }

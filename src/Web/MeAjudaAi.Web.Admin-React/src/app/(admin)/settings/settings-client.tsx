@@ -17,17 +17,34 @@ export default function SettingsClient() {
   
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
 
+  const applyTheme = (t: "light" | "dark" | "system") => {
+    const root = document.documentElement;
+    root.classList.remove("light", "dark");
+    if (t === "dark") {
+      root.classList.add("dark");
+    } else if (t === "light") {
+      root.classList.add("light");
+    } else {
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        root.classList.add("dark");
+      } else {
+        root.classList.add("light");
+      }
+    }
+  };
+
   useEffect(() => {
     const saved = localStorage.getItem("meajudaai-theme");
     if (saved === "light" || saved === "dark" || saved === "system") {
       setTheme(saved);
+      applyTheme(saved);
     }
   }, []);
 
   const handleThemeChange = (newTheme: "light" | "dark" | "system") => {
     setTheme(newTheme);
     localStorage.setItem("meajudaai-theme", newTheme);
-    // Note: Em uma implementação real, também atualizaríamos o document.documentElement classList
+    applyTheme(newTheme);
   };
 
   const handleSave = async () => {

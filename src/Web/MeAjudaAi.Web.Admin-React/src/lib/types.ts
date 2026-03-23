@@ -15,7 +15,7 @@ export type AllowedCityDto = MeAjudaAiModulesLocationsApplicationDtosAllowedCity
 export type UserDto = MeAjudaAiModulesUsersApplicationDtosUserDto;
 
 export type ProviderType = 0 | 1 | 2 | 3 | 4;
-export type ProviderStatus = 1 | 2 | 3 | 4 | 5;
+export type ProviderStatus = 0 | 1 | 2 | 3 | 4 | 5;
 export type VerificationStatus = 0 | 1 | 2 | 3 | 4 | 5;
 export type ProviderTier = 0 | 1 | 2 | 3;
 
@@ -28,6 +28,7 @@ export const EProviderType = {
 } as const;
 
 export const EProviderStatus = {
+  None: 0,
   PendingBasicInfo: 1,
   PendingDocumentVerification: 2,
   Active: 3,
@@ -60,6 +61,7 @@ export const providerTypeLabels: Record<ProviderType, string> = {
 };
 
 export const providerStatusLabels: Record<ProviderStatus, string> = {
+  0: "Não cadastrado",
   1: "Pendente (Dados Básicos)",
   2: "Em Análise",
   3: "Ativo",
