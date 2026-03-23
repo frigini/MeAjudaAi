@@ -21,6 +21,7 @@ type CategoryCreateInput = {
   name: string;
   description?: string;
   displayOrder?: number;
+  isActive: boolean;
 };
 
 type CategoryUpdateInput = {
@@ -28,6 +29,7 @@ type CategoryUpdateInput = {
   name: string;
   description?: string;
   displayOrder?: number;
+  isActive: boolean;
 };
 
 export const categoryKeys = {
@@ -85,6 +87,7 @@ export function useCreateCategory() {
           name: input.name,
           description: input.description ?? null,
           displayOrder: input.displayOrder ?? 0,
+          isActive: input.isActive,
         },
       }),
     onSuccess: () => {
@@ -97,15 +100,23 @@ export function useUpdateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: CategoryUpdateInput) =>
-      apiCategoriesPut({
+    mutationFn: (input: CategoryUpdateInput) => {
+      const body: {
+        name: string;
+        description: string | null;
+        displayOrder?: number;
+      } = {
+        name: input.name,
+        description: input.description ?? null,
+      };
+      if (input.displayOrder !== undefined) {
+        body.displayOrder = input.displayOrder;
+      }
+      return apiCategoriesPut({
         path: { id: input.id },
-        body: {
-          name: input.name,
-          description: input.description ?? null,
-          displayOrder: input.displayOrder ?? 0,
-        },
-      }),
+        body,
+      });
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: categoryKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
