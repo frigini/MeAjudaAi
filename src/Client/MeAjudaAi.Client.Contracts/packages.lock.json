@@ -4,9 +4,9 @@
     "net10.0": {
       "Refit": {
         "type": "Direct",
-        "requested": "[10.0.1, )",
-        "resolved": "10.0.1",
-        "contentHash": "AprsDMXFRU2k+sXZYfiFLYueP7ovEvoGzC2ylAV9i6xh6rcGJOgLiZdugxnEpIrH6WNbiR8OnOrAr06/pZMQaQ=="
+        "requested": "[10.1.6, )",
+        "resolved": "10.1.6",
+        "contentHash": "j82mHFcXJpiJiaLqQgiikmLAu+oYKcIM8ZafipX2s2b2soOS0OGN+Oc+BXkhsG8x6j2M1J23Eac3068yOKLPFA=="
       },
       "SonarAnalyzer.CSharp": {
         "type": "Direct",
