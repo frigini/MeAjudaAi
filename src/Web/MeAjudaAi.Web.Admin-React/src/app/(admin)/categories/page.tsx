@@ -23,6 +23,8 @@ import {
   useCreateCategory,
   useUpdateCategory,
   useDeleteCategory,
+  useActivateCategory,
+  useDeactivateCategory,
 } from "@/hooks/admin";
 import type { ServiceCategoryDto } from "@/lib/types";
 import { CATEGORY_STATUS_LABELS } from "@/lib/types";
@@ -46,6 +48,8 @@ export default function CategoriesPage() {
   const createMutation = useCreateCategory();
   const updateMutation = useUpdateCategory();
   const deleteMutation = useDeleteCategory();
+  const activateMutation = useActivateCategory();
+  const deactivateMutation = useDeactivateCategory();
 
   const createForm = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
@@ -88,7 +92,6 @@ export default function CategoriesPage() {
       await createMutation.mutateAsync({
         name: data.name,
         description: data.description ?? "",
-        isActive: data.isActive,
       });
       toast.success("Categoria criada com sucesso");
       setIsCreateOpen(false);
@@ -104,7 +107,6 @@ export default function CategoriesPage() {
         id: selectedCategory.id,
         name: data.name,
         description: data.description ?? "",
-        isActive: data.isActive,
       });
       toast.success("Categoria atualizada com sucesso");
       setIsEditOpen(false);
@@ -187,7 +189,24 @@ export default function CategoriesPage() {
                       {category.displayOrder ?? 0}
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant={category.isActive ? CATEGORY_STATUS_LABELS.ACTIVE.variant : CATEGORY_STATUS_LABELS.INACTIVE.variant}>
+                      <Badge 
+                        variant={category.isActive ? CATEGORY_STATUS_LABELS.ACTIVE.variant : CATEGORY_STATUS_LABELS.INACTIVE.variant}
+                        className="cursor-pointer hover:opacity-80"
+                        onClick={async () => {
+                          if (!category.id) return;
+                          try {
+                            if (category.isActive) {
+                              await deactivateMutation.mutateAsync(category.id);
+                              toast.success("Categoria desativada");
+                            } else {
+                              await activateMutation.mutateAsync(category.id);
+                              toast.success("Categoria ativada");
+                            }
+                          } catch {
+                            toast.error("Erro ao alterar status");
+                          }
+                        }}
+                      >
                         {category.isActive ? CATEGORY_STATUS_LABELS.ACTIVE.label : CATEGORY_STATUS_LABELS.INACTIVE.label}
                       </Badge>
                     </td>

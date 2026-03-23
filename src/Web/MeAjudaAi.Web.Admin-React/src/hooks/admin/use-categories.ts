@@ -7,6 +7,8 @@ import {
   apiCategoriesPost,
   apiCategoriesPut,
   apiCategoriesDelete,
+  apiActivatePost2,
+  apiDeactivatePost2,
 } from "@/lib/api/generated";
 import type {
   ApiCategoriesGetData,
@@ -21,7 +23,6 @@ type CategoryCreateInput = {
   name: string;
   description?: string;
   displayOrder?: number;
-  isActive: boolean;
 };
 
 type CategoryUpdateInput = {
@@ -29,7 +30,6 @@ type CategoryUpdateInput = {
   name: string;
   description?: string;
   displayOrder?: number;
-  isActive: boolean;
 };
 
 export const categoryKeys = {
@@ -87,7 +87,6 @@ export function useCreateCategory() {
           name: input.name,
           description: input.description ?? null,
           displayOrder: input.displayOrder ?? 0,
-          isActive: input.isActive,
         },
       }),
     onSuccess: () => {
@@ -135,6 +134,32 @@ export function useDeleteCategory() {
       queryClient.invalidateQueries({ queryKey: categoryKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: ["services"] });
+    },
+  });
+}
+
+export function useActivateCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiActivatePost2({ path: { id } }),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
+    },
+  });
+}
+
+export function useDeactivateCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiDeactivatePost2({ path: { id } }),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
     },
   });
 }
