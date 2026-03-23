@@ -21,7 +21,6 @@ type CategoryCreateInput = {
   name: string;
   description?: string;
   displayOrder?: number;
-  isActive?: boolean;
 };
 
 type CategoryUpdateInput = {
@@ -29,7 +28,6 @@ type CategoryUpdateInput = {
   name: string;
   description?: string;
   displayOrder?: number;
-  isActive?: boolean;
 };
 
 export const categoryKeys = {
@@ -41,12 +39,15 @@ export const categoryKeys = {
   detail: (id: string) => [...categoryKeys.details(), id] as const,
 };
 
+function isDataPayload(obj: unknown): obj is { data?: ServiceCategoryDto[] } {
+  return obj !== null && typeof obj === "object" && "data" in obj;
+}
+
 function normalizeCategoriesResponse(data: unknown): ServiceCategoryDto[] {
   if (!data) return [];
   if (Array.isArray(data)) return data as ServiceCategoryDto[];
-  if ("data" in (data as object)) {
-    const d = data as { data?: ServiceCategoryDto[] };
-    return d.data ?? [];
+  if (isDataPayload(data)) {
+    return data.data ?? [];
   }
   return [];
 }
@@ -65,7 +66,7 @@ export function useCategoryById(id: string) {
     queryFn: () => apiCategoriesGet2({ path: { id } }),
     select: (data) => {
       if (!data) return undefined;
-      if ("data" in (data as object)) {
+      if (data !== null && typeof data === "object" && "data" in data) {
         return (data as { data?: ServiceCategoryDto }).data;
       }
       return data as ServiceCategoryDto;
@@ -84,8 +85,6 @@ export function useCreateCategory() {
           name: input.name,
           description: input.description ?? null,
           displayOrder: input.displayOrder ?? 0,
-          // @ts-expect-error isActive property not yet in generated types
-          isActive: input.isActive ?? true,
         },
       }),
     onSuccess: () => {
@@ -105,8 +104,6 @@ export function useUpdateCategory() {
           name: input.name,
           description: input.description ?? null,
           displayOrder: input.displayOrder ?? 0,
-          // @ts-expect-error isActive property not yet in generated types
-          isActive: input.isActive ?? true,
         },
       }),
     onSuccess: (_, variables) => {

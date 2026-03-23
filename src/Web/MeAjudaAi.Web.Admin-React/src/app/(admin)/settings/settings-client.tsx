@@ -151,22 +151,22 @@ export default function SettingsClient() {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <label htmlFor="notifNewProviders" className="cursor-pointer">
-                    <p className="font-medium">Novos cadastros de prestadores</p>
-                    <p className="text-sm text-muted-foreground">Receba notificações quando um novo prestador se cadastrar</p>
+                    <span className="block font-medium">Novos cadastros de prestadores</span>
+                    <span className="block text-sm text-muted-foreground">Receba notificações quando um novo prestador se cadastrar</span>
                   </label>
                   <input id="notifNewProviders" type="checkbox" defaultChecked className="h-5 w-5 cursor-pointer" />
                 </div>
                 <div className="flex items-center justify-between">
                   <label htmlFor="notifPendingReqs" className="cursor-pointer">
-                    <p className="font-medium">Solicitações de verificação pendentes</p>
-                    <p className="text-sm text-muted-foreground">Notifique quando houver solicitações pendentes de verificação</p>
+                    <span className="block font-medium">Solicitações de verificação pendentes</span>
+                    <span className="block text-sm text-muted-foreground">Notifique quando houver solicitações pendentes de verificação</span>
                   </label>
                   <input id="notifPendingReqs" type="checkbox" defaultChecked className="h-5 w-5 cursor-pointer" />
                 </div>
                 <div className="flex items-center justify-between">
                   <label htmlFor="notifDailyReports" className="cursor-pointer">
-                    <p className="font-medium">Relatórios diários</p>
-                    <p className="text-sm text-muted-foreground">Receba um resumo diário de atividade</p>
+                    <span className="block font-medium">Relatórios diários</span>
+                    <span className="block text-sm text-muted-foreground">Receba um resumo diário de atividade</span>
                   </label>
                   <input id="notifDailyReports" type="checkbox" className="h-5 w-5 cursor-pointer" />
                 </div>
@@ -242,24 +242,30 @@ export default function SettingsClient() {
                   <h3 className="font-medium mb-4">Tema</h3>
                   <div className="grid grid-cols-3 gap-4">
                     <button 
+                      type="button"
+                      aria-pressed={theme === "light"}
                       onClick={() => handleThemeChange("light")}
                       className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors ${theme === "light" ? "border-primary" : "border-border hover:border-primary/50"}`}
                     >
-                      <div className="h-12 w-full rounded bg-white border border-gray-200" />
+                      <span aria-hidden="true" className="block h-12 w-full rounded bg-white border border-gray-200" />
                       <span className="text-sm font-medium">Claro</span>
                     </button>
                     <button 
+                      type="button"
+                      aria-pressed={theme === "dark"}
                       onClick={() => handleThemeChange("dark")}
                       className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors ${theme === "dark" ? "border-primary" : "border-border hover:border-primary/50"}`}
                     >
-                      <div className="h-12 w-full rounded bg-gray-900" />
+                      <span aria-hidden="true" className="block h-12 w-full rounded bg-gray-900" />
                       <span className="text-sm font-medium">Escuro</span>
                     </button>
                     <button 
+                      type="button"
+                      aria-pressed={theme === "system"}
                       onClick={() => handleThemeChange("system")}
                       className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors ${theme === "system" ? "border-primary" : "border-border hover:border-primary/50"}`}
                     >
-                      <div className="h-12 w-full rounded bg-gradient-to-r from-white to-gray-900" />
+                      <span aria-hidden="true" className="block h-12 w-full rounded bg-gradient-to-r from-white to-gray-900" />
                       <span className="text-sm font-medium">Sistema</span>
                     </button>
                   </div>

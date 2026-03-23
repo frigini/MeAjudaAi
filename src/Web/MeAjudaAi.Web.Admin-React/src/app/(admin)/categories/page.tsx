@@ -88,7 +88,6 @@ export default function CategoriesPage() {
       await createMutation.mutateAsync({
         name: data.name,
         description: data.description ?? "",
-        isActive: data.isActive,
       });
       toast.success("Categoria criada com sucesso");
       setIsCreateOpen(false);
@@ -104,7 +103,6 @@ export default function CategoriesPage() {
         id: selectedCategory.id,
         name: data.name,
         description: data.description ?? "",
-        isActive: data.isActive,
       });
       toast.success("Categoria atualizada com sucesso");
       setIsEditOpen(false);

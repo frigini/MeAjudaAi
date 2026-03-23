@@ -6,6 +6,8 @@ import type {
   MeAjudaAiModulesLocationsApplicationDtosAllowedCityDto,
   MeAjudaAiModulesUsersApplicationDtosUserDto,
 } from "./api/generated";
+import { z } from "zod";
+import { zMeAjudaAiModulesProvidersApplicationDtosProviderDto } from "./api/generated/zod.gen";
 
 export type ProviderDto = MeAjudaAiModulesProvidersApplicationDtosProviderDto;
 export type BusinessProfileDto = MeAjudaAiModulesProvidersApplicationDtosBusinessProfileDto;
@@ -14,10 +16,12 @@ export type ServiceCategoryDto = MeAjudaAiModulesServiceCatalogsApplicationDtosS
 export type AllowedCityDto = MeAjudaAiModulesLocationsApplicationDtosAllowedCityDto;
 export type UserDto = MeAjudaAiModulesUsersApplicationDtosUserDto;
 
-export type ProviderType = 0 | 1 | 2 | 3 | 4;
-export type ProviderStatus = 0 | 1 | 2 | 3 | 4 | 5;
-export type VerificationStatus = 0 | 1 | 2 | 3 | 4 | 5;
-export type ProviderTier = 0 | 1 | 2 | 3;
+type ProviderSchemaType = z.infer<typeof zMeAjudaAiModulesProvidersApplicationDtosProviderDto>;
+
+export type ProviderType = NonNullable<ProviderSchemaType["type"]>;
+export type ProviderStatus = NonNullable<ProviderSchemaType["status"]>;
+export type VerificationStatus = NonNullable<ProviderSchemaType["verificationStatus"]>;
+export type ProviderTier = NonNullable<ProviderSchemaType["tier"]>;
 
 export const EProviderType = {
   None: 0,
