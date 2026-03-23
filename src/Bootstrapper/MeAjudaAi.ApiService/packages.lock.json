@@ -1083,9 +1083,9 @@
       },
       "Microsoft.OpenApi": {
         "type": "CentralTransitive",
-        "requested": "[2.7.0, )",
-        "resolved": "2.7.0",
-        "contentHash": "b9xmpnmjq6p+HqF3uWG7u7/PlB38t/UB5UtXdi6xEAP9ZJGKHneYyjMGzBflB1rpLxYEcU6KRme+cz5wNPlxqA=="
+        "requested": "[2.7.1, )",
+        "resolved": "2.7.1",
+        "contentHash": "htA4FFHO9H/ix/tjj5K0vREMfm2LT3uo6NY6EiNpPusPQj6fRa+MJKFedEuFCfcEVvljNSFPkgeQnfWzfObrBA=="
       },
       "Npgsql": {
         "type": "CentralTransitive",
