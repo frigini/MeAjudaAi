@@ -32,7 +32,7 @@ import { CATEGORY_STATUS_LABELS } from "@/lib/types";
 const categorySchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome deve ter no máximo 100 caracteres"),
   description: z.string().max(500, "Descrição deve ter no máximo 500 caracteres").optional(),
-  isActive: z.boolean(),
+  displayOrder: z.number().int().min(0, "Ordem deve ser >= 0").optional(),
 });
 
 type CategoryFormData = z.infer<typeof categorySchema>;
@@ -43,6 +43,7 @@ export default function CategoriesPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategoryDto | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const { data: categoriesResponse, isLoading, error } = useCategories();
   const createMutation = useCreateCategory();
@@ -53,12 +54,12 @@ export default function CategoriesPage() {
 
   const createForm = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
-    defaultValues: { name: "", description: "", isActive: true },
+    defaultValues: { name: "", description: "", displayOrder: 0 },
   });
 
   const editForm = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
-    defaultValues: { name: "", description: "", isActive: true },
+    defaultValues: { name: "", description: "", displayOrder: 0 },
   });
 
   const categories: ServiceCategoryDto[] = categoriesResponse ?? [];
@@ -68,7 +69,7 @@ export default function CategoriesPage() {
   );
 
   const handleOpenCreate = () => {
-    createForm.reset({ name: "", description: "", isActive: true });
+    createForm.reset({ name: "", description: "", displayOrder: 0 });
     setIsCreateOpen(true);
   };
 
@@ -77,7 +78,7 @@ export default function CategoriesPage() {
     editForm.reset({
       name: category.name ?? "",
       description: category.description ?? "",
-      isActive: category.isActive ?? true,
+      displayOrder: category.displayOrder ?? 0,
     });
     setIsEditOpen(true);
   };
@@ -92,6 +93,7 @@ export default function CategoriesPage() {
       await createMutation.mutateAsync({
         name: data.name,
         description: data.description ?? "",
+        displayOrder: data.displayOrder ?? 0,
       });
       toast.success("Categoria criada com sucesso");
       setIsCreateOpen(false);
@@ -107,6 +109,7 @@ export default function CategoriesPage() {
         id: selectedCategory.id,
         name: data.name,
         description: data.description ?? "",
+        displayOrder: data.displayOrder,
       });
       toast.success("Categoria atualizada com sucesso");
       setIsEditOpen(false);
@@ -191,9 +194,10 @@ export default function CategoriesPage() {
                     <td className="px-4 py-3">
                       <Badge 
                         variant={category.isActive ? CATEGORY_STATUS_LABELS.ACTIVE.variant : CATEGORY_STATUS_LABELS.INACTIVE.variant}
-                        className="cursor-pointer hover:opacity-80"
+                        className={`cursor-pointer hover:opacity-80 ${togglingId === category.id ? "opacity-50 pointer-events-none" : ""}`}
                         onClick={async () => {
-                          if (!category.id) return;
+                          if (!category.id || togglingId) return;
+                          setTogglingId(category.id);
                           try {
                             if (category.isActive) {
                               await deactivateMutation.mutateAsync(category.id);
@@ -204,6 +208,8 @@ export default function CategoriesPage() {
                             }
                           } catch {
                             toast.error("Erro ao alterar status");
+                          } finally {
+                            setTogglingId(null);
                           }
                         }}
                       >
@@ -261,14 +267,17 @@ export default function CategoriesPage() {
                 <p className="text-sm text-destructive">{createForm.formState.errors.description.message}</p>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                id="isActive"
-                type="checkbox"
-                {...createForm.register("isActive")}
-                className="h-4 w-4"
+            <div className="grid gap-2">
+              <label htmlFor="displayOrder" className="text-sm font-medium">Ordem de Exibição</label>
+              <Input
+                id="displayOrder"
+                type="number"
+                {...createForm.register("displayOrder", { valueAsNumber: true })}
+                placeholder="0"
               />
-              <label htmlFor="isActive" className="text-sm font-medium">Categoria Ativa</label>
+              {createForm.formState.errors.displayOrder && (
+                <p className="text-sm text-destructive">{createForm.formState.errors.displayOrder.message}</p>
+              )}
             </div>
             <DialogFooter>
               <Button type="button" variant="secondary" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
@@ -308,14 +317,17 @@ export default function CategoriesPage() {
                 <p className="text-sm text-destructive">{editForm.formState.errors.description.message}</p>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                id="edit-isActive"
-                type="checkbox"
-                {...editForm.register("isActive")}
-                className="h-4 w-4"
+            <div className="grid gap-2">
+              <label htmlFor="edit-displayOrder" className="text-sm font-medium">Ordem de Exibição</label>
+              <Input
+                id="edit-displayOrder"
+                type="number"
+                {...editForm.register("displayOrder", { valueAsNumber: true })}
+                placeholder="0"
               />
-              <label htmlFor="edit-isActive" className="text-sm font-medium">Categoria Ativa</label>
+              {editForm.formState.errors.displayOrder && (
+                <p className="text-sm text-destructive">{editForm.formState.errors.displayOrder.message}</p>
+              )}
             </div>
             <DialogFooter>
               <Button type="button" variant="secondary" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
