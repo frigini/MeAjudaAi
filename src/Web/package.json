@@ -7,7 +7,7 @@
     "apps/*",
     "libs/*",
     "MeAjudaAi.Web.Customer",
-    "MeAjudaAi.Web.Admin-React"
+    "MeAjudaAi.Web.Admin"
   ],
   "directories": {
     "doc": "docs",

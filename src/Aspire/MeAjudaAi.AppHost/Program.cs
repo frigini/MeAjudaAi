@@ -201,9 +201,17 @@ internal static class Program
             // Serviços devem implementar retry interno para aguardar Keycloak ficar disponível
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
 
-        // Admin Portal (Blazor WASM)
-        var adminPortal = builder.AddProject<Projects.MeAjudaAi_Web_Admin>("admin-portal")
+        // Admin Portal (Next.js 15 React)
+        var adminWebPath = Path.Combine(builder.AppHostDirectory, "..", "..", "..", "src", "Web", "MeAjudaAi.Web.Admin");
+        if (!Directory.Exists(adminWebPath))
+        {
+            throw new DirectoryNotFoundException($"Admin Web App directory not found at {adminWebPath}.");
+        }
+
+        var adminPortal = builder.AddJavaScriptApp("admin-portal", adminWebPath)
+            .WithHttpEndpoint(port: 3002, env: "PORT")
             .WithExternalHttpEndpoints()
+            .WithEnvironment("NEXT_PUBLIC_API_URL", apiService.GetEndpoint("http"))
             .WaitFor(apiService);
             // NOTA: Keycloak WaitFor removido - veja comentário no apiService acima
 
@@ -236,7 +244,7 @@ internal static class Program
             .WaitFor(apiService);
 
         // Pass resolved endpoints to Keycloak options for bootstrap
-        keycloakSettings.AdminPortalEndpoint = adminPortal.GetEndpoint("https");
+        keycloakSettings.AdminPortalEndpoint = adminPortal.GetEndpoint("http");
         keycloakSettings.CustomerWebEndpoint = customerWeb.GetEndpoint("http");
         keycloakSettings.ProviderWebEndpoint = providerWeb.GetEndpoint("http");
     }
