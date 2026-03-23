@@ -1,0 +1,2 @@
+# Allow OpenAPI generated types
+!src/lib/api/generated/

@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-primary: #395873;
+  --color-primary-foreground: #ffffff;
+  --color-primary-hover: #2E4760;
+
+  --color-secondary: #f5f5f5;
+  --color-secondary-foreground: #2e2e2e;
+
+  --color-muted: #f5f5f5;
+  --color-muted-foreground: #666666;
+
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: #e0e0e0;
+  --color-input: #e0e0e0;
+
+  --color-background: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-raised: #f5f5f5;
+  --color-foreground: #2e2e2e;
+  --color-foreground-subtle: #666666;
+
+  --color-card: #ffffff;
+  --color-card-foreground: #2e2e2e;
+
+  --color-ring: #395873;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #2e2e2e;
+  --surface: #ffffff;
+  --surface-raised: #f5f5f5;
+  --foreground-subtle: #666666;
+  --border: #e0e0e0;
+  --input: #e0e0e0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    --surface: #1a1a1a;
+    --surface-raised: #262626;
+    --foreground-subtle: #a3a3a3;
+    --border: #404040;
+    --input: #404040;
+  }
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --surface: #1a1a1a;
+  --surface-raised: #262626;
+  --foreground-subtle: #a3a3a3;
+  --border: #404040;
+  --input: #404040;
+}
+
+body {
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+}
