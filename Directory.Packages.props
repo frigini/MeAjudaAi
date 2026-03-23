@@ -201,7 +201,7 @@
     <PackageVersion Include="MudBlazor" Version="8.15.0" />
     <PackageVersion Include="Fluxor.Blazor.Web" Version="6.9.0" />
     <PackageVersion Include="Fluxor.Blazor.Web.ReduxDevTools" Version="6.9.0" />
-    <PackageVersion Include="Refit" Version="10.0.1" />
+    <PackageVersion Include="Refit" Version="10.1.6" />
     <PackageVersion Include="Refit.HttpClientFactory" Version="10.0.1" />
     <!-- Blazor Testing -->
     <PackageVersion Include="bUnit" Version="2.6.2" />
