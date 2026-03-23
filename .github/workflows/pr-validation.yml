@@ -160,6 +160,15 @@ jobs:
 
       - name: 🏗️ Build Frontend Workspace
         working-directory: ./src/Web
+        env:
+          # Dummy values required so Next.js can collect page data during build.
+          # auth.ts throws at module load time if these are missing, causing SSG to fail.
+          KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
+          KEYCLOAK_ADMIN_CLIENT_SECRET: ci-build-placeholder
+          KEYCLOAK_ISSUER: http://localhost:8080/realms/meajudaai
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: ci-build-placeholder
+          AUTH_SECRET: ci-build-placeholder
         run: |
           set -e
           # 1. Explicitly build the customer web app (uses generated API types)
