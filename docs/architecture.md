@@ -2826,77 +2826,93 @@ graph TB
 | **Authentication** | NextAuth.js | 5.x | Keycloak integration |
 | **Testing** | Playwright | 1.x | E2E tests |
 
-### **Fluxor Pattern - State Management**
+### **Zustand Pattern - State Management**
 
-**Implementação do Padrão Flux/Redux**:
+**Implementação do Padrão Zustand**:
 
-```csharp
-// 1. STATE (Immutable)
-public record ProvidersState
-{
-    public List<ModuleProviderDto> Providers { get; init; } = [];
-    public bool IsLoading { get; init; }
-    public string? ErrorMessage { get; init; }
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 20;
-    public int TotalItems { get; init; }
+```typescript
+// 1. STORE (State + Actions)
+import { create } from 'zustand';
+
+interface ProvidersState {
+  providers: ModuleProviderDto[];
+  isLoading: boolean;
+  errorMessage: string | null;
+  pageNumber: number;
+  pageSize: number;
+  totalItems: number;
+  
+  // Actions
+  loadProviders: () => Promise<void>;
+  setPage: (page: number) => void;
+  clearError: () => void;
 }
 
-// 2. ACTIONS (Commands)
-public static class ProvidersActions
-{
-    public record LoadProvidersAction;
-    public record LoadProvidersSuccessAction(List<ModuleProviderDto> Providers, int TotalItems);
-    public record LoadProvidersFailureAction(string ErrorMessage);
-    public record GoToPageAction(int PageNumber);
-}
-
-// 3. REDUCERS (Pure Functions)
-public static class ProvidersReducers
-{
-    [ReducerMethod]
-    public static ProvidersState OnLoadProviders(ProvidersState state, LoadProvidersAction _) =>
-        state with { IsLoading = true, ErrorMessage = null };
-
-    [ReducerMethod]
-    public static ProvidersState OnLoadSuccess(ProvidersState state, LoadProvidersSuccessAction action) =>
-        state with
-        {
-            Providers = action.Providers,
-            TotalItems = action.TotalItems,
-            IsLoading = false,
-            ErrorMessage = null
-        };
-
-    [ReducerMethod]
-    public static ProvidersState OnLoadFailure(ProvidersState state, LoadProvidersFailureAction action) =>
-        state with { IsLoading = false, ErrorMessage = action.ErrorMessage };
-
-    [ReducerMethod]
-    public static ProvidersState OnGoToPage(ProvidersState state, GoToPageAction action) =>
-        state with { PageNumber = action.PageNumber };
-}
-
-// 4. EFFECTS (Side Effects - API Calls)
-public class ProvidersEffects
-{
-    private readonly IProvidersApi _providersApi;
-
-    public ProvidersEffects(IProvidersApi providersApi)
-    {
-        _providersApi = providersApi;
+export const useProvidersStore = create<ProvidersState>((set, get) => ({
+  providers: [],
+  isLoading: false,
+  errorMessage: null,
+  pageNumber: 1,
+  pageSize: 20,
+  totalItems: 0,
+  
+  loadProviders: async () => {
+    set({ isLoading: true, errorMessage: null });
+    try {
+      const { pageNumber, pageSize } = get();
+      const result = await providersApi.getProviders({ pageNumber, pageSize });
+      set({ 
+        providers: result.data, 
+        totalItems: result.totalItems,
+        isLoading: false 
+      });
+    } catch (error) {
+      set({ errorMessage: error.message, isLoading: false });
     }
+  },
+  
+  setPage: (page: number) => set({ pageNumber: page }),
+  clearError: () => set({ errorMessage: null }),
+}));
 
-    [EffectMethod]
-    public async Task HandleLoadProviders(LoadProvidersAction _, IDispatcher dispatcher)
-    {
-        try
-        {
-            var result = await _providersApi.GetProvidersAsync(pageNumber: 1, pageSize: 20);
-            
-            if (result.IsSuccess && result.Value is not null)
-            {
-                dispatcher.Dispatch(new LoadProvidersSuccessAction(
+// 2. COMPONENT USAGE
+import { useProvidersStore } from '@/stores/providersStore';
+
+export function ProvidersList() {
+  const { providers, isLoading, loadProviders } = useProvidersStore();
+  
+  useEffect(() => { loadProviders(); }, []);
+  
+  if (isLoading) return <Spinner />;
+  return <DataGrid data={providers} />;
+}
+```
+
+### **TanStack Query - Data Fetching**
+
+```typescript
+// Hook para buscar dados com cache automático
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+export function useProviders(page: number = 1) {
+  return useQuery({
+    queryKey: ['providers', page],
+    queryFn: () => providersApi.getProviders({ pageNumber: page }),
+    staleTime: 30 * 1000, // 30 seconds cache
+    keepPreviousData: true,
+  });
+}
+
+export function useCreateProvider() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => providersApi.createProvider(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['providers'] });
+    },
+  });
+}
+```
                     result.Value.Items, 
                     result.Value.TotalItems));
             }
@@ -3266,38 +3282,37 @@ tests/MeAjudaAi.Web.Admin.Tests/
 ### **Best Practices - Frontend**
 
 #### **1. State Management**
-- ✅ Use Fluxor para state compartilhado entre componentes
-- ✅ Mantenha States immutable (record types)
-- ✅ Reducers devem ser funções puras (sem side effects)
-- ✅ Effects para chamadas assíncronas (API calls)
+- ✅ Use Zustand para state global compartilhado entre componentes
+- ✅ Use TanStack Query para server state (API data)
+- ✅ Mantenha stores pequenas e focadas em uma feature
+- ✅ Separe state de UI (layout) do state de negócio
 - ❌ Evite state local quando precisar compartilhar entre páginas
 
 #### **2. API Integration**
-- ✅ Use Refit para type-safe HTTP clients
-- ✅ Defina interfaces em `Client.Contracts.Api`
-- ✅ Configure authentication via `BaseAddressAuthorizationMessageHandler`
-- ✅ Handle errors em Effects com try-catch
-- ❌ Não chame API diretamente em components (use Effects)
+- ✅ Use TanStack Query hooks para chamadas API
+- ✅ Defina tipos em `types/api/` (gerados automaticamente do OpenAPI)
+- ✅ Configure authentication via NextAuth.js
+- ✅ Handle errors com useQuery error state
+- ❌ Não chame API diretamente em components (use hooks)
 
 #### **3. Component Design**
 - ✅ Componentes pequenos e focados (Single Responsibility)
-- ✅ Use MudBlazor components sempre que possível
-- ✅ Bind state via `IState<T>` em components
-- ✅ Dispatch actions via `IDispatcher`
-- ❌ Evite lógica de negócio em components (mover para Effects)
+- ✅ Use Base UI ou Radix UI para headless components
+- ✅ Estilize com Tailwind CSS
+- ✅ Use React Hook Form + Zod para formulários
+- ❌ Evite lógica de negócio em components (mover para hooks)
 
 #### **4. Testing**
-- ✅ Sempre configure JSInterop.Mode = Loose
-- ✅ Mock IState<T> para testar diferentes estados
-- ✅ Verifique Actions disparadas via Mock<IDispatcher>
-- ✅ Use FluentAssertions para asserts
-- ❌ Não teste MudBlazor internals (confiar na biblioteca)
+- ✅ Use Playwright para E2E tests
+- ✅ Use data-testid para seletores mais estáveis
+- ✅ Separe testes por feature (e2e/admin, e2e/customer, etc.)
+- ✅ Use fixtures para setup/teardown
 
 #### **5. Portuguese Localization**
 - ✅ Todas mensagens de erro em português
 - ✅ Comentários inline em português
 - ✅ Labels e tooltips em português
-- ✅ Technical terms podem ficar em inglês (OIDC, Refit, Fluxor)
+- ✅ Technical terms podem ficar em inglês (OIDC, NextAuth, TanStack)
 
 ---
 

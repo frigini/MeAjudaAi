@@ -12,13 +12,23 @@ test.describe('Admin Portal - Providers Management', () => {
   test('should search providers', async ({ page }) => {
     const searchInput = page.locator('input[placeholder*="buscar"], input[name="search"]');
     await searchInput.fill('João');
-    await expect(page.locator('[data-testid="provider-row"]')).toBeVisible();
+    
+    // Wait for search results
+    const providerRows = page.locator('[data-testid="provider-row"]');
+    await expect(providerRows.first()).toBeVisible();
+    
+    // Verify search results contain the search term
+    const firstRowText = await providerRows.first().textContent();
+    expect(firstRowText).toContain('João');
   });
 
   test('should filter by status', async ({ page }) => {
     await page.click('button:has-text("Filtrar")');
     await page.click('text=Ativos');
-    await expect(page.locator('[data-testid="provider-row"]')).toBeVisible();
+    
+    // Verify filtered results are visible
+    const providerRows = page.locator('[data-testid="provider-row"]');
+    await expect(providerRows.first()).toBeVisible();
   });
 });
 
@@ -30,13 +40,23 @@ test.describe('Admin Portal - Documents', () => {
 
   test('should approve document', async ({ page }) => {
     await page.goto('/admin/documentos');
-    await page.click('button:has-text("Aprovar")');
-    await expect(page.locator('text=Documento aprovado')).toBeVisible();
+    
+    // Get the first pending document's approve button
+    const approveButton = page.locator('[data-testid="document-approve"]').first();
+    await expect(approveButton).toBeVisible();
+    await approveButton.click();
+    
+    await expect(page.getByRole('alert')).toContainText(/aprova/i);
   });
 
   test('should reject document', async ({ page }) => {
     await page.goto('/admin/documentos');
-    await page.click('button:has-text("Rejeitar")');
-    await expect(page.locator('text=Documento rejeitado')).toBeVisible();
+    
+    // Get the first pending document's reject button
+    const rejectButton = page.locator('[data-testid="document-reject"]').first();
+    await expect(rejectButton).toBeVisible();
+    await rejectButton.click();
+    
+    await expect(page.getByRole('alert')).toContainText(/rejeita/i);
   });
 });

@@ -19,7 +19,7 @@ test.describe('Customer Web App - Search', () => {
   test('should filter by location', async ({ page }) => {
     await page.goto('/busca');
     const locationInput = page.locator('input[placeholder*="CEP"], input[placeholder*="endereço"]');
-    await locationInput.fill(' Rio de Janeiro');
+    await locationInput.fill('Rio de Janeiro');
     await expect(page.locator('[data-testid="location-filter"]')).toBeVisible();
   });
 

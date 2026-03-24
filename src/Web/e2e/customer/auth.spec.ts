@@ -6,12 +6,12 @@ test.describe('Customer Web App - Authentication', () => {
   });
 
   test('should display landing page', async ({ page }) => {
-    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.getByRole('heading')).toBeVisible();
   });
 
   test('should navigate to login page', async ({ page }) => {
     await page.click('text=Entrar');
-    await expect(page.url()).toContain('/login');
+    await expect(page).toHaveURL(/.*\/login/);
   });
 
   test('should display login form', async ({ page }) => {
@@ -25,6 +25,6 @@ test.describe('Customer Web App - Authentication', () => {
     await page.fill('input[type="email"]', 'invalid@test.com');
     await page.fill('input[type="password"]', 'wrongpassword');
     await page.click('button[type="submit"]');
-    await expect(page.locator('text=credenciais inválidas')).toBeVisible();
+    await expect(page.getByRole('alert')).toContainText(/credenciais inválidas/i);
   });
 });

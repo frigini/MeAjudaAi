@@ -6,12 +6,12 @@ test.describe('Admin Portal - Authentication', () => {
   });
 
   test('should display admin login page', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText(/Admin|Administrador/);
+    await expect(page.getByRole('heading')).toContainText(/admin|administrador/i);
   });
 
   test('should navigate to login', async ({ page }) => {
     await page.click('text=Login Admin');
-    await expect(page.url()).toContain('/admin/login');
+    await expect(page).toHaveURL(/.*\/admin\/login/);
   });
 
   test('should display login form', async ({ page }) => {
@@ -25,6 +25,6 @@ test.describe('Admin Portal - Authentication', () => {
     await page.fill('input[type="email"]', 'admin@meajudaai.com');
     await page.fill('input[type="password"]', 'wrongpassword');
     await page.click('button[type="submit"]');
-    await expect(page.locator('text=credenciais inválidas')).toBeVisible();
+    await expect(page.getByRole('alert')).toContainText(/credenciais inválidas/i);
   });
 });

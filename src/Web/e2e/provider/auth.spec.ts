@@ -11,7 +11,7 @@ test.describe('Provider Web App - Authentication', () => {
 
   test('should navigate to login page', async ({ page }) => {
     await page.click('text=Login Prestador');
-    await expect(page.url()).toContain('/login');
+    await expect(page).toHaveURL(/.*\/provider\/login/);
   });
 
   test('should display login form with provider fields', async ({ page }) => {

@@ -103,9 +103,10 @@ O projeto foi organizado para facilitar navegação e manutenção:
 │   ├── Bootstrapper/   # API Service entry point
 │   ├── Modules/        # Módulos de domínio (DDD)
 │   ├── Shared/         # Contratos e abstrações
-│   └── Web/            # Aplicações Web
-│       ├── MeAjudaAi.Web.Admin/     # Admin Portal (Blazor WASM)
-│       └── meajudaai-web-customer/  # Customer Web App (Next.js 15)
+│   └── Web/            # Aplicações Web (NX Workspace)
+│       ├── MeAjudaAi.Web.Admin/     # Admin Portal (React + Next.js 15)
+│       ├── MeAjudaAi.Web.Customer/ # Customer Web App (Next.js 15)
+│       └── MeAjudaAi.Web.Provider/  # Provider Web App (Next.js 15)
 ├── 📁 tests/           # Testes automatizados (xUnit v3)
 └── 📁 tools/           # Ferramentas de desenvolvimento
     └── api-collections/  # Gerador Bruno/Postman collections

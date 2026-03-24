@@ -12,9 +12,9 @@ test.describe('Provider Web App - Onboarding', () => {
   test('should complete basic info step', async ({ page }) => {
     await page.fill('input[name="name"]', 'João Silva');
     await page.fill('input[name="phone"]', '21999999999');
-    await page.fill('input[name="cpf"]', '12345678900');
+    await page.fill('input[name="cpf"]', '52998224725');
     await page.click('button:has-text("Próximo")');
-    await expect(page.url()).toContain('/onboarding/documentos');
+    await expect(page).toHaveURL(/.*\/onboarding\/documentos/);
   });
 
   test('should validate required fields', async ({ page }) => {

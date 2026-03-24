@@ -621,11 +621,12 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 **Foco**: Implementar testes E2E com Playwright para todos os apps React.
 
 **Scope**:
-1. **Setup Playwright**: Configurar Playwright no workspace NX
-2. **Customer Web App Tests**: Login, busca, perfil, agendamento
-3. **Provider Web App Tests**: Onboarding, dashboard, gestão de serviços
-4. **Admin Portal Tests**: CRUD providers, documentos, métricas
-5. **Pipeline Integration**: Adicionar steps em `pr-validation.yml` e `master-ci-cd.yml`
+1. **Playwright Config**: Configurar playwright.config.ts no workspace NX (✅ Concluído)
+2. **Implement Test Specs**: Criar testes E2E para Customer, Provider e Admin Apps
+3. **Customer Web App Tests**: Login, busca, perfil, agendamento
+4. **Provider Web App Tests**: Onboarding, dashboard, gestão de serviços
+5. **Admin Portal Tests**: CRUD providers, documentos, métricas
+6. **CI Integration**: Adicionar steps em `pr-validation.yml` e `master-ci-cd.yml`
 
 **Cenários de Teste**:
 - [ ] Autenticação (login, logout, refresh token)

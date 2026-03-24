@@ -36,9 +36,13 @@ export default defineConfig({
       name: 'Mobile Safari',
       use: { ...devices['iPhone 12'] },
     },
+    {
+      name: 'ci',
+      use: { ...devices['Desktop Chrome'] },
+    },
   ],
   webServer: {
-    command: 'npm run next:dev',
+    command: 'npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

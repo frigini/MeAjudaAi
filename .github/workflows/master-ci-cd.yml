@@ -171,12 +171,12 @@ jobs:
           echo "================================"
           echo "E2E TESTS (PLAYWRIGHT)"
           echo "================================"
-          
+
           # Install Playwright browsers
           npx playwright install --with-deps chromium
-          
-          # Run E2E tests
-          npx playwright test --reporter=list
+
+          # Run E2E tests (chromium only)
+          npx playwright test --reporter=list --project=ci
 
       - name: Free Disk Space for Integration Tests
         run: |
