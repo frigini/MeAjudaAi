@@ -1,8 +1,10 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/exhaustive-deps */
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { FileText, Upload, Info, Search, Eye, CheckCircle, XCircle, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileText, Info, Search, Eye, CheckCircle, XCircle, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

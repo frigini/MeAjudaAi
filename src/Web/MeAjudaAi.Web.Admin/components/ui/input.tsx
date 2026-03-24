@@ -11,7 +11,7 @@ export const inputStyles = {
   ],
 };
 
-export interface InputProps extends ComponentProps<"input"> {}
+export type InputProps = ComponentProps<"input">;
 
 export function Input({ className, ...props }: InputProps) {
   return (

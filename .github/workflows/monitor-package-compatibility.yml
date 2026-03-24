@@ -56,7 +56,7 @@ jobs:
             const version = '${{ steps.check-nuget.outputs.version }}';
             const allVersions = `${{ steps.check-nuget.outputs.versions }}`;
 
-            const comment = `## 🔔 Nova Versão Detectada!
+            const comment = `##  Nova Versão Detectada!
 
             **Versão**: \`${version}\`
 
@@ -78,7 +78,7 @@ jobs:
                - [ ] AppHost iniciando corretamente
                - [ ] Conexões PostgreSQL funcionando
 
-            ### 📦 Versões Disponíveis (13.x+)
+            ###  Versões Disponíveis (13.x+)
 
             \`\`\`
             ${allVersions}
@@ -110,7 +110,7 @@ jobs:
           script: |
             const issueNumber = 38;
 
-            const comment = `## 🔍 Verificação Manual Executada
+            const comment = `##  Verificação Manual Executada
 
             **Status**: Nenhuma versão compatível detectada ainda.
 
@@ -191,7 +191,7 @@ jobs:
             const issueNumber = 39;
             const version = '${{ steps.check-hangfire.outputs.version }}';
 
-            const comment = `## 🎉 Hangfire.PostgreSql ${version} Disponível!
+            const comment = `##  Hangfire.PostgreSql ${version} Disponível!
 
             **AÇÃO CRÍTICA NECESSÁRIA**: Versão 2.x foi lançada!
 
@@ -221,7 +221,7 @@ jobs:
                - [ ] Configurar alertas de monitoramento
                - [ ] Notificar stakeholders
 
-            ### 📋 Referências
+            ###  Referências
 
             - **NuGet**: https://www.nuget.org/packages/Hangfire.PostgreSql/${version}
             - **Testes**: \`tests/MeAjudaAi.Integration.Tests/Jobs/HangfireIntegrationTests.cs\`
@@ -254,12 +254,12 @@ jobs:
             const current = '${{ steps.check-hangfire.outputs.current }}';
             const issues = `${{ steps.check-github.outputs.issues }}`;
 
-            const comment = `## 📊 Status Semanal - Ainda em v1.x
+            const comment = `##  Status Semanal - Ainda em v1.x
 
             **Versão atual**: \`${current}\`
             **Versão 2.x**: Ainda não disponível
 
-            ### 🔍 Atividade no Repositório Upstream
+            ###  Atividade no Repositório Upstream
 
             Encontrei menções relevantes a Npgsql 10 ou v2.x no repositório:
 

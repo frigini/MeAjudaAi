@@ -35,19 +35,19 @@ jobs:
 
       - name: Restore AppHost dependencies
         run: |
-          echo "🔄 Restoring Aspire AppHost dependencies with --force-evaluate..."
+          echo " Restoring Aspire AppHost dependencies with --force-evaluate..."
           dotnet restore src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj --force-evaluate /p:RestoreLockedMode=false
           echo "✅ Dependencies restored"
 
       - name: Build Aspire AppHost
         run: |
-          echo "🏗️ Building Aspire AppHost..."
+          echo "️ Building Aspire AppHost..."
           dotnet build src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj --configuration Release --no-restore
           echo "✅ Aspire AppHost builds successfully"
 
       - name: Verify DCP Binaries (Distributed Application Runtime)
         run: |
-          echo "🔎 Verifying DCP binaries in NuGet cache..."
+          echo " Verifying DCP binaries in NuGet cache..."
           echo "ℹ️  Note: Aspire workload is deprecated in .NET 10 - using NuGet packages instead"
 
           # DCP binaries come from Aspire.Hosting.Orchestration NuGet package
@@ -77,7 +77,7 @@ jobs:
 
       - name: Validate Aspire Resource Configuration
         run: |
-          echo "🔍 Validating Aspire resource configuration..."
+          echo " Validating Aspire resource configuration..."
           
           # Check for required resource references in AppHost Program.cs
           APPHOST_FILE="src/Aspire/MeAjudaAi.AppHost/Program.cs"
@@ -117,7 +117,7 @@ jobs:
           KEYCLOAK_ADMIN_PASSWORD: 'manifest-generation'
           ASPNETCORE_ENVIRONMENT: Testing
         run: |
-          echo "📋 Generating Aspire deployment manifest..."
+          echo " Generating Aspire deployment manifest..."
           cd src/Aspire/MeAjudaAi.AppHost
           
           # Generate manifest to validate Aspire configuration
@@ -132,8 +132,8 @@ jobs:
           
           # Validate manifest structure
           if [ -f ./aspire-manifest.json ]; then
-            echo "📊 Manifest file size: $(du -h ./aspire-manifest.json | cut -f1)"
-            echo "📦 Resources defined in manifest:"
+            echo " Manifest file size: $(du -h ./aspire-manifest.json | cut -f1)"
+            echo " Resources defined in manifest:"
             cat ./aspire-manifest.json | grep -oP '"type":\s*"\K[^"]+' | sort -u || echo "  (unable to parse resource types)"
           else
             echo "❌ Manifest file not created"
@@ -142,7 +142,7 @@ jobs:
 
       - name: Validate Environment Configuration
         run: |
-          echo "🔧 Validating Aspire environment configuration..."
+          echo " Validating Aspire environment configuration..."
           
           # Check for appsettings files
           APPSETTINGS_DIR="src/Aspire/MeAjudaAi.AppHost"

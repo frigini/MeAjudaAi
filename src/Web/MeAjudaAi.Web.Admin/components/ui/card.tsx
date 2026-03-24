@@ -1,7 +1,7 @@
 import { twMerge } from "tailwind-merge";
 import type { ComponentProps } from "react";
 
-export interface CardProps extends ComponentProps<"div"> {}
+export type CardProps = ComponentProps<"div">;
 
 export function Card({ className, ...props }: CardProps) {
   return (

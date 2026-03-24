@@ -74,11 +74,11 @@ jobs:
               issue.title.includes('[AUTOMATED] Outdated NuGet Packages Detected')
             );
 
-            const issueBody = `## 📦 Pacotes Desatualizados Detectados\n\n` +
+            const issueBody = `##  Pacotes Desatualizados Detectados\n\n` +
               `**Data da verificação:** ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}\n\n` +
               `### Relatório dotnet-outdated\n\n` +
               `\`\`\`\n${report}\n\`\`\`\n\n` +
-              `### 📋 Próximos Passos\n\n` +
+              `###  Próximos Passos\n\n` +
               `1. Revisar pacotes listados acima\n` +
               `2. Verificar breaking changes nos release notes\n` +
               `3. Atualizar \`Directory.Packages.props\` conforme necessário\n` +
@@ -98,7 +98,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: existingIssue.number,
-                body: `## 🔄 Atualização de Verificação\n\n${issueBody}`
+                body: `##  Atualização de Verificação\n\n${issueBody}`
               });
               console.log(`Issue #${existingIssue.number} atualizada com novo relatório`);
             } else {
@@ -124,4 +124,4 @@ jobs:
             echo "✅ **Todas as dependências estão atualizadas!**" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📅 Próxima verificação: Segunda-feira às 9h UTC" >> $GITHUB_STEP_SUMMARY
+          echo " Próxima verificação: Segunda-feira às 9h UTC" >> $GITHUB_STEP_SUMMARY

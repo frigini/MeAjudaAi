@@ -2,7 +2,7 @@
 
 import { use, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Mail, Phone, MapPin, FileText, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, Mail, MapPin, FileText, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,6 @@ import {
   verificationStatusLabels,
   providerTierLabels,
   type VerificationStatus,
-  type ProviderTier,
 } from "@/lib/types";
 import { getVerificationBadgeVariant } from "@/lib/utils";
 

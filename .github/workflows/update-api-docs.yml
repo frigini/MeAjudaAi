@@ -1,4 +1,4 @@
-name: 📚 Update API Documentation
+name:  Update API Documentation
 
 on:
   push:
@@ -33,35 +33,35 @@ concurrency:
 
 jobs:
   generate-openapi-spec:
-    name: 🔄 Gerar OpenAPI Spec
+    name:  Gerar OpenAPI Spec
     runs-on: ubuntu-latest
     
     steps:
-      - name: 📥 Checkout
+      - name:  Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
       
-      - name: 🔧 Setup .NET
+      - name:  Setup .NET
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
           dotnet-quality: 'ga'
       
-      - name: 📦 Restore dependencies
+      - name:  Restore dependencies
         run: dotnet restore MeAjudaAi.slnx
       
-      - name: 🔨 Build API
+      - name:  Build API
         run: |
           dotnet build src/Bootstrapper/MeAjudaAi.ApiService/MeAjudaAi.ApiService.csproj \
             -c Release \
             --no-restore \
             -p:GenerateDocumentationFile=true
       
-      - name: 📦 Install Swashbuckle CLI
+      - name:  Install Swashbuckle CLI
         run: dotnet tool install -g Swashbuckle.AspNetCore.Cli --version 10.1.5
       
-      - name: 📄 Generate OpenAPI Spec
+      - name:  Generate OpenAPI Spec
         run: |
           swagger tofile \
             --output api/api-spec.json \
@@ -83,7 +83,7 @@ jobs:
           
           # Contar paths
           PATH_COUNT=$(jq '.paths | length' api/api-spec.json)
-          echo "📊 Total de paths: $PATH_COUNT"
+          echo " Total de paths: $PATH_COUNT"
           
           if [ "$PATH_COUNT" -lt 5 ]; then
             echo "⚠️ Spec parece incompleto (apenas $PATH_COUNT paths)"
@@ -96,9 +96,9 @@ jobs:
           
           echo "✅ OpenAPI spec válido"
       
-      - name: 📊 Generate API Stats
+      - name:  Generate API Stats
         run: |
-          echo "# 📊 API Statistics" > api-stats.md
+          echo "#  API Statistics" > api-stats.md
           echo "" >> api-stats.md
           echo "- **Total Paths**: $(jq '.paths | length' api/api-spec.json)" >> api-stats.md
           echo "- **Total Operations**: $(jq '[.paths[][] | select(type == "object")] | length' api/api-spec.json)" >> api-stats.md
@@ -106,7 +106,7 @@ jobs:
           echo "- **Generated**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> api-stats.md
           cat api-stats.md
       
-      - name: 💾 Commit Updated Spec
+      - name:  Commit Updated Spec
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: 'docs(api): atualizar api-spec.json automaticamente [skip ci]'
@@ -116,7 +116,7 @@ jobs:
           skip_dirty_check: false
   
   deploy-api-docs:
-    name: 🚀 Deploy API Docs to GitHub Pages
+    name:  Deploy API Docs to GitHub Pages
     needs: generate-openapi-spec
     runs-on: ubuntu-latest
     
@@ -125,12 +125,12 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}api/
     
     steps:
-      - name: 📥 Checkout
+      - name:  Checkout
         uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
       
-      - name: 📄 Create ReDoc HTML
+      - name:  Create ReDoc HTML
         run: |
           mkdir -p docs/api
           
@@ -158,31 +158,31 @@ jobs:
           
           echo "✅ ReDoc HTML criado"
       
-      - name: 📋 Copy OpenAPI Spec
+      - name:  Copy OpenAPI Spec
         run: |
           cp api/api-spec.json docs/api/api-spec.json
           echo "✅ OpenAPI spec copiado para docs/api/"
       
-      - name: 📦 Setup Pages
+      - name:  Setup Pages
         uses: actions/configure-pages@v5
       
-      - name: 🔨 Build with Jekyll
+      - name:  Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
           source: ./docs
           destination: ./_site
       
-      - name: 📤 Upload artifact
+      - name:  Upload artifact
         uses: actions/upload-pages-artifact@v4
       
-      - name: 🚀 Deploy to GitHub Pages
+      - name:  Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
       
-      - name: 📢 Summary
+      - name:  Summary
         run: |
-          echo "## 🎉 API Documentation Deployed!" >> $GITHUB_STEP_SUMMARY
+          echo "##  API Documentation Deployed!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- 📚 **ReDoc**: ${{ steps.deployment.outputs.page_url }}api/" >> $GITHUB_STEP_SUMMARY
-          echo "- 📄 **OpenAPI Spec**: ${{ steps.deployment.outputs.page_url }}api/api-spec.json" >> $GITHUB_STEP_SUMMARY
-          echo "- 🕒 **Updated**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "-  **ReDoc**: ${{ steps.deployment.outputs.page_url }}api/" >> $GITHUB_STEP_SUMMARY
+          echo "-  **OpenAPI Spec**: ${{ steps.deployment.outputs.page_url }}api/api-spec.json" >> $GITHUB_STEP_SUMMARY
+          echo "-  **Updated**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Search, Plus, Eye, CheckCircle, XCircle, Trash2, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Plus, Eye, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
