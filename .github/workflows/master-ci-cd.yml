@@ -64,7 +64,7 @@ jobs:
 
       - name: Install Aspire workload
         run: |
-          echo " Installing .NET Aspire workload..."
+          echo "Installing .NET Aspire workload..."
           dotnet workload update
           # --skip-sign-check is required to install unsigned preview Aspire workloads
           # in the ephemeral GitHub Actions environment. This flag bypasses signature
@@ -72,7 +72,7 @@ jobs:
           # moving to signed/stable Aspire releases.
           dotnet workload install aspire --skip-sign-check
           echo "Aspire workload installed"
-          echo " Verifying Aspire installation..."
+          echo "Verifying Aspire installation..."
           dotnet workload list
           # Verify DCP is available
           if [ -d "$HOME/.dotnet/sdk-manifests" ]; then
@@ -104,7 +104,7 @@ jobs:
           EXCLUDE_PATTERNS="**/Migrations/*.cs,**/Database/*.cs,**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
 
           echo "================================"
-          echo " BACKEND UNIT TESTS WITH COVERAGE"
+          echo "BACKEND UNIT TESTS WITH COVERAGE"
           echo "================================"
 
           echo "Running Shared and Architecture tests..."
@@ -123,7 +123,7 @@ jobs:
             --collect:"XPlat Code Coverage" --results-directory TestResults/ApiService \
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
 
-          echo " Running module tests..."
+          echo "Running module tests..."
           dotnet test src/Modules/Users/Tests/MeAjudaAi.Modules.Users.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
             --collect:"XPlat Code Coverage" --results-directory TestResults/Users \
@@ -158,7 +158,7 @@ jobs:
         working-directory: src/Web/MeAjudaAi.Web.Admin
         run: |
           echo "===================================="
-          echo " REACT ADMIN TESTS"
+          echo "REACT ADMIN TESTS"
           echo "===================================="
           echo "Running React Admin tests..."
           npm test
@@ -166,10 +166,10 @@ jobs:
 
       - name: Free Disk Space for Integration Tests
         run: |
-          echo " Freeing disk space before integration tests..."
+          echo "Freeing disk space before integration tests..."
           
           # Show disk usage before cleanup
-          echo " Disk usage before cleanup:"
+          echo "Disk usage before cleanup:"
           df -h
           
           # Remove Docker images and containers that are not needed
@@ -184,7 +184,7 @@ jobs:
           sudo rm -rf /usr/local/.ghcup || true
           
           # Show disk usage after cleanup
-          echo " Disk usage after cleanup:"
+          echo "Disk usage after cleanup:"
           df -h
           
           echo "Disk space cleanup completed"
@@ -204,7 +204,7 @@ jobs:
           set -e  # Exit immediately if any command fails
           
           echo "================================"
-          echo " INTEGRATION TESTS (NO COVERAGE)"
+          echo "INTEGRATION TESTS (NO COVERAGE)"
           echo "================================"
           dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
             --configuration Release --no-build --verbosity normal
@@ -218,7 +218,7 @@ jobs:
           set -e  # Exit immediately if any command fails
           
           echo "================================"
-          echo " E2E TESTS (NO COVERAGE)"
+          echo "E2E TESTS (NO COVERAGE)"
           echo "================================"
           dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj \
             --configuration Release --no-build --verbosity normal
@@ -310,7 +310,7 @@ jobs:
           MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
         run: |
           echo "================================"
-          echo " VALIDATING HANGFIRE + NPGSQL 10 COMPATIBILITY"
+          echo "VALIDATING HANGFIRE + NPGSQL 10 COMPATIBILITY"
           echo "================================"
           dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
             --filter "FullyQualifiedName~HangfirePostgreSqlTests" \
@@ -415,8 +415,8 @@ jobs:
             --query "primaryConnectionString" \
             --output tsv)
           echo "Infrastructure deployed successfully!"
-          echo " Service Bus Namespace: $SERVICE_BUS_NAMESPACE"
-          echo " To use locally, set: export Messaging__ServiceBus__ConnectionString='[CONNECTION_STRING]'"
+          echo "Service Bus Namespace: $SERVICE_BUS_NAMESPACE"
+          echo "To use locally, set: export Messaging__ServiceBus__ConnectionString='[CONNECTION_STRING]'"
 
       - name: Upload infrastructure outputs
         if: github.event.inputs.deploy_infrastructure == 'true' || github.event.inputs.deploy_infrastructure == ''
@@ -431,6 +431,6 @@ jobs:
       - name: Cleanup after test (if requested)
         if: github.event.inputs.cleanup_after_test == 'true'
         run: |
-          echo " Cleaning up dev resources as requested..."
+          echo "Cleaning up dev resources as requested..."
           az group delete --name ${{ env.AZURE_RESOURCE_GROUP_DEV }} --yes --no-wait
           echo "Cleanup initiated (resources will be deleted in a few minutes)"
