@@ -96,8 +96,8 @@ apps/admin-portal/
 │   │   ├── api.ts              # API client
 │   │   └── utils.ts
 │   └── types/                  # TypeScript types
-├── e2e/                        # Playwright tests
-├── playwright.config.ts
+├── src/Web/e2e/                # Playwright tests
+├── src/Web/playwright.config.ts
 └── package.json
 ```
 
@@ -138,13 +138,21 @@ export function EditButton({ providerId }: { providerId: string }) {
 }
 
 // Protected route wrapper
+'use client';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+
 function AdminProtected({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
-  
+  const router = useRouter();
+
   if (status === 'loading') return <Spinner />;
-  if (!session) return <Redirect to="/login" />;
+  if (!session) {
+    router.push('/login');
+    return null;
+  }
   if (session.user.role !== 'admin') return <AccessDenied />;
-  
+
   return <>{children}</>;
 }
 ```

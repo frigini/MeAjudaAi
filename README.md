@@ -260,7 +260,7 @@ dotnet test tests/MeAjudaAi.Modules.Users.Tests/
 
 ## 🎨 Admin Portal
 
-**Portal administrativo** Blazor WebAssembly para gestão completa da plataforma.
+**Portal administrativo** React + Next.js para gestão completa da plataforma.
 
 **Funcionalidades:**
 - ✅ Autenticação via Keycloak OIDC (Authorization Code + PKCE)

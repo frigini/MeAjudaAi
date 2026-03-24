@@ -2913,38 +2913,8 @@ export function useCreateProvider() {
   });
 }
 ```
-                    result.Value.Items, 
-                    result.Value.TotalItems));
-            }
-            else
-            {
-                dispatcher.Dispatch(new LoadProvidersFailureAction(
-                    result.Error?.Message ?? "Falha ao carregar fornecedores"));
-            }
-        }
-        catch (Exception ex)
-        {
-            dispatcher.Dispatch(new LoadProvidersFailureAction(ex.Message));
-        }
-    }
-}
-```
 
-**Fluxo de Dados Unidirecional**:
-1. **User Interaction** → Componente dispara Action
-2. **Action** → Fluxor enfileira ação
-3. **Reducer** → Cria novo State (immutable)
-4. **Effect** (se aplicável) → Chama API externa
-5. **New State** → UI re-renderiza automaticamente
-
-**Benefícios do Padrão**:
-- ✅ **Previsibilidade**: Estado centralizado e immutable
-- ✅ **Testabilidade**: Reducers são funções puras
-- ✅ **Debug**: Redux DevTools integration
-- ✅ **Time-travel**: Estado histórico para debugging
-
-### **Refit - Type-Safe HTTP Clients (SDK)**
-
+### **TanStack Query - Data Fetching Patterns**
 **MeAjudaAi.Client.Contracts é o SDK oficial .NET** para consumir a API REST, semelhante ao AWS SDK ou Stripe SDK.
 
 **SDKs Disponíveis** (Sprint 6-7):
@@ -3035,7 +3005,7 @@ Blazor Component → IProvidersApi (interface) → Refit CodeGen → HttpClient 
 - ✅ Integration with HttpClientFactory + Polly
 - ✅ Authentication header injection via message handler
 - ✅ **20 linhas de código manual → 2 linhas (interface + atributo)**
-- ✅ Reutilizável entre projetos (.NET, Node.js)
+- ✅ Reutilizável entre projetos .NET (ex.: .NET 6/8, Blazor, Xamarin)
 
 **Documentação Completa**: `src/Web/MeAjudaAi.Web.Customer/types/README.md`
 
@@ -3264,19 +3234,9 @@ apps/admin-portal/
 │   ├── hooks/                  # Custom React hooks
 │   ├── lib/                    # Utilities
 │   └── stores/                 # Zustand stores
-├── e2e/                        # Playwright tests
+├── src/Web/e2e/               # Playwright tests
 │   └── providers.spec.ts
-├── playwright.config.ts
-└── package.json
-├── Program.cs                  # Entry point + DI
-└── App.razor                   # Root component
-
-tests/MeAjudaAi.Web.Admin.Tests/
-├── Pages/
-│   ├── ProvidersPageTests.cs
-│   └── DashboardPageTests.cs
-└── Layout/
-    └── DarkModeToggleTests.cs
+└── src/Web/playwright.config.ts
 ```
 
 ### **Best Practices - Frontend**

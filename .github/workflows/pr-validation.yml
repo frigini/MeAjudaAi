@@ -8,6 +8,15 @@ name: Pull Request Validation
     branches: ["**"]
   # Manual trigger for testing workflow changes
   workflow_dispatch:
+    inputs:
+      run_e2e:
+        description: 'Run E2E tests'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 permissions:
   contents: read
@@ -18,6 +27,7 @@ permissions:
 env:
   DOTNET_VERSION: "10.0.x"
   STRICT_COVERAGE: false # TODO: Re-set to true once coverage threshold (90%) is consistently met
+  RUN_E2E: ${{ github.event.inputs.run_e2e || 'false' }}
   # PostgreSQL configuration (DRY principle - single source of truth)
   # Fallback credentials: Only used in fork/local dev; main repo requires secrets
   POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
@@ -181,7 +191,7 @@ jobs:
 
       - name: Run E2E Tests (Playwright)
         working-directory: ./src/Web
-        if: false  # Disabled for now - enable after apps are running
+        if: env.RUN_E2E == 'true'
         run: |
           echo "================================"
           echo "E2E TESTS (PLAYWRIGHT)"

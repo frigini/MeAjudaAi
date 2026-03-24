@@ -8,7 +8,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 **Status**: Fase 2 em andamento (Frontend React + Mobile).  
 Contém o status atual das sprints, o cronograma detalhado até o MVP e o plano de mitigação de riscos.
 - **Sprint Atual**: 8E (E2E Tests - Playwright)
-- **Próximas Sprints**: 8E (E2E Tests), 9 (Buffer & Risk Mitigation)
+- **Próximas Sprints**: 9 (Buffer & Risk Mitigation)
 - **Meta MVP**: Maio 2026 (12-16)
 
 ---

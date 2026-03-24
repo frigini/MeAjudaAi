@@ -601,7 +601,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
   - `/configuracoes` - Toggle de visibilidade + delete account com confirmação LGPD
 - ✅ **Slug URLs**: Perfis públicos acessíveis via slugs (ex: `/provider/joao-silva-a1b2c3d4`)
 
-### ✅ Sprint 8D - Admin Portal Migration (2 - 22 Abr 2026)
+### ✅ Sprint 8D - Admin Portal Migration (2 - 24 Mar 2026)
 
 **Status**: ✅ CONCLUÍDA (24 Mar 2026)
 **Foco**: Phased migration from Blazor WASM to React.
@@ -1212,7 +1212,7 @@ public class ActivityHub : Hub
 1. ✅ **Sprint 8B.2: NX Monorepo & Technical Excellence** (Concluída)
 2. ✅ **Sprint 8C: Provider Web App (React + NX)** (Concluída - 21 Mar 2026)
 3. ✅ **Sprint 8D: Admin Portal Migration** (Concluída - 24 Mar 2026)
-4. ⏳ **Sprint 8E: E2E Tests React Apps (Playwright)** (Planejada)
+4. ⏳ **Sprint 8E: E2E Tests React Apps (Playwright)** (Em Andamento)
 5. ⏳ **Sprint 9: BUFFER & RISK MITIGATION** (Abril/Maio 2026)
 6. 🎯 **MVP Final Launch: 12 - 16 de Maio de 2026**
 7. 📋 API Collections - Bruno .bru files para todos os módulos
