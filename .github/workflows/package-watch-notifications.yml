@@ -44,7 +44,7 @@ jobs:
           script: |
             const commits = process.env.COMMITS_DATA;
 
-            const comment = `## 👀 Atividade Detectada no Repositório Aspire
+            const comment = `##  Atividade Detectada no Repositório Aspire
 
             Encontrei commits recentes mencionando **EF Core 10**:
 
@@ -54,7 +54,7 @@ jobs:
 
             **Ação Recomendada**: Revisar commits e verificar se há menção ao pacote \`Aspire.Npgsql.EntityFrameworkCore.PostgreSQL\`.
 
-            🔗 **Ver todos commits**: https://github.com/dotnet/aspire/commits/main
+             **Ver todos commits**: https://github.com/dotnet/aspire/commits/main
 
             ---
             *Auto-watch by [package-watch-notifications](https://github.com/${process.env.GITHUB_REPOSITORY}/actions/workflows/package-watch-notifications.yml)*
@@ -101,7 +101,7 @@ jobs:
           script: |
             const items = process.env.ITEMS_DATA;
 
-            const comment = `## 🔔 Atividade Detectada - Hangfire.PostgreSql
+            const comment = `##  Atividade Detectada - Hangfire.PostgreSql
 
             Encontrei discussões recentes sobre **v2.x** ou **Npgsql 10**:
 
@@ -111,7 +111,7 @@ jobs:
 
             **Ação Recomendada**: Revisar discussões para atualizações sobre timeline do v2.x.
 
-            🔗 **Repositório**: https://github.com/frankhommers/Hangfire.PostgreSql/issues
+             **Repositório**: https://github.com/frankhommers/Hangfire.PostgreSql/issues
 
             ---
             *Auto-watch by [package-watch-notifications](https://github.com/${process.env.GITHUB_REPOSITORY}/actions/workflows/package-watch-notifications.yml)*

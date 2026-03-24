@@ -56,7 +56,7 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: 🔧 Restore dependencies
+      - name: Restore dependencies
         run: dotnet restore MeAjudaAi.slnx --force-evaluate
 
       - name: Build solution
@@ -64,15 +64,15 @@ jobs:
 
       - name: Install Aspire workload
         run: |
-          echo "📦 Installing .NET Aspire workload..."
+          echo "Installing .NET Aspire workload..."
           dotnet workload update
           # --skip-sign-check is required to install unsigned preview Aspire workloads
           # in the ephemeral GitHub Actions environment. This flag bypasses signature
           # verification which is acceptable for CI/CD only. Remove this flag when
           # moving to signed/stable Aspire releases.
           dotnet workload install aspire --skip-sign-check
-          echo "✅ Aspire workload installed"
-          echo "🔍 Verifying Aspire installation..."
+          echo "Aspire workload installed"
+          echo "Verifying Aspire installation..."
           dotnet workload list
           # Verify DCP is available
           if [ -d "$HOME/.dotnet/sdk-manifests" ]; then
@@ -104,10 +104,10 @@ jobs:
           EXCLUDE_PATTERNS="**/Migrations/*.cs,**/Database/*.cs,**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
 
           echo "================================"
-          echo "🧪 BACKEND UNIT TESTS WITH COVERAGE"
+          echo "BACKEND UNIT TESTS WITH COVERAGE"
           echo "================================"
 
-          echo "▶️ Running Shared and Architecture tests..."
+          echo "Running Shared and Architecture tests..."
           dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
             --collect:"XPlat Code Coverage" --results-directory TestResults/Shared \
@@ -123,7 +123,7 @@ jobs:
             --collect:"XPlat Code Coverage" --results-directory TestResults/ApiService \
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
 
-          echo "🧪 Running module tests..."
+          echo "Running module tests..."
           dotnet test src/Modules/Users/Tests/MeAjudaAi.Modules.Users.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
             --collect:"XPlat Code Coverage" --results-directory TestResults/Users \
@@ -154,63 +154,40 @@ jobs:
             --collect:"XPlat Code Coverage" --results-directory TestResults/SearchProviders \
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
 
-      - name: Restore frontend dependencies
+      - name: Run frontend tests (React Admin)
+        working-directory: src/Web/MeAjudaAi.Web.Admin
         run: |
-          echo "🔄 Restoring Web.Admin dependencies with --force-evaluate..."
-          dotnet restore src/Web/MeAjudaAi.Web.Admin/MeAjudaAi.Web.Admin.csproj --force-evaluate /p:RestoreLockedMode=false
-          dotnet restore tests/MeAjudaAi.Web.Admin.Tests/MeAjudaAi.Web.Admin.Tests.csproj --force-evaluate /p:RestoreLockedMode=false
-          echo "✅ Frontend dependencies restored"
-
-      - name: Run frontend component tests (bUnit)
-        if: always()
-        env:
-          ASPNETCORE_ENVIRONMENT: Testing
-        run: |
-          set -e
-          
           echo "===================================="
-          echo "🎨 FRONTEND COMPONENT TESTS (bUnit)"
+          echo "REACT ADMIN TESTS"
           echo "===================================="
-          echo ""
-          echo "Running Blazor WASM component tests with bUnit framework"
-          echo "Target: MeAjudaAi.Web.Admin (Blazor Admin Portal)"
-          echo ""
-          echo "⚠️  Note: Coverage NOT collected for Blazor WASM (unreliable due to generated code)"
-          echo "Focus: Maximum test coverage of components, not code coverage metrics"
-          echo ""
-
-          echo "▶️ Running Web.Admin component tests (43 tests: Pages, Dialogs, Components)..."
-          dotnet test tests/MeAjudaAi.Web.Admin.Tests/MeAjudaAi.Web.Admin.Tests.csproj \
-            --configuration Release --no-restore --verbosity normal
-
-          echo ""
-          echo "✅ Frontend component tests completed successfully"
-          echo "===================================="
+          echo "Running React Admin tests..."
+          npm test
+          echo "React Admin tests completed"
 
       - name: Free Disk Space for Integration Tests
         run: |
-          echo "🧹 Freeing disk space before integration tests..."
+          echo "Freeing disk space before integration tests..."
           
           # Show disk usage before cleanup
-          echo "📊 Disk usage before cleanup:"
+          echo "Disk usage before cleanup:"
           df -h
           
           # Remove Docker images and containers that are not needed
-          echo "🗑️  Removing unused Docker resources..."
+          echo "️  Removing unused Docker resources..."
           docker system prune -af --volumes || true
           
           # Remove large packages/tools not needed for tests
-          echo "🗑️  Removing unnecessary packages..."
+          echo "️  Removing unnecessary packages..."
           sudo apt-get clean
           sudo rm -rf /usr/local/lib/android || true
           sudo rm -rf /opt/ghc || true
           sudo rm -rf /usr/local/.ghcup || true
           
           # Show disk usage after cleanup
-          echo "📊 Disk usage after cleanup:"
+          echo "Disk usage after cleanup:"
           df -h
           
-          echo "✅ Disk space cleanup completed"
+          echo "Disk space cleanup completed"
 
       - name: Run integration tests
         env:
@@ -227,7 +204,7 @@ jobs:
           set -e  # Exit immediately if any command fails
           
           echo "================================"
-          echo "🔗 INTEGRATION TESTS (NO COVERAGE)"
+          echo "INTEGRATION TESTS (NO COVERAGE)"
           echo "================================"
           dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
             --configuration Release --no-build --verbosity normal
@@ -241,7 +218,7 @@ jobs:
           set -e  # Exit immediately if any command fails
           
           echo "================================"
-          echo "🌐 E2E TESTS (NO COVERAGE)"
+          echo "E2E TESTS (NO COVERAGE)"
           echo "================================"
           dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj \
             --configuration Release --no-build --verbosity normal
@@ -254,7 +231,7 @@ jobs:
             DOTNET_RESOLVED=$(readlink -f "$DOTNET_PATH")
             export DOTNET_ROOT=$(dirname "$DOTNET_RESOLVED")
             echo "DOTNET_ROOT=$DOTNET_ROOT" >> $GITHUB_ENV
-            echo "✅ Set DOTNET_ROOT: $DOTNET_ROOT"
+            echo "Set DOTNET_ROOT: $DOTNET_ROOT"
           fi
 
       - name: Generate Code Coverage Report
@@ -269,7 +246,7 @@ jobs:
           classfilters: '-*.Migrations.*;-*.Database.*;-*.Contracts.*;-*.Metrics.*;-*.HealthChecks.*;-*.Jobs.Hangfire*;-*.Jobs.Configuration*;-*Program*;-*AppHost*;-*.ServiceDefaults*;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery'
           verbosity: 'Info'
           tag: '${{ github.run_number }}_${{ github.run_id }}'
-        # Note: UNIT test coverage for backend only. Frontend bUnit tests run separately without coverage (unreliable for Blazor WASM).
+        # Note: UNIT test coverage for backend only. 
         # Excluded from coverage: Tests, Migrations, Database, Contracts, Metrics, Health Checks, Jobs, Program, AppHost, Keycloak, Monitoring, NoOp, RabbitMq, ServiceBus, Hangfire, Options, Design-time factories
 
       - name: Upload code coverage
@@ -315,7 +292,7 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: 🗄️ Setup PostgreSQL Connection
+      - name: ️ Setup PostgreSQL Connection
         id: pg-conn
         uses: ./.github/actions/setup-postgres-connection
         with:
@@ -323,7 +300,7 @@ jobs:
           postgres-user: ${{ secrets.POSTGRES_USER || 'postgres' }}
           postgres-password: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
 
-      - name: 🧪 Run Hangfire Compatibility Tests
+      - name: Run Hangfire Compatibility Tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           MEAJUDAAI_DB_HOST: localhost
@@ -333,7 +310,7 @@ jobs:
           MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
         run: |
           echo "================================"
-          echo "🧪 VALIDATING HANGFIRE + NPGSQL 10 COMPATIBILITY"
+          echo "VALIDATING HANGFIRE + NPGSQL 10 COMPATIBILITY"
           echo "================================"
           dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
             --filter "FullyQualifiedName~HangfirePostgreSqlTests" \
@@ -437,9 +414,9 @@ jobs:
             --name "$MANAGEMENT_POLICY_NAME" \
             --query "primaryConnectionString" \
             --output tsv)
-          echo "✅ Infrastructure deployed successfully!"
-          echo "🔗 Service Bus Namespace: $SERVICE_BUS_NAMESPACE"
-          echo "💡 To use locally, set: export Messaging__ServiceBus__ConnectionString='[CONNECTION_STRING]'"
+          echo "Infrastructure deployed successfully!"
+          echo "Service Bus Namespace: $SERVICE_BUS_NAMESPACE"
+          echo "To use locally, set: export Messaging__ServiceBus__ConnectionString='[CONNECTION_STRING]'"
 
       - name: Upload infrastructure outputs
         if: github.event.inputs.deploy_infrastructure == 'true' || github.event.inputs.deploy_infrastructure == ''
@@ -454,6 +431,6 @@ jobs:
       - name: Cleanup after test (if requested)
         if: github.event.inputs.cleanup_after_test == 'true'
         run: |
-          echo "🧹 Cleaning up dev resources as requested..."
+          echo "Cleaning up dev resources as requested..."
           az group delete --name ${{ env.AZURE_RESOURCE_GROUP_DEV }} --yes --no-wait
-          echo "✅ Cleanup initiated (resources will be deleted in a few minutes)"
+          echo "Cleanup initiated (resources will be deleted in a few minutes)"

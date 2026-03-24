@@ -1,0 +1,30 @@
+{
+  "name": "MeAjudaAi.Web.Admin",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "MeAjudaAi.Web.Admin",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "command": "next build",
+      "outputs": [
+        "{workspaceRoot}/dist/MeAjudaAi.Web.Admin"
+      ],
+      "options": {
+        "cwd": "MeAjudaAi.Web.Admin"
+      }
+    },
+    "serve": {
+      "command": "next dev -p 3002",
+      "options": {
+        "cwd": "MeAjudaAi.Web.Admin"
+      }
+    },
+    "lint": {
+      "command": "next lint",
+      "options": {
+        "cwd": "MeAjudaAi.Web.Admin"
+      }
+    }
+  }
+}

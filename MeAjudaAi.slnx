@@ -123,7 +123,6 @@
     <Project Path="src/Shared/MeAjudaAi.Shared.csproj" />
   </Folder>
   <Folder Name="/src/Web/">
-    <Project Path="src/Web/MeAjudaAi.Web.Admin/MeAjudaAi.Web.Admin.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/MeAjudaAi.ApiService.Tests/MeAjudaAi.ApiService.Tests.csproj" />
@@ -131,6 +130,5 @@
     <Project Path="tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj" />
     <Project Path="tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj" />
     <Project Path="tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj" />
-    <Project Path="tests/MeAjudaAi.Web.Admin.Tests/MeAjudaAi.Web.Admin.Tests.csproj" />
   </Folder>
 </Solution>

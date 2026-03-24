@@ -79,14 +79,14 @@ jobs:
         env:
           KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
         run: |
-          echo "🔍 Checking Keycloak configuration..."
+          echo " Checking Keycloak configuration..."
           if [ -z "$KEYCLOAK_ADMIN_PASSWORD" ]; then
             echo "ℹ️  KEYCLOAK_ADMIN_PASSWORD secret not configured - Keycloak is optional"
-            echo "💡 To enable Keycloak authentication features, configure the secret in:"
+            echo " To enable Keycloak authentication features, configure the secret in:"
             echo "   Settings → Secrets and variables → Actions → KEYCLOAK_ADMIN_PASSWORD"
-            echo "🔄 Tests will continue without Keycloak-dependent features"
+            echo " Tests will continue without Keycloak-dependent features"
           else
-            echo "✅ Keycloak secrets configured - authentication features enabled"
+            echo "Keycloak secrets configured - authentication features enabled"
           fi
 
       - name: Install PostgreSQL client
@@ -94,7 +94,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
 
-      - name: 🔧 Restore dependencies
+      - name: Restore dependencies
         run: dotnet restore MeAjudaAi.slnx
 
       - name: Build solution
@@ -107,14 +107,14 @@ jobs:
           cache: "npm"
           cache-dependency-path: ./src/Web/package-lock.json
 
-      - name: 📦 Install Frontend Dependencies
+      - name: Install Frontend Dependencies
         working-directory: ./src/Web
         run: npm ci
 
       - uses: nrwl/nx-set-shas@v5
 
       # Generate API client BEFORE lint/test so MeAjudaAi.Web.Customer has generated types
-      - name: 🔧 Generate API Client
+      - name: Generate API Client
         working-directory: ./src/Web
         run: |
           set -e
@@ -145,20 +145,22 @@ jobs:
 
           swagger tofile --output ../api/api-spec.json "$DLL_PATH" v1
 
-          # 3. Generate API client for Customer Web App
+          # 3. Generate API clients for all Web Apps
           # The generator reads OPENAPI_SPEC_URL from env
           export OPENAPI_SPEC_URL="$GITHUB_WORKSPACE/src/api/api-spec.json"
           npm run generate:api --workspace=meajudaai.web.customer
+          npm run generate:api --workspace=meajudaai.web.admin
+          npm run generate:api --workspace=meajudaai.web.provider
 
-      - name: 🔍 Lint Frontend Workspace
+      - name: Lint Frontend Workspace
         working-directory: ./src/Web
         run: npx nx affected --target=lint
 
-      - name: 🧪 Test Frontend Workspace
+      - name: Test Frontend Workspace
         working-directory: ./src/Web
         run: npx nx affected --target=test
 
-      - name: 🏗️ Build Frontend Workspace
+      - name: ️ Build Frontend Workspace
         working-directory: ./src/Web
         env:
           # Dummy values required so Next.js can collect page data during build.
@@ -179,12 +181,12 @@ jobs:
 
       - name: Prepare Aspire Integration Tests
         run: |
-          echo "📦 Preparing .NET Aspire for integration tests..."
+          echo " Preparing .NET Aspire for integration tests..."
           echo "ℹ️  Note: Aspire workload is deprecated in .NET 10 - using NuGet packages instead"
 
           # In .NET 10, the Aspire orchestration package needs to be explicitly restored
           # The package name varies by platform RID
-          echo "🔄 Downloading Aspire DCP orchestration package for linux-x64..."
+          echo " Downloading Aspire DCP orchestration package for linux-x64..."
 
           # Download the orchestration package directly
           # Note: The version should match the Aspire.AppHost.Sdk version (13.0.2)
@@ -205,7 +207,7 @@ jobs:
           rm -rf "$TEMP_DIR"
 
           # Verify DCP binaries were downloaded (now located in NuGet package cache)
-          echo "🔎 Verifying DCP binaries in NuGet cache..."
+          echo " Verifying DCP binaries in NuGet cache..."
 
           # DCP binaries come from Aspire.Hosting.Orchestration.<RID> NuGet package
           # For linux-x64, the package is aspire.hosting.orchestration.linux-x64
@@ -214,32 +216,32 @@ jobs:
             -iname "aspire.hosting.orchestration.linux-x64" 2>/dev/null | head -n 1)
 
           if [ -z "$DCP_PACKAGE_PATH" ]; then
-            echo "❌ Error: aspire.hosting.orchestration.linux-x64 package not found in NuGet cache"
+            echo "Error: aspire.hosting.orchestration.linux-x64 package not found in NuGet cache"
             echo "Searching for all Aspire orchestration packages..."
             find "$HOME/.nuget/packages" -maxdepth 1 -type d \
               -iname "*aspire*orchestration*" 2>/dev/null || echo "No Aspire orchestration packages found"
             echo "Listing all Aspire packages:"
             find "$HOME/.nuget/packages" -maxdepth 1 -type d \
               -iname "*aspire*" 2>/dev/null || echo "No Aspire packages found"
-            echo "❌ Integration tests require Aspire DCP binaries - failing fast"
+            echo "Integration tests require Aspire DCP binaries - failing fast"
             exit 1
           fi
 
-          echo "✅ Found Aspire package at: $DCP_PACKAGE_PATH"
+          echo "Found Aspire package at: $DCP_PACKAGE_PATH"
 
           # Find DCP binary in the downloaded package
           DCP_BINARY=$(find "$DCP_PACKAGE_PATH" -type f -name "dcp" \
             2>/dev/null | head -n 1)
 
           if [ -z "$DCP_BINARY" ]; then
-            echo "❌ Error: DCP binary not found in package"
+            echo "Error: DCP binary not found in package"
             echo "Package structure:"
             ls -la "$DCP_PACKAGE_PATH" || true
-            echo "❌ Integration tests require Aspire DCP binaries - failing fast"
+            echo "Integration tests require Aspire DCP binaries - failing fast"
             exit 1
           fi
 
-          echo "✅ Aspire DCP binaries verified: $DCP_BINARY"
+          echo "Aspire DCP binaries verified: $DCP_BINARY"
 
           # Set DOTNET_ROOT for SDK discovery
           # Note: This export to $GITHUB_ENV should persist to later steps, but the
@@ -250,7 +252,7 @@ jobs:
       - name: Check code formatting
         run: |
           set -o pipefail
-          echo "🔍 Checking code formatting..."
+          echo " Checking code formatting..."
           # Only check whitespace and style (not SonarQube analyzer warnings)
           dotnet format --verify-no-changes \
             --include whitespace style \
@@ -261,15 +263,15 @@ jobs:
 
           # Check if any files were actually formatted (not just warnings)
           if grep -q "Formatted code file" format-output.txt; then
-            echo "⚠️ Code formatting issues found."
+            echo "Code formatting issues found."
             echo "Run 'dotnet format --include whitespace style' locally to fix."
             grep "Formatted code file" format-output.txt
             exit 1
           elif [ $FORMAT_EXIT_CODE -ne 0 ]; then
-            echo "⚠️ Formatting check failed with exit code $FORMAT_EXIT_CODE"
+            echo "Formatting check failed with exit code $FORMAT_EXIT_CODE"
             exit $FORMAT_EXIT_CODE
           else
-            echo "✅ No formatting changes needed"
+            echo "No formatting changes needed"
           fi
 
       - name: Wait for PostgreSQL to be ready
@@ -277,7 +279,7 @@ jobs:
           PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
           POSTGRES_USER: ${{ env.POSTGRES_USER }}
         run: |
-          echo "🔄 Waiting for PostgreSQL to be ready..."
+          echo " Waiting for PostgreSQL to be ready..."
           echo "Debug: POSTGRES_USER=$POSTGRES_USER"
           echo "Debug: Checking PostgreSQL availability..."
 
@@ -286,7 +288,7 @@ jobs:
 
           while [ $counter -le $max_attempts ]; do
             if pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; then
-              echo "✅ PostgreSQL is ready!"
+              echo "PostgreSQL is ready!"
               break
             fi
             echo "Waiting for PostgreSQL... ($counter/$max_attempts)"
@@ -296,7 +298,7 @@ jobs:
 
           # Check if we exited the loop due to timeout
           if ! pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; then
-            echo "❌ PostgreSQL failed to become ready within 180 seconds"
+            echo "PostgreSQL failed to become ready within 180 seconds"
             echo "Debug: Checking PostgreSQL logs..."
             echo "Service container id: ${{ job.services.postgres.id }}"
             docker logs "${{ job.services.postgres.id }}" || echo "Could not get PostgreSQL logs"
@@ -335,7 +337,7 @@ jobs:
           # Keycloak settings
           KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
           # Azure Storage (Azurite emulator)
-          # ⚠️ TEST CREDENTIALS ONLY - These are the standard Azurite local emulator credentials
+          # TEST CREDENTIALS ONLY - These are the standard Azurite local emulator credentials
           # These are intentionally public and documented at:
           # https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite#well-known-storage-account-and-key
           AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
@@ -347,7 +349,7 @@ jobs:
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
         run: |
           set -euo pipefail
-          echo "🧪 Executando testes com cobertura consolidada..."
+          echo " Executando testes com cobertura consolidada..."
 
           # Function to escape single quotes in PostgreSQL connection string values
           escape_single_quotes() {
@@ -358,7 +360,7 @@ jobs:
           # Check if a pre-built connection string secret exists first
           if [ -n "${DB_CONNECTION_STRING:-}" ]; then
             export ConnectionStrings__DefaultConnection="$DB_CONNECTION_STRING"
-            echo "✅ Using pre-built connection string from DB_CONNECTION_STRING secret"
+            echo "Using pre-built connection string from DB_CONNECTION_STRING secret"
           else
             # Build connection string with proper Npgsql quoting for special characters
             ESCAPED_DB=$(escape_single_quotes "$MEAJUDAAI_DB")
@@ -368,7 +370,7 @@ jobs:
             DB_CONN_STR="Host=localhost;Port=5432;Database='$ESCAPED_DB'"
             DB_CONN_STR="${DB_CONN_STR};Username='$ESCAPED_USER';Password='$ESCAPED_PASS'"
             export ConnectionStrings__DefaultConnection="$DB_CONN_STR"
-            echo "✅ Built connection string from PostgreSQL secrets with proper quoting"
+            echo "Built connection string from PostgreSQL secrets with proper quoting"
           fi
 
           # Test database connection first
@@ -378,10 +380,10 @@ jobs:
                  -U "$MEAJUDAAI_DB_USER" \
                  -d "$MEAJUDAAI_DB" \
                  -c "SELECT 1;" || {
-            echo "❌ Database connection failed — aborting workflow"
-            echo "💡 Ensure PostgreSQL service is running and secrets are configured:"
+            echo "Database connection failed — aborting workflow"
+            echo " Ensure PostgreSQL service is running and secrets are configured:"
             echo "   - POSTGRES_PASSWORD, POSTGRES_USER, POSTGRES_DB"
-            echo "🔄 Integration tests require database connectivity to validate changes"
+            echo " Integration tests require database connectivity to validate changes"
             exit 1
           }
 
@@ -389,7 +391,7 @@ jobs:
           rm -rf ./coverage
           mkdir -p ./coverage
 
-          echo "🧪 Running unit tests with coverage for all modules..."
+          echo " Running unit tests with coverage for all modules..."
 
           # Define modules for coverage testing
           # STRATEGY: Comprehensive coverage for Domain, Application, and critical Shared/ApiService layers
@@ -423,11 +425,11 @@ jobs:
           # Source shared utility functions once before module loop
           RUNSETTINGS_SCRIPT="./.github/scripts/generate-runsettings.sh"
           if [ ! -f "$RUNSETTINGS_SCRIPT" ] || [ ! -r "$RUNSETTINGS_SCRIPT" ]; then
-            echo "❌ ERROR: Required script not found or not readable: $RUNSETTINGS_SCRIPT"
+            echo "ERROR: Required script not found or not readable: $RUNSETTINGS_SCRIPT"
             exit 1
           fi
           if ! source "$RUNSETTINGS_SCRIPT"; then
-            echo "❌ ERROR: Failed to source $RUNSETTINGS_SCRIPT (exit code: $?)"
+            echo "ERROR: Failed to source $RUNSETTINGS_SCRIPT (exit code: $?)"
             exit 1
           fi
 
@@ -437,7 +439,7 @@ jobs:
 
             if [ -d "$module_path" ]; then
               echo "================================"
-              echo "🧪 UNIT TESTS - $module_name (WITH COVERAGE)"
+              echo " UNIT TESTS - $module_name (WITH COVERAGE)"
               echo "================================"
 
               # Create specific output directory for this module
@@ -456,7 +458,7 @@ jobs:
 
             # Validate filter is not empty or trivial
             if [ "$INCLUDE_FILTER" = "[]*" ] || [ "$INCLUDE_FILTER" = "[].*" ]; then
-              echo "⚠️  INCLUDE_FILTER is trivial, falling back to [MeAjudaAi*]*"
+              echo " INCLUDE_FILTER is trivial, falling back to [MeAjudaAi*]*"
               INCLUDE_FILTER="[MeAjudaAi*]*"
             fi
 
@@ -504,14 +506,14 @@ jobs:
 
               TEST_EXIT_CODE=$?
               if [ $TEST_EXIT_CODE -ne 0 ]; then
-                echo "❌ Tests failed for $module_name with exit code $TEST_EXIT_CODE"
+                echo "Tests failed for $module_name with exit code $TEST_EXIT_CODE"
                 exit $TEST_EXIT_CODE
               fi
 
               # Find and rename the coverage file to a predictable name
               if [ -d "$MODULE_COVERAGE_DIR" ]; then
-                echo "🔍 Searching for coverage files in $MODULE_COVERAGE_DIR..."
-                echo "📂 Directory contents:"
+                echo " Searching for coverage files in $MODULE_COVERAGE_DIR..."
+                echo " Directory contents:"
                 find "$MODULE_COVERAGE_DIR" -type f -name "*.xml" | head -10
 
                 # Look for cobertura format (search recursively in GUID subdirs)
@@ -519,24 +521,24 @@ jobs:
                   -name "coverage.cobertura.xml" \
                   -print -quit)
                 if [ -f "$COVERAGE_FILE" ]; then
-                  echo "✅ Found coverage file: $COVERAGE_FILE"
+                  echo "Found coverage file: $COVERAGE_FILE"
                   # Move to standardized name (removes the GUID-based original to avoid double-counting)
                   mv "$COVERAGE_FILE" "$MODULE_COVERAGE_DIR/${module_name,,}.cobertura.xml"
                 else
-                  echo "⚠️  Coverage file not found for $module_name"
-                  echo "📋 Available XML files:"
+                  echo " Coverage file not found for $module_name"
+                  echo " Available XML files:"
                   find "$MODULE_COVERAGE_DIR" -name "*.xml" -type f | head -5
                 fi
               else
-                echo "❌ Coverage directory not found: $MODULE_COVERAGE_DIR"
+                echo "Coverage directory not found: $MODULE_COVERAGE_DIR"
               fi
             else
-              echo "⚠️  $module_name tests not found at $module_path - skipping"
+              echo " $module_name tests not found at $module_path - skipping"
             fi
           done
 
           echo ""
-          echo "📊 COVERAGE FILES SUMMARY"
+          echo " COVERAGE FILES SUMMARY"
           echo "========================="
           echo "Total coverage XML files generated:"
           find ./coverage -type f -name "*.cobertura.xml" | wc -l
@@ -545,16 +547,16 @@ jobs:
           find ./coverage -type f -name "*.cobertura.xml" -printf "%f\n" | sort | head -20
           echo ""
 
-          echo "🔍 DEBUG: Verifying coverage files for CodeCoverageSummary..."
+          echo " DEBUG: Verifying coverage files for CodeCoverageSummary..."
           for module in users providers documents servicecatalogs locations searchproviders shared apiservice; do
             if [ -f "coverage/${module}/${module}.cobertura.xml" ]; then
-              echo "  ✅ coverage/${module}/${module}.cobertura.xml exists"
+              echo "  coverage/${module}/${module}.cobertura.xml exists"
               # Show file size and first line-rate value as sanity check
               FILE_SIZE=$(stat -c%s "coverage/${module}/${module}.cobertura.xml" 2>/dev/null || echo "unknown")
               COVERAGE=$(grep -o 'line-rate="[^"]*"' "coverage/${module}/${module}.cobertura.xml" 2>/dev/null | head -1 | cut -d'"' -f2 || echo "N/A")
               echo "     Size: ${FILE_SIZE} bytes, Coverage Rate: ${COVERAGE}"
             else
-              echo "  ❌ coverage/${module}/${module}.cobertura.xml NOT FOUND"
+              echo "  coverage/${module}/${module}.cobertura.xml NOT FOUND"
             fi
           done
           echo ""
@@ -562,12 +564,12 @@ jobs:
       - name: Run Architecture Tests
         if: always()
         run: |
-          echo "🧪 Running Architecture tests (no database required)..."
+          echo " Running Architecture tests (no database required)..."
 
           # Only run Architecture tests in PR validation (fast, no database dependency)
           if [ -d "tests/MeAjudaAi.Architecture.Tests/" ]; then
             echo "================================"
-            echo "📐 ARCHITECTURE TESTS"
+            echo " ARCHITECTURE TESTS"
             echo "================================"
             dotnet test "tests/MeAjudaAi.Architecture.Tests/" \
               --configuration Release \
@@ -577,71 +579,37 @@ jobs:
             
             TEST_EXIT_CODE=$?
             if [ $TEST_EXIT_CODE -ne 0 ]; then
-              echo "❌ Architecture tests failed with exit code $TEST_EXIT_CODE"
+              echo "Architecture tests failed with exit code $TEST_EXIT_CODE"
               exit $TEST_EXIT_CODE
             fi
           else
-            echo "⚠️  Architecture tests not found - skipping"
+            echo " Architecture tests not found - skipping"
           fi
-
-      - name: Run Frontend Component Tests (bUnit)
-        if: always()
-        env:
-          ASPNETCORE_ENVIRONMENT: Testing
-        run: |
-          echo "===================================="
-          echo "🎨 FRONTEND COMPONENT TESTS (bUnit)"
-          echo "===================================="
-          echo ""
-          echo "Running Blazor WASM component tests with bUnit framework"
-          echo "Target: MeAjudaAi.Web.Admin (Blazor Admin Portal)"
-          echo ""
-          echo "⚠️  Note: Coverage NOT collected for Blazor WASM (unreliable due to generated code)"
-          echo "Focus: Maximum test coverage of components, not code coverage metrics"
-          echo ""
-
-          echo "▶️ Running Web.Admin component tests (Providers, Dashboard, DarkMode)..."
-          dotnet test tests/MeAjudaAi.Web.Admin.Tests/MeAjudaAi.Web.Admin.Tests.csproj \
-            --configuration Release \
-            --no-restore \
-            --no-build \
-            --verbosity normal \
-            --logger "trx;LogFileName=webadmin-test-results.trx"
-
-          FRONTEND_EXIT_CODE=$?
-          if [ $FRONTEND_EXIT_CODE -ne 0 ]; then
-            echo "❌ Frontend component tests failed with exit code $FRONTEND_EXIT_CODE"
-            exit $FRONTEND_EXIT_CODE
-          fi
-
-          echo ""
-          echo "✅ Frontend component tests completed successfully"
-          echo "===================================="
 
       - name: Free Disk Space for Integration Tests
         run: |
-          echo "🧹 Freeing disk space before integration tests..."
+          echo " Freeing disk space before integration tests..."
 
           # Show disk usage before cleanup
-          echo "📊 Disk usage before cleanup:"
+          echo " Disk usage before cleanup:"
           df -h
 
           # Remove Docker images and containers that are not needed
-          echo "🗑️  Removing unused Docker resources..."
+          echo "️  Removing unused Docker resources..."
           docker system prune -af --volumes || true
 
           # Remove large packages/tools not needed for tests
-          echo "🗑️  Removing unnecessary packages..."
+          echo "️  Removing unnecessary packages..."
           sudo apt-get clean
           sudo rm -rf /usr/local/lib/android || true
           sudo rm -rf /opt/ghc || true
           sudo rm -rf /usr/local/.ghcup || true
 
           # Show disk usage after cleanup
-          echo "📊 Disk usage after cleanup:"
+          echo " Disk usage after cleanup:"
           df -h
 
-          echo "✅ Disk space cleanup completed"
+          echo "Disk space cleanup completed"
 
       - name: Run Integration Tests
         env:
@@ -655,22 +623,22 @@ jobs:
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
         run: |
-          echo "🔗 Running Integration tests..."
+          echo " Running Integration tests..."
 
           # Source shared utility functions with existence check
           RUNSETTINGS_SCRIPT="./.github/scripts/generate-runsettings.sh"
           if [ ! -f "$RUNSETTINGS_SCRIPT" ] || [ ! -r "$RUNSETTINGS_SCRIPT" ]; then
-            echo "❌ ERROR: Required script not found or not readable: $RUNSETTINGS_SCRIPT"
+            echo "ERROR: Required script not found or not readable: $RUNSETTINGS_SCRIPT"
             exit 1
           fi
           if ! source "$RUNSETTINGS_SCRIPT"; then
-            echo "❌ ERROR: Failed to source $RUNSETTINGS_SCRIPT (exit code: $?)"
+            echo "ERROR: Failed to source $RUNSETTINGS_SCRIPT (exit code: $?)"
             exit 1
           fi
 
           if [ -d "tests/MeAjudaAi.Integration.Tests/" ]; then
             echo "================================"
-            echo "🔗 INTEGRATION TESTS"
+            echo " INTEGRATION TESTS"
             echo "================================"
             
             # Create runsettings with same exclusions as unit tests
@@ -699,11 +667,11 @@ jobs:
             
             TEST_EXIT_CODE=$?
             if [ $TEST_EXIT_CODE -ne 0 ]; then
-              echo "❌ Integration tests failed with exit code $TEST_EXIT_CODE"
+              echo "Integration tests failed with exit code $TEST_EXIT_CODE"
               exit $TEST_EXIT_CODE
             fi
           else
-            echo "⚠️  Integration tests not found - skipping"
+            echo " Integration tests not found - skipping"
           fi
 
       - name: Run E2E Tests
@@ -718,22 +686,22 @@ jobs:
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
         run: |
-          echo "🌐 Running E2E tests..."
+          echo " Running E2E tests..."
 
           # Source shared utility functions with existence check
           RUNSETTINGS_SCRIPT="./.github/scripts/generate-runsettings.sh"
           if [ ! -f "$RUNSETTINGS_SCRIPT" ] || [ ! -r "$RUNSETTINGS_SCRIPT" ]; then
-            echo "❌ ERROR: Required script not found or not readable: $RUNSETTINGS_SCRIPT"
+            echo "ERROR: Required script not found or not readable: $RUNSETTINGS_SCRIPT"
             exit 1
           fi
           if ! source "$RUNSETTINGS_SCRIPT"; then
-            echo "❌ ERROR: Failed to source $RUNSETTINGS_SCRIPT (exit code: $?)"
+            echo "ERROR: Failed to source $RUNSETTINGS_SCRIPT (exit code: $?)"
             exit 1
           fi
 
           if [ -d "tests/MeAjudaAi.E2E.Tests/" ]; then
             echo "================================"
-            echo "🌐 E2E TESTS"
+            echo " E2E TESTS"
             echo "================================"
             
             # Create runsettings with same exclusions as unit tests
@@ -762,49 +730,49 @@ jobs:
             
             TEST_EXIT_CODE=$?
             if [ $TEST_EXIT_CODE -ne 0 ]; then
-              echo "❌ E2E tests failed with exit code $TEST_EXIT_CODE"
+              echo "E2E tests failed with exit code $TEST_EXIT_CODE"
               exit $TEST_EXIT_CODE
             fi
           else
-            echo "⚠️  E2E tests not found - skipping"
+            echo " E2E tests not found - skipping"
           fi
 
           echo ""
-          echo "✅ All test categories completed"
+          echo "All test categories completed"
 
       - name: Generate Aggregated Coverage Report
         if: always()
         run: |
-          echo "📊 Generating aggregated coverage report from ALL tests..."
+          echo " Generating aggregated coverage report from ALL tests..."
 
           # Verify .NET 10 installation
-          echo "🔍 Verifying .NET installation..."
+          echo " Verifying .NET installation..."
           dotnet --version
           dotnet --list-sdks
           dotnet --list-runtimes
 
           # Pre-flight check: verify all expected coverage files exist
-          echo "🔍 Pre-flight check: Verifying coverage files..."
+          echo " Pre-flight check: Verifying coverage files..."
           MISSING_FILES=0
           for module in users providers documents servicecatalogs locations searchproviders shared apiservice; do
             if ! find "coverage/${module}" -name "*.cobertura.xml" -type f | grep -q .; then
-              echo "  ⚠️  Warning: No .cobertura.xml files found for ${module}"
+              echo "   Warning: No .cobertura.xml files found for ${module}"
               MISSING_FILES=$((MISSING_FILES + 1))
             else
-              echo "  ✅ Found coverage file(s) for ${module}"
+              echo "  Found coverage file(s) for ${module}"
             fi
           done
 
           # Check for Integration/E2E coverage
           if find "coverage/integration" -name "*.xml" -type f | grep -q .; then
-            echo "  ✅ Found Integration test coverage"
+            echo "  Found Integration test coverage"
           fi
           if find "coverage/e2e" -name "*.xml" -type f | grep -q .; then
-            echo "  ✅ Found E2E test coverage"
+            echo "  Found E2E test coverage"
           fi
 
           if [ $MISSING_FILES -gt 0 ]; then
-            echo "⚠️  Warning: $MISSING_FILES module(s) missing coverage files"
+            echo " Warning: $MISSING_FILES module(s) missing coverage files"
             echo "   ReportGenerator will combine only available modules"
           fi
 
@@ -817,18 +785,18 @@ jobs:
             DOTNET_RESOLVED=$(readlink -f "$DOTNET_PATH")
             export DOTNET_ROOT=$(dirname "$DOTNET_RESOLVED")
             echo "DOTNET_ROOT=$DOTNET_ROOT" >> $GITHUB_ENV
-            echo "✅ Set DOTNET_ROOT: $DOTNET_ROOT"
+            echo "Set DOTNET_ROOT: $DOTNET_ROOT"
             
             # Validate DOTNET_ROOT directory
             if [ ! -d "$DOTNET_ROOT" ]; then
-              echo "❌ ERROR: DOTNET_ROOT directory does not exist: $DOTNET_ROOT"
+              echo "ERROR: DOTNET_ROOT directory does not exist: $DOTNET_ROOT"
               exit 1
             fi
             
-            echo "📋 Available runtimes:"
+            echo " Available runtimes:"
             dotnet --list-runtimes
           else
-            echo "❌ dotnet command not found"
+            echo "dotnet command not found"
             exit 1
           fi
 
@@ -850,23 +818,23 @@ jobs:
       - name: Display coverage summary
         run: |
           if [ -f "coverage/aggregate/Cobertura.xml" ]; then
-            echo "✅ Aggregated coverage report generated: coverage/aggregate/Cobertura.xml"
+            echo "Aggregated coverage report generated: coverage/aggregate/Cobertura.xml"
             # Show summary stats from Cobertura XML
             COVERAGE=$(grep -o 'line-rate="[^"]*"' coverage/aggregate/Cobertura.xml | head -1 | cut -d'"' -f2 | awk '{printf "%.2f", $1 * 100}' || echo "N/A")
-            echo "📈 Combined Line Coverage (Unit + Integration + E2E): ${COVERAGE}%"
+            echo " Combined Line Coverage (Unit + Integration + E2E): ${COVERAGE}%"
           else
-            echo "❌ Failed to generate aggregated coverage report"
+            echo "Failed to generate aggregated coverage report"
           fi
 
       - name: Validate namespace reorganization
         run: |
-          echo "🔍 Validating namespace reorganization..."
+          echo " Validating namespace reorganization..."
           if grep -R -nE '^[[:space:]]*using[[:space:]]+MeAjudaAi\.Shared\.Common;' -- src/ \
               2>/dev/null; then
-            echo "❌ Found old namespace imports"
+            echo "Found old namespace imports"
             exit 1
           else
-            echo "✅ Conformidade com namespaces validada"
+            echo "Conformidade com namespaces validada"
           fi
 
       - name: Upload coverage reports
@@ -891,7 +859,7 @@ jobs:
 
       - name: List Coverage Files (Debug)
         run: |
-          echo "🔍 Listing coverage files for debugging..."
+          echo " Listing coverage files for debugging..."
           echo "Coverage directory structure:"
           find ./coverage -type f 2>/dev/null | head -20 || echo "No files found in coverage directory"
           echo ""
@@ -912,7 +880,7 @@ jobs:
 
       - name: Fix Coverage Files (if needed)
         run: |
-          echo "🔧 Attempting to fix coverage file locations and names..."
+          echo " Attempting to fix coverage file locations and names..."
 
           # Find any coverage.xml files and rename them to appropriate format
           find ./coverage -name "coverage.xml" -type f | while read -r file; do
@@ -1000,7 +968,7 @@ jobs:
       - name: Display Coverage Percentages
         if: always()
         run: |
-          echo "📊 CODE COVERAGE SUMMARY"
+          echo " CODE COVERAGE SUMMARY"
           echo "========================"
           echo ""
 
@@ -1010,7 +978,7 @@ jobs:
           for module in "${MODULES[@]}"; do
             coverage_file="./coverage/${module}/${module}.cobertura.xml"
             if [ -f "$coverage_file" ]; then
-              echo "📄 Module: ${module^}"
+              echo " Module: ${module^}"
               # Extract coverage statistics from Cobertura XML
               if command -v awk >/dev/null 2>&1; then
                 # Cobertura uses line-rate="0.85" format
@@ -1019,30 +987,30 @@ jobs:
                 
                 if [ "$line_rate" != "N/A" ]; then
                   lines_covered=$(echo "$line_rate" | awk '{printf "%.2f", $1 * 100}')
-                  echo "  📈 Line Coverage: ${lines_covered}%"
+                  echo "   Line Coverage: ${lines_covered}%"
                 fi
                 if [ "$branch_rate" != "N/A" ]; then
                   branch_covered=$(echo "$branch_rate" | awk '{printf "%.2f", $1 * 100}')
-                  echo "  🌿 Branch Coverage: ${branch_covered}%"
+                  echo "   Branch Coverage: ${branch_covered}%"
                 fi
               fi
               echo ""
             fi
           done
 
-          echo "💡 For detailed coverage report, check the 'Code Coverage Summary' step above"
-          echo "🎯 Minimum thresholds: 80% (warning) / 90% (good)"
+          echo " For detailed coverage report, check the 'Code Coverage Summary' step above"
+          echo " Minimum thresholds: 80% (warning) / 90% (good)"
 
       - name: Select Coverage Outputs
         id: select_coverage_outputs
         if: always()
         run: |
-          echo "🔍 Detecting coverage files..."
+          echo " Detecting coverage files..."
 
           if [ -f "coverage/aggregate/Cobertura.xml" ]; then
             COVERAGE_FILE="coverage/aggregate/Cobertura.xml"
             SOURCE="Cobertura (Aggregated Direct)"
-            echo "✅ Found aggregated Cobertura file: $COVERAGE_FILE"
+            echo "Found aggregated Cobertura file: $COVERAGE_FILE"
           elif find coverage -name "*.opencover.xml" -type f | head -1 >/dev/null 2>&1; then
             COVERAGE_FILE=$(find coverage -name "*.opencover.xml" -type f | head -1)
             SOURCE="OpenCover (Direct)"
@@ -1111,27 +1079,27 @@ jobs:
           recreate: true
           header: coverage-report
           message: |
-            ## 📊 Code Coverage Report
+            ##  Code Coverage Report
 
             ${{ steps.select_coverage_outputs.outputs.summary }}
 
-            ### 📈 Coverage Details
+            ###  Coverage Details
             - **Coverage badges**: ${{ steps.select_coverage_outputs.outputs.badge }}
             - **Minimum threshold**: 80% (warning) / 90% (good)
             - **Report format**: Auto-detected from OpenCover/Cobertura XML files
             - **Coverage source**: ${{ steps.select_coverage_outputs.outputs.source }}
 
-            ### 📋 Coverage Analysis
+            ###  Coverage Analysis
             - **Line Coverage**: Shows percentage of code lines executed during tests
             - **Branch Coverage**: Shows percentage of code branches/conditions tested
             - **Complexity**: Code complexity metrics for maintainability
 
-            ### 🎯 Quality Gates
-            - ✅ **Pass**: Coverage ≥ 90%
-            - ⚠️ **Warning**: Coverage 80-89%
-            - ❌ **Fail**: Coverage < 80%
+            ###  Quality Gates
+            - **Pass**: Coverage ≥ 90%
+            - **Warning**: Coverage 80-89%
+            - **Fail**: Coverage < 80%
 
-            ### 📁 Artifacts
+            ###  Artifacts
             - **Coverage reports**: Available in workflow artifacts
             - **Test results**: TRX files with detailed test execution data
 
@@ -1178,7 +1146,7 @@ jobs:
 
       - name: OSV-Scanner (fail on HIGH/CRITICAL)
         run: |
-          echo "🔍 Installing OSV-Scanner..."
+          echo " Installing OSV-Scanner..."
           # Install OSV-Scanner with pinned version for reproducibility
           OSV_VERSION="v1.8.3"
           OSV_URL="https://github.com/google/osv-scanner/releases/download/${OSV_VERSION}"
@@ -1190,17 +1158,17 @@ jobs:
           while [ $retry_count -lt $max_retries ]; do
             if curl -sSfL --connect-timeout 10 --max-time 30 \
                 "${OSV_URL}/osv-scanner_linux_amd64" -o osv-scanner; then
-              echo "✅ Download successful"
+              echo "Download successful"
               chmod +x osv-scanner
               break
             else
               retry_count=$((retry_count + 1))
               if [ $retry_count -lt $max_retries ]; then
-                echo "⚠️  Download failed (attempt $retry_count/$max_retries), retrying in 5s..."
+                echo " Download failed (attempt $retry_count/$max_retries), retrying in 5s..."
                 sleep 5
               else
-                echo "❌ Download failed after $max_retries attempts"
-                echo "💡 Trying fallback: install via Go toolchain..."
+                echo "Download failed after $max_retries attempts"
+                echo " Trying fallback: install via Go toolchain..."
 
                 # Fallback: Install via Go if available
                 if command -v go >/dev/null 2>&1; then
@@ -1210,10 +1178,10 @@ jobs:
                   cp "$(go env GOPATH)/bin/osv-scanner" ./osv-scanner 2>/dev/null || \
                     ln -s "$(go env GOPATH)/bin/osv-scanner" ./osv-scanner
                 else
-                  echo "❌ Go toolchain not available, cannot install OSV-Scanner"
-                  echo "⚠️  CRITICAL: Vulnerability scan cannot be performed"
-                  echo "💡 MITIGATION: Ensure runner has Go ≥1.18 installed or provide pre-built OSV-Scanner binary"
-                  echo "💡 SECURITY NOTE: This workflow MUST fail when vulnerability scanning is unavailable."
+                  echo "Go toolchain not available, cannot install OSV-Scanner"
+                  echo " CRITICAL: Vulnerability scan cannot be performed"
+                  echo " MITIGATION: Ensure runner has Go ≥1.18 installed or provide pre-built OSV-Scanner binary"
+                  echo " SECURITY NOTE: This workflow MUST fail when vulnerability scanning is unavailable."
                   echo "   To fix: ensure Go is installed on the runner or configure a pre-built OSV-Scanner binary."
                   exit 1  # Fail the workflow - security scanning is mandatory
                 fi
@@ -1225,16 +1193,16 @@ jobs:
           ./osv-scanner --version || echo "Version command failed"
           ./osv-scanner scan --help | head -20 || echo "Help command failed"
 
-          echo "🔍 Running vulnerability scan..."
+          echo " Running vulnerability scan..."
           # Run OSV-Scanner and capture exit code
           osv_exit_code=0
           ./osv-scanner scan --recursive --skip-git . || osv_exit_code=$?
 
           if [ $osv_exit_code -eq 0 ]; then
-            echo "✅ No vulnerabilities found"
+            echo "No vulnerabilities found"
           else
-            echo "⚠️ OSV-Scanner found vulnerabilities (exit code: $osv_exit_code)"
-            echo "📄 Running detailed scan for analysis..."
+            echo "OSV-Scanner found vulnerabilities (exit code: $osv_exit_code)"
+            echo " Running detailed scan for analysis..."
 
             # Run again with JSON output for detailed analysis
             ./osv-scanner scan --recursive --skip-git --format json . > osv-results.json || true
@@ -1267,20 +1235,20 @@ jobs:
               )
 
               if [ "${HIGH_OR_CRIT:-0}" -gt 0 ]; then
-                echo "❌ Found $HIGH_OR_CRIT HIGH/CRITICAL vulnerabilities"
-                echo "📋 First 10 vulnerabilities found:"
+                echo "Found $HIGH_OR_CRIT HIGH/CRITICAL vulnerabilities"
+                echo " First 10 vulnerabilities found:"
                 # Use inline jq program to display vulnerability summary
                 jq -r '.results[]?.packages[]?.vulnerabilities[]? |
                   "- \(.id): \(.summary // "No summary")"' \
                   osv-results.json 2>/dev/null | head -10
                 echo ""
-                echo "🚫 Security scan failed - vulnerabilities detected"
-                echo "💡 Please review and fix vulnerabilities before merging"
+                echo " Security scan failed - vulnerabilities detected"
+                echo " Please review and fix vulnerabilities before merging"
 
                 # Fail the workflow
                 exit 1
               else
-                echo "✅ No HIGH/CRITICAL vulnerabilities found"
+                echo "No HIGH/CRITICAL vulnerabilities found"
                 # Count total vulnerabilities for info
                 TOTAL_VULNS=$(jq -r '.results[]?.packages[]?.vulnerabilities[]? | .id' \
                   osv-results.json 2>/dev/null | wc -l)
@@ -1289,7 +1257,7 @@ jobs:
                 fi
               fi
             else
-              echo "❌ OSV-Scanner failed but no results file generated"
+              echo "OSV-Scanner failed but no results file generated"
               exit 1
             fi
           fi
@@ -1340,7 +1308,7 @@ jobs:
       - name: Report link check results
         if: always()
         run: |
-          echo "📋 Link validation completed (non-blocking)"
+          echo " Link validation completed (non-blocking)"
           echo "ℹ️  Check job summary for detailed results"
 
   # Job 4: Simple YAML Validation (Quiet)
@@ -1358,10 +1326,10 @@ jobs:
 
       - name: Validate workflow files only
         run: |
-          echo "🔍 Validating critical YAML files..."
+          echo " Validating critical YAML files..."
           if ! python3 -m yamllint -c config/.yamllint.yml .github/workflows/; then
-            echo "❌ YAML validation failed"
+            echo "YAML validation failed"
             echo "ℹ️  Check yamllint output above for details"
             exit 1
           fi
-          echo "✅ YAML validation completed"
+          echo "YAML validation completed"
