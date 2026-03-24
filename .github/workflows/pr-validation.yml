@@ -94,7 +94,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
 
-      - name:  Restore dependencies
+      - name: Restore dependencies
         run: dotnet restore MeAjudaAi.slnx
 
       - name: Build solution
@@ -107,14 +107,14 @@ jobs:
           cache: "npm"
           cache-dependency-path: ./src/Web/package-lock.json
 
-      - name:  Install Frontend Dependencies
+      - name: Install Frontend Dependencies
         working-directory: ./src/Web
         run: npm ci
 
       - uses: nrwl/nx-set-shas@v5
 
       # Generate API client BEFORE lint/test so MeAjudaAi.Web.Customer has generated types
-      - name:  Generate API Client
+      - name: Generate API Client
         working-directory: ./src/Web
         run: |
           set -e
@@ -150,11 +150,11 @@ jobs:
           export OPENAPI_SPEC_URL="$GITHUB_WORKSPACE/src/api/api-spec.json"
           npm run generate:api --workspace=meajudaai.web.customer
 
-      - name:  Lint Frontend Workspace
+      - name: Lint Frontend Workspace
         working-directory: ./src/Web
         run: npx nx affected --target=lint
 
-      - name:  Test Frontend Workspace
+      - name: Test Frontend Workspace
         working-directory: ./src/Web
         run: npx nx affected --target=test
 
