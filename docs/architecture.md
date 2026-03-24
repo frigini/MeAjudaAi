@@ -3234,9 +3234,23 @@ apps/admin-portal/
 │   ├── hooks/                  # Custom React hooks
 │   ├── lib/                    # Utilities
 │   └── stores/                 # Zustand stores
-├── src/Web/e2e/               # Playwright tests
-│   └── providers.spec.ts
 └── src/Web/playwright.config.ts
+
+tests/
+├── MeAjudaAi.Web.Customer.Tests/
+│   └── e2e/                   # Playwright tests
+│       ├── auth.spec.ts
+│       └── search.spec.ts
+├── MeAjudaAi.Web.Provider.Tests/
+│   └── e2e/                   # Playwright tests
+│       ├── auth.spec.ts
+│       └── onboarding.spec.ts
+├── MeAjudaAi.Web.Admin.Tests/
+│   └── e2e/                   # Playwright tests
+│       ├── auth.spec.ts
+│       └── providers.spec.ts
+└── MeAjudaAi.Web.Shared.Tests/
+    └── base.ts                # Shared fixtures
 ```
 
 ### **Best Practices - Frontend**

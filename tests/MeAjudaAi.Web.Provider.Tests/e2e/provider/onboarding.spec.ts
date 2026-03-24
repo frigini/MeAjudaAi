@@ -1,4 +1,4 @@
-import { test, expect } from '../base';
+import { test, expect, loginAsProvider } from '../../MeAjudaAi.Web.Shared.Tests/base';
 
 test.describe('Provider Web App - Onboarding', () => {
   test.beforeEach(async ({ page }) => {

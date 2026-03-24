@@ -1,4 +1,4 @@
-import { test, expect } from '../base';
+import { test, expect, loginAsAdmin } from '../../MeAjudaAi.Web.Shared.Tests/base';
 
 test.describe('Admin Portal - Providers Management', () => {
   test.beforeEach(async ({ page }) => {

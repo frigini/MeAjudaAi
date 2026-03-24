@@ -1,4 +1,4 @@
-import { test, expect } from '../base';
+import { test, expect, loginAsProvider, logout } from '../../MeAjudaAi.Web.Shared.Tests/base';
 
 test.describe('Provider Web App - Authentication', () => {
   test.beforeEach(async ({ page }) => {
@@ -25,6 +25,6 @@ test.describe('Provider Web App - Authentication', () => {
     await page.fill('input[type="email"]', 'invalid@provider.com');
     await page.fill('input[type="password"]', 'wrongpassword');
     await page.click('button[type="submit"]');
-    await expect(page.locator('text=credenciais inválidas')).toBeVisible();
+    await expect(page.getByRole('alert')).toContainText(/credenciais inválidas/i);
   });
 });

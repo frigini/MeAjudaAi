@@ -623,10 +623,11 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 **Scope**:
 1. **Playwright Config**: Configurar playwright.config.ts no workspace NX (✅ Concluído)
 2. **Implement Test Specs**: Criar testes E2E para Customer, Provider e Admin Apps
-3. **Customer Web App Tests**: Login, busca, perfil, agendamento
-4. **Provider Web App Tests**: Onboarding, dashboard, gestão de serviços
-5. **Admin Portal Tests**: CRUD providers, documentos, métricas
-6. **CI Integration**: Adicionar steps em `pr-validation.yml` e `master-ci-cd.yml`
+3. **Customer Web App Tests**: Login, busca, perfil (`tests/MeAjudaAi.Web.Customer.Tests/e2e/`)
+4. **Provider Web App Tests**: Onboarding, dashboard (`tests/MeAjudaAi.Web.Provider.Tests/e2e/`)
+5. **Admin Portal Tests**: CRUD providers, documentos (`tests/MeAjudaAi.Web.Admin.Tests/e2e/`)
+6. **Shared Fixtures**: `tests/MeAjudaAi.Web.Shared.Tests/base.ts`
+7. **CI Integration**: Adicionar steps em `pr-validation.yml` e `master-ci-cd.yml`
 
 **Cenários de Teste**:
 - [ ] Autenticação (login, logout, refresh token)

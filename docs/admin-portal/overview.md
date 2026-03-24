@@ -96,9 +96,26 @@ apps/admin-portal/
 │   │   ├── api.ts              # API client
 │   │   └── utils.ts
 │   └── types/                  # TypeScript types
-├── src/Web/e2e/                # Playwright tests
-├── src/Web/playwright.config.ts
 └── package.json
+```
+
+### Testes E2E
+
+Localização: `tests/MeAjudaAi.Web.Admin.Tests/e2e/`
+
+**Estrutura:**
+```
+tests/MeAjudaAi.Web.Admin.Tests/
+└── e2e/
+    ├── auth.spec.ts
+    └── providers.spec.ts
+```
+
+**Fixtures compartilhadas:** `tests/MeAjudaAi.Web.Shared.Tests/base.ts`
+- `loginAsAdmin(page)`
+- `loginAsProvider(page)`
+- `loginAsCustomer(page)`
+- `logout(page)`
 ```
 
 ## 🔐 Autenticação e Autorização
