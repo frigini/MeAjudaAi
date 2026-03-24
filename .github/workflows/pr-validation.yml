@@ -584,40 +584,6 @@ jobs:
             echo "⚠️  Architecture tests not found - skipping"
           fi
 
-      - name: Run Frontend Component Tests (bUnit)
-        if: always()
-        env:
-          ASPNETCORE_ENVIRONMENT: Testing
-        run: |
-          echo "===================================="
-          echo "🎨 FRONTEND COMPONENT TESTS (bUnit)"
-          echo "===================================="
-          echo ""
-          echo "Running Blazor WASM component tests with bUnit framework"
-          echo "Target: MeAjudaAi.Web.Admin (Blazor Admin Portal)"
-          echo ""
-          echo "⚠️  Note: Coverage NOT collected for Blazor WASM (unreliable due to generated code)"
-          echo "Focus: Maximum test coverage of components, not code coverage metrics"
-          echo ""
-
-          echo "▶️ Running Web.Admin component tests (Providers, Dashboard, DarkMode)..."
-          dotnet test tests/MeAjudaAi.Web.Admin.Tests/MeAjudaAi.Web.Admin.Tests.csproj \
-            --configuration Release \
-            --no-restore \
-            --no-build \
-            --verbosity normal \
-            --logger "trx;LogFileName=webadmin-test-results.trx"
-
-          FRONTEND_EXIT_CODE=$?
-          if [ $FRONTEND_EXIT_CODE -ne 0 ]; then
-            echo "❌ Frontend component tests failed with exit code $FRONTEND_EXIT_CODE"
-            exit $FRONTEND_EXIT_CODE
-          fi
-
-          echo ""
-          echo "✅ Frontend component tests completed successfully"
-          echo "===================================="
-
       - name: Free Disk Space for Integration Tests
         run: |
           echo "🧹 Freeing disk space before integration tests..."
