@@ -2893,6 +2893,7 @@ export function ProvidersList() {
 ```typescript
 // Hook para buscar dados com cache automático
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+import { providersApi } from '@/libs/api-client';
 
 export function useProviders(page: number = 1) {
   return useQuery({
@@ -2913,101 +2914,6 @@ export function useCreateProvider() {
   });
 }
 ```
-
-### **TanStack Query - Data Fetching Patterns**
-**MeAjudaAi.Client.Contracts é o SDK oficial .NET** para consumir a API REST, semelhante ao AWS SDK ou Stripe SDK.
-
-**SDKs Disponíveis** (Sprint 6-7):
-
-| Módulo | Interface | Funcionalidades | Status |
-|--------|-----------|-----------------|--------|
-| **Providers** | IProvidersApi | CRUD, verificação, filtros | ✅ Completo |
-| **Documents** | IDocumentsApi | Upload, verificação, status | ✅ Completo |
-| **ServiceCatalogs** | IServiceCatalogsApi | Listagem, categorias | ✅ Completo |
-| **Locations** | ILocationsApi | CRUD AllowedCities | ✅ Completo |
-| **Users** | IUsersApi | (Planejado) | ⏳ Sprint 8+ |
-
-**Definição de API Contracts**:
-
-```csharp
-public interface IProvidersApi
-{
-    [Get("/api/v1/providers")]
-    Task<Result<PagedResult<ModuleProviderDto>>> GetProvidersAsync(
-        [Query] int pageNumber = 1,
-        [Query] int pageSize = 20,
-        CancellationToken cancellationToken = default);
-
-    [Get("/api/v1/providers/verification-status/{status}")]
-    Task<Result<List<ModuleProviderDto>>> GetProvidersByVerificationStatusAsync(
-        string status,
-        CancellationToken cancellationToken = default);
-}
-
-public interface IDocumentsApi
-{
-    [Multipart]
-    [Post("/api/v1/providers/{providerId}/documents")]
-    Task<Result<ModuleDocumentDto>> UploadDocumentAsync(
-        Guid providerId,
-        [AliasAs("file")] StreamPart file,
-        [AliasAs("documentType")] string documentType,
-        CancellationToken cancellationToken = default);
-}
-
-public interface ILocationsApi
-{
-    [Get("/api/v1/locations/allowed-cities")]
-    Task<Result<IReadOnlyList<ModuleAllowedCityDto>>> GetAllAllowedCitiesAsync(
-        [Query] bool onlyActive = true,
-        CancellationToken cancellationToken = default);
-}
-
-public interface IServiceCatalogsApi
-{
-    [Get("/api/v1/service-catalogs/services")]
-    Task<Result<IReadOnlyList<ModuleServiceListDto>>> GetAllServicesAsync(
-        [Query] bool activeOnly = true,
-        CancellationToken cancellationToken = default);
-}
-```
-
-**Configuração com Autenticação**:
-
-```csharp
-// Program.cs - Registrar todos os SDKs
-builder.Services.AddRefitClient<IProvidersApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
-    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
-
-builder.Services.AddRefitClient<IDocumentsApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
-    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
-
-builder.Services.AddRefitClient<IServiceCatalogsApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
-    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
-
-builder.Services.AddRefitClient<ILocationsApi>()
-    .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
-    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
-```
-
-**Arquitetura Interna do Refit**:
-
-```text
-Blazor Component → IProvidersApi (interface) → Refit CodeGen → HttpClient → API
-```
-
-**Vantagens**:
-- ✅ Type-safe API calls (compile-time validation)
-- ✅ Automatic serialization/deserialization
-- ✅ Integration with HttpClientFactory + Polly
-- ✅ Authentication header injection via message handler
-- ✅ **20 linhas de código manual → 2 linhas (interface + atributo)**
-- ✅ Reutilizável entre projetos .NET (ex.: .NET 6/8, Blazor, Xamarin)
-
-**Documentação Completa**: `src/Web/MeAjudaAi.Web.Customer/types/README.md`
 
 ### **React + Tailwind CSS Components**
 
@@ -3233,20 +3139,33 @@ src/Web/MeAjudaAi.Web.Admin/
 
 ### **Estrutura de Arquivos**
 
-```
+```text
 src/Web/
 ├── MeAjudaAi.Web.Admin/           # Admin Portal Next.js App
+│   └── e2e/                       # E2E tests (co-located)
+│       ├── auth.spec.ts
+│       └── providers.spec.ts
 ├── MeAjudaAi.Web.Customer/        # Customer Web Next.js App
+│   └── e2e/
+│       ├── auth.spec.ts
+│       ├── search.spec.ts
+│       ├── onboarding.spec.ts
+│       └── performance.spec.ts
 ├── MeAjudaAi.Web.Provider/        # Provider Web Next.js App
-├── libs/                          # Shared libraries (ui, auth, api-client, assets)
-└── playwright.config.ts           # Single Playwright config for all apps
+│   └── e2e/
+│       ├── auth.spec.ts
+│       ├── onboarding.spec.ts
+│       └── profile-mgmt.spec.ts
+├── libs/                          # Shared libraries
+│   ├── e2e-support/               # Shared E2E fixtures
+│   └── api-client/               # API client
+└── playwright.config.ts          # Single Playwright config
 
 # Playwright Configuration:
 # - testDir: './src' (single test directory)
 # - baseURL: 'http://localhost:3000'
 # - grep: /e2e/ (filter tests by e2e pattern)
-# - projects array: chromium, firefox, webkit, mobile devices, ci
-# All tests use the same playwright.config.ts with project-based browser selection.
+# - projects: chromium, firefox, webkit, mobile, ci
 ```
 
 ### **Best Practices - Frontend**

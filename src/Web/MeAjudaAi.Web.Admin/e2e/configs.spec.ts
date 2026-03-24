@@ -14,9 +14,9 @@ test.describe('Admin Portal - Allowed Cities Management', () => {
     await page.click('button:has-text("Adicionar Cidade")');
     await expect(page.locator('[data-testid="city-form"]')).toBeVisible();
     
-    await page.fill('input[name="cityName"]', 'São Paulo');
+    await page.fill('input[name="city"]', 'São Paulo');
     await page.fill('input[name="state"]', 'SP');
-    await page.fill('input[name="maxProviders"]', '100');
+    await page.fill('input[name="serviceRadiusKm"]', '100');
     await page.click('button:has-text("Salvar")');
     
     await expect(page.locator('text=São Paulo')).toBeVisible();
@@ -27,7 +27,7 @@ test.describe('Admin Portal - Allowed Cities Management', () => {
     const cityRow = page.locator('[data-testid="city-row"]').first();
     await cityRow.locator('button[aria-label="Editar"]').click();
     
-    await page.fill('input[name="maxProviders"]', '150');
+    await page.fill('input[name="serviceRadiusKm"]', '150');
     await page.click('button:has-text("Salvar")');
     
     await expect(page.locator('text=Cidade atualizada com sucesso')).toBeVisible();
@@ -71,9 +71,9 @@ test.describe('Admin Portal - Service Catalog Management', () => {
     await page.click('button:has-text("Adicionar Serviço")');
     await expect(page.locator('[data-testid="service-form"]')).toBeVisible();
     
-    await page.fill('input[name="serviceName"]', 'Eletricista');
+    await page.fill('input[name="name"]', 'Eletricista');
     await page.fill('textarea[name="description"]', 'Serviços de elétrica residencial');
-    await page.fill('input[name="basePrice"]', '100');
+    await page.selectOption('select[name="categoryId"]', { index: 1 });
     await page.click('button:has-text("Salvar")');
     
     await expect(page.locator('text=Eletricista')).toBeVisible();
@@ -84,7 +84,7 @@ test.describe('Admin Portal - Service Catalog Management', () => {
     const serviceRow = page.locator('[data-testid="service-row"]').first();
     await serviceRow.locator('button[aria-label="Editar"]').click();
     
-    await page.fill('input[name="basePrice"]', '150');
+    await page.fill('input[name="name"]', 'Eletricista Atualizado');
     await page.click('button:has-text("Salvar")');
     
     await expect(page.locator('text=Serviço atualizado com sucesso')).toBeVisible();
@@ -128,18 +128,21 @@ test.describe('Admin Portal - Service Catalog Management', () => {
   });
 });
 
-test.describe('Admin Portal - General Settings', () => {
+test.describe('Admin Portal - Profile Settings', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
     await page.goto('/admin/configuracoes');
   });
 
-  test('should display general settings', async ({ page }) => {
-    await expect(page.locator('[data-testid="general-settings"]')).toBeVisible();
+  test('should display profile settings', async ({ page }) => {
+    await expect(page.locator('text=Perfil')).toBeVisible();
+    await expect(page.locator('input[name="adminName"]')).toBeVisible();
+    await expect(page.locator('input[name="adminEmail"]')).toBeVisible();
   });
 
-  test('should update platform settings', async ({ page }) => {
-    await page.fill('input[name="platformFee"]', '15');
+  test('should update profile settings', async ({ page }) => {
+    await page.fill('input[name="adminName"]', 'Admin Atualizado');
+    await page.fill('input[name="adminEmail"]', 'admin.atualizado@meajudaai.com');
     await page.click('button:has-text("Salvar")');
     
     await expect(page.locator('text=Configurações salvas com sucesso')).toBeVisible();

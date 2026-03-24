@@ -1,4 +1,4 @@
-import { test, expect, loginAsCustomer, logout } from '@meajudaai/web-e2e-support';
+import { test, expect } from '@meajudaai/web-e2e-support';
 
 test.describe('Customer Web App - Onboarding', () => {
   test.beforeEach(async ({ page }) => {
@@ -31,7 +31,7 @@ test.describe('Customer Web App - Onboarding', () => {
     await page.fill('input[type="password"]', 'Senha@123');
     await page.fill('input[name="phone"]', '21999999999');
     await page.click('button:has-text("Cadastrar")');
-    await expect(page.locator('text=email inválido')).toBeVisible();
+    await expect(page.locator(/email inválido/i)).toBeVisible();
   });
 
   test('should validate password strength', async ({ page }) => {
@@ -84,6 +84,8 @@ test.describe('Customer Web App - Complete Onboarding Flow', () => {
       await page.fill('input[name="street"]', 'Rua Teste');
       await page.fill('input[name="number"]', '123');
       await page.fill('input[name="neighborhood"]', 'Bairro Teste');
+      await page.fill('input[name="city"]', 'Rio de Janeiro');
+      await page.fill('input[name="state"]', 'RJ');
       await page.click('button:has-text("Próximo")');
     }
     

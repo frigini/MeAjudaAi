@@ -671,9 +671,11 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - **Problema Potencial**: App bundle size > 5MB, lazy loading não configurado corretamente
 - **Impacto**: UX ruim, +2-3 dias de otimização
 - **Mitigação Sprint 9**:
-  - Implementar lazy loading de assemblies
-  - Otimizar bundle size (tree shaking, AOT compilation)
-  - Adicionar loading indicators e progressive loading
+  - Code splitting with dynamic imports
+  - Tree shaking and bundle optimization
+  - SSR/SSG via Next.js to improve initial load
+  - Lazy load React components
+  - Optimize images using next/image and responsive formats
 
 ### Risk Scenario 4: MAUI Hybrid Platform-Specific Issues
 

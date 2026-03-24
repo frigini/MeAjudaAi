@@ -27,11 +27,12 @@ test.describe('Admin Portal - Providers Management', () => {
     await page.click('button:has-text("Filtrar")');
     await page.click('text=Ativos');
     
-    // Wait for filter to apply
-    await page.waitForTimeout(500);
+    // Wait for filter response
+    await page.waitForResponse(response => response.url().includes('providers') && response.status() === 200);
     
     // Verify filtered results show only active providers
     const providerRows = page.locator('[data-testid="provider-row"]');
+    await providerRows.first().waitFor({ state: 'visible' });
     const rowCount = await providerRows.count();
     expect(rowCount).toBeGreaterThan(0);
     
@@ -77,7 +78,7 @@ test.describe('Admin Portal - Documents', () => {
     await approveButton.click();
     
     // Verify success alert
-    await expect(page.getByRole('alert')).toContainText(/aprova/i);
+    await expect(page.getByRole('status')).toContainText(/aprova/i);
     
     // Return to the listing
     await page.click('button:has-text("Voltar")');
@@ -109,6 +110,6 @@ test.describe('Admin Portal - Documents', () => {
     await rejectButton.click();
     
     // Verify success alert
-    await expect(page.getByRole('alert')).toContainText(/rejeita/i);
+    await expect(page.getByRole('status')).toContainText(/rejeita/i);
   });
 });
