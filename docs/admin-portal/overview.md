@@ -65,69 +65,66 @@ graph TB
 ## 📁 Estrutura de Diretórios
 
 ```text
-apps/admin-portal/
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── (auth)/             # Authentication routes
-│   │   │   ├── login/
-│   │   │   └── layout.tsx
-│   │   ├── (dashboard)/        # Protected routes
-│   │   │   ├── providers/
-│   │   │   ├── documents/
-│   │   │   ├── services/
-│   │   │   ├── cities/
-│   │   │   ├── dashboard/
-│   │   │   └── layout.tsx
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── components/             # Reusable components
-│   │   ├── ui/                 # Base UI components (Button, Text, etc.)
-│   │   ├── providers/          # Provider-specific components
-│   │   ├── documents/          # Document-specific components
-│   │   └── common/             # Shared components
-│   ├── hooks/                  # Custom React hooks
-│   │   ├── useProviders.ts
-│   │   ├── useDocuments.ts
-│   │   └── useTranslation.ts
-│   ├── stores/                 # Zustand stores
-│   │   ├── providersStore.ts
-│   │   └── uiStore.ts
-│   ├── lib/                    # Utilities
-│   │   ├── api.ts              # API client
-│   │   └── utils.ts
-│   └── types/                  # TypeScript types
-└── package.json
+src/Web/MeAjudaAi.Web.Admin/
+├── app/                       # Next.js App Router
+│   ├── (auth)/                # Authentication routes
+│   │   ├── login/
+│   │   └── layout.tsx
+│   ├── (dashboard)/           # Protected routes
+│   │   ├── providers/
+│   │   ├── documents/
+│   │   ├── services/
+│   │   ├── cities/
+│   │   ├── dashboard/
+│   │   └── layout.tsx
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/                # Reusable components
+│   ├── ui/                   # Base UI components (Button, Text, etc.)
+│   ├── providers/            # Provider-specific components
+│   ├── documents/            # Document-specific components
+│   └── common/               # Shared components
+├── hooks/                    # Custom React hooks
+│   ├── useProviders.ts
+│   ├── useDocuments.ts
+│   └── useTranslation.ts
+├── stores/                   # Zustand stores
+│   ├── providersStore.ts
+│   └── uiStore.ts
+├── lib/                      # Utilities
+│   ├── api.ts                # API client
+│   └── utils.ts
+└── types/                    # TypeScript types
 ```
 
 ### Testes E2E
 
-Localização: `tests/MeAjudaAi.Web.Admin.Tests/e2e/`
+Localização: `src/Web/MeAjudaAi.Web.Admin/e2e/`
 
 **Estrutura:**
 ```text
-tests/MeAjudaAi.Web.Admin.Tests/
+src/Web/MeAjudaAi.Web.Admin/
 └── e2e/
     ├── auth.spec.ts
     └── providers.spec.ts
 ```
 
-**Fixtures compartilhadas:** `tests/MeAjudaAi.Web.Shared.Tests/base.ts`
+**Fixtures compartilhadas:** `src/Web/libs/e2e-support/base.ts`
 - `loginAsAdmin(page)`
 - `loginAsProvider(page)`
 - `loginAsCustomer(page)`
 - `logout(page)`
-```
 
 ## 🔐 Autenticação e Autorização
 
-### Keycloak Configuration
+### Keycloak Configuration (NextAuth.js v4)
 
 **Realm**: `meajudaai`  
 **Client ID**: `admin-portal`  
 **Flow**: Authorization Code + PKCE  
 **Redirect URIs**:
-- `https://localhost:7001/authentication/login-callback`
-- `https://localhost:7001/authentication/logout-callback`
+- `https://localhost:7001/api/auth/callback/keycloak`
+- `https://localhost:7001/api/auth/logout`
 
 ### Políticas de Autorização
 

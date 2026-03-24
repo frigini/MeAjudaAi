@@ -607,7 +607,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 **Foco**: Phased migration from Blazor WASM to React.
 
 **Entregáveis**:
-- ✅ **Admin Portal React**: Functional `apps/admin-portal` in React.
+- ✅ **Admin Portal React**: Functional `src/Web/MeAjudaAi.Web.Admin/` in React.
 - ✅ **Providers CRUD**: Complete provider management.
 - ✅ **Document Management**: Document upload and verification.
 - ✅ **Service Catalogs**: Service catalog management.
@@ -627,7 +627,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 4. **Provider Web App Tests**: Onboarding, dashboard (`tests/MeAjudaAi.Web.Provider.Tests/e2e/`)
 5. **Admin Portal Tests**: CRUD providers, documentos (`tests/MeAjudaAi.Web.Admin.Tests/e2e/`)
 6. **Shared Fixtures**: `tests/MeAjudaAi.Web.Shared.Tests/base.ts`
-7. **CI Integration**: Adicionar steps em `pr-validation.yml` e `master-ci-cd.yml` (⏳ Habilitado em master-ci-cd.yml, pendiente em pr-validation.yml: requer RUN_E2E='true' para executar)
+7. **CI Integration**: Adicionar steps em `pr-validation.yml` e `master-ci-cd.yml` (⏳ Habilitado em master-ci-cd.yml, pendente em pr-validation.yml: requer RUN_E2E='true' para executar)
 
 **Cenários de Teste**:
 - [ ] Autenticação (login, logout, refresh token)

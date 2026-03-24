@@ -27,9 +27,23 @@ test.describe('Admin Portal - Providers Management', () => {
     await page.click('button:has-text("Filtrar")');
     await page.click('text=Ativos');
     
-    // Verify filtered results are visible
+    // Wait for filter to apply
+    await page.waitForTimeout(500);
+    
+    // Verify filtered results show only active providers
     const providerRows = page.locator('[data-testid="provider-row"]');
-    await expect(providerRows.first()).toBeVisible();
+    const rowCount = await providerRows.count();
+    expect(rowCount).toBeGreaterThan(0);
+    
+    // Verify each visible row has active status
+    for (let i = 0; i < rowCount; i++) {
+      const row = providerRows.nth(i);
+      const statusCell = row.locator('[data-testid="provider-status"]');
+      if (await statusCell.isVisible()) {
+        const statusText = await statusCell.textContent();
+        expect(statusText).toMatch(/ativo|active/i);
+      }
+    }
   });
 });
 
@@ -46,22 +60,55 @@ test.describe('Admin Portal - Documents', () => {
   test('should approve document', async ({ page }) => {
     await page.goto('/admin/documentos');
     
-    // Get the first pending document's approve button
-    const approveButton = page.locator('[data-testid="document-approve"]').first();
+    // Get the first provider row with pending documents
+    const firstProviderRow = page.locator('[data-testid="provider-row"]').first();
+    await expect(firstProviderRow).toBeVisible();
+    
+    // Click the eye icon to open provider detail view
+    const detailButton = firstProviderRow.locator('button[aria-label*="visualizar"], button[aria-label*="view"], [data-testid="view-details"]').first();
+    await detailButton.click();
+    
+    // Wait for detail view to load
+    await expect(page.locator('[data-testid="provider-detail"]')).toBeVisible();
+    
+    // Click the approve button in the detail view
+    const approveButton = page.locator('button:has-text("Aprovar"), [data-testid="approve-button"]');
     await expect(approveButton).toBeVisible();
     await approveButton.click();
     
+    // Verify success alert
     await expect(page.getByRole('alert')).toContainText(/aprova/i);
+    
+    // Return to the listing
+    await page.click('button:has-text("Voltar")');
+    await expect(page).toHaveURL(/.*\/admin\/documentos/);
+    
+    // Verify the provider no longer appears in pending list
+    const providerRows = page.locator('[data-testid="provider-row"]');
+    const firstRowText = await providerRows.first().textContent();
+    expect(firstRowText).not.toContain('Pendente');
   });
 
   test('should reject document', async ({ page }) => {
     await page.goto('/admin/documentos');
     
-    // Get the first pending document's reject button
-    const rejectButton = page.locator('[data-testid="document-reject"]').first();
+    // Get the first provider row with pending documents
+    const firstProviderRow = page.locator('[data-testid="provider-row"]').first();
+    await expect(firstProviderRow).toBeVisible();
+    
+    // Click the eye icon to open provider detail view
+    const detailButton = firstProviderRow.locator('button[aria-label*="visualizar"], button[aria-label*="view"], [data-testid="view-details"]').first();
+    await detailButton.click();
+    
+    // Wait for detail view to load
+    await expect(page.locator('[data-testid="provider-detail"]')).toBeVisible();
+    
+    // Click the reject button in the detail view
+    const rejectButton = page.locator('button:has-text("Rejeitar"), [data-testid="reject-button"]');
     await expect(rejectButton).toBeVisible();
     await rejectButton.click();
     
+    // Verify success alert
     await expect(page.getByRole('alert')).toContainText(/rejeita/i);
   });
 });

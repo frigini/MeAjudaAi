@@ -2892,14 +2892,14 @@ export function ProvidersList() {
 
 ```typescript
 // Hook para buscar dados com cache automático
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 
 export function useProviders(page: number = 1) {
   return useQuery({
     queryKey: ['providers', page],
     queryFn: () => providersApi.getProviders({ pageNumber: page }),
     staleTime: 30 * 1000, // 30 seconds cache
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -3181,22 +3181,15 @@ builder.Services.AddOidcAuthentication(options =>
 **Setup de Testes**:
 
 ```typescript
-import { test, expect } from '@playwright/test';
+import { test, expect, loginAsAdmin } from '@meajudaai/web-e2e-support';
 
 test.describe('Providers Management', () => {
   test.beforeEach(async ({ page }) => {
-    // Login como admin
-    await page.goto('/login');
-    await page.fill('[data-testid="email"]', 'admin@meajudaai.com');
-    await page.fill('[data-testid="password"]', 'password');
-    await page.click('[data-testid="login-button"]');
+    await loginAsAdmin(page);
+    await page.goto('/admin/providers');
   });
 
   test('should display providers list', async ({ page }) => {
-    // Act
-    await page.goto('/admin/providers');
-
-    // Assert
     await expect(page.locator('[data-testid="providers-table"]')).toBeVisible();
   });
 });
@@ -3210,29 +3203,32 @@ test.describe('Providers Management', () => {
 5. **Fluent Assertions**: Usar expect para asserts expressivas
 
 ### **Estrutura de Arquivos (React)**:
-        var cut = RenderComponent<Providers>();
 
-        // Assert
-        _mockDispatcher.Verify(
-            x => x.Dispatch(It.IsAny<LoadProvidersAction>()), 
-            Times.Once);
-    }
-
-    [Fact]
-    public void Providers_Should_Display_Loading_State()
-    {
-        // Arrange
-        _mockProvidersState.Setup(x => x.Value)
-            .Returns(new ProvidersState { IsLoading = true });
-
-        // Act
-        var cut = RenderComponent<Providers>();
-
-        // Assert
-        var progressElements = cut.FindAll(".mud-progress-circular");
-        progressElements.Should().NotBeEmpty();
-    }
-}
+```text
+src/Web/MeAjudaAi.Web.Admin/
+├── app/                          # Next.js App Router
+│   ├── (auth)/                   # Authentication routes (Keycloak OAuth)
+│   │   ├── login/
+│   │   └── api/auth/[...nextauth]/
+│   ├── (dashboard)/              # Protected routes
+│   │   ├── providers/
+│   │   ├── documents/
+│   │   ├── services/
+│   │   ├── cities/
+│   │   ├── dashboard/
+│   │   └── layout.tsx
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/                   # Reusable components
+│   ├── ui/                       # Base UI components
+│   ├── providers/                # Provider-specific components
+│   └── documents/                # Document components
+├── hooks/                        # Custom React hooks
+│   ├── useProviders.ts
+│   └── useDocuments.ts
+└── e2e/                         # E2E tests (co-located)
+    ├── auth.spec.ts
+    └── providers.spec.ts
 ```
 
 ### **Estrutura de Arquivos**
@@ -3240,19 +3236,15 @@ test.describe('Providers Management', () => {
 ```
 src/Web/
 ├── MeAjudaAi.Web.Admin/           # Admin Portal Next.js App
-│   ├── app/
-│   │   ├── (auth)/                # Authentication routes (Keycloak OAuth)
-│   │   └── (dashboard)/           # Protected routes
-│   └── e2e/                       # E2E tests (co-localized)
-│       └── auth.spec.ts
-├── MeAjudaAi.Web.Customer/         # Customer Web Next.js App
-├── MeAjudaAi.Web.Provider/         # Provider Web Next.js App
+├── MeAjudaAi.Web.Customer/        # Customer Web Next.js App
+├── MeAjudaAi.Web.Provider/        # Provider Web Next.js App
 ├── libs/                          # Shared libraries (ui, auth, api-client, assets)
-└── playwright.config.ts          # Single Playwright config for all apps
+└── playwright.config.ts           # Single Playwright config for all apps
 
 # Playwright Configuration:
-# - testDir: './tests' (single test directory)
+# - testDir: './src' (single test directory)
 # - baseURL: 'http://localhost:3000'
+# - grep: /e2e/ (filter tests by e2e pattern)
 # - projects array: chromium, firefox, webkit, mobile devices, ci
 # All tests use the same playwright.config.ts with project-based browser selection.
 ```
