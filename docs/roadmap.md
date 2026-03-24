@@ -7,8 +7,8 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 🚀 [Roadmap Atual](./roadmap-current.md)
 **Status**: Fase 2 em andamento (Frontend React + Mobile).  
 Contém o status atual das sprints, o cronograma detalhado até o MVP e o plano de mitigação de riscos.
-- **Sprint Atual**: 8B.2 (Technical Excellence & NX Monorepo)
-- **Próximas Sprints**: 8C (Provider App), 8D (Admin Migration)
+- **Sprint Atual**: 8E (E2E Tests - Playwright)
+- **Próximas Sprints**: 8E (E2E Tests), 9 (Buffer & Risk Mitigation)
 - **Meta MVP**: Maio 2026 (12-16)
 
 ---

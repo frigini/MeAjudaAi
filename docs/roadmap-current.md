@@ -32,11 +32,11 @@ Desenvolver aplicações frontend usando **Blazor WebAssembly** (Admin Portal) e
 
 **Stack Completa**:
 
-**Admin Portal** (mantido):
-- Blazor WebAssembly 10.0 (AOT enabled)
-- MudBlazor 8.15.0 (Material Design)
-- Fluxor 6.9.0 (Redux state management)
-- Refit (API client)
+**Admin Portal** (React - migrado Sprint 8D):
+- React 19 + TypeScript 5.7+
+- Tailwind CSS v4
+- Zustand (state management)
+- React Hook Form + Zod
 
 **Customer Web App** (novo):
 - React 19 (Server Components + Client Components)
@@ -372,15 +372,15 @@ public class GeographicRestrictionMiddleware
 - [ ] **Ações**: Aprovar, Remover, Banir usuário
 - [ ] Stub para módulo Reviews (a ser implementado na Fase 3)
 
-**Tecnologias**:
-- **Framework**: Blazor WebAssembly (.NET 10)
-- **UI**: MudBlazor (Material Design)
-- **State**: Fluxor (Flux/Redux pattern)
-- **HTTP**: Refit + Polly (retry policies)
-- **Charts**: ApexCharts.Blazor
+**Tecnologias (Admin Portal React)**:
+- **Framework**: React 19 + TypeScript 5.7+
+- **UI**: Tailwind CSS v4 + Base UI
+- **State**: Zustand
+- **HTTP**: TanStack Query + React Hook Form
+- **Charts**: Recharts
 
 **Resultado Esperado**:
-- ✅ Admin Portal funcional e responsivo
+- ✅ Admin Portal funcional e responsivo (React)
 - ✅ Todas operações CRUD implementadas
 - ✅ Dashboard com métricas em tempo real
 - ✅ Deploy em Azure Container Apps
@@ -433,7 +433,7 @@ public class GeographicRestrictionMiddleware
     - Remove Azure Service Bus, unify on RabbitMQ only.
 3. 🔴 **MUST-HAVE**: **Technical Excellence Pack** (Effort: Medium)
     - [ ] [**TD**] **Keycloak Automation**: `setup-keycloak-clients.ps1` for local dev.
-    - [ ] [**TD**] **Analyzer Cleanup**: Fix MudBlazor/SonarLint warnings in Admin & Contracts.
+    - [ ] [**TD**] **Analyzer Cleanup**: Fix SonarLint warnings in React apps & Contracts.
     - [ ] [**TD**] **Refactor Extensions**: Extract `BusinessMetricsMiddlewareExtensions`.
     - [ ] [**TD**] **Polly Logging**: Migrate resilience logging to ILogger (Issue #113).
     - [ ] [**TD**] **Standardization**: Record syntax alignment in `Contracts`.
@@ -601,20 +601,39 @@ Durante o processo de atualização automática de dependências pelo Dependabot
   - `/configuracoes` - Toggle de visibilidade + delete account com confirmação LGPD
 - ✅ **Slug URLs**: Perfis públicos acessíveis via slugs (ex: `/provider/joao-silva-a1b2c3d4`)
 
-### ⏳ Sprint 8D - Admin Portal Migration (2 - 22 Abr 2026)
+### ✅ Sprint 8D - Admin Portal Migration (2 - 22 Abr 2026)
 
-**Status**: ⏳ Planned (+1 week buffer added)
+**Status**: ✅ CONCLUÍDA (24 Mar 2026)
 **Foco**: Phased migration from Blazor WASM to React.
 
-**Scope (Prioritized)**:
-- **Admin Portal Deliverable**: Functional `apps/admin-portal` in React.
-- Providers CRUD + Document Management (Critical).
-- Service Catalogs + Allowed Cities.
-- Dashboard with KPIs.
-- Unit/Integration tests for Admin modules.
+**Entregáveis**:
+- ✅ **Admin Portal React**: Functional `apps/admin-portal` in React.
+- ✅ **Providers CRUD**: Complete provider management.
+- ✅ **Document Management**: Document upload and verification.
+- ✅ **Service Catalogs**: Service catalog management.
+- ✅ **Allowed Cities**: Geographic restrictions management.
+- ✅ **Dashboard KPIs**: Admin dashboard with metrics.
 
-> 1. Ship MVP with current Blazor Admin.
-> 2. Reduce scope to only Providers CRUD.
+### ⏳ Sprint 8E - E2E Tests React Apps (Playwright) (23 Mar - 4 Abr 2026)
+
+**Status**: ⏳ EM ANDAMENTO
+**Branch**: `feature/sprint-8e-e2e-react-apps`
+**Foco**: Implementar testes E2E com Playwright para todos os apps React.
+
+**Scope**:
+1. **Setup Playwright**: Configurar Playwright no workspace NX
+2. **Customer Web App Tests**: Login, busca, perfil, agendamento
+3. **Provider Web App Tests**: Onboarding, dashboard, gestão de serviços
+4. **Admin Portal Tests**: CRUD providers, documentos, métricas
+5. **Pipeline Integration**: Adicionar steps em `pr-validation.yml` e `master-ci-cd.yml`
+
+**Cenários de Teste**:
+- [ ] Autenticação (login, logout, refresh token)
+- [ ] Fluxo de onboarding (Customer e Provider)
+- [ ] CRUD de providers e serviços
+- [ ] Busca e filtros geolocalizados
+- [ ] Responsividade mobile
+- [ ] Performance e Core Web Vitals
 
 ### ⌛ Sprint 9 - BUFFER & Risk Mitigation (23 Abr - 11 Mai 2026)
 
@@ -645,16 +664,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
   - Implementar proper token refresh handling
   - Adicionar fallback mechanisms
 
-### Risk Scenario 2: MudBlazor Learning Curve
-
-- **Problema Potencial**: Primeira vez usando MudBlazor; componentes complexos (DataGrid, Forms) podem ter comportamentos inesperados
-- **Impacto**: +3-4 dias além do planejado nos Sprints 6-7
-- **Mitigação Sprint 9**:
-  - Refatorar componentes para seguir best practices MudBlazor
-  - Implementar componentes reutilizáveis otimizados
-  - Documentar patterns e anti-patterns identificados
-
-### Risk Scenario 3: Blazor WASM Performance Issues
+### Risk Scenario 3: React Performance Issues
 
 - **Problema Potencial**: App bundle size > 5MB, lazy loading não configurado corretamente
 - **Impacto**: UX ruim, +2-3 dias de otimização
@@ -1200,20 +1210,23 @@ public class ActivityHub : Hub
 ### 📅 Alta Prioridade (Próximos 3 meses - Q1-Q2 2026)
 1. ✅ **Sprint 8B.2: NX Monorepo & Technical Excellence** (Concluída)
 2. ✅ **Sprint 8C: Provider Web App (React + NX)** (Concluída - 21 Mar 2026)
-3. ⏳ **Sprint 8D: Admin Portal Migration** (Abril 2026)
-4. ⏳ **Sprint 9: BUFFER & RISK MITIGATION** (Abril/Maio 2026)
-5. 🎯 **MVP Final Launch: 12 - 16 de Maio de 2026**
-6. 📋 API Collections - Bruno .bru files para todos os módulos
+3. ✅ **Sprint 8D: Admin Portal Migration** (Concluída - 24 Mar 2026)
+4. ⏳ **Sprint 8E: E2E Tests React Apps (Playwright)** (Planejada)
+5. ⏳ **Sprint 9: BUFFER & RISK MITIGATION** (Abril/Maio 2026)
+6. 🎯 **MVP Final Launch: 12 - 16 de Maio de 2026**
+7. 📋 API Collections - Bruno .bru files para todos os módulos
+
+### 🎯 **Alta Prioridade - Pré-MVP**
+1. 🎯 Communications - Email notifications
+2. 💳 Módulo Payments & Billing (Stripe) - Preparação para monetização
 
 ### 🎯 **Média Prioridade (6-12 meses - Fase 2)**
 1. 🎉 Módulo Reviews & Ratings
-2. 💳 Módulo Payments & Billing (Stripe)
-3. 🌍 Documents - Verificação automatizada (OCR + Background checks)
-4. 🔄 Search - Indexing worker para integration events
-5. 📊 Analytics - Métricas básicas
-6. 🎯 Communications - Email notifications
-7. 🏛️ Dispute Resolution System
-8. 🔥 Alinhamento de middleware entre UseSharedServices() e UseSharedServicesAsync()
+2. 🌍 Documents - Verificação automatizada (OCR + Background checks)
+3. 🔄 Search - Indexing worker para integration events (extensão do módulo SearchProviders)
+4. 📊 Analytics - Métricas básicas
+5. 🏛️ Dispute Resolution System
+6. 🔥 Alinhamento de middleware entre UseSharedServices() e UseSharedServicesAsync()
 
 ### 🔬 **Testes E2E Frontend (Pós-MVP)**
 **Projeto**: `tests/MeAjudaAi.Web.Tests`

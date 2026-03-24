@@ -2778,58 +2778,53 @@ public class UploadDocumentCommandHandler(
 
 ## 🎨 Frontend Architecture (Sprint 6+)
 
-### **Blazor WebAssembly + Fluxor + MudBlazor**
+### **React + Next.js + Tailwind CSS**
 
-O Admin Portal utiliza Blazor WASM com padrão Flux/Redux para state management e Material Design UI.
+O Admin Portal (assim como Customer e Provider Apps) utiliza React 19 com Next.js 15 para frontend web.
 
 ```mermaid
 graph TB
-    subgraph "🌐 Presentation - Blazor WASM"
-        PAGES[Pages/Razor Components]
-        LAYOUT[Layout Components]
-        AUTH[Authentication.razor]
+    subgraph "🌐 Presentation - React + Next.js"
+        PAGES[Pages/App Router]
+        COMPONENTS[Components]
+        HOOKS[Custom Hooks]
     end
     
-    subgraph "🔄 State Management - Fluxor"
-        STATE[States]
+    subgraph "🔄 State Management - Zustand"
+        STORE[Global Store]
         ACTIONS[Actions]
-        REDUCERS[Reducers]
-        EFFECTS[Effects]
+        SELECTORS[Selectors]
     end
     
-    subgraph "🔌 API Layer - Refit"
-        PROVIDERS_API[IProvidersApi]
-        SERVICES_API[IServiceCatalogsApi]
-        HTTP[HttpClient + Auth]
+    subgraph "🔌 Data Fetching - TanStack Query"
+        QUERIES[Queries]
+        MUTATIONS[Mutations]
+        CACHE[Cache]
     end
     
-    subgraph "🔐 Authentication - OIDC"
+    subgraph "🔐 Authentication - NextAuth.js"
         KEYCLOAK[Keycloak OIDC]
-        TOKEN[Token Manager]
+        SESSION[Session Provider]
     end
     
-    PAGES --> ACTIONS
-    ACTIONS --> REDUCERS
-    REDUCERS --> STATE
-    STATE --> PAGES
-    ACTIONS --> EFFECTS
-    EFFECTS --> PROVIDERS_API
-    EFFECTS --> SERVICES_API
-    PROVIDERS_API --> HTTP
-    HTTP --> TOKEN
-    TOKEN --> KEYCLOAK
+    PAGES --> COMPONENTS
+    COMPONENTS --> HOOKS
+    HOOKS --> STORE
+    HOOKS --> QUERIES
+    QUERIES --> CACHE
 ```
 
 ### **Stack Tecnológica**
 
 | Componente | Tecnologia | Versão | Propósito |
 |-----------|-----------|--------|-----------|
-| **Framework** | Blazor WebAssembly | .NET 10 | SPA client-side |
-| **UI Library** | MudBlazor | 7.21.0 | Material Design components |
-| **State Management** | Fluxor | 6.1.0 | Redux-pattern state |
-| **HTTP Client** | Refit | 9.0.2 | Type-safe API clients |
-| **Authentication** | OIDC | WASM.Authentication | Keycloak integration |
-| **Testing** | bUnit + xUnit | 1.40.0 + v3.2.1 | Component tests |
+| **Framework** | React 19 + Next.js 15 | 19/15 | Full-stack React |
+| **UI Library** | Tailwind CSS + Base UI | v4 | Styling + headless components |
+| **State Management** | Zustand | 5.x | Simple global state |
+| **Data Fetching** | TanStack Query | 5.x | Server state + caching |
+| **Forms** | React Hook Form + Zod | 7.x + 3.x | Form handling + validation |
+| **Authentication** | NextAuth.js | 5.x | Keycloak integration |
+| **Testing** | Playwright | 1.x | E2E tests |
 
 ### **Fluxor Pattern - State Management**
 
@@ -3024,39 +3019,40 @@ Blazor Component → IProvidersApi (interface) → Refit CodeGen → HttpClient 
 - ✅ Integration with HttpClientFactory + Polly
 - ✅ Authentication header injection via message handler
 - ✅ **20 linhas de código manual → 2 linhas (interface + atributo)**
-- ✅ Reutilizável entre projetos (Blazor WASM, MAUI, Console)
+- ✅ Reutilizável entre projetos (.NET, Node.js)
 
-**Documentação Completa**: `src/Client/MeAjudaAi.Client.Contracts/README.md`
+**Documentação Completa**: `src/Web/MeAjudaAi.Web.Customer/types/README.md`
 
-### **MudBlazor - Material Design Components**
+### **React + Tailwind CSS Components**
 
 **Componentes Principais Utilizados**:
 
-```razor
-@* Layout Principal *@
-<MudLayout>
-    <MudAppBar Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" 
-                       OnClick="@DrawerToggle" 
-                       Color="Color.Inherit" />
-        <MudSpacer />
-        <MudIconButton Icon="@(IsDarkMode ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)" 
-                       OnClick="@ToggleDarkMode" 
-                       Color="Color.Inherit" />
-    </MudAppBar>
-    
-    <MudDrawer @bind-Open="_drawerOpen" Elevation="2">
-        <NavMenu />
-    </MudDrawer>
-    
-    <MudMainContent>
-        @Body
-    </MudMainContent>
-</MudLayout>
+```tsx
+// Layout Principal
+<Layout>
+  <AppBar>
+    <IconButton onClick={toggleDrawer}>
+      <MenuIcon />
+    </IconButton>
+    <Spacer />
+    <IconButton onClick={toggleDarkMode}>
+      {isDarkMode ? <DarkModeIcon /> : <LightModeIcon />}
+    </IconButton>
+  </AppBar>
+  
+  <Drawer open={drawerOpen}>
+    <NavMenu />
+  </Drawer>
+  
+  <MainContent>
+    {children}
+  </MainContent>
+</Layout>
 
-@* Data Grid com Paginação *@
-<MudDataGrid Items="@State.Value.Providers" 
-             Loading="@State.Value.IsLoading" 
+// Data Grid com Paginação
+<DataGrid 
+  data={providers} 
+  loading={isLoading} 
              Hover="true" 
              Dense="true">
     <Columns>
@@ -3177,40 +3173,40 @@ builder.Services.AddOidcAuthentication(options =>
 </CascadingAuthenticationState>
 ```
 
-### **Component Testing - bUnit**
+### **E2E Testing - Playwright**
 
 **Setup de Testes**:
 
-```csharp
-public class ProvidersPageTests : Bunit.TestContext
-{
-    private readonly Mock<IProvidersApi> _mockProvidersApi;
-    private readonly Mock<IDispatcher> _mockDispatcher;
-    private readonly Mock<IState<ProvidersState>> _mockProvidersState;
+```typescript
+import { test, expect } from '@playwright/test';
 
-    public ProvidersPageTests()
-    {
-        _mockProvidersApi = new Mock<IProvidersApi>();
-        _mockDispatcher = new Mock<IDispatcher>();
-        _mockProvidersState = new Mock<IState<ProvidersState>>();
-        
-        // Mock estado inicial
-        _mockProvidersState.Setup(x => x.Value).Returns(new ProvidersState());
-        
-        // Registrar serviços
-        Services.AddSingleton(_mockProvidersApi.Object);
-        Services.AddSingleton(_mockDispatcher.Object);
-        Services.AddSingleton(_mockProvidersState.Object);
-        Services.AddMudServices();
-        
-        // Configurar JSInterop mock (CRÍTICO para MudBlazor)
-        JSInterop.Mode = JSRuntimeMode.Loose;
-    }
+test.describe('Providers Management', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login como admin
+    await page.goto('/login');
+    await page.fill('[data-testid="email"]', 'admin@meajudaai.com');
+    await page.fill('[data-testid="password"]', 'password');
+    await page.click('[data-testid="login-button"]');
+  });
 
-    [Fact]
-    public void Providers_Should_Dispatch_LoadAction_OnInitialized()
-    {
-        // Act
+  test('should display providers list', async ({ page }) => {
+    // Act
+    await page.goto('/admin/providers');
+
+    // Assert
+    await expect(page.locator('[data-testid="providers-table"]')).toBeVisible();
+  });
+});
+```
+
+**Padrões de Teste Playwright**:
+1. **AAA Pattern**: Arrange → Act → Assert
+2. **Data Test IDs**: Sempre usar `data-testid` para selecionar elementos
+3. **Page Objects**: Criar classes para abstração de páginas
+4. **Fixtures**: Reutilizar setup com Playwright fixtures
+5. **Fluent Assertions**: Usar expect para asserts expressivas
+
+### **Estrutura de Arquivos (React)**:
         var cut = RenderComponent<Providers>();
 
         // Assert
@@ -3236,51 +3232,26 @@ public class ProvidersPageTests : Bunit.TestContext
 }
 ```
 
-**JSInterop Mock Pattern** (CRÍTICO):
-
-```csharp
-// SEMPRE configurar JSInterop.Mode para MudBlazor
-public class MyComponentTests : Bunit.TestContext
-{
-    public MyComponentTests()
-    {
-        Services.AddMudServices();
-        JSInterop.Mode = JSRuntimeMode.Loose; // <-- OBRIGATÓRIO
-    }
-}
-```
-
-**Padrões de Teste bUnit**:
-1. **AAA Pattern**: Arrange → Act → Assert (comentários em inglês)
-2. **Mock States**: Sempre mockar IState<T> para testar renderização
-3. **Mock Dispatcher**: Verificar Actions disparadas
-4. **JSInterop Mock**: Obrigatório para MudBlazor components
-5. **FluentAssertions**: Usar para asserts expressivas
-
 ### **Estrutura de Arquivos**
 
 ```text
-src/Web/MeAjudaAi.Web.Admin/
-├── Pages/                      # Razor pages (rotas)
-│   ├── Dashboard.razor
-│   ├── Providers.razor
-│   └── Authentication.razor
-├── Features/                   # Fluxor stores por feature
-│   ├── Providers/
-│   │   ├── ProvidersState.cs
-│   │   ├── ProvidersActions.cs
-│   │   ├── ProvidersReducers.cs
-│   │   └── ProvidersEffects.cs
-│   ├── Dashboard/
-│   │   └── ...
-│   └── Theme/
-│       └── ...
-├── Layout/                     # Layout components
-│   ├── MainLayout.razor
-│   └── NavMenu.razor
-├── wwwroot/                    # Static assets
-│   ├── appsettings.json
-│   └── index.html
+apps/admin-portal/
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── (auth)/             # Authentication routes
+│   │   ├── (dashboard)/        # Protected routes
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── components/             # Reusable components
+│   │   ├── ui/                 # Base UI components
+│   │   └── providers/          # Feature components
+│   ├── hooks/                  # Custom React hooks
+│   ├── lib/                    # Utilities
+│   └── stores/                 # Zustand stores
+├── e2e/                        # Playwright tests
+│   └── providers.spec.ts
+├── playwright.config.ts
+└── package.json
 ├── Program.cs                  # Entry point + DI
 └── App.razor                   # Root component
 

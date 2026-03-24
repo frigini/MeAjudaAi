@@ -2,7 +2,7 @@
 
 Uma plataforma abrangente de serviços construída com .NET Aspire, projetada para conectar prestadores de serviços com clientes usando arquitetura monólito modular.
 
-<!-- Atualizado: 5 Fevereiro 2026 - Sprint 7.21 (Package Updates: Microsoft.OpenApi 2.6.1, Aspire.Hosting.Redis 13.1.0, SonarAnalyzer.CSharp 10.19.0) -->
+<!-- Atualizado: 24 Março 2026 - Sprint 8D (Admin Portal Migration: Blazor → React) -->
 
 ## 🎯 Visão Geral
 
@@ -20,9 +20,10 @@ O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implem
 
 - **.NET 10.0.2** - Framework principal
 - **.NET Aspire 13.1** - Orquestração e observabilidade
-- **Blazor WebAssembly 10.0.2** - Admin Portal SPA
-- **MudBlazor 8.15.0** - Material Design UI components
-- **Fluxor 6.9.0** - Redux state management
+- **React 19 + Next.js 15** - Frontend Web Apps (Customer, Provider, Admin)
+- **Tailwind CSS v4** - Styling
+- **Zustand + TanStack Query** - State management
+- **Playwright** - E2E Testing
 - **Entity Framework Core 10.0.2** - ORM e persistência
 - **Microsoft.OpenApi 2.6.1** - OpenAPI specification
 - **SonarAnalyzer.CSharp 10.19.0** - Code quality analysis
@@ -267,9 +268,8 @@ dotnet test tests/MeAjudaAi.Modules.Users.Tests/
 - ✅ Gestão de Documentos (upload, OCR, verificação)
 - ✅ Gestão de Service Catalogs (categorias + serviços)
 - ✅ Restrições Geográficas (cidades permitidas)
-- ✅ Dark Mode com Fluxor state management
-- ✅ Localização completa em português
-- ✅ 43 testes bUnit (componentes principais)
+- ✅ Admin Portal React com Tailwind CSS
+- ✅ E2E Tests com Playwright
 
 **Como Executar:**
 

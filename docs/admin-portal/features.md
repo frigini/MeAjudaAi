@@ -158,24 +158,23 @@ Ver [Dashboard Documentation](dashboard.md) para detalhes completos.
 
 ## 🎨 Padrões de UI/UX
 
-### MudBlazor Components
+### Componentes React
 
-Todos os módulos utilizam componentes MudBlazor para consistência:
+Todos os módulos utilizam componentes React com Tailwind CSS para consistência:
 
-- **MudDataGrid**: Tabelas paginadas com ordenação e filtros
-- **MudDialog**: Modais para criação/edição
-- **MudForm**: Formulários com validação
-- **MudTextField**: Campos de texto com máscaras
-- **MudSelect**: Dropdowns para seleção
-- **MudChip**: Status badges coloridos
-- **MudButton**: Botões de ação
+- **DataGrid**: Tabelas paginadas com ordenação e filtros (TanStack Table)
+- **Dialog**: Modais para criação/edição
+- **Forms**: Formulários com validação (React Hook Form + Zod)
+- **Select**: Dropdowns para seleção
+- **Badge**: Status badges coloridos
+- **Button**: Botões de ação
 
-### Status Chips
+### Status Badges
 
-```razor
-<MudChip Color="@VerificationStatus.ToColor(provider.VerificationStatus)">
-    @VerificationStatus.ToDisplayName(provider.VerificationStatus)
-</MudChip>
+```tsx
+<Badge color={statusColors[provider.verificationStatus]}>
+    {verificationStatusLabels[provider.verificationStatus]}
+</Badge>
 ```
 
 **Cores Padrão**:

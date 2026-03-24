@@ -2,7 +2,7 @@
 
 ## 📋 Introdução
 
-O **Admin Portal** é a interface administrativa da plataforma MeAjudaAi, construída com Blazor WebAssembly para fornecer uma experiência de gerenciamento moderna, responsiva e eficiente.
+O **Admin Portal** é a interface administrativa da plataforma MeAjudaAi, construída com React + Next.js para fornecer uma experiência de gerenciamento moderna, responsiva e eficiente.
 
 ## 🎯 Propósito
 
@@ -17,17 +17,18 @@ O Admin Portal permite que administradores da plataforma gerenciem:
 ## 🛠️ Stack Tecnológica
 
 ### Frontend
-- **Blazor WebAssembly (.NET 10)**: Framework principal para SPA
-- **MudBlazor 8.15.0**: Biblioteca de componentes UI Material Design
-- **Fluxor**: State management (padrão Flux/Redux)
+- **React 19 + Next.js 15**: Framework principal para SPA
+- **Tailwind CSS v4**: Biblioteca de estilização
+- **Zustand**: State management
+- **TanStack Query**: Server state management
 
 ### Autenticação
 - **Keycloak**: Identity Provider (OIDC/OAuth 2.0)
-- **PKCE Flow**: Autenticação segura para aplicações públicas
+- **NextAuth.js**: Autenticação para Next.js
 
 ### Comunicação
-- **Refit**: Cliente HTTP tipado para APIs
-- **System.Text.Json**: Serialização JSON
+- **Axios / Fetch**: Cliente HTTP
+- **TanStack Query**: Data fetching e caching
 
 ## 🏗️ Arquitetura
 
