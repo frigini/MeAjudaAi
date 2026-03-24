@@ -104,7 +104,7 @@ apps/admin-portal/
 Localização: `tests/MeAjudaAi.Web.Admin.Tests/e2e/`
 
 **Estrutura:**
-```
+```text
 tests/MeAjudaAi.Web.Admin.Tests/
 └── e2e/
     ├── auth.spec.ts
@@ -240,7 +240,7 @@ O Admin Portal segue as diretrizes **WCAG 2.1 AA**:
 
 ```bash
 cd src/Web
-npx playwright test e2e/admin/
+npx playwright test --grep "admin"
 ```
 
 ## 🚀 Executando Localmente
@@ -271,6 +271,8 @@ Acesse: `https://localhost:7001`
 
 ## 🔗 Links Úteis
 
-- [MudBlazor Documentation](https://mudblazor.com/)
-- [Fluxor Documentation](https://github.com/mrpmorris/Fluxor)
-- [Blazor WebAssembly Guide](https://learn.microsoft.com/en-us/aspnet/core/blazor/)
+- [Documentação React](https://react.dev/) - Biblioteca de UI
+- [Documentação Next.js](https://nextjs.org/docs) - Framework React full-stack
+- [Documentação Tailwind CSS](https://tailwindcss.com/docs) - Framework de estilização
+- [Documentação TanStack Query](https://tanstack.com/query/latest) - Gerenciamento de estado servidor
+- [Documentação Radix UI](https://www.radix-ui.com/) - Componentes UI acessíveis

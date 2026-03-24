@@ -3035,64 +3035,81 @@ Blazor Component → IProvidersApi (interface) → Refit CodeGen → HttpClient 
   </MainContent>
 </Layout>
 
-// Data Grid com Paginação
-<DataGrid 
-  data={providers} 
-  loading={isLoading} 
-             Hover="true" 
-             Dense="true">
-    <Columns>
-        <PropertyColumn Property="x => x.Name" Title="Nome" />
-        <PropertyColumn Property="x => x.Email" Title="Email" />
-        <TemplateColumn Title="Status">
-            <CellTemplate>
-                <MudChip Color="@GetStatusColor(context.Item.VerificationStatus)">
-                    @context.Item.VerificationStatus
-                </MudChip>
-            </CellTemplate>
-        </TemplateColumn>
-    </Columns>
-</MudDataGrid>
+// Data Grid com Paginação (usando TanStack Table)
+<Table data={providers} loading={isLoading}>
+  <TableHead>
+    <TableRow>
+      <TableHeader>Nome</TableHeader>
+      <TableHeader>Email</TableHeader>
+      <TableHeader>Status</TableHeader>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    {providers.map((provider) => (
+      <TableRow key={provider.id}>
+        <TableCell>{provider.name}</TableCell>
+        <TableCell>{provider.email}</TableCell>
+        <TableCell>
+          <StatusChip status={provider.verificationStatus} />
+        </TableCell>
+      </TableRow>
+    ))}
+  </TableBody>
+</Table>
 
-<MudPagination Count="@TotalPages" 
-               Selected="@State.Value.PageNumber" 
-               SelectedChanged="@OnPageChanged" />
+<Pagination 
+  totalPages={totalPages} 
+  currentPage={pageNumber} 
+  onPageChange={setPage} />
 
-@* KPI Cards *@
-<MudCard>
-    <MudCardHeader>
-        <CardHeaderAvatar>
-            <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Primary" />
-        </CardHeaderAvatar>
-        <CardHeaderContent>
-            <MudText Typo="Typo.h6">Total de Fornecedores</MudText>
-        </CardHeaderContent>
-    </MudCardHeader>
-    <MudCardContent>
-        <MudText Typo="Typo.h3">@State.Value.TotalProviders</MudText>
-    </MudCardContent>
-</MudCard>
+// KPI Cards
+<Card>
+  <CardHeader>
+    <CardTitle>Total de Fornecedores</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <CardValue>{totalProviders}</CardValue>
+  </CardContent>
+</Card>
 ```
 
 **Configuração de Tema**:
 
-```csharp
-// Program.cs
-builder.Services.AddMudServices(config =>
-{
-    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
-    config.SnackbarConfiguration.PreventDuplicates = false;
-    config.SnackbarConfiguration.ShowCloseIcon = true;
-    config.SnackbarConfiguration.VisibleStateDuration = 5000;
-});
-
-// App.razor - Dark Mode Binding
-<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="@_theme" />
-
-@code {
-    private bool _isDarkMode;
-    private MudTheme _theme = new MudTheme();
+```tsx
+// tailwind.config.ts
+export default {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          50: '#f0f9ff',
+          500: '#0ea5e9',
+          900: '#0c4a6e',
+        },
+      },
+    },
+  },
 }
+
+// Componente de Tema com next-themes
+import { useTheme } from 'next-themes';
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  
+  return (
+    <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+      {theme === 'dark' ? <MoonIcon /> : <SunIcon />}
+    </button>
+  );
+}
+
+// Toast notifications com Sonner
+import { toast } from 'sonner';
+
+toast.success('Operação realizada com sucesso');
+toast.error('Erro ao processar requisição');
 ```
 
 ### **Authentication - Keycloak OIDC**

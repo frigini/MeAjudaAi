@@ -1,4 +1,4 @@
-import { test, expect, loginAsCustomer, logout } from '@meajudaai/web-e2e-support';
+import { test, expect } from '@meajudaai/web-e2e-support';
 
 test.describe('Customer Web App - Authentication', () => {
   test.beforeEach(async ({ page }) => {

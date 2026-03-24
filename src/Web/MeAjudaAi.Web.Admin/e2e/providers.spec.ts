@@ -2,6 +2,7 @@ import { test, expect, loginAsAdmin } from '@meajudaai/web-e2e-support';
 
 test.describe('Admin Portal - Providers Management', () => {
   test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page);
     await page.goto('/admin/providers');
   });
 
@@ -33,6 +34,10 @@ test.describe('Admin Portal - Providers Management', () => {
 });
 
 test.describe('Admin Portal - Documents', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page);
+  });
+
   test('should display documents pending review', async ({ page }) => {
     await page.goto('/admin/documentos');
     await expect(page.locator('[data-testid="documents-list"]')).toBeVisible();

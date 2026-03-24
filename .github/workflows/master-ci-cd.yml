@@ -176,7 +176,6 @@ jobs:
         run: npm ci
 
       - name: Generate API Client
-        working-directory: ./src/Web
         run: |
           set -e
           dotnet tool install -g Swashbuckle.AspNetCore.Cli --version 10.1.5
@@ -184,7 +183,9 @@ jobs:
           export ASPNETCORE_ENVIRONMENT=Development
           export ConnectionStrings__DefaultConnection="Host=localhost;Database=dummy"
           export Migrations__Enabled=false
-          DLL_PATH=$(find ../../src/Bootstrapper/MeAjudaAi.ApiService/bin/Release -name "MeAjudaAi.ApiService.dll" | head -n 1)
+          SEARCH_DIR=../../src/Bootstrapper/MeAjudaAi.ApiService/bin/Release
+          PATTERN=MeAjudaAi.ApiService.dll
+          DLL_PATH=$(find "$SEARCH_DIR" -name "$PATTERN" | head -n 1)
           swagger tofile --output ../api/api-spec.json "$DLL_PATH" v1
           export OPENAPI_SPEC_URL="$GITHUB_WORKSPACE/src/api/api-spec.json"
           npm run generate:api --workspace=meajudaai.web.customer
