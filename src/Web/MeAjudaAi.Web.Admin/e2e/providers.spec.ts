@@ -1,4 +1,4 @@
-import { test, expect, loginAsAdmin } from '../../MeAjudaAi.Web.Shared.Tests/base';
+import { test, expect, loginAsAdmin } from '@meajudaai/web-e2e-support';
 
 test.describe('Admin Portal - Providers Management', () => {
   test.beforeEach(async ({ page }) => {

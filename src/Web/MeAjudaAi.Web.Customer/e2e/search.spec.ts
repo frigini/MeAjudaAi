@@ -1,4 +1,4 @@
-import { test, expect } from '../../MeAjudaAi.Web.Shared.Tests/base';
+import { test, expect } from '@meajudaai/web-e2e-support';
 
 test.describe('Customer Web App - Search', () => {
   test.beforeEach(async ({ page }) => {

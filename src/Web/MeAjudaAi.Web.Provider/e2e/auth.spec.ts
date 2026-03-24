@@ -1,4 +1,4 @@
-import { test, expect, loginAsProvider, logout } from '../../MeAjudaAi.Web.Shared.Tests/base';
+import { test, expect, loginAsProvider, logout } from '@meajudaai/web-e2e-support';
 
 test.describe('Provider Web App - Authentication', () => {
   test.beforeEach(async ({ page }) => {

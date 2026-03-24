@@ -157,3 +157,6 @@ legacy-analysis-report.*
 **/generated/
 
 vite.config.*.timestamp*
+
+# Ignore Windows null device files
+nul

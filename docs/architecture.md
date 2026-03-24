@@ -3220,37 +3220,24 @@ test.describe('Providers Management', () => {
 
 ### **Estrutura de Arquivos**
 
-```text
-apps/admin-portal/
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── (auth)/             # Authentication routes
-│   │   ├── (dashboard)/        # Protected routes
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── components/             # Reusable components
-│   │   ├── ui/                 # Base UI components
-│   │   └── providers/          # Feature components
-│   ├── hooks/                  # Custom React hooks
-│   ├── lib/                    # Utilities
-│   └── stores/                 # Zustand stores
-└── src/Web/playwright.config.ts
+```
+src/Web/
+├── MeAjudaAi.Web.Admin/           # Admin Portal Next.js App
+│   ├── app/
+│   │   ├── (auth)/                # Authentication routes (Keycloak OAuth)
+│   │   └── (dashboard)/           # Protected routes
+│   └── e2e/                       # E2E tests (co-localized)
+│       └── auth.spec.ts
+├── MeAjudaAi.Web.Customer/         # Customer Web Next.js App
+├── MeAjudaAi.Web.Provider/         # Provider Web Next.js App
+├── libs/                          # Shared libraries (ui, auth, api-client, assets)
+└── playwright.config.ts          # Single Playwright config for all apps
 
-tests/
-├── MeAjudaAi.Web.Customer.Tests/
-│   └── e2e/                   # Playwright tests
-│       ├── auth.spec.ts
-│       └── search.spec.ts
-├── MeAjudaAi.Web.Provider.Tests/
-│   └── e2e/                   # Playwright tests
-│       ├── auth.spec.ts
-│       └── onboarding.spec.ts
-├── MeAjudaAi.Web.Admin.Tests/
-│   └── e2e/                   # Playwright tests
-│       ├── auth.spec.ts
-│       └── providers.spec.ts
-└── MeAjudaAi.Web.Shared.Tests/
-    └── base.ts                # Shared fixtures
+# Playwright Configuration:
+# - testDir: './tests' (single test directory)
+# - baseURL: 'http://localhost:3000'
+# - projects array: chromium, firefox, webkit, mobile devices, ci
+# All tests use the same playwright.config.ts with project-based browser selection.
 ```
 
 ### **Best Practices - Frontend**

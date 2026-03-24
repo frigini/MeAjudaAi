@@ -233,7 +233,8 @@ O Admin Portal segue as diretrizes **WCAG 2.1 AA**:
 ### E2E Tests com Playwright
 
 - Testes end-to-end para todos os fluxos principais
-- Localização: `src/Web/e2e/admin/`
+- Localização: `tests/MeAjudaAi.Web.Admin.Tests/e2e/`
+- Os testes exercising the OAuth flow via Keycloak (signIn("keycloak")) em vez de formulários de email/password
 
 ### Executar Testes
 
