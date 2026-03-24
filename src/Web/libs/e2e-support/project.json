@@ -1,7 +1,7 @@
 {
   "name": "e2e-support",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "libs/e2e-support/src",
+  "sourceRoot": "libs/e2e-support",
   "projectType": "library",
   "tags": ["e2e", "playwright", "test"],
   "targets": {
@@ -14,7 +14,10 @@
       }
     },
     "lint": {
-      "executor": "@nx/eslint:lint"
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["libs/e2e-support/**/*.ts"]
+      }
     }
   }
 }
