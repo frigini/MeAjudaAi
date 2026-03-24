@@ -4,6 +4,27 @@
   "sourceRoot": "MeAjudaAi.Web.Admin",
   "projectType": "application",
   "tags": [],
-  "// targets": "to see all targets run: nx show project MeAjudaAi.Web.Admin --web",
-  "targets": {}
+  "targets": {
+    "build": {
+      "command": "next build",
+      "outputs": [
+        "{workspaceRoot}/dist/MeAjudaAi.Web.Admin"
+      ],
+      "options": {
+        "cwd": "MeAjudaAi.Web.Admin"
+      }
+    },
+    "serve": {
+      "command": "next dev -p 3002",
+      "options": {
+        "cwd": "MeAjudaAi.Web.Admin"
+      }
+    },
+    "lint": {
+      "command": "next lint",
+      "options": {
+        "cwd": "MeAjudaAi.Web.Admin"
+      }
+    }
+  }
 }

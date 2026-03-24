@@ -155,7 +155,7 @@ jobs:
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
 
       - name: Run frontend tests (React Admin)
-        working-directory: src/Web/MeAjudaAi.Web.Admin-React
+        working-directory: src/Web/MeAjudaAi.Web.Admin
         run: |
           echo "===================================="
           echo "🎨 REACT ADMIN TESTS"

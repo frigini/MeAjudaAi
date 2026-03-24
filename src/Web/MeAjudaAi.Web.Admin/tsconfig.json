@@ -4,7 +4,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./src/*"
+        "./*"
       ]
     },
     "jsx": "preserve",
@@ -36,8 +36,6 @@
     "**/*.jsx",
     "**/*.ts",
     "**/*.tsx",
-    "../MeAjudaAi.Web.Admin-React/.next/types/**/*.ts",
-    "../dist/MeAjudaAi.Web.Admin-React/.next/types/**/*.ts",
     "next-env.d.ts",
     ".next/types/**/*.ts"
   ],
