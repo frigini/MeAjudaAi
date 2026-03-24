@@ -145,10 +145,12 @@ jobs:
 
           swagger tofile --output ../api/api-spec.json "$DLL_PATH" v1
 
-          # 3. Generate API client for Customer Web App
+          # 3. Generate API clients for all Web Apps
           # The generator reads OPENAPI_SPEC_URL from env
           export OPENAPI_SPEC_URL="$GITHUB_WORKSPACE/src/api/api-spec.json"
           npm run generate:api --workspace=meajudaai.web.customer
+          npm run generate:api --workspace=meajudaai.web.admin
+          npm run generate:api --workspace=meajudaai.web.provider
 
       - name: Lint Frontend Workspace
         working-directory: ./src/Web
