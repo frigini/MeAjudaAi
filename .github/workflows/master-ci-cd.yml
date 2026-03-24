@@ -164,6 +164,20 @@ jobs:
           npm test
           echo "React Admin tests completed"
 
+      - name: Run E2E Tests (Playwright)
+        working-directory: src/Web
+        if: false  # Disabled for now - enable after apps are running
+        run: |
+          echo "================================"
+          echo "E2E TESTS (PLAYWRIGHT)"
+          echo "================================"
+          
+          # Install Playwright browsers
+          npx playwright install --with-deps chromium
+          
+          # Run E2E tests
+          npx playwright test --reporter=list
+
       - name: Free Disk Space for Integration Tests
         run: |
           echo "Freeing disk space before integration tests..."

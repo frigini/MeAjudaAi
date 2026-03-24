@@ -179,6 +179,20 @@ jobs:
           # 2. Run the affected build for the rest of the workspace
           npx nx affected --target=build --exclude=MeAjudaAi.Web.Customer
 
+      - name: Run E2E Tests (Playwright)
+        working-directory: ./src/Web
+        if: false  # Disabled for now - enable after apps are running
+        run: |
+          echo "================================"
+          echo "E2E TESTS (PLAYWRIGHT)"
+          echo "================================"
+          
+          # Install Playwright browsers
+          npx playwright install --with-deps chromium
+          
+          # Run E2E tests
+          npx playwright test --reporter=list
+
       - name: Prepare Aspire Integration Tests
         run: |
           echo " Preparing .NET Aspire for integration tests..."
