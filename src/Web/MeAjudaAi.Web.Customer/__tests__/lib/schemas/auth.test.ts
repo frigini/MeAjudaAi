@@ -3,10 +3,10 @@ import { registerProviderSchema, registerCustomerSchema, addressSchema } from '@
 import { EProviderType } from '@/types/api/provider';
 
 describe('registerProviderSchema', () => {
-  it('deve validar dados válidos para PF', () => {
+  it('deve validar dados válidos para PF com CPF válido', () => {
     const validPfData = {
       name: 'João Silva',
-      documentNumber: '12345678901',
+      documentNumber: '11144477735',
       phoneNumber: '21999999999',
       type: EProviderType.Individual,
       email: 'joao@teste.com',
@@ -15,13 +15,13 @@ describe('registerProviderSchema', () => {
     };
     
     const result = registerProviderSchema.safeParse(validPfData);
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
-  it('deve aceitar CPF válido (teste com CPF simples)', () => {
+  it('deve rejeitar CPF inválido', () => {
     const validPfData = {
       name: 'João Silva',
-      documentNumber: '00000000000',
+      documentNumber: '12345678901',
       phoneNumber: '21999999999',
       type: EProviderType.Individual,
       email: 'joao@teste.com',

@@ -8,6 +8,12 @@ describe('Avatar Component', () => {
     expect(screen.getByText('JS')).toBeInTheDocument();
   });
 
+  it('deve renderizar com tamanho padrão (md)', () => {
+    render(<Avatar alt="João Silva" />);
+    const container = screen.getByText('JS').closest('div');
+    expect(container).toHaveClass('size-10');
+  });
+
   it('deve renderizar com tamanho small', () => {
     render(<Avatar alt="João Silva" size="sm" />);
     const container = screen.getByText('JS').closest('div');
