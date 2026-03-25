@@ -32,11 +32,11 @@ export default defineConfig({
         'types/**',
       ],
       // TODO: Gradually increase thresholds as test suite grows
-      // targets: 80% lines, functions, branches, statements (to match backend coverage)
+      // Current target: 70% to match frontend project maturity
       thresholds: {
         lines: 70,
         functions: 70,
-        branches: 65,
+        branches: 70,
         statements: 70,
         perFile: false,
       },

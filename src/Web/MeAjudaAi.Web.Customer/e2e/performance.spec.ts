@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const mobileViewport = { width: 375, height: 667 };
 
-test.describe('Customer Web App - Mobile Responsiveness', () => {
+test.describe('@e2e Customer Web App - Mobile Responsiveness', () => {
   test('should render correctly on mobile viewport', async ({ page }) => {
     await page.setViewportSize(mobileViewport);
     await page.goto('/');
@@ -39,7 +39,7 @@ test.describe('Customer Web App - Mobile Responsiveness', () => {
   });
 });
 
-test.describe('Performance - Core Web Vitals', () => {
+test.describe('@e2e Performance - Core Web Vitals', () => {
   test('should meet LCP threshold on homepage', async ({ page }) => {
     await page.goto('/');
     
@@ -176,7 +176,7 @@ test.describe('Performance - Core Web Vitals', () => {
   });
 });
 
-test.describe('Performance - Network', () => {
+test.describe('@e2e Performance - Network', () => {
   test('should optimize images', async ({ page }) => {
     await page.goto('/');
     

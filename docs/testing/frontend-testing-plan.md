@@ -266,10 +266,10 @@ export default defineConfig({
         'src/main.tsx',
       ],
       thresholds: {
-        lines: 80,
-        functions: 80,
-        branches: 80,
-        statements: 80,
+        lines: 70,
+        functions: 70,
+        branches: 70,
+        statements: 70,
       },
     },
   },
@@ -1118,11 +1118,11 @@ export default defineConfig({
         '**/*.config.*',
         '**/mockData',
       ],
-      thresholds: {
-        lines: 80,
-        functions: 80,
-        branches: 80,
-        statements: 80,
+       thresholds: {
+        lines: 70,
+        functions: 70,
+        branches: 70,
+        statements: 70,
       },
     },
     reporters: ['default', 'junit', 'json'],
@@ -1497,10 +1497,12 @@ it('deve corresponder ao snapshot', () => {
 ## 📊 Métricas de Qualidade
 
 ### Cobertura Mínima Recomendada
-- **Statements**: 80%
-- **Branches**: 80%
-- **Functions**: 80%
-- **Lines**: 80%
+- **Statements**: 70%
+- **Branches**: 70%
+- **Functions**: 70%
+- **Lines**: 70%
+
+> **Nota**: Os thresholds atuais estão configurados em 70% para o projeto frontend, com meta de aumento gradual conforme a cobertura aumenta.
 
 ### Pirâmide de Testes
 ```text
@@ -1544,6 +1546,67 @@ const element = await screen.findByText('Text');
 vi.mock('./api');
 import { Component } from './Component';
 ```
+
+---
+
+## 📋 Status da Implementação Atual
+
+### Estrutura Atual do Projeto
+
+O projeto de testes frontend está integrado diretamente no projeto `MeAjudaAi.Web.Customer`:
+
+```
+src/Web/MeAjudaAi.Web.Customer/
+├── __tests__/                    # Testes unitários
+│   ├── components/
+│   │   ├── auth/
+│   │   ├── home/
+│   │   ├── layout/
+│   │   ├── providers/
+│   │   ├── search/
+│   │   ├── service/
+│   │   └── ui/
+│   ├── hooks/
+│   ├── lib/
+│   └── setup.ts
+├── e2e/                         # Testes E2E
+│   ├── auth.spec.ts
+│   ├── onboarding.spec.ts
+│   ├── performance.spec.ts
+│   ├── profile.spec.ts
+│   └── search.spec.ts
+├── vitest.config.ts
+└── package.json
+```
+
+### Comandos Atuais
+
+```bash
+# Executar testes
+npm test          # ou npx vitest run
+
+# Executar com cobertura
+npm run test:coverage  # ou npx vitest run --coverage
+```
+
+### Cobertura Atual
+
+- **Lines**: ~70%
+- **Functions**: ~68%
+- **Branches**: ~74%
+- **Statements**: ~71%
+
+### Diferenças do Plano Original
+
+1. **Localização**: Os testes estão dentro do projeto `MeAjudaAi.Web.Customer` (em `__tests__/`) em vez de um projeto separado
+2. **Thresholds**: Configurados em 70% ao invés de 80% inicial
+3. **E2E**: Usa `@e2e` tag nos test.describe para ser executado pelo Playwright
+
+### Próximos Passos
+
+1. Aumentar cobertura para 80% gradualmente
+2. Adicionar mais testes para componentes de baixa cobertura
+3. Melhorar testes de integração
 
 ---
 

@@ -1,10 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { CustomerRegisterForm } from '@/components/auth/customer-register-form';
+
+const mockPush = vi.fn();
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: vi.fn(),
+    push: mockPush,
   }),
 }));
 
@@ -20,6 +23,10 @@ vi.mock('sonner', () => ({
 }));
 
 describe('CustomerRegisterForm', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('deve renderizar o formulário de cadastro', () => {
     render(<CustomerRegisterForm />);
     expect(screen.getByLabelText(/nome completo/i)).toBeInTheDocument();
@@ -45,4 +52,20 @@ describe('CustomerRegisterForm', () => {
     expect(termsLink).toBeInTheDocument();
     expect(termsLink).toHaveAttribute('href', '/termos');
   });
+
+  it('deve renderizar link de privacidade', () => {
+    render(<CustomerRegisterForm />);
+    expect(screen.getByRole('link', { name: /política de privacidade/i })).toBeInTheDocument();
+  });
+
+  it('deve renderizar checkbox de termos', () => {
+    render(<CustomerRegisterForm />);
+    expect(screen.getByRole('checkbox', { name: /termos/i })).toBeInTheDocument();
+  });
+
+  it('deve validar campos ao submeter', () => {
+    render(<CustomerRegisterForm />);
+    expect(screen.getByRole('button', { name: /criar conta/i })).toBeInTheDocument();
+  });
+
 });

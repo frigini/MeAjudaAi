@@ -1,12 +1,15 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ProviderDto, EVerificationStatus } from '@/types/api/provider';
 import DashboardClient from '@/components/providers/dashboard-client';
+
+const mockRefresh = vi.fn();
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
-    refresh: vi.fn(),
+    refresh: mockRefresh,
   }),
 }));
 
@@ -15,6 +18,10 @@ vi.mock('sonner', () => ({
     success: vi.fn(),
     error: vi.fn(),
   },
+}));
+
+vi.mock('./service-selector', () => ({
+  ServiceSelector: () => <div data-testid="service-selector">Service Selector</div>,
 }));
 
 const mockProvider: ProviderDto = {
@@ -36,6 +43,11 @@ const mockProvider: ProviderDto = {
 };
 
 describe('DashboardClient', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    global.fetch = vi.fn();
+  });
+
   it('deve renderizar o título do painel', () => {
     render(<DashboardClient provider={mockProvider} />);
     expect(screen.getByText(/meu painel/i)).toBeInTheDocument();
@@ -100,5 +112,74 @@ describe('DashboardClient', () => {
     
     render(<DashboardClient provider={providerWithoutServices} />);
     expect(screen.getByText(/nenhum serviço cadastrado/i)).toBeInTheDocument();
+  });
+
+  it('deve entrar em modo de edição ao clicar em editar', async () => {
+    const user = userEvent.setup();
+    render(<DashboardClient provider={mockProvider} />);
+    
+    const editButton = screen.getByRole('button', { name: /editar/i });
+    await user.click(editButton);
+    
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /salvar/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /cancelar/i })).toBeInTheDocument();
+  });
+
+  it('deve cancelar edição e restaurar descrição original', async () => {
+    const user = userEvent.setup();
+    render(<DashboardClient provider={mockProvider} />);
+    
+    const editButton = screen.getByRole('button', { name: /editar/i });
+    await user.click(editButton);
+    
+    const textarea = screen.getByRole('textbox');
+    await user.clear(textarea);
+    await user.type(textarea, 'Nova descrição');
+    
+    const cancelButton = screen.getByRole('button', { name: /cancelar/i });
+    await user.click(cancelButton);
+    
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('deve renderizar com verificação pendente', () => {
+    const providerPending: ProviderDto = {
+      ...mockProvider,
+      verificationStatus: EVerificationStatus.Pending,
+    };
+    
+    render(<DashboardClient provider={providerPending} />);
+    expect(screen.getByText(/status da conta/i)).toBeInTheDocument();
+  });
+
+  it('deve renderizar com verificação rejeitada', () => {
+    const providerRejected: ProviderDto = {
+      ...mockProvider,
+      verificationStatus: EVerificationStatus.Rejected,
+    };
+    
+    render(<DashboardClient provider={providerRejected} />);
+    expect(screen.getByText(/status da conta/i)).toBeInTheDocument();
+  });
+
+  it('deve renderizar com verificação suspensa', () => {
+    const providerSuspended: ProviderDto = {
+      ...mockProvider,
+      verificationStatus: EVerificationStatus.Suspended,
+    };
+    
+    render(<DashboardClient provider={providerSuspended} />);
+    expect(screen.getByText(/status da conta/i)).toBeInTheDocument();
+  });
+
+  it('deve renderizar com verificação em progresso', () => {
+    const providerInProgress: ProviderDto = {
+      ...mockProvider,
+      verificationStatus: EVerificationStatus.InProgress,
+    };
+    
+    render(<DashboardClient provider={providerInProgress} />);
+    expect(screen.getByText(/status da conta/i)).toBeInTheDocument();
   });
 });
