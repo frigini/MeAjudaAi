@@ -44,6 +44,7 @@ export function Rating({
                 return (
                     <span
                         key={index}
+                        data-testid="rating-star"
                         className={cn(
                             "transition-colors focus:outline-none focus:ring-1 focus:ring-ring rounded-sm",
                             readOnly ? "cursor-default" : "cursor-pointer"

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useMyProviderProfile } from '@/hooks/use-my-provider-profile';
+import { useUpdateProviderProfile } from '@/hooks/use-update-provider-profile';
 import React from 'react';
 
 vi.mock('@/lib/api/fetch-client', () => ({
@@ -19,6 +19,7 @@ const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
+      mutations: { retry: false },
     },
   });
   
@@ -29,19 +30,16 @@ const createWrapper = () => {
   );
 };
 
-describe('useMyProviderProfile Hook', () => {
+describe('useUpdateProviderProfile Hook', () => {
   beforeEach(() => {
     vi.resetAllMocks();
   });
 
-  it('deve iniciar com estado correto', async () => {
-    const { authenticatedFetch } = await import('@/lib/api/fetch-client');
-    vi.mocked(authenticatedFetch).mockImplementation(() => new Promise(() => {}));
-
-    const { result } = renderHook(() => useMyProviderProfile(), {
+  it('deve iniciar corretamente', () => {
+    const { result } = renderHook(() => useUpdateProviderProfile(), {
       wrapper: createWrapper(),
     });
 
-    expect(result.current.isLoading).toBe(true);
+    expect(result.current.isPending).toBe(false);
   });
 });

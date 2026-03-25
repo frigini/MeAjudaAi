@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { mapSearchableProviderToProvider, mapApiProviderToProvider } from '@/lib/api/mappers';
 import { EProviderType, EProviderStatus, EVerificationStatus, EProviderTier } from '@/types/api/provider';
+import type { MeAjudaAiModulesProvidersApplicationDtosProviderDto } from '@/lib/api/generated/types.gen';
+
+type PartialProviderDto = Partial<MeAjudaAiModulesProvidersApplicationDtosProviderDto> & { id: string };
 
 describe('mapSearchableProviderToProvider', () => {
   it('deve mapear SearchableProviderDto para ProviderDto', () => {
@@ -43,7 +46,7 @@ describe('mapSearchableProviderToProvider', () => {
 
 describe('mapApiProviderToProvider', () => {
   it('deve mapear ProviderDto completo', () => {
-    const input = {
+    const input: PartialProviderDto = {
       id: 'provider-456',
       userId: 'user-789',
       name: 'Maria Santos',
@@ -77,7 +80,7 @@ describe('mapApiProviderToProvider', () => {
       reviewCount: 25,
     };
 
-    const result = mapApiProviderToProvider(input);
+    const result = mapApiProviderToProvider(input as any);
 
     expect(result.id).toBe('provider-456');
     expect(result.name).toBe('Maria Solutions');
@@ -90,7 +93,7 @@ describe('mapApiProviderToProvider', () => {
   });
 
   it('deve usar fantasyName ou legalName como nome de exibição', () => {
-    const inputWithFantasyName = {
+    const inputWithFantasyName: PartialProviderDto = {
       id: 'p1',
       businessProfile: {
         legalName: 'Nome Legal',
@@ -98,30 +101,30 @@ describe('mapApiProviderToProvider', () => {
         contactInfo: { email: 'test@test.com' },
         primaryAddress: { city: '', state: '', street: '', neighborhood: '', zipCode: '', country: '' },
       },
-    } as any;
+    };
 
-    const result = mapApiProviderToProvider(inputWithFantasyName);
+    const result = mapApiProviderToProvider(inputWithFantasyName as any);
     expect(result.name).toBe('Nome Fantasia');
 
-    const inputWithoutFantasyName = {
+    const inputWithoutFantasyName: PartialProviderDto = {
       id: 'p2',
       businessProfile: {
         legalName: 'Nome Legal Apenas',
         contactInfo: { email: 'test@test.com' },
         primaryAddress: { city: '', state: '', street: '', neighborhood: '', zipCode: '', country: '' },
       },
-    } as any;
+    };
 
-    const result2 = mapApiProviderToProvider(inputWithoutFantasyName);
+    const result2 = mapApiProviderToProvider(inputWithoutFantasyName as any);
     expect(result2.name).toBe('Nome Legal Apenas');
   });
 
   it('deve usar valores padrão para campos ausentes', () => {
-    const input = {
+    const input: PartialProviderDto = {
       id: 'p1',
-    } as any;
+    };
 
-    const result = mapApiProviderToProvider(input);
+    const result = mapApiProviderToProvider(input as any);
 
     expect(result.name).toBe('Prestador');
     expect(result.type).toBe(EProviderType.Individual);

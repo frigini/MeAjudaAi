@@ -24,6 +24,6 @@ describe('ReviewCard', () => {
 
   it('deve renderizar rating', () => {
     render(<ReviewCard review={mockReview} />);
-    expect(screen.getByText('Maria Santos')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /5 de \d+ estrelas/i })).toBeInTheDocument();
   });
 });

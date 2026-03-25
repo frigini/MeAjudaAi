@@ -27,8 +27,8 @@ describe('Avatar Component', () => {
   });
 
   it('deve usar fallback customizado', () => {
-    render(<Avatar alt="João Silva" fallback="JS" />);
-    expect(screen.getByText('JS')).toBeInTheDocument();
+    render(<Avatar alt="João Silva" fallback="XX" />);
+    expect(screen.getByText('XX')).toBeInTheDocument();
   });
 
   it('deve renderizar apenas uma iniciais quando há apenas um nome', () => {
