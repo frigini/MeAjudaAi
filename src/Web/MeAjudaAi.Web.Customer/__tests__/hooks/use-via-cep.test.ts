@@ -80,4 +80,26 @@ describe('useViaCep Hook', () => {
       expect(result.current.error).toBe('Falha ao consultar CEP');
     });
   });
+
+  it('deve cancelar requisição anterior', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ cep: '20550160', logradouro: 'Rua Teste', complemento: '', bairro: 'Bairro Teste', locality: 'Rio de Janeiro', uf: 'RJ' }),
+    });
+
+    const { result } = renderHook(() => useViaCep());
+    
+    const promise1 = result.current.fetchAddress('20550160');
+    const promise2 = result.current.fetchAddress('20550161');
+    
+    await Promise.all([promise1, promise2]);
+  });
+
+  it('deve retornar null para CEP com menos de 8 dígitos', async () => {
+    const { result } = renderHook(() => useViaCep());
+    
+    const address = await result.current.fetchAddress('12345');
+    
+    expect(address).toBeNull();
+  });
 });

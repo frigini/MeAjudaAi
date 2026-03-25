@@ -36,12 +36,16 @@ describe('VerifiedBadge', () => {
 
   it('deve renderizar com tamanho small', () => {
     render(<VerifiedBadge status={EVerificationStatus.Verified} size="sm" />);
-    expect(screen.getByTitle('Prestador Verificado')).toBeInTheDocument();
+    const svg = screen.getByTitle('Prestador Verificado').querySelector('svg');
+    expect(svg).toHaveAttribute('width', '14');
+    expect(svg).toHaveAttribute('height', '14');
   });
 
   it('deve renderizar com tamanho large', () => {
     render(<VerifiedBadge status={EVerificationStatus.Verified} size="lg" />);
-    expect(screen.getByTitle('Prestador Verificado')).toBeInTheDocument();
+    const svg = screen.getByTitle('Prestador Verificado').querySelector('svg');
+    expect(svg).toHaveAttribute('width', '24');
+    expect(svg).toHaveAttribute('height', '24');
   });
 
   it('não deve renderizar quando status undefined', () => {

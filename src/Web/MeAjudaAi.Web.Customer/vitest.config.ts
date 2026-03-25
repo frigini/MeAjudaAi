@@ -31,11 +31,13 @@ export default defineConfig({
         'app/**',
         'types/**',
       ],
+      // TODO: Gradually increase thresholds as test suite grows
+      // targets: 80% lines, functions, branches, statements (to match backend coverage)
       thresholds: {
-        lines: 39,
-        functions: 46,
-        branches: 42,
-        statements: 40,
+        lines: 54,
+        functions: 55,
+        branches: 53,
+        statements: 54,
       },
     },
   },

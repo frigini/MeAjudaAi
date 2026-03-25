@@ -16,6 +16,9 @@ test.describe('Customer Web App - Mobile Responsiveness', () => {
     await page.goto('/');
     
     const userMenuButton = page.locator('button').first();
+    const count = await userMenuButton.count();
+    expect(count).toBeGreaterThan(0);
+    
     const box = await userMenuButton.boundingBox();
     
     expect(box?.height).toBeGreaterThanOrEqual(44);
@@ -43,19 +46,22 @@ test.describe('Performance - Core Web Vitals', () => {
     const metrics = await page.evaluate(() => {
       return new Promise((resolve) => {
         let resolved = false;
+        let timeoutId: NodeJS.Timeout;
+        
         const observer = new PerformanceObserver((list) => {
           if (resolved) return;
           const entries = list.getEntries();
           const lcpEntry = entries[entries.length - 1];
           if (lcpEntry) {
             resolved = true;
+            clearTimeout(timeoutId);
             observer.disconnect();
             resolve({ lcp: lcpEntry.startTime });
           }
         });
         observer.observe({ type: 'largest-contentful-paint', buffered: true });
         
-        const timeoutId = setTimeout(() => {
+        timeoutId = setTimeout(() => {
           if (!resolved) {
             resolved = true;
             observer.disconnect();
@@ -100,9 +106,6 @@ test.describe('Performance - Core Web Vitals', () => {
         
         observer.observe({ type: 'event', buffered: true });
         
-        const btn = document.getElementById('inp-test-button');
-        if (btn) btn.click();
-        
         setTimeout(() => {
           observer.disconnect();
           const maxInp = inpEntries.length > 0 ? Math.max(...inpEntries) : 0;
@@ -110,6 +113,8 @@ test.describe('Performance - Core Web Vitals', () => {
         }, 2000);
       });
     });
+    
+    await page.click('#inp-test-button');
     
     expect(metrics.inp).toBeDefined();
     expect(metrics.inp).toBeLessThan(500);
@@ -191,7 +196,7 @@ test.describe('Performance - Network', () => {
     const imagesBelowFold = imagesWithSrc.filter((img) => img.isBelowFold);
     if (imagesBelowFold.length > 0) {
       const lazyLoadedImages = imagesBelowFold.filter((img) => img.loading === 'lazy');
-      expect(lazyLoadedImages.length).toBeGreaterThan(0);
+      expect(lazyLoadedImages.length).toBe(imagesBelowFold.length);
     }
   });
 

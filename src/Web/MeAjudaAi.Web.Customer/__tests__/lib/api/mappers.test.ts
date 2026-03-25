@@ -132,4 +132,36 @@ describe('mapApiProviderToProvider', () => {
     expect(result.verificationStatus).toBe(EVerificationStatus.Pending);
     expect(result.tier).toBe(EProviderTier.Standard);
   });
+
+  it('deve mapear documentos e qualificações', () => {
+    const input: PartialProviderDto = {
+      id: 'p1',
+      documents: [
+        {
+          id: 'doc1',
+          providerId: 'p1',
+          documentType: 1,
+          fileName: 'documento.pdf',
+          fileUrl: 'https://storage.com/doc1',
+          status: 2,
+          uploadedAt: '2024-01-01',
+        },
+      ],
+      qualifications: [
+        {
+          name: 'Curso de elétrica',
+          description: 'Curso avançado',
+          issuingOrganization: 'SENAI',
+          issueDate: '2023-01-01',
+          documentNumber: '123456',
+        },
+      ],
+    };
+
+    const result = mapApiProviderToProvider(input as any);
+
+    expect(result.documents).toHaveLength(1);
+    expect(result.qualifications).toHaveLength(1);
+    expect(result.qualifications[0].name).toBe('Curso de elétrica');
+  });
 });

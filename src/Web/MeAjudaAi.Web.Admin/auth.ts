@@ -28,6 +28,12 @@ const isCi = process.env.CI === "true" || process.env.NEXT_PUBLIC_CI === "true";
 const hasAdminVars = process.env.KEYCLOAK_ADMIN_CLIENT_ID && process.env.KEYCLOAK_ADMIN_CLIENT_SECRET;
 const hasClientVars = process.env.KEYCLOAK_CLIENT_ID && process.env.KEYCLOAK_CLIENT_SECRET;
 
+const hasPartialAdminVars = (!!process.env.KEYCLOAK_ADMIN_CLIENT_ID) !== (!!process.env.KEYCLOAK_ADMIN_CLIENT_SECRET);
+
+if (hasPartialAdminVars) {
+  throw new Error("Both KEYCLOAK_ADMIN_CLIENT_ID and KEYCLOAK_ADMIN_CLIENT_SECRET must be set or neither");
+}
+
 let keycloakClientId: string;
 let keycloakClientSecret: string;
 let keycloakIssuer: string;

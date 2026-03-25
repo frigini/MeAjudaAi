@@ -87,17 +87,10 @@ describe('useMyProviderProfile Hook', () => {
     vi.mocked(useSession).mockReturnValue({
       data: null,
       status: 'unauthenticated',
-    } as any);
-
-    const queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-      },
     });
+
     const { result } = renderHook(() => useMyProviderProfile(), {
-      wrapper: ({ children }: { children: React.ReactNode }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-      ),
+      wrapper: createWrapper(),
     });
 
     await waitFor(() => {
@@ -105,5 +98,20 @@ describe('useMyProviderProfile Hook', () => {
     });
 
     expect(result.current.data).toBeFalsy();
+  });
+
+  it('deve tratar erro na API', async () => {
+    const { authenticatedFetch } = await import('@/lib/api/fetch-client');
+    vi.mocked(authenticatedFetch).mockRejectedValueOnce(new Error('Network error'));
+
+    const { result } = renderHook(() => useMyProviderProfile(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+
+    expect(result.current.error).toBeDefined();
   });
 });

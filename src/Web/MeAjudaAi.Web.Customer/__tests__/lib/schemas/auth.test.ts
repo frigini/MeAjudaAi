@@ -92,6 +92,81 @@ describe('registerProviderSchema', () => {
     const result = registerProviderSchema.safeParse(data);
     expect(result.success).toBe(false);
   });
+
+  it('deve validar dados válidos para PJ com CNPJ válido', () => {
+    const validPjData = {
+      name: 'Empresa Teste LTDA',
+      documentNumber: '11222333000181',
+      phoneNumber: '21999999999',
+      type: EProviderType.Company,
+      email: 'empresa@teste.com',
+      acceptedTerms: true,
+      acceptedPrivacyPolicy: true,
+    };
+    
+    const result = registerProviderSchema.safeParse(validPjData);
+    expect(result.success).toBe(true);
+  });
+
+  it('deve rejeitar CNPJ inválido', () => {
+    const data = {
+      name: 'Empresa Teste',
+      documentNumber: '12345678901234',
+      phoneNumber: '21999999999',
+      type: EProviderType.Company,
+      email: 'empresa@teste.com',
+      acceptedTerms: true,
+      acceptedPrivacyPolicy: true,
+    };
+    
+    const result = registerProviderSchema.safeParse(data);
+    expect(result.success).toBe(false);
+  });
+
+  it('deve validar freelancer com CPF válido', () => {
+    const validFreelancerData = {
+      name: 'João Freelancer',
+      documentNumber: '11144477735',
+      phoneNumber: '21999999999',
+      type: EProviderType.Freelancer,
+      email: 'freelancer@teste.com',
+      acceptedTerms: true,
+      acceptedPrivacyPolicy: true,
+    };
+    
+    const result = registerProviderSchema.safeParse(validFreelancerData);
+    expect(result.success).toBe(true);
+  });
+
+  it('deve rejeitar tipo None', () => {
+    const data = {
+      name: 'João Silva',
+      documentNumber: '11144477735',
+      phoneNumber: '21999999999',
+      type: EProviderType.None,
+      email: 'joao@teste.com',
+      acceptedTerms: true,
+      acceptedPrivacyPolicy: true,
+    };
+    
+    const result = registerProviderSchema.safeParse(data);
+    expect(result.success).toBe(false);
+  });
+
+  it('deve rejeitar privacy policy não aceita', () => {
+    const data = {
+      name: 'João Silva',
+      documentNumber: '11144477735',
+      phoneNumber: '21999999999',
+      type: EProviderType.Individual,
+      email: 'joao@teste.com',
+      acceptedTerms: true,
+      acceptedPrivacyPolicy: false,
+    };
+    
+    const result = registerProviderSchema.safeParse(data);
+    expect(result.success).toBe(false);
+  });
 });
 
 describe('registerCustomerSchema', () => {
