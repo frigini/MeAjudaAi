@@ -18,6 +18,7 @@
       "ui": ["libs/ui/src/index.ts"],
       "auth": ["libs/auth/src/index.ts"],
       "api-client": ["libs/api-client/src/index.ts"],
+      "test-support": ["libs/test-support/src/index.ts"],
       "Shared.Contracts": ["../Shared/MeAjudaAi.Shared.Contracts"]
     }
   },

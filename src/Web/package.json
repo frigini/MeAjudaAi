@@ -14,7 +14,18 @@
     "doc": "docs",
     "test": "tests"
   },
-  "scripts": {},
+  "scripts": {
+    "test": "npm run test:customer && npm run test:admin && npm run test:provider",
+    "test:customer": "cd MeAjudaAi.Web.Customer && npx vitest run --config vitest.config.ts",
+    "test:admin": "cd MeAjudaAi.Web.Admin && npx vitest run --config vitest.config.ts",
+    "test:provider": "cd MeAjudaAi.Web.Provider && npx vitest run --config vitest.config.ts",
+    "test:watch": "cd MeAjudaAi.Web.Customer && npx vitest --config vitest.config.ts",
+    "test:coverage": "cd MeAjudaAi.Web.Customer && npx vitest run --coverage --config vitest.config.ts",
+    "test:ci": "npm run test:customer -- --reporter=junit --reporter=json-summary",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:ci": "playwright test --reporter=html --reporter=junit"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/frigini/MeAjudaAi.git"
@@ -48,6 +59,9 @@
     "@swc/helpers": "~0.5.18",
     "@tailwindcss/postcss": "^4.2.1",
     "@tanstack/react-query-devtools": "^5.91.3",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^29.5.12",
     "@types/node": "20.19.9",
     "@types/react": "^19.0.0",
@@ -55,6 +69,7 @@
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vitejs/plugin-react": "^4.2.0",
+    "@vitest/coverage-v8": "^4.1.1",
     "@vitest/ui": "^4.0.0",
     "autoprefixer": "10.4.13",
     "eslint": "~8.57.0",
@@ -65,6 +80,7 @@
     "jiti": "2.4.2",
     "jsdom": "~22.1.0",
     "jsonc-eslint-parser": "^2.1.0",
+    "msw": "^2.12.14",
     "nx": "22.5.4",
     "postcss": "8.4.38",
     "prettier": "~3.6.2",
