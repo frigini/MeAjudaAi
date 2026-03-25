@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useDocumentUpload } from '@/hooks/use-document-upload';
 import React from 'react';
@@ -43,6 +43,10 @@ describe('useDocumentUpload Hook', () => {
     vi.resetAllMocks();
   });
 
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it('deve iniciar com estados iniciais', () => {
     const { result } = renderHook(() => useDocumentUpload(), {
       wrapper: createWrapper(),
@@ -63,7 +67,6 @@ describe('useDocumentUpload Hook', () => {
   it('deve mostrar erro quando providerId vazio', async () => {
     const { authenticatedFetch } = await import('@/lib/api/fetch-client');
     const toast = (await import('sonner')).toast;
-    vi.mocked(authenticatedFetch).mockResolvedValueOnce({});
 
     const { result } = renderHook(() => useDocumentUpload(), {
       wrapper: createWrapper(),
@@ -90,8 +93,7 @@ describe('useDocumentUpload Hook', () => {
       })
       .mockResolvedValueOnce({ success: true });
 
-    global.fetch = vi.fn()
-      .mockResolvedValueOnce({ ok: true }) as any;
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
 
     const { result } = renderHook(() => useDocumentUpload(), {
       wrapper: createWrapper(),
@@ -102,11 +104,10 @@ describe('useDocumentUpload Hook', () => {
       await result.current.uploadDocument(file, EDocumentType.ID, 'provider-123');
     });
 
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 100));
+    await waitFor(() => {
+      expect(result.current.isUploading).toBe(false);
     });
 
-    expect(result.current.isUploading).toBe(false);
     expect(toast.success).toHaveBeenCalledWith('Documento enviado com sucesso!');
   });
 

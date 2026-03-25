@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ReviewForm } from '@/components/reviews/review-form';
 
@@ -24,5 +24,15 @@ describe('ReviewForm', () => {
   it('deve renderizar botão de enviar', () => {
     render(<ReviewForm providerId="provider-1" />);
     expect(screen.getByRole('button', { name: /enviar/i })).toBeInTheDocument();
+  });
+
+  it('deve renderizar placeholder do textarea', () => {
+    render(<ReviewForm providerId="provider-1" />);
+    expect(screen.getByPlaceholderText(/conte como foi sua experiência/i)).toBeInTheDocument();
+  });
+
+  it('deve renderizar com className customizada', () => {
+    render(<ReviewForm providerId="provider-1" className="custom-class" />);
+    expect(screen.getByText(/avaliar este prestador/i)).toBeInTheDocument();
   });
 });

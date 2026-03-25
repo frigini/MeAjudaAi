@@ -46,7 +46,7 @@ test.describe('Performance - Core Web Vitals', () => {
     const metrics = await page.evaluate(() => {
       return new Promise((resolve) => {
         let resolved = false;
-        let timeoutId: NodeJS.Timeout;
+        let timeoutId: ReturnType<typeof setTimeout>;
         
         const observer = new PerformanceObserver((list) => {
           if (resolved) return;

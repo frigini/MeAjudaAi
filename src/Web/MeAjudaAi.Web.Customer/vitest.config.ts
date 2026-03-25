@@ -34,10 +34,11 @@ export default defineConfig({
       // TODO: Gradually increase thresholds as test suite grows
       // targets: 80% lines, functions, branches, statements (to match backend coverage)
       thresholds: {
-        lines: 54,
-        functions: 55,
-        branches: 53,
-        statements: 54,
+        lines: 70,
+        functions: 70,
+        branches: 65,
+        statements: 70,
+        perFile: false,
       },
     },
   },

@@ -3,15 +3,15 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useViaCep } from '@/hooks/use-via-cep';
 
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
 
 describe('useViaCep Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('fetch', mockFetch);
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('deve retornar isLoading false inicialmente', () => {
@@ -82,10 +82,18 @@ describe('useViaCep Hook', () => {
   });
 
   it('deve cancelar requisição anterior', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ cep: '20550160', logradouro: 'Rua Teste', complemento: '', bairro: 'Bairro Teste', locality: 'Rio de Janeiro', uf: 'RJ' }),
-    });
+    const mockCepData1 = { cep: '20550160', logradouro: 'Rua Teste 1', complemento: '', bairro: 'Bairro Teste', locality: 'Rio de Janeiro', uf: 'RJ' };
+    const mockCepData2 = { cep: '20550161', logradouro: 'Rua Teste 2', complemento: '', bairro: 'Bairro Teste', locality: 'Rio de Janeiro', uf: 'RJ' };
+    
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockCepData1,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockCepData2,
+      });
 
     const { result } = renderHook(() => useViaCep());
     
@@ -93,7 +101,7 @@ describe('useViaCep Hook', () => {
     const promise2 = result.current.fetchAddress('20550161');
     
     const address2 = await promise2;
-    expect(address2).toBeDefined();
+    expect(address2).toEqual(mockCepData2);
     
     expect(mockFetch).toHaveBeenCalledTimes(2);
   });

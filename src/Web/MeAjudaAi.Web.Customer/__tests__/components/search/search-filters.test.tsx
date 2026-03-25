@@ -33,4 +33,19 @@ describe('SearchFilters', () => {
     render(<SearchFilters />);
     expect(screen.getByDisplayValue('50')).toBeInTheDocument();
   });
+
+  it('deve renderizar opção qualquer avaliação', () => {
+    render(<SearchFilters />);
+    expect(screen.getByText(/qualquer avaliação/i)).toBeInTheDocument();
+  });
+
+  it('deve renderizar limite mínimo de 5km', () => {
+    render(<SearchFilters />);
+    expect(screen.getByText('5km')).toBeInTheDocument();
+  });
+
+  it('deve renderizar limite máximo de 100km', () => {
+    render(<SearchFilters />);
+    expect(screen.getByText('100km')).toBeInTheDocument();
+  });
 });
