@@ -99,20 +99,19 @@ src/Web/MeAjudaAi.Web.Admin/
 
 ### Testes E2E
 
-Localização: `tests/MeAjudaAi.Web.Admin.Tests/e2e/`
+Localização: `src/Web/MeAjudaAi.Web.Admin/e2e/`
 
 **Estrutura:**
 ```text
-tests/MeAjudaAi.Web.Admin.Tests/
-└── e2e/
-    ├── auth.spec.ts
-    ├── providers.spec.ts
-    ├── configs.spec.ts
-    ├── dashboard.spec.ts
-    └── mobile-responsiveness.spec.ts
+src/Web/MeAjudaAi.Web.Admin/e2e/
+├── auth.spec.ts
+├── providers.spec.ts
+├── configs.spec.ts
+├── dashboard.spec.ts
+└── mobile-responsiveness.spec.ts
 ```
 
-**Fixtures compartilhadas:** `tests/MeAjudaAi.Web.Shared.Tests/base.ts`
+**Fixtures compartilhadas:** `src/Web/libs/e2e-support/base.ts`
 - `loginAsAdmin(page)`
 - `loginAsProvider(page)`
 - `loginAsCustomer(page)`

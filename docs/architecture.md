@@ -3174,30 +3174,27 @@ src/Web/MeAjudaAi.Web.Admin/
 ### **Estrutura de Arquivos**
 
 ```text
-tests/
-├── MeAjudaAi.Web.Admin.Tests/    # Admin Portal E2E tests
-│   └── e2e/
-│       ├── auth.spec.ts
-│       ├── providers.spec.ts
-│       ├── configs.spec.ts
-│       ├── dashboard.spec.ts
-│       └── mobile-responsiveness.spec.ts
-├── MeAjudaAi.Web.Customer.Tests/ # Customer Web E2E tests
-│   └── e2e/
-│       ├── auth.spec.ts
-│       ├── search.spec.ts
-│       ├── onboarding.spec.ts
-│       ├── profile.spec.ts
-│       └── performance.spec.ts
-├── MeAjudaAi.Web.Provider.Tests/ # Provider Web E2E tests
-│   └── e2e/
-│       ├── auth.spec.ts
-│       ├── onboarding.spec.ts
-│       ├── profile-mgmt.spec.ts
-│       ├── dashboard.spec.ts
-│       └── performance.spec.ts
-└── MeAjudaAi.Web.Shared.Tests/  # Shared test fixtures
-    └── base.ts                   # Shared E2E fixtures
+src/
+├── MeAjudaAi.Web.Admin/e2e/     # Admin Portal E2E tests
+│   ├── auth.spec.ts
+│   ├── providers.spec.ts
+│   ├── configs.spec.ts
+│   ├── dashboard.spec.ts
+│   └── mobile-responsiveness.spec.ts
+├── MeAjudaAi.Web.Customer/e2e/  # Customer Web E2E tests
+│   ├── auth.spec.ts
+│   ├── search.spec.ts
+│   ├── onboarding.spec.ts
+│   ├── profile.spec.ts
+│   └── performance.spec.ts
+├── MeAjudaAi.Web.Provider/e2e/ # Provider Web E2E tests
+│   ├── auth.spec.ts
+│   ├── onboarding.spec.ts
+│   ├── profile-mgmt.spec.ts
+│   ├── dashboard.spec.ts
+│   └── performance.spec.ts
+└── libs/e2e-support/           # Shared E2E fixtures
+    └── base.ts                  # Exports: loginAsAdmin, loginAsProvider, loginAsCustomer, logout
 
 # Playwright Configuration:
 # - testDir: './src' (single test directory)

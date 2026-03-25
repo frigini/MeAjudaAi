@@ -10,37 +10,45 @@ declare module "next-auth" {
   }
 }
 
-function requireEnv(name: string): string {
+function getRequiredEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
-    if (process.env.NODE_ENV !== "development") {
-      console.warn(`[auth] Warning: Environment variable ${name} is missing.`);
-    }
-    return "";
+    throw new Error(`Missing required environment variable: ${name}`);
   }
   return value;
 }
 
-const keycloakClientId = process.env.KEYCLOAK_ADMIN_CLIENT_ID || process.env.KEYCLOAK_CLIENT_ID;
-const keycloakClientSecret = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET || process.env.KEYCLOAK_CLIENT_SECRET;
-const keycloakIssuer = process.env.KEYCLOAK_ISSUER;
+const hasKeycloakConfig = process.env.KEYCLOAK_ADMIN_CLIENT_ID || process.env.KEYCLOAK_CLIENT_ID;
+const hasKeycloakSecret = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET || process.env.KEYCLOAK_CLIENT_SECRET;
+const hasKeycloakIssuer = !!process.env.KEYCLOAK_ISSUER;
 
-if (!keycloakClientId || !keycloakClientSecret || !keycloakIssuer) {
-  if (process.env.CI === "true" || process.env.NEXT_PUBLIC_CI === "true") {
-    console.warn("[auth] Warning: Missing Keycloak environment variables - using placeholder values for CI build.");
-  } else if (process.env.NODE_ENV === "production") {
-    console.warn("[auth] Warning: Missing Keycloak environment variables - build may fail at runtime.");
-  } else {
-    console.warn("[auth] Warning: Missing Keycloak environment variables - using placeholder values for development.");
-  }
+const isFullyConfigured = hasKeycloakConfig && hasKeycloakSecret && hasKeycloakIssuer;
+
+let keycloakClientId: string;
+let keycloakClientSecret: string;
+let keycloakIssuer: string;
+
+if (isFullyConfigured) {
+  keycloakClientId = process.env.KEYCLOAK_ADMIN_CLIENT_ID || process.env.KEYCLOAK_CLIENT_ID!;
+  keycloakClientSecret = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET || process.env.KEYCLOAK_CLIENT_SECRET!;
+  keycloakIssuer = process.env.KEYCLOAK_ISSUER!;
+} else if (process.env.CI === "true" || process.env.NEXT_PUBLIC_CI === "true") {
+  keycloakClientId = "placeholder";
+  keycloakClientSecret = "placeholder";
+  keycloakIssuer = "http://localhost:8080/realms/meajudaai";
+  console.warn("[auth] Warning: Missing Keycloak environment variables - using placeholder values for CI build.");
+} else {
+  keycloakClientId = process.env.KEYCLOAK_ADMIN_CLIENT_ID || process.env.KEYCLOAK_CLIENT_ID || "placeholder";
+  keycloakClientSecret = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET || process.env.KEYCLOAK_CLIENT_SECRET || "placeholder";
+  keycloakIssuer = process.env.KEYCLOAK_ISSUER || "http://localhost:8080/realms/meajudaai";
 }
 
 export const authOptions: NextAuthOptions = {
   providers: [
     Keycloak({
-      clientId: keycloakClientId || "placeholder",
-      clientSecret: keycloakClientSecret || "placeholder",
-      issuer: keycloakIssuer || "http://localhost:8080/realms/meajudaai",
+      clientId: keycloakClientId,
+      clientSecret: keycloakClientSecret,
+      issuer: keycloakIssuer,
     }),
   ],
   pages: {

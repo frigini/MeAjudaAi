@@ -627,7 +627,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 3. **Customer Web App Tests**: Login, busca, perfil (`tests/MeAjudaAi.Web.Customer.Tests/e2e/`)
 4. **Provider Web App Tests**: Onboarding, dashboard (`tests/MeAjudaAi.Web.Provider.Tests/e2e/`)
 5. **Admin Portal Tests**: CRUD providers, documentos (`tests/MeAjudaAi.Web.Admin.Tests/e2e/`)
-6. **Shared Fixtures**: `tests/MeAjudaAi.Web.Shared.Tests/base.ts`
+6. **Shared Fixtures**: `src/Web/libs/e2e-support/base.ts` (loginAsAdmin, loginAsProvider, loginAsCustomer, logout)
 7. **CI Integration**: Adicionar steps em `pr-validation.yml` e `master-ci-cd.yml` (⏳ Habilitado em master-ci-cd.yml, pendente em pr-validation.yml: requer RUN_E2E='true' para executar)
 
 **Cenários de Teste**:

@@ -11,6 +11,9 @@ test.describe('Admin Portal - Mobile Responsiveness', () => {
     await page.setViewportSize(mobileViewport);
     await page.goto('/admin/dashboard');
     
+    const hamburgerButton = page.locator('[data-testid="mobile-menu-toggle"]');
+    await hamburgerButton.click();
+    
     await expect(page.locator('[data-testid="mobile-menu"]')).toBeVisible();
   });
 

@@ -75,12 +75,12 @@ test.describe('Performance - Core Web Vitals', () => {
       });
     });
     
-    if (metrics.lcp) {
-      expect(metrics.lcp).toBeLessThan(2500);
-    }
+    expect(metrics.lcp).toBeDefined();
+    expect(metrics.lcp).toBeGreaterThan(0);
+    expect(metrics.lcp).toBeLessThan(2500);
   });
 
-  test('should meet FID threshold', async ({ page }) => {
+  test('should meet INP threshold', async ({ page }) => {
     await page.goto('/');
     
     await page.waitForLoadState('domcontentloaded');
@@ -93,27 +93,39 @@ test.describe('Performance - Core Web Vitals', () => {
         const observer = new PerformanceObserver((list) => {
           if (resolved) return;
           const entries = list.getEntries();
-          const fidEntry = entries.find((entry) => entry.entryType === 'first-input');
-          if (fidEntry) {
+          const eventEntries = entries.filter((entry) => entry.entryType === 'event');
+          
+          let maxInp = 0;
+          eventEntries.forEach((entry: any) => {
+            const processingStart = entry.processingStart || 0;
+            const inp = processingStart > 0 
+              ? processingStart - entry.startTime 
+              : entry.duration;
+            if (inp > maxInp) {
+              maxInp = inp;
+            }
+          });
+          
+          if (eventEntries.length > 0) {
             resolved = true;
             observer.disconnect();
-            resolve({ fid: (fidEntry as any).processingStart - fidEntry.startTime });
+            resolve({ inp: maxInp });
           }
         });
-        observer.observe({ type: 'first-input', buffered: true });
+        observer.observe({ type: 'event', buffered: true });
         
-        const timeoutId = setTimeout(() => {
+        setTimeout(() => {
           if (!resolved) {
             resolved = true;
             observer.disconnect();
-            resolve({ fid: null });
+            resolve({ inp: null });
           }
         }, 5000);
       });
     });
     
-    expect(metrics.fid).not.toBeNull();
-    expect(metrics.fid).toBeLessThan(100);
+    expect(metrics.inp).not.toBeNull();
+    expect(metrics.inp).toBeLessThan(200);
   });
 
   test('should meet CLS threshold', async ({ page }) => {
@@ -122,13 +134,35 @@ test.describe('Performance - Core Web Vitals', () => {
     
     const metrics = await page.evaluate(() => {
       const entries = performance.getEntriesByType('layout-shift') as any[];
-      let cls = 0;
-      entries.forEach((entry) => {
-        if (!entry.hadRecentInput) {
-          cls += entry.value;
+      
+      const validEntries = entries.filter((entry) => !entry.hadRecentInput);
+      
+      validEntries.sort((a, b) => a.startTime - b.startTime);
+      
+      let maxCls = 0;
+      let currentWindowSum = 0;
+      let windowStartTime = 0;
+      
+      validEntries.forEach((entry) => {
+        if (windowStartTime === 0) {
+          windowStartTime = entry.startTime;
+          currentWindowSum = entry.value;
+        } else if (entry.startTime - windowStartTime < 1000) {
+          currentWindowSum += entry.value;
+        } else {
+          if (currentWindowSum > maxCls) {
+            maxCls = currentWindowSum;
+          }
+          currentWindowSum = entry.value;
+          windowStartTime = entry.startTime;
         }
       });
-      return { cls };
+      
+      if (currentWindowSum > maxCls) {
+        maxCls = currentWindowSum;
+      }
+      
+      return { cls: maxCls };
     });
     
     expect(metrics.cls).toBeLessThan(0.1);
@@ -136,8 +170,7 @@ test.describe('Performance - Core Web Vitals', () => {
 
   test('should load page within acceptable time', async ({ page }) => {
     const startTime = Date.now();
-    await page.goto('/');
-    await page.waitForLoadState('domcontentloaded');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     const loadTime = Date.now() - startTime;
     
     expect(loadTime).toBeLessThan(3000);
@@ -168,11 +201,12 @@ test.describe('Performance - Network', () => {
     }
   });
 
-  test('should not have excessive requests', async ({ page }) => {
+  test('should not have excessive same-origin requests', async ({ page }) => {
     const requests: string[] = [];
     page.on('request', (request) => {
-      if (request.url().includes('localhost') || request.url().includes('127.0.0.1')) {
-        requests.push(request.url());
+      const url = request.url();
+      if (url.includes('localhost') || url.includes('127.0.0.1')) {
+        requests.push(url);
       }
     });
     

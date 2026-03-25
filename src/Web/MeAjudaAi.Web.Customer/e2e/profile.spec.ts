@@ -1,6 +1,6 @@
 import { test, expect, loginAsCustomer } from '@meajudaai/web-e2e-support';
 
-test.describe('Customer Web App - Provider Profile View', () => {
+test.describe('@e2e Customer Web App - Provider Profile View', () => {
   test('should navigate to provider profile from search results', async ({ page }) => {
     await page.goto('/busca?servico=eletricista');
     
@@ -45,102 +45,79 @@ test.describe('Customer Web App - Provider Profile View', () => {
   });
 });
 
-test.describe('Customer Web App - Contact Information', () => {
+test.describe('@e2e Customer Web App - Contact Information', () => {
   test('should show login prompt for guest users', async ({ page }) => {
     await page.goto('/prestador/test-provider-id');
     
     const loginPrompt = page.locator('[data-testid="login-prompt"]');
     const promptCount = await loginPrompt.count();
     
-    if (promptCount > 0) {
-      await expect(loginPrompt).toBeVisible();
-      await expect(loginPrompt).toContainText(/faça login|entre para ver/i);
-    }
+    expect(promptCount).toBeGreaterThan(0);
+    await expect(loginPrompt.first()).toBeVisible();
   });
 
   test('should show contact details for authenticated users', async ({ page }) => {
     await loginAsCustomer(page);
     await page.goto('/prestador/test-provider-id');
     
-    await page.waitForTimeout(1000);
+    await expect(page).toHaveURL(/.*\/prestador\/.+/);
     
     const contactSection = page.locator('[data-testid="contact-section"]');
-    const contactCount = await contactSection.count();
-    
-    if (contactCount > 0) {
-      await expect(contactSection).toBeVisible();
-    }
+    await expect(contactSection.first()).toBeVisible();
   });
 
   test('should display phone number for authenticated users', async ({ page }) => {
     await loginAsCustomer(page);
     await page.goto('/prestador/test-provider-id');
     
-    await page.waitForTimeout(1000);
+    await expect(page).toHaveURL(/.*\/prestador\/.+/);
     
     const phoneElement = page.locator('[data-testid="provider-phone"]');
-    const phoneCount = await phoneElement.count();
-    
-    if (phoneCount > 0) {
-      await expect(phoneElement).toBeVisible();
-    }
+    await expect(phoneElement.first()).toBeVisible();
   });
 });
 
-test.describe('Customer Web App - WhatsApp Interaction', () => {
+test.describe('@e2e Customer Web App - WhatsApp Interaction', () => {
   test('should display WhatsApp button for authenticated users', async ({ page }) => {
     await loginAsCustomer(page);
     await page.goto('/prestador/test-provider-id');
     
-    await page.waitForTimeout(1000);
+    await expect(page).toHaveURL(/.*\/prestador\/.+/);
     
     const whatsappButton = page.locator('[data-testid="whatsapp-button"]');
-    const waCount = await whatsappButton.count();
-    
-    if (waCount > 0) {
-      await expect(whatsappButton).toBeVisible();
-    }
+    await expect(whatsappButton.first()).toBeVisible();
   });
 
   test('should generate correct WhatsApp link format', async ({ page }) => {
     await loginAsCustomer(page);
     await page.goto('/prestador/test-provider-id');
     
-    await page.waitForTimeout(1000);
+    await expect(page).toHaveURL(/.*\/prestador\/.+/);
     
     const whatsappLink = page.locator('a[href^="https://wa.me/"]');
-    const linkCount = await whatsappLink.count();
+    await expect(whatsappLink.first()).toBeVisible();
     
-    if (linkCount > 0) {
-      await expect(whatsappLink.first()).toBeVisible();
-      
-      const href = await whatsappLink.first().getAttribute('href');
-      expect(href).toMatch(/wa\.me\/\d+/);
-    }
+    const href = await whatsappLink.first().getAttribute('href');
+    expect(href).toMatch(/wa\.me\/\d+/);
   });
 
   test('should open WhatsApp in new tab', async ({ page }) => {
     await loginAsCustomer(page);
     await page.goto('/prestador/test-provider-id');
     
-    await page.waitForTimeout(1000);
+    await expect(page).toHaveURL(/.*\/prestador\/.+/);
     
     const whatsappLink = page.locator('a[href^="https://wa.me/"]');
-    const linkCount = await whatsappLink.count();
-    
-    if (linkCount > 0) {
-      const target = await whatsappLink.first().getAttribute('target');
-      expect(target).toBe('_blank');
-    }
+    const target = await whatsappLink.first().getAttribute('target');
+    expect(target).toBe('_blank');
   });
 });
 
-test.describe('Customer Web App - Provider Reviews', () => {
+test.describe('@e2e Customer Web App - Provider Reviews', () => {
   test('should display reviews section', async ({ page }) => {
     await page.goto('/prestador/test-provider-id');
     
-    const reviewsSection = page.locator('[data-testid="reviews-section"]');
-    await expect(reviewsSection).toBeVisible();
+    await expect(page.locator('[data-testid="reviews-section"]')).toBeVisible();
   });
 
   test('should display existing reviews', async ({ page }) => {
@@ -211,70 +188,53 @@ test.describe('Customer Web App - Provider Reviews', () => {
   });
 });
 
-test.describe('Customer Web App - Submit Review', () => {
+test.describe('@e2e Customer Web App - Submit Review', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsCustomer(page);
     await page.goto('/prestador/test-provider-id');
-    await page.waitForTimeout(1000);
+    await expect(page).toHaveURL(/.*\/prestador\/.+/);
   });
 
   test('should display review form for authenticated users', async ({ page }) => {
     const reviewForm = page.locator('[data-testid="review-form"]');
-    const formCount = await reviewForm.count();
-    
-    if (formCount > 0) {
-      await expect(reviewForm).toBeVisible();
-    }
+    await expect(reviewForm.first()).toBeVisible();
   });
 
   test('should allow rating selection', async ({ page }) => {
-    const reviewForm = page.locator('[data-testid="review-form"]');
-    const formCount = await reviewForm.count();
+    const reviewForm = page.locator('[data-testid="review-form"]').first();
+    const ratingStars = reviewForm.locator('[data-testid="rating-star"]');
+    const starsCount = await ratingStars.count();
     
-    if (formCount > 0) {
-      const ratingStars = reviewForm.locator('[data-testid="rating-star"]');
-      const starsCount = await ratingStars.count();
-      expect(starsCount).toBeGreaterThan(0);
-      
-      await ratingStars.nth(4).click();
-    }
+    expect(starsCount).toBeGreaterThan(0);
+    
+    const targetIndex = Math.min(4, starsCount - 1);
+    await ratingStars.nth(targetIndex).click();
   });
 
   test('should allow entering review text', async ({ page }) => {
-    const reviewForm = page.locator('[data-testid="review-form"]');
-    const formCount = await reviewForm.count();
+    const reviewForm = page.locator('[data-testid="review-form"]').first();
+    const reviewTextarea = reviewForm.locator('textarea[name="review"]');
     
-    if (formCount > 0) {
-      const reviewTextarea = reviewForm.locator('textarea[name="review"]');
-      const textareaCount = await reviewTextarea.count();
-      
-      if (textareaCount > 0) {
-        await reviewTextarea.fill('Excelente serviço! Recomendo.');
-      }
-    }
+    await expect(reviewTextarea).toBeVisible();
+    await reviewTextarea.fill('Excelente serviço! Recomendo.');
   });
 
   test('should submit review successfully', async ({ page }) => {
-    const reviewForm = page.locator('[data-testid="review-form"]');
-    const formCount = await reviewForm.count();
+    const reviewForm = page.locator('[data-testid="review-form"]').first();
     
-    if (formCount > 0) {
-      const ratingStars = reviewForm.locator('[data-testid="rating-star"]');
-      if (await ratingStars.count() > 0) {
-        await ratingStars.nth(4).click();
-      }
-      
-      const reviewTextarea = reviewForm.locator('textarea[name="review"]');
-      if (await reviewTextarea.count() > 0) {
-        await reviewTextarea.fill('Excelente serviço! Recomendo.');
-      }
-      
-      const submitButton = reviewForm.locator('button[type="submit"]');
-      if (await submitButton.count() > 0) {
-        await submitButton.click();
-        
-        await expect(page.locator('text=Obrigado pela avaliação')).toBeVisible({ timeout: 5000 }).catch(() => {});
-      }
+    const ratingStars = reviewForm.locator('[data-testid="rating-star"]');
+    const starsCount = await ratingStars.count();
+    if (starsCount > 0) {
+      const targetIndex = Math.min(4, starsCount - 1);
+      await ratingStars.nth(targetIndex).click();
     }
+    
+    const reviewTextarea = reviewForm.locator('textarea[name="review"]');
+    await reviewTextarea.fill('Excelente serviço! Recomendo.');
+    
+    const submitButton = reviewForm.locator('button[type="submit"]');
+    await submitButton.click();
+    
+    await expect(page.locator('text=Obrigado pela avaliação')).toBeVisible({ timeout: 5000 });
   });
 });
