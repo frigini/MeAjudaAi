@@ -58,4 +58,9 @@ describe('normalizeVerificationStatus', () => {
   it('deve retornar undefined para valores desconhecidos', () => {
     expect(normalizeVerificationStatus('unknown')).toBeUndefined();
   });
+
+  it.each([null, undefined])('deve tratar %s graciosamente', (input) => {
+    const result = normalizeVerificationStatus(input);
+    expect(result).toBeFalsy();
+  });
 });

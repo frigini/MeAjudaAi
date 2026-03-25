@@ -33,8 +33,9 @@ describe('useViaCep Hook', () => {
     const mockCepData = {
       cep: '20550160',
       logradouro: 'Rua Teste',
+      complemento: '',
       bairro: 'Bairro Teste',
-      cidade: 'Rio de Janeiro',
+      locality: 'Rio de Janeiro',
       uf: 'RJ',
     };
 

@@ -34,6 +34,11 @@ const customRender = (
   options?: Omit<RenderOptions, 'wrapper'>
 ) => render(ui, { wrapper: AllTheProviders, ...options });
 
+const AllTheProvidersWrapper = ({ children }: { children: React.ReactNode }) => (
+  <AllTheProviders>{children}</AllTheProviders>
+);
+
 export * from '@testing-library/react';
 export { customRender as render };
 export { createTestQueryClient };
+export { AllTheProvidersWrapper };

@@ -23,7 +23,7 @@ describe('Card Component', () => {
   it('deve renderizar com padding none', () => {
     render(<Card padding="none">Content</Card>);
     const card = screen.getByText('Content').closest('[data-slot="card"]');
-    expect(card).not.toHaveClass('p-');
+    expect(card?.className).not.toMatch(/\bp-/);
   });
 });
 
