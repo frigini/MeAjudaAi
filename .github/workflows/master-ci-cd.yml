@@ -154,16 +154,6 @@ jobs:
             --collect:"XPlat Code Coverage" --results-directory TestResults/SearchProviders \
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
 
-      - name: Run frontend tests (React Admin)
-        working-directory: src/Web/MeAjudaAi.Web.Admin
-        run: |
-          echo "===================================="
-          echo "REACT ADMIN TESTS"
-          echo "===================================="
-          echo "Running React Admin tests..."
-          npm test
-          echo "React Admin tests completed"
-
       - name: Setup Node.js environment
         uses: actions/setup-node@v6
         with:
@@ -174,6 +164,15 @@ jobs:
       - name: Install Frontend Dependencies
         working-directory: ./src/Web
         run: npm ci
+
+      - name: Run Frontend Unit Tests
+        working-directory: ./src/Web
+        run: |
+          echo "===================================="
+          echo "FRONTEND UNIT TESTS (ALL PROJECTS)"
+          echo "===================================="
+          npm run test:ci
+          echo "Frontend unit tests completed"
 
       - name: Generate API Client
         run: |

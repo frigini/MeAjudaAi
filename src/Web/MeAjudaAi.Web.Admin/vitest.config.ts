@@ -42,7 +42,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './'),
-      'test-support': resolve(__dirname, '../../libs/test-support/src'),
+      'test-support': resolve(__dirname, '../libs/test-support/src'),
     },
   },
 });

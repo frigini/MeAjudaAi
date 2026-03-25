@@ -4,7 +4,8 @@
 3. 🧠 Recomendações com ML
 4. 🎮 Gamificação avançada
 5. 💬 Chat interno
-6. 🌐 Internacionalização
+6. 🌐 Internacionalização (i18n)
+7. 🧪 Evolução da Infraestrutura de Testes
 
 ---
 
@@ -46,6 +47,20 @@
 
 ---
 
-*📅 Última atualização: 9 de Março de 2026 (Sprint 8B.2 Refinement)*  
+## 🧪 Evolução da Infraestrutura de Testes
+
+O planejamento de qualidade prevê a evolução contínua da pirâmide de testes:
+
+### Fase 3.1: Cobertura e Contratos (Curto/Médio Prazo)
+- **Meta de Cobertura**: Atingir >80% de cobertura global nos 3 projetos frontend.
+- **Testes de Contrato (Consumer-Driven)**: Implementação de Pact.io para garantir que o frontend Next.js é compatível com a API .NET sem depender de ambiente real.
+
+### Fase 3.2: E2E Full-Stack & BDD (Médio Prazo)
+- **Orquestração com Aspire**: Migração dos testes E2E para rodarem contra instâncias locais orquestradas pelo .NET Aspire (subindo SQL Server, API e Redis em containers temporários durante o suite).
+- **BDD (Behavior Driven Development)**: Adoção de Gherkin (Cucumber ou Playwright-BDD) para os fluxos críticos de negócio (ex: ciclo de vida do serviço).
+
+---
+
+*📅 Última atualização: 25 de Março de 2026 (Pós-Sprint 8E)*  
 *🔄 Roadmap em constante evolução baseado em feedback, métricas e aprendizados*
-*📊 Status atual: Sprint 8B.2 🔄 EM ANDAMENTO | MVP Launch em 12-16 de Maio de 2026*
+*📊 Status atual: Sprint 9 🔄 EM ANDAMENTO | MVP Launch em 12-16 de Maio de 2026*

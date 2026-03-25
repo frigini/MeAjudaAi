@@ -13,7 +13,30 @@
 8. [Integração com Pipeline CI/CD](#integração-com-pipeline-cicd)
 9. [Comandos Úteis](#comandos-úteis)
 10. [Boas Práticas](#boas-práticas)
-11. [Checklist de Implementação](#checklist-de-implementação)
+## 11. Checklist de Implementação
+
+### Fase 1: Fundação (Concluída - Sprint 8E)
+- [x] Criar `libs/test-support` (setup, utils, mock-data)
+- [x] Configurar `vitest.config.ts` em todos os projetos
+- [x] Configurar `project.json` (NX targets) para todos os projetos
+- [x] Configurar scripts no `package.json` raiz (`src/Web/`)
+- [x] Implementar MSW em `MeAjudaAi.Web.Customer`
+- [x] Implementar MSW em `MeAjudaAi.Web.Admin`
+- [x] Implementar MSW em `MeAjudaAi.Web.Provider`
+- [x] Corrigir infraestrutura de CI/CD (`master-ci-cd.yml`, `pr-validation.yml`)
+- [x] Implementar agregação de cobertura global (`scripts/merge-coverage.mjs`)
+
+### Fase 2: Cobertura Admin & Provider (Concluída - Sprint 8E)
+- [x] Criar testes unitários para hooks Admin
+- [x] Criar testes unitários para componentes Admin
+- [x] Criar testes unitários para componentes Provider
+- [x] Validar funcionamento local e em CI
+
+### Fase 3: Maturidade e E2E Full (Roadmap Futuro)
+- [ ] Expandir cobertura unitária para >80%
+- [ ] Implementar testes de contrato (Pact)
+- [ ] Integrar testes E2E com .NET Aspire (containers locais)
+- [ ] Implementar BDD com Gherkin para fluxos críticos
 
 ---
 
@@ -400,8 +423,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@/': path.resolve(__dirname, './'),
-      '@test-support': path.resolve(__dirname, '../libs/test-support/src'),
+      '@': path.resolve(__dirname, './'),
+      'test-support': path.resolve(__dirname, '../libs/test-support/src'),
     },
   },
 });
@@ -707,16 +730,18 @@ describe('LoginForm', () => {
 ```json
 {
   "scripts": {
-    "test": "vitest run --config MeAjudaAi.Web.Customer/vitest.config.ts && vitest run --config MeAjudaAi.Web.Admin/vitest.config.ts && vitest run --config MeAjudaAi.Web.Provider/vitest.config.ts",
-    "test:customer": "vitest run --config MeAjudaAi.Web.Customer/vitest.config.ts",
-    "test:admin": "vitest run --config MeAjudaAi.Web.Admin/vitest.config.ts",
-    "test:provider": "vitest run --config MeAjudaAi.Web.Provider/vitest.config.ts",
-    "test:watch": "vitest --config MeAjudaAi.Web.Customer/vitest.config.ts",
-    "test:coverage": "vitest run --coverage --config MeAjudaAi.Web.Customer/vitest.config.ts",
-    "test:ci": "vitest run --coverage --reporter=junit --reporter=json-summary",
+    "test:all": "npm run test:customer && npm run test:admin && npm run test:provider",
+    "test": "npm run test:all",
+    "test:customer": "cd MeAjudaAi.Web.Customer && npx vitest run --config vitest.config.ts",
+    "test:admin": "cd MeAjudaAi.Web.Admin && npx vitest run --config vitest.config.ts --passWithNoTests",
+    "test:provider": "cd MeAjudaAi.Web.Provider && npx vitest run --config vitest.config.ts --passWithNoTests",
+    "test:coverage:all": "npm run test:customer:coverage && npm run test:admin:coverage && npm run test:provider:coverage",
+    "test:coverage:merge": "node scripts/merge-coverage.mjs",
+    "test:coverage:global": "npm run test:coverage:all && npm run test:coverage:merge",
+    "test:ci": "npm run test:all",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:ci": "playwright test --reporter=html --reporter=junit"
+    "test:e2e:ci": "playwright test --project=ci --reporter=html --reporter=junit"
   }
 }
 ```

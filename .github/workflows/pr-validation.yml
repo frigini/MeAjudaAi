@@ -168,7 +168,11 @@ jobs:
 
       - name: Test Frontend Workspace
         working-directory: ./src/Web
-        run: npx nx affected --target=test
+        run: |
+          # Run tests with coverage for affected projects
+          npx nx affected --target=test --args="--coverage"
+          # Aggregate coverage reports
+          npm run test:coverage:merge || echo "Skipping coverage merge (no reports found)"
 
       - name: ️ Build Frontend Workspace
         working-directory: ./src/Web

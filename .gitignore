@@ -64,6 +64,8 @@ coverage.cobertura.xml
 coverage/
 coverage*/
 test-coverage*/
+coverage-global/
+.nyc_output/
 htmlcov/
 lcov.info
 *.lcov

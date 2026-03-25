@@ -614,28 +614,38 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - ✅ **Allowed Cities**: Geographic restrictions management.
 - ✅ **Dashboard KPIs**: Admin dashboard with metrics.
 
-### ⏳ Sprint 8E - E2E Tests React Apps (Playwright) (23 Mar - 4 Abr 2026)
+### ⏳ Sprint 8E - E2E Tests & React Test Infrastructure (23 Mar - 4 Abr 2026)
 
-**Status**: ⏳ EM ANDAMENTO
+**Status**: ⏳ EM ANDAMENTO (E2E ✅ concluído, testes unitários parcial)
 **Branch**: `feature/sprint-8e-e2e-react-apps`
-**Foco**: Implementar testes E2E com Playwright para todos os apps React.
+**Foco**: Testes E2E (Playwright) + infraestrutura de testes unitários (Vitest + RTL + MSW).
 
-**Scope**:
-1. **Playwright Config**: Configurar playwright.config.ts no workspace NX (✅ Concluído)
-2. **Implement Test Specs**: Criar testes E2E para Customer, Provider e Admin Apps
-3. **Customer Web App Tests**: Login, busca, perfil (`src/Web/MeAjudaAi.Web.Customer/e2e/`)
-4. **Provider Web App Tests**: Onboarding, dashboard (`src/Web/MeAjudaAi.Web.Provider/e2e/`)
-5. **Admin Portal Tests**: CRUD providers, documentos (`src/Web/MeAjudaAi.Web.Admin/e2e/`)
-6. **Shared Fixtures**: `src/Web/libs/e2e-support/base.ts` (loginAsAdmin, loginAsProvider, loginAsCustomer, logout)
-7. **CI Integration**: Adicionar steps em `pr-validation.yml` e `master-ci-cd.yml` (⏳ Habilitado em master-ci-cd.yml, pendente em pr-validation.yml: requer RUN_E2E='true' para executar)
+**Scope — E2E (Playwright)** ✅:
+1. ✅ **Playwright Config**: `playwright.config.ts` com 6 projetos (Chromium, Firefox, WebKit, Mobile, CI)
+2. ✅ **Customer E2E** (5 specs): auth, onboarding, performance, profile, search
+3. ✅ **Provider E2E** (5 specs): auth, dashboard, onboarding, performance, profile-mgmt
+4. ✅ **Admin E2E** (5 specs): auth, configs, dashboard, mobile-responsiveness, providers
+5. ✅ **Shared Fixtures**: `libs/e2e-support/base.ts` (loginAsAdmin, loginAsProvider, loginAsCustomer, logout)
+6. ✅ **CI Integration**: `master-ci-cd.yml` (automático) | `pr-validation.yml` (requer `RUN_E2E='true'`)
 
-**Cenários de Teste**:
-- [ ] Autenticação (login, logout, refresh token)
-- [ ] Fluxo de onboarding (Customer e Provider)
-- [ ] CRUD de providers e serviços
-- [ ] Busca e filtros geolocalizados
-- [ ] Responsividade mobile
-- [ ] Performance e Core Web Vitals
+**Scope — Testes Unitários (Vitest + RTL)**:
+7. ✅ **Infraestrutura**: `libs/test-support/` (setup.ts, test-utils.tsx, mock-data.ts), vitest.config.ts em todos os apps, dependências instaladas
+8. ✅ **Customer Unit Tests**: 54+ testes (components/ui, components/auth, hooks, lib/api, lib/schemas, lib/utils)
+9. ❌ **Admin Unit Tests**: Pendente (somente setup.ts criado, zero testes)
+10. ❌ **Provider Unit Tests**: Pendente (somente setup.ts criado, zero testes)
+
+**Cenários de Teste E2E**:
+- [x] Autenticação (login, logout, refresh token)
+- [x] Fluxo de onboarding (Customer e Provider)
+- [x] CRUD de providers e serviços (Admin)
+- [x] Busca e filtros geolocalizados
+- [x] Responsividade mobile
+- [x] Performance e Core Web Vitals
+
+**Pendências para fechar Sprint**:
+- [ ] Testes unitários Admin (hooks: providers, categories, dashboard, services, allowed-cities, users; components: sidebar, ui)
+- [ ] Testes unitários Provider (hooks; components: dashboard cards, profile)
+- [ ] Configurar MSW handlers para Admin e Provider
 
 ### ⌛ Sprint 9 - BUFFER & Risk Mitigation (23 Abr - 11 Mai 2026)
 

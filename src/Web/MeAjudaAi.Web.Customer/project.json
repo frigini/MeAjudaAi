@@ -24,6 +24,12 @@
             "options": {
                 "cwd": "MeAjudaAi.Web.Customer"
             }
+        },
+        "test": {
+            "command": "vitest run --config vitest.config.ts --passWithNoTests",
+            "options": {
+                "cwd": "MeAjudaAi.Web.Customer"
+            }
         }
     }
 }
