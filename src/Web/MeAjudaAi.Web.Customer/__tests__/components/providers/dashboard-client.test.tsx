@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ProviderDto, EVerificationStatus } from '@/types/api/provider';
 import DashboardClient from '@/components/providers/dashboard-client';
@@ -20,32 +20,48 @@ vi.mock('sonner', () => ({
   },
 }));
 
-vi.mock('./service-selector', () => ({
+vi.mock('../providers/service-selector', () => ({
   ServiceSelector: () => <div data-testid="service-selector">Service Selector</div>,
 }));
 
 const mockProvider: ProviderDto = {
   id: 'prov-123',
+  userId: 'user-123',
   name: 'João Prestador',
   email: 'joao@exemplo.com',
+  type: 1, // Individual
+  status: 3, // Active
   verificationStatus: EVerificationStatus.Verified,
+  tier: 0, // Standard
   businessProfile: {
+    legalName: 'João Silva Prestador ME',
     description: 'Sou um prestador de serviços experiente.',
     contactInfo: {
       email: 'joao@exemplo.com',
-      phone: '(11) 99999-9999',
+      phoneNumber: '(11) 99999-9999',
     },
+    primaryAddress: {
+      street: 'Rua Teste',
+      number: '123',
+      neighborhood: 'Bairro',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01234-567',
+      country: 'Brasil'
+    }
   },
+  documents: [],
+  qualifications: [],
   services: [
     { serviceId: 'svc-1', serviceName: 'Serviço 1' },
     { serviceId: 'svc-2', serviceName: 'Serviço 2' },
   ],
+  createdAt: new Date().toISOString(),
 };
 
 describe('DashboardClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    global.fetch = vi.fn();
   });
 
   it('deve renderizar o título do painel', () => {
@@ -97,7 +113,10 @@ describe('DashboardClient', () => {
   it('deve renderizar sem descrição quando não informada', () => {
     const providerWithoutDescription: ProviderDto = {
       ...mockProvider,
-      businessProfile: {} as ProviderDto['businessProfile'],
+      businessProfile: {
+        ...mockProvider.businessProfile,
+        description: null,
+      },
     };
     
     render(<DashboardClient provider={providerWithoutDescription} />);
@@ -141,6 +160,7 @@ describe('DashboardClient', () => {
     await user.click(cancelButton);
     
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.getByText(/sou um prestador de serviços experiente/i)).toBeInTheDocument();
   });
 
   it('deve renderizar com verificação pendente', () => {
@@ -150,7 +170,7 @@ describe('DashboardClient', () => {
     };
     
     render(<DashboardClient provider={providerPending} />);
-    expect(screen.getByText(/status da conta/i)).toBeInTheDocument();
+    expect(screen.getByText(/pendente/i)).toBeInTheDocument();
   });
 
   it('deve renderizar com verificação rejeitada', () => {
@@ -160,7 +180,7 @@ describe('DashboardClient', () => {
     };
     
     render(<DashboardClient provider={providerRejected} />);
-    expect(screen.getByText(/status da conta/i)).toBeInTheDocument();
+    expect(screen.getByText(/rejeitado/i)).toBeInTheDocument();
   });
 
   it('deve renderizar com verificação suspensa', () => {
@@ -170,7 +190,7 @@ describe('DashboardClient', () => {
     };
     
     render(<DashboardClient provider={providerSuspended} />);
-    expect(screen.getByText(/status da conta/i)).toBeInTheDocument();
+    expect(screen.getByText(/suspenso/i)).toBeInTheDocument();
   });
 
   it('deve renderizar com verificação em progresso', () => {
@@ -180,6 +200,6 @@ describe('DashboardClient', () => {
     };
     
     render(<DashboardClient provider={providerInProgress} />);
-    expect(screen.getByText(/status da conta/i)).toBeInTheDocument();
+    expect(screen.getByText(/em análise/i)).toBeInTheDocument();
   });
 });

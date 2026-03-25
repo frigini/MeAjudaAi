@@ -5,8 +5,8 @@ vi.mock('@/lib/api/generated', () => ({
   apiProvidersGet2: vi.fn().mockResolvedValue({
     data: {
       items: [
-        { id: '1', verificationStatus: 1, type: 0 }, // Pending, Individual
-        { id: '2', verificationStatus: 3, type: 1 }, // Verified, Company
+        { id: '1', verificationStatus: 1, type: 1 }, // Pending, Individual
+        { id: '2', verificationStatus: 3, type: 2 }, // Verified, Company
       ],
       totalPages: 1,
     },
@@ -14,8 +14,21 @@ vi.mock('@/lib/api/generated', () => ({
 }));
 
 vi.mock('@/lib/types', () => ({
-  EVerificationStatus: { Pending: 1, InProgress: 2, Verified: 3, Rejected: 4, Suspended: 5 },
-  EProviderType: { Individual: 0, Company: 1, Cooperative: 2, Freelancer: 3 },
+  EVerificationStatus: { 
+    None: 0, 
+    Pending: 1, 
+    InProgress: 2, 
+    Verified: 3, 
+    Rejected: 4, 
+    Suspended: 5 
+  },
+  EProviderType: { 
+    None: 0, 
+    Individual: 1, 
+    Company: 2, 
+    Cooperative: 3, 
+    Freelancer: 4 
+  },
 }));
 
 import { useDashboardStats } from '@/hooks/admin/use-dashboard';

@@ -30,22 +30,28 @@ describe('Button (Admin)', () => {
     expect(handleClick).not.toHaveBeenCalled();
   });
 
-  it('deve renderizar variante destructive', () => {
+  it('deve renderizar variante destructive com estilo correto', () => {
     render(<Button variant="destructive">Apagar</Button>);
-    // tv() expands variants to actual CSS classes — check slot attribute instead
-    expect(screen.getByRole('button')).toHaveAttribute('data-slot', 'button');
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('data-slot', 'button');
+    expect(button).toHaveClass('bg-destructive');
   });
 
-  it('deve renderizar variante ghost com aparência correta', () => {
+  it('deve renderizar variante ghost com estilo correto', () => {
     render(<Button variant="ghost">Ghost</Button>);
     const button = screen.getByRole('button');
-    // tv() emits the actual Tailwind classes — just verify renders correctly
-    expect(button).toBeInTheDocument();
-    expect(button).not.toBeDisabled();
+    expect(button).toHaveClass('hover:bg-accent');
   });
 
-  it('deve aplicar tamanho sm', () => {
+  it('deve aplicar tamanho sm com estilo correto', () => {
     render(<Button size="sm">Small</Button>);
-    expect(screen.getByRole('button')).toHaveAttribute('data-slot', 'button');
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('h-8');
+  });
+
+  it('deve aceitar props adicionais e fallback para variante padrão se inválida', () => {
+    // @ts-expect-error - testing invalid prop
+    render(<Button variant="invalid">Invalid</Button>);
+    expect(screen.getByRole('button')).toHaveClass('bg-primary');
   });
 });

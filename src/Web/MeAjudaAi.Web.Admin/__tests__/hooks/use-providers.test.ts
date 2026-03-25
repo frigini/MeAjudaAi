@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeAll, afterEach, afterAll, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderHook, waitFor } from 'test-support';
-import { server } from '../mocks/server';
+// import { server } from '../mocks/server';
 
 // Mock the generated API client module — hooks call these functions
 vi.mock('@/lib/api/generated', () => ({
@@ -20,9 +20,7 @@ vi.mock('@/lib/api/generated', () => ({
 
 import { useProviders, useProviderById, providerKeys } from '@/hooks/admin/use-providers';
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+// import { server } from '../mocks/server'; // Redundant since we mock the module
 
 describe('useProviders', () => {
   it('deve retornar lista de prestadores', async () => {

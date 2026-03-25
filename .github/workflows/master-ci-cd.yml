@@ -175,21 +175,22 @@ jobs:
           echo "Frontend unit tests completed"
 
       - name: Generate API Client
+        working-directory: ./src/Web
         run: |
           set -e
           dotnet tool install -g Swashbuckle.AspNetCore.Cli --version 10.1.5
-          mkdir -p ../api
+          mkdir -p api
           export ASPNETCORE_ENVIRONMENT=Development
           export ConnectionStrings__DefaultConnection="Host=localhost;Database=dummy"
           export Migrations__Enabled=false
           SEARCH_DIR=../../src/Bootstrapper/MeAjudaAi.ApiService/bin/Release
           PATTERN=MeAjudaAi.ApiService.dll
           DLL_PATH=$(find "$SEARCH_DIR" -name "$PATTERN" | head -n 1)
-          swagger tofile --output ../api/api-spec.json "$DLL_PATH" v1
-          export OPENAPI_SPEC_URL="$GITHUB_WORKSPACE/src/api/api-spec.json"
-          npm run generate:api --workspace=meajudaai.web.customer
-          npm run generate:api --workspace=meajudaai.web.admin
-          npm run generate:api --workspace=meajudaai.web.provider
+          swagger tofile --output api/api-spec.json "$DLL_PATH" v1
+          export OPENAPI_SPEC_URL="$GITHUB_WORKSPACE/src/Web/api/api-spec.json"
+          npm run generate:api:customer
+          npm run generate:api:admin
+          npm run generate:api:provider
 
       - name: Build Frontend Workspace
         working-directory: ./src/Web

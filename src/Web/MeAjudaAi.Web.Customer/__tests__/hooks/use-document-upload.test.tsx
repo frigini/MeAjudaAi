@@ -31,11 +31,13 @@ const createWrapper = () => {
     },
   });
   
-  return ({ children }: { children: React.ReactNode }) => (
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       {children}
     </QueryClientProvider>
   );
+  Wrapper.displayName = 'QueryClientWrapper';
+  return Wrapper;
 };
 
 describe('useDocumentUpload Hook', () => {
@@ -74,7 +76,7 @@ describe('useDocumentUpload Hook', () => {
 
     const file = new File(['test'], 'test.pdf', { type: 'application/pdf' });
     await act(async () => {
-      await result.current.uploadDocument(file, EDocumentType.ID, '');
+      await result.current.uploadDocument(file, EDocumentType.CPF, '');
     });
 
     expect(result.current.isUploading).toBe(false);
@@ -89,11 +91,13 @@ describe('useDocumentUpload Hook', () => {
     vi.mocked(authenticatedFetch)
       .mockResolvedValueOnce({ 
         uploadUrl: 'https://storage.blob.core.windows.net/upload?token',
-        blobName: 'test-blob'
+        blobName: 'test-blob',
+        documentId: 'doc-123'
       })
-      .mockResolvedValueOnce({ success: true });
+      .mockResolvedValueOnce({ success: true, id: 'doc-123' });
 
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal('fetch', fetchMock);
 
     const { result } = renderHook(() => useDocumentUpload(), {
       wrapper: createWrapper(),
@@ -101,12 +105,43 @@ describe('useDocumentUpload Hook', () => {
 
     const file = new File(['test'], 'test.pdf', { type: 'application/pdf' });
     await act(async () => {
-      await result.current.uploadDocument(file, EDocumentType.ID, 'provider-123');
+      await result.current.uploadDocument(file, EDocumentType.CPF, 'provider-123');
     });
 
     await waitFor(() => {
       expect(result.current.isUploading).toBe(false);
     });
+
+    // Verify first call to get SAS URL
+    expect(authenticatedFetch).toHaveBeenCalledWith(
+      '/api/providers/provider-123/documents/upload-url',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ fileName: 'test.pdf', documentType: EDocumentType.CPF }),
+      })
+    );
+
+    // Verify blob storage PUT
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://storage.blob.core.windows.net/upload?token',
+      expect.objectContaining({
+        method: 'PUT',
+        body: file,
+      })
+    );
+
+    // Verify final call to confirm upload
+    expect(authenticatedFetch).toHaveBeenCalledWith(
+      '/api/providers/provider-123/documents',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ 
+          blobName: 'test-blob', 
+          documentType: EDocumentType.CPF,
+          fileName: 'test.pdf'
+        }),
+      })
+    );
 
     expect(toast.success).toHaveBeenCalledWith('Documento enviado com sucesso!');
   });
@@ -122,7 +157,7 @@ describe('useDocumentUpload Hook', () => {
 
     const file = new File(['test'], 'test.pdf', { type: 'application/pdf' });
     await act(async () => {
-      await result.current.uploadDocument(file, EDocumentType.ID, 'provider-123');
+      await result.current.uploadDocument(file, EDocumentType.CPF, 'provider-123');
     });
 
     expect(result.current.isUploading).toBe(false);

@@ -947,9 +947,11 @@ vi.mock('@/lib/api/client', () => ({
 ### 7. Cobertura Mínima por Camada
 - **Utils/Schemas**: 90%+ (funções puras, fácil testar)
 - **Hooks**: 80%+ (lógica de negócio encapsulada)
-- **Componentes UI**: 70%+ (renderização e interação)
-- **Componentes de Feature**: 60%+ (lógica de negócio com UI)
-- **E2E**: Jornadas críticas do usuário
+- **Estratégia**: Arquitetura de Testes Descentralizada (cada projeto gerencia seus próprios testes unitários e E2E).
+- **Cobertura**: Threshold Global de 70% consolidado via script `merge-coverage.mjs`.
+- **Unitários**: Vitest + React Testing Library + MSW.
+- **E2E**: Playwright (specs localizadas na pasta `e2e/` de cada projeto).
+- **CI/CD**: Geração automática de `api-spec.json` seguida de `generate:api` para garantir sincronia de tipos.
 
 ### 8. Testes de Acessibilidade (opcional)
 ```typescript

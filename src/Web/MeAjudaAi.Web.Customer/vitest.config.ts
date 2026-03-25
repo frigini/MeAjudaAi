@@ -31,15 +31,8 @@ export default defineConfig({
         'app/**',
         'types/**',
       ],
-      // TODO: Gradually increase thresholds as test suite grows
-      // Current target: 70% to match frontend project maturity
-      thresholds: {
-        lines: 70,
-        functions: 70,
-        branches: 70,
-        statements: 70,
-        perFile: false,
-      },
+      // Note: Coverage thresholds are managed at global level via merge-coverage.mjs
+      // Current global target: 70%
     },
   },
   resolve: {

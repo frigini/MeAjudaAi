@@ -38,10 +38,10 @@ const AllTheProvidersWrapper = ({ children }: { children: React.ReactNode }) => 
   <AllTheProviders>{children}</AllTheProviders>
 );
 
-function customRenderHook<TCallback extends (...args: any[]) => any, TRet>(
-  callback: TCallback,
-  options?: Omit<RenderHookOptions<TCallback>, 'wrapper'>
-): RenderHookResult<TRet, Parameters<TCallback>> {
+function customRenderHook<TProps, TValue>(
+  callback: (props: TProps) => TValue,
+  options?: Omit<RenderHookOptions<TProps>, 'wrapper'>
+): RenderHookResult<TValue, TProps> {
   return renderHook(callback, { wrapper: AllTheProvidersWrapper, ...options });
 }
 

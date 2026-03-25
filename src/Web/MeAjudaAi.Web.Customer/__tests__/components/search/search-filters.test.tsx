@@ -21,9 +21,11 @@ describe('SearchFilters', () => {
     render(<SearchFilters />);
   });
 
-  it('deve renderizar o componente de filtros', async () => {
+  it('deve renderizar o componente de filtros e carregar categorias', async () => {
+    const { apiCategoriesGet } = await import('@/lib/api/generated/sdk.gen');
     await waitFor(() => {
       expect(screen.getByText(/distância/i)).toBeInTheDocument();
+      expect(apiCategoriesGet).toHaveBeenCalledWith(expect.objectContaining({ activeOnly: true }));
     });
   });
 

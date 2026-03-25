@@ -56,7 +56,7 @@ O planejamento de qualidade prevê a evolução contínua da pirâmide de testes
 - **Testes de Contrato (Consumer-Driven)**: Implementação de Pact.io para garantir que o frontend Next.js é compatível com a API .NET sem depender de ambiente real.
 
 ### Fase 3.2: E2E Full-Stack & BDD (Médio Prazo)
-- **Orquestração com Aspire**: Migração dos testes E2E para rodarem contra instâncias locais orquestradas pelo .NET Aspire (subindo SQL Server, API e Redis em containers temporários durante o suite).
+- **Orquestração com Aspire**: Migração dos testes E2E para rodarem contra instâncias locais orquestradas pelo .NET Aspire (subindo PostgreSQL + PostGIS, API e Redis em containers temporários durante o suite).
 - **BDD (Behavior Driven Development)**: Adoção de Gherkin (Cucumber ou Playwright-BDD) para os fluxos críticos de negócio (ex: ciclo de vida do serviço).
 
 ---

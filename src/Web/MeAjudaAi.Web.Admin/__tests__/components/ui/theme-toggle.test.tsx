@@ -2,8 +2,9 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from 'test-support';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 
+const toggleTheme = vi.fn();
 vi.mock('@/components/providers/theme-provider', () => ({
-  useTheme: () => ({ theme: 'light', toggleTheme: vi.fn() }),
+  useTheme: () => ({ theme: 'light', toggleTheme }),
 }));
 
 describe('ThemeToggle', () => {
@@ -27,7 +28,7 @@ describe('ThemeToggle', () => {
     render(<ThemeToggle />);
     const button = screen.getByRole('button');
     button.click();
-    expect(button).toBeInTheDocument();
+    expect(toggleTheme).toHaveBeenCalled();
   });
 });
 

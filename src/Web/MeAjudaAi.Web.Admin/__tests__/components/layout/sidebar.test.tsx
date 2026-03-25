@@ -24,17 +24,17 @@ vi.mock('@/lib/types', () => ({
     DOCUMENTS: '/documents',
     CATEGORIES: '/categories',
     SERVICES: '/services',
-    CITIES: '/cities',
+    CITIES: '/allowed-cities',
     SETTINGS: '/settings',
   },
   APP_ROUTE_LABELS: {
     DASHBOARD: 'Dashboard',
-    PROVIDERS: 'Providers',
-    DOCUMENTS: 'Documents',
-    CATEGORIES: 'Categories',
-    SERVICES: 'Services',
-    CITIES: 'Cities',
-    SETTINGS: 'Settings',
+    PROVIDERS: 'Prestadores',
+    DOCUMENTS: 'Documentos',
+    CATEGORIES: 'Categorias',
+    SERVICES: 'Serviços',
+    CITIES: 'Cidades Atendidas',
+    SETTINGS: 'Configurações',
   },
   ROLES: { ADMIN: 'admin' },
 }));
@@ -50,8 +50,8 @@ describe('Sidebar', () => {
   it('deve exibir itens de navegação', () => {
     render(<Sidebar />);
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Providers')).toBeInTheDocument();
-    expect(screen.getByText('Categories')).toBeInTheDocument();
+    expect(screen.getByText('Prestadores')).toBeInTheDocument();
+    expect(screen.getByText('Categorias')).toBeInTheDocument();
   });
 
   it('deve exibir nome do usuário da sessão', () => {
@@ -72,5 +72,13 @@ describe('Sidebar', () => {
   it('deve ter botão de sair', () => {
     render(<Sidebar />);
     expect(screen.getByText('Sair')).toBeInTheDocument();
+  });
+
+  it('deve chamar signOut ao clicar no botão de sair', async () => {
+    const { signOut } = await import('next-auth/react');
+    render(<Sidebar />);
+    const logoutButton = screen.getByText('Sair');
+    logoutButton.click();
+    expect(signOut).toHaveBeenCalled();
   });
 });

@@ -37,29 +37,32 @@ if (hasPartialClientVars) {
 let keycloakClientId: string;
 let keycloakClientSecret: string;
 let keycloakIssuer: string;
+let authMode: string;
 
 if (hasAdminVars) {
+  authMode = "ADMIN";
   keycloakClientId = process.env.KEYCLOAK_ADMIN_CLIENT_ID!;
   keycloakClientSecret = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET!;
   keycloakIssuer = process.env.KEYCLOAK_ISSUER || (isCi ? "http://localhost:8080/realms/meajudaai" : getRequiredEnv("KEYCLOAK_ISSUER"));
-  console.log(`[auth] Using KEYCLOAK credentials: ADMIN (issuer: ${keycloakIssuer})`);
 } else if (hasClientVars) {
+  authMode = "CLIENT";
   keycloakClientId = process.env.KEYCLOAK_CLIENT_ID!;
   keycloakClientSecret = process.env.KEYCLOAK_CLIENT_SECRET!;
   keycloakIssuer = process.env.KEYCLOAK_ISSUER || (isCi ? "http://localhost:8080/realms/meajudaai" : getRequiredEnv("KEYCLOAK_ISSUER"));
-  console.log(`[auth] Using KEYCLOAK credentials: CLIENT (issuer: ${keycloakIssuer})`);
 } else if (isCi) {
+  authMode = "CI_PLACEHOLDER";
   keycloakClientId = "placeholder";
   keycloakClientSecret = "placeholder";
   keycloakIssuer = "http://localhost:8080/realms/meajudaai";
   console.warn("[auth] Warning: Missing Keycloak environment variables - using placeholder values for CI build.");
-  console.log(`[auth] Using KEYCLOAK credentials: CI_PLACEHOLDER (issuer: ${keycloakIssuer})`);
 } else {
+  authMode = "REQUIRED";
   keycloakClientId = getRequiredEnv("KEYCLOAK_CLIENT_ID");
   keycloakClientSecret = getRequiredEnv("KEYCLOAK_CLIENT_SECRET");
   keycloakIssuer = getRequiredEnv("KEYCLOAK_ISSUER");
-  console.log(`[auth] Using KEYCLOAK credentials: REQUIRED (issuer: ${keycloakIssuer})`);
 }
+
+console.log(`[auth] Using KEYCLOAK credentials: ${authMode} (issuer: ${keycloakIssuer})`);
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -78,7 +81,7 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 60,
   },
   callbacks: {
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, account, profile }) {
       if (account && profile) {
         const keycloakProfile = profile as {
           sub?: string;

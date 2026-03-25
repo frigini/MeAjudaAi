@@ -35,18 +35,12 @@ O projeto está integrado em um **monorepo .NET** com arquitetura de **monolito 
 
 ## Decisao Arquitetural
 
-### ✅ Recomendação: Criar Projeto Separado de Testes
+### ⚠️ [LEGACY / SUPERSEDED] Recomendação Original: Criar Projeto Separado de Testes
 
-**Criar:** `tests/MeAjudaAi.Web.Consumer.Tests`
+> [!CAUTION]
+> Esta seção descreve uma abordagem centralizada que foi substituída pela **Arquitetura Descentralizada** implementada na Sprint 8E. Manteve-se aqui apenas para histórico.
 
-### Justificativa
-
-1. **Consistência com a arquitetura existente**: Todos os projetos de teste já estão separados na pasta `tests/`
-2. **Separação de responsabilidades**: Backend (.NET) e Frontend (React) mantêm seus testes isolados
-3. **Pipeline CI/CD independente**: Permite executar testes frontend/backend separadamente
-4. **Mesma abordagem do Web.Admin**: O portal admin Blazor já segue este padrão com `MeAjudaAi.Web.Admin.Tests`
-5. **Facilita manutenção**: Dependências JavaScript não poluem projetos .NET
-6. **Clareza organizacional**: Fica explícito que são testes de frontend
+**Abordagem Original (Não Utilizada):** Criar `tests/MeAjudaAi.Web.Consumer.Tests`
 
 ### Estrutura Completa do Monorepo
 
@@ -1496,15 +1490,15 @@ it('deve corresponder ao snapshot', () => {
 
 ## 📊 Métricas de Qualidade
 
-### Cobertura Mínima Recomendada
-- **Statements**: 70%
-- **Branches**: 70%
-- **Functions**: 70%
-- **Lines**: 70%
+### Cobertura Global (Estratégia Atual)
 
-> **Nota**: Os thresholds atuais estão configurados em 70% para o projeto frontend, com meta de aumento gradual conforme a cobertura aumenta.
+Desde a Sprint 8E, adotamos uma **Cobertura Global Consolidada**:
 
-### Pirâmide de Testes
+1. **Threshold Global**: 70% (consolidado).
+2. **Mecanismo**: O script `src/Web/scripts/merge-coverage.mjs` coleta os arquivos `coverage-final.json` de cada projeto (`Customer`, `Admin`, `Provider`) e gera um relatório único.
+3. **Falha de Build**: O threshold é validado apenas no relatório final. Projetos individuais não possuem thresholds no `vitest.config.ts` para evitar bloqueios em estágios iniciais de novos subprojetos.
+
+### Pirâmide de Testes (Atualizada)
 ```text
        /\
       /E2E\         10% - Testes E2E (fluxos críticos)

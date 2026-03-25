@@ -614,11 +614,10 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - ✅ **Allowed Cities**: Geographic restrictions management.
 - ✅ **Dashboard KPIs**: Admin dashboard with metrics.
 
-### ⏳ Sprint 8E - E2E Tests & React Test Infrastructure (23 Mar - 4 Abr 2026)
+### ✅ Sprint 8E - E2E Tests & React Test Infrastructure (23 Mar - 25 Mar 2026)
 
-**Status**: ⏳ EM ANDAMENTO (E2E ✅ concluído, testes unitários parcial)
-**Branch**: `feature/sprint-8e-e2e-react-apps`
-**Foco**: Testes E2E (Playwright) + infraestrutura de testes unitários (Vitest + RTL + MSW).
+**Status**: ✅ CONCLUÍDA (25 Mar 2026)
+**Foco**: Testes E2E (Playwright) + infraestrutura de testes unitários (Vitest + RTL + MSW) + Governança de Cobertura Global.
 
 **Scope — E2E (Playwright)** ✅:
 1. ✅ **Playwright Config**: `playwright.config.ts` com 6 projetos (Chromium, Firefox, WebKit, Mobile, CI)
@@ -626,13 +625,13 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 3. ✅ **Provider E2E** (5 specs): auth, dashboard, onboarding, performance, profile-mgmt
 4. ✅ **Admin E2E** (5 specs): auth, configs, dashboard, mobile-responsiveness, providers
 5. ✅ **Shared Fixtures**: `libs/e2e-support/base.ts` (loginAsAdmin, loginAsProvider, loginAsCustomer, logout)
-6. ✅ **CI Integration**: `master-ci-cd.yml` (automático) | `pr-validation.yml` (requer `RUN_E2E='true'`)
+6. ✅ **CI Integration**: `master-ci-cd.yml` atualizado para gerar especificação OpenAPI e rodar E2E.
 
-**Scope — Testes Unitários (Vitest + RTL)**:
-7. ✅ **Infraestrutura**: `libs/test-support/` (setup.ts, test-utils.tsx, mock-data.ts), vitest.config.ts em todos os apps, dependências instaladas
-8. ✅ **Customer Unit Tests**: 54+ testes (components/ui, components/auth, hooks, lib/api, lib/schemas, lib/utils)
-9. ❌ **Admin Unit Tests**: Pendente (somente setup.ts criado, zero testes)
-10. ❌ **Provider Unit Tests**: Pendente (somente setup.ts criado, zero testes)
+**Scope — Testes Unitários (Vitest + RTL)** ✅:
+7. ✅ **Infraestrutura**: `libs/test-support/` (test-utils.tsx, customRenderHook), thresholds individuais removidos em favor de Cobertura Global.
+8. ✅ **Cobertura Global**: Script `src/Web/scripts/merge-coverage.mjs` consolida relatórios de todos os projetos com threshold de 70%.
+9. ✅ **Hardening Admin**: Testes unitários para `Sidebar`, `Button`, `Dashboard`, `Providers` e `Users`. Autenticação centralizada em `auth.ts`.
+10. ✅ **Hardening Customer**: `DashboardClient` (DTO compliance), `DocumentUpload` (API assertions) e `SearchFilters` (API category validation).
 
 **Cenários de Teste E2E**:
 - [x] Autenticação (login, logout, refresh token)
@@ -640,7 +639,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - [x] CRUD de providers e serviços (Admin)
 - [x] Busca e filtros geolocalizados
 - [x] Responsividade mobile
-- [x] Performance e Core Web Vitals
+- [x] Performance e Core Web Vitals (INP, LCP, CLS)
 
 **Pendências para fechar Sprint**:
 - [ ] Testes unitários Admin (hooks: providers, categories, dashboard, services, allowed-cities, users; components: sidebar, ui)
@@ -649,7 +648,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 
 ### ⌛ Sprint 9 - BUFFER & Risk Mitigation (23 Abr - 11 Mai 2026)
 
-**Status**: 📋 PLANEJADO PARA MAIO 2026
+**Status**: 🔄 EM ANDAMENTO (Foco: Estabilização de CI e Polimento Final)
 **Duration**: 12 days buffer (Extended)
 - Polishing, Refactoring, and Fixing.
 - Move Optional tasks from 8B.2 here if needed.

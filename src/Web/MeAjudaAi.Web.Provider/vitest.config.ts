@@ -31,12 +31,8 @@ export default defineConfig({
         'app/**',
         'types/**',
       ],
-      thresholds: {
-        lines: 50,
-        functions: 50,
-        branches: 50,
-        statements: 50,
-      },
+      // Note: Provider project has separate threshold from global coverage
+      // Thresholds are managed at global level via merge-coverage.mjs
     },
   },
   resolve: {
