@@ -21,7 +21,7 @@
     "test:provider": "cd MeAjudaAi.Web.Provider && npx vitest run --config vitest.config.ts --passWithNoTests",
     "test:watch": "cd MeAjudaAi.Web.Customer && npx vitest --config vitest.config.ts",
     "test:coverage": "cd MeAjudaAi.Web.Customer && npx vitest run --coverage --config vitest.config.ts",
-    "test:ci": "npm run test:customer -- --reporter=junit --reporter=json-summary",
+    "test:ci": "npm run test:customer -- --coverage --reporter=junit --reporter=json-summary && npm run test:admin -- --coverage --reporter=junit --reporter=json-summary && npm run test:provider -- --coverage --reporter=junit --reporter=json-summary",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:ci": "playwright test --reporter=html --reporter=junit"

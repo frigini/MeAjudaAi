@@ -1,5 +1,5 @@
 import { ReactElement } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
+import { render, RenderOptions, renderHook, RenderHookOptions, RenderHookResult } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 function createTestQueryClient() {
@@ -38,7 +38,15 @@ const AllTheProvidersWrapper = ({ children }: { children: React.ReactNode }) => 
   <AllTheProviders>{children}</AllTheProviders>
 );
 
+function customRenderHook<TCallback extends (...args: any[]) => any, TRet>(
+  callback: TCallback,
+  options?: Omit<RenderHookOptions<TCallback>, 'wrapper'>
+): RenderHookResult<TRet, Parameters<TCallback>> {
+  return renderHook(callback, { wrapper: AllTheProvidersWrapper, ...options });
+}
+
 export * from '@testing-library/react';
 export { customRender as render };
+export { customRenderHook as renderHook };
 export { createTestQueryClient };
 export { AllTheProvidersWrapper };

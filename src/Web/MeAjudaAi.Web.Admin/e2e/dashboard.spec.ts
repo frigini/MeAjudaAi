@@ -144,16 +144,16 @@ test.describe('Admin Portal - Dashboard Data Refresh', () => {
 
   test('should refresh data on button click', async ({ page }) => {
     const refreshButton = page.locator('[data-testid="refresh-dashboard"]');
-    const kpiValueLocator = page.locator('[data-testid="kpi-total-providers"] [data-testid="kpi-value"]');
+    const lastUpdatedLocator = page.locator('[data-testid="last-updated"]');
     
-    const kpiValueBefore = await kpiValueLocator.textContent();
+    const lastUpdatedBefore = await lastUpdatedLocator.textContent();
     
     await refreshButton.click();
     
-    await kpiValueLocator.waitFor({ state: 'visible' });
+    await lastUpdatedLocator.waitFor({ state: 'visible' });
     
-    const kpiValueAfter = await kpiValueLocator.textContent();
-    expect(kpiValueAfter).not.toBe(kpiValueBefore);
+    const lastUpdatedAfter = await lastUpdatedLocator.textContent();
+    expect(lastUpdatedAfter).not.toBe(lastUpdatedBefore);
   });
 });
 
@@ -164,10 +164,15 @@ test.describe('Admin Portal - Dashboard Error Handling', () => {
   });
 
   test('should display loading state while fetching data', async ({ page }) => {
+    await page.route('**/api/v1/admin/dashboard', async (route) => {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      await route.continue();
+    });
+    
     await page.goto('/admin/dashboard');
     
     const loadingSpinner = page.locator('[data-testid="dashboard-loading"]');
-    await expect(loadingSpinner).toBeVisible({ timeout: 10000 }).catch(() => {});
+    await expect(loadingSpinner).toBeVisible({ timeout: 10000 });
   });
 
   test('should handle API error gracefully', async ({ page }) => {

@@ -3,29 +3,28 @@
 **Status**: 🔄 Em andamento (Jan–Mar 2026)
 
 ### Objetivo
-Desenvolver aplicações frontend usando **Blazor WebAssembly** (Admin Portal) e **React + Next.js** (Customer Web App) + **React Native** (Mobile App).
+Desenvolver aplicações frontend usando **React + Next.js** (Customer Web App, Admin Portal) + **React Native** (Mobile App).
 
-> **📅 Status Atual**: Sprint 8C concluída (21 Mar 2026)  
+> **📅 Status Atual**: Sprint 8D concluída (21 Mar 2026)  
 > **📝 Decisão Técnica** (5 Fev 2026): Customer App usará **React 19 + Next.js 15 + Tailwind v4** (SEO, performance, ecosystem)  
-> Próximo foco: Sprint 8D - Admin Portal Migration (React)
+> **🎉 MIGRAÇÃO CONCLUÍDA**: Admin Portal migrado de Blazor para React + Next.js na Sprint 8D
 
 ---
 
-### 📱 Stack Tecnológico ATUALIZADO (5 Fev 2026)
+### 📱 Stack Tecnológico ATUALIZADO (21 Mar 2026)
 
 > **📝 Decisão Técnica** (5 Fevereiro 2026):  
 > Stack de Customer App definida como **React 19 + Next.js 15 + Tailwind CSS v4**.  
-> **Admin Portal** permanece em **Blazor WASM** (já implementado, interno, estável).  
-> *Migration to React planned for Sprint 8D to unify the stack.*
+> **Admin Portal**: Migrado de Blazor WASM para React + Next.js na Sprint 8D.
 > **Razão**: SEO crítico para Customer App, performance inicial, ecosystem maduro, hiring facilitado.
 
-**Decisão Estratégica**: Dual Stack (Blazor para Admin, React para Customer)
+**Decisão Estratégica**: Stack unificado em **React + Next.js** para todos os apps web
 
 **Justificativa**:
 - ✅ **SEO**: Customer App precisa aparecer no Google ("eletricista RJ") - Next.js SSR/SSG resolve
 - ✅ **Performance**: Initial load rápido crítico para conversão mobile - code splitting + lazy loading
 - ✅ **Ecosystem**: Massivo - geolocation, maps, payments, qualquer problema já resolvido
-- ✅ **Hiring**: Fácil escalar time - React devs abundantes vs Blazor devs raros
+- ✅ **Hiring**: Fácil escalar time - React devs abundantes
 - ✅ **Mobile**: React Native maduro e testado vs MAUI Hybrid ainda novo
 - ✅ **Modern Stack**: React 19 + Tailwind v4 é estado da arte (2026)
 - ⚠️∩╕Å **Trade-off**: DTOs duplicados (C# backend, TS frontend) - mitigado com OpenAPI TypeScript Generator
@@ -86,14 +85,14 @@ Desenvolver aplicações frontend usando **Blazor WebAssembly** (Admin Portal) e
 **Generated Files Location**:
 ```text
 src/
-Γö£ΓöÇΓöÇ Contracts/                       # Backend DTOs (C#)
-Γö£ΓöÇΓöÇ Web/
-Γöé   Γö£ΓöÇΓöÇ MeAjudaAi.Web.Admin/         # Blazor (consumes Contracts via Refit)
-Γöé   ΓööΓöÇΓöÇ MeAjudaAi.Web.Customer/      # Next.js
-Γöé       ΓööΓöÇΓöÇ types/api/generated/     # ← OpenAPI generated types
-ΓööΓöÇΓöÇ Mobile/
-    ΓööΓöÇΓöÇ MeAjudaAi.Mobile.Customer/   # React Native
-        ΓööΓöÇΓöÇ src/types/api/           # ← Same OpenAPI generated types
+├── Contracts/                       # Backend DTOs (C#)
+└── Web/
+    ├── MeAjudaAi.Web.Admin/         # React + Next.js (migrated from Blazor in Sprint 8D)
+    ├── MeAjudaAi.Web.Customer/      # Next.js
+    │   └── types/api/generated/     # ← OpenAPI generated types
+    └── Mobile/
+        └── MeAjudaAi.Mobile.Customer/   # React Native
+            └── src/types/api/             # ← Same OpenAPI generated types
 ```
 
 **CI/CD Pipeline** (GitHub Actions):
@@ -108,7 +107,7 @@ src/
 ```text
 src/
 ├── Web/
-│   ├── MeAjudaAi.Web.Admin/          # Blazor WASM Admin Portal (existente)
+│   ├── MeAjudaAi.Web.Admin/          # React + Next.js Admin Portal (Sprint 8D)
 │   └── MeAjudaAi.Web.Customer/       # 🚀 Next.js Customer App (Sprint 8A)
 ├── Mobile/
 │   └── MeAjudaAi.Mobile.Customer/    # 🚀 React Native + Expo (Sprint 8B)
@@ -121,13 +120,13 @@ src/
 
 **Cross-Platform Authentication Consistency**:
 
-| Aspect | Admin (Blazor) | Customer Web (Next.js) | Customer Mobile (RN) |
-|--------|----------------|------------------------|----------------------|
-| **Token Storage** | In-memory | HTTP-only cookies | Secure Storage |
+| Aspect | Admin (React) | Customer Web (Next.js) | Customer Mobile (RN) |
+|--------|--------------|------------------------|----------------------|
+| **Token Storage** | HTTP-only cookies | HTTP-only cookies | Secure Storage |
 | **Token Lifetime** | 1h access + 24h refresh | 1h access + 7d refresh | 1h access + 30d refresh |
-| **Refresh Strategy** | Automatic (OIDC lib) | Middleware refresh | Background refresh |
+| **Refresh Strategy** | Automatic (NextAuth) | Middleware refresh | Background refresh |
 | **Role Claims** | `role` claim | `role` claim | `role` claim |
-| **Logout** | `/bff/logout` | `/api/auth/signout` | Revoke + clear storage |
+| **Logout** | `/api/auth/signout` | `/api/auth/signout` | Revoke + clear storage |
 
 **Keycloak Configuration**:
 - **Realm**: `MeAjudaAi`
@@ -139,7 +138,7 @@ src/
 **Implementation Details**:
 - **Protocolo**: OpenID Connect (OIDC)
 - **Identity Provider**: Keycloak
-- **Admin Portal**: `Microsoft.AspNetCore.Components.WebAssembly.Authentication` (Blazor)
+- **Admin Portal**: NextAuth.js v5 (React + Next.js)
 - **Customer Web**: NextAuth.js v5 (Next.js)
 - **Customer Mobile**: React Native OIDC Client
 - **Refresh**: Automático via OIDC interceptor
@@ -624,9 +623,9 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 **Scope**:
 1. **Playwright Config**: Configurar playwright.config.ts no workspace NX (✅ Concluído)
 2. **Implement Test Specs**: Criar testes E2E para Customer, Provider e Admin Apps
-3. **Customer Web App Tests**: Login, busca, perfil (`tests/MeAjudaAi.Web.Customer.Tests/e2e/`)
-4. **Provider Web App Tests**: Onboarding, dashboard (`tests/MeAjudaAi.Web.Provider.Tests/e2e/`)
-5. **Admin Portal Tests**: CRUD providers, documentos (`tests/MeAjudaAi.Web.Admin.Tests/e2e/`)
+3. **Customer Web App Tests**: Login, busca, perfil (`src/Web/MeAjudaAi.Web.Customer/e2e/`)
+4. **Provider Web App Tests**: Onboarding, dashboard (`src/Web/MeAjudaAi.Web.Provider/e2e/`)
+5. **Admin Portal Tests**: CRUD providers, documentos (`src/Web/MeAjudaAi.Web.Admin/e2e/`)
 6. **Shared Fixtures**: `src/Web/libs/e2e-support/base.ts` (loginAsAdmin, loginAsProvider, loginAsCustomer, logout)
 7. **CI Integration**: Adicionar steps em `pr-validation.yml` e `master-ci-cd.yml` (⏳ Habilitado em master-ci-cd.yml, pendente em pr-validation.yml: requer RUN_E2E='true' para executar)
 
@@ -678,7 +677,9 @@ Durante o processo de atualização automática de dependências pelo Dependabot
   - Lazy load React components
   - Optimize images using next/image and responsive formats
 
-### Risk Scenario 4: MAUI Hybrid Platform-Specific Issues
+### Risk Scenario 4: MAUI Hybrid Platform-Specific Issues (DE-SCOPED FROM MVP)
+
+> **⚠️ IMPORTANTE**: Este cenário de risco foi removido do escopo do MVP. Os Mobile Apps foram adiados para a Fase 2 conforme.nota acima.
 
 - **Problema Potencial**: Diferenças de comportamento iOS vs Android (permissões, geolocation, file access)
 - **Impacto**: +4-5 dias de debugging platform-specific
@@ -1234,11 +1235,11 @@ public class ActivityHub : Hub
 6. 🔥 Alinhamento de middleware entre UseSharedServices() e UseSharedServicesAsync()
 
 ### 🔬 **Testes E2E Frontend (Pós-MVP)**
-**Projeto**: `tests/MeAjudaAi.Web.Tests`
+**Projeto**: `src/Web` (dividido por projeto)
 **Estrutura**: Uma pasta para cada projeto frontend
-- `tests/MeAjudaAi.Web.Tests/Customer/` - Testes E2E para Customer Web App
-- `tests/MeAjudaAi.Web.Tests/Provider/` - Testes E2E para Provider Web App  
-- `tests/MeAjudaAi.Web.Tests/Admin/` - Testes E2E para Admin Portal
+- `src/Web/MeAjudaAi.Web.Customer/e2e/` - Testes E2E para Customer Web App
+- `src/Web/MeAjudaAi.Web.Provider/e2e/` - Testes E2E para Provider Web App  
+- `src/Web/MeAjudaAi.Web.Admin/e2e/` - Testes E2E para Admin Portal
 
 **Framework**: Playwright
 **Cenários a cobrir**:

@@ -23,6 +23,7 @@ const hasKeycloakSecret = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET || process.en
 const hasKeycloakIssuer = !!process.env.KEYCLOAK_ISSUER;
 
 const isFullyConfigured = hasKeycloakConfig && hasKeycloakSecret && hasKeycloakIssuer;
+const isCi = process.env.CI === "true" || process.env.NEXT_PUBLIC_CI === "true";
 
 let keycloakClientId: string;
 let keycloakClientSecret: string;
@@ -32,15 +33,15 @@ if (isFullyConfigured) {
   keycloakClientId = process.env.KEYCLOAK_ADMIN_CLIENT_ID || process.env.KEYCLOAK_CLIENT_ID!;
   keycloakClientSecret = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET || process.env.KEYCLOAK_CLIENT_SECRET!;
   keycloakIssuer = process.env.KEYCLOAK_ISSUER!;
-} else if (process.env.CI === "true" || process.env.NEXT_PUBLIC_CI === "true") {
+} else if (isCi) {
   keycloakClientId = "placeholder";
   keycloakClientSecret = "placeholder";
   keycloakIssuer = "http://localhost:8080/realms/meajudaai";
   console.warn("[auth] Warning: Missing Keycloak environment variables - using placeholder values for CI build.");
 } else {
-  keycloakClientId = process.env.KEYCLOAK_ADMIN_CLIENT_ID || process.env.KEYCLOAK_CLIENT_ID || "placeholder";
-  keycloakClientSecret = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET || process.env.KEYCLOAK_CLIENT_SECRET || "placeholder";
-  keycloakIssuer = process.env.KEYCLOAK_ISSUER || "http://localhost:8080/realms/meajudaai";
+  keycloakClientId = getRequiredEnv("KEYCLOAK_ADMIN_CLIENT_ID");
+  keycloakClientSecret = getRequiredEnv("KEYCLOAK_ADMIN_CLIENT_SECRET");
+  keycloakIssuer = getRequiredEnv("KEYCLOAK_ISSUER");
 }
 
 export const authOptions: NextAuthOptions = {

@@ -120,12 +120,10 @@ npm install --save-dev msw
 ```bash
 # Para testes de acessibilidade
 npm install --save-dev jest-axe
-
-# Para hooks testing
-npm install --save-dev @testing-library/react-hooks
 ```
 
 > **Nota**: `vitest`, `@vitest/ui`, `jsdom` e `@playwright/test` já estão instalados no `package.json` raiz.
+> **Nota**: Para testes de hooks, utilize o `renderHook` exportado por `test-support` que já inclui o provider do React Query configurado.
 
 ---
 

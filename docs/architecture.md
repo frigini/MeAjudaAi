@@ -2830,14 +2830,16 @@ graph TB
 
 ---
 
-### **Legacy (Blazor)**
+### **Legacy (Blazor - DEPRECATED/MIGRATED)**
 
-> **Nota**: Os exemplos abaixo são históricos e referência apenas. O projeto foi migrado para React conforme descrito acima.
+> **⚠️ IMPORTANTE**: Esta seção documenta componentes **legados e migrados**. O Admin Portal foi completamente migrado para React + Next.js conforme descrito acima.
+> 
+> Os exemplos abaixo são apenas para referência histórica e compreensão da arquitetura anterior.
 
 O Admin Portal foi originalmente desenvolvido em Blazor WebAssembly com MudBlazor. Abaixo estão exemplos históricos:
 
 ```csharp
-// Program.cs - Configuração OIDC (Legacy)
+// Program.cs - Configuração OIDC (LEGACY - DEPRECATED)
 builder.Services.AddOidcAuthentication(options =>
 {
     options.ProviderOptions.Authority = "https://keycloak.local/realms/meajudaai";
@@ -3078,10 +3080,10 @@ builder.Services.AddOidcAuthentication(options =>
 }
 ```
 
-**Authentication Flow**:
+**Authentication Flow (LEGACY - DEPRECATED)**:
 
 ```razor
-@* Authentication.razor *@
+@* Authentication.razor - DEPRECATED *@
 <RemoteAuthenticatorView Action="@Action">
     <LoggingIn>
         <MudProgressCircular Indeterminate="true" />
@@ -3102,10 +3104,10 @@ builder.Services.AddOidcAuthentication(options =>
 </RemoteAuthenticatorView>
 ```
 
-**Protected Routes**:
+**Protected Routes (LEGACY - DEPRECATED)**:
 
 ```razor
-@* App.razor *@
+@* App.razor - DEPRECATED *@
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
@@ -3174,7 +3176,7 @@ src/Web/MeAjudaAi.Web.Admin/
 ### **Estrutura de Arquivos**
 
 ```text
-src/
+src/Web/
 ├── MeAjudaAi.Web.Admin/e2e/     # Admin Portal E2E tests
 │   ├── auth.spec.ts
 │   ├── providers.spec.ts

@@ -56,7 +56,7 @@ test.describe('Performance - Core Web Vitals', () => {
         const observer = new PerformanceObserver((list) => {
           if (resolved) return;
           const entries = list.getEntries();
-          const lcpEntry = entries.find((entry) => entry.entryType === 'largest-contentful-paint');
+          const lcpEntry = entries[entries.length - 1];
           if (lcpEntry) {
             resolved = true;
             observer.disconnect();
@@ -85,8 +85,6 @@ test.describe('Performance - Core Web Vitals', () => {
     
     await page.waitForLoadState('domcontentloaded');
     
-    await page.click('body');
-    
     const metrics = await page.evaluate(() => {
       return new Promise((resolve) => {
         let resolved = false;
@@ -112,7 +110,9 @@ test.describe('Performance - Core Web Vitals', () => {
             resolve({ inp: maxInp });
           }
         });
-        observer.observe({ type: 'event', buffered: true });
+        observer.observe({ type: 'event', buffered: true, durationThreshold: 0 });
+        
+        document.body.click();
         
         setTimeout(() => {
           if (!resolved) {
@@ -142,20 +142,27 @@ test.describe('Performance - Core Web Vitals', () => {
       let maxCls = 0;
       let currentWindowSum = 0;
       let windowStartTime = 0;
+      let lastEntryTime = 0;
       
       validEntries.forEach((entry) => {
         if (windowStartTime === 0) {
           windowStartTime = entry.startTime;
           currentWindowSum = entry.value;
-        } else if (entry.startTime - windowStartTime < 1000) {
-          currentWindowSum += entry.value;
         } else {
-          if (currentWindowSum > maxCls) {
-            maxCls = currentWindowSum;
+          const gap = entry.startTime - lastEntryTime;
+          const sessionDuration = entry.startTime - windowStartTime;
+          
+          if (gap >= 1000 || sessionDuration >= 5000) {
+            if (currentWindowSum > maxCls) {
+              maxCls = currentWindowSum;
+            }
+            windowStartTime = entry.startTime;
+            currentWindowSum = entry.value;
+          } else {
+            currentWindowSum += entry.value;
           }
-          currentWindowSum = entry.value;
-          windowStartTime = entry.startTime;
         }
+        lastEntryTime = entry.startTime;
       });
       
       if (currentWindowSum > maxCls) {
