@@ -44,7 +44,7 @@ export function Sidebar() {
     <>
       {/* Mobile Hamburger Button */}
       <button 
-        class="fixed top-4 left-4 z-40 md:hidden flex items-center justify-center p-2 rounded-md bg-surface border border-border shadow-sm text-foreground"
+        className="fixed top-4 left-4 z-40 md:hidden flex items-center justify-center p-2 rounded-md bg-surface border border-border shadow-sm text-foreground"
         onClick={() => setIsOpen(true)}
         aria-label="Open sidebar"
         data-testid="mobile-menu-toggle"
@@ -55,7 +55,7 @@ export function Sidebar() {
       {/* Backdrop for mobile */}
       {isOpen && (
         <div 
-          class="fixed inset-0 z-40 bg-black/50 md:hidden" 
+          className="fixed inset-0 z-40 bg-black/50 md:hidden" 
           onClick={() => setIsOpen(false)}
           aria-hidden="true"
           data-testid="mobile-menu-backdrop"
