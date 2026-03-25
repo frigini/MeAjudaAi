@@ -35,11 +35,11 @@ let keycloakIssuer: string;
 if (hasAdminVars) {
   keycloakClientId = process.env.KEYCLOAK_ADMIN_CLIENT_ID!;
   keycloakClientSecret = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET!;
-  keycloakIssuer = process.env.KEYCLOAK_ISSUER || getRequiredEnv("KEYCLOAK_ISSUER");
+  keycloakIssuer = process.env.KEYCLOAK_ISSUER || (isCi ? "http://localhost:8080/realms/meajudaai" : getRequiredEnv("KEYCLOAK_ISSUER"));
 } else if (hasClientVars) {
   keycloakClientId = process.env.KEYCLOAK_CLIENT_ID!;
   keycloakClientSecret = process.env.KEYCLOAK_CLIENT_SECRET!;
-  keycloakIssuer = process.env.KEYCLOAK_ISSUER || getRequiredEnv("KEYCLOAK_ISSUER");
+  keycloakIssuer = process.env.KEYCLOAK_ISSUER || (isCi ? "http://localhost:8080/realms/meajudaai" : getRequiredEnv("KEYCLOAK_ISSUER"));
 } else if (isCi) {
   keycloakClientId = "placeholder";
   keycloakClientSecret = "placeholder";

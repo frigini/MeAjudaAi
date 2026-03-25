@@ -1,7 +1,5 @@
 import { test, expect, devices } from '@playwright/test';
 
-const desktopViewport = { width: 1920, height: 1080 };
-const tabletViewport = { width: 768, height: 1024 };
 const mobileViewport = { width: 375, height: 667 };
 
 test.describe('Customer Web App - Mobile Responsiveness', () => {
@@ -77,6 +75,13 @@ test.describe('Performance - Core Web Vitals', () => {
     
     await page.waitForLoadState('domcontentloaded');
     
+    await page.evaluate(() => {
+      const button = document.createElement('button');
+      button.id = 'inp-test-button';
+      button.textContent = 'Test';
+      document.body.appendChild(button);
+    });
+    
     const metrics = await page.evaluate(() => {
       return new Promise((resolve) => {
         const inpEntries: number[] = [];
@@ -95,10 +100,8 @@ test.describe('Performance - Core Web Vitals', () => {
         
         observer.observe({ type: 'event', buffered: true });
         
-        const button = document.createElement('button');
-        button.textContent = 'Test';
-        document.body.appendChild(button);
-        button.click();
+        const btn = document.getElementById('inp-test-button');
+        if (btn) btn.click();
         
         setTimeout(() => {
           observer.disconnect();

@@ -33,6 +33,8 @@ describe('DropdownMenu', () => {
       </DropdownMenu>
     );
     
+    expect(screen.queryByText('Label')).not.toBeInTheDocument();
+    
     await user.click(screen.getByText('Menu'));
     
     expect(screen.getByText('Label')).toBeInTheDocument();

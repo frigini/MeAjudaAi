@@ -26,11 +26,18 @@ describe('Checkbox', () => {
     render(<Checkbox onCheckedChange={handleChange} />);
     await user.click(screen.getByRole('checkbox'));
 
+    expect(handleChange).toHaveBeenCalledTimes(1);
     expect(handleChange).toHaveBeenCalledWith(true);
   });
 
-  it('deve estar desabilitado quando disabled', () => {
-    render(<Checkbox disabled />);
+  it('deve estar desabilitado quando disabled', async () => {
+    const handleChange = vi.fn();
+    const user = userEvent.setup();
+
+    render(<Checkbox disabled onCheckedChange={handleChange} />);
+    await user.click(screen.getByRole('checkbox'));
+
     expect(screen.getByRole('checkbox')).toBeDisabled();
+    expect(handleChange).not.toHaveBeenCalled();
   });
 });

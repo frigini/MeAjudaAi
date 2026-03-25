@@ -26,7 +26,7 @@ describe('Textarea', () => {
     render(<Textarea onChange={handleChange} />);
     await user.type(screen.getByRole('textbox'), 'test');
 
-    expect(handleChange).toHaveBeenCalled();
+    expect(handleChange).toHaveBeenCalledTimes(4);
   });
 
   it('deve estar desabilitado quando disabled', () => {

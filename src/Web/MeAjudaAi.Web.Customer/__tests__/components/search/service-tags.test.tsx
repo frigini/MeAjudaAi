@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ServiceTags } from '@/components/search/service-tags';
+import { getPopularServices } from '@/lib/services/service-catalog';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -10,17 +11,28 @@ vi.mock('next/navigation', () => ({
 }));
 
 vi.mock('@/lib/services/service-catalog', () => ({
-  getPopularServices: vi.fn(() => Promise.resolve([
-    { id: '1', name: 'Elétrica' },
-    { id: '2', name: 'Hidráulica' },
-  ])),
+  getPopularServices: vi.fn(),
 }));
 
 describe('ServiceTags', () => {
-  it('deve renderizar skeleton de loading', () => {
-    vi.mock('@/lib/services/service-catalog', () => ({
-      getPopularServices: vi.fn(() => new Promise(() => {})),
-    }));
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it('deve renderizar serviços populares', async () => {
+    vi.mocked(getPopularServices).mockResolvedValueOnce([
+      { id: '1', name: 'Elétrica' },
+      { id: '2', name: 'Hidráulica' },
+    ]);
+    
+    render(<ServiceTags />);
+    
+    await screen.findByText('Elétrica');
+    await screen.findByText('Hidráulica');
+  });
+
+  it('deve renderizar skeleton de loading', async () => {
+    vi.mocked(getPopularServices).mockImplementationOnce(() => new Promise(() => {}));
     
     render(<ServiceTags />);
   });

@@ -89,7 +89,11 @@ describe('useMyProviderProfile Hook', () => {
       status: 'unauthenticated',
     } as any);
 
-    const queryClient = new QueryClient();
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+      },
+    });
     const { result } = renderHook(() => useMyProviderProfile(), {
       wrapper: ({ children }: { children: React.ReactNode }) => (
         <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>

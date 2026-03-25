@@ -44,4 +44,15 @@ describe('Rating Component', () => {
     const star = container.querySelector('svg');
     expect(star).toHaveClass('w-6', 'h-6');
   });
+
+  it('deve testar hover e mouse leave', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<Rating value={3} onChange={() => {}} />);
+    
+    const stars = container.querySelectorAll('[data-testid="rating-star"]');
+    await user.hover(stars[0]);
+    await user.unhover(stars[0]);
+    
+    expect(stars[0]).toBeInTheDocument();
+  });
 });
