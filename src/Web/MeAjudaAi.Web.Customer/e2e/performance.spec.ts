@@ -34,7 +34,7 @@ test.describe('Customer Web App - Mobile Responsiveness', () => {
 
   test('should adapt forms for mobile', async ({ page }) => {
     await page.setViewportSize(mobileViewport);
-    await page.goto('/busca');
+    await page.goto('/buscar');
     
     const formInputs = page.locator('input, select, textarea');
     const count = await formInputs.count();
@@ -83,7 +83,11 @@ test.describe('Performance - Core Web Vitals', () => {
   test('should meet FID threshold', async ({ page }) => {
     await page.goto('/');
     
-    const metrics = await page.evaluate(async () => {
+    await page.waitForLoadState('domcontentloaded');
+    
+    await page.click('body');
+    
+    const metrics = await page.evaluate(() => {
       return new Promise((resolve) => {
         let resolved = false;
         const observer = new PerformanceObserver((list) => {
@@ -98,21 +102,18 @@ test.describe('Performance - Core Web Vitals', () => {
         });
         observer.observe({ type: 'first-input', buffered: true });
         
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
           if (!resolved) {
             resolved = true;
             observer.disconnect();
             resolve({ fid: null });
           }
         }, 5000);
-        
-        document.body.click();
       });
     });
     
-    if (metrics.fid) {
-      expect(metrics.fid).toBeLessThan(100);
-    }
+    expect(metrics.fid).not.toBeNull();
+    expect(metrics.fid).toBeLessThan(100);
   });
 
   test('should meet CLS threshold', async ({ page }) => {

@@ -44,9 +44,10 @@ export function Sidebar() {
     <>
       {/* Mobile Hamburger Button */}
       <button 
-        className="fixed top-4 left-4 z-40 md:hidden flex items-center justify-center p-2 rounded-md bg-surface border border-border shadow-sm text-foreground"
+        class="fixed top-4 left-4 z-40 md:hidden flex items-center justify-center p-2 rounded-md bg-surface border border-border shadow-sm text-foreground"
         onClick={() => setIsOpen(true)}
         aria-label="Open sidebar"
+        data-testid="mobile-menu-toggle"
       >
         <Menu className="h-5 w-5" />
       </button>
@@ -54,14 +55,18 @@ export function Sidebar() {
       {/* Backdrop for mobile */}
       {isOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-black/50 md:hidden" 
+          class="fixed inset-0 z-40 bg-black/50 md:hidden" 
           onClick={() => setIsOpen(false)}
           aria-hidden="true"
+          data-testid="mobile-menu-backdrop"
         />
       )}
 
-      <aside className={`fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-border bg-surface transition-transform duration-200 md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex h-16 shrink-0 items-center justify-between border-b border-border px-6">
+      <aside 
+        className={`fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-border bg-surface transition-transform duration-200 md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+        data-testid="sidebar"
+      >
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-border px-6" data-testid="mobile-menu">
           <Link href={APP_ROUTES.DASHBOARD} className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
             <span className="text-xl font-bold text-primary">MeAjudaAí</span>
             <span className="text-xs font-medium text-muted-foreground">Admin</span>

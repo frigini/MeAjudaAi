@@ -2826,6 +2826,43 @@ graph TB
 | **Authentication** | NextAuth.js | 5.x | Keycloak integration |
 | **Testing** | Playwright | 1.x | E2E tests |
 
+> **Nota**: Esta é a arquitetura atual utilizada em produção.
+
+---
+
+### **Legacy (Blazor)**
+
+> **Nota**: Os exemplos abaixo são históricos e referência apenas. O projeto foi migrado para React conforme descrito acima.
+
+O Admin Portal foi originalmente desenvolvido em Blazor WebAssembly com MudBlazor. Abaixo estão exemplos históricos:
+
+```csharp
+// Program.cs - Configuração OIDC (Legacy)
+builder.Services.AddOidcAuthentication(options =>
+{
+    options.ProviderOptions.Authority = "https://keycloak.local/realms/meajudaai";
+    options.ProviderOptions.ClientId = "admin-portal";
+    options.ProviderOptions.ResponseType = "code";
+    options.ProviderOptions.Scopes.Add("openid");
+    options.ProviderOptions.Scopes.Add("profile");
+});
+```
+
+```razor
+@* App.razor - Cascading Authentication (Legacy) *@
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData">
+                <NotAuthorized>
+                    <RedirectToLogin />
+                </NotAuthorized>
+            </AuthorizeRouteView>
+        </Found>
+    </Router>
+</CascadingAuthenticationState>
+```
+
 ### **Zustand Pattern - State Management**
 
 **Implementação do Padrão Zustand**:
@@ -3132,34 +3169,35 @@ src/Web/MeAjudaAi.Web.Admin/
 ├── hooks/                        # Custom React hooks
 │   ├── useProviders.ts
 │   └── useDocuments.ts
-└── e2e/                         # E2E tests (co-located)
-    ├── auth.spec.ts
-    └── providers.spec.ts
 ```
 
 ### **Estrutura de Arquivos**
 
 ```text
-src/Web/
-├── MeAjudaAi.Web.Admin/           # Admin Portal Next.js App
-│   └── e2e/                       # E2E tests (co-located)
+tests/
+├── MeAjudaAi.Web.Admin.Tests/    # Admin Portal E2E tests
+│   └── e2e/
 │       ├── auth.spec.ts
-│       └── providers.spec.ts
-├── MeAjudaAi.Web.Customer/        # Customer Web Next.js App
+│       ├── providers.spec.ts
+│       ├── configs.spec.ts
+│       ├── dashboard.spec.ts
+│       └── mobile-responsiveness.spec.ts
+├── MeAjudaAi.Web.Customer.Tests/ # Customer Web E2E tests
 │   └── e2e/
 │       ├── auth.spec.ts
 │       ├── search.spec.ts
 │       ├── onboarding.spec.ts
+│       ├── profile.spec.ts
 │       └── performance.spec.ts
-├── MeAjudaAi.Web.Provider/        # Provider Web Next.js App
+├── MeAjudaAi.Web.Provider.Tests/ # Provider Web E2E tests
 │   └── e2e/
 │       ├── auth.spec.ts
 │       ├── onboarding.spec.ts
-│       └── profile-mgmt.spec.ts
-├── libs/                          # Shared libraries
-│   ├── e2e-support/               # Shared E2E fixtures
-│   └── api-client/               # API client
-└── playwright.config.ts          # Single Playwright config
+│       ├── profile-mgmt.spec.ts
+│       ├── dashboard.spec.ts
+│       └── performance.spec.ts
+└── MeAjudaAi.Web.Shared.Tests/  # Shared test fixtures
+    └── base.ts                   # Shared E2E fixtures
 
 # Playwright Configuration:
 # - testDir: './src' (single test directory)

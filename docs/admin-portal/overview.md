@@ -99,17 +99,20 @@ src/Web/MeAjudaAi.Web.Admin/
 
 ### Testes E2E
 
-Localização: `src/Web/MeAjudaAi.Web.Admin/e2e/`
+Localização: `tests/MeAjudaAi.Web.Admin.Tests/e2e/`
 
 **Estrutura:**
 ```text
-src/Web/MeAjudaAi.Web.Admin/
+tests/MeAjudaAi.Web.Admin.Tests/
 └── e2e/
     ├── auth.spec.ts
-    └── providers.spec.ts
+    ├── providers.spec.ts
+    ├── configs.spec.ts
+    ├── dashboard.spec.ts
+    └── mobile-responsiveness.spec.ts
 ```
 
-**Fixtures compartilhadas:** `src/Web/libs/e2e-support/base.ts`
+**Fixtures compartilhadas:** `tests/MeAjudaAi.Web.Shared.Tests/base.ts`
 - `loginAsAdmin(page)`
 - `loginAsProvider(page)`
 - `loginAsCustomer(page)`
@@ -155,16 +158,20 @@ export function EditButton({ providerId }: { providerId: string }) {
 'use client';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
 
 function AdminProtected({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
 
+  useEffect(() => {
+    if (status !== 'loading' && !session) {
+      router.push('/login');
+    }
+  }, [status, session, router]);
+
   if (status === 'loading') return <Spinner />;
-  if (!session) {
-    router.push('/login');
-    return null;
-  }
+  if (!session) return null;
   if (session.user.role !== 'admin') return <AccessDenied />;
 
   return <>{children}</>;

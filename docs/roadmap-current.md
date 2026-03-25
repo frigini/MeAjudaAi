@@ -32,11 +32,12 @@ Desenvolver aplicações frontend usando **Blazor WebAssembly** (Admin Portal) e
 
 **Stack Completa**:
 
-**Admin Portal** (React - migrado Sprint 8D):
+**Admin Portal** (React - migrado na Sprint 8D):
 - React 19 + TypeScript 5.7+
 - Tailwind CSS v4
 - Zustand (state management)
 - React Hook Form + Zod
+- NextAuth.js (Keycloak OIDC)
 
 **Customer Web App** (novo):
 - React 19 (Server Components + Client Components)
@@ -651,7 +652,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 
 #### Risk Mitigation Strategy
 - **Contingency Branching**: If major tasks (Admin Migration, NX Setup) slip, we prioritize essential Player flows (Customer/Provider) and fallback to existing Admin solutions.
-- **Sprint 8E (Mobile)**: De-scoped from MVP to Phase 2 to ensure web platform stability.
+- **Mobile Apps**: De-scoped from MVP to Phase 2 to ensure web platform stability.
 - **Buffer**: Sprint 9 is strictly for stability, no new features.
 - Documentação final para MVP
 
