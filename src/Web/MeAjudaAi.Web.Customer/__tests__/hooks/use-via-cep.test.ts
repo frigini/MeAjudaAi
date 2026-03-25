@@ -35,7 +35,7 @@ describe('useViaCep Hook', () => {
       logradouro: 'Rua Teste',
       complemento: '',
       bairro: 'Bairro Teste',
-      locality: 'Rio de Janeiro',
+      localidade: 'Rio de Janeiro',
       uf: 'RJ',
     };
 
@@ -82,7 +82,7 @@ describe('useViaCep Hook', () => {
   });
 
   it('deve cancelar requisição anterior', async () => {
-    mockFetch.mockResolvedValueOnce({
+    mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({ cep: '20550160', logradouro: 'Rua Teste', complemento: '', bairro: 'Bairro Teste', locality: 'Rio de Janeiro', uf: 'RJ' }),
     });
@@ -92,7 +92,10 @@ describe('useViaCep Hook', () => {
     const promise1 = result.current.fetchAddress('20550160');
     const promise2 = result.current.fetchAddress('20550161');
     
-    await Promise.all([promise1, promise2]);
+    const address2 = await promise2;
+    expect(address2).toBeDefined();
+    
+    expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 
   it('deve retornar null para CEP com menos de 8 dígitos', async () => {

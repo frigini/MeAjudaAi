@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { ProviderDto } from '@/types/api/provider';
+import { ProviderDto, EVerificationStatus } from '@/types/api/provider';
 import DashboardClient from '@/components/providers/dashboard-client';
 
 vi.mock('next/navigation', () => ({
@@ -21,7 +21,7 @@ const mockProvider: ProviderDto = {
   id: 'prov-123',
   name: 'João Prestador',
   email: 'joao@exemplo.com',
-  verificationStatus: 'Verified',
+  verificationStatus: EVerificationStatus.Verified,
   businessProfile: {
     description: 'Sou um prestador de serviços experiente.',
     contactInfo: {
@@ -33,7 +33,7 @@ const mockProvider: ProviderDto = {
     { serviceId: 'svc-1', serviceName: 'Serviço 1' },
     { serviceId: 'svc-2', serviceName: 'Serviço 2' },
   ],
-} as ProviderDto;
+};
 
 describe('DashboardClient', () => {
   it('deve renderizar o título do painel', () => {
@@ -83,20 +83,20 @@ describe('DashboardClient', () => {
   });
 
   it('deve renderizar sem descrição quando não informada', () => {
-    const providerWithoutDescription = {
+    const providerWithoutDescription: ProviderDto = {
       ...mockProvider,
-      businessProfile: {},
-    } as ProviderDto;
+      businessProfile: {} as ProviderDto['businessProfile'],
+    };
     
     render(<DashboardClient provider={providerWithoutDescription} />);
     expect(screen.getByText(/nenhuma descrição adicionada/i)).toBeInTheDocument();
   });
 
   it('deve renderizar sem serviços quando array vazio', () => {
-    const providerWithoutServices = {
+    const providerWithoutServices: ProviderDto = {
       ...mockProvider,
       services: [],
-    } as unknown as ProviderDto;
+    };
     
     render(<DashboardClient provider={providerWithoutServices} />);
     expect(screen.getByText(/nenhum serviço cadastrado/i)).toBeInTheDocument();

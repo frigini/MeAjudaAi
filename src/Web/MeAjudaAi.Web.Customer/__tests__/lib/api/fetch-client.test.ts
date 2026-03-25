@@ -7,6 +7,16 @@ vi.mock('@/lib/api/client', () => ({
   },
 }));
 
+const createMockHeaders = (init?: Record<string, string>) => {
+  const headers = new Headers();
+  if (init) {
+    Object.entries(init).forEach(([key, value]) => {
+      headers.append(key, value);
+    });
+  }
+  return headers;
+};
+
 describe('ApiError', () => {
   it('deve criar ApiError com mensagem e status', () => {
     const error = new ApiError('Error message', 404);
@@ -25,7 +35,7 @@ describe('baseFetch', () => {
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
       status: 200,
-      headers: new Map([['content-length', '10']]),
+      headers: createMockHeaders({ 'content-length': '10' }),
       json: async () => ({ data: { id: '1' } }),
     } as any);
 
@@ -37,7 +47,7 @@ describe('baseFetch', () => {
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
       status: 200,
-      headers: new Map([['content-length', '10']]),
+      headers: createMockHeaders({ 'content-length': '10' }),
       json: async () => ({ data: { id: '1' } }),
     } as any);
 
@@ -76,7 +86,7 @@ describe('baseFetch', () => {
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
       status: 204,
-      headers: new Map([['content-length', '0']]),
+      headers: createMockHeaders({ 'content-length': '0' }),
     } as any);
 
     const result = await baseFetch('/api/test', { method: 'delete' });
@@ -89,12 +99,20 @@ describe('authenticatedFetch', () => {
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
       status: 200,
-      headers: new Map([['content-length', '10']]),
+      headers: createMockHeaders({ 'content-length': '10' }),
       json: async () => ({ data: { id: '1' } }),
     } as any);
 
-    const result = await authenticatedFetch('/api/test', { method: 'get', token: 'test' });
+    const result = await authenticatedFetch('/api/test', { method: 'get', token: 'test-token' });
     expect(result).toEqual({ id: '1' });
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:7002/api/test',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer test-token',
+        }),
+      })
+    );
   });
 });
 
@@ -103,7 +121,7 @@ describe('publicFetch', () => {
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
       status: 200,
-      headers: new Map([['content-length', '10']]),
+      headers: createMockHeaders({ 'content-length': '10' }),
       json: async () => ({ data: { id: '1' } }),
     } as any);
 

@@ -25,7 +25,7 @@ export function UserMenu() {
     // Loading state - prevent flash of unauthenticated UI
     if (status === "loading") {
         return (
-            <div className="h-10 w-10 rounded-full bg-secondary/20 animate-pulse shrink-0" />
+            <div data-testid="user-menu-loading" className="h-10 w-10 rounded-full bg-secondary/20 animate-pulse shrink-0" />
         );
     }
 

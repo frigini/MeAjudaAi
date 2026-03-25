@@ -18,20 +18,20 @@ function getRequiredEnv(name: string): string {
   return value;
 }
 
-const hasKeycloakConfig = process.env.KEYCLOAK_ADMIN_CLIENT_ID || process.env.KEYCLOAK_CLIENT_ID;
-const hasKeycloakSecret = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET || process.env.KEYCLOAK_CLIENT_SECRET;
-const hasKeycloakIssuer = !!process.env.KEYCLOAK_ISSUER;
-
-const isFullyConfigured = hasKeycloakConfig && hasKeycloakSecret && hasKeycloakIssuer;
 const isCi = process.env.CI === "true" || process.env.NEXT_PUBLIC_CI === "true";
 
 const hasAdminVars = process.env.KEYCLOAK_ADMIN_CLIENT_ID && process.env.KEYCLOAK_ADMIN_CLIENT_SECRET;
 const hasClientVars = process.env.KEYCLOAK_CLIENT_ID && process.env.KEYCLOAK_CLIENT_SECRET;
 
 const hasPartialAdminVars = (!!process.env.KEYCLOAK_ADMIN_CLIENT_ID) !== (!!process.env.KEYCLOAK_ADMIN_CLIENT_SECRET);
+const hasPartialClientVars = (!!process.env.KEYCLOAK_CLIENT_ID) !== (!!process.env.KEYCLOAK_CLIENT_SECRET);
 
 if (hasPartialAdminVars) {
   throw new Error("Both KEYCLOAK_ADMIN_CLIENT_ID and KEYCLOAK_ADMIN_CLIENT_SECRET must be set or neither");
+}
+
+if (hasPartialClientVars) {
+  throw new Error("Both KEYCLOAK_CLIENT_ID and KEYCLOAK_CLIENT_SECRET must be set or neither");
 }
 
 let keycloakClientId: string;

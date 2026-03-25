@@ -62,6 +62,7 @@ describe('useDocumentUpload Hook', () => {
 
   it('deve mostrar erro quando providerId vazio', async () => {
     const { authenticatedFetch } = await import('@/lib/api/fetch-client');
+    const toast = (await import('sonner')).toast;
     vi.mocked(authenticatedFetch).mockResolvedValueOnce({});
 
     const { result } = renderHook(() => useDocumentUpload(), {
@@ -74,5 +75,56 @@ describe('useDocumentUpload Hook', () => {
     });
 
     expect(result.current.isUploading).toBe(false);
+    expect(toast.error).toHaveBeenCalledWith('Erro de autenticação ou ID do prestador inválido.');
+    expect(authenticatedFetch).not.toHaveBeenCalled();
+  });
+
+  it('deve fazer upload com sucesso', async () => {
+    const { authenticatedFetch } = await import('@/lib/api/fetch-client');
+    const toast = (await import('sonner')).toast;
+    
+    vi.mocked(authenticatedFetch)
+      .mockResolvedValueOnce({ 
+        uploadUrl: 'https://storage.blob.core.windows.net/upload?token',
+        blobName: 'test-blob'
+      })
+      .mockResolvedValueOnce({ success: true });
+
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true }) as any;
+
+    const { result } = renderHook(() => useDocumentUpload(), {
+      wrapper: createWrapper(),
+    });
+
+    const file = new File(['test'], 'test.pdf', { type: 'application/pdf' });
+    await act(async () => {
+      await result.current.uploadDocument(file, EDocumentType.ID, 'provider-123');
+    });
+
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    });
+
+    expect(result.current.isUploading).toBe(false);
+    expect(toast.success).toHaveBeenCalledWith('Documento enviado com sucesso!');
+  });
+
+  it('deve tratar erro de API', async () => {
+    const { authenticatedFetch } = await import('@/lib/api/fetch-client');
+    const toast = (await import('sonner')).toast;
+    vi.mocked(authenticatedFetch).mockRejectedValueOnce(new Error('Upload failed'));
+
+    const { result } = renderHook(() => useDocumentUpload(), {
+      wrapper: createWrapper(),
+    });
+
+    const file = new File(['test'], 'test.pdf', { type: 'application/pdf' });
+    await act(async () => {
+      await result.current.uploadDocument(file, EDocumentType.ID, 'provider-123');
+    });
+
+    expect(result.current.isUploading).toBe(false);
+    expect(toast.error).toHaveBeenCalledWith('Upload failed');
   });
 });

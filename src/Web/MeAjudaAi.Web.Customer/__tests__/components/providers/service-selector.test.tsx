@@ -1,17 +1,27 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ServiceSelector } from '@/components/providers/service-selector';
 
 describe('ServiceSelector', () => {
+  let fetchSpy: any;
+
+  beforeEach(() => {
+    fetchSpy = vi.spyOn(global, 'fetch');
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
   it('deve renderizar o seletor', async () => {
-    global.fetch = vi.fn().mockResolvedValueOnce({
+    fetchSpy.mockResolvedValueOnce({
       ok: true,
       json: async () => [
         { serviceId: '1', name: 'Elétrica' },
         { serviceId: '2', name: 'Hidráulica' },
       ],
-    }) as any;
+    });
 
     const onSelect = vi.fn();
     render(<ServiceSelector onSelect={onSelect} />);
@@ -28,20 +38,29 @@ describe('ServiceSelector', () => {
   });
 
   it('deve chamar onSelect ao selecionar serviço', async () => {
-    global.fetch = vi.fn().mockResolvedValueOnce({
+    fetchSpy.mockResolvedValueOnce({
       ok: true,
       json: async () => [
         { serviceId: '1', name: 'Elétrica' },
       ],
-    }) as any;
+    });
 
     const user = userEvent.setup();
     const onSelect = vi.fn();
     render(<ServiceSelector onSelect={onSelect} />);
 
     await waitFor(() => {
-      const button = screen.getByRole('combobox');
-      user.click(button);
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
+
+    await user.click(screen.getByRole('combobox'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Elétrica')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByText('Elétrica'));
+
+    expect(onSelect).toHaveBeenCalledWith('1');
   });
 });

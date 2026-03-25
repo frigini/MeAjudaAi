@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { AppProviders } from '@/components/providers/app-providers';
 
 vi.mock('next-auth/react', () => ({
@@ -12,14 +12,12 @@ vi.mock('next-auth', () => ({
 }));
 
 describe('AppProviders', () => {
-  it('deve renderizar children', async () => {
+  it('deve renderizar children', () => {
     render(
       <AppProviders>
         <div data-testid="child">Child Content</div>
       </AppProviders>
     );
-    await waitFor(() => {
-      expect(screen.getByTestId('child')).toHaveTextContent('Child Content');
-    });
+    expect(screen.getByTestId('child')).toHaveTextContent('Child Content');
   });
 });

@@ -57,4 +57,9 @@ describe('VerifiedBadge', () => {
     const { container } = render(<VerifiedBadge status={null as any} />);
     expect(container.firstChild).toBeNull();
   });
+
+  it('não deve renderizar quando status None', () => {
+    const { container } = render(<VerifiedBadge status={EVerificationStatus.None} />);
+    expect(container.firstChild).toBeNull();
+  });
 });

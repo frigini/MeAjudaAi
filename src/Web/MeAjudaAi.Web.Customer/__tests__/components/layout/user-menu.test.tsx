@@ -28,8 +28,7 @@ describe('UserMenu', () => {
     mockUseSession.mockReturnValue({ data: null, status: 'loading' });
     mockUseProviderStatus.mockReturnValue({ data: null, isLoading: false, isError: false });
     render(<UserMenu />);
-    const loadingElement = document.querySelector('.animate-pulse');
-    expect(loadingElement).toBeInTheDocument();
+    expect(screen.getByTestId('user-menu-loading')).toBeInTheDocument();
   });
 
   it('deve renderizar opções de login para usuário não autenticado', () => {
@@ -58,7 +57,7 @@ describe('UserMenu', () => {
 
     render(<UserMenu />);
     
-    await user.click(screen.getByRole('button'));
+    await user.click(screen.getByRole('button', { name: /joão silva/i }));
     
     await waitFor(() => {
       expect(screen.getByText(/meu perfil/i)).toBeInTheDocument();

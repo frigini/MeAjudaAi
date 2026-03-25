@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Header } from '@/components/layout/header';
-import { UserMenu } from '@/components/layout/user-menu';
 
 vi.mock('@/components/layout/user-menu', () => ({
   UserMenu: () => <div data-testid="user-menu">User Menu</div>,
@@ -35,12 +34,6 @@ describe('Header', () => {
   it('deve renderizar campo de busca na página inicial', () => {
     render(<Header />);
     expect(screen.getByPlaceholderText(/buscar serviço/i)).toBeInTheDocument();
-  });
-
-  it('deve renderizar botão de busca', () => {
-    render(<Header />);
-    const searchInput = screen.getByPlaceholderText(/buscar serviço/i);
-    expect(searchInput).toBeInTheDocument();
   });
 
   it('deve renderizar sem erros com className customizada', () => {

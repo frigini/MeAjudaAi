@@ -1,9 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { LoginForm } from '@/components/auth/login-form';
 
+const mockSignIn = vi.fn();
+
 vi.mock('next-auth/react', () => ({
-  signIn: vi.fn(() => Promise.resolve({ error: null, url: null })),
+  signIn: (...args: any[]) => mockSignIn(...args),
   useSession: vi.fn(() => ({ data: null, status: 'unauthenticated' })),
 }));
 
@@ -18,6 +21,7 @@ vi.mock('next/navigation', () => ({
 describe('LoginForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSignIn.mockResolvedValue({ error: null, url: null });
   });
 
   it('deve renderizar formulário de login', async () => {
@@ -44,5 +48,16 @@ describe('LoginForm', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /entrar com o google/i })).toBeInTheDocument();
     });
+  });
+
+  it('deve renderizar com className customizada', async () => {
+    render(<LoginForm className="custom-class" />);
+    
+    await waitFor(() => {
+      expect(screen.getByLabelText(/e-mail/i)).toBeInTheDocument();
+    });
+    
+    const form = document.querySelector('.custom-class');
+    expect(form).toBeInTheDocument();
   });
 });

@@ -1,4 +1,4 @@
-import { test, expect, devices } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 const mobileViewport = { width: 375, height: 667 };
 
@@ -111,10 +111,10 @@ test.describe('Performance - Core Web Vitals', () => {
           const maxInp = inpEntries.length > 0 ? Math.max(...inpEntries) : 0;
           resolve({ inp: maxInp });
         }, 2000);
+        
+        document.getElementById('inp-test-button')?.click();
       });
     });
-    
-    await page.click('#inp-test-button');
     
     expect(metrics.inp).toBeDefined();
     expect(metrics.inp).toBeLessThan(500);

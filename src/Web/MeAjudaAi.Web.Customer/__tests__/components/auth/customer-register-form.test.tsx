@@ -29,7 +29,9 @@ describe('CustomerRegisterForm', () => {
 
   it('deve renderizar campos de senha', () => {
     render(<CustomerRegisterForm />);
-    expect(screen.getAllByText(/senha/i).length).toBeGreaterThan(0);
+    const container = document.body;
+    const passwordInputs = container.querySelectorAll('input[type="password"]');
+    expect(passwordInputs.length).toBe(2);
   });
 
   it('deve renderizar botão de cadastrar', () => {
@@ -39,6 +41,8 @@ describe('CustomerRegisterForm', () => {
 
   it('deve renderizar links de termos', () => {
     render(<CustomerRegisterForm />);
-    expect(screen.getByRole('link', { name: /termos de uso/i })).toBeInTheDocument();
+    const termsLink = screen.getByRole('link', { name: /termos de uso/i });
+    expect(termsLink).toBeInTheDocument();
+    expect(termsLink).toHaveAttribute('href', '/termos');
   });
 });
