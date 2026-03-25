@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor, act } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useDocumentUpload } from '@/hooks/use-document-upload';
 import React from 'react';
@@ -58,5 +58,21 @@ describe('useDocumentUpload Hook', () => {
     });
 
     expect(typeof result.current.uploadDocument).toBe('function');
+  });
+
+  it('deve mostrar erro quando providerId vazio', async () => {
+    const { authenticatedFetch } = await import('@/lib/api/fetch-client');
+    vi.mocked(authenticatedFetch).mockResolvedValueOnce({});
+
+    const { result } = renderHook(() => useDocumentUpload(), {
+      wrapper: createWrapper(),
+    });
+
+    const file = new File(['test'], 'test.pdf', { type: 'application/pdf' });
+    await act(async () => {
+      await result.current.uploadDocument(file, EDocumentType.ID, '');
+    });
+
+    expect(result.current.isUploading).toBe(false);
   });
 });
