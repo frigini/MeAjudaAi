@@ -27,6 +27,13 @@ vi.mock('@/components/ui/form', () => ({
   useFormField: () => ({ error: null }),
 }));
 
+vi.mock('sonner', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
 vi.mock('@/components/ui/input', () => ({
   Input: (props: React.InputHTMLAttributes<HTMLInputElement>) => <input {...props} />,
 }));
@@ -110,7 +117,7 @@ describe('CustomerRegisterForm (Stabilized for CI)', () => {
     const { publicFetch, ApiError } = await import('@/lib/api/fetch-client');
     vi.mocked(publicFetch).mockRejectedValueOnce(new ApiError('Email já cadastrado'));
 
-    const toastSpy = (await import('sonner')).toast;
+    const { toast } = await import('sonner');
     
     render(<CustomerRegisterForm />);
     
@@ -129,9 +136,9 @@ describe('CustomerRegisterForm (Stabilized for CI)', () => {
       expect(publicFetch).toHaveBeenCalled();
     });
     
-    // Verify the error toast was called
+    // Verify the error message is shown in the form
     await waitFor(() => {
-      expect(toastSpy.error).toHaveBeenCalledWith('Email já cadastrado');
+      expect(screen.getByText(/email já cadastrado/i)).toBeInTheDocument();
     });
   });
 });
