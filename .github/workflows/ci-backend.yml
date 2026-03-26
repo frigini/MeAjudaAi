@@ -219,8 +219,8 @@ jobs:
           reports: "coverage/**/*.cobertura.xml"
           targetdir: "coverage/aggregate"
           reporttypes: "Cobertura;JsonSummary"
-          assemblyfilters: "+MeAjudaAi.*"
-          classfilters: "-*.Tests;-*.Tests.*;-*Test*;-testhost"
+          assemblyfilters: "+MeAjudaAi.*;-MeAjudaAi.AppHost;-MeAjudaAi.ServiceDefaults;-MeAjudaAi.Contracts"
+          classfilters: "-*.Tests;-*.Tests.*;-*Test*;-testhost;-*.Migrations.*;-*.Database.*;-*.Monitoring.*;-*.Keycloak.*;-*.Logging.*;-*.Messaging.*;-*.Jobs.Hangfire*;-*Program*"
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4

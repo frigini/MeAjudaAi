@@ -89,3 +89,20 @@ jobs:
           set -e
           npx nx run MeAjudaAi.Web.Customer:build
           npx nx affected --target=build --exclude=MeAjudaAi.Web.Customer
+
+      - name: Code Coverage Summary
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        if: always()
+        with:
+          filename: "src/Web/coverage/**/cobertura-coverage.xml"
+          badge: true
+          format: markdown
+          output: both
+
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: always() && github.event_name == 'pull_request'
+        with:
+          recreate: true
+          header: coverage-report-frontend
+          path: code-coverage-results.md
