@@ -3,6 +3,8 @@ name: E2E Tests
 on:
   push:
     branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
   workflow_dispatch:
 
 permissions:
@@ -21,6 +23,21 @@ jobs:
     name: Backend E2E
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout code
@@ -71,6 +88,10 @@ jobs:
           export Migrations__Enabled=false
           SEARCH_DIR="$GITHUB_WORKSPACE/src/Bootstrapper/MeAjudaAi.ApiService/bin/Release"
           DLL_PATH=$(find "$SEARCH_DIR" -name "MeAjudaAi.ApiService.dll" | head -n 1)
+          if [ -z "$DLL_PATH" ]; then
+            echo "❌ Error: MeAjudaAi.ApiService.dll not found in $SEARCH_DIR"
+            exit 1
+          fi
           swagger tofile --output "$GITHUB_WORKSPACE/src/api/api-spec.json" "$DLL_PATH" v1
           export OPENAPI_SPEC_URL="$GITHUB_WORKSPACE/src/api/api-spec.json"
           npm run generate:api --workspace=meajudaai.web.customer

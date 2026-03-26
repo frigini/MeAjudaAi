@@ -7,10 +7,15 @@
  * Input:  coverage-final.json from each project's ./coverage/ directory.
  * Output: Combined report in ./coverage-global/ (html + json-summary + lcov).
  */
-import { execSync } from 'child_process';
-import { existsSync, mkdirSync, copyFileSync, readFileSync, rmSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, rmSync } from 'fs';
 import { resolve, join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import libCoverage from 'istanbul-lib-coverage';
+import libReport from 'istanbul-lib-report';
+import reports from 'istanbul-reports';
+
+const { createCoverageMap } = libCoverage;
+const { createContext } = libReport;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -21,7 +26,6 @@ const PROJECTS = [
   'MeAjudaAi.Web.Provider',
 ];
 
-const TEMP_DIR = join(ROOT, '.nyc_output');
 const OUTPUT_DIR = join(ROOT, 'coverage-global');
 
 // Global coverage thresholds
@@ -34,76 +38,89 @@ const GLOBAL_THRESHOLDS = {
 
 // 1. Clean previous output
 console.log('🧹 Cleaning previous coverage data...');
-if (existsSync(TEMP_DIR)) rmSync(TEMP_DIR, { recursive: true, force: true });
 if (existsSync(OUTPUT_DIR)) rmSync(OUTPUT_DIR, { recursive: true, force: true });
-mkdirSync(TEMP_DIR, { recursive: true });
 mkdirSync(OUTPUT_DIR, { recursive: true });
 
-// 2. Copy coverage-final.json from each project into .nyc_output/
-let found = 0;
+// 2. Aggregate coverage from each project
+const map = createCoverageMap();
+const missing = [];
+
 for (const project of PROJECTS) {
-  const coverageFile = join(ROOT, project, 'coverage', 'coverage-final.json');
-  if (existsSync(coverageFile)) {
-    copyFileSync(coverageFile, join(TEMP_DIR, `${project}.json`));
-    console.log(`✅ ${project}: coverage found`);
-    found++;
+  const coveragePath = join(ROOT, project, 'coverage', 'coverage-final.json');
+  if (existsSync(coveragePath)) {
+    console.log(`✅ Adicionando cobertura: ${project}`);
+    const coverage = JSON.parse(readFileSync(coveragePath, 'utf8'));
+    map.merge(coverage);
   } else {
-    console.warn(`⚠️  ${project}: no coverage-final.json (run tests with --coverage first)`);
+    missing.push(project);
+    console.error(`❌ ${project}: missing coverage-final.json (run tests with --coverage first)`);
   }
 }
 
-if (found === 0) {
-  console.error('❌ No coverage files found. Run: npm run test:coverage:all');
+// 3. Fail if any project is missing (PR Review Requirement)
+if (missing.length > 0) {
+  console.error('\n❌ Global coverage failed: Missing reports for the following projects:');
+  missing.forEach(p => console.error(`   - ${p}`));
+  console.error('\nAll projects in the PROJECTS array must have a coverage-final.json file.');
+  console.error('Ensure all tests ran with the --coverage flag before merging.');
   process.exit(1);
 }
 
-// 3. Merge and generate combined report
+if (map.files().length === 0) {
+  console.error('❌ No coverage data found. Ensure projects are listed correctly and tests ran.');
+  process.exit(1);
+}
+
+// 4. Generate combined reports
 try {
-  console.log(`\n📊 Merging ${found}/${PROJECTS.length} project(s)...`);
-  execSync(
-    `npx nyc merge "${TEMP_DIR}" "${join(OUTPUT_DIR, 'merged.json')}"`,
-    { stdio: 'inherit' }
-  );
+  console.log(`\n📊 Generating global reports for ${map.files().length} files...`);
   
-  console.log('📝 Generating report...');
-  execSync(
-    `npx nyc report --temp-dir "${OUTPUT_DIR}" --reporter=html --reporter=json-summary --reporter=lcov --report-dir "${OUTPUT_DIR}"`,
-    { stdio: 'inherit' }
-  );
+  const context = createContext({
+    dir: OUTPUT_DIR,
+    defaultSummarizer: 'nested',
+    coverageMap: map,
+  });
+
+  // Execute report generation
+  reports.create('html').execute(context);
+  reports.create('lcov').execute(context);
+  reports.create('json-summary').execute(context);
+  reports.create('text').execute(context); // Also print to console
+
+  // 5. Verify global thresholds
+  const summaryPath = join(OUTPUT_DIR, 'coverage-summary.json');
+  if (existsSync(summaryPath)) {
+    const summary = JSON.parse(readFileSync(summaryPath, 'utf-8'));
+    const totals = summary.total;
+    
+    console.log('\n📈 Global Coverage Summary:');
+    console.log(`   Lines:      ${totals.lines.pct}%`);
+    console.log(`   Functions:  ${totals.functions.pct}%`);
+    console.log(`   Branches:   ${totals.branches.pct}%`);
+    console.log(`   Statements: ${totals.statements.pct}%`);
+    
+    // Check thresholds
+    const failures = [];
+    if (totals.lines.pct < GLOBAL_THRESHOLDS.lines) failures.push(`lines: ${totals.lines.pct}% < ${GLOBAL_THRESHOLDS.lines}%`);
+    if (totals.functions.pct < GLOBAL_THRESHOLDS.functions) failures.push(`functions: ${totals.functions.pct}% < ${GLOBAL_THRESHOLDS.functions}%`);
+    if (totals.branches.pct < GLOBAL_THRESHOLDS.branches) failures.push(`branches: ${totals.branches.pct}% < ${GLOBAL_THRESHOLDS.branches}%`);
+    if (totals.statements.pct < GLOBAL_THRESHOLDS.statements) failures.push(`statements: ${totals.statements.pct}% < ${GLOBAL_THRESHOLDS.statements}%`);
+    
+    if (failures.length > 0) {
+      console.error('\n⚠️  Global coverage thresholds not met:');
+      failures.forEach(f => console.error(`   - ${f}`));
+      process.exit(1); 
+    } else {
+      console.log(`\n✅ All global coverage thresholds met (>= ${GLOBAL_THRESHOLDS.lines}%)`);
+    }
+  } else {
+    console.error('❌ Failed to find coverage-summary.json after generation.');
+    process.exit(1);
+  }
 } catch (error) {
   console.error('\n❌ Failed to generate global coverage report:');
-  console.error(error.message);
+  console.error(error.stack || error.message);
   process.exit(1);
 }
 
-// 4. Read and verify global thresholds
-const summaryPath = join(OUTPUT_DIR, 'coverage-summary.json');
-if (existsSync(summaryPath)) {
-  const summary = JSON.parse(readFileSync(summaryPath, 'utf-8'));
-  const totals = summary.total;
-  
-  console.log('\n📈 Global Coverage:');
-  console.log(`   Lines:      ${totals.lines.pct}%`);
-  console.log(`   Functions:  ${totals.functions.pct}%`);
-  console.log(`   Branches:   ${totals.branches.pct}%`);
-  console.log(`   Statements: ${totals.statements.pct}%`);
-  
-  // Check thresholds
-  const failures = [];
-  if (totals.lines.pct < GLOBAL_THRESHOLDS.lines) failures.push(`lines: ${totals.lines.pct}% < ${GLOBAL_THRESHOLDS.lines}%`);
-  if (totals.functions.pct < GLOBAL_THRESHOLDS.functions) failures.push(`functions: ${totals.functions.pct}% < ${GLOBAL_THRESHOLDS.functions}%`);
-  if (totals.branches.pct < GLOBAL_THRESHOLDS.branches) failures.push(`branches: ${totals.branches.pct}% < ${GLOBAL_THRESHOLDS.branches}%`);
-  if (totals.statements.pct < GLOBAL_THRESHOLDS.statements) failures.push(`statements: ${totals.statements.pct}% < ${GLOBAL_THRESHOLDS.statements}%`);
-  
-  if (failures.length > 0) {
-    console.error('\n⚠️  Global coverage thresholds not met:');
-    failures.forEach(f => console.error(`   - ${f}`));
-    // Note: In early phase, we might not want to hard-fail CI yet if we want to allow PRs to pass
-    // but the user requested threshold verification and exiting with process.exit(1) on failure.
-    process.exit(1); 
-  } else {
-    console.log(`\n✅ All global coverage thresholds met (>= ${GLOBAL_THRESHOLDS.lines}%)`);
-  }
-}
-
-console.log(`\n✅ Global coverage report: ${OUTPUT_DIR}/index.html`);
+console.log(`\n✅ Global coverage report available at: ${OUTPUT_DIR}/index.html`);

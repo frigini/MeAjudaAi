@@ -25,5 +25,5 @@ runs:
     - name: Install Tools
       shell: bash
       run: |
-        dotnet tool install -g Swashbuckle.AspNetCore.Cli --version 10.1.5 || true
-        dotnet tool install -g dotnet-reportgenerator-globaltool || true
+        dotnet tool install -g Swashbuckle.AspNetCore.Cli --version 10.1.5
+        dotnet tool install -g dotnet-reportgenerator-globaltool --version 5.4.3

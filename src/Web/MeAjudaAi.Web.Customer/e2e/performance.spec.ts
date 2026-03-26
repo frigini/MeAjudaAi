@@ -46,8 +46,15 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
     const metrics = await page.evaluate((): Promise<{ lcp: number | null }> => {
       return new Promise((resolve) => {
         let resolved = false;
-        let timeoutId: ReturnType<typeof setTimeout> | undefined;
         
+        const timeoutId = setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            observer.disconnect();
+            resolve({ lcp: null });
+          }
+        }, 5000);
+
         const observer = new PerformanceObserver((list) => {
           if (resolved) return;
           const entries = list.getEntries();
@@ -60,21 +67,11 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
           }
         });
         observer.observe({ type: 'largest-contentful-paint', buffered: true });
-        
-        timeoutId = setTimeout(() => {
-          if (!resolved) {
-            resolved = true;
-            observer.disconnect();
-            resolve({ lcp: null });
-          }
-        }, 5000);
       });
     });
     
-    expect(metrics.lcp).toBeDefined();
-    if (metrics.lcp !== null) {
-      expect(metrics.lcp).toBeLessThan(800);
-    }
+    expect(metrics.lcp).not.toBeNull();
+    expect(metrics.lcp).toBeLessThan(800);
   });
 
   test('should meet INP threshold', async ({ page }) => {
@@ -89,14 +86,14 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
       document.body.appendChild(button);
     });
     
-    const metrics = await page.evaluate((): Promise<{ inp: number }> => {
+    // PerformanceEventTiming
+    const metrics = await page.evaluate((): Promise<{ inp: number; samples: number }> => {
       return new Promise((resolve) => {
         const inpEntries: number[] = [];
-        
         const observer = new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
             if (entry.entryType === 'event') {
-              const eventEntry = entry as unknown as { processingStart: number; startTime: number; duration: number }; // PerformanceEventTiming
+              const eventEntry = entry as unknown as { processingStart: number; startTime: number; duration: number };
               const inp = eventEntry.processingStart > 0
                 ? eventEntry.processingStart - eventEntry.startTime
                 : eventEntry.duration;
@@ -104,20 +101,18 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
             }
           }
         });
-        
         observer.observe({ type: 'event', buffered: true });
-        
         setTimeout(() => {
           observer.disconnect();
           const maxInp = inpEntries.length > 0 ? Math.max(...inpEntries) : 0;
-          resolve({ inp: maxInp });
+          resolve({ inp: maxInp, samples: inpEntries.length });
         }, 2000);
-        
-        document.getElementById('inp-test-button')?.click();
       });
     });
+
+    await page.click('#inp-test-button');
     
-    expect(metrics.inp).toBeDefined();
+    expect(metrics.samples).toBeGreaterThan(0);
     expect(metrics.inp).toBeLessThan(150);
   });
 
@@ -211,7 +206,9 @@ test.describe('@e2e Performance - Network', () => {
   });
 
   test('should not have excessive same-origin requests', async ({ page }) => {
+    await page.goto('/');
     const origin = new URL(page.url()).origin;
+    
     page.on('request', (request) => {
       const url = request.url();
       if (url.startsWith(origin)) {
@@ -219,7 +216,6 @@ test.describe('@e2e Performance - Network', () => {
       }
     });
     
-    await page.goto('/');
     await page.waitForLoadState('networkidle');
     
     expect(requests.length).toBeLessThan(50);

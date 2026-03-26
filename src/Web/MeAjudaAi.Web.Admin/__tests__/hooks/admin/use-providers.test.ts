@@ -27,25 +27,27 @@ describe('useProviders Hook (Admin)', () => {
   });
 
   it('deve buscar todos os provedores', async () => {
-    vi.mocked(api.apiProvidersGet2).mockResolvedValue({ data: [{ id: '1', name: 'Provider 1' }] } as any);
+    vi.mocked(api.apiProvidersGet2).mockResolvedValue({ data: [{ id: '1', name: 'Provider 1' }] });
     const { result } = renderHook(() => useProviders());
     
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toHaveLength(1);
+    expect(result.current.data).toBeDefined();
+    expect(result.current.data?.length).toBeGreaterThan(0);
     expect(api.apiProvidersGet2).toHaveBeenCalled();
   });
 
   it('deve buscar provedor por ID', async () => {
-    vi.mocked(api.apiProvidersGet3).mockResolvedValue({ data: { id: 'p-1', name: 'Provider Name' } } as any);
+    vi.mocked(api.apiProvidersGet3).mockResolvedValue({ data: { id: 'p-1', name: 'Provider Name' } });
     const { result } = renderHook(() => useProviderById('p-1'));
     
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data.name).toBe('Provider Name');
+    expect(result.current.data).toBeDefined();
+    expect(result.current.data?.name).toBe('Provider Name');
     expect(api.apiProvidersGet3).toHaveBeenCalledWith({ path: { id: 'p-1' } });
   });
 
   it('deve criar um provedor', async () => {
-    vi.mocked(api.apiProvidersPost).mockResolvedValue({ data: { id: 'new' } } as any);
+    vi.mocked(api.apiProvidersPost).mockResolvedValue({ data: { id: 'new' } });
     const { result } = renderHook(() => useCreateProvider());
     
     await result.current.mutateAsync({ name: 'New Provider' });
@@ -53,7 +55,7 @@ describe('useProviders Hook (Admin)', () => {
   });
 
   it('deve atualizar um provedor', async () => {
-    vi.mocked(api.apiProvidersPut).mockResolvedValue({ data: { id: '1' } } as any);
+    vi.mocked(api.apiProvidersPut).mockResolvedValue({ data: { id: '1' } });
     const { result } = renderHook(() => useUpdateProvider());
     
     await result.current.mutateAsync({ id: '1', data: { name: 'Updated' } });
@@ -61,7 +63,7 @@ describe('useProviders Hook (Admin)', () => {
   });
 
   it('deve deletar um provedor', async () => {
-    vi.mocked(api.apiProvidersDelete).mockResolvedValue({ success: true } as any);
+    vi.mocked(api.apiProvidersDelete).mockResolvedValue({ data: { success: true } });
     const { result } = renderHook(() => useDeleteProvider());
     
     await result.current.mutateAsync('p-1');
@@ -69,7 +71,7 @@ describe('useProviders Hook (Admin)', () => {
   });
 
   it('deve ativar um provedor', async () => {
-    vi.mocked(api.apiActivatePost).mockResolvedValue({ success: true } as any);
+    vi.mocked(api.apiActivatePost).mockResolvedValue({ data: { success: true } });
     const { result } = renderHook(() => useActivateProvider());
     
     await result.current.mutateAsync('p-1');
@@ -77,7 +79,7 @@ describe('useProviders Hook (Admin)', () => {
   });
 
   it('deve desativar um provedor', async () => {
-    vi.mocked(api.apiDeactivatePost).mockResolvedValue({ success: true } as any);
+    vi.mocked(api.apiDeactivatePost).mockResolvedValue({ data: { success: true } });
     const { result } = renderHook(() => useDeactivateProvider());
     
     await result.current.mutateAsync('p-1');

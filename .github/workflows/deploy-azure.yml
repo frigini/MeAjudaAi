@@ -32,9 +32,9 @@ env:
 jobs:
   # Infrastructure Validation
   validate-infrastructure:
-    name: Validate Infrastructure (${{ env.ENVIRONMENT }})
+    name: Validate Infrastructure
     runs-on: ubuntu-latest
-    if: false # Disabled until Azure credentials are configured
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/master'
 
     steps:
       - name: Checkout code
@@ -47,6 +47,9 @@ jobs:
 
       - name: Validate Bicep templates
         run: |
+          az group create \
+            --name meajudaai-${{ env.ENVIRONMENT }}-rg \
+            --location ${{ env.AZURE_LOCATION }}
           az bicep build --file infrastructure/main.bicep
           az deployment group validate \
             --resource-group meajudaai-${{ env.ENVIRONMENT }}-rg \
@@ -56,11 +59,11 @@ jobs:
 
   # Deploy to Azure
   deploy:
-    name: Deploy to ${{ env.ENVIRONMENT }}
+    name: Deploy
     runs-on: ubuntu-latest
     needs: [validate-infrastructure]
-    if: false # Disabled until Azure credentials are configured
-    environment: ${{ env.ENVIRONMENT }}
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/master'
+    environment: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/master' && 'prod' || 'dev') }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6

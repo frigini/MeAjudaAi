@@ -23,25 +23,27 @@ describe('useAllowedCities Hook (Admin)', () => {
   });
 
   it('deve buscar todas as cidades permitidas', async () => {
-    vi.mocked(api.apiAllowedCitiesGet).mockResolvedValue([{ id: '1', cityName: 'City 1' }] as any);
+    vi.mocked(api.apiAllowedCitiesGet).mockResolvedValue({ data: [{ id: '1', cityName: 'City 1' }] });
     const { result } = renderHook(() => useAllowedCities());
     
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toBeDefined();
     expect(result.current.data).toHaveLength(1);
     expect(api.apiAllowedCitiesGet).toHaveBeenCalled();
   });
 
   it('deve buscar cidade por ID', async () => {
-    vi.mocked(api.apiAllowedCitiesGet2).mockResolvedValue({ id: 'r-1', cityName: 'City Name' } as any);
+    vi.mocked(api.apiAllowedCitiesGet2).mockResolvedValue({ data: { id: 'r-1', cityName: 'City Name' } });
     const { result } = renderHook(() => useAllowedCityById('r-1'));
     
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toBeDefined();
     expect(result.current.data.cityName).toBe('City Name');
     expect(api.apiAllowedCitiesGet2).toHaveBeenCalledWith({ path: { id: 'r-1' } });
   });
 
   it('deve criar uma cidade permitida', async () => {
-    vi.mocked(api.apiAllowedCitiesPost).mockResolvedValue({ id: 'new' } as any);
+    vi.mocked(api.apiAllowedCitiesPost).mockResolvedValue({ data: { id: 'new' } });
     const { result } = renderHook(() => useCreateAllowedCity());
     
     await result.current.mutateAsync({ cityName: 'New City', stateCode: 'RJ' });
@@ -51,7 +53,7 @@ describe('useAllowedCities Hook (Admin)', () => {
   });
 
   it('deve atualizar uma cidade permitida', async () => {
-    vi.mocked(api.apiAllowedCitiesPut).mockResolvedValue({ id: '1' } as any);
+    vi.mocked(api.apiAllowedCitiesPut).mockResolvedValue({ data: { id: '1' } });
     const { result } = renderHook(() => useUpdateAllowedCity());
     
     await result.current.mutateAsync({ id: '1', body: { cityName: 'Updated' } });
@@ -62,7 +64,7 @@ describe('useAllowedCities Hook (Admin)', () => {
   });
 
   it('deve deletar uma cidade permitida', async () => {
-    vi.mocked(api.apiAllowedCitiesDelete).mockResolvedValue({ success: true } as any);
+    vi.mocked(api.apiAllowedCitiesDelete).mockResolvedValue({ data: { success: true } });
     const { result } = renderHook(() => useDeleteAllowedCity());
     
     await result.current.mutateAsync('r-1');

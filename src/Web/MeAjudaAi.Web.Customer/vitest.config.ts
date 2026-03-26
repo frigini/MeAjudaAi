@@ -8,7 +8,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./__tests__/setup.ts'],
-    css: true,
+    css: false,
     include: ['__tests__/**/*.test.{ts,tsx}'],
     exclude: ['node_modules/', '.next/', 'e2e/'],
     coverage: {
@@ -34,11 +34,15 @@ export default defineConfig({
       // Note: Coverage thresholds are managed at global level via merge-coverage.mjs
       // Current global target: 70%
     },
-  },
-  resolve: {
     alias: {
       '@': resolve(__dirname, './'),
       'test-support': resolve(__dirname, '../libs/test-support/src'),
     },
+    server: {
+      deps: {
+        inline: [/lucide-react/, /@radix-ui/, /tailwind-variants/, /tailwind-merge/],
+      },
+    },
   },
 });
+

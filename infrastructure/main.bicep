@@ -23,23 +23,38 @@ param redisCacheName string = 'redis-${environmentName}-${uniqueString(resourceG
 @description('The name of the Service Bus namespace')
 param serviceBusNamespaceName string = 'sb-${environmentName}-${uniqueString(resourceGroup().id)}'
 
+@description('The SKU of the PostgreSQL server')
+param postgresSkuName string = 'Standard_B1ms'
+
+@description('The tier of the PostgreSQL server')
+param postgresSkuTier string = 'Burstable'
+
+@description('The storage size of the PostgreSQL server in GB')
+param postgresStorageSizeGB int = 32
+
+@description('The backup retention days for the PostgreSQL server')
+param postgresBackupRetentionDays int = 7
+
+@description('The SKU of the Redis cache')
+param redisSkuName string = 'Balanced_B1'
+
 // PostgreSQL Server
-resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2023-03-01-preview' = {
+resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
   name: postgresServerName
   location: location
   sku: {
-    name: 'Standard_B1ms'
-    tier: 'Burstable'
+    name: postgresSkuName
+    tier: postgresSkuTier
   }
   properties: {
     version: '16'
     administratorLogin: postgresAdminUsername
     administratorLoginPassword: postgresAdminPassword
     storage: {
-      storageSizeGB: 32
+      storageSizeGB: postgresStorageSizeGB
     }
     backup: {
-      backupRetentionDays: 7
+      backupRetentionDays: postgresBackupRetentionDays
       geoRedundantBackup: 'Disabled'
     }
   }
@@ -51,17 +66,14 @@ resource postgresDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2
   name: postgresDatabaseName
 }
 
-// Redis Cache
-resource redisCache 'Microsoft.Cache/redis@2023-08-01' = {
+// Redis Cache (Azure Managed Redis / Redis Enterprise)
+resource redisCache 'Microsoft.Cache/redisEnterprise@2024-02-01' = {
   name: redisCacheName
   location: location
+  sku: {
+    name: redisSkuName
+  }
   properties: {
-    sku: {
-      name: 'Basic'
-      family: 'C'
-      capacity: 0
-    }
-    enableNonSslPort: false
     minimumTlsVersion: '1.2'
   }
 }

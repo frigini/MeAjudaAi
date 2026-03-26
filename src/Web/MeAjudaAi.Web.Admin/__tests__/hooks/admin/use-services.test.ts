@@ -18,7 +18,7 @@ describe('useServices Hook (Admin)', () => {
   });
 
   it('deve buscar todos os serviços quando categoryId não for fornecido', async () => {
-    vi.mocked(api.apiServicesGet).mockResolvedValue({ data: [{ id: '1', name: 'Service 1' }] } as any);
+    vi.mocked(api.apiServicesGet).mockResolvedValue({ data: [{ id: '1', name: 'Service 1' }] });
     const { result } = renderHook(() => useServices());
     
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -27,7 +27,7 @@ describe('useServices Hook (Admin)', () => {
   });
 
   it('deve buscar serviços por categoria quando categoryId for fornecido', async () => {
-    vi.mocked(api.apiCategoryGet).mockResolvedValue({ data: [{ id: '1', name: 'Cat Service' }] } as any);
+    vi.mocked(api.apiCategoryGet).mockResolvedValue({ data: [{ id: '1', name: 'Cat Service' }] });
     const { result } = renderHook(() => useServices('cat-123'));
     
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -36,7 +36,7 @@ describe('useServices Hook (Admin)', () => {
   });
 
   it('deve buscar serviço por ID', async () => {
-    vi.mocked(api.apiServicesGet2).mockResolvedValue({ data: { id: 'svc-1', name: 'Service Name' } } as any);
+    vi.mocked(api.apiServicesGet2).mockResolvedValue({ data: { id: 'svc-1', name: 'Service Name' } });
     const { result } = renderHook(() => useServiceById('svc-1'));
     
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -45,7 +45,7 @@ describe('useServices Hook (Admin)', () => {
   });
 
   it('deve criar um serviço', async () => {
-    vi.mocked(api.apiServicesPost).mockResolvedValue({ data: { id: 'new' } } as any);
+    vi.mocked(api.apiServicesPost).mockResolvedValue({ data: { id: 'new' } });
     const { result } = renderHook(() => useCreateService());
     
     await result.current.mutateAsync({ name: 'New Service' });
@@ -53,7 +53,7 @@ describe('useServices Hook (Admin)', () => {
   });
 
   it('deve atualizar um serviço', async () => {
-    vi.mocked(api.apiServicesPut).mockResolvedValue({ data: { id: '1' } } as any);
+    vi.mocked(api.apiServicesPut).mockResolvedValue({ data: { id: '1' } });
     const { result } = renderHook(() => useUpdateService());
     
     await result.current.mutateAsync({ id: '1', body: { name: 'Updated' } });
@@ -61,7 +61,7 @@ describe('useServices Hook (Admin)', () => {
   });
 
   it('deve deletar um serviço', async () => {
-    vi.mocked(api.apiServicesDelete).mockResolvedValue({ success: true } as any);
+    vi.mocked(api.apiServicesDelete).mockResolvedValue({ data: { success: true } });
     const { result } = renderHook(() => useDeleteService());
     
     await result.current.mutateAsync('svc-1');

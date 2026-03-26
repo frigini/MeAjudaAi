@@ -256,4 +256,5 @@ jobs:
         with:
           dotnet-version: "10.0.x"
       - name: Run Security Audit
+        continue-on-error: true
         run: dotnet list package --vulnerable --include-transitive

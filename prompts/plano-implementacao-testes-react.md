@@ -72,7 +72,7 @@ Os testes ficam **dentro de cada projeto React** em uma pasta `__tests__/`, com 
 
 ### Estrutura Completa do Monorepo
 
-```
+```text
 MeAjudaAi/
 ├── src/
 │   └── Web/
@@ -738,7 +738,7 @@ describe('LoginForm', () => {
     "test:coverage:all": "npm run test:customer:coverage && npm run test:admin:coverage && npm run test:provider:coverage",
     "test:coverage:merge": "node scripts/merge-coverage.mjs",
     "test:coverage:global": "npm run test:coverage:all && npm run test:coverage:merge",
-    "test:ci": "npm run test:all",
+    "test:ci": "npm run test:coverage:global",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:ci": "playwright test --project=ci --reporter=html --reporter=junit"

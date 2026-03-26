@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ProviderDto, EVerificationStatus } from '@/types/api/provider';
+import { ProviderDto, EVerificationStatus, EProviderType, EProviderStatus, EProviderTier } from '@/types/api/provider';
 import DashboardClient from '@/components/providers/dashboard-client';
 
 const mockRefresh = vi.fn();
@@ -20,7 +20,7 @@ vi.mock('sonner', () => ({
   },
 }));
 
-vi.mock('../providers/service-selector', () => ({
+vi.mock('@/components/providers/service-selector', () => ({
   ServiceSelector: () => <div data-testid="service-selector">Service Selector</div>,
 }));
 
@@ -29,10 +29,10 @@ const mockProvider: ProviderDto = {
   userId: 'user-123',
   name: 'João Prestador',
   email: 'joao@exemplo.com',
-  type: 1, // Individual
-  status: 3, // Active
+  type: EProviderType.Individual,
+  status: EProviderStatus.Active,
   verificationStatus: EVerificationStatus.Verified,
-  tier: 0, // Standard
+  tier: EProviderTier.Standard,
   businessProfile: {
     legalName: 'João Silva Prestador ME',
     description: 'Sou um prestador de serviços experiente.',
@@ -201,5 +201,44 @@ describe('DashboardClient', () => {
     
     render(<DashboardClient provider={providerInProgress} />);
     expect(screen.getByText(/em análise/i)).toBeInTheDocument();
+  });
+
+  it('deve salvar nova descrição com sucesso', async () => {
+    const user = userEvent.setup();
+    const mockFetch = vi.fn();
+    vi.stubGlobal('fetch', mockFetch);
+
+    // Mock GET /api/providers/me
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockProvider,
+    });
+
+    // Mock PUT /api/providers/me
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+    });
+
+    render(<DashboardClient provider={mockProvider} />);
+    
+    await user.click(screen.getByRole('button', { name: /editar/i }));
+    
+    const textarea = screen.getByRole('textbox');
+    await user.clear(textarea);
+    await user.type(textarea, 'Nova descrição salva');
+    
+    await user.click(screen.getByRole('button', { name: /salvar/i }));
+    
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    const putCall = mockFetch.mock.calls[1];
+    expect(putCall[0]).toBe('/api/providers/me');
+    expect(JSON.parse(putCall[1].body).businessProfile.description).toBe('Nova descrição salva');
+    
+    // toast.success was mocked at module level
+    const { toast } = await import('sonner');
+    expect(toast.success).toHaveBeenCalledWith('Descrição atualizada com sucesso!');
+    expect(mockRefresh).toHaveBeenCalled();
+    
+    vi.unstubAllGlobals();
   });
 });

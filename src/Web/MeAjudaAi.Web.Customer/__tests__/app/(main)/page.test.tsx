@@ -17,7 +17,7 @@ vi.mock('@/components/ui/ad-banner', () => ({
 
 // Mock Next.js Image to avoid lint/optimization warnings in tests
 vi.mock('next/image', () => ({
-  default: ({ alt, src }: any) => (
+  default: ({ alt, src }: { alt: string; src: string }) => (
     // eslint-disable-next-line @next/next/no-img-element
     <img alt={alt} src={src} />
   )
@@ -39,6 +39,6 @@ describe('HomePage', () => {
   it('deve ter um link para cadastro de prestadores', () => {
     render(<HomePage />);
     const registerLink = screen.getByRole('link', { name: /cadastre-se grátis/i });
-    expect(registerLink).toHaveAttribute('href', '/auth/signin');
+    expect(registerLink).toHaveAttribute('href', '/cadastro/cliente');
   });
 });

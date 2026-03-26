@@ -82,13 +82,20 @@ describe('useViaCep Hook', () => {
   });
 
   it('deve cancelar requisição anterior', async () => {
-    const mockCepData1 = { cep: '20550160', logradouro: 'Rua Teste 1', complemento: '', bairro: 'Bairro Teste', locality: 'Rio de Janeiro', uf: 'RJ' };
-    const mockCepData2 = { cep: '20550161', logradouro: 'Rua Teste 2', complemento: '', bairro: 'Bairro Teste', locality: 'Rio de Janeiro', uf: 'RJ' };
+    const mockCepData2 = { cep: '20550161', logradouro: 'Rua Teste 2', complemento: '', bairro: 'Bairro Teste', localidade: 'Rio de Janeiro', uf: 'RJ' };
     
     mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockCepData1,
+      .mockImplementationOnce((_url, options) => {
+        const signal = options?.signal;
+        return new Promise((_, reject) => {
+            if (signal?.aborted) {
+                reject(new DOMException('Aborted', 'AbortError'));
+                return;
+            }
+            signal?.addEventListener('abort', () => {
+                reject(new DOMException('Aborted', 'AbortError'));
+            });
+        });
       })
       .mockResolvedValueOnce({
         ok: true,
@@ -98,9 +105,13 @@ describe('useViaCep Hook', () => {
     const { result } = renderHook(() => useViaCep());
     
     const promise1 = result.current.fetchAddress('20550160');
+    // Calling a second time should immediately abort the first
     const promise2 = result.current.fetchAddress('20550161');
     
+    const address1 = await promise1;
     const address2 = await promise2;
+    
+    expect(address1).toBeNull();
     expect(address2).toEqual(mockCepData2);
     
     expect(mockFetch).toHaveBeenCalledTimes(2);

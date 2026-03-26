@@ -30,55 +30,56 @@ const mockUser = {
   email: 'usuario@teste.com',
 };
 
+// Admin handlers should match the SDK paths (usually /api/v1/...)
 export const handlers = [
   // Providers
-  http.get('/api/providers', () =>
+  http.get('/api/v1/providers', () =>
     HttpResponse.json({ data: { items: [mockProvider], totalPages: 1, totalItems: 1 } })
   ),
-  http.get('/api/providers/:id', ({ params }) =>
+  http.get('/api/v1/providers/:id', ({ params }) =>
     HttpResponse.json({ data: { ...mockProvider, id: params.id as string } })
   ),
-  http.post('/api/providers', () => HttpResponse.json({ data: mockProvider }, { status: 201 })),
-  http.put('/api/providers/:id', async ({ params, request }) => {
-    const body = await request.json() as any;
-    if (params.id !== mockProvider.id) return new HttpResponse(null, { status: 404 });
-    if (!body.name) return new HttpResponse(null, { status: 400 });
-    return HttpResponse.json({ data: { ...mockProvider, ...body } });
+  http.post('/api/v1/providers', () => HttpResponse.json({ data: mockProvider }, { status: 201 })),
+  http.put('/api/v1/providers/:id', async ({ params, request }) => {
+    const body = await request.json() as Record<string, unknown>;
+    // Removed strict mockProvider.id check to allow testing with different IDs
+    if (!params.id) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ data: { ...mockProvider, ...body, id: params.id as string } });
   }),
-  http.delete('/api/providers/:id', ({ params }) => {
-    if (params.id !== mockProvider.id) return new HttpResponse(null, { status: 404 });
+  http.delete('/api/v1/providers/:id', ({ params }) => {
+    if (!params.id) return new HttpResponse(null, { status: 404 });
     return new HttpResponse(null, { status: 204 });
   }),
-  http.post('/api/providers/:id/activate', ({ params }) => {
-    if (params.id !== mockProvider.id) return new HttpResponse(null, { status: 404 });
-    return HttpResponse.json({ data: { ...mockProvider, verificationStatus: EVerificationStatus.Verified } });
+  http.post('/api/v1/providers/:id/activate', ({ params }) => {
+    return HttpResponse.json({ data: { ...mockProvider, id: params.id as string, verificationStatus: EVerificationStatus.Verified } });
   }),
-  http.post('/api/providers/:id/deactivate', ({ params }) => {
-    if (params.id !== mockProvider.id) return new HttpResponse(null, { status: 404 });
-    return HttpResponse.json({ data: { ...mockProvider, verificationStatus: EVerificationStatus.Suspended } });
+  http.post('/api/v1/providers/:id/deactivate', ({ params }) => {
+    return HttpResponse.json({ data: { ...mockProvider, id: params.id as string, verificationStatus: EVerificationStatus.Suspended } });
   }),
 
   // Categories
-  http.get('/api/categories', () => HttpResponse.json({ data: [mockCategory] })),
-  http.get('/api/categories/:id', ({ params }) =>
+  http.get('/api/v1/service-catalogs/categories', () => HttpResponse.json({ data: [mockCategory] })),
+  http.get('/api/v1/service-catalogs/categories/:id', ({ params }) =>
     HttpResponse.json({ data: { ...mockCategory, id: params.id as string } })
   ),
-  http.post('/api/categories', () => HttpResponse.json({ data: mockCategory }, { status: 201 })),
-  http.put('/api/categories/:id', () => HttpResponse.json({ data: mockCategory })),
-  http.delete('/api/categories/:id', () => new HttpResponse(null, { status: 204 })),
+  http.post('/api/v1/service-catalogs/categories', () => HttpResponse.json({ data: mockCategory }, { status: 201 })),
+  http.put('/api/v1/service-catalogs/categories/:id', ({ params }) => 
+    HttpResponse.json({ data: { ...mockCategory, id: params.id as string } })
+  ),
+  http.delete('/api/v1/service-catalogs/categories/:id', () => new HttpResponse(null, { status: 204 })),
 
   // Allowed Cities
-  http.get('/api/allowed-cities', () => HttpResponse.json({ data: [mockCity] })),
-  http.get('/api/allowed-cities/:id', ({ params }) =>
+  http.get('/api/v1/admin/allowed-cities', () => HttpResponse.json({ data: [mockCity] })),
+  http.get('/api/v1/admin/allowed-cities/:id', ({ params }) =>
     HttpResponse.json({ data: { ...mockCity, id: params.id as string } })
   ),
-  http.post('/api/allowed-cities', () => HttpResponse.json({ data: mockCity }, { status: 201 })),
-  http.delete('/api/allowed-cities/:id', () => new HttpResponse(null, { status: 204 })),
+  http.post('/api/v1/admin/allowed-cities', () => HttpResponse.json({ data: mockCity }, { status: 201 })),
+  http.delete('/api/v1/admin/allowed-cities/:id', () => new HttpResponse(null, { status: 204 })),
 
   // Users
-  http.get('/api/users', () => HttpResponse.json({ data: [mockUser] })),
-  http.get('/api/users/:id', ({ params }) =>
+  http.get('/api/v1/users', () => HttpResponse.json({ data: [mockUser] })),
+  http.get('/api/v1/users/:id', ({ params }) =>
     HttpResponse.json({ data: { ...mockUser, id: params.id as string } })
   ),
-  http.delete('/api/users/:id', () => new HttpResponse(null, { status: 204 })),
+  http.delete('/api/v1/users/:id', () => new HttpResponse(null, { status: 204 })),
 ];
