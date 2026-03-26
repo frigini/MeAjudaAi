@@ -5,21 +5,18 @@ export interface ProviderDto {
   email: string;
   phone?: string | null;
   verificationStatus: string;
-  [key: string]: any;
 }
 
 export interface UserDto {
   id: string;
   name: string;
   email: string;
-  [key: string]: any;
 }
 
 export interface ServiceDto {
   id: string;
   name: string;
   categoryId: string;
-  [key: string]: any;
 }
 
 export interface ReviewDto {
@@ -28,5 +25,4 @@ export interface ReviewDto {
   text: string;
   reviewerName: string;
   createdAt: string;
-  [key: string]: any;
 }

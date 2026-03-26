@@ -40,13 +40,13 @@ describe('Button (Admin)', () => {
   it('deve renderizar variante ghost com estilo correto', () => {
     render(<Button variant="ghost">Ghost</Button>);
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('hover:bg-muted');
+    expect(button).toHaveClass('bg-transparent', 'text-muted-foreground', 'hover:bg-muted');
   });
 
   it('deve aplicar tamanho sm com estilo correto', () => {
     render(<Button size="sm">Small</Button>);
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('h-9');
+    expect(button).toHaveClass('h-9', 'px-3', 'text-sm');
   });
 
   it('deve aceitar props adicionais', () => {

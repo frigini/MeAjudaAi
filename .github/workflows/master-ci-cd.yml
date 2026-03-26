@@ -50,6 +50,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -165,15 +167,6 @@ jobs:
         working-directory: ./src/Web
         run: npm ci
 
-      - name: Run Frontend Unit Tests
-        working-directory: ./src/Web
-        run: |
-          echo "===================================="
-          echo "FRONTEND UNIT TESTS (ALL PROJECTS)"
-          echo "===================================="
-          npm run test:ci
-          echo "Frontend unit tests completed"
-
       - name: Generate API Client
         working-directory: ./src/Web
         run: |
@@ -196,6 +189,15 @@ jobs:
           npm run generate:api:admin
           npm run generate:api:provider
 
+      - name: Run Frontend Unit Tests
+        working-directory: ./src/Web
+        run: |
+          echo "===================================="
+          echo "FRONTEND UNIT TESTS (ALL PROJECTS)"
+          echo "===================================="
+          npm run test:ci
+          echo "Frontend unit tests completed"
+
       - name: Build Frontend Workspace
         working-directory: ./src/Web
         env:
@@ -207,11 +209,17 @@ jobs:
           AUTH_SECRET: ci-build-placeholder
         run: |
           set -e
-          npx nx run MeAjudaAi.Web.Customer:build
-          npx nx affected --target=build --exclude=MeAjudaAi.Web.Customer
+          npx nx run-many --target=build --all
 
       - name: Run E2E Tests (Playwright)
         working-directory: ./src/Web
+        env:
+          KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
+          KEYCLOAK_ADMIN_CLIENT_SECRET: ci-build-placeholder
+          KEYCLOAK_ISSUER: http://localhost:8080/realms/meajudaai
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: ci-build-placeholder
+          AUTH_SECRET: ci-build-placeholder
         run: |
           echo "================================"
           echo "E2E TESTS (PLAYWRIGHT)"

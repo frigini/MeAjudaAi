@@ -28,23 +28,14 @@ O projeto está integrado em um **monorepo .NET** com arquitetura de **monolito 
   - `MeAjudaAi.Shared.Tests`
   - `MeAjudaAi.Web.Admin.Tests` (Blazor WASM com bUnit)
 
-- **Frontend React** localizado em:
-  - ```text
-src/Web/MeAjudaAi.Web.Consumer/
-```
+- **Frontend React** localizado em: `src/Web/MeAjudaAi.Web.Consumer/`
 
 ---
 
-## Decisao Arquitetural
+**Abordagem Atual: Arquitetura Descentralizada (Sprint 8E)** 
+Cada portal (Customer, Admin, Provider) gerencia seus próprios testes dentro de sua pasta, utilizando a biblioteca compartilhada `libs/test-support` para helpers comuns.
 
-### ⚠️ [LEGACY / SUPERSEDED] Recomendação Original: Criar Projeto Separado de Testes
-
-> [!CAUTION]
-> Esta seção descreve uma abordagem centralizada que foi substituída pela **Arquitetura Descentralizada** implementada na Sprint 8E. Manteve-se aqui apenas para histórico.
-
-**Abordagem Original (Não Utilizada):** Criar `tests/MeAjudaAi.Web.Consumer.Tests`
-
-### Estrutura Completa do Monorepo
+### Estrutura Real do Monorepo (Nx)
 
 ```text
 MeAjudaAi/

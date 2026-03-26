@@ -33,7 +33,7 @@ vi.mock('@/lib/types', () => ({
     DOCUMENTS: 'Documentos',
     CATEGORIES: 'Categorias',
     SERVICES: 'Serviços',
-    CITIES: 'Cidades Atendidas',
+    CITIES: 'Cidades',
     SETTINGS: 'Configurações',
   },
   ROLES: { ADMIN: 'admin' },
@@ -79,6 +79,6 @@ describe('Sidebar', () => {
     render(<Sidebar />);
     const logoutButton = screen.getByText('Sair');
     logoutButton.click();
-    expect(signOut).toHaveBeenCalled();
+    expect(signOut).toHaveBeenCalledWith({ callbackUrl: "/" });
   });
 });

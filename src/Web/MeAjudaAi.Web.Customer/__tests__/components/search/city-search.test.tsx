@@ -1,58 +1,44 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { CitySearch } from '@/components/search/city-search';
-import userEvent from '@testing-library/user-event';
-import * as nextNavigation from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('next/navigation', () => ({
-  useRouter: vi.fn(() => ({
-    push: vi.fn(),
-  })),
+  useRouter: vi.fn(),
 }));
 
 describe('CitySearch', () => {
-  it('deve renderizar o componente', () => {
-    render(<CitySearch />);
-    expect(screen.getByRole('combobox')).toBeInTheDocument();
+  const mockPush = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(useRouter).mockReturnValue({ push: mockPush } as any);
   });
 
-  it('deve renderizar opções de cidade', () => {
+  it('deve renderizar o seletor de cidades', () => {
     render(<CitySearch />);
-    expect(screen.getByText('Muriaé - MG')).toBeInTheDocument();
-    expect(screen.getByText('Ubá - MG')).toBeInTheDocument();
-    expect(screen.getByText('Cataguases - MG')).toBeInTheDocument();
+    expect(screen.getByLabelText(/selecionar cidade/i)).toBeInTheDocument();
   });
 
-  it('deve desabilitar botão quando nenhuma cidade selecionada', () => {
+  it('deve atualizar o estado ao selecionar uma cidade', () => {
     render(<CitySearch />);
-    const button = screen.getByRole('button', { name: /buscar prestadores/i });
+    const select = screen.getByLabelText(/selecionar cidade/i);
+    fireEvent.change(select, { target: { value: 'muriae-mg' } });
+    expect(select).toHaveValue('muriae-mg');
+  });
+
+  it('deve navegar para a página de busca ao clicar no botão', () => {
+    render(<CitySearch />);
+    const select = screen.getByLabelText(/selecionar cidade/i);
+    const button = screen.getByLabelText(/buscar prestadores/i);
+    
     expect(button).toBeDisabled();
-  });
-
-  it('deve habilitar botão quando cidade selecionada', async () => {
-    const user = userEvent.setup();
-    render(<CitySearch />);
     
-    const select = screen.getByRole('combobox');
-    await user.selectOptions(select, 'muriae-mg');
+    fireEvent.change(select, { target: { value: 'uba-mg' } });
+    expect(button).not.toBeDisabled();
     
-    const button = screen.getByRole('button', { name: /buscar prestadores/i });
-    expect(button).toBeEnabled();
-  });
-
-  it('deve navegar para página de busca ao clicar no botão', async () => {
-    const mockPush = vi.fn();
-    vi.mocked(nextNavigation.useRouter).mockReturnValue({ push: mockPush } as any);
-    
-    const user = userEvent.setup();
-    render(<CitySearch />);
-    
-    const select = screen.getByRole('combobox');
-    await user.selectOptions(select, 'muriae-mg');
-    
-    const button = screen.getByRole('button', { name: /buscar prestadores/i });
-    await user.click(button);
-    
-    expect(mockPush).toHaveBeenCalledWith('/buscar?cidade=muriae-mg');
+    fireEvent.click(button);
+    expect(mockPush).toHaveBeenCalledWith('/buscar?cidade=uba-mg');
   });
 });

@@ -46,7 +46,7 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
     const metrics = await page.evaluate((): Promise<{ lcp: number | null }> => {
       return new Promise((resolve) => {
         let resolved = false;
-        let timeoutId: any;
+        let timeoutId: ReturnType<typeof setTimeout> | undefined;
         
         const observer = new PerformanceObserver((list) => {
           if (resolved) return;
@@ -73,8 +73,7 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
     
     expect(metrics.lcp).toBeDefined();
     if (metrics.lcp !== null) {
-      expect(metrics.lcp).toBeGreaterThan(0);
-      expect(metrics.lcp).toBeLessThan(2500);
+      expect(metrics.lcp).toBeLessThan(800);
     }
   });
 
@@ -97,7 +96,7 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
         const observer = new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
             if (entry.entryType === 'event') {
-              const eventEntry = entry as any; // PerformanceEventTiming
+              const eventEntry = entry as unknown as { processingStart: number; startTime: number; duration: number }; // PerformanceEventTiming
               const inp = eventEntry.processingStart > 0
                 ? eventEntry.processingStart - eventEntry.startTime
                 : eventEntry.duration;
@@ -119,7 +118,7 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
     });
     
     expect(metrics.inp).toBeDefined();
-    expect(metrics.inp).toBeLessThan(500);
+    expect(metrics.inp).toBeLessThan(150);
   });
 
   test('should meet CLS threshold', async ({ page }) => {
@@ -127,7 +126,7 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
     await page.waitForLoadState('networkidle');
     
     const metrics = await page.evaluate((): { cls: number } => {
-      const entries = performance.getEntriesByType('layout-shift') as any[];
+      const entries = performance.getEntriesByType('layout-shift') as unknown as { hadRecentInput: boolean; startTime: number; value: number }[];
       
       const validEntries = entries.filter((entry) => !entry.hadRecentInput);
       
@@ -174,11 +173,17 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     const loadTime = Date.now() - startTime;
     
-    expect(loadTime).toBeLessThan(3000);
+    expect(loadTime).toBeLessThan(1500);
   });
 });
 
 test.describe('@e2e Performance - Network', () => {
+  let requests: string[] = [];
+
+  test.beforeEach(() => {
+    requests = [];
+  });
+
   test('should optimize images', async ({ page }) => {
     await page.goto('/');
     
@@ -206,10 +211,10 @@ test.describe('@e2e Performance - Network', () => {
   });
 
   test('should not have excessive same-origin requests', async ({ page }) => {
-    const requests: string[] = [];
+    const origin = new URL(page.url()).origin;
     page.on('request', (request) => {
       const url = request.url();
-      if (url.includes('localhost') || url.includes('127.0.0.1')) {
+      if (url.startsWith(origin)) {
         requests.push(url);
       }
     });

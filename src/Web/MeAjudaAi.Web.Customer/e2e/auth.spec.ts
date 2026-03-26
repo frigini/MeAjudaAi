@@ -6,7 +6,8 @@ test.describe('Customer Web App - Authentication', () => {
   });
 
   test('should display landing page', async ({ page }) => {
-    await expect(page.getByRole('heading')).toBeVisible();
+    await expect(page.getByText(/Conectando quem precisa com/i)).toBeVisible();
+    await expect(page.getByText(/quem sabe fazer/i)).toBeVisible();
   });
 
   test('should navigate to login page', async ({ page }) => {

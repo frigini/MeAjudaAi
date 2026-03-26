@@ -52,7 +52,7 @@
 O planejamento de qualidade prevê a evolução contínua da pirâmide de testes:
 
 ### Fase 3.1: Cobertura e Contratos (Curto/Médio Prazo)
-- **Meta de Cobertura**: Atingir >80% de cobertura global nos 3 projetos frontend.
+- **Meta de Cobertura**: Manter >70% de cobertura global no MVP e atingir >80% na Fase 3.
 - **Testes de Contrato (Consumer-Driven)**: Implementação de Pact.io para garantir que o frontend Next.js é compatível com a API .NET sem depender de ambiente real.
 
 ### Fase 3.2: E2E Full-Stack & BDD (Médio Prazo)

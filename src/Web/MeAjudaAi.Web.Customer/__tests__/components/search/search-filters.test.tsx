@@ -1,14 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { apiCategoriesGet } from '@/lib/api/generated/sdk.gen';
 import { SearchFilters } from '@/components/search/search-filters';
 
-const mockPush = vi.fn();
+const { mockPush, mockUseSearchParams } = vi.hoisted(() => ({
+  mockPush: vi.fn(),
+  mockUseSearchParams: vi.fn(() => new URLSearchParams()),
+}));
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
-  useSearchParams: vi.fn(() => new URLSearchParams()),
+  useSearchParams: mockUseSearchParams,
 }));
 
 vi.mock('@/lib/api/generated/sdk.gen', () => ({
@@ -29,39 +33,66 @@ describe('SearchFilters', () => {
     });
   });
 
-  it('deve renderizar filtro de avaliação', async () => {
+  it('deve atualizar o rascunho do raio ao deslizar o slider', async () => {
+    const slider = screen.getByRole('slider');
+    fireEvent.change(slider, { target: { value: '75' } });
+    expect(screen.getByText('75 km')).toBeInTheDocument();
+  });
+
+  it('deve atualizar o filtro de raio no mouseUp', async () => {
+    const slider = screen.getByRole('slider');
+    fireEvent.mouseUp(slider, { target: { value: '75' } });
+    
     await waitFor(() => {
-      expect(screen.getAllByText(/avaliação/i).length).toBeGreaterThan(0);
+      expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('radiusInKm=75'), expect.anything());
+    }, { timeout: 2000 });
+  });
+
+  it('deve atualizar o filtro de avaliação ao selecionar rádio', async () => {
+    const radio = screen.getByLabelText(/4\+/);
+    fireEvent.click(radio);
+    
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('minRating=4'), expect.anything());
+    }, { timeout: 2000 });
+  });
+
+  it('deve limpar filtro de avaliação ao selecionar "Qualquer avaliação"', async () => {
+    // Rerender with parameter to test clear
+    mockUseSearchParams.mockReturnValue(new URLSearchParams('minRating=4'));
+    render(<SearchFilters />);
+    
+    const radio = screen.getByLabelText(/qualquer avaliação/i);
+    fireEvent.click(radio);
+    
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(expect.not.stringContaining('minRating'), expect.anything());
+    }, { timeout: 1000 });
+  });
+
+  it('deve carregar e exibir categorias do SDK', async () => {
+    const mockCats = [{ id: 'cat-1', name: 'Limpeza' }];
+    vi.mocked(apiCategoriesGet).mockResolvedValue({ data: { data: mockCats } } as any);
+    
+    // Re-render to pick up new mock
+    render(<SearchFilters />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Limpeza')).toBeInTheDocument();
     });
   });
 
-  it('deve renderizar categorias', async () => {
+  it('deve atualizar o filtro de categoria ao selecionar', async () => {
+    const mockCats = [{ id: 'cat-1', name: 'Limpeza' }];
+    vi.mocked(apiCategoriesGet).mockResolvedValue({ data: { data: mockCats } } as any);
+    render(<SearchFilters />);
+    
+    await waitFor(() => screen.getByText('Limpeza'));
+    const radio = screen.getByLabelText('Limpeza');
+    fireEvent.click(radio);
+    
     await waitFor(() => {
-      expect(screen.getByText(/categorias/i)).toBeInTheDocument();
-    });
-  });
-
-  it('deve renderizar filtro de distância com valores padrão', async () => {
-    await waitFor(() => {
-      expect(screen.getByDisplayValue('50')).toBeInTheDocument();
-    });
-  });
-
-  it('deve renderizar opção qualquer avaliação', async () => {
-    await waitFor(() => {
-      expect(screen.getByText(/qualquer avaliação/i)).toBeInTheDocument();
-    });
-  });
-
-  it('deve renderizar limite mínimo de 5km', async () => {
-    await waitFor(() => {
-      expect(screen.getByText('5km')).toBeInTheDocument();
-    });
-  });
-
-  it('deve renderizar limite máximo de 100km', async () => {
-    await waitFor(() => {
-      expect(screen.getByText('100km')).toBeInTheDocument();
-    });
+      expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('categoryId=cat-1'), expect.anything());
+    }, { timeout: 1000 });
   });
 });

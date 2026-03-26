@@ -18,6 +18,7 @@
     "dev:customer": "cd MeAjudaAi.Web.Customer && npm run dev",
     "dev:admin": "cd MeAjudaAi.Web.Admin && npm run dev",
     "dev:provider": "cd MeAjudaAi.Web.Provider && npm run dev",
+    "dev:all": "npm run dev:customer & npm run dev:admin & npm run dev:provider",
     "dev": "npm run dev:customer",
     "generate:api:customer": "cd MeAjudaAi.Web.Customer && npm run generate:api",
     "generate:api:admin": "cd MeAjudaAi.Web.Admin && npm run generate:api",

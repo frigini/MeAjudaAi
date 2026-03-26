@@ -27,7 +27,7 @@ permissions:
 env:
   DOTNET_VERSION: "10.0.x"
   STRICT_COVERAGE: false # TODO: Re-set to true once coverage threshold (90%) is consistently met
-  RUN_E2E: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_e2e || 'true' }}
+  RUN_E2E: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.run_e2e == 'true') || github.event_name == 'pull_request' || github.event_name == 'push' }}
   # PostgreSQL configuration (DRY principle - single source of truth)
   # Fallback credentials: Only used in fork/local dev; main repo requires secrets
   POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
@@ -172,8 +172,12 @@ jobs:
         run: |
           # Run tests with coverage for affected projects
           npx nx affected --target=test --args="--coverage"
-          # Aggregate coverage reports
-          npm run test:coverage:merge || echo "Skipping coverage merge (no reports found)"
+          # Aggregate coverage reports if they exist
+          if find . -name "coverage-final.json" | grep -q .; then
+            npm run test:coverage:merge
+          else
+            echo "No coverage reports found, skipping merge."
+          fi
 
       - name: ️ Build Frontend Workspace
         working-directory: ./src/Web

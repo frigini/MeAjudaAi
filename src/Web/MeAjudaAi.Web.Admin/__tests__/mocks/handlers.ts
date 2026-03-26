@@ -1,11 +1,12 @@
 import { http, HttpResponse } from 'msw';
+import { EProviderType, EVerificationStatus } from '@/lib/types';
 
 const mockProvider = {
   id: 'provider-1',
   name: 'Prestador Teste',
   email: 'prestador@teste.com',
-  verificationStatus: 1, // Pending
-  type: 0, // Individual
+  verificationStatus: EVerificationStatus.Pending,
+  type: EProviderType.Individual,
 };
 
 const mockCategory = {
@@ -38,10 +39,24 @@ export const handlers = [
     HttpResponse.json({ data: { ...mockProvider, id: params.id as string } })
   ),
   http.post('/api/providers', () => HttpResponse.json({ data: mockProvider }, { status: 201 })),
-  http.put('/api/providers/:id', () => HttpResponse.json({ data: mockProvider })),
-  http.delete('/api/providers/:id', () => new HttpResponse(null, { status: 204 })),
-  http.post('/api/providers/:id/activate', () => HttpResponse.json({ data: mockProvider })),
-  http.post('/api/providers/:id/deactivate', () => HttpResponse.json({ data: mockProvider })),
+  http.put('/api/providers/:id', async ({ params, request }) => {
+    const body = await request.json() as any;
+    if (params.id !== mockProvider.id) return new HttpResponse(null, { status: 404 });
+    if (!body.name) return new HttpResponse(null, { status: 400 });
+    return HttpResponse.json({ data: { ...mockProvider, ...body } });
+  }),
+  http.delete('/api/providers/:id', ({ params }) => {
+    if (params.id !== mockProvider.id) return new HttpResponse(null, { status: 404 });
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.post('/api/providers/:id/activate', ({ params }) => {
+    if (params.id !== mockProvider.id) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ data: { ...mockProvider, verificationStatus: EVerificationStatus.Verified } });
+  }),
+  http.post('/api/providers/:id/deactivate', ({ params }) => {
+    if (params.id !== mockProvider.id) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ data: { ...mockProvider, verificationStatus: EVerificationStatus.Suspended } });
+  }),
 
   // Categories
   http.get('/api/categories', () => HttpResponse.json({ data: [mockCategory] })),

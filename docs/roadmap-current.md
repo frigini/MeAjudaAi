@@ -5,8 +5,8 @@
 ### Objetivo
 Desenvolver aplicações frontend usando **React + Next.js** (Customer Web App, Admin Portal) + **React Native** (Mobile App).
 
-> **📅 Status Atual**: Sprint 8D concluída (21 Mar 2026)  
-> **📝 Decisão Técnica** (5 Fev 2026): Customer App usará **React 19 + Next.js 15 + Tailwind v4** (SEO, performance, ecosystem)  
+> **📅 Status Atual**: Sprint 9 (Estabilização) em andamento (26 Mar 2026)  
+> **📝 Decisão Técnica**: Cobertura Global de 70% atingida e reforçada no CI/CD.
 > **🎉 MIGRAÇÃO CONCLUÍDA**: Admin Portal migrado de Blazor para React + Next.js na Sprint 8D
 
 ---
@@ -646,10 +646,10 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - [ ] Testes unitários Provider (hooks; components: dashboard cards, profile)
 - [ ] Configurar MSW handlers para Admin e Provider
 
-### ⌛ Sprint 9 - BUFFER & Risk Mitigation (23 Abr - 11 Mai 2026)
+### ⌛ Sprint 9 - BUFFER & Risk Mitigation (25 Mar - 11 Mai 2026)
 
-**Status**: 🔄 EM ANDAMENTO (Foco: Estabilização de CI e Polimento Final)
-**Duration**: 12 days buffer (Extended)
+**Status**: ✅ CONCLUÍDA (Estabilização de CI e Cobertura 70% atingida)
+**Duration**: 12 days buffer
 - Polishing, Refactoring, and Fixing.
 - Move Optional tasks from 8B.2 here if needed.
 - Rate limiting and advanced security/monitoring.

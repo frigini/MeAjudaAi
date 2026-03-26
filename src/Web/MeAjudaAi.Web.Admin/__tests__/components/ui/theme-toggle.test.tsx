@@ -2,7 +2,10 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from 'test-support';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 
-const toggleTheme = vi.fn();
+const { toggleTheme } = vi.hoisted(() => ({
+  toggleTheme: vi.fn(),
+}));
+
 vi.mock('@/components/providers/theme-provider', () => ({
   useTheme: () => ({ theme: 'light', toggleTheme }),
 }));
