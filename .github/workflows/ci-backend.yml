@@ -1,0 +1,259 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [master, develop]
+    paths:
+      - 'src/Modules/**'
+      - 'src/Bootstrapper/**'
+      - 'src/Shared/**'
+      - 'tests/**'
+      - '!tests/MeAjudaAi.E2E.Tests/**'
+      - '.github/workflows/ci-backend.yml'
+      - '.github/actions/setup-backend/**'
+  pull_request:
+    branches: [master, develop]
+    paths:
+      - 'src/Modules/**'
+      - 'src/Bootstrapper/**'
+      - 'src/Shared/**'
+      - 'tests/**'
+      - '!tests/MeAjudaAi.E2E.Tests/**'
+      - '.github/workflows/ci-backend.yml'
+      - '.github/actions/setup-backend/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  statuses: write
+
+env:
+  DOTNET_VERSION: "10.0.x"
+  STRICT_COVERAGE: false
+  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+  POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+  POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
+
+jobs:
+  build-and-test:
+    name: Build and Test (Backend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          POSTGRES_HOST_AUTH_METHOD: md5
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      azurite:
+        image: mcr.microsoft.com/azure-storage/azurite:latest
+        ports:
+          - 10000:10000
+          - 10001:10001
+          - 10002:10002
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Backend
+        uses: ./.github/actions/setup-backend
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Build solution
+        run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
+
+      - name: Prepare Aspire Integration Tests
+        run: |
+          echo " Preparing .NET Aspire for integration tests..."
+          TEMP_DIR=$(mktemp -d)
+          cd "$TEMP_DIR"
+          dotnet new console -n TempDcpDownloader
+          cd TempDcpDownloader
+          dotnet add package Aspire.Hosting.Orchestration.linux-x64 --version 13.0.2
+          dotnet restore
+          cd "$GITHUB_WORKSPACE"
+          rm -rf "$TEMP_DIR"
+          DCP_PACKAGE_PATH=$(find "$HOME/.nuget/packages" -maxdepth 1 -type d \
+            -iname "aspire.hosting.orchestration.linux-x64" 2>/dev/null | head -n 1)
+          if [ -z "$DCP_PACKAGE_PATH" ]; then
+            echo "Error: Aspire orchestration package not found"
+            exit 1
+          fi
+          DCP_BINARY=$(find "$DCP_PACKAGE_PATH" -type f -name "dcp" 2>/dev/null | head -n 1)
+          if [ -z "$DCP_BINARY" ]; then
+            echo "Error: DCP binary not found"
+            exit 1
+          fi
+          echo "DOTNET_ROOT=$HOME/.dotnet" >> $GITHUB_ENV
+
+      - name: Wait for PostgreSQL
+        shell: bash
+        run: |
+          until pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; do
+            echo "Waiting for PostgreSQL..."
+            sleep 3
+          done
+
+      - name: Setup PostgreSQL connection
+        id: db
+        uses: ./.github/actions/setup-postgres-connection
+        with:
+          postgres-host: localhost
+          postgres-port: 5432
+          postgres-db: ${{ env.POSTGRES_DB }}
+          postgres-user: ${{ env.POSTGRES_USER }}
+          postgres-password: ${{ env.POSTGRES_PASSWORD }}
+
+      - name: Run Unit Tests with Coverage
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
+          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
+          AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
+        run: |
+          set -euo pipefail
+          rm -rf ./coverage
+          mkdir -p ./coverage
+          
+          MODULES=(
+            "Users:src/Modules/Users/Tests/:MeAjudaAi.Modules.Users.*"
+            "Providers:src/Modules/Providers/Tests/:MeAjudaAi.Modules.Providers.*"
+            "Documents:src/Modules/Documents/Tests/:MeAjudaAi.Modules.Documents.*"
+            "ServiceCatalogs:src/Modules/ServiceCatalogs/Tests/:MeAjudaAi.Modules.ServiceCatalogs.*"
+            "Locations:src/Modules/Locations/Tests/:MeAjudaAi.Modules.Locations.*"
+            "SearchProviders:src/Modules/SearchProviders/Tests/:MeAjudaAi.Modules.SearchProviders.*"
+            "Shared:tests/MeAjudaAi.Shared.Tests/:MeAjudaAi.Shared"
+            "ApiService:tests/MeAjudaAi.ApiService.Tests/:MeAjudaAi.ApiService"
+          )
+
+          source "./.github/scripts/generate-runsettings.sh"
+
+          for module_info in "${MODULES[@]}"; do
+            IFS=':' read -r module_name module_path include_pattern <<< "$module_info"
+            if [ -d "$module_path" ]; then
+              MODULE_COVERAGE_DIR="./coverage/${module_name,,}"
+              mkdir -p "$MODULE_COVERAGE_DIR"
+              INCLUDE_FILTER="[${include_pattern}]*"
+              EXCLUDE_FILTER="[*.Tests*]*,[*Test*]*,[testhost]*"
+              EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs,**/Migrations/*.cs,**/Database/*.cs"
+              RUNSETTINGS_FILE="/tmp/${module_name,,}.runsettings"
+              
+              generate_runsettings "$RUNSETTINGS_FILE" "$EXCLUDE_FILTER" "$EXCLUDE_BY_FILE" "Obsolete,GeneratedCode" "$INCLUDE_FILTER"
+
+              dotnet test "$module_path" \
+                --configuration Release \
+                --no-build \
+                --collect:"XPlat Code Coverage" \
+                --results-directory "$MODULE_COVERAGE_DIR" \
+                --settings "$RUNSETTINGS_FILE"
+
+              COVERAGE_FILE=$(find "$MODULE_COVERAGE_DIR" -type f -name "coverage.cobertura.xml" -print -quit)
+              if [ -f "$COVERAGE_FILE" ]; then
+                mv "$COVERAGE_FILE" "$MODULE_COVERAGE_DIR/${module_name,,}.cobertura.xml"
+              fi
+            fi
+          done
+
+      - name: Run Architecture Tests
+        run: |
+          dotnet test tests/MeAjudaAi.Architecture.Tests/ \
+            --configuration Release --no-build --verbosity normal
+
+      - name: Free Disk Space
+        run: |
+          docker system prune -af --volumes || true
+          sudo apt-get clean
+          sudo rm -rf /usr/local/lib/android /opt/ghc /usr/local/.ghcup || true
+
+      - name: Run Integration Tests
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          INTEGRATION_TESTS: true
+          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+        run: |
+          source "./.github/scripts/generate-runsettings.sh"
+          INTEGRATION_RUNSETTINGS="/tmp/integration.runsettings"
+          generate_runsettings "$INTEGRATION_RUNSETTINGS" "[*.Tests]*" "**/*OpenApi*.generated.cs" "Obsolete" "[MeAjudaAi*]*"
+          
+          dotnet test tests/MeAjudaAi.Integration.Tests/ \
+            --configuration Release --no-build \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage/integration \
+            --settings "$INTEGRATION_RUNSETTINGS"
+
+      - name: Configure DOTNET_ROOT for ReportGenerator
+        run: |
+          DOTNET_PATH=$(which dotnet)
+          echo "DOTNET_ROOT=$(dirname $(readlink -f $DOTNET_PATH))" >> $GITHUB_ENV
+
+      - name: Generate aggregated coverage report
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        with:
+          reports: "coverage/**/*.cobertura.xml"
+          targetdir: "coverage/aggregate"
+          reporttypes: "Cobertura;JsonSummary"
+          assemblyfilters: "+MeAjudaAi.*"
+          classfilters: "-*.Tests;-*.Tests.*;-*Test*;-testhost"
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reports
+          path: coverage/**
+
+      - name: Code Coverage Summary
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: "coverage/aggregate/Cobertura.xml"
+          badge: true
+          format: markdown
+          output: both
+
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          recreate: true
+          header: coverage-report
+          path: code-coverage-results.md
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+      - name: Run Security Audit
+        run: dotnet list package --vulnerable --include-transitive

@@ -1,0 +1,91 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [master, develop]
+    paths:
+      - 'src/Web/**'
+      - 'src/Client/**'
+      - '.github/workflows/ci-frontend.yml'
+      - '.github/actions/setup-frontend/**'
+  pull_request:
+    branches: [master, develop]
+    paths:
+      - 'src/Web/**'
+      - 'src/Client/**'
+      - '.github/workflows/ci-frontend.yml'
+      - '.github/actions/setup-frontend/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  statuses: write
+
+jobs:
+  build-and-test:
+    name: Build and Test (Frontend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Backend (for API Generation)
+        uses: ./.github/actions/setup-backend
+
+      - name: Setup Frontend
+        uses: ./.github/actions/setup-frontend
+
+      - name: Build Backend (for API Generation)
+        run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
+
+      - name: Generate API Client
+        working-directory: ./src/Web
+        run: |
+          set -e
+          mkdir -p "$GITHUB_WORKSPACE/src/api"
+          export ASPNETCORE_ENVIRONMENT=Development
+          export ConnectionStrings__DefaultConnection="Host=localhost;Database=dummy"
+          export Migrations__Enabled=false
+          SEARCH_DIR="$GITHUB_WORKSPACE/src/Bootstrapper/MeAjudaAi.ApiService/bin/Release"
+          DLL_PATH=$(find "$SEARCH_DIR" -name "MeAjudaAi.ApiService.dll" | head -n 1)
+          if [ -z "$DLL_PATH" ]; then
+            echo "Error: MeAjudaAi.ApiService.dll not found!"
+            exit 1
+          fi
+          swagger tofile --output "$GITHUB_WORKSPACE/src/api/api-spec.json" "$DLL_PATH" v1
+          export OPENAPI_SPEC_URL="$GITHUB_WORKSPACE/src/api/api-spec.json"
+          npm run generate:api --workspace=meajudaai.web.customer
+          npm run generate:api --workspace=meajudaai.web.admin
+          npm run generate:api --workspace=meajudaai.web.provider
+
+      - name: Lint Frontend
+        working-directory: ./src/Web
+        run: npx nx affected --target=lint
+
+      - name: Test Frontend
+        working-directory: ./src/Web
+        run: |
+          npx nx affected --target=test --args="--coverage"
+          if find . -name "coverage-final.json" | grep -q .; then
+            npm run test:coverage:merge || true
+          fi
+
+      - name: Build Frontend
+        working-directory: ./src/Web
+        env:
+          KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
+          KEYCLOAK_ADMIN_CLIENT_SECRET: ci-build-placeholder
+          KEYCLOAK_ISSUER: http://localhost:8080/realms/meajudaai
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: ci-build-placeholder
+          AUTH_SECRET: ci-build-placeholder
+        run: |
+          set -e
+          npx nx run MeAjudaAi.Web.Customer:build
+          npx nx affected --target=build --exclude=MeAjudaAi.Web.Customer

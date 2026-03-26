@@ -1,0 +1,91 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [master, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+  statuses: write
+
+env:
+  DOTNET_VERSION: "10.0.x"
+  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+  POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+  POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
+
+jobs:
+  backend-e2e:
+    name: Backend E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Backend
+        uses: ./.github/actions/setup-backend
+
+      - name: Build solution
+        run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
+
+      - name: Run Backend E2E Tests
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          INTEGRATION_TESTS: true
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
+        run: |
+          dotnet test tests/MeAjudaAi.E2E.Tests/ \
+            --configuration Release --no-build --verbosity normal
+
+  frontend-e2e:
+    name: Frontend E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Backend (for API Generation)
+        uses: ./.github/actions/setup-backend
+
+      - name: Setup Frontend
+        uses: ./.github/actions/setup-frontend
+
+      - name: Build Backend (for API Generation)
+        run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
+
+      - name: Generate API Client
+        working-directory: ./src/Web
+        run: |
+          set -e
+          mkdir -p "$GITHUB_WORKSPACE/src/api"
+          export ASPNETCORE_ENVIRONMENT=Development
+          export ConnectionStrings__DefaultConnection="Host=localhost;Database=dummy"
+          export Migrations__Enabled=false
+          SEARCH_DIR="$GITHUB_WORKSPACE/src/Bootstrapper/MeAjudaAi.ApiService/bin/Release"
+          DLL_PATH=$(find "$SEARCH_DIR" -name "MeAjudaAi.ApiService.dll" | head -n 1)
+          swagger tofile --output "$GITHUB_WORKSPACE/src/api/api-spec.json" "$DLL_PATH" v1
+          export OPENAPI_SPEC_URL="$GITHUB_WORKSPACE/src/api/api-spec.json"
+          npm run generate:api --workspace=meajudaai.web.customer
+          npm run generate:api --workspace=meajudaai.web.admin
+          npm run generate:api --workspace=meajudaai.web.provider
+
+      - name: Run Playwright E2E Tests
+        working-directory: ./src/Web
+        env:
+          KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
+          KEYCLOAK_ADMIN_CLIENT_SECRET: ci-build-placeholder
+          KEYCLOAK_ISSUER: http://localhost:8080/realms/meajudaai
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: ci-build-placeholder
+          AUTH_SECRET: ci-build-placeholder
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test --reporter=list --project=ci

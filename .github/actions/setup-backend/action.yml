@@ -1,0 +1,29 @@
+name: 'Setup Backend'
+description: 'Setup .NET, restore dependencies, and install required tools'
+inputs:
+  dotnet-version:
+    description: '.NET version to setup'
+    required: false
+    default: '10.0.x'
+  solution-path:
+    description: 'Path to the solution file'
+    required: false
+    default: 'MeAjudaAi.slnx'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: ${{ inputs.dotnet-version }}
+
+    - name: Restore dependencies
+      shell: bash
+      run: dotnet restore ${{ inputs.solution-path }}
+
+    - name: Install Tools
+      shell: bash
+      run: |
+        dotnet tool install -g Swashbuckle.AspNetCore.Cli --version 10.1.5 || true
+        dotnet tool install -g dotnet-reportgenerator-globaltool || true
