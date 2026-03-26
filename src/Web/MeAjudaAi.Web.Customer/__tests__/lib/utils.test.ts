@@ -31,7 +31,7 @@ describe('Utility Functions Coverage', () => {
             expect(normalizeVerificationStatus('1')).toBe(1);
             expect(normalizeVerificationStatus('none')).toBe(EVerificationStatus.None);
             expect(normalizeVerificationStatus('unknown')).toBe(undefined);
-            expect(normalizeVerificationStatus({})).toBeInstanceOf(Object);
+            expect(normalizeVerificationStatus({})).toBeUndefined();
         });
     });
 });

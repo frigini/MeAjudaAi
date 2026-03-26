@@ -37,5 +37,5 @@ export function normalizeVerificationStatus(val: unknown): EVerificationStatus |
         if (lower === 'none') return EVerificationStatus.None;
         return undefined;
     }
-    return val as EVerificationStatus;
+    return undefined;
 }

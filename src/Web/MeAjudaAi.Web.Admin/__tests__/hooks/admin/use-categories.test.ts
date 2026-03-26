@@ -27,7 +27,7 @@ describe('useCategories Hook (Admin)', () => {
   });
 
   it('deve buscar todas as categorias', async () => {
-    vi.mocked(api.apiCategoriesGet).mockResolvedValue([{ id: '1', name: 'Cat 1' }] as any);
+    vi.mocked(api.apiCategoriesGet).mockResolvedValue({ data: [{ id: '1', name: 'Cat 1' }] });
     const { result } = renderHook(() => useCategories());
     
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -36,7 +36,7 @@ describe('useCategories Hook (Admin)', () => {
   });
 
   it('deve buscar categoria por ID', async () => {
-    vi.mocked(api.apiCategoriesGet2).mockResolvedValue({ id: 'c-1', name: 'Cat Name' } as any);
+    vi.mocked(api.apiCategoriesGet2).mockResolvedValue({ data: { id: 'c-1', name: 'Cat Name' } });
     const { result } = renderHook(() => useCategoryById('c-1'));
     
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -45,7 +45,7 @@ describe('useCategories Hook (Admin)', () => {
   });
 
   it('deve criar uma categoria', async () => {
-    vi.mocked(api.apiCategoriesPost).mockResolvedValue({ id: 'new' } as any);
+    vi.mocked(api.apiCategoriesPost).mockResolvedValue({ data: { id: 'new' } });
     const { result } = renderHook(() => useCreateCategory());
     
     await result.current.mutateAsync({ name: 'New Cat', description: 'Desc', displayOrder: 1 });
@@ -55,7 +55,7 @@ describe('useCategories Hook (Admin)', () => {
   });
 
   it('deve atualizar uma categoria', async () => {
-    vi.mocked(api.apiCategoriesPut).mockResolvedValue({ id: '1' } as any);
+    vi.mocked(api.apiCategoriesPut).mockResolvedValue({ data: { id: '1' } });
     const { result } = renderHook(() => useUpdateCategory());
     
     await result.current.mutateAsync({ id: '1', name: 'Updated', description: 'New Desc' });
@@ -66,7 +66,7 @@ describe('useCategories Hook (Admin)', () => {
   });
 
   it('deve deletar uma categoria', async () => {
-    vi.mocked(api.apiCategoriesDelete).mockResolvedValue({ success: true } as any);
+    vi.mocked(api.apiCategoriesDelete).mockResolvedValue({ data: { success: true } });
     const { result } = renderHook(() => useDeleteCategory());
     
     await result.current.mutateAsync('c-1');
@@ -74,7 +74,7 @@ describe('useCategories Hook (Admin)', () => {
   });
 
   it('deve ativar uma categoria', async () => {
-    vi.mocked(api.apiActivatePost2).mockResolvedValue({ success: true } as any);
+    vi.mocked(api.apiActivatePost2).mockResolvedValue({ data: { success: true } });
     const { result } = renderHook(() => useActivateCategory());
     
     await result.current.mutateAsync('c-1');
@@ -82,7 +82,7 @@ describe('useCategories Hook (Admin)', () => {
   });
 
   it('deve desativar uma categoria', async () => {
-    vi.mocked(api.apiDeactivatePost2).mockResolvedValue({ success: true } as any);
+    vi.mocked(api.apiDeactivatePost2).mockResolvedValue({ data: { success: true } });
     const { result } = renderHook(() => useDeactivateCategory());
     
     await result.current.mutateAsync('c-1');

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, cleanup } from '@testing-library/react';
 import { apiCategoriesGet } from '@/lib/api/generated/sdk.gen';
 import { SearchFilters } from '@/components/search/search-filters';
 
@@ -22,6 +22,7 @@ vi.mock('@/lib/api/generated/sdk.gen', () => ({
 describe('SearchFilters', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    cleanup();
     render(<SearchFilters />);
   });
 
@@ -60,6 +61,7 @@ describe('SearchFilters', () => {
   it('deve limpar filtro de avaliação ao selecionar "Qualquer avaliação"', async () => {
     // Rerender with parameter to test clear
     mockUseSearchParams.mockReturnValue(new URLSearchParams('minRating=4'));
+    cleanup();
     render(<SearchFilters />);
     
     const radio = screen.getByLabelText(/qualquer avaliação/i);

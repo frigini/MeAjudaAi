@@ -65,7 +65,7 @@ export function CustomerRegisterForm() {
             hasError = true;
         }
 
-        if (!data.email || !data.email.includes("@")) {
+        if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
             setError("email", { message: "Email inválido" });
             hasError = true;
         }
@@ -94,9 +94,14 @@ export function CustomerRegisterForm() {
 
         setIsLoading(true);
         try {
-            await publicFetch("/customers/register", {
-                method: "POST",
-                body: JSON.stringify(data),
+            const payload = {
+                ...data,
+                TermsAccepted: data.acceptedTerms,
+                AcceptedPrivacyPolicy: data.acceptedTerms,
+            };
+            await publicFetch("/api/v1/users/register", {
+                method: "post",
+                body: JSON.stringify(payload),
             });
 
             toast.success("Conta criada com sucesso!", {

@@ -78,6 +78,15 @@ resource redisCache 'Microsoft.Cache/redisEnterprise@2024-02-01' = {
   }
 }
 
+resource redisDatabase 'Microsoft.Cache/redisEnterprise/databases@2024-02-01' = {
+  parent: redisCache
+  name: 'default'
+  properties: {
+    clientProtocol: 'Encrypted'
+    clusteringPolicy: 'OSSCluster'
+  }
+}
+
 // Service Bus Namespace (as RabbitMQ alternative in Azure)
 resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2022-10-01-preview' = {
   name: serviceBusNamespaceName
@@ -91,5 +100,5 @@ resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2022-10-01-preview
 // Outputs
 output postgresHost string = postgresServer.properties.fullyQualifiedDomainName
 output postgresDatabase string = postgresDatabaseName
-output redisHost string = redisCache.properties.hostName
+output redisHost string = redisDatabase.properties.endpoint
 output serviceBusNamespace string = serviceBusNamespaceName

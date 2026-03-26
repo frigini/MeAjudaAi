@@ -80,7 +80,7 @@ jobs:
             --location ${{ env.AZURE_LOCATION }}
 
       - name: Deploy Infrastructure
-        if: github.event.inputs.deploy_infrastructure == 'true' || github.event.inputs.deploy_infrastructure == ''
+        if: github.event.inputs.deploy_infrastructure != 'false'
         run: |
           az deployment group create \
             --name meajudaai-${{ env.ENVIRONMENT }}-deployment \

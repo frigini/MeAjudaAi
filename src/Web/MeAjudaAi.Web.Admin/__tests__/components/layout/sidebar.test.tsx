@@ -36,7 +36,7 @@ vi.mock('@/lib/types', () => ({
     CITIES: 'Cidades',
     SETTINGS: 'Configurações',
   },
-  ROLES: { ADMIN: 'admin' },
+  ROLES: { ADMIN: 'admin', USER: 'user' },
 }));
 
 import { Sidebar } from '@/components/layout/sidebar';

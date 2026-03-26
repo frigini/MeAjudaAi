@@ -1,5 +1,5 @@
 # Plano de Implementação de Testes - React 19 + TypeScript
-## Projeto: MeAjudaAi.Web.Consumer (Monorepo .NET)
+## Projeto: MeAjudaAi.Web.Customer (Monorepo .NET)
 
 ## Sumário
 
@@ -28,7 +28,7 @@ O projeto está integrado em um **monorepo .NET** com arquitetura de **monolito 
   - `MeAjudaAi.Shared.Tests`
   - `MeAjudaAi.Web.Admin.Tests` (Blazor WASM com bUnit)
 
-- **Frontend React** localizado em: `src/Web/MeAjudaAi.Web.Consumer/`
+- **Frontend React** localizado em: `src/Web/MeAjudaAi.Web.Customer/`
 
 ---
 
@@ -41,7 +41,7 @@ Cada portal (Customer, Admin, Provider) gerencia seus próprios testes dentro de
 MeAjudaAi/
 ├── src/
 │   ├── Web/
-│   │   ├── MeAjudaAi.Web.Consumer/         # ← Projeto React
+│   │   ├── MeAjudaAi.Web.Customer/         # ← Projeto React
 │   │   │   ├── src/
 │   │   │   ├── public/
 │   │   │   ├── package.json
@@ -58,7 +58,7 @@ MeAjudaAi/
 │   ├── MeAjudaAi.Integration.Tests/        # .NET
 │   ├── MeAjudaAi.Shared.Tests/             # .NET
 │   ├── MeAjudaAi.Web.Admin.Tests/          # bUnit (Blazor)
-│   └── MeAjudaAi.Web.Consumer.Tests/       # ← NOVO: Vitest/React Testing Library
+│   └── MeAjudaAi.Web.Customer.Tests/       # ← NOVO: Vitest/React Testing Library
 │       ├── src/
 │       │   ├── components/
 │       │   ├── hooks/
@@ -120,10 +120,10 @@ npm install --save-dev @storybook/test-runner
 
 ## Estrutura de Pastas
 
-### Estrutura do Projeto de Testes: `tests/MeAjudaAi.Web.Consumer.Tests/`
+### Estrutura do Projeto de Testes: `tests/MeAjudaAi.Web.Customer.Tests/`
 
 ```text
-MeAjudaAi.Web.Consumer.Tests/
+MeAjudaAi.Web.Customer.Tests/
 ├── src/
 │   ├── components/
 │   │   ├── Button/
@@ -201,7 +201,7 @@ MeAjudaAi.Web.Consumer.Tests/
 Os testes espelham a estrutura do projeto principal:
 
 ```text
-src/Web/MeAjudaAi.Web.Consumer/src/     →  tests/MeAjudaAi.Web.Consumer.Tests/src/
+src/Web/MeAjudaAi.Web.Customer/src/     →  tests/MeAjudaAi.Web.Customer.Tests/src/
     components/Button/Button.tsx        →      components/Button/Button.test.tsx
     hooks/useAuth.ts                    →      hooks/useAuth.test.ts
     pages/Home/Home.tsx                 →      pages/Home/Home.test.tsx
@@ -263,11 +263,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@src': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Consumer/src'),
-      '@components': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Consumer/src/components'),
-      '@hooks': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Consumer/src/hooks'),
-      '@utils': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Consumer/src/utils'),
-      '@pages': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Consumer/src/pages'),
+      '@src': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Customer/src'),
+      '@components': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Customer/src/components'),
+      '@hooks': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Customer/src/hooks'),
+      '@utils': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Customer/src/utils'),
+      '@pages': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Customer/src/pages'),
     },
   },
 });
@@ -904,7 +904,7 @@ O projeto está em um monorepo .NET e usa GitHub Actions para CI/CD. A integraç
 
 ### 1. Adicionar Scripts ao `package.json`
 
-**`tests/MeAjudaAi.Web.Consumer.Tests/package.json`**
+**`tests/MeAjudaAi.Web.Customer.Tests/package.json`**
 
 ```json
 {
@@ -953,8 +953,8 @@ on:
   push:
     branches: [master, main, develop]
     paths:
-      - 'src/Web/MeAjudaAi.Web.Consumer/**'
-      - 'tests/MeAjudaAi.Web.Consumer.Tests/**'
+      - 'src/Web/MeAjudaAi.Web.Customer/**'
+      - 'tests/MeAjudaAi.Web.Customer.Tests/**'
   pull_request:
     branches: [master, main, develop]
 
@@ -994,20 +994,20 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: tests/MeAjudaAi.Web.Consumer.Tests/package-lock.json
+          cache-dependency-path: tests/MeAjudaAi.Web.Customer.Tests/package-lock.json
       
       - name: Install dependencies
-        working-directory: tests/MeAjudaAi.Web.Consumer.Tests
+        working-directory: tests/MeAjudaAi.Web.Customer.Tests
         run: npm ci
       
       - name: Run tests
-        working-directory: tests/MeAjudaAi.Web.Consumer.Tests
+        working-directory: tests/MeAjudaAi.Web.Customer.Tests
         run: npm run test:ci
       
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:
-          files: tests/MeAjudaAi.Web.Consumer.Tests/coverage/coverage-final.json
+          files: tests/MeAjudaAi.Web.Customer.Tests/coverage/coverage-final.json
           flags: frontend
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -1022,18 +1022,18 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: tests/MeAjudaAi.Web.Consumer.Tests/package-lock.json
+          cache-dependency-path: tests/MeAjudaAi.Web.Customer.Tests/package-lock.json
       
       - name: Install dependencies
-        working-directory: tests/MeAjudaAi.Web.Consumer.Tests
+        working-directory: tests/MeAjudaAi.Web.Customer.Tests
         run: npm ci
       
       - name: Install Playwright browsers
-        working-directory: tests/MeAjudaAi.Web.Consumer.Tests
+        working-directory: tests/MeAjudaAi.Web.Customer.Tests
         run: npx playwright install --with-deps
       
       - name: Run E2E tests
-        working-directory: tests/MeAjudaAi.Web.Consumer.Tests
+        working-directory: tests/MeAjudaAi.Web.Customer.Tests
         run: npm run test:e2e:ci
       
       - name: Upload Playwright report
@@ -1041,7 +1041,7 @@ jobs:
         if: always()
         with:
           name: playwright-report
-          path: tests/MeAjudaAi.Web.Consumer.Tests/playwright-report/
+          path: tests/MeAjudaAi.Web.Customer.Tests/playwright-report/
           retention-days: 30
 ```
 
@@ -1061,7 +1061,7 @@ Além do ESLint, o projeto deve integrar o **SonarScanner** no pipeline para:
 Diferente de um pipeline simples de build, o fluxo robusto implementado seguirá:
 1. **Lint & Static Analysis**: ESLint + Prettier + SonarQube Scan.
 2. **Unit & Integration Tests**: Execução com Vitest (com geração de relatório LCOV para o Sonar).
-3. **Build & Package**: Geração da build de produção do Vite para MeAjudaAi.Web.Consumer.
+3. **Build & Package**: Geração da build de produção do Vite para MeAjudaAi.Web.Customer.
 4. **Containerization (Contexto Aspire)**: O `dotnet aspire` facilita a geração de imagens Docker que serão enviadas para o Registry (Azure Container Registry).
 5. **E2E Testing**: Execução do Playwright contra o container de staging.
 6. **Deployment**: Via `azd deploy` para Azure Container Apps.
@@ -1080,7 +1080,7 @@ Diferente de um pipeline simples de build, o fluxo robusto implementado seguirá
 
 ### 3. Configuração de Reports para CI/CD
 
-**`tests/MeAjudaAi.Web.Consumer.Tests/vitest.config.ts`**
+**`tests/MeAjudaAi.Web.Customer.Tests/vitest.config.ts`**
 
 ```typescript
 import { defineConfig } from 'vitest/config';
@@ -1121,7 +1121,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@src': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Consumer/src'),
+      '@src': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Customer/src'),
     },
   },
 });
@@ -1131,7 +1131,7 @@ export default defineConfig({
 
 ```bash
 # Navegar para o projeto de testes
-cd tests/MeAjudaAi.Web.Consumer.Tests
+cd tests/MeAjudaAi.Web.Customer.Tests
 
 # Instalar dependências (primeira vez)
 npm install
@@ -1160,7 +1160,7 @@ Criar script para facilitar execução de testes:
 
 echo "🧪 Executando testes do Frontend (React)..."
 
-cd tests/MeAjudaAi.Web.Consumer.Tests
+cd tests/MeAjudaAi.Web.Customer.Tests
 
 # Verificar se node_modules existe
 if [ ! -d "node_modules" ]; then
@@ -1205,7 +1205,7 @@ echo "✅ Todos os testes concluídos!"
 
 ```bash
 # Navegar para o projeto de testes
-cd tests/MeAjudaAi.Web.Consumer.Tests
+cd tests/MeAjudaAi.Web.Customer.Tests
 
 # Instalar dependências (primeira vez ou após pull)
 npm install
@@ -1290,7 +1290,7 @@ npm run test:e2e:report
 dotnet test
 
 # Executar testes Frontend específicos
-cd tests/MeAjudaAi.Web.Consumer.Tests && npm test
+cd tests/MeAjudaAi.Web.Customer.Tests && npm test
 ```
 
 ### Debugging e Troubleshooting
@@ -1338,7 +1338,7 @@ Configuração de tasks:
     {
       "label": "Run Frontend Tests",
       "type": "shell",
-      "command": "cd tests/MeAjudaAi.Web.Consumer.Tests && npm test",
+      "command": "cd tests/MeAjudaAi.Web.Customer.Tests && npm test",
       "group": "test",
       "presentation": {
         "reveal": "always",
@@ -1348,13 +1348,13 @@ Configuração de tasks:
     {
       "label": "Run Frontend Tests with Coverage",
       "type": "shell",
-      "command": "cd tests/MeAjudaAi.Web.Consumer.Tests && npm run test:coverage",
+      "command": "cd tests/MeAjudaAi.Web.Customer.Tests && npm run test:coverage",
       "group": "test"
     },
     {
       "label": "Run E2E Tests",
       "type": "shell",
-      "command": "cd tests/MeAjudaAi.Web.Consumer.Tests && npm run test:e2e",
+      "command": "cd tests/MeAjudaAi.Web.Customer.Tests && npm run test:e2e",
       "group": "test"
     }
   ]
@@ -1619,7 +1619,7 @@ npm run test:coverage  # ou npx vitest run --coverage
 
 ### Fase 1: Setup Inicial ✅
 
-- [ ] Criar pasta `tests/MeAjudaAi.Web.Consumer.Tests/`
+- [ ] Criar pasta `tests/MeAjudaAi.Web.Customer.Tests/`
 - [ ] Criar `package.json` com dependências
 - [ ] Instalar todas as bibliotecas necessárias
 - [ ] Configurar `vitest.config.ts`
@@ -1675,8 +1675,8 @@ npm run test:coverage  # ou npx vitest run --coverage
 
 ```bash
 # Na raiz do monorepo
-mkdir -p tests/MeAjudaAi.Web.Consumer.Tests
-cd tests/MeAjudaAi.Web.Consumer.Tests
+mkdir -p tests/MeAjudaAi.Web.Customer.Tests
+cd tests/MeAjudaAi.Web.Customer.Tests
 
 # Inicializar projeto Node
 npm init -y
@@ -1692,9 +1692,9 @@ Adicionar ao `vitest.config.ts` para referenciar o código fonte:
 ```typescript
 resolve: {
   alias: {
-    '@': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Consumer/src'),
-    '@components': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Consumer/src/components'),
-    '@hooks': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Consumer/src/hooks'),
+    '@': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Customer/src'),
+    '@components': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Customer/src/components'),
+    '@hooks': path.resolve(__dirname, '../../src/Web/MeAjudaAi.Web.Customer/src/hooks'),
   },
 },
 ```
@@ -1702,9 +1702,9 @@ resolve: {
 ### 3. Criar README.md no Projeto de Testes
 
 ```markdown
-# MeAjudaAi.Web.Consumer.Tests
+# MeAjudaAi.Web.Customer.Tests
 
-Testes automatizados para o projeto React Consumer.
+Testes automatizados para o projeto React Customer.
 
 ## Stack de Testes
 
@@ -1743,7 +1743,7 @@ npm run test:coverage
 ### 4. Adicionar ao .gitignore
 
 ```gitignore
-# tests/MeAjudaAi.Web.Consumer.Tests/.gitignore
+# tests/MeAjudaAi.Web.Customer.Tests/.gitignore
 
 # Dependencies
 node_modules/
@@ -1793,7 +1793,7 @@ npm install --save-dev husky lint-staged
 
 # Criar hook
 npx husky install
-npx husky add .husky/pre-commit "cd tests/MeAjudaAi.Web.Consumer.Tests && npx lint-staged"
+npx husky add .husky/pre-commit "cd tests/MeAjudaAi.Web.Customer.Tests && npx lint-staged"
 ```
 
 ---

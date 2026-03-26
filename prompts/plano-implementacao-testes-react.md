@@ -424,7 +424,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './'),
-      'test-support': path.resolve(__dirname, '../libs/test-support/src'),
+      '@test-support': path.resolve(__dirname, '../libs/test-support/src'),
     },
   },
 });

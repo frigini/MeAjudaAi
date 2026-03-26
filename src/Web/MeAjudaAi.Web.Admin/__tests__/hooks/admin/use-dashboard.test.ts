@@ -44,8 +44,8 @@ describe('useDashboardStats Hook (Admin)', () => {
 
   it('deve lidar com múltiplas páginas de provedores', async () => {
     vi.mocked(api.apiProvidersGet2)
-      .mockResolvedValueOnce({ data: { items: [{ id: '1', verificationStatus: EVerificationStatus.Verified }], totalPages: 2 } } as any)
-      .mockResolvedValueOnce({ data: { items: [{ id: '2', verificationStatus: EVerificationStatus.Verified }], totalPages: 2 } } as any);
+      .mockResolvedValueOnce({ data: { items: [{ id: '1', verificationStatus: EVerificationStatus.Verified, type: EProviderType.Individual }], totalPages: 2 } } as any)
+      .mockResolvedValueOnce({ data: { items: [{ id: '2', verificationStatus: EVerificationStatus.Verified, type: EProviderType.Company }], totalPages: 2 } } as any);
 
     const { result } = renderHook(() => useDashboardStats());
     

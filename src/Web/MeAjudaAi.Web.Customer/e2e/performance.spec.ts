@@ -86,7 +86,7 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
       document.body.appendChild(button);
     });
     
-    // PerformanceEventTiming
+    // PerformanceEventTiming - execute click inside evaluate to ensure observer is ready
     const metrics = await page.evaluate((): Promise<{ inp: number; samples: number }> => {
       return new Promise((resolve) => {
         const inpEntries: number[] = [];
@@ -102,6 +102,10 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
           }
         });
         observer.observe({ type: 'event', buffered: true });
+        
+        // Execute click inside the observer context
+        document.getElementById('inp-test-button')?.click();
+        
         setTimeout(() => {
           observer.disconnect();
           const maxInp = inpEntries.length > 0 ? Math.max(...inpEntries) : 0;
@@ -109,8 +113,6 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
         }, 2000);
       });
     });
-
-    await page.click('#inp-test-button');
     
     expect(metrics.samples).toBeGreaterThan(0);
     expect(metrics.inp).toBeLessThan(150);
@@ -206,8 +208,8 @@ test.describe('@e2e Performance - Network', () => {
   });
 
   test('should not have excessive same-origin requests', async ({ page }) => {
-    await page.goto('/');
     const origin = new URL(page.url()).origin;
+    let requests: string[] = [];
     
     page.on('request', (request) => {
       const url = request.url();
@@ -215,6 +217,8 @@ test.describe('@e2e Performance - Network', () => {
         requests.push(url);
       }
     });
+    
+    await page.goto('/');
     
     await page.waitForLoadState('networkidle');
     

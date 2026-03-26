@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+
 export default defineConfig({
   testDir: '.',
   fullyParallel: true,
@@ -11,12 +13,13 @@ export default defineConfig({
     ['list'],
   ],
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    baseURL: baseUrl,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
   grep: /e2e/,
-  testMatch: '**/*.spec.ts',
+  testMatch: '**/e2e/**/*.spec.ts',
+  testIgnore: ['**/api-client/**/*.spec.ts'],
   projects: [
     {
       name: 'chromium',
@@ -43,9 +46,9 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
+  webServer: process.env.BASE_URL ? undefined : {
     command: 'npm run dev:all',
-    url: 'http://localhost:3000',
+    url: baseUrl,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
