@@ -85,7 +85,8 @@ try {
   reports.create('html').execute(context);
   reports.create('lcov').execute(context);
   reports.create('json-summary').execute(context);
-  reports.create('text').execute(context); // Also print to console
+  reports.create('text').execute(context);
+  reports.create('cobertura').execute(context); // Also print to console
 
   // 5. Verify global thresholds
   const summaryPath = join(OUTPUT_DIR, 'coverage-summary.json');
