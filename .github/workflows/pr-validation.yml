@@ -27,7 +27,7 @@ permissions:
 env:
   DOTNET_VERSION: "10.0.x"
   STRICT_COVERAGE: false # TODO: Re-set to true once coverage threshold (90%) is consistently met
-  RUN_E2E: ${{ github.event.inputs.run_e2e || 'false' }}
+  RUN_E2E: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_e2e || 'true' }}
   # PostgreSQL configuration (DRY principle - single source of truth)
   # Fallback credentials: Only used in fork/local dev; main repo requires secrets
   POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
@@ -133,7 +133,7 @@ jobs:
 
           # 2. Extract OpenAPI spec (v1) to a temporary file
           # Note: Using Release build DLL from current workspace
-          mkdir -p ../api
+          mkdir -p "$GITHUB_WORKSPACE/src/api"
 
           # Provide dummy env vars to allow application DI container to build successfully
           # Note: ASPNETCORE_ENVIRONMENT must NOT be "Testing" here because Swashbuckle CLI
@@ -146,14 +146,15 @@ jobs:
 
           # Use glob to find the DLL without hardcoding TFM (e.g. net10.0)
           # The path is relative to the current step context (root or working-directory)
-          DLL_PATH=$(find ../../src/Bootstrapper/MeAjudaAi.ApiService/bin/Release -name "MeAjudaAi.ApiService.dll" | head -n 1)
+          SEARCH_DIR="$GITHUB_WORKSPACE/src/Bootstrapper/MeAjudaAi.ApiService/bin/Release"
+          DLL_PATH=$(find "$SEARCH_DIR" -name "MeAjudaAi.ApiService.dll" | head -n 1)
           if [ -z "$DLL_PATH" ]; then
             echo "Error: MeAjudaAi.ApiService.dll not found!"
             exit 1
           fi
           echo "Found DLL at: $DLL_PATH"
 
-          swagger tofile --output ../api/api-spec.json "$DLL_PATH" v1
+          swagger tofile --output "$GITHUB_WORKSPACE/src/api/api-spec.json" "$DLL_PATH" v1
 
           # 3. Generate API clients for all Web Apps
           # The generator reads OPENAPI_SPEC_URL from env

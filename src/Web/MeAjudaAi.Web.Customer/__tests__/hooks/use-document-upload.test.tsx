@@ -114,10 +114,16 @@ describe('useDocumentUpload Hook', () => {
 
     // Verify first call to get SAS URL
     expect(authenticatedFetch).toHaveBeenCalledWith(
-      '/api/providers/provider-123/documents/upload-url',
+      '/api/v1/documents/upload',
       expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ fileName: 'test.pdf', documentType: EDocumentType.CPF }),
+        method: 'post',
+        body: expect.objectContaining({
+          providerId: 'provider-123',
+          documentType: EDocumentType.CPF,
+          fileName: 'test.pdf',
+          contentType: 'application/pdf',
+          fileSizeBytes: file.size,
+        }),
       })
     );
 
@@ -125,20 +131,20 @@ describe('useDocumentUpload Hook', () => {
     expect(fetchMock).toHaveBeenCalledWith(
       'https://storage.blob.core.windows.net/upload?token',
       expect.objectContaining({
-        method: 'PUT',
+        method: 'put',
         body: file,
       })
     );
 
     // Verify final call to confirm upload
     expect(authenticatedFetch).toHaveBeenCalledWith(
-      '/api/providers/provider-123/documents',
+      '/api/v1/providers/me/documents',
       expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ 
-          blobName: 'test-blob', 
+        method: 'post',
+        body: expect.objectContaining({ 
           documentType: EDocumentType.CPF,
-          fileName: 'test.pdf'
+          fileName: 'test.pdf',
+          fileUrl: 'test-blob'
         }),
       })
     );

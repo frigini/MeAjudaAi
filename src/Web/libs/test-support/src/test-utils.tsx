@@ -1,4 +1,4 @@
-import { ReactElement } from 'react';
+import React, { ReactElement, useMemo } from 'react';
 import { render, RenderOptions, renderHook, RenderHookOptions, RenderHookResult } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -21,7 +21,7 @@ interface AllTheProvidersProps {
 }
 
 const AllTheProviders = ({ children }: AllTheProvidersProps) => {
-  const queryClient = createTestQueryClient();
+  const queryClient = useMemo(() => createTestQueryClient(), []);
   return (
     <QueryClientProvider client={queryClient}>
       {children}

@@ -224,7 +224,7 @@ src/
 
 #### ✅ Fase 2: Database-Backed + Admin Portal UI (CONCLUÍDO - Sprint 7, 7 Jan 2026)
 
-**Contexto**: Migrar lista de cidades/estados de `appsettings.json` para banco de dados, permitindo gestão dinâmica via Blazor Admin Portal sem necessidade de redeploy.
+**Contexto**: Migrar lista de cidades/estados de `appsettings.json` para banco de dados, permitindo gestão dinâmica via Admin Portal (React) sem necessidade de redeploy.
 
 **Status**: ✅ IMPLEMENTADO - AllowedCities UI completa com CRUD, coordenadas geográficas, e raio de serviço.
 
@@ -250,7 +250,7 @@ CREATE INDEX idx_allowed_regions_active ON geographic_restrictions.allowed_regio
 
 **Funcionalidades Admin Portal**:
 
-- [ ] **Visualização de Restrições Atuais**
+- [ ] **Visualização de Restrições Atuais** (Admin Portal React)
   - [ ] Tabela com cidades/estados permitidos
   - [ ] Filtros: Tipo (Cidade/Estado), Estado, Status (Ativo/Inativo)
   - [ ] Ordenação: Alfabética, Data de Adição
@@ -341,7 +341,7 @@ public class GeographicRestrictionMiddleware
 2. **Sprint 3 Semana 1**: Implementar `AllowedRegionsService` com cache
 3. **Sprint 3 Semana 1**: Refactor middleware para usar serviço (mantém fallback appsettings)
 4. **Sprint 3 Semana 2**: Implementar CRUD endpoints no Admin API
-5. **Sprint 3 Semana 2**: Implementar UI no Blazor Admin Portal
+5. **Sprint 3 Semana 2**: Implementar UI no Admin Portal (React)
 6. **Sprint 3 Pós-Deploy**: Popular banco com dados iniciais (Muriaé, Itaperuna, Linhares)
 7. **Sprint 4**: Remover valores de appsettings.json (obsoleto)
 

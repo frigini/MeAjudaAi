@@ -6,7 +6,7 @@ O Admin Portal oferece gerenciamento completo dos seguintes módulos:
 
 ### 1. 👥 Gestão de Prestadores (Providers)
 
-**Página**: `Providers.razor`  
+**Página**: `/admin/providers`  
 **Permissões**: `ProvidersRead`, `ProvidersUpdate`, `ProvidersApprove`, `ProvidersDelete`
 
 #### Funcionalidades
@@ -33,17 +33,16 @@ stateDiagram-v2
 
 #### Componentes
 
-- `Providers.razor`: Página principal
-- `CreateProviderDialog.razor`: Formulário de criação (removido - seed data)
-- `EditProviderDialog.razor`: Formulário de edição
-- `VerifyProviderDialog.razor`: Modal de verificação de status
-- `ProviderSelectorDialog.razor`: Seletor de provider para associações
+- `/admin/providers`: Página principal (Listagem)
+- `ProviderDetailsDialog`: Modal com informações completas e histórico
+- `EditProviderForm`: Formulário de edição de perfil
+- `VerifyProviderStatus`: Componente de alteração de verificação
 
 ---
 
 ### 2. 📄 Gestão de Documentos (Documents)
 
-**Página**: `Documents.razor`  
+**Página**: `/admin/documents`  
 **Permissões**: `DocumentsRead`, `DocumentsUpdate`, `DocumentsApprove`
 
 #### Funcionalidades
@@ -76,7 +75,7 @@ stateDiagram-v2
 
 ### 3. 🗂️ Catálogo de Serviços
 
-**Páginas**: `Categories.razor`, `Services.razor`  
+**Páginas**: `/admin/categories`, `/admin/services`  
 **Permissões**: `ServiceCatalogsRead`, `ServiceCatalogsUpdate`
 
 #### Categories (Categorias)
@@ -110,7 +109,7 @@ stateDiagram-v2
 
 ### 4. 📍 Gestão de Localizações (Allowed Cities)
 
-**Página**: `AllowedCities.razor`  
+**Página**: `/admin/allowed-cities`  
 **Permissões**: `LocationsManage`
 
 #### Funcionalidades
@@ -141,7 +140,7 @@ Ao adicionar uma cidade, o sistema:
 
 ### 5. 📊 Dashboard
 
-**Página**: `Dashboard.razor`  
+**Página**: `/admin/dashboard`  
 **Permissões**: `ViewerPolicy` (acesso básico)
 
 Ver [Dashboard Documentation](dashboard.md) para detalhes completos.
@@ -186,19 +185,16 @@ Todos os módulos utilizam componentes React com Tailwind CSS para consistência
 
 ### Confirmações de Exclusão
 
-Todas as operações destrutivas requerem confirmação:
+Todas as operações destrutivas requerem confirmação via componente `AlertDialog` ou similar do Shadcn/UI:
 
-```csharp
-var result = await DialogService.ShowMessageBox(
-    "Confirmar Exclusão",
-    "Tem certeza que deseja excluir este item?",
-    yesText: "Excluir",
-    cancelText: "Cancelar");
-
-if (result == true)
-{
-    // Executar exclusão
-}
+```tsx
+const handleDelete = async (id: string) => {
+  const confirmed = await confirmDelete("Tem certeza que deseja excluir este item?");
+  if (confirmed) {
+    await deleteProvider(id);
+    toast.success("Item removido com sucesso");
+  }
+};
 ```
 
 ---
@@ -217,15 +213,22 @@ if (result == true)
 | Gerenciar Catálogo | `ManagerPolicy` |
 | Gerenciar Localizações | `AdminPolicy` |
 
-### Exemplo de Uso
+### Exemplo de Uso (Policy Check)
 
-```razor
-<AuthorizeView Policy="@PolicyNames.AdminPolicy">
-    <Authorized>
-        <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                      OnClick="@(() => DeleteProvider(provider.Id))" />
-    </Authorized>
-</AuthorizeView>
+Utilizamos hooks e componentes de autorização que interceptam o acesso via token JWT:
+
+```tsx
+const { can } = usePermissions();
+
+return (
+  <>
+    {can('ProvidersDelete') && (
+      <Button variant="destructive" onClick={() => onDelete(provider.id)}>
+        Remover
+      </Button>
+    )}
+  </>
+);
 ```
 
 ---

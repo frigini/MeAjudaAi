@@ -1,4 +1,9 @@
-# Admin Portal - Arquitetura
+# [LEGACY / SUPERSEDED] Admin Portal - Arquitetura (Blazor)
+
+> [!IMPORTANT]
+> Esta documentação refere-se à arquitetura original baseada em Blazor WASM e Fluxor. 
+> O Admin Portal foi migrado para **React 19 + Next.js 15**. 
+> Para a arquitetura atual, consulte [features.md](./features.md).
 
 ## 🏗️ Visão Geral Arquitetural
 

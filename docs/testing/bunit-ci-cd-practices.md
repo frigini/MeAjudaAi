@@ -1,4 +1,9 @@
-# bUnit Tests na Pipeline CI/CD - Guia de Boas Práticas
+# [LEGACY / SUPERSEDED] bUnit Tests na Pipeline CI/CD - (Blazor)
+
+> [!IMPORTANT]
+> Esta documentação refere-se à infraestrutura de testes legada para componentes Blazor.
+> O projeto migrou para **Vitest + React Testing Library**.
+> Consulte o [Plano de Testes Frontend](./frontend-testing-plan.md) para a estratégia atual.
 
 ## 📋 Decisão: bUnit deve estar na pipeline
 

@@ -28,31 +28,25 @@ async function handleLoginRedirect(page: Page): Promise<void> {
   }
 }
 
-export async function loginAsAdmin(page: Page): Promise<void> {
-  await page.goto('/admin/login');
+async function loginWithPath(page: Page, path: string, buttonName: RegExp): Promise<void> {
+  await page.goto(path);
   await page.waitForLoadState('domcontentloaded');
-  const loginButton = page.getByRole('button', { name: /entrar com keycloak/i });
+  const loginButton = page.getByRole('button', { name: buttonName });
   await loginButton.waitFor({ state: 'visible', timeout: 10000 });
   await loginButton.click();
   await handleLoginRedirect(page);
+}
+
+export async function loginAsAdmin(page: Page): Promise<void> {
+  await loginWithPath(page, '/admin/login', /entrar com keycloak/i);
 }
 
 export async function loginAsProvider(page: Page): Promise<void> {
-  await page.goto('/provider/login');
-  await page.waitForLoadState('domcontentloaded');
-  const loginButton = page.getByRole('button', { name: /entrar/i });
-  await loginButton.waitFor({ state: 'visible', timeout: 10000 });
-  await loginButton.click();
-  await handleLoginRedirect(page);
+  await loginWithPath(page, '/provider/login', /entrar/i);
 }
 
 export async function loginAsCustomer(page: Page): Promise<void> {
-  await page.goto('/login');
-  await page.waitForLoadState('domcontentloaded');
-  const loginButton = page.getByRole('button', { name: /entrar/i });
-  await loginButton.waitFor({ state: 'visible', timeout: 10000 });
-  await loginButton.click();
-  await handleLoginRedirect(page);
+  await loginWithPath(page, '/login', /entrar/i);
 }
 
 export async function logout(page: Page): Promise<void> {

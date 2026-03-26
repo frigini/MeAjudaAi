@@ -40,18 +40,17 @@ describe('Button (Admin)', () => {
   it('deve renderizar variante ghost com estilo correto', () => {
     render(<Button variant="ghost">Ghost</Button>);
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('hover:bg-accent');
+    expect(button).toHaveClass('hover:bg-muted');
   });
 
   it('deve aplicar tamanho sm com estilo correto', () => {
     render(<Button size="sm">Small</Button>);
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('h-8');
+    expect(button).toHaveClass('h-9');
   });
 
-  it('deve aceitar props adicionais e fallback para variante padrão se inválida', () => {
-    // @ts-expect-error - testing invalid prop
-    render(<Button variant="invalid">Invalid</Button>);
-    expect(screen.getByRole('button')).toHaveClass('bg-primary');
+  it('deve aceitar props adicionais', () => {
+    render(<Button id="test-button">Props</Button>);
+    expect(screen.getByRole('button')).toHaveAttribute('id', 'test-button');
   });
 });

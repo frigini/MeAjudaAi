@@ -29,7 +29,9 @@ O projeto está integrado em um **monorepo .NET** com arquitetura de **monolito 
   - `MeAjudaAi.Web.Admin.Tests` (Blazor WASM com bUnit)
 
 - **Frontend React** localizado em:
-  - `src/Web/MeAjudaAi.Web.Consumer`
+  - ```text
+src/Web/MeAjudaAi.Web.Consumer/
+```
 
 ---
 
@@ -1549,7 +1551,7 @@ import { Component } from './Component';
 
 O projeto de testes frontend está integrado diretamente no projeto `MeAjudaAi.Web.Customer`:
 
-```
+```text
 src/Web/MeAjudaAi.Web.Customer/
 ├── __tests__/                    # Testes unitários
 │   ├── components/
@@ -1590,11 +1592,11 @@ npm run test:coverage  # ou npx vitest run --coverage
 - **Branches**: ~74%
 - **Statements**: ~71%
 
-### Diferenças do Plano Original
+### ⚠️ [LEGACY / SUPERSEDED] Diferenças do Plano Original
 
-1. **Localização**: Os testes estão dentro do projeto `MeAjudaAi.Web.Customer` (em `__tests__/`) em vez de um projeto separado
-2. **Thresholds**: Configurados em 70% ao invés de 80% inicial
-3. **E2E**: Usa `@e2e` tag nos test.describe para ser executado pelo Playwright
+1. **Localização**: Os testes estão dentro do projeto `MeAjudaAi.Web.Customer` (em `__tests__/`) em vez de um projeto separado.
+2. **Thresholds**: Configurados em 70% ao invés de 80% inicial (ver seção Métricas de Qualidade).
+3. **E2E**: Usa `@e2e` tag nos test.describe para ser executado pelo Playwright.
 
 ### Próximos Passos
 
@@ -1619,7 +1621,10 @@ npm run test:coverage  # ou npx vitest run --coverage
 
 ---
 
-## Checklist de Implementação
+## ⚠️ [LEGACY / SUPERSEDED] Checklist de Implementação (Approach Centralizado)
+
+> [!NOTE]
+> Este checklist refere-se à fase de setup inicial da infraestrutura centralizada. Para o workflow atual, utilize as ferramentas NX conforme documentado nos guias de cada aplicação.
 
 ### Fase 1: Setup Inicial ✅
 

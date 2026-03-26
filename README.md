@@ -2,7 +2,7 @@
 
 Uma plataforma abrangente de serviços construída com .NET Aspire, projetada para conectar prestadores de serviços com clientes usando arquitetura monólito modular.
 
-<!-- Atualizado: 24 Março 2026 - Sprint 8D (Admin Portal Migration: Blazor → React) -->
+<!-- Atualizado: 24 MARÇO 2026 - Sprint 8D -->
 
 ## 🎯 Visão Geral
 
@@ -138,7 +138,7 @@ O projeto foi organizado para facilitar navegação e manutenção:
 | Serviço | URL | Credenciais | Descrição |
 |---------|-----|-------------|--------------|
 | **Aspire Dashboard** | https://localhost:17063/ | - | Orquestração e observabilidade |
-| **Admin Portal** | https://localhost:7032/ | admin.portal/admin123 | Portal administrativo Blazor |
+| **Admin Portal** | https://localhost:7032/ | admin.portal/admin123 | Portal administrativo React + Next.js |
 | **Customer Web App** | http://localhost:3000/ | - | Aplicação pública Next.js (clientes/prestadores) |
 | **API** | https://localhost:7524/swagger | - | API REST com Swagger UI |
 | **Keycloak** | http://localhost:8080/ | admin/[console logs] | Autenticação OAuth2/OIDC |

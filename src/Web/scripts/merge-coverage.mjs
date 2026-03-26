@@ -80,7 +80,7 @@ try {
 const summaryPath = join(OUTPUT_DIR, 'coverage-summary.json');
 if (existsSync(summaryPath)) {
   const summary = JSON.parse(readFileSync(summaryPath, 'utf-8'));
-  const totals = summary.data.totals;
+  const totals = summary.total;
   
   console.log('\n📈 Global Coverage:');
   console.log(`   Lines:      ${totals.lines.pct}%`);
@@ -100,7 +100,7 @@ if (existsSync(summaryPath)) {
     failures.forEach(f => console.error(`   - ${f}`));
     // Note: In early phase, we might not want to hard-fail CI yet if we want to allow PRs to pass
     // but the user requested threshold verification and exiting with process.exit(1) on failure.
-    // process.exit(1); 
+    process.exit(1); 
   } else {
     console.log(`\n✅ All global coverage thresholds met (>= ${GLOBAL_THRESHOLDS.lines}%)`);
   }

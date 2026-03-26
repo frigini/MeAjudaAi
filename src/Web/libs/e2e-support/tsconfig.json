@@ -2,7 +2,7 @@
   "extends": "./tsconfig.lib.json",
   "compilerOptions": {
     "composite": true,
-    "types": ["jest", "node"]
+    "types": ["@playwright/test", "node"]
   },
-  "include": ["src/**/*.ts", "jest.config.ts"]
+  "include": ["src/**/*.ts"]
 }

@@ -27,7 +27,7 @@
       }
     },
     "test": {
-      "command": "vitest run --config vitest.config.ts --passWithNoTests",
+      "command": "vitest run --config vitest.config.ts",
       "options": {
         "cwd": "MeAjudaAi.Web.Provider"
       }

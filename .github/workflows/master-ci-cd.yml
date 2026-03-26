@@ -179,15 +179,19 @@ jobs:
         run: |
           set -e
           dotnet tool install -g Swashbuckle.AspNetCore.Cli --version 10.1.5
-          mkdir -p api
+          mkdir -p "$GITHUB_WORKSPACE/src/api"
           export ASPNETCORE_ENVIRONMENT=Development
           export ConnectionStrings__DefaultConnection="Host=localhost;Database=dummy"
           export Migrations__Enabled=false
-          SEARCH_DIR=../../src/Bootstrapper/MeAjudaAi.ApiService/bin/Release
+          SEARCH_DIR="$GITHUB_WORKSPACE/src/Bootstrapper/MeAjudaAi.ApiService/bin/Release"
           PATTERN=MeAjudaAi.ApiService.dll
           DLL_PATH=$(find "$SEARCH_DIR" -name "$PATTERN" | head -n 1)
-          swagger tofile --output api/api-spec.json "$DLL_PATH" v1
-          export OPENAPI_SPEC_URL="$GITHUB_WORKSPACE/src/Web/api/api-spec.json"
+          if [ -z "$DLL_PATH" ]; then
+            echo "Error: MeAjudaAi.ApiService.dll not found!"
+            exit 1
+          fi
+          swagger tofile --output "$GITHUB_WORKSPACE/src/api/api-spec.json" "$DLL_PATH" v1
+          export OPENAPI_SPEC_URL="$GITHUB_WORKSPACE/src/api/api-spec.json"
           npm run generate:api:customer
           npm run generate:api:admin
           npm run generate:api:provider

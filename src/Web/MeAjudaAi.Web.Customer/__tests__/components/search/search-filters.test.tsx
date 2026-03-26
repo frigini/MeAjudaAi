@@ -25,7 +25,7 @@ describe('SearchFilters', () => {
     const { apiCategoriesGet } = await import('@/lib/api/generated/sdk.gen');
     await waitFor(() => {
       expect(screen.getByText(/distância/i)).toBeInTheDocument();
-      expect(apiCategoriesGet).toHaveBeenCalledWith(expect.objectContaining({ activeOnly: true }));
+      expect(apiCategoriesGet).toHaveBeenCalledWith({ query: { activeOnly: true } });
     });
   });
 
