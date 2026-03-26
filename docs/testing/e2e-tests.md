@@ -389,7 +389,7 @@ public async Task CompleteWorkflow_FilterByMultipleServices_ShouldReturnOnlyMatc
 
 ### Users
 
-**Arquivo:** [UsersEndToEndTests.cs](../../tests/MeAjudaAi.E2E.Tests/Modules/Users/UsersEndToEndTests.cs)
+**Arquivo:** [UsersEndToEndTests.cs](../../../tests/MeAjudaAi.E2E.Tests/Modules/Users/UsersEndToEndTests.cs)
 
 **Cobertura:**
 - ✅ DELETE com persistência
@@ -467,7 +467,7 @@ public async Task UpdateUser_ConcurrentUpdates_Should_HandleGracefully()
 
 ### Providers
 
-**Arquivo:** [ProvidersEndToEndTests.cs](../../tests/MeAjudaAi.E2E.Tests/Modules/Providers/ProvidersEndToEndTests.cs) *(consolidado: 3→1 arquivo)*
+**Arquivo:** [ProvidersEndToEndTests.cs](../../../tests/MeAjudaAi.E2E.Tests/Modules/Providers/ProvidersEndToEndTests.cs) *(consolidado: 3→1 arquivo)*
 
 **Estrutura Interna (10 testes em 6 #regions):**
 - `#region Basic CRUD Operations` - Criação e workflows completos
@@ -541,7 +541,7 @@ public async Task SearchProviders_CompleteWorkflow_ShouldFindProvidersWithinRadi
 
 ### Documents
 
-**Arquivo:** [DocumentsEndToEndTests.cs](../../tests/MeAjudaAi.E2E.Tests/Modules/Documents/DocumentsEndToEndTests.cs) *(consolidado: 2→1 arquivo)*
+**Arquivo:** [DocumentsEndToEndTests.cs](../../../tests/MeAjudaAi.E2E.Tests/Modules/Documents/DocumentsEndToEndTests.cs) *(consolidado: 2→1 arquivo)*
 
 **Estrutura Interna (10 testes em 6 #regions):**
 - `#region Helper Methods` - Helpers para providers e extração de IDs
@@ -581,7 +581,7 @@ public async Task DocumentLifecycle_UploadAndVerification_ShouldCompleteProperly
 
 ### ServiceCatalogs
 
-**Arquivo:** [ServiceCatalogsEndToEndTests.cs](../../tests/MeAjudaAi.E2E.Tests/Modules/ServiceCatalogs/ServiceCatalogsEndToEndTests.cs) *(consolidado: 2→1 arquivo)*
+**Arquivo:** [ServiceCatalogsEndToEndTests.cs](../../../tests/MeAjudaAi.E2E.Tests/Modules/ServiceCatalogs/ServiceCatalogsEndToEndTests.cs) *(consolidado: 2→1 arquivo)*
 
 **Estrutura Interna (14 testes em 7 #regions):**
 - `#region Basic CRUD Operations` - Criar, buscar e listar serviços

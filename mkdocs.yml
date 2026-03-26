@@ -2,6 +2,7 @@ site_name: Documentação MeAjudaAi
 site_description: Plataforma conectando clientes com prestadores de serviços
 site_author: Equipe MeAjudaAi
 site_url: https://frigini.github.io/MeAjudaAi
+docs_dir: docs
 
 repo_name: frigini/MeAjudaAi
 repo_url: https://github.com/frigini/MeAjudaAi
@@ -125,7 +126,7 @@ nav:
       - Testes de Integração: testing/integration-tests.md
       - Infraestrutura de Testes: testing/test-infrastructure.md
       - Exemplos de Auth em Testes: testing/test-auth-examples.md
-      - Arquitetura E2E: testing/e2e-architecture-analysis.md
+      - Testes E2E: testing/e2e-tests.md
       - Cobertura de Código: testing/coverage.md
   - Admin Portal:
       - Visão Geral: admin-portal/overview.md
