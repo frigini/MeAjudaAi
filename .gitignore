@@ -162,5 +162,8 @@ vite.config.*.timestamp*
 
 # Ignore Windows null device files
 nul
+# MkDocs output
+site/
+
 # Aspire
 src/Aspire/MeAjudaAi.AppHost/infrastructure/
