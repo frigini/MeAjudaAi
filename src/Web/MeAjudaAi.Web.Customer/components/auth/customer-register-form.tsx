@@ -60,7 +60,8 @@ export function CustomerRegisterForm() {
         clearErrors();
         let hasError = false;
 
-        if (!data.name || data.name.length < 4) {
+        const trimmedName = data.name?.trim() || "";
+        if (!trimmedName || trimmedName.length < 4) {
             setError("name", { message: "Nome deve ter pelo menos 4 caracteres" });
             hasError = true;
         }
@@ -70,8 +71,9 @@ export function CustomerRegisterForm() {
             hasError = true;
         }
 
-        if (!data.phoneNumber) {
-            setError("phoneNumber", { message: "Telefone obrigatório" });
+        const phoneDigits = data.phoneNumber?.replace(/\D/g, "") || "";
+        if (!phoneDigits || phoneDigits.length < 10) {
+            setError("phoneNumber", { message: "Telefone inválido (mínimo 10 dígitos)" });
             hasError = true;
         }
 
@@ -95,7 +97,10 @@ export function CustomerRegisterForm() {
         setIsLoading(true);
         try {
             const payload = {
-                ...data,
+                name: data.name?.trim(),
+                email: data.email?.trim(),
+                phoneNumber: data.phoneNumber?.replace(/\D/g, ""),
+                password: data.password,
                 TermsAccepted: data.acceptedTerms,
                 AcceptedPrivacyPolicy: data.acceptedTerms,
             };
@@ -115,7 +120,8 @@ export function CustomerRegisterForm() {
         } catch (error) {
             if (error instanceof ApiError) {
                 toast.error(error.message);
-                if (error.message.includes("email") || error.message.includes("E-mail")) {
+                const msg = error.message.toLowerCase().replace(/[-\s]/g, '');
+                if (msg.includes('email') || msg.includes('e-mail') || msg.includes('mail')) {
                     setError("email", { message: error.message });
                 }
             } else {

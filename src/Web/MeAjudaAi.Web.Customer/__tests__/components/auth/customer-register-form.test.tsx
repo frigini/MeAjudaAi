@@ -110,6 +110,8 @@ describe('CustomerRegisterForm (Stabilized for CI)', () => {
     const { publicFetch, ApiError } = await import('@/lib/api/fetch-client');
     vi.mocked(publicFetch).mockRejectedValueOnce(new ApiError('Email já cadastrado'));
 
+    const toastSpy = (await import('sonner')).toast;
+    
     render(<CustomerRegisterForm />);
     
     // Fill all fields
@@ -122,10 +124,14 @@ describe('CustomerRegisterForm (Stabilized for CI)', () => {
     
     fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
-    // This test might need more implementation in the stable component if we want 
-    // to show API errors, but for now we assert the call was made
+    // Verify the API was called
     await waitFor(() => {
       expect(publicFetch).toHaveBeenCalled();
+    });
+    
+    // Verify the error toast was called
+    await waitFor(() => {
+      expect(toastSpy.error).toHaveBeenCalledWith('Email já cadastrado');
     });
   });
 });

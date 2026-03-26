@@ -208,8 +208,8 @@ test.describe('@e2e Performance - Network', () => {
   });
 
   test('should not have excessive same-origin requests', async ({ page }) => {
-    const origin = new URL(page.url()).origin;
-    let requests: string[] = [];
+    const baseURL = page.context().options?.baseURL || process.env.BASE_URL || 'http://localhost:3000';
+    const origin = new URL('/', baseURL).origin;
     
     page.on('request', (request) => {
       const url = request.url();

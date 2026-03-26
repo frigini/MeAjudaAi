@@ -79,6 +79,6 @@ describe('Sidebar', () => {
     render(<Sidebar />);
     const logoutButton = screen.getByText('Sair');
     logoutButton.click();
-    expect(signOut).toHaveBeenCalledWith({ callbackUrl: "/" });
+    expect(signOut).toHaveBeenCalledWith({ callbackUrl: "/login" });
   });
 });

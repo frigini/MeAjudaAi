@@ -108,17 +108,23 @@ describe('SearchPage', () => {
     vi.mocked(apiProvidersGet4).mockResolvedValue({ data: null, error: { message: 'Erro' } } as any);
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const searchParams = Promise.resolve({});
-    await expect(SearchPage({ searchParams })).rejects.toThrow('Failed to fetch providers');
-    consoleSpy.mockRestore();
+    try {
+      const searchParams = Promise.resolve({});
+      await expect(SearchPage({ searchParams })).rejects.toThrow('Failed to fetch providers');
+    } finally {
+      consoleSpy.mockRestore();
+    }
   });
 
   it('deve lançar erro se a API de categorias falhar', async () => {
     vi.mocked(apiCategoryGet).mockRejectedValue(new Error('API Error'));
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const searchParams = Promise.resolve({ categoryId: 'cat-1' });
-    await expect(SearchPage({ searchParams })).rejects.toThrow('Failed to validate category filter');
-    consoleSpy.mockRestore();
+    try {
+      const searchParams = Promise.resolve({ categoryId: 'cat-1' });
+      await expect(SearchPage({ searchParams })).rejects.toThrow('Failed to validate category filter');
+    } finally {
+      consoleSpy.mockRestore();
+    }
   });
 });
