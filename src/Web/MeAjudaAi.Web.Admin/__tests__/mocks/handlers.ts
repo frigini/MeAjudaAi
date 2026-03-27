@@ -67,7 +67,12 @@ export const handlers = [
     if (!provider) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
     return HttpResponse.json({ data: provider });
   }),
-  http.post('/api/v1/providers', () => HttpResponse.json({ data: mockProvider }, { status: 201 })),
+  http.post('/api/v1/providers', async ({ request }) => {
+    const body = await request.json() as Record<string, unknown>;
+    const newProvider = { ...mockProvider, ...body, id: `provider-${Date.now()}` };
+    providersMap.set(newProvider.id, newProvider);
+    return HttpResponse.json({ data: newProvider }, { status: 201 });
+  }),
   http.put('/api/v1/providers/:id', async ({ params, request }) => {
     try {
       const body = await request.json() as Record<string, unknown>;
@@ -107,7 +112,12 @@ export const handlers = [
     if (!category) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
     return HttpResponse.json({ data: category });
   }),
-  http.post('/api/v1/service-catalogs/categories', () => HttpResponse.json({ data: mockCategory }, { status: 201 })),
+  http.post('/api/v1/service-catalogs/categories', async ({ request }) => {
+    const body = await request.json() as Record<string, unknown>;
+    const newCategory = { ...mockCategory, ...body, id: `category-${Date.now()}` };
+    categoriesMap.set(newCategory.id, newCategory);
+    return HttpResponse.json({ data: newCategory }, { status: 201 });
+  }),
   http.put('/api/v1/service-catalogs/categories/:id', async ({ params, request }) => {
     const category = categoriesMap.get(params.id as string);
     if (!category) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
@@ -129,7 +139,12 @@ export const handlers = [
     if (!city) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
     return HttpResponse.json({ data: city });
   }),
-  http.post('/api/v1/admin/allowed-cities', () => HttpResponse.json({ data: mockCity }, { status: 201 })),
+  http.post('/api/v1/admin/allowed-cities', async ({ request }) => {
+    const body = await request.json() as Record<string, unknown>;
+    const newCity = { ...mockCity, ...body, id: `city-${Date.now()}` };
+    citiesMap.set(newCity.id, newCity);
+    return HttpResponse.json({ data: newCity }, { status: 201 });
+  }),
   http.delete('/api/v1/admin/allowed-cities/:id', ({ params }) => {
     if (!citiesMap.has(params.id as string)) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
     citiesMap.delete(params.id as string);

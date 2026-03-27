@@ -178,9 +178,6 @@
     <PackageVersion Include="Aspire.Hosting.Azure.PostgreSQL" Version="13.1.3" />
     <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.1.3" />
     <PackageVersion Include="Aspire.Hosting.Testing" Version="13.1.3" />
-    <PackageVersion Include="Aspire.Hosting.Azure.PostgreSQL" Version="13.1.3" />
-    <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.1.3" />
-    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.1.3" />
     <!-- Aspire.Hosting.Keycloak: NO STABLE VERSION EXISTS - using latest preview -->
     <!-- Nearest available: 13.1.0-preview.1.25616.3 (updated from 13.0.2-preview.1.25603.5) -->
     <!-- MONITORING: Check https://www.nuget.org/packages/Aspire.Hosting.Keycloak for stable release -->

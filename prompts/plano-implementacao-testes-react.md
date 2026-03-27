@@ -3,16 +3,16 @@
 
 ## 📋 Sumário
 
-1. [Contexto do Projeto](#🏗️-contexto-do-projeto)
-2. [Decisão Arquitetural](#🎯-decisão-arquitetural)
-3. [Bibliotecas e Dependências](#📦-bibliotecas-e-dependências)
-4. [Estrutura de Pastas](#📁-estrutura-de-pastas)
-5. [Configuração](#⚙️-configuração)
-6. [Estrutura dos Arquivos de Teste](#📝-estrutura-dos-arquivos-de-teste)
-7. [Exemplos Práticos](#💡-exemplos-práticos)
-8. [Integração com Pipeline CI/CD](#🔄-integração-com-pipeline-cicd)
-9. [Comandos Úteis](#🎯-comandos-úteis)
-10. [Boas Práticas](#✅-boas-práticas)
+1. [Contexto do Projeto](#contexto-do-projeto)
+2. [Decisão Arquitetural](#decisao-arquitetural)
+3. [Bibliotecas e Dependências](#bibliotecas-e-dependencias)
+4. [Estrutura de Pastas](#estrutura-de-pastas)
+5. [Configuração](#configuracao)
+6. [Estrutura dos Arquivos de Teste](#estrutura-dos-arquivos-de-teste)
+7. [Exemplos Práticos](#exemplos-praticos)
+8. [Integração com Pipeline CI/CD](#integração-com-pipeline-cicd)
+9. [Comandos Úteis](#comandos-uteis)
+10. [Boas Práticas](#boas-praticas)
 ## 11. Checklist de Implementação
 
 ### Fase 1: Fundação (Concluída - Sprint 8E)

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, cleanup, act } from '@testing-library/react';
 import { apiCategoriesGet } from '@/lib/api/generated/sdk.gen';
 import { SearchFilters } from '@/components/search/search-filters';
 
@@ -22,11 +22,10 @@ vi.mock('@/lib/api/generated/sdk.gen', () => ({
 describe('SearchFilters', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    cleanup();
-    render(<SearchFilters />);
   });
 
   it('deve renderizar o componente de filtros e carregar categorias', async () => {
+    render(<SearchFilters />);
     const { apiCategoriesGet } = await import('@/lib/api/generated/sdk.gen');
     await waitFor(() => {
       expect(screen.getByText(/distância/i)).toBeInTheDocument();
@@ -35,15 +34,21 @@ describe('SearchFilters', () => {
   });
 
   it('deve atualizar o rascunho do raio ao deslizar o slider', async () => {
+    render(<SearchFilters />);
     const slider = screen.getByRole('slider');
-    fireEvent.change(slider, { target: { value: '75' } });
+    await act(async () => {
+      fireEvent.change(slider, { target: { value: '75' } });
+    });
     expect(screen.getByText('75 km')).toBeInTheDocument();
   });
 
   it('deve atualizar o filtro de raio no mouseUp', async () => {
+    render(<SearchFilters />);
     const slider = screen.getByRole('slider');
-    fireEvent.change(slider, { target: { value: '75' } });
-    fireEvent.mouseUp(slider);
+    await act(async () => {
+      fireEvent.change(slider, { target: { value: '75' } });
+      fireEvent.mouseUp(slider);
+    });
     
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('radiusInKm=75'), expect.anything());
@@ -51,8 +56,11 @@ describe('SearchFilters', () => {
   });
 
   it('deve atualizar o filtro de avaliação ao selecionar rádio', async () => {
+    render(<SearchFilters />);
     const radio = screen.getByLabelText(/4\+/);
-    fireEvent.click(radio);
+    await act(async () => {
+      fireEvent.click(radio);
+    });
     
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('minRating=4'), expect.anything());
@@ -75,7 +83,7 @@ describe('SearchFilters', () => {
 
   it('deve carregar e exibir categorias do SDK', async () => {
     const mockCats = [{ id: 'cat-1', name: 'Limpeza' }];
-    vi.mocked(apiCategoriesGet).mockResolvedValue({ data: { data: mockCats } } as any);
+    vi.mocked(apiCategoriesGet).mockResolvedValue({ data: { data: mockCats } } as Awaited<ReturnType<typeof apiCategoriesGet>>);
     
     // Re-render to pick up new mock
     render(<SearchFilters />);
@@ -87,7 +95,7 @@ describe('SearchFilters', () => {
 
   it('deve atualizar o filtro de categoria ao selecionar', async () => {
     const mockCats = [{ id: 'cat-1', name: 'Limpeza' }];
-    vi.mocked(apiCategoriesGet).mockResolvedValue({ data: { data: mockCats } } as any);
+    vi.mocked(apiCategoriesGet).mockResolvedValue({ data: { data: mockCats } } as Awaited<ReturnType<typeof apiCategoriesGet>>);
     render(<SearchFilters />);
     
     await waitFor(() => screen.getByText('Limpeza'));

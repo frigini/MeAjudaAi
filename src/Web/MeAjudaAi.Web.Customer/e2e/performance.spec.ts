@@ -117,7 +117,7 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
     }
     
     // PerformanceEventTiming - use real click from test harness
-    const metrics = await page.evaluate((): Promise<{ inp: number; samples: number }> => {
+    const metricsPromise = page.evaluate((): Promise<{ inp: number; samples: number }> => {
       return new Promise((resolve) => {
         const inpEntries: number[] = [];
         const observer = new PerformanceObserver((list) => {
@@ -131,17 +131,21 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
             }
           }
         });
-        observer.observe({ type: 'event', buffered: true, durationThreshold: 0 });
+        observer.observe({ type: 'event', buffered: true, durationThreshold: 0 } as Parameters<PerformanceObserver['observe']>[0]);
         
+        // Resolve after some time to capture events
         setTimeout(() => {
           observer.disconnect();
           const maxInp = inpEntries.length > 0 ? Math.max(...inpEntries) : 0;
           resolve({ inp: maxInp, samples: inpEntries.length });
-        }, 2000);
+        }, 3000); 
       });
     });
     
+    // Trigger the interaction while the observer is active
     await page.click('#inp-test-button');
+    
+    const metrics = await metricsPromise;
     
     expect(metrics.samples).toBeGreaterThan(0);
     expect(metrics.inp).toBeLessThan(150);

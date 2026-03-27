@@ -67,7 +67,6 @@
     <NoWarn>$(NoWarn);S1075</NoWarn> <!-- URI paths - necessário para documentação da API -->
     
     <!-- NuGet Package Source Warnings -->
-    <NoWarn>$(NoWarn);NU1506</NoWarn> <!-- Duplicate PackageVersion with CPM + Aspire -->
     <NoWarn>$(NoWarn);NU1507</NoWarn> <!-- Multiple package sources with CPM - esperado durante .NET 10 preview -->
     <NoWarn>$(NoWarn);NU1601</NoWarn> <!-- Dependency version mismatch - esperado para Aspire preview -->
     

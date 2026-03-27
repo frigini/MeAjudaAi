@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ServiceSelector } from '@/components/providers/service-selector';
 
 describe('ServiceSelector', () => {
-  let fetchSpy: any;
+  let fetchSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     fetchSpy = vi.spyOn(global, 'fetch');
@@ -53,13 +53,17 @@ describe('ServiceSelector', () => {
       expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole('combobox'));
+    await act(async () => {
+      await user.click(screen.getByRole('combobox'));
+    });
 
     await waitFor(() => {
       expect(screen.getByText('Elétrica')).toBeInTheDocument();
     });
 
-    await user.click(screen.getByText('Elétrica'));
+    await act(async () => {
+      await user.click(screen.getByText('Elétrica'));
+    });
 
     expect(onSelect).toHaveBeenCalledWith('1');
   });

@@ -14,24 +14,24 @@ describe('Utility Functions Coverage', () => {
 
     describe('normalization utils', () => {
         it('deve normalizar tipo de provedor', () => {
-            expect(normalizeProviderType(EProviderType.Individual)).toBe(EProviderType.Individual);
-            expect(normalizeProviderType('individual')).toBe(EProviderType.Individual);
-            expect(normalizeProviderType('pessoafisica')).toBe(EProviderType.Individual);
-            expect(normalizeProviderType('company')).toBe(EProviderType.Company);
-            expect(normalizeProviderType('none')).toBe(EProviderType.None);
-            expect(normalizeProviderType('1')).toBe(1);
-            expect(normalizeProviderType({})).toBe(EProviderType.None);
-        });
+            expect(normalizeProviderType(EProviderType.Individual)).toBe(EProviderType.Individual)
+            expect(normalizeProviderType('individual')).toBe(EProviderType.Individual)
+            expect(normalizeProviderType('pessoafisica')).toBe(EProviderType.Individual)
+            expect(normalizeProviderType('company')).toBe(EProviderType.Company)
+            expect(normalizeProviderType('none')).toBe(EProviderType.None)
+            expect(normalizeProviderType('1')).toBe(EProviderType.Individual) // Assuming 1 means Individual
+            expect(normalizeProviderType({})).toBe(EProviderType.None)
+        })
 
         it('deve normalizar status de verificação', () => {
-            expect(normalizeVerificationStatus(EVerificationStatus.Verified)).toBe(EVerificationStatus.Verified);
-            expect(normalizeVerificationStatus('verified')).toBe(EVerificationStatus.Verified);
-            expect(normalizeVerificationStatus('rejected')).toBe(EVerificationStatus.Rejected);
-            expect(normalizeVerificationStatus('inprogress')).toBe(EVerificationStatus.InProgress);
-            expect(normalizeVerificationStatus('1')).toBe(1);
-            expect(normalizeVerificationStatus('none')).toBe(EVerificationStatus.None);
-            expect(normalizeVerificationStatus('unknown')).toBe(undefined);
-            expect(normalizeVerificationStatus({})).toBeUndefined();
-        });
+            expect(normalizeVerificationStatus(EVerificationStatus.Verified)).toBe(EVerificationStatus.Verified)
+            expect(normalizeVerificationStatus('verified')).toBe(EVerificationStatus.Verified)
+            expect(normalizeVerificationStatus('rejected')).toBe(EVerificationStatus.Rejected)
+            expect(normalizeVerificationStatus('inprogress')).toBe(EVerificationStatus.InProgress)
+            expect(normalizeVerificationStatus('1')).toBe(EVerificationStatus.Pending) // 1 is Pending
+            expect(normalizeVerificationStatus('none')).toBe(EVerificationStatus.None)
+            expect(normalizeVerificationStatus('unknown')).toBe(undefined)
+            expect(normalizeVerificationStatus({})).toBeUndefined()
+        })
     });
 });

@@ -111,6 +111,22 @@ resource privateDnsZoneLink 'Microsoft.Network/privateDnsZones/virtualNetworkLin
   }
 }
 
+// Link Private Endpoint to DNS Zone
+resource postgresPrivateDnsZoneGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-01-01' = if (vnetSubnetId != '' && vnetId != '') {
+  parent: postgresPrivateEndpoint
+  name: 'default'
+  properties: {
+    privateDnsZoneConfigs: [
+      {
+        name: 'privatelink-postgres-database-azure-com'
+        properties: {
+          privateDnsZoneId: privateDnsZone.id
+        }
+      }
+    ]
+  }
+}
+
 // Redis Cache (Azure Managed Redis / Redis Enterprise)
 resource redisCache 'Microsoft.Cache/redisEnterprise@2024-02-01' = {
   name: redisCacheName
@@ -147,5 +163,5 @@ output postgresHost string = postgresServer.properties.fullyQualifiedDomainName
 output postgresDatabase string = postgresDatabaseName
 output redisHost string = redisDatabase.properties.endpoint
 output serviceBusNamespace string = serviceBusNamespaceName
-output postgresPrivateEndpointIp string = (vnetSubnetId != '') ? '${postgresPrivateEndpoint.properties.customNetworkInterfaceName}' : ''
+output postgresPrivateEndpointIp string = (vnetSubnetId != '') ? postgresPrivateEndpoint.properties.customNetworkInterfaceName : ''
 output privateDnsZoneName string = (vnetId != '') ? privateDnsZone.name : ''

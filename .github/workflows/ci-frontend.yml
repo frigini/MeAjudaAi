@@ -99,12 +99,10 @@ jobs:
         if: always()
         continue-on-error: true
         with:
-          filename: "coverage-global/cobertura-coverage.xml"
+          filename: "src/Web/coverage-global/cobertura-coverage.xml"
           badge: true
           format: markdown
           output: both
-          output-file: code-coverage-results.md
-          fail_if_missing: false
 
       - name: Upload coverage reports
         if: always()

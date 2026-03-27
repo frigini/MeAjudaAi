@@ -4,15 +4,15 @@
 ## Sumário
 
 1. [Contexto do Projeto](#contexto-do-projeto)
-2. [Decisao Arquitetural](#decisao-arquitetural)
-3. [Bibliotecas e Dependencias](#bibliotecas-e-dependencias)
+2. [Decisão Arquitetural](#decisao-arquitetural)
+3. [Bibliotecas e Dependências](#bibliotecas-e-dependencias)
 4. [Estrutura de Pastas](#estrutura-de-pastas)
-5. [Configuracao](#configuracao)
+5. [Configuração](#configuracao)
 6. [Estrutura dos Arquivos de Teste](#estrutura-dos-arquivos-de-teste)
 7. [Integração com Pipeline CI/CD](#integração-com-pipeline-cicd)
-8. [Pipeline CI/CD Robusta (Ref. Medium)](#pipeline-cicd-robusta-ref-medium)
+8. [Pipeline CI/CD Robusta](#pipeline-cicd-robusta-ref-medium)
 9. [Comandos Úteis](#comandos-úteis)
-10. [Boas Práticas](#boas-práticas)
+10. [Boas Práticas](#boas-praticas)
 
 ---
 
@@ -201,11 +201,10 @@ MeAjudaAi.Web.Customer.Tests/
 Os testes espelham a estrutura do projeto principal:
 
 ```text
-src/Web/MeAjudaAi.Web.Customer/src/     →  tests/MeAjudaAi.Web.Customer.Tests/src/
-    components/Button/Button.tsx        →      components/Button/Button.test.tsx
-    hooks/useAuth.ts                    →      hooks/useAuth.test.ts
-    pages/Home/Home.tsx                 →      pages/Home/Home.test.tsx
-    utils/formatters.ts                 →      utils/formatters.test.ts
+src/Web/MeAjudaAi.Web.Customer/     →  src/Web/MeAjudaAi.Web.Customer/__tests__/
+    components/Button/Button.tsx  →      components/ui/button.test.tsx
+    hooks/useAuth.ts              →      hooks/use-auth.test.ts
+    lib/utils/phone.ts            →      lib/utils/phone.test.ts
 ```
 
 ### Estrutura de Nomenclatura
