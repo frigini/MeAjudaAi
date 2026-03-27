@@ -99,6 +99,8 @@ jobs:
           badge: true
           format: markdown
           output: both
+          output-file: code-coverage-results.md
+          fail_if_missing: false
 
       - name: Upload coverage reports
         if: always()
