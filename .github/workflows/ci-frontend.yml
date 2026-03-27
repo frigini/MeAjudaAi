@@ -95,7 +95,7 @@ jobs:
         if: always()
         continue-on-error: true
         with:
-          filename: "src/Web/**/cobertura-coverage.xml"
+          filename: "**/cobertura-coverage.xml"
           badge: true
           format: markdown
           output: both
@@ -108,8 +108,8 @@ jobs:
         with:
           name: coverage-frontend
           path: |
-            src/Web/**/coverage/cobertura-coverage.xml
-            src/Web/coverage-global/cobertura-coverage.xml
+            **/coverage/cobertura-coverage.xml
+            coverage-global/cobertura-coverage.xml
           retention-days: 30
 
       - name: Add Coverage PR Comment
