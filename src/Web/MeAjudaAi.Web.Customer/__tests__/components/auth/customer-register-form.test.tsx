@@ -137,4 +137,39 @@ describe('CustomerRegisterForm (Stabilized for CI)', () => {
       expect(screen.getByText(/email já cadastrado/i)).toBeInTheDocument();
     });
   });
+
+  it('deve redirecionar o usuário após sucesso no registro', async () => {
+    const { publicFetch } = await import('@/lib/api/fetch-client');
+    vi.mocked(publicFetch).mockResolvedValueOnce({ 
+      success: true, 
+      data: { id: '123', name: 'João da Silva', email: 'joao@email.com' } 
+    });
+    
+    render(<CustomerRegisterForm />);
+    
+    // Fill all fields
+    fireEvent.change(screen.getByLabelText(/nome completo/i), { target: { value: 'João da Silva' } });
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'joao@email.com' } });
+    fireEvent.change(screen.getByLabelText(/celular/i), { target: { value: '11988887777' } });
+    fireEvent.change(screen.getByLabelText(/^senha$/i), { target: { value: 'Senha123' } });
+    fireEvent.change(screen.getByLabelText(/confirmar senha/i), { target: { value: 'Senha123' } });
+    fireEvent.click(screen.getByLabelText(/eu aceito os termos/i));
+    
+    fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
+
+    // Verify success toast and redirection
+    const { toast } = await import('sonner');
+    await waitFor(() => {
+      expect(publicFetch).toHaveBeenCalled();
+      expect(toast.success).toHaveBeenCalledWith(
+        expect.stringContaining('Conta criada'),
+        expect.any(Object)
+      );
+    });
+
+    // Wait for the 2s redirect delay
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/auth/login');
+    }, { timeout: 4000 });
+  });
 });
