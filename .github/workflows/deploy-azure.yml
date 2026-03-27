@@ -47,7 +47,10 @@ jobs:
 
       - name: Validate Bicep templates
         run: |
-          az group create \
+          az group show \
+            --name meajudaai-${{ env.ENVIRONMENT }}-rg \
+            --location ${{ env.AZURE_LOCATION }} \
+          || az group create \
             --name meajudaai-${{ env.ENVIRONMENT }}-rg \
             --location ${{ env.AZURE_LOCATION }}
           az bicep build --file infrastructure/main.bicep

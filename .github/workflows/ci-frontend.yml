@@ -116,5 +116,4 @@ jobs:
         with:
           recreate: true
           header: coverage-report-frontend
-          message: "No coverage report available. Run tests with coverage enabled first."
-          path: ""
+          path: "code-coverage-results.md"

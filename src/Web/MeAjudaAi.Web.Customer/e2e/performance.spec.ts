@@ -20,9 +20,11 @@ test.describe('@e2e Customer Web App - Mobile Responsiveness', () => {
     expect(count).toBeGreaterThan(0);
     
     const box = await userMenuButton.boundingBox();
+    expect(box).not.toBeNull();
+    if (!box) throw new Error('userMenuButton has no layout/bounding box');
     
-    expect(box?.height).toBeGreaterThanOrEqual(44);
-    expect(box?.width).toBeGreaterThanOrEqual(44);
+    expect(box.height).toBeGreaterThanOrEqual(44);
+    expect(box.width).toBeGreaterThanOrEqual(44);
   });
 
   test('should adapt forms for mobile', async ({ page }) => {
@@ -35,7 +37,9 @@ test.describe('@e2e Customer Web App - Mobile Responsiveness', () => {
     
     const firstInput = formInputs.first();
     const box = await firstInput.boundingBox();
-    expect(box?.width).toBeLessThanOrEqual(mobileViewport.width - 32);
+    expect(box).not.toBeNull();
+    if (!box) throw new Error('firstInput has no layout/bounding box');
+    expect(box.width).toBeLessThanOrEqual(mobileViewport.width - 32);
   });
 });
 

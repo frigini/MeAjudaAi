@@ -30,56 +30,105 @@ const mockUser = {
   email: 'usuario@teste.com',
 };
 
+const providersMap = new Map<string, typeof mockProvider>();
+providersMap.set(mockProvider.id, { ...mockProvider });
+
+const categoriesMap = new Map<string, typeof mockCategory>();
+categoriesMap.set(mockCategory.id, { ...mockCategory });
+
+const citiesMap = new Map<string, typeof mockCity>();
+citiesMap.set(mockCity.id, { ...mockCity });
+
+const usersMap = new Map<string, typeof mockUser>();
+usersMap.set(mockUser.id, { ...mockUser });
+
 // Admin handlers should match the SDK paths (usually /api/v1/...)
 export const handlers = [
   // Providers
   http.get('/api/v1/providers', () =>
-    HttpResponse.json({ data: { items: [mockProvider], totalPages: 1, totalItems: 1 } })
+    HttpResponse.json({ data: { items: Array.from(providersMap.values()), totalPages: 1, totalItems: providersMap.size } })
   ),
-  http.get('/api/v1/providers/:id', ({ params }) =>
-    HttpResponse.json({ data: { ...mockProvider, id: params.id as string } })
-  ),
+  http.get('/api/v1/providers/:id', ({ params }) => {
+    const provider = providersMap.get(params.id as string);
+    if (!provider) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
+    return HttpResponse.json({ data: provider });
+  }),
   http.post('/api/v1/providers', () => HttpResponse.json({ data: mockProvider }, { status: 201 })),
   http.put('/api/v1/providers/:id', async ({ params, request }) => {
-    const body = await request.json() as Record<string, unknown>;
-    // Removed strict mockProvider.id check to allow testing with different IDs
-    if (!params.id) return new HttpResponse(null, { status: 404 });
-    return HttpResponse.json({ data: { ...mockProvider, ...body, id: params.id as string } });
+    try {
+      const body = await request.json() as Record<string, unknown>;
+      const existing = providersMap.get(params.id as string);
+      if (!existing) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
+      const updated = { ...existing, ...body, id: params.id as string };
+      providersMap.set(params.id as string, updated);
+      return HttpResponse.json({ data: updated });
+    } catch {
+      return HttpResponse.json({ error: 'Bad Request', message: 'Invalid JSON' }, { status: 400 });
+    }
   }),
   http.delete('/api/v1/providers/:id', ({ params }) => {
-    if (!params.id) return new HttpResponse(null, { status: 404 });
+    if (!providersMap.has(params.id as string)) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
+    providersMap.delete(params.id as string);
     return new HttpResponse(null, { status: 204 });
   }),
   http.post('/api/v1/providers/:id/activate', ({ params }) => {
-    return HttpResponse.json({ data: { ...mockProvider, id: params.id as string, verificationStatus: EVerificationStatus.Verified } });
+    const provider = providersMap.get(params.id as string);
+    if (!provider) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
+    const updated = { ...provider, verificationStatus: EVerificationStatus.Verified };
+    providersMap.set(params.id as string, updated);
+    return HttpResponse.json({ data: updated });
   }),
   http.post('/api/v1/providers/:id/deactivate', ({ params }) => {
-    return HttpResponse.json({ data: { ...mockProvider, id: params.id as string, verificationStatus: EVerificationStatus.Suspended } });
+    const provider = providersMap.get(params.id as string);
+    if (!provider) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
+    const updated = { ...provider, verificationStatus: EVerificationStatus.Suspended };
+    providersMap.set(params.id as string, updated);
+    return HttpResponse.json({ data: updated });
   }),
 
   // Categories
-  http.get('/api/v1/service-catalogs/categories', () => HttpResponse.json({ data: [mockCategory] })),
-  http.get('/api/v1/service-catalogs/categories/:id', ({ params }) =>
-    HttpResponse.json({ data: { ...mockCategory, id: params.id as string } })
-  ),
+  http.get('/api/v1/service-catalogs/categories', () => HttpResponse.json({ data: Array.from(categoriesMap.values()) })),
+  http.get('/api/v1/service-catalogs/categories/:id', ({ params }) => {
+    const category = categoriesMap.get(params.id as string);
+    if (!category) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
+    return HttpResponse.json({ data: category });
+  }),
   http.post('/api/v1/service-catalogs/categories', () => HttpResponse.json({ data: mockCategory }, { status: 201 })),
-  http.put('/api/v1/service-catalogs/categories/:id', ({ params }) => 
-    HttpResponse.json({ data: { ...mockCategory, id: params.id as string } })
-  ),
-  http.delete('/api/v1/service-catalogs/categories/:id', () => new HttpResponse(null, { status: 204 })),
+  http.put('/api/v1/service-catalogs/categories/:id', ({ params }) => {
+    const category = categoriesMap.get(params.id as string);
+    if (!category) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
+    return HttpResponse.json({ data: { ...category, id: params.id as string } });
+  }),
+  http.delete('/api/v1/service-catalogs/categories/:id', ({ params }) => {
+    if (!categoriesMap.has(params.id as string)) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
+    categoriesMap.delete(params.id as string);
+    return new HttpResponse(null, { status: 204 });
+  }),
 
   // Allowed Cities
-  http.get('/api/v1/admin/allowed-cities', () => HttpResponse.json({ data: [mockCity] })),
-  http.get('/api/v1/admin/allowed-cities/:id', ({ params }) =>
-    HttpResponse.json({ data: { ...mockCity, id: params.id as string } })
-  ),
+  http.get('/api/v1/admin/allowed-cities', () => HttpResponse.json({ data: Array.from(citiesMap.values()) })),
+  http.get('/api/v1/admin/allowed-cities/:id', ({ params }) => {
+    const city = citiesMap.get(params.id as string);
+    if (!city) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
+    return HttpResponse.json({ data: city });
+  }),
   http.post('/api/v1/admin/allowed-cities', () => HttpResponse.json({ data: mockCity }, { status: 201 })),
-  http.delete('/api/v1/admin/allowed-cities/:id', () => new HttpResponse(null, { status: 204 })),
+  http.delete('/api/v1/admin/allowed-cities/:id', ({ params }) => {
+    if (!citiesMap.has(params.id as string)) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
+    citiesMap.delete(params.id as string);
+    return new HttpResponse(null, { status: 204 });
+  }),
 
   // Users
-  http.get('/api/v1/users', () => HttpResponse.json({ data: [mockUser] })),
-  http.get('/api/v1/users/:id', ({ params }) =>
-    HttpResponse.json({ data: { ...mockUser, id: params.id as string } })
-  ),
-  http.delete('/api/v1/users/:id', () => new HttpResponse(null, { status: 204 })),
+  http.get('/api/v1/users', () => HttpResponse.json({ data: Array.from(usersMap.values()) })),
+  http.get('/api/v1/users/:id', ({ params }) => {
+    const user = usersMap.get(params.id as string);
+    if (!user) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
+    return HttpResponse.json({ data: user });
+  }),
+  http.delete('/api/v1/users/:id', ({ params }) => {
+    if (!usersMap.has(params.id as string)) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
+    usersMap.delete(params.id as string);
+    return new HttpResponse(null, { status: 204 });
+  }),
 ];

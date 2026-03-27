@@ -93,6 +93,14 @@ describe('CustomerRegisterForm (Stabilized for CI)', () => {
     expect(phoneInput).toHaveValue('(11) 98888-7777');
   });
 
+  it('deve aplicar máscara de 10 dígitos no campo de telefone', () => {
+    render(<CustomerRegisterForm />);
+    const phoneInput = screen.getByLabelText(/celular/i);
+    
+    fireEvent.change(phoneInput, { target: { value: '1198887777' } });
+    expect(phoneInput).toHaveValue('(11) 9888-7777');
+  });
+
   it('deve validar termos de uso', async () => {
     render(<CustomerRegisterForm />);
     const submitBtn = screen.getByRole('button', { name: /criar conta/i });

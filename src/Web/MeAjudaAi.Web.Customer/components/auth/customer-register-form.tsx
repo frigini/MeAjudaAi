@@ -15,15 +15,22 @@ import { cn } from "@/lib/utils";
 
 function maskPhone(value: string) {
     const numbers = value.replace(/\D/g, "");
-    if (numbers.length <= 11) {
+    if (numbers.length === 10) {
         return numbers
-            .replace(/(\d{2})(\d)/, "($1) $2")
-            .replace(/(\d{5})(\d)/, "$1-$2")
-            .replace(/(-\d{4})\d+?$/, "$1");
+            .replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+    }
+    if (numbers.length === 11) {
+        return numbers
+            .replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+    }
+    if (numbers.length > 11) {
+        return numbers
+            .replace(/(\d{2})(\d{4})(\d)/, "($1) $2")
+            .replace(/(\d{4})\d+?$/, "$1");
     }
     return numbers
         .replace(/(\d{2})(\d)/, "($1) $2")
-        .replace(/(\d{4})(\d)/, "$1-$2")
+        .replace(/(\d{5})(\d)/, "$1-$2")
         .replace(/(-\d{4})\d+?$/, "$1");
 }
 
@@ -101,8 +108,8 @@ export function CustomerRegisterForm() {
                 email: data.email?.trim(),
                 phoneNumber: data.phoneNumber?.replace(/\D/g, ""),
                 password: data.password,
-                TermsAccepted: data.acceptedTerms,
-                AcceptedPrivacyPolicy: data.acceptedTerms,
+                termsAccepted: data.acceptedTerms,
+                acceptedPrivacyPolicy: data.acceptedTerms,
             };
             await publicFetch("/api/v1/users/register", {
                 method: "post",
@@ -115,9 +122,12 @@ export function CustomerRegisterForm() {
 
             timerRef.current = setTimeout(() => {
                 router.push("/auth/login");
+                setIsLoading(false);
             }, 2000);
+            return;
 
         } catch (error) {
+            setIsLoading(false);
             if (error instanceof ApiError) {
                 toast.error(error.message);
                 const msg = error.message.toLowerCase().replace(/[-\s]/g, '');
@@ -127,8 +137,6 @@ export function CustomerRegisterForm() {
             } else {
                 toast.error("Ocorreu um erro ao criar sua conta. Tente novamente.");
             }
-        } finally {
-            setIsLoading(false);
         }
     }
 
@@ -185,6 +193,8 @@ export function CustomerRegisterForm() {
                             <Input
                                 id="password"
                                 type={showPassword ? "text" : "password"}
+                                aria-invalid={!!errors.password}
+                                aria-describedby="password-error"
                                 {...register("password")}
                             />
                             <Button
@@ -238,6 +248,8 @@ export function CustomerRegisterForm() {
                     <Checkbox
                         id="acceptedTerms"
                         checked={acceptedTerms}
+                        aria-invalid={!!errors.acceptedTerms}
+                        aria-describedby="acceptedTerms-error"
                         onCheckedChange={(checked) => setValue("acceptedTerms", checked === true)}
                     />
                     <div className="space-y-1 leading-none">
@@ -251,7 +263,7 @@ export function CustomerRegisterForm() {
                                 política de privacidade
                             </a>
                         </label>
-                        {errors.acceptedTerms && <p className="text-sm font-medium text-destructive">{errors.acceptedTerms.message}</p>}
+                        {errors.acceptedTerms && <p id="acceptedTerms-error" className="text-sm font-medium text-destructive" role="alert">{errors.acceptedTerms.message}</p>}
                     </div>
                 </div>
 

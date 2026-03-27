@@ -3,16 +3,16 @@
 
 ## 📋 Sumário
 
-1. [Contexto do Projeto](#contexto-do-projeto)
-2. [Decisão Arquitetural](#decisão-arquitetural)
-3. [Bibliotecas e Dependências](#bibliotecas-e-dependências)
-4. [Estrutura de Pastas](#estrutura-de-pastas)
-5. [Configuração](#configuração)
-6. [Estrutura dos Arquivos de Teste](#estrutura-dos-arquivos-de-teste)
-7. [Exemplos Práticos](#exemplos-práticos)
-8. [Integração com Pipeline CI/CD](#integração-com-pipeline-cicd)
-9. [Comandos Úteis](#comandos-úteis)
-10. [Boas Práticas](#boas-práticas)
+1. [Contexto do Projeto](#🏗️-contexto-do-projeto)
+2. [Decisão Arquitetural](#🎯-decisão-arquitetural)
+3. [Bibliotecas e Dependências](#📦-bibliotecas-e-dependências)
+4. [Estrutura de Pastas](#📁-estrutura-de-pastas)
+5. [Configuração](#⚙️-configuração)
+6. [Estrutura dos Arquivos de Teste](#📝-estrutura-dos-arquivos-de-teste)
+7. [Exemplos Práticos](#💡-exemplos-práticos)
+8. [Integração com Pipeline CI/CD](#🔄-integração-com-pipeline-cicd)
+9. [Comandos Úteis](#🎯-comandos-úteis)
+10. [Boas Práticas](#✅-boas-práticas)
 ## 11. Checklist de Implementação
 
 ### Fase 1: Fundação (Concluída - Sprint 8E)
@@ -275,8 +275,8 @@ global.ResizeObserver = class ResizeObserver {
 Custom render com providers comuns:
 
 ```typescript
-import { ReactElement } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
+import React, { ReactElement, useMemo } from 'react';
+import { render, RenderOptions, renderHook, RenderHookOptions, RenderHookResult } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Cria um QueryClient limpo para cada teste
@@ -296,10 +296,11 @@ function createTestQueryClient() {
 
 interface AllTheProvidersProps {
   children: React.ReactNode;
+  queryClient?: QueryClient;
 }
 
-const AllTheProviders = ({ children }: AllTheProvidersProps) => {
-  const queryClient = createTestQueryClient();
+const AllTheProviders = ({ children, queryClient: client }: AllTheProvidersProps) => {
+  const queryClient = useMemo(() => client ?? createTestQueryClient(), [client]);
   return (
     <QueryClientProvider client={queryClient}>
       {children}
@@ -312,10 +313,23 @@ const customRender = (
   options?: Omit<RenderOptions, 'wrapper'>
 ) => render(ui, { wrapper: AllTheProviders, ...options });
 
+const AllTheProvidersWrapper = ({ children }: { children: React.ReactNode }) => (
+  <AllTheProviders>{children}</AllTheProviders>
+);
+
+function customRenderHook<TProps, TValue>(
+  callback: (props: TProps) => TValue,
+  options?: Omit<RenderHookOptions<TProps>, 'wrapper'>
+): RenderHookResult<TValue, TProps> {
+  return renderHook(callback, { wrapper: AllTheProvidersWrapper, ...options });
+}
+
 // Re-exporta tudo
 export * from '@testing-library/react';
 export { customRender as render };
+export { customRenderHook as renderHook };
 export { createTestQueryClient };
+export { AllTheProvidersWrapper };
 ```
 
 ### 3. `libs/test-support/src/mock-data.ts`
@@ -733,8 +747,14 @@ describe('LoginForm', () => {
     "test:all": "npm run test:customer && npm run test:admin && npm run test:provider",
     "test": "npm run test:all",
     "test:customer": "cd MeAjudaAi.Web.Customer && npx vitest run --config vitest.config.ts",
-    "test:admin": "cd MeAjudaAi.Web.Admin && npx vitest run --config vitest.config.ts --passWithNoTests",
-    "test:provider": "cd MeAjudaAi.Web.Provider && npx vitest run --config vitest.config.ts --passWithNoTests",
+    "test:admin": "cd MeAjudaAi.Web.Admin && npx vitest run --config vitest.config.ts",
+    "test:provider": "cd MeAjudaAi.Web.Provider && npx vitest run --config vitest.config.ts",
+    "test:customer:watch": "cd MeAjudaAi.Web.Customer && npx vitest --config vitest.config.ts",
+    "test:admin:watch": "cd MeAjudaAi.Web.Admin && npx vitest --config vitest.config.ts",
+    "test:provider:watch": "cd MeAjudaAi.Web.Provider && npx vitest --config vitest.config.ts",
+    "test:customer:coverage": "cd MeAjudaAi.Web.Customer && npx vitest run --coverage --config vitest.config.ts",
+    "test:admin:coverage": "cd MeAjudaAi.Web.Admin && npx vitest run --coverage --config vitest.config.ts",
+    "test:provider:coverage": "cd MeAjudaAi.Web.Provider && npx vitest run --coverage --config vitest.config.ts",
     "test:coverage:all": "npm run test:customer:coverage && npm run test:admin:coverage && npm run test:provider:coverage",
     "test:coverage:merge": "node scripts/merge-coverage.mjs",
     "test:coverage:global": "npm run test:coverage:all && npm run test:coverage:merge",

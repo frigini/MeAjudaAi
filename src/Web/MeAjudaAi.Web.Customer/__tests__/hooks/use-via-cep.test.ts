@@ -23,9 +23,11 @@ describe('useViaCep Hook', () => {
   it('deve retornar null para CEP inválido', async () => {
     const { result } = renderHook(() => useViaCep());
     
-    const address = await result.current.fetchAddress('123');
-    
-    expect(address).toBeNull();
+    const invalidCeps = ['123', '12', '', '12345'];
+    for (const cep of invalidCeps) {
+      const address = await result.current.fetchAddress(cep);
+      expect(address).toBeNull();
+    }
     expect(result.current.isLoading).toBe(false);
   });
 
@@ -115,13 +117,5 @@ describe('useViaCep Hook', () => {
     expect(address2).toEqual(mockCepData2);
     
     expect(mockFetch).toHaveBeenCalledTimes(2);
-  });
-
-  it('deve retornar null para CEP com menos de 8 dígitos', async () => {
-    const { result } = renderHook(() => useViaCep());
-    
-    const address = await result.current.fetchAddress('12345');
-    
-    expect(address).toBeNull();
   });
 });
