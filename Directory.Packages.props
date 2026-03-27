@@ -178,8 +178,6 @@
     <PackageVersion Include="Aspire.Hosting.Azure.PostgreSQL" Version="13.1.3" />
     <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.1.3" />
     <PackageVersion Include="Aspire.Hosting.Testing" Version="13.1.3" />
-    <!-- Aspire.Hosting.Orchestration.linux-x64: Used by CI for integration tests -->
-    <PackageVersion Include="Aspire.Hosting.Orchestration.linux-x64" Version="13.0.2" />
     <PackageVersion Include="Aspire.Hosting.Azure.PostgreSQL" Version="13.1.3" />
     <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.1.3" />
     <PackageVersion Include="Aspire.Hosting.Testing" Version="13.1.3" />
