@@ -37,7 +37,7 @@ permissions:
 
 env:
   DOTNET_VERSION: "10.0.x"
-  STRICT_COVERAGE: false
+  STRICT_COVERAGE: true
   POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
   POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
   POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}

@@ -9,6 +9,9 @@
           <Exclude>[*.Tests*]*,[*Test*]*,[testhost]*,[*]*Migrations*,[*]*.Database,[*]*DbContextFactory*,[*]*.Program,[*Microsoft.AspNetCore.OpenApi.Generated*]*,[*System.Runtime.CompilerServices*]*,[*System.Text.RegularExpressions.Generated*]*</Exclude>
           <ExcludeByFile>**/Migrations/*.cs,**/Migrations/**/*.cs,**/Database/*.cs,**/*DbContextFactory.cs,**/Program.cs</ExcludeByFile>
           <ExcludeByAttribute>Obsolete,GeneratedCode,CompilerGenerated</ExcludeByAttribute>
+          <Threshold>90</Threshold>
+          <ThresholdType>line</ThresholdType>
+          <ThresholdStat>total</ThresholdStat>
         </Configuration>
       </DataCollector>
     </DataCollectors>

@@ -66,6 +66,11 @@ generate_runsettings() {
         echo "          <Exclude>${exclude_filter}</Exclude>"
         echo "          <ExcludeByFile>${exclude_by_file}</ExcludeByFile>"
         echo "          <ExcludeByAttribute>${exclude_by_attr}</ExcludeByAttribute>"
+        if [ "${STRICT_COVERAGE:-false}" = "true" ]; then
+            echo '          <Threshold>90</Threshold>'
+            echo '          <ThresholdType>line</ThresholdType>'
+            echo '          <ThresholdStat>total</ThresholdStat>'
+        fi
         echo '        </Configuration>'
         echo '      </DataCollector>'
         echo '    </DataCollectors>'
