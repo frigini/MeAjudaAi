@@ -42,7 +42,8 @@ describe('SearchFilters', () => {
 
   it('deve atualizar o filtro de raio no mouseUp', async () => {
     const slider = screen.getByRole('slider');
-    fireEvent.mouseUp(slider, { target: { value: '75' } });
+    fireEvent.change(slider, { target: { value: '75' } });
+    fireEvent.mouseUp(slider);
     
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('radiusInKm=75'), expect.anything());

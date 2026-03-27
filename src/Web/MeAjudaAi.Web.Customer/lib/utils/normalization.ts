@@ -1,13 +1,28 @@
 import { EProviderType, EVerificationStatus } from "@/types/api/provider";
 
-const providerTypeValues = Object.values(EProviderType).filter((v): v is number => typeof v === 'number');
+function isValidProviderType(val: number): val is EProviderType {
+    return val === EProviderType.None || 
+           val === EProviderType.Individual || 
+           val === EProviderType.Company || 
+           val === EProviderType.Cooperative || 
+           val === EProviderType.Freelancer;
+}
+
+function isValidVerificationStatus(val: number): val is EVerificationStatus {
+    return val === EVerificationStatus.None || 
+           val === EVerificationStatus.Pending || 
+           val === EVerificationStatus.InProgress || 
+           val === EVerificationStatus.Verified || 
+           val === EVerificationStatus.Rejected || 
+           val === EVerificationStatus.Suspended;
+}
 
 /**
  * Normaliza valores de entrada para o enum EProviderType.
  */
 export function normalizeProviderType(val: unknown): EProviderType {
     if (typeof val === 'number' && Number.isInteger(val)) {
-        return providerTypeValues.includes(val) ? val : EProviderType.None;
+        return isValidProviderType(val) ? val : EProviderType.None;
     }
     if (typeof val === 'string') {
         const lower = val.toLowerCase();
@@ -19,7 +34,7 @@ export function normalizeProviderType(val: unknown): EProviderType {
 
         if (/^\d+$/.test(val)) {
             const num = parseInt(val, 10);
-            if (providerTypeValues.includes(num)) {
+            if (isValidProviderType(num)) {
                 return num;
             }
         }
@@ -33,7 +48,11 @@ export function normalizeProviderType(val: unknown): EProviderType {
 export function normalizeVerificationStatus(val: unknown): EVerificationStatus | undefined {
     if (typeof val === 'string') {
         if (/^\d+$/.test(val) || /^\+\d+$/.test(val)) {
-            return parseInt(val.replace('+', ''), 10) as EVerificationStatus;
+            const num = parseInt(val.replace('+', ''), 10);
+            if (Number.isFinite(num) && Number.isInteger(num) && isValidVerificationStatus(num)) {
+                return num;
+            }
+            return undefined;
         }
         const lower = val.toLowerCase();
         if (lower === 'verified') return EVerificationStatus.Verified;
@@ -44,7 +63,9 @@ export function normalizeVerificationStatus(val: unknown): EVerificationStatus |
         return undefined;
     }
     if (typeof val === 'number') {
-        return val as EVerificationStatus;
+        if (Number.isFinite(val) && Number.isInteger(val) && isValidVerificationStatus(val)) {
+            return val;
+        }
     }
     return undefined;
 }

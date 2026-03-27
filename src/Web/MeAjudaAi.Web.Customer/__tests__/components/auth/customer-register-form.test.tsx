@@ -17,16 +17,6 @@ vi.mock('@/lib/api/fetch-client', () => ({
   },
 }));
 
-vi.mock('@/components/ui/form', () => ({
-  Form: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  FormField: ({ render, name }: { render: (props: { field: any }) => React.ReactNode; name: string }) => render({ field: { name, onChange: vi.fn(), onBlur: vi.fn(), value: '', ref: vi.fn() } }),
-  FormItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  FormLabel: ({ children }: { children: React.ReactNode }) => <label>{children}</label>,
-  FormControl: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  FormMessage: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  useFormField: () => ({ error: null }),
-}));
-
 vi.mock('sonner', () => ({
   toast: {
     success: vi.fn(),
@@ -124,8 +114,6 @@ describe('CustomerRegisterForm (Stabilized for CI)', () => {
   it('deve exibir erro da API ao falhar registro', async () => {
     const { publicFetch, ApiError } = await import('@/lib/api/fetch-client');
     vi.mocked(publicFetch).mockRejectedValueOnce(new ApiError('Email já cadastrado'));
-
-    const { toast } = await import('sonner');
     
     render(<CustomerRegisterForm />);
     

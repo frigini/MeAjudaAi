@@ -6,15 +6,21 @@ on:
     paths:
       - 'src/Web/**'
       - 'src/Client/**'
+      - 'src/Bootstrapper/**'
       - '.github/workflows/ci-frontend.yml'
       - '.github/actions/setup-frontend/**'
+      - '.github/actions/setup-backend/**'
+      - 'MeAjudaAi.slnx'
   pull_request:
     branches: [master, develop]
     paths:
       - 'src/Web/**'
       - 'src/Client/**'
+      - 'src/Bootstrapper/**'
       - '.github/workflows/ci-frontend.yml'
       - '.github/actions/setup-frontend/**'
+      - '.github/actions/setup-backend/**'
+      - 'MeAjudaAi.slnx'
   workflow_dispatch:
 
 permissions:
@@ -71,10 +77,8 @@ jobs:
       - name: Test Frontend
         working-directory: ./src/Web
         run: |
-          npx nx affected --target=test --args="--coverage" --exclude=meajudaai
-          if find . -name "coverage-final.json" | grep -q .; then
-            npm run test:coverage:merge || true
-          fi
+          npx nx run-many --target=test --all --args="--coverage" --exclude=meajudaai
+          npm run test:coverage:merge
 
       - name: Build Frontend
         working-directory: ./src/Web
@@ -108,8 +112,8 @@ jobs:
         with:
           name: coverage-frontend
           path: |
-            **/coverage/cobertura-coverage.xml
-            coverage-global/cobertura-coverage.xml
+            src/Web/**/coverage/cobertura-coverage.xml
+            src/Web/coverage-global/cobertura-coverage.xml
           retention-days: 30
 
       - name: Add Coverage PR Comment

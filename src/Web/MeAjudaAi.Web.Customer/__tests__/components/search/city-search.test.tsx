@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { CitySearch } from '@/components/search/city-search';
 import { useRouter } from 'next/navigation';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -21,10 +22,10 @@ describe('CitySearch', () => {
     expect(screen.getByLabelText(/selecionar cidade/i)).toBeInTheDocument();
   });
 
-  it('deve atualizar o estado ao selecionar uma cidade', () => {
+  it('deve atualizar o estado ao selecionar uma cidade', async () => {
     render(<CitySearch />);
     const select = screen.getByLabelText(/selecionar cidade/i);
-    fireEvent.change(select, { target: { value: 'muriae-mg' } });
+    await userEvent.selectOptions(select, 'muriae-mg');
     expect(select).toHaveValue('muriae-mg');
   });
 

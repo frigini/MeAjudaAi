@@ -42,6 +42,20 @@ citiesMap.set(mockCity.id, { ...mockCity });
 const usersMap = new Map<string, typeof mockUser>();
 usersMap.set(mockUser.id, { ...mockUser });
 
+export function resetMockData() {
+  providersMap.clear();
+  providersMap.set(mockProvider.id, { ...mockProvider });
+  
+  categoriesMap.clear();
+  categoriesMap.set(mockCategory.id, { ...mockCategory });
+  
+  citiesMap.clear();
+  citiesMap.set(mockCity.id, { ...mockCity });
+  
+  usersMap.clear();
+  usersMap.set(mockUser.id, { ...mockUser });
+}
+
 // Admin handlers should match the SDK paths (usually /api/v1/...)
 export const handlers = [
   // Providers
@@ -94,10 +108,13 @@ export const handlers = [
     return HttpResponse.json({ data: category });
   }),
   http.post('/api/v1/service-catalogs/categories', () => HttpResponse.json({ data: mockCategory }, { status: 201 })),
-  http.put('/api/v1/service-catalogs/categories/:id', ({ params }) => {
+  http.put('/api/v1/service-catalogs/categories/:id', async ({ params, request }) => {
     const category = categoriesMap.get(params.id as string);
     if (!category) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
-    return HttpResponse.json({ data: { ...category, id: params.id as string } });
+    const body = await request.json() as Record<string, unknown>;
+    const updated = { ...category, ...body, id: params.id as string };
+    categoriesMap.set(params.id as string, updated);
+    return HttpResponse.json({ data: updated });
   }),
   http.delete('/api/v1/service-catalogs/categories/:id', ({ params }) => {
     if (!categoriesMap.has(params.id as string)) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });

@@ -41,10 +41,6 @@ export default defineConfig({
       name: 'Mobile Safari',
       use: { ...devices['iPhone 12'] },
     },
-    {
-      name: 'ci',
-      use: { ...devices['Desktop Chrome'] },
-    },
   ],
   webServer: process.env.BASE_URL ? undefined : {
     command: 'npm run dev:all',

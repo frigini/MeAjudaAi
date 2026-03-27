@@ -215,7 +215,18 @@ const handleDelete = async (id: string) => {
 
 ### Exemplo de Uso (Policy Check)
 
-Utilizamos hooks e componentes de autorização que interceptam o acesso via token JWT:
+Utilizamos o sistema de políticas para controle de acesso:
+
+| can() | Política Equivalent |
+|-------|---------------------|
+| `ProvidersRead` | `ViewerPolicy` |
+| `ProvidersUpdate` | `ManagerPolicy` |
+| `ProvidersDelete`, `ProvidersApprove` | `AdminPolicy` |
+| `DocumentsRead`, `DocumentsUpdate`, `DocumentsApprove` | `ManagerPolicy` |
+| `ServiceCatalogsRead`, `ServiceCatalogsUpdate` | `ManagerPolicy` |
+| `LocationsManage` | `AdminPolicy` |
+
+O mapeamento acima mostra como as permissões granulares (`can('ProvidersDelete')`) mapeiam para as políticas definidas. Em código:
 
 ```tsx
 const { can } = usePermissions();

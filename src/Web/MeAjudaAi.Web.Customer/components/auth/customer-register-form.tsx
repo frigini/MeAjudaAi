@@ -79,8 +79,8 @@ export function CustomerRegisterForm() {
         }
 
         const phoneDigits = data.phoneNumber?.replace(/\D/g, "") || "";
-        if (!phoneDigits || phoneDigits.length < 10) {
-            setError("phoneNumber", { message: "Telefone inválido (mínimo 10 dígitos)" });
+        if (!phoneDigits || phoneDigits.length < 10 || phoneDigits.length > 11) {
+            setError("phoneNumber", { message: "Telefone inválido (10-11 dígitos)" });
             hasError = true;
         }
 
@@ -103,10 +103,11 @@ export function CustomerRegisterForm() {
 
         setIsLoading(true);
         try {
+            const phoneDigits = (data.phoneNumber?.replace(/\D/g, "") || "").slice(0, 11);
             const payload = {
                 name: data.name?.trim(),
                 email: data.email?.trim(),
-                phoneNumber: data.phoneNumber?.replace(/\D/g, ""),
+                phoneNumber: phoneDigits,
                 password: data.password,
                 termsAccepted: data.acceptedTerms,
                 acceptedPrivacyPolicy: data.acceptedTerms,

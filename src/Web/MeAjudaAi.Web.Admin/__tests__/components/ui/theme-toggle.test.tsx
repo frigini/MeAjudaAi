@@ -27,7 +27,6 @@ describe('ThemeToggle', () => {
   });
 
   it('deve chamar toggleTheme ao clicar', () => {
-    // Re-render with fresh fn — mock already set up above
     render(<ThemeToggle />);
     const button = screen.getByRole('button');
     button.click();

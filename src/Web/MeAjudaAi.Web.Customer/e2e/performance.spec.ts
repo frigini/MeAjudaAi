@@ -44,8 +44,21 @@ test.describe('@e2e Customer Web App - Mobile Responsiveness', () => {
 });
 
 test.describe('@e2e Performance - Core Web Vitals', () => {
-  test('should meet LCP threshold on homepage', async ({ page }) => {
+  test('should meet LCP threshold on homepage', async ({ page, browser }) => {
+    const browserName = browser.browserType().name();
+    if (browserName !== 'chromium') {
+      test.skip();
+    }
+    
     await page.goto('/');
+    
+    const supported = await page.evaluate((): boolean => {
+      return PerformanceObserver.supportedEntryTypes.includes('largest-contentful-paint');
+    });
+    
+    if (!supported) {
+      test.skip();
+    }
     
     const metrics = await page.evaluate((): Promise<{ lcp: number | null }> => {
       return new Promise((resolve) => {
@@ -78,7 +91,12 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
     expect(metrics.lcp).toBeLessThan(800);
   });
 
-  test('should meet INP threshold', async ({ page }) => {
+  test('should meet INP threshold', async ({ page, browser }) => {
+    const browserName = browser.browserType().name();
+    if (browserName !== 'chromium') {
+      test.skip();
+    }
+    
     await page.goto('/');
     
     await page.waitForLoadState('domcontentloaded');
@@ -90,7 +108,15 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
       document.body.appendChild(button);
     });
     
-    // PerformanceEventTiming - execute click inside evaluate to ensure observer is ready
+    const supported = await page.evaluate((): boolean => {
+      return PerformanceObserver.supportedEntryTypes.includes('event');
+    });
+    
+    if (!supported) {
+      test.skip();
+    }
+    
+    // PerformanceEventTiming - use real click from test harness
     const metrics = await page.evaluate((): Promise<{ inp: number; samples: number }> => {
       return new Promise((resolve) => {
         const inpEntries: number[] = [];
@@ -105,10 +131,7 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
             }
           }
         });
-        observer.observe({ type: 'event', buffered: true });
-        
-        // Execute click inside the observer context
-        document.getElementById('inp-test-button')?.click();
+        observer.observe({ type: 'event', buffered: true, durationThreshold: 0 });
         
         setTimeout(() => {
           observer.disconnect();
@@ -118,13 +141,28 @@ test.describe('@e2e Performance - Core Web Vitals', () => {
       });
     });
     
+    await page.click('#inp-test-button');
+    
     expect(metrics.samples).toBeGreaterThan(0);
     expect(metrics.inp).toBeLessThan(150);
   });
 
-  test('should meet CLS threshold', async ({ page }) => {
+  test('should meet CLS threshold', async ({ page, browser }) => {
+    const browserName = browser.browserType().name();
+    if (browserName !== 'chromium') {
+      test.skip();
+    }
+    
     await page.goto('/');
     await page.waitForLoadState('networkidle');
+    
+    const supported = await page.evaluate((): boolean => {
+      return PerformanceObserver.supportedEntryTypes.includes('layout-shift');
+    });
+    
+    if (!supported) {
+      test.skip();
+    }
     
     const metrics = await page.evaluate((): { cls: number } => {
       const entries = performance.getEntriesByType('layout-shift') as unknown as { hadRecentInput: boolean; startTime: number; value: number }[];
@@ -211,8 +249,7 @@ test.describe('@e2e Performance - Network', () => {
     }
   });
 
-  test('should not have excessive same-origin requests', async ({ page }) => {
-    const baseURL = page.context().options?.baseURL || process.env.BASE_URL || 'http://localhost:3000';
+  test('should not have excessive same-origin requests', async ({ page, baseURL }) => {
     const origin = new URL('/', baseURL).origin;
     
     page.on('request', (request) => {

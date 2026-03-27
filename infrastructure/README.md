@@ -25,8 +25,8 @@ O workflow `deploy-azure.yml` permite provisionar a infraestrutura manualmente:
 2. Selecione o workflow **Deploy to Azure**.
 3. Clique em **Run workflow** e escolha o ambiente (`dev` ou `prod`).
 4. **Input `deploy_infrastructure`**: Este é um booleano (padrão `true`) que controla se a infraestrutura será provisionada durante a execução do workflow.
-   - Selecione `false` para pular o provisionamento (apenas faz deploy da aplicação)
-   - Selecione `true` (ou leave unchecked since default) para executar o provisionamento completo
+   - Selecione desmarcado (false) para pular o provisionamento (apenas faz deploy da aplicação)
+   - Deixe marcado (padrão true) para executar o provisionamento completo
 5. **Requisitos**: É necessário configurar as secrets `AZURE_CREDENTIALS` e `POSTGRES_ADMIN_PASSWORD` no repositório.
 
 #### Quando atualizar o Bicep?

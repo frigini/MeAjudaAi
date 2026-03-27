@@ -40,7 +40,7 @@ describe('useServices Hook (Admin)', () => {
     const { result } = renderHook(() => useServiceById('svc-1'));
     
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data.name).toBe('Service Name');
+    expect(result.current.data?.name).toBe('Service Name');
     expect(api.apiServicesGet2).toHaveBeenCalledWith({ path: { id: 'svc-1' } });
   });
 

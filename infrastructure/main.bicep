@@ -38,6 +38,12 @@ param postgresBackupRetentionDays int = 7
 @description('The SKU of the Redis cache')
 param redisSkuName string = 'Balanced_B1'
 
+@description('The VNet subnet ID for private endpoint')
+param vnetSubnetId string = ''
+
+@description('The VNet ID for DNS zone link')
+param vnetId string = ''
+
 // PostgreSQL Server
 resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
   name: postgresServerName
@@ -57,6 +63,7 @@ resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' =
       backupRetentionDays: postgresBackupRetentionDays
       geoRedundantBackup: 'Disabled'
     }
+    publicNetworkAccess: 'Disabled'
   }
 }
 
@@ -64,6 +71,44 @@ resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' =
 resource postgresDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2025-08-01' = {
   parent: postgresServer
   name: postgresDatabaseName
+}
+
+// Private Endpoint for PostgreSQL (only if VNet is provided)
+resource postgresPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-01-01' = if (vnetSubnetId != '') {
+  name: '${postgresServerName}-pe'
+  location: location
+  properties: {
+    privateLinkServiceConnections: [
+      {
+        name: '${postgresServerName}-pe-connection'
+        properties: {
+          privateLinkServiceId: postgresServer.id
+          groupIds: ['postgresqlServer']
+        }
+      }
+    ]
+    subnet: {
+      id: vnetSubnetId
+    }
+  }
+}
+
+// DNS Zone for PostgreSQL Private Link (only if VNet is provided)
+resource privateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = if (vnetId != '') {
+  name: 'privatelink.postgres.database.azure.com'
+  location: 'global'
+  properties: {}
+}
+
+resource privateDnsZoneLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = if (vnetId != '') {
+  name: '${privateDnsZone.name}-link'
+  parent: privateDnsZone
+  properties: {
+    registrationEnabled: false
+    virtualNetwork: {
+      id: vnetId
+    }
+  }
 }
 
 // Redis Cache (Azure Managed Redis / Redis Enterprise)
@@ -102,3 +147,5 @@ output postgresHost string = postgresServer.properties.fullyQualifiedDomainName
 output postgresDatabase string = postgresDatabaseName
 output redisHost string = redisDatabase.properties.endpoint
 output serviceBusNamespace string = serviceBusNamespaceName
+output postgresPrivateEndpointIp string = (vnetSubnetId != '') ? '${postgresPrivateEndpoint.properties.customNetworkInterfaceName}' : ''
+output privateDnsZoneName string = (vnetId != '') ? privateDnsZone.name : ''

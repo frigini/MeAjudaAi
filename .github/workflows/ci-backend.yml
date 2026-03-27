@@ -11,6 +11,9 @@ on:
       - '!tests/MeAjudaAi.E2E.Tests/**'
       - '.github/workflows/ci-backend.yml'
       - '.github/actions/setup-backend/**'
+      - '.github/actions/setup-postgres-connection/**'
+      - '.github/scripts/generate-runsettings.sh'
+      - 'MeAjudaAi.slnx'
   pull_request:
     branches: [master, develop]
     paths:
@@ -21,6 +24,9 @@ on:
       - '!tests/MeAjudaAi.E2E.Tests/**'
       - '.github/workflows/ci-backend.yml'
       - '.github/actions/setup-backend/**'
+      - '.github/actions/setup-postgres-connection/**'
+      - '.github/scripts/generate-runsettings.sh'
+      - 'MeAjudaAi.slnx'
   workflow_dispatch:
 
 permissions:
@@ -91,7 +97,7 @@ jobs:
           cd "$TEMP_DIR"
           dotnet new console -n TempDcpDownloader
           cd TempDcpDownloader
-          dotnet add package Aspire.Hosting.Orchestration.linux-x64 --version 13.0.2
+          dotnet add package Aspire.Hosting.Orchestration.linux-x64
           dotnet restore
           cd "$GITHUB_WORKSPACE"
           rm -rf "$TEMP_DIR"

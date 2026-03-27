@@ -21,6 +21,8 @@ describe('useViaCep Hook', () => {
   });
 
   it('deve retornar null para CEP inválido', async () => {
+    const fetchSpy = vi.spyOn(global, 'fetch');
+    
     const { result } = renderHook(() => useViaCep());
     
     const invalidCeps = ['123', '12', '', '12345'];
@@ -28,6 +30,7 @@ describe('useViaCep Hook', () => {
       const address = await result.current.fetchAddress(cep);
       expect(address).toBeNull();
     }
+    expect(fetchSpy).not.toHaveBeenCalled();
     expect(result.current.isLoading).toBe(false);
   });
 

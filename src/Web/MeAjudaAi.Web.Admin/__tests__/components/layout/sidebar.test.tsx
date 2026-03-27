@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from 'test-support';
+import type { ReactNode } from 'react';
 
 // Mock next-auth, next/navigation, next/link, and theme dependencies
 vi.mock('next-auth/react', () => ({
@@ -10,7 +11,7 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/dashboard',
 }));
 vi.mock('next/link', () => ({
-  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
+  default: ({ children, href }: { children: ReactNode; href: string }) => (
     <a href={href}>{children}</a>
   ),
 }));
