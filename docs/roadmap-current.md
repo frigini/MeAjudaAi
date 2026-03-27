@@ -654,6 +654,9 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - Move Optional tasks from 8B.2 here if needed.
 - Rate limiting and advanced security/monitoring.
 
+**Follow-ups Implementados**:
+- [ ] **OpenAPI Diff Gating**: Adicionar verificação de breaking changes em CI (falhar PR se API mudar sem version bump)
+
 ## 🎯 MVP Final Launch: 12 - 16 de Maio de 2026 🎯
 
 ### ⚠️ Risk Assessment & Mitigation

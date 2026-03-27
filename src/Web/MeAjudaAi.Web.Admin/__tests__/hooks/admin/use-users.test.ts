@@ -28,7 +28,7 @@ describe('useUsers Hook (Admin)', () => {
     const { result } = renderHook(() => useUserById('u-1'));
     
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data.name).toBe('User Name');
+    expect(result.current.data?.name).toBe('User Name');
     expect(api.apiUsersGet2).toHaveBeenCalledWith({ path: { id: 'u-1' } });
   });
 

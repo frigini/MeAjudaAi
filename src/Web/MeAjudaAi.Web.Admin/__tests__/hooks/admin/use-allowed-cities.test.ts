@@ -38,7 +38,7 @@ describe('useAllowedCities Hook (Admin)', () => {
     
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toBeDefined();
-    expect(result.current.data.cityName).toBe('City Name');
+    expect(result.current.data?.cityName).toBe('City Name');
     expect(api.apiAllowedCitiesGet2).toHaveBeenCalledWith({ path: { id: 'r-1' } });
   });
 

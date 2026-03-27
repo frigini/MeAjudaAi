@@ -111,10 +111,18 @@ jobs:
       - name: Wait for PostgreSQL
         shell: bash
         run: |
+          max_attempts=30
+          attempt=0
           until pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; do
-            echo "Waiting for PostgreSQL..."
-            sleep 3
+            attempt=$((attempt + 1))
+            if [ $attempt -ge $max_attempts ]; then
+              echo "ERROR: PostgreSQL did not become ready after $max_attempts attempts"
+              exit 1
+            fi
+            echo "Waiting for PostgreSQL... (attempt $attempt/$max_attempts)"
+            sleep 2
           done
+          echo "PostgreSQL is ready"
 
       - name: Setup PostgreSQL connection
         id: db

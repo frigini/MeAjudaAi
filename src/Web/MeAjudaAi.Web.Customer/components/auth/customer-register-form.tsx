@@ -141,9 +141,11 @@ export function CustomerRegisterForm() {
                         <Input 
                             id="name" 
                             placeholder="Seu nome" 
+                            aria-invalid={!!errors.name}
+                            aria-describedby="name-error"
                             {...register("name")}
                         />
-                        {errors.name && <p className="text-sm font-medium text-destructive">{errors.name.message}</p>}
+                        {errors.name && <p id="name-error" className="text-sm font-medium text-destructive" role="alert">{errors.name.message}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -152,9 +154,11 @@ export function CustomerRegisterForm() {
                             id="email"
                             placeholder="exemplo@email.com"
                             type="email"
+                            aria-invalid={!!errors.email}
+                            aria-describedby="email-error"
                             {...register("email")}
                         />
-                        {errors.email && <p className="text-sm font-medium text-destructive">{errors.email.message}</p>}
+                        {errors.email && <p id="email-error" className="text-sm font-medium text-destructive" role="alert">{errors.email.message}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -162,13 +166,15 @@ export function CustomerRegisterForm() {
                         <Input
                             id="phoneNumber"
                             placeholder="(00) 00000-0000"
+                            aria-invalid={!!errors.phoneNumber}
+                            aria-describedby="phoneNumber-error"
                             {...register("phoneNumber")}
                             onChange={(e) => {
                                 const masked = maskPhone(e.target.value);
                                 setValue("phoneNumber", masked);
                             }}
                         />
-                        {errors.phoneNumber && <p className="text-sm font-medium text-destructive">{errors.phoneNumber.message}</p>}
+                        {errors.phoneNumber && <p id="phoneNumber-error" className="text-sm font-medium text-destructive" role="alert">{errors.phoneNumber.message}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -196,7 +202,7 @@ export function CustomerRegisterForm() {
                                 )}
                             </Button>
                         </div>
-                        {errors.password && <p className="text-sm font-medium text-destructive">{errors.password.message}</p>}
+                        {errors.password && <p id="password-error" className="text-sm font-medium text-destructive" role="alert">{errors.password.message}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -205,6 +211,8 @@ export function CustomerRegisterForm() {
                             <Input
                                 id="confirmPassword"
                                 type={showConfirmPassword ? "text" : "password"}
+                                aria-invalid={!!errors.confirmPassword}
+                                aria-describedby="confirmPassword-error"
                                 {...register("confirmPassword")}
                             />
                             <Button
@@ -222,7 +230,7 @@ export function CustomerRegisterForm() {
                                 )}
                             </Button>
                         </div>
-                        {errors.confirmPassword && <p className="text-sm font-medium text-destructive">{errors.confirmPassword.message}</p>}
+                        {errors.confirmPassword && <p id="confirmPassword-error" className="text-sm font-medium text-destructive" role="alert">{errors.confirmPassword.message}</p>}
                     </div>
                 </div>
 

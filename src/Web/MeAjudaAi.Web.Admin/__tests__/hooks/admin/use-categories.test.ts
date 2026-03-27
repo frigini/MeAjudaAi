@@ -40,7 +40,7 @@ describe('useCategories Hook (Admin)', () => {
     const { result } = renderHook(() => useCategoryById('c-1'));
     
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data.name).toBe('Cat Name');
+    expect(result.current.data?.name).toBe('Cat Name');
     expect(api.apiCategoriesGet2).toHaveBeenCalledWith({ path: { id: 'c-1' } });
   });
 
