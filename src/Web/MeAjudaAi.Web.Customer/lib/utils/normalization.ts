@@ -1,13 +1,12 @@
 import { EProviderType, EVerificationStatus } from "@/types/api/provider";
 
 const providerTypeValues = Object.values(EProviderType).filter((v): v is number => typeof v === 'number');
-const verificationStatusValues = Object.values(EVerificationStatus).filter((v) => typeof v === 'string');
 
 /**
  * Normaliza valores de entrada para o enum EProviderType.
  */
 export function normalizeProviderType(val: unknown): EProviderType {
-    if (typeof val === 'number') {
+    if (typeof val === 'number' && Number.isInteger(val)) {
         return providerTypeValues.includes(val) ? val : EProviderType.None;
     }
     if (typeof val === 'string') {
@@ -20,7 +19,9 @@ export function normalizeProviderType(val: unknown): EProviderType {
 
         if (/^\d+$/.test(val)) {
             const num = parseInt(val, 10);
-            return providerTypeValues.includes(num) ? num : EProviderType.None;
+            if (providerTypeValues.includes(num)) {
+                return num;
+            }
         }
     }
     return EProviderType.None;
@@ -31,12 +32,8 @@ export function normalizeProviderType(val: unknown): EProviderType {
  */
 export function normalizeVerificationStatus(val: unknown): EVerificationStatus | undefined {
     if (typeof val === 'string') {
-        if (/^\d+$/.test(val)) {
-            const num = parseInt(val, 10);
-            if (num >= 0 && num < verificationStatusValues.length) {
-                return verificationStatusValues[num] as EVerificationStatus;
-            }
-            return undefined;
+        if (/^\d+$/.test(val) || /^\+\d+$/.test(val)) {
+            return parseInt(val.replace('+', ''), 10) as EVerificationStatus;
         }
         const lower = val.toLowerCase();
         if (lower === 'verified') return EVerificationStatus.Verified;
@@ -45,6 +42,9 @@ export function normalizeVerificationStatus(val: unknown): EVerificationStatus |
         if (lower === 'suspended') return EVerificationStatus.Suspended;
         if (lower === 'none') return EVerificationStatus.None;
         return undefined;
+    }
+    if (typeof val === 'number') {
+        return val as EVerificationStatus;
     }
     return undefined;
 }

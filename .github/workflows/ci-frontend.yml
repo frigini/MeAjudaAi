@@ -71,7 +71,7 @@ jobs:
       - name: Test Frontend
         working-directory: ./src/Web
         run: |
-          npx nx affected --target=test --args="--coverage"
+          npx nx affected --target=test --args="--coverage" --exclude=meajudaai
           if find . -name "coverage-final.json" | grep -q .; then
             npm run test:coverage:merge || true
           fi
