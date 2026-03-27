@@ -642,9 +642,9 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - [x] Performance e Core Web Vitals (INP, LCP, CLS)
 
 **Pendências para fechar Sprint**:
-- [ ] Testes unitários Admin (hooks: providers, categories, dashboard, services, allowed-cities, users; components: sidebar, ui)
-- [ ] Testes unitários Provider (hooks; components: dashboard cards, profile)
-- [ ] Configurar MSW handlers para Admin e Provider
+- [x] Testes unitários Admin (hooks: providers, categories, dashboard, services, allowed-cities, users; components: sidebar, ui)
+- [x] Testes unitários Provider (hooks; components: dashboard cards, profile)
+- [x] Configurar MSW handlers para Admin e Provider
 
 ### ⌛ Sprint 9 - BUFFER & Risk Mitigation (25 Mar - 11 Mai 2026)
 
