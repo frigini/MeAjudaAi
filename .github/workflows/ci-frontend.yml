@@ -95,7 +95,7 @@ jobs:
         if: always()
         continue-on-error: true
         with:
-          filename: "**/cobertura-coverage.xml"
+          filename: "coverage-global/cobertura-coverage.xml"
           badge: true
           format: markdown
           output: both
