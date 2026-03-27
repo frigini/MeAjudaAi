@@ -112,8 +112,8 @@
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageVersion Include="Serilog.Sinks.Seq" Version="9.0.0" />
     <!-- Documentation -->
-    <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.1.5" />
-    <PackageVersion Include="Swashbuckle.AspNetCore.Annotations" Version="10.1.5" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.1.7" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.Annotations" Version="10.1.7" />
     <!-- Validation -->
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
@@ -139,7 +139,7 @@
     <PackageVersion Include="Scrutor" Version="7.0.0" />
     <!-- System -->
     <PackageVersion Include="Azure.Storage.Common" Version="12.26.0" />
-    <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.1.5" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.1.7" />
     <!-- System.IO.Hashing: Version 9.0.10 required by Aspire.Hosting.Azure.AppContainers 13.0.2 -->
     <!-- Note: Azure.Storage.Common 12.25.0 depends on 8.0.0, but NuGet resolves to 9.0.10 via transitive lift -->
     <!-- This is acceptable as System.IO.Hashing maintains backward compatibility -->
