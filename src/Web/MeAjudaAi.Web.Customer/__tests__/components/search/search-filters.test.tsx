@@ -21,7 +21,7 @@ vi.mock('@/lib/api/generated/sdk.gen', () => ({
 
 describe('SearchFilters', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('deve renderizar o componente de filtros e carregar categorias', async () => {
@@ -77,7 +77,7 @@ describe('SearchFilters', () => {
     fireEvent.click(radio);
     
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith(expect.not.stringContaining('minRating'), expect.anything());
+      expect(mockPush.mock.calls[mockPush.mock.calls.length - 1][0]).not.toContain('minRating');
     }, { timeout: 1000 });
   });
 

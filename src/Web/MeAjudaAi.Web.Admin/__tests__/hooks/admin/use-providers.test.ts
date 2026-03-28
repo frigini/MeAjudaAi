@@ -12,6 +12,7 @@ import {
   useDeactivateProvider 
 } from '@/hooks/admin/use-providers';
 import * as api from '@/lib/api/generated';
+import { EVerificationStatus, EProviderType } from '@/lib/types';
 
 vi.mock('@/lib/api/generated', () => ({
   apiProvidersGet2: vi.fn(),
@@ -89,7 +90,8 @@ describe('useProviders Hook (Admin)', () => {
   });
 
   it('deve retornar dados brutos se a propriedade .data estiver ausente', async () => {
-    vi.mocked(api.apiProvidersGet2).mockResolvedValue([{ id: 'raw-1' }] as any);
+    const rawProvider = { id: 'raw-1' } as unknown as import('@/lib/types').ProviderDto;
+    vi.mocked(api.apiProvidersGet2).mockResolvedValue([rawProvider]);
     const { result } = renderHook(() => useProviders());
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual([{ id: 'raw-1' }]);
@@ -112,24 +114,25 @@ describe('useProviders Hook (Admin)', () => {
 
   it('deve buscar provedores por status quando status é fornecido', async () => {
     vi.mocked(api.apiProvidersGet2).mockResolvedValue({ data: [{ id: '1' }] });
-    const { result } = renderHook(() => useProvidersByStatus('Verified'));
+    const { result } = renderHook(() => useProvidersByStatus(EVerificationStatus.Verified));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(api.apiProvidersGet2).toHaveBeenCalledWith(expect.objectContaining({
-      query: { verificationStatus: 'Verified' }
+      query: { verificationStatus: EVerificationStatus.Verified }
     }));
   });
 
   it('deve buscar provedores por tipo quando tipo é fornecido', async () => {
     vi.mocked(api.apiProvidersGet2).mockResolvedValue({ data: [{ id: '1' }] });
-    const { result } = renderHook(() => useProvidersByType('Individual'));
+    const { result } = renderHook(() => useProvidersByType(EProviderType.Individual));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(api.apiProvidersGet2).toHaveBeenCalledWith(expect.objectContaining({
-      query: { type: 'Individual' }
+      query: { type: EProviderType.Individual }
     }));
   });
 
   it('deve retornar dados brutos se a propriedade .data estiver ausente no useProviderById', async () => {
-    vi.mocked(api.apiProvidersGet3).mockResolvedValue({ id: 'raw-1' } as any);
+    const rawProvider = { id: 'raw-1' } as unknown as import('@/lib/types').ProviderDto;
+    vi.mocked(api.apiProvidersGet3).mockResolvedValue(rawProvider);
     const { result } = renderHook(() => useProviderById('raw-1'));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual({ id: 'raw-1' });

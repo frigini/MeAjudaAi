@@ -2,7 +2,7 @@
 
 This directory contains the infrastructure configuration for the MeAjudaAi platform.
 
-### 🚀 Infraestrutura Azure e CI/CD (Bicep)
+## 🚀 Infraestrutura Azure e CI/CD (Bicep)
 
 O projeto utiliza uma arquitetura de CI/CD modularizada para maior eficiência e manutenibilidade.
 

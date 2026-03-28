@@ -23,7 +23,7 @@ vi.mock('@/lib/api/generated', () => ({
 
 describe('useCategories Hook (Admin)', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('deve buscar todas as categorias', async () => {

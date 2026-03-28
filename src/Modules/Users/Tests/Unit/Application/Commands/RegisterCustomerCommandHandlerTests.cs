@@ -68,13 +68,23 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
+        _userDomainServiceMock.Verify(x => x.CreateUserAsync(
+            It.IsAny<Username>(),
+            It.IsAny<Email>(),
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<IEnumerable<string>>(),
+            It.IsAny<string?>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+        _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task HandleAsync_ShouldReturnFailure_WhenTermsNotAccepted()
     {
         // Arrange
-        var command = new RegisterCustomerCommand("Test", "email@test.com", "pass", "phone", false, true);
+        var command = new RegisterCustomerCommand("John Doe", "email@test.com", "Password123!", "11999999999", false, true);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);

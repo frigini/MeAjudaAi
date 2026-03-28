@@ -1,20 +1,19 @@
 import { EProviderType, EVerificationStatus } from "@/types/api/provider";
 
+const providerTypeValues = new Set(
+    Object.values(EProviderType).filter((v): v is number => typeof v === 'number')
+);
+
+const verificationStatusValues = new Set(
+    Object.values(EVerificationStatus).filter((v): v is number => typeof v === 'number')
+);
+
 function isValidProviderType(val: number): val is EProviderType {
-    return val === EProviderType.None || 
-           val === EProviderType.Individual || 
-           val === EProviderType.Company || 
-           val === EProviderType.Cooperative || 
-           val === EProviderType.Freelancer;
+    return providerTypeValues.has(val);
 }
 
 function isValidVerificationStatus(val: number): val is EVerificationStatus {
-    return val === EVerificationStatus.None || 
-           val === EVerificationStatus.Pending || 
-           val === EVerificationStatus.InProgress || 
-           val === EVerificationStatus.Verified || 
-           val === EVerificationStatus.Rejected || 
-           val === EVerificationStatus.Suspended;
+    return verificationStatusValues.has(val);
 }
 
 /**
@@ -60,6 +59,7 @@ export function normalizeVerificationStatus(val: unknown): EVerificationStatus |
         if (lower === 'inprogress' || lower === 'in_progress') return EVerificationStatus.InProgress;
         if (lower === 'suspended') return EVerificationStatus.Suspended;
         if (lower === 'none') return EVerificationStatus.None;
+        if (lower === 'pending') return EVerificationStatus.Pending;
         return undefined;
     }
     if (typeof val === 'number') {

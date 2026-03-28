@@ -19,7 +19,7 @@ describe('Utility Functions Coverage', () => {
             expect(normalizeProviderType('pessoafisica')).toBe(EProviderType.Individual)
             expect(normalizeProviderType('company')).toBe(EProviderType.Company)
             expect(normalizeProviderType('none')).toBe(EProviderType.None)
-            expect(normalizeProviderType('1')).toBe(EProviderType.Individual) // Assuming 1 means Individual
+            expect(normalizeProviderType('1')).toBe(EProviderType.Individual)
             expect(normalizeProviderType({})).toBe(EProviderType.None)
         })
 
@@ -28,7 +28,7 @@ describe('Utility Functions Coverage', () => {
             expect(normalizeVerificationStatus('verified')).toBe(EVerificationStatus.Verified)
             expect(normalizeVerificationStatus('rejected')).toBe(EVerificationStatus.Rejected)
             expect(normalizeVerificationStatus('inprogress')).toBe(EVerificationStatus.InProgress)
-            expect(normalizeVerificationStatus('1')).toBe(EVerificationStatus.Pending) // 1 is Pending
+            expect(normalizeVerificationStatus('1')).toBe(EVerificationStatus.Pending)
             expect(normalizeVerificationStatus('none')).toBe(EVerificationStatus.None)
             expect(normalizeVerificationStatus('unknown')).toBe(undefined)
             expect(normalizeVerificationStatus({})).toBeUndefined()

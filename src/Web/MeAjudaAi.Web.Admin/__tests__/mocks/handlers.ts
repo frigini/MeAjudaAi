@@ -68,10 +68,14 @@ export const handlers = [
     return HttpResponse.json({ data: provider });
   }),
   http.post('/api/v1/providers', async ({ request }) => {
-    const body = await request.json() as Record<string, unknown>;
-    const newProvider = { ...mockProvider, ...body, id: `provider-${Date.now()}` };
-    providersMap.set(newProvider.id, newProvider);
-    return HttpResponse.json({ data: newProvider }, { status: 201 });
+    try {
+      const body = await request.json() as Record<string, unknown>;
+      const newProvider = { ...mockProvider, ...body, id: `provider-${Date.now()}` };
+      providersMap.set(newProvider.id, newProvider);
+      return HttpResponse.json({ data: newProvider }, { status: 201 });
+    } catch {
+      return HttpResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    }
   }),
   http.put('/api/v1/providers/:id', async ({ params, request }) => {
     try {
@@ -113,18 +117,26 @@ export const handlers = [
     return HttpResponse.json({ data: category });
   }),
   http.post('/api/v1/service-catalogs/categories', async ({ request }) => {
-    const body = await request.json() as Record<string, unknown>;
-    const newCategory = { ...mockCategory, ...body, id: `category-${Date.now()}` };
-    categoriesMap.set(newCategory.id, newCategory);
-    return HttpResponse.json({ data: newCategory }, { status: 201 });
+    try {
+      const body = await request.json() as Record<string, unknown>;
+      const newCategory = { ...mockCategory, ...body, id: `category-${Date.now()}` };
+      categoriesMap.set(newCategory.id, newCategory);
+      return HttpResponse.json({ data: newCategory }, { status: 201 });
+    } catch {
+      return HttpResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    }
   }),
   http.put('/api/v1/service-catalogs/categories/:id', async ({ params, request }) => {
-    const category = categoriesMap.get(params.id as string);
-    if (!category) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
-    const body = await request.json() as Record<string, unknown>;
-    const updated = { ...category, ...body, id: params.id as string };
-    categoriesMap.set(params.id as string, updated);
-    return HttpResponse.json({ data: updated });
+    try {
+      const category = categoriesMap.get(params.id as string);
+      if (!category) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
+      const body = await request.json() as Record<string, unknown>;
+      const updated = { ...category, ...body, id: params.id as string };
+      categoriesMap.set(params.id as string, updated);
+      return HttpResponse.json({ data: updated });
+    } catch {
+      return HttpResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    }
   }),
   http.delete('/api/v1/service-catalogs/categories/:id', ({ params }) => {
     if (!categoriesMap.has(params.id as string)) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });

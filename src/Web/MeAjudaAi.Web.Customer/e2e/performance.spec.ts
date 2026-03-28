@@ -16,11 +16,11 @@ test.describe('@e2e Customer Web App - Mobile Responsiveness', () => {
     await page.goto('/');
     
     const userMenuButton = page.locator('button').first();
+    await userMenuButton.waitFor({ state: 'visible' });
     const count = await userMenuButton.count();
     expect(count).toBeGreaterThan(0);
     
     const box = await userMenuButton.boundingBox();
-    expect(box).not.toBeNull();
     if (!box) throw new Error('userMenuButton has no layout/bounding box');
     
     expect(box.height).toBeGreaterThanOrEqual(44);

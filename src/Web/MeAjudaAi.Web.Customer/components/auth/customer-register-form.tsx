@@ -66,6 +66,7 @@ export function CustomerRegisterForm() {
         // Manual validation for CI stability
         clearErrors();
         let hasError = false;
+        let payload: Record<string, unknown> = {};
 
         const trimmedName = data.name?.trim() || "";
         if (!trimmedName || trimmedName.length < 4) {
@@ -78,7 +79,7 @@ export function CustomerRegisterForm() {
             hasError = true;
         }
 
-        const phoneDigits = data.phoneNumber?.replace(/\D/g, "") || "";
+        const phoneDigits = (data.phoneNumber?.replace(/\D/g, "") || "").slice(0, 11);
         if (!phoneDigits || phoneDigits.length < 10 || phoneDigits.length > 11) {
             setError("phoneNumber", { message: "Telefone inválido (10-11 dígitos)" });
             hasError = true;
@@ -103,8 +104,7 @@ export function CustomerRegisterForm() {
 
         setIsLoading(true);
         try {
-            const phoneDigits = (data.phoneNumber?.replace(/\D/g, "") || "").slice(0, 11);
-            const payload = {
+            payload = {
                 name: data.name?.trim(),
                 email: data.email?.trim(),
                 phoneNumber: phoneDigits,

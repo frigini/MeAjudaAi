@@ -10,6 +10,9 @@
 # -o pipefail: catch errors in piped commands
 set -euo pipefail
 
+# Coverage threshold (default: 90%)
+COVERAGE_THRESHOLD="${COVERAGE_THRESHOLD:-90}"
+
 # Escape XML special characters to prevent malformed XML output
 escape_xml() {
     local input="$1"
@@ -67,7 +70,7 @@ generate_runsettings() {
         echo "          <ExcludeByFile>${exclude_by_file}</ExcludeByFile>"
         echo "          <ExcludeByAttribute>${exclude_by_attr}</ExcludeByAttribute>"
         if [ "${STRICT_COVERAGE:-false}" = "true" ]; then
-            echo '          <Threshold>90</Threshold>'
+            echo "          <Threshold>${COVERAGE_THRESHOLD}</Threshold>"
             echo '          <ThresholdType>line</ThresholdType>'
             echo '          <ThresholdStat>total</ThresholdStat>'
         fi

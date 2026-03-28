@@ -19,7 +19,7 @@ public static class EnumExtensions
         if (string.IsNullOrWhiteSpace(value))
         {
             return Result<TEnum>.Failure(
-                Error.BadRequest($"Value cannot be null or empty for enum {typeof(TEnum).Name}"));
+                Error.BadRequest($"O valor não pode ser nulo ou vazio para o enum {typeof(TEnum).Name}"));
         }
 
         if (Enum.TryParse<TEnum>(value, ignoreCase, out var result) && Enum.IsDefined(typeof(TEnum), result))
@@ -29,7 +29,7 @@ public static class EnumExtensions
 
         var validValues = string.Join(", ", Enum.GetNames<TEnum>());
         return Result<TEnum>.Failure(
-            Error.BadRequest($"Invalid {typeof(TEnum).Name}: '{value}'. Valid values are: {validValues}"));
+            Error.BadRequest($"Enum {typeof(TEnum).Name} inválido: '{value}'. Valores válidos: {validValues}"));
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ public static class EnumExtensions
         if (string.IsNullOrWhiteSpace(value))
             return defaultValue;
 
-        return Enum.TryParse<TEnum>(value, ignoreCase, out var result) && Enum.IsDefined(typeof(TEnum), result) ? result : defaultValue;
+        return TryParseAndIsDefined<TEnum>(value, ignoreCase, out var result) ? result : defaultValue;
     }
 
     /// <summary>
@@ -60,7 +60,12 @@ public static class EnumExtensions
         if (string.IsNullOrWhiteSpace(value))
             return false;
 
-        return Enum.TryParse<TEnum>(value, ignoreCase, out var result) && Enum.IsDefined(typeof(TEnum), result);
+        return TryParseAndIsDefined<TEnum>(value, ignoreCase, out _);
+    }
+
+    private static bool TryParseAndIsDefined<TEnum>(string value, bool ignoreCase, out TEnum result) where TEnum : struct, Enum
+    {
+        return Enum.TryParse<TEnum>(value, ignoreCase, out result) && Enum.IsDefined(typeof(TEnum), result);
     }
 
     /// <summary>

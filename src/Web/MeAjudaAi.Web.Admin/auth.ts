@@ -62,7 +62,14 @@ if (hasAdminVars) {
   keycloakIssuer = getRequiredEnv("KEYCLOAK_ISSUER");
 }
 
-const hostname = keycloakIssuer ? new URL(keycloakIssuer).hostname : 'unknown';
+let hostname = 'unknown';
+if (keycloakIssuer) {
+  try {
+    hostname = new URL(keycloakIssuer).hostname;
+  } catch (e) {
+    console.warn(`[auth] Invalid KEYCLOAK_ISSUER URL: ${keycloakIssuer}`, e);
+  }
+}
 console.log(`[auth] Using KEYCLOAK credentials: ${authMode} (issuer: ${hostname})`);
 
 export const authOptions: NextAuthOptions = {

@@ -224,8 +224,8 @@ jobs:
 
       - name: Configure DOTNET_ROOT for ReportGenerator
         run: |
-          DOTNET_PATH=$(which dotnet)
-          echo "DOTNET_ROOT=$(dirname $(readlink -f $DOTNET_PATH))" >> $GITHUB_ENV
+          DOTNET_PATH="$(which dotnet)"
+          echo "DOTNET_ROOT=$(dirname "$(readlink -f "$DOTNET_PATH")")" >> $GITHUB_ENV
 
       - name: Generate aggregated coverage report
         uses: danielpalme/ReportGenerator-GitHub-Action@5
