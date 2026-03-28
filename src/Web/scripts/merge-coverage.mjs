@@ -129,7 +129,7 @@ try {
     // Get detailed coverage for each file
     const fileDetails = [];
     for (const file of map.files()) {
-      const fileData = map.spawnCoverageSync(file);
+      const fileData = map.fileCoverage(file);
       let projectName = 'Unknown';
       for (const project of PROJECTS) {
         if (file.includes(project + '/')) {
