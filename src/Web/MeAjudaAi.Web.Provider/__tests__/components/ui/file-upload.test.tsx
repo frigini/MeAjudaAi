@@ -83,7 +83,7 @@ describe('FileUpload', () => {
 
   it('should handle drag enter', () => {
     render(<FileUpload label="Documento" onFileSelect={mockOnFileSelect} />);
-    const dropZone = screen.getByText(/clique para enviar/i).closest('div');
+    const dropZone = screen.getByText(/clique para enviar/i).closest('.border-dashed');
     
     fireEvent.dragEnter(dropZone!);
     expect(dropZone).toHaveClass('border-primary');
@@ -91,7 +91,7 @@ describe('FileUpload', () => {
 
   it('should handle drag over', () => {
     render(<FileUpload label="Documento" onFileSelect={mockOnFileSelect} />);
-    const dropZone = screen.getByText(/clique para enviar/i).closest('div');
+    const dropZone = screen.getByText(/clique para enviar/i).closest('.border-dashed');
     
     fireEvent.dragOver(dropZone!);
     expect(dropZone).toHaveClass('border-primary'); // Should set isDragging to true
@@ -99,7 +99,7 @@ describe('FileUpload', () => {
 
   it('should handle drag leave', () => {
     render(<FileUpload label="Documento" onFileSelect={mockOnFileSelect} />);
-    const dropZone = screen.getByText(/clique para enviar/i).closest('div');
+    const dropZone = screen.getByText(/clique para enviar/i).closest('.border-dashed');
     
     fireEvent.dragEnter(dropZone!);
     fireEvent.dragLeave(dropZone!);
@@ -108,7 +108,7 @@ describe('FileUpload', () => {
 
   it('should not call onFileSelect when drop has no files', async () => {
     render(<FileUpload label="Documento" onFileSelect={mockOnFileSelect} />);
-    const dropZone = screen.getByText(/clique para enviar/i).closest('div');
+    const dropZone = screen.getByText(/clique para enviar/i).closest('.border-dashed');
     
     fireEvent.drop(dropZone!, {
       dataTransfer: {
@@ -124,7 +124,7 @@ describe('FileUpload', () => {
     const file = new File(['test'], 'dropped.pdf', { type: 'application/pdf' });
     render(<FileUpload label="Documento" onFileSelect={mockOnFileSelect} />);
     
-    const dropZone = screen.getByText(/clique para enviar/i).closest('div');
+    const dropZone = screen.getByText(/clique para enviar/i).closest('.border-dashed');
     
     fireEvent.drop(dropZone!, {
       dataTransfer: {

@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
-import { afterEach } from 'vitest';
+import { afterEach, vi } from 'vitest';
 
 afterEach(() => {
   cleanup();
@@ -28,6 +28,7 @@ global.IntersectionObserver = class IntersectionObserver {
     return [];
   }
   unobserve() {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
 
 global.ResizeObserver = class ResizeObserver {
@@ -35,4 +36,13 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
   observe() {}
   unobserve() {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
+
+// Mock Pointer Events for Radix UI components (Select, Dialog, etc.)
+if (typeof window !== 'undefined') {
+  window.HTMLElement.prototype.scrollIntoView = vi.fn();
+  window.HTMLElement.prototype.hasPointerCapture = vi.fn(() => false);
+  window.HTMLElement.prototype.releasePointerCapture = vi.fn();
+  window.HTMLElement.prototype.setPointerCapture = vi.fn();
+}

@@ -40,7 +40,7 @@ export default defineConfig({
     },
     server: {
       deps: {
-        inline: [/lucide-react/, /@radix-ui/, /tailwind-variants/, /tailwind-merge/],
+        inline: [/lucide-react/, /@radix-ui/, /tailwind-variants/, /tailwind-merge/, /zod/, /@hookform/],
       },
     },
   },

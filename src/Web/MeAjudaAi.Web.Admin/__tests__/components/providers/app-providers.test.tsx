@@ -1,6 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import React from 'react';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from 'test-support';
 import { AppProviders } from '@/components/providers/app-providers';
+
+vi.mock('next-auth/react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next-auth/react')>();
+  return {
+    ...actual,
+    SessionProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  };
+});
 
 describe('AppProviders (Admin)', () => {
   it('deve renderizar children corretamente', () => {

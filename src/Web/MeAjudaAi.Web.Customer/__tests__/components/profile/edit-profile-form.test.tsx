@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { EditProfileForm } from '@/components/profile/edit-profile-form';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -24,6 +25,24 @@ vi.mock('sonner', () => ({
     success: vi.fn(),
     error: vi.fn(),
   },
+}));
+
+vi.mock('@hookform/resolvers/zod', () => ({
+  zodResolver: (schema: any) => async (data: any) => {
+    const result = await schema.safeParseAsync(data);
+    if (result.success) {
+      return { values: result.data, errors: {} };
+    } else {
+      const errors: Record<string, any> = {};
+      result.error.issues.forEach((issue: any) => {
+        const path = issue.path[0];
+        if (!errors[path]) {
+          errors[path] = { message: issue.message, type: issue.code };
+        }
+      });
+      return { values: {}, errors };
+    }
+  }
 }));
 
 describe('EditProfileForm (Customer)', () => {
@@ -56,30 +75,33 @@ describe('EditProfileForm (Customer)', () => {
   it('deve renderizar os dados iniciais corretamente', () => {
     render(<EditProfileForm userId={userId} initialData={initialData} />);
 
-    expect(screen.getByLabelText(/nome/i)).toHaveValue(initialData.firstName);
-    expect(screen.getByLabelText(/sobrenome/i)).toHaveValue(initialData.lastName);
+    expect(screen.getByLabelText(/^nome$/i)).toHaveValue(initialData.firstName);
+    expect(screen.getByLabelText(/^sobrenome$/i)).toHaveValue(initialData.lastName);
     expect(screen.getByLabelText(/email/i)).toHaveValue(initialData.email);
     expect(screen.getByLabelText(/telefone/i)).toHaveValue(initialData.phoneNumber);
   });
 
   it('deve exibir erro de validação para campos obrigatórios vazios', async () => {
+    const user = userEvent.setup();
     render(<EditProfileForm userId={userId} initialData={{}} />);
 
     const submitBtn = screen.getByRole('button', { name: /salvar alterações/i });
-    fireEvent.click(submitBtn);
+    await user.click(submitBtn);
 
-    expect(await screen.findByText(/nome deve ter pelo menos 2 caracteres/i)).toBeInTheDocument();
-    expect(await screen.findByText(/sobrenome deve ter pelo menos 2 caracteres/i)).toBeInTheDocument();
+    expect(await screen.findByText(/^nome deve ter pelo menos 2 caracteres$/i)).toBeInTheDocument();
+    expect(await screen.findByText(/^sobrenome deve ter pelo menos 2 caracteres$/i)).toBeInTheDocument();
   });
 
   it('deve validar formato de telefone inválido', async () => {
+    const user = userEvent.setup();
     render(<EditProfileForm userId={userId} initialData={initialData} />);
 
     const phoneInput = screen.getByLabelText(/telefone/i);
-    fireEvent.change(phoneInput, { target: { value: '11987654321' } }); // Missing parens and hyphen
+    await user.clear(phoneInput);
+    await user.type(phoneInput, '11987654321'); // Missing parens and hyphen
 
-    const submitBtn = screen.getByRole('button', { name: /salvar alterações/i });
-    fireEvent.click(submitBtn);
+    const submitBtn = screen.getByRole('button', { name: /salvar/i });
+    await user.click(submitBtn);
 
     expect(await screen.findByText(/formato inválido/i)).toBeInTheDocument();
   });
@@ -90,7 +112,7 @@ describe('EditProfileForm (Customer)', () => {
 
     render(<EditProfileForm userId={userId} initialData={initialData} />);
 
-    fireEvent.change(screen.getByLabelText(/nome/i), { target: { value: 'João Atualizado' } });
+    fireEvent.change(screen.getByLabelText(/^nome$/i), { target: { value: 'João Atualizado' } });
     fireEvent.click(screen.getByRole('button', { name: /salvar alterações/i }));
 
     await waitFor(() => {

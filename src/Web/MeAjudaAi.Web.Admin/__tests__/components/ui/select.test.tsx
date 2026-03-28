@@ -52,7 +52,7 @@ describe('Select (Admin)', () => {
   });
 
   it('deve chamar onValueChange ao escolher uma opção', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     const onValueChange = vi.fn();
     render(
       <Select onValueChange={onValueChange} placeholder="Selecione">
@@ -69,7 +69,7 @@ describe('Select (Admin)', () => {
   });
 
   it('SelectItem deve aceitar className customizado', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     render(
       <Select placeholder="Selecione">
         <SelectItem value="1" className="custom-item">Opção 1</SelectItem>
