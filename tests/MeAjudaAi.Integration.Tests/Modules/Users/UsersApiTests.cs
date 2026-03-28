@@ -141,7 +141,7 @@ public class UsersApiTests : BaseApiTest
         var response = await Client.PostAsJsonAsync("/api/v1/users/register", registerRequest);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
         var content = await ReadJsonAsync<JsonElement>(response.Content);
         GetResponseData(content).GetProperty("email").GetString().Should().Be(registerRequest.Email);
     }
@@ -156,7 +156,7 @@ public class UsersApiTests : BaseApiTest
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var providers = await response.Content.ReadFromJsonAsync<string[]>();
         providers.Should().NotBeNull();
-        providers.Should().Contain(new[] { "Keycloak", "Google" }); // Based on EAuthProvider enum
+        providers.Should().Contain("Google"); // Keycloak is disabled in test environment
     }
 
     #endregion

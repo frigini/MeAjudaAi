@@ -22,7 +22,7 @@ public class SearchLocationsEndpoint : IEndpoint
             .RequirePermission(EPermission.LocationsManage);
     }
 
-    internal static async Task<IResult> SearchAsync(
+    public static async Task<IResult> SearchAsync(
         string query,
         IGeocodingService geocodingService,
         CancellationToken cancellationToken)

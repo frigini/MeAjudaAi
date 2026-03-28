@@ -27,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\API\MeAjudaAi.Modules.Locations.API.csproj" />
     <ProjectReference Include="..\Domain\MeAjudaAi.Modules.Locations.Domain.csproj" />
     <ProjectReference Include="..\Application\MeAjudaAi.Modules.Locations.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\MeAjudaAi.Modules.Locations.Infrastructure.csproj" />
