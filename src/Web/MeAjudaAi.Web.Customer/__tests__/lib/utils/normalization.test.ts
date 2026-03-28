@@ -32,6 +32,11 @@ describe('normalizeProviderType', () => {
   it('deve retornar None para undefined', () => {
     expect(normalizeProviderType(undefined)).toBe(EProviderType.None);
   });
+
+  it('deve retornar None para numeros invalidos', () => {
+    expect(normalizeProviderType(999)).toBe(EProviderType.None);
+    expect(normalizeProviderType('999')).toBe(EProviderType.None);
+  });
 });
 
 describe('normalizeVerificationStatus', () => {
@@ -62,5 +67,14 @@ describe('normalizeVerificationStatus', () => {
   it.each([null, undefined])('deve tratar %s graciosamente', (input) => {
     const result = normalizeVerificationStatus(input);
     expect(result).toBeFalsy();
+  });
+
+  it('deve lidar com prefixo + em strings numericas', () => {
+    expect(normalizeVerificationStatus('+3')).toBe(EVerificationStatus.Verified);
+  });
+
+  it('deve retornar undefined para numeros invalidos', () => {
+    expect(normalizeVerificationStatus(999)).toBeUndefined();
+    expect(normalizeVerificationStatus('999')).toBeUndefined();
   });
 });

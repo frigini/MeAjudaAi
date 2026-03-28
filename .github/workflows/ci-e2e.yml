@@ -65,6 +65,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -99,6 +114,27 @@ jobs:
           npm run generate:api --workspace=meajudaai.web.customer
           npm run generate:api --workspace=meajudaai.web.admin
           npm run generate:api --workspace=meajudaai.web.provider
+
+      - name: Start Backend API
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
+          ConnectionStrings__DefaultConnection: "Host=localhost;Database=${{ env.POSTGRES_DB }};Username=${{ env.POSTGRES_USER }};Password=${{ env.POSTGRES_PASSWORD }}"
+        run: |
+          dotnet run --project src/Bootstrapper/MeAjudaAi.ApiService/MeAjudaAi.ApiService.csproj --configuration Release &
+          
+          # Wait for API to be ready
+          echo "Waiting for API..."
+          for i in {1..30}; do
+            if curl -s http://localhost:5271/health > /dev/null; then
+              echo "✅ API is up!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
 
       - name: Run Playwright E2E Tests
         working-directory: ./src/Web

@@ -67,4 +67,25 @@ describe('useServices Hook (Admin)', () => {
     await result.current.mutateAsync('svc-1');
     expect(api.apiServicesDelete).toHaveBeenCalledWith({ path: { id: 'svc-1' } });
   });
+
+  it('deve retornar dados brutos se a propriedade .data estiver ausente no useServices', async () => {
+    vi.mocked(api.apiServicesGet).mockResolvedValue([{ id: 'raw-1' }] as any);
+    const { result } = renderHook(() => useServices());
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toEqual([{ id: 'raw-1' }]);
+  });
+
+  it('deve usar o formato alternativo no useCreateService', async () => {
+    vi.mocked(api.apiServicesPost).mockResolvedValue({ data: { id: 'new' } });
+    const { result } = renderHook(() => useCreateService());
+    await result.current.mutateAsync({ body: { name: 'Wrapped' } });
+    expect(api.apiServicesPost).toHaveBeenCalledWith({ body: { name: 'Wrapped' } });
+  });
+
+  it('deve usar o formato alternativo no useUpdateService', async () => {
+    vi.mocked(api.apiServicesPut).mockResolvedValue({ data: { id: '1' } });
+    const { result } = renderHook(() => useUpdateService());
+    await result.current.mutateAsync({ path: { id: '1' }, body: { name: 'Wrapped' } });
+    expect(api.apiServicesPut).toHaveBeenCalledWith({ path: { id: '1' }, body: { name: 'Wrapped' } });
+  });
 });

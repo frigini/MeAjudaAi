@@ -309,5 +309,101 @@ public class ProvidersApiTests : BaseApiTest
             HttpStatusCode.Unauthorized,
             HttpStatusCode.Forbidden);
     }
+
+    #region Provider Workflow Endpoints
+
+    [Fact]
+    public async Task ProviderWorkflow_BecomeGetUpdateAndAddService_ShouldWork()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var email = $"provider_{Guid.NewGuid():N}@example.com";
+        AuthConfig.ConfigureUser(userId.ToString(), "provider", email, "provider");
+
+        // 1. Become Provider
+        var becomeRequest = new
+        {
+            Name = "New Provider",
+            Type = 1, // Individual
+            DocumentNumber = "12345678901",
+            PhoneNumber = "+5511988887777"
+        };
+        var becomeResponse = await Client.PostAsJsonAsync("/api/v1/providers/become", becomeRequest);
+        becomeResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var providerId = GetResponseData(await ReadJsonAsync<JsonElement>(becomeResponse.Content)).GetProperty("id").GetString();
+
+        // 2. Get My Profile
+        var getProfileResponse = await Client.GetAsync("/api/v1/providers/me");
+        getProfileResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // 3. Update My Profile
+        var updateRequest = new
+        {
+            name = "Updated Provider Name",
+            bio = "Some interesting bio",
+            website = "https://example.com"
+        };
+        var updateResponse = await Client.PutAsJsonAsync("/api/v1/providers/me", updateRequest);
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // 4. Add Service
+        // First get a valid service ID from ServiceCatalogs
+        AuthConfig.ConfigureAdmin();
+        var catResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = "Provider Test Category" });
+        var catId = GetResponseData(await ReadJsonAsync<JsonElement>(catResponse.Content)).GetProperty("id").GetString();
+        var svcResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = "Provider Test Svc", categoryId = catId });
+        var serviceId = GetResponseData(await ReadJsonAsync<JsonElement>(svcResponse.Content)).GetProperty("id").GetString();
+
+        AuthConfig.ConfigureUser(userId.ToString(), "provider", email, "provider");
+        var addServiceResponse = await Client.PostAsJsonAsync($"/api/v1/providers/services/{serviceId}", new { price = 50.0 });
+        addServiceResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task GetMyStatus_ShouldReturnStatus()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        AuthConfig.ConfigureUser(userId.ToString(), "provider", "test@test.com", "provider");
+        // Assume provider already exists or create one
+        await Client.PostAsJsonAsync("/api/v1/providers/become", new { Name = "Status Provider", Type = 1, DocumentNumber = "00000000000" });
+
+        // Act
+        var response = await Client.GetAsync("/api/v1/providers/me/status");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var data = GetResponseData(await ReadJsonAsync<JsonElement>(response.Content));
+        data.TryGetProperty("verificationStatus", out _).Should().BeTrue();
+    }
+
+    #endregion
+
+    #region Provider Admin Endpoints
+
+    [Fact]
+    public async Task AdminVerification_ShouldUpdateStatus()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var userId = Guid.NewGuid();
+        var createResponse = await Client.PostAsJsonAsync("/api/v1/providers", new
+        {
+            userId = userId,
+            name = "Verify Me Ltd",
+            type = 1,
+            documentNumber = "99999999999"
+        });
+        var providerId = GetResponseData(await ReadJsonAsync<JsonElement>(createResponse.Content)).GetProperty("id").GetString();
+
+        // Act - Verify
+        var verifyData = new { Status = 2, Notes = "Verified by test" }; // 2 = Verified
+        var response = await Client.PatchAsJsonAsync($"/api/v1/providers/{providerId}/verification", verifyData);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    #endregion
 }
 

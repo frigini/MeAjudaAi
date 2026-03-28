@@ -35,7 +35,7 @@ public static class CachingExtensions
         });
 
         // Registra métricas de cache
-        services.AddSingleton<CacheMetrics>();
+        services.AddSingleton<ICacheMetrics, CacheMetrics>();
 
         // Registra serviços de cache
         services.AddSingleton<ICacheService, HybridCacheService>();

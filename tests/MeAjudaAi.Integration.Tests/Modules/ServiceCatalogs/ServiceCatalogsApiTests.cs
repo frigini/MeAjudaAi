@@ -242,6 +242,163 @@ public class ServiceCatalogsApiTests : BaseApiTest
             HttpStatusCode.NotFound);
     }
 
+    #region ServiceCategory Endpoints
 
+    [Fact]
+    public async Task GetServiceCategoryById_WithExistingId_ShouldReturnCategory()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var categoryName = $"Category_{Guid.NewGuid():N}";
+        var createResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = categoryName });
+        var createdCategory = await ReadJsonAsync<JsonElement>(createResponse.Content);
+        var id = GetResponseData(createdCategory).GetProperty("id").GetString();
+
+        // Act
+        var response = await Client.GetAsync($"/api/v1/service-catalogs/categories/{id}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var content = await ReadJsonAsync<JsonElement>(response.Content);
+        GetResponseData(content).GetProperty("name").GetString().Should().Be(categoryName);
+    }
+
+    [Fact]
+    public async Task UpdateServiceCategory_WithValidData_ShouldReturnUpdated()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var createResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = "Old Name" });
+        var id = GetResponseData(await ReadJsonAsync<JsonElement>(createResponse.Content)).GetProperty("id").GetString();
+        var updateData = new { name = "New Name", description = "Updated description", displayOrder = 5 };
+
+        // Act
+        var response = await Client.PutAsJsonAsync($"/api/v1/service-catalogs/categories/{id}", updateData);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var content = await ReadJsonAsync<JsonElement>(response.Content);
+        var data = GetResponseData(content);
+        data.GetProperty("name").GetString().Should().Be("New Name");
+        data.GetProperty("displayOrder").GetInt32().Should().Be(5);
+    }
+
+    [Fact]
+    public async Task ActivateAndDeactivateCategory_ShouldUpdateStatus()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var createResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = "Status Test" });
+        var id = GetResponseData(await ReadJsonAsync<JsonElement>(createResponse.Content)).GetProperty("id").GetString();
+
+        // Act - Deactivate
+        var deactivateResponse = await Client.PatchAsync($"/api/v1/service-catalogs/categories/{id}/deactivate", null);
+        deactivateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Assert Inactive
+        var getResponse = await Client.GetAsync($"/api/v1/service-catalogs/categories/{id}");
+        GetResponseData(await ReadJsonAsync<JsonElement>(getResponse.Content)).GetProperty("isActive").GetBoolean().Should().BeFalse();
+
+        // Act - Activate
+        var activateResponse = await Client.PatchAsync($"/api/v1/service-catalogs/categories/{id}/activate", null);
+        activateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Assert Active
+        getResponse = await Client.GetAsync($"/api/v1/service-catalogs/categories/{id}");
+        GetResponseData(await ReadJsonAsync<JsonElement>(getResponse.Content)).GetProperty("isActive").GetBoolean().Should().BeTrue();
+    }
+
+    #endregion
+
+    #region Service Endpoints
+
+    [Fact]
+    public async Task GetServiceById_WithExistingId_ShouldReturnService()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var categoryResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = "Service Test Category" });
+        var catId = GetResponseData(await ReadJsonAsync<JsonElement>(categoryResponse.Content)).GetProperty("id").GetString();
+        
+        var serviceName = $"Service_{Guid.NewGuid():N}";
+        var createResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = serviceName, categoryId = catId });
+        var id = GetResponseData(await ReadJsonAsync<JsonElement>(createResponse.Content)).GetProperty("id").GetString();
+
+        // Act
+        var response = await Client.GetAsync($"/api/v1/service-catalogs/services/{id}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var data = GetResponseData(await ReadJsonAsync<JsonElement>(response.Content));
+        data.GetProperty("name").GetString().Should().Be(serviceName);
+    }
+
+    [Fact]
+    public async Task UpdateService_WithValidData_ShouldReturnUpdated()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var catResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = "Update Service Cat" });
+        var catId = GetResponseData(await ReadJsonAsync<JsonElement>(catResponse.Content)).GetProperty("id").GetString();
+        var createResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = "Old Service", categoryId = catId });
+        var id = GetResponseData(await ReadJsonAsync<JsonElement>(createResponse.Content)).GetProperty("id").GetString();
+
+        var updateData = new { name = "Updated Service", categoryId = catId, description = "New desc", displayOrder = 10 };
+
+        // Act
+        var response = await Client.PutAsJsonAsync($"/api/v1/service-catalogs/services/{id}", updateData);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var data = GetResponseData(await ReadJsonAsync<JsonElement>(response.Content));
+        data.GetProperty("name").GetString().Should().Be("Updated Service");
+        data.GetProperty("displayOrder").GetInt32().Should().Be(10);
+    }
+
+    [Fact]
+    public async Task ActivateAndDeactivateService_ShouldUpdateStatus()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var catResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = "Status Service Cat" });
+        var catId = GetResponseData(await ReadJsonAsync<JsonElement>(catResponse.Content)).GetProperty("id").GetString();
+        var createResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = "Status Svc", categoryId = catId });
+        var id = GetResponseData(await ReadJsonAsync<JsonElement>(createResponse.Content)).GetProperty("id").GetString();
+
+        // Act - Deactivate
+        await Client.PatchAsync($"/api/v1/service-catalogs/services/{id}/deactivate", null);
+        
+        // Assert Inactive
+        var getResponse = await Client.GetAsync($"/api/v1/service-catalogs/services/{id}");
+        GetResponseData(await ReadJsonAsync<JsonElement>(getResponse.Content)).GetProperty("isActive").GetBoolean().Should().BeFalse();
+
+        // Act - Activate
+        await Client.PatchAsync($"/api/v1/service-catalogs/services/{id}/activate", null);
+
+        // Assert Active
+        getResponse = await Client.GetAsync($"/api/v1/service-catalogs/services/{id}");
+        GetResponseData(await ReadJsonAsync<JsonElement>(getResponse.Content)).GetProperty("isActive").GetBoolean().Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task DeleteService_ShouldRemoveResource()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var catResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = "Delete Svc Cat" });
+        var catId = GetResponseData(await ReadJsonAsync<JsonElement>(catResponse.Content)).GetProperty("id").GetString();
+        var createResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = "Delete Me", categoryId = catId });
+        var id = GetResponseData(await ReadJsonAsync<JsonElement>(createResponse.Content)).GetProperty("id").GetString();
+
+        // Act
+        var response = await Client.DeleteAsync($"/api/v1/service-catalogs/services/{id}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        var getResponse = await Client.GetAsync($"/api/v1/service-catalogs/services/{id}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    #endregion
 }
 

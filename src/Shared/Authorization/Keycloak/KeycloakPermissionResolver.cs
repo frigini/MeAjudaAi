@@ -8,6 +8,7 @@ using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.ValueObjects;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -22,7 +23,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
 {
     private readonly HttpClient _httpClient;
     private readonly KeycloakConfiguration _config;
-    private readonly HybridCache _cache;
+    private readonly ICacheService _cache;
     private readonly ILogger<KeycloakPermissionResolver> _logger;
 
     public string ModuleName => ModuleNames.Users; // Keycloak resolver é usado principalmente pelo módulo Users
@@ -30,7 +31,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     public KeycloakPermissionResolver(
         HttpClient httpClient,
         IConfiguration configuration,
-        HybridCache cache,
+        ICacheService cache,
         ILogger<KeycloakPermissionResolver> logger)
     {
         ArgumentNullException.ThrowIfNull(configuration);

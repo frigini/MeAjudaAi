@@ -3,6 +3,8 @@ import { renderHook, waitFor } from 'test-support';
 import { 
   useProviders, 
   useProviderById, 
+  useProvidersByStatus,
+  useProvidersByType,
   useCreateProvider, 
   useUpdateProvider, 
   useDeleteProvider, 
@@ -84,5 +86,66 @@ describe('useProviders Hook (Admin)', () => {
     
     await result.current.mutateAsync('p-1');
     expect(api.apiDeactivatePost).toHaveBeenCalledWith({ path: { id: 'p-1' } });
+  });
+
+  it('deve retornar dados brutos se a propriedade .data estiver ausente', async () => {
+    vi.mocked(api.apiProvidersGet2).mockResolvedValue([{ id: 'raw-1' }] as any);
+    const { result } = renderHook(() => useProviders());
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toEqual([{ id: 'raw-1' }]);
+  });
+
+  it('deve desabilitar useProviderById se ID estiver vazio', async () => {
+    renderHook(() => useProviderById(''));
+    expect(api.apiProvidersGet3).not.toHaveBeenCalled();
+  });
+
+  it('deve desabilitar useProvidersByStatus se status estiver vazio', async () => {
+    renderHook(() => useProvidersByStatus(''));
+    expect(api.apiProvidersGet2).not.toHaveBeenCalled();
+  });
+
+  it('deve desabilitar useProvidersByType se type estiver vazio', () => {
+    renderHook(() => useProvidersByType(''));
+    expect(api.apiProvidersGet2).not.toHaveBeenCalled();
+  });
+
+  it('deve buscar provedores por status quando status é fornecido', async () => {
+    vi.mocked(api.apiProvidersGet2).mockResolvedValue({ data: [{ id: '1' }] });
+    const { result } = renderHook(() => useProvidersByStatus('Verified'));
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(api.apiProvidersGet2).toHaveBeenCalledWith(expect.objectContaining({
+      query: { verificationStatus: 'Verified' }
+    }));
+  });
+
+  it('deve buscar provedores por tipo quando tipo é fornecido', async () => {
+    vi.mocked(api.apiProvidersGet2).mockResolvedValue({ data: [{ id: '1' }] });
+    const { result } = renderHook(() => useProvidersByType('Individual'));
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(api.apiProvidersGet2).toHaveBeenCalledWith(expect.objectContaining({
+      query: { type: 'Individual' }
+    }));
+  });
+
+  it('deve retornar dados brutos se a propriedade .data estiver ausente no useProviderById', async () => {
+    vi.mocked(api.apiProvidersGet3).mockResolvedValue({ id: 'raw-1' } as any);
+    const { result } = renderHook(() => useProviderById('raw-1'));
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toEqual({ id: 'raw-1' });
+  });
+
+  it('deve retornar dados brutos se a propriedade .data estiver ausente no useProvidersByStatus', async () => {
+    vi.mocked(api.apiProvidersGet2).mockResolvedValue([{ id: 'raw-1' }] as any);
+    const { result } = renderHook(() => useProvidersByStatus('Verified'));
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toEqual([{ id: 'raw-1' }]);
+  });
+
+  it('deve retornar dados brutos se a propriedade .data estiver ausente no useProvidersByType', async () => {
+    vi.mocked(api.apiProvidersGet2).mockResolvedValue([{ id: 'raw-1' }] as any);
+    const { result } = renderHook(() => useProvidersByType('Individual'));
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toEqual([{ id: 'raw-1' }]);
   });
 });

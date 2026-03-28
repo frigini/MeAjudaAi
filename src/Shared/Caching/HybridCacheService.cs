@@ -7,7 +7,7 @@ namespace MeAjudaAi.Shared.Caching;
 
 public class HybridCacheService(    HybridCache hybridCache,
     ILogger<HybridCacheService> logger,
-    CacheMetrics metrics,
+    ICacheMetrics metrics,
     IConfiguration configuration) : ICacheService
 {
     private readonly bool _isCacheEnabled = configuration.GetValue<bool>("Cache:Enabled", true);

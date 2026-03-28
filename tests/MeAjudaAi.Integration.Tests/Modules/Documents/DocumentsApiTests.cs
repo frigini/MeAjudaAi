@@ -170,6 +170,10 @@ public class DocumentsApiTests : BaseApiTest
     [InlineData("application/pdf", "document.pdf")]
     [InlineData("image/jpeg", "document.jpeg")]
     [InlineData("image/png", "document.png")]
+    [Theory]
+    [InlineData("application/pdf", "document.pdf")]
+    [InlineData("image/jpeg", "document.jpeg")]
+    [InlineData("image/png", "document.png")]
     public async Task UploadDocument_WithDifferentContentTypes_ShouldAcceptCommonFormats(
         string contentType, string fileName)
     {
@@ -196,5 +200,77 @@ public class DocumentsApiTests : BaseApiTest
         result.Should().NotBeNull();
         result!.DocumentId.Should().NotBeEmpty();
     }
+
+    #region Document Lifecycle Endpoints
+
+    [Fact]
+    public async Task DocumentLifecycle_UploadRequestVerificationAndVerify_ShouldWork()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        AuthConfig.ConfigureUser(providerId.ToString(), "provider", "provider@test.com", "provider");
+
+        // 1. Upload
+        var uploadRequest = new UploadDocumentRequest
+        {
+            ProviderId = providerId,
+            DocumentType = EDocumentType.IdentityDocument,
+            FileName = "identity.pdf",
+            ContentType = "application/pdf",
+            FileSizeBytes = 1024
+        };
+        var uploadResponse = await Client.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest);
+        var uploadData = await ReadJsonAsync<UploadDocumentResponse>(uploadResponse.Content);
+        var documentId = uploadData!.DocumentId;
+
+        // 2. Get Status (Initial)
+        var statusResponse = await Client.GetAsync($"/api/v1/documents/{documentId}/status");
+        statusResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // 3. Request Verification
+        var verifyRequest = new { DocumentIds = new[] { documentId } };
+        var requestVerificationResponse = await Client.PostAsJsonAsync($"/api/v1/documents/provider/{providerId}/request-verification", verifyRequest);
+        requestVerificationResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // 4. Verify (Approve) - Needs Admin
+        AuthConfig.ConfigureAdmin();
+        var verifyData = new { IsVerified = true, VerificationNotes = "Looks good" };
+        var verifyResponse = await Client.PostAsJsonAsync($"/api/v1/documents/{documentId}/verify", verifyData);
+        verifyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // 5. List Provider Documents
+        var listResponse = await Client.GetAsync($"/api/v1/documents/provider/{providerId}");
+        listResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var documents = GetResponseData(await ReadJsonAsync<JsonElement>(listResponse.Content));
+        documents.ValueKind.Should().Be(JsonValueKind.Array);
+        documents.EnumerateArray().Should().Contain(d => d.GetProperty("id").GetString() == documentId.ToString());
+    }
+
+    [Fact]
+    public async Task VerifyDocument_Reject_ShouldUpdateStatus()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        AuthConfig.ConfigureUser(providerId.ToString(), "provider", "provider@test.com", "provider");
+
+        var uploadRequest = new UploadDocumentRequest { ProviderId = providerId, DocumentType = EDocumentType.IdentityDocument, FileName = "id.pdf", ContentType = "application/pdf", FileSizeBytes = 100 };
+        var uploadResponse = await Client.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest);
+        var documentId = (await ReadJsonAsync<UploadDocumentResponse>(uploadResponse.Content))!.DocumentId;
+
+        await Client.PostAsJsonAsync($"/api/v1/documents/provider/{providerId}/request-verification", new { DocumentIds = new[] { documentId } });
+
+        // Act - Reject (Admin)
+        AuthConfig.ConfigureAdmin();
+        var rejectData = new { IsVerified = false, VerificationNotes = "Illegible" };
+        var response = await Client.PostAsJsonAsync($"/api/v1/documents/{documentId}/verify", rejectData);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var getStatus = await Client.GetAsync($"/api/v1/documents/{documentId}/status");
+        var statusData = GetResponseData(await ReadJsonAsync<JsonElement>(getStatus.Content));
+        statusData.GetProperty("status").GetString().Should().Be("Rejected");
+    }
+
+    #endregion
 }
 

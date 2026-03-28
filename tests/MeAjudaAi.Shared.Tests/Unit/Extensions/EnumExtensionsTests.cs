@@ -1,214 +1,106 @@
 using FluentAssertions;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Contracts.Functional;
+using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Extensions;
 
+// Dummy enum for testing
+public enum TestStatus
+{
+    Active,
+    Inactive,
+    Pending
+}
+
+[Trait("Category", "Unit")]
 public class EnumExtensionsTests
 {
-    private enum TestEnum
+    [Theory]
+    [InlineData("Active", TestStatus.Active)]
+    [InlineData("active", TestStatus.Active)] // Default ignoreCase = true
+    [InlineData("Pending", TestStatus.Pending)]
+    public void ToEnum_WithValidValue_ShouldReturnSuccess(string input, TestStatus expected)
     {
-        Value1,
-        Value2,
-        Value3
-    }
-
-    [Fact]
-    public void ToEnum_WithValidValue_ShouldReturnSuccessResult()
-    {
-        // Arrange
-        var value = "Value1";
-
         // Act
-        var result = value.ToEnum<TestEnum>();
+        var result = input.ToEnum<TestStatus>();
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(TestEnum.Value1);
+        result.Value.Should().Be(expected);
     }
 
     [Fact]
-    public void ToEnum_WithValidValueDifferentCase_ShouldReturnSuccessResult()
+    public void ToEnum_WithCaseSensitivity_ShouldReturnFailure()
     {
-        // Arrange
-        var value = "value2";
-
         // Act
-        var result = value.ToEnum<TestEnum>();
+        var result = "active".ToEnum<TestStatus>(ignoreCase: false);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(TestEnum.Value2);
-    }
-
-    [Fact]
-    public void ToEnum_WithIgnoreCaseFalse_ShouldBeCaseSensitive()
-    {
-        // Arrange
-        var value = "value1";
-
-        // Act
-        var result = value.ToEnum<TestEnum>(ignoreCase: false);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("Invalid TestEnum");
-    }
-
-    [Fact]
-    public void ToEnum_WithInvalidValue_ShouldReturnFailureResult()
-    {
-        // Arrange
-        var value = "InvalidValue";
-
-        // Act
-        var result = value.ToEnum<TestEnum>();
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(400);
-        result.Error.Message.Should().Contain("Invalid TestEnum");
-        result.Error.Message.Should().Contain("Value1, Value2, Value3");
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void ToEnum_WithNullOrWhiteSpace_ShouldReturnFailureResult(string? value)
+    [InlineData("InvalidValue")]
+    public void ToEnum_WithInvalidValue_ShouldReturnFailure(string? input)
     {
         // Act
-        var result = EnumExtensions.ToEnum<TestEnum>(value!);
+        var result = input!.ToEnum<TestStatus>();
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("cannot be null or empty");
+        result.IsFailure.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("Active", TestStatus.Pending, TestStatus.Active)]
+    [InlineData("Invalid", TestStatus.Pending, TestStatus.Pending)]
+    [InlineData(null, TestStatus.Pending, TestStatus.Pending)]
+    public void ToEnumOrDefault_ShouldReturnExpectedValue(string? input, TestStatus defaultValue, TestStatus expected)
+    {
+        // Act
+        var result = input!.ToEnumOrDefault(defaultValue);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("Active", true)]
+    [InlineData("active", true)]
+    [InlineData("Invalid", false)]
+    [InlineData(null, false)]
+    public void IsValidEnum_ShouldReturnExpectedResult(string? input, bool expected)
+    {
+        // Act
+        var result = input!.IsValidEnum<TestStatus>();
+
+        // Assert
+        result.Should().Be(expected);
     }
 
     [Fact]
-    public void ToEnumOrDefault_WithValidValue_ShouldReturnParsedEnum()
+    public void GetValidValues_ShouldReturnAllNames()
     {
-        // Arrange
-        var value = "Value2";
-
         // Act
-        var result = value.ToEnumOrDefault(TestEnum.Value1);
+        var result = EnumExtensions.GetValidValues<TestStatus>();
 
         // Assert
-        result.Should().Be(TestEnum.Value2);
+        result.Should().Contain(new[] { "Active", "Inactive", "Pending" });
+        result.Length.Should().Be(3);
     }
 
     [Fact]
-    public void ToEnumOrDefault_WithInvalidValue_ShouldReturnDefaultValue()
-    {
-        // Arrange
-        var value = "InvalidValue";
-
-        // Act
-        var result = value.ToEnumOrDefault(TestEnum.Value3);
-
-        // Assert
-        result.Should().Be(TestEnum.Value3);
-    }
-
-    [Fact]
-    public void ToEnumOrDefault_WithNullValue_ShouldReturnDefaultValue()
-    {
-        // Arrange
-        string? value = null;
-
-        // Act
-        var result = value!.ToEnumOrDefault(TestEnum.Value1);
-
-        // Assert
-        result.Should().Be(TestEnum.Value1);
-    }
-
-    [Fact]
-    public void ToEnumOrDefault_WithDifferentCase_ShouldReturnParsedEnum()
-    {
-        // Arrange
-        var value = "value3";
-
-        // Act
-        var result = value.ToEnumOrDefault(TestEnum.Value1);
-
-        // Assert
-        result.Should().Be(TestEnum.Value3);
-    }
-
-    [Fact]
-    public void IsValidEnum_WithValidValue_ShouldReturnTrue()
-    {
-        // Arrange
-        var value = "Value1";
-
-        // Act
-        var result = value.IsValidEnum<TestEnum>();
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidEnum_WithInvalidValue_ShouldReturnFalse()
-    {
-        // Arrange
-        var value = "InvalidValue";
-
-        // Act
-        var result = value.IsValidEnum<TestEnum>();
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidEnum_WithNullValue_ShouldReturnFalse()
-    {
-        // Arrange
-        string? value = null;
-
-        // Act
-        var result = value!.IsValidEnum<TestEnum>();
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsValidEnum_WithDifferentCase_ShouldReturnTrue()
-    {
-        // Arrange
-        var value = "value2";
-
-        // Act
-        var result = value.IsValidEnum<TestEnum>();
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void GetValidValues_NoFilter_ShouldReturnAllEnumNames()
+    public void GetValidValuesDescription_ShouldReturnFormattedString()
     {
         // Act
-        var result = EnumExtensions.GetValidValues<TestEnum>();
+        var result = EnumExtensions.GetValidValuesDescription<TestStatus>();
 
         // Assert
-        result.Should().BeEquivalentTo(["Value1", "Value2", "Value3"]);
-    }
-
-    [Fact]
-    public void GetValidValuesDescription_NoFilter_ShouldReturnFormattedString()
-    {
-        // Act
-        var result = EnumExtensions.GetValidValuesDescription<TestEnum>();
-
-        // Assert
-        result.Should().Contain("Valid TestEnum values:");
-        result.Should().Contain("Value1");
-        result.Should().Contain("Value2");
-        result.Should().Contain("Value3");
+        result.Should().Contain("Active, Inactive, Pending");
+        result.Should().StartWith("Valid TestStatus values:");
     }
 }

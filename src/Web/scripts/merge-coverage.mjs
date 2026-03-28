@@ -50,7 +50,18 @@ for (const project of PROJECTS) {
   if (existsSync(coveragePath)) {
     console.log(`✅ Adicionando cobertura: ${project}`);
     const coverage = JSON.parse(readFileSync(coveragePath, 'utf8'));
-    map.merge(coverage);
+    
+    // Prefix each file path with the project name to distinguish between apps
+    const prefixedCoverage = {};
+    for (const file of Object.keys(coverage)) {
+      const data = coverage[file];
+      const relativePath = file.split(project)[1] || file;
+      const newPath = join(project, relativePath).replace(/\\/g, '/');
+      data.path = newPath;
+      prefixedCoverage[newPath] = data;
+    }
+    
+    map.merge(prefixedCoverage);
   } else {
     missing.push(project);
     console.error(`❌ ${project}: missing coverage-final.json (run tests with --coverage first)`);

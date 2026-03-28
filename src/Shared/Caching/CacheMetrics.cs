@@ -3,10 +3,20 @@ using System.Diagnostics.Metrics;
 namespace MeAjudaAi.Shared.Caching;
 
 /// <summary>
-/// Métricas específicas para operações de cache.
-/// Fornece instrumentação para monitoramento de performance de cache.
+/// Interface para métricas específicas de operações de cache.
 /// </summary>
-public sealed class CacheMetrics
+public interface ICacheMetrics
+{
+    void RecordCacheHit(string key, string operation = "get");
+    void RecordCacheMiss(string key, string operation = "get");
+    void RecordOperationDuration(double durationSeconds, string operation, string result);
+    void RecordOperation(string key, string operation, bool isHit, double durationSeconds);
+}
+
+/// <summary>
+/// Implementação concreta das métricas de cache utilizando System.Diagnostics.Metrics.
+/// </summary>
+public sealed class CacheMetrics : ICacheMetrics
 {
     private readonly Counter<long> _cacheHits;
     private readonly Counter<long> _cacheMisses;
@@ -35,9 +45,6 @@ public sealed class CacheMetrics
             description: "Duration of cache operations in seconds");
     }
 
-    /// <summary>
-    /// Registra um cache hit
-    /// </summary>
     public void RecordCacheHit(string key, string operation = "get")
     {
         _cacheHits.Add(1, new KeyValuePair<string, object?>("key", key),
@@ -46,9 +53,6 @@ public sealed class CacheMetrics
                                 new KeyValuePair<string, object?>("operation", operation));
     }
 
-    /// <summary>
-    /// Registra um cache miss
-    /// </summary>
     public void RecordCacheMiss(string key, string operation = "get")
     {
         _cacheMisses.Add(1, new KeyValuePair<string, object?>("key", key),
@@ -57,9 +61,6 @@ public sealed class CacheMetrics
                                 new KeyValuePair<string, object?>("operation", operation));
     }
 
-    /// <summary>
-    /// Registra a duração de uma operação de cache
-    /// </summary>
     public void RecordOperationDuration(double durationSeconds, string operation, string result)
     {
         _cacheOperationDuration.Record(durationSeconds,
@@ -67,9 +68,6 @@ public sealed class CacheMetrics
             new KeyValuePair<string, object?>("result", result));
     }
 
-    /// <summary>
-    /// Registra uma operação de cache com todas as métricas
-    /// </summary>
     public void RecordOperation(string key, string operation, bool isHit, double durationSeconds)
     {
         if (isHit)
