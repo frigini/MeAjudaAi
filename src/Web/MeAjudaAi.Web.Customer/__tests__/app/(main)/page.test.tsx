@@ -36,9 +36,9 @@ describe('HomePage', () => {
     expect(screen.getByText(/Você é prestador de serviço\?/i)).toBeInTheDocument();
   });
 
-  it('deve ter um link para cadastro de clientes', () => {
+  it('deve ter um link para cadastro de prestadores', () => {
     render(<HomePage />);
     const registerLink = screen.getByRole('link', { name: /cadastre-se grátis/i });
-    expect(registerLink).toHaveAttribute('href', '/cadastro/cliente');
+    expect(registerLink).toHaveAttribute('href', '/cadastro/prestador');
   });
 });

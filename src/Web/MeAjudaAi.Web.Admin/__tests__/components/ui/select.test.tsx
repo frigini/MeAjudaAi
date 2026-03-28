@@ -1,7 +1,14 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from 'test-support';
 import userEvent from '@testing-library/user-event';
 import { Select, SelectItem } from '@/components/ui/select';
+
+beforeEach(() => {
+  vi.stubGlobal('PointerEvent', class PointerEvent {
+    hasPointerCapture = vi.fn();
+    releasePointerCapture = vi.fn();
+  });
+});
 
 describe('Select (Admin)', () => {
   it('deve renderizar com placeholder', () => {

@@ -1,8 +1,11 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from 'test-support';
+import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 
-const mockSignOut = vi.fn();
+const { mockSignOut } = vi.hoisted(() => ({
+  mockSignOut: vi.fn(),
+}));
 
 vi.mock('next-auth/react', () => ({
   useSession: () => ({ data: { user: { name: 'Carlos Admin', roles: ['admin'] } } }),
@@ -81,9 +84,10 @@ describe('Sidebar', () => {
   });
 
   it('deve chamar signOut ao clicar no botão de sair', async () => {
+    const user = userEvent.setup();
     render(<Sidebar />);
     const logoutButton = screen.getByText('Sair');
-    logoutButton.click();
+    await user.click(logoutButton);
     expect(mockSignOut).toHaveBeenCalledWith({ callbackUrl: "/login" });
   });
 });

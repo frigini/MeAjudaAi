@@ -162,7 +162,7 @@ describe('CustomerRegisterForm (Stabilized for CI)', () => {
     fireEvent.change(screen.getByLabelText(/confirmar senha/i), { target: { value: 'Senha123' } });
     fireEvent.click(screen.getByLabelText(/eu aceito os termos/i));
     
-    await act(async () {
+    await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
     });
 
@@ -170,7 +170,7 @@ describe('CustomerRegisterForm (Stabilized for CI)', () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
 
     // Advance timers to trigger the redirect
-    await act(async () {
+    await act(async () => {
       vi.advanceTimersByTime(2000);
     });
 
