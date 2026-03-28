@@ -170,10 +170,6 @@ public class DocumentsApiTests : BaseApiTest
     [InlineData("application/pdf", "document.pdf")]
     [InlineData("image/jpeg", "document.jpeg")]
     [InlineData("image/png", "document.png")]
-    [Theory]
-    [InlineData("application/pdf", "document.pdf")]
-    [InlineData("image/jpeg", "document.jpeg")]
-    [InlineData("image/png", "document.png")]
     public async Task UploadDocument_WithDifferentContentTypes_ShouldAcceptCommonFormats(
         string contentType, string fileName)
     {
