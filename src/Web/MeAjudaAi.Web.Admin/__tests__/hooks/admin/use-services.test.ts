@@ -18,7 +18,8 @@ describe('useServices Hook (Admin)', () => {
   });
 
   it('deve buscar todos os serviços quando categoryId não for fornecido', async () => {
-    vi.mocked(api.apiServicesGet).mockResolvedValue({ data: [{ id: '1', name: 'Service 1' }] });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(api.apiServicesGet).mockResolvedValue({ data: [{ id: '1', name: 'Service 1' }] } as any);
     const { result } = renderHook(() => useServices());
     
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -27,7 +28,8 @@ describe('useServices Hook (Admin)', () => {
   });
 
   it('deve buscar serviços por categoria quando categoryId for fornecido', async () => {
-    vi.mocked(api.apiCategoryGet).mockResolvedValue({ data: [{ id: '1', name: 'Cat Service' }] });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(api.apiCategoryGet).mockResolvedValue({ data: [{ id: '1', name: 'Cat Service' }] } as any);
     const { result } = renderHook(() => useServices('cat-123'));
     
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -36,7 +38,8 @@ describe('useServices Hook (Admin)', () => {
   });
 
   it('deve buscar serviço por ID', async () => {
-    vi.mocked(api.apiServicesGet2).mockResolvedValue({ data: { id: 'svc-1', name: 'Service Name' } });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(api.apiServicesGet2).mockResolvedValue({ data: { id: 'svc-1', name: 'Service Name' } } as any);
     const { result } = renderHook(() => useServiceById('svc-1'));
     
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -45,7 +48,8 @@ describe('useServices Hook (Admin)', () => {
   });
 
   it('deve criar um serviço', async () => {
-    vi.mocked(api.apiServicesPost).mockResolvedValue({ data: { id: 'new' } });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(api.apiServicesPost).mockResolvedValue({ data: { id: 'new' } } as any);
     const { result } = renderHook(() => useCreateService());
     
     await result.current.mutateAsync({ name: 'New Service' });
@@ -53,7 +57,8 @@ describe('useServices Hook (Admin)', () => {
   });
 
   it('deve atualizar um serviço', async () => {
-    vi.mocked(api.apiServicesPut).mockResolvedValue({ data: { id: '1' } });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(api.apiServicesPut).mockResolvedValue({ data: { id: '1' } } as any);
     const { result } = renderHook(() => useUpdateService());
     
     await result.current.mutateAsync({ id: '1', body: { name: 'Updated' } });
@@ -61,7 +66,8 @@ describe('useServices Hook (Admin)', () => {
   });
 
   it('deve deletar um serviço', async () => {
-    vi.mocked(api.apiServicesDelete).mockResolvedValue({ data: { success: true } });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(api.apiServicesDelete).mockResolvedValue({ data: { success: true } } as any);
     const { result } = renderHook(() => useDeleteService());
     
     await result.current.mutateAsync('svc-1');
@@ -69,6 +75,7 @@ describe('useServices Hook (Admin)', () => {
   });
 
   it('deve retornar dados brutos se a propriedade .data estiver ausente no useServices', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(api.apiServicesGet).mockResolvedValue([{ id: 'raw-1' }] as any);
     const { result } = renderHook(() => useServices());
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -76,16 +83,27 @@ describe('useServices Hook (Admin)', () => {
   });
 
   it('deve usar o formato alternativo no useCreateService', async () => {
-    vi.mocked(api.apiServicesPost).mockResolvedValue({ data: { id: 'new' } });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(api.apiServicesPost).mockResolvedValue({ data: { id: 'new' } } as any);
     const { result } = renderHook(() => useCreateService());
     await result.current.mutateAsync({ body: { name: 'Wrapped' } });
     expect(api.apiServicesPost).toHaveBeenCalledWith({ body: { name: 'Wrapped' } });
   });
 
   it('deve usar o formato alternativo no useUpdateService', async () => {
-    vi.mocked(api.apiServicesPut).mockResolvedValue({ data: { id: '1' } });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(api.apiServicesPut).mockResolvedValue({ data: { id: '1' } } as any);
     const { result } = renderHook(() => useUpdateService());
     await result.current.mutateAsync({ path: { id: '1' }, body: { name: 'Wrapped' } });
     expect(api.apiServicesPut).toHaveBeenCalledWith({ path: { id: '1' }, body: { name: 'Wrapped' } });
+  });
+
+  it('deve suportar formato alternativo (objeto com path) no useDeleteService', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(api.apiServicesDelete).mockResolvedValue({ data: { success: true } } as any);
+    const { result } = renderHook(() => useDeleteService());
+    
+    await result.current.mutateAsync({ path: { id: 'svc-2' } });
+    expect(api.apiServicesDelete).toHaveBeenCalledWith({ path: { id: 'svc-2' } });
   });
 });

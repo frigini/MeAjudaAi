@@ -73,6 +73,7 @@ try {
   reports.create('html').execute(context);
   reports.create('lcov').execute(context);
   reports.create('json-summary').execute(context);
+  reports.create('cobertura').execute(context);
 
   const summaryPath = join(OUTPUT_DIR, 'coverage-summary.json');
   if (existsSync(summaryPath)) {

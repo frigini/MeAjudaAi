@@ -5,6 +5,7 @@ import {
   useAllowedCityById, 
   useCreateAllowedCity, 
   useUpdateAllowedCity, 
+  usePatchAllowedCity,
   useDeleteAllowedCity 
 } from '@/hooks/admin/use-allowed-cities';
 import * as api from '@/lib/api/generated';
@@ -14,6 +15,7 @@ vi.mock('@/lib/api/generated', () => ({
   apiAllowedCitiesGet2: vi.fn(),
   apiAllowedCitiesPost: vi.fn(),
   apiAllowedCitiesPut: vi.fn(),
+  apiAllowedCitiesPatch: vi.fn(),
   apiAllowedCitiesDelete: vi.fn(),
 }));
 
@@ -52,7 +54,7 @@ describe('useAllowedCities Hook (Admin)', () => {
     });
   });
 
-  it('deve atualizar uma cidade permitida', async () => {
+  it('deve atualizar uma cidade permitida (formato simplificado)', async () => {
     vi.mocked(api.apiAllowedCitiesPut).mockResolvedValue({ data: { id: '1' } });
     const { result } = renderHook(() => useUpdateAllowedCity());
     
@@ -60,6 +62,28 @@ describe('useAllowedCities Hook (Admin)', () => {
     expect(api.apiAllowedCitiesPut).toHaveBeenCalledWith({ 
       path: { id: '1' }, 
       body: { cityName: 'Updated' } 
+    });
+  });
+
+  it('deve atualizar uma cidade permitida (formato completo)', async () => {
+    vi.mocked(api.apiAllowedCitiesPut).mockResolvedValue({ data: { id: '1' } });
+    const { result } = renderHook(() => useUpdateAllowedCity());
+    
+    await result.current.mutateAsync({ path: { id: '1' }, body: { cityName: 'Updated Full' } });
+    expect(api.apiAllowedCitiesPut).toHaveBeenCalledWith({ 
+      path: { id: '1' }, 
+      body: { cityName: 'Updated Full' } 
+    });
+  });
+
+  it('deve atualizar parcialmente uma cidade permitida', async () => {
+    vi.mocked(api.apiAllowedCitiesPatch).mockResolvedValue({ data: { id: '1' } });
+    const { result } = renderHook(() => usePatchAllowedCity());
+    
+    await result.current.mutateAsync({ id: '1', body: { isActive: false } });
+    expect(api.apiAllowedCitiesPatch).toHaveBeenCalledWith({ 
+      path: { id: '1' }, 
+      body: { isActive: false } 
     });
   });
 

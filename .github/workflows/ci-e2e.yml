@@ -149,13 +149,13 @@ jobs:
           # Wait for API to be ready
           echo "Waiting for API..."
           API_READY=false
-          for i in {1..30}; do
-            if curl -s http://localhost:5271/health > /dev/null 2>&1; then
+          for i in {1..60}; do
+            if curl -s http://localhost:7002/health > /dev/null 2>&1; then
               echo "API is up!"
               API_READY=true
               break
             fi
-            echo "Waiting... ($i/30)"
+            echo "Waiting... ($i/60)"
             sleep 2
           done
           

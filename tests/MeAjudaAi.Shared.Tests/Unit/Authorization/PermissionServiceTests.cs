@@ -40,6 +40,16 @@ public class PermissionServiceTests
     }
 
     [Fact]
+    public async Task GetUserPermissionsAsync_WhenUserIdIsEmpty_ShouldReturnEmpty()
+    {
+        // Act
+        var result = await _service.GetUserPermissionsAsync("");
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task GetUserPermissionsAsync_WhenCacheExists_ShouldReturnCachedValues()
     {
         // Arrange
@@ -117,6 +127,100 @@ public class PermissionServiceTests
 
         // Assert
         result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task HasPermissionsAsync_WhenRequireAllIsTrueAndAllPresent_ShouldReturnTrue()
+    {
+        // Arrange
+        var userId = "user-123";
+        var permissionsToCheck = new[] { EPermission.UsersRead, EPermission.UsersCreate };
+        
+        _cacheServiceMock.Setup(c => c.GetOrCreateAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<HybridCacheEntryOptions>(),
+            It.IsAny<IReadOnlyCollection<string>?>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { EPermission.UsersRead, EPermission.UsersCreate, EPermission.SystemRead });
+
+        // Act
+        var result = await _service.HasPermissionsAsync(userId, permissionsToCheck, requireAll: true);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task HasPermissionsAsync_WhenRequireAllIsTrueAndSomeMissing_ShouldReturnFalse()
+    {
+        // Arrange
+        var userId = "user-123";
+        var permissionsToCheck = new[] { EPermission.UsersRead, EPermission.UsersDelete };
+        
+        _cacheServiceMock.Setup(c => c.GetOrCreateAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<HybridCacheEntryOptions>(),
+            It.IsAny<IReadOnlyCollection<string>?>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { EPermission.UsersRead, EPermission.UsersCreate });
+
+        // Act
+        var result = await _service.HasPermissionsAsync(userId, permissionsToCheck, requireAll: true);
+
+        // Assert
+        result.Should().BeFalse();
+        _metricsMock.Verify(m => m.RecordAuthorizationFailure(userId, It.IsAny<EPermission>(), It.IsAny<string>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HasPermissionsAsync_WhenRequireAllIsFalseAndAtLeastOnePresent_ShouldReturnTrue()
+    {
+        // Arrange
+        var userId = "user-123";
+        var permissionsToCheck = new[] { EPermission.UsersDelete, EPermission.UsersCreate };
+        
+        _cacheServiceMock.Setup(c => c.GetOrCreateAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<HybridCacheEntryOptions>(),
+            It.IsAny<IReadOnlyCollection<string>?>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { EPermission.UsersRead, EPermission.UsersCreate });
+
+        // Act
+        var result = await _service.HasPermissionsAsync(userId, permissionsToCheck, requireAll: false);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetUserPermissionsByModuleAsync_WhenModuleIsValid_ShouldReturnPermissions()
+    {
+        // Arrange
+        var userId = "user-123";
+        var module = "Documents";
+        var expected = new[] { EPermission.DocumentsRead, EPermission.DocumentsCreate };
+        
+        _cacheServiceMock.Setup(c => c.GetOrCreateAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<HybridCacheEntryOptions>(),
+            It.IsAny<IReadOnlyCollection<string>?>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expected);
+
+        // Act
+        var result = await _service.GetUserPermissionsByModuleAsync(userId, module);
+
+        // Assert
+        result.Should().BeEquivalentTo(expected);
     }
 
     [Fact]

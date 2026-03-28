@@ -57,8 +57,10 @@ public class EnumExtensionsTests
 
     [Theory]
     [InlineData("Active", TestStatus.Pending, TestStatus.Active)]
+    [InlineData("active", TestStatus.Pending, TestStatus.Active)]
     [InlineData("Invalid", TestStatus.Pending, TestStatus.Pending)]
     [InlineData(null, TestStatus.Pending, TestStatus.Pending)]
+    [InlineData("", TestStatus.Pending, TestStatus.Pending)]
     public void ToEnumOrDefault_ShouldReturnExpectedValue(string? input, TestStatus defaultValue, TestStatus expected)
     {
         // Act

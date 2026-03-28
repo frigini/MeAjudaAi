@@ -75,4 +75,16 @@ describe('Dialog (Admin)', () => {
     );
     expect(handleChange).not.toHaveBeenCalled();
   });
+
+  it('deve renderizar botão default no DialogClose se children não for provido', async () => {
+    render(
+      <Dialog open={true}>
+        <DialogContent>
+          <DialogClose />
+        </DialogContent>
+      </Dialog>
+    );
+
+    expect(screen.getByRole('button', { name: /cancelar/i })).toBeInTheDocument();
+  });
 });

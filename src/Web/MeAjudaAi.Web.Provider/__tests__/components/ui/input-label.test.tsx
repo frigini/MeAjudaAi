@@ -43,4 +43,9 @@ describe('Label', () => {
     );
     expect(screen.getByLabelText('Email')).toBeInTheDocument();
   });
+
+  it('should render required asterisk when required is true', () => {
+    render(<Label required>Required Field</Label>);
+    expect(screen.getByText('*')).toBeInTheDocument();
+  });
 });

@@ -12,6 +12,9 @@ public static class CachingExtensions
     public static IServiceCollection AddCaching(this IServiceCollection services,
         IConfiguration configuration)
     {
+        // Registrar métricas (necessário para CacheMetrics)
+        services.AddMetrics();
+
         services.AddHybridCache(options =>
         {
             options.MaximumPayloadBytes = 1024 * 1024;

@@ -107,6 +107,18 @@ public class HybridCacheServiceTests
     }
 
     [Fact]
+    public async Task GetAsync_WhenCacheHit_ShouldReturnValue()
+    {
+        // Act
+        var (value, isCached) = await _service.GetAsync<string>("test-key");
+
+        // Assert
+        isCached.Should().BeTrue();
+        value.Should().NotBeNull();
+        _hybridCache.GetOrCreateAsyncCalled.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task SetAsync_WithValidValue_ShouldCallHybridCache()
     {
         // Act
@@ -119,6 +131,20 @@ public class HybridCacheServiceTests
     }
 
     [Fact]
+    public async Task SetAsync_WithTags_ShouldCallHybridCacheWithTags()
+    {
+        // Arrange
+        var tags = new[] { "tag1", "tag2" };
+
+        // Act
+        await _service.SetAsync("key", "value", tags: tags);
+
+        // Assert
+        _hybridCache.SetAsyncCalled.Should().BeTrue();
+        _hybridCache.LastKey.Should().Be("key");
+    }
+
+    [Fact]
     public async Task RemoveAsync_ShouldCallHybridCache()
     {
         // Act
@@ -127,6 +153,17 @@ public class HybridCacheServiceTests
         // Assert
         _hybridCache.RemoveAsyncCalled.Should().BeTrue();
         _hybridCache.LastKey.Should().Be("key");
+    }
+
+    [Fact]
+    public async Task RemoveByTagAsync_ShouldCallHybridCache()
+    {
+        // Act
+        await _service.RemoveByTagAsync("mytag");
+
+        // Assert
+        _hybridCache.RemoveByTagAsyncCalled.Should().BeTrue();
+        _hybridCache.LastKey.Should().Be("mytag");
     }
 
     [Fact]
@@ -143,5 +180,28 @@ public class HybridCacheServiceTests
         result.Should().Be("new-value");
         factoryCalled.Should().BeTrue();
         _hybridCache.GetOrCreateAsyncCalled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetOrCreateAsync_WhenCacheDisabled_ShouldCallFactoryDirectly()
+    {
+        // Arrange
+        var cacheEnabledSection = new Mock<IConfigurationSection>();
+        cacheEnabledSection.Setup(s => s.Value).Returns("false");
+        _configurationMock.Setup(c => c.GetSection("Cache:Enabled")).Returns(cacheEnabledSection.Object);
+        
+        var service = new HybridCacheService(
+            _hybridCache, _loggerMock.Object, _metricsMock.Object, _configurationMock.Object);
+
+        var factoryCalled = false;
+        Func<CancellationToken, ValueTask<string>> factory = ct => { factoryCalled = true; return new ValueTask<string>("bypass-value"); };
+
+        // Act
+        var result = await service.GetOrCreateAsync("key", factory);
+
+        // Assert
+        result.Should().Be("bypass-value");
+        factoryCalled.Should().BeTrue();
+        _hybridCache.GetOrCreateAsyncCalled.Should().BeFalse();
     }
 }

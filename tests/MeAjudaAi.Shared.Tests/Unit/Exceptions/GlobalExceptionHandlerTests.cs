@@ -66,6 +66,67 @@ public class GlobalExceptionHandlerTests
     }
 
     [Fact]
+    public async Task TryHandleAsync_WithNotFoundException_ShouldReturnNotFound()
+    {
+        // Arrange
+        var context = CreateDefaultContext();
+        var exception = new NotFoundException("Resource", "123");
+
+        // Act
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        // Assert
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status404NotFound);
+        
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Status.Should().Be(StatusCodes.Status404NotFound);
+        problemDetails.Title.Should().Be("Recurso Não Encontrado");
+        problemDetails.Extensions["entityName"].ToString().Should().Be("Resource");
+        problemDetails.Extensions["entityId"].ToString().Should().Be("123");
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithForbiddenAccessException_ShouldReturnForbidden()
+    {
+        // Arrange
+        var context = CreateDefaultContext();
+        var exception = new ForbiddenAccessException("Access denied");
+
+        // Act
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        // Assert
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
+        
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Status.Should().Be(StatusCodes.Status403Forbidden);
+        problemDetails.Title.Should().Be("Acesso Negado");
+        problemDetails.Detail.Should().Be("Access denied");
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithBusinessRuleException_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var context = CreateDefaultContext();
+        var exception = new BusinessRuleException("Rule broken", "MyRule");
+
+        // Act
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        // Assert
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
+        problemDetails.Title.Should().Be("Violação de Regra de Negócio");
+        problemDetails.Extensions["ruleName"].ToString().Should().Be("MyRule");
+    }
+
+    [Fact]
     public async Task TryHandleAsync_WithGenericException_ShouldReturnInternalServerError()
     {
         // Arrange

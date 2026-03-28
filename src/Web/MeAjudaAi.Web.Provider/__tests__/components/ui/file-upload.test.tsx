@@ -83,10 +83,18 @@ describe('FileUpload', () => {
 
   it('should handle drag enter', () => {
     render(<FileUpload label="Documento" onFileSelect={mockOnFileSelect} />);
-    const dropZone = screen.getByText(/clique para enviar/i).parentElement;
+    const dropZone = screen.getByText(/clique para enviar/i).closest('div');
     
     fireEvent.dragEnter(dropZone!);
-    expect(dropZone).toBeInTheDocument();
+    expect(dropZone).toHaveClass('border-primary');
+  });
+
+  it('should handle drag over', () => {
+    render(<FileUpload label="Documento" onFileSelect={mockOnFileSelect} />);
+    const dropZone = screen.getByText(/clique para enviar/i).closest('div');
+    
+    fireEvent.dragOver(dropZone!);
+    expect(dropZone).toHaveClass('border-primary'); // Should set isDragging to true
   });
 
   it('should handle drag leave', () => {
@@ -96,6 +104,19 @@ describe('FileUpload', () => {
     fireEvent.dragEnter(dropZone!);
     fireEvent.dragLeave(dropZone!);
     expect(dropZone).not.toHaveClass('border-primary');
+  });
+
+  it('should not call onFileSelect when drop has no files', async () => {
+    render(<FileUpload label="Documento" onFileSelect={mockOnFileSelect} />);
+    const dropZone = screen.getByText(/clique para enviar/i).closest('div');
+    
+    fireEvent.drop(dropZone!, {
+      dataTransfer: {
+        files: [],
+      },
+    });
+    
+    expect(mockOnFileSelect).not.toHaveBeenCalled();
   });
 
   it('should handle drop', async () => {

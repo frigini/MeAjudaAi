@@ -13,6 +13,7 @@ public class PhoneNumberValidatorTests
     [InlineData("+442071234567")]
     [InlineData("+55 11 99999-9999")]
     [InlineData("+55-11-99999-9999")]
+    [InlineData("+55.11.99999.9999")] // Now valid with normalized dots
     public void IsValidInternationalFormat_WithValidNumbers_ShouldReturnTrue(string phoneNumber)
     {
         // Act
@@ -30,7 +31,7 @@ public class PhoneNumberValidatorTests
     [InlineData("+55")] // Too short
     [InlineData("+1234567890123456")] // Too long (16 digits)
     [InlineData("+551199999a999")] // Contains letter
-    [InlineData("+551199999.999")] // Contains invalid special char
+    [InlineData("+551199999!999")] // Contains invalid special char
     public void IsValidInternationalFormat_WithInvalidNumbers_ShouldReturnFalse(string? phoneNumber)
     {
         // Act
