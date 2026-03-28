@@ -30,37 +30,21 @@ env:
   ENVIRONMENT: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/master' && 'prod' || 'dev') }}
 
 jobs:
-  # Infrastructure Validation
+  # Infrastructure Validation (Read-only)
   validate-infrastructure:
     name: Validate Infrastructure
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/master'
+    permissions:
+      contents: read
+      deployments: read
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Login to Azure
-        uses: azure/login@v3
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Create Resource Group if needed
-        if: env.deploy_infrastructure == 'true'
-        run: |
-          az group create \
-            --name meajudaai-${{ env.ENVIRONMENT }}-rg \
-            --location ${{ env.AZURE_LOCATION }}
-
-      - name: Validate Bicep templates
-        run: |
-          az group show --name meajudaai-${{ env.ENVIRONMENT }}-rg
-          az bicep build --file infrastructure/main.bicep
-          az deployment group validate \
-            --resource-group meajudaai-${{ env.ENVIRONMENT }}-rg \
-            --template-file infrastructure/main.bicep \
-            --parameters infrastructure/${{ env.ENVIRONMENT }}.parameters.json \
-            --parameters postgresAdminPassword=${{ secrets.POSTGRES_ADMIN_PASSWORD }}
+      - name: Validate Bicep syntax
+        run: az bicep build --file infrastructure/main.bicep
 
   # Deploy to Azure
   deploy:

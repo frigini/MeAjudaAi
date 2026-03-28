@@ -2,10 +2,11 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from 'test-support';
 import type { ReactNode } from 'react';
 
-// Mock next-auth, next/navigation, next/link, and theme dependencies
+const mockSignOut = vi.fn();
+
 vi.mock('next-auth/react', () => ({
   useSession: () => ({ data: { user: { name: 'Carlos Admin', roles: ['admin'] } } }),
-  signOut: vi.fn(),
+  signOut: mockSignOut,
 }));
 vi.mock('next/navigation', () => ({
   usePathname: () => '/dashboard',
@@ -43,6 +44,10 @@ vi.mock('@/lib/types', () => ({
 import { Sidebar } from '@/components/layout/sidebar';
 
 describe('Sidebar', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('deve renderizar o logo MeAjudaAí', () => {
     render(<Sidebar />);
     expect(screen.getByText('MeAjudaAí')).toBeInTheDocument();
@@ -76,10 +81,9 @@ describe('Sidebar', () => {
   });
 
   it('deve chamar signOut ao clicar no botão de sair', async () => {
-    const { signOut } = await import('next-auth/react');
     render(<Sidebar />);
     const logoutButton = screen.getByText('Sair');
     logoutButton.click();
-    expect(signOut).toHaveBeenCalledWith({ callbackUrl: "/login" });
+    expect(mockSignOut).toHaveBeenCalledWith({ callbackUrl: "/login" });
   });
 });

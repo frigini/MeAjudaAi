@@ -624,7 +624,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 2. ✅ **Customer E2E** (5 specs): auth, onboarding, performance, profile, search
 3. ✅ **Provider E2E** (5 specs): auth, dashboard, onboarding, performance, profile-mgmt
 4. ✅ **Admin E2E** (5 specs): auth, configs, dashboard, mobile-responsiveness, providers
-5. ✅ **Shared Fixtures**: `libs/e2e-support/base.ts` (loginAsAdmin, loginAsProvider, loginAsCustomer, logout)
+5. ✅ **Shared Fixtures**: `src/Web/libs/e2e-support/base.ts` (loginAsAdmin, loginAsProvider, loginAsCustomer, logout)
 6. ✅ **CI Integration**: `master-ci-cd.yml` atualizado para gerar especificação OpenAPI e rodar E2E.
 
 **Scope — Testes Unitários (Vitest + RTL)** ✅:
@@ -646,9 +646,9 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - [x] Testes unitários Provider (hooks; components: dashboard cards, profile)
 - [x] Configurar MSW handlers para Admin e Provider
 
-### ⌛ Sprint 9 - BUFFER & Risk Mitigation (25 Mar - 11 Mai 2026)
+### ⏳ Sprint 9 - BUFFER & Risk Mitigation (25 Mar - 11 Mai 2026)
 
-**Status**: ✅ CONCLUÍDA (Estabilização de CI e Cobertura 70% atingida)
+**Status**: ⏳ EM ANDAMENTO
 **Duration**: 12 days buffer
 - Polishing, Refactoring, and Fixing.
 - Move Optional tasks from 8B.2 here if needed.

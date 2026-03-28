@@ -257,9 +257,9 @@ test.describe('@e2e Performance - Network', () => {
     const origin = new URL('/', baseURL).origin;
     
     page.on('request', (request) => {
-      const url = request.url();
-      if (url.startsWith(origin)) {
-        requests.push(url);
+      const reqOrigin = new URL(request.url()).origin;
+      if (reqOrigin === origin) {
+        requests.push(request.url());
       }
     });
     

@@ -1,4 +1,6 @@
 using System.Diagnostics.Metrics;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace MeAjudaAi.Shared.Caching;
 
@@ -45,7 +47,8 @@ public sealed class CacheMetrics : ICacheMetrics
 
         if (key.Length > 20)
         {
-            var hash = key.GetHashCode().ToString("X8");
+            var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(key));
+            var hash = Convert.ToHexString(hashBytes)[..8];
             return $"hash:{hash}";
         }
 

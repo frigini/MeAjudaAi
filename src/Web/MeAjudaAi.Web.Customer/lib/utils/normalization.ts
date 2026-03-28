@@ -1,11 +1,11 @@
 import { EProviderType, EVerificationStatus } from "@/types/api/provider";
 
-const providerTypeValues = new Set(
-    Object.values(EProviderType).filter((v): v is number => typeof v === 'number')
+const providerTypeValues = new Set<number>(
+    (Object.values(EProviderType) as number[]).filter((v) => typeof v === 'number')
 );
 
-const verificationStatusValues = new Set(
-    Object.values(EVerificationStatus).filter((v): v is number => typeof v === 'number')
+const verificationStatusValues = new Set<number>(
+    (Object.values(EVerificationStatus) as number[]).filter((v) => typeof v === 'number')
 );
 
 function isValidProviderType(val: number): val is EProviderType {

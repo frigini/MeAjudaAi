@@ -21,7 +21,7 @@ vi.mock('@/lib/services/service-catalog', () => ({
 
 describe('ServiceTags', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
   });
 
   it('deve renderizar serviços populares', async () => {

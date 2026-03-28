@@ -90,14 +90,21 @@ jobs:
       - name: Build solution
         run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
 
+      - name: Extract Aspire version from Directory.Packages.props
+        id: aspire-version
+        run: |
+          ASPIRE_VERSION=$(grep -oP 'Aspire\.Hosting\.PostgreSQL.*?Version="\K[^"]+' Directory.Packages.props || echo "13.1.3")
+          echo "version=$ASPIRE_VERSION" >> $GITHUB_OUTPUT
+
       - name: Prepare Aspire Integration Tests
         run: |
-          echo " Preparing .NET Aspire for integration tests..."
+          echo "Preparing .NET Aspire for integration tests..."
+          ASPIRE_VERSION="${{ steps.aspire-version.outputs.version }}"
           TEMP_DIR=$(mktemp -d)
           cd "$TEMP_DIR"
           dotnet new console -n TempDcpDownloader
           cd TempDcpDownloader
-          dotnet add package Aspire.Hosting.Orchestration.linux-x64
+          dotnet add package Aspire.Hosting.Orchestration.linux-x64 --version "$ASPIRE_VERSION"
           dotnet restore
           cd "$GITHUB_WORKSPACE"
           rm -rf "$TEMP_DIR"

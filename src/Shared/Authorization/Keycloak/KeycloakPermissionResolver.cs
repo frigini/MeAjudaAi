@@ -60,7 +60,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     private static string MaskUserId(string userId) => PiiMaskingHelper.MaskUserId(userId);
 
     /// <summary>
-    /// Creates cache options for role caching.
+    /// Cria opções de cache para o armazenamento de roles.
     /// </summary>
     private static HybridCacheEntryOptions CreateRoleCacheOptions() => new()
     {

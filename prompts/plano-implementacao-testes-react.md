@@ -651,7 +651,8 @@ describe('VerificationStatusSchema', () => {
 
   it.each([null, undefined])('deve tratar %s graciosamente', (input) => {
     const result = VerificationStatusSchema.safeParse(input);
-    // Verificar comportamento esperado para null/undefined
+    expect(result.success).toBe(false);
+    expect(result.error).toBeDefined();
   });
 });
 ```
@@ -768,78 +769,11 @@ describe('LoginForm', () => {
 
 ### GitHub Actions
 
-```yaml
-name: Frontend Tests
-
-on:
-  push:
-    branches: [main, develop]
-    paths:
-      - 'src/Web/**'
-  pull_request:
-    branches: [main, develop]
-
-jobs:
-  frontend-unit-tests:
-    name: Frontend Unit Tests (Vitest)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: src/Web/package-lock.json
-
-      - name: Install dependencies
-        working-directory: src/Web
-        run: npm ci
-
-      - name: Run unit tests
-        working-directory: src/Web
-        run: npm run test:ci
-
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          files: src/Web/**/coverage/coverage-final.json
-          flags: frontend
-
-  frontend-e2e-tests:
-    name: Frontend E2E Tests (Playwright)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: src/Web/package-lock.json
-
-      - name: Install dependencies
-        working-directory: src/Web
-        run: npm ci
-
-      - name: Install Playwright browsers
-        working-directory: src/Web
-        run: npx playwright install --with-deps
-
-      - name: Run E2E tests
-        working-directory: src/Web
-        run: npm run test:e2e:ci
-
-      - name: Upload Playwright report
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: playwright-report
-          path: src/Web/playwright-report/
-          retention-days: 30
-```
+> **Nota**: O projeto utiliza workflows canônicos localizados em `.github/workflows/`:
+> - `ci-frontend.yml` - Testes unitários (Vitest) com cobertura consolidada
+> - `ci-e2e.yml` - Testes E2E (Playwright) com geração de OpenAPI
+>
+> Estes workflows implementam as melhores práticas de CI/CD para o monorepo.
 
 ---
 

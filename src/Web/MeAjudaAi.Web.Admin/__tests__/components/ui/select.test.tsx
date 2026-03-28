@@ -51,14 +51,18 @@ describe('Select (Admin)', () => {
     expect(trigger).toHaveClass('custom-select');
   });
 
-  it('deve aceitar onValueChange', () => {
+  it('deve chamar onValueChange ao selecionar opção', async () => {
     const handleChange = vi.fn();
+    const user = userEvent.setup();
     render(
       <Select placeholder="Selecione" onValueChange={handleChange}>
         <SelectItem value="1">Opção 1</SelectItem>
       </Select>
     );
     const trigger = screen.getByText('Selecione').closest('button');
-    expect(trigger).toBeInTheDocument();
+    await user.click(trigger!);
+    await user.click(screen.getByText('Opção 1'));
+    expect(handleChange).toHaveBeenCalledWith('1');
+    expect(handleChange).toHaveBeenCalledTimes(1);
   });
 });

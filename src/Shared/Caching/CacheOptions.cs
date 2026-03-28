@@ -6,7 +6,6 @@ public sealed class CacheOptions
 {
     public TimeSpan? Expiration { get; init; }
     public TimeSpan? LocalCacheExpiration { get; init; }
-    public IReadOnlyCollection<string>? Tags { get; init; }
 
     public HybridCacheEntryOptions ToHybridCacheEntryOptions()
     {

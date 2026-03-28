@@ -13,6 +13,12 @@ set -euo pipefail
 # Coverage threshold (default: 90%)
 COVERAGE_THRESHOLD="${COVERAGE_THRESHOLD:-90}"
 
+# Validate COVERAGE_THRESHOLD is within valid range (0-100)
+if ! [[ "$COVERAGE_THRESHOLD" =~ ^[0-9]+$ ]] || [ "$COVERAGE_THRESHOLD" -lt 0 ] || [ "$COVERAGE_THRESHOLD" -gt 100 ]; then
+    echo "⚠️ WARNING: COVERAGE_THRESHOLD ($COVERAGE_THRESHOLD) is not in valid range 0-100. Using default 90." >&2
+    COVERAGE_THRESHOLD=90
+fi
+
 # Escape XML special characters to prevent malformed XML output
 escape_xml() {
     local input="$1"

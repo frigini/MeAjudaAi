@@ -152,10 +152,14 @@ export const handlers = [
     return HttpResponse.json({ data: city });
   }),
   http.post('/api/v1/admin/allowed-cities', async ({ request }) => {
-    const body = await request.json() as Record<string, unknown>;
-    const newCity = { ...mockCity, ...body, id: `city-${Date.now()}` };
-    citiesMap.set(newCity.id, newCity);
-    return HttpResponse.json({ data: newCity }, { status: 201 });
+    try {
+      const body = await request.json() as Record<string, unknown>;
+      const newCity = { ...mockCity, ...body, id: `city-${Date.now()}` };
+      citiesMap.set(newCity.id, newCity);
+      return HttpResponse.json({ data: newCity }, { status: 201 });
+    } catch {
+      return HttpResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    }
   }),
   http.delete('/api/v1/admin/allowed-cities/:id', ({ params }) => {
     if (!citiesMap.has(params.id as string)) return HttpResponse.json({ error: 'Not Found' }, { status: 404 });

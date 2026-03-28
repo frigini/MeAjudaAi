@@ -8,13 +8,13 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { type RegisterCustomerInput } from "@/lib/schemas/auth";
+import { type RegisterCustomerInput, registerCustomerSchema } from "@/lib/schemas/auth";
 import { publicFetch, ApiError } from "@/lib/api/fetch-client";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 function maskPhone(value: string) {
-    const numbers = value.replace(/\D/g, "");
+    const numbers = value.replace(/\D/g, "").slice(0, 11);
     if (numbers.length === 10) {
         return numbers
             .replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
@@ -22,11 +22,6 @@ function maskPhone(value: string) {
     if (numbers.length === 11) {
         return numbers
             .replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
-    }
-    if (numbers.length > 11) {
-        return numbers
-            .replace(/(\d{2})(\d{4})(\d)/, "($1) $2")
-            .replace(/(\d{4})\d+?$/, "$1");
     }
     return numbers
         .replace(/(\d{2})(\d)/, "($1) $2")
@@ -63,51 +58,25 @@ export function CustomerRegisterForm() {
     const acceptedTerms = watch("acceptedTerms");
 
     async function onSubmit(data: RegisterCustomerInput) {
-        // Manual validation for CI stability
         clearErrors();
-        let hasError = false;
-        let payload: Record<string, unknown> = {};
-
-        const trimmedName = data.name?.trim() || "";
-        if (!trimmedName || trimmedName.length < 4) {
-            setError("name", { message: "Nome deve ter pelo menos 4 caracteres" });
-            hasError = true;
+        
+        const result = registerCustomerSchema.safeParse(data);
+        if (!result.success) {
+            result.error.issues.forEach((issue) => {
+                const path = issue.path[0]?.toString();
+                if (path) {
+                    setError(path as keyof RegisterCustomerInput, { message: issue.message });
+                }
+            });
+            return;
         }
-
-        if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-            setError("email", { message: "Email inválido" });
-            hasError = true;
-        }
-
-        const phoneDigits = (data.phoneNumber?.replace(/\D/g, "") || "").slice(0, 11);
-        if (!phoneDigits || phoneDigits.length < 10 || phoneDigits.length > 11) {
-            setError("phoneNumber", { message: "Telefone inválido (10-11 dígitos)" });
-            hasError = true;
-        }
-
-        if (!data.password || data.password.length < 8) {
-            setError("password", { message: "Senha deve ter pelo menos 8 caracteres" });
-            hasError = true;
-        }
-
-        if (data.password !== data.confirmPassword) {
-            setError("confirmPassword", { message: "As senhas não coincidem" });
-            hasError = true;
-        }
-
-        if (!data.acceptedTerms) {
-            setError("acceptedTerms", { message: "Você deve aceitar os termos de uso" });
-            hasError = true;
-        }
-
-        if (hasError) return;
 
         setIsLoading(true);
         try {
-            payload = {
+            const payload = {
                 name: data.name?.trim(),
                 email: data.email?.trim(),
-                phoneNumber: phoneDigits,
+                phoneNumber: data.phoneNumber?.replace(/\D/g, "").slice(0, 11),
                 password: data.password,
                 termsAccepted: data.acceptedTerms,
                 acceptedPrivacyPolicy: data.acceptedTerms,
@@ -121,10 +90,8 @@ export function CustomerRegisterForm() {
                 description: "Você será redirecionado para o login.",
             });
 
-            timerRef.current = setTimeout(() => {
-                router.push("/auth/login");
-                setIsLoading(false);
-            }, 2000);
+            await router.push("/auth/login");
+            setIsLoading(false);
             return;
 
         } catch (error) {

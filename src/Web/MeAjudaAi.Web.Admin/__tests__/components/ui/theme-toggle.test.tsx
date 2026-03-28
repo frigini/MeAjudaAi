@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from 'test-support';
+import userEvent from '@testing-library/user-event';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 const { toggleTheme } = vi.hoisted(() => ({
@@ -26,10 +27,11 @@ describe('ThemeToggle', () => {
     expect(screen.getByRole('button')).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('deve chamar toggleTheme ao clicar', () => {
+  it('deve chamar toggleTheme ao clicar', async () => {
+    const user = userEvent.setup();
     render(<ThemeToggle />);
     const button = screen.getByRole('button');
-    button.click();
+    await user.click(button);
     expect(toggleTheme).toHaveBeenCalled();
   });
 });

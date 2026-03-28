@@ -14,7 +14,7 @@ async function handleLoginRedirect(page: Page): Promise<void> {
   try {
     await page.waitForURL(url => {
       const u = new URL(url);
-      return u.pathname.match(/^\/(admin|provider)(\/|$)/) !== null;
+      return u.pathname === '/' || u.pathname.match(/^\/(admin|provider|customer)(\/|$)/) !== null;
     }, { timeout: 15000 });
   } catch (error) {
     if (error instanceof Error && error.name === 'TimeoutError') {

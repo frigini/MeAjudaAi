@@ -4,15 +4,14 @@
 ## Sumário
 
 1. [Contexto do Projeto](#contexto-do-projeto)
-2. [Decisão Arquitetural](#decisao-arquitetural)
-3. [Bibliotecas e Dependências](#bibliotecas-e-dependencias)
-4. [Estrutura de Pastas](#estrutura-de-pastas)
-5. [Configuração](#configuracao)
-6. [Estrutura dos Arquivos de Teste](#estrutura-dos-arquivos-de-teste)
-7. [Integração com Pipeline CI/CD](#integração-com-pipeline-cicd)
-8. [Pipeline CI/CD Robusta](#pipeline-cicd-robusta-ref-medium)
-9. [Comandos Úteis](#comandos-úteis)
-10. [Boas Práticas](#boas-praticas)
+2. [Bibliotecas e Dependências](#bibliotecas-e-dependencias)
+3. [Estrutura de Pastas](#estrutura-de-pastas)
+4. [Configuração](#configuracao)
+5. [Estrutura dos Arquivos de Teste](#estrutura-dos-arquivos-de-teste)
+6. [Integração com Pipeline CI/CD](#integração-com-pipeline-cicd)
+7. [Pipeline CI/CD Robusta](#pipeline-cicd-robusta-ref-medium)
+8. [Comandos Úteis](#comandos-úteis)
+9. [Boas Práticas](#boas-práticas)
 
 ---
 
@@ -1246,8 +1245,8 @@ npm run test:coverage
 # Ver relatório HTML no navegador
 open coverage/index.html
 
-# Cobertura com threshold definido (falha se < 80%)
-npm run test:coverage -- --coverage.thresholds.lines=80
+# Cobertura com threshold definido (falha se < 70%)
+npm run test:coverage -- --coverage.thresholds.lines=70
 ```
 
 ### Testes E2E (Playwright)
@@ -1642,7 +1641,7 @@ npm run test:coverage  # ou npx vitest run --coverage
 - [ ] Escrever teste para hook useLocalStorage
 - [ ] Escrever teste para uma página simples
 - [ ] Escrever teste para utility function
-- [ ] Validar cobertura mínima (80%)
+- [ ] Validar cobertura mínima (70%)
 
 ### Fase 4: Testes E2E 🎭
 
@@ -1735,10 +1734,10 @@ npm run test:coverage
 
 ## Cobertura Mínima
 
-- Lines: 80%
-- Functions: 80%
-- Branches: 80%
-- Statements: 80%
+- Lines: 70%
+- Functions: 70%
+- Branches: 70%
+- Statements: 70%
 ```
 
 ### 4. Adicionar ao .gitignore

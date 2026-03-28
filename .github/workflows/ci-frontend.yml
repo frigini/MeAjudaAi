@@ -21,7 +21,7 @@ on:
       - 'src/Bootstrapper/**'
       - 'src/Modules/**'
       - 'src/Shared/**'
-      - '.github/workflows/-ci-frontend.yml'
+      - '.github/workflows/ci-frontend.yml'
       - '.github/actions/setup-frontend/**'
       - '.github/actions/setup-backend/**'
       - 'MeAjudaAi.slnx'
@@ -73,6 +73,13 @@ jobs:
           npm run generate:api --workspace=meajudaai.web.customer
           npm run generate:api --workspace=meajudaai.web.admin
           npm run generate:api --workspace=meajudaai.web.provider
+
+      - name: Validate Generated API Clients
+        working-directory: ./src/Web
+        run: |
+          npx nx build meajudaai.web.customer --configuration=development
+          npx nx build meajudaai.web.admin --configuration=development
+          npx nx build meajudaai.web.provider --configuration=development
 
       - name: Lint Frontend
         working-directory: ./src/Web

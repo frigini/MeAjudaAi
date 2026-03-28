@@ -31,16 +31,14 @@ describe('Button (Admin)', () => {
   });
 
   it.each`
-    name                | props                              | dataSlot | expectedClasses
-    ${'destructive'}   | ${{ variant: 'destructive' }}    | ${true}  | ${'bg-destructive'}
-    ${'ghost'}          | ${{ variant: 'ghost' }}          | ${true}  | ${'bg-transparent'}
-    ${'sm size'}        | ${{ size: 'sm' }}                | ${true}  | ${'h-9'}
-  `('deve renderizar $name com estilo correto', ({ props, dataSlot, expectedClasses }) => {
+    name                | props                              | expectedClasses
+    ${'destructive'}   | ${{ variant: 'destructive' }}    | ${'bg-destructive'}
+    ${'ghost'}          | ${{ variant: 'ghost' }}          | ${'bg-transparent'}
+    ${'sm size'}        | ${{ size: 'sm' }}                | ${'h-9'}
+  `('deve renderizar $name com estilo correto', ({ props, expectedClasses }) => {
     render(<Button {...props}>Test</Button>);
     const button = screen.getByRole('button');
-    if (dataSlot) {
-      expect(button).toHaveAttribute('data-slot', 'button');
-    }
+    expect(button).toHaveAttribute('data-slot', 'button');
     expect(button).toHaveClass(expectedClasses);
   });
 

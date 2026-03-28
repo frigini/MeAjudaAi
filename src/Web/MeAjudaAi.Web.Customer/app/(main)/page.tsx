@@ -109,7 +109,7 @@ export default function HomePage() {
               </p>
 
               <Button size="lg" className="bg-secondary hover:bg-secondary-hover text-white mt-4" asChild>
-                <a href="/cadastro/cliente">Cadastre-se grátis</a>
+                <a href="/cadastro/prestador">Cadastre-se grátis</a>
               </Button>
             </div>
           </div>

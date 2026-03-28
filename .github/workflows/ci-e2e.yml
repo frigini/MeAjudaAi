@@ -127,14 +127,21 @@ jobs:
           
           # Wait for API to be ready
           echo "Waiting for API..."
+          API_READY=false
           for i in {1..30}; do
-            if curl -s http://localhost:5271/health > /dev/null; then
-              echo "✅ API is up!"
+            if curl -s http://localhost:5271/health > /dev/null 2>&1; then
+              echo "API is up!"
+              API_READY=true
               break
             fi
             echo "Waiting... ($i/30)"
             sleep 2
           done
+          
+          if [ "$API_READY" = "false" ]; then
+            echo "ERROR: API failed to become healthy"
+            exit 1
+          fi
 
       - name: Run Playwright E2E Tests
         working-directory: ./src/Web

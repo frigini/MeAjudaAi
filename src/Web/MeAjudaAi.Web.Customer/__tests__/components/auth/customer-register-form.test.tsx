@@ -147,10 +147,38 @@ describe('CustomerRegisterForm (Stabilized for CI)', () => {
     vi.useFakeTimers();
     
     const { publicFetch } = await import('@/lib/api/fetch-client');
-    vi.mocked(publicFetch).mockResolvedValueOnce({ 
+    const fetchMock = vi.mocked(publicFetch).mockResolvedValueOnce({ 
       success: true, 
       data: { id: '123', name: 'João da Silva', email: 'joao@email.com' } 
     });
+    
+    render(<CustomerRegisterForm />);
+    
+    // Fill all fields
+    fireEvent.change(screen.getByLabelText(/nome completo/i), { target: { value: 'João da Silva' } });
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'joao@email.com' } });
+    fireEvent.change(screen.getByLabelText(/celular/i), { target: { value: '11988887777' } });
+    fireEvent.change(screen.getByLabelText(/^senha$/i), { target: { value: 'Senha123' } });
+    fireEvent.change(screen.getByLabelText(/confirmar senha/i), { target: { value: 'Senha123' } });
+    fireEvent.click(screen.getByLabelText(/eu aceito os termos/i));
+    
+    await act(async () {
+      fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
+    });
+
+    // Wait for the network call to complete
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+
+    // Advance timers to trigger the redirect
+    await act(async () {
+      vi.advanceTimersByTime(2000);
+    });
+
+    expect(mockPush).toHaveBeenCalledWith('/auth/login');
+    
+    vi.useRealTimers();
+  });
+});
     
     render(<CustomerRegisterForm />);
     

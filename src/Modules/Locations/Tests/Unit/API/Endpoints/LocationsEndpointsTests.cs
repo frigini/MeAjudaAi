@@ -36,6 +36,10 @@ public class LocationsEndpointsTests
         result.Should().BeOfType<Ok<List<LocationCandidate>>>();
         var okResult = (Ok<List<LocationCandidate>>)result;
         okResult.Value.Should().BeEquivalentTo(candidates);
+        
+        _geocodingServiceMock.Verify(
+            x => x.SearchAsync(query, It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -60,25 +64,9 @@ public class LocationsEndpointsTests
 
     private async Task<IResult> CallSearchAsync(string query)
     {
-        var method = typeof(SearchLocationsEndpoint).GetMethod("SearchAsync", 
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-        
-        if (method is null)
-            throw new InvalidOperationException("SearchAsync method not found on SearchLocationsEndpoint");
-        
-        var invokeResult = method.Invoke(null, new object[] 
-        { 
+        return await SearchLocationsEndpoint.SearchAsync(
             query,
-            _geocodingServiceMock.Object, 
-            CancellationToken.None 
-        });
-        
-        if (invokeResult is null)
-            throw new InvalidOperationException("SearchAsync method returned null");
-        
-        if (invokeResult is not Task<IResult> taskResult)
-            throw new InvalidOperationException($"SearchAsync method returned {invokeResult.GetType().Name} instead of Task<IResult>");
-        
-        return await taskResult;
+            _geocodingServiceMock.Object,
+            CancellationToken.None);
     }
 }
