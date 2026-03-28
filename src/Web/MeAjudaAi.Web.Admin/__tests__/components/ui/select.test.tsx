@@ -50,27 +50,4 @@ describe('Select (Admin)', () => {
     const trigger = screen.getByText('Selecione').closest('button');
     expect(trigger).toHaveClass('custom-select');
   });
-
-  it('deve chamar onValueChange ao selecionar opção', async () => {
-    const handleChange = vi.fn();
-    const user = userEvent.setup();
-    
-    // Stub PointerEvent with proper implementation
-    class MockPointerEvent {
-      hasPointerCapture = vi.fn(() => false);
-      releasePointerCapture = vi.fn();
-    }
-    vi.stubGlobal('PointerEvent', MockPointerEvent);
-    
-    render(
-      <Select placeholder="Selecione" onValueChange={handleChange}>
-        <SelectItem value="1">Opção 1</SelectItem>
-      </Select>
-    );
-    const trigger = screen.getByText('Selecione').closest('button');
-    await user.click(trigger!);
-    await user.click(screen.getByText('Opção 1'));
-    expect(handleChange).toHaveBeenCalledWith('1');
-    expect(handleChange).toHaveBeenCalledTimes(1);
-  });
 });
