@@ -204,8 +204,8 @@ public class PermissionServiceTests
     {
         // Arrange
         var userId = "user-123";
-        var module = "Documents";
-        var expected = new[] { EPermission.DocumentsRead, EPermission.DocumentsCreate };
+        var module = "Users";
+        var expected = new[] { EPermission.UsersRead, EPermission.UsersCreate };
         
         _cacheServiceMock.Setup(c => c.GetOrCreateAsync(
             It.IsAny<string>(),
