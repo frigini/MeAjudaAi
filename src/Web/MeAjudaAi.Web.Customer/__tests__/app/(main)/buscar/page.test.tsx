@@ -76,7 +76,7 @@ describe('SearchPage', () => {
 
   it('deve filtrar por categoria e buscar serviços associados', async () => {
     vi.mocked(apiCategoryGet).mockResolvedValue({ 
-      data: [{ id: 's1' }, { id: 's2' }],
+      data: { data: [{ id: 's1' }, { id: 's2' }] },
       error: null 
     });
 
