@@ -111,7 +111,7 @@ public class GlobalExceptionHandlerTests
     {
         // Arrange
         var context = CreateDefaultContext();
-        var exception = new BusinessRuleException("Rule broken", "MyRule");
+        var exception = new BusinessRuleException("MyRule", "Rule broken");
 
         // Act
         var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);

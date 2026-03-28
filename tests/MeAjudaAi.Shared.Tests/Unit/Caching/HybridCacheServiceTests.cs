@@ -10,6 +10,8 @@ namespace MeAjudaAi.Shared.Tests.Unit.Caching;
 
 public class FakeHybridCache : HybridCache
 {
+    public bool SimulateCacheHit { get; set; }
+    public object? HitValue { get; set; }
     public bool GetOrCreateAsyncCalled { get; set; }
     public bool SetAsyncCalled { get; set; }
     public bool RemoveAsyncCalled { get; set; }
@@ -27,6 +29,10 @@ public class FakeHybridCache : HybridCache
     {
         GetOrCreateAsyncCalled = true;
         LastKey = key;
+        if (SimulateCacheHit)
+        {
+            return new ValueTask<T>((T)HitValue!);
+        }
         return factory(state, cancellationToken);
     }
 
@@ -109,12 +115,16 @@ public class HybridCacheServiceTests
     [Fact]
     public async Task GetAsync_WhenCacheHit_ShouldReturnValue()
     {
+        // Arrange
+        _hybridCache.SimulateCacheHit = true;
+        _hybridCache.HitValue = "cached-value";
+
         // Act
         var (value, isCached) = await _service.GetAsync<string>("test-key");
 
         // Assert
         isCached.Should().BeTrue();
-        value.Should().NotBeNull();
+        value.Should().Be("cached-value");
         _hybridCache.GetOrCreateAsyncCalled.Should().BeTrue();
     }
 

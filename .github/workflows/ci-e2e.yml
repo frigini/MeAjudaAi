@@ -138,6 +138,7 @@ jobs:
       - name: Start Backend API
         env:
           ASPNETCORE_ENVIRONMENT: Testing
+          ASPNETCORE_URLS: "http://localhost:7002"
           MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
           MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
           MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}

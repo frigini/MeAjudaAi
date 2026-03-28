@@ -25,6 +25,7 @@ describe('Admin utils', () => {
 
   it('deve retornar "secondary" para status indefinido ou desconhecido', () => {
     expect(getVerificationBadgeVariant(undefined)).toBe('secondary');
-    expect(getVerificationBadgeVariant(99 as any)).toBe('secondary');
+    // @ts-expect-error - Testando um status numérico inválido intencionalmente
+    expect(getVerificationBadgeVariant(99)).toBe('secondary');
   });
 });
