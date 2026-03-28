@@ -120,7 +120,9 @@ npm install --save-dev @storybook/test-runner
 
 ## Estrutura de Pastas
 
-### Estrutura do Projeto de Testes: `tests/MeAjudaAi.Web.Customer.Tests/`
+> Esta seção documenta a arquitetura original (centralizada) para fins históricos. A abordagem atual utiliza **testes descentralizados** em cada app.
+
+### Estrutura Original do Projeto de Testes: `tests/MeAjudaAi.Web.Customer.Tests/`
 
 ```text
 MeAjudaAi.Web.Customer.Tests/

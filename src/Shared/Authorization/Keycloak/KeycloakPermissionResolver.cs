@@ -59,6 +59,15 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     /// </summary>
     private static string MaskUserId(string userId) => PiiMaskingHelper.MaskUserId(userId);
 
+    /// <summary>
+    /// Creates cache options for role caching.
+    /// </summary>
+    private static HybridCacheEntryOptions CreateRoleCacheOptions() => new()
+    {
+        Expiration = TimeSpan.FromMinutes(15),
+        LocalCacheExpiration = TimeSpan.FromMinutes(5)
+    };
+
     public async Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(UserId userId, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(userId);
@@ -76,11 +85,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         {
             // Cache key para roles do usuário (hashed to prevent PII in cache infrastructure)
             var cacheKey = $"keycloak_user_roles_{HashForCacheKey(userId)}";
-            var cacheOptions = new HybridCacheEntryOptions
-            {
-                Expiration = TimeSpan.FromMinutes(15), // Cache roles por 15 minutos
-                LocalCacheExpiration = TimeSpan.FromMinutes(5)
-            };
+            var cacheOptions = CreateRoleCacheOptions();
 
             // Busca roles do cache ou Keycloak
             var userRoles = await _cache.GetOrCreateAsync(

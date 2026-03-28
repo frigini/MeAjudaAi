@@ -144,6 +144,8 @@ describe('CustomerRegisterForm (Stabilized for CI)', () => {
   });
 
   it('deve redirecionar o usuário após sucesso no registro', async () => {
+    vi.useFakeTimers();
+    
     const { publicFetch } = await import('@/lib/api/fetch-client');
     vi.mocked(publicFetch).mockResolvedValueOnce({ 
       success: true, 
@@ -164,9 +166,13 @@ describe('CustomerRegisterForm (Stabilized for CI)', () => {
       fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
     });
 
-    // Verify redirection (using real timers, wait > 2s)
-    await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/auth/login');
-    }, { timeout: 6000 });
-  }, 10000); // 10s test timeout
+    // Advance timers to trigger the redirect
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    expect(mockPush).toHaveBeenCalledWith('/auth/login');
+    
+    vi.useRealTimers();
+  });
 });

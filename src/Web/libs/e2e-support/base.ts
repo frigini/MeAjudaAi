@@ -12,8 +12,10 @@ export { base };
 
 async function handleLoginRedirect(page: Page): Promise<void> {
   try {
-    await page.waitForURL(/.*keycloak.*|.*realms.*\/meajudaai/i, { timeout: 5000 });
-    await page.waitForURL(/\/(admin|provider)?(\/|$)/, { timeout: 15000 });
+    await page.waitForURL(url => {
+      const u = new URL(url);
+      return u.pathname.match(/^\/(admin|provider)(\/|$)/) !== null;
+    }, { timeout: 15000 });
   } catch (error) {
     if (error instanceof Error && error.name === 'TimeoutError') {
       const logoutButton = page.locator('button:has-text("Sair"), [data-testid="logout-button"]');

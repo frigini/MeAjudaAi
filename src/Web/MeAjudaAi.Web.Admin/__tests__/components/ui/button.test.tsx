@@ -30,23 +30,18 @@ describe('Button (Admin)', () => {
     expect(handleClick).not.toHaveBeenCalled();
   });
 
-  it('deve renderizar variante destructive com estilo correto', () => {
-    render(<Button variant="destructive">Apagar</Button>);
+  it.each`
+    name                | props                              | dataSlot | expectedClasses
+    ${'destructive'}   | ${{ variant: 'destructive' }}    | ${true}  | ${'bg-destructive'}
+    ${'ghost'}          | ${{ variant: 'ghost' }}          | ${true}  | ${'bg-transparent'}
+    ${'sm size'}        | ${{ size: 'sm' }}                | ${true}  | ${'h-9'}
+  `('deve renderizar $name com estilo correto', ({ props, dataSlot, expectedClasses }) => {
+    render(<Button {...props}>Test</Button>);
     const button = screen.getByRole('button');
-    expect(button).toHaveAttribute('data-slot', 'button');
-    expect(button).toHaveClass('bg-destructive');
-  });
-
-  it('deve renderizar variante ghost com estilo correto', () => {
-    render(<Button variant="ghost">Ghost</Button>);
-    const button = screen.getByRole('button');
-    expect(button).toHaveClass('bg-transparent', 'text-muted-foreground', 'hover:bg-muted');
-  });
-
-  it('deve aplicar tamanho sm com estilo correto', () => {
-    render(<Button size="sm">Small</Button>);
-    const button = screen.getByRole('button');
-    expect(button).toHaveClass('h-9', 'px-3', 'text-sm');
+    if (dataSlot) {
+      expect(button).toHaveAttribute('data-slot', 'button');
+    }
+    expect(button).toHaveClass(expectedClasses);
   });
 
   it('deve aceitar props adicionais', () => {

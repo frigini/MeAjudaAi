@@ -76,9 +76,9 @@ describe('SearchPage', () => {
 
   it('deve filtrar por categoria e buscar serviços associados', async () => {
     vi.mocked(apiCategoryGet).mockResolvedValue({ 
-      data: { data: [{ id: 's1' }, { id: 's2' }] },
+      data: [{ id: 's1' }, { id: 's2' }],
       error: null 
-    } as any);
+    });
 
     const searchParams = Promise.resolve({ categoryId: 'cat-1' });
     const result = await SearchPage({ searchParams });

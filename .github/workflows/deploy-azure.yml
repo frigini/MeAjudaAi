@@ -45,14 +45,16 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Validate Bicep templates
+      - name: Create Resource Group if needed
+        if: env.deploy_infrastructure == 'true'
         run: |
-          az group show \
-            --name meajudaai-${{ env.ENVIRONMENT }}-rg \
-            --location ${{ env.AZURE_LOCATION }} \
-          || az group create \
+          az group create \
             --name meajudaai-${{ env.ENVIRONMENT }}-rg \
             --location ${{ env.AZURE_LOCATION }}
+
+      - name: Validate Bicep templates
+        run: |
+          az group show --name meajudaai-${{ env.ENVIRONMENT }}-rg
           az bicep build --file infrastructure/main.bicep
           az deployment group validate \
             --resource-group meajudaai-${{ env.ENVIRONMENT }}-rg \

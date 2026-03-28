@@ -23,6 +23,35 @@ public sealed class CacheMetrics : ICacheMetrics
     private readonly Counter<long> _cacheOperations;
     private readonly Histogram<double> _cacheOperationDuration;
 
+    private static string NormalizeCacheKey(string key)
+    {
+        if (string.IsNullOrEmpty(key))
+            return "empty";
+
+        var parts = key.Split(':');
+        if (parts.Length >= 2)
+        {
+            var type = parts[0];
+            if (type.Equals("user", StringComparison.OrdinalIgnoreCase))
+                return "user:{id}";
+            if (type.Equals("provider", StringComparison.OrdinalIgnoreCase))
+                return "provider:{id}";
+            if (type.Equals("permission", StringComparison.OrdinalIgnoreCase))
+                return "permission:{userId}";
+            if (type.Equals("role", StringComparison.OrdinalIgnoreCase))
+                return "role:{userId}";
+            return $"{type}:{{id}}";
+        }
+
+        if (key.Length > 20)
+        {
+            var hash = key.GetHashCode().ToString("X8");
+            return $"hash:{hash}";
+        }
+
+        return key;
+    }
+
     public CacheMetrics(IMeterFactory meterFactory)
     {
         var meter = meterFactory.Create("MeAjudaAi.Cache");
@@ -47,7 +76,8 @@ public sealed class CacheMetrics : ICacheMetrics
 
     public void RecordCacheHit(string key, string operation = "get")
     {
-        _cacheHits.Add(1, new KeyValuePair<string, object?>("key", key),
+        var normalizedKey = NormalizeCacheKey(key);
+        _cacheHits.Add(1, new KeyValuePair<string, object?>("key", normalizedKey),
                            new KeyValuePair<string, object?>("operation", operation));
         _cacheOperations.Add(1, new KeyValuePair<string, object?>("result", "hit"),
                                 new KeyValuePair<string, object?>("operation", operation));
@@ -55,7 +85,8 @@ public sealed class CacheMetrics : ICacheMetrics
 
     public void RecordCacheMiss(string key, string operation = "get")
     {
-        _cacheMisses.Add(1, new KeyValuePair<string, object?>("key", key),
+        var normalizedKey = NormalizeCacheKey(key);
+        _cacheMisses.Add(1, new KeyValuePair<string, object?>("key", normalizedKey),
                             new KeyValuePair<string, object?>("operation", operation));
         _cacheOperations.Add(1, new KeyValuePair<string, object?>("result", "miss"),
                                 new KeyValuePair<string, object?>("operation", operation));

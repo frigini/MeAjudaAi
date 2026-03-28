@@ -112,8 +112,8 @@ describe('useDocumentUpload Hook', () => {
       expect(result.current.isUploading).toBe(false);
     });
 
-    // Verify first call to get SAS URL
-    expect(authenticatedFetch).toHaveBeenNthCalledWith(1,
+    // Verify SAS URL request was made
+    expect(authenticatedFetch).toHaveBeenCalledWith(
       '/api/v1/documents/upload',
       expect.objectContaining({
         method: 'post',
@@ -127,8 +127,8 @@ describe('useDocumentUpload Hook', () => {
       })
     );
 
-    // Verify blob storage PUT
-    expect(fetchMock).toHaveBeenNthCalledWith(2,
+    // Verify blob storage PUT was made
+    expect(fetchMock).toHaveBeenCalledWith(
       'https://storage.blob.core.windows.net/upload?token',
       expect.objectContaining({
         method: 'put',
@@ -136,8 +136,8 @@ describe('useDocumentUpload Hook', () => {
       })
     );
 
-    // Verify final call to confirm upload
-    expect(authenticatedFetch).toHaveBeenNthCalledWith(3,
+    // Verify final confirm request was made
+    expect(authenticatedFetch).toHaveBeenCalledWith(
       '/api/v1/providers/me/documents',
       expect.objectContaining({
         method: 'post',

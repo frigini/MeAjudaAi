@@ -23,7 +23,7 @@
 - [x] Implementar MSW em `MeAjudaAi.Web.Customer`
 - [x] Implementar MSW em `MeAjudaAi.Web.Admin`
 - [x] Implementar MSW em `MeAjudaAi.Web.Provider`
-- [x] Corrigir infraestrutura de CI/CD (`master-ci-cd.yml`, `pr-validation.yml`)
+- [x] Corrigir infraestrutura de CI/CD (`ci-frontend.yml`, `ci-backend.yml`, `ci-e2e.yml`)
 - [x] Implementar agregação de cobertura global (`scripts/merge-coverage.mjs`)
 
 ### Fase 2: Cobertura Admin & Provider (Concluída - Sprint 8E)
@@ -859,10 +859,11 @@ npm run test:admin
 npm run test:provider
 
 # Executar em modo watch (desenvolvimento)
-npm run test:watch
+# Nota: Use npx vitest diretamente no diretório do projeto
+cd MeAjudaAi.Web.Customer && npx vitest
 
-# Executar com cobertura
-npm run test:coverage
+# Executar com cobertura (global - consolida todos os projetos)
+npm run test:coverage:global
 
 # Executar apenas um arquivo específico
 npx vitest run --config MeAjudaAi.Web.Customer/vitest.config.ts __tests__/lib/utils/phone.test.ts

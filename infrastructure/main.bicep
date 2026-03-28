@@ -163,5 +163,5 @@ output postgresHost string = postgresServer.properties.fullyQualifiedDomainName
 output postgresDatabase string = postgresDatabaseName
 output redisHost string = redisDatabase.properties.endpoint
 output serviceBusNamespace string = serviceBusNamespaceName
-output postgresPrivateEndpointIp string = (vnetSubnetId != '') ? postgresPrivateEndpoint.properties.customNetworkInterfaceName : ''
+output postgresPrivateEndpointIp string = (vnetSubnetId != '') ? postgresPrivateEndpoint.properties.customDnsConfigs[0].ipAddresses[0] : ''
 output privateDnsZoneName string = (vnetId != '') ? privateDnsZone.name : ''
