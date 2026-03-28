@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
 using FluentAssertions;
+using MeAjudaAi.Shared.Caching;
 using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization.Keycloak;

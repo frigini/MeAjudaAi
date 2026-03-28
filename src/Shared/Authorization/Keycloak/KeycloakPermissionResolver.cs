@@ -86,7 +86,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
             var userRoles = await _cache.GetOrCreateAsync(
                 cacheKey,
                 async ValueTask<IReadOnlyList<string>> (ct) => await GetUserRolesFromKeycloakAsync(userId, ct),
-                cacheOptions,
+                options: cacheOptions,
                 cancellationToken: cancellationToken);
 
             // Mapeia roles para permissões
@@ -173,7 +173,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
                 var tokenResponse = await RequestAdminTokenAsync(ct);
                 return tokenResponse.AccessToken;
             },
-            new HybridCacheEntryOptions
+            options: new HybridCacheEntryOptions
             {
                 Expiration = TimeSpan.FromMinutes(4), // Conservador: token de 5min - margem de 1min
                 LocalCacheExpiration = TimeSpan.FromSeconds(120)

@@ -17,16 +17,17 @@ public class FakeHybridCache : HybridCache
     public string? LastKey { get; set; }
     public object? LastValue { get; set; }
 
-    public override ValueTask<T> GetOrCreateAsync<T>(
+    public override ValueTask<T> GetOrCreateAsync<TState, T>(
         string key, 
-        Func<CancellationToken, ValueTask<T>> factory, 
+        TState state,
+        Func<TState, CancellationToken, ValueTask<T>> factory, 
         HybridCacheEntryOptions? options = null, 
         IEnumerable<string>? tags = null, 
         CancellationToken cancellationToken = default)
     {
         GetOrCreateAsyncCalled = true;
         LastKey = key;
-        return factory(cancellationToken);
+        return factory(state, cancellationToken);
     }
 
     public override ValueTask SetAsync<T>(
