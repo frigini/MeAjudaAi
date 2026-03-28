@@ -13,7 +13,10 @@ declare module "next-auth" {
 function getRequiredEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`);
+    if (process.env.NODE_ENV !== "development") {
+      console.warn(`[auth] Warning: Environment variable ${name} is missing.`);
+    }
+    return "";
   }
   return value;
 }

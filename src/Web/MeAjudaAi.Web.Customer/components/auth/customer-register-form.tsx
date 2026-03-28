@@ -37,8 +37,9 @@ export function CustomerRegisterForm() {
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
+        const timer = timerRef.current;
         return () => {
-            if (timerRef.current) clearTimeout(timerRef.current);
+            if (timer) clearTimeout(timer);
         };
     }, []);
 

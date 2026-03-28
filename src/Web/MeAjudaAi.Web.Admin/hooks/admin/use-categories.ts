@@ -71,9 +71,9 @@ export function useCategoryById(id: string) {
       if (isDataPayload(res)) {
         const inner = res.data;
         if (isDataPayload(inner)) return inner.data as ServiceCategoryDto;
-        return inner as ServiceCategoryDto;
+        return inner as unknown as ServiceCategoryDto;
       }
-      return res as ServiceCategoryDto;
+      return res as unknown as ServiceCategoryDto;
     },
     enabled: !!id,
   });
