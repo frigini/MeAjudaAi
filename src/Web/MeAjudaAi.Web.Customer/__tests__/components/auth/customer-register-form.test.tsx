@@ -179,28 +179,3 @@ describe('CustomerRegisterForm (Stabilized for CI)', () => {
     vi.useRealTimers();
   });
 });
-    
-    render(<CustomerRegisterForm />);
-    
-    // Fill all fields
-    fireEvent.change(screen.getByLabelText(/nome completo/i), { target: { value: 'João da Silva' } });
-    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'joao@email.com' } });
-    fireEvent.change(screen.getByLabelText(/celular/i), { target: { value: '11988887777' } });
-    fireEvent.change(screen.getByLabelText(/^senha$/i), { target: { value: 'Senha123' } });
-    fireEvent.change(screen.getByLabelText(/confirmar senha/i), { target: { value: 'Senha123' } });
-    fireEvent.click(screen.getByLabelText(/eu aceito os termos/i));
-    
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
-    });
-
-    // Advance timers to trigger the redirect
-    await act(async () => {
-      vi.advanceTimersByTime(2000);
-    });
-
-    expect(mockPush).toHaveBeenCalledWith('/auth/login');
-    
-    vi.useRealTimers();
-  });
-});

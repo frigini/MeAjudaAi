@@ -39,6 +39,16 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd redis-cli ping
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -76,6 +86,16 @@ jobs:
           - 5432:5432
         options: >-
           --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd redis-cli ping
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -122,6 +142,7 @@ jobs:
           MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
           MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
           ConnectionStrings__DefaultConnection: "Host=localhost;Database=${{ env.POSTGRES_DB }};Username=${{ env.POSTGRES_USER }};Password=${{ env.POSTGRES_PASSWORD }}"
+          ConnectionStrings__redis: "localhost:6379"
         run: |
           dotnet run --project src/Bootstrapper/MeAjudaAi.ApiService/MeAjudaAi.ApiService.csproj --configuration Release &
           

@@ -1,14 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from 'test-support';
 import userEvent from '@testing-library/user-event';
 import { Select, SelectItem } from '@/components/ui/select';
-
-beforeEach(() => {
-  vi.stubGlobal('PointerEvent', class PointerEvent {
-    hasPointerCapture = vi.fn();
-    releasePointerCapture = vi.fn();
-  });
-});
 
 describe('Select (Admin)', () => {
   it('deve renderizar com placeholder', () => {
@@ -61,6 +54,14 @@ describe('Select (Admin)', () => {
   it('deve chamar onValueChange ao selecionar opção', async () => {
     const handleChange = vi.fn();
     const user = userEvent.setup();
+    
+    // Stub PointerEvent with proper implementation
+    class MockPointerEvent {
+      hasPointerCapture = vi.fn(() => false);
+      releasePointerCapture = vi.fn();
+    }
+    vi.stubGlobal('PointerEvent', MockPointerEvent);
+    
     render(
       <Select placeholder="Selecione" onValueChange={handleChange}>
         <SelectItem value="1">Opção 1</SelectItem>
