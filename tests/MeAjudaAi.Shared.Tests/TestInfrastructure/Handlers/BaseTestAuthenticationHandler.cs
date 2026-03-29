@@ -36,6 +36,7 @@ public abstract class BaseTestAuthenticationHandler(
             new("sub", userId, ClaimValueTypes.String),
             new(ClaimTypes.Name, userName, ClaimValueTypes.String),
             new(ClaimTypes.Email, userEmail, ClaimValueTypes.Email),
+            new("email", userEmail, ClaimValueTypes.Email),
             new("auth_time", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer),
             new("iat", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer),
             new("exp", DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer)

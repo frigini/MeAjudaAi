@@ -224,9 +224,8 @@ public class DocumentsApiTests : BaseApiTest
         statusResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // 3. Request Verification
-        var verifyRequest = new { DocumentIds = new[] { documentId } };
-        var requestVerificationResponse = await Client.PostAsJsonAsync($"/api/v1/documents/provider/{providerId}/request-verification", verifyRequest);
-        requestVerificationResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var requestVerificationResponse = await Client.PostAsJsonAsync($"/api/v1/documents/{documentId}/request-verification", new { });
+        requestVerificationResponse.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
         // 4. Verify (Approve) - Needs Admin
         AuthConfig.ConfigureAdmin();
@@ -253,7 +252,7 @@ public class DocumentsApiTests : BaseApiTest
         var uploadResponse = await Client.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest);
         var documentId = (await ReadJsonAsync<UploadDocumentResponse>(uploadResponse.Content))!.DocumentId;
 
-        await Client.PostAsJsonAsync($"/api/v1/documents/provider/{providerId}/request-verification", new { DocumentIds = new[] { documentId } });
+        await Client.PostAsJsonAsync($"/api/v1/documents/{documentId}/request-verification", new { });
 
         // Act - Reject (Admin)
         AuthConfig.ConfigureAdmin();

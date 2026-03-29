@@ -167,3 +167,8 @@ site/
 
 # Aspire
 src/Aspire/MeAjudaAi.AppHost/infrastructure/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
