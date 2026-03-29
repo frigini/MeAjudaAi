@@ -3,7 +3,7 @@ import { test, expect, loginAsAdmin } from '@meajudaai/web-e2e-support';
 test.describe('Admin Portal - Dashboard KPIs', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/admin/dashboard');
+    await page.goto('/dashboard');
   });
 
   test('should display total providers KPI card', async ({ page }) => {
@@ -70,7 +70,7 @@ test.describe('Admin Portal - Dashboard KPIs', () => {
 test.describe('Admin Portal - Dashboard Charts', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/admin/dashboard');
+    await page.goto('/dashboard');
   });
 
   test('should display verification status pie chart', async ({ page }) => {
@@ -128,7 +128,7 @@ test.describe('Admin Portal - Dashboard Charts', () => {
 test.describe('Admin Portal - Dashboard Data Refresh', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/admin/dashboard');
+    await page.goto('/dashboard');
   });
 
   test('should display last updated timestamp', async ({ page }) => {
@@ -160,16 +160,16 @@ test.describe('Admin Portal - Dashboard Data Refresh', () => {
 test.describe('Admin Portal - Dashboard Error Handling', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/admin/dashboard');
+    await page.goto('/dashboard');
   });
 
   test('should display loading state while fetching data', async ({ page }) => {
-    await page.route('**/api/v1/admin/dashboard', async (route) => {
+    await page.route('**/api/v1/providers**', async (route) => {
       await new Promise(resolve => setTimeout(resolve, 2000));
       await route.continue();
     });
     
-    await page.goto('/admin/dashboard');
+    await page.goto('/dashboard');
     
     const loadingSpinner = page.locator('[data-testid="dashboard-loading"]');
     await expect(loadingSpinner).toBeVisible({ timeout: 10000 });
@@ -183,7 +183,7 @@ test.describe('Admin Portal - Dashboard Error Handling', () => {
       });
     });
     
-    await page.goto('/admin/dashboard');
+    await page.goto('/dashboard');
     
     const errorMessage = page.locator('[data-testid="dashboard-error"]');
     

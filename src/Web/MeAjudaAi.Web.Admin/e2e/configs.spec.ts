@@ -3,7 +3,7 @@ import { test, expect, loginAsAdmin } from '@meajudaai/web-e2e-support';
 test.describe('Admin Portal - Allowed Cities Management', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/admin/config/cidades');
+    await page.goto('/config/cidades');
   });
 
   test('should display allowed cities list', async ({ page }) => {
@@ -60,7 +60,7 @@ test.describe('Admin Portal - Allowed Cities Management', () => {
 test.describe('Admin Portal - Service Catalog Management', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/admin/config/servicos');
+    await page.goto('/config/servicos');
   });
 
   test('should display service catalog', async ({ page }) => {
@@ -131,7 +131,7 @@ test.describe('Admin Portal - Service Catalog Management', () => {
 test.describe('Admin Portal - Profile Settings', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/admin/configuracoes');
+    await page.goto('/configuracoes');
   });
 
   test('should display profile settings', async ({ page }) => {

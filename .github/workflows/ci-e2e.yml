@@ -165,15 +165,33 @@ jobs:
             exit 1
           fi
 
+      - name: Start Frontend Admin
+        working-directory: ./src/Web/MeAjudaAi.Web.Admin
+        env:
+          NODE_ENV: development
+          PORT: 3002
+        run: |
+          npm run dev &
+          echo "Waiting for Frontend to be ready..."
+          for i in {1..30}; do
+            if curl -s http://localhost:3002 > /dev/null 2>&1; then
+              echo "Frontend Admin is up!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+
       - name: Run Playwright E2E Tests
         working-directory: ./src/Web
         env:
           KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
           KEYCLOAK_ADMIN_CLIENT_SECRET: ci-build-placeholder
           KEYCLOAK_ISSUER: http://localhost:8080/realms/meajudaai
-          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_URL: http://localhost:3002
           NEXTAUTH_SECRET: ci-build-placeholder
           AUTH_SECRET: ci-build-placeholder
+          ADMIN_BASE_URL: http://localhost:3002
         run: |
           npx playwright install --with-deps chromium
           npx playwright test --reporter=list --project=ci

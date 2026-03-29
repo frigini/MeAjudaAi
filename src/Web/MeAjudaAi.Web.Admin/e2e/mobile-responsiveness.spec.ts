@@ -9,7 +9,7 @@ test.describe('Admin Portal - Mobile Responsiveness', () => {
 
   test('should render correctly on mobile viewport', async ({ page }) => {
     await page.setViewportSize(mobileViewport);
-    await page.goto('/admin/dashboard');
+    await page.goto('/dashboard');
     
     const hamburgerButton = page.locator('[data-testid="mobile-menu-toggle"]');
     await hamburgerButton.click();
@@ -19,7 +19,7 @@ test.describe('Admin Portal - Mobile Responsiveness', () => {
 
   test('should collapse sidebar on mobile', async ({ page }) => {
     await page.setViewportSize(mobileViewport);
-    await page.goto('/admin/dashboard');
+    await page.goto('/dashboard');
     
     const sidebar = page.locator('[data-testid="sidebar"]');
     await expect(sidebar).not.toBeVisible();
@@ -27,7 +27,7 @@ test.describe('Admin Portal - Mobile Responsiveness', () => {
 
   test('should display hamburger menu on mobile', async ({ page }) => {
     await page.setViewportSize(mobileViewport);
-    await page.goto('/admin/dashboard');
+    await page.goto('/dashboard');
     
     await expect(page.locator('[data-testid="mobile-menu-toggle"]')).toBeVisible();
   });

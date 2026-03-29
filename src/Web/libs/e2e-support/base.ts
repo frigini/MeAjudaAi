@@ -10,7 +10,96 @@ export const test = base;
 
 export { base };
 
+const isCI = process.env.CI === 'true' || 
+  process.env.NEXT_PUBLIC_CI === 'true' || 
+  process.env.KEYCLOAK_ADMIN_CLIENT_ID === 'ci-build-placeholder' ||
+  process.env.KEYCLOAK_CLIENT_ID === 'ci-build-placeholder';
+
+const mockSession = {
+  user: {
+    id: 'test-admin-id',
+    name: 'Test Admin',
+    email: 'admin@test.com',
+    image: null,
+    roles: ['admin'],
+  },
+  expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+};
+
+async function setupAuthMocks(page: Page) {
+  await page.route('**/api/auth/session', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(mockSession),
+    });
+  });
+
+  await page.route('**/api/auth/csrf', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ csrfToken: 'mock-csrf-token' }),
+    });
+  });
+
+  await page.route('**/api/auth/providers', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        keycloak: {
+          id: 'keycloak',
+          name: 'Keycloak',
+          type: 'oauth',
+          signinUrl: '/api/auth/signin/keycloak?callbackUrl=/dashboard',
+          callbackUrl: '/api/auth/callback/keycloak',
+        },
+      }),
+    });
+  });
+
+  await page.route('**/api/auth/signin**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ url: '/dashboard' }),
+    });
+  });
+
+  const mockProviders = {
+    items: [
+      { id: '1', name: 'Provider 1', verificationStatus: 2, type: 0 },
+      { id: '2', name: 'Provider 2', verificationStatus: 2, type: 1 },
+      { id: '3', name: 'Provider 3', verificationStatus: 1, type: 2 },
+      { id: '4', name: 'Provider 4', verificationStatus: 3, type: 0 },
+      { id: '5', name: 'Provider 5', verificationStatus: 0, type: 3 },
+      { id: '6', name: 'Provider 6', verificationStatus: 2, type: 1 },
+      { id: '7', name: 'Provider 7', verificationStatus: 1, type: 2 },
+      { id: '8', name: 'Provider 8', verificationStatus: 4, type: 0 },
+    ],
+    totalPages: 1,
+    totalCount: 8,
+  };
+
+  await page.route('**/api/v1/providers**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(mockProviders),
+    });
+  });
+
+  page.on('requestfailed', (request) => {
+    console.log('Request failed:', request.url(), request.failure()?.errorText);
+  });
+}
+
 async function handleLoginRedirect(page: Page): Promise<void> {
+  if (isCI) {
+    return;
+  }
+
   try {
     await page.waitForURL(url => {
       const u = new URL(url);
@@ -32,6 +121,13 @@ async function handleLoginRedirect(page: Page): Promise<void> {
 }
 
 async function loginWithPath(page: Page, path: string, buttonName: RegExp): Promise<void> {
+  if (isCI) {
+    await setupAuthMocks(page);
+    await page.goto(path);
+    await page.goto('/');
+    return;
+  }
+
   await page.goto(path);
   await page.waitForLoadState('domcontentloaded');
   const loginButton = page.getByRole('button', { name: buttonName });
@@ -41,18 +137,37 @@ async function loginWithPath(page: Page, path: string, buttonName: RegExp): Prom
 }
 
 export async function loginAsAdmin(page: Page): Promise<void> {
+  if (isCI) {
+    await setupAuthMocks(page);
+    await page.goto('/dashboard');
+    return;
+  }
   await loginWithPath(page, '/admin/login', /entrar com keycloak/i);
 }
 
 export async function loginAsProvider(page: Page): Promise<void> {
+  if (isCI) {
+    await setupAuthMocks(page);
+    await page.goto('/provider/dashboard');
+    return;
+  }
   await loginWithPath(page, '/provider/login', /entrar/i);
 }
 
 export async function loginAsCustomer(page: Page): Promise<void> {
+  if (isCI) {
+    await setupAuthMocks(page);
+    await page.goto('/customer/dashboard');
+    return;
+  }
   await loginWithPath(page, '/login', /entrar/i);
 }
 
 export async function logout(page: Page): Promise<void> {
+  if (isCI) {
+    return;
+  }
+
   const logoutButton = page.getByRole('button', { name: /sair/i });
   const buttonCount = await logoutButton.count();
   

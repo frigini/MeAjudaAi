@@ -64,8 +64,8 @@ export default function DashboardPage() {
         <p className="text-muted-foreground">Visão geral dos prestadores e métricas</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        <Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8" data-testid="kpi-grid">
+        <Card data-testid="kpi-total-providers">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Total de Prestadores
@@ -73,15 +73,15 @@ export default function DashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.total ?? 0}</div>
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <div className="text-2xl font-bold" data-testid="kpi-value">{stats?.total ?? 0}</div>
+            <p className="text-xs text-muted-foreground flex items-center gap-1" data-testid="kpi-label">
               <TrendingUp className="h-3 w-3 text-green-500" />
-              Atualizado agora
+              Total de Prestadores
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-testid="kpi-pending-verification">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Aguardando Verificação
@@ -89,12 +89,12 @@ export default function DashboardPage() {
             <Clock className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{(stats?.pending ?? 0) + (stats?.underReview ?? 0)}</div>
-            <p className="text-xs text-muted-foreground">Revisão pendente</p>
+            <div className="text-2xl font-bold" data-testid="kpi-value">{(stats?.pending ?? 0) + (stats?.underReview ?? 0)}</div>
+            <p className="text-xs text-muted-foreground" data-testid="kpi-label">Aguardando Verificação</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-testid="kpi-approved">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Aprovados
@@ -102,12 +102,12 @@ export default function DashboardPage() {
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.approved ?? 0}</div>
-            <p className="text-xs text-muted-foreground">{approvedPercentage}% do total</p>
+            <div className="text-2xl font-bold" data-testid="kpi-value">{stats?.approved ?? 0}</div>
+            <p className="text-xs text-muted-foreground" data-testid="kpi-label">Aprovados</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-testid="kpi-rejected">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Rejeitados
@@ -115,8 +115,8 @@ export default function DashboardPage() {
             <AlertCircle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.rejected ?? 0}</div>
-            <p className="text-xs text-muted-foreground">{rejectedPercentage}% do total</p>
+            <div className="text-2xl font-bold" data-testid="kpi-value">{stats?.rejected ?? 0}</div>
+            <p className="text-xs text-muted-foreground" data-testid="kpi-label">Rejeitados</p>
           </CardContent>
         </Card>
       </div>

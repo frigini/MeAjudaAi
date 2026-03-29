@@ -11,16 +11,16 @@ test.describe('Admin Portal - Authentication', () => {
 
   test('should navigate to login', async ({ page }) => {
     await page.click('text=Login');
-    await expect(page).toHaveURL(/.*\/admin\/login/);
+    await expect(page).toHaveURL(/.*\/login/);
   });
 
   test('should display Keycloak OAuth login button', async ({ page }) => {
-    await page.goto('/admin/login');
+    await page.goto('/login');
     await expect(page.getByRole('button', { name: /entrar com keycloak/i })).toBeVisible();
   });
 
   test('should trigger Keycloak OAuth flow when clicking login button', async ({ page }) => {
-    await page.goto('/admin/login');
+    await page.goto('/login');
     
     await page.getByRole('button', { name: /entrar com keycloak/i }).click();
     

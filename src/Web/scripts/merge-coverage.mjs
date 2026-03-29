@@ -76,6 +76,20 @@ try {
   reports.create('json-summary').execute(context);
   reports.create('cobertura').execute(context);
 
+  const coberturaPath = join(OUTPUT_DIR, 'cobertura-coverage.xml');
+  if (existsSync(coberturaPath)) {
+    let xml = readFileSync(coberturaPath, 'utf8');
+    let packages = xml.split('<package ');
+    for (let i = 1; i < packages.length; i++) {
+      const match = packages[i].match(/filename="([^/\\"]+)[/\\]/);
+      if (match) {
+        const appName = match[1].replace('MeAjudaAi.Web.', '');
+        packages[i] = packages[i].replace(/name="([^"]+)"/, `name="${appName}/$1"`);
+      }
+    }
+    writeFileSync(coberturaPath, packages.join('<package '), 'utf8');
+  }
+
   const summaryPath = join(OUTPUT_DIR, 'coverage-summary.json');
   if (existsSync(summaryPath)) {
     const summary = JSON.parse(readFileSync(summaryPath, 'utf-8'));

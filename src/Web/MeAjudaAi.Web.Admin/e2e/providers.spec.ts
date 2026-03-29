@@ -3,7 +3,7 @@ import { test, expect, loginAsAdmin } from '@meajudaai/web-e2e-support';
 test.describe('Admin Portal - Providers Management', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/admin/providers');
+    await page.goto('/providers');
   });
 
   test('should display providers table', async ({ page }) => {
@@ -54,12 +54,12 @@ test.describe('Admin Portal - Documents', () => {
   });
 
   test('should display documents pending review', async ({ page }) => {
-    await page.goto('/admin/documentos');
+    await page.goto('/documentos');
     await expect(page.locator('[data-testid="documents-list"]')).toBeVisible();
   });
 
   test('should approve document', async ({ page }) => {
-    await page.goto('/admin/documentos');
+    await page.goto('/documentos');
     
     // Get the first provider row with pending documents
     const firstProviderRow = page.locator('[data-testid="provider-row"]').first();
@@ -82,7 +82,7 @@ test.describe('Admin Portal - Documents', () => {
     
     // Return to the listing
     await page.click('button:has-text("Voltar")');
-    await expect(page).toHaveURL(/.*\/admin\/documentos/);
+    await expect(page).toHaveURL(/.*\/documentos/);
     
     // Verify the provider no longer appears in pending list
     const providerRows = page.locator('[data-testid="provider-row"]');
@@ -91,7 +91,7 @@ test.describe('Admin Portal - Documents', () => {
   });
 
   test('should reject document', async ({ page }) => {
-    await page.goto('/admin/documentos');
+    await page.goto('/documentos');
     
     // Get the first provider row with pending documents
     const firstProviderRow = page.locator('[data-testid="provider-row"]').first();
