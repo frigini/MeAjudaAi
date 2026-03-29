@@ -1,9 +1,16 @@
 "use client";
 
-import { Users, Clock, CheckCircle, AlertCircle, TrendingUp, Loader2 } from "lucide-react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { Users, Clock, CheckCircle, AlertCircle, TrendingUp, Loader2, RefreshCw } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
 import { useDashboardStats } from "@/hooks/admin";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+
+const TypedTooltip = Tooltip as any;
+const TypedLegend = Legend as any;
 
 const verificationColors = {
   approved: "#22c55e",
@@ -21,7 +28,7 @@ const typeColors = {
 };
 
 export default function DashboardPage() {
-  const { data: stats, isLoading, error } = useDashboardStats();
+  const { data: stats, isLoading, error, refetch } = useDashboardStats();
 
   const verificationData = [
     { name: "Aprovados", value: stats?.approved ?? 0, color: verificationColors.approved },
@@ -38,9 +45,9 @@ export default function DashboardPage() {
     { name: "Cooperativa", value: stats?.cooperative ?? 0, color: typeColors.cooperative },
   ].filter((d) => d.value > 0);
 
-  if (isLoading) {
+  if (isLoading && !stats) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+      <div data-testid="dashboard-loading" className="flex items-center justify-center h-[calc(100vh-200px)]">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -48,35 +55,53 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="p-8 text-center text-destructive">
-        Erro ao carregar dados do dashboard. Tente novamente.
+      <div data-testid="dashboard-error" className="flex flex-col items-center justify-center p-8 space-y-4">
+        <p className="text-destructive">Erro ao carregar dados do dashboard. Tente novamente.</p>
+        <Button data-testid="retry-button" onClick={() => refetch()} variant="secondary">
+          Tentar Novamente
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground">Visão geral dos prestadores e métricas</p>
+      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground">Visão geral dos prestadores e métricas</p>
+        </div>
+        
+        {stats?.updatedAt && (
+          <div className="flex items-center space-x-4">
+            <span data-testid="last-updated" className="text-sm text-muted-foreground">
+              Atualizado em {stats.updatedAt.toLocaleTimeString('pt-BR')}
+            </span>
+            <Button data-testid="refresh-dashboard" variant="secondary" size="icon" onClick={() => refetch()}>
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8" data-testid="kpi-grid">
-        <Card data-testid="kpi-total-providers">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total de Prestadores
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold" data-testid="kpi-value">{stats?.total ?? 0}</div>
-            <p className="text-xs text-muted-foreground flex items-center gap-1" data-testid="kpi-label">
-              <TrendingUp className="h-3 w-3 text-green-500" />
-              Total de Prestadores
-            </p>
-          </CardContent>
-        </Card>
+        <Link href="/admin/providers" className="block transition-transform hover:scale-[1.02]">
+          <Card data-testid="kpi-total-providers" className="h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total de Prestadores
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold" data-testid="kpi-value">{stats?.total ?? 0}</div>
+              <p className="text-xs text-muted-foreground flex items-center gap-1" data-testid="kpi-label">
+                <TrendingUp className="h-3 w-3 text-green-500" />
+                Total de Prestadores
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
         <Card data-testid="kpi-pending-verification">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -118,13 +143,37 @@ export default function DashboardPage() {
         </Card>
       </div>
 
+      <div className="mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle data-testid="chart-title">Prestadores ao longo do tempo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div data-testid="providers-line-chart" className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={stats?.timeSeries ?? []}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                  <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{fill: '#6b7280', fontSize: 12}} dy={10} />
+                  <YAxis tickLine={false} axisLine={false} tick={{fill: '#6b7280', fontSize: 12}} dx={-10} />
+                  <TypedTooltip 
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    wrapperProps={{ "data-testid": "chart-tooltip" } as any} 
+                  />
+                  <Line type="monotone" dataKey="value" name="Total de Prestadores" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Status de Verificação</CardTitle>
+            <CardTitle data-testid="chart-title">Status de Verificação</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[250px]">
+            <div data-testid="verification-pie-chart" className="h-[250px] relative">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -135,14 +184,17 @@ export default function DashboardPage() {
                     outerRadius={100}
                     paddingAngle={5}
                     dataKey="value"
-                    label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                    labelLine={false}
                   >
                     {verificationData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip />
-                  <Legend />
+                  <TypedTooltip wrapperProps={{ "data-testid": "chart-tooltip" } as any} />
+                  <TypedLegend 
+                    wrapperProps={{ "data-testid": "chart-legend" } as any}
+                    formatter={(value: any) => <span data-testid="legend-item" className="text-sm font-medium">{value}</span>}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -151,10 +203,10 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Prestadores por Tipo</CardTitle>
+            <CardTitle data-testid="chart-title">Prestadores por Tipo</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[250px]">
+             <div className="h-[250px] relative">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -165,14 +217,14 @@ export default function DashboardPage() {
                     outerRadius={100}
                     paddingAngle={5}
                     dataKey="value"
-                    label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                    labelLine={false}
                   >
                     {typeData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
                   <Tooltip />
-                  <Legend />
+                  <Legend formatter={(value) => <span className="text-sm font-medium">{value}</span>} />
                 </PieChart>
               </ResponsiveContainer>
             </div>

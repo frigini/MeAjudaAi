@@ -95,6 +95,90 @@ try {
     const summary = JSON.parse(readFileSync(summaryPath, 'utf-8'));
     const totals = summary.total;
     
+    // -------------------------------------------------------------
+    // Custom Markdown Report Generation
+    // -------------------------------------------------------------
+    const projectsData = {};
+    for (const [file, stats] of Object.entries(summary)) {
+      if (file === 'total') continue;
+      
+      // Group by project
+      const parts = file.split(/[/\\]/);
+      const projName = parts[0]; 
+      
+      const dirName = parts.slice(0, -1).join('/');
+      
+      if (!projectsData[projName]) {
+        projectsData[projName] = { packages: {}, totals: { lines: { c: 0, t: 0 }, branches: { c: 0, t: 0 } } };
+      }
+      
+      if (!projectsData[projName].packages[dirName]) {
+        projectsData[projName].packages[dirName] = { lines: { c: 0, t: 0 }, branches: { c: 0, t: 0 } };
+      }
+      
+      const pGroup = projectsData[projName].packages[dirName];
+      pGroup.lines.t += stats.lines.total;
+      pGroup.lines.c += stats.lines.covered;
+      pGroup.branches.t += stats.branches.total;
+      pGroup.branches.c += stats.branches.covered;
+      
+      projectsData[projName].totals.lines.t += stats.lines.total;
+      projectsData[projName].totals.lines.c += stats.lines.covered;
+      projectsData[projName].totals.branches.t += stats.branches.total;
+      projectsData[projName].totals.branches.c += stats.branches.covered;
+    }
+    
+    const fmt = (c, t) => t === 0 ? '100%' : `${Math.floor((c/t)*100)}%`;
+    const getHealth = (pct) => pct >= 80 ? '✔' : pct >= 60 ? '➖' : '❌';
+    
+    let md = `### Code Coverage Report\n\n`;
+    md += `| Project | Package | Line Rate | Branch Rate | Health |\n`;
+    md += `|---|---|---|---|---|\n`;
+    
+    for (const [proj, data] of Object.entries(projectsData)) {
+      const pkgs = Object.keys(data.packages).sort();
+      for (const pkg of pkgs) {
+        const stats = data.packages[pkg];
+        if (stats.lines.t === 0) continue;
+        
+        const linePctRaw = (stats.lines.c / stats.lines.t) * 100;
+        const linePct = fmt(stats.lines.c, stats.lines.t);
+        const branchPct = fmt(stats.branches.c, stats.branches.t);
+        const health = getHealth(linePctRaw);
+        
+        const displayPkg = pkg.replace('MeAjudaAi.Web.', '')
+          .replace('/app/(admin)/', '/')
+          .replace('/app/(customer)/', '/')
+          .replace('/app/(provider)/', '/')
+          .replace('/app/', '/')
+          .replace('/src/', '/')
+          .replace('libs/', 'lib/');
+          
+        md += `| ${proj} | ${displayPkg} | ${linePct} | ${branchPct} | ${health} |\n`;
+      }
+      
+      const lTotal = data.totals.lines.t;
+      const lCov = data.totals.lines.c;
+      const bTotal = data.totals.branches.t;
+      const bCov = data.totals.branches.c;
+      const pLinePct = fmt(lCov, lTotal);
+      const pBranchPct = fmt(bCov, bTotal);
+      
+      md += `| **${proj}** | **Summary** | **${pLinePct} (${lCov} / ${lTotal})** | **${pBranchPct} (${bCov} / ${bTotal})** | - |\n`;
+    }
+    
+    const gLTotal = totals.lines.total;
+    const gLCov = totals.lines.covered;
+    const gBTotal = totals.branches.total;
+    const gBCov = totals.branches.covered;
+    
+    md += `| **Overall** | **Summary** | **${fmt(gLCov, gLTotal)} (${gLCov} / ${gLTotal})** | **${fmt(gBCov, gBTotal)} (${gBCov} / ${gBTotal})** | - |\n`;
+    
+    writeFileSync(join(OUTPUT_DIR, 'custom-coverage-results.md'), md, 'utf-8');
+    console.log('[INFO] Custom Markdown report generated successfully at coverage-global/custom-coverage-results.md');
+
+    // -------------------------------------------------------------
+    
     const failures = [];
     if (totals.lines.pct < GLOBAL_THRESHOLDS.lines) failures.push(`lines: ${totals.lines.pct}%`);
     if (totals.functions.pct < GLOBAL_THRESHOLDS.functions) failures.push(`functions: ${totals.functions.pct}%`);

@@ -132,4 +132,4 @@ jobs:
         with:
           recreate: true
           header: coverage-report-frontend
-          path: "code-coverage-results.md"
+          path: "src/Web/coverage-global/custom-coverage-results.md"
