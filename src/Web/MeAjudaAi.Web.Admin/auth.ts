@@ -10,9 +10,15 @@ declare module "next-auth" {
   }
 }
 
+const isCi = process.env.CI === "true" || process.env.NEXT_PUBLIC_CI === "true";
+
 function getRequiredEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
+    if (isCi) {
+      console.warn(`[auth] Environment variable ${name} is missing - using placeholder for CI.`);
+      return "";
+    }
     if (process.env.NODE_ENV === "development") {
       throw new Error(`[auth] Environment variable ${name} is required but not set.`);
     }
@@ -20,8 +26,6 @@ function getRequiredEnv(name: string): string {
   }
   return value;
 }
-
-const isCi = process.env.CI === "true" || process.env.NEXT_PUBLIC_CI === "true";
 
 const hasAdminVars = process.env.KEYCLOAK_ADMIN_CLIENT_ID && process.env.KEYCLOAK_ADMIN_CLIENT_SECRET;
 const hasClientVars = process.env.KEYCLOAK_CLIENT_ID && process.env.KEYCLOAK_CLIENT_SECRET;

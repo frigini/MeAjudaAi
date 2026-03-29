@@ -16,8 +16,8 @@
   },
   "scripts": {
     "dev:customer": "cd MeAjudaAi.Web.Customer && npm run dev",
-    "dev:admin": "cd MeAjudaAi.Web.Admin && npm run dev",
-    "dev:provider": "cd MeAjudaAi.Web.Provider && npm run dev",
+    "dev:admin": "cd MeAjudaAi.Web.Admin && npm run dev -p 3002",
+    "dev:provider": "cd MeAjudaAi.Web.Provider && npm run dev -p 3001",
     "dev:all": "concurrently \"npm run dev:customer\" \"npm run dev:admin\" \"npm run dev:provider\"",
     "dev": "npm run dev:customer",
     "generate:api:customer": "cd MeAjudaAi.Web.Customer && npm run generate:api",
