@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen } from 'test-support';
 import userEvent from '@testing-library/user-event';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -12,6 +12,9 @@ vi.mock('@/components/providers/theme-provider', () => ({
 }));
 
 describe('ThemeToggle', () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
   it('deve renderizar botão de toggle de tema', () => {
     render(<ThemeToggle />);
     expect(screen.getByRole('button')).toBeInTheDocument();

@@ -23,5 +23,9 @@ describe("getVerificationBadgeVariant", () => {
     expect(getVerificationBadgeVariant(EVerificationStatus.None)).toBe("secondary");
     expect(getVerificationBadgeVariant(EVerificationStatus.Pending)).toBe("secondary");
     expect(getVerificationBadgeVariant(undefined as any)).toBe("secondary");
+    expect(getVerificationBadgeVariant(null as any)).toBe("secondary");
+    expect(getVerificationBadgeVariant(-1 as any)).toBe("secondary");
+    expect(getVerificationBadgeVariant(999 as any)).toBe("secondary");
+    expect(getVerificationBadgeVariant("invalid" as any)).toBe("secondary");
   });
 });

@@ -94,4 +94,13 @@ describe('useAllowedCities Hook (Admin)', () => {
     await result.current.mutateAsync('r-1');
     expect(api.apiAllowedCitiesDelete).toHaveBeenCalledWith({ path: { id: 'r-1' } });
   });
+
+  it('deve mapear erros (error matrices) caso a API falhe', async () => {
+    vi.mocked(api.apiAllowedCitiesGet).mockRejectedValue(new Error('Matrix Failure'));
+    const { result } = renderHook(() => useAllowedCities());
+    
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(result.current.error).toBeDefined();
+    expect(result.current.error?.message).toBe('Matrix Failure');
+  });
 });

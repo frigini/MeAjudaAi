@@ -91,6 +91,6 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Você deve aceitar os termos de uso para se cadastrar.");
+        result.Error.Message.Should().Be(RegisterCustomerCommandHandler.TermsNotAcceptedError);
     }
 }

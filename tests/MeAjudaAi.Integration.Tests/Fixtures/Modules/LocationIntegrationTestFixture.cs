@@ -49,7 +49,7 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
                 LocalCacheExpiration = TimeSpan.FromMinutes(30)
             };
         });
-        services.AddSingleton<CacheMetrics>();
+        services.AddSingleton<ICacheMetrics, CacheMetrics>();
         services.AddSingleton<ICacheService, HybridCacheService>();
 
         // Configura clientes HTTP com mocks

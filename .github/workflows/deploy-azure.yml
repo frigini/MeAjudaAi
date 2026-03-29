@@ -63,6 +63,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Create Resource Group
+        if: github.event.inputs.deploy_infrastructure != 'false'
         run: |
           az group create \
             --name meajudaai-${{ env.ENVIRONMENT }}-rg \

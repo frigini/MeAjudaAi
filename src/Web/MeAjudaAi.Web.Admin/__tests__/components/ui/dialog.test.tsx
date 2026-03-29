@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from 'test-support';
+import userEvent from '@testing-library/user-event';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog';
 
 describe('Dialog (Admin)', () => {
@@ -65,15 +66,18 @@ describe('Dialog (Admin)', () => {
     expect(screen.getByRole('button', { name: /custom trigger/i })).toBeInTheDocument();
   });
 
-  it('deve chamar onOpenChange quando abrir', () => {
+  it('deve chamar onOpenChange quando o trigger é clicado', async () => {
+    const user = userEvent.setup();
     const handleChange = vi.fn();
     render(
-      <Dialog open onOpenChange={handleChange}>
+      <Dialog onOpenChange={handleChange}>
         <DialogTrigger>Open</DialogTrigger>
         <DialogContent>Content</DialogContent>
       </Dialog>
     );
-    expect(handleChange).not.toHaveBeenCalled();
+    
+    await user.click(screen.getByRole('button', { name: /open/i }));
+    expect(handleChange).toHaveBeenCalledWith(true);
   });
 
   it('deve renderizar botão default no DialogClose se children não for provido', async () => {

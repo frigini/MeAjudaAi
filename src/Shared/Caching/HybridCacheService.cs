@@ -45,6 +45,12 @@ public class HybridCacheService(    HybridCache hybridCache,
             // Retornar tupla: (valor, estava_em_cache)
             return isCached ? (result, true) : (default, false);
         }
+        catch (InvalidOperationException)
+        {
+            stopwatch.Stop();
+            logger.LogDebug("Item not found in cache for key {Key} and valueFactory returned null", key);
+            return (default, false);
+        }
         catch (Exception ex)
         {
             stopwatch.Stop();

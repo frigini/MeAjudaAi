@@ -55,17 +55,26 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     }
 
     /// <summary>
-    /// Masks a user ID for logging purposes to avoid exposing PII.
+    /// Mascara um ID de usuário para fins de log, a fim de evitar a exposição de PII (Informações Pessoalmente Identificáveis).
     /// </summary>
     private static string MaskUserId(string userId) => PiiMaskingHelper.MaskUserId(userId);
 
     /// <summary>
-    /// Cria opções de cache para o armazenamento de roles.
+    /// Opções de cache estáticas para o armazenamento de roles.
     /// </summary>
-    private static HybridCacheEntryOptions CreateRoleCacheOptions() => new()
+    private static readonly HybridCacheEntryOptions RoleCacheOptions = new()
     {
         Expiration = TimeSpan.FromMinutes(15),
         LocalCacheExpiration = TimeSpan.FromMinutes(5)
+    };
+
+    /// <summary>
+    /// Opções de cache estáticas para o token de administrador.
+    /// </summary>
+    private static readonly HybridCacheEntryOptions AdminTokenCacheOptions = new()
+    {
+        Expiration = TimeSpan.FromMinutes(4), // Conservador: token de 5min - margem de 1min
+        LocalCacheExpiration = TimeSpan.FromSeconds(120)
     };
 
     public async Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(UserId userId, CancellationToken cancellationToken = default)
@@ -85,13 +94,11 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         {
             // Cache key para roles do usuário (hashed to prevent PII in cache infrastructure)
             var cacheKey = $"keycloak_user_roles_{HashForCacheKey(userId)}";
-            var cacheOptions = CreateRoleCacheOptions();
-
             // Busca roles do cache ou Keycloak
             var userRoles = await _cache.GetOrCreateAsync(
                 cacheKey,
                 async ValueTask<IReadOnlyList<string>> (ct) => await GetUserRolesFromKeycloakAsync(userId, ct),
-                options: cacheOptions,
+                options: RoleCacheOptions,
                 cancellationToken: cancellationToken);
 
             // Mapeia roles para permissões
@@ -178,11 +185,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
                 var tokenResponse = await RequestAdminTokenAsync(ct);
                 return tokenResponse.AccessToken;
             },
-            options: new HybridCacheEntryOptions
-            {
-                Expiration = TimeSpan.FromMinutes(4), // Conservador: token de 5min - margem de 1min
-                LocalCacheExpiration = TimeSpan.FromSeconds(120)
-            },
+            options: AdminTokenCacheOptions,
             cancellationToken: cancellationToken);
     }
 
@@ -388,7 +391,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     }
 
     /// <summary>
-    /// Hashes a string value for use in cache keys to prevent PII exposure.
+    /// Gera o hash de uma string para uso em chaves de cache, prevenindo a exposição de PII.
     /// </summary>
     private static string HashForCacheKey(string input)
     {

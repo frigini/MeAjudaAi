@@ -62,6 +62,46 @@ public class LocationsEndpointsTests
             Times.Never);
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("  ")]
+    [InlineData(null)]
+    public async Task SearchAsync_ShouldReturnEmpty_WhenQueryIsNullOrWhiteSpace(string query)
+    {
+        // Act
+        var result = await CallSearchAsync(query);
+
+        // Assert
+        result.Should().BeOfType<Ok<LocationCandidate[]>>();
+        var okResult = (Ok<LocationCandidate[]>)result;
+        okResult.Value.Should().BeEmpty();
+        
+        _geocodingServiceMock.Verify(
+            x => x.SearchAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task SearchAsync_ShouldCallGeocoding_WhenQueryIsExactly8Chars()
+    {
+        // Arrange
+        var query = "01310100"; // Typical CEP format
+        var candidates = new List<LocationCandidate> { 
+            new LocationCandidate("Av Paulista", "-", "-", "BR", 0, 0) 
+        };
+        _geocodingServiceMock.Setup(x => x.SearchAsync(query, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(candidates);
+
+        // Act
+        var result = await CallSearchAsync(query);
+
+        // Assert
+        result.Should().BeOfType<Ok<List<LocationCandidate>>>();
+        _geocodingServiceMock.Verify(
+            x => x.SearchAsync(query, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
     private async Task<IResult> CallSearchAsync(string query)
     {
         return await SearchLocationsEndpoint.SearchAsync(

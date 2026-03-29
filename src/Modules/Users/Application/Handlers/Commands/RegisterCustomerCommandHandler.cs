@@ -19,19 +19,22 @@ public sealed partial class RegisterCustomerCommandHandler(
     ILogger<RegisterCustomerCommandHandler> logger
 ) : ICommandHandler<RegisterCustomerCommand, Result<UserDto>>
 {
-    [GeneratedRegex(@"[^a-zA-Z0-9._\-]")]
+    public const string TermsNotAcceptedError = "Você deve aceitar os termos de uso para se cadastrar.";
+    public const string PrivacyPolicyNotAcceptedError = "Você deve aceitar a política de privacidade para se cadastrar.";
+
+    [GeneratedRegex(@"[^a-zA-Z0-9._\-]", RegexOptions.Compiled)]
     private static partial Regex SanitizationRegex();
 
     public async Task<Result<UserDto>> HandleAsync(RegisterCustomerCommand command, CancellationToken cancellationToken = default)
     {
         if (!command.TermsAccepted)
         {
-            return Result<UserDto>.Failure(Error.BadRequest("Você deve aceitar os termos de uso para se cadastrar."));
+            return Result<UserDto>.Failure(Error.BadRequest(TermsNotAcceptedError));
         }
 
         if (!command.AcceptedPrivacyPolicy)
         {
-            return Result<UserDto>.Failure(Error.BadRequest("Você deve aceitar a política de privacidade para se cadastrar."));
+            return Result<UserDto>.Failure(Error.BadRequest(PrivacyPolicyNotAcceptedError));
         }
 
         Email emailAsValueObject;

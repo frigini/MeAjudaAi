@@ -74,7 +74,7 @@ resource postgresDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2
 }
 
 // Private Endpoint for PostgreSQL (only if VNet is provided)
-resource postgresPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-01-01' = if (vnetSubnetId != '') {
+resource postgresPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-01-01' = if (vnetSubnetId != '' && vnetId != '') {
   name: '${postgresServerName}-pe'
   location: location
   properties: {

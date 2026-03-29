@@ -94,7 +94,7 @@ jobs:
         id: aspire-version
         run: |
           ASPIRE_VERSION=$(grep -oP 'Aspire\.Hosting\.PostgreSQL.*?Version="\K[^"]+' Directory.Packages.props || echo "13.1.3")
-          echo "version=$ASPIRE_VERSION" >> $GITHUB_OUTPUT
+          echo "version=$ASPIRE_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Prepare Aspire Integration Tests
         run: |
@@ -280,4 +280,17 @@ jobs:
           dotnet-version: "10.0.x"
       - name: Run Security Audit
         continue-on-error: true
-        run: dotnet list package --vulnerable --include-transitive
+        run: |
+          dotnet list package --vulnerable --include-transitive > security-audit-report.txt
+          cat security-audit-report.txt
+      - name: Verify No Critical Direct Vulnerabilities
+        run: |
+          # Parse output to find if there are critical vulnerabilities in direct dependencies
+          # We check the top-level references specifically. A basic scan verifies if "Critical" shows up without being in a Transitive block, or simply checks top-level explicitly.
+          dotnet list package --vulnerable > direct-security-audit.txt
+          if grep -qi "Critical" direct-security-audit.txt; then
+            echo "Critical direct vulnerabilities found!"
+            cat direct-security-audit.txt
+            exit 1
+          fi
+          echo "No critical vulnerabilities found in direct dependencies."

@@ -103,6 +103,6 @@ public class EnumExtensionsTests
 
         // Assert
         result.Should().Contain("Active, Inactive, Pending");
-        result.Should().StartWith("Valid TestStatus values:");
+        result.Should().StartWith("Valores válidos para TestStatus:");
     }
 }

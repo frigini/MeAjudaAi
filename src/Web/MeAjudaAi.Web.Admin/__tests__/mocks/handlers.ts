@@ -1,12 +1,12 @@
 import { http, HttpResponse } from 'msw';
-import { EProviderType, EVerificationStatus } from '@/lib/types';
+import { EProviderType, EVerificationStatus, type VerificationStatus, type ProviderType } from '@/lib/types';
 
 const mockProvider = {
   id: 'provider-1',
   name: 'Prestador Teste',
   email: 'prestador@teste.com',
-  verificationStatus: EVerificationStatus.Pending,
-  type: EProviderType.Individual,
+  verificationStatus: EVerificationStatus.Pending as VerificationStatus,
+  type: EProviderType.Individual as ProviderType,
 };
 
 const mockCategory = {
@@ -70,7 +70,7 @@ export const handlers = [
   http.post('/api/v1/providers', async ({ request }) => {
     try {
       const body = await request.json() as Record<string, unknown>;
-      const newProvider = { ...mockProvider, ...body, id: `provider-${Date.now()}` };
+      const newProvider = { ...mockProvider, ...body, id: `provider-${providersMap.size + 1}` };
       providersMap.set(newProvider.id, newProvider);
       return HttpResponse.json({ data: newProvider }, { status: 201 });
     } catch {
@@ -119,7 +119,7 @@ export const handlers = [
   http.post('/api/v1/service-catalogs/categories', async ({ request }) => {
     try {
       const body = await request.json() as Record<string, unknown>;
-      const newCategory = { ...mockCategory, ...body, id: `category-${Date.now()}` };
+      const newCategory = { ...mockCategory, ...body, id: `category-${categoriesMap.size + 1}` };
       categoriesMap.set(newCategory.id, newCategory);
       return HttpResponse.json({ data: newCategory }, { status: 201 });
     } catch {
@@ -154,7 +154,7 @@ export const handlers = [
   http.post('/api/v1/admin/allowed-cities', async ({ request }) => {
     try {
       const body = await request.json() as Record<string, unknown>;
-      const newCity = { ...mockCity, ...body, id: `city-${Date.now()}` };
+      const newCity = { ...mockCity, ...body, id: `city-${citiesMap.size + 1}` };
       citiesMap.set(newCity.id, newCity);
       return HttpResponse.json({ data: newCity }, { status: 201 });
     } catch {

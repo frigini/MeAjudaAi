@@ -22,7 +22,7 @@ public static class EnumExtensions
                 Error.BadRequest($"O valor não pode ser nulo ou vazio para o enum {typeof(TEnum).Name}"));
         }
 
-        if (Enum.TryParse<TEnum>(value, ignoreCase, out var result) && Enum.IsDefined(typeof(TEnum), result))
+        if (TryParseAndIsDefined<TEnum>(value, ignoreCase, out var result))
         {
             return Result<TEnum>.Success(result);
         }
@@ -65,6 +65,13 @@ public static class EnumExtensions
 
     private static bool TryParseAndIsDefined<TEnum>(string value, bool ignoreCase, out TEnum result) where TEnum : struct, Enum
     {
+        // Bloqueia conversão de strings numéricas (ex: "1" para valor enumerado)
+        if (int.TryParse(value, out _))
+        {
+            result = default;
+            return false;
+        }
+
         return Enum.TryParse<TEnum>(value, ignoreCase, out result) && Enum.IsDefined(typeof(TEnum), result);
     }
 
@@ -86,6 +93,6 @@ public static class EnumExtensions
     public static string GetValidValuesDescription<TEnum>() where TEnum : struct, Enum
     {
         var values = GetValidValues<TEnum>();
-        return $"Valid {typeof(TEnum).Name} values: {string.Join(", ", values)}";
+        return $"Valores válidos para {typeof(TEnum).Name}: {string.Join(", ", values)}";
     }
 }
