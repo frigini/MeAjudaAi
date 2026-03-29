@@ -113,15 +113,7 @@ jobs:
           npx nx run MeAjudaAi.Web.Admin:build
           npx nx run MeAjudaAi.Web.Provider:build
 
-      - name: Code Coverage Summary
-        uses: irongut/CodeCoverageSummary@v1.3.0
-        if: always()
-        continue-on-error: true
-        with:
-          filename: "src/Web/coverage-global/cobertura-coverage.xml"
-          badge: true
-          format: markdown
-          output: both
+
 
       - name: Upload coverage reports
         if: always()

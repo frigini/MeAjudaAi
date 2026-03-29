@@ -71,8 +71,6 @@ try {
     coverageMap: map,
   });
 
-  reports.create('html').execute(context);
-  reports.create('lcov').execute(context);
   reports.create('json-summary').execute(context);
   reports.create('cobertura').execute(context);
 
@@ -131,7 +129,15 @@ try {
     const fmt = (c, t) => t === 0 ? '100%' : `${Math.floor((c/t)*100)}%`;
     const getHealth = (pct) => pct >= 80 ? '✔' : pct >= 60 ? '➖' : '❌';
     
+    // Calculate global line percentage for the badge
+    const gLTotal = totals.lines.total;
+    const gLCov = totals.lines.covered;
+    const gLRateRaw = gLTotal === 0 ? 100 : Math.floor((gLCov / gLTotal) * 100);
+    const badgeColor = gLRateRaw >= 80 ? 'brightgreen' : gLRateRaw >= 60 ? 'yellow' : 'red';
+    const badgeUrl = `https://img.shields.io/badge/Code%20Coverage-${gLRateRaw}%25-${badgeColor}?style=flat`;
+    
     let md = `### Code Coverage Report\n\n`;
+    md += `![Code Coverage](${badgeUrl})\n\n`;
     md += `| Project | Package | Line Rate | Branch Rate | Health |\n`;
     md += `|---|---|---|---|---|\n`;
     
@@ -146,12 +152,13 @@ try {
         const branchPct = fmt(stats.branches.c, stats.branches.t);
         const health = getHealth(linePctRaw);
         
-        const displayPkg = pkg.replace('MeAjudaAi.Web.', '')
-          .replace('/app/(admin)/', '/')
-          .replace('/app/(customer)/', '/')
-          .replace('/app/(provider)/', '/')
-          .replace('/app/', '/')
-          .replace('/src/', '/')
+        let displayPkg = pkg.startsWith(`${proj}/`) ? pkg.replace(`${proj}/`, '') : (pkg === proj ? 'root' : pkg);
+        displayPkg = displayPkg
+          .replace('app/(admin)/', '')
+          .replace('app/(customer)/', '')
+          .replace('app/(provider)/', '')
+          .replace('app/', '')
+          .replace('src/', '')
           .replace('libs/', 'lib/');
           
         md += `| ${proj} | ${displayPkg} | ${linePct} | ${branchPct} | ${health} |\n`;
@@ -167,8 +174,6 @@ try {
       md += `| **${proj}** | **Summary** | **${pLinePct} (${lCov} / ${lTotal})** | **${pBranchPct} (${bCov} / ${bTotal})** | - |\n`;
     }
     
-    const gLTotal = totals.lines.total;
-    const gLCov = totals.lines.covered;
     const gBTotal = totals.branches.total;
     const gBCov = totals.branches.covered;
     
