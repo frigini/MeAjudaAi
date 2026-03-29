@@ -88,8 +88,8 @@ jobs:
       - name: Test Frontend
         working-directory: ./src/Web
         run: |
-          npx nx run-many --target=test --all --args="--coverage" --exclude=MeAjudaAi.Web.Customer
-          npm run test:coverage:merge
+          npx nx run-many --target=test --all --args="--coverage"
+          node scripts/merge-coverage.mjs
 
       - name: Build Frontend
         working-directory: ./src/Web

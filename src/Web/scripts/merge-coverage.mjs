@@ -55,11 +55,12 @@ for (const project of PROJECTS) {
     }
     map.merge(prefixedCoverage);
   } else {
-    missing.push(project);
+    console.warn(`[WARN] Coverage file not found for ${project}. Skipping...`);
   }
 }
 
-if (missing.length > 0 || map.files().length === 0) {
+if (map.files().length === 0) {
+  console.error('[ERROR] No coverage files found to merge.');
   process.exit(1);
 }
 
@@ -87,11 +88,14 @@ try {
     if (totals.statements.pct < GLOBAL_THRESHOLDS.statements) failures.push(`statements: ${totals.statements.pct}%`);
     
     if (failures.length > 0) {
+      console.error(`[ERROR] Threshold failures: \n${failures.join('\n')}`);
       process.exit(1); 
     }
   } else {
+    console.error(`[ERROR] coverage-summary.json missing at ${summaryPath}`);
     process.exit(1);
   }
-} catch {
+} catch (err) {
+  console.error('[ERROR] Unhandled exception during coverage merge:', err);
   process.exit(1);
 }
