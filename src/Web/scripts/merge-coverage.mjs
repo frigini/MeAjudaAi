@@ -7,7 +7,7 @@
  * Input:  coverage-final.json from each project's ./coverage/ directory.
  * Output: Combined report in ./coverage-global/ (html + json-summary + lcov).
  */
-import { existsSync, mkdirSync, readFileSync, rmSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'fs';
 import { resolve, join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import libCoverage from 'istanbul-lib-coverage';

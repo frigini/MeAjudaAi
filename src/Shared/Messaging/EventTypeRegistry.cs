@@ -17,6 +17,9 @@ public class EventTypeRegistry(ICacheService cache, ILogger<EventTypeRegistry> l
             tags: ["event-registry"],
             cancellationToken: cancellationToken);
 
+        if (typeNames == null)
+            return Enumerable.Empty<Type>();
+
         return typeNames.Select(n => Type.GetType(n.Value)).Where(t => t != null).Cast<Type>();
     }
 
@@ -28,6 +31,9 @@ public class EventTypeRegistry(ICacheService cache, ILogger<EventTypeRegistry> l
             expiration: TimeSpan.FromHours(1),
             tags: ["event-registry"],
             cancellationToken: cancellationToken);
+
+        if (typeNames == null)
+            return null;
 
         var typeName = typeNames.GetValueOrDefault(eventName);
         return typeName != null ? Type.GetType(typeName) : null;
