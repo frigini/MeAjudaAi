@@ -41,13 +41,17 @@ function isDataPayload(obj: unknown): obj is { data?: unknown } {
   return obj !== null && typeof obj === "object" && "data" in obj;
 }
 
+function isServiceCategoryDto(obj: unknown): obj is ServiceCategoryDto {
+  return obj !== null && typeof obj === 'object' && 'id' in obj && 'name' in obj;
+}
+
 function normalizeCategoriesResponse(response: unknown): ServiceCategoryDto[] {
   if (!response) return [];
   
   if (isDataPayload(response)) {
     const inner = response.data;
     if (Array.isArray(inner)) return inner as ServiceCategoryDto[];
-    if (isDataPayload(inner)) return (inner.data as ServiceCategoryDto[]) ?? [];
+    if (isDataPayload(inner) && Array.isArray(inner.data)) return inner.data as ServiceCategoryDto[];
   }
   
   if (Array.isArray(response)) return response as ServiceCategoryDto[];
@@ -70,10 +74,11 @@ export function useCategoryById(id: string) {
       if (!res) return undefined;
       if (isDataPayload(res)) {
         const inner = res.data;
-        if (isDataPayload(inner)) return inner.data as ServiceCategoryDto;
-        return inner as unknown as ServiceCategoryDto;
+        if (isDataPayload(inner) && isServiceCategoryDto(inner.data)) return inner.data;
+        if (isServiceCategoryDto(inner)) return inner;
       }
-      return res as unknown as ServiceCategoryDto;
+      if (isServiceCategoryDto(res)) return res;
+      return undefined;
     },
     enabled: !!id,
   });

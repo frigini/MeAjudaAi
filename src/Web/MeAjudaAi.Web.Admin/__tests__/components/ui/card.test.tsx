@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from 'test-support';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 
 describe('Card (Admin)', () => {
   it('should render Card component', () => {
@@ -31,15 +31,29 @@ describe('Card (Admin)', () => {
   it('should apply custom className to subcomponents', () => {
     render(
       <Card>
-        <CardHeader className="header-class">
+        <CardHeader className="header-class" data-testid="card-header">
           <CardTitle className="title-class">Title</CardTitle>
         </CardHeader>
         <CardContent className="content-class">Content</CardContent>
       </Card>
     );
 
-    expect(screen.getByText('Title').closest('div')).toHaveClass('header-class');
+    expect(screen.getByTestId('card-header')).toHaveClass('header-class');
     expect(screen.getByText('Title')).toHaveClass('title-class');
     expect(screen.getByText('Content')).toHaveClass('content-class');
+  });
+
+  it('should render CardDescription with correct styling', () => {
+    render(
+      <Card>
+        <CardHeader>
+          <CardTitle>Title</CardTitle>
+          <CardDescription>Description text</CardDescription>
+        </CardHeader>
+      </Card>
+    );
+
+    expect(screen.getByText('Description text')).toBeInTheDocument();
+    expect(screen.getByText('Description text')).toHaveClass('text-sm', 'text-muted-foreground');
   });
 });

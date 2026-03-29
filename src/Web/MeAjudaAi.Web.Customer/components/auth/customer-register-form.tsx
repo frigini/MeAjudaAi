@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -34,14 +34,6 @@ export function CustomerRegisterForm() {
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-    useEffect(() => {
-        const timer = timerRef.current;
-        return () => {
-            if (timer) clearTimeout(timer);
-        };
-    }, []);
 
     const form = useForm<RegisterCustomerInput>({
         // NO resolver here to avoid JSDOM crashes

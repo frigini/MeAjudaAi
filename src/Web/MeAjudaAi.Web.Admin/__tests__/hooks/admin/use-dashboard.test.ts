@@ -60,6 +60,8 @@ describe('useDashboardStats Hook (Admin)', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.total).toBe(2);
     expect(api.apiProvidersGet2).toHaveBeenCalledTimes(2);
+    expect(api.apiProvidersGet2).toHaveBeenNthCalledWith(1, expect.objectContaining({ query: expect.objectContaining({ page: 1 }) }));
+    expect(api.apiProvidersGet2).toHaveBeenNthCalledWith(2, expect.objectContaining({ query: expect.objectContaining({ page: 2 }) }));
   });
 
   it('deve lidar com falha na resposta da API', async () => {

@@ -2,27 +2,23 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from 'test-support';
 import { Badge } from '@/components/ui/badge';
 
+const badgeVariants = [
+  ['default', 'bg-primary'],
+  ['secondary', 'bg-secondary'],
+  ['destructive', 'bg-destructive'],
+  ['success', 'bg-green-100'],
+  ['warning', 'bg-yellow-100'],
+] as const;
+
 describe('Badge (Admin)', () => {
   it('should render Badge component', () => {
     render(<Badge>Test Badge</Badge>);
     expect(screen.getByText('Test Badge')).toBeInTheDocument();
   });
 
-  it('should render different variants', () => {
-    const { rerender } = render(<Badge variant="default">Default</Badge>);
-    expect(screen.getByText('Default')).toHaveClass('bg-primary');
-
-    rerender(<Badge variant="secondary">Secondary</Badge>);
-    expect(screen.getByText('Secondary')).toHaveClass('bg-secondary');
-
-    rerender(<Badge variant="destructive">Destructive</Badge>);
-    expect(screen.getByText('Destructive')).toHaveClass('bg-destructive');
-
-    rerender(<Badge variant="success">Success</Badge>);
-    expect(screen.getByText('Success')).toHaveClass('bg-green-100');
-
-    rerender(<Badge variant="warning">Warning</Badge>);
-    expect(screen.getByText('Warning')).toHaveClass('bg-yellow-100');
+  test.each(badgeVariants)('should render %s variant with correct classes', (variant, expectedClass) => {
+    render(<Badge variant={variant}>Test</Badge>);
+    expect(screen.getByText('Test')).toHaveClass(expectedClass);
   });
 
   it('should apply custom className', () => {

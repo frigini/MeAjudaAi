@@ -39,9 +39,9 @@ public sealed class CacheMetrics : ICacheMetrics
             if (type.Equals("provider", StringComparison.OrdinalIgnoreCase))
                 return "provider:{id}";
             if (type.Equals("permission", StringComparison.OrdinalIgnoreCase))
-                return "permission:{userId}";
+                return "permission:{id}";
             if (type.Equals("role", StringComparison.OrdinalIgnoreCase))
-                return "role:{userId}";
+                return "role:{id}";
             return $"{type}:{{id}}";
         }
 

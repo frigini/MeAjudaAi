@@ -54,7 +54,7 @@ public static class EnumExtensions
     /// <typeparam name="TEnum">Tipo do enum</typeparam>
     /// <param name="value">Valor em string</param>
     /// <param name="ignoreCase">Se deve ignorar case (padrão: true)</param>
-    /// <returns>True se é um valor válido</returns>
+    /// <returns>Verdadeiro se é um valor válido</returns>
     public static bool IsValidEnum<TEnum>(this string? value, bool ignoreCase = true) where TEnum : struct, Enum
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -65,8 +65,23 @@ public static class EnumExtensions
 
     private static bool TryParseAndIsDefined<TEnum>(string value, bool ignoreCase, out TEnum result) where TEnum : struct, Enum
     {
-        // Bloqueia conversão de strings numéricas (ex: "1" para valor enumerado)
-        if (int.TryParse(value, out _))
+        var underlyingType = Enum.GetUnderlyingType(typeof(TEnum));
+        var typeCode = Type.GetTypeCode(underlyingType);
+
+        bool isNumeric = typeCode switch
+        {
+            TypeCode.Byte => byte.TryParse(value, out _),
+            TypeCode.SByte => sbyte.TryParse(value, out _),
+            TypeCode.Int16 => short.TryParse(value, out _),
+            TypeCode.UInt16 => ushort.TryParse(value, out _),
+            TypeCode.Int32 => int.TryParse(value, out _),
+            TypeCode.UInt32 => uint.TryParse(value, out _),
+            TypeCode.Int64 => long.TryParse(value, out _),
+            TypeCode.UInt64 => ulong.TryParse(value, out _),
+            _ => false
+        };
+
+        if (isNumeric)
         {
             result = default;
             return false;

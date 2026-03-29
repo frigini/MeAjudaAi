@@ -93,4 +93,20 @@ public class RegisterCustomerCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be(RegisterCustomerCommandHandler.TermsNotAcceptedError);
     }
+
+    [Fact]
+    public async Task HandleAsync_ShouldReturnFailure_WhenPrivacyPolicyNotAccepted()
+    {
+        // Arrange
+        var command = new RegisterCustomerCommand("John Doe", "email@test.com", "Password123!", "11999999999", true, false);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Be(RegisterCustomerCommandHandler.PrivacyPolicyNotAcceptedError);
+        _userDomainServiceMock.Verify(x => x.CreateUserAsync(It.IsAny<Username>(), It.IsAny<Email>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
+        _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
 }

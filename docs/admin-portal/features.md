@@ -217,7 +217,7 @@ const handleDelete = async (id: string) => {
 
 Utilizamos o sistema de políticas para controle de acesso:
 
-| can() | Política Equivalent |
+| can() | Política Equivalente |
 |-------|---------------------|
 | `ProvidersRead` | `ViewerPolicy` |
 | `ProvidersUpdate` | `ManagerPolicy` |

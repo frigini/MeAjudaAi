@@ -13,10 +13,10 @@ declare module "next-auth" {
 function getRequiredEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
-    if (process.env.NODE_ENV !== "development") {
-      console.warn(`[auth] Warning: Environment variable ${name} is missing.`);
+    if (process.env.NODE_ENV === "development") {
+      throw new Error(`[auth] Environment variable ${name} is required but not set.`);
     }
-    return "";
+    throw new Error(`[auth] Environment variable ${name} is required.`);
   }
   return value;
 }
@@ -70,7 +70,7 @@ if (keycloakIssuer) {
   try {
     hostname = new URL(keycloakIssuer).hostname;
   } catch (e) {
-    console.warn(`[auth] Invalid KEYCLOAK_ISSUER URL: ${keycloakIssuer}`, e);
+    throw new Error(`[auth] Invalid KEYCLOAK_ISSUER URL: ${keycloakIssuer}. Please provide a valid URL.`);
   }
 }
 console.log(`[auth] Using KEYCLOAK credentials: ${authMode} (issuer: ${hostname})`);

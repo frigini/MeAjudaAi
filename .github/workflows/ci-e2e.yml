@@ -3,8 +3,22 @@ name: E2E Tests
 on:
   push:
     branches: [master, develop]
+    paths:
+      - 'src/Web/**'
+      - 'src/Bootstrapper/**'
+      - 'src/Modules/**'
+      - 'tests/MeAjudaAi.E2E.Tests/**'
+      - '.github/workflows/ci-e2e.yml'
+      - '.github/actions/**'
   pull_request:
     branches: [master, develop]
+    paths:
+      - 'src/Web/**'
+      - 'src/Bootstrapper/**'
+      - 'src/Modules/**'
+      - 'tests/MeAjudaAi.E2E.Tests/**'
+      - '.github/workflows/ci-e2e.yml'
+      - '.github/actions/**'
   workflow_dispatch:
 
 permissions:

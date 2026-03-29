@@ -77,9 +77,9 @@ jobs:
       - name: Validate Generated API Clients
         working-directory: ./src/Web
         run: |
-          npx nx build meajudaai.web.customer --configuration=development
-          npx nx build meajudaai.web.admin --configuration=development
-          npx nx build meajudaai.web.provider --configuration=development
+          npx nx build MeAjudaAi.Web.Customer --configuration=development
+          npx nx build MeAjudaAi.Web.Admin --configuration=development
+          npx nx build MeAjudaAi.Web.Provider --configuration=development
 
       - name: Lint Frontend
         working-directory: ./src/Web

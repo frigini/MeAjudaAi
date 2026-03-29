@@ -254,19 +254,20 @@ test.describe('@e2e Performance - Network', () => {
   });
 
   test('should not have excessive same-origin requests', async ({ page, baseURL }) => {
-    const origin = new URL('/', baseURL).origin;
-    
+    const origin = baseURL ? new URL('/', baseURL).origin : undefined;
+
     page.on('request', (request) => {
       const reqOrigin = new URL(request.url()).origin;
-      if (reqOrigin === origin) {
+      const targetOrigin = origin ?? new URL(page.url()).origin;
+      if (reqOrigin === targetOrigin) {
         requests.push(request.url());
       }
     });
-    
+
     await page.goto('/');
-    
+
     await page.waitForLoadState('networkidle');
-    
+
     expect(requests.length).toBeLessThan(50);
   });
 });

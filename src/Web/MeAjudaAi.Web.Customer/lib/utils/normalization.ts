@@ -24,19 +24,19 @@ export function normalizeProviderType(val: unknown): EProviderType {
         return isValidProviderType(val) ? val : EProviderType.None;
     }
     if (typeof val === 'string') {
+        if (/^\+?\d+$/.test(val)) {
+            const num = parseInt(val.replace('+', ''), 10);
+            if (isValidProviderType(num)) {
+                return num;
+            }
+            return EProviderType.None;
+        }
         const lower = val.toLowerCase();
         if (lower === 'none') return EProviderType.None;
         if (lower === 'individual' || lower === 'pessoafisica') return EProviderType.Individual;
         if (lower === 'company' || lower === 'pessoajuridica') return EProviderType.Company;
         if (lower === 'freelancer' || lower === 'autonomo') return EProviderType.Freelancer;
         if (lower === 'cooperative' || lower === 'cooperativa') return EProviderType.Cooperative;
-
-        if (/^\d+$/.test(val)) {
-            const num = parseInt(val, 10);
-            if (isValidProviderType(num)) {
-                return num;
-            }
-        }
     }
     return EProviderType.None;
 }

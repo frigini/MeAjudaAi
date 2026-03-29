@@ -54,7 +54,7 @@ public class LocationsEndpointsTests
         // Assert
         result.Should().BeOfType<Ok<LocationCandidate[]>>(); // SearchLocationsEndpoint returns Array.Empty<LocationCandidate>()
         var okResult = (Ok<LocationCandidate[]>)result;
-        okResult.Value.Should().BeEmpty();
+        okResult.Value.Should().BeEquivalentTo(emptyList);
         
         // Verify geocoding service was NOT called (short-circuit before making external calls)
         _geocodingServiceMock.Verify(

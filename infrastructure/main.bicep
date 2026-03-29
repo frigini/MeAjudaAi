@@ -39,10 +39,14 @@ param postgresBackupRetentionDays int = 7
 param redisSkuName string = 'Balanced_B1'
 
 @description('The VNet subnet ID for private endpoint')
+@allowed(['', '/subscriptions/*/resourceGroups/*/providers/Microsoft.Network/virtualNetworks/*/subnets/*'])
 param vnetSubnetId string = ''
 
 @description('The VNet ID for DNS zone link')
+@allowed(['', '/subscriptions/*/resourceGroups/*/providers/Microsoft.Network/virtualNetworks/*'])
 param vnetId string = ''
+
+var usePrivateNetwork = vnetSubnetId != '' && vnetId != ''
 
 // PostgreSQL Server
 resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
@@ -63,7 +67,7 @@ resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' =
       backupRetentionDays: postgresBackupRetentionDays
       geoRedundantBackup: 'Disabled'
     }
-    publicNetworkAccess: 'Disabled'
+    publicNetworkAccess: usePrivateNetwork ? 'Disabled' : 'Enabled'
   }
 }
 

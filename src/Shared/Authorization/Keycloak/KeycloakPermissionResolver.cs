@@ -68,20 +68,9 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         LocalCacheExpiration = TimeSpan.FromMinutes(5)
     };
 
-    /// <summary>
-    /// Opções de cache estáticas para o token de administrador.
-    /// </summary>
-    private static readonly HybridCacheEntryOptions AdminTokenCacheOptions = new()
-    {
-        Expiration = TimeSpan.FromMinutes(4), // Conservador: token de 5min - margem de 1min
-        LocalCacheExpiration = TimeSpan.FromSeconds(120)
-    };
-
     public async Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(UserId userId, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(userId);
-
-        // Converte UserId para string para compatibilidade com a implementação atual
         return await ResolvePermissionsAsync(userId.Value.ToString(), cancellationToken);
     }
 
@@ -92,16 +81,13 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
 
         try
         {
-            // Cache key para roles do usuário (hashed to prevent PII in cache infrastructure)
             var cacheKey = $"keycloak_user_roles_{HashForCacheKey(userId)}";
-            // Busca roles do cache ou Keycloak
             var userRoles = await _cache.GetOrCreateAsync(
                 cacheKey,
                 async ValueTask<IReadOnlyList<string>> (ct) => await GetUserRolesFromKeycloakAsync(userId, ct),
                 options: RoleCacheOptions,
                 cancellationToken: cancellationToken);
 
-            // Mapeia roles para permissões
             var permissions = new HashSet<EPermission>();
             foreach (var role in userRoles)
             {
@@ -126,11 +112,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         }
     }
 
-    public bool CanResolve(EPermission permission)
-    {
-        // Este resolver pode processar qualquer permissão pois consulta diretamente o Keycloak
-        return true;
-    }
+    public bool CanResolve(EPermission permission) => true;
 
     /// <summary>
     /// Busca roles do usuário no Keycloak via Admin API.
@@ -178,15 +160,22 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     {
         var cacheKey = "keycloak_admin_token";
 
-        return await _cache.GetOrCreateAsync(
-            cacheKey,
-            async ValueTask<string> (ct) =>
-            {
-                var tokenResponse = await RequestAdminTokenAsync(ct);
-                return tokenResponse.AccessToken;
-            },
-            options: AdminTokenCacheOptions,
-            cancellationToken: cancellationToken);
+        var (cachedToken, isCached) = await _cache.GetAsync<TokenResponse>(cacheKey, cancellationToken);
+        if (isCached && cachedToken != null)
+        {
+            return cachedToken.AccessToken;
+        }
+
+        var tokenResponse = await RequestAdminTokenAsync(cancellationToken);
+        
+        var margin = TimeSpan.FromSeconds(60);
+        var expiration = tokenResponse.ExpiresIn > 60 
+            ? TimeSpan.FromSeconds(tokenResponse.ExpiresIn) - margin 
+            : TimeSpan.FromSeconds(Math.Max(30, tokenResponse.ExpiresIn / 2));
+        
+        await _cache.SetAsync(cacheKey, tokenResponse, expiration, cancellationToken: cancellationToken);
+
+        return tokenResponse.AccessToken;
     }
 
     private async Task<TokenResponse> RequestAdminTokenAsync(CancellationToken cancellationToken)

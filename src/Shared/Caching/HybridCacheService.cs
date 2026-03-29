@@ -200,7 +200,7 @@ public class HybridCacheService(    HybridCache hybridCache,
             stopwatch.Stop();
             _metrics?.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "get-or-create", "error");
             logger.LogError(ex, "Failed to get or create cache value for key {Key}", key);
-            return await factory(cancellationToken);
+            return default!;
         }
     }
 

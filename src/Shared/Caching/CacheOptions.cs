@@ -12,18 +12,16 @@ public sealed class CacheOptions
         if (Expiration == null && LocalCacheExpiration == null)
             return new HybridCacheEntryOptions();
 
-        var options = new HybridCacheEntryOptions
+        return new HybridCacheEntryOptions
         {
-            Expiration = Expiration ?? TimeSpan.FromMinutes(15),
-            LocalCacheExpiration = LocalCacheExpiration ?? TimeSpan.FromMinutes(5)
+            Expiration = Expiration,
+            LocalCacheExpiration = LocalCacheExpiration
         };
-
-        return options;
     }
 
     public static CacheOptions Default => new()
     {
-        Expiration = TimeSpan.FromMinutes(15),
+        Expiration = TimeSpan.FromHours(1),
         LocalCacheExpiration = TimeSpan.FromMinutes(5)
     };
 

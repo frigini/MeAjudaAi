@@ -77,7 +77,7 @@ describe('Select (Admin)', () => {
     );
 
     await user.click(screen.getByText('Selecione'));
-    const item = await screen.findByText('Opção 1');
-    expect(item.closest('div')).toHaveClass('custom-item');
+    const item = await screen.findByTestId('select-item');
+    expect(item).toHaveClass('custom-item');
   });
 });

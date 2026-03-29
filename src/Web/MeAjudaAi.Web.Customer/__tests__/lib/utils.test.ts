@@ -20,6 +20,8 @@ describe('Utility Functions Coverage', () => {
             expect(normalizeProviderType('company')).toBe(EProviderType.Company)
             expect(normalizeProviderType('none')).toBe(EProviderType.None)
             expect(normalizeProviderType('1')).toBe(EProviderType.Individual)
+            expect(normalizeProviderType(1)).toBe(EProviderType.Individual)
+            expect(normalizeProviderType(999)).toBe(EProviderType.None)
             expect(normalizeProviderType({})).toBe(EProviderType.None)
         })
 
@@ -29,9 +31,13 @@ describe('Utility Functions Coverage', () => {
             expect(normalizeVerificationStatus('rejected')).toBe(EVerificationStatus.Rejected)
             expect(normalizeVerificationStatus('inprogress')).toBe(EVerificationStatus.InProgress)
             expect(normalizeVerificationStatus('1')).toBe(EVerificationStatus.Pending)
+            expect(normalizeVerificationStatus('+1')).toBe(EVerificationStatus.Pending)
+            expect(normalizeVerificationStatus(1)).toBe(EVerificationStatus.Pending)
+            expect(normalizeVerificationStatus(0)).toBe(EVerificationStatus.Verified)
             expect(normalizeVerificationStatus('none')).toBe(EVerificationStatus.None)
             expect(normalizeVerificationStatus('unknown')).toBe(undefined)
             expect(normalizeVerificationStatus({})).toBeUndefined()
+            expect(normalizeVerificationStatus(999)).toBeUndefined()
         })
     });
 });

@@ -99,17 +99,17 @@ describe('useProviders Hook (Admin)', () => {
 
   it('deve desabilitar useProviderById se ID estiver vazio', async () => {
     renderHook(() => useProviderById(''));
-    expect(api.apiProvidersGet3).not.toHaveBeenCalled();
+    await waitFor(() => expect(api.apiProvidersGet3).not.toHaveBeenCalled());
   });
 
   it('deve desabilitar useProvidersByStatus se status estiver vazio', async () => {
     renderHook(() => useProvidersByStatus(''));
-    expect(api.apiProvidersGet2).not.toHaveBeenCalled();
+    await waitFor(() => expect(api.apiProvidersGet2).not.toHaveBeenCalled());
   });
 
-  it('deve desabilitar useProvidersByType se type estiver vazio', () => {
+  it('deve desabilitar useProvidersByType se type estiver vazio', async () => {
     renderHook(() => useProvidersByType(''));
-    expect(api.apiProvidersGet2).not.toHaveBeenCalled();
+    await waitFor(() => expect(api.apiProvidersGet2).not.toHaveBeenCalled());
   });
 
   it('deve buscar provedores por status quando status é fornecido', async () => {
@@ -140,14 +140,14 @@ describe('useProviders Hook (Admin)', () => {
 
   it('deve retornar dados brutos se a propriedade .data estiver ausente no useProvidersByStatus', async () => {
     vi.mocked(api.apiProvidersGet2).mockResolvedValue([{ id: 'raw-1' }] as any);
-    const { result } = renderHook(() => useProvidersByStatus('Verified'));
+    const { result } = renderHook(() => useProvidersByStatus(EVerificationStatus.Verified));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual([{ id: 'raw-1' }]);
   });
 
   it('deve retornar dados brutos se a propriedade .data estiver ausente no useProvidersByType', async () => {
     vi.mocked(api.apiProvidersGet2).mockResolvedValue([{ id: 'raw-1' }] as any);
-    const { result } = renderHook(() => useProvidersByType('Individual'));
+    const { result } = renderHook(() => useProvidersByType(EProviderType.Individual));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual([{ id: 'raw-1' }]);
   });

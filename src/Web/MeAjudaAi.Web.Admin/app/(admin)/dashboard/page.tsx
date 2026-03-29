@@ -38,9 +38,6 @@ export default function DashboardPage() {
     { name: "Cooperativa", value: stats?.cooperative ?? 0, color: typeColors.cooperative },
   ].filter((d) => d.value > 0);
 
-  const approvedPercentage = stats?.total ? ((stats.approved / stats.total) * 100).toFixed(0) : 0;
-  const rejectedPercentage = stats?.total ? ((stats.rejected / stats.total) * 100).toFixed(0) : 0;
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-200px)]">

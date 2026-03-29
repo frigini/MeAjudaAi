@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ServiceSelector } from '@/components/providers/service-selector';
 
@@ -32,6 +32,10 @@ describe('ServiceSelector', () => {
   });
 
   it('deve renderizar desabilitado', () => {
+    fetchSpy.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    });
     const onSelect = vi.fn();
     render(<ServiceSelector onSelect={onSelect} disabled />);
     expect(screen.getByRole('combobox')).toBeDisabled();
@@ -53,17 +57,13 @@ describe('ServiceSelector', () => {
       expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
 
-    await act(async () => {
-      await user.click(screen.getByRole('combobox'));
-    });
+    await user.click(screen.getByRole('combobox'));
 
     await waitFor(() => {
       expect(screen.getByText('Elétrica')).toBeInTheDocument();
     });
 
-    await act(async () => {
-      await user.click(screen.getByText('Elétrica'));
-    });
+    await user.click(screen.getByText('Elétrica'));
 
     expect(onSelect).toHaveBeenCalledWith('1');
   });

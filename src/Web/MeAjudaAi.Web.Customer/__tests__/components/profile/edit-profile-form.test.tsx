@@ -62,7 +62,7 @@ describe('EditProfileForm (Customer)', () => {
   };
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(useRouter).mockReturnValue(mockRouter as any);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
