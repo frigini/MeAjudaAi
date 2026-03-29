@@ -10,29 +10,30 @@ public class EventTypeRegistry(ICacheService cache, ILogger<EventTypeRegistry> l
 
     public async Task<IEnumerable<Type>> GetAllEventTypesAsync(CancellationToken cancellationToken = default)
     {
-        var eventTypes = await cache.GetOrCreateAsync(
+        var typeNames = await cache.GetOrCreateAsync(
             CacheKey,
             async _ => await DiscoverEventTypesAsync(),
             expiration: TimeSpan.FromHours(1),
             tags: ["event-registry"],
             cancellationToken: cancellationToken);
 
-        return eventTypes.Values;
+        return typeNames.Select(n => Type.GetType(n.Value)).Where(t => t != null).Cast<Type>();
     }
 
     public async Task<Type?> GetEventTypeAsync(string eventName, CancellationToken cancellationToken = default)
     {
-        var eventTypes = await cache.GetOrCreateAsync(
+        var typeNames = await cache.GetOrCreateAsync(
             CacheKey,
             async _ => await DiscoverEventTypesAsync(),
             expiration: TimeSpan.FromHours(1),
             tags: ["event-registry"],
             cancellationToken: cancellationToken);
 
-        return eventTypes.GetValueOrDefault(eventName);
+        var typeName = typeNames.GetValueOrDefault(eventName);
+        return typeName != null ? Type.GetType(typeName) : null;
     }
 
-    private ValueTask<Dictionary<string, Type>> DiscoverEventTypesAsync()
+    private ValueTask<Dictionary<string, string>> DiscoverEventTypesAsync()
     {
         logger.LogInformation("Discovering event types...");
 
@@ -41,7 +42,7 @@ public class EventTypeRegistry(ICacheService cache, ILogger<EventTypeRegistry> l
             .SelectMany(a => a.GetTypes())
             .Where(t => typeof(IntegrationEvent).IsAssignableFrom(t) &&
                        !t.IsAbstract && t.IsPublic)
-            .ToDictionary(t => t.Name, t => t);
+            .ToDictionary(t => t.Name, t => t.AssemblyQualifiedName);
 
         logger.LogInformation("Discovered {Count} event types", eventTypes.Count);
         return ValueTask.FromResult(eventTypes);
