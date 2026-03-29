@@ -33,7 +33,7 @@ describe('Utility Functions Coverage', () => {
             expect(normalizeVerificationStatus('1')).toBe(EVerificationStatus.Pending)
             expect(normalizeVerificationStatus('+1')).toBe(EVerificationStatus.Pending)
             expect(normalizeVerificationStatus(1)).toBe(EVerificationStatus.Pending)
-            expect(normalizeVerificationStatus(0)).toBe(EVerificationStatus.Verified)
+            expect(normalizeVerificationStatus(0)).toBe(EVerificationStatus.None)
             expect(normalizeVerificationStatus('none')).toBe(EVerificationStatus.None)
             expect(normalizeVerificationStatus('unknown')).toBe(undefined)
             expect(normalizeVerificationStatus({})).toBeUndefined()

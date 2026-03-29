@@ -206,6 +206,7 @@ jobs:
           NEXTAUTH_SECRET: ci-build-placeholder
           AUTH_SECRET: ci-build-placeholder
           ADMIN_BASE_URL: http://localhost:3002
+          BASE_URL: http://localhost:3002
         run: |
           npx playwright install --with-deps chromium
           npx playwright test --reporter=list --project=ci
