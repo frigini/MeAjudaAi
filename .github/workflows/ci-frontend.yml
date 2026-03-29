@@ -87,6 +87,13 @@ jobs:
 
       - name: Test Frontend
         working-directory: ./src/Web
+        env:
+          KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
+          KEYCLOAK_ADMIN_CLIENT_SECRET: ci-build-placeholder
+          KEYCLOAK_ISSUER: http://localhost:8080/realms/meajudaai
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: ci-build-placeholder
+          AUTH_SECRET: ci-build-placeholder
         run: |
           npx nx run-many --target=test --all --args="--coverage"
           node scripts/merge-coverage.mjs

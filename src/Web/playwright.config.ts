@@ -52,7 +52,7 @@ export default defineConfig({
       'x-mock-auth': 'true',
     },
   },
-  webServer: isCI ? undefined : {
+  webServer: {
     command: 'npm run dev:all',
     url: baseUrl,
     reuseExistingServer: !isCI,
