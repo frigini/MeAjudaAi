@@ -1,9 +1,9 @@
-import { getServerSession } from "next-auth/next";
+import { getServerSession, type Session } from "next-auth";
 import { headers } from "next/headers";
 
 const isCI = process.env.CI === "true" || process.env.MOCK_AUTH === "true";
 
-export async function getAuthSession(authOptions: any) {
+export async function getAuthSession(authOptions: any): Promise<Session | null> {
   if (isCI) {
     // In Next.js 15, headers() is a Promise
     const headerList = await headers();
@@ -19,7 +19,7 @@ export async function getAuthSession(authOptions: any) {
           roles: ["admin"],
         },
         expires: new Date(Date.now() + 3600 * 1000).toISOString(),
-      };
+      } as Session;
     }
   }
 
