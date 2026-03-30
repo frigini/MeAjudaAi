@@ -179,6 +179,12 @@ jobs:
             exit 1
           fi
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
       - name: Setup Admin Environment
         working-directory: ./src/Web/MeAjudaAi.Web.Admin
         run: |
@@ -196,11 +202,18 @@ jobs:
 
       - name: Install Admin Dependencies
         working-directory: ./src/Web/MeAjudaAi.Web.Admin
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Start Frontend Admin
         working-directory: ./src/Web/MeAjudaAi.Web.Admin
         run: |
+          # Verify npm install completed
+          echo "Checking node_modules..."
+          ls -la node_modules/.bin/next 2>/dev/null || echo "WARNING: next not found in node_modules"
+          
+          # Wait a bit for npm install to fully complete
+          sleep 5
+          
           # Start server in background and capture output
           npx next dev --port 3002 > /tmp/nextjs.log 2>&1 &
           NEXT_PID=$!
