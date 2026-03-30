@@ -90,6 +90,19 @@ async function setupAuthMocks(page: Page) {
     });
   });
 
+  await page.route('**/api/v1/providers/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: '1',
+        name: 'Test Provider',
+        verificationStatus: 2,
+        type: 0,
+      }),
+    });
+  });
+
   await page.route('**/api/v1/locations/allowed-cities**', async (route) => {
     await route.fulfill({
       status: 200,
@@ -131,6 +144,26 @@ async function setupAuthMocks(page: Page) {
         totalPages: 1,
         totalCount: 1,
       }),
+    });
+  });
+
+  await page.route('**/api/v1/documents**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        items: [],
+        totalPages: 1,
+        totalCount: 0,
+      }),
+    });
+  });
+
+  await page.route('**/api/auth/session**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(mockSession),
     });
   });
 
