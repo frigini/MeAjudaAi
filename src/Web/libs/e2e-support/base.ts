@@ -132,7 +132,6 @@ async function setupAuthMocks(page: Page) {
         totalCount: 1,
       }),
     });
-  });
     });
   });
 
