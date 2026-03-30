@@ -263,7 +263,7 @@ public class DocumentsApiTests : BaseApiTest
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var getStatus = await Client.GetAsync($"/api/v1/documents/{documentId}/status");
         var statusData = GetResponseData(await ReadJsonAsync<JsonElement>(getStatus.Content));
-        statusData.GetProperty("status").GetString().Should().Be("Rejected");
+        statusData.GetProperty("status").GetString().Should().Be("rejected");
     }
 
     #endregion

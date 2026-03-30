@@ -15,7 +15,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 [Collection("Integration")]
 public sealed class CepProvidersUnavailabilityTests : BaseApiTest
 {
-    protected override TestModule RequiredModules => TestModule.None;
+    protected override TestModule RequiredModules => TestModule.Locations;
 
     [Fact]
     public async Task LookupCep_WhenViaCepReturns500_ShouldFallbackToBrasilApi()
