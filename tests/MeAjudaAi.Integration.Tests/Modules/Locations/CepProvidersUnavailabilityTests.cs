@@ -17,7 +17,7 @@ public sealed class CepProvidersUnavailabilityTests : BaseApiTest
 {
     protected override TestModule RequiredModules => TestModule.Locations;
 
-    [Fact(Skip = "WireMock infrastructure not properly configured in CI")]
+    [Fact]
     public async Task LookupCep_WhenViaCepReturns500_ShouldFallbackToBrasilApi()
     {
         // Arrange - Use unique CEP to avoid conflicts with default stubs
@@ -68,7 +68,7 @@ public sealed class CepProvidersUnavailabilityTests : BaseApiTest
         // The functional behavior (successful fallback) is validated above.
     }
 
-    [Fact(Skip = "WireMock infrastructure not properly configured in CI")]
+    [Fact]
     public async Task LookupCep_WhenViaCepAndBrasilApiReturnInvalidJson_ShouldFallbackToOpenCep()
     {
         // Arrange - Use unique CEP to avoid conflicts with default stubs

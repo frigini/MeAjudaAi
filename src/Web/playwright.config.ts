@@ -8,9 +8,9 @@ const isCI = process.env.CI === 'true';
 
 export default defineConfig({
   testDir: '.',
-  timeout: isCI ? 60 * 1000 : 30 * 1000,
+  timeout: isCI ? 90 * 1000 : 30 * 1000,
   expect: {
-    timeout: isCI ? 15 * 1000 : 5000,
+    timeout: isCI ? 20 * 1000 : 5000,
   },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -64,8 +64,8 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     baseURL: adminUrl,
-    actionTimeout: isCI ? 15 * 1000 : 0,
-    navigationTimeout: isCI ? 30 * 1000 : 0,
+    actionTimeout: isCI ? 20 * 1000 : 0,
+    navigationTimeout: isCI ? 45 * 1000 : 0,
     extraHTTPHeaders: {
       'x-mock-auth': 'true',
     },

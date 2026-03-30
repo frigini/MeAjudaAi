@@ -64,7 +64,7 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
         result.Value.State.Should().Be("SP");
     }
 
-    [Fact(Skip = "WireMock infrastructure not properly configured in CI")]
+    [Fact]
     public async Task GetAddressFromCepAsync_WhenViaCepFails_ShouldFallbackToBrasilApi()
     {
         // Arrange

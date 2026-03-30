@@ -10,14 +10,14 @@ declare module "next-auth" {
   }
 }
 
-const isCi = process.env.CI === "true" || process.env.NEXT_PUBLIC_CI === "true";
+const isCi = process.env.CI === "true" || process.env.NEXT_PUBLIC_CI === "true" || process.env.MOCK_AUTH === "true";
 
 function getRequiredEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
     if (isCi) {
       console.warn(`[auth] Environment variable ${name} is missing - using placeholder for CI.`);
-      return "";
+      return "ci-placeholder";
     }
     if (process.env.NODE_ENV === "development") {
       throw new Error(`[auth] Environment variable ${name} is required but not set.`);
@@ -33,11 +33,11 @@ const hasClientVars = process.env.KEYCLOAK_CLIENT_ID && process.env.KEYCLOAK_CLI
 const hasPartialAdminVars = (!!process.env.KEYCLOAK_ADMIN_CLIENT_ID) !== (!!process.env.KEYCLOAK_ADMIN_CLIENT_SECRET);
 const hasPartialClientVars = (!!process.env.KEYCLOAK_CLIENT_ID) !== (!!process.env.KEYCLOAK_CLIENT_SECRET);
 
-if (hasPartialAdminVars) {
+if (hasPartialAdminVars && !isCi) {
   throw new Error("Both KEYCLOAK_ADMIN_CLIENT_ID and KEYCLOAK_ADMIN_CLIENT_SECRET must be set or neither");
 }
 
-if (hasPartialClientVars) {
+if (hasPartialClientVars && !isCi) {
   throw new Error("Both KEYCLOAK_CLIENT_ID and KEYCLOAK_CLIENT_SECRET must be set or neither");
 }
 
@@ -47,10 +47,10 @@ let keycloakIssuer: string;
 let authMode: string;
 
 if (isCi) {
-  authMode = "CI_PLACEHOLDER";
-  keycloakClientId = "placeholder";
-  keycloakClientSecret = "placeholder";
-  keycloakIssuer = "http://localhost:8080/realms/meajudaai";
+  authMode = "CI_MOCK";
+  keycloakClientId = process.env.KEYCLOAK_CLIENT_ID || "placeholder";
+  keycloakClientSecret = process.env.KEYCLOAK_CLIENT_SECRET || "placeholder";
+  keycloakIssuer = process.env.KEYCLOAK_ISSUER || "http://localhost:8080/realms/meajudaai";
 } else if (hasAdminVars) {
   authMode = "ADMIN";
   keycloakClientId = process.env.KEYCLOAK_ADMIN_CLIENT_ID!;

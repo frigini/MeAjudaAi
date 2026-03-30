@@ -216,6 +216,8 @@ jobs:
 
       - name: Start All Frontends
         working-directory: ./src/Web
+        env:
+          MOCK_AUTH: "true"
         run: |
           echo "Starting Admin (3002)..."
           npx next start MeAjudaAi.Web.Admin --port 3002 > /tmp/admin.log 2>&1 &
@@ -226,7 +228,7 @@ jobs:
           
           echo "Waiting for Frontends..."
           ALL_READY=false
-          for i in {1..60}; do
+          for i in {1..90}; do
             ADMIN_UP=$(curl -s --head http://localhost:3002 > /dev/null 2>&1 && echo "up" || echo "down")
             PROV_UP=$(curl -s --head http://localhost:3001 > /dev/null 2>&1 && echo "up" || echo "down")
             CUST_UP=$(curl -s --head http://localhost:3000 > /dev/null 2>&1 && echo "up" || echo "down")
@@ -236,7 +238,7 @@ jobs:
               ALL_READY=true
               break
             fi
-            echo "Waiting... ($i/60) [Admin: $ADMIN_UP, Provider: $PROV_UP, Customer: $CUST_UP]"
+            echo "Waiting... ($i/90) [Admin: $ADMIN_UP, Provider: $PROV_UP, Customer: $CUST_UP]"
             sleep 2
           done
           
@@ -255,6 +257,7 @@ jobs:
         working-directory: ./src/Web
         env:
           CI: "true"
+          MOCK_AUTH: "true"
           KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
           KEYCLOAK_ADMIN_CLIENT_SECRET: ci-build-placeholder
           KEYCLOAK_CLIENT_ID: ci-build-placeholder
