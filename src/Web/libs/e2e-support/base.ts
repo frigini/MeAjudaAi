@@ -216,7 +216,7 @@ async function loginWithPath(page: Page, path: string, buttonName: RegExp): Prom
 export async function loginAsAdmin(page: Page): Promise<void> {
   if (isCI) {
     await setupAuthMocks(page);
-    await page.goto('/dashboard');
+    await page.goto('/dashboard', { waitUntil: 'networkidle' });
     return;
   }
   await loginWithPath(page, '/admin/login', /entrar com keycloak/i);

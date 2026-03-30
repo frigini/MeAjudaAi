@@ -5,9 +5,9 @@ import type {
   MeAjudaAiModulesServiceCatalogsApplicationDtosServiceCategoryDto,
   MeAjudaAiModulesLocationsApplicationDtosAllowedCityDto,
   MeAjudaAiModulesUsersApplicationDtosUserDto,
-} from "./api/generated";
+} from "../api/generated";
 import { z } from "zod";
-import { zMeAjudaAiModulesProvidersApplicationDtosProviderDto } from "./api/generated/zod.gen";
+import { zMeAjudaAiModulesProvidersApplicationDtosProviderDto } from "../api/generated/zod.gen";
 
 export type ProviderDto = MeAjudaAiModulesProvidersApplicationDtosProviderDto;
 export type BusinessProfileDto = MeAjudaAiModulesProvidersApplicationDtosBusinessProfileDto;

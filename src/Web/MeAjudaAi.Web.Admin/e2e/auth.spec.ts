@@ -1,12 +1,12 @@
-import { test, expect } from '@meajudaai/web-e2e-support';
+import { test, expect, loginAsAdmin } from '@meajudaai/web-e2e-support';
 
 test.describe('Admin Portal - Authentication', () => {
-  test.skip('should display admin login page when accessing root', async ({ page }) => {
+  test('should display admin login page when accessing root', async ({ page }) => {
     await page.goto('/');
     await expect(page).toHaveURL(/.*\/login/);
   });
 
-  test.skip('should display login page at /login', async ({ page }) => {
+  test('should display login page at /login', async ({ page }) => {
     await page.goto('/login');
     await expect(page.getByRole('heading', { name: /login|entre|autentica/i })).toBeVisible({ timeout: 10000 });
   });

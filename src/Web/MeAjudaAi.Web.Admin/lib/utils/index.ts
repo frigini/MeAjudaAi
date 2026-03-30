@@ -1,4 +1,4 @@
-import type { VerificationStatus } from "./types";
+import type { VerificationStatus } from "../types";
 
 export type BadgeVariant = "success" | "warning" | "destructive" | "secondary";
 

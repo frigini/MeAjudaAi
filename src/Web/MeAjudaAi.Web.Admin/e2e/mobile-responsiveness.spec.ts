@@ -17,9 +17,10 @@ test.describe('Admin Portal - Mobile Responsiveness', () => {
     await expect(page.locator('[data-testid="mobile-menu"]')).toBeVisible();
   });
 
-  test.skip('should collapse sidebar on mobile', async ({ page }) => {
+  test('should collapse sidebar on mobile', async ({ page }) => {
     await page.setViewportSize(mobileViewport);
-    await page.goto('/dashboard');
+    await page.goto('/dashboard', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(500);
     
     const sidebar = page.locator('[data-testid="sidebar"]');
     await expect(sidebar).not.toBeVisible();

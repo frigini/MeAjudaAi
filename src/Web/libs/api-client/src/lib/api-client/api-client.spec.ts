@@ -1,4 +1,4 @@
-import { apiClient } from './api-client';
+import { apiClient } from './index';
 
 describe('apiClient', () => {
   it('should work', () => {

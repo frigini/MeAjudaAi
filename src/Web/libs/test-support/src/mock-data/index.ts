@@ -1,4 +1,4 @@
-import { ProviderDto, UserDto, ServiceDto, ReviewDto } from './types';
+import { ProviderDto, UserDto, ServiceDto, ReviewDto } from '../types';
 
 export function createProvider(overrides: Partial<ProviderDto> = {}): ProviderDto {
   return {
