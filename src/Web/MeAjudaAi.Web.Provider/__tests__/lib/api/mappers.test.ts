@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mapSearchableProviderToProvider, mapApiProviderToProvider } from '@/lib/api/mappers';
+import { mapSearchableProviderToProvider, mapApiProviderToProvider } from '../../../lib/api/mappers';
 
 describe('mappers', () => {
   describe('mapSearchableProviderToProvider', () => {
@@ -110,6 +110,45 @@ describe('mappers', () => {
       const result = mapApiProviderToProvider(input as any);
 
       expect(result.name).toBe('Legal');
+    });
+
+    it('should map extended properties and nested lists', () => {
+      const input = {
+        id: 'ext-1',
+        tier: 2, // Gold
+        rejectionReason: 'Invalid docs',
+        suspensionReason: 'Inactive',
+        documents: [
+          { id: 'doc-1', documentType: 1, fileName: 'test.pdf', status: 2 }
+        ],
+        qualifications: [
+          { name: 'Cert 1', description: 'Some cert' }
+        ],
+        services: [
+          { serviceId: 'svc-1', serviceName: 'Plumbing' }
+        ]
+      };
+
+      const result = mapApiProviderToProvider(input as any);
+
+      expect(result.tier).toBe(2);
+      expect(result.rejectionReason).toBe('Invalid docs');
+      expect(result.suspensionReason).toBe('Inactive');
+      expect(result.documents).toHaveLength(1);
+      expect(result.documents[0].fileName).toBe('test.pdf');
+      expect(result.qualifications).toHaveLength(1);
+      expect(result.qualifications[0].name).toBe('Cert 1');
+      expect(result.services[0].serviceName).toBe('Plumbing');
+    });
+
+    it('should provide default values for missing nested properties', () => {
+        const input = { id: 'def-1' };
+        const result = mapApiProviderToProvider(input as any);
+        
+        expect(result.businessProfile.primaryAddress.country).toBe('');
+        expect(result.documents).toEqual([]);
+        expect(result.qualifications).toEqual([]);
+        expect(result.services).toEqual([]);
     });
   });
 });

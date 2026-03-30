@@ -99,15 +99,19 @@ public class CrossModuleFlowTests : BaseApiTest
         var responseData = GetResponseData(await ReadJsonAsync<JsonElement>(createResponse.Content));
         
         // Handle both object and array responses
+        // Handle both object and array responses, and potential wrapper objects
+        JsonElement targetElement = responseData;
+        if (responseData.TryGetProperty("data", out var data)) targetElement = data;
+        else if (responseData.TryGetProperty("value", out var value)) targetElement = value;
+
         Guid providerId;
-        if (responseData.ValueKind == JsonValueKind.Array)
+        if (targetElement.ValueKind == JsonValueKind.Array)
         {
-            // If it's an array, get the first element's id
-            providerId = responseData[0].GetProperty("id").GetGuid();
+            providerId = targetElement[0].GetProperty("id").GetGuid();
         }
         else
         {
-            providerId = responseData.GetProperty("id").GetGuid();
+            providerId = targetElement.GetProperty("id").GetGuid();
         }
 
         // 2. Tentar buscar o provedor (Módulo SearchProviders)

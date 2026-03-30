@@ -66,6 +66,10 @@ function requireEnv(name: string): string {
 
 let criticalEnvValidated = false;
 
+export function resetValidationForTest() {
+    criticalEnvValidated = false;
+}
+
 export function validateCriticalEnvOnStartup() {
     if (criticalEnvValidated) return;
     

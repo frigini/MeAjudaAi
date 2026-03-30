@@ -16,6 +16,7 @@ export default defineConfig({
       reporter: ['text', 'json', 'html', 'lcov', 'cobertura'],
       reportsDirectory: './coverage',
       include: [
+        '*.{ts,tsx}',
         'components/**/*.{ts,tsx}',
         'hooks/**/*.{ts,tsx}',
         'lib/api/**/*.{ts,tsx}',
@@ -27,10 +28,10 @@ export default defineConfig({
         'lib/*.tsx',
       ],
       exclude: [
-        'node_modules/',
-        '__tests__/',
-        'e2e/',
-        '.next/',
+        '**/node_modules/**',
+        '**/__tests__/**',
+        '**/e2e/**',
+        '**/.next/**',
         '**/*.d.ts',
         '**/*.config.*',
         'lib/api/generated/**',
