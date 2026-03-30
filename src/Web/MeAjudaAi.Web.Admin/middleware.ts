@@ -1,7 +1,9 @@
 import { withAuth } from "next-auth/middleware";
+import { NextRequest } from "next/server";
 
-function isE2ETest(request: Request): boolean {
-  return request.headers.get("x-mock-auth") === "true";
+function isE2ETest(req: NextRequest): boolean {
+  return req.headers.get("x-mock-auth") === "true" || 
+         req.cookies.get("x-mock-auth")?.value === "true";
 }
 
 export default withAuth({
@@ -10,7 +12,7 @@ export default withAuth({
   },
   callbacks: {
     authorized: ({ req, token }) => {
-      if (isE2ETest(req)) {
+      if (isE2ETest(req as NextRequest)) {
         return true;
       }
       return !!token;
@@ -19,5 +21,7 @@ export default withAuth({
 });
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|login).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|login|auth).*)",
+  ],
 };

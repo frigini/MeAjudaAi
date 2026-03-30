@@ -3,7 +3,7 @@ import { test, expect, loginAsAdmin } from '@meajudaai/web-e2e-support';
 test.describe('Admin Portal - Allowed Cities Management', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto('/config/cidades');
+    await page.goto('/allowed-cities');
   });
 
   test('should display allowed cities list', async ({ page }) => {

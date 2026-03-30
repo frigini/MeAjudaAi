@@ -23,6 +23,8 @@ export default defineConfig({
         'lib/schemas/**/*.{ts,tsx}',
         'lib/services/**/*.{ts,tsx}',
         'lib/utils/**/*.{ts,tsx}',
+        'lib/*.ts',
+        'lib/*.tsx',
       ],
       exclude: [
         'node_modules/',

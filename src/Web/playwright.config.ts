@@ -48,6 +48,7 @@ export default defineConfig({
   use: {
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    baseURL: adminUrl,
     extraHTTPHeaders: {
       'x-mock-auth': 'true',
     },

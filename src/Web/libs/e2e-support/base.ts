@@ -90,6 +90,52 @@ async function setupAuthMocks(page: Page) {
     });
   });
 
+  await page.route('**/api/v1/locations/allowed-cities**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        items: [
+          { id: '1', city: 'São Paulo', state: 'SP', serviceRadiusKm: 50 },
+          { id: '2', city: 'Rio de Janeiro', state: 'RJ', serviceRadiusKm: 30 },
+        ],
+        totalPages: 1,
+        totalCount: 2,
+      }),
+    });
+  });
+
+  await page.route('**/api/v1/service-catalogs/categories**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        items: [
+          { id: '1', name: 'Category 1', isActive: true, displayOrder: 1 },
+          { id: '2', name: 'Category 2', isActive: true, displayOrder: 2 },
+        ],
+        totalPages: 1,
+        totalCount: 2,
+      }),
+    });
+  });
+
+  await page.route('**/api/v1/service-catalogs/services**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        items: [
+          { id: '1', name: 'Service 1', categoryId: '1', isActive: true, price: 100 },
+        ],
+        totalPages: 1,
+        totalCount: 1,
+      }),
+    });
+  });
+    });
+  });
+
   page.on('requestfailed', (request) => {
     console.log('Request failed:', request.url(), request.failure()?.errorText);
   });

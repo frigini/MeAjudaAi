@@ -19,7 +19,8 @@ export default defineConfig({
         'components/**/*.{ts,tsx}',
         'hooks/**/*.{ts,tsx}',
         'lib/api/**/*.{ts,tsx}',
-        'lib/utils/**/*.{ts,tsx}',
+        'lib/*.ts',
+        'lib/*.tsx',
       ],
       exclude: [
         'node_modules/',

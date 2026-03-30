@@ -179,31 +179,36 @@ jobs:
             exit 1
           fi
 
+      - name: Setup Admin Environment
+        working-directory: ./src/Web/MeAjudaAi.Web.Admin
+        run: |
+          cat > .env.local << 'EOF'
+          CI=true
+          KEYCLOAK_ADMIN_CLIENT_ID=ci-build-placeholder
+          KEYCLOAK_ADMIN_CLIENT_SECRET=ci-build-placeholder
+          KEYCLOAK_CLIENT_ID=ci-build-placeholder
+          KEYCLOAK_CLIENT_SECRET=ci-build-placeholder
+          KEYCLOAK_ISSUER=http://localhost:8080/realms/meajudaai
+          NEXTAUTH_URL=http://localhost:3002
+          NEXTAUTH_SECRET=ci-build-placeholder
+          AUTH_SECRET=ci-build-placeholder
+          EOF
+
       - name: Start Frontend Admin
         working-directory: ./src/Web/MeAjudaAi.Web.Admin
-        env:
-          CI: "true"
-          NODE_ENV: development
-          PORT: 3002
-          KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
-          KEYCLOAK_ADMIN_CLIENT_SECRET: ci-build-placeholder
-          KEYCLOAK_CLIENT_ID: ci-build-placeholder
-          KEYCLOAK_CLIENT_SECRET: ci-build-placeholder
-          KEYCLOAK_ISSUER: http://localhost:8080/realms/meajudaai
-          NEXTAUTH_URL: http://localhost:3002
-          NEXTAUTH_SECRET: ci-build-placeholder
-          AUTH_SECRET: ci-build-placeholder
         run: |
-          npm run dev &
+          npx next dev --port 3002 &
           echo "Waiting for Frontend to be ready..."
-          for i in {1..30}; do
+          for i in {1..60}; do
             if curl -s http://localhost:3002 > /dev/null 2>&1; then
               echo "Frontend Admin is up!"
               break
             fi
-            echo "Waiting... ($i/30)"
+            echo "Waiting... ($i/60)"
             sleep 2
           done
+          # Show server logs for debugging
+          sleep 5
 
       - name: Run Playwright E2E Tests
         working-directory: ./src/Web
