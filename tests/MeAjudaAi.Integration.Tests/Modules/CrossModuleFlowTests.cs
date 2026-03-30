@@ -96,7 +96,19 @@ public class CrossModuleFlowTests : BaseApiTest
             });
         }
         
-        var providerId = GetResponseData(await ReadJsonAsync<JsonElement>(createResponse.Content)).GetProperty("id").GetString()!;
+        var responseData = GetResponseData(await ReadJsonAsync<JsonElement>(createResponse.Content));
+        
+        // Handle both object and array responses
+        Guid providerId;
+        if (responseData.ValueKind == JsonValueKind.Array)
+        {
+            // If it's an array, get the first element's id
+            providerId = responseData[0].GetProperty("id").GetGuid();
+        }
+        else
+        {
+            providerId = responseData.GetProperty("id").GetGuid();
+        }
 
         // 2. Tentar buscar o provedor (Módulo SearchProviders)
         // Dependendo da implementação, a sincronização pode ser via evento (async) ou comando direto (sync)
