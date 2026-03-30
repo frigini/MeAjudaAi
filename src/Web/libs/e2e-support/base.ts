@@ -132,7 +132,6 @@ async function setupAuthMocks(page: Page) {
         totalCount: 1,
       }),
     });
-    });
   });
 
   page.on('requestfailed', (request) => {
