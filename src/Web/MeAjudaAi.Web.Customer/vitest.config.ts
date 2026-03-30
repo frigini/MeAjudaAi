@@ -18,7 +18,11 @@ export default defineConfig({
       include: [
         'components/**/*.{ts,tsx}',
         'hooks/**/*.{ts,tsx}',
-        'lib/**/*.{ts,tsx}',
+        'lib/api/**/*.{ts,tsx}',
+        'lib/constants/**/*.{ts,tsx}',
+        'lib/schemas/**/*.{ts,tsx}',
+        'lib/services/**/*.{ts,tsx}',
+        'lib/utils/**/*.{ts,tsx}',
       ],
       exclude: [
         'node_modules/',
