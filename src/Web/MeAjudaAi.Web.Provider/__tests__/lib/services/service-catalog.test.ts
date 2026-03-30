@@ -35,4 +35,26 @@ describe('getPopularServices', () => {
     
     expect(result).toEqual([]);
   });
+
+  it('should return empty array when data.data is null', async () => {
+    const { apiServicesGet } = await import('@/lib/api/generated/sdk.gen');
+    vi.mocked(apiServicesGet).mockResolvedValueOnce({ data: { data: null } } as any);
+    
+    const { getPopularServices } = await import('@/lib/services/service-catalog');
+    const result = await getPopularServices();
+    
+    expect(result).toEqual([]);
+  });
+
+  it('should pass activeOnly: true to API', async () => {
+    const { apiServicesGet } = await import('@/lib/api/generated/sdk.gen');
+    vi.mocked(apiServicesGet).mockResolvedValueOnce({ data: { data: [] } } as any);
+    
+    const { getPopularServices } = await import('@/lib/services/service-catalog');
+    await getPopularServices();
+    
+    expect(apiServicesGet).toHaveBeenCalledWith({
+      query: { activeOnly: true }
+    });
+  });
 });

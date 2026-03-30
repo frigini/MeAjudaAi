@@ -356,8 +356,8 @@ public class ProvidersApiTests : BaseApiTest
         var serviceId = GetResponseData(await ReadJsonAsync<JsonElement>(svcResponse.Content)).GetProperty("id").GetString();
 
         AuthConfig.ConfigureUser(userId.ToString(), "provider", email, "provider");
-        var addServiceResponse = await Client.PostAsJsonAsync($"/api/v1/providers/services/{serviceId}", new { price = 50.0 });
-        addServiceResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var addServiceResponse = await Client.PostAsJsonAsync($"/api/v1/providers/{providerId}/services/{serviceId}", new { price = 50.0 });
+        addServiceResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
     [Fact]

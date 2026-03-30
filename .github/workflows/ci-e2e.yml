@@ -194,6 +194,10 @@ jobs:
           AUTH_SECRET=ci-build-placeholder
           EOF
 
+      - name: Install Admin Dependencies
+        working-directory: ./src/Web/MeAjudaAi.Web.Admin
+        run: npm install
+
       - name: Start Frontend Admin
         working-directory: ./src/Web/MeAjudaAi.Web.Admin
         run: |

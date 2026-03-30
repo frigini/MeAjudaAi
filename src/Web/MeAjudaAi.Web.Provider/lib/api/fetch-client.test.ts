@@ -159,6 +159,57 @@ describe('fetch-client (Provider)', () => {
       await expect(baseFetch('/500', {}))
         .rejects.toThrow(new ApiError("Request failed: Internal Server Error", 500));
     });
+
+    it('deve usar NEXT_PUBLIC_API_URL quando baseUrl não está configurado', async () => {
+      vi.mocked(client.getConfig).mockReturnValueOnce({ baseUrl: '' });
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'Content-Length': '0' }),
+      } as Response);
+
+      await baseFetch('/test', {});
+
+      expect(fetch).toHaveBeenCalledWith(expect.stringContaining('localhost:7002'), expect.anything());
+    });
+
+    it('deve usar API URL padrão quando nenhuma configuração disponível', async () => {
+      vi.mocked(client.getConfig).mockReturnValueOnce({ baseUrl: '' });
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'Content-Length': '0' }),
+      } as Response));
+
+      await baseFetch('/test', {});
+
+      expect(fetch).toHaveBeenCalledWith(expect.stringContaining('localhost:7002'), expect.anything());
+    });
+
+    it('deve lidar com respostas 205 Reset Content', async () => {
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        status: 205,
+        headers: new Headers({ 'Content-Length': '0' }),
+      } as Response);
+
+      const result = await baseFetch('/reset', {});
+      expect(result).toBeUndefined();
+    });
+
+    it('deve usar query como displayName quando displayName é vazio', async () => {
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+        json: async () => ({ data: { latitude: -21.123, longitude: -42.456, displayName: '' } })
+      } as Response);
+      
+      const { geocodeCity } = await import('@/lib/services/geocoding');
+      const result = await geocodeCity('Muriaé');
+      
+      expect(result?.displayName).toBe('');
+    });
   });
 
   describe('authenticatedFetch', () => {
