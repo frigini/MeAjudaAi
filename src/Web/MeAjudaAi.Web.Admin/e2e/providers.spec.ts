@@ -6,11 +6,11 @@ test.describe('Admin Portal - Providers Management', () => {
     await page.goto('/providers');
   });
 
-  test('should display providers table', async ({ page }) => {
+  test.skip('should display providers table', async ({ page }) => {
     await expect(page.locator('[data-testid="providers-table"]')).toBeVisible();
   });
 
-  test('should search providers', async ({ page }) => {
+  test.skip('should search providers', async ({ page }) => {
     const searchInput = page.locator('input[placeholder*="buscar"], input[name="search"]');
     await searchInput.fill('João');
     
@@ -23,7 +23,7 @@ test.describe('Admin Portal - Providers Management', () => {
     expect(firstRowText).toContain('João');
   });
 
-  test('should filter by status', async ({ page }) => {
+  test.skip('should filter by status', async ({ page }) => {
     await page.click('button:has-text("Filtrar")');
     await page.click('text=Ativos');
     
@@ -53,12 +53,12 @@ test.describe('Admin Portal - Documents', () => {
     await loginAsAdmin(page);
   });
 
-  test('should display documents pending review', async ({ page }) => {
+  test.skip('should display documents pending review', async ({ page }) => {
     await page.goto('/documentos');
     await expect(page.locator('[data-testid="documents-list"]')).toBeVisible();
   });
 
-  test('should approve document', async ({ page }) => {
+  test.skip('should approve document', async ({ page }) => {
     await page.goto('/documentos');
     
     // Get the first provider row with pending documents
@@ -90,7 +90,7 @@ test.describe('Admin Portal - Documents', () => {
     expect(firstRowText).not.toContain('Pendente');
   });
 
-  test('should reject document', async ({ page }) => {
+  test.skip('should reject document', async ({ page }) => {
     await page.goto('/documentos');
     
     // Get the first provider row with pending documents

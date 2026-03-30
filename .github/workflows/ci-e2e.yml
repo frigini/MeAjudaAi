@@ -197,18 +197,38 @@ jobs:
       - name: Start Frontend Admin
         working-directory: ./src/Web/MeAjudaAi.Web.Admin
         run: |
-          npx next dev --port 3002 &
+          # Start server in background and capture output
+          npx next dev --port 3002 > /tmp/nextjs.log 2>&1 &
+          NEXT_PID=$!
+          echo "Next.js PID: $NEXT_PID"
+          echo $NEXT_PID > /tmp/nextjs.pid
+          
+          # Wait for server to be ready
           echo "Waiting for Frontend to be ready..."
           for i in {1..60}; do
-            if curl -s http://localhost:3002 > /dev/null 2>&1; then
-              echo "Frontend Admin is up!"
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3002)
+            echo "HTTP_CODE: $HTTP_CODE"
+            if [ "$HTTP_CODE" != "000" ]; then
+              echo "Frontend Admin is up! (HTTP $HTTP_CODE)"
               break
             fi
             echo "Waiting... ($i/60)"
             sleep 2
           done
-          # Show server logs for debugging
-          sleep 5
+          
+          # Show server logs
+          echo "=== Server logs ==="
+          cat /tmp/nextjs.log
+          echo "=== End server logs ==="
+          
+          # Check if server is still running
+          if kill -0 $NEXT_PID 2>/dev/null; then
+            echo "Server is running"
+          else
+            echo "Server has died!"
+            cat /tmp/nextjs.log
+            exit 1
+          fi
 
       - name: Run Playwright E2E Tests
         working-directory: ./src/Web
