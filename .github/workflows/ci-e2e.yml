@@ -211,30 +211,49 @@ jobs:
           echo "Checking node_modules..."
           ls -la node_modules/.bin/next 2>/dev/null || echo "WARNING: next not found in node_modules"
           
+          # Check if port 3002 is in use
+          echo "Checking port 3002..."
+          lsof -i :3002 || echo "Port 3002 is free"
+          
           # Wait a bit for npm install to fully complete
           sleep 5
           
           # Start server in background and capture output
-          npx next dev --port 3002 > /tmp/nextjs.log 2>&1 &
+          # Use nohup and capture both stdout and stderr
+          nohup npx next dev --port 3002 > /tmp/nextjs.log 2>&1 &
           NEXT_PID=$!
           echo "Next.js PID: $NEXT_PID"
           echo $NEXT_PID > /tmp/nextjs.pid
           
           # Wait for server to be ready
           echo "Waiting for Frontend to be ready..."
-          for i in {1..60}; do
+          for i in {1..30}; do
+            # Show logs every 5 iterations
+            if [ $((i % 5)) -eq 0 ]; then
+              echo "=== Server logs (iteration $i) ==="
+              cat /tmp/nextjs.log
+              echo "=== End logs ==="
+            fi
+            
+            # Check if process is still alive
+            if ! kill -0 $NEXT_PID 2>/dev/null; then
+              echo "Server died! Exit code: $?"
+              cat /tmp/nextjs.log
+              exit 1
+            fi
+            
             HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3002)
             echo "HTTP_CODE: $HTTP_CODE"
             if [ "$HTTP_CODE" != "000" ]; then
               echo "Frontend Admin is up! (HTTP $HTTP_CODE)"
               break
             fi
-            echo "Waiting... ($i/60)"
+            echo "Waiting... ($i/30)"
             sleep 2
           done
           
           # Show server logs
-          echo "=== Server logs ==="
+          echo "=== Final Server logs ==="
           cat /tmp/nextjs.log
           echo "=== End server logs ==="
           
