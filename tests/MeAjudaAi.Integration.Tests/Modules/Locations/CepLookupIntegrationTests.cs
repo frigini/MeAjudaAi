@@ -28,7 +28,7 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
             .AddMockedClient<OpenCepClient>();
     }
 
-    [Fact(Skip = "WireMock infrastructure not properly configured in CI")]
+    [Fact]
     public async Task GetAddressFromCepAsync_WithValidCep_ShouldReturnAddress()
     {
         // Arrange
@@ -101,7 +101,7 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
         result.Value!.Street.Should().Be("Avenida Paulista");
     }
 
-    [Fact(Skip = "WireMock infrastructure not properly configured in CI")]
+    [Fact]
     public async Task GetAddressFromCepAsync_WithInvalidCep_ShouldReturnFailure()
     {
         // Arrange
@@ -147,7 +147,7 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
         result.Error.Message.Should().Contain("não encontrado");
     }
 
-    [Fact(Skip = "WireMock infrastructure not properly configured in CI")]
+    [Fact]
     public async Task GetAddressFromCepAsync_WithCaching_ShouldCacheResults()
     {
         // Arrange

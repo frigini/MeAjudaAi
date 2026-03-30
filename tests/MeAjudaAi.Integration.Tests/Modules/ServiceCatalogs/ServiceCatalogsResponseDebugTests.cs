@@ -13,7 +13,7 @@ public class ServiceCatalogsResponseDebugTests(ITestOutputHelper testOutput) : B
 {
     protected override TestModule RequiredModules => TestModule.ServiceCatalogs;
 
-    [Fact(Skip = "Diagnostic test - enable only when debugging response format issues")]
+    [Fact]
     [Trait("Category", "Debug")]
     public async Task Debug_CreateServiceCategory_ResponseFormat()
     {
