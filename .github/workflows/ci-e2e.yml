@@ -179,58 +179,77 @@ jobs:
             exit 1
           fi
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Setup Admin Environment
-        working-directory: ./src/Web/MeAjudaAi.Web.Admin
+      - name: Setup Applications Environment
+        working-directory: ./src/Web
         run: |
-          cat > .env.local << 'EOF'
+          for dir in MeAjudaAi.Web.Admin MeAjudaAi.Web.Customer MeAjudaAi.Web.Provider; do
+            cat > $dir/.env.local << 'EOF'
           CI=true
           KEYCLOAK_ADMIN_CLIENT_ID=ci-build-placeholder
           KEYCLOAK_ADMIN_CLIENT_SECRET=ci-build-placeholder
           KEYCLOAK_CLIENT_ID=ci-build-placeholder
           KEYCLOAK_CLIENT_SECRET=ci-build-placeholder
           KEYCLOAK_ISSUER=http://localhost:8080/realms/meajudaai
-          NEXTAUTH_URL=http://localhost:3002
           NEXTAUTH_SECRET=ci-build-placeholder
           AUTH_SECRET=ci-build-placeholder
           EOF
+          done
 
-      - name: Install Admin Dependencies
-        working-directory: ./src/Web/MeAjudaAi.Web.Admin
-        run: npm install --legacy-peer-deps
-
-      - name: Start Frontend Admin
-        working-directory: ./src/Web/MeAjudaAi.Web.Admin
+      - name: Build All Frontends
+        working-directory: ./src/Web
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:7002
+          KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
+          KEYCLOAK_ADMIN_CLIENT_SECRET: ci-build-placeholder
+          KEYCLOAK_CLIENT_ID: ci-build-placeholder
+          KEYCLOAK_CLIENT_SECRET: ci-build-placeholder
+          KEYCLOAK_ISSUER: http://localhost:8080/realms/meajudaai
+          NEXTAUTH_SECRET: ci-build-placeholder
+          AUTH_SECRET: ci-build-placeholder
         run: |
-          echo "Starting Next.js Admin on port 3002..."
-          npx next dev --port 3002 > /tmp/nextjs.log 2>&1 &
-          NEXT_PID=$!
+          echo "Building Admin..."
+          NEXTAUTH_URL=http://localhost:3002 npm run build --workspace=meajudaai.web.admin
+          echo "Building Provider..."
+          NEXTAUTH_URL=http://localhost:3001 npm run build --workspace=meajudaai.web.provider
+          echo "Building Customer..."
+          NEXTAUTH_URL=http://localhost:3000 npm run build --workspace=meajudaai.web.customer
+
+      - name: Start All Frontends
+        working-directory: ./src/Web
+        run: |
+          echo "Starting Admin (3002)..."
+          npx next start MeAjudaAi.Web.Admin --port 3002 > /tmp/admin.log 2>&1 &
+          echo "Starting Provider (3001)..."
+          npx next start MeAjudaAi.Web.Provider --port 3001 > /tmp/provider.log 2>&1 &
+          echo "Starting Customer (3000)..."
+          npx next start MeAjudaAi.Web.Customer --port 3000 > /tmp/customer.log 2>&1 &
           
-          echo "Waiting for Frontend to be ready..."
-          for i in {1..30}; do
-            if ! kill -0 $NEXT_PID 2>/dev/null; then
-              echo "❌ Error: Next.js process died."
-              cat /tmp/nextjs.log
-              exit 1
-            fi
+          echo "Waiting for Frontends..."
+          ALL_READY=false
+          for i in {1..60}; do
+            ADMIN_UP=$(curl -s --head http://localhost:3002 > /dev/null 2>&1 && echo "up" || echo "down")
+            PROV_UP=$(curl -s --head http://localhost:3001 > /dev/null 2>&1 && echo "up" || echo "down")
+            CUST_UP=$(curl -s --head http://localhost:3000 > /dev/null 2>&1 && echo "up" || echo "down")
             
-            if curl -s --head http://localhost:3002 > /dev/null 2>&1; then
-              echo "✅ Frontend is up!"
-              exit 0
+            if [ "$ADMIN_UP" = "up" ] && [ "$PROV_UP" = "up" ] && [ "$CUST_UP" = "up" ]; then
+              echo "✅ All frontends are up!"
+              ALL_READY=true
+              break
             fi
-            
-            echo "Waiting... ($i/30)"
+            echo "Waiting... ($i/60) [Admin: $ADMIN_UP, Provider: $PROV_UP, Customer: $CUST_UP]"
             sleep 2
           done
           
-          echo "❌ Error: Timeout waiting for Frontend"
-          cat /tmp/nextjs.log
-          exit 1
+          if [ "$ALL_READY" = "false" ]; then
+            echo "❌ Error: One or more frontends failed to start"
+            echo "--- Admin Log ---"
+            cat /tmp/admin.log
+            echo "--- Provider Log ---"
+            cat /tmp/provider.log
+            echo "--- Customer Log ---"
+            cat /tmp/customer.log
+            exit 1
+          fi
 
       - name: Run Playwright E2E Tests
         working-directory: ./src/Web
@@ -241,11 +260,9 @@ jobs:
           KEYCLOAK_CLIENT_ID: ci-build-placeholder
           KEYCLOAK_CLIENT_SECRET: ci-build-placeholder
           KEYCLOAK_ISSUER: http://localhost:8080/realms/meajudaai
-          NEXTAUTH_URL: http://localhost:3002
-          NEXTAUTH_SECRET: ci-build-placeholder
-          AUTH_SECRET: ci-build-placeholder
           ADMIN_BASE_URL: http://localhost:3002
-          BASE_URL: http://localhost:3002
+          PROVIDER_BASE_URL: http://localhost:3001
+          BASE_URL: http://localhost:3000
         run: |
           npx playwright install --with-deps chromium
-          npx playwright test --reporter=list --project=ci
+          npx playwright test --project=ci:admin --project=ci:customer --project=ci:provider --reporter=list

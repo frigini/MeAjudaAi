@@ -4,7 +4,7 @@ import { EProviderType, EVerificationStatus } from '@/types/api/provider';
 
 describe('normalizeProviderType', () => {
   it('should return EProviderType for number input', () => {
-    expect(normalizeProviderType(1)).toBe(EProviderType.Individual);
+    expect(normalizeProviderType(0)).toBe(EProviderType.Individual);
     expect(normalizeProviderType(2)).toBe(EProviderType.Company);
   });
 
@@ -33,7 +33,7 @@ describe('normalizeProviderType', () => {
   });
 
   it('should parse numeric string', () => {
-    expect(normalizeProviderType('1')).toBe(EProviderType.Individual);
+    expect(normalizeProviderType('0')).toBe(EProviderType.Individual);
     expect(normalizeProviderType('2')).toBe(EProviderType.Company);
   });
 

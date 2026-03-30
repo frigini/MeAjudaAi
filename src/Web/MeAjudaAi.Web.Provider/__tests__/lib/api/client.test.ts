@@ -28,6 +28,6 @@ describe('api client', () => {
     const { client } = await import('@/lib/api/client');
     const config = client.getConfig();
     expect(config.headers).toBeDefined();
-    expect(config.headers['Content-Type']).toBe('application/json');
+    expect(config.headers.get('Content-Type')).toBe('application/json');
   });
 });

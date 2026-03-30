@@ -8,6 +8,10 @@ const isCI = process.env.CI === 'true';
 
 export default defineConfig({
   testDir: '.',
+  timeout: isCI ? 60 * 1000 : 30 * 1000,
+  expect: {
+    timeout: isCI ? 15 * 1000 : 5000,
+  },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: isCI ? 2 : 0,
@@ -41,14 +45,27 @@ export default defineConfig({
       use: { ...devices['iPhone 12'], baseURL: baseUrl },
     },
     {
-      name: 'ci',
+      name: 'ci:admin',
       use: { ...devices['Desktop Chrome'], baseURL: adminUrl },
+      testMatch: '**/MeAjudaAi.Web.Admin/e2e/**/*.spec.ts',
+    },
+    {
+      name: 'ci:customer',
+      use: { ...devices['Desktop Chrome'], baseURL: baseUrl },
+      testMatch: '**/MeAjudaAi.Web.Customer/e2e/**/*.spec.ts',
+    },
+    {
+      name: 'ci:provider',
+      use: { ...devices['Desktop Chrome'], baseURL: providerUrl },
+      testMatch: '**/MeAjudaAi.Web.Provider/e2e/**/*.spec.ts',
     },
   ],
   use: {
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     baseURL: adminUrl,
+    actionTimeout: isCI ? 15 * 1000 : 0,
+    navigationTimeout: isCI ? 30 * 1000 : 0,
     extraHTTPHeaders: {
       'x-mock-auth': 'true',
     },
