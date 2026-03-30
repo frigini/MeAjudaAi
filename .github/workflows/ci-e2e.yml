@@ -182,10 +182,13 @@ jobs:
       - name: Start Frontend Admin
         working-directory: ./src/Web/MeAjudaAi.Web.Admin
         env:
+          CI: "true"
           NODE_ENV: development
           PORT: 3002
           KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
           KEYCLOAK_ADMIN_CLIENT_SECRET: ci-build-placeholder
+          KEYCLOAK_CLIENT_ID: ci-build-placeholder
+          KEYCLOAK_CLIENT_SECRET: ci-build-placeholder
           KEYCLOAK_ISSUER: http://localhost:8080/realms/meajudaai
           NEXTAUTH_URL: http://localhost:3002
           NEXTAUTH_SECRET: ci-build-placeholder
@@ -205,8 +208,11 @@ jobs:
       - name: Run Playwright E2E Tests
         working-directory: ./src/Web
         env:
+          CI: "true"
           KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
           KEYCLOAK_ADMIN_CLIENT_SECRET: ci-build-placeholder
+          KEYCLOAK_CLIENT_ID: ci-build-placeholder
+          KEYCLOAK_CLIENT_SECRET: ci-build-placeholder
           KEYCLOAK_ISSUER: http://localhost:8080/realms/meajudaai
           NEXTAUTH_URL: http://localhost:3002
           NEXTAUTH_SECRET: ci-build-placeholder
