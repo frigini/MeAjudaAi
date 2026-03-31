@@ -1,4 +1,4 @@
-import NextAuth, { type NextAuthOptions, type DefaultSession } from "next-auth";
+import NextAuth, { getServerSession, type NextAuthOptions, type DefaultSession } from "next-auth";
 import Keycloak from "next-auth/providers/keycloak";
 
 declare module "next-auth" {
@@ -72,7 +72,7 @@ let hostname = 'unknown';
 if (keycloakIssuer) {
   try {
     hostname = new URL(keycloakIssuer).hostname;
-  } catch (e) {
+  } catch {
     throw new Error(`[auth] Invalid KEYCLOAK_ISSUER URL: ${keycloakIssuer}. Please provide a valid URL.`);
   }
 }
@@ -121,3 +121,10 @@ export const authOptions: NextAuthOptions = {
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
+
+/**
+ * Helper to get the server session in Server Components.
+ */
+export async function auth() {
+  return getServerSession(authOptions);
+}

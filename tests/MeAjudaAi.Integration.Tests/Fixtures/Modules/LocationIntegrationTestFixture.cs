@@ -55,6 +55,20 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
         // Configura clientes HTTP com mocks
         HttpMockBuilder = new MockHttpClientBuilder(services);
         ConfigureHttpClients(HttpMockBuilder);
+        
+        // Garante que os clientes tenham uma base address definida para os mocks funcionarem com caminhos relativos
+        var clientNames = new[] { nameof(ViaCepClient), nameof(BrasilApiCepClient), nameof(OpenCepClient) };
+        foreach (var name in clientNames)
+        {
+            services.PostConfigure<Microsoft.Extensions.Http.HttpClientFactoryOptions>(name, options =>
+            {
+                options.HttpClientActions.Add(client => 
+                {
+                    if (client.BaseAddress == null)
+                        client.BaseAddress = new Uri("http://localhost");
+                });
+            });
+        }
 
         // Adiciona serviços do módulo Locations
         MeAjudaAi.Modules.Locations.API.Extensions.AddLocationsModule(services, configuration);

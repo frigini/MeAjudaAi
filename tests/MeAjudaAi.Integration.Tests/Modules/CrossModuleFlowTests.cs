@@ -98,21 +98,22 @@ public class CrossModuleFlowTests : BaseApiTest
         
         var responseData = GetResponseData(await ReadJsonAsync<JsonElement>(createResponse.Content));
         
-        // Handle both object and array responses
-        // Handle both object and array responses, and potential wrapper objects
-        JsonElement targetElement = responseData;
-        if (responseData.TryGetProperty("data", out var data)) targetElement = data;
-        else if (responseData.TryGetProperty("value", out var value)) targetElement = value;
-
         Guid providerId;
-        if (targetElement.ValueKind == JsonValueKind.Array)
+        
+        if (responseData.ValueKind == JsonValueKind.String)
         {
-            providerId = targetElement[0].GetProperty("id").GetGuid();
+            providerId = Guid.Parse(responseData.GetString()!);
+        }
+        else if (responseData.ValueKind == JsonValueKind.Object)
+        {
+            providerId = responseData.GetProperty("id").GetGuid();
         }
         else
         {
-            providerId = targetElement.GetProperty("id").GetGuid();
+            throw new Exception("Unexpected response data format");
         }
+        
+        providerId.Should().NotBeEmpty();
 
         // 2. Tentar buscar o provedor (Módulo SearchProviders)
         // Dependendo da implementação, a sincronização pode ser via evento (async) ou comando direto (sync)

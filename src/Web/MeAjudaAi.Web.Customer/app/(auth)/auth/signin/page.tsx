@@ -6,7 +6,7 @@ import { redirect } from "next/navigation"
 export const dynamic = "force-dynamic";
 
 export default async function LoginPage() {
-    const session = await auth()
+    const session = await auth() as { user?: { id?: string } } | null
     if (session?.user) {
         redirect("/")
     }

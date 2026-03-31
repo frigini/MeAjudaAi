@@ -47,7 +47,7 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
 
         HttpMockBuilder!
             .GetHandler<ViaCepClient>()
-            .SetupResponse($"viacep.com.br/ws/{cep}/json", HttpStatusCode.OK, viaCepResponse);
+            .SetupResponse($"/ws/{cep}/json", HttpStatusCode.OK, viaCepResponse);
 
         var locationApi = ServiceProvider!.GetRequiredService<ILocationsModuleApi>();
 
@@ -73,7 +73,7 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
         // ViaCEP retorna erro
         HttpMockBuilder!
             .GetHandler<ViaCepClient>()
-            .SetupErrorResponse("viacep.com.br", HttpStatusCode.InternalServerError);
+            .SetupErrorResponse($"/ws/{cep}/json", HttpStatusCode.InternalServerError);
 
         // BrasilAPI retorna sucesso
         var brasilApiResponse = """
@@ -88,7 +88,7 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
 
         HttpMockBuilder
             .GetHandler<BrasilApiCepClient>()
-            .SetupResponse($"brasilapi.com.br/api/cep/v2/{cep}", HttpStatusCode.OK, brasilApiResponse);
+            .SetupResponse($"/api/cep/v2/{cep}", HttpStatusCode.OK, brasilApiResponse);
 
         var locationApi = ServiceProvider!.GetRequiredService<ILocationsModuleApi>();
 
@@ -126,15 +126,15 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
         // Todos os provedores retornam erro
         HttpMockBuilder!
             .GetHandler<ViaCepClient>()
-            .SetupErrorResponse("viacep.com.br", HttpStatusCode.NotFound);
-
+            .SetupErrorResponse($"/ws/{cep}/json", HttpStatusCode.NotFound);
+ 
         HttpMockBuilder
             .GetHandler<BrasilApiCepClient>()
-            .SetupErrorResponse("brasilapi.com.br", HttpStatusCode.NotFound);
-
+            .SetupErrorResponse($"/api/cep/v2/{cep}", HttpStatusCode.NotFound);
+ 
         HttpMockBuilder
             .GetHandler<OpenCepClient>()
-            .SetupErrorResponse("opencep.com", HttpStatusCode.NotFound);
+            .SetupErrorResponse($"/v1/{cep}", HttpStatusCode.NotFound);
 
         var locationApi = ServiceProvider!.GetRequiredService<ILocationsModuleApi>();
 
@@ -164,7 +164,7 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
             """;
 
         var mockHandler = HttpMockBuilder!.GetHandler<ViaCepClient>();
-        mockHandler.SetupResponse($"viacep.com.br/ws/{cep}/json", HttpStatusCode.OK, viaCepResponse);
+        mockHandler.SetupResponse($"/ws/{cep}/json/", HttpStatusCode.OK, viaCepResponse);
 
         var locationApi = ServiceProvider!.GetRequiredService<ILocationsModuleApi>();
 

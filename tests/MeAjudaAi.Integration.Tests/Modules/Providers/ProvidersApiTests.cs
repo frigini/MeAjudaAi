@@ -19,7 +19,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 /// </remarks>
 public class ProvidersApiTests : BaseApiTest
 {
-    protected override TestModule RequiredModules => TestModule.Providers;
+    protected override TestModule RequiredModules => TestModule.Providers | TestModule.ServiceCatalogs | TestModule.Users;
 
     [Fact]
     public async Task ProvidersEndpoint_WithAuthentication_ShouldReturnValidResponse()
@@ -331,14 +331,10 @@ public class ProvidersApiTests : BaseApiTest
         var becomeResponse = await Client.PostAsJsonAsync("/api/v1/providers/become", becomeRequest);
         becomeResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var responseData = GetResponseData(await ReadJsonAsync<JsonElement>(becomeResponse.Content));
-        
-        // Handle wrapper correctly
-        JsonElement targetElement = responseData;
-        if (responseData.TryGetProperty("data", out var data)) targetElement = data;
-        else if (responseData.TryGetProperty("value", out var value)) targetElement = value;
-        
-        var providerId = targetElement.GetProperty("id").GetString();
+        var providerId = responseData.GetProperty("id").GetGuid();
 
+        providerId.Should().NotBeEmpty();
+        
         // 2. Get My Profile
         var getProfileResponse = await Client.GetAsync("/api/v1/providers/me");
         getProfileResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -357,13 +353,15 @@ public class ProvidersApiTests : BaseApiTest
         // 4. Add Service
         // First get a valid service ID from ServiceCatalogs
         AuthConfig.ConfigureAdmin();
-        var catResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = "Provider Test Category" });
+        var catResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = "Provider Test Category", displayOrder = 1 });
+        catResponse.EnsureSuccessStatusCode();
         var catResult = GetResponseData(await ReadJsonAsync<JsonElement>(catResponse.Content));
-        var catId = (catResult.TryGetProperty("data", out var catData) ? catData : catResult).GetProperty("id").GetString();
+        var catId = catResult.GetProperty("id").GetGuid();
 
         var svcResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = "Provider Test Svc", categoryId = catId });
+        svcResponse.EnsureSuccessStatusCode();
         var svcResult = GetResponseData(await ReadJsonAsync<JsonElement>(svcResponse.Content));
-        var serviceId = (svcResult.TryGetProperty("data", out var svcData) ? svcData : svcResult).GetProperty("id").GetString();
+        var serviceId = svcResult.GetProperty("id").GetGuid();
 
         // Note: Staying as Admin to avoid 403 on AddService (Generic SelfOrAdmin handler doesn't yet know provider ownership)
         var addServiceResponse = await Client.PostAsJsonAsync($"/api/v1/providers/{providerId}/services/{serviceId}", new { price = 50.0 });
