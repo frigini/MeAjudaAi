@@ -71,13 +71,15 @@ export function resetValidationForTest() {
     criticalEnvValidated = false;
 }
 
-const isCi = process.env.CI === "true" || process.env.NEXT_PUBLIC_CI === "true" || process.env.MOCK_AUTH === "true";
+function isCiEnv(): boolean {
+    return process.env.CI === "true" || process.env.NEXT_PUBLIC_CI === "true" || process.env.MOCK_AUTH === "true";
+}
 
 export function validateCriticalEnvOnStartup() {
     if (criticalEnvValidated) return;
     
     // Allows bypassing runtime verification locally or during stateless pipelines
-    if (process.env.SKIP_AUTH_ENV_VALIDATION === "true" || isCi) {
+    if (process.env.SKIP_AUTH_ENV_VALIDATION === "true" || isCiEnv()) {
         criticalEnvValidated = true;
         return;
     }
@@ -102,9 +104,9 @@ export const authOptions: NextAuthOptions = {
     secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
     providers: [
         Keycloak({
-            clientId: isCi ? "ci-placeholder" : requireEnv("KEYCLOAK_CLIENT_ID"),
-            clientSecret: isCi ? "ci-placeholder" : requireEnv("KEYCLOAK_CLIENT_SECRET"),
-            issuer: isCi ? "http://localhost:8080/realms/meajudaai" : requireEnv("KEYCLOAK_ISSUER"),
+            clientId: isCiEnv() ? "ci-placeholder" : requireEnv("KEYCLOAK_CLIENT_ID"),
+            clientSecret: isCiEnv() ? "ci-placeholder" : requireEnv("KEYCLOAK_CLIENT_SECRET"),
+            issuer: isCiEnv() ? "http://localhost:8080/realms/meajudaai" : requireEnv("KEYCLOAK_ISSUER"),
         }),
         Credentials({
             id: "credentials",

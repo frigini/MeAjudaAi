@@ -21,7 +21,7 @@ public sealed class GeocodingIntegrationTests : LocationIntegrationTestFixture
 {
     protected override void ConfigureHttpClients(MockHttpClientBuilder builder)
     {
-        builder.AddMockedClient<NominatimClient>();
+        builder.ReplaceMockedClient<NominatimClient>();
     }
 
     [Fact]

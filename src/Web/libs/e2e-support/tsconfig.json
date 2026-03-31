@@ -1,8 +1,0 @@
-{
-  "extends": "./tsconfig.lib.json",
-  "compilerOptions": {
-    "composite": true,
-    "types": ["@playwright/test", "node"]
-  },
-  "include": ["src/**/*.ts"]
-}

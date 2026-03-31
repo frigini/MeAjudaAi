@@ -64,11 +64,6 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     baseURL: adminUrl,
-    actionTimeout: isCI ? 20 * 1000 : 0,
-    navigationTimeout: isCI ? 45 * 1000 : 0,
-    extraHTTPHeaders: {
-      'x-mock-auth': 'true',
-    },
   },
   webServer: isCI ? undefined : {
     command: 'npm run dev:all',

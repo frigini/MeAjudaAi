@@ -55,6 +55,64 @@ public sealed class MockHttpClientBuilder
     }
 
     /// <summary>
+    /// Substitui um HttpClient já registrado com um mock handler.
+    /// Usado para sobrescrever clientes registrados pelo módulo antes dos mocks.
+    /// </summary>
+    public MockHttpClientBuilder ReplaceMockedClient<TClient>(
+        Action<MockHttpMessageHandler>? configure = null)
+        where TClient : class
+    {
+        var clientName = typeof(TClient).Name;
+        var mockHandler = new MockHttpMessageHandler();
+        configure?.Invoke(mockHandler);
+
+        _handlers[clientName] = mockHandler;
+
+        var descriptor = new ServiceDescriptor(
+            typeof(TClient),
+            sp =>
+            {
+                var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+                var httpClient = httpClientFactory.CreateClient(clientName);
+                var loggerFactory = sp.GetService<Microsoft.Extensions.Logging.ILoggerFactory>() 
+                    ?? new Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory();
+                var logger = loggerFactory.CreateLogger(typeof(TClient).Name);
+                return Activator.CreateInstance(typeof(TClient), httpClient, logger)!;
+            },
+            ServiceLifetime.Scoped);
+
+        var existingDescriptor = _services.FirstOrDefault(d => d.ServiceType == typeof(TClient));
+        if (existingDescriptor != null)
+        {
+            _services.Remove(existingDescriptor);
+        }
+        _services.Add(descriptor);
+
+        _services.AddHttpClient(clientName)
+            .ConfigurePrimaryHttpMessageHandler(() => mockHandler.GetHandler());
+
+        return this;
+    }
+
+    /// <summary>
+    /// Substitui um HttpClient já registrado por nome com um mock handler.
+    /// </summary>
+    public MockHttpClientBuilder ReplaceMockedClient(
+        string clientName,
+        Action<MockHttpMessageHandler>? configure = null)
+    {
+        var mockHandler = new MockHttpMessageHandler();
+        configure?.Invoke(mockHandler);
+
+        _handlers[clientName] = mockHandler;
+
+        _services.AddHttpClient(clientName)
+            .ConfigurePrimaryHttpMessageHandler(() => mockHandler.GetHandler());
+
+        return this;
+    }
+
+    /// <summary>
     /// Obtém o handler mockado para um cliente específico.
     /// </summary>
     public MockHttpMessageHandler GetHandler(string clientName)

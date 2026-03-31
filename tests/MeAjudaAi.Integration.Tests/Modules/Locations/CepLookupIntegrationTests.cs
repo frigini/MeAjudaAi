@@ -23,9 +23,9 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
     protected override void ConfigureHttpClients(MockHttpClientBuilder builder)
     {
         builder
-            .AddMockedClient<ViaCepClient>()
-            .AddMockedClient<BrasilApiCepClient>()
-            .AddMockedClient<OpenCepClient>();
+            .ReplaceMockedClient<ViaCepClient>()
+            .ReplaceMockedClient<BrasilApiCepClient>()
+            .ReplaceMockedClient<OpenCepClient>();
     }
 
     [Fact]
