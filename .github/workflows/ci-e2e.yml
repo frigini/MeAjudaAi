@@ -267,6 +267,6 @@ jobs:
           PROVIDER_BASE_URL: http://localhost:3001
           BASE_URL: http://localhost:3000
         run: |
-          echo "No E2E tests defined yet - skipping"
-          # npx playwright install --with-deps chromium
-          # npx playwright test --project=ci:admin --project=ci:customer --project=ci:provider --reporter=list
+          cd src/Web
+          npx playwright install --with-deps chromium
+          npx playwright test --reporter=list
