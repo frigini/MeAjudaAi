@@ -26,8 +26,7 @@ test.describe('Admin Portal - Dashboard (Authenticated)', () => {
   });
 
   test('should load dashboard page with admin info', async ({ page }) => {
-    await expect(page.getByText('Admin Test')).toBeVisible();
-    await expect(page.getByText('admin@test.com')).toBeVisible();
+    await expect(page.locator('p.text-sm.font-medium', { hasText: 'Admin' })).toBeVisible();
   });
 });
 

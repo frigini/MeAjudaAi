@@ -257,6 +257,7 @@ jobs:
         working-directory: ./src/Web
         env:
           CI: "true"
+          TEST_ENV: "external"
           MOCK_AUTH: "true"
           KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
           KEYCLOAK_ADMIN_CLIENT_SECRET: ci-build-placeholder

@@ -1,9 +1,37 @@
 /// <reference types="node" />
 import { defineConfig, devices } from '@playwright/test';
 
+const isServerRunning = (port: number) => {
+  try {
+    const net = require('net');
+    const socket = new net.Socket();
+    return new Promise((resolve) => {
+      socket.once('error', () => {
+        socket.destroy();
+        resolve(false);
+      });
+      socket.once('connect', () => {
+        socket.destroy();
+        resolve(true);
+      });
+      socket.connect(port, 'localhost');
+    });
+  } catch {
+    return Promise.resolve(false);
+  }
+};
+
+const serversAlreadyRunning = async () => {
+  const ports = [3000, 3001, 3002];
+  const results = await Promise.all(ports.map(p => isServerRunning(p)));
+  return results.every(r => r);
+};
+
 const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
 const adminUrl = process.env.ADMIN_BASE_URL || 'http://localhost:3002';
 const providerUrl = process.env.PROVIDER_BASE_URL || 'http://localhost:3001';
+const isCI = process.env.CI === 'true';
+const testEnv = process.env.TEST_ENV;
 
 export default defineConfig({
   testDir: './e2e',
@@ -43,12 +71,12 @@ export default defineConfig({
       testMatch: '**/customer/**/*.spec.ts',
     },
   ],
-  webServer: [
+  webServer: testEnv === 'external' ? undefined : [
     {
       command: 'npm run dev:admin',
       port: 3002,
       cwd: './',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: true,
       env: { 
         MOCK_AUTH: 'true', 
         CI: 'true',
@@ -60,7 +88,7 @@ export default defineConfig({
       command: 'npm run dev:provider',
       port: 3001,
       cwd: './',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: true,
       env: { 
         MOCK_AUTH: 'true', 
         CI: 'true',
@@ -72,7 +100,7 @@ export default defineConfig({
       command: 'npm run dev:customer',
       port: 3000,
       cwd: './',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: true,
       env: { 
         MOCK_AUTH: 'true', 
         CI: 'true',
