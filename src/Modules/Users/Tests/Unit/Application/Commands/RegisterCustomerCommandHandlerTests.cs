@@ -109,4 +109,148 @@ public class RegisterCustomerCommandHandlerTests
         _userDomainServiceMock.Verify(x => x.CreateUserAsync(It.IsAny<Username>(), It.IsAny<Email>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
         _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
     }
+
+    [Fact]
+    public async Task HandleAsync_ShouldReturnFailure_WhenEmailIsInvalid()
+    {
+        // Arrange
+        var command = new RegisterCustomerCommand("John Doe", "invalid-email", "Password123!", "11999999999", true, true);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.StatusCode.Should().Be(400);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldReturnFailure_WhenEmailAlreadyInUse()
+    {
+        // Arrange
+        var command = new RegisterCustomerCommand("John Doe", "existing@test.com", "Password123!", "11999999999", true, true);
+        var existingUser = User.Create(new Username("existing"), new Email(command.Email), "Existing", "User", Guid.NewGuid().ToString(), null).Value!;
+
+        _userRepositoryMock.Setup(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existingUser);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.StatusCode.Should().Be(409);
+        result.Error.Message.Should().Contain("já está em uso");
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldReturnFailure_WhenNameHasOnlyOnePart()
+    {
+        // Arrange
+        var command = new RegisterCustomerCommand("SoloName", "email@test.com", "Password123!", "11999999999", true, true);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("sobrenome é obrigatório");
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldReturnFailure_WhenFirstNameTooShort()
+    {
+        // Arrange
+        var command = new RegisterCustomerCommand("J Doe", "email@test.com", "Password123!", "11999999999", true, true);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("primeiro nome deve ter pelo menos");
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldReturnFailure_WhenLastNameTooShort()
+    {
+        // Arrange
+        var command = new RegisterCustomerCommand("John D", "email@test.com", "Password123!", "11999999999", true, true);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("sobrenome deve ter pelo menos");
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldReturnFailure_WhenCreateUserAsyncFails()
+    {
+        // Arrange
+        var command = new RegisterCustomerCommand("John Doe", "email@test.com", "Password123!", "11999999999", true, true);
+        var error = Error.Internal("Service failure");
+
+        _userDomainServiceMock.Setup(x => x.CreateUserAsync(It.IsAny<Username>(), It.IsAny<Email>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<User>.Failure(error));
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(error);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldReturnFailure_AndTriggerCompensation_WhenAddAsyncThrowsExceptionAndUserNotFound()
+    {
+        // Arrange
+        var command = new RegisterCustomerCommand("John Doe", "email@test.com", "Password123!", "11999999999", true, true);
+        var user = User.Create(new Username("test_user"), new Email(command.Email), "John", "Doe", Guid.NewGuid().ToString(), null).Value!;
+
+        _userDomainServiceMock.Setup(x => x.CreateUserAsync(It.IsAny<Username>(), It.IsAny<Email>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<User>.Success(user));
+
+        _userRepositoryMock.Setup(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("DB Error"));
+
+        _userRepositoryMock.Setup(x => x.GetByIdNoTrackingAsync(user.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((User?)null);
+
+        _userDomainServiceMock.Setup(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success());
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldReturnFailure_AndNotTriggerCompensation_WhenAddAsyncThrowsExceptionAndUserFound()
+    {
+        // Arrange
+        var command = new RegisterCustomerCommand("John Doe", "email@test.com", "Password123!", "11999999999", true, true);
+        var user = User.Create(new Username("test_user"), new Email(command.Email), "John", "Doe", Guid.NewGuid().ToString(), null).Value!;
+
+        _userDomainServiceMock.Setup(x => x.CreateUserAsync(It.IsAny<Username>(), It.IsAny<Email>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<User>.Success(user));
+
+        _userRepositoryMock.Setup(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("DB Error"));
+
+        _userRepositoryMock.Setup(x => x.GetByIdNoTrackingAsync(user.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Never);
+    }
 }

@@ -88,15 +88,7 @@ public class ExtensionsTests
         Assert.True(services.Count > 0);
     }
 
-    [Fact(Skip = "Test removed - validates internal implementation detail that requires database connection")]
-    public void AddUsersModule_WithEmptyConfiguration_ShouldThrowInvalidOperationException()
-    {
-        // This test was removed because:
-        // 1. The exception is thrown inside a DbContext configuration callback
-        // 2. The callback only executes when DbContext is resolved from the provider
-        // 3. Resolving DbContext requires a database connection, making this test unreliable
-        // 4. The actual behavior is covered by integration tests
-    }
+
 
     [Fact]
     public void AddUsersModule_ShouldReturnSameServiceCollectionInstance()
