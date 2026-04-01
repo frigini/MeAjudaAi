@@ -19,7 +19,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 /// </remarks>
 public class ProvidersApiTests : BaseApiTest
 {
-    protected override TestModule RequiredModules => TestModule.Providers | TestModule.ServiceCatalogs | TestModule.Users;
+    protected override TestModule RequiredModules => TestModule.Providers | TestModule.ServiceCatalogs | TestModule.Users | TestModule.SearchProviders;
 
     [Fact]
     public async Task ProvidersEndpoint_WithAuthentication_ShouldReturnValidResponse()

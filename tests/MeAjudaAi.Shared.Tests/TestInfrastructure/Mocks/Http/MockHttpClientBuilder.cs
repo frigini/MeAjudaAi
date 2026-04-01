@@ -74,10 +74,8 @@ public sealed class MockHttpClientBuilder
             {
                 var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
                 var httpClient = httpClientFactory.CreateClient(clientName);
-                var loggerFactory = sp.GetService<Microsoft.Extensions.Logging.ILoggerFactory>() 
-                    ?? new Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory();
-                var logger = loggerFactory.CreateLogger(typeof(TClient).Name);
-                return Activator.CreateInstance(typeof(TClient), httpClient, logger)!;
+                
+                return ActivatorUtilities.CreateInstance<TClient>(sp, httpClient);
             },
             ServiceLifetime.Scoped);
 

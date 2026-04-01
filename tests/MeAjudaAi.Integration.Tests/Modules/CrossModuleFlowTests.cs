@@ -73,7 +73,7 @@ public class CrossModuleFlowTests : BaseApiTest
         {
             name = $"Searchable Provider {Guid.NewGuid():N}",
             type = 1, // Individual
-            documentNumber = "00000000000",
+            documentNumber = "12345678909", // Valid-looking CPF format (not all same digits)
             phoneNumber = "+5511999999999"
         };
         var createResponse = await Client.PostAsJsonAsync("/api/v1/providers/become", providerData);
@@ -96,6 +96,7 @@ public class CrossModuleFlowTests : BaseApiTest
             });
         }
         
+        createResponse.EnsureSuccessStatusCode();
         var responseData = GetResponseData(await ReadJsonAsync<JsonElement>(createResponse.Content));
         
         Guid providerId;
@@ -118,7 +119,7 @@ public class CrossModuleFlowTests : BaseApiTest
         // 2. Tentar buscar o provedor (Módulo SearchProviders)
         // Dependendo da implementação, a sincronização pode ser via evento (async) ou comando direto (sync)
         // Nota: Em testes de integração sem workers, costumamos forçar o processamento ou usar mocks
-        var searchResponse = await Client.GetAsync($"/api/v1/search/providers?query={providerData.name}");
+        var searchResponse = await Client.GetAsync($"/api/v1/search/providers?term={providerData.name}&latitude=0&longitude=0&radiusInKm=100");
         searchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         
         // 3. Atualizar Perfil
@@ -128,7 +129,7 @@ public class CrossModuleFlowTests : BaseApiTest
 
         // 4. Verificar se a busca reflete a mudança (pode requerer um pequeno delay se for async)
         // Em testes de integração, buscamos verificar se a falha não ocorre ou se os dados estão consistentes
-        var searchUpdatedResponse = await Client.GetAsync($"/api/v1/search/providers?query=Name Updated");
+        var searchUpdatedResponse = await Client.GetAsync($"/api/v1/search/providers?term=Name Updated&latitude=0&longitude=0&radiusInKm=100");
         searchUpdatedResponse.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }

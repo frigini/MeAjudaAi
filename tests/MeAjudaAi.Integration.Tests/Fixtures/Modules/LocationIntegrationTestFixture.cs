@@ -34,7 +34,8 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Cache:Enabled"] = "true"
+                ["Cache:Enabled"] = "false",
+                ["Caching:Enabled"] = "false"
             })
             .Build();
         services.AddSingleton<IConfiguration>(configuration);
