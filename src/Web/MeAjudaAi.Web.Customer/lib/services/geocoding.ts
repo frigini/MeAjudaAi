@@ -1,5 +1,4 @@
 import { apiSearchGet } from "@/lib/api/generated/sdk.gen";
-import { getAuthHeaders } from "@/lib/api/auth-headers";
 
 export interface GeocodingResult {
     latitude: number;
@@ -7,9 +6,12 @@ export interface GeocodingResult {
     displayName: string;
 }
 
-export async function geocodeCity(query: string): Promise<GeocodingResult | null> {
+export async function geocodeCity(query: string, token?: string): Promise<GeocodingResult | null> {
     try {
-        const headers = await getAuthHeaders(); // Retrieve auth headers if needed, though search might be public
+        const headers: Record<string, string> = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
 
         // Use apiSearchGet from generated SDK
         const { data } = await apiSearchGet({

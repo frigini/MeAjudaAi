@@ -1,5 +1,9 @@
-import { Suspense } from "react";
-import { Search } from "lucide-react";
+"use client";
+
+import { Suspense, useMemo } from "react";
+import { Search, Loader2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ServiceCard } from "@/components/service/service-card";
 import { AdCard } from "@/components/search/ad-card";
@@ -10,114 +14,112 @@ import { apiProvidersGet4, apiCategoryGet } from "@/lib/api/generated/sdk.gen";
 import type { ApiProvidersGet4Data } from "@/lib/api/generated";
 import { mapSearchableProviderToProvider } from "@/lib/api/mappers";
 import { geocodeCity } from "@/lib/services/geocoding";
-import { getAuthHeaders } from "@/lib/api/auth-headers";
 import { ProviderDto } from "@/types/api/provider";
 
-interface SearchPageProps {
-    searchParams: Promise<{
-        q?: string;
-        city?: string;
-        radiusInKm?: string;
-        minRating?: string;
-        categoryId?: string;
-    }>;
-}
+function SearchContent() {
+    const searchParams = useSearchParams();
+    
+    const q = searchParams.get("q") || "";
+    const city = searchParams.get("city") || "";
+    const radiusInKm = searchParams.get("radiusInKm") || process.env.NEXT_PUBLIC_DEFAULT_RADIUS || "50";
+    const minRating = searchParams.get("minRating");
+    const categoryId = searchParams.get("categoryId");
 
-export default async function SearchPage({ searchParams }: SearchPageProps) {
-    const { q, city, radiusInKm, minRating, categoryId } = await searchParams;
-    const searchQuery = q || "";
-    const cityFilter = city || "";
-    const radiusInKmVal = parseFloat(radiusInKm || process.env.NEXT_PUBLIC_DEFAULT_RADIUS || "50");
-    const radius = Number.isNaN(radiusInKmVal) ? 50 : radiusInKmVal;
+    const radius = useMemo(() => {
+        const val = parseFloat(radiusInKm);
+        return Number.isNaN(val) ? 50 : val;
+    }, [radiusInKm]);
 
-    const minRatingParsed = minRating ? parseFloat(minRating) : undefined;
-    const minRatingVal = (minRatingParsed !== undefined && !Number.isNaN(minRatingParsed)) ? minRatingParsed : undefined;
+    const minRatingVal = useMemo(() => {
+        if (!minRating) return undefined;
+        const val = parseFloat(minRating);
+        return Number.isNaN(val) ? undefined : val;
+    }, [minRating]);
 
-    const DEFAULT_LAT = -19.3917;
-    const DEFAULT_LNG = -40.0722;
-    let latitude = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_LAT || "");
-    let longitude = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_LNG || "");
-    if (Number.isNaN(latitude)) latitude = DEFAULT_LAT;
-    if (Number.isNaN(longitude)) longitude = DEFAULT_LNG;
+    // Query for geocoding and provider search
+    const { data: searchResults, isLoading, error } = useQuery({
+        queryKey: ["search-providers", q, city, radius, minRatingVal, categoryId],
+        queryFn: async () => {
+            const DEFAULT_LAT = -19.3917;
+            const DEFAULT_LNG = -40.0722;
+            let latitude = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_LAT || "");
+            let longitude = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_LNG || "");
+            if (Number.isNaN(latitude)) latitude = DEFAULT_LAT;
+            if (Number.isNaN(longitude)) longitude = DEFAULT_LNG;
 
-    // Attempt to geocode if city is provided
-    if (cityFilter) {
-        const location = await geocodeCity(cityFilter);
-        if (location) {
-            latitude = location.latitude;
-            longitude = location.longitude;
-        } else {
-            console.warn(`Could not geocode '${cityFilter}', using default location.`);
-        }
-    }
-
-    // If category is selected, fetch associated services to filter by serviceIds
-    let serviceIds: string[] | undefined = undefined;
-    if (categoryId) {
-        try {
-            const { data: catServices } = await apiCategoryGet({
-                path: { categoryId },
-                query: { activeOnly: true }
-            });
-            if (catServices?.data) {
-                // Filter out undefined or empty strings to ensure safe ID list
-                serviceIds = catServices.data
-                    .map(s => s.id)
-                    .filter((id): id is string => !!id);
+            if (city) {
+                const location = await geocodeCity(city);
+                if (location) {
+                    latitude = location.latitude;
+                    longitude = location.longitude;
+                }
             }
-        } catch (e) {
-            console.error("Failed to fetch services for category", e);
-            // Rethrow to avoid fail-open (showing all providers when filter fails)
-            throw new Error("Failed to validate category filter");
-        }
-    }
 
-    // Fetch providers from API
-    // TODO: Implement pagination controls. Currently hardcoded to page 1.
-    const headers = await getAuthHeaders();
-    const { data, error } = await apiProvidersGet4({
-        query: {
-            latitude,
-            longitude,
-            radiusInKm: radius,
-            term: searchQuery,
-            serviceIds,
-            minRating: minRatingVal,
-            page: 1,
-            pageSize: 20,
-        } as ApiProvidersGet4Data["query"],
-        headers,
+            let serviceIds: string[] | undefined = undefined;
+            if (categoryId) {
+                const { data: catServices } = await apiCategoryGet({
+                    path: { categoryId },
+                    query: { activeOnly: true }
+                });
+                if (catServices?.data) {
+                    serviceIds = catServices.data
+                        .map(s => s.id)
+                        .filter((id): id is string => !!id);
+                }
+            }
+
+            const { data, error } = await apiProvidersGet4({
+                query: {
+                    latitude,
+                    longitude,
+                    radiusInKm: radius,
+                    term: q,
+                    serviceIds,
+                    minRating: minRatingVal,
+                    page: 1,
+                    pageSize: 20,
+                } as ApiProvidersGet4Data["query"],
+            });
+
+            if (error) throw error;
+            return data;
+        }
     });
 
-    if (error) {
-        console.error("SearchPage: Failed to fetch providers", error);
-        throw new Error('Failed to fetch providers. Please try again later.');
-    }
-
     // Map API DTOs to application types
-    const providers = (data?.items || []).map(mapSearchableProviderToProvider);
+    const providers = useMemo(() => {
+        return (searchResults?.items || []).map(mapSearchableProviderToProvider);
+    }, [searchResults]);
 
-    // Insert AdCard at index 1 (2nd position) if we have enough items
-    type GridItem =
-        | { type: 'provider'; data: ProviderDto }
-        | { type: 'ad'; data: null };
+    // Insert AdCard logic
+    const gridItems = useMemo(() => {
+        type GridItem =
+            | { type: 'provider'; data: ProviderDto }
+            | { type: 'ad'; data: null };
 
-    const gridItems: GridItem[] = [];
-    if (providers.length > 0) {
-        // Only inject ad if we have multiple providers to avoid weird single-item grid with ad
-        if (providers.length > 1) {
-            gridItems.push({ type: 'provider', data: providers[0] });
-            gridItems.push({ type: 'ad', data: null });
-            providers.slice(1).forEach(p => {
-                gridItems.push({ type: 'provider', data: p });
-            });
-        } else {
-            // Just the single provider
-            gridItems.push({ type: 'provider', data: providers[0] });
+        const items: GridItem[] = [];
+        if (providers.length > 0) {
+            if (providers.length > 1) {
+                items.push({ type: 'provider', data: providers[0] });
+                items.push({ type: 'ad', data: null });
+                providers.slice(1).forEach(p => {
+                    items.push({ type: 'provider', data: p });
+                });
+            } else {
+                items.push({ type: 'provider', data: providers[0] });
+            }
         }
-    } else {
-        // Even if no providers, show AdCard? Maybe not.
-        // If empty, standard empty state.
+        return items;
+    }, [providers]);
+
+    if (error) {
+        return (
+            <div className="container mx-auto px-4 py-16 text-center">
+                <h3 className="text-xl font-semibold text-destructive mb-2">Erro na busca</h3>
+                <p className="text-muted-foreground">Não foi possível carregar os prestadores. Tente novamente mais tarde.</p>
+                <Button onClick={() => window.location.reload()} className="mt-4">Recarregar</Button>
+            </div>
+        );
     }
 
     return (
@@ -125,16 +127,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             {/* 1. Search Bar Centered */}
             <div className="max-w-3xl mx-auto mb-8">
                 <form action="/buscar" method="get" role="search" className="relative flex items-center gap-2">
-                    {/* Expose city input or allow clearing it */}
-                    {cityFilter && (
-                        <input
-                            name="city"
-                            type="hidden"
-                            value={cityFilter}
-                        />
-                    )}
-
-                    {/* Preserve filters in search form if needed, or rely on URL state */}
+                    {city && <input name="city" type="hidden" value={city} />}
                     {radiusInKm && <input type="hidden" name="radiusInKm" value={radiusInKm} />}
                     {minRating && <input type="hidden" name="minRating" value={minRating} />}
                     {categoryId && <input type="hidden" name="categoryId" value={categoryId} />}
@@ -143,11 +136,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                         <input
                             name="q"
                             type="search"
-                            placeholder={cityFilter ? `Buscar em ${cityFilter}...` : "Buscar serviço"}
-                            defaultValue={searchQuery}
+                            placeholder={city ? `Buscar em ${city}...` : "Buscar serviço"}
+                            defaultValue={q}
                             className="w-full pl-6 pr-14 py-4 border border-orange-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 text-lg placeholder:text-foreground-subtle"
                         />
-                        {cityFilter && (
+                        {city && (
                             <div className="absolute right-14 top-1/2 -translate-y-1/2">
                                 <Button
                                     variant="ghost"
@@ -155,7 +148,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                                     className="h-8 text-xs text-muted-foreground hover:text-destructive"
                                     asChild
                                 >
-                                    <a href={`/buscar?q=${encodeURIComponent(searchQuery)}`}>Limpar Cidade</a>
+                                    <a href={`/buscar?q=${encodeURIComponent(q)}`}>Limpar Cidade</a>
                                 </Button>
                             </div>
                         )}
@@ -174,28 +167,29 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             <div className="flex flex-col lg:flex-row gap-8">
                 {/* Sidebar Filters */}
                 <aside className="w-full lg:w-64 shrink-0">
-                    <Suspense fallback={<div className="h-96 w-full bg-gray-100 rounded-xl animate-pulse" />}>
-                        <SearchFilters />
-                    </Suspense>
+                    <SearchFilters />
                 </aside>
 
                 <main className="flex-1">
                     {/* 2. Service Tags - Full Width */}
                     <div className="mb-8">
-                        <Suspense fallback={<div className="h-10 w-full bg-gray-100 rounded-full animate-pulse" />}>
-                            <ServiceTags />
-                        </Suspense>
+                        <ServiceTags />
                     </div>
 
                     {/* 4. Provider Grid */}
-                    {providers.length > 0 ? (
+                    {isLoading ? (
+                        <div className="flex flex-col items-center justify-center py-20">
+                            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                            <p className="text-muted-foreground">Buscando os melhores profissionais...</p>
+                        </div>
+                    ) : providers.length > 0 ? (
                         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
                             {gridItems.map((item, index) => {
                                 if (item.type === 'ad') {
                                     return <AdCard key={`ad-${index}`} />;
                                 }
 
-                                const provider = item.data; // Type narrowed automatically
+                                const provider = item.data;
                                 return (
                                     <ServiceCard
                                         key={provider.id}
@@ -217,7 +211,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                                 Nenhum prestador encontrado
                             </h3>
                             <p className="text-foreground-subtle max-w-md mx-auto">
-                                Não encontramos prestadores para sua busca no momento{cityFilter ? ` em ${cityFilter}` : ""}.
+                                Não encontramos prestadores para sua busca no momento{city ? ` em ${city}` : ""}.
                                 Tente ajustar os filtros ou buscar por termos mais genéricos.
                             </p>
                         </div>
@@ -225,5 +219,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 </main>
             </div>
         </div>
+    );
+}
+
+export default function SearchPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            </div>
+        }>
+            <SearchContent />
+        </Suspense>
     );
 }

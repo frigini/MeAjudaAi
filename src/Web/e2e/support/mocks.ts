@@ -2,11 +2,11 @@ import { Page } from '@playwright/test';
 
 export const mockProviders = {
   items: [
-    { id: '1', name: 'João Silva', verificationStatus: 3, type: 0 },
-    { id: '2', name: 'Maria Santos', verificationStatus: 2, type: 1 },
-    { id: '3', name: 'Pedro Costa', verificationStatus: 1, type: 0 },
-    { id: '4', name: 'Ana Oliveira', verificationStatus: 3, type: 2 },
-    { id: '5', name: 'Carlos Souza', verificationStatus: 0, type: 3 },
+    { id: '550e8400-e29b-41d4-a716-446655440001', name: 'João Silva', verificationStatus: 3, type: 0 },
+    { id: '550e8400-e29b-41d4-a716-446655440002', name: 'Maria Santos', verificationStatus: 2, type: 1 },
+    { id: '550e8400-e29b-41d4-a716-446655440003', name: 'Pedro Costa', verificationStatus: 1, type: 0 },
+    { id: '550e8400-e29b-41d4-a716-446655440004', name: 'Ana Oliveira', verificationStatus: 3, type: 2 },
+    { id: '550e8400-e29b-41d4-a716-446655440005', name: 'Carlos Souza', verificationStatus: 0, type: 3 },
   ],
   totalPages: 1,
   totalCount: 5,
@@ -44,8 +44,26 @@ export const mockServices = {
 
 export const mockCustomerProviders = {
   items: [
-    { id: '1', name: 'João Silva', category: 'Serviços Domésticos', rating: 4.5, city: 'São Paulo' },
-    { id: '2', name: 'Maria Santos', category: 'Manutenção', rating: 4.8, city: 'Rio de Janeiro' },
+    { 
+      providerId: '550e8400-e29b-41d4-a716-446655440001', 
+      name: 'João Silva', 
+      category: 'Serviços Domésticos', 
+      averageRating: 4.5, 
+      totalReviews: 10,
+      city: 'São Paulo',
+      state: 'SP',
+      serviceIds: ['550e8400-e29b-41d4-a716-446655440101']
+    },
+    { 
+      providerId: '550e8400-e29b-41d4-a716-446655440002', 
+      name: 'Maria Santos', 
+      category: 'Manutenção', 
+      averageRating: 4.8, 
+      totalReviews: 5,
+      city: 'Rio de Janeiro',
+      state: 'RJ',
+      serviceIds: ['550e8400-e29b-41d4-a716-446655440102']
+    },
   ],
   totalPages: 1,
   totalCount: 2,
@@ -65,40 +83,45 @@ export function setupAdminMocks(page: Page) {
       contentType: 'application/json',
       body: JSON.stringify({
         user: { id: 'test-admin', name: 'Admin Test', email: 'admin@test.com', roles: ['admin'] },
+        accessToken: 'mock-token',
         expires: new Date(Date.now() + 3600000).toISOString(),
       }),
     });
   });
 
-  page.route('**/api/v1/admin/providers**', async (route) => {
+  // Providers list
+  page.route('**/api/v1/providers**', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify(mockProviders),
+      body: JSON.stringify(mockProviders), // ProvidersPage uses .items which is in mockProviders
     });
   });
 
+  // Allowed Cities list
   page.route('**/api/v1/admin/allowed-cities**', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify(mockAllowedCities),
+      body: JSON.stringify({ value: mockAllowedCities.items }), // AllowedCitiesPage uses .value
     });
   });
 
-  page.route('**/api/v1/admin/categories**', async (route) => {
+  // Categories list
+  page.route('**/api/v1/service-catalogs/categories**', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify(mockCategories),
+      body: JSON.stringify(mockCategories.items), // CategoriesPage uses direct array
     });
   });
 
-  page.route('**/api/v1/admin/services**', async (route) => {
+  // Services list
+  page.route('**/api/v1/service-catalogs/services**', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify(mockServices),
+      body: JSON.stringify({ value: mockServices.items }), // ServicesPage uses .value
     });
   });
 
@@ -126,6 +149,7 @@ export function setupProviderMocks(page: Page) {
       contentType: 'application/json',
       body: JSON.stringify({
         user: { id: 'test-provider', name: 'Provider Test', email: 'provider@test.com', roles: ['provider'] },
+        accessToken: 'mock-token',
         expires: new Date(Date.now() + 3600000).toISOString(),
       }),
     });
@@ -136,10 +160,24 @@ export function setupProviderMocks(page: Page) {
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        id: 'test-provider',
-        name: 'Provider Test',
-        verificationStatus: 3,
-        type: 0,
+        data: {
+          id: '550e8400-e29b-41d4-a716-446655440000',
+          name: 'Provider Test',
+          isActive: true,
+          verificationStatus: 3,
+          type: 0,
+          businessProfile: {
+            description: 'Prestador de serviços de teste para E2E.',
+            contactInfo: { 
+              email: 'provider@test.com', 
+              phoneNumber: '11999999999' 
+            }
+          },
+          services: [
+            { id: '550e8400-e29b-41d4-a716-446655440101', serviceName: 'Limpeza Residencial' },
+            { id: '550e8400-e29b-41d4-a716-446655440102', serviceName: 'Reparo Elétrico' }
+          ]
+        }
       }),
     });
   });
@@ -167,25 +205,100 @@ export function setupCustomerMocks(page: Page) {
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        user: { id: 'test-customer', name: 'Customer Test', email: 'customer@test.com', roles: ['user'] },
+        user: { 
+          id: '550e8400-e29b-41d4-a716-446655440003', // Use a GUID
+          name: 'Customer Test', 
+          email: 'customer@test.com', 
+          roles: ['user'] 
+        },
+        accessToken: 'mock-token',
         expires: new Date(Date.now() + 3600000).toISOString(),
       }),
     });
   });
 
-  page.route('**/api/v1/search**', async (route) => {
+  // Mock for Profile Page (authenticatedFetch expecting .value)
+  page.route('**/api/v1/users/550e8400-e29b-41d4-a716-446655440003', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify(mockCustomerProviders),
+      body: JSON.stringify({
+        value: {
+          id: '550e8400-e29b-41d4-a716-446655440003',
+          firstName: 'Customer',
+          lastName: 'Test',
+          fullName: 'Customer Test',
+          email: 'customer@test.com',
+          userType: 0
+        }
+      }),
     });
   });
 
-  page.route('**/api/v1/categories**', async (route) => {
+  // SDK apiProvidersGet4 DOES NOT unwrap .value automatically unless configured
+  // Based on current SearchPage.tsx logic, it expects items at root of data
+  page.route('**/api/v1/search/providers**', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify(mockCategories),
+      body: JSON.stringify({
+        items: [
+          { 
+            providerId: '550e8400-e29b-41d4-a716-446655440001', 
+            name: 'João Silva', 
+            category: 'Serviços Domésticos', 
+            averageRating: 4.5, 
+            totalReviews: 10,
+            city: 'Muriaé',
+            state: 'MG',
+            serviceIds: ['550e8400-e29b-41d4-a716-446655440101']
+          },
+          { 
+            providerId: '550e8400-e29b-41d4-a716-446655440002', 
+            name: 'Maria Santos', 
+            category: 'Manutenção', 
+            averageRating: 4.8, 
+            totalReviews: 5,
+            city: 'Itaperuna',
+            state: 'RJ',
+            serviceIds: ['550e8400-e29b-41d4-a716-446655440102']
+          },
+        ],
+        totalPages: 1,
+        totalCount: 2,
+      }),
+    });
+  });
+
+  page.route('**/api/v1/service-catalogs/categories**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(mockCategories.items),
+    });
+  });
+
+  page.route('**/api/v1/providers/**/public', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        data: {
+          id: '550e8400-e29b-41d4-a716-446655440001',
+          name: 'João Silva',
+          verificationStatus: 3,
+          type: 0,
+          fantasyName: 'João Silva',
+          description: 'Prestador de serviços de teste para E2E.',
+          city: 'Muriaé',
+          state: 'MG',
+          rating: 4.5,
+          reviewCount: 10,
+          phoneNumbers: ['11999999999'],
+          services: ['Limpeza Residencial', 'Reparo Elétrico'],
+          email: 'provider@test.com'
+        }
+      }),
     });
   });
 
@@ -193,7 +306,7 @@ export function setupCustomerMocks(page: Page) {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify(mockServices),
+      body: JSON.stringify({ data: mockServices.items }),
     });
   });
 }

@@ -14,6 +14,20 @@ export async function loginAsCustomer(page: Page) {
 }
 
 export async function setupPageForE2E(page: Page, portal: 'admin' | 'provider' | 'customer') {
+  // Set cookie and extra headers to bypass middleware
+  const context = page.context();
+  await context.addCookies([
+    {
+      name: 'x-mock-auth',
+      value: 'true',
+      domain: 'localhost',
+      path: '/',
+    }
+  ]);
+  await page.setExtraHTTPHeaders({
+    'x-mock-auth': 'true'
+  });
+
   await page.addInitScript(() => {
     window.localStorage.setItem('nextauth.message', '[]');
     window.sessionStorage.setItem('nextauth.token', 'mock-token');
