@@ -68,7 +68,7 @@ public class ProvidersAdminIntegrationTests : BaseApiTest
         var addDocRequest = new 
         { 
             number = "123456789", 
-            documentType = (int)EDocumentType.Identity 
+            documentType = (int)EDocumentType.RG 
         };
         
         // Act - Add
@@ -78,7 +78,7 @@ public class ProvidersAdminIntegrationTests : BaseApiTest
         addResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // 2. Remove Document
-        var docType = (int)EDocumentType.Identity;
+        var docType = (int)EDocumentType.RG;
         
         // Act - Remove
         var removeResponse = await Client.DeleteAsync($"/api/v1/providers/{provider.Id}/documents/{docType}");
