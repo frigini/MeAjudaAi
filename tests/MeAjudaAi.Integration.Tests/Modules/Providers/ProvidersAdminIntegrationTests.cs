@@ -23,7 +23,7 @@ public class ProvidersAdminIntegrationTests : BaseApiTest
         AuthConfig.ConfigureAdmin();
         var status = (int)EVerificationStatus.Pending;
 
-        // Act
+        // Act - Correct route
         var response = await Client.GetAsync($"/api/v1/providers/verification-status/{status}");
 
         // Assert
@@ -99,12 +99,10 @@ public class ProvidersAdminIntegrationTests : BaseApiTest
 
         var correctionRequest = new { reason = "Documento ilegível" };
 
-        // Act
-        var response = await Client.PostAsJsonAsync($"/api/v1/providers/{provider!.Id}/require-correction", correctionRequest);
+        // Act - Correct route based on ApiEndpoints.cs
+        var response = await Client.PostAsJsonAsync($"/api/v1/providers/{provider!.Id}/require-basic-info-correction", correctionRequest);
 
         // Assert
-        // O endpoint pode retornar 400 se o status inicial não for favorável à correção (fluxo de negócio)
-        // mas o teste valida a acessibilidade do endpoint
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
         response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed);
     }
@@ -142,18 +140,29 @@ public class ProvidersAdminIntegrationTests : BaseApiTest
 
     private async Task CreateTestProviderAsync(Guid userId, string name)
     {
+        // Garante que o contexto tem os dados do usuário para o comando
+        AuthConfig.ConfigureUser(userId.ToString(), "provider", $"{userId}@test.com", "provider");
+
         var request = new
         {
             userId = userId,
             name = name,
-            type = 1,
+            type = 1, // Individual
             businessProfile = new
             {
-                description = "Test",
-                contactInfo = new { email = $"{Guid.NewGuid()}@test.com" },
+                legalName = name,
+                description = "Test Description",
+                contactInfo = new 
+                { 
+                    email = $"{Guid.NewGuid()}@test.com",
+                    phoneNumber = "+5511999999999"
+                },
                 showAddressToClient = false
             }
         };
+        
+        // Volta para admin para poder criar o provider via admin endpoint
+        AuthConfig.ConfigureAdmin();
         var response = await Client.PostAsJsonAsync("/api/v1/providers", request);
         response.EnsureSuccessStatusCode();
     }
@@ -163,8 +172,25 @@ public class ProvidersAdminIntegrationTests : BaseApiTest
         var response = await Client.GetAsync($"/api/v1/providers/by-user/{userId}");
         if (response.StatusCode == HttpStatusCode.NotFound) return null;
         
-        var result = await ReadJsonAsync<Result<ProviderDto>>(response.Content);
-        return result.Value;
+        var json = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(json);
+        
+        // Em integração, o resultado pode estar em "data", "value" ou na raiz
+        JsonElement data;
+        if (doc.RootElement.TryGetProperty("data", out var dataProp))
+            data = dataProp;
+        else if (doc.RootElement.TryGetProperty("value", out var valueProp))
+            data = valueProp;
+        else
+            data = doc.RootElement;
+
+        var options = new JsonSerializerOptions 
+        { 
+            PropertyNameCaseInsensitive = true 
+        };
+        options.Converters.Add(new MeAjudaAi.Shared.Serialization.Converters.StrictEnumConverter());
+
+        return JsonSerializer.Deserialize<ProviderDto>(data.GetRawText(), options);
     }
 
     #endregion

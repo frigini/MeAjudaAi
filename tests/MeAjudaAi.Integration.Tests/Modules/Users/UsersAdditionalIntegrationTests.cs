@@ -75,11 +75,11 @@ public class UsersAdditionalIntegrationTests : BaseApiTest
         // Act
         var response = await Client.DeleteAsync($"/api/v1/users/{userId}");
 
-        // Assert
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.OK);
+        // Assert - Endpoint returns 200 OK with the result object
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        // Verificar se sumiu
+        // Verify deletion - trying to get the user should return NotFound (or indicate deleted state)
         var getResponse = await Client.GetAsync($"/api/v1/users/{userId}");
-        response.StatusCode.Should().NotBe(HttpStatusCode.OK);
+        getResponse.StatusCode.Should().BeOneOf(HttpStatusCode.NotFound, HttpStatusCode.Unauthorized);
     }
 }

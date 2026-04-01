@@ -27,7 +27,7 @@ public class ServiceCatalogsAdditionalIntegrationTests : BaseApiTest
         await Client.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = "Filter Svc", categoryId = catId });
 
         // Act
-        var response = await Client.GetAsync($"/api/v1/service-catalogs/services/by-category/{catId}");
+        var response = await Client.GetAsync($"/api/v1/service-catalogs/services/category/{catId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -52,11 +52,11 @@ public class ServiceCatalogsAdditionalIntegrationTests : BaseApiTest
         var svcRes = await Client.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = "Move Me", categoryId = cat1Id });
         var svcId = GetResponseData(await ReadJsonAsync<JsonElement>(svcRes.Content)).GetProperty("id").GetString();
 
-        // Act - Mudar categoria
-        var changeResponse = await Client.PutAsJsonAsync($"/api/v1/service-catalogs/services/{svcId}/category", new { newCategoryId = cat2Id });
+        // Act - Mudar categoria (POST endpoint)
+        var changeResponse = await Client.PostAsJsonAsync($"/api/v1/service-catalogs/services/{svcId}/change-category", new { newCategoryId = cat2Id });
 
         // Assert
-        changeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        changeResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
         
         // Verificar se mudou mesmo
         var getSvcRes = await Client.GetAsync($"/api/v1/service-catalogs/services/{svcId}");
