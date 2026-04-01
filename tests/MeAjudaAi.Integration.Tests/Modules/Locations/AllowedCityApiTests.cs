@@ -391,7 +391,7 @@ public class AllowedCityApiTests : BaseApiTest
         AuthConfig.ConfigureAdmin();
 
         // Act
-        var response = await Client.GetAsync("/api/v1/locations?q=Muriaé");
+        var response = await Client.GetAsync("/api/v1/locations/search?q=Muriaé");
 
         // Assert
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden);
@@ -404,7 +404,7 @@ public class AllowedCityApiTests : BaseApiTest
         AuthConfig.ConfigureAdmin();
 
         // Act
-        var response = await Client.GetAsync("/api/v1/locations?q=Mu");
+        var response = await Client.GetAsync("/api/v1/locations/search?q=Mu");
 
         // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
@@ -417,7 +417,7 @@ public class AllowedCityApiTests : BaseApiTest
         AuthConfig.ConfigureAdmin();
 
         // Act
-        var response = await Client.GetAsync("/api/v1/locations?q=");
+        var response = await Client.GetAsync("/api/v1/locations/search?q=");
 
         // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
