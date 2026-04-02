@@ -229,6 +229,15 @@ jobs:
             --results-directory ./coverage/integration \
             --settings "$INTEGRATION_RUNSETTINGS"
 
+          # Ensure integration coverage file is moved to a predictable location for aggregation
+          COVERAGE_FILE=$(find "./coverage/integration" -type f -name "coverage.cobertura.xml" -print -quit)
+          if [ -f "$COVERAGE_FILE" ]; then
+            mv "$COVERAGE_FILE" "./coverage/integration/integration.cobertura.xml"
+            echo "✅ Integration coverage file moved to ./coverage/integration/integration.cobertura.xml"
+          else
+            echo "⚠️ Warning: Integration coverage file not found"
+          fi
+
       - name: Configure DOTNET_ROOT for ReportGenerator
         run: |
           DOTNET_PATH="$(which dotnet)"
@@ -240,8 +249,8 @@ jobs:
           reports: "coverage/**/*.cobertura.xml"
           targetdir: "coverage/aggregate"
           reporttypes: "Cobertura;JsonSummary"
-          assemblyfilters: "+MeAjudaAi.*;-MeAjudaAi.AppHost;-MeAjudaAi.ServiceDefaults;-MeAjudaAi.Contracts"
-          classfilters: "-*.Tests;-*.Tests.*;-*Test*;-testhost;-*.Migrations.*;-*.Database.*;-*.Monitoring.*;-*.Keycloak.*;-*.Logging.*;-*.Messaging.*;-*.Jobs.Hangfire*;-*Program*"
+          assemblyfilters: "+MeAjudaAi.*;-MeAjudaAi.AppHost;-MeAjudaAi.ServiceDefaults"
+          classfilters: "-*.Tests;-*.Tests.*;-*Test*;-testhost;-*.Migrations.*;-*Program*"
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
