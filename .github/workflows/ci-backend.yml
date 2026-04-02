@@ -184,12 +184,13 @@ jobs:
             if [ -d "$module_path" ]; then
               MODULE_COVERAGE_DIR="./coverage/${module_name,,}"
               mkdir -p "$MODULE_COVERAGE_DIR"
-              INCLUDE_FILTER="[${include_pattern}]*"
+              # Use a broad include filter so unit tests also contribute to Shared and Contracts coverage
+              INCLUDE_FILTER="[MeAjudaAi.*]*"
               EXCLUDE_FILTER="[*.Tests*]*,[*Test*]*,[testhost]*"
               EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs,**/Migrations/*.cs,**/Database/*.cs"
               RUNSETTINGS_FILE="/tmp/${module_name,,}.runsettings"
               
-              # Set threshold to 0 locally to avoid stopping the pipeline
+              # Set threshold to 0 locally to avoid stopping the pipeline prematurely
               COVERAGE_THRESHOLD=0 generate_runsettings "$RUNSETTINGS_FILE" "$EXCLUDE_FILTER" "$EXCLUDE_BY_FILE" "Obsolete,GeneratedCode" "$INCLUDE_FILTER"
 
               dotnet test "$module_path" \
