@@ -184,10 +184,11 @@ jobs:
             if [ -d "$module_path" ]; then
               MODULE_COVERAGE_DIR="./coverage/${module_name,,}"
               mkdir -p "$MODULE_COVERAGE_DIR"
-              # Use a broad include filter so unit tests also contribute to Shared and Contracts coverage
-              INCLUDE_FILTER="[MeAjudaAi.*]*"
+              # Include all MeAjudaAi projects to capture cross-module coverage
+              INCLUDE_FILTER="[MeAjudaAi*]*"
               EXCLUDE_FILTER="[*.Tests*]*,[*Test*]*,[testhost]*"
-              EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs,**/Migrations/*.cs,**/Database/*.cs"
+              # Remove **/Database/*.cs from exclusion as it contains repositories and mapping logic
+              EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs,**/Migrations/*.cs"
               RUNSETTINGS_FILE="/tmp/${module_name,,}.runsettings"
               
               # Set threshold to 0 locally to avoid stopping the pipeline prematurely
@@ -241,7 +242,7 @@ jobs:
           echo "PostgreSQL is ready"
 
       - name: Run Integration Tests
-        continue-on-error: true
+        # Remove continue-on-error to see the real failure
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true
@@ -256,23 +257,26 @@ jobs:
         run: |
           source "./.github/scripts/generate-runsettings.sh"
           INTEGRATION_RUNSETTINGS="/tmp/integration.runsettings"
-          # Force local threshold to 0 to ensure completion and include all MeAjudaAi assemblies
-          COVERAGE_THRESHOLD=0 generate_runsettings "$INTEGRATION_RUNSETTINGS" "[*.Tests]*" "**/*OpenApi*.generated.cs" "Obsolete" "[MeAjudaAi*]*"
+          EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs,**/Migrations/*.cs"
+          COVERAGE_THRESHOLD=0 generate_runsettings "$INTEGRATION_RUNSETTINGS" "[*.Tests]*" "$EXCLUDE_BY_FILE" "Obsolete" "[MeAjudaAi*]*"
           
+          echo "🚀 Starting Integration Tests (expected duration ~40m)..."
           dotnet test tests/MeAjudaAi.Integration.Tests/ \
             --configuration Release --no-build \
             --collect:"XPlat Code Coverage" \
             --results-directory ./coverage/integration \
-            --settings "$INTEGRATION_RUNSETTINGS"
+            --settings "$INTEGRATION_RUNSETTINGS" \
+            --verbosity normal
 
-          # Use a more robust way to find and move the file
+          # Move file for aggregation
           mkdir -p ./coverage/integration
           find ./coverage/integration -type f -name "coverage.cobertura.xml" -exec mv {} ./coverage/integration/integration.cobertura.xml \;
           
           if [ -f "./coverage/integration/integration.cobertura.xml" ]; then
-            echo "✅ Integration coverage file ready for aggregation."
+            echo "✅ Integration coverage file generated successfully."
           else
-            echo "❌ Error: Integration coverage file was NOT generated. Tests may have crashed."
+            echo "❌ CRITICAL ERROR: Integration coverage file was NOT generated."
+            exit 1
           fi
 
       - name: Configure DOTNET_ROOT for ReportGenerator
@@ -287,7 +291,7 @@ jobs:
           targetdir: "coverage/aggregate"
           reporttypes: "Cobertura;JsonSummary"
           assemblyfilters: "+MeAjudaAi.*;-MeAjudaAi.AppHost;-MeAjudaAi.ServiceDefaults"
-          classfilters: "-*.Tests;-*.Tests.*;-*Test*;-testhost;-*.Migrations.*;-*Program*"
+          classfilters: "-*.Tests;-*.Tests.*;-*Test*;-testhost;-*.Migrations.*;-*Program*;-*.Seeding.*;-*.Monitoring.*"
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
