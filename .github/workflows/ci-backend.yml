@@ -147,102 +147,7 @@ jobs:
           postgres-user: ${{ env.POSTGRES_USER }}
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
 
-      - name: Run Unit Tests with Coverage
-        env:
-          ASPNETCORE_ENVIRONMENT: Testing
-          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
-          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
-          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
-          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
-          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
-          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
-          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
-          AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
-        run: |
-          # Disable 'exit on error' for the loop to ensure all modules are tested
-          # and integration tests get a chance to run
-          set +e
-          rm -rf ./coverage
-          mkdir -p ./coverage
-          
-          MODULES=(
-            "Users:src/Modules/Users/Tests/:MeAjudaAi.Modules.Users.*"
-            "Providers:src/Modules/Providers/Tests/:MeAjudaAi.Modules.Providers.*"
-            "Documents:src/Modules/Documents/Tests/:MeAjudaAi.Modules.Documents.*"
-            "ServiceCatalogs:src/Modules/ServiceCatalogs/Tests/:MeAjudaAi.Modules.ServiceCatalogs.*"
-            "Locations:src/Modules/Locations/Tests/:MeAjudaAi.Modules.Locations.*"
-            "SearchProviders:src/Modules/SearchProviders/Tests/:MeAjudaAi.Modules.SearchProviders.*"
-            "Shared:tests/MeAjudaAi.Shared.Tests/:MeAjudaAi.Shared"
-            "ApiService:tests/MeAjudaAi.ApiService.Tests/:MeAjudaAi.ApiService"
-          )
-
-          source "./.github/scripts/generate-runsettings.sh"
-
-          FAILED_TESTS=0
-          for module_info in "${MODULES[@]}"; do
-            IFS=':' read -r module_name module_path include_pattern <<< "$module_info"
-            if [ -d "$module_path" ]; then
-              MODULE_COVERAGE_DIR="./coverage/${module_name,,}"
-              mkdir -p "$MODULE_COVERAGE_DIR"
-              # Include all MeAjudaAi projects to capture cross-module coverage
-              INCLUDE_FILTER="[MeAjudaAi*]*"
-              EXCLUDE_FILTER="[*.Tests*]*,[*Test*]*,[testhost]*"
-              # Remove **/Database/*.cs from exclusion as it contains repositories and mapping logic
-              EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs,**/Migrations/*.cs"
-              RUNSETTINGS_FILE="/tmp/${module_name,,}.runsettings"
-              
-              # Set threshold to 0 locally to avoid stopping the pipeline prematurely
-              COVERAGE_THRESHOLD=0 generate_runsettings "$RUNSETTINGS_FILE" "$EXCLUDE_FILTER" "$EXCLUDE_BY_FILE" "Obsolete,GeneratedCode" "$INCLUDE_FILTER"
-
-              dotnet test "$module_path" \
-                --configuration Release \
-                --no-build \
-                --collect:"XPlat Code Coverage" \
-                --results-directory "$MODULE_COVERAGE_DIR" \
-                --settings "$RUNSETTINGS_FILE"
-              
-              if [ $? -ne 0 ]; then
-                echo "⚠️ Warning: Tests or coverage failed for $module_name, but continuing to allow integration tests."
-              fi
-
-              COVERAGE_FILE=$(find "$MODULE_COVERAGE_DIR" -type f -name "coverage.cobertura.xml" -print -quit)
-              if [ -f "$COVERAGE_FILE" ]; then
-                mv "$COVERAGE_FILE" "$MODULE_COVERAGE_DIR/${module_name,,}.cobertura.xml"
-              fi
-            fi
-          done
-          set -e
-
-      - name: Run Architecture Tests
-        continue-on-error: true
-        run: |
-          dotnet test tests/MeAjudaAi.Architecture.Tests/ \
-            --configuration Release --no-build --verbosity normal
-
-      - name: Free Disk Space
-        run: |
-          docker system prune -af --volumes || true
-          sudo apt-get clean
-          sudo rm -rf /usr/local/lib/android /opt/ghc /usr/local/.ghcup || true
-
-      - name: Wait for PostgreSQL
-        shell: bash
-        run: |
-          max_attempts=60
-          attempt=0
-          until pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; do
-            attempt=$((attempt + 1))
-            if [ $attempt -ge $max_attempts ]; then
-              echo "ERROR: PostgreSQL did not become ready after $max_attempts attempts"
-              exit 1
-            fi
-            echo "Waiting for PostgreSQL... (attempt $attempt/$max_attempts)"
-            sleep 2
-          done
-          echo "PostgreSQL is ready"
-
-      - name: Run Integration Tests
-        # Remove continue-on-error to see the real failure
+      - name: Run All Tests (Unit + Integration)
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true
@@ -255,27 +160,22 @@ jobs:
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
           AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
         run: |
-          source "./.github/scripts/generate-runsettings.sh"
-          INTEGRATION_RUNSETTINGS="/tmp/integration.runsettings"
-          EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs,**/Migrations/*.cs"
-          COVERAGE_THRESHOLD=0 generate_runsettings "$INTEGRATION_RUNSETTINGS" "[*.Tests]*" "$EXCLUDE_BY_FILE" "Obsolete" "[MeAjudaAi*]*"
-          
-          echo "🚀 Starting Integration Tests (expected duration ~40m)..."
-          dotnet test tests/MeAjudaAi.Integration.Tests/ \
+          echo "🚀 Running Unified Test Suite (expected duration ~40m)..."
+          dotnet test MeAjudaAi.slnx \
             --configuration Release --no-build \
             --collect:"XPlat Code Coverage" \
-            --results-directory ./coverage/integration \
-            --settings "$INTEGRATION_RUNSETTINGS" \
+            --results-directory ./coverage \
+            --settings ./coverlet.runsettings \
             --verbosity normal
 
-          # Move file for aggregation
-          mkdir -p ./coverage/integration
-          find ./coverage/integration -type f -name "coverage.cobertura.xml" -exec mv {} ./coverage/integration/integration.cobertura.xml \;
+          # Ensure all coverage files are ready for aggregation
+          mkdir -p ./coverage/aggregate
+          find ./coverage -type f -name "coverage.cobertura.xml" -exec mv {} ./coverage/aggregate/ \;
           
-          if [ -f "./coverage/integration/integration.cobertura.xml" ]; then
-            echo "✅ Integration coverage file generated successfully."
+          if [ -d "./coverage/aggregate" ]; then
+            echo "✅ All coverage files collected for aggregation."
           else
-            echo "❌ CRITICAL ERROR: Integration coverage file was NOT generated."
+            echo "❌ CRITICAL ERROR: Coverage files were NOT generated."
             exit 1
           fi
 
@@ -287,14 +187,11 @@ jobs:
       - name: Generate aggregated coverage report
         uses: danielpalme/ReportGenerator-GitHub-Action@5
         with:
-          reports: "coverage/**/*.cobertura.xml"
-          targetdir: "coverage/aggregate"
+          reports: "coverage/aggregate/**/*.cobertura.xml"
+          targetdir: "coverage/final_report"
           reporttypes: "Cobertura;JsonSummary"
           assemblyfilters: "+MeAjudaAi.*;-MeAjudaAi.AppHost;-MeAjudaAi.ServiceDefaults"
-          # Included: Authorization, Messaging, Database, Infrastructure logic
-          # Excluded: Tests, Migrations, Program/Startup, Seeding (test data), Monitoring (Otel setup)
           classfilters: "-*.Tests;-*.Tests.*;-*Test*;-testhost;-*.Migrations.*;-*Program*;-*.Seeding.*;-*.Monitoring.*"
-
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
@@ -306,7 +203,7 @@ jobs:
       - name: Code Coverage Summary
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          filename: "coverage/aggregate/Cobertura.xml"
+          filename: "coverage/final_report/Cobertura.xml"
           badge: true
           format: markdown
           output: both
