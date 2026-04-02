@@ -13,6 +13,9 @@ public class DocumentsEndpointsTests(ITestOutputHelper testOutput) : BaseApiTest
     [Fact]
     public async Task GetDocumentStatus_ShouldReturnOk_OrNotFound()
     {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+
         // Act
         var response = await Client.GetAsync($"/api/v1/documents/status/{Guid.NewGuid()}");
 
@@ -23,6 +26,9 @@ public class DocumentsEndpointsTests(ITestOutputHelper testOutput) : BaseApiTest
     [Fact]
     public async Task ProviderDocuments_Get_ShouldReturnOk()
     {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+
         // Act
         var response = await Client.GetAsync($"/api/v1/documents/provider/{Guid.NewGuid()}");
 
@@ -58,5 +64,24 @@ public class DocumentsEndpointsTests(ITestOutputHelper testOutput) : BaseApiTest
         // 2. Reject
         var rejectResponse = await Client.PostAsJsonAsync($"/api/v1/documents/{documentId}/verify", new { approved = false, notes = "Bad picture" });
         rejectResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound, HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task UploadDocument_ShouldWork()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var content = new MultipartFormDataContent();
+        var fileContent = new ByteArrayContent(new byte[] { 0x01, 0x02, 0x03 });
+        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+        content.Add(fileContent, "file", "test.jpg");
+        content.Add(new StringContent("1"), "documentType");
+        content.Add(new StringContent(Guid.NewGuid().ToString()), "providerId");
+
+        // Act
+        var response = await Client.PostAsync("/api/v1/documents/upload", content);
+
+        // Assert
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.BadRequest, HttpStatusCode.NotFound, HttpStatusCode.UnsupportedMediaType);
     }
 }

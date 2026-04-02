@@ -80,4 +80,52 @@ public class ServiceCatalogsEndpointsTests(ITestOutputHelper testOutput) : BaseA
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
+
+    [Fact]
+    public async Task ServiceCatalogs_GetServicesByCategory_ShouldReturnOk()
+    {
+        // Act
+        var response = await Client.GetAsync($"/api/v1/service-catalogs/categories/{Guid.NewGuid()}/services");
+
+        // Assert
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task ServiceCatalogs_GetCategoriesWithCount_ShouldReturnOk()
+    {
+        // Act
+        var response = await Client.GetAsync("/api/v1/service-catalogs/categories/with-count");
+
+        // Assert
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task ServiceCatalogs_ValidateServices_ShouldReturnOk()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/v1/service-catalogs/services/validate", new { serviceIds = new[] { Guid.NewGuid() } });
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task ServiceCatalogs_ChangeServiceCategory_ShouldWork()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var serviceId = Guid.NewGuid();
+        var categoryId = Guid.NewGuid();
+
+        // Act
+        var response = await Client.PostAsJsonAsync($"/api/v1/service-catalogs/services/{serviceId}/change-category", new { categoryId = categoryId });
+
+        // Assert
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound, HttpStatusCode.BadRequest);
+    }
 }
