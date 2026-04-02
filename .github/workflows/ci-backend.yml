@@ -224,16 +224,39 @@ jobs:
           sudo apt-get clean
           sudo rm -rf /usr/local/lib/android /opt/ghc /usr/local/.ghcup || true
 
+      - name: Wait for PostgreSQL
+        shell: bash
+        run: |
+          max_attempts=60
+          attempt=0
+          until pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; do
+            attempt=$((attempt + 1))
+            if [ $attempt -ge $max_attempts ]; then
+              echo "ERROR: PostgreSQL did not become ready after $max_attempts attempts"
+              exit 1
+            fi
+            echo "Waiting for PostgreSQL... (attempt $attempt/$max_attempts)"
+            sleep 2
+          done
+          echo "PostgreSQL is ready"
+
       - name: Run Integration Tests
         continue-on-error: true
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
           ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
+          AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
         run: |
           source "./.github/scripts/generate-runsettings.sh"
           INTEGRATION_RUNSETTINGS="/tmp/integration.runsettings"
-          # Force local threshold to 0 to ensure completion
+          # Force local threshold to 0 to ensure completion and include all MeAjudaAi assemblies
           COVERAGE_THRESHOLD=0 generate_runsettings "$INTEGRATION_RUNSETTINGS" "[*.Tests]*" "**/*OpenApi*.generated.cs" "Obsolete" "[MeAjudaAi*]*"
           
           dotnet test tests/MeAjudaAi.Integration.Tests/ \
@@ -249,7 +272,7 @@ jobs:
           if [ -f "./coverage/integration/integration.cobertura.xml" ]; then
             echo "✅ Integration coverage file ready for aggregation."
           else
-            echo "❌ Error: Integration coverage file was NOT generated."
+            echo "❌ Error: Integration coverage file was NOT generated. Tests may have crashed."
           fi
 
       - name: Configure DOTNET_ROOT for ReportGenerator
