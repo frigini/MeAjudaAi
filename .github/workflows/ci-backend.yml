@@ -163,7 +163,46 @@ jobs:
           done
           echo "PostgreSQL is ready"
 
-      - name: Run All Tests (Unit + Integration)
+      - name: Run Unit Tests with Coverage
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
+          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
+          AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
+        run: |
+          rm -rf ./coverage
+          mkdir -p ./coverage/aggregate
+          
+          MODULES=(
+            "src/Modules/Users/Tests/MeAjudaAi.Modules.Users.Tests.csproj"
+            "src/Modules/Providers/Tests/MeAjudaAi.Modules.Providers.Tests.csproj"
+            "src/Modules/Documents/Tests/MeAjudaAi.Modules.Documents.Tests.csproj"
+            "src/Modules/ServiceCatalogs/Tests/MeAjudaAi.Modules.ServiceCatalogs.Tests.csproj"
+            "src/Modules/Locations/Tests/MeAjudaAi.Modules.Locations.Tests.csproj"
+            "src/Modules/SearchProviders/Tests/MeAjudaAi.Modules.SearchProviders.Tests.csproj"
+            "tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj"
+            "tests/MeAjudaAi.ApiService.Tests/MeAjudaAi.ApiService.Tests.csproj"
+            "tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj"
+          )
+
+          for module in "${MODULES[@]}"; do
+            if [ -f "$module" ]; then
+              module_name=$(basename "$module" .csproj)
+              echo "🧪 Testing $module_name..."
+              dotnet test "$module" \
+                --configuration Release --no-build \
+                --collect:"XPlat Code Coverage" \
+                --results-directory "./coverage/$module_name" \
+                --settings ./coverlet.runsettings
+            fi
+          done
+
+      - name: Run Integration Tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true
@@ -176,15 +215,16 @@ jobs:
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
           AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
         run: |
-          echo "🚀 Running Unified Test Suite (expected duration ~40m)..."
-          dotnet test MeAjudaAi.slnx \
+          echo "🚀 Running Integration Tests (expected duration ~40m)..."
+          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
             --configuration Release --no-build \
             --collect:"XPlat Code Coverage" \
-            --results-directory ./coverage \
+            --results-directory ./coverage/integration \
             --settings ./coverlet.runsettings \
             --verbosity normal
 
-          # Fix: Move coverage files with UNIQUE names to prevent overwriting
+      - name: Collect and rename coverage files
+        run: |
           mkdir -p ./coverage/aggregate
           counter=0
           find ./coverage -type f -name "coverage.cobertura.xml" | while read -r file; do
