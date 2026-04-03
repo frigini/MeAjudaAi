@@ -163,8 +163,50 @@ jobs:
           done
           echo "PostgreSQL is ready"
 
-      - name: Run All Tests (Unit + Integration)
-        id: run-tests
+      - name: Run Unit Tests with Coverage
+        id: unit-tests
+        continue-on-error: true
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
+          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
+          AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
+        run: |
+          echo "🧪 Running Unit & Architecture Tests..."
+          rm -rf ./coverage
+          mkdir -p ./coverage
+          
+          # Run unit tests per module for isolation
+          MODULES=(
+            "src/Modules/Users/Tests/MeAjudaAi.Modules.Users.Tests.csproj"
+            "src/Modules/Providers/Tests/MeAjudaAi.Modules.Providers.Tests.csproj"
+            "src/Modules/Documents/Tests/MeAjudaAi.Modules.Documents.Tests.csproj"
+            "src/Modules/ServiceCatalogs/Tests/MeAjudaAi.Modules.ServiceCatalogs.Tests.csproj"
+            "src/Modules/Locations/Tests/MeAjudaAi.Modules.Locations.Tests.csproj"
+            "src/Modules/SearchProviders/Tests/MeAjudaAi.Modules.SearchProviders.Tests.csproj"
+            "tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj"
+            "tests/MeAjudaAi.ApiService.Tests/MeAjudaAi.ApiService.Tests.csproj"
+            "tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj"
+          )
+
+          for module in "${MODULES[@]}"; do
+            if [ -f "$module" ]; then
+              module_name=$(basename "$module" .csproj)
+              dotnet test "$module" \
+                --configuration Release --no-build \
+                --collect:"XPlat Code Coverage" \
+                --results-directory "./coverage/unit/$module_name" \
+                --settings ./coverlet.runsettings
+            fi
+          done
+
+      - name: Run Integration Tests
+        id: integration-tests
         continue-on-error: true
         env:
           ASPNETCORE_ENVIRONMENT: Testing
@@ -178,36 +220,30 @@ jobs:
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
           AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
         run: |
-          echo "🚀 Running All Tests (expected duration ~40m)..."
-          rm -rf ./coverage
-          mkdir -p ./coverage
-          
-          dotnet test MeAjudaAi.slnx \
+          echo "🚀 Running Integration Tests (expected duration ~40m)..."
+          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
             --configuration Release --no-build \
             --collect:"XPlat Code Coverage" \
-            --results-directory ./coverage \
+            --results-directory ./coverage/integration \
             --settings ./coverlet.runsettings \
             --verbosity normal
 
       - name: Collect and aggregate coverage files
         run: |
           mkdir -p ./coverage/aggregate
-          # Find all Cobertura files and move them to aggregate folder with unique names
-          find ./coverage -type f -name "coverage.cobertura.xml" | each { |file, index|
-            mv "$file" "./coverage/aggregate/coverage_${index}.cobertura.xml"
-          } || true
-          
-          # Alternative if the above shell syntax fails in some environments
           counter=0
+          # Standard bash loop to find and rename coverage files uniquely
           find ./coverage -type f -name "coverage.cobertura.xml" | while read -r file; do
-            ((counter++))
-            cp "$file" "./coverage/aggregate/coverage_v2_${counter}.cobertura.xml"
+            counter=$((counter + 1))
+            cp "$file" "./coverage/aggregate/coverage_${counter}.cobertura.xml"
+            echo "✅ Collected: $file as coverage_${counter}.cobertura.xml"
           done
           
-          if [ -n "$(find ./coverage/aggregate -name "*.xml" -print -quit)" ]; then
-            echo "✅ Coverage files collected."
+          if [ -n "$(ls -A ./coverage/aggregate/ 2>/dev/null)" ]; then
+            echo "✅ All coverage files ready for aggregation."
           else
-            echo "⚠️ Warning: No coverage files found. This might happen if tests crashed before generating reports."
+            echo "❌ CRITICAL ERROR: No coverage files were generated."
+            exit 1
           fi
 
       - name: Configure DOTNET_ROOT for ReportGenerator
