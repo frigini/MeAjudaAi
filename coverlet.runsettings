@@ -9,8 +9,8 @@
           <Exclude>[*.Tests*]*,[*Test*]*,[testhost]*,[*]*Migrations*,[*]*.DbContextFactory,[*Microsoft.AspNetCore.OpenApi.Generated*]*,[*System.Runtime.CompilerServices*]*,[*System.Text.RegularExpressions.Generated*]*</Exclude>
           <ExcludeByFile>**/Migrations/*.cs,**/Migrations/**/*.cs,**/*DbContextFactory.cs</ExcludeByFile>
           <ExcludeByAttribute>Obsolete,GeneratedCode,CompilerGenerated</ExcludeByAttribute>
-          <!-- Threshold applied only to the final aggregate -->
-          <Threshold>90</Threshold>
+          <!-- Threshold set to 0 to allow full report generation. Final check is done by CodeCoverageSummary -->
+          <Threshold>0</Threshold>
           <ThresholdType>line</ThresholdType>
           <ThresholdStat>total</ThresholdStat>
         </Configuration>

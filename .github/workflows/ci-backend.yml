@@ -147,6 +147,22 @@ jobs:
           postgres-user: ${{ env.POSTGRES_USER }}
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
 
+      - name: Wait for PostgreSQL
+        shell: bash
+        run: |
+          max_attempts=60
+          attempt=0
+          until pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; do
+            attempt=$((attempt + 1))
+            if [ $attempt -ge $max_attempts ]; then
+              echo "ERROR: PostgreSQL did not become ready after $max_attempts attempts"
+              exit 1
+            fi
+            echo "Waiting for PostgreSQL... (attempt $attempt/$max_attempts)"
+            sleep 2
+          done
+          echo "PostgreSQL is ready"
+
       - name: Run All Tests (Unit + Integration)
         env:
           ASPNETCORE_ENVIRONMENT: Testing
@@ -168,12 +184,17 @@ jobs:
             --settings ./coverlet.runsettings \
             --verbosity normal
 
-          # Ensure all coverage files are ready for aggregation
+          # Fix: Move coverage files with UNIQUE names to prevent overwriting
           mkdir -p ./coverage/aggregate
-          find ./coverage -type f -name "coverage.cobertura.xml" -exec mv {} ./coverage/aggregate/ \;
+          counter=0
+          find ./coverage -type f -name "coverage.cobertura.xml" | while read -r file; do
+            ((counter++))
+            mv "$file" "./coverage/aggregate/coverage_${counter}.cobertura.xml"
+            echo "✅ Collected: $file as coverage_${counter}.cobertura.xml"
+          done
           
-          if [ -d "./coverage/aggregate" ]; then
-            echo "✅ All coverage files collected for aggregation."
+          if [ "$(ls -A ./coverage/aggregate/)" ]; then
+            echo "✅ All $(ls ./coverage/aggregate/ | wc -l) coverage files ready for aggregation."
           else
             echo "❌ CRITICAL ERROR: Coverage files were NOT generated."
             exit 1
