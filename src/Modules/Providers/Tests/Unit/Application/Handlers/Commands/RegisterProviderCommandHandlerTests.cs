@@ -43,7 +43,7 @@ public class RegisterProviderCommandHandlerTests
 
         var existingProvider = new Provider(userId, "Existing Provider", EProviderType.Individual, 
             new BusinessProfile("Legal", new ContactInfo("test@test.com", "11999999999"), 
-                new Address("R", "1", null, "N", "C", "SP", "00000000")));
+                new Address("R", "1", string.Empty, "N", "C", "SP", "00000000")));
                 
         _providerRepositoryMock
             .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))

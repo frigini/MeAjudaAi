@@ -49,7 +49,7 @@ public class ProviderEventMappersTests
         result.UserId.Should().Be(userId);
         result.Name.Should().Be("Test Provider");
         result.Reason.Should().Be("Provider deleted");
-        result.DeletedBy.Should().Be(userId);
+        result.DeletedBy.Should().Be(userId.ToString());
         result.DeletedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 
@@ -72,7 +72,7 @@ public class ProviderEventMappersTests
         result.Name.Should().Be("Test Provider");
         result.PreviousStatus.Should().Be("Pending");
         result.NewStatus.Should().Be("Verified");
-        result.UpdatedBy.Should().Be(userId);
+        result.UpdatedBy.Should().Be(userId.ToString());
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class ProviderEventMappersTests
         result.NewEmail.Should().Be("new@test.com");
         result.Slug.Should().Be("new-name");
         result.UpdatedFields.Should().BeEquivalentTo(fields);
-        result.UpdatedBy.Should().Be(userId);
+        result.UpdatedBy.Should().Be(userId.ToString());
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public class ProviderEventMappersTests
         result.ProviderId.Should().Be(providerId);
         result.UserId.Should().Be(userId);
         result.Name.Should().Be("Test");
-        result.UpdatedBy.Should().Be(userId);
+        result.UpdatedBy.Should().Be(userId.ToString());
         result.TransitionedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 
@@ -135,7 +135,7 @@ public class ProviderEventMappersTests
         result.ProviderId.Should().Be(providerId);
         result.UserId.Should().Be(userId);
         result.Name.Should().Be("Test");
-        result.ActivatedBy.Should().Be(userId);
+        result.ActivatedBy.Should().Be(userId.ToString());
         result.ActivatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 }
