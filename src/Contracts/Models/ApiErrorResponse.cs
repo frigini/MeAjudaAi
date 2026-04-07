@@ -7,6 +7,7 @@ namespace MeAjudaAi.Contracts.Models;
 /// Utilizado para documentação OpenAPI e padronização de respostas de erro.
 /// Todos os endpoints que retornam erro devem seguir este formato.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public class ApiErrorResponse
 {
     /// <summary>

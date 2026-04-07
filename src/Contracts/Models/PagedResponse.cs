@@ -3,6 +3,7 @@ namespace MeAjudaAi.Contracts.Models;
 /// <summary>
 /// Envelope padrão para respostas paginadas da API
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record PagedResponse<T>
 {
     /// <summary>

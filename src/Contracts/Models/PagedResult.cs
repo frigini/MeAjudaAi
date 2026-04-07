@@ -8,6 +8,7 @@ namespace MeAjudaAi.Contracts.Models;
 /// Usado para retornar listas paginadas com metadados de navegação,
 /// permitindo implementar paginação no frontend de forma eficiente.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public sealed record PagedResult<T>
 {
     /// <summary>
