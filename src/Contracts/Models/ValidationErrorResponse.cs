@@ -1,10 +1,16 @@
 using MeAjudaAi.Contracts.Utilities.Constants;
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Contracts.Models;
 
 /// <summary>
 /// Modelo específico para erros de validação.
 /// </summary>
+/// <remarks>
+/// Usado quando a validação de entrada falha, fornecendo detalhes
+/// específicos sobre quais campos têm problemas.
+/// </remarks>
 [ExcludeFromCodeCoverage]
 public class ValidationErrorResponse : ApiErrorResponse
 {

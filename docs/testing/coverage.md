@@ -1297,7 +1297,7 @@ reportgenerator `
 
 ### Conceito
 
-A partir de Abril/2026, o projeto adotou uma estratégia híbrida para管理 coverage:
+A partir de Abril/2026, o projeto adotou uma estratégia híbrida para gerenciar coverage:
 
 1. **Atributo `[ExcludeFromCodeCoverage]` no código** - Preferível para classes de configuração/DTOs
 2. **Filtros no YAML do CI** - Para categorias inteiras que não são código de negócio

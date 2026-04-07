@@ -231,9 +231,11 @@ jobs:
       - name: Collect and aggregate coverage files
         run: |
           mkdir -p ./coverage/aggregate
+          # Use mapfile for robust array handling (avoids subshell issue with pipe|while)
+          mapfile -t coverage_files < <(find ./coverage -type f -name "coverage.cobertura.xml")
+          
           counter=0
-          # Standard bash loop to find and rename coverage files uniquely
-          find ./coverage -type f -name "coverage.cobertura.xml" | while read -r file; do
+          for file in "${coverage_files[@]}"; do
             counter=$((counter + 1))
             cp "$file" "./coverage/aggregate/coverage_${counter}.cobertura.xml"
             echo "✅ Collected: $file as coverage_${counter}.cobertura.xml"
