@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Messaging.Options;
 
 /// <summary>
 /// Opções de configuração para Dead Letter Queue (DLQ)
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class DeadLetterOptions
 {
     public const string SectionName = "Messaging:DeadLetter";
@@ -84,6 +87,7 @@ public sealed class DeadLetterOptions
 /// <summary>
 /// Configurações específicas de DLQ para RabbitMQ
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class RabbitMqDeadLetterOptions
 {
     /// <summary>

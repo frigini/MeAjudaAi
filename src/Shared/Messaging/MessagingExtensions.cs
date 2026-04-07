@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Messaging.Factories;
@@ -18,6 +19,7 @@ namespace MeAjudaAi.Shared.Messaging;
 /// </summary>
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2094:Classes should not be empty", 
     Justification = "Classe de categorização de logs - mantida para uso futuro")]
+[ExcludeFromCodeCoverage]
 internal sealed class MessagingConfiguration
 {
 }

@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Messaging.Strategy;
 
 namespace MeAjudaAi.Shared.Messaging.Options;
 
+[ExcludeFromCodeCoverage]
 public sealed class RabbitMqOptions
 {
     public const string SectionName = "Messaging:RabbitMQ";

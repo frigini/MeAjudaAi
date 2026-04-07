@@ -1,10 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Authorization.Keycloak;
 
 /// <summary>
 /// Opções de configuração para integração com Keycloak.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class KeycloakPermissionOptions
 {
     /// <summary>

@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Caching.Hybrid;
 
 namespace MeAjudaAi.Shared.Caching;
 
+[ExcludeFromCodeCoverage]
 public sealed class CacheOptions
 {
     public TimeSpan? Expiration { get; init; }

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
@@ -393,6 +394,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
 /// <summary>
 /// Configuração para integração com Keycloak.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class KeycloakConfiguration
 {
     public string BaseUrl { get; set; } = string.Empty;
@@ -404,6 +406,7 @@ public sealed class KeycloakConfiguration
 /// <summary>
 /// Resposta do token do Keycloak.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal sealed class TokenResponse
 {
     [JsonPropertyName("access_token")]
@@ -419,6 +422,7 @@ internal sealed class TokenResponse
 /// <summary>
 /// Representação do usuário no Keycloak.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal sealed class KeycloakUser
 {
     [JsonPropertyName("id")]
@@ -437,6 +441,7 @@ internal sealed class KeycloakUser
 /// <summary>
 /// Representação do role no Keycloak.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal sealed class KeycloakRole
 {
     [JsonPropertyName("id")]
