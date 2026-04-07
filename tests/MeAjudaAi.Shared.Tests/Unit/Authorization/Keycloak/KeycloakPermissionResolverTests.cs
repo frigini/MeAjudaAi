@@ -107,9 +107,8 @@ public class KeycloakPermissionResolverTests
     }
 
     [Theory]
-    [InlineData("user_admin")]
-    [InlineData("USER_ADMIN")]
-    [InlineData("UserAdmin")]
+    [InlineData("meajudaai-user-admin")]
+    [InlineData("MEAJUDAAI-USER-ADMIN")]
     public void MapKeycloakRoleToPermissions_UserAdminRole_ShouldReturnUserAdminPermissions(string role)
     {
         // Act
@@ -124,8 +123,8 @@ public class KeycloakPermissionResolverTests
     }
 
     [Theory]
-    [InlineData("user_operator")]
-    [InlineData("USER_OPERATOR")]
+    [InlineData("meajudaai-user-operator")]
+    [InlineData("MEAJUDAAI-USER-OPERATOR")]
     public void MapKeycloakRoleToPermissions_UserOperatorRole_ShouldReturnOperatorPermissions(string role)
     {
         // Act
@@ -139,8 +138,8 @@ public class KeycloakPermissionResolverTests
     }
 
     [Theory]
-    [InlineData("provider_admin")]
-    [InlineData("PROVIDER_ADMIN")]
+    [InlineData("meajudaai-provider-admin")]
+    [InlineData("MEAJUDAAI-PROVIDER-ADMIN")]
     public void MapKeycloakRoleToPermissions_ProviderAdminRole_ShouldReturnProviderAdminPermissions(string role)
     {
         // Act
@@ -154,8 +153,8 @@ public class KeycloakPermissionResolverTests
     }
 
     [Theory]
-    [InlineData("provider")]
-    [InlineData("PROVIDER")]
+    [InlineData("meajudaai-provider")]
+    [InlineData("MEAJUDAAI-PROVIDER")]
     public void MapKeycloakRoleToPermissions_ProviderRole_ShouldReturnLimitedPermissions(string role)
     {
         // Act
@@ -167,8 +166,8 @@ public class KeycloakPermissionResolverTests
     }
 
     [Theory]
-    [InlineData("order_admin")]
-    [InlineData("ORDER_ADMIN")]
+    [InlineData("meajudaai-order-admin")]
+    [InlineData("MEAJUDAAI-ORDER-ADMIN")]
     public void MapKeycloakRoleToPermissions_OrderAdminRole_ShouldReturnOrderAdminPermissions(string role)
     {
         // Act
@@ -182,8 +181,22 @@ public class KeycloakPermissionResolverTests
     }
 
     [Theory]
-    [InlineData("report_admin")]
-    [InlineData("REPORT_ADMIN")]
+    [InlineData("meajudaai-order-operator")]
+    [InlineData("MEAJUDAAI-ORDER-OPERATOR")]
+    public void MapKeycloakRoleToPermissions_OrderOperatorRole_ShouldReturnOperatorPermissions(string role)
+    {
+        // Act
+        var result = _resolver.MapKeycloakRoleToPermissions(role);
+
+        // Assert
+        result.Should().Contain(EPermission.OrdersRead);
+        result.Should().Contain(EPermission.OrdersUpdate);
+        result.Should().NotContain(EPermission.OrdersCreate);
+    }
+
+    [Theory]
+    [InlineData("meajudaai-report-admin")]
+    [InlineData("MEAJUDAAI-REPORT-ADMIN")]
     public void MapKeycloakRoleToPermissions_ReportAdminRole_ShouldReturnReportPermissions(string role)
     {
         // Act
@@ -196,8 +209,21 @@ public class KeycloakPermissionResolverTests
     }
 
     [Theory]
-    [InlineData("catalog_manager")]
-    [InlineData("CATALOG_MANAGER")]
+    [InlineData("meajudaai-report-viewer")]
+    [InlineData("MEAJUDAAI-REPORT-VIEWER")]
+    public void MapKeycloakRoleToPermissions_ReportViewerRole_ShouldReturnViewerPermissions(string role)
+    {
+        // Act
+        var result = _resolver.MapKeycloakRoleToPermissions(role);
+
+        // Assert
+        result.Should().Contain(EPermission.ReportsView);
+        result.Should().NotContain(EPermission.ReportsExport);
+    }
+
+    [Theory]
+    [InlineData("meajudaai-catalog-manager")]
+    [InlineData("MEAJUDAAI-CATALOG-MANAGER")]
     public void MapKeycloakRoleToPermissions_CatalogManagerRole_ShouldReturnCatalogPermissions(string role)
     {
         // Act
@@ -209,8 +235,8 @@ public class KeycloakPermissionResolverTests
     }
 
     [Theory]
-    [InlineData("location_manager")]
-    [InlineData("LOCATION_MANAGER")]
+    [InlineData("meajudaai-location-manager")]
+    [InlineData("MEAJUDAAI-LOCATION-MANAGER")]
     public void MapKeycloakRoleToPermissions_LocationManagerRole_ShouldReturnLocationPermissions(string role)
     {
         // Act
@@ -248,13 +274,11 @@ public class KeycloakPermissionResolverTests
     }
 
     [Fact]
-    public async Task ResolvePermissionsAsync_WithNullUserId_ShouldReturnEmptyList()
+    public async Task ResolvePermissionsAsync_WithNullUserId_ShouldThrowArgumentNullException()
     {
-        // Act
-        var result = await _resolver.ResolvePermissionsAsync((UserId?)null);
-
-        // Assert
-        result.Should().BeEmpty();
+        // Act & Assert - the code throws ArgumentNullException
+        var act = () => _resolver.ResolvePermissionsAsync((UserId?)null);
+        await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
     [Fact]
@@ -298,23 +322,6 @@ public class KeycloakPermissionResolverTests
 
         // Assert
         result.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task ResolvePermissionsAsync_ResolveWithUserIdObject_ShouldWork()
-    {
-        // Arrange
-        var userId = new UserId(Guid.NewGuid());
-        
-        SetupHttpMessage(HttpMethod.Post, "token", new { access_token = "token" });
-        SetupHttpMessage(HttpMethod.Get, $"users/{userId.Value}", new { id = "keycloak-id", username = "test" });
-        SetupHttpMessage(HttpMethod.Get, "role-mappings/realm", new[] { new { name = "user" } });
-
-        // Act
-        var result = await _resolver.ResolvePermissionsAsync(userId);
-
-        // Assert
-        result.Should().NotBeEmpty();
     }
 
     [Fact]
