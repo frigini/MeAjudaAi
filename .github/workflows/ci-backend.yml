@@ -258,7 +258,7 @@ jobs:
           targetdir: "coverage/final_report"
           reporttypes: "Cobertura;JsonSummary"
           groupby: "Namespace"
-          assemblyfilters: "+MeAjudaAi.*;-MeAjudaAi.AppHost;-MeAjudaAi.ServiceDefaults"
+          assemblyfilters: "+MeAjudaAi.*;-MeAjudaAi.AppHost;-MeAjudaAi.ServiceDefaults;-MeAjudaAi.Contracts"
           classfilters: "-*.Tests;-*.Tests.*;-*Test*;-testhost;-*.Migrations.*;-*Program*;-*.Seeding.*;-*.Monitoring.*;-MeAjudaAi.Shared.Jobs.*;-MeAjudaAi.Shared.Mediator.*"
 
       - name: Upload coverage reports
