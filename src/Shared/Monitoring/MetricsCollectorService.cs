@@ -7,13 +7,14 @@ namespace MeAjudaAi.Shared.Monitoring;
 /// <summary>
 /// Serviço em background para coletar métricas periódicas
 /// </summary>
-internal class MetricsCollectorService(
+public class MetricsCollectorService(
     BusinessMetrics businessMetrics,
     IServiceScopeFactory serviceScopeFactory,
     TimeProvider timeProvider,
-    ILogger<MetricsCollectorService> logger) : BackgroundService
+    ILogger<MetricsCollectorService> logger,
+    TimeSpan? interval = null) : BackgroundService
 {
-    private readonly TimeSpan _interval = TimeSpan.FromMinutes(1); // Coleta a cada minuto
+    private readonly TimeSpan _interval = interval ?? TimeSpan.FromMinutes(1);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

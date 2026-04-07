@@ -6,7 +6,7 @@ namespace MeAjudaAi.Shared.Monitoring;
 /// <summary>
 /// Métricas customizadas de negócio para MeAjudaAi
 /// </summary>
-internal class BusinessMetrics : IDisposable
+public class BusinessMetrics : IDisposable
 {
     private readonly Meter _meter;
     private readonly Counter<long> _userRegistrations;
