@@ -231,4 +231,91 @@ public class DatabaseExceptionsTests
         // Assert
         result.Should().Be(dbUpdateException);
     }
+
+    [Fact]
+    public void PostgreSqlExceptionProcessor_ProcessException_WithUniqueViolation23505_ShouldReturnUniqueConstraintException()
+    {
+        // Arrange
+        var postgresException = new Npgsql.PostgresException("23505", "duplicate_key", "Key (email)=(test@test.com) already exists.", "users");
+        var dbUpdateException = new DbUpdateException("Update failed", postgresException);
+
+        // Act
+        var result = PostgreSqlExceptionProcessor.ProcessException(dbUpdateException);
+
+        // Assert
+        result.Should().BeOfType<UniqueConstraintException>();
+        var uniqueException = (UniqueConstraintException)result;
+        uniqueException.Message.Should().Contain("email");
+    }
+
+    [Fact]
+    public void PostgreSqlExceptionProcessor_ProcessException_WithNotNullViolation23502_ShouldReturnNotNullConstraintException()
+    {
+        // Arrange
+        var postgresException = new Npgsql.PostgresException("23502", "not_null_violation", "null value in column 'name'", "users");
+        var dbUpdateException = new DbUpdateException("Update failed", postgresException);
+
+        // Act
+        var result = PostgreSqlExceptionProcessor.ProcessException(dbUpdateException);
+
+        // Assert
+        result.Should().BeOfType<NotNullConstraintException>();
+    }
+
+    [Fact]
+    public void PostgreSqlExceptionProcessor_ProcessException_WithForeignKeyViolation23503_ShouldReturnForeignKeyConstraintException()
+    {
+        // Arrange
+        var postgresException = new Npgsql.PostgresException("23503", "foreign_key_violation", "violates foreign key constraint \"fk_orders_user\" on table \"orders\"", "orders");
+        var dbUpdateException = new DbUpdateException("Update failed", postgresException);
+
+        // Act
+        var result = PostgreSqlExceptionProcessor.ProcessException(dbUpdateException);
+
+        // Assert
+        result.Should().BeOfType<ForeignKeyConstraintException>();
+        var fkException = (ForeignKeyConstraintException)result;
+        fkException.Message.Should().Contain("orders");
+    }
+
+    [Fact]
+    public void PostgreSqlExceptionProcessor_ProcessException_WithUnknownState_ShouldReturnOriginal()
+    {
+        // Arrange
+        var postgresException = new Npgsql.PostgresException("99999", "unknown_error", "Some unknown error", "table");
+        var dbUpdateException = new DbUpdateException("Update failed", postgresException);
+
+        // Act
+        var result = PostgreSqlExceptionProcessor.ProcessException(dbUpdateException);
+
+        // Assert
+        result.Should().Be(dbUpdateException);
+    }
+
+    [Fact]
+    public void PostgreSqlExceptionProcessor_ProcessException_WithEmptyDetail_ShouldHandleGracefully()
+    {
+        // Arrange
+        var postgresException = new Npgsql.PostgresException("23505", "duplicate_key", "", "table");
+        var dbUpdateException = new DbUpdateException("Update failed", postgresException);
+
+        // Act
+        var result = PostgreSqlExceptionProcessor.ProcessException(dbUpdateException);
+
+        // Assert
+        result.Should().BeOfType<UniqueConstraintException>();
+    }
+
+    [Fact]
+    public void PostgreSqlExceptionProcessor_ProcessException_WithInnerExceptionNull_ShouldHandleGracefully()
+    {
+        // Arrange
+        var dbUpdateException = new DbUpdateException("Update failed");
+
+        // Act
+        var result = PostgreSqlExceptionProcessor.ProcessException(dbUpdateException);
+
+        // Assert
+        result.Should().Be(dbUpdateException);
+    }
 }
