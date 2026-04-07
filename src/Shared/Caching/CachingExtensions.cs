@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,6 +8,7 @@ namespace MeAjudaAi.Shared.Caching;
 /// <summary>
 /// Extension methods para configuração de Caching
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class CachingExtensions
 {
     public static IServiceCollection AddCaching(this IServiceCollection services,

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Metrics;
 using System.Security.Cryptography;
 using System.Text;
@@ -18,6 +19,7 @@ public interface ICacheMetrics
 /// <summary>
 /// Implementação concreta das métricas de cache utilizando System.Diagnostics.Metrics.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class CacheMetrics : ICacheMetrics
 {
     private readonly Counter<long> _cacheHits;

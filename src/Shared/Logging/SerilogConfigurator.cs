@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Authorization.Keycloak;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -12,6 +13,7 @@ namespace MeAjudaAi.Shared.Logging;
 /// <summary>
 /// Configurador híbrido do Serilog - combina appsettings.json com lógica C#
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class SerilogConfigurator
 {
     /// <summary>

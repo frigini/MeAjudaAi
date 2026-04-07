@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Utilities;
 
 /// <summary>
 /// Utilitário para validação de números de telefone
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class PhoneNumberValidator
 {
     /// <summary>

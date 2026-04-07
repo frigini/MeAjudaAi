@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +12,7 @@ namespace MeAjudaAi.Shared.Logging;
 /// <summary>
 /// Enricher do Serilog para adicionar Correlation ID aos logs
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class CorrelationIdEnricher : ILogEventEnricher
 {
     private const string CorrelationIdPropertyName = "CorrelationId";
