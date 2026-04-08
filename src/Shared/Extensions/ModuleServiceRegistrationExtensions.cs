@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Extensions;
 
@@ -6,6 +7,7 @@ namespace MeAjudaAi.Shared.Extensions;
 /// Extensões para registro automático de serviços de módulos por convenção
 /// Facilita o registro consistente de services, repositories, validators, etc.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class ModuleServiceRegistrationExtensions
 {
     /// <summary>

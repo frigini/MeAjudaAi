@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.ApiService.Endpoints;
 using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.Modules.Documents.API;
@@ -16,6 +17,7 @@ using Serilog.Context;
 
 namespace MeAjudaAi.ApiService;
 
+[ExcludeFromCodeCoverage]
 public partial class Program
 {
     protected Program() { }

@@ -23,8 +23,14 @@ public class KeycloakBootstrapService(
 
         try
         {
+            IResource? sentinelResource = null;
             await foreach (var resourceEvent in resourceNotificationService.WatchAsync(stoppingToken))
             {
+                if (resourceEvent.Resource.Name == "keycloak-clients-ready")
+                {
+                    sentinelResource = resourceEvent.Resource;
+                }
+
                 if (resourceEvent.Resource.Name == "keycloak" &&
                     resourceEvent.Snapshot.State?.Text == "Running")
                 {
@@ -44,8 +50,15 @@ public class KeycloakBootstrapService(
                                 var success = await BootstrapKeycloakAsync(url, stoppingToken);
                                 
                                 // Interrompe o loop somente após sucesso na configuração
-                                if (success)
+                                if (success && sentinelResource != null)
                                 {
+                                    // Notificar o Aspire que o bootstrap terminou
+                                    await resourceNotificationService.PublishUpdateAsync(sentinelResource, snapshot => snapshot with
+                                    {
+                                        State = new ResourceStateSnapshot("Running", "green"),
+                                        Properties = [new ResourcePropertySnapshot("Status", "Clients Configured Successfully")]
+                                    });
+
                                     break;
                                 }
                             }
