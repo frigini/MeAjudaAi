@@ -146,7 +146,7 @@
     <PackageVersion Include="System.IO.Hashing" Version="10.0.5" />
     <PackageVersion Include="System.Text.Json" Version="10.0.0" />
     <!-- IdentityModel family - aligned to 8.16.0 to avoid version skew -->
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.17.0" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Protocols" Version="8.16.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.16.0" />
     <!-- Testing Framework -->
@@ -178,11 +178,8 @@
     <PackageVersion Include="Aspire.Hosting.Azure.PostgreSQL" Version="13.2.1" />
     <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.2.1" />
     <PackageVersion Include="Aspire.Hosting.Testing" Version="13.2.1" />
-    <!-- Aspire.Hosting.Keycloak: NO STABLE VERSION EXISTS - using latest preview -->
-    <!-- Nearest available: 13.1.0-preview.1.25616.3 (updated from 13.0.2-preview.1.25603.5) -->
-    <!-- MONITORING: Check https://www.nuget.org/packages/Aspire.Hosting.Keycloak for stable release -->
-    <!-- DECISION: Package will remain in preview until Keycloak integration stabilizes in Aspire -->
-    <PackageVersion Include="Aspire.Hosting.Keycloak" Version="13.1.0-preview.1.25616.3" />
+    <!-- Aspire.Hosting.Keycloak: Updated to 13.2.1-preview.1.26180.6 (Nearest version for Aspire 13.2.1) -->
+    <PackageVersion Include="Aspire.Hosting.Keycloak" Version="13.2.1-preview.1.26180.6" />
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.2.1" />
     <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="13.2.1" />
     <!-- Aspire.Hosting.Redis: Updated to 13.1.0 (2026-02-05) -->
@@ -202,7 +199,7 @@
     <PackageVersion Include="Fluxor.Blazor.Web" Version="6.9.0" />
     <PackageVersion Include="Fluxor.Blazor.Web.ReduxDevTools" Version="6.9.0" />
     <PackageVersion Include="Refit" Version="10.1.6" />
-    <PackageVersion Include="Refit.HttpClientFactory" Version="10.0.1" />
+    <PackageVersion Include="Refit.HttpClientFactory" Version="10.1.6" />
     <!-- Blazor Testing -->
     <PackageVersion Include="bUnit" Version="2.6.2" />
   </ItemGroup>

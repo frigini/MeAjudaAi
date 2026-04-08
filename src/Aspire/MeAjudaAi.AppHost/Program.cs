@@ -196,9 +196,7 @@ internal static class Program
             .WithReference(rabbitMq)
             .WaitFor(rabbitMq)
             .WithReference(keycloak.Keycloak)
-            // NOTA: Keycloak health check removido devido a bug em Aspire.Hosting.Keycloak 13.1.0-preview
-            // Health endpoint está em HTTPS na porta 9000 mas Aspire tenta HTTP, causando falha permanente
-            // Serviços devem implementar retry interno para aguardar Keycloak ficar disponível
+            .WaitFor(keycloak.Keycloak)
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
 
         // Admin Portal (Next.js 15 React)
@@ -212,8 +210,8 @@ internal static class Program
             .WithHttpEndpoint(port: 3002, env: "PORT")
             .WithExternalHttpEndpoints()
             .WithEnvironment("NEXT_PUBLIC_API_URL", apiService.GetEndpoint("http"))
-            .WaitFor(apiService);
-            // NOTA: Keycloak WaitFor removido - veja comentário no apiService acima
+            .WaitFor(apiService)
+            .WaitFor(keycloak.Keycloak);
 
         // Aplicação Web do Cliente (Next.js 15)
         var customerWebPath = Path.Combine(builder.AppHostDirectory, "..", "..", "..", "src", "Web", "MeAjudaAi.Web.Customer");
@@ -271,7 +269,7 @@ internal static class Program
             .WithReference(rabbitMq)
             .WaitFor(rabbitMq)
             .WithReference(keycloak.Keycloak)
-            // NOTA: Keycloak WaitFor removido - veja comentário no ConfigureDevelopmentEnvironment
+            .WaitFor(keycloak.Keycloak)
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
     }
 }
