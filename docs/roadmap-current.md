@@ -665,7 +665,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 #### Risk Mitigation Strategy
 - **Contingency Branching**: If major tasks (Admin Migration, NX Setup) slip, we prioritize essential Player flows (Customer/Provider) and fallback to existing Admin solutions.
 - **Mobile Apps**: De-scoped from MVP to Phase 2 to ensure web platform stability.
-- **Buffer**: Sprint 9 is strictly for stability, no new features.
+- **Buffer**: Sprint 9 is strictly for stability, no new features (Exception: Módulo Comunicações infrastructure).
 - Documentação final para MVP
 
 ### Cenários de Risco Documentados
@@ -826,7 +826,7 @@ src/
 │       │   ├── EmailMessageDto.cs (suporte a Attachments)
 │       │   ├── SmsMessageDto.cs
 │       │   ├── PushMessageDto.cs
-│       │   └── TemplateDto.cs
+│       │   └── EmailTemplateDto.cs
 │       └── Channels/
 │           ├── IEmailChannel.cs
 │           ├── ISmsChannel.cs
@@ -873,6 +873,7 @@ src/
 ---
 
 **Mapeamento de Integração com Eventos**:
+
 | Evento Existing | Ação de Comunicação |
 |----------------|-------------------|
 | `UserRegisteredIntegrationEvent` | → Enviar email de boas-vindas |
@@ -963,7 +964,7 @@ public class CommunicationLog
 Para garantir que comunicações não sejam perdidas em caso de falha:
 
 1. **Processo com Outbox** (garantido):
-   ```
+   ```text
    Event Occurred → Save to Outbox Table (Mesma Transação) → Background Worker processa Outbox
    ```
 

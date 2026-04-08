@@ -4,7 +4,7 @@ using MeAjudaAi.Integration.Tests.Base;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 
-public class GeographicRestrictionTests(ITestOutputHelper testOutput) : BaseApiTest
+public class GeographicRestrictionTests : BaseApiTest
 {
     protected override TestModule RequiredModules => TestModule.Locations | TestModule.Providers;
 
