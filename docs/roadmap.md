@@ -9,6 +9,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 Contém o status atual das sprints, o cronograma detalhado até o MVP e o plano de mitigação de riscos.
 - **Sprint Atual**: 9 (Buffer & Risk Mitigation)
 - **Sprint Concluída**: 8E (E2E Tests & React Unit Infrastructure)
+- **Sprint em Andamento**: 9E (Buffer & Risk Mitigation + Módulo Comunicações)
 - **Meta MVP**: Maio 2026 (12-16)
 
 ---
@@ -38,6 +39,8 @@ Contém os objetivos pós-MVP e ideias para o backlog de longo prazo.
 ---
 
 ## 🏗️ Decisões Arquiteturais Recentes
+
 - **NX Monorepo**: Adotado para unificar o desenvolvimento frontend e compartilhamento de código.
 - **Dual-Stack Transition**: Transição de Blazor WASM para React 19 (Next.js) para unificação da stack.
 - **Testing Infrastructure**: Implementação de Vitest + MSW para unitários e Playwright para E2E, com agregação de cobertura global.
+- **Módulo Comunicações** (Abril 2026): Implementado durante Sprint 9 com Outbox Pattern - provedor configurável pós-MVP.

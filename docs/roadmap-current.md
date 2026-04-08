@@ -656,6 +656,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 
 **Follow-ups Pendentes**:
 - [ ] **OpenAPI Diff Gating**: Adicionar verificação de breaking changes em CI (falhar PR se API mudar sem version bump)
+- [ ] **Módulo Comunicações**: Implementar infraestrutura base (outbox pattern, templates, event handlers)
 
 ## 🎯 MVP Final Launch: 12 - 16 de Maio de 2026 🎯
 
@@ -768,12 +769,218 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - [ ] **Deployment Guide**: Deploy em Azure Container Apps (ARM templates ou Bicep)
 - [ ] **Lessons Learned**: Documentar decisões de arquitetura e trade-offs
 
+#### 6. Módulo de Comunicações (NOVO - Sprint 9)
+
+**Prioridade**: MÉDIA - Infraestrutura base para funcionalidades pós-MVP  
+**Objetivo**: Criar módulo unificado de comunicações (email, SMS, push)  
+**Contexto**: Outros módulos (Reviews, Payments, Bookings) dependem de infraestrutura de comunicações. Implementar agora evita refatoração depois.
+
+**Arquitetura Decisão** (diferente dos outros módulos):
+
+| Aspecto | Decisão |
+|---------|---------|
+| **Padrão** | Full Module (como Providers/Users) |
+| **Infraestrutura** | Outbox Pattern para garantia de entrega |
+| **Integração** | Event-driven (consome IntegrationEvents) |
+| **API Externa** | Abstração via interface (provedor configurável) |
+
+> **📝 Decisão Técnica** (8 Abr 2026): Provedor de email/sms será definido pós-MVP. Implementar com interface de abstração permitindo troca facil.
+
+---
+
+**Arquitetura de Projetos**:
+```text
+src/
+├── Contracts/
+│   └── MeAjudaAi.Contracts.Communications/
+│       ├── ICommunicationsModuleApi.cs
+│       ├── DTOs/
+│       │   ├── EmailMessageDto.cs
+│       │   ├── SmsMessageDto.cs
+│       │   └── TemplateDto.cs
+│       └── Channels/
+│           ├── IEmailChannel.cs
+│           ├── ISmsChannel.cs
+│           └── IPushChannel.cs
+│
+├── Modules/
+│   └── Communications/
+│       ├── API/
+│       │   ├── MeAjudaAi.Modules.Communications.API.csproj
+│       │   └── Endpoints/
+│       │       └── CommunicationsModuleEndpoints.cs
+│       ├── Application/
+│       │   ├── MeAjudaAi.Modules.Communications.Application.csproj
+│       │   ├── ModuleApi/
+│       │   │   └── CommunicationsModuleApi.cs
+│       │   └── Services/
+│       │       └── Email/
+│       │           └── SendGridEmailService.cs  # Stub inicial
+│       ├── Domain/
+│       │   ├── MeAjudaAi.Modules.Communications.Domain.csproj
+│       │   └── Entities/
+│       │       ├── OutboxMessage.cs
+│       │       ├── EmailTemplate.cs
+│       │       └── CommunicationLog.cs
+│       └── Infrastructure/
+│           ├── MeAjudaAi.Modules.Communications.Infrastructure.csproj
+│           └── Persistence/
+│               ├── Configurations/
+│               └── Migrations/
+│
+└── Shared/
+    └── Communications/
+        └── Templates/
+            ├── WelcomeEmail.cshtml
+            ├── ProviderVerificationApproved.cshtml
+            └── ProviderVerificationRejected.cshtml
+```
+
+---
+
+**Mapeamento de Integração com Eventos**:
+| Evento Existing | Ação de Comunicação |
+|----------------|-------------------|
+| `UserRegisteredIntegrationEvent` | → Enviar email de boas-vindas |
+| `ProviderAwaitingVerificationIntegrationEvent` | → Notificar admin |
+| `ProviderVerificationStatusUpdatedIntegrationEvent` | → Notificar prestador |
+| `DocumentVerifiedIntegrationEvent` | → Notificar prestador |
+| `DocumentRejectedIntegrationEvent` | → Notificar prestador |
+
+---
+
+**Interface ICommunicationsModuleApi (Proposta)**:
+```csharp
+public interface ICommunicationsModuleApi : IModuleApi
+{
+    // Email
+    Task<Result<Guid>> SendEmailAsync(EmailMessageDto email, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<EmailTemplateDto>>> GetTemplatesAsync(CancellationToken ct = default);
+    
+    // SMS
+    Task<Result<Guid>> SendSmsAsync(SmsMessageDto sms, CancellationToken ct = default);
+    
+    // Push
+    Task<Result<Guid>> SendPushAsync(PushMessageDto push, CancellationToken ct = default);
+    
+    // Logs
+    Task<Result<PagedList<CommunicationLogDto>>> GetLogsAsync(
+        CommunicationLogQuery query, 
+        CancellationToken ct = default);
+}
+```
+
+---
+
+**Entidades de Domínio**:
+
+```csharp
+// OutboxMessage: Garante entrega em caso de falhas
+public class OutboxMessage
+{
+    public Guid Id { get; }
+    public string Type { get; }          // "Email", "Sms", "Push"
+    public string Content { get; }       // JSON serializado
+    public string Status { get; }        // "Pending", "Sent", "Failed"
+    public int RetryCount { get; }
+    public DateTime? SentAt { get; }
+    public string? ErrorMessage { get; }
+}
+
+// EmailTemplate: Templates armazenados no banco
+public class EmailTemplate
+{
+    public Guid Id { get; }
+    public string Key { get; }            // "welcome", "verification-approved"
+    public string Subject { get; }
+    public string BodyHtml { get; }
+    public string BodyText { get; }       // Versão text-only
+    public DateTime CreatedAt { get; }
+}
+
+// CommunicationLog: Audit trail
+public class CommunicationLog
+{
+    public Guid Id { get; }
+    public Guid? UserId { get; }          // Nullable para broadcasts
+    public Guid? ProviderId { get; }
+    public string Channel { get; }        // "Email", "Sms", "Push"
+    public string Type { get; }           // "welcome", "verification-approved"
+    public string Status { get; }        // "Sent", "Delivered", "Failed", "Bounced"
+    public DateTime SentAt { get; }
+    public string? ErrorMessage { get; }
+}
+```
+
+---
+
+**Infraestrutura - Outbox Pattern**:
+
+Para garantir que emails não sejam perdidos em caso de falha:
+
+1. **Processo atual** (síncrono):
+   ```
+   User Registered → Save to DB → Send Email (pode falhar silenciosamente)
+   ```
+
+2. **Processo com Outbox** (garantido):
+   ```
+   User Registered → Save to Outbox Table → Save to DB → Background Worker processa Outbox
+   ```
+
+**Benefícios**:
+- Retry automático em caso de falha do provedor
+- Audit trail completo
+- Rate limiting controlável
+- Ordem de entrega garantida
+
+---
+
+**Estimativa de Esforço**:
+
+| Task | Esforço | Dependência |
+|------|--------|-----------|
+| 1. Criar estrutura de projetos | 2h | - |
+| 2. Interfaces ICommunicationsModuleApi | 2h | - |
+| 3. Implementar OutboxMessage entity | 4h | - |
+| 4. Implementar EmailTemplate entity | 2h | - |
+| 5. Implementar CommunicationLog entity | 2h | - |
+| 6. Implementar ModuleApi stub | 4h | Items 1-5 |
+| 7.Stub SendGridEmailService | 4h | Interface channel |
+| 8. Criar templates básicos | 3h | - |
+| 9. Event handlers (IntegrationEvents) | 4h | Events existentes |
+| 10. Configuração DI | 2h | - |
+| **Total** | **~29h (~4 dias)** | - |
+
+---
+
+**Critérios de Aceitação**:
+- ✅ Módulo registrado no ModuleApiRegistry
+- ✅ Envio de emails via ModuleApi (outbox pattern)
+- ✅ Templates armazenados no banco (editable via admin)
+- ✅ Logs de comunicação consultáveis
+- ✅ Integração com 3+ IntegrationEvents
+- ✅ Retry automático em caso de falha
+- ✅ Stub de provedor configurável
+
+---
+
+**Follow-ups Pendentes**:
+- [ ] Definir provedor de email (SendGrid, Mailgun, Azure ACS)
+- [ ] Implementar SMS channel (Twilio)
+- [ ] Implementar Push channel (Firebase)
+- [ ] Admin UI para gestão de templates
+- [ ] Dashboard de métricas de entrega
+
+---
+
 **Resultado Esperado Sprint 9**:
 - ✅ MVP production-ready e polished
 - ✅ Todos os cenários de risco mitigados ou resolvidos
 - ✅ Segurança e performance hardened
 - ✅ Documentação completa para usuários e desenvolvedores
 - ✅ Monitoring e observabilidade configurados
+- ✅ Módulo de Comunicações implementado (infraestrutura base)
 - 🎯 **PRONTO PARA LAUNCH EM 12-16 DE MAIO DE 2026**
 
 > **⚠️∩╕Å CRITICAL**: Se Sprint 9 não for suficiente para completar todos os itens, considerar delay do MVP launch ou reduzir escopo (mover features não-críticas para post-MVP). A qualidade e estabilidade do MVP são mais importantes que a data de lançamento.

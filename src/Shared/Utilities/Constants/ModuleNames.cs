@@ -44,9 +44,9 @@ public static class ModuleNames
     public const string Bookings = "Bookings";
 
     /// <summary>
-    /// Módulo de notificações - sistema de notificações e comunicação (futuro)
+    /// Módulo de comunicações - email, SMS, push (implementado na Sprint 9)
     /// </summary>
-    public const string Notifications = "Notifications";
+    public const string Communications = "Communications";
 
     /// <summary>
     /// Módulo de pagamentos - processamento de pagamentos (futuro)
@@ -88,7 +88,7 @@ public static class ModuleNames
         SearchProviders,
         Locations,
         Bookings,
-        Notifications,
+        Communications,
         Payments,
         Reports,
         Reviews
