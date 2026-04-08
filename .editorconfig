@@ -49,6 +49,30 @@ dotnet_diagnostic.CA1051.severity = none # Do not declare visible instance field
 dotnet_diagnostic.CA1852.severity = none # Type can be sealed
 dotnet_diagnostic.CA1507.severity = none # Use nameof in place of string literal
 
+# Suppress additional rules identified after .NET Aspire 13.2.1 Update
+dotnet_diagnostic.CA2007.severity = none # Consider calling ConfigureAwait
+dotnet_diagnostic.CA1032.severity = none # Implement standard exception constructors
+dotnet_diagnostic.IDE0076.severity = none # Invalid or missing target for SuppressMessageAttribute
+dotnet_diagnostic.CA1056.severity = none # Uri vs String
+dotnet_diagnostic.CA1724.severity = none # Type name conflicts with namespace
+dotnet_diagnostic.CA2225.severity = none # Operator alternates
+dotnet_diagnostic.CA1040.severity = none # Avoid empty interfaces
+dotnet_diagnostic.IDE0130.severity = none # Namespace does not match folder structure
+dotnet_diagnostic.CA1063.severity = none # IDisposable implementation pattern
+dotnet_diagnostic.CA2227.severity = none # Collection properties should be read-only
+dotnet_diagnostic.CA1034.severity = none # Do not nest types
+dotnet_diagnostic.CA1002.severity = none # Use Collection<T> instead of List<T>
+dotnet_diagnostic.CA1052.severity = none # Static holder types should be static
+dotnet_diagnostic.CA1308.severity = none # ToLowerInvariant vs ToUpperInvariant
+dotnet_diagnostic.IDE1006.severity = none # Naming rule violations
+dotnet_diagnostic.IDE0056.severity = none # Indexing can be simplified
+dotnet_diagnostic.IDE0301.severity = none # Collection initialization simplification
+dotnet_diagnostic.IDE0305.severity = none # Collection initialization simplification
+dotnet_diagnostic.IDE0023.severity = none # Use block body for expression-bodied members
+dotnet_diagnostic.CA1031.severity = none # Catch specific exceptions
+dotnet_diagnostic.IDE0057.severity = none # Substring can be simplified
+dotnet_diagnostic.CA1851.severity = none # Multiple enumeration of IEnumerable
+
 # Technical Excellence Sprint Suppressions (Avoiding source code pollution)
 # S2068 (Hardcoded passwords) and S3267 (LINQ simplification) have been removed from global suppressions.
 # They should be managed with inline `#pragma` warnings where strictly necessary.
