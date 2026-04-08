@@ -146,7 +146,7 @@
     <PackageVersion Include="System.IO.Hashing" Version="10.0.5" />
     <PackageVersion Include="System.Text.Json" Version="10.0.0" />
     <!-- IdentityModel family - aligned to 8.16.0 to avoid version skew -->
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.17.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Protocols" Version="8.16.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.16.0" />
     <!-- Testing Framework -->
