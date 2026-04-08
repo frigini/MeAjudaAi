@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Events;
 
 namespace MeAjudaAi.Shared.Messaging.Messages.Providers;
@@ -13,6 +14,7 @@ namespace MeAjudaAi.Shared.Messaging.Messages.Providers;
 /// - Notificar sistemas externos
 /// - Manter auditoria de mudanças
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public sealed record ProviderProfileUpdatedIntegrationEvent(
     string Source,
     Guid ProviderId,

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
@@ -9,6 +10,7 @@ namespace MeAjudaAi.Shared.Database;
 /// Detecta automaticamente o nome do módulo a partir do namespace
 /// </summary>
 /// <typeparam name="TContext">O tipo do DbContext</typeparam>
+[ExcludeFromCodeCoverage]
 public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbContextFactory<TContext>
     where TContext : DbContext
 {

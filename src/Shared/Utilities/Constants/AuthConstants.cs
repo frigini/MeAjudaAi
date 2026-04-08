@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Utilities.Constants;
 
 /// <summary>
@@ -7,6 +9,7 @@ namespace MeAjudaAi.Shared.Utilities.Constants;
 /// Baseado nos valores realmente utilizados no projeto.
 /// Evita duplicação com UserRoles.cs existente.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public static class AuthConstants
 {
     /// <summary>

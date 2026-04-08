@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 #pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
 namespace MeAjudaAi.Shared.Utilities.Constants;
 
@@ -7,6 +9,7 @@ namespace MeAjudaAi.Shared.Utilities.Constants;
 /// <remarks>
 /// Valores extraídos das migrations existentes para garantir consistência.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public static class ValidationConstants
 {
     /// <summary>

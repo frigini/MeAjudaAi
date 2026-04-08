@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Events;
 
 namespace MeAjudaAi.Shared.Messaging.Messages.Users;
@@ -5,6 +6,7 @@ namespace MeAjudaAi.Shared.Messaging.Messages.Users;
 /// <summary>
 /// Publicado quando um novo usuário se registra no sistema
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record UserRegisteredIntegrationEvent(
     string Source,
     Guid UserId,

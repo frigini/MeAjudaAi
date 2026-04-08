@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Utilities.Constants;
 
 /// <summary>
@@ -7,6 +9,7 @@ namespace MeAjudaAi.Shared.Utilities.Constants;
 /// Baseado nos endpoints realmente existentes no projeto.
 /// Mantém apenas o que está implementado para evitar confusão.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public static class ApiEndpoints
 {
     /// <summary>

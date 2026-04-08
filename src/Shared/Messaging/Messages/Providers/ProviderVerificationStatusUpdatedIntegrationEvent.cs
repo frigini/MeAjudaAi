@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Events;
 
 namespace MeAjudaAi.Shared.Messaging.Messages.Providers;
@@ -13,6 +14,7 @@ namespace MeAjudaAi.Shared.Messaging.Messages.Providers;
 /// - Sincronizar com sistemas externos
 /// - Gerar relatórios de conformidade
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public sealed record ProviderVerificationStatusUpdatedIntegrationEvent(
     string Source,
     Guid ProviderId,

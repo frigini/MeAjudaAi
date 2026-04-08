@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Events;
 
 namespace MeAjudaAi.Shared.Messaging.Messages.Documents;
@@ -14,6 +15,7 @@ namespace MeAjudaAi.Shared.Messaging.Messages.Documents;
 /// - Enviar notificações de aprovação
 /// - Atualizar dashboards e métricas
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public sealed record DocumentVerifiedIntegrationEvent(
     string Source,
     Guid DocumentId,

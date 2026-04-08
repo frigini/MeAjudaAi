@@ -1,9 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Utilities.Constants;
 
 /// <summary>
 /// Constantes para nomes de feature flags.
 /// Usado com Microsoft.FeatureManagement para controle dinâmico de funcionalidades.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class FeatureFlags
 {
     /// <summary>

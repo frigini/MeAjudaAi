@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Database;
 
+[ExcludeFromCodeCoverage]
 public static class DatabaseConstants
 {
     /// <summary>
