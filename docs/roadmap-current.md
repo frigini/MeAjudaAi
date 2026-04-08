@@ -745,6 +745,22 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - ✅ Documentação em `docs/testing/e2e-tests.md`
 - ✅ CI/CD executando testes E2E na pipeline
 
+#### 1.2. 🛠️ Technical Excellence & Debt (Sprint 9)
+**Prioridade**: MÉDIA  
+**Estimativa**: 3-4 dias
+
+**Objetivo**: Resolver pendências técnicas e melhorar resiliência do sistema.
+
+**Entregáveis**:
+- [ ] **Event Handlers**: Implementar handlers para comunicação entre SearchProviders e ServiceCatalogs.
+- [ ] **Social Login**: Reintegrar login com Instagram via Keycloak OIDC (Issue #141).
+- [ ] **Resilience**: Aplicar `CancellationToken` nos Effects de `ServiceCatalogs`, `Documents` e `Locations`.
+- [ ] **Localization (Backend)**: Migrar strings de erro da API para `.resx` e integrar FluentValidation para suporte a multi-idioma via headers.
+- [ ] **Localization (Frontend React)**: Implementar infraestrutura com `i18next` (JSON) no Admin e Customer apps, localizando mensagens de validação do **Zod**.
+- [ ] **Architectural Tests**: Implementar testes com `NetArchTest` no Módulo de Comunicações para garantir isolamento (evitar referências circulares e acesso direto a DBs externos).
+- [ ] **UI Branding**: Aplicar cores oficiais (Blue, Cream, Orange) e padronizar o tema em todo o Admin Portal (React).
+- [ ] **Unit Tests (Debt)**: Testes para `LocalizationSubscription` disposal e `PerformanceHelper` LRU eviction.
+
 #### 2. UX/UI Improvements
 - [ ] **Loading States**: Skeletons em todas cargas assíncronas
 - [ ] **Error Handling**: Mensagens friendly para todos erros (não mostrar stack traces)
@@ -775,16 +791,28 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 **Objetivo**: Criar módulo unificado de comunicações (email, SMS, push)  
 **Contexto**: Outros módulos (Reviews, Payments, Bookings) dependem de infraestrutura de comunicações. Implementar agora evita refatoração depois.
 
+**Estratégia de Testes (Mandatória)**:
+
+| Tipo | Escopo | Ferramentas |
+|------|--------|------------|
+| **Unitários** | Lógica de templates, cálculo de retries, mapeamento de DTOs | xUnit + FluentAssertions |
+| **Integrados** | Persistência Outbox (PostgreSQL), Handlers de eventos | xUnit + Respawn + Docker |
+| **E2E** | Fluxo completo: Evento → Outbox → Envio simulado → Log | Playwright + MSW |
+| **Arquiteturais** | Validar que módulos não acessam DB de outros, dependências de contratos | NetArchTest |
+
+---
+
 **Arquitetura Decisão** (diferente dos outros módulos):
 
 | Aspecto | Decisão |
 |---------|---------|
-| **Padrão** | Full Module (como Providers/Users) |
-| **Infraestrutura** | Outbox Pattern para garantia de entrega |
+| **Padrão** | Full Module + Orchestrator Pattern |
+| **Infraestrutura** | Outbox Pattern para garantia de entrega (Reliable Messaging) |
 | **Integração** | Event-driven (consome IntegrationEvents) |
 | **API Externa** | Abstração via interface (provedor configurável) |
+| **Idempotência** | Garantida via CorrelationId/EventId nos Logs |
 
-> **📝 Decisão Técnica** (8 Abr 2026): Provedor de email/sms será definido pós-MVP. Implementar com interface de abstração permitindo troca facil.
+> **📝 Decisão Técnica** (8 Abr 2026): Provedor de email/sms será definido pós-MVP. Implementar com interface de abstração permitindo troca facil. Sprint 9 foca na infraestrutura de transporte/outbox e templates base.
 
 ---
 
@@ -795,8 +823,9 @@ src/
 │   └── MeAjudaAi.Contracts.Communications/
 │       ├── ICommunicationsModuleApi.cs
 │       ├── DTOs/
-│       │   ├── EmailMessageDto.cs
+│       │   ├── EmailMessageDto.cs (suporte a Attachments)
 │       │   ├── SmsMessageDto.cs
+│       │   ├── PushMessageDto.cs
 │       │   └── TemplateDto.cs
 │       └── Channels/
 │           ├── IEmailChannel.cs
@@ -819,9 +848,9 @@ src/
 │       ├── Domain/
 │       │   ├── MeAjudaAi.Modules.Communications.Domain.csproj
 │       │   └── Entities/
-│       │       ├── OutboxMessage.cs
-│       │       ├── EmailTemplate.cs
-│       │       └── CommunicationLog.cs
+│       │       ├── OutboxMessage.cs (ScheduledAt support)
+│       │       ├── EmailTemplate.cs (IsSystemTemplate flag)
+│       │       └── CommunicationLog.cs (CorrelationId support)
 │       └── Infrastructure/
 │           ├── MeAjudaAi.Modules.Communications.Infrastructure.csproj
 │           └── Persistence/
@@ -836,6 +865,11 @@ src/
             └── ProviderVerificationRejected.cshtml
 ```
 
+**Localização de Templates**:
+- **Source of Truth**: Arquivos `.cshtml` em `Shared/Communications/Templates/` (compilados).
+- **Override System**: A entidade `EmailTemplate` no banco permite sobrescrever `Subject` ou trechos do `Body` via Admin Portal sem redeploy.
+- **IsSystemTemplate**: Flag para proteger templates críticos de deleção.
+
 ---
 
 **Mapeamento de Integração com Eventos**:
@@ -849,12 +883,18 @@ src/
 
 ---
 
-**Interface ICommunicationsModuleApi (Proposta)**:
+**Interface ICommunicationsModuleApi (Atualizada)**:
 ```csharp
+public enum CommunicationPriority { High, Normal, Low }
+
 public interface ICommunicationsModuleApi : IModuleApi
 {
     // Email
-    Task<Result<Guid>> SendEmailAsync(EmailMessageDto email, CancellationToken ct = default);
+    Task<Result<Guid>> SendEmailAsync(
+        EmailMessageDto email, 
+        CommunicationPriority priority = CommunicationPriority.Normal,
+        CancellationToken ct = default);
+        
     Task<Result<IReadOnlyList<EmailTemplateDto>>> GetTemplatesAsync(CancellationToken ct = default);
     
     // SMS
@@ -863,7 +903,7 @@ public interface ICommunicationsModuleApi : IModuleApi
     // Push
     Task<Result<Guid>> SendPushAsync(PushMessageDto push, CancellationToken ct = default);
     
-    // Logs
+    // Logs (Idempotency check via CorrelationId)
     Task<Result<PagedList<CommunicationLogDto>>> GetLogsAsync(
         CommunicationLogQuery query, 
         CancellationToken ct = default);
@@ -875,7 +915,7 @@ public interface ICommunicationsModuleApi : IModuleApi
 **Entidades de Domínio**:
 
 ```csharp
-// OutboxMessage: Garante entrega em caso de falhas
+// OutboxMessage: Garante entrega e permite agendamento
 public class OutboxMessage
 {
     public Guid Id { get; }
@@ -883,30 +923,34 @@ public class OutboxMessage
     public string Content { get; }       // JSON serializado
     public string Status { get; }        // "Pending", "Sent", "Failed"
     public int RetryCount { get; }
+    public DateTime CreatedAt { get; }
+    public DateTime? ScheduledAt { get; } // Agendamento futuro
     public DateTime? SentAt { get; }
     public string? ErrorMessage { get; }
 }
 
-// EmailTemplate: Templates armazenados no banco
+// EmailTemplate: Templates com sistema de override
 public class EmailTemplate
 {
     public Guid Id { get; }
     public string Key { get; }            // "welcome", "verification-approved"
     public string Subject { get; }
     public string BodyHtml { get; }
-    public string BodyText { get; }       // Versão text-only
+    public string BodyText { get; }
+    public bool IsSystemTemplate { get; } // Proteção contra deleção
     public DateTime CreatedAt { get; }
 }
 
-// CommunicationLog: Audit trail
+// CommunicationLog: Audit trail + Idempotência
 public class CommunicationLog
 {
     public Guid Id { get; }
-    public Guid? UserId { get; }          // Nullable para broadcasts
+    public Guid? CorrelationId { get; }   // Idempotência (EventId original)
+    public Guid? UserId { get; }
     public Guid? ProviderId { get; }
     public string Channel { get; }        // "Email", "Sms", "Push"
     public string Type { get; }           // "welcome", "verification-approved"
-    public string Status { get; }        // "Sent", "Delivered", "Failed", "Bounced"
+    public string Status { get; }
     public DateTime SentAt { get; }
     public string? ErrorMessage { get; }
 }
@@ -916,23 +960,17 @@ public class CommunicationLog
 
 **Infraestrutura - Outbox Pattern**:
 
-Para garantir que emails não sejam perdidos em caso de falha:
+Para garantir que comunicações não sejam perdidas em caso de falha:
 
-1. **Processo atual** (síncrono):
+1. **Processo com Outbox** (garantido):
    ```
-   User Registered → Save to DB → Send Email (pode falhar silenciosamente)
-   ```
-
-2. **Processo com Outbox** (garantido):
-   ```
-   User Registered → Save to Outbox Table → Save to DB → Background Worker processa Outbox
+   Event Occurred → Save to Outbox Table (Mesma Transação) → Background Worker processa Outbox
    ```
 
-**Benefícios**:
-- Retry automático em caso de falha do provedor
-- Audit trail completo
-- Rate limiting controlável
-- Ordem de entrega garantida
+**Melhorias Implementadas**:
+- **Retry automático**: Com backoff exponencial via Polly.
+- **Priorização**: Mensagens de alta prioridade (ex: Reset Password) furam a fila.
+- **Idempotência**: Verificação de `CorrelationId` no Log antes do processamento.
 
 ---
 
@@ -942,35 +980,34 @@ Para garantir que emails não sejam perdidos em caso de falha:
 |------|--------|-----------|
 | 1. Criar estrutura de projetos | 2h | - |
 | 2. Interfaces ICommunicationsModuleApi | 2h | - |
-| 3. Implementar OutboxMessage entity | 4h | - |
-| 4. Implementar EmailTemplate entity | 2h | - |
-| 5. Implementar CommunicationLog entity | 2h | - |
-| 6. Implementar ModuleApi stub | 4h | Items 1-5 |
-| 7.Stub SendGridEmailService | 4h | Interface channel |
-| 8. Criar templates básicos | 3h | - |
+| 3. Implementar OutboxMessage (Scheduling) | 5h | - |
+| 4. Implementar EmailTemplate (Override system) | 3h | - |
+| 5. Implementar CommunicationLog (CorrelationId) | 2h | - |
+| 6. Implementar ModuleApi + Orchestrator | 6h | Items 1-5 |
+| 7. Stub Channel Handlers (Email/Sms/Push) | 5h | - |
+| 8. Criar templates básicos (.cshtml) | 3h | - |
 | 9. Event handlers (IntegrationEvents) | 4h | Events existentes |
-| 10. Configuração DI | 2h | - |
-| **Total** | **~29h (~4 dias)** | - |
+| 10. Configuração DI + Polly Policies | 3h | - |
+| **Total** | **~35h (~5 dias)** | - |
 
 ---
 
 **Critérios de Aceitação**:
 - ✅ Módulo registrado no ModuleApiRegistry
-- ✅ Envio de emails via ModuleApi (outbox pattern)
-- ✅ Templates armazenados no banco (editable via admin)
-- ✅ Logs de comunicação consultáveis
+- ✅ Envio garantido via Outbox Pattern
+- ✅ Suporte a agendamento de mensagens
+- ✅ Sistema de templates híbrido funcional
+- ✅ Logs com CorrelationId para evitar duplicidade
 - ✅ Integração com 3+ IntegrationEvents
-- ✅ Retry automático em caso de falha
-- ✅ Stub de provedor configurável
+- ✅ Priorização de mensagens funcional
 
 ---
 
 **Follow-ups Pendentes**:
-- [ ] Definir provedor de email (SendGrid, Mailgun, Azure ACS)
-- [ ] Implementar SMS channel (Twilio)
-- [ ] Implementar Push channel (Firebase)
-- [ ] Admin UI para gestão de templates
-- [ ] Dashboard de métricas de entrega
+- [ ] Definir provedores reais (SendGrid, Twilio, Firebase)
+- [ ] Admin UI para gestão dinâmica de templates
+- [ ] Suporte a anexos (Attachments) via Blob Storage URLs
+- [ ] Dashboard de métricas de entrega e conversão
 
 ---
 
@@ -980,7 +1017,7 @@ Para garantir que emails não sejam perdidos em caso de falha:
 - ✅ Segurança e performance hardened
 - ✅ Documentação completa para usuários e desenvolvedores
 - ✅ Monitoring e observabilidade configurados
-- ✅ Módulo de Comunicações implementado (infraestrutura base)
+- ✅ Módulo de Comunicações implementado (infraestrutura base resiliente)
 - 🎯 **PRONTO PARA LAUNCH EM 12-16 DE MAIO DE 2026**
 
 > **⚠️∩╕Å CRITICAL**: Se Sprint 9 não for suficiente para completar todos os itens, considerar delay do MVP launch ou reduzir escopo (mover features não-críticas para post-MVP). A qualidade e estabilidade do MVP são mais importantes que a data de lançamento.
@@ -1151,39 +1188,7 @@ Melhorar experiência do usuário com agendamentos, comunicações centralizadas
 
 ---
 
-### 4.2. ≡ƒôº Módulo Communications (Planejado)
-
-**Objetivo**: Centralizar e orquestrar todas as comunicações da plataforma (email, SMS, push).
-
-#### **Arquitetura Proposta**
-- **Padrão**: Orchestrator Pattern
-- **Canais**: Email (SendGrid/Mailgun), SMS (Twilio), Push (Firebase)
-
-#### **API Pública (ICommunicationsModuleApi)**
-```csharp
-public interface ICommunicationsModuleApi : IModuleApi
-{
-    Task<Result> SendEmailAsync(EmailRequest request, CancellationToken ct = default);
-    Task<Result> SendSmsAsync(SmsRequest request, CancellationToken ct = default);
-    Task<Result> SendPushNotificationAsync(PushRequest request, CancellationToken ct = default);
-}
-```
-
-#### **Event Handlers**
-- `UserRegisteredIntegrationEvent` → Email de boas-vindas
-- `ProviderVerificationFailedIntegrationEvent` → Notificação de rejeição
-- `BookingConfirmedIntegrationEvent` → Lembrete de agendamento
-
-#### **Implementação**
-1. **Channel Handlers**: Implementar `IEmailService`, `ISmsService`, `IPushService`
-2. **Template Engine**: Sistema de templates para mensagens (Razor, Handlebars)
-3. **Queue Processing**: Background worker para processar fila de mensagens
-4. **Retry Logic**: Polly para retry com backoff exponencial
-5. **Testes**: Unit tests para handlers + integration tests com mock services
-
----
-
-### 4.3. 📊 Módulo Analytics & Reporting (Planejado)
+### 4.2. 📊 Módulo Analytics & Reporting (Planejado)
 
 **Objetivo**: Capturar, processar e visualizar dados de negócio e operacionais.
 
