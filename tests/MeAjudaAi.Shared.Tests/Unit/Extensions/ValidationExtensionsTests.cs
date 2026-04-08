@@ -37,9 +37,11 @@ public class ValidationExtensionsTests
         services.AddValidation();
 
         // Act
-        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(MeAjudaAi.Shared.Mediator.IPipelineBehavior<,>));
+        var hasValidationBehavior = services.Any(d => 
+            d.ServiceType == typeof(MeAjudaAi.Shared.Mediator.IPipelineBehavior<,>) &&
+            d.ImplementationType?.Name.Contains("Validation") == true);
 
         // Assert
-        descriptor.Should().NotBeNull();
+        hasValidationBehavior.Should().BeTrue();
     }
 }

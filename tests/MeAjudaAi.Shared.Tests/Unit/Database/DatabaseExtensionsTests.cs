@@ -17,14 +17,15 @@ public class DatabaseExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configurationMock = new Mock<IConfiguration>();
-        
-        configurationMock
-            .Setup(x => x.GetConnectionString("DefaultConnection"))
-            .Returns("Host=localhost;Database=test");
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test"
+            })
+            .Build();
 
         // Act
-        services.AddPostgres(configurationMock.Object);
+        services.AddPostgres(configuration);
 
         // Assert
         var provider = services.BuildServiceProvider();
@@ -38,18 +39,20 @@ public class DatabaseExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configurationMock = new Mock<IConfiguration>();
-        
-        configurationMock
-            .Setup(x => x.GetConnectionString(It.IsAny<string>()))
-            .Returns("Host=localhost;Database=test");
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test"
+            })
+            .Build();
 
         // Act
-        services.AddPostgres(configurationMock.Object);
+        services.AddPostgres(configuration);
 
         // Assert
-        var hasOptions = services.Any(d => d.ServiceType == typeof(IOptions<PostgresOptions>));
-        hasOptions.Should().BeTrue();
+        var provider = services.BuildServiceProvider();
+        var options = provider.GetService<IOptions<PostgresOptions>>();
+        options.Should().NotBeNull();
     }
 
     [Fact]
@@ -57,18 +60,15 @@ public class DatabaseExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configurationMock = new Mock<IConfiguration>();
-        
-        // First connection string returns null, second returns value
-        configurationMock
-            .Setup(x => x.GetConnectionString("DefaultConnection"))
-            .Returns((string?)null);
-        configurationMock
-            .Setup(x => x.GetConnectionString("meajudaai-db-local"))
-            .Returns("Host=aspire-local;Database=local");
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:meajudaai-db-local"] = "Host=aspire-local;Database=local"
+            })
+            .Build();
 
         // Act
-        services.AddPostgres(configurationMock.Object);
+        services.AddPostgres(configuration);
 
         // Assert
         var provider = services.BuildServiceProvider();
@@ -82,21 +82,15 @@ public class DatabaseExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configurationMock = new Mock<IConfiguration>();
-        
-        // First two return null, third returns value
-        configurationMock
-            .Setup(x => x.GetConnectionString("DefaultConnection"))
-            .Returns((string?)null);
-        configurationMock
-            .Setup(x => x.GetConnectionString("meajudaai-db-local"))
-            .Returns((string?)null);
-        configurationMock
-            .Setup(x => x.GetConnectionString("meajudaai-db"))
-            .Returns("Host=aspire-dev;Database=dev");
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:meajudaai-db"] = "Host=aspire-dev;Database=dev"
+            })
+            .Build();
 
         // Act
-        services.AddPostgres(configurationMock.Object);
+        services.AddPostgres(configuration);
 
         // Assert
         var provider = services.BuildServiceProvider();
@@ -110,18 +104,15 @@ public class DatabaseExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configurationMock = new Mock<IConfiguration>();
-        
-        // All GetConnectionString return null, use appsettings
-        configurationMock
-            .Setup(x => x.GetConnectionString(It.IsAny<string>()))
-            .Returns((string?)null);
-        configurationMock
-            .Setup(x => x["Postgres:ConnectionString"])
-            .Returns("Host=appsettings;Database=appsettings");
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Postgres:ConnectionString"] = "Host=appsettings;Database=appsettings"
+            })
+            .Build();
 
         // Act
-        services.AddPostgres(configurationMock.Object);
+        services.AddPostgres(configuration);
 
         // Assert
         var provider = services.BuildServiceProvider();
@@ -135,14 +126,15 @@ public class DatabaseExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configurationMock = new Mock<IConfiguration>();
-        
-        configurationMock
-            .Setup(x => x.GetConnectionString(It.IsAny<string>()))
-            .Returns("Host=localhost;Database=test");
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test"
+            })
+            .Build();
 
         // Act
-        services.AddPostgres(configurationMock.Object);
+        services.AddPostgres(configuration);
         services.AddDapper();
 
         // Assert
@@ -155,14 +147,16 @@ public class DatabaseExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configurationMock = new Mock<IConfiguration>();
-        
-        configurationMock
-            .Setup(x => x.GetConnectionString(It.IsAny<string>()))
-            .Returns("Host=localhost;Database=test");
+        services.AddLogging(); // Required by SchemaPermissionsManager
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test"
+            })
+            .Build();
 
         // Act
-        services.AddPostgres(configurationMock.Object);
+        services.AddPostgres(configuration);
 
         // Assert
         var provider = services.BuildServiceProvider();
@@ -175,14 +169,15 @@ public class DatabaseExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configurationMock = new Mock<IConfiguration>();
-        
-        configurationMock
-            .Setup(x => x.GetConnectionString(It.IsAny<string>()))
-            .Returns("Host=localhost;Database=test");
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test"
+            })
+            .Build();
 
         // Act
-        services.AddPostgres(configurationMock.Object);
+        services.AddPostgres(configuration);
 
         // Assert - check for singleton registration of PostgresOptions (not IOptions)
         var hasSingletonOptions = services.Any(d => 
@@ -196,14 +191,9 @@ public class DatabaseExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configurationMock = new Mock<IConfiguration>();
-        
-        configurationMock
-            .Setup(x => x.GetConnectionString(It.IsAny<string>()))
-            .Returns((string?)null);
-        configurationMock
-            .Setup(x => x["Postgres:ConnectionString"])
-            .Returns((string?)null);
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>())
+            .Build();
 
         // Set Testing environment
         var originalEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -212,7 +202,7 @@ public class DatabaseExtensionsTests
             Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
 
             // Act & Assert - should not throw
-            services.AddPostgres(configurationMock.Object);
+            services.AddPostgres(configuration);
             
             var provider = services.BuildServiceProvider();
             var options = provider.GetRequiredService<IOptions<PostgresOptions>>();
@@ -254,7 +244,7 @@ public class DatabaseExtensionsTests
         dapperService!.Lifetime.Should().Be(ServiceLifetime.Scoped);
     }
 
-    private class TestDbContext : DbContext
+    private class TestDbContext(DbContextOptions<TestDbContext> options) : DbContext(options)
     {
     }
 }

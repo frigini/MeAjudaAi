@@ -5,6 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <AnalysisMode>All</AnalysisMode>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -59,7 +61,6 @@
     <PackageReference Include="Rebus.RabbitMq" />
     <PackageReference Include="Rebus.ServiceProvider" />
     
-    
     <!-- Background Jobs -->
     <PackageReference Include="Hangfire.Core" />
     <PackageReference Include="Hangfire.AspNetCore" />
@@ -72,6 +73,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="MeAjudaAi.Shared.Tests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
 
 </Project>

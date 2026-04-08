@@ -29,6 +29,10 @@ public class PermissionHealthCheckExtensionsTests
 
         // Assert
         result.Should().BeSameAs(services);
-        services.Should().NotBeEmpty();
+        var hasHealthCheck = services.Any(d => 
+            d.ServiceType.Name.Contains("HealthCheck") || 
+            d.ImplementationType?.Name.Contains("Permission") == true);
+            
+        hasHealthCheck.Should().BeTrue();
     }
 }

@@ -112,4 +112,21 @@ public class ModuleServiceRegistrationExtensionsTests
         var result = services.AddModuleDomainServices();
         result.Should().BeSameAs(services);
     }
+
+    [Fact]
+    public void AddModuleValidators_ShouldRegisterAtLeastOneValidator()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        
+        // Act
+        services.AddModuleValidators(typeof(DummyValidator).Assembly);
+        
+        // Assert
+        services.Should().Contain(d => d.ServiceType.Name.Contains("IValidator"));
+    }
+
+    public class DummyValidator : FluentValidation.AbstractValidator<string>
+    {
+    }
 }

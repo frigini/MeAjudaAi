@@ -7,7 +7,7 @@ namespace MeAjudaAi.Shared.Monitoring;
 /// <summary>
 /// Serviço em background para coletar métricas periódicas
 /// </summary>
-internal class MetricsCollectorService(
+public class MetricsCollectorService(
     BusinessMetrics businessMetrics,
     IServiceScopeFactory serviceScopeFactory,
     TimeProvider timeProvider,

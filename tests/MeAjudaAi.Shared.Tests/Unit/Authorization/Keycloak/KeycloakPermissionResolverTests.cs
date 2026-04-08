@@ -277,7 +277,7 @@ public class KeycloakPermissionResolverTests
     public async Task ResolvePermissionsAsync_WithNullUserId_ShouldThrowArgumentNullException()
     {
         // Act & Assert - the code throws ArgumentNullException
-        var act = () => _resolver.ResolvePermissionsAsync((UserId?)null);
+        var act = () => _resolver.ResolvePermissionsAsync((UserId?)null!);
         await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
