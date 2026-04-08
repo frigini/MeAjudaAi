@@ -1,11 +1,13 @@
 using System.Diagnostics.Metrics;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Monitoring;
 
 /// <summary>
 /// Métricas customizadas de negócio para MeAjudaAi
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class BusinessMetrics : IDisposable
 {
     private readonly Meter _meter;

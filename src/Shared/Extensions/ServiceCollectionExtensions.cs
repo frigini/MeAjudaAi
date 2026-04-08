@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Caching;
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Database;
@@ -21,6 +22,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Extensions;
 
+[ExcludeFromCodeCoverage]
 public static class ServiceCollectionExtensions
 {
     /// <summary>

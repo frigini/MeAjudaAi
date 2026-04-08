@@ -11,6 +11,16 @@ internal static class Program
     public static void Main(string[] args)
     {
         var builder = DistributedApplication.CreateBuilder(args);
+        
+        // Recurso sentinela para sincronização da criação de clientes no Keycloak
+        var keycloakBootstrap = builder.AddResource(new Resources.KeycloakBootstrapResource("keycloak-clients-ready"))
+            .ExcludeFromManifest()
+            .WithInitialState(new CustomResourceSnapshot
+            {
+                ResourceType = "Sentinels",
+                State = new ResourceStateSnapshot("Waiting", "gray"),
+                Properties = [new ResourcePropertySnapshot("Status", "Waiting for Keycloak Bootstrap...")]
+            });
 
         // Registra o serviço em segundo plano Keycloak Bootstrap
         if (EnvironmentHelpers.IsDevelopment(builder))
@@ -32,12 +42,12 @@ internal static class Program
         else if (EnvironmentHelpers.IsDevelopment(builder))
         {
             Console.WriteLine("⚙️  Configuring DEVELOPMENT environment");
-            ConfigureDevelopmentEnvironment(builder);
+            ConfigureDevelopmentEnvironment(builder, keycloakBootstrap);
         }
         else if (EnvironmentHelpers.IsProduction(builder))
         {
             Console.WriteLine("⚙️  Configuring PRODUCTION environment");
-            ConfigureProductionEnvironment(builder);
+            ConfigureProductionEnvironment(builder, keycloakBootstrap);
         }
         else
         {
@@ -98,7 +108,7 @@ internal static class Program
             .WithEnvironment("HealthChecks__Timeout", "30");
     }
 
-    private static void ConfigureDevelopmentEnvironment(IDistributedApplicationBuilder builder)
+    private static void ConfigureDevelopmentEnvironment(IDistributedApplicationBuilder builder, IResourceBuilder<Resources.KeycloakBootstrapResource> keycloakBootstrap)
     {
         var mainDatabase = Environment.GetEnvironmentVariable("MAIN_DATABASE") ?? "meajudaai";
         var dbUsername = Environment.GetEnvironmentVariable("DB_USERNAME") ?? "postgres";
@@ -197,6 +207,7 @@ internal static class Program
             .WaitFor(rabbitMq)
             .WithReference(keycloak.Keycloak)
             .WaitFor(keycloak.Keycloak)
+            .WaitFor(keycloakBootstrap)
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
 
         // Admin Portal (Next.js 15 React)
@@ -211,7 +222,8 @@ internal static class Program
             .WithExternalHttpEndpoints()
             .WithEnvironment("NEXT_PUBLIC_API_URL", apiService.GetEndpoint("http"))
             .WaitFor(apiService)
-            .WaitFor(keycloak.Keycloak);
+            .WaitFor(keycloak.Keycloak)
+            .WaitFor(keycloakBootstrap);
 
         // Aplicação Web do Cliente (Next.js 15)
         var customerWebPath = Path.Combine(builder.AppHostDirectory, "..", "..", "..", "src", "Web", "MeAjudaAi.Web.Customer");
@@ -224,7 +236,8 @@ internal static class Program
             .WithHttpEndpoint(port: 3000, env: "PORT")
             .WithExternalHttpEndpoints()
             .WithEnvironment("NEXT_PUBLIC_API_URL", apiService.GetEndpoint("http"))
-            .WaitFor(apiService);
+            .WaitFor(apiService)
+            .WaitFor(keycloakBootstrap);
             // Nota: AddJavaScriptApp usa "dev" script por padrão em desenvolvimento
             // e "build" script em produção. Ver package.json para scripts configurados.
 
@@ -239,7 +252,8 @@ internal static class Program
             .WithHttpEndpoint(port: 3001, env: "PORT")
             .WithExternalHttpEndpoints()
             .WithEnvironment("NEXT_PUBLIC_API_URL", apiService.GetEndpoint("http"))
-            .WaitFor(apiService);
+            .WaitFor(apiService)
+            .WaitFor(keycloakBootstrap);
 
         // Pass resolved endpoints to Keycloak options for bootstrap
         keycloakSettings.AdminPortalEndpoint = adminPortal.GetEndpoint("http");
@@ -247,7 +261,7 @@ internal static class Program
         keycloakSettings.ProviderWebEndpoint = providerWeb.GetEndpoint("http");
     }
 
-    private static void ConfigureProductionEnvironment(IDistributedApplicationBuilder builder)
+    private static void ConfigureProductionEnvironment(IDistributedApplicationBuilder builder, IResourceBuilder<Resources.KeycloakBootstrapResource> keycloakBootstrap)
     {
         var postgresql = builder.AddMeAjudaAiAzurePostgreSQL(options =>
         {
@@ -270,6 +284,7 @@ internal static class Program
             .WaitFor(rabbitMq)
             .WithReference(keycloak.Keycloak)
             .WaitFor(keycloak.Keycloak)
+            .WaitFor(keycloakBootstrap)
             .WithEnvironment("ASPNETCORE_ENVIRONMENT", EnvironmentHelpers.GetEnvironmentName(builder));
     }
 }
