@@ -1,0 +1,6 @@
+  Determining projects to restore...
+C:\Code\MeAjudaAi\src\Aspire\MeAjudaAi.AppHost\MeAjudaAi.AppHost.csproj : error NU1109: Detected package downgrade: System.IO.Hashing from 10.0.3 to centrally defined 10.0.1. Update the centrally managed package version to a higher version. 
+C:\Code\MeAjudaAi\src\Aspire\MeAjudaAi.AppHost\MeAjudaAi.AppHost.csproj : error NU1109:  MeAjudaAi.AppHost -> Aspire.Hosting.Azure.AppContainers 13.2.1 -> System.IO.Hashing (>= 10.0.3) 
+C:\Code\MeAjudaAi\src\Aspire\MeAjudaAi.AppHost\MeAjudaAi.AppHost.csproj : error NU1109:  MeAjudaAi.AppHost -> System.IO.Hashing (>= 10.0.1)
+  Failed to restore C:\Code\MeAjudaAi\src\Aspire\MeAjudaAi.AppHost\MeAjudaAi.AppHost.csproj (in 587 ms).
+  28 of 29 projects are up-to-date for restore.
