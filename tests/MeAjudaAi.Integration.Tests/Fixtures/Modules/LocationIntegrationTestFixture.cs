@@ -34,7 +34,8 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Cache:Enabled"] = "true"
+                ["Cache:Enabled"] = "false",
+                ["Caching:Enabled"] = "false"
             })
             .Build();
         services.AddSingleton<IConfiguration>(configuration);
@@ -49,15 +50,15 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
                 LocalCacheExpiration = TimeSpan.FromMinutes(30)
             };
         });
-        services.AddSingleton<CacheMetrics>();
+        services.AddSingleton<ICacheMetrics, CacheMetrics>();
         services.AddSingleton<ICacheService, HybridCacheService>();
 
-        // Configura clientes HTTP com mocks
+        // Adiciona serviços do módulo Locations PRIMEIRO
+        MeAjudaAi.Modules.Locations.API.Extensions.AddLocationsModule(services, configuration);
+
+        // DEPOIS configura os clientes HTTP com mocks (sobrescreve os handlers)
         HttpMockBuilder = new MockHttpClientBuilder(services);
         ConfigureHttpClients(HttpMockBuilder);
-
-        // Adiciona serviços do módulo Locations
-        MeAjudaAi.Modules.Locations.API.Extensions.AddLocationsModule(services, configuration);
 
         ServiceProvider = services.BuildServiceProvider();
         await Task.CompletedTask;

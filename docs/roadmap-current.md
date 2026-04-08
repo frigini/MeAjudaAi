@@ -3,40 +3,40 @@
 **Status**: 🔄 Em andamento (Jan–Mar 2026)
 
 ### Objetivo
-Desenvolver aplicações frontend usando **Blazor WebAssembly** (Admin Portal) e **React + Next.js** (Customer Web App) + **React Native** (Mobile App).
+Desenvolver aplicações frontend usando **React + Next.js** (Customer Web App, Admin Portal) + **React Native** (Mobile App).
 
-> **📅 Status Atual**: Sprint 8C concluída (21 Mar 2026)  
-> **📝 Decisão Técnica** (5 Fev 2026): Customer App usará **React 19 + Next.js 15 + Tailwind v4** (SEO, performance, ecosystem)  
-> Próximo foco: Sprint 8D - Admin Portal Migration (React)
+> **📅 Status Atual**: Sprint 9 (Estabilização) em andamento (26 Mar 2026)  
+> **📝 Decisão Técnica**: Cobertura Global de 70% atingida e reforçada no CI/CD.
+> **🎉 MIGRAÇÃO CONCLUÍDA**: Admin Portal migrado de Blazor para React + Next.js na Sprint 8D
 
 ---
 
-### 📱 Stack Tecnológico ATUALIZADO (5 Fev 2026)
+### 📱 Stack Tecnológico ATUALIZADO (21 Mar 2026)
 
 > **📝 Decisão Técnica** (5 Fevereiro 2026):  
 > Stack de Customer App definida como **React 19 + Next.js 15 + Tailwind CSS v4**.  
-> **Admin Portal** permanece em **Blazor WASM** (já implementado, interno, estável).  
-> *Migration to React planned for Sprint 8D to unify the stack.*
+> **Admin Portal**: Migrado de Blazor WASM para React + Next.js na Sprint 8D.
 > **Razão**: SEO crítico para Customer App, performance inicial, ecosystem maduro, hiring facilitado.
 
-**Decisão Estratégica**: Dual Stack (Blazor para Admin, React para Customer)
+**Decisão Estratégica**: Stack unificado em **React + Next.js** para todos os apps web
 
 **Justificativa**:
 - ✅ **SEO**: Customer App precisa aparecer no Google ("eletricista RJ") - Next.js SSR/SSG resolve
 - ✅ **Performance**: Initial load rápido crítico para conversão mobile - code splitting + lazy loading
 - ✅ **Ecosystem**: Massivo - geolocation, maps, payments, qualquer problema já resolvido
-- ✅ **Hiring**: Fácil escalar time - React devs abundantes vs Blazor devs raros
+- ✅ **Hiring**: Fácil escalar time - React devs abundantes
 - ✅ **Mobile**: React Native maduro e testado vs MAUI Hybrid ainda novo
 - ✅ **Modern Stack**: React 19 + Tailwind v4 é estado da arte (2026)
 - ⚠️∩╕Å **Trade-off**: DTOs duplicados (C# backend, TS frontend) - mitigado com OpenAPI TypeScript Generator
 
 **Stack Completa**:
 
-**Admin Portal** (mantido):
-- Blazor WebAssembly 10.0 (AOT enabled)
-- MudBlazor 8.15.0 (Material Design)
-- Fluxor 6.9.0 (Redux state management)
-- Refit (API client)
+**Admin Portal** (React - migrado na Sprint 8D):
+- React 19 + TypeScript 5.7+
+- Tailwind CSS v4
+- Zustand (state management)
+- React Hook Form + Zod
+- NextAuth.js (Keycloak OIDC)
 
 **Customer Web App** (novo):
 - React 19 (Server Components + Client Components)
@@ -85,14 +85,14 @@ Desenvolver aplicações frontend usando **Blazor WebAssembly** (Admin Portal) e
 **Generated Files Location**:
 ```text
 src/
-Γö£ΓöÇΓöÇ Contracts/                       # Backend DTOs (C#)
-Γö£ΓöÇΓöÇ Web/
-Γöé   Γö£ΓöÇΓöÇ MeAjudaAi.Web.Admin/         # Blazor (consumes Contracts via Refit)
-Γöé   ΓööΓöÇΓöÇ MeAjudaAi.Web.Customer/      # Next.js
-Γöé       ΓööΓöÇΓöÇ types/api/generated/     # ← OpenAPI generated types
-ΓööΓöÇΓöÇ Mobile/
-    ΓööΓöÇΓöÇ MeAjudaAi.Mobile.Customer/   # React Native
-        ΓööΓöÇΓöÇ src/types/api/           # ← Same OpenAPI generated types
+├── Contracts/                       # Backend DTOs (C#)
+└── Web/
+    ├── MeAjudaAi.Web.Admin/         # React + Next.js (migrated from Blazor in Sprint 8D)
+    ├── MeAjudaAi.Web.Customer/      # Next.js
+    │   └── types/api/generated/     # ← OpenAPI generated types
+    └── Mobile/
+        └── MeAjudaAi.Mobile.Customer/   # React Native
+            └── src/types/api/             # ← Same OpenAPI generated types
 ```
 
 **CI/CD Pipeline** (GitHub Actions):
@@ -107,7 +107,7 @@ src/
 ```text
 src/
 ├── Web/
-│   ├── MeAjudaAi.Web.Admin/          # Blazor WASM Admin Portal (existente)
+│   ├── MeAjudaAi.Web.Admin/          # React + Next.js Admin Portal (Sprint 8D)
 │   └── MeAjudaAi.Web.Customer/       # 🚀 Next.js Customer App (Sprint 8A)
 ├── Mobile/
 │   └── MeAjudaAi.Mobile.Customer/    # 🚀 React Native + Expo (Sprint 8B)
@@ -120,13 +120,13 @@ src/
 
 **Cross-Platform Authentication Consistency**:
 
-| Aspect | Admin (Blazor) | Customer Web (Next.js) | Customer Mobile (RN) |
-|--------|----------------|------------------------|----------------------|
-| **Token Storage** | In-memory | HTTP-only cookies | Secure Storage |
+| Aspect | Admin (React) | Customer Web (Next.js) | Customer Mobile (RN) |
+|--------|--------------|------------------------|----------------------|
+| **Token Storage** | HTTP-only cookies | HTTP-only cookies | Secure Storage |
 | **Token Lifetime** | 1h access + 24h refresh | 1h access + 7d refresh | 1h access + 30d refresh |
-| **Refresh Strategy** | Automatic (OIDC lib) | Middleware refresh | Background refresh |
+| **Refresh Strategy** | Automatic (NextAuth) | Middleware refresh | Background refresh |
 | **Role Claims** | `role` claim | `role` claim | `role` claim |
-| **Logout** | `/bff/logout` | `/api/auth/signout` | Revoke + clear storage |
+| **Logout** | `/api/auth/signout` | `/api/auth/signout` | Revoke + clear storage |
 
 **Keycloak Configuration**:
 - **Realm**: `MeAjudaAi`
@@ -138,7 +138,7 @@ src/
 **Implementation Details**:
 - **Protocolo**: OpenID Connect (OIDC)
 - **Identity Provider**: Keycloak
-- **Admin Portal**: `Microsoft.AspNetCore.Components.WebAssembly.Authentication` (Blazor)
+- **Admin Portal**: NextAuth.js v5 (React + Next.js)
 - **Customer Web**: NextAuth.js v5 (Next.js)
 - **Customer Mobile**: React Native OIDC Client
 - **Refresh**: Automático via OIDC interceptor
@@ -224,7 +224,7 @@ src/
 
 #### ✅ Fase 2: Database-Backed + Admin Portal UI (CONCLUÍDO - Sprint 7, 7 Jan 2026)
 
-**Contexto**: Migrar lista de cidades/estados de `appsettings.json` para banco de dados, permitindo gestão dinâmica via Blazor Admin Portal sem necessidade de redeploy.
+**Contexto**: Migrar lista de cidades/estados de `appsettings.json` para banco de dados, permitindo gestão dinâmica via Admin Portal (React) sem necessidade de redeploy.
 
 **Status**: ✅ IMPLEMENTADO - AllowedCities UI completa com CRUD, coordenadas geográficas, e raio de serviço.
 
@@ -250,7 +250,7 @@ CREATE INDEX idx_allowed_regions_active ON geographic_restrictions.allowed_regio
 
 **Funcionalidades Admin Portal**:
 
-- [ ] **Visualização de Restrições Atuais**
+- [ ] **Visualização de Restrições Atuais** (Admin Portal React)
   - [ ] Tabela com cidades/estados permitidos
   - [ ] Filtros: Tipo (Cidade/Estado), Estado, Status (Ativo/Inativo)
   - [ ] Ordenação: Alfabética, Data de Adição
@@ -341,7 +341,7 @@ public class GeographicRestrictionMiddleware
 2. **Sprint 3 Semana 1**: Implementar `AllowedRegionsService` com cache
 3. **Sprint 3 Semana 1**: Refactor middleware para usar serviço (mantém fallback appsettings)
 4. **Sprint 3 Semana 2**: Implementar CRUD endpoints no Admin API
-5. **Sprint 3 Semana 2**: Implementar UI no Blazor Admin Portal
+5. **Sprint 3 Semana 2**: Implementar UI no Admin Portal (React)
 6. **Sprint 3 Pós-Deploy**: Popular banco com dados iniciais (Muriaé, Itaperuna, Linhares)
 7. **Sprint 4**: Remover valores de appsettings.json (obsoleto)
 
@@ -372,15 +372,15 @@ public class GeographicRestrictionMiddleware
 - [ ] **Ações**: Aprovar, Remover, Banir usuário
 - [ ] Stub para módulo Reviews (a ser implementado na Fase 3)
 
-**Tecnologias**:
-- **Framework**: Blazor WebAssembly (.NET 10)
-- **UI**: MudBlazor (Material Design)
-- **State**: Fluxor (Flux/Redux pattern)
-- **HTTP**: Refit + Polly (retry policies)
-- **Charts**: ApexCharts.Blazor
+**Tecnologias (Admin Portal React)**:
+- **Framework**: React 19 + TypeScript 5.7+
+- **UI**: Tailwind CSS v4 + Base UI
+- **State**: Zustand
+- **HTTP**: TanStack Query + React Hook Form
+- **Charts**: Recharts
 
 **Resultado Esperado**:
-- ✅ Admin Portal funcional e responsivo
+- ✅ Admin Portal funcional e responsivo (React)
 - ✅ Todas operações CRUD implementadas
 - ✅ Dashboard com métricas em tempo real
 - ✅ Deploy em Azure Container Apps
@@ -433,7 +433,7 @@ public class GeographicRestrictionMiddleware
     - Remove Azure Service Bus, unify on RabbitMQ only.
 3. 🔴 **MUST-HAVE**: **Technical Excellence Pack** (Effort: Medium)
     - [ ] [**TD**] **Keycloak Automation**: `setup-keycloak-clients.ps1` for local dev.
-    - [ ] [**TD**] **Analyzer Cleanup**: Fix MudBlazor/SonarLint warnings in Admin & Contracts.
+    - [ ] [**TD**] **Analyzer Cleanup**: Fix SonarLint warnings in React apps & Contracts.
     - [ ] [**TD**] **Refactor Extensions**: Extract `BusinessMetricsMiddlewareExtensions`.
     - [ ] [**TD**] **Polly Logging**: Migrate resilience logging to ILogger (Issue #113).
     - [ ] [**TD**] **Standardization**: Record syntax alignment in `Contracts`.
@@ -601,28 +601,61 @@ Durante o processo de atualização automática de dependências pelo Dependabot
   - `/configuracoes` - Toggle de visibilidade + delete account com confirmação LGPD
 - ✅ **Slug URLs**: Perfis públicos acessíveis via slugs (ex: `/provider/joao-silva-a1b2c3d4`)
 
-### ⏳ Sprint 8D - Admin Portal Migration (2 - 22 Abr 2026)
+### ✅ Sprint 8D - Admin Portal Migration (2 - 24 Mar 2026)
 
-**Status**: ⏳ Planned (+1 week buffer added)
+**Status**: ✅ CONCLUÍDA (24 Mar 2026)
 **Foco**: Phased migration from Blazor WASM to React.
 
-**Scope (Prioritized)**:
-- **Admin Portal Deliverable**: Functional `apps/admin-portal` in React.
-- Providers CRUD + Document Management (Critical).
-- Service Catalogs + Allowed Cities.
-- Dashboard with KPIs.
-- Unit/Integration tests for Admin modules.
+**Entregáveis**:
+- ✅ **Admin Portal React**: Functional `src/Web/MeAjudaAi.Web.Admin/` in React.
+- ✅ **Providers CRUD**: Complete provider management.
+- ✅ **Document Management**: Document upload and verification.
+- ✅ **Service Catalogs**: Service catalog management.
+- ✅ **Allowed Cities**: Geographic restrictions management.
+- ✅ **Dashboard KPIs**: Admin dashboard with metrics.
 
-> 1. Ship MVP with current Blazor Admin.
-> 2. Reduce scope to only Providers CRUD.
+### ✅ Sprint 8E - E2E Tests & React Test Infrastructure (23 Mar - 25 Mar 2026)
 
-### ⌛ Sprint 9 - BUFFER & Risk Mitigation (23 Abr - 11 Mai 2026)
+**Status**: ✅ CONCLUÍDA (25 Mar 2026)
+**Foco**: Testes E2E (Playwright) + infraestrutura de testes unitários (Vitest + RTL + MSW) + Governança de Cobertura Global.
 
-**Status**: 📋 PLANEJADO PARA MAIO 2026
-**Duration**: 12 days buffer (Extended)
+**Scope — E2E (Playwright)** ✅:
+1. ✅ **Playwright Config**: `playwright.config.ts` com 6 projetos (Chromium, Firefox, WebKit, Mobile, CI)
+2. ✅ **Customer E2E** (5 specs): auth, onboarding, performance, profile, search
+3. ✅ **Provider E2E** (5 specs): auth, dashboard, onboarding, performance, profile-mgmt
+4. ✅ **Admin E2E** (5 specs): auth, configs, dashboard, mobile-responsiveness, providers
+5. ✅ **Shared Fixtures**: `src/Web/libs/e2e-support/base.ts` (loginAsAdmin, loginAsProvider, loginAsCustomer, logout)
+6. ✅ **CI Integration**: `master-ci-cd.yml` atualizado para gerar especificação OpenAPI e rodar E2E.
+
+**Scope — Testes Unitários (Vitest + RTL)** ✅:
+7. ✅ **Infraestrutura**: `libs/test-support/` (test-utils.tsx, customRenderHook), thresholds individuais removidos em favor de Cobertura Global.
+8. ✅ **Cobertura Global**: Script `src/Web/scripts/merge-coverage.mjs` consolida relatórios de todos os projetos com threshold de 70%.
+9. ✅ **Hardening Admin**: Testes unitários para `Sidebar`, `Button`, `Dashboard`, `Providers` e `Users`. Autenticação centralizada em `auth.ts`.
+10. ✅ **Hardening Customer**: `DashboardClient` (DTO compliance), `DocumentUpload` (API assertions) e `SearchFilters` (API category validation).
+
+**Cenários de Teste E2E**:
+- [x] Autenticação (login, logout, refresh token)
+- [x] Fluxo de onboarding (Customer e Provider)
+- [x] CRUD de providers e serviços (Admin)
+- [x] Busca e filtros geolocalizados
+- [x] Responsividade mobile
+- [x] Performance e Core Web Vitals (INP, LCP, CLS)
+
+**Pendências para fechar Sprint**:
+- [x] Testes unitários Admin (hooks: providers, categories, dashboard, services, allowed-cities, users; components: sidebar, ui)
+- [x] Testes unitários Provider (hooks; components: dashboard cards, profile)
+- [x] Configurar MSW handlers para Admin e Provider
+
+### ⏳ Sprint 9 - BUFFER & Risk Mitigation (25 Mar - 11 Mai 2026)
+
+**Status**: ⏳ EM ANDAMENTO
+**Duration**: 12 days buffer
 - Polishing, Refactoring, and Fixing.
 - Move Optional tasks from 8B.2 here if needed.
 - Rate limiting and advanced security/monitoring.
+
+**Follow-ups Pendentes**:
+- [ ] **OpenAPI Diff Gating**: Adicionar verificação de breaking changes em CI (falhar PR se API mudar sem version bump)
 
 ## 🎯 MVP Final Launch: 12 - 16 de Maio de 2026 🎯
 
@@ -630,7 +663,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 
 #### Risk Mitigation Strategy
 - **Contingency Branching**: If major tasks (Admin Migration, NX Setup) slip, we prioritize essential Player flows (Customer/Provider) and fallback to existing Admin solutions.
-- **Sprint 8E (Mobile)**: De-scoped from MVP to Phase 2 to ensure web platform stability.
+- **Mobile Apps**: De-scoped from MVP to Phase 2 to ensure web platform stability.
 - **Buffer**: Sprint 9 is strictly for stability, no new features.
 - Documentação final para MVP
 
@@ -645,25 +678,20 @@ Durante o processo de atualização automática de dependências pelo Dependabot
   - Implementar proper token refresh handling
   - Adicionar fallback mechanisms
 
-### Risk Scenario 2: MudBlazor Learning Curve
-
-- **Problema Potencial**: Primeira vez usando MudBlazor; componentes complexos (DataGrid, Forms) podem ter comportamentos inesperados
-- **Impacto**: +3-4 dias além do planejado nos Sprints 6-7
-- **Mitigação Sprint 9**:
-  - Refatorar componentes para seguir best practices MudBlazor
-  - Implementar componentes reutilizáveis otimizados
-  - Documentar patterns e anti-patterns identificados
-
-### Risk Scenario 3: Blazor WASM Performance Issues
+### Risk Scenario 3: React Performance Issues
 
 - **Problema Potencial**: App bundle size > 5MB, lazy loading não configurado corretamente
 - **Impacto**: UX ruim, +2-3 dias de otimização
 - **Mitigação Sprint 9**:
-  - Implementar lazy loading de assemblies
-  - Otimizar bundle size (tree shaking, AOT compilation)
-  - Adicionar loading indicators e progressive loading
+  - Code splitting with dynamic imports
+  - Tree shaking and bundle optimization
+  - SSR/SSG via Next.js to improve initial load
+  - Lazy load React components
+  - Optimize images using next/image and responsive formats
 
-### Risk Scenario 4: MAUI Hybrid Platform-Specific Issues
+### Risk Scenario 4: MAUI Hybrid Platform-Specific Issues (DE-SCOPED FROM MVP)
+
+> **⚠️ IMPORTANTE**: Este cenário de risco foi removido do escopo do MVP. Os Mobile Apps foram adiados para a Fase 2 conforme.nota acima.
 
 - **Problema Potencial**: Diferenças de comportamento iOS vs Android (permissões, geolocation, file access)
 - **Impacto**: +4-5 dias de debugging platform-specific
@@ -1200,27 +1228,30 @@ public class ActivityHub : Hub
 ### 📅 Alta Prioridade (Próximos 3 meses - Q1-Q2 2026)
 1. ✅ **Sprint 8B.2: NX Monorepo & Technical Excellence** (Concluída)
 2. ✅ **Sprint 8C: Provider Web App (React + NX)** (Concluída - 21 Mar 2026)
-3. ⏳ **Sprint 8D: Admin Portal Migration** (Abril 2026)
-4. ⏳ **Sprint 9: BUFFER & RISK MITIGATION** (Abril/Maio 2026)
-5. 🎯 **MVP Final Launch: 12 - 16 de Maio de 2026**
-6. 📋 API Collections - Bruno .bru files para todos os módulos
+3. ✅ **Sprint 8D: Admin Portal Migration** (Concluída - 24 Mar 2026)
+4. ✅ **Sprint 8E: E2E Tests React Apps (Playwright)** (Concluída - 25 Mar 2026)
+5. ⏳ **Sprint 9: BUFFER & RISK MITIGATION** (Abril/Maio 2026)
+6. 🎯 **MVP Final Launch: 12 - 16 de Maio de 2026**
+7. 📋 API Collections - Bruno .bru files para todos os módulos
+
+### 🎯 **Alta Prioridade - Pré-MVP**
+1. 🎯 Communications - Email notifications
+2. 💳 Módulo Payments & Billing (Stripe) - Preparação para monetização
 
 ### 🎯 **Média Prioridade (6-12 meses - Fase 2)**
 1. 🎉 Módulo Reviews & Ratings
-2. 💳 Módulo Payments & Billing (Stripe)
-3. 🌍 Documents - Verificação automatizada (OCR + Background checks)
-4. 🔄 Search - Indexing worker para integration events
-5. 📊 Analytics - Métricas básicas
-6. 🎯 Communications - Email notifications
-7. 🏛️ Dispute Resolution System
-8. 🔥 Alinhamento de middleware entre UseSharedServices() e UseSharedServicesAsync()
+2. 🌍 Documents - Verificação automatizada (OCR + Background checks)
+3. 🔄 Search - Indexing worker para integration events (extensão do módulo SearchProviders)
+4. 📊 Analytics - Métricas básicas
+5. 🏛️ Dispute Resolution System
+6. 🔥 Alinhamento de middleware entre UseSharedServices() e UseSharedServicesAsync()
 
 ### 🔬 **Testes E2E Frontend (Pós-MVP)**
-**Projeto**: `tests/MeAjudaAi.Web.Tests`
+**Projeto**: `src/Web` (dividido por projeto)
 **Estrutura**: Uma pasta para cada projeto frontend
-- `tests/MeAjudaAi.Web.Tests/Customer/` - Testes E2E para Customer Web App
-- `tests/MeAjudaAi.Web.Tests/Provider/` - Testes E2E para Provider Web App  
-- `tests/MeAjudaAi.Web.Tests/Admin/` - Testes E2E para Admin Portal
+- `src/Web/MeAjudaAi.Web.Customer/e2e/` - Testes E2E para Customer Web App
+- `src/Web/MeAjudaAi.Web.Provider/e2e/` - Testes E2E para Provider Web App  
+- `src/Web/MeAjudaAi.Web.Admin/e2e/` - Testes E2E para Admin Portal
 
 **Framework**: Playwright
 **Cenários a cobrir**:

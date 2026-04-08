@@ -7,8 +7,8 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 🚀 [Roadmap Atual](./roadmap-current.md)
 **Status**: Fase 2 em andamento (Frontend React + Mobile).  
 Contém o status atual das sprints, o cronograma detalhado até o MVP e o plano de mitigação de riscos.
-- **Sprint Atual**: 8B.2 (Technical Excellence & NX Monorepo)
-- **Próximas Sprints**: 8C (Provider App), 8D (Admin Migration)
+- **Sprint Atual**: 9 (Buffer & Risk Mitigation)
+- **Sprint Concluída**: 8E (E2E Tests & React Unit Infrastructure)
 - **Meta MVP**: Maio 2026 (12-16)
 
 ---
@@ -33,10 +33,11 @@ Contém os objetivos pós-MVP e ideias para o backlog de longo prazo.
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
 **Stack Principal**: .NET 10 LTS + Aspire 13 + PostgreSQL + NX Monorepo + React 19 + Next.js 15 (Customer, Provider) + Tailwind v4
 > [!NOTE]
-> *Admin Portal atualmente em Blazor WASM; migração para React planejada para o Sprint 8D.*
+> *Admin Portal migrado de Blazor WASM para React durante o Sprint 8D (concluído em 24 de Março de 2026).*
 
 ---
 
 ## 🏗️ Decisões Arquiteturais Recentes
 - **NX Monorepo**: Adotado para unificar o desenvolvimento frontend e compartilhamento de código.
 - **Dual-Stack Transition**: Transição de Blazor WASM para React 19 (Next.js) para unificação da stack.
+- **Testing Infrastructure**: Implementação de Vitest + MSW para unitários e Playwright para E2E, com agregação de cobertura global.

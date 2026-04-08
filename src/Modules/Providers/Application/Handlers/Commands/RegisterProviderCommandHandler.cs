@@ -34,7 +34,14 @@ public sealed class RegisterProviderCommandHandler(
             
             // Endereço e BusinessProfile inicialmente placeholders para permitir cadastro em etapas
             // Usando valores sentinela claros para indicar pendência
-            var address = new Address("Pending", "0", "Pending", "XX", "00000-000", "00000000"); 
+            var address = new Address(
+                "Rua Pendente", // street
+                "0",            // number
+                "Bairro Pendente", // neighborhood
+                "Cidade Pendente", // city
+                "SP",            // state (valid UF)
+                "00000-000"     // zipCode
+            ); 
             
             var businessProfile = new BusinessProfile(
                 command.Name, // LegalName

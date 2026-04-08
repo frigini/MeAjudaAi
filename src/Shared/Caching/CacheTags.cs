@@ -1,9 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Caching;
 
 /// <summary>
 /// Constantes para tags de cache utilizadas no sistema.
 /// Permite invalidação em grupo de entradas relacionadas.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class CacheTags
 {
     // Tags para o módulo Users

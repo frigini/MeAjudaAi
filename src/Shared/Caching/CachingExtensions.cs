@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,11 +8,15 @@ namespace MeAjudaAi.Shared.Caching;
 /// <summary>
 /// Extension methods para configuração de Caching
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class CachingExtensions
 {
     public static IServiceCollection AddCaching(this IServiceCollection services,
         IConfiguration configuration)
     {
+        // Registrar métricas (necessário para CacheMetrics)
+        services.AddMetrics();
+
         services.AddHybridCache(options =>
         {
             options.MaximumPayloadBytes = 1024 * 1024;
@@ -35,7 +40,7 @@ public static class CachingExtensions
         });
 
         // Registra métricas de cache
-        services.AddSingleton<CacheMetrics>();
+        services.AddSingleton<ICacheMetrics, CacheMetrics>();
 
         // Registra serviços de cache
         services.AddSingleton<ICacheService, HybridCacheService>();

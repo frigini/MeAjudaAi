@@ -165,3 +165,5 @@ export const registerCustomerSchema = z.object({
 export type RegisterCustomerSchema = z.infer<typeof registerCustomerSchema>;
 export type RegisterProviderSchema = z.infer<typeof registerProviderSchema>;
 export type AddressSchema = z.infer<typeof addressSchema>;
+export type RegisterCustomerInput = RegisterCustomerSchema;
+export type RegisterProviderInput = RegisterProviderSchema;

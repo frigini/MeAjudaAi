@@ -10,7 +10,7 @@ namespace MeAjudaAi.Shared.Monitoring;
 /// <summary>
 /// Middleware para capturar métricas customizadas de negócio
 /// </summary>
-internal class BusinessMetricsMiddleware(
+public class BusinessMetricsMiddleware(
     RequestDelegate next,
     BusinessMetrics businessMetrics,
     ILogger<BusinessMetricsMiddleware> logger)

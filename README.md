@@ -2,7 +2,7 @@
 
 Uma plataforma abrangente de serviços construída com .NET Aspire, projetada para conectar prestadores de serviços com clientes usando arquitetura monólito modular.
 
-<!-- Atualizado: 5 Fevereiro 2026 - Sprint 7.21 (Package Updates: Microsoft.OpenApi 2.6.1, Aspire.Hosting.Redis 13.1.0, SonarAnalyzer.CSharp 10.19.0) -->
+<!-- Atualizado: 24 MARÇO 2026 - Sprint 8D -->
 
 ## 🎯 Visão Geral
 
@@ -20,9 +20,10 @@ O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implem
 
 - **.NET 10.0.2** - Framework principal
 - **.NET Aspire 13.1** - Orquestração e observabilidade
-- **Blazor WebAssembly 10.0.2** - Admin Portal SPA
-- **MudBlazor 8.15.0** - Material Design UI components
-- **Fluxor 6.9.0** - Redux state management
+- **React 19 + Next.js 15** - Frontend Web Apps (Customer, Provider, Admin)
+- **Tailwind CSS v4** - Styling
+- **Zustand + TanStack Query** - State management
+- **Playwright** - E2E Testing
 - **Entity Framework Core 10.0.2** - ORM e persistência
 - **Microsoft.OpenApi 2.6.1** - OpenAPI specification
 - **SonarAnalyzer.CSharp 10.19.0** - Code quality analysis
@@ -102,9 +103,10 @@ O projeto foi organizado para facilitar navegação e manutenção:
 │   ├── Bootstrapper/   # API Service entry point
 │   ├── Modules/        # Módulos de domínio (DDD)
 │   ├── Shared/         # Contratos e abstrações
-│   └── Web/            # Aplicações Web
-│       ├── MeAjudaAi.Web.Admin/     # Admin Portal (Blazor WASM)
-│       └── meajudaai-web-customer/  # Customer Web App (Next.js 15)
+│   └── Web/            # Aplicações Web (NX Workspace)
+│       ├── MeAjudaAi.Web.Admin/     # Admin Portal (React + Next.js 15)
+│       ├── MeAjudaAi.Web.Customer/ # Customer Web App (Next.js 15)
+│       └── MeAjudaAi.Web.Provider/  # Provider Web App (Next.js 15)
 ├── 📁 tests/           # Testes automatizados (xUnit v3)
 └── 📁 tools/           # Ferramentas de desenvolvimento
     └── api-collections/  # Gerador Bruno/Postman collections
@@ -136,7 +138,7 @@ O projeto foi organizado para facilitar navegação e manutenção:
 | Serviço | URL | Credenciais | Descrição |
 |---------|-----|-------------|--------------|
 | **Aspire Dashboard** | https://localhost:17063/ | - | Orquestração e observabilidade |
-| **Admin Portal** | https://localhost:7032/ | admin.portal/admin123 | Portal administrativo Blazor |
+| **Admin Portal** | https://localhost:7032/ | admin.portal/admin123 | Portal administrativo React + Next.js |
 | **Customer Web App** | http://localhost:3000/ | - | Aplicação pública Next.js (clientes/prestadores) |
 | **API** | https://localhost:7524/swagger | - | API REST com Swagger UI |
 | **Keycloak** | http://localhost:8080/ | admin/[console logs] | Autenticação OAuth2/OIDC |
@@ -258,7 +260,7 @@ dotnet test tests/MeAjudaAi.Modules.Users.Tests/
 
 ## 🎨 Admin Portal
 
-**Portal administrativo** Blazor WebAssembly para gestão completa da plataforma.
+**Portal administrativo** React + Next.js para gestão completa da plataforma.
 
 **Funcionalidades:**
 - ✅ Autenticação via Keycloak OIDC (Authorization Code + PKCE)
@@ -267,9 +269,8 @@ dotnet test tests/MeAjudaAi.Modules.Users.Tests/
 - ✅ Gestão de Documentos (upload, OCR, verificação)
 - ✅ Gestão de Service Catalogs (categorias + serviços)
 - ✅ Restrições Geográficas (cidades permitidas)
-- ✅ Dark Mode com Fluxor state management
-- ✅ Localização completa em português
-- ✅ 43 testes bUnit (componentes principais)
+- ✅ Admin Portal React com Tailwind CSS
+- ✅ E2E Tests com Playwright
 
 **Como Executar:**
 

@@ -64,6 +64,8 @@ coverage.cobertura.xml
 coverage/
 coverage*/
 test-coverage*/
+coverage-global/
+.nyc_output/
 htmlcov/
 lcov.info
 *.lcov
@@ -157,3 +159,16 @@ legacy-analysis-report.*
 **/generated/
 
 vite.config.*.timestamp*
+
+# Ignore Windows null device files
+nul
+# MkDocs output
+site/
+
+# Aspire
+src/Aspire/MeAjudaAi.AppHost/infrastructure/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/

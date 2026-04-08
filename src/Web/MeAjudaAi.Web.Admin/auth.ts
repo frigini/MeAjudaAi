@@ -1,4 +1,4 @@
-import NextAuth, { type NextAuthOptions, type DefaultSession } from "next-auth";
+import NextAuth, { getServerSession, type NextAuthOptions, type DefaultSession } from "next-auth";
 import Keycloak from "next-auth/providers/keycloak";
 
 declare module "next-auth" {
@@ -10,13 +10,73 @@ declare module "next-auth" {
   }
 }
 
-const keycloakClientId = process.env.KEYCLOAK_ADMIN_CLIENT_ID;
-const keycloakClientSecret = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET;
-const keycloakIssuer = process.env.KEYCLOAK_ISSUER;
+const isCi = process.env.CI === "true" || process.env.NEXT_PUBLIC_CI === "true" || process.env.MOCK_AUTH === "true";
 
-if (!keycloakClientId || !keycloakClientSecret || !keycloakIssuer) {
-  throw new Error("Missing Keycloak environment variables: KEYCLOAK_ADMIN_CLIENT_ID, KEYCLOAK_ADMIN_CLIENT_SECRET, or KEYCLOAK_ISSUER");
+function getRequiredEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    if (isCi) {
+      console.warn(`[auth] Environment variable ${name} is missing - using placeholder for CI.`);
+      return "ci-placeholder";
+    }
+    if (process.env.NODE_ENV === "development") {
+      throw new Error(`[auth] Environment variable ${name} is required but not set.`);
+    }
+    throw new Error(`[auth] Environment variable ${name} is required.`);
+  }
+  return value;
 }
+
+const hasAdminVars = process.env.KEYCLOAK_ADMIN_CLIENT_ID && process.env.KEYCLOAK_ADMIN_CLIENT_SECRET;
+const hasClientVars = process.env.KEYCLOAK_CLIENT_ID && process.env.KEYCLOAK_CLIENT_SECRET;
+
+const hasPartialAdminVars = (!!process.env.KEYCLOAK_ADMIN_CLIENT_ID) !== (!!process.env.KEYCLOAK_ADMIN_CLIENT_SECRET);
+const hasPartialClientVars = (!!process.env.KEYCLOAK_CLIENT_ID) !== (!!process.env.KEYCLOAK_CLIENT_SECRET);
+
+if (hasPartialAdminVars && !isCi) {
+  throw new Error("Both KEYCLOAK_ADMIN_CLIENT_ID and KEYCLOAK_ADMIN_CLIENT_SECRET must be set or neither");
+}
+
+if (hasPartialClientVars && !isCi) {
+  throw new Error("Both KEYCLOAK_CLIENT_ID and KEYCLOAK_CLIENT_SECRET must be set or neither");
+}
+
+let keycloakClientId: string;
+let keycloakClientSecret: string;
+let keycloakIssuer: string;
+let authMode: string;
+
+if (isCi) {
+  authMode = "CI_MOCK";
+  keycloakClientId = process.env.KEYCLOAK_CLIENT_ID || "placeholder";
+  keycloakClientSecret = process.env.KEYCLOAK_CLIENT_SECRET || "placeholder";
+  keycloakIssuer = process.env.KEYCLOAK_ISSUER || "http://localhost:8080/realms/meajudaai";
+} else if (hasAdminVars) {
+  authMode = "ADMIN";
+  keycloakClientId = process.env.KEYCLOAK_ADMIN_CLIENT_ID!;
+  keycloakClientSecret = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET!;
+  keycloakIssuer = process.env.KEYCLOAK_ISSUER || getRequiredEnv("KEYCLOAK_ISSUER");
+} else if (hasClientVars) {
+  authMode = "CLIENT";
+  keycloakClientId = process.env.KEYCLOAK_CLIENT_ID!;
+  keycloakClientSecret = process.env.KEYCLOAK_CLIENT_SECRET!;
+  keycloakIssuer = process.env.KEYCLOAK_ISSUER || getRequiredEnv("KEYCLOAK_ISSUER");
+} else {
+  authMode = "REQUIRED";
+  keycloakClientId = getRequiredEnv("KEYCLOAK_CLIENT_ID");
+  keycloakClientSecret = getRequiredEnv("KEYCLOAK_CLIENT_SECRET");
+  keycloakIssuer = getRequiredEnv("KEYCLOAK_ISSUER");
+}
+
+let hostname = 'unknown';
+if (keycloakIssuer) {
+  try {
+    hostname = new URL(keycloakIssuer).hostname;
+  } catch {
+    throw new Error(`[auth] Invalid KEYCLOAK_ISSUER URL: ${keycloakIssuer}. Please provide a valid URL.`);
+  }
+}
+console.log(`[auth] Using KEYCLOAK credentials: ${authMode} (issuer: ${hostname})`);
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -35,7 +95,7 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 60,
   },
   callbacks: {
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, account, profile }) {
       if (account && profile) {
         const keycloakProfile = profile as {
           sub?: string;
@@ -61,3 +121,10 @@ export const authOptions: NextAuthOptions = {
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
+
+/**
+ * Helper to get the server session in Server Components.
+ */
+export async function auth() {
+  return getServerSession(authOptions);
+}

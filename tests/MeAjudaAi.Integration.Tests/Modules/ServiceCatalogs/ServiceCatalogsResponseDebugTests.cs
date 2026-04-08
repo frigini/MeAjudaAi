@@ -13,7 +13,7 @@ public class ServiceCatalogsResponseDebugTests(ITestOutputHelper testOutput) : B
 {
     protected override TestModule RequiredModules => TestModule.ServiceCatalogs;
 
-    [Fact(Skip = "Diagnostic test - enable only when debugging response format issues")]
+    [Fact]
     [Trait("Category", "Debug")]
     public async Task Debug_CreateServiceCategory_ResponseFormat()
     {
@@ -44,6 +44,8 @@ public class ServiceCatalogsResponseDebugTests(ITestOutputHelper testOutput) : B
             json = JsonSerializer.Deserialize<JsonElement>(content, SerializationDefaults.Api);
             testOutput.WriteLine($"JSON ValueKind: {json.ValueKind}");
 
+            var responseData = GetResponseData(json);
+
             if (json.ValueKind == JsonValueKind.Object)
             {
                 testOutput.WriteLine("Properties:");
@@ -62,8 +64,10 @@ public class ServiceCatalogsResponseDebugTests(ITestOutputHelper testOutput) : B
         // Validate expected DTO shape outside try/catch so assertions are not swallowed
         if (json.ValueKind == JsonValueKind.Object)
         {
-            json.TryGetProperty("id", out _).Should().BeTrue("DTO should have 'id' property");
-            json.TryGetProperty("name", out _).Should().BeTrue("DTO should have 'name' property");
+            // Use GetResponseData or navigate to .value for Result<T> wrapped responses
+            var data = GetResponseData(json);
+            data.TryGetProperty("id", out _).Should().BeTrue("DTO should have 'id' property");
+            data.TryGetProperty("name", out _).Should().BeTrue("DTO should have 'name' property");
         }
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);

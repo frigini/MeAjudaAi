@@ -2,7 +2,7 @@
 
 ## 📋 Introdução
 
-O **Admin Portal** é a interface administrativa da plataforma MeAjudaAi, construída com Blazor WebAssembly para fornecer uma experiência de gerenciamento moderna, responsiva e eficiente.
+O **Admin Portal** é a interface administrativa da plataforma MeAjudaAi, construída com React + Next.js para fornecer uma experiência de gerenciamento moderna, responsiva e eficiente.
 
 ## 🎯 Propósito
 
@@ -17,27 +17,28 @@ O Admin Portal permite que administradores da plataforma gerenciem:
 ## 🛠️ Stack Tecnológica
 
 ### Frontend
-- **Blazor WebAssembly (.NET 10)**: Framework principal para SPA
-- **MudBlazor 8.15.0**: Biblioteca de componentes UI Material Design
-- **Fluxor**: State management (padrão Flux/Redux)
+- **React 19 + Next.js 15**: Framework principal para SPA
+- **Tailwind CSS v4**: Biblioteca de estilização
+- **Zustand**: State management
+- **TanStack Query**: Server state management
 
 ### Autenticação
 - **Keycloak**: Identity Provider (OIDC/OAuth 2.0)
-- **PKCE Flow**: Autenticação segura para aplicações públicas
+- **NextAuth.js**: Autenticação para Next.js
 
 ### Comunicação
-- **Refit**: Cliente HTTP tipado para APIs
-- **System.Text.Json**: Serialização JSON
+- **Axios / Fetch**: Cliente HTTP
+- **TanStack Query**: Data fetching e caching
 
 ## 🏗️ Arquitetura
 
 ```mermaid
 graph TB
-    subgraph "Admin Portal (Blazor WASM)"
-        UI[Pages/Components]
-        State[Fluxor State]
-        Effects[Fluxor Effects]
-        API[API Clients - Refit]
+    subgraph "Admin Portal (React + Next.js)"
+        UI[React Components]
+        Store[Zustand Store]
+        Query[TanStack Query]
+        API[API Calls - Fetch]
     end
     
     subgraph "Backend"
@@ -47,15 +48,17 @@ graph TB
     
     subgraph "Auth"
         Keycloak[Keycloak]
+        NextAuth[NextAuth.js]
     end
     
-    UI --> State
-    State --> Effects
-    Effects --> API
+    UI --> Store
+    UI --> Query
+    Query --> API
     API --> Gateway
     Gateway --> Modules
     
-    UI -.Auth.-> Keycloak
+    UI -.Auth.-> NextAuth
+    NextAuth -.-> Keycloak
     API -.JWT.-> Gateway
 ```
 
@@ -63,53 +66,67 @@ graph TB
 
 ```text
 src/Web/MeAjudaAi.Web.Admin/
-├── Pages/                    # Páginas principais
-│   ├── Dashboard.razor
-│   ├── Providers.razor
-│   ├── Documents.razor
-│   ├── Categories.razor
-│   ├── Services.razor
-│   └── AllowedCities.razor
-├── Components/               # Componentes reutilizáveis
-│   ├── Dialogs/             # Modais de criação/edição
-│   ├── Common/              # Componentes compartilhados
-│   └── Accessibility/       # Componentes de acessibilidade
-├── Features/                # Fluxor Features (State/Actions/Effects/Reducers)
-│   ├── Modules/
-│   │   ├── Providers/
-│   │   ├── Documents/
-│   │   └── ServiceCatalogs/
-│   ├── Dashboard/
-│   └── Theme/
-├── Services/                # Serviços auxiliares
-│   ├── ErrorHandlingService.cs
-│   ├── LocalizationService.cs
-│   └── LiveRegionService.cs
-├── Constants/               # Constantes centralizadas
-│   ├── ProviderConstants.cs
-│   ├── DocumentConstants.cs
-│   └── CommonConstants.cs
-│   # Nota: Enums e constantes compartilhadas com backend estão em MeAjudaAi.Contracts
-│   # Esta pasta contém apenas constantes específicas da UI (ex: layout, cores, timeouts)
-├── Helpers/                 # Métodos auxiliares
-│   ├── AccessibilityHelper.cs
-│   ├── PerformanceHelper.cs
-│   └── DebounceHelper.cs
-└── Layout/                  # Layouts e navegação
-    ├── MainLayout.razor
-    └── NavMenu.razor
+├── app/                       # Next.js App Router
+│   ├── (auth)/                # Authentication routes
+│   │   ├── login/
+│   │   └── layout.tsx
+│   ├── (dashboard)/           # Protected routes
+│   │   ├── providers/
+│   │   ├── documents/
+│   │   ├── services/
+│   │   ├── cities/
+│   │   ├── dashboard/
+│   │   └── layout.tsx
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/                # Reusable components
+│   ├── ui/                   # Base UI components (Button, Text, etc.)
+│   ├── providers/            # Provider-specific components
+│   ├── documents/            # Document-specific components
+│   └── common/               # Shared components
+├── hooks/                    # Custom React hooks
+│   ├── useProviders.ts
+│   ├── useDocuments.ts
+│   └── useTranslation.ts
+├── stores/                   # Zustand stores
+│   ├── providersStore.ts
+│   └── uiStore.ts
+├── lib/                      # Utilities
+│   ├── api.ts                # API client
+│   └── utils.ts
+└── types/                    # TypeScript types
 ```
+
+### Testes E2E
+
+Localização: `src/Web/MeAjudaAi.Web.Admin/e2e/`
+
+**Estrutura:**
+```text
+src/Web/MeAjudaAi.Web.Admin/e2e/
+├── auth.spec.ts
+├── providers.spec.ts
+├── configs.spec.ts
+├── dashboard.spec.ts
+└── mobile-responsiveness.spec.ts
+```
+
+**Fixtures compartilhadas:** `src/Web/libs/e2e-support/base.ts`
+- `loginAsAdmin(page)`
+- `loginAsProvider(page)`
+- `loginAsCustomer(page)`
+- `logout(page)`
 
 ## 🔐 Autenticação e Autorização
 
-### Keycloak Configuration
+### Keycloak Configuration (NextAuth.js v4)
 
 **Realm**: `meajudaai`  
 **Client ID**: `admin-portal`  
 **Flow**: Authorization Code + PKCE  
 **Redirect URIs**:
-- `https://localhost:7001/authentication/login-callback`
-- `https://localhost:7001/authentication/logout-callback`
+- `https://localhost:7001/api/auth/callback/keycloak`
+- `https://localhost:7001/api/auth/logout`
 
 ### Políticas de Autorização
 
@@ -121,17 +138,43 @@ src/Web/MeAjudaAi.Web.Admin/
 
 ### Uso em Componentes
 
-```razor
-@attribute [Authorize(Policy = PolicyNames.AdminPolicy)]
+```tsx
+// Using NextAuth.js useSession for auth
+'use client';
+import { useSession } from 'next-auth/react';
 
-<AuthorizeView Policy="@PolicyNames.ManagerPolicy">
-    <Authorized>
-        <MudButton>Editar</MudButton>
-    </Authorized>
-    <NotAuthorized>
-        <MudText>Sem permissão</MudText>
-    </NotAuthorized>
-</AuthorizeView>
+export function EditButton({ providerId }: { providerId: string }) {
+  const { data: session } = useSession();
+  
+  if (session?.user?.role !== 'admin' && session?.user?.role !== 'manager') {
+    return <span className="text-gray-500">Sem permissão</span>;
+  }
+  
+  return <Button>Editar</Button>;
+}
+
+// Protected route wrapper
+'use client';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
+
+function AdminProtected({ children }: { children: React.ReactNode }) {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status !== 'loading' && !session) {
+      router.push('/login');
+    }
+  }, [status, session, router]);
+
+  if (status === 'loading') return <Spinner />;
+  if (!session) return null;
+  if (session.user.role !== 'admin') return <AccessDenied />;
+
+  return <>{children}</>;
+}
 ```
 
 ## 🌐 Localização (i18n)
@@ -143,11 +186,21 @@ O Admin Portal suporta múltiplos idiomas:
 
 ### Uso
 
-```razor
-@inject LocalizationService L
+```tsx
+'use client';
+import { useTranslation } from '@/hooks/useTranslation';
 
-<MudButton>@L.GetString("Common.Save")</MudButton>
-<MudText>@L.GetString("Providers.ItemsFound", count)</MudText>
+export function SaveButton() {
+  const { t } = useTranslation();
+  
+  return <Button>{t('Common.Save')}</Button>;
+}
+
+// With interpolation
+function ProvidersCount({ count }: { count: number }) {
+  const { t } = useTranslation();
+  return <Text>{t('Providers.ItemsFound', { count })}</Text>;
+}
 ```
 
 ## ♿ Acessibilidade
@@ -164,10 +217,10 @@ O Admin Portal segue as diretrizes **WCAG 2.1 AA**:
 
 ### Otimizações Implementadas
 
-- **Virtualization**: MudDataGrid renderiza apenas linhas visíveis
-- **Debouncing**: Search com delay de 300ms
-- **Memoization**: Cache de resultados filtrados (30s)
-- **Lazy Loading**: Componentes carregados sob demanda
+- **Virtualization**: TanStack Table com virtualização para renderizar apenas linhas visíveis
+- **Debouncing**: Search com delay de 300ms via TanStack Query
+- **Memoization**: Cache de resultados filtrados (30s via TanStack Query)
+- **Lazy Loading**: Next.js App Router com code splitting automático
 
 ### Métricas
 
@@ -180,16 +233,17 @@ O Admin Portal segue as diretrizes **WCAG 2.1 AA**:
 
 ## 🧪 Testes
 
-### Cobertura de Testes bUnit
+### E2E Tests com Playwright
 
-- **43 testes** implementados
-- Testes de páginas, dialogs e componentes
-- Integração com Fluxor state
+- Testes end-to-end para todos os fluxos principais
+- Localização: `src/Web/MeAjudaAi.Web.Admin/e2e/`
+- Os testes exercitam o fluxo OAuth via Keycloak (signIn('keycloak')) em vez de formulários de email/senha
 
 ### Executar Testes
 
 ```bash
-dotnet test tests/MeAjudaAi.Web.Admin.Tests/
+cd src/Web
+npx playwright test --grep "admin"
 ```
 
 ## 🚀 Executando Localmente
@@ -220,6 +274,8 @@ Acesse: `https://localhost:7001`
 
 ## 🔗 Links Úteis
 
-- [MudBlazor Documentation](https://mudblazor.com/)
-- [Fluxor Documentation](https://github.com/mrpmorris/Fluxor)
-- [Blazor WebAssembly Guide](https://learn.microsoft.com/en-us/aspnet/core/blazor/)
+- [Documentação React](https://react.dev/) - Biblioteca de UI
+- [Documentação Next.js](https://nextjs.org/docs) - Framework React full-stack
+- [Documentação Tailwind CSS](https://tailwindcss.com/docs) - Framework de estilização
+- [Documentação TanStack Query](https://tanstack.com/query/latest) - Gerenciamento de estado servidor
+- [Documentação Radix UI](https://www.radix-ui.com/) - Componentes UI acessíveis

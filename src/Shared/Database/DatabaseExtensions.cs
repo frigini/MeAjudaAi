@@ -51,6 +51,9 @@ public static class DatabaseExtensions
             });
         }
 
+        // Registra PostgresOptions como singleton para injeção direta (ex: DapperConnection)
+        services.AddSingleton(sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<PostgresOptions>>().Value);
+
         // Monitoramento essencial de banco de dados
         services.AddDatabaseMonitoring();
 

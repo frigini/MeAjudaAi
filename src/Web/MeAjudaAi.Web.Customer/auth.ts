@@ -1,9 +1,10 @@
-import { type NextAuthOptions } from "next-auth"
+import { type NextAuthOptions, type Session } from "next-auth"
 import Keycloak from "next-auth/providers/keycloak"
 import Credentials from "next-auth/providers/credentials"
 import { JWT } from "next-auth/jwt"
 import { decodeJwt } from "jose"
 import { getServerSession } from "next-auth/next"
+import { getAuthSession } from "../libs/auth/src/lib/auth-wrapper"
 import {
     GetServerSidePropsContext,
     NextApiRequest,
@@ -66,11 +67,13 @@ function requireEnv(name: string): string {
 
 let criticalEnvValidated = false;
 
+const isCi = process.env.CI === "true" || process.env.NEXT_PUBLIC_CI === "true" || process.env.MOCK_AUTH === "true";
+
 export function validateCriticalEnvOnStartup() {
     if (criticalEnvValidated) return;
     
     // Allows bypassing runtime verification locally or during stateless pipelines
-    if (process.env.SKIP_AUTH_ENV_VALIDATION === "true" || process.env.CI === "true") {
+    if (process.env.SKIP_AUTH_ENV_VALIDATION === "true" || isCi) {
         criticalEnvValidated = true;
         return;
     }
@@ -95,9 +98,9 @@ export const authOptions: NextAuthOptions = {
     secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
     providers: [
         Keycloak({
-            clientId: requireEnv("KEYCLOAK_CLIENT_ID"),
-            clientSecret: requireEnv("KEYCLOAK_CLIENT_SECRET"),
-            issuer: requireEnv("KEYCLOAK_ISSUER"),
+            clientId: isCi ? "ci-placeholder" : requireEnv("KEYCLOAK_CLIENT_ID"),
+            clientSecret: isCi ? "ci-placeholder" : requireEnv("KEYCLOAK_CLIENT_SECRET"),
+            issuer: isCi ? "http://localhost:8080/realms/meajudaai" : requireEnv("KEYCLOAK_ISSUER"),
         }),
         Credentials({
             id: "credentials",
@@ -236,7 +239,10 @@ export function auth(
         | [GetServerSidePropsContext["req"], GetServerSidePropsContext["res"]]
         | [NextApiRequest, NextApiResponse]
         | []
-) {
+): Promise<Session | null> {
     validateCriticalEnvOnStartup();
+    if (args.length === 0) {
+        return getAuthSession(authOptions);
+    }
     return getServerSession(...args, authOptions);
 }

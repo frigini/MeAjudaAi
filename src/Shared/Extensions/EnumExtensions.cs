@@ -3,61 +3,91 @@ using MeAjudaAi.Contracts.Functional;
 namespace MeAjudaAi.Shared.Extensions;
 
 /// <summary>
-/// Extensões para operações com Enum usando C# 14 Extension Members
+/// Extensões para operações com Enum
 /// </summary>
 public static class EnumExtensions
 {
-    extension<TEnum>(string value) where TEnum : struct, Enum
+    /// <summary>
+    /// Converte string para enum com validação e retorna Result
+    /// </summary>
+    /// <typeparam name="TEnum">Tipo do enum</typeparam>
+    /// <param name="value">Valor em string</param>
+    /// <param name="ignoreCase">Se deve ignorar case (padrão: true)</param>
+    /// <returns>Result com enum convertido ou erro</returns>
+    public static Result<TEnum> ToEnum<TEnum>(this string? value, bool ignoreCase = true) where TEnum : struct, Enum
     {
-        /// <summary>
-        /// Converte string para enum com validação e retorna Result
-        /// </summary>
-        /// <param name="ignoreCase">Se deve ignorar case (padrão: true)</param>
-        /// <returns>Result com enum convertido ou erro</returns>
-        public Result<TEnum> ToEnum(bool ignoreCase = true)
+        if (string.IsNullOrWhiteSpace(value))
         {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                return Result<TEnum>.Failure(
-                    Error.BadRequest($"Value cannot be null or empty for enum {typeof(TEnum).Name}"));
-            }
-
-            if (Enum.TryParse<TEnum>(value, ignoreCase, out var result) && Enum.IsDefined(typeof(TEnum), result))
-            {
-                return Result<TEnum>.Success(result);
-            }
-
-            var validValues = string.Join(", ", Enum.GetNames<TEnum>());
             return Result<TEnum>.Failure(
-                Error.BadRequest($"Invalid {typeof(TEnum).Name}: '{value}'. Valid values are: {validValues}"));
+                Error.BadRequest($"O valor não pode ser nulo ou vazio para o enum {typeof(TEnum).Name}"));
         }
 
-        /// <summary>
-        /// Converte string para enum com valor padrão se conversão falhar
-        /// </summary>
-        /// <param name="defaultValue">Valor padrão se conversão falhar</param>
-        /// <param name="ignoreCase">Se deve ignorar case (padrão: true)</param>
-        /// <returns>Enum convertido ou valor padrão</returns>
-        public TEnum ToEnumOrDefault(TEnum defaultValue, bool ignoreCase = true)
+        if (TryParseAndIsDefined<TEnum>(value, ignoreCase, out var result))
         {
-            if (string.IsNullOrWhiteSpace(value))
-                return defaultValue;
-
-            return Enum.TryParse<TEnum>(value, ignoreCase, out var result) && Enum.IsDefined(typeof(TEnum), result) ? result : defaultValue;
+            return Result<TEnum>.Success(result);
         }
 
-        /// <summary>
-        /// Verifica se uma string é um valor válido para o enum
-        /// </summary>
-        /// <param name="ignoreCase">Se deve ignorar case (padrão: true)</param>
-        /// <returns>True se é um valor válido</returns>
-        public bool IsValidEnum(bool ignoreCase = true)
+        var validValues = string.Join(", ", Enum.GetNames<TEnum>());
+        return Result<TEnum>.Failure(
+            Error.BadRequest($"Enum {typeof(TEnum).Name} inválido: '{value}'. Valores válidos: {validValues}"));
+    }
+
+    /// <summary>
+    /// Converte string para enum com valor padrão se conversão falhar
+    /// </summary>
+    /// <typeparam name="TEnum">Tipo do enum</typeparam>
+    /// <param name="value">Valor em string</param>
+    /// <param name="defaultValue">Valor padrão se conversão falhar</param>
+    /// <param name="ignoreCase">Se deve ignorar case (padrão: true)</param>
+    /// <returns>Enum convertido ou valor padrão</returns>
+    public static TEnum ToEnumOrDefault<TEnum>(this string? value, TEnum defaultValue, bool ignoreCase = true) where TEnum : struct, Enum
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return defaultValue;
+
+        return TryParseAndIsDefined<TEnum>(value, ignoreCase, out var result) ? result : defaultValue;
+    }
+
+    /// <summary>
+    /// Verifica se uma string é um valor válido para o enum
+    /// </summary>
+    /// <typeparam name="TEnum">Tipo do enum</typeparam>
+    /// <param name="value">Valor em string</param>
+    /// <param name="ignoreCase">Se deve ignorar case (padrão: true)</param>
+    /// <returns>Verdadeiro se é um valor válido</returns>
+    public static bool IsValidEnum<TEnum>(this string? value, bool ignoreCase = true) where TEnum : struct, Enum
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return false;
+
+        return TryParseAndIsDefined<TEnum>(value, ignoreCase, out _);
+    }
+
+    private static bool TryParseAndIsDefined<TEnum>(string value, bool ignoreCase, out TEnum result) where TEnum : struct, Enum
+    {
+        var underlyingType = Enum.GetUnderlyingType(typeof(TEnum));
+        var typeCode = Type.GetTypeCode(underlyingType);
+
+        bool isNumeric = typeCode switch
         {
-            if (string.IsNullOrWhiteSpace(value))
-                return false;
+            TypeCode.Byte => byte.TryParse(value, out _),
+            TypeCode.SByte => sbyte.TryParse(value, out _),
+            TypeCode.Int16 => short.TryParse(value, out _),
+            TypeCode.UInt16 => ushort.TryParse(value, out _),
+            TypeCode.Int32 => int.TryParse(value, out _),
+            TypeCode.UInt32 => uint.TryParse(value, out _),
+            TypeCode.Int64 => long.TryParse(value, out _),
+            TypeCode.UInt64 => ulong.TryParse(value, out _),
+            _ => false
+        };
 
-            return Enum.TryParse<TEnum>(value, ignoreCase, out var result) && Enum.IsDefined(typeof(TEnum), result);
+        if (isNumeric)
+        {
+            result = default;
+            return false;
         }
+
+        return Enum.TryParse<TEnum>(value, ignoreCase, out result) && Enum.IsDefined(typeof(TEnum), result);
     }
 
     /// <summary>
@@ -78,6 +108,6 @@ public static class EnumExtensions
     public static string GetValidValuesDescription<TEnum>() where TEnum : struct, Enum
     {
         var values = GetValidValues<TEnum>();
-        return $"Valid {typeof(TEnum).Name} values: {string.Join(", ", values)}";
+        return $"Valores válidos para {typeof(TEnum).Name}: {string.Join(", ", values)}";
     }
 }

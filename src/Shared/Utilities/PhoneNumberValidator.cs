@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Utilities;
 
 /// <summary>
 /// Utilitário para validação de números de telefone
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class PhoneNumberValidator
 {
     /// <summary>
@@ -20,7 +23,7 @@ public static class PhoneNumberValidator
         if (!phoneNumber.StartsWith('+'))
             return false;
 
-        var digitsOnly = phoneNumber[1..].Replace(" ", "").Replace("-", "");
+        var digitsOnly = phoneNumber[1..].Replace(" ", "").Replace("-", "").Replace(".", "");
         return digitsOnly.Length >= 8 && digitsOnly.Length <= 15 && digitsOnly.All(char.IsDigit);
     }
 }

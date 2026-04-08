@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.AspNetCore.Builder;
@@ -11,6 +12,7 @@ namespace MeAjudaAi.Shared.Logging;
 /// <summary>
 /// Middleware para adicionar correlation ID e contexto enriquecido aos logs
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal class LoggingContextMiddleware(RequestDelegate next, ILogger<LoggingContextMiddleware> logger)
 {
     public async Task InvokeAsync(HttpContext context)

@@ -2,6 +2,38 @@
 
 This directory contains the infrastructure configuration for the MeAjudaAi platform.
 
+## 🚀 Infraestrutura Azure e CI/CD (Bicep)
+
+O projeto utiliza uma arquitetura de CI/CD modularizada para maior eficiência e manutenibilidade.
+
+### Pipelines Modularizadas
+As pipelines foram divididas por responsabilidade em `.github/workflows/`:
+- **`ci-backend.yml`**: Build do .NET, testes de unidade, integração e arquitetura, além de relatórios de cobertura.
+- **`ci-frontend.yml`**: Lint, testes unitários (Vitest) e build dos apps React (Next.js) usando Nx Affected.
+- **`ci-e2e.yml`**: Testes ponta-a-ponta pesados, incluindo API (TestContainers) e UI (Playwright).
+- **`deploy-azure.yml`**: Gerenciamento e provisionamento da infraestrutura no Azure.
+
+### Infraestrutura como Código (IaC)
+A infraestrutura é definida usando **Bicep** no diretório `infrastructure/`:
+- `main.bicep`: Definição principal (PostgreSQL, Redis, Service Bus).
+- `dev.parameters.json`: Parâmetros para o ambiente de desenvolvimento.
+- `prod.parameters.json`: Parâmetros para o ambiente de produção.
+
+### Como fazer o Deployment
+O workflow `deploy-azure.yml` permite provisionar a infraestrutura manualmente:
+1. Vá para a aba **Actions** no GitHub.
+2. Selecione o workflow **Deploy to Azure**.
+3. Clique em **Run workflow** e escolha o ambiente (`dev` ou `prod`).
+4. **Input `deploy_infrastructure`**: Este é um booleano (padrão `true`) que controla se a infraestrutura será provisionada durante a execução do workflow.
+   - Selecione desmarcado (false) para pular o provisionamento (apenas faz deploy da aplicação)
+   - Deixe marcado (padrão true) para executar o provisionamento completo
+5. **Requisitos**: É necessário configurar as secrets `AZURE_CREDENTIALS` e `POSTGRES_ADMIN_PASSWORD` no repositório.
+
+### Quando atualizar o Bicep?
+Você deve atualizar os arquivos Bicep sempre que adicionar novos recursos gerenciados (como uma nova base de dados ou conta de armazenamento) no `AppHost` do .NET Aspire. Os arquivos Bicep neste diretório são a "Fonte da Verdade" para o Azure.
+
+---
+
 ## 🔒 Security Requirements
 
 **Before starting any environment**, you must configure secure credentials:

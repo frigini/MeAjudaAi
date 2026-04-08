@@ -1,0 +1,29 @@
+name: 'Setup Frontend'
+description: 'Setup Node.js and install dependencies'
+inputs:
+  node-version:
+    description: 'Node.js version'
+    required: false
+    default: '20'
+  working-directory:
+    description: 'Frontend working directory'
+    required: false
+    default: './src/Web'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v6
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: "npm"
+        cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
+
+    - name: Install Frontend Dependencies
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: npm ci
+
+    - name: Nx Set SHAs
+      uses: nrwl/nx-set-shas@v5

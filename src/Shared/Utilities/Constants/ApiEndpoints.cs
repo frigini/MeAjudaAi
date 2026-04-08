@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Utilities.Constants;
 
 /// <summary>
@@ -7,6 +9,7 @@ namespace MeAjudaAi.Shared.Utilities.Constants;
 /// Baseado nos endpoints realmente existentes no projeto.
 /// Mantém apenas o que está implementado para evitar confusão.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public static class ApiEndpoints
 {
     /// <summary>
@@ -43,7 +46,7 @@ public static class ApiEndpoints
         public const string GetByCity = "/by-city/{city}";  // GET    GetProvidersByCityEndpoint
         public const string GetByState = "/by-state/{state}"; // GET   GetProvidersByStateEndpoint
         public const string GetByType = "/by-type/{type}";  // GET    GetProvidersByTypeEndpoint
-        public const string GetByVerificationStatus = "/by-verification-status/{status}"; // GET GetProvidersByVerificationStatusEndpoint
+        public const string GetByVerificationStatus = "/verification-status/{status}"; // GET GetProvidersByVerificationStatusEndpoint
         public const string UpdateProfile = "/{id:guid}/profile"; // PUT UpdateProviderProfileEndpoint
         public const string UpdateVerificationStatus = "/{id:guid}/verification-status"; // PUT UpdateVerificationStatusEndpoint
         public const string AddDocument = "/{id:guid}/documents"; // POST AddDocumentEndpoint

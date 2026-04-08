@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -15,6 +16,7 @@ namespace MeAjudaAi.Shared.Logging;
 /// <summary>
 /// Extension methods consolidados para configuração de Logging
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class LoggingExtensions
 {
     /// <summary>

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 
@@ -7,6 +8,7 @@ namespace MeAjudaAi.Shared.Extensions;
 /// Implementação simples interna de IHostEnvironment para registro de messaging.
 /// Para testes, use MockHostEnvironment de MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal sealed class SimpleHostEnvironment : IHostEnvironment
 {
     public SimpleHostEnvironment(string environmentName)

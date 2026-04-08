@@ -36,15 +36,15 @@ public class EventTypeRegistryTests
     public async Task GetAllEventTypesAsync_ShouldReturnDiscoveredEventTypes()
     {
         // Arrange
-        var expectedTypes = new Dictionary<string, Type>
+        var expectedTypes = new Dictionary<string, string>
         {
-            ["TestIntegrationEvent"] = typeof(TestIntegrationEvent),
-            ["AnotherIntegrationEvent"] = typeof(AnotherIntegrationEvent)
+            ["TestIntegrationEvent"] = typeof(TestIntegrationEvent).AssemblyQualifiedName!,
+            ["AnotherIntegrationEvent"] = typeof(AnotherIntegrationEvent).AssemblyQualifiedName!
         };
 
         _cacheMock.Setup(c => c.GetOrCreateAsync(
                 "event-types-registry",
-                It.IsAny<Func<CancellationToken, ValueTask<Dictionary<string, Type>>>>(),
+                It.IsAny<Func<CancellationToken, ValueTask<Dictionary<string, string>>>>(),
                 It.IsAny<TimeSpan?>(),
                 It.IsAny<HybridCacheEntryOptions>(),
                 It.IsAny<IReadOnlyCollection<string>>(),
@@ -63,14 +63,14 @@ public class EventTypeRegistryTests
     public async Task GetEventTypeAsync_WithExistingEventName_ShouldReturnType()
     {
         // Arrange
-        var expectedTypes = new Dictionary<string, Type>
+        var expectedTypes = new Dictionary<string, string>
         {
-            ["TestIntegrationEvent"] = typeof(TestIntegrationEvent)
+            ["TestIntegrationEvent"] = typeof(TestIntegrationEvent).AssemblyQualifiedName!
         };
 
         _cacheMock.Setup(c => c.GetOrCreateAsync(
                 It.IsAny<string>(),
-                It.IsAny<Func<CancellationToken, ValueTask<Dictionary<string, Type>>>>(),
+                It.IsAny<Func<CancellationToken, ValueTask<Dictionary<string, string>>>>(),
                 It.IsAny<TimeSpan?>(),
                 It.IsAny<HybridCacheEntryOptions>(),
                 It.IsAny<IReadOnlyCollection<string>>(),
@@ -88,14 +88,14 @@ public class EventTypeRegistryTests
     public async Task GetEventTypeAsync_WithNonExistingEventName_ShouldReturnNull()
     {
         // Arrange
-        var expectedTypes = new Dictionary<string, Type>
+        var expectedTypes = new Dictionary<string, string>
         {
-            ["TestIntegrationEvent"] = typeof(TestIntegrationEvent)
+            ["TestIntegrationEvent"] = typeof(TestIntegrationEvent).AssemblyQualifiedName!
         };
 
         _cacheMock.Setup(c => c.GetOrCreateAsync(
                 It.IsAny<string>(),
-                It.IsAny<Func<CancellationToken, ValueTask<Dictionary<string, Type>>>>(),
+                It.IsAny<Func<CancellationToken, ValueTask<Dictionary<string, string>>>>(),
                 It.IsAny<TimeSpan?>(),
                 It.IsAny<HybridCacheEntryOptions>(),
                 It.IsAny<IReadOnlyCollection<string>>(),
@@ -145,17 +145,17 @@ public class EventTypeRegistryTests
     public async Task GetAllEventTypesAsync_ShouldUseCacheWithOneHourExpiration()
     {
         // Arrange
-        var expectedTypes = new Dictionary<string, Type>();
+        var expectedTypes = new Dictionary<string, string>();
         TimeSpan? receivedExpiration = null;
 
         _cacheMock.Setup(c => c.GetOrCreateAsync(
                 It.IsAny<string>(),
-                It.IsAny<Func<CancellationToken, ValueTask<Dictionary<string, Type>>>>(),
+                It.IsAny<Func<CancellationToken, ValueTask<Dictionary<string, string>>>>(),
                 It.IsAny<TimeSpan?>(),
                 It.IsAny<HybridCacheEntryOptions>(),
                 It.IsAny<IReadOnlyCollection<string>>(),
                 It.IsAny<CancellationToken>()))
-            .Callback<string, Func<CancellationToken, ValueTask<Dictionary<string, Type>>>, TimeSpan?, HybridCacheEntryOptions, IReadOnlyCollection<string>, CancellationToken>(
+            .Callback<string, Func<CancellationToken, ValueTask<Dictionary<string, string>>>, TimeSpan?, HybridCacheEntryOptions, IReadOnlyCollection<string>, CancellationToken>(
                 (_, _, exp, _, _, _) => receivedExpiration = exp)
             .ReturnsAsync(expectedTypes);
 
@@ -170,17 +170,17 @@ public class EventTypeRegistryTests
     public async Task GetAllEventTypesAsync_ShouldUseCorrectCacheKey()
     {
         // Arrange
-        var expectedTypes = new Dictionary<string, Type>();
+        var expectedTypes = new Dictionary<string, string>();
         string? receivedKey = null;
 
         _cacheMock.Setup(c => c.GetOrCreateAsync(
                 It.IsAny<string>(),
-                It.IsAny<Func<CancellationToken, ValueTask<Dictionary<string, Type>>>>(),
+                It.IsAny<Func<CancellationToken, ValueTask<Dictionary<string, string>>>>(),
                 It.IsAny<TimeSpan?>(),
                 It.IsAny<HybridCacheEntryOptions>(),
                 It.IsAny<IReadOnlyCollection<string>>(),
                 It.IsAny<CancellationToken>()))
-            .Callback<string, Func<CancellationToken, ValueTask<Dictionary<string, Type>>>, TimeSpan?, HybridCacheEntryOptions, IReadOnlyCollection<string>, CancellationToken>(
+            .Callback<string, Func<CancellationToken, ValueTask<Dictionary<string, string>>>, TimeSpan?, HybridCacheEntryOptions, IReadOnlyCollection<string>, CancellationToken>(
                 (key, _, _, _, _, _) => receivedKey = key)
             .ReturnsAsync(expectedTypes);
 
@@ -195,17 +195,17 @@ public class EventTypeRegistryTests
     public async Task GetAllEventTypesAsync_ShouldTagCacheWithEventRegistry()
     {
         // Arrange
-        var expectedTypes = new Dictionary<string, Type>();
+        var expectedTypes = new Dictionary<string, string>();
         IReadOnlyCollection<string>? receivedTags = null;
 
         _cacheMock.Setup(c => c.GetOrCreateAsync(
                 It.IsAny<string>(),
-                It.IsAny<Func<CancellationToken, ValueTask<Dictionary<string, Type>>>>(),
+                It.IsAny<Func<CancellationToken, ValueTask<Dictionary<string, string>>>>(),
                 It.IsAny<TimeSpan?>(),
                 It.IsAny<HybridCacheEntryOptions>(),
                 It.IsAny<IReadOnlyCollection<string>>(),
                 It.IsAny<CancellationToken>()))
-            .Callback<string, Func<CancellationToken, ValueTask<Dictionary<string, Type>>>, TimeSpan?, HybridCacheEntryOptions, IReadOnlyCollection<string>, CancellationToken>(
+            .Callback<string, Func<CancellationToken, ValueTask<Dictionary<string, string>>>, TimeSpan?, HybridCacheEntryOptions, IReadOnlyCollection<string>, CancellationToken>(
                 (_, _, _, _, tags, _) => receivedTags = tags)
             .ReturnsAsync(expectedTypes);
 

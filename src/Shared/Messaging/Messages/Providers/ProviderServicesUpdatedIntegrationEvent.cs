@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Events;
 
 namespace MeAjudaAi.Shared.Messaging.Messages.Providers;
@@ -8,6 +9,7 @@ namespace MeAjudaAi.Shared.Messaging.Messages.Providers;
 /// <param name="Source">Módulo que originou o evento</param>
 /// <param name="ProviderId">ID do prestador</param>
 /// <param name="ServiceIds">Lista de IDs de serviços do prestador (pode ser vazio se precisar buscar tudo)</param>
+[ExcludeFromCodeCoverage]
 public sealed record ProviderServicesUpdatedIntegrationEvent(
     string Source,
     Guid ProviderId,

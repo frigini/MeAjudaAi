@@ -30,6 +30,7 @@ export function ProfileHeader({
           {Array.from({ length: 5 }).map((_, i) => (
             <Star
               key={i}
+              data-testid="star-icon"
               className={`h-5 w-5 ${
                 i < Math.floor(rating) ? "fill-current text-primary" : "text-muted-foreground"
               }`}

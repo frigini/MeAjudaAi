@@ -5,7 +5,8 @@
     "paths": {
       "@/*": [
         "./*"
-      ]
+      ],
+      "auth": ["../libs/auth/src/index.ts"]
     },
     "jsx": "preserve",
     "strict": true,

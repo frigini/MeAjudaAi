@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Messaging.Strategy;
 
 namespace MeAjudaAi.Shared.Messaging.Options;
 
+[ExcludeFromCodeCoverage]
 public sealed class MessageBusOptions
 {
     public TimeSpan DefaultTimeToLive { get; set; } = TimeSpan.FromDays(1);

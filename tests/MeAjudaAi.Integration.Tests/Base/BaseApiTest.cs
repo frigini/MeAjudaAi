@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Text.Json;
 using MeAjudaAi.ApiService;
 using MeAjudaAi.Integration.Tests.Infrastructure;
@@ -140,9 +139,14 @@ public abstract class BaseApiTest : IAsyncLifetime
                         ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Warning",
                         ["RateLimit:DefaultRequestsPerMinute"] = "10000",
                         ["RateLimit:AuthRequestsPerMinute"] = "10000",
+                        ["RateLimit:ProviderRequestsPerMinute"] = "10000",
                         ["RateLimit:SearchRequestsPerMinute"] = "10000",
                         ["RateLimit:WindowInSeconds"] = "60",
+                        ["AdvancedRateLimit:General:Enabled"] = "false",
+                        ["Cache:Enabled"] = "false",
                         ["Caching:Enabled"] = "false",
+                        ["Postgres:ConnectionString"] = _databaseFixture.ConnectionString,
+                        ["ConnectionStrings:DefaultConnection"] = _databaseFixture.ConnectionString,
                         ["RabbitMQ:Enabled"] = "false",
                         ["Messaging:Enabled"] = "false",
                         ["Messaging:Provider"] = "Mock",
@@ -657,13 +661,19 @@ public abstract class BaseApiTest : IAsyncLifetime
                 json.TryGetProperty("value", out var valueProp))
             {
                 // É um Result wrapper - verifica se foi sucesso
-                if (isSuccessProp.ValueKind == JsonValueKind.False)
+                if (isSuccessProp.ValueKind == JsonValueKind.True)
                 {
-                   return default;
+                    // Se sucesso, desserializa o campo 'value'
+                    return JsonSerializer.Deserialize<T>(valueProp.GetRawText(), SerializationDefaults.Api);
                 }
 
-                // Se sucesso, desserializa o campo 'value'
-                return JsonSerializer.Deserialize<T>(valueProp.GetRawText(), SerializationDefaults.Api);
+                // Se falha e T for JsonElement, retorna o objeto completo para inspeção
+                if (typeof(T) == typeof(JsonElement))
+                {
+                    return (T)(object)json;
+                }
+
+                return default;
             }
             
             // Não é wrapper, deserializa direto
@@ -681,16 +691,30 @@ public abstract class BaseApiTest : IAsyncLifetime
     /// </summary>
     protected static JsonElement GetResponseData(JsonElement response)
     {
-        // Se a resposta tem uma propriedade 'value', retorna ela (mesmo que seja null)
-        if (response.TryGetProperty("value", out var valueElement))
+        // Handle array responses directly
+        if (response.ValueKind == JsonValueKind.Array)
         {
-            return valueElement;
+            return response;
         }
 
-        // Fallback para 'data' (legado) ou retorna a resposta original
-        return response.TryGetProperty("data", out var dataElement)
-            ? dataElement
-            : response;
+        // Only try to get properties if it's an object
+        if (response.ValueKind == JsonValueKind.Object)
+        {
+            // Se a resposta tem uma propriedade 'value', retorna ela (mesmo que seja null)
+            if (response.TryGetProperty("value", out var valueElement))
+            {
+                return valueElement;
+            }
+
+            // Fallback para 'data' (legado)
+            if (response.TryGetProperty("data", out var dataElement))
+            {
+                return dataElement;
+            }
+        }
+
+        // Return original response if nothing matched
+        return response;
     }
 
     /// <summary>
@@ -709,9 +733,8 @@ public abstract class BaseApiTest : IAsyncLifetime
             return envPath;
         }
 
-        // Strategy 2: Use assembly location to compute relative path
-        var assemblyLocation = Assembly.GetExecutingAssembly().Location;
-        var assemblyDir = Path.GetDirectoryName(assemblyLocation);
+        // Strategy 2: Use base directory to compute relative path
+        var assemblyDir = AppContext.BaseDirectory;
 
         if (!string.IsNullOrEmpty(assemblyDir))
         {
@@ -742,7 +765,7 @@ public abstract class BaseApiTest : IAsyncLifetime
         }
 
         Console.Error.WriteLine("ERROR: Could not resolve ApiService path using any strategy.");
-        Console.Error.WriteLine($"Assembly location: {assemblyLocation}");
+        Console.Error.WriteLine($"Base directory: {assemblyDir}");
         Console.Error.WriteLine($"Environment variable MEAJUDAAI_API_SERVICE_PATH: {envPath ?? "(not set)"}");
 
         return null;

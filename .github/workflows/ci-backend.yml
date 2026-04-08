@@ -1,0 +1,316 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [master, develop]
+    paths:
+      - 'src/Modules/**'
+      - 'src/Bootstrapper/**'
+      - 'src/Shared/**'
+      - 'tests/**'
+      - '!tests/MeAjudaAi.E2E.Tests/**'
+      - '.github/workflows/ci-backend.yml'
+      - '.github/actions/setup-backend/**'
+      - '.github/actions/setup-postgres-connection/**'
+      - '.github/scripts/generate-runsettings.sh'
+      - 'MeAjudaAi.slnx'
+  pull_request:
+    branches: [master, develop]
+    paths:
+      - 'src/Modules/**'
+      - 'src/Bootstrapper/**'
+      - 'src/Shared/**'
+      - 'tests/**'
+      - '!tests/MeAjudaAi.E2E.Tests/**'
+      - '.github/workflows/ci-backend.yml'
+      - '.github/actions/setup-backend/**'
+      - '.github/actions/setup-postgres-connection/**'
+      - '.github/scripts/generate-runsettings.sh'
+      - 'MeAjudaAi.slnx'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  statuses: write
+
+env:
+  DOTNET_VERSION: "10.0.x"
+  STRICT_COVERAGE: true
+  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+  POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+  POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
+
+jobs:
+  build-and-test:
+    name: Build and Test (Backend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          POSTGRES_HOST_AUTH_METHOD: md5
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      azurite:
+        image: mcr.microsoft.com/azure-storage/azurite:latest
+        ports:
+          - 10000:10000
+          - 10001:10001
+          - 10002:10002
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Backend
+        uses: ./.github/actions/setup-backend
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Build solution
+        run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
+
+      - name: Extract Aspire version from Directory.Packages.props
+        id: aspire-version
+        run: |
+          ASPIRE_VERSION=$(grep -oP 'Aspire\.Hosting\.PostgreSQL.*?Version="\K[^"]+' Directory.Packages.props || echo "13.1.3")
+          echo "version=$ASPIRE_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare Aspire Integration Tests
+        run: |
+          echo "Preparing .NET Aspire for integration tests..."
+          ASPIRE_VERSION="${{ steps.aspire-version.outputs.version }}"
+          TEMP_DIR=$(mktemp -d)
+          cd "$TEMP_DIR"
+          dotnet new console -n TempDcpDownloader
+          cd TempDcpDownloader
+          dotnet add package Aspire.Hosting.Orchestration.linux-x64 --version "$ASPIRE_VERSION"
+          dotnet restore
+          cd "$GITHUB_WORKSPACE"
+          rm -rf "$TEMP_DIR"
+          DCP_PACKAGE_PATH=$(find "$HOME/.nuget/packages" -maxdepth 1 -type d \
+            -iname "aspire.hosting.orchestration.linux-x64" 2>/dev/null | head -n 1)
+          if [ -z "$DCP_PACKAGE_PATH" ]; then
+            echo "Error: Aspire orchestration package not found"
+            exit 1
+          fi
+          DCP_BINARY=$(find "$DCP_PACKAGE_PATH" -type f -name "dcp" 2>/dev/null | head -n 1)
+          if [ -z "$DCP_BINARY" ]; then
+            echo "Error: DCP binary not found"
+            exit 1
+          fi
+          echo "DOTNET_ROOT=$HOME/.dotnet" >> $GITHUB_ENV
+
+      - name: Wait for PostgreSQL
+        shell: bash
+        run: |
+          max_attempts=30
+          attempt=0
+          until pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; do
+            attempt=$((attempt + 1))
+            if [ $attempt -ge $max_attempts ]; then
+              echo "ERROR: PostgreSQL did not become ready after $max_attempts attempts"
+              exit 1
+            fi
+            echo "Waiting for PostgreSQL... (attempt $attempt/$max_attempts)"
+            sleep 2
+          done
+          echo "PostgreSQL is ready"
+
+      - name: Setup PostgreSQL connection
+        id: db
+        uses: ./.github/actions/setup-postgres-connection
+        with:
+          postgres-host: localhost
+          postgres-port: 5432
+          postgres-db: ${{ env.POSTGRES_DB }}
+          postgres-user: ${{ env.POSTGRES_USER }}
+          postgres-password: ${{ env.POSTGRES_PASSWORD }}
+
+      - name: Wait for PostgreSQL
+        shell: bash
+        run: |
+          max_attempts=60
+          attempt=0
+          until pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; do
+            attempt=$((attempt + 1))
+            if [ $attempt -ge $max_attempts ]; then
+              echo "ERROR: PostgreSQL did not become ready after $max_attempts attempts"
+              exit 1
+            fi
+            echo "Waiting for PostgreSQL... (attempt $attempt/$max_attempts)"
+            sleep 2
+          done
+          echo "PostgreSQL is ready"
+
+      - name: Run Unit Tests with Coverage
+        id: unit-tests
+        continue-on-error: true
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
+          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
+          AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
+        run: |
+          echo "🧪 Running Unit & Architecture Tests..."
+          rm -rf ./coverage
+          mkdir -p ./coverage
+          
+          # Run unit tests per module for isolation
+          MODULES=(
+            "src/Modules/Users/Tests/MeAjudaAi.Modules.Users.Tests.csproj"
+            "src/Modules/Providers/Tests/MeAjudaAi.Modules.Providers.Tests.csproj"
+            "src/Modules/Documents/Tests/MeAjudaAi.Modules.Documents.Tests.csproj"
+            "src/Modules/ServiceCatalogs/Tests/MeAjudaAi.Modules.ServiceCatalogs.Tests.csproj"
+            "src/Modules/Locations/Tests/MeAjudaAi.Modules.Locations.Tests.csproj"
+            "src/Modules/SearchProviders/Tests/MeAjudaAi.Modules.SearchProviders.Tests.csproj"
+            "tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj"
+            "tests/MeAjudaAi.ApiService.Tests/MeAjudaAi.ApiService.Tests.csproj"
+            "tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj"
+          )
+
+          for module in "${MODULES[@]}"; do
+            if [ -f "$module" ]; then
+              module_name=$(basename "$module" .csproj)
+              dotnet test "$module" \
+                --configuration Release --no-build \
+                --collect:"XPlat Code Coverage" \
+                --results-directory "./coverage/unit/$module_name" \
+                --settings ./coverlet.runsettings
+            fi
+          done
+
+      - name: Run Integration Tests
+        id: integration-tests
+        continue-on-error: true
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          INTEGRATION_TESTS: true
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
+          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
+          AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
+        run: |
+          echo "🚀 Running Integration Tests (expected duration ~40m)..."
+          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
+            --configuration Release --no-build \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage/integration \
+            --settings ./coverlet.runsettings \
+            --verbosity normal
+
+      - name: Collect and aggregate coverage files
+        run: |
+          mkdir -p ./coverage/aggregate
+          # Use mapfile for robust array handling (avoids subshell issue with pipe|while)
+          mapfile -t coverage_files < <(find ./coverage -type f -name "coverage.cobertura.xml")
+          
+          counter=0
+          for file in "${coverage_files[@]}"; do
+            counter=$((counter + 1))
+            cp "$file" "./coverage/aggregate/coverage_${counter}.cobertura.xml"
+            echo "✅ Collected: $file as coverage_${counter}.cobertura.xml"
+          done
+          
+          if [ -n "$(ls -A ./coverage/aggregate/ 2>/dev/null)" ]; then
+            echo "✅ All coverage files ready for aggregation."
+          else
+            echo "❌ CRITICAL ERROR: No coverage files were generated."
+            exit 1
+          fi
+
+      - name: Configure DOTNET_ROOT for ReportGenerator
+        run: |
+          DOTNET_PATH="$(which dotnet)"
+          echo "DOTNET_ROOT=$(dirname "$(readlink -f "$DOTNET_PATH")")" >> $GITHUB_ENV
+
+      - name: Generate aggregated coverage report
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        with:
+          reports: "coverage/aggregate/**/*.cobertura.xml"
+          targetdir: "coverage/final_report"
+          reporttypes: "Cobertura;JsonSummary"
+          groupby: "Namespace"
+          assemblyfilters: "+MeAjudaAi.*;-MeAjudaAi.AppHost;-MeAjudaAi.ServiceDefaults;-MeAjudaAi.Contracts"
+          classfilters: "-*.Tests;-*.Tests.*;-*Test*;-testhost;-*.Migrations.*;-*Program*;-*.Seeding.*;-*.Monitoring.*;-MeAjudaAi.Shared.Jobs.*;-MeAjudaAi.Shared.Mediator.*;-MeAjudaAi.Shared.API.*"
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reports
+          path: coverage/**
+
+      - name: Code Coverage Summary
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: "coverage/final_report/Cobertura.xml"
+          badge: true
+          format: markdown
+          output: both
+          thresholds: "90 80" # line branch
+          fail_below_min: true
+
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          recreate: true
+          header: coverage-report
+          path: code-coverage-results.md
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+      - name: Run Security Audit
+        continue-on-error: true
+        run: |
+          dotnet list package --vulnerable --include-transitive > security-audit-report.txt
+          cat security-audit-report.txt
+      - name: Verify No Critical Direct Vulnerabilities
+        run: |
+          # Parse output to find if there are critical vulnerabilities in direct dependencies
+          # We check the top-level references specifically. A basic scan verifies if "Critical" shows up without being in a Transitive block, or simply checks top-level explicitly.
+          dotnet list package --vulnerable > direct-security-audit.txt
+          if grep -qi "Critical" direct-security-audit.txt; then
+            echo "Critical direct vulnerabilities found!"
+            cat direct-security-audit.txt
+            exit 1
+          fi
+          echo "No critical vulnerabilities found in direct dependencies."

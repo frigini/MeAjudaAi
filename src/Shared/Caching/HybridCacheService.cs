@@ -7,10 +7,11 @@ namespace MeAjudaAi.Shared.Caching;
 
 public class HybridCacheService(    HybridCache hybridCache,
     ILogger<HybridCacheService> logger,
-    CacheMetrics metrics,
+    ICacheMetrics? metrics,
     IConfiguration configuration) : ICacheService
 {
     private readonly bool _isCacheEnabled = configuration.GetValue<bool>("Cache:Enabled", true);
+    private readonly ICacheMetrics? _metrics = metrics;
     
     public async Task<(T? value, bool isCached)> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
@@ -39,15 +40,21 @@ public class HybridCacheService(    HybridCache hybridCache,
             var isCached = !factoryCalled;
 
             stopwatch.Stop();
-            metrics.RecordOperation(key, "get", isCached, stopwatch.Elapsed.TotalSeconds);
+            _metrics?.RecordOperation(key, "get", isCached, stopwatch.Elapsed.TotalSeconds);
 
             // Retornar tupla: (valor, estava_em_cache)
             return isCached ? (result, true) : (default, false);
         }
+        catch (InvalidOperationException)
+        {
+            stopwatch.Stop();
+            logger.LogDebug("Item not found in cache for key {Key} and valueFactory returned null", key);
+            return (default, false);
+        }
         catch (Exception ex)
         {
             stopwatch.Stop();
-            metrics.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "get", "error");
+            _metrics?.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "get", "error");
             logger.LogWarning(ex, "Failed to get value from cache for key {Key}", key);
             return (default, false);
         }
@@ -77,12 +84,12 @@ public class HybridCacheService(    HybridCache hybridCache,
             await hybridCache.SetAsync(key, value, options, tags, cancellationToken);
 
             stopwatch.Stop();
-            metrics.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "set", "success");
+            _metrics?.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "set", "success");
         }
         catch (Exception ex)
         {
             stopwatch.Stop();
-            metrics.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "set", "error");
+            _metrics?.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "set", "error");
             logger.LogWarning(ex, "Failed to set value in cache for key {Key}", key);
         }
     }
@@ -184,16 +191,16 @@ public class HybridCacheService(    HybridCache hybridCache,
                 cancellationToken);
 
             stopwatch.Stop();
-            metrics.RecordOperation(key, "get-or-create", !factoryCalled, stopwatch.Elapsed.TotalSeconds);
+            _metrics?.RecordOperation(key, "get-or-create", !factoryCalled, stopwatch.Elapsed.TotalSeconds);
 
             return result;
         }
         catch (Exception ex)
         {
             stopwatch.Stop();
-            metrics.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "get-or-create", "error");
+            _metrics?.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "get-or-create", "error");
             logger.LogError(ex, "Failed to get or create cache value for key {Key}", key);
-            return await factory(cancellationToken);
+            return default!;
         }
     }
 

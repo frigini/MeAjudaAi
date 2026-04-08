@@ -1,0 +1,182 @@
+import { describe, it, expect } from 'vitest';
+import { mapSearchableProviderToProvider, mapApiProviderToProvider } from '@/lib/api/mappers';
+import { EProviderType, EProviderStatus, EProviderTier } from '@/types/api/provider';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PartialProviderDto = any; // Use any to bypass SDK type mismatches in tests
+
+describe('mapSearchableProviderToProvider', () => {
+  it('deve mapear SearchableProviderDto para ProviderDto', () => {
+    const input = {
+      providerId: 'provider-123',
+      name: 'João Silva',
+      averageRating: 4.5,
+      totalReviews: 10,
+      serviceIds: ['service-1', 'service-2'],
+      city: 'Rio de Janeiro',
+      state: 'RJ',
+    };
+
+    const result = mapSearchableProviderToProvider(input);
+
+    expect(result.id).toBe('provider-123');
+    expect(result.name).toBe('João Silva');
+    expect(result.averageRating).toBe(4.5);
+    expect(result.reviewCount).toBe(10);
+    expect(result.services).toHaveLength(2);
+    expect(result.city).toBe('Rio de Janeiro');
+    expect(result.state).toBe('RJ');
+  });
+
+  it('deve usar valores padrão para campos opcionais e lidar com dados ausentes', () => {
+    const input = {
+      providerId: undefined,
+      name: undefined,
+      serviceIds: undefined,
+    };
+
+    const result = mapSearchableProviderToProvider(input);
+
+    expect(result.id).toBe('');
+    expect(result.name).toBe('');
+    expect(result.services).toEqual([]);
+    expect(result.avatarUrl).toBe('/images/providers/provider-1.svg');
+    expect(result.businessProfile.legalName).toBe('');
+  });
+});
+
+describe('mapApiProviderToProvider', () => {
+  it('deve mapear ProviderDto completo', () => {
+    const input: PartialProviderDto = {
+      id: 'provider-456',
+      userId: 'user-789',
+      name: 'Maria Santos',
+      type: 1,
+      status: 3,
+      verificationStatus: 3,
+      tier: 2,
+      createdAt: '2024-01-01T00:00:00Z',
+      businessProfile: {
+        legalName: 'Maria Serviços Ltda',
+        fantasyName: 'Maria Solutions',
+        description: 'Serviços profissionais',
+        contactInfo: {
+          email: 'maria@teste.com',
+          phoneNumber: '21999999999',
+        },
+        primaryAddress: {
+          street: 'Rua Teste',
+          number: '123',
+          neighborhood: 'Bairro Teste',
+          city: 'São Paulo',
+          state: 'SP',
+          zipCode: '01234567',
+          country: 'Brasil',
+        },
+      },
+      services: [
+        { serviceId: 's1', serviceName: 'Elétrica' },
+      ],
+      averageRating: 4.8,
+      reviewCount: 25,
+    };
+
+    const result = mapApiProviderToProvider(input as any);
+
+    expect(result.id).toBe('provider-456');
+    expect(result.name).toBe('Maria Solutions');
+    expect(result.email).toBe('maria@teste.com');
+    expect(result.phone).toBe('21999999999');
+    expect(result.services).toHaveLength(1);
+    expect(result.services[0].serviceName).toBe('Elétrica');
+    expect(result.averageRating).toBe(4.8);
+    expect(result.tier).toBe(EProviderTier.Gold);
+  });
+
+  it('deve usar fantasyName ou legalName como nome de exibição', () => {
+    const inputWithFantasyName: PartialProviderDto = {
+      id: 'p1',
+      businessProfile: {
+        legalName: 'Nome Legal',
+        fantasyName: 'Nome Fantasia',
+        contactInfo: { email: 'test@test.com' },
+        primaryAddress: { city: '', state: '', street: '', neighborhood: '', zipCode: '', country: '' },
+      },
+    };
+
+    const result = mapApiProviderToProvider(inputWithFantasyName as any);
+    expect(result.name).toBe('Nome Fantasia');
+
+    const inputWithoutFantasyName: PartialProviderDto = {
+      id: 'p2',
+      businessProfile: {
+        legalName: 'Nome Legal Apenas',
+        contactInfo: { email: 'test@test.com' },
+        primaryAddress: { city: '', state: '', street: '', neighborhood: '', zipCode: '', country: '' },
+      },
+    };
+
+    const result2 = mapApiProviderToProvider(inputWithoutFantasyName as any);
+    expect(result2.name).toBe('Nome Legal Apenas');
+  });
+
+  it('deve usar valores padrão para campos ausentes e lidar com perfis vazios', () => {
+    const input: PartialProviderDto = {
+      id: 'p1',
+      businessProfile: {} as any, // Perfil vazio
+    };
+
+    const result = mapApiProviderToProvider(input as any);
+
+    expect(result.name).toBe('Prestador');
+    expect(result.type).toBe(EProviderType.Individual);
+    expect(result.status).toBe(EProviderStatus.PendingBasicInfo);
+    expect(result.email).toBe('');
+    expect(result.phone).toBeUndefined();
+    expect(result.city).toBe('');
+  });
+
+  it('deve mapear corretamente os tiers e status de enum', () => {
+    const input: PartialProviderDto = {
+      id: 'p-enum',
+      tier: 1, // Silver
+      status: 3, // Active
+    };
+
+    const result = mapApiProviderToProvider(input as any);
+    expect(result.tier).toBe(EProviderTier.Silver);
+    expect(result.status).toBe(EProviderStatus.Active);
+  });
+
+  it('deve mapear documentos e qualificações', () => {
+    const input: PartialProviderDto = {
+      id: 'p1',
+      documents: [
+        {
+          id: 'doc1',
+          providerId: 'p1',
+          documentType: 1,
+          fileName: 'documento.pdf',
+          fileUrl: 'https://storage.com/doc1',
+          status: 2,
+          uploadedAt: '2024-01-01',
+        },
+      ],
+      qualifications: [
+        {
+          name: 'Curso de elétrica',
+          description: 'Curso avançado',
+          issuingOrganization: 'SENAI',
+          issueDate: '2023-01-01',
+          documentNumber: '123456',
+        },
+      ],
+    };
+
+    const result = mapApiProviderToProvider(input as any);
+
+    expect(result.documents).toHaveLength(1);
+    expect(result.qualifications).toHaveLength(1);
+    expect(result.qualifications[0].name).toBe('Curso de elétrica');
+  });
+});

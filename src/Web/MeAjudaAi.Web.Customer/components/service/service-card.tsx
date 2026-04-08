@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Rating } from "@/components/ui/rating";
+import { MapPin } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -54,6 +55,10 @@ export function ServiceCard({
                                 {description}
                             </p>
 
+                            <div className="flex items-center gap-1 text-muted-foreground text-xs mb-2">
+                                <MapPin className="h-3 w-3" />
+                                <span>Muriaé - MG</span>
+                            </div>
                             {/* Service Tags */}
                             <div className="flex flex-wrap gap-2 mb-4">
                                 {services.map((service) => (

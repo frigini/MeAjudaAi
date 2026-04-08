@@ -30,6 +30,7 @@ export function ProfileReviews({ reviews }: ProfileReviewsProps) {
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star
                   key={i}
+                  data-testid="star-icon"
                   className={`h-4 w-4 ${
                     i < review.rating ? "fill-current text-primary" : "text-muted-foreground"
                   }`}

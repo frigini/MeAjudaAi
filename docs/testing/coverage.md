@@ -1293,9 +1293,56 @@ reportgenerator `
 
 ---
 
-## 📚 Referências
+## 📚 Estratégia de Exclusão de Código da Cobertura
+
+### Conceito
+
+A partir de Abril/2026, o projeto adotou uma estratégia híbrida para gerenciar coverage:
+
+1. **Atributo `[ExcludeFromCodeCoverage]` no código** - Preferível para classes de configuração/DTOs
+2. **Filtros no YAML do CI** - Para categorias inteiras que não são código de negócio
+
+### Quando Usar o Atributo
+
+O atributo `[ExcludeFromCodeCoverage]` deve ser usado em classes que:
+- São **Options/Configuration** (data holders sem lógica)
+- São **DTOs internos** de integrações (Keycloak, RabbitMQ, etc)
+- São classes de **infraestrutura** sem lógica de negócio
+- **NÃO** devem ser usadas em classes que contêm lógica de negócio
+
+### Classes com o Atributo (2026)
+
+| Arquivo | Classe | Justificativa |
+|---------|--------|---------------|
+| `Caching/CacheOptions.cs` | `CacheOptions` | Options pattern |
+| `Messaging/Options/RabbitMqOptions.cs` | `RabbitMqOptions` | Options pattern |
+| `Messaging/Options/MessageBusOptions.cs` | `MessageBusOptions` | Options pattern |
+| `Messaging/Options/DeadLetterOptions.cs` | `DeadLetterOptions` | Options pattern |
+| `Messaging/Options/DeadLetterOptions.cs` | `RabbitMqDeadLetterOptions` | Options pattern |
+| `Database/PopstgresOptions.cs` | `PostgresOptions` | Options pattern |
+| `Authorization/Keycloak/KeycloakPermissionResolver.cs` | `KeycloakConfiguration` | Configuração |
+| `Authorization/Keycloak/KeycloakPermissionResolver.cs` | `TokenResponse` | DTO interno Keycloak |
+| `Authorization/Keycloak/KeycloakPermissionResolver.cs` | `KeycloakUser` | DTO interno Keycloak |
+| `Authorization/Keycloak/KeycloakPermissionResolver.cs` | `KeycloakRole` | DTO interno Keycloak |
+| `Authorization/Keycloak/KeycloakPermissionOptions.cs` | `KeycloakPermissionOptions` | Options pattern |
+| `Messaging/MessagingExtensions.cs` | `MessagingConfiguration` | Classe de categorização |
+
+### Filtros no CI (YAML)
+
+Categorias excluídas via YAML (não possuem valor de teste):
+```yaml
+classfilters: "-*.Tests;-*.Tests.*;-*Test*;-testhost;-*.Migrations.*;-*Program*;-*.Seeding.*;-*.Monitoring.*;-MeAjudaAi.Shared.Jobs.*;-MeAjudaAi.Shared.Mediator.*"
+```
+
+### Benefícios
+
+1. **Código explícito** - O atributo no arquivo .cs é autodocumentado
+2. **Manutenção simplificada** - Menos filtros no YAML
+3. **Visibilidade** - Facil identificar o que foi excluído e por quê
+
+### Referências
 
 - Relatório de Coverage Atual: `coverage-github/report/index.html` (gerado via CI/CD)
-- Pipeline CI/CD: `.github/workflows/master-ci-cd.yml`
+- Pipeline CI/CD: `.github/workflows/ci-backend.yml`
 - Configuração Coverlet: `config/coverlet.json`
 - Coverage local: `dotnet test --collect:"XPlat Code Coverage"`

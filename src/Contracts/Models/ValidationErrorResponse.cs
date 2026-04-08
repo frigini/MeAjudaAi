@@ -1,5 +1,7 @@
 using MeAjudaAi.Contracts.Utilities.Constants;
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Contracts.Models;
 
 /// <summary>
@@ -9,6 +11,7 @@ namespace MeAjudaAi.Contracts.Models;
 /// Usado quando a validação de entrada falha, fornecendo detalhes
 /// específicos sobre quais campos têm problemas.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public class ValidationErrorResponse : ApiErrorResponse
 {
     /// <summary>

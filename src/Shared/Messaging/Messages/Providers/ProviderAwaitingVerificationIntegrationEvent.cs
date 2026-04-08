@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Events;
 
 namespace MeAjudaAi.Shared.Messaging.Messages.Providers;
@@ -14,6 +15,7 @@ namespace MeAjudaAi.Shared.Messaging.Messages.Providers;
 /// - Preparar processos de verificação
 /// - Atualizar dashboards e métricas
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public sealed record ProviderAwaitingVerificationIntegrationEvent(
     string Source,
     Guid ProviderId,

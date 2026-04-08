@@ -2,7 +2,7 @@ namespace MeAjudaAi.Shared.Domain;
 
 public abstract class ValueObject
 {
-    protected abstract IEnumerable<object> GetEqualityComponents();
+    protected abstract IEnumerable<object?> GetEqualityComponents();
 
     public override bool Equals(object? obj)
     {
@@ -17,7 +17,7 @@ public abstract class ValueObject
     {
         return GetEqualityComponents()
             .Select(x => x?.GetHashCode() ?? 0)
-            .Aggregate((x, y) => x ^ y);
+            .Aggregate(0, (x, y) => x ^ y);
     }
 
     public static bool operator ==(ValueObject? left, ValueObject? right)

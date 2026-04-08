@@ -231,4 +231,31 @@ public class DatabaseExceptionsTests
         // Assert
         result.Should().Be(dbUpdateException);
     }
+
+    [Fact]
+    public void PostgreSqlExceptionProcessor_ProcessException_WithInnerExceptionNull_ShouldHandleGracefully()
+    {
+        // Arrange
+        var dbUpdateException = new DbUpdateException("Update failed");
+
+        // Act
+        var result = PostgreSqlExceptionProcessor.ProcessException(dbUpdateException);
+
+        // Assert
+        result.Should().Be(dbUpdateException);
+    }
+
+    [Fact]
+    public void PostgreSqlExceptionProcessor_ProcessException_WithDbUpdateConcurrencyException_ShouldReturnOriginal()
+    {
+        // Arrange
+        var innerException = new Exception("Concurrent modification");
+        var dbUpdateException = new DbUpdateException("Update failed", innerException);
+
+        // Act
+        var result = PostgreSqlExceptionProcessor.ProcessException(dbUpdateException);
+
+        // Assert
+        result.Should().Be(dbUpdateException);
+    }
 }

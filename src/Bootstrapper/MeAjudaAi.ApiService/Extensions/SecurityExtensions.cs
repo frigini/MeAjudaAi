@@ -514,7 +514,7 @@ public static class SecurityExtensions
     /// <summary>
     /// Configura políticas de rate limiting customizadas
     /// </summary>
-    public static IServiceCollection AddCustomRateLimiting(this IServiceCollection services)
+    public static IServiceCollection AddCustomRateLimiting(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddRateLimiter(options =>
         {
@@ -522,7 +522,7 @@ public static class SecurityExtensions
             options.AddFixedWindowLimiter(RateLimitPolicies.Public, opt =>
             {
                 opt.Window = TimeSpan.FromMinutes(1);
-                opt.PermitLimit = 60;
+                opt.PermitLimit = configuration.GetValue("RateLimit:DefaultRequestsPerMinute", 60);
                 opt.QueueLimit = 10;
                 opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
             });
@@ -533,7 +533,7 @@ public static class SecurityExtensions
                     partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Connection.Id,
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
-                        PermitLimit = 5,
+                        PermitLimit = configuration.GetValue("RateLimit:AuthRequestsPerMinute", 5),
                         Window = TimeSpan.FromMinutes(1),
                         QueueLimit = 2,
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst
@@ -545,7 +545,7 @@ public static class SecurityExtensions
                     partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Connection.Id,
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
-                        PermitLimit = 5,
+                        PermitLimit = configuration.GetValue("RateLimit:ProviderRequestsPerMinute", 5),
                         Window = TimeSpan.FromMinutes(1),
                         QueueLimit = 2,
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst

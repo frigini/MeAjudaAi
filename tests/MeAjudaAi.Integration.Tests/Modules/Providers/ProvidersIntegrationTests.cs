@@ -159,7 +159,14 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTe
                 {
                     if (providerElement.TryGetProperty("type", out var typeProperty))
                     {
-                        typeProperty.GetInt32().Should().Be(0, "Only Individual providers (type 0) should be returned");
+                        if (typeProperty.ValueKind == JsonValueKind.Number)
+                        {
+                            typeProperty.GetInt32().Should().Be(0, "Only Individual providers (type 0) should be returned");
+                        }
+                        else
+                        {
+                            typeProperty.GetString().Should().BeEquivalentTo("Individual", "Only Individual providers should be returned");
+                        }
                     }
                 }
             }

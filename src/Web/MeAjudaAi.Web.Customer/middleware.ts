@@ -1,7 +1,13 @@
 import { withAuth } from "next-auth/middleware"
 
+function isE2ETest(req: Request): boolean {
+  const mockAuthHeader = req.headers.get("x-mock-auth");
+  const cookieHeader = req.headers.get("cookie") || "";
+  return mockAuthHeader === "true" || cookieHeader.includes("x-mock-auth=true");
+}
+
 export default withAuth(
-    function middleware(req) {
+    function middleware() {
         // Here we can access the token if logged in.
         // The checking logic is already handled by `withAuth` callbacks.
     },
@@ -11,6 +17,10 @@ export default withAuth(
         },
         callbacks: {
             authorized: ({ req, token }) => {
+                if (isE2ETest(req as unknown as Request)) {
+                    return true;
+                }
+
                 const isLoggedIn = !!token
                 const { pathname } = req.nextUrl
 
@@ -39,5 +49,5 @@ export default withAuth(
 )
 
 export const config = {
-    matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+    matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 }

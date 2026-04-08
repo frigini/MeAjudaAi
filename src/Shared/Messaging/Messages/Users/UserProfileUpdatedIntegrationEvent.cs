@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Events;
 
 namespace MeAjudaAi.Shared.Messaging.Messages.Users;
@@ -5,6 +6,7 @@ namespace MeAjudaAi.Shared.Messaging.Messages.Users;
 /// <summary>
 /// Publicado quando um usuário atualiza suas informações de perfil
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record UserProfileUpdatedIntegrationEvent(
     string Source,
     Guid UserId,

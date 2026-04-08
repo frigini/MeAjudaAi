@@ -1,0 +1,272 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [master, develop]
+    paths:
+      - 'src/Web/**'
+      - 'src/Bootstrapper/**'
+      - 'src/Modules/**'
+      - 'tests/MeAjudaAi.E2E.Tests/**'
+      - '.github/workflows/ci-e2e.yml'
+      - '.github/actions/**'
+  pull_request:
+    branches: [master, develop]
+    paths:
+      - 'src/Web/**'
+      - 'src/Bootstrapper/**'
+      - 'src/Modules/**'
+      - 'tests/MeAjudaAi.E2E.Tests/**'
+      - '.github/workflows/ci-e2e.yml'
+      - '.github/actions/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+  statuses: write
+
+env:
+  DOTNET_VERSION: "10.0.x"
+  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+  POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+  POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
+
+jobs:
+  backend-e2e:
+    name: Backend E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis-server:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Backend
+        uses: ./.github/actions/setup-backend
+
+      - name: Build solution
+        run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
+
+      - name: Run Backend E2E Tests
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          INTEGRATION_TESTS: true
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
+        run: |
+          dotnet test tests/MeAjudaAi.E2E.Tests/ \
+            --configuration Release --no-build --verbosity normal
+
+  frontend-e2e:
+    name: Frontend E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis-server:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Backend (for API Generation)
+        uses: ./.github/actions/setup-backend
+
+      - name: Setup Frontend
+        uses: ./.github/actions/setup-frontend
+
+      - name: Build Backend (for API Generation)
+        run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
+
+      - name: Generate API Client
+        working-directory: ./src/Web
+        run: |
+          set -e
+          mkdir -p "$GITHUB_WORKSPACE/src/api"
+          export ASPNETCORE_ENVIRONMENT=Development
+          export ConnectionStrings__DefaultConnection="Host=localhost;Database=dummy"
+          export Migrations__Enabled=false
+          SEARCH_DIR="$GITHUB_WORKSPACE/src/Bootstrapper/MeAjudaAi.ApiService/bin/Release"
+          DLL_PATH=$(find "$SEARCH_DIR" -name "MeAjudaAi.ApiService.dll" | head -n 1)
+          if [ -z "$DLL_PATH" ]; then
+            echo "❌ Error: MeAjudaAi.ApiService.dll not found in $SEARCH_DIR"
+            exit 1
+          fi
+          swagger tofile --output "$GITHUB_WORKSPACE/src/api/api-spec.json" "$DLL_PATH" v1
+          export OPENAPI_SPEC_URL="$GITHUB_WORKSPACE/src/api/api-spec.json"
+          npm run generate:api --workspace=meajudaai.web.customer
+          npm run generate:api --workspace=meajudaai.web.admin
+          npm run generate:api --workspace=meajudaai.web.provider
+
+      - name: Start Backend API
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          ASPNETCORE_URLS: "http://localhost:7002"
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
+          ConnectionStrings__DefaultConnection: "Host=localhost;Database=${{ env.POSTGRES_DB }};Username=${{ env.POSTGRES_USER }};Password=${{ env.POSTGRES_PASSWORD }}"
+          ConnectionStrings__redis: "localhost:6379"
+        run: |
+          dotnet run --project src/Bootstrapper/MeAjudaAi.ApiService/MeAjudaAi.ApiService.csproj --configuration Release &
+          
+          # Wait for API to be ready
+          echo "Waiting for API..."
+          API_READY=false
+          for i in {1..60}; do
+            if curl -s http://localhost:7002/health > /dev/null 2>&1; then
+              echo "API is up!"
+              API_READY=true
+              break
+            fi
+            echo "Waiting... ($i/60)"
+            sleep 2
+          done
+          
+          if [ "$API_READY" = "false" ]; then
+            echo "ERROR: API failed to become healthy"
+            exit 1
+          fi
+
+      - name: Setup Applications Environment
+        working-directory: ./src/Web
+        run: |
+          for dir in MeAjudaAi.Web.Admin MeAjudaAi.Web.Customer MeAjudaAi.Web.Provider; do
+            cat > $dir/.env.local << 'EOF'
+          CI=true
+          KEYCLOAK_ADMIN_CLIENT_ID=ci-build-placeholder
+          KEYCLOAK_ADMIN_CLIENT_SECRET=ci-build-placeholder
+          KEYCLOAK_CLIENT_ID=ci-build-placeholder
+          KEYCLOAK_CLIENT_SECRET=ci-build-placeholder
+          KEYCLOAK_ISSUER=http://localhost:8080/realms/meajudaai
+          NEXTAUTH_SECRET=ci-build-placeholder
+          AUTH_SECRET=ci-build-placeholder
+          EOF
+          done
+
+      - name: Build All Frontends
+        working-directory: ./src/Web
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:7002
+          KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
+          KEYCLOAK_ADMIN_CLIENT_SECRET: ci-build-placeholder
+          KEYCLOAK_CLIENT_ID: ci-build-placeholder
+          KEYCLOAK_CLIENT_SECRET: ci-build-placeholder
+          KEYCLOAK_ISSUER: http://localhost:8080/realms/meajudaai
+          NEXTAUTH_SECRET: ci-build-placeholder
+          AUTH_SECRET: ci-build-placeholder
+        run: |
+          echo "Building Admin..."
+          NEXTAUTH_URL=http://localhost:3002 npm run build --workspace=meajudaai.web.admin
+          echo "Building Provider..."
+          NEXTAUTH_URL=http://localhost:3001 npm run build --workspace=meajudaai.web.provider
+          echo "Building Customer..."
+          NEXTAUTH_URL=http://localhost:3000 npm run build --workspace=meajudaai.web.customer
+
+      - name: Start All Frontends
+        working-directory: ./src/Web
+        env:
+          MOCK_AUTH: "true"
+        run: |
+          echo "Starting Admin (3002)..."
+          npx next start MeAjudaAi.Web.Admin --port 3002 > /tmp/admin.log 2>&1 &
+          echo "Starting Provider (3001)..."
+          npx next start MeAjudaAi.Web.Provider --port 3001 > /tmp/provider.log 2>&1 &
+          echo "Starting Customer (3000)..."
+          npx next start MeAjudaAi.Web.Customer --port 3000 > /tmp/customer.log 2>&1 &
+          
+          echo "Waiting for Frontends..."
+          ALL_READY=false
+          for i in {1..90}; do
+            ADMIN_UP=$(curl -s --head http://localhost:3002 > /dev/null 2>&1 && echo "up" || echo "down")
+            PROV_UP=$(curl -s --head http://localhost:3001 > /dev/null 2>&1 && echo "up" || echo "down")
+            CUST_UP=$(curl -s --head http://localhost:3000 > /dev/null 2>&1 && echo "up" || echo "down")
+            
+            if [ "$ADMIN_UP" = "up" ] && [ "$PROV_UP" = "up" ] && [ "$CUST_UP" = "up" ]; then
+              echo "✅ All frontends are up!"
+              ALL_READY=true
+              break
+            fi
+            echo "Waiting... ($i/90) [Admin: $ADMIN_UP, Provider: $PROV_UP, Customer: $CUST_UP]"
+            sleep 2
+          done
+          
+          if [ "$ALL_READY" = "false" ]; then
+            echo "❌ Error: One or more frontends failed to start"
+            echo "--- Admin Log ---"
+            cat /tmp/admin.log
+            echo "--- Provider Log ---"
+            cat /tmp/provider.log
+            echo "--- Customer Log ---"
+            cat /tmp/customer.log
+            exit 1
+          fi
+
+      - name: Run Playwright E2E Tests
+        working-directory: ./src/Web
+        env:
+          CI: "true"
+          TEST_ENV: "external"
+          MOCK_AUTH: "true"
+          KEYCLOAK_ADMIN_CLIENT_ID: ci-build-placeholder
+          KEYCLOAK_ADMIN_CLIENT_SECRET: ci-build-placeholder
+          KEYCLOAK_CLIENT_ID: ci-build-placeholder
+          KEYCLOAK_CLIENT_SECRET: ci-build-placeholder
+          KEYCLOAK_ISSUER: http://localhost:8080/realms/meajudaai
+          ADMIN_BASE_URL: http://localhost:3002
+          PROVIDER_BASE_URL: http://localhost:3001
+          BASE_URL: http://localhost:3000
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test --reporter=list

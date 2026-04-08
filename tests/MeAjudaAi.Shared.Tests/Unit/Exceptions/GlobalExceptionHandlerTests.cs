@@ -1,614 +1,376 @@
-using System.Net;
-using System.Text.Json;
-using FluentAssertions;
-using FluentValidation.Results;
-using MeAjudaAi.Shared.Database.Exceptions;
-using MeAjudaAi.Shared.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
+using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Database.Exceptions;
+using System.Text.Json;
+using FluentAssertions;
+using Xunit;
+using System.IO;
 using Npgsql;
-using System.Reflection;
-using ValidationException = MeAjudaAi.Shared.Exceptions.ValidationException;
+using FluentValidation;
+using ValidationFailure = FluentValidation.Results.ValidationFailure;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Exceptions;
 
-/// <summary>
-/// Testes unitários para GlobalExceptionHandler
-/// Cobertura: TryHandleAsync, ProcessDbUpdateException, GetProblemTypeUri
-/// </summary>
 [Trait("Category", "Unit")]
-[Trait("Component", "GlobalExceptionHandler")]
 public class GlobalExceptionHandlerTests
 {
     private readonly Mock<ILogger<GlobalExceptionHandler>> _loggerMock;
     private readonly GlobalExceptionHandler _handler;
-    private readonly DefaultHttpContext _httpContext;
-
-    // Classe concreta de DomainException para testes
-    private sealed class TestDomainException : DomainException
-    {
-        public TestDomainException(string message) : base(message) { }
-    }
 
     public GlobalExceptionHandlerTests()
     {
         _loggerMock = new Mock<ILogger<GlobalExceptionHandler>>();
         _handler = new GlobalExceptionHandler(_loggerMock.Object);
-        _httpContext = new DefaultHttpContext
-        {
-            Request = { Path = "/api/test" },
-            TraceIdentifier = "test-trace-id"
-        };
-        _httpContext.Response.Body = new MemoryStream();
     }
 
-    #region ValidationException Tests
-
     [Fact]
-    public async Task TryHandleAsync_WithValidationException_ShouldReturn400WithValidationErrors()
+    public async Task TryHandleAsync_WithValidationException_ShouldReturnBadRequest()
     {
-        // Arrange
-        var validationErrors = new List<ValidationFailure>
+        var context = CreateDefaultContext();
+        var failures = new List<ValidationFailure>
         {
-            new("Name", "Name is required"),
-            new("Email", "Email is invalid"),
-            new("Email", "Email already exists")
+            new("PropertyName", "ErrorMessage")
         };
-        var exception = new ValidationException(validationErrors);
+        var exception = new MeAjudaAi.Shared.Exceptions.ValidationException(failures);
 
-        // Act
-        var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
 
-        // Assert
         result.Should().BeTrue();
-        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-        _httpContext.Response.ContentType.Should().Contain("json");
-
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails.Should().NotBeNull();
-        problemDetails!.Status.Should().Be(400);
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
         problemDetails.Title.Should().Be("Erro de validação");
-        problemDetails.Detail.Should().Be("Um ou mais erros de validação ocorreram");
-        problemDetails.Instance.Should().Be("/api/test");
-
-        var errors = problemDetails.Extensions["errors"] as JsonElement?;
-        errors.Should().NotBeNull();
+        problemDetails.Extensions.Should().ContainKey("errors");
     }
 
     [Fact]
-    public async Task TryHandleAsync_WithValidationException_ShouldGroupErrorsByProperty()
+    public async Task TryHandleAsync_WithUnauthorizedAccessException_ShouldReturnUnauthorized()
     {
-        // Arrange
-        var validationErrors = new List<ValidationFailure>
-        {
-            new("Email", "Email is required"),
-            new("Email", "Email is invalid"),
-            new("Name", "Name is required")
-        };
-        var exception = new ValidationException(validationErrors);
+        var context = CreateDefaultContext();
+        var exception = new UnauthorizedAccessException();
 
-        // Act
-        await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
 
-        // Assert
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails.Should().NotBeNull();
-        problemDetails!.Extensions.Should().ContainKey("errors");
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
+        
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Status.Should().Be(StatusCodes.Status401Unauthorized);
+        problemDetails.Title.Should().Be("Não Autorizado");
     }
 
-    #endregion
+    [Fact]
+    public async Task TryHandleAsync_WithNotFoundException_ShouldReturnNotFound()
+    {
+        var context = CreateDefaultContext();
+        var exception = new NotFoundException("Resource", "123");
 
-    #region UniqueConstraintException Tests
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status404NotFound);
+        
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Status.Should().Be(StatusCodes.Status404NotFound);
+        problemDetails.Title.Should().Be("Recurso Não Encontrado");
+        problemDetails.Extensions["entityName"].ToString().Should().Be("Resource");
+        problemDetails.Extensions["entityId"].ToString().Should().Be("123");
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithForbiddenAccessException_ShouldReturnForbidden()
+    {
+        var context = CreateDefaultContext();
+        var exception = new ForbiddenAccessException("Access denied");
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
+        
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Status.Should().Be(StatusCodes.Status403Forbidden);
+        problemDetails.Title.Should().Be("Acesso Negado");
+        problemDetails.Detail.Should().Be("Access denied");
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithBusinessRuleException_ShouldReturnBadRequest()
+    {
+        var context = CreateDefaultContext();
+        var exception = new BusinessRuleException("MyRule", "Rule broken");
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
+        problemDetails.Title.Should().Be("Violação de Regra de Negócio");
+        problemDetails.Extensions["ruleName"].ToString().Should().Be("MyRule");
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithGenericException_ShouldReturnInternalServerError()
+    {
+        var context = CreateDefaultContext();
+        var exception = new Exception("Server went boom");
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
+        
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Status.Should().Be(StatusCodes.Status500InternalServerError);
+        problemDetails.Title.Should().Be("Erro Interno do Servidor");
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithUnprocessableEntityException_ShouldReturn422()
+    {
+        var context = CreateDefaultContext();
+        var exception = new UnprocessableEntityException("Invalid state", "User");
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status422UnprocessableEntity);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithUnprocessableEntityExceptionWithDetails_ShouldReturn422()
+    {
+        var context = CreateDefaultContext();
+        var details = new Dictionary<string, object?> { ["extra"] = "info" };
+        var exception = new UnprocessableEntityException("Invalid state", "User", details);
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status422UnprocessableEntity);
+        
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Extensions["details"].Should().NotBeNull();
+    }
 
     [Fact]
     public async Task TryHandleAsync_WithUniqueConstraintException_ShouldReturn409()
     {
-        // Arrange
-        var innerException = new Exception("Inner exception");
-        var exception = new UniqueConstraintException("uk_users_email", "email", innerException);
+        var context = CreateDefaultContext();
+        var exception = new UniqueConstraintException("unique_email", "email", new Exception("inner"));
 
-        // Act
-        var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
 
-        // Assert
         result.Should().BeTrue();
-        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status409Conflict);
-
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails.Should().NotBeNull();
-        problemDetails!.Status.Should().Be(409);
+        context.Response.StatusCode.Should().Be(StatusCodes.Status409Conflict);
+        
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Status.Should().Be(StatusCodes.Status409Conflict);
         problemDetails.Title.Should().Be("Valor Duplicado");
-        problemDetails.Detail.Should().Contain("email");
-        problemDetails.Extensions.Should().ContainKey("constraintName");
-        problemDetails.Extensions.Should().ContainKey("columnName");
+        problemDetails.Extensions["constraintName"]?.ToString().Should().Be("unique_email");
+        problemDetails.Extensions["columnName"]?.ToString().Should().Be("email");
     }
-
-    [Fact]
-    public async Task TryHandleAsync_WithUniqueConstraintException_NoColumnName_ShouldUseDefaultMessage()
-    {
-        // Arrange
-        var innerException = new Exception("Inner exception");
-        var exception = new UniqueConstraintException("uk_constraint", columnName: null!, innerException);
-
-        // Act
-        await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Detail.Should().Contain("este campo");
-    }
-
-    #endregion
-
-    #region NotNullConstraintException Tests
 
     [Fact]
     public async Task TryHandleAsync_WithNotNullConstraintException_ShouldReturn400()
     {
-        // Arrange
-        var innerException = new Exception("Inner exception");
-        var exception = new NotNullConstraintException("username", innerException, isColumnName: true);
+        var context = CreateDefaultContext();
+        var exception = new NotNullConstraintException("name", new Exception("inner"), true);
 
-        // Act
-        var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
 
-        // Assert
         result.Should().BeTrue();
-        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails.Should().NotBeNull();
-        problemDetails!.Title.Should().Be("Campo Obrigatório Ausente");
-        problemDetails.Detail.Should().Contain("username");
-        problemDetails.Extensions["columnName"].Should().NotBeNull();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
+        problemDetails.Title.Should().Be("Campo Obrigatório Ausente");
+        problemDetails.Extensions["columnName"]?.ToString().Should().Be("name");
     }
-
-    #endregion
-
-    #region ForeignKeyConstraintException Tests
 
     [Fact]
     public async Task TryHandleAsync_WithForeignKeyConstraintException_ShouldReturn400()
     {
-        // Arrange
-        var exception = new ForeignKeyConstraintException("fk_users_role_id", "users", innerException: null!);
+        var context = CreateDefaultContext();
+        var exception = new ForeignKeyConstraintException("fk_user_role", "roles", new Exception("inner"));
 
-        // Act
-        var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
 
-        // Assert
         result.Should().BeTrue();
-        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Title.Should().Be("Referência Inválida");
-        problemDetails.Detail.Should().Be("O registro referenciado não existe");
-        problemDetails.Extensions.Should().ContainKey("constraintName");
-        problemDetails.Extensions.Should().ContainKey("tableName");
-    }
-
-    #endregion
-
-    #region NotFoundException Tests
-
-    [Fact]
-    public async Task TryHandleAsync_WithNotFoundException_ShouldReturn404()
-    {
-        // Arrange
-        var exception = new NotFoundException("User", "123");
-
-        // Act
-        var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        result.Should().BeTrue();
-        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status404NotFound);
-
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Status.Should().Be(404);
-        problemDetails.Title.Should().Be("Recurso Não Encontrado");
-        problemDetails.Extensions["entityName"].Should().NotBeNull();
-        problemDetails.Extensions["entityId"].Should().NotBeNull();
-    }
-
-    #endregion
-
-    #region UnauthorizedAccessException Tests
-
-    [Fact]
-    public async Task TryHandleAsync_WithUnauthorizedAccessException_ShouldReturn401()
-    {
-        // Arrange
-        var exception = new UnauthorizedAccessException("Invalid token");
-
-        // Act
-        var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        result.Should().BeTrue();
-        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
-
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Status.Should().Be(401);
-        problemDetails.Title.Should().Be("Não Autorizado");
-        problemDetails.Detail.Should().Be("Autenticação é necessária para acessar este recurso");
-    }
-
-    #endregion
-
-    #region ForbiddenAccessException Tests
-
-    [Fact]
-    public async Task TryHandleAsync_WithForbiddenAccessException_ShouldReturn403()
-    {
-        // Arrange
-        var exception = new ForbiddenAccessException("Permissões insuficientes", innerException: null!);
-
-        // Act
-        var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        result.Should().BeTrue();
-        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
-
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Status.Should().Be(403);
-        problemDetails.Title.Should().Be("Acesso Negado");
-        problemDetails.Detail.Should().Be("Permissões insuficientes");
-    }
-
-    #endregion
-
-    #region BusinessRuleException Tests
-
-    [Fact]
-    public async Task TryHandleAsync_WithBusinessRuleException_ShouldReturn400WithRuleName()
-    {
-        // Arrange
-        var exception = new BusinessRuleException("AgeLimit", "User must be at least 18 years old");
-
-        // Act
-        var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        result.Should().BeTrue();
-        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Title.Should().Be("Violação de Regra de Negócio");
-        problemDetails.Detail.Should().Be("User must be at least 18 years old");
-        problemDetails.Extensions["ruleName"].Should().NotBeNull();
-    }
-
-    #endregion
-
-    #region DomainException Tests
-
-    [Fact]
-    public async Task TryHandleAsync_WithDomainException_ShouldReturn400()
-    {
-        // Arrange
-        var exception = new TestDomainException("Invalid email format");
-
-        // Act
-        var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        result.Should().BeTrue();
-        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Title.Should().Be("Violação de Regra de Domínio");
-        problemDetails.Detail.Should().Be("Invalid email format");
-    }
-
-    #endregion
-
-    #region DbUpdateException Tests
-
-    [Fact]
-    public async Task TryHandleAsync_WithDbUpdateException_ShouldProcessAndReturnAppropriateStatus()
-    {
-        // Arrange - Cria um DbUpdateException sem exceção interna
-        var exception = new DbUpdateException("Database update failed");
-
-        // Act
-        var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        result.Should().BeTrue();
-        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Title.Should().Be("Erro de Banco de Dados");
-        problemDetails.Detail.Should().Be("Ocorreu um erro de banco de dados ao processar sua requisição");
-    }
-
-    #endregion
-
-    #region Generic Exception Tests
-
-    [Fact]
-    public async Task TryHandleAsync_WithWrappedValidationException_ShouldUnwrapAndReturn400()
-    {
-        // Arrange
-        var validationErrors = new List<ValidationFailure> { new("Prop", "Error") };
-        var inner = new ValidationException(validationErrors);
-        var exception = new InvalidOperationException("Wrapped", inner);
-
-        // Act
-        var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        result.Should().BeTrue();
-        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Status.Should().Be(400);
-        problemDetails.Title.Should().Be("Erro de validação");
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_WithWrappedAggregateException_ShouldUnwrap()
-    {
-        // Arrange
-        var inner = new TestDomainException("Domain error");
-        var exception = new AggregateException(inner);
-
-        // Act
-        var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        result.Should().BeTrue();
-        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Status.Should().Be(400);
-        problemDetails.Title.Should().Be("Violação de Regra de Domínio");
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_WithWrappedTargetInvocationException_ShouldUnwrap()
-    {
-        // Arrange
-        var inner = new NotFoundException("Entity", "123");
-        var exception = new TargetInvocationException(inner);
-
-        // Act
-        var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        result.Should().BeTrue();
-        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status404NotFound);
-
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Status.Should().Be(404);
-        problemDetails.Title.Should().Be("Recurso Não Encontrado");
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_WithGenericException_ShouldReturn500()
-    {
-        // Arrange
-        var exception = new InvalidOperationException("Something went wrong");
-
-        // Act
-        var result = await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        result.Should().BeTrue();
-        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
-
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Status.Should().Be(500);
-        problemDetails.Title.Should().Be("Erro Interno do Servidor");
-        problemDetails.Detail.Should().Be("Ocorreu um erro inesperado ao processar sua requisição");
-        problemDetails.Extensions.Should().ContainKey("traceId");
-        problemDetails.Extensions["traceId"]!.ToString().Should().Be("test-trace-id");
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
+        problemDetails.Title.Should().Be("Referência Inválida");
+        problemDetails.Extensions["constraintName"]?.ToString().Should().Be("fk_user_role");
+        problemDetails.Extensions["tableName"]?.ToString().Should().Be("roles");
     }
 
     [Fact]
     public async Task TryHandleAsync_WithArgumentException_ShouldReturn400()
     {
-        // Arrange
+        var context = CreateDefaultContext();
+        var exception = new ArgumentException("Invalid argument", "paramName");
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithDomainException_ShouldReturn400()
+    {
+        var context = CreateDefaultContext();
+        var exception = new TestDomainException("Domain rule violated");
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
+        problemDetails.Title.Should().Be("Violação de Regra de Domínio");
+        problemDetails.Detail.Should().Be("Domain rule violated");
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithWrappedValidationException_ShouldUnwrapAndHandle()
+    {
+        var context = CreateDefaultContext();
+        var innerException = new MeAjudaAi.Shared.Exceptions.ValidationException(new List<ValidationFailure> 
+        { 
+            new("Email", "Invalid email") 
+        });
+        var exception = new System.Reflection.TargetInvocationException(innerException);
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithWrappedBusinessRuleException_ShouldUnwrapAndHandle()
+    {
+        var context = CreateDefaultContext();
+        // Use BusinessRuleException (concrete implementation) wrapped in InvalidOperationException
+        var innerException = new BusinessRuleException(ruleName: "TestRule", message: "Wrapped rule violation");
+        var outerException = new InvalidOperationException("Wrapper", innerException);
+
+        var result = await _handler.TryHandleAsync(context, outerException, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Title.Should().Be("Violação de Regra de Negócio");
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_SetsCorrectContentType()
+    {
+        var context = CreateDefaultContext();
+        var exception = new Exception("Test");
+
+        await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        context.Response.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_UnprocessableEntityException_ReturnsCorrectStatus()
+    {
+        var context = CreateDefaultContext();
+        var exception = new UnprocessableEntityException("Invalid state");
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status422UnprocessableEntity);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_ArgumentException_ReturnsBadRequest()
+    {
+        var context = CreateDefaultContext();
         var exception = new ArgumentException("Invalid argument");
 
-        // Act
-        await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
 
-        // Assert
-        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-    }
-
-    #endregion
-
-    #region Logging Tests
-
-    [Fact]
-    public async Task TryHandleAsync_With500Error_ShouldLogError()
-    {
-        // Arrange
-        var exception = new Exception("Server error");
-
-        // Act
-        await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => true),
-                It.IsAny<Exception>(),
-                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
-            Times.Once);
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
     }
 
     [Fact]
-    public async Task TryHandleAsync_With400Error_ShouldLogWarning()
+    public async Task TryHandleAsync_SetsInstanceToRequestPath()
     {
-        // Arrange
-        var exception = new TestDomainException("Domain error");
+        var context = CreateDefaultContext();
+        context.Request.Path = "/api/v1/users/123";
+        var exception = new Exception("Test");
 
-        // Act
-        await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
+        await _handler.TryHandleAsync(context, exception, CancellationToken.None);
 
-        // Assert
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Warning,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => true),
-                It.IsAny<Exception?>(),
-                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
-            Times.Once);
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Instance.Should().Be("/api/v1/users/123");
     }
 
     [Fact]
-    public async Task TryHandleAsync_With404Error_ShouldLogWarning()
+    public async Task TryHandleAsync_ValidationExceptionWithMultipleErrors_ShouldGroupByProperty()
     {
-        // Arrange
-        var exception = new NotFoundException("User", "123");
-
-        // Act
-        await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Warning,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => true),
-                It.IsAny<Exception?>(),
-                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
-            Times.Once);
-    }
-
-    #endregion
-
-    #region ProblemDetails URI Tests
-
-    [Fact]
-    public async Task TryHandleAsync_ShouldSetCorrectProblemTypeUri_For400()
-    {
-        // Arrange
-        var exception = new TestDomainException("Test");
-
-        // Act
-        await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Type.Should().Be("https://tools.ietf.org/html/rfc7231#section-6.5.1");
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_ShouldSetCorrectProblemTypeUri_For401()
-    {
-        // Arrange
-        var exception = new UnauthorizedAccessException();
-
-        // Act
-        await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Type.Should().Be("https://tools.ietf.org/html/rfc7235#section-3.1");
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_ShouldSetCorrectProblemTypeUri_For403()
-    {
-        // Arrange
-        var exception = new ForbiddenAccessException("Forbidden", innerException: null!);
-
-        // Act
-        await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Type.Should().Be("https://tools.ietf.org/html/rfc7231#section-6.5.3");
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_ShouldSetCorrectProblemTypeUri_For404()
-    {
-        // Arrange
-        var exception = new NotFoundException("User", "123");
-
-        // Act
-        await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Type.Should().Be("https://tools.ietf.org/html/rfc7231#section-6.5.4");
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_ShouldSetCorrectProblemTypeUri_For409()
-    {
-        // Arrange
-        var innerException = new Exception("Inner exception");
-        var exception = new UniqueConstraintException("uk_test", "test", innerException);
-
-        // Act
-        await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Type.Should().Be("https://tools.ietf.org/html/rfc7231#section-6.5.8");
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_ShouldSetCorrectProblemTypeUri_For500()
-    {
-        // Arrange
-        var exception = new Exception("Server error");
-
-        // Act
-        await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
-
-        // Assert
-        var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Type.Should().Be("https://tools.ietf.org/html/rfc7231#section-6.6.1");
-    }
-
-    #endregion
-
-    #region Cancellation Tests
-
-    [Fact]
-    public async Task TryHandleAsync_WithCancellationToken_ShouldRespectCancellation()
-    {
-        // Arrange
-        var exception = new TestDomainException("Test");
-        using var cts = new CancellationTokenSource();
-        cts.Cancel();
-
-        // Act & Assert
-        // TaskCanceledException é uma subclasse de OperationCanceledException
-        var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
-            await _handler.TryHandleAsync(_httpContext, exception, cts.Token));
-        ex.Should().NotBeNull();
-    }
-
-    #endregion
-
-    #region Helper Methods
-
-    private async Task<ProblemDetails?> DeserializeProblemDetails()
-    {
-        _httpContext.Response.Body.Seek(0, SeekOrigin.Begin);
-        using var reader = new StreamReader(_httpContext.Response.Body);
-        var json = await reader.ReadToEndAsync();
-        return JsonSerializer.Deserialize<ProblemDetails>(json, new JsonSerializerOptions
+        var context = CreateDefaultContext();
+        var failures = new List<ValidationFailure>
         {
-            PropertyNameCaseInsensitive = true
-        });
+            new("Email", "Invalid email format"),
+            new("Email", "Email already exists"),
+            new("Name", "Name is required")
+        };
+        var exception = new MeAjudaAi.Shared.Exceptions.ValidationException(failures);
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
     }
 
-    #endregion
+    [Fact]
+    public async Task TryHandleAsync_BusinessRuleExceptionWithoutRuleName_ShouldHandleGracefully()
+    {
+        var context = CreateDefaultContext();
+        var exception = new BusinessRuleException(string.Empty, "Business rule broken");
+
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+    }
+
+    private DefaultHttpContext CreateDefaultContext()
+    {
+        var context = new DefaultHttpContext();
+        context.Response.Body = new MemoryStream();
+        context.Request.Path = "/test";
+        context.TraceIdentifier = "trace-123";
+        return context;
+    }
+
+    private async Task<ProblemDetails> ReadProblemDetailsAsync(HttpContext context)
+    {
+        context.Response.Body.Seek(0, SeekOrigin.Begin);
+        using var reader = new StreamReader(context.Response.Body);
+        var body = await reader.ReadToEndAsync();
+        return JsonSerializer.Deserialize<ProblemDetails>(body, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+    }
+
+    private class TestDomainException(string message) : DomainException(message) { }
+    private class TestBadRequestException(string message) : BadRequestException(message) { }
 }

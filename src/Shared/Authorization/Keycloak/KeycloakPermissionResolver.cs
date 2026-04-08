@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
@@ -8,6 +9,7 @@ using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.ValueObjects;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -22,7 +24,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
 {
     private readonly HttpClient _httpClient;
     private readonly KeycloakConfiguration _config;
-    private readonly HybridCache _cache;
+    private readonly ICacheService _cache;
     private readonly ILogger<KeycloakPermissionResolver> _logger;
 
     public string ModuleName => ModuleNames.Users; // Keycloak resolver é usado principalmente pelo módulo Users
@@ -30,7 +32,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     public KeycloakPermissionResolver(
         HttpClient httpClient,
         IConfiguration configuration,
-        HybridCache cache,
+        ICacheService cache,
         ILogger<KeycloakPermissionResolver> logger)
     {
         ArgumentNullException.ThrowIfNull(configuration);
@@ -54,15 +56,22 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     }
 
     /// <summary>
-    /// Masks a user ID for logging purposes to avoid exposing PII.
+    /// Mascara um ID de usuário para fins de log, a fim de evitar a exposição de PII (Informações Pessoalmente Identificáveis).
     /// </summary>
     private static string MaskUserId(string userId) => PiiMaskingHelper.MaskUserId(userId);
+
+    /// <summary>
+    /// Opções de cache estáticas para o armazenamento de roles.
+    /// </summary>
+    private static readonly HybridCacheEntryOptions RoleCacheOptions = new()
+    {
+        Expiration = TimeSpan.FromMinutes(15),
+        LocalCacheExpiration = TimeSpan.FromMinutes(5)
+    };
 
     public async Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(UserId userId, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(userId);
-
-        // Converte UserId para string para compatibilidade com a implementação atual
         return await ResolvePermissionsAsync(userId.Value.ToString(), cancellationToken);
     }
 
@@ -73,22 +82,13 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
 
         try
         {
-            // Cache key para roles do usuário (hashed to prevent PII in cache infrastructure)
             var cacheKey = $"keycloak_user_roles_{HashForCacheKey(userId)}";
-            var cacheOptions = new HybridCacheEntryOptions
-            {
-                Expiration = TimeSpan.FromMinutes(15), // Cache roles por 15 minutos
-                LocalCacheExpiration = TimeSpan.FromMinutes(5)
-            };
-
-            // Busca roles do cache ou Keycloak
             var userRoles = await _cache.GetOrCreateAsync(
                 cacheKey,
                 async ValueTask<IReadOnlyList<string>> (ct) => await GetUserRolesFromKeycloakAsync(userId, ct),
-                cacheOptions,
+                options: RoleCacheOptions,
                 cancellationToken: cancellationToken);
 
-            // Mapeia roles para permissões
             var permissions = new HashSet<EPermission>();
             foreach (var role in userRoles)
             {
@@ -113,11 +113,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         }
     }
 
-    public bool CanResolve(EPermission permission)
-    {
-        // Este resolver pode processar qualquer permissão pois consulta diretamente o Keycloak
-        return true;
-    }
+    public bool CanResolve(EPermission permission) => true;
 
     /// <summary>
     /// Busca roles do usuário no Keycloak via Admin API.
@@ -165,19 +161,22 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     {
         var cacheKey = "keycloak_admin_token";
 
-        return await _cache.GetOrCreateAsync(
-            cacheKey,
-            async ValueTask<string> (ct) =>
-            {
-                var tokenResponse = await RequestAdminTokenAsync(ct);
-                return tokenResponse.AccessToken;
-            },
-            new HybridCacheEntryOptions
-            {
-                Expiration = TimeSpan.FromMinutes(4), // Conservador: token de 5min - margem de 1min
-                LocalCacheExpiration = TimeSpan.FromSeconds(120)
-            },
-            cancellationToken: cancellationToken);
+        var (cachedToken, isCached) = await _cache.GetAsync<TokenResponse>(cacheKey, cancellationToken);
+        if (isCached && cachedToken != null)
+        {
+            return cachedToken.AccessToken;
+        }
+
+        var tokenResponse = await RequestAdminTokenAsync(cancellationToken);
+        
+        var margin = TimeSpan.FromSeconds(60);
+        var expiration = tokenResponse.ExpiresIn > 60 
+            ? TimeSpan.FromSeconds(tokenResponse.ExpiresIn) - margin 
+            : TimeSpan.FromSeconds(Math.Max(30, tokenResponse.ExpiresIn / 2));
+        
+        await _cache.SetAsync(cacheKey, tokenResponse, expiration, cancellationToken: cancellationToken);
+
+        return tokenResponse.AccessToken;
     }
 
     private async Task<TokenResponse> RequestAdminTokenAsync(CancellationToken cancellationToken)
@@ -382,7 +381,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     }
 
     /// <summary>
-    /// Hashes a string value for use in cache keys to prevent PII exposure.
+    /// Gera o hash de uma string para uso em chaves de cache, prevenindo a exposição de PII.
     /// </summary>
     private static string HashForCacheKey(string input)
     {
@@ -395,6 +394,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
 /// <summary>
 /// Configuração para integração com Keycloak.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class KeycloakConfiguration
 {
     public string BaseUrl { get; set; } = string.Empty;
@@ -406,6 +406,7 @@ public sealed class KeycloakConfiguration
 /// <summary>
 /// Resposta do token do Keycloak.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal sealed class TokenResponse
 {
     [JsonPropertyName("access_token")]
@@ -421,6 +422,7 @@ internal sealed class TokenResponse
 /// <summary>
 /// Representação do usuário no Keycloak.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal sealed class KeycloakUser
 {
     [JsonPropertyName("id")]
@@ -439,6 +441,7 @@ internal sealed class KeycloakUser
 /// <summary>
 /// Representação do role no Keycloak.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal sealed class KeycloakRole
 {
     [JsonPropertyName("id")]

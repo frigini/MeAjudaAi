@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Events;
 
 namespace MeAjudaAi.Shared.Messaging.Messages.Users;
@@ -5,6 +6,7 @@ namespace MeAjudaAi.Shared.Messaging.Messages.Users;
 /// <summary>
 /// Publicado quando um usuário é excluído (soft delete)
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record UserDeletedIntegrationEvent
 (
     string Source,

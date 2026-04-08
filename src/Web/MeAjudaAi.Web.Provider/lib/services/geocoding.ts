@@ -29,7 +29,7 @@ export async function geocodeCity(query: string): Promise<GeocodingResult | null
                 return {
                     latitude: firstMatch.latitude,
                     longitude: firstMatch.longitude,
-                    displayName: firstMatch.displayName || query,
+                    displayName: (firstMatch.displayName !== undefined && firstMatch.displayName !== null) ? firstMatch.displayName : query,
                 };
             }
         }

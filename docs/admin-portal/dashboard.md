@@ -1,4 +1,9 @@
-# Admin Portal - Dashboard
+# [LEGACY / SUPERSEDED] Admin Portal - Dashboard (Blazor)
+
+> [!IMPORTANT]
+> Esta documentação refere-se ao Dashboard original implementado em MudBlazor e Fluxor.
+> O Admin Portal atual utiliza **React/Next.js**. 
+> Para detalhes dos componentes atuais, consulte [features.md](./features.md).
 
 ## 📊 Visão Geral
 

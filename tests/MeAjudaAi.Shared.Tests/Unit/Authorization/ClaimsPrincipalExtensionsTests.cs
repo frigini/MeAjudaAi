@@ -263,6 +263,169 @@ public class ClaimsPrincipalExtensionsTests
         // Assert
         Assert.Null(result);
     }
+
+    [Fact]
+    public void GetUserId_WithSubjectClaim_ShouldReturnUserId()
+    {
+        // Arrange
+        var expectedUserId = "user-123";
+        var claims = new[]
+        {
+            new Claim(AuthConstants.Claims.Subject, expectedUserId)
+        };
+        var identity = new ClaimsIdentity(claims, "Test");
+        var principal = new ClaimsPrincipal(identity);
+
+        // Act
+        var result = principal.GetUserId();
+
+        // Assert
+        Assert.Equal(expectedUserId, result);
+    }
+
+    [Fact]
+    public void GetUserId_WithoutSubjectClaim_ShouldReturnNull()
+    {
+        // Arrange
+        var principal = new ClaimsPrincipal(new ClaimsIdentity());
+
+        // Act
+        var result = principal.GetUserId();
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void GetEmail_WithEmailClaim_ShouldReturnEmail()
+    {
+        // Arrange
+        var expectedEmail = "user@example.com";
+        var claims = new[]
+        {
+            new Claim(AuthConstants.Claims.Email, expectedEmail)
+        };
+        var identity = new ClaimsIdentity(claims, "Test");
+        var principal = new ClaimsPrincipal(identity);
+
+        // Act
+        var result = principal.GetEmail();
+
+        // Assert
+        Assert.Equal(expectedEmail, result);
+    }
+
+    [Fact]
+    public void GetEmail_WithoutEmailClaim_ShouldReturnNull()
+    {
+        // Arrange
+        var principal = new ClaimsPrincipal(new ClaimsIdentity());
+
+        // Act
+        var result = principal.GetEmail();
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void HasPermission_WithMultipleIdentities_ShouldCheckAllIdentities()
+    {
+        // Arrange
+        var claims1 = new[] { new Claim(AuthConstants.Claims.Permission, EPermission.UsersRead.GetValue()) };
+        var claims2 = new[] { new Claim(AuthConstants.Claims.Permission, EPermission.UsersCreate.GetValue()) };
+        
+        var identity1 = new ClaimsIdentity(claims1, "Test1");
+        var identity2 = new ClaimsIdentity(claims2, "Test2");
+        
+        var principal = new ClaimsPrincipal(new[] { identity1, identity2 });
+
+        // Act
+        var hasRead = principal.HasPermission(EPermission.UsersRead);
+        var hasCreate = principal.HasPermission(EPermission.UsersCreate);
+        var hasAdmin = principal.HasPermission(EPermission.AdminSystem);
+
+        // Assert
+        Assert.True(hasRead);
+        Assert.True(hasCreate);
+        Assert.False(hasAdmin);
+    }
+
+    [Fact]
+    public void GetPermissions_WithDuplicatePermissions_ShouldReturnAllPermissions()
+    {
+        // Arrange
+        var claims = new[]
+        {
+            new Claim(AuthConstants.Claims.Permission, EPermission.UsersRead.GetValue()),
+            new Claim(AuthConstants.Claims.Permission, EPermission.UsersRead.GetValue()),
+            new Claim(AuthConstants.Claims.Permission, EPermission.UsersProfile.GetValue())
+        };
+        var identity = new ClaimsIdentity(claims, "Test");
+        var principal = new ClaimsPrincipal(identity);
+
+        // Act
+        var result = principal.GetPermissions().ToList();
+
+        // Assert - permissions can have duplicates since ClaimsPrincipal can have multiple identical claims
+        result.Should().HaveCount(3);
+    }
+
+    [Fact]
+    public void HasPermissions_WithEmptyPermissionList_ShouldReturnTrue()
+    {
+        // Arrange
+        var claims = new[]
+        {
+            new Claim(AuthConstants.Claims.Permission, EPermission.UsersRead.GetValue())
+        };
+        var identity = new ClaimsIdentity(claims, "Test");
+        var principal = new ClaimsPrincipal(identity);
+
+        // Act
+        var resultAll = principal.HasPermissions(Array.Empty<EPermission>(), requireAll: true);
+        var resultAny = principal.HasPermissions(Array.Empty<EPermission>(), requireAll: false);
+
+        // Assert
+        Assert.True(resultAll);
+        Assert.True(resultAny);
+    }
+
+    [Fact]
+    public void IsSystemAdmin_WithSystemAdminClaimFalse_ShouldReturnFalse()
+    {
+        // Arrange
+        var claims = new[]
+        {
+            new Claim(AuthConstants.Claims.IsSystemAdmin, "false")
+        };
+        var identity = new ClaimsIdentity(claims, "Test");
+        var principal = new ClaimsPrincipal(identity);
+
+        // Act
+        var result = principal.IsSystemAdmin();
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void IsSystemAdmin_WithEmptySystemAdminClaim_ShouldReturnFalse()
+    {
+        // Arrange
+        var claims = new[]
+        {
+            new Claim(AuthConstants.Claims.IsSystemAdmin, "")
+        };
+        var identity = new ClaimsIdentity(claims, "Test");
+        var principal = new ClaimsPrincipal(identity);
+
+        // Act
+        var result = principal.IsSystemAdmin();
+
+        // Assert
+        Assert.False(result);
+    }
 }
 
 

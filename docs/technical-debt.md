@@ -9,62 +9,19 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 **Sprint**: Sprint 6-7 (30 Dez 2025 - 16 Jan 2026)  
 **Status**: Itens de baixa a média prioridade
 
-### 🎨 Frontend - Warnings de Analyzers (BAIXA)
-
-**Severidade**: BAIXA (code quality)  
-**Status**: 🔄 EM SPRINT 8B.2 (Refactoring)
-
-**Descrição**: Build do Admin Portal e Contracts gera warnings de analyzers (SonarLint + MudBlazor).
-
-**Warnings MudBlazor (MeAjudaAi.Web.Admin)**:
-1. **S2094** (records vazios em Actions)
-2. **S2953** (App.razor Dispose)
-3. **MUD0002** (Casing de atributos HTML em MainLayout.razor)
-
-**Warnings Analisador de Segurança (MeAjudaAi.Contracts)**:
-4. **Hard-coded Credential False Positive**: `src/Contracts/Utilities/Constants/ValidationMessages.cs`
-   - **Problema**: Mensagens de erro contendo a palavra "Password" disparam o scanner.
-   - **Ação**: Adicionar `[SuppressMessage]` ou `.editorconfig` exclusion.
-
-**Impacto**: Nenhum - build continua 100% funcional.
-
----
-
 ### 📊 Frontend - Cobertura de Testes (MÉDIA)
 
 **Severidade**: MÉDIA (quality assurance)  
-**Sprint**: Sprint 7.16 (aumentar cobertura)
+**Status**: 🔄 EM SPRINT 8E (E2E Tests com Playwright)
 
-**Descrição**: Admin Portal tem 43 testes bUnit criados. Meta é maximizar quantidade de testes (não coverage percentual).
+**Descrição**: Admin Portal foi migrado para React. Testes de frontend agora focam em E2E com Playwright.
 
-**Decisão Técnica**: Coverage percentual NÃO é coletado para Blazor WASM devido a:
-- Muito código gerado automaticamente (`.g.cs`, `.razor.g.cs`)
-- Métricas não confiáveis para componentes compilados para WebAssembly
-- **Foco**: Quantidade e qualidade de testes, não percentual de linhas
+**Framework de Testes**: Playwright (para todos os apps React)
+- Customer Web App
+- Provider Web App
+- Admin Portal (React)
 
-**Testes Existentes** (43 testes):
-1. **ProvidersPageTests** (4 testes)
-2. **DashboardPageTests** (4 testes)
-3. **DarkModeToggleTests** (2 testes)
-4. **+ 33 outros testes** de Pages, Dialogs, Components
-
-**Gaps de Cobertura**:
-- ❌ **Authentication flows**: Login/Logout/Callbacks não testados
-- ❌ **Pagination**: GoToPageAction não validado em testes
-- ❌ **API error scenarios**: Apenas erro genérico testado
-- ❌ **MudBlazor interactions**: Clicks, inputs não validados
-- ❌ **Fluxor Effects**: Chamadas API não mockadas completamente
-
-**Ações Recomendadas** (Sprint 7.16):
-- [ ] Criar 20+ testes adicionais (meta: 60+ testes totais)
-- [ ] Testar fluxos de autenticação
-- [ ] Testar paginação
-- [ ] Testar interações MudBlazor
-- [ ] Aumentar coverage de error scenarios
-
-**Meta**: 60-80+ testes bUnit (quantidade), não coverage percentual
-
-**BDD Futuro**: Após Customer App, implementar SpecFlow + Playwright para testes end-to-end de fluxos completos (Frontend → Backend → APIs terceiras).
+**BDD**: Playwright para testes end-to-end de fluxos completos (Frontend → Backend → APIs terceiras).
 
 ---
 
@@ -152,8 +109,8 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 **Severidade**: BAIXA  
 **Sprint**: Backlog
 
-- [ ] Apply brand colors (blue, cream, orange) to entire Admin Portal
-- [ ] Update MudBlazor theme
+- [ ] Apply brand colors (blue, cream, orange) to entire Admin Portal (React)
+- [ ] Update React component library theme
 - [ ] Standardize component styling
 
 **Origem**: Sprint 7.19

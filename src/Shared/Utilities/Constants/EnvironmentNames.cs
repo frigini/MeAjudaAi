@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Utilities.Constants;
 
 /// <summary>
 /// Constantes para nomes de ambientes de execução para evitar strings hardcoded e typos
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class EnvironmentNames
 {
     /// <summary>

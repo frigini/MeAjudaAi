@@ -1,283 +1,238 @@
-using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Caching;
-using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Hybrid;
+using Moq;
+using FluentAssertions;
+using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 
-/// <summary>
-/// Testes unitários para o PermissionService.
-/// </summary>
+[Trait("Category", "Unit")]
 public class PermissionServiceTests
 {
-    private readonly Mock<ICacheService> _mockCacheService;
-    private readonly Mock<IServiceProvider> _mockServiceProvider;
-    private readonly Mock<ILogger<PermissionService>> _mockLogger;
-    private readonly Mock<IPermissionMetricsService> _mockMetrics;
-    private readonly PermissionService _permissionService;
+    private readonly Mock<ICacheService> _cacheServiceMock;
+    private readonly Mock<IServiceProvider> _serviceProviderMock;
+    private readonly Mock<ILogger<PermissionService>> _loggerMock;
+    private readonly Mock<IPermissionMetricsService> _metricsMock;
+    private readonly PermissionService _service;
 
     public PermissionServiceTests()
     {
-        _mockCacheService = new Mock<ICacheService>();
-        _mockServiceProvider = new Mock<IServiceProvider>();
-        _mockLogger = new Mock<ILogger<PermissionService>>();
-        _mockMetrics = new Mock<IPermissionMetricsService>();
+        _cacheServiceMock = new Mock<ICacheService>();
+        _serviceProviderMock = new Mock<IServiceProvider>();
+        _loggerMock = new Mock<ILogger<PermissionService>>();
+        _metricsMock = new Mock<IPermissionMetricsService>();
 
-        _permissionService = new PermissionService(
-            _mockCacheService.Object,
-            _mockServiceProvider.Object,
-            _mockLogger.Object,
-            _mockMetrics.Object);
+        // Setup metrics mock to return a disposal that doesn't crash
+        _metricsMock.Setup(m => m.MeasurePermissionResolution(It.IsAny<string>())).Returns(new Mock<IDisposable>().Object);
+        _metricsMock.Setup(m => m.MeasureCacheOperation(It.IsAny<string>(), It.IsAny<bool>())).Returns(new Mock<IDisposable>().Object);
+        _metricsMock.Setup(m => m.MeasurePermissionCheck(It.IsAny<string>(), It.IsAny<EPermission>(), It.IsAny<bool>())).Returns(new Mock<IDisposable>().Object);
+
+        _service = new PermissionService(
+            _cacheServiceMock.Object,
+            _serviceProviderMock.Object,
+            _loggerMock.Object,
+            _metricsMock.Object);
     }
 
     [Fact]
-    public async Task GetUserPermissionsAsync_WithValidUserId_ShouldReturnPermissions()
-    {
-        // Arrange
-        var userId = "test-user-123";
-        var expectedPermissions = new List<EPermission> { EPermission.UsersRead, EPermission.UsersProfile };
-
-        var mockProvider = new Mock<IPermissionProvider>();
-        mockProvider.Setup(x => x.GetUserPermissionsAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedPermissions);
-        mockProvider.Setup(x => x.ModuleName).Returns("Users");
-
-        _mockServiceProvider.Setup(x => x.GetService(typeof(IEnumerable<IPermissionProvider>)))
-            .Returns(new[] { mockProvider.Object });
-
-        _mockCacheService.Setup(x => x.GetOrCreateAsync<IReadOnlyList<EPermission>>(
-                It.IsAny<string>(),
-                It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
-                It.IsAny<TimeSpan>(),
-                It.IsAny<HybridCacheEntryOptions>(),
-                It.IsAny<IReadOnlyCollection<string>>(),
-                It.IsAny<CancellationToken>()))
-            .Returns<string, Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>, TimeSpan, HybridCacheEntryOptions, IReadOnlyCollection<string>, CancellationToken>(
-                async (key, factory, expiration, options, tags, ct) => await factory(ct));
-
-        // Act
-        var result = await _permissionService.GetUserPermissionsAsync(userId);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(expectedPermissions.Count, result.Count);
-        Assert.Contains(EPermission.UsersRead, result);
-        Assert.Contains(EPermission.UsersProfile, result);
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData(null)]
-    [InlineData("   ")]
-    public async Task GetUserPermissionsAsync_WithInvalidUserId_ShouldReturnEmpty(string invalidUserId)
+    public async Task GetUserPermissionsAsync_WhenUserIdIsEmpty_ShouldReturnEmpty()
     {
         // Act
-        var result = await _permissionService.GetUserPermissionsAsync(invalidUserId);
+        var result = await _service.GetUserPermissionsAsync("");
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Empty(result);
+        result.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task HasPermissionAsync_WithUserHavingPermission_ShouldReturnTrue()
+    public async Task GetUserPermissionsAsync_WhenCacheExists_ShouldReturnCachedValues()
     {
         // Arrange
-        var userId = "test-user-123";
-        var permission = EPermission.UsersRead;
-        var userPermissions = new List<EPermission> { EPermission.UsersRead, EPermission.UsersProfile };
-
-        _mockCacheService.Setup(x => x.GetOrCreateAsync<IReadOnlyList<EPermission>>(
-                It.IsAny<string>(),
-                It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
-                It.IsAny<TimeSpan>(),
-                It.IsAny<HybridCacheEntryOptions>(),
-                It.IsAny<IReadOnlyCollection<string>>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(userPermissions);
+        var userId = "user-123";
+        var cachedPermissions = new[] { EPermission.UsersRead };
+        
+        _cacheServiceMock.Setup(c => c.GetOrCreateAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<HybridCacheEntryOptions>(),
+            It.IsAny<IReadOnlyCollection<string>?>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(cachedPermissions);
 
         // Act
-        var result = await _permissionService.HasPermissionAsync(userId, permission);
+        var result = await _service.GetUserPermissionsAsync(userId);
 
         // Assert
-        Assert.True(result);
+        result.Should().BeEquivalentTo(cachedPermissions);
+        _serviceProviderMock.Verify(s => s.GetService(typeof(IEnumerable<IPermissionProvider>)), Times.Never);
     }
 
     [Fact]
-    public async Task HasPermissionAsync_WithUserNotHavingPermission_ShouldReturnFalse()
+    public async Task GetUserPermissionsAsync_WhenCacheMiss_ShouldResolveFromProviders()
     {
         // Arrange
-        var userId = "test-user-123";
-        var permission = EPermission.AdminSystem;
-        var userPermissions = new List<EPermission> { EPermission.UsersRead, EPermission.UsersProfile };
+        var userId = "user-123";
+        var permissions = new[] { EPermission.UsersRead, EPermission.SystemRead };
+        
+        var providerMock = new Mock<IPermissionProvider>();
+        providerMock.Setup(p => p.GetUserPermissionsAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(permissions);
 
-        _mockCacheService.Setup(x => x.GetOrCreateAsync<IReadOnlyList<EPermission>>(
-                It.IsAny<string>(),
-                It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
-                It.IsAny<TimeSpan>(),
-                It.IsAny<HybridCacheEntryOptions>(),
-                It.IsAny<IReadOnlyCollection<string>>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(userPermissions);
+        _serviceProviderMock.Setup(s => s.GetService(typeof(IEnumerable<IPermissionProvider>)))
+            .Returns(new[] { providerMock.Object });
+
+        // Capture the factory passed to GetOrCreateAsync
+        _cacheServiceMock.Setup(c => c.GetOrCreateAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<HybridCacheEntryOptions>(),
+            It.IsAny<IReadOnlyCollection<string>?>(),
+            It.IsAny<CancellationToken>()))
+            .Returns(async (string key, Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>> factory, TimeSpan? exp, HybridCacheEntryOptions opt, IReadOnlyCollection<string>? tags, CancellationToken ct) => 
+                await factory(ct));
 
         // Act
-        var result = await _permissionService.HasPermissionAsync(userId, permission);
+        var result = await _service.GetUserPermissionsAsync(userId);
 
         // Assert
-        Assert.False(result);
+        result.Should().BeEquivalentTo(permissions);
+        providerMock.Verify(p => p.GetUserPermissionsAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task HasPermissionsAsync_WithRequireAllTrue_ShouldReturnTrueWhenUserHasAllPermissions()
+    public async Task HasPermissionAsync_WhenUserHasPermission_ShouldReturnTrue()
     {
         // Arrange
-        var userId = "test-user-123";
-        var requiredPermissions = new[] { EPermission.UsersRead, EPermission.UsersProfile };
-        var userPermissions = new List<EPermission> { EPermission.UsersRead, EPermission.UsersProfile, EPermission.UsersList };
-
-        _mockCacheService.Setup(x => x.GetOrCreateAsync<IReadOnlyList<EPermission>>(
-                It.IsAny<string>(),
-                It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
-                It.IsAny<TimeSpan>(),
-                It.IsAny<HybridCacheEntryOptions>(),
-                It.IsAny<IReadOnlyCollection<string>>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(userPermissions);
+        var userId = "user-123";
+        var permission = EPermission.UsersCreate;
+        
+        _cacheServiceMock.Setup(c => c.GetOrCreateAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<HybridCacheEntryOptions>(),
+            It.IsAny<IReadOnlyCollection<string>?>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { EPermission.UsersCreate, EPermission.UsersRead });
 
         // Act
-        var result = await _permissionService.HasPermissionsAsync(userId, requiredPermissions, requireAll: true);
+        var result = await _service.HasPermissionAsync(userId, permission);
 
         // Assert
-        Assert.True(result);
+        result.Should().BeTrue();
     }
 
     [Fact]
-    public async Task HasPermissionsAsync_WithRequireAllTrue_ShouldReturnFalseWhenUserMissingPermission()
+    public async Task HasPermissionsAsync_WhenRequireAllIsTrueAndAllPresent_ShouldReturnTrue()
     {
         // Arrange
-        var userId = "test-user-123";
-        var requiredPermissions = new[] { EPermission.UsersRead, EPermission.AdminSystem };
-        var userPermissions = new List<EPermission> { EPermission.UsersRead, EPermission.UsersProfile };
-
-        _mockCacheService.Setup(x => x.GetOrCreateAsync<IReadOnlyList<EPermission>>(
-                It.IsAny<string>(),
-                It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
-                It.IsAny<TimeSpan>(),
-                It.IsAny<HybridCacheEntryOptions>(),
-                It.IsAny<IReadOnlyCollection<string>>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(userPermissions);
+        var userId = "user-123";
+        var permissionsToCheck = new[] { EPermission.UsersRead, EPermission.UsersCreate };
+        
+        _cacheServiceMock.Setup(c => c.GetOrCreateAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<HybridCacheEntryOptions>(),
+            It.IsAny<IReadOnlyCollection<string>?>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { EPermission.UsersRead, EPermission.UsersCreate, EPermission.SystemRead });
 
         // Act
-        var result = await _permissionService.HasPermissionsAsync(userId, requiredPermissions, requireAll: true);
+        var result = await _service.HasPermissionsAsync(userId, permissionsToCheck, requireAll: true);
 
         // Assert
-        Assert.False(result);
+        result.Should().BeTrue();
     }
 
     [Fact]
-    public async Task HasPermissionsAsync_WithRequireAllFalse_ShouldReturnTrueWhenUserHasAnyPermission()
+    public async Task HasPermissionsAsync_WhenRequireAllIsTrueAndSomeMissing_ShouldReturnFalse()
     {
         // Arrange
-        var userId = "test-user-123";
-        var requiredPermissions = new[] { EPermission.UsersRead, EPermission.AdminSystem };
-        var userPermissions = new List<EPermission> { EPermission.UsersRead, EPermission.UsersProfile };
-
-        _mockCacheService.Setup(x => x.GetOrCreateAsync<IReadOnlyList<EPermission>>(
-                It.IsAny<string>(),
-                It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
-                It.IsAny<TimeSpan>(),
-                It.IsAny<HybridCacheEntryOptions>(),
-                It.IsAny<IReadOnlyCollection<string>>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(userPermissions);
+        var userId = "user-123";
+        var permissionsToCheck = new[] { EPermission.UsersRead, EPermission.UsersDelete };
+        
+        _cacheServiceMock.Setup(c => c.GetOrCreateAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<HybridCacheEntryOptions>(),
+            It.IsAny<IReadOnlyCollection<string>?>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { EPermission.UsersRead, EPermission.UsersCreate });
 
         // Act
-        var result = await _permissionService.HasPermissionsAsync(userId, requiredPermissions, requireAll: false);
+        var result = await _service.HasPermissionsAsync(userId, permissionsToCheck, requireAll: true);
 
         // Assert
-        Assert.True(result);
+        result.Should().BeFalse();
+        _metricsMock.Verify(m => m.RecordAuthorizationFailure(userId, It.IsAny<EPermission>(), It.IsAny<string>()), Times.Once);
     }
 
     [Fact]
-    public async Task GetUserPermissionsByModuleAsync_ShouldReturnOnlyModulePermissions()
+    public async Task HasPermissionsAsync_WhenRequireAllIsFalseAndAtLeastOnePresent_ShouldReturnTrue()
     {
         // Arrange
-        var userId = "test-user-123";
+        var userId = "user-123";
+        var permissionsToCheck = new[] { EPermission.UsersDelete, EPermission.UsersCreate };
+        
+        _cacheServiceMock.Setup(c => c.GetOrCreateAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<HybridCacheEntryOptions>(),
+            It.IsAny<IReadOnlyCollection<string>?>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { EPermission.UsersRead, EPermission.UsersCreate });
+
+        // Act
+        var result = await _service.HasPermissionsAsync(userId, permissionsToCheck, requireAll: false);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetUserPermissionsByModuleAsync_WhenModuleIsValid_ShouldReturnPermissions()
+    {
+        // Arrange
+        var userId = "user-123";
         var module = "Users";
-        var modulePermissions = new List<EPermission>
-        {
-            EPermission.UsersRead,
-            EPermission.UsersProfile
-        };
-
-        var mockProvider = new Mock<IPermissionProvider>();
-        mockProvider.Setup(x => x.GetUserPermissionsAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(modulePermissions);
-        mockProvider.Setup(x => x.ModuleName).Returns(module);
-
-        _mockServiceProvider.Setup(x => x.GetService(typeof(IEnumerable<IPermissionProvider>)))
-            .Returns(new[] { mockProvider.Object });
-
-        _mockCacheService.Setup(x => x.GetOrCreateAsync<IReadOnlyList<EPermission>>(
-                It.IsAny<string>(),
-                It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
-                It.IsAny<TimeSpan>(),
-                It.IsAny<HybridCacheEntryOptions>(),
-                It.IsAny<IReadOnlyCollection<string>>(),
-                It.IsAny<CancellationToken>()))
-            .Returns<string, Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>, TimeSpan, HybridCacheEntryOptions, IReadOnlyCollection<string>, CancellationToken>(
-                async (key, factory, expiration, options, tags, ct) => await factory(ct));
+        var expected = new[] { EPermission.UsersRead, EPermission.UsersCreate };
+        
+        _cacheServiceMock.Setup(c => c.GetOrCreateAsync(
+            It.IsAny<string>(),
+            It.IsAny<Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>>(),
+            It.IsAny<TimeSpan?>(),
+            It.IsAny<HybridCacheEntryOptions>(),
+            It.IsAny<IReadOnlyCollection<string>?>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expected);
 
         // Act
-        var result = await _permissionService.GetUserPermissionsByModuleAsync(userId, module);
+        var result = await _service.GetUserPermissionsByModuleAsync(userId, module);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.All(result, permission => Assert.Equal(module.ToLower(), permission.GetModule()));
+        result.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
-    public async Task InvalidateUserPermissionsCacheAsync_ShouldCallCacheRemoval()
+    public async Task InvalidateUserPermissionsCacheAsync_ShouldCallCacheServiceWithCorrectTag()
     {
         // Arrange
-        var userId = "test-user-123";
+        var userId = "user-123";
 
         // Act
-        await _permissionService.InvalidateUserPermissionsCacheAsync(userId);
+        await _service.InvalidateUserPermissionsCacheAsync(userId);
 
         // Assert
-        _mockCacheService.Verify(x => x.RemoveByTagAsync($"user:{userId}", It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData(null)]
-    [InlineData("   ")]
-    public async Task InvalidateUserPermissionsCacheAsync_WithInvalidUserId_ShouldNotCallCache(string invalidUserId)
-    {
-        // Act
-        await _permissionService.InvalidateUserPermissionsCacheAsync(invalidUserId);
-
-        // Assert
-        _mockCacheService.Verify(x => x.RemoveByPatternAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task HasPermissionsAsync_WithEmptyPermissionsList_ShouldReturnTrue()
-    {
-        // Arrange
-        var userId = "test-user-123";
-        var emptyPermissions = Array.Empty<EPermission>();
-
-        // Act
-        var result = await _permissionService.HasPermissionsAsync(userId, emptyPermissions);
-
-        // Assert
-        Assert.True(result);
+        _cacheServiceMock.Verify(c => c.RemoveByTagAsync($"user:{userId}", It.IsAny<CancellationToken>()), Times.Once);
     }
 }

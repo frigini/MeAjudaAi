@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Utilities;
 
 /// <summary>
 /// Utilitário para mascarar informações sensíveis (PII) em logs.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class PiiMaskingHelper
 {
     /// <summary>

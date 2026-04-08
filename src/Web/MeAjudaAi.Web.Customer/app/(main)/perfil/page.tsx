@@ -1,45 +1,52 @@
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+"use client";
+
+import { useSession } from "next-auth/react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { authenticatedFetch } from "@/lib/api/fetch-client";
 import { MeAjudaAiModulesUsersApplicationDtosUserDto } from "@/lib/api/generated/types.gen";
 import { unwrapResponse } from "@/lib/api/response-utils";
 import Link from "next/link";
-import { User, Mail, Phone, MapPin, Pencil } from "lucide-react";
+import { User, Mail, Phone, MapPin, Pencil, Loader2 } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+export default function ProfilePage() {
+    const { data: session, status } = useSession();
 
-export default async function ProfilePage() {
-    const session = await auth();
+    const { data: user, isLoading, error } = useQuery({
+        queryKey: ["user-profile", session?.user?.id],
+        queryFn: async () => {
+            if (!session?.user?.id || !session?.accessToken) return null;
 
-    if (!session?.user?.id || !session?.accessToken || session.error) {
-        redirect("/auth/signin");
-    }
+            const data = await authenticatedFetch<MeAjudaAiModulesUsersApplicationDtosUserDto>(`/api/v1/users/${session.user.id}`, {
+                token: session.accessToken
+            });
 
-    // Fetch user details
-    let user = null;
+            return unwrapResponse<MeAjudaAiModulesUsersApplicationDtosUserDto>(data);
+        },
+        enabled: !!session?.user?.id && !!session?.accessToken,
+    });
 
-    try {
-        const token = session.accessToken;
-
-        const data = await authenticatedFetch<MeAjudaAiModulesUsersApplicationDtosUserDto>(`/api/v1/users/${session.user.id}`, {
-            token: token
-        });
-
-        user = unwrapResponse<MeAjudaAiModulesUsersApplicationDtosUserDto>(data);
-    } catch (e) {
-        console.error("Failed to fetch user profile", e);
-    }
-
-    if (!user) {
+    if (status === "loading" || (status === "authenticated" && isLoading)) {
         return (
-            <div className="container mx-auto py-10 text-center">
-                <h1 className="text-2xl font-bold text-destructive">Erro ao carregar perfil</h1>
-                <p className="mt-2 text-muted-foreground">Não foi possível carregar os dados do seu perfil no momento.</p>
+            <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                <p className="text-muted-foreground">Carregando seu perfil...</p>
             </div>
         );
     }
+
+    if (error || (status === "authenticated" && !user && !isLoading)) {
+        return (
+            <div className="container mx-auto py-20 text-center">
+                <h1 className="text-2xl font-bold text-destructive">Erro ao carregar perfil</h1>
+                <p className="mt-2 text-muted-foreground">Não foi possível carregar os dados do seu perfil no momento.</p>
+                <Button onClick={() => window.location.reload()} className="mt-4">Tentar Novamente</Button>
+            </div>
+        );
+    }
+
+    if (!user) return null;
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-4xl">

@@ -1,9 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Utilities.Constants;
 
 /// <summary>
 /// Constantes centralizadas para roles do Keycloak.
 /// Evita duplicação e garante consistência entre código e configuração do Keycloak.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class RoleConstants
 {
     // Roles de sistema/admin

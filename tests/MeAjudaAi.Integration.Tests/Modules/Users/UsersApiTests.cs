@@ -120,4 +120,99 @@ public class UsersApiTests : BaseApiTest
         response.StatusCode.Should().Be(HttpStatusCode.NotFound,
             "Invalid GUID format should result in route not matching, returning 404");
     }
+
+    #region Public Endpoints
+
+    [Fact]
+    public async Task RegisterCustomer_WithValidData_ShouldReturnCreated()
+    {
+        // Arrange
+        var registerRequest = new
+        {
+            Name = "New Customer",
+            Email = $"customer_{Guid.NewGuid():N}@example.com",
+            Password = "SecurePassword123!",
+            PhoneNumber = "+5511999999999",
+            TermsAccepted = true,
+            AcceptedPrivacyPolicy = true
+        };
+
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/v1/users/register", registerRequest);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var content = await ReadJsonAsync<JsonElement>(response.Content);
+        GetResponseData(content).GetProperty("email").GetString().Should().Be(registerRequest.Email);
+    }
+
+    [Fact]
+    public async Task GetAuthProviders_ShouldReturnStringArray()
+    {
+        // Act
+        var response = await Client.GetAsync("/api/v1/users/auth/providers");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var providers = await response.Content.ReadFromJsonAsync<string[]>();
+        providers.Should().NotBeNull();
+        providers.Should().Contain("Google"); // Keycloak is disabled in test environment
+    }
+
+    #endregion
+
+    #region User Retrieval Endpoints
+
+    [Fact]
+    public async Task GetUserById_WithValidId_ShouldReturnUser()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var email = $"getbyid_{Guid.NewGuid():N}@example.com";
+        var createResponse = await Client.PostAsJsonAsync("/api/v1/users", new
+        {
+            username = $"user_{Guid.NewGuid():N}"[..20],
+            email = email,
+            firstName = "Get",
+            lastName = "Byid",
+            password = "Password123",
+            keycloakId = Guid.NewGuid().ToString()
+        });
+        var userId = GetResponseData(await ReadJsonAsync<JsonElement>(createResponse.Content)).GetProperty("id").GetString();
+
+        // Act
+        var response = await Client.GetAsync($"/api/v1/users/{userId}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var data = GetResponseData(await ReadJsonAsync<JsonElement>(response.Content));
+        data.GetProperty("email").GetString().Should().Be(email);
+    }
+
+    [Fact]
+    public async Task GetUserByEmail_WithValidEmail_ShouldReturnUser()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var email = $"getbyemail_{Guid.NewGuid():N}@example.com";
+        await Client.PostAsJsonAsync("/api/v1/users", new
+        {
+            username = $"user_{Guid.NewGuid():N}"[..20],
+            email = email,
+            firstName = "Get",
+            lastName = "ByEmail",
+            password = "Password123",
+            keycloakId = Guid.NewGuid().ToString()
+        });
+
+        // Act
+        var response = await Client.GetAsync($"/api/v1/users/by-email/{email}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var data = GetResponseData(await ReadJsonAsync<JsonElement>(response.Content));
+        data.GetProperty("email").GetString().Should().Be(email);
+    }
+
+    #endregion
 }

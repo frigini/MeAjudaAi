@@ -12,10 +12,6 @@ import {
 } from "@/lib/api/generated";
 import type {
   ApiCategoriesGetData,
-  ApiCategoriesGet2Data,
-  ApiCategoriesPostData,
-  ApiCategoriesPutData,
-  ApiCategoriesDeleteData,
 } from "@/lib/api/generated";
 import type { ServiceCategoryDto } from "@/lib/types";
 
@@ -41,16 +37,24 @@ export const categoryKeys = {
   detail: (id: string) => [...categoryKeys.details(), id] as const,
 };
 
-function isDataPayload(obj: unknown): obj is { data?: ServiceCategoryDto[] } {
+function isDataPayload(obj: unknown): obj is { data?: unknown } {
   return obj !== null && typeof obj === "object" && "data" in obj;
 }
 
-function normalizeCategoriesResponse(data: unknown): ServiceCategoryDto[] {
-  if (!data) return [];
-  if (Array.isArray(data)) return data as ServiceCategoryDto[];
-  if (isDataPayload(data)) {
-    return data.data ?? [];
+function isServiceCategoryDto(obj: unknown): obj is ServiceCategoryDto {
+  return obj !== null && typeof obj === 'object' && 'id' in obj && 'name' in obj;
+}
+
+function normalizeCategoriesResponse(response: unknown): ServiceCategoryDto[] {
+  if (!response) return [];
+  
+  if (isDataPayload(response)) {
+    const inner = response.data;
+    if (Array.isArray(inner)) return inner as ServiceCategoryDto[];
+    if (isDataPayload(inner) && Array.isArray(inner.data)) return inner.data as ServiceCategoryDto[];
   }
+  
+  if (Array.isArray(response)) return response as ServiceCategoryDto[];
   return [];
 }
 
@@ -58,7 +62,7 @@ export function useCategories() {
   return useQuery({
     queryKey: categoryKeys.lists(),
     queryFn: () => apiCategoriesGet(),
-    select: (data) => normalizeCategoriesResponse(data),
+    select: (res) => normalizeCategoriesResponse(res),
   });
 }
 
@@ -66,12 +70,15 @@ export function useCategoryById(id: string) {
   return useQuery({
     queryKey: categoryKeys.detail(id),
     queryFn: () => apiCategoriesGet2({ path: { id } }),
-    select: (data) => {
-      if (!data) return undefined;
-      if (data !== null && typeof data === "object" && "data" in data) {
-        return (data as { data?: ServiceCategoryDto }).data;
+    select: (res) => {
+      if (!res) return undefined;
+      if (isDataPayload(res)) {
+        const inner = res.data;
+        if (isDataPayload(inner) && isServiceCategoryDto(inner.data)) return inner.data;
+        if (isServiceCategoryDto(inner)) return inner;
       }
-      return data as ServiceCategoryDto;
+      if (isServiceCategoryDto(res)) return res;
+      return undefined;
     },
     enabled: !!id,
   });

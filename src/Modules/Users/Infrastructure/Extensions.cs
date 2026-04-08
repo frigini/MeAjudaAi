@@ -26,7 +26,7 @@ public static class Extensions
     /// <returns>A coleção de serviços configurada para encadeamento fluente.</returns>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddPersistence(configuration);
+        services.AddPersistence();
         services.AddKeycloak(configuration);
         services.AddDomainServices(configuration);
         services.AddEventHandlers();
@@ -55,7 +55,7 @@ public static class Extensions
         return !keycloakEnabled || !hasValidKeycloakConfig;
     }
 
-    private static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddPersistence(this IServiceCollection services)
     {
         services.AddDbContext<UsersDbContext>((serviceProvider, options) =>
         {
