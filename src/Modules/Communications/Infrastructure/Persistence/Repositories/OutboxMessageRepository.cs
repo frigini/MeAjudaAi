@@ -17,12 +17,36 @@ internal sealed class OutboxMessageRepository(CommunicationsDbContext context) :
         DateTime utcNow,
         CancellationToken cancellationToken = default)
     {
-        return await context.OutboxMessages
-            .Where(x => x.Status == EOutboxMessageStatus.Pending && (x.ScheduledAt == null || x.ScheduledAt <= utcNow))
-            .OrderByDescending(x => x.Priority)
-            .ThenBy(x => x.CreatedAt)
-            .Take(batchSize)
-            .ToListAsync(cancellationToken);
+        // Usa transação para garantir atomicidade no claim (marcação como Processing)
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+        
+        try
+        {
+            var messages = await context.OutboxMessages
+                .Where(x => x.Status == EOutboxMessageStatus.Pending && (x.ScheduledAt == null || x.ScheduledAt <= utcNow))
+                .OrderByDescending(x => x.Priority)
+                .ThenBy(x => x.CreatedAt)
+                .Take(batchSize)
+                .ToListAsync(cancellationToken);
+
+            if (messages.Count != 0)
+            {
+                foreach (var message in messages)
+                {
+                    message.MarkAsProcessing();
+                }
+
+                await context.SaveChangesAsync(cancellationToken);
+            }
+
+            await transaction.CommitAsync(cancellationToken);
+            return messages;
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 
     public async Task<OutboxMessage?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)

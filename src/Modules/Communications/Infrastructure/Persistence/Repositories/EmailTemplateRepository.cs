@@ -34,4 +34,12 @@ internal sealed class EmailTemplateRepository(CommunicationsDbContext context) :
             .ThenByDescending(x => x.Version)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<EmailTemplate>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return await context.EmailTemplates
+            .OrderBy(x => x.TemplateKey)
+            .ThenBy(x => x.Language)
+            .ToListAsync(cancellationToken);
+    }
 }

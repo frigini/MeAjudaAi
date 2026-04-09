@@ -32,11 +32,23 @@ public sealed class CommunicationsDbContext : BaseDbContext
 
     protected override Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(new List<IDomainEvent>());
+        var domainEvents = ChangeTracker.Entries<IHasDomainEvents>()
+            .Select(x => x.Entity)
+            .SelectMany(x => x.DomainEvents)
+            .ToList();
+
+        return Task.FromResult(domainEvents);
     }
 
     protected override void ClearDomainEvents()
     {
-        // No domain events yet
+        var entities = ChangeTracker.Entries<IHasDomainEvents>()
+            .Select(x => x.Entity)
+            .ToList();
+
+        foreach (var entity in entities)
+        {
+            entity.ClearDomainEvents();
+        }
     }
 }

@@ -886,7 +886,7 @@ src/
 
 **Interface ICommunicationsModuleApi (Atualizada)**:
 ```csharp
-public enum CommunicationPriority { High, Normal, Low }
+public enum CommunicationPriority { Low = 0, Normal = 1, High = 2 }
 
 public interface ICommunicationsModuleApi : IModuleApi
 {
@@ -904,8 +904,8 @@ public interface ICommunicationsModuleApi : IModuleApi
     // Push
     Task<Result<Guid>> SendPushAsync(PushMessageDto push, CancellationToken ct = default);
     
-    // Logs (Idempotency check via CorrelationId)
-    Task<Result<PagedList<CommunicationLogDto>>> GetLogsAsync(
+    // Logs (Verificação de idempotência via Identificador de Correlação)
+    Task<Result<PagedResult<CommunicationLogDto>>> GetLogsAsync(
         CommunicationLogQuery query, 
         CancellationToken ct = default);
 }
@@ -920,9 +920,10 @@ public interface ICommunicationsModuleApi : IModuleApi
 public class OutboxMessage
 {
     public Guid Id { get; }
-    public string Type { get; }          // "Email", "Sms", "Push"
-    public string Content { get; }       // JSON serializado
-    public string Status { get; }        // "Pending", "Sent", "Failed"
+    public string? CorrelationId { get; } // Idempotência
+    public ECommunicationChannel Channel { get; }
+    public string Payload { get; }       // JSON serializado
+    public EOutboxMessageStatus Status { get; } // Pending, Processing, Sent, Failed
     public int RetryCount { get; }
     public DateTime CreatedAt { get; }
     public DateTime? ScheduledAt { get; } // Agendamento futuro
@@ -934,10 +935,12 @@ public class OutboxMessage
 public class EmailTemplate
 {
     public Guid Id { get; }
-    public string Key { get; }            // "welcome", "verification-approved"
+    public string TemplateKey { get; }    // "welcome", "verification-approved"
+    public string? OverrideKey { get; }   // Contexto opcional
     public string Subject { get; }
-    public string BodyHtml { get; }
-    public string BodyText { get; }
+    public string HtmlBody { get; }
+    public string TextBody { get; }
+    public string Language { get; }       // pt-br, en-us
     public bool IsSystemTemplate { get; } // Proteção contra deleção
     public DateTime CreatedAt { get; }
 }
@@ -946,13 +949,12 @@ public class EmailTemplate
 public class CommunicationLog
 {
     public Guid Id { get; }
-    public Guid? CorrelationId { get; }   // Idempotência (EventId original)
-    public Guid? UserId { get; }
-    public Guid? ProviderId { get; }
-    public string Channel { get; }        // "Email", "Sms", "Push"
-    public string Type { get; }           // "welcome", "verification-approved"
-    public string Status { get; }
-    public DateTime SentAt { get; }
+    public string CorrelationId { get; }  // Idempotência (identificador único)
+    public ECommunicationChannel Channel { get; }
+    public string Recipient { get; }
+    public string? TemplateKey { get; }
+    public bool IsSuccess { get; }
+    public DateTime CreatedAt { get; }
     public string? ErrorMessage { get; }
 }
 ```

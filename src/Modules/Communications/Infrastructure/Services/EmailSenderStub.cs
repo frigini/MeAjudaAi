@@ -11,7 +11,7 @@ internal sealed class EmailSenderStub(ILogger<EmailSenderStub> logger) : IEmailS
     public async Task<bool> SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
     {
         await Task.Delay(100, cancellationToken);
-        logger.LogInformation("[STUB EMAIL SENDER] To: {To} | Subject: {Subject}", message.To, message.Subject);
+        logger.LogInformation("[STUB EMAIL SENDER] Email sent successfully (recipient and subject masked).");
         return true;
     }
 }

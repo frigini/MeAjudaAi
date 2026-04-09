@@ -17,6 +17,11 @@ public sealed class OutboxMessage : BaseEntity
     private OutboxMessage() { }
 
     /// <summary>
+    /// Identificador único opcional para evitar duplicidade (Idempotência).
+    /// </summary>
+    public string? CorrelationId { get; private set; }
+
+    /// <summary>
     /// Canal de comunicação: Email, Sms ou Push.
     /// </summary>
     public ECommunicationChannel Channel { get; private set; }
@@ -69,7 +74,8 @@ public sealed class OutboxMessage : BaseEntity
         string payload,
         ECommunicationPriority priority = ECommunicationPriority.Normal,
         DateTime? scheduledAt = null,
-        int maxRetries = 3)
+        int maxRetries = 3,
+        string? correlationId = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(payload);
         if (maxRetries < 1)
@@ -83,7 +89,8 @@ public sealed class OutboxMessage : BaseEntity
             Priority = priority,
             RetryCount = 0,
             MaxRetries = maxRetries,
-            ScheduledAt = scheduledAt
+            ScheduledAt = scheduledAt,
+            CorrelationId = correlationId
         };
     }
 
@@ -95,10 +102,25 @@ public sealed class OutboxMessage : BaseEntity
         && (ScheduledAt == null || ScheduledAt <= utcNow);
 
     /// <summary>
+    /// Marca a mensagem como em processamento para evitar que outros workers a capturem.
+    /// </summary>
+    public void MarkAsProcessing()
+    {
+        if (Status != EOutboxMessageStatus.Pending)
+            return;
+
+        Status = EOutboxMessageStatus.Processing;
+        MarkAsUpdated();
+    }
+
+    /// <summary>
     /// Registra envio bem-sucedido.
     /// </summary>
     public void MarkAsSent(DateTime utcNow)
     {
+        if (Status is EOutboxMessageStatus.Sent or EOutboxMessageStatus.Failed)
+            return;
+
         Status = EOutboxMessageStatus.Sent;
         SentAt = utcNow;
         ErrorMessage = null;
@@ -110,6 +132,9 @@ public sealed class OutboxMessage : BaseEntity
     /// </summary>
     public void MarkAsFailed(string errorMessage)
     {
+        if (Status is EOutboxMessageStatus.Sent or EOutboxMessageStatus.Failed)
+            return;
+
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
 
         RetryCount++;

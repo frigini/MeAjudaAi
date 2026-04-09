@@ -43,8 +43,18 @@ internal sealed class CommunicationLogRepository(CommunicationsDbContext context
         if (!string.IsNullOrWhiteSpace(correlationId))
             query = query.Where(x => x.CorrelationId.Contains(correlationId));
 
-        if (!string.IsNullOrWhiteSpace(channel) && Enum.TryParse<ECommunicationChannel>(channel, true, out var ch))
-            query = query.Where(x => x.Channel == ch);
+        if (!string.IsNullOrWhiteSpace(channel))
+        {
+            if (Enum.TryParse<ECommunicationChannel>(channel, true, out var ch))
+            {
+                query = query.Where(x => x.Channel == ch);
+            }
+            else
+            {
+                // Se o canal informado é inválido, forçamos retorno vazio
+                query = query.Where(x => false);
+            }
+        }
 
         if (!string.IsNullOrWhiteSpace(recipient))
             query = query.Where(x => x.Recipient.Contains(recipient));

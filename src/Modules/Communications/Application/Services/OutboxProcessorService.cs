@@ -63,11 +63,12 @@ internal sealed class OutboxProcessorService(
                     message.MarkAsSent(DateTime.UtcNow);
                     
                     var log = CommunicationLog.CreateSuccess(
-                        correlationId: $"outbox:{message.Id}",
+                        correlationId: message.CorrelationId ?? $"outbox:{message.Id}",
                         channel: message.Channel,
                         recipient: ExtractRecipient(message),
                         attemptCount: message.RetryCount,
-                        outboxMessageId: message.Id);
+                        outboxMessageId: message.Id,
+                        templateKey: ExtractTemplateKey(message));
                     
                     await _logRepository.AddAsync(log, cancellationToken);
                     
@@ -83,12 +84,13 @@ internal sealed class OutboxProcessorService(
                     if (!message.HasRetriesLeft)
                     {
                         var log = CommunicationLog.CreateFailure(
-                            correlationId: $"outbox:{message.Id}",
+                            correlationId: message.CorrelationId ?? $"outbox:{message.Id}",
                             channel: message.Channel,
                             recipient: ExtractRecipient(message),
                             errorMessage: "Dispatch returned false and retries exhausted.",
                             attemptCount: message.RetryCount,
-                            outboxMessageId: message.Id);
+                            outboxMessageId: message.Id,
+                            templateKey: ExtractTemplateKey(message));
                         await _logRepository.AddAsync(log, cancellationToken);
                     }
                 }
@@ -105,12 +107,13 @@ internal sealed class OutboxProcessorService(
                 if (!message.HasRetriesLeft)
                 {
                     var log = CommunicationLog.CreateFailure(
-                        correlationId: $"outbox:{message.Id}",
+                        correlationId: message.CorrelationId ?? $"outbox:{message.Id}",
                         channel: message.Channel,
                         recipient: ExtractRecipient(message),
                         errorMessage: ex.Message,
                         attemptCount: message.RetryCount,
-                        outboxMessageId: message.Id);
+                        outboxMessageId: message.Id,
+                        templateKey: ExtractTemplateKey(message));
                     await _logRepository.AddAsync(log, cancellationToken);
                 }
             }
@@ -120,6 +123,19 @@ internal sealed class OutboxProcessorService(
         await _logRepository.SaveChangesAsync(cancellationToken);
 
         return processed;
+    }
+
+    private string ExtractTemplateKey(OutboxMessage message)
+    {
+        if (message.Channel != ECommunicationChannel.Email) return null;
+        try
+        {
+            return JsonSerializer.Deserialize<EmailOutboxPayload>(message.Payload)?.TemplateKey;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private string ExtractRecipient(OutboxMessage message)
@@ -182,7 +198,7 @@ internal sealed class OutboxProcessorService(
     }
 
     // Payload records (serialized into Outbox)
-    private sealed record EmailOutboxPayload(string To, string Subject, string HtmlBody, string TextBody, string? From = null);
+    private sealed record EmailOutboxPayload(string To, string Subject, string HtmlBody, string TextBody, string? From = null, string? TemplateKey = null);
     private sealed record SmsOutboxPayload(string PhoneNumber, string Body);
     private sealed record PushOutboxPayload(string DeviceToken, string Title, string Body, IDictionary<string, string>? Data = null);
 }

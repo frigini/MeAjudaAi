@@ -48,7 +48,8 @@ internal sealed class ProviderActivatedIntegrationEventHandler(
         var message = OutboxMessage.Create(
             channel: ECommunicationChannel.Email,
             payload: payload,
-            priority: ECommunicationPriority.High);
+            priority: ECommunicationPriority.High,
+            correlationId: correlationId);
 
         await outboxRepository.AddAsync(message, cancellationToken);
 

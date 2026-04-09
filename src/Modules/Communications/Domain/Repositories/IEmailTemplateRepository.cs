@@ -27,4 +27,9 @@ public interface IEmailTemplateRepository
     Task<IReadOnlyList<EmailTemplate>> GetAllByKeyAsync(
         string templateKey,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retorna todos os templates registrados.
+    /// </summary>
+    Task<IReadOnlyList<EmailTemplate>> GetAllAsync(CancellationToken cancellationToken = default);
 }

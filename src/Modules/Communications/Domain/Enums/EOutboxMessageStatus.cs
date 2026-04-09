@@ -6,6 +6,7 @@ namespace MeAjudaAi.Modules.Communications.Domain.Enums;
 public enum EOutboxMessageStatus
 {
     Pending = 0,
-    Sent = 1,
-    Failed = 2
+    Processing = 1,
+    Sent = 2,
+    Failed = 3
 }

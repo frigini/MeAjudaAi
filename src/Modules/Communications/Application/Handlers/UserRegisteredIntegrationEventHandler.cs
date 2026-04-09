@@ -46,7 +46,8 @@ internal sealed class UserRegisteredIntegrationEventHandler(
         var message = OutboxMessage.Create(
             channel: ECommunicationChannel.Email,
             payload: payload,
-            priority: ECommunicationPriority.Normal);
+            priority: ECommunicationPriority.Normal,
+            correlationId: correlationId);
 
         await outboxRepository.AddAsync(message, cancellationToken);
 

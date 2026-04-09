@@ -34,6 +34,11 @@ internal sealed class CommunicationsModuleApi(
         CommunicationPriority priority = CommunicationPriority.Normal,
         CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(email);
+        ArgumentException.ThrowIfNullOrWhiteSpace(email.To);
+        ArgumentException.ThrowIfNullOrWhiteSpace(email.Subject);
+        ArgumentException.ThrowIfNullOrWhiteSpace(email.Body);
+
         var payload = JsonSerializer.Serialize(email);
         var message = OutboxMessage.Create(
             ECommunicationChannel.Email,
@@ -48,13 +53,26 @@ internal sealed class CommunicationsModuleApi(
 
     public async Task<Result<IReadOnlyList<EmailTemplateDto>>> GetTemplatesAsync(CancellationToken ct = default)
     {
-        // Nota: O repositório atual não tem GetAll, mas para o MVP podemos buscar por chaves conhecidas
-        // ou adicionar o método no repositório. Vou retornar uma lista vazia por enquanto.
-        return Result<IReadOnlyList<EmailTemplateDto>>.Success(new List<EmailTemplateDto>());
+        var templates = await _templateRepository.GetAllAsync(ct);
+        
+        var dtos = templates.Select(x => new EmailTemplateDto(
+            x.Id,
+            x.TemplateKey,
+            x.Subject,
+            x.HtmlBody,
+            x.TextBody,
+            x.IsSystemTemplate,
+            x.Language)).ToList();
+
+        return Result<IReadOnlyList<EmailTemplateDto>>.Success(dtos);
     }
 
     public async Task<Result<Guid>> SendSmsAsync(SmsMessageDto sms, CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(sms);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sms.PhoneNumber);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sms.Message);
+
         var payload = JsonSerializer.Serialize(sms);
         var message = OutboxMessage.Create(
             ECommunicationChannel.Sms,
@@ -69,6 +87,11 @@ internal sealed class CommunicationsModuleApi(
 
     public async Task<Result<Guid>> SendPushAsync(PushMessageDto push, CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(push);
+        ArgumentException.ThrowIfNullOrWhiteSpace(push.DeviceToken);
+        ArgumentException.ThrowIfNullOrWhiteSpace(push.Title);
+        ArgumentException.ThrowIfNullOrWhiteSpace(push.Body);
+
         var payload = JsonSerializer.Serialize(push);
         var message = OutboxMessage.Create(
             ECommunicationChannel.Push,

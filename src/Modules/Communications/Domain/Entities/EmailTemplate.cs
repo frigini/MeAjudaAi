@@ -76,15 +76,16 @@ public sealed class EmailTemplate : BaseEntity
         ArgumentException.ThrowIfNullOrWhiteSpace(subject);
         ArgumentException.ThrowIfNullOrWhiteSpace(htmlBody);
         ArgumentException.ThrowIfNullOrWhiteSpace(textBody);
+        ArgumentException.ThrowIfNullOrWhiteSpace(language);
 
         return new EmailTemplate
         {
             TemplateKey = templateKey.ToLowerInvariant().Trim(),
-            OverrideKey = overrideKey?.ToLowerInvariant().Trim(),
+            OverrideKey = string.IsNullOrWhiteSpace(overrideKey) ? null : overrideKey.ToLowerInvariant().Trim(),
             Subject = subject,
             HtmlBody = htmlBody,
             TextBody = textBody,
-            Language = language,
+            Language = language.ToLowerInvariant().Trim(),
             IsActive = true,
             Version = 1,
             IsSystemTemplate = isSystemTemplate

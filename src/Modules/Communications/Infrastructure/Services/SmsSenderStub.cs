@@ -11,7 +11,7 @@ internal sealed class SmsSenderStub(ILogger<SmsSenderStub> logger) : ISmsSender
     public async Task<bool> SendAsync(SmsMessage message, CancellationToken cancellationToken = default)
     {
         await Task.Delay(100, cancellationToken);
-        logger.LogInformation("[STUB SMS SENDER] To: {To} | Message: {Msg}", message.PhoneNumber, message.Body);
+        logger.LogInformation("[STUB SMS SENDER] SMS sent successfully (number and message redacted).");
         return true;
     }
 }

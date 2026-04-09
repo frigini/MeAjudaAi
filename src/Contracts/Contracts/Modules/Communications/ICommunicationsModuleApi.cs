@@ -56,7 +56,7 @@ public interface ICommunicationsModuleApi : IModuleApi
     Task<Result<Guid>> SendPushAsync(PushMessageDto push, CancellationToken ct = default);
 
     /// <summary>
-    /// Obtém logs de comunicação paginados (Idempotency check via CorrelationId).
+    /// Obtém logs de comunicação paginados com verificação de idempotência via Identificador de Correlação (CorrelationId).
     /// </summary>
     /// <param name="query">Critérios de busca</param>
     /// <param name="ct">Token de cancelamento</param>

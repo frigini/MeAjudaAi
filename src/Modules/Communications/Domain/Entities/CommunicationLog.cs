@@ -68,6 +68,7 @@ public sealed class CommunicationLog : BaseEntity
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(correlationId);
         ArgumentException.ThrowIfNullOrWhiteSpace(recipient);
+        ArgumentOutOfRangeException.ThrowIfNegative(attemptCount);
 
         return new CommunicationLog
         {
@@ -82,7 +83,7 @@ public sealed class CommunicationLog : BaseEntity
     }
 
     /// <summary>
-    /// Cria um log de comunicação com falha definitiva.
+    /// Cria um log de comunicação com falha.
     /// </summary>
     public static CommunicationLog CreateFailure(
         string correlationId,
@@ -96,6 +97,7 @@ public sealed class CommunicationLog : BaseEntity
         ArgumentException.ThrowIfNullOrWhiteSpace(correlationId);
         ArgumentException.ThrowIfNullOrWhiteSpace(recipient);
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        ArgumentOutOfRangeException.ThrowIfNegative(attemptCount);
 
         return new CommunicationLog
         {

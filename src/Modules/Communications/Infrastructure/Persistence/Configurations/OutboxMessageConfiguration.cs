@@ -17,6 +17,9 @@ internal sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<Outb
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(x => x.CorrelationId)
+            .HasMaxLength(200);
+
         builder.Property(x => x.Payload)
             .HasColumnType("jsonb")
             .IsRequired();
@@ -34,7 +37,10 @@ internal sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<Outb
         builder.Property(x => x.ErrorMessage)
             .HasMaxLength(2000);
 
-        builder.HasIndex(x => new { x.Status, x.Priority, x.CreatedAt });
-        builder.HasIndex(x => x.ScheduledAt);
+        builder.HasIndex(x => x.CorrelationId)
+            .IsUnique()
+            .HasFilter("\"CorrelationId\" IS NOT Null");
+
+        builder.HasIndex(x => new { x.Status, x.ScheduledAt, x.Priority, x.CreatedAt });
     }
 }

@@ -16,8 +16,8 @@ internal sealed class StubEmailService(ILogger<StubEmailService> logger) : IEmai
         await Task.Delay(100, cancellationToken);
 
         logger.LogInformation(
-            "[STUB EMAIL] To: {To} | Subject: {Subject} | Body length: {BodyLength} bytes",
-            message.To, message.Subject, message.Body.Length);
+            "[STUB EMAIL] Email dispatched (recipient and subject masked) | Body length: {BodyLength} bytes",
+            message.Body.Length);
 
         // Retorna um ID falso do provedor
         return Result<string>.Success($"stub_{Guid.NewGuid():N}");

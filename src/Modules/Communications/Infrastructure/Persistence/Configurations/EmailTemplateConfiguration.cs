@@ -34,6 +34,8 @@ internal sealed class EmailTemplateConfiguration : IEntityTypeConfiguration<Emai
             .IsRequired()
             .HasDefaultValue("pt-BR");
 
-        builder.HasIndex(x => new { x.TemplateKey, x.Language, x.OverrideKey }).IsUnique();
+        builder.HasIndex(x => new { x.TemplateKey, x.Language, x.OverrideKey })
+            .IsUnique()
+            .AreNullsDistinct(false);
     }
 }
