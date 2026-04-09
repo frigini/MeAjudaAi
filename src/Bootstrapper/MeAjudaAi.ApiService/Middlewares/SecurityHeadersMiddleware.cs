@@ -7,45 +7,54 @@ namespace MeAjudaAi.ApiService.Middlewares;
 
 /// <summary>
 /// Middleware para adicionar cabeçalhos de segurança (Hardening).
+/// Atua como um fallback seguro, garantindo que cabeçalhos essenciais estejam presentes
+/// sem sobrescrever configurações específicas de ambiente ou middlewares especializados (como CSP).
 /// </summary>
 public sealed class SecurityHeadersMiddleware(
     RequestDelegate next, 
     IWebHostEnvironment environment,
     ILogger<SecurityHeadersMiddleware>? logger = null)
 {
+    private readonly RequestDelegate _next = next ?? throw new ArgumentNullException(nameof(next));
+    private readonly IWebHostEnvironment _environment = environment ?? throw new ArgumentNullException(nameof(environment));
+
     public async Task InvokeAsync(HttpContext context)
     {
-        ArgumentNullException.ThrowIfNull(next);
-        ArgumentNullException.ThrowIfNull(environment);
-
         logger?.LogTrace("Adding security headers to response.");
+
+        // Adiciona headers apenas se não existirem (evita duplicidade com EnvironmentSpecificExtensions)
+        
         // Impede que o site seja emoldurado (clickjacking)
-        context.Response.Headers.Append("X-Frame-Options", "DENY");
+        if (!context.Response.Headers.ContainsKey("X-Frame-Options"))
+        {
+            context.Response.Headers.Append("X-Frame-Options", "DENY");
+        }
 
         // Impede que o navegador tente adivinhar o tipo de conteúdo (MIME sniffing)
-        context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+        if (!context.Response.Headers.ContainsKey("X-Content-Type-Options"))
+        {
+            context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+        }
 
         // Controla quanta informação de referência é enviada
-        context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+        if (!context.Response.Headers.ContainsKey("Referrer-Policy"))
+        {
+            // Alinhado com o padrão de produção: strict-origin-when-cross-origin é um bom balanço
+            context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+        }
 
         // Define quais recursos do navegador podem ser usados (Câmera, Microfone, etc.)
-        context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=(self)");
+        if (!context.Response.Headers.ContainsKey("Permissions-Policy"))
+        {
+            context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=(self)");
+        }
 
-        // Content Security Policy (CSP) - Configuração base restritiva para APIs
-        // Permite scripts e estilos apenas da mesma origem e de fontes confiáveis (se houver)
-        context.Response.Headers.Append("Content-Security-Policy", 
-            "default-src 'self'; " +
-            "script-src 'self' 'unsafe-inline'; " +
-            "style-src 'self' 'unsafe-inline'; " +
-            "img-src 'self' data:; " +
-            "font-src 'self'; " +
-            "connect-src 'self' https://*.Betenbough.com; " + // Permite chamadas para domínios Betenbough
-            "frame-ancestors 'none'; " +
-            "form-action 'self';");
+        // Nota: Content-Security-Policy (CSP) é gerenciado pelo ContentSecurityPolicyMiddleware
+        // para permitir configuração dinâmica e evitar conflitos.
 
         // Remove o cabeçalho que identifica a tecnologia do servidor
         context.Response.Headers.Remove("X-Powered-By");
 
-        await next(context);
+        await _next(context);
     }
 }

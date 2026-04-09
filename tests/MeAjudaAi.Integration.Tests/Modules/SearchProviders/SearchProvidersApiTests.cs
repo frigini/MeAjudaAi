@@ -127,7 +127,7 @@ public class SearchProvidersApiTests : BaseApiTest
         var latitude = -23.5505;
         var longitude = -46.6333;
         var radiusInKm = 10.0;
-        var subscriptionTier = 2; // Gold
+        var subscriptionTier = "Gold";
 
         // Act
         var response = await Client.GetAsync(
