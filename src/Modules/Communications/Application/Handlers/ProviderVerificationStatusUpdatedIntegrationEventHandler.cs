@@ -33,10 +33,17 @@ internal sealed class ProviderVerificationStatusUpdatedIntegrationEventHandler(
         }
 
         var recipientEmail = userResult.Value.Email;
-        var templateKey = integrationEvent.NewStatus.ToLower() == "approved" 
-            ? "provider-verification-approved" 
-            : "provider-verification-rejected";
-        var correlationId = $"verification_status_update:{integrationEvent.ProviderId}:{integrationEvent.NewStatus}";
+        var normalizedStatus = integrationEvent.NewStatus.Trim().ToLowerInvariant();
+        
+        var templateKey = normalizedStatus switch
+        {
+            "verified" or "approved" => "provider-verification-approved",
+            "rejected" or "denied" => "provider-verification-rejected",
+            "pending" or "awaiting" => "provider-verification-pending",
+            _ => "provider-verification-status-update" // default/fallback
+        };
+
+        var correlationId = $"verification_status_update:{integrationEvent.ProviderId}:{normalizedStatus}";
 
         var emailPayload = new
         {
@@ -48,9 +55,9 @@ internal sealed class ProviderVerificationStatusUpdatedIntegrationEventHandler(
         };
 
         var message = OutboxMessage.Create(
-            ECommunicationChannel.Email,
-            JsonSerializer.Serialize(emailPayload),
-            ECommunicationPriority.High,
+            channel: ECommunicationChannel.Email,
+            payload: JsonSerializer.Serialize(emailPayload),
+            priority: ECommunicationPriority.High,
             correlationId: correlationId);
 
         try
@@ -61,11 +68,20 @@ internal sealed class ProviderVerificationStatusUpdatedIntegrationEventHandler(
             logger.LogInformation("Verification status update notification enqueued for user {UserId} ({Email}, correlationId: {CorrelationId}).", 
                 integrationEvent.UserId, PiiMaskingHelper.MaskEmail(recipientEmail), correlationId);
         }
-        catch (Exception ex) when (ex.Message.Contains("duplicate key") || ex.InnerException?.Message.Contains("duplicate key") == true)
+        catch (Exception ex)
         {
-            logger.LogInformation(
-                "Skipping verification status update for provider {ProviderId} — already enqueued (correlationId: {CorrelationId}).",
-                integrationEvent.ProviderId, correlationId);
+            var processedException = MeAjudaAi.Shared.Database.Exceptions.PostgreSqlExceptionProcessor.ProcessException(
+                ex as Microsoft.EntityFrameworkCore.DbUpdateException ?? new Microsoft.EntityFrameworkCore.DbUpdateException(ex.Message, ex));
+
+            if (processedException is MeAjudaAi.Shared.Database.Exceptions.UniqueConstraintException)
+            {
+                logger.LogInformation(
+                    "Skipping verification status update for provider {ProviderId} — already enqueued (correlationId: {CorrelationId}).",
+                    integrationEvent.ProviderId, correlationId);
+                return;
+            }
+            
+            throw;
         }
     }
 }

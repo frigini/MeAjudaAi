@@ -1,12 +1,9 @@
-using System.Text.Json.Serialization;
-
 namespace MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 
 /// <summary>
 /// Representa o tier de assinatura de um provedor.
 /// Tiers mais altos recebem melhor posicionamento nos resultados de busca.
 /// </summary>
-[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ESubscriptionTier
 {
     /// <summary>

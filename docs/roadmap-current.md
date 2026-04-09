@@ -649,7 +649,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 ### ⏳ Sprint 9 - BUFFER & Mitigação de Risco (25 Mar - 11 Mai 2026)
 
 **Status**: ⏳ EM ANDAMENTO
-**Duração**: 12 dias de buffer
+**Duração**: 47 dias de buffer (finalização do MVP)
 - Polimento, Refatoração e Correção.
 - Mover tarefas Opcionais da 8B.2 para cá se necessário.
 - Limite de taxa (Rate limiting) e segurança/monitoramento avançado.
@@ -867,7 +867,7 @@ src/
 **Localização de Modelos**:
 - **Fonte de Verdade**: Arquivos `.cshtml` em `Shared/Communications/Templates/` (compilados).
 - **Sistema de Sobreposição (Override)**: A entidade `EmailTemplate` no banco permite sobrescrever o Assunto (`Subject`) ou trechos do Corpo (`Body`) via Portal Administrativo sem nova implantação.
-- **IsSystemTemplate**: Flag para proteger modelos críticos de exclusão.
+- **IsSystemTemplate**: Flag para proteger modelos críticos de deleção (Garantido em `EmailTemplateRepository.DeleteAsync`).
 
 ---
 

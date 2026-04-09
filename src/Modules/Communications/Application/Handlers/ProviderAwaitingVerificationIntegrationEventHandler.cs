@@ -47,11 +47,20 @@ internal sealed class ProviderAwaitingVerificationIntegrationEventHandler(
             logger.LogInformation("Admin notification enqueued for provider {ProviderId} (correlationId: {CorrelationId}).", 
                 integrationEvent.ProviderId, correlationId);
         }
-        catch (Exception ex) when (ex.Message.Contains("duplicate key") || ex.InnerException?.Message.Contains("duplicate key") == true)
+        catch (Exception ex)
         {
-            logger.LogInformation(
-                "Skipping admin notification for provider {ProviderId} — already enqueued (correlationId: {CorrelationId}).",
-                integrationEvent.ProviderId, correlationId);
+            var processedException = MeAjudaAi.Shared.Database.Exceptions.PostgreSqlExceptionProcessor.ProcessException(
+                ex as Microsoft.EntityFrameworkCore.DbUpdateException ?? new Microsoft.EntityFrameworkCore.DbUpdateException(ex.Message, ex));
+
+            if (processedException is MeAjudaAi.Shared.Database.Exceptions.UniqueConstraintException)
+            {
+                logger.LogInformation(
+                    "Skipping admin notification for provider {ProviderId} — already enqueued (correlationId: {CorrelationId}).",
+                    integrationEvent.ProviderId, correlationId);
+                return;
+            }
+            
+            throw;
         }
     }
 }

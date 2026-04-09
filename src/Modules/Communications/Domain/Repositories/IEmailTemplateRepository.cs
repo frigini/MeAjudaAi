@@ -32,4 +32,9 @@ public interface IEmailTemplateRepository
     /// Retorna todos os templates registrados.
     /// </summary>
     Task<IReadOnlyList<EmailTemplate>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Remove um template pelo ID (protegido se for template de sistema).
+    /// </summary>
+    Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 }

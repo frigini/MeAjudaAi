@@ -42,4 +42,18 @@ internal sealed class EmailTemplateRepository(CommunicationsDbContext context) :
             .ThenBy(x => x.Language)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var template = await context.EmailTemplates.FindAsync(new object[] { id }, cancellationToken);
+        if (template == null) return;
+
+        if (template.IsSystemTemplate)
+        {
+            throw new InvalidOperationException($"Cannot delete system template with ID {id}.");
+        }
+
+        context.EmailTemplates.Remove(template);
+        await context.SaveChangesAsync(cancellationToken);
+    }
 }

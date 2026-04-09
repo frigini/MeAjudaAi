@@ -211,7 +211,15 @@ public abstract class BaseApiTest : IAsyncLifetime
             if (modules.HasFlag(TestModule.SearchProviders))
             {
                 var context = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
-                try { await context.Database.ExecuteSqlRawAsync("CREATE EXTENSION IF NOT EXISTS postgis;"); } catch { }
+                try 
+                { 
+                    await context.Database.ExecuteSqlRawAsync("CREATE EXTENSION IF NOT EXISTS postgis;"); 
+                } 
+                catch (Exception ex)
+                {
+                    logger?.LogError(ex, "❌ Failed to explicitly create PostGIS extension. Migrations might fail if not included.");
+                    throw;
+                }
                 await ApplyMigrationForContextAsync(context, "SearchProviders", logger);
             }
 
@@ -285,15 +293,23 @@ public abstract class BaseApiTest : IAsyncLifetime
                 await context.Database.CloseConnectionAsync(); 
                 return; 
             }
-            catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P01") 
-            { 
-                lastException = ex;
-                await Task.Delay(1000 * attempt); 
-            }
             catch (Exception ex)
             {
                 lastException = ex;
-                logger?.LogError(ex, "❌ Failed to apply {Module} migrations on attempt {Attempt}", moduleName, attempt);
+                
+                // Verifica se é erro transiente
+                bool isTransient = ex is TimeoutException || 
+                                  ex is DbUpdateException || 
+                                  (ex is Npgsql.PostgresException pgEx && (pgEx.SqlState == "57P01" || pgEx.SqlState == "53300" || pgEx.SqlState == "08006"));
+
+                if (!isTransient || attempt == 3)
+                {
+                    logger?.LogError(ex, "❌ Final failure applying {Module} migrations on attempt {Attempt}", moduleName, attempt);
+                    break;
+                }
+
+                logger?.LogWarning(ex, "⚠️ Transient failure applying {Module} migrations on attempt {Attempt}. Retrying...", moduleName, attempt);
+                await Task.Delay(1000 * attempt); 
             }
         }
 

@@ -61,11 +61,20 @@ internal sealed class UserRegisteredIntegrationEventHandler(
                 "Welcome email enqueued for user {UserId} (outboxId: {OutboxId}, correlationId: {CorrelationId}).",
                 integrationEvent.UserId, message.Id, correlationId);
         }
-        catch (Exception ex) when (ex.Message.Contains("duplicate key") || ex.InnerException?.Message.Contains("duplicate key") == true)
+        catch (Exception ex)
         {
-            logger.LogInformation(
-                "Skipping welcome email for user {UserId} — already enqueued or sent (correlationId: {CorrelationId}).",
-                integrationEvent.UserId, correlationId);
+            var processedException = MeAjudaAi.Shared.Database.Exceptions.PostgreSqlExceptionProcessor.ProcessException(
+                ex as Microsoft.EntityFrameworkCore.DbUpdateException ?? new Microsoft.EntityFrameworkCore.DbUpdateException(ex.Message, ex));
+
+            if (processedException is MeAjudaAi.Shared.Database.Exceptions.UniqueConstraintException)
+            {
+                logger.LogInformation(
+                    "Skipping welcome email for user {UserId} — already enqueued or sent (correlationId: {CorrelationId}).",
+                    integrationEvent.UserId, correlationId);
+                return;
+            }
+            
+            throw;
         }
     }
 }
