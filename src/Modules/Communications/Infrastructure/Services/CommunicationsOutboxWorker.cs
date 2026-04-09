@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Communications.Application.Services;
+using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -13,6 +14,7 @@ internal sealed class CommunicationsOutboxWorker(
     ILogger<CommunicationsOutboxWorker> logger) : BackgroundService
 {
     private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(10);
+    private readonly TimeSpan _stuckTimeout = TimeSpan.FromMinutes(5);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -23,8 +25,18 @@ internal sealed class CommunicationsOutboxWorker(
             try
             {
                 using var scope = scopeFactory.CreateScope();
-                var processor = scope.ServiceProvider.GetRequiredService<IOutboxProcessorService>();
+                
+                // 1. Recupera mensagens travadas em processamento
+                var repository = scope.ServiceProvider.GetRequiredService<IOutboxMessageRepository>();
+                int resetCount = await repository.ResetStuckMessagesAsync(_stuckTimeout, stoppingToken);
+                
+                if (resetCount > 0)
+                {
+                    logger.LogWarning("Reset {Count} stuck outbox messages back to Pending.", resetCount);
+                }
 
+                // 2. Processa mensagens pendentes
+                var processor = scope.ServiceProvider.GetRequiredService<IOutboxProcessorService>();
                 int processedCount = await processor.ProcessPendingMessagesAsync(50, stoppingToken);
 
                 if (processedCount > 0)

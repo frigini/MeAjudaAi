@@ -114,6 +114,18 @@ public sealed class OutboxMessage : BaseEntity
     }
 
     /// <summary>
+    /// Reseta uma mensagem travada em processamento de volta para pendente.
+    /// </summary>
+    public void ResetToPending()
+    {
+        if (Status != EOutboxMessageStatus.Processing)
+            return;
+
+        Status = EOutboxMessageStatus.Pending;
+        MarkAsUpdated();
+    }
+
+    /// <summary>
     /// Registra envio bem-sucedido.
     /// </summary>
     public void MarkAsSent(DateTime utcNow)

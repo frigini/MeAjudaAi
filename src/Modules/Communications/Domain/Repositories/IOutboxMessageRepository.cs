@@ -36,4 +36,9 @@ public interface IOutboxMessageRepository
     /// Persiste as alterações no banco de dados.
     /// </summary>
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Recupera mensagens que ficaram travadas no estado Processing.
+    /// </summary>
+    Task<int> ResetStuckMessagesAsync(TimeSpan timeout, CancellationToken cancellationToken = default);
 }

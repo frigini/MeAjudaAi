@@ -67,4 +67,23 @@ internal sealed class OutboxMessageRepository(CommunicationsDbContext context) :
     {
         await context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<int> ResetStuckMessagesAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
+    {
+        var threshold = DateTime.UtcNow.Subtract(timeout);
+
+        var stuckMessages = await context.OutboxMessages
+            .Where(x => x.Status == EOutboxMessageStatus.Processing && (x.UpdatedAt ?? x.CreatedAt) < threshold)
+            .ToListAsync(cancellationToken);
+
+        if (stuckMessages.Count == 0) return 0;
+
+        foreach (var message in stuckMessages)
+        {
+            message.ResetToPending();
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+        return stuckMessages.Count;
+    }
 }
