@@ -2,6 +2,7 @@ using System.Text.Json;
 using MeAjudaAi.ApiService;
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Integration.Tests.Mocks;
+using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Tests;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
@@ -43,7 +44,8 @@ public enum TestModule
     ServiceCatalogs = 1 << 3,
     Locations = 1 << 4,
     SearchProviders = 1 << 5,
-    All = Users | Providers | Documents | ServiceCatalogs | Locations | SearchProviders
+    Communications = 1 << 6,
+    All = Users | Providers | Documents | ServiceCatalogs | Locations | SearchProviders | Communications
 }
 
 /// <summary>
@@ -427,6 +429,8 @@ public abstract class BaseApiTest : IAsyncLifetime
                 anyContext = serviceProvider.GetRequiredService<ServiceCatalogsDbContext>();
             else if (modules.HasFlag(TestModule.Locations))
                 anyContext = serviceProvider.GetRequiredService<LocationsDbContext>();
+            else if (modules.HasFlag(TestModule.Communications))
+                anyContext = serviceProvider.GetRequiredService<CommunicationsDbContext>();
             else
                 anyContext = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
 
@@ -470,6 +474,13 @@ public abstract class BaseApiTest : IAsyncLifetime
                 // Must be called BEFORE CloseConnectionAsync to use the already-open connection
                 await SeedTestDataAsync(context, logger);
                 
+                await context.Database.CloseConnectionAsync();
+            }
+
+            if (modules.HasFlag(TestModule.Communications))
+            {
+                var context = serviceProvider.GetRequiredService<CommunicationsDbContext>();
+                await ApplyMigrationForContextAsync(context, "Communications", logger, "CommunicationsDbContext");
                 await context.Database.CloseConnectionAsync();
             }
 

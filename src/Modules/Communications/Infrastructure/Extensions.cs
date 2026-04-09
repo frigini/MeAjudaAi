@@ -26,6 +26,9 @@ public static class Extensions
         services.AddScoped<ISmsSender, SmsSenderStub>();
         services.AddScoped<IPushSender, PushSenderStub>();
 
+        // Background Workers
+        services.AddHostedService<CommunicationsOutboxWorker>();
+
         return services;
     }
 }

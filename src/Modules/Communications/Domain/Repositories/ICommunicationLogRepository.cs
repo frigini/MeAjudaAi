@@ -37,4 +37,9 @@ public interface ICommunicationLogRepository
         int pageNumber = 1,
         int pageSize = 20,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Persiste as alterações no banco de dados.
+    /// </summary>
+    Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

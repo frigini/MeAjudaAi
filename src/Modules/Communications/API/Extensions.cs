@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Communications.API.Endpoints;
 using MeAjudaAi.Modules.Communications.Application;
 using MeAjudaAi.Modules.Communications.Infrastructure;
 using Microsoft.AspNetCore.Builder;
@@ -26,14 +27,6 @@ public static class Extensions
 
     public static IEndpointRouteBuilder MapCommunicationsEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/v1/communications")
-            .WithTags("Communications")
-            .RequireAuthorization();
-
-        // Endpoints will be mapped here
-        // group.MapGet("/templates", ...);
-        // group.MapGet("/logs", ...);
-
-        return endpoints;
+        return endpoints.MapEndpoints();
     }
 }

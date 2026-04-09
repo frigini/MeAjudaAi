@@ -27,6 +27,8 @@ public static class Extensions
         // Integration Event Handlers
         services.AddScoped<IEventHandler<UserRegisteredIntegrationEvent>, UserRegisteredIntegrationEventHandler>();
         services.AddScoped<IEventHandler<ProviderActivatedIntegrationEvent>, ProviderActivatedIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<ProviderAwaitingVerificationIntegrationEvent>, ProviderAwaitingVerificationIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<ProviderVerificationStatusUpdatedIntegrationEvent>, ProviderVerificationStatusUpdatedIntegrationEventHandler>();
 
         return services;
     }

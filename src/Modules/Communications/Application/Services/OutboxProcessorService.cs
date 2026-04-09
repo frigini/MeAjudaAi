@@ -61,6 +61,16 @@ internal sealed class OutboxProcessorService(
                 if (success)
                 {
                     message.MarkAsSent(DateTime.UtcNow);
+                    
+                    var log = CommunicationLog.CreateSuccess(
+                        correlationId: $"outbox:{message.Id}",
+                        channel: message.Channel,
+                        recipient: ExtractRecipient(message),
+                        attemptCount: message.RetryCount,
+                        outboxMessageId: message.Id);
+                    
+                    await _logRepository.AddAsync(log, cancellationToken);
+                    
                     processed++;
                     logger.LogInformation("Outbox message {Id} ({Channel}) sent successfully.", message.Id, message.Channel);
                 }
@@ -69,6 +79,18 @@ internal sealed class OutboxProcessorService(
                     message.MarkAsFailed("Dispatch returned false.");
                     logger.LogWarning("Outbox message {Id} dispatch returned false. Retry {Retry}/{Max}.",
                         message.Id, message.RetryCount, message.MaxRetries);
+                    
+                    if (!message.HasRetriesLeft)
+                    {
+                        var log = CommunicationLog.CreateFailure(
+                            correlationId: $"outbox:{message.Id}",
+                            channel: message.Channel,
+                            recipient: ExtractRecipient(message),
+                            errorMessage: "Dispatch returned false and retries exhausted.",
+                            attemptCount: message.RetryCount,
+                            outboxMessageId: message.Id);
+                        await _logRepository.AddAsync(log, cancellationToken);
+                    }
                 }
             }
             catch (OperationCanceledException)
@@ -79,10 +101,43 @@ internal sealed class OutboxProcessorService(
             {
                 message.MarkAsFailed(ex.Message);
                 logger.LogError(ex, "Error processing outbox message {Id} ({Channel}).", message.Id, message.Channel);
+
+                if (!message.HasRetriesLeft)
+                {
+                    var log = CommunicationLog.CreateFailure(
+                        correlationId: $"outbox:{message.Id}",
+                        channel: message.Channel,
+                        recipient: ExtractRecipient(message),
+                        errorMessage: ex.Message,
+                        attemptCount: message.RetryCount,
+                        outboxMessageId: message.Id);
+                    await _logRepository.AddAsync(log, cancellationToken);
+                }
             }
         }
 
+        await outboxRepository.SaveChangesAsync(cancellationToken);
+        await _logRepository.SaveChangesAsync(cancellationToken);
+
         return processed;
+    }
+
+    private string ExtractRecipient(OutboxMessage message)
+    {
+        try
+        {
+            return message.Channel switch
+            {
+                ECommunicationChannel.Email => JsonSerializer.Deserialize<EmailOutboxPayload>(message.Payload)?.To ?? "unknown",
+                ECommunicationChannel.Sms => JsonSerializer.Deserialize<SmsOutboxPayload>(message.Payload)?.PhoneNumber ?? "unknown",
+                ECommunicationChannel.Push => JsonSerializer.Deserialize<PushOutboxPayload>(message.Payload)?.DeviceToken ?? "unknown",
+                _ => "unknown"
+            };
+        }
+        catch
+        {
+            return "error-extracting";
+        }
     }
 
     private Task<bool> DispatchMessageAsync(OutboxMessage message, CancellationToken cancellationToken)

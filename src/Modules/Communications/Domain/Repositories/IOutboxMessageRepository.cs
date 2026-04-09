@@ -31,4 +31,9 @@ public interface IOutboxMessageRepository
     /// Conta mensagens com um determinado status.
     /// </summary>
     Task<int> CountByStatusAsync(EOutboxMessageStatus status, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Persiste as alterações no banco de dados.
+    /// </summary>
+    Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -34,4 +34,9 @@ internal sealed class OutboxMessageRepository(CommunicationsDbContext context) :
     {
         return await context.OutboxMessages.CountAsync(x => x.Status == status, cancellationToken);
     }
+
+    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        await context.SaveChangesAsync(cancellationToken);
+    }
 }

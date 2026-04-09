@@ -41,6 +41,8 @@ internal sealed class CommunicationsModuleApi(
             MapPriority(priority));
 
         await outboxRepository.AddAsync(message, ct);
+        await outboxRepository.SaveChangesAsync(ct);
+        
         return Result<Guid>.Success(message.Id);
     }
 
@@ -60,6 +62,8 @@ internal sealed class CommunicationsModuleApi(
             ECommunicationPriority.Normal);
 
         await outboxRepository.AddAsync(message, ct);
+        await outboxRepository.SaveChangesAsync(ct);
+
         return Result<Guid>.Success(message.Id);
     }
 
@@ -72,6 +76,8 @@ internal sealed class CommunicationsModuleApi(
             ECommunicationPriority.Normal);
 
         await outboxRepository.AddAsync(message, ct);
+        await outboxRepository.SaveChangesAsync(ct);
+
         return Result<Guid>.Success(message.Id);
     }
 

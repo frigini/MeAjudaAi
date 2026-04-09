@@ -62,4 +62,9 @@ internal sealed class CommunicationLogRepository(CommunicationsDbContext context
 
         return (items, totalCount);
     }
+
+    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        await context.SaveChangesAsync(cancellationToken);
+    }
 }
