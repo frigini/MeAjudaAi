@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Aspire\MeAjudaAi.ServiceDefaults\MeAjudaAi.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\Modules\Communications\API\MeAjudaAi.Modules.Communications.API.csproj" />
     <ProjectReference Include="..\..\Modules\Documents\API\MeAjudaAi.Modules.Documents.API.csproj" />
     <ProjectReference Include="..\..\Modules\Locations\API\MeAjudaAi.Modules.Locations.API.csproj" />
     <ProjectReference Include="..\..\Modules\Providers\API\MeAjudaAi.Modules.Providers.API.csproj" />

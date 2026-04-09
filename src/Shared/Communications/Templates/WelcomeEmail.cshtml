@@ -1,0 +1,31 @@
+@model MeAjudaAi.Shared.Communications.Templates.Models.WelcomeEmailModel
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bem-vindo ao MeAjudaAi!</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #0078D4; color: white; padding: 10px; text-align: center; }
+        .content { padding: 20px; background-color: #f9f9f9; }
+        .footer { font-size: 0.8em; text-align: center; margin-top: 20px; color: #777; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MeAjudaAi</h1>
+        </div>
+        <div class="content">
+            <p>Olá, @Model.FirstName!</p>
+            <p>Seja muito bem-vindo(a) ao MeAjudaAi, a plataforma que conecta você aos melhores prestadores de serviço.</p>
+            <p>Sua conta foi criada com sucesso. Agora você já pode explorar nossos serviços e encontrar o que precisa.</p>
+            <p><a href="@Model.ActionUrl" style="background-color: #0078D4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Acessar minha conta</a></p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 MeAjudaAi. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>

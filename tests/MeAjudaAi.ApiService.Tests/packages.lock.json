@@ -906,6 +906,7 @@
           "AspNetCore.HealthChecks.Redis": "[9.0.0, )",
           "AspNetCore.HealthChecks.UI.Client": "[9.0.0, )",
           "MeAjudaAi.Contracts": "[1.0.0, )",
+          "MeAjudaAi.Modules.Communications.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Providers.API": "[1.0.0, )",
@@ -925,6 +926,41 @@
         "type": "Project",
         "dependencies": {
           "FluentValidation": "[12.1.1, )"
+        }
+      },
+      "meajudaai.modules.communications.api": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Modules.Communications.Application": "[1.0.0, )",
+          "MeAjudaAi.Modules.Communications.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Shared": "[1.0.0, )",
+          "Microsoft.AspNetCore.Http.Abstractions": "[2.3.9, )",
+          "Microsoft.EntityFrameworkCore.Relational": "[10.0.5, )",
+          "Microsoft.Extensions.Configuration.Abstractions": "[10.0.5, )",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "[10.0.5, )"
+        }
+      },
+      "meajudaai.modules.communications.application": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Contracts": "[1.0.0, )",
+          "MeAjudaAi.Modules.Communications.Domain": "[1.0.0, )",
+          "MeAjudaAi.Shared": "[1.0.0, )"
+        }
+      },
+      "meajudaai.modules.communications.domain": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Shared": "[1.0.0, )"
+        }
+      },
+      "meajudaai.modules.communications.infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "EFCore.NamingConventions": "[10.0.1, )",
+          "MeAjudaAi.Modules.Communications.Application": "[1.0.0, )",
+          "MeAjudaAi.Modules.Communications.Domain": "[1.0.0, )",
+          "MeAjudaAi.Shared": "[1.0.0, )"
         }
       },
       "meajudaai.modules.documents.api": {
