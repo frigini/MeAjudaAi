@@ -1,72 +1,51 @@
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
 namespace MeAjudaAi.ApiService.Middlewares;
 
 /// <summary>
-/// Middleware para adicionar cabeçalhos de segurança com impacto mínimo na performance
+/// Middleware para adicionar cabeçalhos de segurança (Hardening).
 /// </summary>
-public class SecurityHeadersMiddleware(RequestDelegate next, IWebHostEnvironment environment)
+public sealed class SecurityHeadersMiddleware(
+    RequestDelegate next, 
+    IWebHostEnvironment environment,
+    ILogger<SecurityHeadersMiddleware>? logger = null)
 {
-    private readonly RequestDelegate _next = next;
-    private readonly bool _isDevelopment = environment.IsDevelopment();
+    public async Task InvokeAsync(HttpContext context)
+    {
+        ArgumentNullException.ThrowIfNull(next);
+        ArgumentNullException.ThrowIfNull(environment);
 
-    // Valores de cabeçalho pré-computados para evitar concatenação de strings a cada requisição
-    private static readonly KeyValuePair<string, string>[] StaticHeaders =
-    [
-        new("X-Content-Type-Options", "nosniff"),
-        new("X-Frame-Options", "DENY"),
-        new("X-XSS-Protection", "1; mode=block"),
-        new("Referrer-Policy", "strict-origin-when-cross-origin"),
-        new("Permissions-Policy", "geolocation=(), microphone=(), camera=()"),
-        new("Content-Security-Policy",
+        logger?.LogTrace("Adding security headers to response.");
+        // Impede que o site seja emoldurado (clickjacking)
+        context.Response.Headers.Append("X-Frame-Options", "DENY");
+
+        // Impede que o navegador tente adivinhar o tipo de conteúdo (MIME sniffing)
+        context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+
+        // Controla quanta informação de referência é enviada
+        context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+
+        // Define quais recursos do navegador podem ser usados (Câmera, Microfone, etc.)
+        context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=(self)");
+
+        // Content Security Policy (CSP) - Configuração base restritiva para APIs
+        // Permite scripts e estilos apenas da mesma origem e de fontes confiáveis (se houver)
+        context.Response.Headers.Append("Content-Security-Policy", 
             "default-src 'self'; " +
             "script-src 'self' 'unsafe-inline'; " +
             "style-src 'self' 'unsafe-inline'; " +
-            "img-src 'self' data: https:; " +
+            "img-src 'self' data:; " +
             "font-src 'self'; " +
-            "connect-src 'self'; " +
-            "frame-ancestors 'none';")
-    ];
+            "connect-src 'self' https://*.Betenbough.com; " + // Permite chamadas para domínios Betenbough
+            "frame-ancestors 'none'; " +
+            "form-action 'self';");
 
-    private const string HstsHeaderName = "Strict-Transport-Security";
-    private const string HstsHeader = "max-age=31536000; includeSubDomains";
+        // Remove o cabeçalho que identifica a tecnologia do servidor
+        context.Response.Headers.Remove("X-Powered-By");
 
-    // Cabeçalhos para remover - usando array para iteração mais rápida
-    private static readonly string[] HeadersToRemove = ["Server", "X-Powered-By", "X-AspNet-Version"];
-
-    public Task InvokeAsync(HttpContext context)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-
-        context.Response.OnStarting(state =>
-        {
-            var ctx = (HttpContext)state;
-            var headers = ctx.Response.Headers;
-
-            // Adiciona cabeçalhos de segurança estáticos eficientemente
-#pragma warning disable S3267 // Loops should be simplified with "Where" LINQ method - avoiding LINQ allocations on hot path as requested
-            foreach (var header in StaticHeaders)
-            {
-                if (!headers.ContainsKey(header.Key))
-                {
-                    headers.Append(header.Key, header.Value);
-                }
-            }
-#pragma warning restore S3267
-
-            // HSTS apenas em produção e HTTPS - usando verificação de ambiente em cache
-            if (ctx.Request.IsHttps && !_isDevelopment && !headers.ContainsKey(HstsHeaderName))
-            {
-                headers.Append(HstsHeaderName, HstsHeader);
-            }
-
-            // Remove cabeçalhos de exposição de informações eficientemente
-            foreach (var headerName in HeadersToRemove)
-            {
-                headers.Remove(headerName);
-            }
-
-            return Task.CompletedTask;
-        }, context);
-
-        return _next(context);
+        await next(context);
     }
 }

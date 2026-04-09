@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using MeAjudaAi.ApiService.Handlers;
+using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.ApiService.Services.HostedServices;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
@@ -552,9 +553,39 @@ public static class SecurityExtensions
                     }));
 
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            // Política Global Dinâmica (IP vs Usuário Autenticado)
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+            {
+                var isAuthenticated = context.User.Identity?.IsAuthenticated == true;
+                var key = isAuthenticated 
+                    ? context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? context.Connection.RemoteIpAddress?.ToString() ?? context.Connection.Id
+                    : context.Connection.RemoteIpAddress?.ToString() ?? context.Connection.Id;
+
+                var permitLimit = isAuthenticated 
+                    ? configuration.GetValue("RateLimit:AuthenticatedRequestsPerMinute", 1000)
+                    : configuration.GetValue("RateLimit:DefaultRequestsPerMinute", 100);
+
+                return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
+                {
+                    AutoReplenishment = true,
+                    PermitLimit = permitLimit,
+                    QueueLimit = 0,
+                    Window = TimeSpan.FromMinutes(1)
+                });
+            });
         });
 
         return services;
+    }
+
+    /// <summary>
+    /// Ativa middlewares de endurecimento de segurança.
+    /// </summary>
+    public static IApplicationBuilder UseSecurityHardening(this IApplicationBuilder app)
+    {
+        app.UseMiddleware<SecurityHeadersMiddleware>();
+        return app;
     }
 
     /// <summary>
