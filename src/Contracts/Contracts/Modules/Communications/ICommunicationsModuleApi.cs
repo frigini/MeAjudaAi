@@ -2,18 +2,9 @@ using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Contracts.Modules.Communications.Queries;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Contracts.Shared;
 
 namespace MeAjudaAi.Contracts.Modules.Communications;
-
-/// <summary>
-/// Prioridade de entrega de uma comunicação.
-/// </summary>
-public enum CommunicationPriority
-{
-    Low = 0,
-    Normal = 1,
-    High = 2
-}
 
 /// <summary>
 /// API pública para o módulo de comunicações (E-mail, SMS, Push).
@@ -29,7 +20,7 @@ public interface ICommunicationsModuleApi : IModuleApi
     /// <returns>ID da mensagem no outbox</returns>
     Task<Result<Guid>> SendEmailAsync(
         EmailMessageDto email,
-        CommunicationPriority priority = CommunicationPriority.Normal,
+        ECommunicationPriority priority = ECommunicationPriority.Normal,
         CancellationToken ct = default);
 
     /// <summary>
@@ -43,17 +34,25 @@ public interface ICommunicationsModuleApi : IModuleApi
     /// Envia uma mensagem SMS (enfileira no outbox).
     /// </summary>
     /// <param name="sms">DTO com dados do SMS</param>
+    /// <param name="priority">Prioridade de envio</param>
     /// <param name="ct">Token de cancelamento</param>
     /// <returns>ID da mensagem no outbox</returns>
-    Task<Result<Guid>> SendSmsAsync(SmsMessageDto sms, CancellationToken ct = default);
+    Task<Result<Guid>> SendSmsAsync(
+        SmsMessageDto sms, 
+        ECommunicationPriority priority = ECommunicationPriority.Normal,
+        CancellationToken ct = default);
 
     /// <summary>
     /// Envia uma notificação push (enfileira no outbox).
     /// </summary>
     /// <param name="push">DTO com dados do push</param>
+    /// <param name="priority">Prioridade de envio</param>
     /// <param name="ct">Token de cancelamento</param>
     /// <returns>ID da mensagem no outbox</returns>
-    Task<Result<Guid>> SendPushAsync(PushMessageDto push, CancellationToken ct = default);
+    Task<Result<Guid>> SendPushAsync(
+        PushMessageDto push, 
+        ECommunicationPriority priority = ECommunicationPriority.Normal,
+        CancellationToken ct = default);
 
     /// <summary>
     /// Obtém logs de comunicação paginados com verificação de idempotência via Identificador de Correlação (CorrelationId).

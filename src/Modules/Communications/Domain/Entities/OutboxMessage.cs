@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Shared.Domain;
+using MeAjudaAi.Contracts.Shared;
 
 namespace MeAjudaAi.Modules.Communications.Domain.Entities;
 
@@ -157,7 +158,13 @@ public sealed class OutboxMessage : BaseEntity
         {
             Status = EOutboxMessageStatus.Failed;
         }
-        // Else: permanece Pending para nova tentativa pelo worker
+        else
+        {
+            // Reseta para Pending para permitir que seja capturada novamente pelo polling
+            Status = EOutboxMessageStatus.Pending;
+        }
+        
+        MarkAsUpdated();
     }
 
     /// <summary>

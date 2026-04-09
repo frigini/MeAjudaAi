@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Modules.Communications.Domain.Enums;
+namespace MeAjudaAi.Contracts.Shared;
 
 /// <summary>
 /// Prioridade de entrega de uma comunicação.

@@ -4,19 +4,23 @@ using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Integration.Tests.Mocks;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
+using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
+using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
+using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
+using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Modules.Documents.Tests;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
-using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Jobs;
 using MeAjudaAi.Shared.Serialization;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
+using MeAjudaAi.Shared.Events;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -50,13 +54,9 @@ public enum TestModule
 
 /// <summary>
 /// Classe base unificada para testes de integração com suporte a autenticação baseada em instância.
-/// Elimina condições de corrida e instabilidade causadas por estado estático.
-/// Cria containers individuais para máxima compatibilidade com CI.
-/// Aplica migrations apenas dos módulos necessários (especificados via RequiredModules).
 /// </summary>
 public abstract class BaseApiTest : IAsyncLifetime
 {
-    // Semáforo estático para sincronizar aplicação de migrations entre testes paralelos
     private static readonly SemaphoreSlim MigrationLock = new(1, 1);
     
     private SimpleDatabaseFixture? _databaseFixture;
@@ -68,41 +68,21 @@ public abstract class BaseApiTest : IAsyncLifetime
     protected ITestAuthenticationConfiguration AuthConfig { get; private set; } = null!;
     protected WireMockFixture WireMock => _wireMockFixture ?? throw new InvalidOperationException("WireMock not initialized");
 
-    /// <summary>
-    /// Especifica quais módulos este teste precisa (migrations serão aplicadas apenas para estes).
-    /// Override em classes derivadas para otimizar tempo de inicialização.
-    /// Default: All (comportamento legado para compatibilidade).
-    /// </summary>
     protected virtual TestModule RequiredModules => TestModule.All;
-
-    /// <summary>
-    /// HTTP header name for user location (format: "City|State")
-    /// </summary>
-    protected const string UserLocationHeader = "X-User-Location";
-
-    /// <summary>
-    /// API endpoint for providers listing
-    /// </summary>
-    protected const string ProvidersEndpoint = "/api/v1/providers";
-
-    /// <summary>
-    /// Controls whether to use mock geographic validation service.
-    /// Set to false in IBGE-focused tests to use real service with WireMock.
-    /// </summary>
     protected virtual bool UseMockGeographicValidation => true;
+
+    protected const string UserLocationHeader = "X-User-Location";
+    protected const string ProvidersEndpoint = "/api/v1/providers";
 
     public async ValueTask InitializeAsync()
     {
-        // Define variáveis de ambiente para testes
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
 
-        // Inicializa WireMock antes da aplicação para que as URLs mockadas estejam disponíveis
         _wireMockFixture = new WireMockFixture();
         await _wireMockFixture.StartAsync();
 
-        // Configure environment variables with dynamic WireMock URLs
         var wireMockUrl = _wireMockFixture.BaseUrl;
         Environment.SetEnvironmentVariable("Locations__ExternalApis__ViaCep__BaseUrl", wireMockUrl);
         Environment.SetEnvironmentVariable("Locations__ExternalApis__BrasilApi__BaseUrl", wireMockUrl);
@@ -113,68 +93,33 @@ public abstract class BaseApiTest : IAsyncLifetime
         _databaseFixture = new SimpleDatabaseFixture();
         await _databaseFixture.InitializeAsync();
 
-#pragma warning disable CA2000 // Dispose é gerenciado por IAsyncLifetime.DisposeAsync
+#pragma warning disable CA2000 
         _factory = new WebApplicationFactory<Program>()
 #pragma warning restore CA2000
             .WithWebHostBuilder(builder =>
             {
-                // Resolve ApiService content root using robust path resolution
                 var apiServicePath = ResolveApiServicePath();
-                if (!string.IsNullOrEmpty(apiServicePath))
-                {
-                    builder.UseContentRoot(apiServicePath);
-                }
-                else
-                {
-                    Console.Error.WriteLine("WARNING: Could not resolve ApiService content root path. Configuration files may not load correctly.");
-                }
+                if (!string.IsNullOrEmpty(apiServicePath)) builder.UseContentRoot(apiServicePath);
 
                 builder.UseEnvironment("Testing");
 
-                // Inject test configuration directly to ensure consistent behavior across environments
                 builder.ConfigureAppConfiguration((context, config) =>
                 {
                     config.AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         ["Logging:LogLevel:Default"] = "Warning",
-                        ["Logging:LogLevel:Microsoft.AspNetCore"] = "Warning",
-                        ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Warning",
-                        ["RateLimit:DefaultRequestsPerMinute"] = "10000",
-                        ["RateLimit:AuthRequestsPerMinute"] = "10000",
-                        ["RateLimit:ProviderRequestsPerMinute"] = "10000",
-                        ["RateLimit:SearchRequestsPerMinute"] = "10000",
-                        ["RateLimit:WindowInSeconds"] = "60",
-                        ["AdvancedRateLimit:General:Enabled"] = "false",
-                        ["Cache:Enabled"] = "false",
-                        ["Caching:Enabled"] = "false",
                         ["Postgres:ConnectionString"] = _databaseFixture.ConnectionString,
                         ["ConnectionStrings:DefaultConnection"] = _databaseFixture.ConnectionString,
                         ["RabbitMQ:Enabled"] = "false",
                         ["Messaging:Enabled"] = "false",
                         ["Messaging:Provider"] = "Mock",
                         ["Keycloak:Enabled"] = "false",
-                        ["Keycloak:ClientSecret"] = "test-secret",
-                        ["Keycloak:AdminUsername"] = "test-admin",
-                        ["Keycloak:AdminPassword"] = "test-password",
-                        ["FeatureManagement:GeographicRestriction"] = "true",
-                        ["FeatureManagement:PushNotifications"] = "false",
-                        ["FeatureManagement:StripePayments"] = "false",
-                        ["FeatureManagement:MaintenanceMode"] = "false",
-                        // Geographic restriction: Cities with states in "City|State" format
-                        // This ensures proper validation when both city and state headers are provided
-                        ["GeographicRestriction:AllowedStates:0"] = "MG",
-                        ["GeographicRestriction:AllowedStates:1"] = "ES",
-                        ["GeographicRestriction:AllowedStates:2"] = "RJ",
-                        ["GeographicRestriction:AllowedCities:0"] = "Muriaé|MG",
-                        ["GeographicRestriction:AllowedCities:1"] = "Itaperuna|RJ",
-                        ["GeographicRestriction:AllowedCities:2"] = "Linhares|ES",
-                        ["GeographicRestriction:BlockedMessage"] = "Serviço indisponível na sua região. Disponível apenas em: {allowedRegions}"
+                        ["FeatureManagement:GeographicRestriction"] = "true"
                     });
                 });
 
                 builder.ConfigureServices(services =>
                 {
-                    // Substitui banco de dados por container de teste - Remove todos os serviços relacionados ao DbContext
                     RemoveDbContextRegistrations<UsersDbContext>(services);
                     RemoveDbContextRegistrations<ProvidersDbContext>(services);
                     RemoveDbContextRegistrations<DocumentsDbContext>(services);
@@ -183,382 +128,157 @@ public abstract class BaseApiTest : IAsyncLifetime
                     RemoveDbContextRegistrations<SearchProvidersDbContext>(services);
                     RemoveDbContextRegistrations<CommunicationsDbContext>(services);
 
-                    // Reconfigure CEP provider HttpClients to use WireMock
                     ReconfigureCepProviderClients(services);
 
-                    // Adiciona contextos de banco de dados para testes
-                    services.AddDbContext<UsersDbContext>(options =>
-                    {
-                        options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
-                        {
-                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Users.Infrastructure");
-                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "users");
-                        });
-                        options.EnableSensitiveDataLogging();
-                        options.ConfigureWarnings(warnings =>
-                            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-                    });
+                    AddTestDbContext<UsersDbContext>(services, "users", "MeAjudaAi.Modules.Users.Infrastructure");
+                    AddTestDbContext<ProvidersDbContext>(services, "providers", "MeAjudaAi.Modules.Providers.Infrastructure");
+                    AddTestDbContext<DocumentsDbContext>(services, "documents", "MeAjudaAi.Modules.Documents.Infrastructure");
+                    AddTestDbContext<ServiceCatalogsDbContext>(services, "service_catalogs", "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure");
+                    AddTestDbContext<LocationsDbContext>(services, "locations", "MeAjudaAi.Modules.Locations.Infrastructure");
+                    AddTestDbContext<SearchProvidersDbContext>(services, "search_providers", "MeAjudaAi.Modules.SearchProviders.Infrastructure");
+                    AddTestDbContext<CommunicationsDbContext>(services, "communications", "MeAjudaAi.Modules.Communications.Infrastructure");
 
-                    services.AddDbContext<ProvidersDbContext>(options =>
-                    {
-                        options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
-                        {
-                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Providers.Infrastructure");
-                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "providers");
-                        });
-                        options.EnableSensitiveDataLogging();
-                        options.ConfigureWarnings(warnings =>
-                            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-                    });
-
-                    services.AddDbContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(options =>
-                    {
-                        options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
-                        {
-                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Documents.Infrastructure");
-                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "documents");
-                        });
-                        options.EnableSensitiveDataLogging();
-                        options.ConfigureWarnings(warnings =>
-                            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-                    });
-
-                    services.AddDbContext<ServiceCatalogsDbContext>(options =>
-                    {
-                        options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
-                        {
-                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.ServiceCatalogs.Infrastructure");
-                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "service_catalogs");
-                        });
-                        options.UseSnakeCaseNamingConvention();
-                        options.EnableSensitiveDataLogging();
-                        options.ConfigureWarnings(warnings =>
-                            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-                    });
-
-                    services.AddDbContext<LocationsDbContext>(options =>
-                    {
-                        options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
-                        {
-                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Locations.Infrastructure");
-                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "locations");
-                        });
-                        options.EnableSensitiveDataLogging();
-                        options.ConfigureWarnings(warnings =>
-                            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-                    });
-
-                    services.AddDbContext<SearchProvidersDbContext>(options =>
-                    {
-                        options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
-                        {
-                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.SearchProviders.Infrastructure");
-                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
-                        });
-                        options.EnableSensitiveDataLogging();
-                        options.ConfigureWarnings(warnings =>
-                            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-                    });
-
-                    services.AddDbContext<CommunicationsDbContext>(options =>
-                    {
-                        options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
-                        {
-                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Communications.Infrastructure");
-                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "communications");
-                        });
-                        options.EnableSensitiveDataLogging();
-                        options.ConfigureWarnings(warnings =>
-                            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-                    });
-
-                    // Adiciona mocks de serviços para testes
-                    // TODO: Investigar problema de SAS token do Azurite e migrar de Mock para emulador Azurite
-                    // Atualmente usando Mock porque Azurite retorna erros 500 em testes de upload (problema CanGenerateSasUri).
-                    // Ver issue de rastreamento: https://github.com/frigini/MeAjudaAi/issues/1
-                    // Passos de investigação: verificar logs Azurite, testar criação de container manualmente, validar compatibilidade Azurite 3.33.0 com SAS tokens
                     services.AddDocumentsTestServices(useAzurite: false);
-
-                    // Mock do BackgroundJobService para evitar execução de jobs em testes
                     services.AddSingleton<IBackgroundJobService, MockBackgroundJobService>();
-
-                    // Adiciona HttpContextAccessor necessário para alguns handlers
                     services.AddHttpContextAccessor();
 
-                    // Conditionally replace geographic validation with mock
-                    // IBGE-focused tests can override UseMockGeographicValidation to use real service with WireMock
                     if (UseMockGeographicValidation)
                     {
-                        // Remove ALL instances of IGeographicValidationService
-                        var geoValidationDescriptors = services
-                            .Where(d => d.ServiceType == typeof(IGeographicValidationService))
-                            .ToList();
-                        
-                        foreach (var descriptor in geoValidationDescriptors)
-                        {
-                            services.Remove(descriptor);
-                        }
-
-                        // Registra mock com cidades piloto padrão (Scoped para isolamento entre testes)
+                        var geoValidationDescriptors = services.Where(d => d.ServiceType == typeof(IGeographicValidationService)).ToList();
+                        foreach (var descriptor in geoValidationDescriptors) services.Remove(descriptor);
                         services.AddScoped<IGeographicValidationService, MockGeographicValidationService>();
                     }
 
-                    // Adiciona autenticação de teste baseada em instância para evitar estado estático
                     services.RemoveRealAuthentication();
                     services.AddInstanceTestAuthentication();
 
-                    // Remove ClaimsTransformation que causa travamentos nos testes
-                    var claimsTransformationDescriptor = services.FirstOrDefault(d =>
-                        d.ServiceType == typeof(IClaimsTransformation));
-                    if (claimsTransformationDescriptor != null)
-                        services.Remove(claimsTransformationDescriptor);
-                });
-
-                // Habilita logging detalhado para debug
-                builder.ConfigureLogging(logging =>
-                {
-                    logging.ClearProviders();
-                    logging.AddConsole();
-                    logging.SetMinimumLevel(LogLevel.Debug);
-                    logging.AddFilter("Microsoft.AspNetCore", LogLevel.Debug);
-                    logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Debug);
-                    logging.AddFilter("MeAjudaAi", LogLevel.Debug);
+                    var claimsTransformationDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IClaimsTransformation));
+                    if (claimsTransformationDescriptor != null) services.Remove(claimsTransformationDescriptor);
                 });
             });
 
         Client = _factory.CreateClient();
-
-        // Obtém a configuração de autenticação da instância do container DI
         AuthConfig = _factory.Services.GetRequiredService<ITestAuthenticationConfiguration>();
 
-        // Aplica migrações apenas dos módulos necessários (otimização de performance)
         using var scope = _factory.Services.CreateScope();
         var logger = scope.ServiceProvider.GetService<ILogger<BaseApiTest>>();
-
         await ApplyRequiredModuleMigrationsAsync(scope.ServiceProvider, logger);
     }
 
-    private static async Task SeedTestDataAsync(LocationsDbContext locationsContext, ILogger? logger)
+    private void AddTestDbContext<TContext>(IServiceCollection services, string schema, string assembly) where TContext : DbContext
     {
-        // Seed allowed cities for GeographicRestriction tests
-        // These match the cities configured in test configuration (lines 122-124)
-        var testCities = new[]
+        services.AddDbContext<TContext>(options =>
         {
-            new { IbgeCode = 3143906, CityName = "Muriaé", State = "MG" },
-            new { IbgeCode = 3302504, CityName = "Itaperuna", State = "RJ" },
-            new { IbgeCode = 3203205, CityName = "Linhares", State = "ES" }
-        };
-
-        var citiesToAdd = new List<MeAjudaAi.Modules.Locations.Domain.Entities.AllowedCity>();
-
-        foreach (var city in testCities)
-        {
-            // Check if city already exists to avoid duplicate key errors
-            var exists = await locationsContext.AllowedCities
-                .AnyAsync(c => c.CityName == city.CityName && c.StateSigla == city.State);
-            
-            if (!exists)
+            options.UseNpgsql(_databaseFixture!.ConnectionString, npgsqlOptions =>
             {
-                // Use EF Core entity instead of raw SQL to avoid case sensitivity issues
-                var allowedCity = new MeAjudaAi.Modules.Locations.Domain.Entities.AllowedCity(
-                    city.CityName,
-                    city.State,
-                    "system",
-                    city.IbgeCode);
-                
-                citiesToAdd.Add(allowedCity);
-            }
-            else
-            {
-                logger?.LogDebug("City {City}/{State} already exists, skipping", city.CityName, city.State);
-            }
-        }
-
-        if (citiesToAdd.Count > 0)
-        {
-            locationsContext.AllowedCities.AddRange(citiesToAdd);
-            await locationsContext.SaveChangesAsync();
-            logger?.LogInformation("✅ Seeded {Count} test cities", citiesToAdd.Count);
-        }
-
-        var totalCount = await locationsContext.AllowedCities.CountAsync();
-        logger?.LogInformation("Total cities in database: {Count}", totalCount);
+                npgsqlOptions.MigrationsAssembly(assembly);
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", schema);
+            });
+            options.EnableSensitiveDataLogging();
+            options.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        });
     }
 
-    /// <summary>
-    /// Aplica migrations apenas dos módulos especificados em RequiredModules.
-    /// Otimiza tempo de inicialização e evita race conditions ao aplicar apenas o necessário.
-    /// </summary>
     private async Task ApplyRequiredModuleMigrationsAsync(IServiceProvider serviceProvider, ILogger? logger)
     {
         var modules = RequiredModules;
-        
-        // Se nenhum módulo especificado, retorna sem fazer nada
-        if (modules == TestModule.None)
-        {
-            logger?.LogInformation("ℹ️ No modules required - skipping migrations");
-            return;
-        }
+        if (modules == TestModule.None) return;
 
-        // Implicit dependencies: satisfying cross-module database requirements
-        // 1. Providers module depends on ServiceCatalogs during migration (AddProviderProfileEnhancements)
-        if (modules.HasFlag(TestModule.Providers) && !modules.HasFlag(TestModule.ServiceCatalogs))
-        {
-            logger?.LogInformation("🔄 Adding implicit ServiceCatalogs dependency for Providers module");
-            modules |= TestModule.ServiceCatalogs;
-        }
-
-        // 2. SearchProviders depends on Providers and ServiceCatalogs for its read model
         if (modules.HasFlag(TestModule.SearchProviders))
         {
-            if (!modules.HasFlag(TestModule.Providers))
-            {
-                logger?.LogInformation("🔄 Adding implicit Providers dependency for SearchProviders module");
-                modules |= TestModule.Providers;
-            }
-            if (!modules.HasFlag(TestModule.ServiceCatalogs))
-            {
-                logger?.LogInformation("🔄 Adding implicit ServiceCatalogs dependency for SearchProviders module");
-                modules |= TestModule.ServiceCatalogs;
-            }
+            if (!modules.HasFlag(TestModule.Providers)) modules |= TestModule.Providers;
+            if (!modules.HasFlag(TestModule.ServiceCatalogs)) modules |= TestModule.ServiceCatalogs;
         }
 
-        logger?.LogInformation("🔄 Applying migrations for modules: {Modules}", modules);
-
-        // Usa semáforo para garantir que apenas um teste aplique migrations por vez
-        // Evita race conditions e erro "57P01: terminating connection due to administrator command"
         await MigrationLock.WaitAsync();
         try
         {
-            // Garante estado limpo do banco de dados apenas uma vez
-            DbContext anyContext;
-            if (modules.HasFlag(TestModule.Users))
-                anyContext = serviceProvider.GetRequiredService<UsersDbContext>();
-            else if (modules.HasFlag(TestModule.Documents))
-                anyContext = serviceProvider.GetRequiredService<DocumentsDbContext>();
-            else if (modules.HasFlag(TestModule.Providers))
-                anyContext = serviceProvider.GetRequiredService<ProvidersDbContext>();
-            else if (modules.HasFlag(TestModule.ServiceCatalogs))
-                anyContext = serviceProvider.GetRequiredService<ServiceCatalogsDbContext>();
-            else if (modules.HasFlag(TestModule.Locations))
-                anyContext = serviceProvider.GetRequiredService<LocationsDbContext>();
-            else if (modules.HasFlag(TestModule.Communications))
-                anyContext = serviceProvider.GetRequiredService<CommunicationsDbContext>();
-            else
-                anyContext = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
+            DbContext cleanContext;
+            if (modules.HasFlag(TestModule.SearchProviders)) cleanContext = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
+            else if (modules.HasFlag(TestModule.Locations)) cleanContext = serviceProvider.GetRequiredService<LocationsDbContext>();
+            else if (modules.HasFlag(TestModule.Users)) cleanContext = serviceProvider.GetRequiredService<UsersDbContext>();
+            else cleanContext = serviceProvider.GetRequiredService<CommunicationsDbContext>();
 
-            await EnsureCleanDatabaseAsync(anyContext, logger);
+            await EnsureCleanDatabaseAsync(cleanContext, logger);
 
-            // Aplica migrations dos módulos necessários
-            if (modules.HasFlag(TestModule.Users))
-            {
-                var context = serviceProvider.GetRequiredService<UsersDbContext>();
-                await ApplyMigrationForContextAsync(context, "Users", logger, "UsersDbContext");
-                await context.Database.CloseConnectionAsync();
-            }
-
-            if (modules.HasFlag(TestModule.ServiceCatalogs))
-            {
-                var context = serviceProvider.GetRequiredService<ServiceCatalogsDbContext>();
-                await ApplyMigrationForContextAsync(context, "ServiceCatalogs", logger, "ServiceCatalogsDbContext");
-                await context.Database.CloseConnectionAsync();
-            }
-
-            if (modules.HasFlag(TestModule.Providers))
-            {
-                var context = serviceProvider.GetRequiredService<ProvidersDbContext>();
-                await ApplyMigrationForContextAsync(context, "Providers", logger, "ProvidersDbContext");
-                await context.Database.CloseConnectionAsync();
-            }
-
-            if (modules.HasFlag(TestModule.Documents))
-            {
-                var context = serviceProvider.GetRequiredService<DocumentsDbContext>();
-                await ApplyMigrationForContextAsync(context, "Documents", logger, "DocumentsDbContext");
-                await context.Database.CloseConnectionAsync();
-            }
-
-            if (modules.HasFlag(TestModule.Locations))
-            {
-                var context = serviceProvider.GetRequiredService<LocationsDbContext>();
-                await ApplyMigrationForContextAsync(context, "Locations", logger, "LocationsDbContext");
-                
-                // Seed test data for allowed cities (required for GeographicRestriction tests)
-                // Must be called BEFORE CloseConnectionAsync to use the already-open connection
-                await SeedTestDataAsync(context, logger);
-                
-                await context.Database.CloseConnectionAsync();
-            }
-
-            if (modules.HasFlag(TestModule.Communications))
-            {
-                var context = serviceProvider.GetRequiredService<CommunicationsDbContext>();
-                await ApplyMigrationForContextAsync(context, "Communications", logger, "CommunicationsDbContext");
-                await context.Database.CloseConnectionAsync();
-            }
-
+            if (modules.HasFlag(TestModule.Users)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<UsersDbContext>(), "Users", logger);
+            if (modules.HasFlag(TestModule.ServiceCatalogs)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<ServiceCatalogsDbContext>(), "ServiceCatalogs", logger);
+            if (modules.HasFlag(TestModule.Providers)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<ProvidersDbContext>(), "Providers", logger);
+            if (modules.HasFlag(TestModule.Documents)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<DocumentsDbContext>(), "Documents", logger);
+            if (modules.HasFlag(TestModule.Locations)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<LocationsDbContext>(), "Locations", logger);
+            if (modules.HasFlag(TestModule.Communications)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<CommunicationsDbContext>(), "Communications", logger);
             if (modules.HasFlag(TestModule.SearchProviders))
             {
                 var context = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
-                
-                // Garante que a extensão PostGIS exista (necessária para tipos geométricos)
-                // Isso é necessário porque o EnsureDeletedAsync apaga o banco de dados e a extensão
-                // E precisamos dela antes das migrations do SearchProviders se elas usarem tipos geométricos
-                try 
-                {
-                   await context.Database.ExecuteSqlRawAsync("CREATE EXTENSION IF NOT EXISTS postgis;");
-                } 
-                catch (Npgsql.PostgresException ex)
-                {
-                   logger?.LogWarning(ex, "⚠️ Failed to explicitly create PostGIS extension. Migrations might fail if not included.");
-                }
-
-                await ApplyMigrationForContextAsync(context, "SearchProviders", logger, "SearchProvidersDbContext");
-                await context.Database.CloseConnectionAsync();
+                try { await context.Database.ExecuteSqlRawAsync("CREATE EXTENSION IF NOT EXISTS postgis;"); } catch { }
+                await ApplyMigrationForContextAsync(context, "SearchProviders", logger);
             }
 
-            logger?.LogInformation("✅ Migrations applied for required modules");
+            await SeedTestDataAsync(serviceProvider, logger);
+            logger?.LogInformation("✅ Migrations and Seeding applied successfully");
         }
-        finally
+        finally { MigrationLock.Release(); }
+    }
+
+    private async Task SeedTestDataAsync(IServiceProvider serviceProvider, ILogger? logger)
+    {
+        var modules = RequiredModules;
+
+        if (modules.HasFlag(TestModule.Locations) || modules.HasFlag(TestModule.SearchProviders))
         {
-            MigrationLock.Release();
+            var locationsContext = serviceProvider.GetRequiredService<LocationsDbContext>();
+            var testCities = new[]
+            {
+                new { IbgeCode = 3143906, CityName = "Muriaé", State = "MG" },
+                new { IbgeCode = 3302504, CityName = "Itaperuna", State = "RJ" },
+                new { IbgeCode = 3203205, CityName = "Linhares", State = "ES" }
+            };
+
+            foreach (var city in testCities)
+            {
+                if (!await locationsContext.AllowedCities.AnyAsync(c => c.CityName == city.CityName && c.StateSigla == city.State))
+                {
+                    locationsContext.AllowedCities.Add(new MeAjudaAi.Modules.Locations.Domain.Entities.AllowedCity(city.CityName, city.State, "system", city.IbgeCode));
+                }
+            }
+            await locationsContext.SaveChangesAsync();
+            await locationsContext.Database.CloseConnectionAsync();
+        }
+
+        if (modules.HasFlag(TestModule.SearchProviders))
+        {
+            var searchContext = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
+            if (!await searchContext.SearchableProviders.AnyAsync())
+            {
+                var providers = new List<SearchableProvider>
+                {
+                    MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider.Create(Guid.NewGuid(), "SP Close Provider", "sp-close", new GeoPoint(-23.5510, -46.6340), ESubscriptionTier.Gold),
+                    MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider.Create(Guid.NewGuid(), "SP Nearby Provider", "sp-nearby", new GeoPoint(-23.5800, -46.6000), ESubscriptionTier.Standard),
+                    MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider.Create(Guid.NewGuid(), "SP Far Provider", "sp-far", new GeoPoint(-23.4500, -46.5000), ESubscriptionTier.Free)
+                };
+                searchContext.SearchableProviders.AddRange(providers);
+                await searchContext.SaveChangesAsync();
+            }
+            await searchContext.Database.CloseConnectionAsync();
         }
     }
 
-    /// <summary>
-    /// Garante que o banco de dados está limpo antes de aplicar migrations.
-    /// </summary>
     private static async Task EnsureCleanDatabaseAsync(DbContext context, ILogger? logger)
     {
         const int maxRetries = 10;
-        var baseDelay = TimeSpan.FromSeconds(1);
-
         for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
-            try
-            {
-                await context.Database.EnsureDeletedAsync();
-                logger?.LogInformation("🧹 Database cleaned (attempt {Attempt})", attempt);
-                break;
-            }
-            catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P03") // database starting up
-            {
-                if (attempt == maxRetries)
-                {
-                    logger?.LogError(ex, "❌ PostgreSQL still initializing after {MaxRetries} attempts", maxRetries);
-                    throw new InvalidOperationException($"PostgreSQL not ready after {maxRetries} attempts", ex);
-                }
+            try { await context.Database.EnsureDeletedAsync(); break; }
+            catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P03") { if (attempt == maxRetries) throw; await Task.Delay(TimeSpan.FromSeconds(attempt)); }
+        }
+    }
 
-                var delay = baseDelay * attempt;
-                logger?.LogWarning("⚠️ PostgreSQL initializing... Attempt {Attempt}/{MaxRetries}. Waiting {Delay}s",
-                    attempt, maxRetries, delay.TotalSeconds);
-                await Task.Delay(delay);
-            }
-            catch (Exception ex)
-            {
-                logger?.LogError(ex, "❌ Failed to clean database: {Message}", ex.Message);
-                throw new InvalidOperationException("Failed to clean database before tests", ex);
-            }
+    private static async Task ApplyMigrationForContextAsync<TContext>(TContext context, string moduleName, ILogger? logger) where TContext : DbContext
+    {
+        for (int attempt = 1; attempt <= 3; attempt++)
+        {
+            try { await context.Database.MigrateAsync(); await context.Database.CloseConnectionAsync(); return; }
+            catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P01") { await Task.Delay(1000 * attempt); }
         }
     }
 
@@ -566,232 +286,61 @@ public abstract class BaseApiTest : IAsyncLifetime
     {
         Client?.Dispose();
         _factory?.Dispose();
-        if (_databaseFixture != null)
-            await _databaseFixture.DisposeAsync();
-        if (_wireMockFixture != null)
-            await _wireMockFixture.DisposeAsync();
+        if (_databaseFixture != null) await _databaseFixture.DisposeAsync();
+        if (_wireMockFixture != null) await _wireMockFixture.DisposeAsync();
     }
 
-    /// <summary>
-    /// Remove DbContextOptions e DbContext registrations do DI container.
-    /// </summary>
     private static void RemoveDbContextRegistrations<TContext>(IServiceCollection services) where TContext : DbContext
     {
         var optionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
-        if (optionsDescriptor != null)
-            services.Remove(optionsDescriptor);
-
+        if (optionsDescriptor != null) services.Remove(optionsDescriptor);
         var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TContext));
-        if (contextDescriptor != null)
-            services.Remove(contextDescriptor);
+        if (contextDescriptor != null) services.Remove(contextDescriptor);
     }
 
-    /// <summary>
-    /// Reconfigura os HttpClients dos provedores de CEP para usar o WireMock ao invés das APIs reais.
-    /// </summary>
     private void ReconfigureCepProviderClients(IServiceCollection services)
     {
-        // Configure HttpClients to point to WireMock
-        // AddHttpClient will replace existing registrations if called again
-        services.AddHttpClient<ViaCepClient>(client =>
-        {
-            client.BaseAddress = new Uri(_wireMockFixture!.BaseUrl);
-        });
-
-        services.AddHttpClient<BrasilApiCepClient>(client =>
-        {
-            client.BaseAddress = new Uri(_wireMockFixture!.BaseUrl);
-        });
-
-        services.AddHttpClient<OpenCepClient>(client =>
-        {
-            client.BaseAddress = new Uri(_wireMockFixture!.BaseUrl);
-        });
-
-        services.AddHttpClient<IbgeClient>(client =>
-        {
-            client.BaseAddress = new Uri(_wireMockFixture!.BaseUrl + "/api/v1/localidades/");
-        });
-
-        services.AddHttpClient<NominatimClient>(client =>
-        {
-            client.BaseAddress = new Uri(_wireMockFixture!.BaseUrl);
-        });
+        services.AddHttpClient<ViaCepClient>(c => c.BaseAddress = new Uri(_wireMockFixture!.BaseUrl));
+        services.AddHttpClient<BrasilApiCepClient>(c => c.BaseAddress = new Uri(_wireMockFixture!.BaseUrl));
+        services.AddHttpClient<OpenCepClient>(c => c.BaseAddress = new Uri(_wireMockFixture!.BaseUrl));
+        services.AddHttpClient<IbgeClient>(c => c.BaseAddress = new Uri(_wireMockFixture!.BaseUrl + "/api/v1/localidades/"));
+        services.AddHttpClient<NominatimClient>(c => c.BaseAddress = new Uri(_wireMockFixture!.BaseUrl));
     }
 
-    /// <summary>
-    /// Aplica migrações para um DbContext específico com tratamento de erros padronizado.
-    /// Inclui retry logic para erro "57P01" que ocorre quando PostgreSQL termina conexão
-    /// após instalar extensões (ex: PostGIS no SearchProviders).
-    /// </summary>
-    private static async Task ApplyMigrationForContextAsync<TContext>(
-        TContext context,
-        string moduleName,
-        ILogger? logger,
-        string? description = null) where TContext : DbContext
-    {
-        const int maxRetries = 3;
-        const int delayMs = 1000;
-
-        for (int attempt = 1; attempt <= maxRetries; attempt++)
-        {
-            try
-            {
-                var message = description != null
-                    ? $"🔄 Applying {moduleName} module migrations ({description})... (attempt {attempt}/{maxRetries})"
-                    : $"🔄 Applying {moduleName} module migrations... (attempt {attempt}/{maxRetries})";
-                logger?.LogInformation(message);
-
-                await context.Database.MigrateAsync();
-                logger?.LogInformation("✅ {Module} database migrations completed successfully", moduleName);
-                return; // Success
-            }
-            catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P01" && attempt < maxRetries)
-            {
-                // 57P01 = "terminating connection due to administrator command"
-                // Ocorre quando Postgres reinicia após instalar extensões (ex: PostGIS)
-                logger?.LogWarning(
-                    "⚠️ PostgreSQL connection terminated (57P01 - extension install). Retrying {Module} migrations... Attempt {Attempt}/{MaxRetries}",
-                    moduleName, attempt, maxRetries);
-                
-                // Aguarda antes de tentar novamente
-                await Task.Delay(delayMs * attempt); // Backoff progressivo
-            }
-            catch (Exception ex)
-            {
-                logger?.LogError(ex, "❌ Failed to apply {Module} migrations: {Message}", moduleName, ex.Message);
-                throw new InvalidOperationException($"Failed to apply {moduleName} database migrations", ex);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Deserializa resposta JSON usando as opções de serialização compartilhadas (com suporte a enums).
-    /// Detecta automaticamente se a resposta está envolvida em um Result&lt;T&gt; e a desembrulha se necessário.
-    /// </summary>
     protected async Task<T?> ReadJsonAsync<T>(HttpContent content)
     {
-        // Lê tudo como string para evitar problemas de seek em streams não-bufferizados
         var jsonString = await content.ReadAsStringAsync();
-
-        // Tenta deserializar como JsonElement primeiro para inspecionar a estrutura
         try 
         {
             var json = JsonSerializer.Deserialize<JsonElement>(jsonString, SerializationDefaults.Api);
-            
-            // Verifica se tem as propriedades de um Result
-            if (json.ValueKind == JsonValueKind.Object && 
-                json.TryGetProperty("isSuccess", out var isSuccessProp) && 
-                json.TryGetProperty("value", out var valueProp))
-            {
-                // É um Result wrapper - verifica se foi sucesso
-                if (isSuccessProp.ValueKind == JsonValueKind.True)
-                {
-                    // Se sucesso, desserializa o campo 'value'
-                    return JsonSerializer.Deserialize<T>(valueProp.GetRawText(), SerializationDefaults.Api);
-                }
-
-                // Se falha e T for JsonElement, retorna o objeto completo para inspeção
-                if (typeof(T) == typeof(JsonElement))
-                {
-                    return (T)(object)json;
-                }
-
-                return default;
-            }
-            
-            // Não é wrapper, deserializa direto
+            if (json.ValueKind == JsonValueKind.Object && json.TryGetProperty("isSuccess", out var s) && s.ValueKind == JsonValueKind.True && json.TryGetProperty("value", out var v))
+                return JsonSerializer.Deserialize<T>(v.GetRawText(), SerializationDefaults.Api);
             return JsonSerializer.Deserialize<T>(jsonString, SerializationDefaults.Api);
         }
-        catch (JsonException)
-        {
-            // Fallback para deserialização direta se a inspeção falhar (ex: string vazia ou inválida)
-            return JsonSerializer.Deserialize<T>(jsonString, SerializationDefaults.Api);
-        }
+        catch { return JsonSerializer.Deserialize<T>(jsonString, SerializationDefaults.Api); }
     }
 
-    /// <summary>
-    /// Helper para extrair dados da resposta, suportando tanto formato legado (data wrapper) quanto novo (Result with value)
-    /// </summary>
     protected static JsonElement GetResponseData(JsonElement response)
     {
-        // Handle array responses directly
-        if (response.ValueKind == JsonValueKind.Array)
-        {
-            return response;
-        }
-
-        // Only try to get properties if it's an object
+        if (response.ValueKind == JsonValueKind.Array) return response;
         if (response.ValueKind == JsonValueKind.Object)
         {
-            // Se a resposta tem uma propriedade 'value', retorna ela (mesmo que seja null)
-            if (response.TryGetProperty("value", out var valueElement))
-            {
-                return valueElement;
-            }
-
-            // Fallback para 'data' (legado)
-            if (response.TryGetProperty("data", out var dataElement))
-            {
-                return dataElement;
-            }
+            if (response.TryGetProperty("value", out var v)) return v;
+            if (response.TryGetProperty("data", out var d)) return d;
         }
-
-        // Return original response if nothing matched
         return response;
     }
 
-    /// <summary>
-    /// Resolves the ApiService project path using multiple strategies:
-    /// 1. Environment variable MEAJUDAAI_API_SERVICE_PATH (for CI override)
-    /// 2. Assembly location relative path resolution
-    /// 3. Search for .csproj file up the directory tree
-    /// </summary>
     private static string? ResolveApiServicePath()
     {
-        // Strategy 1: Check environment variable (CI override)
         var envPath = Environment.GetEnvironmentVariable("MEAJUDAAI_API_SERVICE_PATH");
-        if (!string.IsNullOrEmpty(envPath) && Directory.Exists(envPath))
-        {
-            Console.WriteLine($"Using ApiService path from environment variable: {envPath}");
-            return envPath;
-        }
-
-        // Strategy 2: Use base directory to compute relative path
+        if (!string.IsNullOrEmpty(envPath) && Directory.Exists(envPath)) return envPath;
         var assemblyDir = AppContext.BaseDirectory;
-
         if (!string.IsNullOrEmpty(assemblyDir))
         {
-            // From: tests/MeAjudaAi.Integration.Tests/bin/Debug/net10.0/
-            // To:   src/Bootstrapper/MeAjudaAi.ApiService/
             var candidatePath = Path.GetFullPath(Path.Combine(assemblyDir, "..", "..", "..", "..", "..", "src", "Bootstrapper", "MeAjudaAi.ApiService"));
-
-            if (Directory.Exists(candidatePath))
-            {
-                Console.WriteLine($"Resolved ApiService path from assembly location: {candidatePath}");
-                return candidatePath;
-            }
+            if (Directory.Exists(candidatePath)) return candidatePath;
         }
-
-        // Strategy 3: Search for .csproj file up the directory tree (fallback)
-        var currentDir = assemblyDir;
-        while (!string.IsNullOrEmpty(currentDir))
-        {
-            var projectFile = Path.Combine(currentDir, "src", "Bootstrapper", "MeAjudaAi.ApiService", "MeAjudaAi.ApiService.csproj");
-            if (File.Exists(projectFile))
-            {
-                var resolvedPath = Path.GetDirectoryName(projectFile);
-                Console.WriteLine($"Found ApiService path via directory search: {resolvedPath}");
-                return resolvedPath;
-            }
-
-            currentDir = Directory.GetParent(currentDir)?.FullName;
-        }
-
-        Console.Error.WriteLine("ERROR: Could not resolve ApiService path using any strategy.");
-        Console.Error.WriteLine($"Base directory: {assemblyDir}");
-        Console.Error.WriteLine($"Environment variable MEAJUDAAI_API_SERVICE_PATH: {envPath ?? "(not set)"}");
-
         return null;
     }
 }

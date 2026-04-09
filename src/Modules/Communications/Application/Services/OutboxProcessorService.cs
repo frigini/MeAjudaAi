@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Modules.Communications.Domain.Services;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Contracts.Shared;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -32,8 +33,6 @@ internal sealed class OutboxProcessorService(
     IPushSender pushSender,
     ILogger<OutboxProcessorService> logger) : IOutboxProcessorService
 {
-    private readonly ICommunicationLogRepository _logRepository = logRepository;
-
     public async Task<int> ProcessPendingMessagesAsync(
         int batchSize = 50,
         CancellationToken cancellationToken = default)
@@ -92,11 +91,11 @@ internal sealed class OutboxProcessorService(
                         outboxMessageId: message.Id,
                         templateKey: ExtractTemplateKey(message));
                     
-                    await _logRepository.AddAsync(log, cancellationToken);
+                    await logRepository.AddAsync(log, cancellationToken);
                     
                     // Persistência imediata para evitar duplicidade em caso de falha subsequente
                     await outboxRepository.SaveChangesAsync(cancellationToken);
-                    await _logRepository.SaveChangesAsync(cancellationToken);
+                    await logRepository.SaveChangesAsync(cancellationToken);
 
                     processed++;
                     logger.LogInformation("Outbox message {Id} ({Channel}) sent to {Recipient}.", 
@@ -117,8 +116,8 @@ internal sealed class OutboxProcessorService(
                             attemptCount: message.RetryCount,
                             outboxMessageId: message.Id,
                             templateKey: ExtractTemplateKey(message));
-                        await _logRepository.AddAsync(log, cancellationToken);
-                        await _logRepository.SaveChangesAsync(cancellationToken);
+                        await logRepository.AddAsync(log, cancellationToken);
+                        await logRepository.SaveChangesAsync(cancellationToken);
                     }
 
                     await outboxRepository.SaveChangesAsync(cancellationToken);
@@ -183,8 +182,11 @@ internal sealed class OutboxProcessorService(
         var email = JsonSerializer.Deserialize<EmailOutboxPayload>(message.Payload)
             ?? throw new InvalidOperationException("Invalid email payload.");
 
+        var htmlBody = email.HtmlBody ?? email.Body ?? string.Empty;
+        var textBody = email.TextBody ?? email.Body ?? string.Empty;
+
         return await emailSender.SendAsync(
-            new Domain.Services.EmailMessage(email.To, email.Subject, email.HtmlBody, email.TextBody, email.From),
+            new Domain.Services.EmailMessage(email.To, email.Subject, htmlBody, textBody, email.From),
             cancellationToken);
     }
 
@@ -209,7 +211,7 @@ internal sealed class OutboxProcessorService(
     }
 
     // Registros de payload (serializados no Outbox)
-    private sealed record EmailOutboxPayload(string To, string Subject, string HtmlBody, string TextBody, string? From = null, string? TemplateKey = null);
+    private sealed record EmailOutboxPayload(string To, string Subject, string? HtmlBody = null, string? TextBody = null, string? Body = null, string? From = null, string? TemplateKey = null);
     private sealed record SmsOutboxPayload(string PhoneNumber, string Body);
     private sealed record PushOutboxPayload(string DeviceToken, string Title, string Body, IDictionary<string, string>? Data = null);
 }

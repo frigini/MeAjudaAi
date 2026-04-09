@@ -3,6 +3,7 @@ using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Communications;
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Contracts.Modules.Communications.Queries;
+using MeAjudaAi.Contracts.Shared;
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
@@ -31,27 +32,18 @@ internal sealed class CommunicationsModuleApi(
 
     public async Task<Result<Guid>> SendEmailAsync(
         EmailMessageDto email,
-        CommunicationPriority priority = CommunicationPriority.Normal,
+        ECommunicationPriority priority = ECommunicationPriority.Normal,
         CancellationToken ct = default)
     {
-        if (email == null) return Result<Guid>.Failure(Error.BadRequest("Email message cannot be null."));
-        if (string.IsNullOrWhiteSpace(email.To)) return Result<Guid>.Failure(Error.BadRequest("Recipient email is required."));
-        if (string.IsNullOrWhiteSpace(email.Subject)) return Result<Guid>.Failure(Error.BadRequest("Email subject is required."));
-        if (string.IsNullOrWhiteSpace(email.Body)) return Result<Guid>.Failure(Error.BadRequest("Email body is required."));
+        if (email == null) return Result<Guid>.Failure(Error.BadRequest("A mensagem de e-mail não pode ser nula."));
+        if (string.IsNullOrWhiteSpace(email.To)) return Result<Guid>.Failure(Error.BadRequest("O e-mail do destinatário é obrigatório."));
+        if (string.IsNullOrWhiteSpace(email.Subject)) return Result<Guid>.Failure(Error.BadRequest("O assunto do e-mail é obrigatório."));
+        if (string.IsNullOrWhiteSpace(email.Body)) return Result<Guid>.Failure(Error.BadRequest("O corpo do e-mail é obrigatório."));
         
-        if (!Enum.IsDefined(typeof(CommunicationPriority), priority))
-            return Result<Guid>.Failure(Error.BadRequest("Invalid communication priority."));
+        if (!Enum.IsDefined(typeof(ECommunicationPriority), priority))
+            return Result<Guid>.Failure(Error.BadRequest("Prioridade de comunicação inválida."));
 
-        var payload = JsonSerializer.Serialize(email);
-        var message = OutboxMessage.Create(
-            ECommunicationChannel.Email,
-            payload,
-            MapPriority(priority));
-
-        await outboxRepository.AddAsync(message, ct);
-        await outboxRepository.SaveChangesAsync(ct);
-        
-        return Result<Guid>.Success(message.Id);
+        return await EnqueueOutboxAsync(ECommunicationChannel.Email, email, priority, ct);
     }
 
     public async Task<Result<IReadOnlyList<EmailTemplateDto>>> GetTemplatesAsync(CancellationToken ct = default)
@@ -70,50 +62,44 @@ internal sealed class CommunicationsModuleApi(
         return Result<IReadOnlyList<EmailTemplateDto>>.Success(dtos);
     }
 
-    public async Task<Result<Guid>> SendSmsAsync(SmsMessageDto sms, CancellationToken ct = default)
+    public async Task<Result<Guid>> SendSmsAsync(
+        SmsMessageDto sms, 
+        ECommunicationPriority priority = ECommunicationPriority.Normal,
+        CancellationToken ct = default)
     {
-        if (sms == null) return Result<Guid>.Failure(Error.BadRequest("SMS message cannot be null."));
-        if (string.IsNullOrWhiteSpace(sms.PhoneNumber)) return Result<Guid>.Failure(Error.BadRequest("Phone number is required."));
-        if (string.IsNullOrWhiteSpace(sms.Message)) return Result<Guid>.Failure(Error.BadRequest("SMS message body is required."));
+        if (sms == null) return Result<Guid>.Failure(Error.BadRequest("A mensagem SMS não pode ser nula."));
+        if (string.IsNullOrWhiteSpace(sms.PhoneNumber)) return Result<Guid>.Failure(Error.BadRequest("O número de telefone é obrigatório."));
+        if (string.IsNullOrWhiteSpace(sms.Message)) return Result<Guid>.Failure(Error.BadRequest("O corpo da mensagem SMS é obrigatório."));
 
-        var payload = JsonSerializer.Serialize(sms);
-        var message = OutboxMessage.Create(
-            ECommunicationChannel.Sms,
-            payload,
-            ECommunicationPriority.Normal);
+        if (!Enum.IsDefined(typeof(ECommunicationPriority), priority))
+            return Result<Guid>.Failure(Error.BadRequest("Prioridade de comunicação inválida."));
 
-        await outboxRepository.AddAsync(message, ct);
-        await outboxRepository.SaveChangesAsync(ct);
-
-        return Result<Guid>.Success(message.Id);
+        return await EnqueueOutboxAsync(ECommunicationChannel.Sms, sms, priority, ct);
     }
 
-    public async Task<Result<Guid>> SendPushAsync(PushMessageDto push, CancellationToken ct = default)
+    public async Task<Result<Guid>> SendPushAsync(
+        PushMessageDto push, 
+        ECommunicationPriority priority = ECommunicationPriority.Normal,
+        CancellationToken ct = default)
     {
-        if (push == null) return Result<Guid>.Failure(Error.BadRequest("Push notification cannot be null."));
-        if (string.IsNullOrWhiteSpace(push.DeviceToken)) return Result<Guid>.Failure(Error.BadRequest("Device token is required."));
-        if (string.IsNullOrWhiteSpace(push.Title)) return Result<Guid>.Failure(Error.BadRequest("Push title is required."));
-        if (string.IsNullOrWhiteSpace(push.Body)) return Result<Guid>.Failure(Error.BadRequest("Push body is required."));
+        if (push == null) return Result<Guid>.Failure(Error.BadRequest("A notificação push não pode ser nula."));
+        if (string.IsNullOrWhiteSpace(push.DeviceToken)) return Result<Guid>.Failure(Error.BadRequest("O token do dispositivo é obrigatório."));
+        if (string.IsNullOrWhiteSpace(push.Title)) return Result<Guid>.Failure(Error.BadRequest("O título do push é obrigatório."));
+        if (string.IsNullOrWhiteSpace(push.Body)) return Result<Guid>.Failure(Error.BadRequest("O corpo do push é obrigatório."));
 
-        var payload = JsonSerializer.Serialize(push);
-        var message = OutboxMessage.Create(
-            ECommunicationChannel.Push,
-            payload,
-            ECommunicationPriority.Normal);
+        if (!Enum.IsDefined(typeof(ECommunicationPriority), priority))
+            return Result<Guid>.Failure(Error.BadRequest("Prioridade de comunicação inválida."));
 
-        await outboxRepository.AddAsync(message, ct);
-        await outboxRepository.SaveChangesAsync(ct);
-
-        return Result<Guid>.Success(message.Id);
+        return await EnqueueOutboxAsync(ECommunicationChannel.Push, push, priority, ct);
     }
 
     public async Task<Result<PagedResult<CommunicationLogDto>>> GetLogsAsync(
         CommunicationLogQuery query,
         CancellationToken ct = default)
     {
-        if (query == null) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("Query cannot be null."));
-        if (query.PageNumber < 1) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("Page number must be at least 1."));
-        if (query.PageSize < 1 || query.PageSize > 100) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("Page size must be between 1 and 100."));
+        if (query == null) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("A consulta não pode ser nula."));
+        if (query.PageNumber < 1) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("O número da página deve ser pelo menos 1."));
+        if (query.PageSize < 1 || query.PageSize > 100) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("O tamanho da página deve estar entre 1 e 100."));
 
         var (items, totalCount) = await logRepository.SearchAsync(
             query.CorrelationId,
@@ -144,10 +130,21 @@ internal sealed class CommunicationsModuleApi(
         });
     }
 
-    private static ECommunicationPriority MapPriority(CommunicationPriority priority) => priority switch
+    private async Task<Result<Guid>> EnqueueOutboxAsync<TPayload>(
+        ECommunicationChannel channel, 
+        TPayload payload, 
+        ECommunicationPriority priority, 
+        CancellationToken ct)
     {
-        CommunicationPriority.Low => ECommunicationPriority.Low,
-        CommunicationPriority.High => ECommunicationPriority.High,
-        _ => ECommunicationPriority.Normal
-    };
+        var serializedPayload = JsonSerializer.Serialize(payload);
+        var message = OutboxMessage.Create(
+            channel,
+            serializedPayload,
+            priority);
+
+        await outboxRepository.AddAsync(message, ct);
+        await outboxRepository.SaveChangesAsync(ct);
+        
+        return Result<Guid>.Success(message.Id);
+    }
 }

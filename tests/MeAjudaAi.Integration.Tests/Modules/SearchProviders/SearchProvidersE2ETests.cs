@@ -14,7 +14,7 @@ public class SearchProvidersE2ETests : BaseApiTest
     [Fact]
     public async Task Search_ByServiceAndRadius_ShouldReturnNearbyProviders()
     {
-        // 1. Arrange: Coordinates for São Paulo center (where seeds are likely located)
+        // 1. Arrange: Coordenadas do centro de São Paulo (onde as sementes provavelmente estão localizadas)
         double lat = -23.5505; 
         double lon = -46.6333;
         double radius = 10.0;
@@ -23,10 +23,10 @@ public class SearchProvidersE2ETests : BaseApiTest
         var response = await Client.GetAsync($"/api/v1/search/providers?latitude={lat}&longitude={lon}&radiusInKm={radius}");
 
         // 3. Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.IsSuccessStatusCode.Should().BeTrue();
         var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>();
         result.Should().NotBeNull();
-        // result.Items.Should().NotBeEmpty(); // Depends on seed database content
+        result!.Items.Should().NotBeEmpty(); 
     }
 
     [Fact]
@@ -35,13 +35,13 @@ public class SearchProvidersE2ETests : BaseApiTest
         // Arrange
         double lat = -23.5505;
         double lon = -46.6333;
-        double tinyRadius = 0.1; // 100 meters
+        double tinyRadius = 0.1; // 100 metros
 
         // Act
         var response = await Client.GetAsync($"/api/v1/search/providers?latitude={lat}&longitude={lon}&radiusInKm={tinyRadius}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.IsSuccessStatusCode.Should().BeTrue();
         var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>();
         result.Should().NotBeNull();
         
@@ -63,15 +63,17 @@ public class SearchProvidersE2ETests : BaseApiTest
         var response = await Client.GetAsync($"/api/v1/search/providers?latitude={lat}&longitude={lon}&radiusInKm={radius}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.IsSuccessStatusCode.Should().BeTrue();
         var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>();
-        result!.Items.Should().BeInAscendingOrder(x => x.DistanceInKm);
+        result!.Items.Should().NotBeEmpty();
+        result.Items.Should().OnlyContain(x => x.DistanceInKm.HasValue);
+        result.Items.Should().BeInAscendingOrder(x => x.DistanceInKm);
     }
 
     [Fact]
     public async Task Search_WithNoResults_ShouldReturnEmptyPage()
     {
-        // Arrange: Antarctica coordinates (no providers expected)
+        // Arrange: Coordenadas da Antártida (nenhum prestador esperado)
         double lat = -90.0;
         double lon = 0.0;
         double radius = 1.0;
@@ -80,7 +82,7 @@ public class SearchProvidersE2ETests : BaseApiTest
         var response = await Client.GetAsync($"/api/v1/search/providers?latitude={lat}&longitude={lon}&radiusInKm={radius}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.IsSuccessStatusCode.Should().BeTrue();
         var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>();
         result!.Items.Should().BeEmpty();
         result.TotalItems.Should().Be(0);
@@ -99,7 +101,7 @@ public class SearchProvidersE2ETests : BaseApiTest
         var response = await Client.GetAsync($"/api/v1/search/providers?latitude={lat}&longitude={lon}&radiusInKm={radius}&page=1&pageSize={pageSize}");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.IsSuccessStatusCode.Should().BeTrue();
         var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>();
         result!.Items.Count.Should().BeLessThanOrEqualTo(pageSize);
         result.PageSize.Should().Be(pageSize);
@@ -119,7 +121,7 @@ public class SearchProvidersE2ETests : BaseApiTest
 
         // Assert
         stopwatch.Stop();
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        stopwatch.ElapsedMilliseconds.Should().BeLessThanOrEqualTo(1500, "Search performance should be under 1500ms in test environment");
+        response.IsSuccessStatusCode.Should().BeTrue();
+        stopwatch.ElapsedMilliseconds.Should().BeLessThanOrEqualTo(1500, "O desempenho da busca deve ser inferior a 1500ms em ambiente de teste");
     }
 }

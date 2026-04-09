@@ -45,13 +45,21 @@ public static class PiiMaskingHelper
     public static string MaskPhoneNumber(string? phoneNumber)
     {
         if (string.IsNullOrWhiteSpace(phoneNumber)) return "[EMPTY]";
-        if (phoneNumber.Length <= 4) return "****";
+        
+        var length = phoneNumber.Length;
+        if (length <= 4) return "****";
+        
+        if (length <= 8)
+        {
+            // Para números curtos, mostra apenas os últimos 2 dígitos
+            return new string('*', length - 2) + phoneNumber[^2..];
+        }
         
         return $"{phoneNumber[..5]}****{phoneNumber[^4..]}";
     }
 
     /// <summary>
-    /// Mascara um dado sensível genérico mantendo apenas o tamanho ou prefixo.
+    /// Retorna "[REDACTED]" se o dado não for nulo ou vazio, caso contrário retorna "[EMPTY]".
     /// </summary>
     public static string MaskSensitiveData(string? data)
     {
