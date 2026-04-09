@@ -17,36 +17,40 @@ internal sealed class OutboxMessageRepository(CommunicationsDbContext context) :
         DateTime utcNow,
         CancellationToken cancellationToken = default)
     {
-        // Usa transação para garantir atomicidade no claim (marcação como Processing)
-        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-        
-        try
-        {
-            var messages = await context.OutboxMessages
-                .Where(x => x.Status == EOutboxMessageStatus.Pending && (x.ScheduledAt == null || x.ScheduledAt <= utcNow))
-                .OrderByDescending(x => x.Priority)
-                .ThenBy(x => x.CreatedAt)
-                .Take(batchSize)
-                .ToListAsync(cancellationToken);
+        var strategy = context.Database.CreateExecutionStrategy();
 
-            if (messages.Count != 0)
+        return await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+            
+            try
             {
-                foreach (var message in messages)
+                var messages = await context.OutboxMessages
+                    .Where(x => x.Status == EOutboxMessageStatus.Pending && (x.ScheduledAt == null || x.ScheduledAt <= utcNow))
+                    .OrderByDescending(x => x.Priority)
+                    .ThenBy(x => x.CreatedAt)
+                    .Take(batchSize)
+                    .ToListAsync(cancellationToken);
+
+                if (messages.Count != 0)
                 {
-                    message.MarkAsProcessing();
+                    foreach (var message in messages)
+                    {
+                        message.MarkAsProcessing();
+                    }
+
+                    await context.SaveChangesAsync(cancellationToken);
                 }
 
-                await context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return messages;
             }
-
-            await transaction.CommitAsync(cancellationToken);
-            return messages;
-        }
-        catch
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
-        }
+            catch
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
+        });
     }
 
     public async Task<OutboxMessage?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
