@@ -188,6 +188,7 @@ public abstract class BaseApiTest : IAsyncLifetime
         {
             if (!modules.HasFlag(TestModule.Providers)) modules |= TestModule.Providers;
             if (!modules.HasFlag(TestModule.ServiceCatalogs)) modules |= TestModule.ServiceCatalogs;
+            if (!modules.HasFlag(TestModule.Locations)) modules |= TestModule.Locations;
         }
 
         await MigrationLock.WaitAsync();
@@ -275,11 +276,28 @@ public abstract class BaseApiTest : IAsyncLifetime
 
     private static async Task ApplyMigrationForContextAsync<TContext>(TContext context, string moduleName, ILogger? logger) where TContext : DbContext
     {
+        Exception? lastException = null;
         for (int attempt = 1; attempt <= 3; attempt++)
         {
-            try { await context.Database.MigrateAsync(); await context.Database.CloseConnectionAsync(); return; }
-            catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P01") { await Task.Delay(1000 * attempt); }
+            try 
+            { 
+                await context.Database.MigrateAsync(); 
+                await context.Database.CloseConnectionAsync(); 
+                return; 
+            }
+            catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P01") 
+            { 
+                lastException = ex;
+                await Task.Delay(1000 * attempt); 
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                logger?.LogError(ex, "❌ Failed to apply {Module} migrations on attempt {Attempt}", moduleName, attempt);
+            }
         }
+
+        throw new InvalidOperationException($"Failed to apply {moduleName} migrations after 3 attempts.", lastException);
     }
 
     public async ValueTask DisposeAsync()

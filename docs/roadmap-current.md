@@ -774,7 +774,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - [ ] **Estratégia de Cache**: Implementar cache HTTP para ativos estáticos
 
 #### 4. Registro e Monitoramento
-- [ ] **Registro do Frontend**: Integração com Application Insights (Blazor WASM)
+- [ ] **Registro do Frontend**: Integração com Application Insights (React + Next.js)
 - [ ] **Rastreamento de Erros**: Sentry ou similar para erros em produção
 - [ ] **Análises (Analytics)**: Google Analytics ou Plausible para rastreamento de uso
 - [ ] **Monitoramento de Desempenho**: Rastreamento de Web Vitals (LCP, FID, CLS)
@@ -796,10 +796,10 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 
 | Tipo | Escopo | Ferramentas |
 |------|--------|------------|
-| **Unitários** | Lógica de modelos, cálculo de tentativas (retries), mapeamento de DTOs | xUnit + FluentAssertions |
-| **Integrados** | Persistência do Outbox (PostgreSQL), Handlers de eventos | xUnit + Respawn + Docker |
-| **E2E** | Fluxo completo: Evento → Outbox → Envio simulado → Registro | Playwright + MSW |
-| **Arquiteturais** | Validar que módulos não acessam DB de outros, dependências de contratos | NetArchTest |
+| **Unitários** | Lógica de modelos, cálculo de tentativas (retries), mapeamento de DTOs | ✅ xUnit + FluentAssertions |
+| **Integrados** | Persistência do Outbox (PostgreSQL), Handlers de eventos | ✅ xUnit + Respawn + Docker |
+| **E2E** | Fluxo completo: Evento → Outbox → Envio simulado → Registro | ✅ Playwright + MSW |
+| **Arquiteturais** | Validar que módulos não acessam DB de outros, dependências de contratos | ✅ NetArchTest |
 
 ---
 
@@ -875,9 +875,9 @@ src/
 
 | Evento existente | Ação de Comunicação |
 |----------------|-------------------|
-| `UserRegisteredIntegrationEvent` | → Enviar e-mail de boas-vindas |
-| `ProviderAwaitingVerificationIntegrationEvent` | → Notificar administrador |
-| `ProviderVerificationStatusUpdatedIntegrationEvent` | → Notificar prestador |
+| `UserRegisteredIntegrationEvent` | ✅ Enviar e-mail de boas-vindas |
+| `ProviderAwaitingVerificationIntegrationEvent` | ✅ Notificar administrador |
+| `ProviderVerificationStatusUpdatedIntegrationEvent` | ✅ Notificar prestador |
 | `DocumentVerifiedIntegrationEvent` | → Notificar prestador |
 | `DocumentRejectedIntegrationEvent` | → Notificar prestador |
 
@@ -964,7 +964,6 @@ public class CommunicationLog
     public DateTime CreatedAt { get; }
     public string? ErrorMessage { get; }
 }
-```
 
 ---
 
@@ -978,9 +977,10 @@ Para garantir que as comunicações não sejam perdidas em caso de falha:
    ```
 
 **Melhorias Implementadas**:
-- **Nova tentativa automática**: Com recuo exponencial via Polly.
-- **Priorização**: Mensagens de alta prioridade (ex: Redefinição de Senha) furam a fila.
-- **Idempotência**: Verificação de `CorrelationId` no Registro antes do processamento.
+- ✅ **Nova tentativa automática**: Com recuo exponencial via Polly.
+- ✅ **Priorização**: Mensagens de alta prioridade (ex: Redefinição de Senha) furam a fila.
+- ✅ **Idempotência**: Verificação de `CorrelationId` no Registro antes do processamento.
+- ✅ **Recuperação**: Mecanismo para resetar mensagens travadas no estado Processing.
 
 ---
 
@@ -988,16 +988,16 @@ Para garantir que as comunicações não sejam perdidas em caso de falha:
 
 | Tarefa | Esforço | Dependência |
 |------|--------|-----------|
-| 1. Criar estrutura de projetos | 2h | - |
-| 2. Interfaces ICommunicationsModuleApi | 2h | - |
-| 3. Implementar OutboxMessage (Agendamento) | 5h | - |
-| 4. Implementar EmailTemplate (Sistema de sobreposição) | 3h | - |
-| 5. Implementar CommunicationLog (CorrelationId) | 2h | - |
-| 6. Implementar ModuleApi + Orquestrador | 6h | Itens 1-5 |
-| 7. Handlers de Canal de Stub (E-mail/Sms/Push) | 5h | - |
-| 8. Criar modelos básicos (.cshtml) | 3h | - |
-| 9. Handlers de evento (IntegrationEvents) | 4h | Eventos existentes |
-| 10. Configuração de DI + Políticas Polly | 3h | - |
+| ✅ 1. Criar estrutura de projetos | 2h | - |
+| ✅ 2. Interfaces ICommunicationsModuleApi | 2h | - |
+| ✅ 3. Implementar OutboxMessage (Agendamento) | 5h | - |
+| ✅ 4. Implementar EmailTemplate (Sistema de sobreposição) | 3h | - |
+| ✅ 5. Implementar CommunicationLog (CorrelationId) | 2h | - |
+| ✅ 6. Implementar ModuleApi + Orquestrador | 6h | Itens 1-5 |
+| ✅ 7. Handlers de Canal de Stub (E-mail/Sms/Push) | 5h | - |
+| ✅ 8. Criar modelos básicos (.cshtml) | 3h | - |
+| ✅ 9. Handlers de evento (IntegrationEvents) | 4h | Eventos existentes |
+| ✅ 10. Configuração de DI + Políticas Polly | 3h | - |
 | **Total** | **~35h (~5 dias)** | - |
 
 ---
@@ -1313,30 +1313,40 @@ public class ActivityHub : Hub
         await Clients.All.SendAsync("ReceiveActivity", activity);
     }
 }
+```
 
-// Componente Frontend
-@inject HubConnection HubConnection
+```typescript
+// Componente Frontend (React)
+import { useEffect, useState } from 'react';
+import * as signalR from '@microsoft/signalr';
 
-<MudTimeline>
-    @foreach (var activity in RecentActivities)
-    {
-        <MudTimelineItem Color="@GetActivityColor(activity.Type)">
-            <MudText>@activity.Description</MudText>
-            <MudText Typo="Typo.caption">@activity.Timestamp.ToRelativeTime()</MudText>
-        </MudTimelineItem>
-    }
-</MudTimeline>
+export function ActivityTimeline() {
+  const [activities, setActivities] = useState<ActivityDto[]>([]);
 
-@code {
-    protected override async Task OnInitializedAsync()
-    {
-        HubConnection.On<ActivityDto>("ReceiveActivity", activity =>
-        {
-            RecentActivities.Insert(0, activity);
-            StateHasChanged();
-        });
-        await HubConnection.StartAsync();
-    }
+  useEffect(() => {
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl("/hubs/activity")
+      .withAutomaticReconnect()
+      .build();
+
+    connection.on("ReceiveActivity", (activity: ActivityDto) => {
+      setActivities(prev => [activity, ...prev]);
+    });
+
+    connection.start();
+    return () => { connection.stop(); };
+  }, []);
+
+  return (
+    <Timeline>
+      {activities.map(activity => (
+        <TimelineItem key={activity.id} color={getActivityColor(activity.type)}>
+          <Typography>{activity.description}</Typography>
+          <Typography variant="caption">{formatRelative(activity.timestamp)}</Typography>
+        </TimelineItem>
+      ))}
+    </Timeline>
+  );
 }
 ```
 

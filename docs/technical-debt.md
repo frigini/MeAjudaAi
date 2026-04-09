@@ -35,21 +35,6 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 **Status**: ✅ `IRabbitMqInfrastructureManager` implementado.
 **Pendente**: Event handlers para comunicação entre novos módulos (SearchProviders, ServiceCatalogs).
 
-### 📧 Módulo de Comunicações - Stubs de Provedores
-
-**Severidade**: MÉDIA (funcionalidade real)  
-**Status**: 🔄 EM SPRINT 9 (Infraestrutura Base)
-
-**Descrição**: Os serviços de envio de Email, SMS e Push no módulo de comunicações foram implementados como **Stubs** (`EmailSenderStub`, `SmsSenderStub`, `PushSenderStub`).
-
-**Ações Necessárias**:
-- [ ] Substituir `EmailSenderStub` por integração real (ex: SendGrid, Azure ACS ou Mailgun).
-- [ ] Substituir `SmsSenderStub` por integração real (ex: Twilio ou AWS Pinpoint).
-- [ ] Substituir `PushSenderStub` por integração real (ex: Firebase Cloud Messaging).
-- [ ] Implementar gestão de segredos (API Keys) via Azure Key Vault / User Secrets.
-
-**Nota sobre PII**: Toda a lógica de anonimização de logs deve usar o `PiiMaskingHelper` do projeto Shared para garantir conformidade com LGPD/GDPR.
-
 ---
 
 ## 🔗 GitHub Issues - Débitos Técnicos Sincronizados

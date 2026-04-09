@@ -152,7 +152,6 @@ public sealed class OutboxMessage : BaseEntity
 
         RetryCount++;
         ErrorMessage = errorMessage;
-        MarkAsUpdated();
 
         if (RetryCount >= MaxRetries)
         {

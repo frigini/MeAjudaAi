@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using MeAjudaAi.Contracts.Shared;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -58,7 +59,7 @@ internal sealed class ProviderVerificationStatusUpdatedIntegrationEventHandler(
             await outboxRepository.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Verification status update notification enqueued for user {UserId} ({Email}, correlationId: {CorrelationId}).", 
-                integrationEvent.UserId, recipientEmail, correlationId);
+                integrationEvent.UserId, PiiMaskingHelper.MaskEmail(recipientEmail), correlationId);
         }
         catch (Exception ex) when (ex.Message.Contains("duplicate key") || ex.InnerException?.Message.Contains("duplicate key") == true)
         {
