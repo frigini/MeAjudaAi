@@ -679,7 +679,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
   - Implementar o tratamento adequado de atualização de token
   - Adicionar mecanismos de fallback
 
-### Cenário de Risco 3: Problemas de Desempenho do React
+### Cenário de Risco 2: Problemas de Desempenho do React
 
 - **Problema Potencial**: Tamanho do pacote do aplicativo > 5MB, carregamento lento não configurado corretamente
 - **Impacto**: Experiência do Usuário (UX) ruim, +2-3 dias de otimização
@@ -690,7 +690,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
   - Carregamento lento de componentes React
   - Otimizar imagens usando next/image e formatos responsivos
 
-### Cenário de Risco 4: Problemas Específicos da Plataforma MAUI Hybrid (REMOVIDO DO ESCOPO DO MVP)
+### Cenário de Risco 3: Problemas Específicos da Plataforma MAUI Hybrid (REMOVIDO DO ESCOPO DO MVP)
 
 > **⚠️ IMPORTANTE**: Este cenário de risco foi removido do escopo do MVP. Os Aplicativos Móveis foram adiados para a Fase 2 conforme nota acima.
 
@@ -701,7 +701,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
   - Implementar fallbacks para funcionalidades não suportadas
   - Testes em dispositivos reais (não apenas emuladores)
 
-### Cenário de Risco 5: Casos de Borda da Integração de API
+### Cenário de Risco 4: Casos de Borda da Integração de API
 
 - **Problema Potencial**: Casos de erro não cobertos (tempos limite, falhas de rede, atualizações simultâneas)
 - **Impacto**: +2-3 dias de endurecimento (hardening)

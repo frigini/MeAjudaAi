@@ -206,6 +206,7 @@ jobs:
 
       - name: Run Integration Tests
         id: integration-tests
+        if: always()
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true

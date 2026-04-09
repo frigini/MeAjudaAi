@@ -114,7 +114,9 @@ public abstract class BaseApiTest : IAsyncLifetime
                         ["Messaging:Enabled"] = "false",
                         ["Messaging:Provider"] = "Mock",
                         ["Keycloak:Enabled"] = "false",
-                        ["FeatureManagement:GeographicRestriction"] = "true"
+                        ["FeatureManagement:GeographicRestriction"] = "true",
+                        ["RateLimit:Enabled"] = "false",
+                        ["AdvancedRateLimit:General:Enabled"] = "false"
                     });
                 });
 
@@ -267,9 +269,9 @@ public abstract class BaseApiTest : IAsyncLifetime
             {
                 var providers = new List<SearchableProvider>
                 {
-                    MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider.Create(Guid.NewGuid(), "SP Close Provider", "sp-close", new GeoPoint(-23.5510, -46.6340), ESubscriptionTier.Gold),
-                    MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider.Create(Guid.NewGuid(), "SP Nearby Provider", "sp-nearby", new GeoPoint(-23.5800, -46.6000), ESubscriptionTier.Standard),
-                    MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider.Create(Guid.NewGuid(), "SP Far Provider", "sp-far", new GeoPoint(-23.4500, -46.5000), ESubscriptionTier.Free)
+                    MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider.Create(Guid.NewGuid(), "SP Close Provider", "sp-close", new GeoPoint(-23.5501, -46.6330), ESubscriptionTier.Gold), // ~50m from center (-23.5505, -46.6333)
+                    MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider.Create(Guid.NewGuid(), "SP Nearby Provider", "sp-nearby", new GeoPoint(-23.5550, -46.6400), ESubscriptionTier.Standard), // ~850m from center
+                    MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider.Create(Guid.NewGuid(), "SP Far Provider", "sp-far", new GeoPoint(-23.6000, -46.7000), ESubscriptionTier.Free) // ~8km from center
                 };
                 searchContext.SearchableProviders.AddRange(providers);
                 await searchContext.SaveChangesAsync();

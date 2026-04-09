@@ -1,7 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.ApiService.Middlewares;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Middlewares;
@@ -15,10 +15,10 @@ public class SecurityHeadersMiddlewareTests
     {
         // Arrange
         var mockNext = new Mock<RequestDelegate>();
-        var mockEnvironment = new Mock<IWebHostEnvironment>();
+        var mockLogger = new Mock<ILogger<SecurityHeadersMiddleware>>();
 
         // Act
-        var middleware = new SecurityHeadersMiddleware(mockNext.Object, mockEnvironment.Object);
+        var middleware = new SecurityHeadersMiddleware(mockNext.Object, mockLogger.Object);
 
         // Assert
         middleware.Should().NotBeNull();
@@ -29,22 +29,10 @@ public class SecurityHeadersMiddlewareTests
     {
         // Arrange
         RequestDelegate? next = null;
-        var mockEnvironment = new Mock<IWebHostEnvironment>();
-
-        // Act & Assert - The primary constructor may not throw, so we check if middleware works correctly
-        var middleware = new SecurityHeadersMiddleware(next!, mockEnvironment.Object);
-        middleware.Should().NotBeNull();
-    }
-
-    [Fact]
-    public void SecurityHeadersMiddleware_WithNullEnvironment_ShouldThrowArgumentNullException()
-    {
-        // Arrange
-        var mockNext = new Mock<RequestDelegate>();
-        IWebHostEnvironment? environment = null;
+        var mockLogger = new Mock<ILogger<SecurityHeadersMiddleware>>();
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new SecurityHeadersMiddleware(mockNext.Object, environment!));
+        Assert.Throws<ArgumentNullException>(() => new SecurityHeadersMiddleware(next!, mockLogger.Object));
     }
 
     [Fact]

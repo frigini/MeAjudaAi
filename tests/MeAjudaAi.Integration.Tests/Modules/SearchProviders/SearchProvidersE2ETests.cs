@@ -44,10 +44,15 @@ public class SearchProvidersE2ETests : BaseApiTest
         response.IsSuccessStatusCode.Should().BeTrue();
         var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>();
         result.Should().NotBeNull();
+        result!.Items.Should().NotBeEmpty("At least one provider should be within the tiny radius for this test to be valid");
         
-        foreach (var provider in result!.Items)
+        foreach (var provider in result.Items)
         {
-            provider.DistanceInKm.Should().BeLessThanOrEqualTo(tinyRadius);
+            provider.DistanceInKm.HasValue.Should().BeTrue("DistanceInKm should be calculated");
+            if (provider.DistanceInKm.HasValue)
+            {
+                provider.DistanceInKm.Value.Should().BeLessThanOrEqualTo(tinyRadius, $"Provider {provider.Name} should be within {tinyRadius}km");
+            }
         }
     }
 
@@ -101,13 +106,9 @@ public class SearchProvidersE2ETests : BaseApiTest
         var response = await Client.GetAsync($"/api/v1/search/providers?latitude={lat}&longitude={lon}&radiusInKm={radius}&page=1&pageSize={pageSize}");
 
         // Assert
-        if (!response.IsSuccessStatusCode)
-        {
-            var errorBody = await response.Content.ReadAsStringAsync();
-            throw new Exception($"Search request failed with status {response.StatusCode}. Body: {errorBody}");
-        }
+        var responseBody = await response.Content.ReadAsStringAsync();
+        response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
         
-        response.IsSuccessStatusCode.Should().BeTrue();
         var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>();
         result!.Items.Count.Should().BeLessThanOrEqualTo(pageSize);
         result.PageSize.Should().Be(pageSize);
@@ -127,7 +128,8 @@ public class SearchProvidersE2ETests : BaseApiTest
 
         // Assert
         stopwatch.Stop();
-        response.IsSuccessStatusCode.Should().BeTrue();
-        stopwatch.ElapsedMilliseconds.Should().BeLessThanOrEqualTo(30000, "O desempenho da busca deve ser inferior a 30 segundos em ambiente de teste (aquecimento)");
+        var responseBody = await response.Content.ReadAsStringAsync();
+        response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
+        stopwatch.ElapsedMilliseconds.Should().BeLessThanOrEqualTo(5000, $"A busca deve ser rápida (< 5s). Tempo: {stopwatch.ElapsedMilliseconds}ms");
     }
 }
