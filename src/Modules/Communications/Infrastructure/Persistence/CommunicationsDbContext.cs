@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,7 +33,7 @@ public sealed class CommunicationsDbContext : BaseDbContext
 
     protected override Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
     {
-        var domainEvents = ChangeTracker.Entries<IHasDomainEvents>()
+        var domainEvents = ChangeTracker.Entries<BaseEntity>()
             .Select(x => x.Entity)
             .SelectMany(x => x.DomainEvents)
             .ToList();
@@ -42,7 +43,7 @@ public sealed class CommunicationsDbContext : BaseDbContext
 
     protected override void ClearDomainEvents()
     {
-        var entities = ChangeTracker.Entries<IHasDomainEvents>()
+        var entities = ChangeTracker.Entries<BaseEntity>()
             .Select(x => x.Entity)
             .ToList();
 

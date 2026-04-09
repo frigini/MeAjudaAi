@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -13,28 +14,43 @@ namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 /// </summary>
 internal sealed class ProviderAwaitingVerificationIntegrationEventHandler(
     IOutboxMessageRepository outboxRepository,
+    IConfiguration configuration,
     ILogger<ProviderAwaitingVerificationIntegrationEventHandler> logger)
     : IEventHandler<ProviderAwaitingVerificationIntegrationEvent>
 {
     public async Task HandleAsync(ProviderAwaitingVerificationIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
     {
-        // No MVP, apenas simulamos o envio de um e-mail para o suporte/admin
+        var adminEmail = configuration["Communications:AdminEmail"] ?? "suporte@meajudaai.com.br";
+        var correlationId = $"admin_verification_alert:{integrationEvent.ProviderId}";
+
         var emailPayload = new
         {
-            To = "admin@meajudaai.com.br",
+            To = adminEmail,
             Subject = "Novo prestador aguardando verificação",
             Body = $"O prestador {integrationEvent.Name} (ID: {integrationEvent.ProviderId}) enviou documentos para análise.",
-            TemplateKey = "admin-provider-verification-alert"
+            TemplateKey = "admin-provider-verification-alert",
+            CorrelationId = correlationId
         };
 
         var message = OutboxMessage.Create(
             ECommunicationChannel.Email,
             JsonSerializer.Serialize(emailPayload),
-            ECommunicationPriority.Normal);
+            ECommunicationPriority.Normal,
+            correlationId: correlationId);
 
-        await outboxRepository.AddAsync(message, cancellationToken);
-        await outboxRepository.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await outboxRepository.AddAsync(message, cancellationToken);
+            await outboxRepository.SaveChangesAsync(cancellationToken);
 
-        logger.LogInformation("Admin notification enqueued for provider {ProviderId}.", integrationEvent.ProviderId);
+            logger.LogInformation("Admin notification enqueued for provider {ProviderId} (correlationId: {CorrelationId}).", 
+                integrationEvent.ProviderId, correlationId);
+        }
+        catch (Exception ex) when (ex.Message.Contains("duplicate key") || ex.InnerException?.Message.Contains("duplicate key") == true)
+        {
+            logger.LogInformation(
+                "Skipping admin notification for provider {ProviderId} — already enqueued (correlationId: {CorrelationId}).",
+                integrationEvent.ProviderId, correlationId);
+        }
     }
 }

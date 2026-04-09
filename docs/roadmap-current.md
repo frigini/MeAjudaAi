@@ -1007,7 +1007,7 @@ Para garantir que comunicações não sejam perdidas em caso de falha:
 ---
 
 **Follow-ups Pendentes**:
-- [ ] Definir provedores reais (SendGrid, Twilio, Firebase)
+- [ ] Definir provedores reais (SendGrid, Twilio, Firebase) → **Veja Débito Técnico em docs/technical-debt.md**
 - [ ] Admin UI para gestão dinâmica de templates
 - [ ] Suporte a anexos (Attachments) via Blob Storage URLs
 - [ ] Dashboard de métricas de entrega e conversão

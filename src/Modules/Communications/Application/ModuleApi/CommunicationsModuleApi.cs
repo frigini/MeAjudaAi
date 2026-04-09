@@ -34,10 +34,13 @@ internal sealed class CommunicationsModuleApi(
         CommunicationPriority priority = CommunicationPriority.Normal,
         CancellationToken ct = default)
     {
-        ArgumentNullException.ThrowIfNull(email);
-        ArgumentException.ThrowIfNullOrWhiteSpace(email.To);
-        ArgumentException.ThrowIfNullOrWhiteSpace(email.Subject);
-        ArgumentException.ThrowIfNullOrWhiteSpace(email.Body);
+        if (email == null) return Result<Guid>.Failure(Error.BadRequest("Email message cannot be null."));
+        if (string.IsNullOrWhiteSpace(email.To)) return Result<Guid>.Failure(Error.BadRequest("Recipient email is required."));
+        if (string.IsNullOrWhiteSpace(email.Subject)) return Result<Guid>.Failure(Error.BadRequest("Email subject is required."));
+        if (string.IsNullOrWhiteSpace(email.Body)) return Result<Guid>.Failure(Error.BadRequest("Email body is required."));
+        
+        if (!Enum.IsDefined(typeof(CommunicationPriority), priority))
+            return Result<Guid>.Failure(Error.BadRequest("Invalid communication priority."));
 
         var payload = JsonSerializer.Serialize(email);
         var message = OutboxMessage.Create(
@@ -69,9 +72,9 @@ internal sealed class CommunicationsModuleApi(
 
     public async Task<Result<Guid>> SendSmsAsync(SmsMessageDto sms, CancellationToken ct = default)
     {
-        ArgumentNullException.ThrowIfNull(sms);
-        ArgumentException.ThrowIfNullOrWhiteSpace(sms.PhoneNumber);
-        ArgumentException.ThrowIfNullOrWhiteSpace(sms.Message);
+        if (sms == null) return Result<Guid>.Failure(Error.BadRequest("SMS message cannot be null."));
+        if (string.IsNullOrWhiteSpace(sms.PhoneNumber)) return Result<Guid>.Failure(Error.BadRequest("Phone number is required."));
+        if (string.IsNullOrWhiteSpace(sms.Message)) return Result<Guid>.Failure(Error.BadRequest("SMS message body is required."));
 
         var payload = JsonSerializer.Serialize(sms);
         var message = OutboxMessage.Create(
@@ -87,10 +90,10 @@ internal sealed class CommunicationsModuleApi(
 
     public async Task<Result<Guid>> SendPushAsync(PushMessageDto push, CancellationToken ct = default)
     {
-        ArgumentNullException.ThrowIfNull(push);
-        ArgumentException.ThrowIfNullOrWhiteSpace(push.DeviceToken);
-        ArgumentException.ThrowIfNullOrWhiteSpace(push.Title);
-        ArgumentException.ThrowIfNullOrWhiteSpace(push.Body);
+        if (push == null) return Result<Guid>.Failure(Error.BadRequest("Push notification cannot be null."));
+        if (string.IsNullOrWhiteSpace(push.DeviceToken)) return Result<Guid>.Failure(Error.BadRequest("Device token is required."));
+        if (string.IsNullOrWhiteSpace(push.Title)) return Result<Guid>.Failure(Error.BadRequest("Push title is required."));
+        if (string.IsNullOrWhiteSpace(push.Body)) return Result<Guid>.Failure(Error.BadRequest("Push body is required."));
 
         var payload = JsonSerializer.Serialize(push);
         var message = OutboxMessage.Create(
@@ -108,6 +111,10 @@ internal sealed class CommunicationsModuleApi(
         CommunicationLogQuery query,
         CancellationToken ct = default)
     {
+        if (query == null) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("Query cannot be null."));
+        if (query.PageNumber < 1) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("Page number must be at least 1."));
+        if (query.PageSize < 1 || query.PageSize > 100) return Result<PagedResult<CommunicationLogDto>>.Failure(Error.BadRequest("Page size must be between 1 and 100."));
+
         var (items, totalCount) = await logRepository.SearchAsync(
             query.CorrelationId,
             query.Channel,

@@ -181,6 +181,7 @@ public abstract class BaseApiTest : IAsyncLifetime
                     RemoveDbContextRegistrations<ServiceCatalogsDbContext>(services);
                     RemoveDbContextRegistrations<LocationsDbContext>(services);
                     RemoveDbContextRegistrations<SearchProvidersDbContext>(services);
+                    RemoveDbContextRegistrations<CommunicationsDbContext>(services);
 
                     // Reconfigure CEP provider HttpClients to use WireMock
                     ReconfigureCepProviderClients(services);
@@ -253,6 +254,18 @@ public abstract class BaseApiTest : IAsyncLifetime
                         {
                             npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.SearchProviders.Infrastructure");
                             npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
+                        });
+                        options.EnableSensitiveDataLogging();
+                        options.ConfigureWarnings(warnings =>
+                            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+                    });
+
+                    services.AddDbContext<CommunicationsDbContext>(options =>
+                    {
+                        options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
+                        {
+                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Communications.Infrastructure");
+                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "communications");
                         });
                         options.EnableSensitiveDataLogging();
                         options.ConfigureWarnings(warnings =>

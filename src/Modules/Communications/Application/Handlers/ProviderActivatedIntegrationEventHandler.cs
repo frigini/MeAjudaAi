@@ -42,7 +42,9 @@ internal sealed class ProviderActivatedIntegrationEventHandler(
             Subject = "Seu cadastro foi aprovado!",
             HtmlBody = $"<h1>Olá, {integrationEvent.Name}!</h1><p>Seu cadastro foi aprovado. Você já pode receber solicitações de serviço.</p>",
             TextBody = $"Olá, {integrationEvent.Name}!\nSeu cadastro foi aprovado. Você já pode receber solicitações de serviço.",
-            From = (string?)null
+            From = (string?)null,
+            CorrelationId = correlationId,
+            TemplateKey = TemplateKey
         });
 
         var message = OutboxMessage.Create(
@@ -51,10 +53,20 @@ internal sealed class ProviderActivatedIntegrationEventHandler(
             priority: ECommunicationPriority.High,
             correlationId: correlationId);
 
-        await outboxRepository.AddAsync(message, cancellationToken);
+        try
+        {
+            await outboxRepository.AddAsync(message, cancellationToken);
+            await outboxRepository.SaveChangesAsync(cancellationToken);
 
-        logger.LogInformation(
-            "Provider activation email enqueued for provider {ProviderId} (outboxId: {OutboxId}).",
-            integrationEvent.ProviderId, message.Id);
+            logger.LogInformation(
+                "Provider activation email enqueued for provider {ProviderId} (outboxId: {OutboxId}, correlationId: {CorrelationId}).",
+                integrationEvent.ProviderId, message.Id, correlationId);
+        }
+        catch (Exception ex) when (ex.Message.Contains("duplicate key") || ex.InnerException?.Message.Contains("duplicate key") == true)
+        {
+            logger.LogInformation(
+                "Skipping provider activation email for {ProviderId} — already enqueued or sent (correlationId: {CorrelationId}).",
+                integrationEvent.ProviderId, correlationId);
+        }
     }
 }

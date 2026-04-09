@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Communications.Domain.Entities;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Modules.Communications.Domain.Services;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -54,11 +55,32 @@ internal sealed class OutboxProcessorService(
         {
             if (cancellationToken.IsCancellationRequested) break;
 
+            bool? dispatchSuccess = null;
+            string? errorMessage = null;
+
+            // 1. Despacho (Efeito Externo)
             try
             {
-                var success = await DispatchMessageAsync(message, cancellationToken);
+                dispatchSuccess = await DispatchMessageAsync(message, cancellationToken);
+                if (dispatchSuccess == false)
+                {
+                    errorMessage = "Dispatch service returned false.";
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+                logger.LogError(ex, "Error dispatching outbox message {Id} ({Channel}).", message.Id, message.Channel);
+            }
 
-                if (success)
+            // 2. Persistência do Resultado (Estado Local)
+            try
+            {
+                if (dispatchSuccess == true)
                 {
                     message.MarkAsSent(DateTime.UtcNow);
                     
@@ -72,14 +94,18 @@ internal sealed class OutboxProcessorService(
                     
                     await _logRepository.AddAsync(log, cancellationToken);
                     
+                    // Persistência imediata para evitar duplicidade em caso de falha subsequente
+                    await outboxRepository.SaveChangesAsync(cancellationToken);
+                    await _logRepository.SaveChangesAsync(cancellationToken);
+
                     processed++;
-                    logger.LogInformation("Outbox message {Id} ({Channel}) sent successfully.", message.Id, message.Channel);
+                    logger.LogInformation("Outbox message {Id} ({Channel}) sent to {Recipient}.", 
+                        message.Id, message.Channel, PiiMaskingHelper.MaskEmail(log.Recipient));
                 }
                 else
                 {
-                    message.MarkAsFailed("Dispatch returned false.");
-                    logger.LogWarning("Outbox message {Id} dispatch returned false. Retry {Retry}/{Max}.",
-                        message.Id, message.RetryCount, message.MaxRetries);
+                    // Falha no despacho ou retorno false
+                    message.MarkAsFailed(errorMessage ?? "Unknown dispatch failure.");
                     
                     if (!message.HasRetriesLeft)
                     {
@@ -87,45 +113,30 @@ internal sealed class OutboxProcessorService(
                             correlationId: message.CorrelationId ?? $"outbox:{message.Id}",
                             channel: message.Channel,
                             recipient: ExtractRecipient(message),
-                            errorMessage: "Dispatch returned false and retries exhausted.",
+                            errorMessage: errorMessage ?? "Max retries reached.",
                             attemptCount: message.RetryCount,
                             outboxMessageId: message.Id,
                             templateKey: ExtractTemplateKey(message));
                         await _logRepository.AddAsync(log, cancellationToken);
+                        await _logRepository.SaveChangesAsync(cancellationToken);
                     }
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                message.MarkAsFailed(ex.Message);
-                logger.LogError(ex, "Error processing outbox message {Id} ({Channel}).", message.Id, message.Channel);
 
-                if (!message.HasRetriesLeft)
-                {
-                    var log = CommunicationLog.CreateFailure(
-                        correlationId: message.CorrelationId ?? $"outbox:{message.Id}",
-                        channel: message.Channel,
-                        recipient: ExtractRecipient(message),
-                        errorMessage: ex.Message,
-                        attemptCount: message.RetryCount,
-                        outboxMessageId: message.Id,
-                        templateKey: ExtractTemplateKey(message));
-                    await _logRepository.AddAsync(log, cancellationToken);
+                    await outboxRepository.SaveChangesAsync(cancellationToken);
+                    logger.LogWarning("Outbox message {Id} dispatch failed. Retry {Retry}/{Max}.",
+                        message.Id, message.RetryCount, message.MaxRetries);
                 }
+            }
+            catch (Exception persistEx)
+            {
+                logger.LogCritical(persistEx, "CRITICAL: Failed to persist outbox state for message {Id}. This may cause duplicate delivery on next run.", message.Id);
+                // Se falhou a persistência, não tentamos marcar como falha novamente (evita loop infinito de erros)
             }
         }
-
-        await outboxRepository.SaveChangesAsync(cancellationToken);
-        await _logRepository.SaveChangesAsync(cancellationToken);
 
         return processed;
     }
 
-    private string ExtractTemplateKey(OutboxMessage message)
+    private string? ExtractTemplateKey(OutboxMessage message)
     {
         if (message.Channel != ECommunicationChannel.Email) return null;
         try
@@ -197,7 +208,7 @@ internal sealed class OutboxProcessorService(
             cancellationToken);
     }
 
-    // Payload records (serialized into Outbox)
+    // Registros de payload (serializados no Outbox)
     private sealed record EmailOutboxPayload(string To, string Subject, string HtmlBody, string TextBody, string? From = null, string? TemplateKey = null);
     private sealed record SmsOutboxPayload(string PhoneNumber, string Body);
     private sealed record PushOutboxPayload(string DeviceToken, string Title, string Body, IDictionary<string, string>? Data = null);

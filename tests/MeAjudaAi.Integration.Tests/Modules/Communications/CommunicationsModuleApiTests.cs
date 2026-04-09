@@ -51,4 +51,14 @@ public class CommunicationsModuleApiTests : BaseApiTest
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task GetTemplates_WithoutAuthentication_ShouldReturnUnauthorized()
+    {
+        // Act
+        var response = await Client.GetAsync("/api/v1/communications/templates");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
 }

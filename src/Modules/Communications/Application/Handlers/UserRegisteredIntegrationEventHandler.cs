@@ -40,7 +40,9 @@ internal sealed class UserRegisteredIntegrationEventHandler(
             Subject = "Bem-vindo ao MeAjudaAi!",
             HtmlBody = $"<h1>Olá, {integrationEvent.FirstName}!</h1><p>Seja bem-vindo(a) ao MeAjudaAi.</p>",
             TextBody = $"Olá, {integrationEvent.FirstName}!\nSeja bem-vindo(a) ao MeAjudaAi.",
-            From = (string?)null
+            From = (string?)null,
+            CorrelationId = correlationId,
+            TemplateKey = TemplateKey
         });
 
         var message = OutboxMessage.Create(
@@ -49,10 +51,20 @@ internal sealed class UserRegisteredIntegrationEventHandler(
             priority: ECommunicationPriority.Normal,
             correlationId: correlationId);
 
-        await outboxRepository.AddAsync(message, cancellationToken);
+        try
+        {
+            await outboxRepository.AddAsync(message, cancellationToken);
+            await outboxRepository.SaveChangesAsync(cancellationToken);
 
-        logger.LogInformation(
-            "Welcome email enqueued for user {UserId} (outboxId: {OutboxId}).",
-            integrationEvent.UserId, message.Id);
+            logger.LogInformation(
+                "Welcome email enqueued for user {UserId} (outboxId: {OutboxId}, correlationId: {CorrelationId}).",
+                integrationEvent.UserId, message.Id, correlationId);
+        }
+        catch (Exception ex) when (ex.Message.Contains("duplicate key") || ex.InnerException?.Message.Contains("duplicate key") == true)
+        {
+            logger.LogInformation(
+                "Skipping welcome email for user {UserId} — already enqueued or sent (correlationId: {CorrelationId}).",
+                integrationEvent.UserId, correlationId);
+        }
     }
 }
