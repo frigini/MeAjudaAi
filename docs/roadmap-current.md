@@ -656,7 +656,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 
 **Seguimentos Pendentes**:
 - [ ] **Gating de Diff OpenAPI**: Adicionar verificação de mudanças de quebra em CI (falhar PR se API mudar sem bump de versão)
-- [ ] **Módulo de Comunicações**: Implementar infraestrutura base (outbox pattern, modelos, handlers de evento)
+- [x] **Módulo de Comunicações**: ~~Implementar infraestrutura base (outbox pattern, modelos, handlers de evento)~~ ✅ Implementado (exceção BUFFER — infraestrutura entregue nesta sprint)
 
 ## 🎯 MVP Final Launch: 12 - 16 de Maio de 2026 🎯
 
@@ -884,11 +884,9 @@ src/
 ---
 
 **Interface ICommunicationsModuleApi (Atualizada)**:
-*Nota: Usar tipos de MeAjudaAi.Contracts.Shared*
+> **Nota**: `ECommunicationPriority` é proveniente de `MeAjudaAi.Shared.Contracts.Enums` (não redeclare o enum — use o tipo compartilhado).
 
 ```csharp
-public enum ECommunicationPriority { Low = 0, Normal = 1, High = 2 }
-
 public interface ICommunicationsModuleApi : IModuleApi
 {
     // E-mail

@@ -192,6 +192,11 @@ public abstract class BaseApiTest : IAsyncLifetime
             if (!modules.HasFlag(TestModule.Locations)) modules |= TestModule.Locations;
         }
 
+        if (modules.HasFlag(TestModule.Providers))
+        {
+            if (!modules.HasFlag(TestModule.ServiceCatalogs)) modules |= TestModule.ServiceCatalogs;
+        }
+
         await MigrationLock.WaitAsync();
         try
         {
@@ -295,12 +300,11 @@ public abstract class BaseApiTest : IAsyncLifetime
             catch (Exception ex)
             {
                 lastException = ex;
-                bool isTransient = ex is TimeoutException || 
-                                  ex is DbUpdateException || 
+                bool isTransient = ex is TimeoutException ||
                                   (ex is Npgsql.PostgresException pgEx && (pgEx.SqlState == "57P01" || pgEx.SqlState == "53300" || pgEx.SqlState == "08006"));
 
                 if (!isTransient || attempt == 3) break;
-                await Task.Delay(1000 * attempt); 
+                await Task.Delay(1000 * attempt);
             }
         }
         throw new InvalidOperationException($"Failed to apply {moduleName} migrations.", lastException);

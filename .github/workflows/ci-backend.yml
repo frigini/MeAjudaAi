@@ -165,7 +165,6 @@ jobs:
 
       - name: Run Unit Tests with Coverage
         id: unit-tests
-        continue-on-error: true
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
@@ -207,7 +206,6 @@ jobs:
 
       - name: Run Integration Tests
         id: integration-tests
-        continue-on-error: true
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true
@@ -226,9 +224,27 @@ jobs:
             --collect:"XPlat Code Coverage" \
             --results-directory ./coverage/integration \
             --settings ./coverlet.runsettings \
+            --blame-hang-timeout 5min \
             --verbosity normal
 
+      - name: Check test results
+        if: always()
+        run: |
+          if [[ "${{ steps.unit-tests.outcome }}" == "failure" ]]; then
+            echo "❌ Unit tests failed."
+            FAILED=true
+          fi
+          if [[ "${{ steps.integration-tests.outcome }}" == "failure" ]]; then
+            echo "❌ Integration tests failed."
+            FAILED=true
+          fi
+          if [[ "$FAILED" == "true" ]]; then
+            exit 1
+          fi
+          echo "✅ All tests passed."
+
       - name: Collect and aggregate coverage files
+        if: always()
         run: |
           mkdir -p ./coverage/aggregate
           # Use mapfile for robust array handling (avoids subshell issue with pipe|while)
@@ -249,11 +265,13 @@ jobs:
           fi
 
       - name: Configure DOTNET_ROOT for ReportGenerator
+        if: always()
         run: |
           DOTNET_PATH="$(which dotnet)"
           echo "DOTNET_ROOT=$(dirname "$(readlink -f "$DOTNET_PATH")")" >> $GITHUB_ENV
 
       - name: Generate aggregated coverage report
+        if: always()
         uses: danielpalme/ReportGenerator-GitHub-Action@5
         with:
           reports: "coverage/aggregate/**/*.cobertura.xml"

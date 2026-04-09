@@ -9,6 +9,7 @@ internal sealed class EmailTemplateRepository(CommunicationsDbContext context) :
     public async Task AddAsync(EmailTemplate template, CancellationToken cancellationToken = default)
     {
         await context.EmailTemplates.AddAsync(template, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<EmailTemplate?> GetActiveByKeyAsync(
@@ -50,7 +51,7 @@ internal sealed class EmailTemplateRepository(CommunicationsDbContext context) :
 
         if (template.IsSystemTemplate)
         {
-            throw new InvalidOperationException($"Cannot delete system template with ID {id}.");
+            throw new InvalidOperationException($"Não é possível excluir o template do sistema com ID {id}.");
         }
 
         context.EmailTemplates.Remove(template);
