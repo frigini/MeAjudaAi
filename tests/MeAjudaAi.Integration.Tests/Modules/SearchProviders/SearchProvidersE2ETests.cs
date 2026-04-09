@@ -101,6 +101,12 @@ public class SearchProvidersE2ETests : BaseApiTest
         var response = await Client.GetAsync($"/api/v1/search/providers?latitude={lat}&longitude={lon}&radiusInKm={radius}&page=1&pageSize={pageSize}");
 
         // Assert
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Search request failed with status {response.StatusCode}. Body: {errorBody}");
+        }
+        
         response.IsSuccessStatusCode.Should().BeTrue();
         var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>();
         result!.Items.Count.Should().BeLessThanOrEqualTo(pageSize);

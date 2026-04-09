@@ -184,6 +184,7 @@ public abstract class BaseApiTest : IAsyncLifetime
         var modules = RequiredModules;
         if (modules == TestModule.None) return;
 
+        // Implied dependencies
         if (modules.HasFlag(TestModule.SearchProviders))
         {
             if (!modules.HasFlag(TestModule.Providers)) modules |= TestModule.Providers;
@@ -194,20 +195,22 @@ public abstract class BaseApiTest : IAsyncLifetime
         await MigrationLock.WaitAsync();
         try
         {
+            // Use SearchProvidersDbContext as a proxy for cleanup if available, or any other
             DbContext cleanContext;
             if (modules.HasFlag(TestModule.SearchProviders)) cleanContext = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
-            else if (modules.HasFlag(TestModule.Locations)) cleanContext = serviceProvider.GetRequiredService<LocationsDbContext>();
             else if (modules.HasFlag(TestModule.Users)) cleanContext = serviceProvider.GetRequiredService<UsersDbContext>();
             else cleanContext = serviceProvider.GetRequiredService<CommunicationsDbContext>();
 
             await EnsureCleanDatabaseAsync(cleanContext, logger);
 
+            // Apply migrations in order
             if (modules.HasFlag(TestModule.Users)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<UsersDbContext>(), "Users", logger);
             if (modules.HasFlag(TestModule.ServiceCatalogs)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<ServiceCatalogsDbContext>(), "ServiceCatalogs", logger);
             if (modules.HasFlag(TestModule.Providers)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<ProvidersDbContext>(), "Providers", logger);
             if (modules.HasFlag(TestModule.Documents)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<DocumentsDbContext>(), "Documents", logger);
             if (modules.HasFlag(TestModule.Locations)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<LocationsDbContext>(), "Locations", logger);
             if (modules.HasFlag(TestModule.Communications)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<CommunicationsDbContext>(), "Communications", logger);
+            
             if (modules.HasFlag(TestModule.SearchProviders))
             {
                 var context = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
@@ -217,8 +220,7 @@ public abstract class BaseApiTest : IAsyncLifetime
                 } 
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "❌ Failed to explicitly create PostGIS extension. Migrations might fail if not included.");
-                    throw;
+                    logger?.LogError(ex, "❌ Failed to create PostGIS extension.");
                 }
                 await ApplyMigrationForContextAsync(context, "SearchProviders", logger);
             }
@@ -251,7 +253,6 @@ public abstract class BaseApiTest : IAsyncLifetime
                 }
             }
             await locationsContext.SaveChangesAsync();
-            await locationsContext.Database.CloseConnectionAsync();
         }
 
         if (modules.HasFlag(TestModule.SearchProviders))
@@ -268,7 +269,6 @@ public abstract class BaseApiTest : IAsyncLifetime
                 searchContext.SearchableProviders.AddRange(providers);
                 await searchContext.SaveChangesAsync();
             }
-            await searchContext.Database.CloseConnectionAsync();
         }
     }
 
@@ -290,30 +290,20 @@ public abstract class BaseApiTest : IAsyncLifetime
             try 
             { 
                 await context.Database.MigrateAsync(); 
-                await context.Database.CloseConnectionAsync(); 
                 return; 
             }
             catch (Exception ex)
             {
                 lastException = ex;
-                
-                // Verifica se é erro transiente
                 bool isTransient = ex is TimeoutException || 
                                   ex is DbUpdateException || 
                                   (ex is Npgsql.PostgresException pgEx && (pgEx.SqlState == "57P01" || pgEx.SqlState == "53300" || pgEx.SqlState == "08006"));
 
-                if (!isTransient || attempt == 3)
-                {
-                    logger?.LogError(ex, "❌ Final failure applying {Module} migrations on attempt {Attempt}", moduleName, attempt);
-                    break;
-                }
-
-                logger?.LogWarning(ex, "⚠️ Transient failure applying {Module} migrations on attempt {Attempt}. Retrying...", moduleName, attempt);
+                if (!isTransient || attempt == 3) break;
                 await Task.Delay(1000 * attempt); 
             }
         }
-
-        throw new InvalidOperationException($"Failed to apply {moduleName} migrations after 3 attempts.", lastException);
+        throw new InvalidOperationException($"Failed to apply {moduleName} migrations.", lastException);
     }
 
     public async ValueTask DisposeAsync()
