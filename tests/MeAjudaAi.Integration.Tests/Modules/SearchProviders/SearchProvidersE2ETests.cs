@@ -14,19 +14,21 @@ public class SearchProvidersE2ETests : BaseApiTest
     [Fact]
     public async Task Search_ByServiceAndRadius_ShouldReturnNearbyProviders()
     {
-        // 1. Arrange: Coordenadas do centro de São Paulo (onde as sementes provavelmente estão localizadas)
+        // 1. Arrange: Coordenadas do centro de São Paulo e o ID do serviço de teste
         double lat = -23.5505; 
         double lon = -46.6333;
         double radius = 10.0;
+        var serviceId = BaseApiTest.TestServiceId;
 
-        // 2. Act
-        var response = await Client.GetAsync($"/api/v1/search/providers?latitude={lat}&longitude={lon}&radiusInKm={radius}");
+        // 2. Act: Busca com filtro de serviço
+        var response = await Client.GetAsync($"/api/v1/search/providers?latitude={lat}&longitude={lon}&radiusInKm={radius}&serviceIds={serviceId}");
 
         // 3. Assert
         response.IsSuccessStatusCode.Should().BeTrue();
         var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>();
         result.Should().NotBeNull();
-        result!.Items.Should().NotBeEmpty(); 
+        result!.Items.Should().NotBeEmpty("At least one provider should match the service and radius filter");
+        result.Items.Should().OnlyContain(x => x.ServiceIds.Contains(serviceId), "All returned providers must offer the requested service");
     }
 
     [Fact]

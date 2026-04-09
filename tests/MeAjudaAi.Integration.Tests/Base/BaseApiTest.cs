@@ -73,6 +73,7 @@ public abstract class BaseApiTest : IAsyncLifetime
 
     protected const string UserLocationHeader = "X-User-Location";
     protected const string ProvidersEndpoint = "/api/v1/providers";
+    public static readonly Guid TestServiceId = Guid.Parse("d3b07384-d9a6-4475-bd61-1c3906d4e135");
 
     public async ValueTask InitializeAsync()
     {
@@ -176,7 +177,14 @@ public abstract class BaseApiTest : IAsyncLifetime
                 npgsqlOptions.MigrationsAssembly(assembly);
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", schema);
             });
-            options.EnableSensitiveDataLogging();
+            
+            // Only enable sensitive data logging when explicitly requested (e.g., local debugging)
+            // Never enable in CI to prevent logging sensitive information
+            if (Environment.GetEnvironmentVariable("ENABLE_SENSITIVE_LOGGING") == "true")
+            {
+                options.EnableSensitiveDataLogging();
+            }
+
             options.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
     }
@@ -221,14 +229,7 @@ public abstract class BaseApiTest : IAsyncLifetime
             if (modules.HasFlag(TestModule.SearchProviders))
             {
                 var context = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
-                try 
-                { 
-                    await context.Database.ExecuteSqlRawAsync("CREATE EXTENSION IF NOT EXISTS postgis;"); 
-                } 
-                catch (Exception ex)
-                {
-                    logger?.LogError(ex, "❌ Failed to create PostGIS extension.");
-                }
+                await context.Database.ExecuteSqlRawAsync("CREATE EXTENSION IF NOT EXISTS postgis;"); 
                 await ApplyMigrationForContextAsync(context, "SearchProviders", logger);
             }
 
@@ -267,9 +268,12 @@ public abstract class BaseApiTest : IAsyncLifetime
             var searchContext = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
             if (!await searchContext.SearchableProviders.AnyAsync())
             {
+                var closeProvider = MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider.Create(Guid.NewGuid(), "SP Close Provider", "sp-close", new GeoPoint(-23.5501, -46.6330), ESubscriptionTier.Gold);
+                closeProvider.UpdateServices(new[] { TestServiceId });
+
                 var providers = new List<SearchableProvider>
                 {
-                    MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider.Create(Guid.NewGuid(), "SP Close Provider", "sp-close", new GeoPoint(-23.5501, -46.6330), ESubscriptionTier.Gold), // ~50m from center (-23.5505, -46.6333)
+                    closeProvider, // ~50m from center (-23.5505, -46.6333) with TestServiceId
                     MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider.Create(Guid.NewGuid(), "SP Nearby Provider", "sp-nearby", new GeoPoint(-23.5550, -46.6400), ESubscriptionTier.Standard), // ~850m from center
                     MeAjudaAi.Modules.SearchProviders.Domain.Entities.SearchableProvider.Create(Guid.NewGuid(), "SP Far Provider", "sp-far", new GeoPoint(-23.6000, -46.7000), ESubscriptionTier.Free) // ~8km from center
                 };

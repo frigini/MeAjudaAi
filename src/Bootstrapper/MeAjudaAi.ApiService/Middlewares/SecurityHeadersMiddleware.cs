@@ -16,35 +16,36 @@ public sealed class SecurityHeadersMiddleware(
 
     public async Task InvokeAsync(HttpContext context)
     {
-        logger?.LogTrace("Adding security headers to response.");
-
-        // Adiciona headers apenas se não existirem (evita duplicidade com EnvironmentSpecificExtensions)
-        
-        // Impede que o site seja emoldurado (clickjacking)
-        if (!context.Response.Headers.ContainsKey("X-Frame-Options"))
+        context.Response.OnStarting((state) =>
         {
-            context.Response.Headers.Append("X-Frame-Options", "DENY");
-        }
+            var ctx = (HttpContext)state;
+            logger?.LogTrace("Adding security headers to response via OnStarting.");
 
-        // Impede que o navegador tente adivinhar o tipo de conteúdo (MIME sniffing)
-        if (!context.Response.Headers.ContainsKey("X-Content-Type-Options"))
-        {
-            context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
-        }
+            // Adiciona headers apenas se não existirem
+            
+            // Impede que o site seja emoldurado (clickjacking)
+            if (!ctx.Response.Headers.ContainsKey("X-Frame-Options"))
+            {
+                ctx.Response.Headers.Append("X-Frame-Options", "DENY");
+            }
 
-        // Controla quanta informação de referência é enviada
-        if (!context.Response.Headers.ContainsKey("Referrer-Policy"))
-        {
-            // Alinhado com o padrão de produção: strict-origin-when-cross-origin é um bom balanço
-            context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
-        }
+            // Impede que o navegador tente adivinhar o tipo de conteúdo (MIME sniffing)
+            if (!ctx.Response.Headers.ContainsKey("X-Content-Type-Options"))
+            {
+                ctx.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+            }
 
-        // Nota: Content-Security-Policy (CSP) é gerenciado pelo ContentSecurityPolicyMiddleware
-        // Nota: Permissions-Policy é gerenciado pelo ContentSecurityPolicyMiddleware (registrado antes deste middleware)
-        // para permitir configuração dinâmica e evitar conflitos.
+            // Controla quanta informação de referência é enviada
+            if (!ctx.Response.Headers.ContainsKey("Referrer-Policy"))
+            {
+                ctx.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+            }
 
-        // Remove o cabeçalho que identifica a tecnologia do servidor
-        context.Response.Headers.Remove("X-Powered-By");
+            // Remove o cabeçalho que identifica a tecnologia do servidor
+            ctx.Response.Headers.Remove("X-Powered-By");
+
+            return Task.CompletedTask;
+        }, context);
 
         await _next(context);
     }
