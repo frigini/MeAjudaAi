@@ -37,8 +37,8 @@ public class CommunicationsModuleApiTests : BaseApiTest
         var response = await Client.GetAsync("/api/v1/communications/templates");
 
         // Assert
+        var result = await ReadJsonAsync<IReadOnlyList<EmailTemplateDto>>(response.Content);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<IReadOnlyList<EmailTemplateDto>>();
         result.Should().NotBeNull();
     }
 

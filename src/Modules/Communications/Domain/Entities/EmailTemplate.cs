@@ -97,6 +97,11 @@ public sealed class EmailTemplate : BaseEntity
     /// </summary>
     public void UpdateContent(string subject, string htmlBody, string textBody)
     {
+        if (IsSystemTemplate)
+        {
+            throw new InvalidOperationException("Não é possível alterar o conteúdo de um template do sistema.");
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(subject);
         ArgumentException.ThrowIfNullOrWhiteSpace(htmlBody);
         ArgumentException.ThrowIfNullOrWhiteSpace(textBody);
@@ -113,6 +118,11 @@ public sealed class EmailTemplate : BaseEntity
     /// </summary>
     public void Deactivate()
     {
+        if (IsSystemTemplate)
+        {
+            throw new InvalidOperationException("Não é possível desativar um template do sistema.");
+        }
+
         IsActive = false;
         MarkAsUpdated();
     }

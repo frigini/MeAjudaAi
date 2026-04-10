@@ -19,15 +19,20 @@ internal sealed class EmailTemplateRepository(CommunicationsDbContext context) :
     {
         var templateKeyLower = templateKey.ToLowerInvariant();
 
-        // Tenta buscar primeiro por um override (correspondência exata), depois pelo padrão
-        var templates = await context.EmailTemplates
-            .Where(x => (x.TemplateKey == templateKeyLower || x.OverrideKey == templateKeyLower) 
-                        && x.Language == language 
-                        && x.IsActive)
-            .ToListAsync(cancellationToken);
+        // 1. Tenta buscar primeiro por um override exato (OverrideKey coincide com o solicitado)
+        var overrideTemplate = await context.EmailTemplates
+            .FirstOrDefaultAsync(x => x.OverrideKey == templateKeyLower 
+                                && x.Language == language 
+                                && x.IsActive, cancellationToken);
 
-        // Prioriza templates que tenham OverrideKey (ordenando decrescente pelo booleano)
-        return templates.OrderByDescending(x => x.OverrideKey != null).FirstOrDefault();
+        if (overrideTemplate != null) return overrideTemplate;
+
+        // 2. Se não houver override, busca pelo template base (TemplateKey coincide e OverrideKey é nulo)
+        return await context.EmailTemplates
+            .FirstOrDefaultAsync(x => x.TemplateKey == templateKeyLower 
+                                && x.OverrideKey == null
+                                && x.Language == language 
+                                && x.IsActive, cancellationToken);
     }
 
     public async Task<IReadOnlyList<EmailTemplate>> GetAllByKeyAsync(

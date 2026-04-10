@@ -5,12 +5,6 @@ namespace MeAjudaAi.Shared.Database;
 
 public abstract class BaseDbContext : DbContext
 {
-    static BaseDbContext()
-    {
-        // Correção global para compatibilidade DateTime UTC com PostgreSQL timestamp
-        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-    }
-
     private readonly IDomainEventProcessor? _domainEventProcessor;
 
     protected BaseDbContext(DbContextOptions options) : base(options)

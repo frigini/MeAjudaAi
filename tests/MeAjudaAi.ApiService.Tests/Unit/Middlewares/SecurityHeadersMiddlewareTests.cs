@@ -82,9 +82,9 @@ public class SecurityHeadersMiddlewareTests
         await setup.OnStartingCallback!(setup.CapturedState!);
 
         // Assert
-        setup.Context.Response.Headers.Should().ContainKey("X-Frame-Options").WhoseValue.Should().ContainSingle("DENY");
-        setup.Context.Response.Headers.Should().ContainKey("X-Content-Type-Options").WhoseValue.Should().ContainSingle("nosniff");
-        setup.Context.Response.Headers.Should().ContainKey("Referrer-Policy").WhoseValue.Should().ContainSingle("strict-origin-when-cross-origin");
+        setup.Headers.Should().ContainKey("X-Frame-Options").WhoseValue.Should().ContainSingle("DENY");
+        setup.Headers.Should().ContainKey("X-Content-Type-Options").WhoseValue.Should().ContainSingle("nosniff");
+        setup.Headers.Should().ContainKey("Referrer-Policy").WhoseValue.Should().ContainSingle("strict-origin-when-cross-origin");
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class SecurityHeadersMiddlewareTests
     {
         // Arrange
         var setup = SetupMiddlewareContext();
-        setup.Context.Response.Headers.Append("X-Powered-By", "ASP.NET");
+        setup.Headers.Append("X-Powered-By", "ASP.NET");
 
         // Act
         await _middleware.InvokeAsync(setup.MockContext.Object);
@@ -100,7 +100,7 @@ public class SecurityHeadersMiddlewareTests
         await setup.OnStartingCallback!(setup.CapturedState!);
 
         // Assert
-        setup.Context.Response.Headers.Should().NotContainKey("X-Powered-By");
+        setup.Headers.Should().NotContainKey("X-Powered-By");
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public class SecurityHeadersMiddlewareTests
     {
         // Arrange
         var setup = SetupMiddlewareContext();
-        setup.Context.Response.Headers.Append("X-Frame-Options", "SAMEORIGIN");
+        setup.Headers.Append("X-Frame-Options", "SAMEORIGIN");
 
         // Act
         await _middleware.InvokeAsync(setup.MockContext.Object);
@@ -116,42 +116,40 @@ public class SecurityHeadersMiddlewareTests
         await setup.OnStartingCallback!(setup.CapturedState!);
 
         // Assert
-        setup.Context.Response.Headers.Should().ContainKey("X-Frame-Options").WhoseValue.Should().ContainSingle("SAMEORIGIN");
+        setup.Headers.Should().ContainKey("X-Frame-Options").WhoseValue.Should().ContainSingle("SAMEORIGIN");
     }
 
     private MiddlewareTestSetup SetupMiddlewareContext()
     {
         var context = new DefaultHttpContext();
         var mockResponse = new Mock<HttpResponse>();
-        Func<object, Task>? onStartingCallback = null;
-        object? capturedState = null;
+        var mockContext = new Mock<HttpContext>();
 
-        mockResponse.Setup(r => r.Headers).Returns(context.Response.Headers);
+        // Shared header collection
+        var headers = new HeaderDictionary();
+        mockResponse.SetupGet(r => r.Headers).Returns(headers);
+        mockContext.SetupGet(c => c.Response).Returns(mockResponse.Object);
+
+        var setup = new MiddlewareTestSetup(mockContext, mockResponse, headers);
+
         mockResponse.Setup(r => r.OnStarting(It.IsAny<Func<object, Task>>(), It.IsAny<object>()))
             .Callback<Func<object, Task>, object>((cb, state) => 
             { 
-                onStartingCallback = cb; 
-                capturedState = state; 
+                setup.OnStartingCallback = cb; 
+                setup.CapturedState = state; 
             });
             
-        var mockContext = new Mock<HttpContext>();
-        mockContext.SetupGet(c => c.Response).Returns(mockResponse.Object);
-
-        return new MiddlewareTestSetup(context, mockContext, mockResponse)
-        {
-            OnStartingCallback = onStartingCallback,
-            CapturedState = capturedState
-        };
+        return setup;
     }
 
     private class MiddlewareTestSetup(
-        HttpContext context, 
         Mock<HttpContext> mockContext, 
-        Mock<HttpResponse> mockResponse)
+        Mock<HttpResponse> mockResponse,
+        IHeaderDictionary headers)
     {
-        public HttpContext Context { get; } = context;
         public Mock<HttpContext> MockContext { get; } = mockContext;
         public Mock<HttpResponse> MockResponse { get; } = mockResponse;
+        public IHeaderDictionary Headers { get; } = headers;
         public Func<object, Task>? OnStartingCallback { get; set; }
         public object? CapturedState { get; set; }
     }

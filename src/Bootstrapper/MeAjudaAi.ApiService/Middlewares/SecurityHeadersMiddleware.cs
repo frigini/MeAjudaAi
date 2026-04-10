@@ -14,13 +14,13 @@ public sealed class SecurityHeadersMiddleware(
 {
     private readonly RequestDelegate _next = next ?? throw new ArgumentNullException(nameof(next));
 
-    // Header Names
+    // Nomes dos Cabeçalhos
     private const string XFrameOptions = "X-Frame-Options";
     private const string XContentTypeOptions = "X-Content-Type-Options";
     private const string ReferrerPolicy = "Referrer-Policy";
     private const string XPoweredBy = "X-Powered-By";
 
-    // Header Values
+    // Valores dos Cabeçalhos
     private const string Deny = "DENY";
     private const string NoSniff = "nosniff";
     private const string StrictOriginWhenCrossOrigin = "strict-origin-when-cross-origin";
@@ -30,7 +30,7 @@ public sealed class SecurityHeadersMiddleware(
         context.Response.OnStarting((state) =>
         {
             var ctx = (HttpContext)state;
-            logger?.LogTrace("Adding security headers to response via OnStarting.");
+            logger?.LogTrace("Adicionando cabeçalhos de segurança à resposta via OnStarting.");
 
             // Adiciona headers apenas se não existirem
             
