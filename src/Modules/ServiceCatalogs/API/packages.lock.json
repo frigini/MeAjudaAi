@@ -385,6 +385,7 @@
           "AspNetCore.HealthChecks.Npgsql": "[9.0.0, )",
           "AspNetCore.HealthChecks.Redis": "[9.0.0, )",
           "Dapper": "[2.1.72, )",
+          "EFCore.NamingConventions": "[10.0.1, )",
           "FluentValidation": "[12.1.1, )",
           "FluentValidation.DependencyInjectionExtensions": "[12.1.1, )",
           "Hangfire.AspNetCore": "[1.8.23, )",

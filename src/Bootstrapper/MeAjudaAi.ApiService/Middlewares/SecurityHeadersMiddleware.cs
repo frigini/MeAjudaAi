@@ -30,7 +30,7 @@ public sealed class SecurityHeadersMiddleware(
         context.Response.OnStarting((state) =>
         {
             var ctx = (HttpContext)state;
-            logger?.LogTrace("Adicionando cabeçalhos de segurança à resposta via OnStarting.");
+            logger?.LogTrace("Adding security headers to response via OnStarting.");
 
             // Adiciona headers apenas se não existirem
             

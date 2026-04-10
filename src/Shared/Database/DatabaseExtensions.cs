@@ -67,12 +67,18 @@ public static class DatabaseExtensions
     }
 
     /// <summary>
-    /// Adiciona DbContext configurado com PostgreSQL
+    /// Adiciona DbContext configurado com PostgreSQL e permite configuração adicional.
     /// </summary>
-    public static IServiceCollection AddPostgresContext<TContext>(this IServiceCollection services)
+    public static IServiceCollection AddPostgresContext<TContext>(
+        this IServiceCollection services,
+        Action<DbContextOptionsBuilder>? optionsAction = null)
         where TContext : DbContext
     {
-        services.AddDbContext<TContext>(ConfigureWithPostgresOptions);
+        services.AddDbContext<TContext>((serviceProvider, options) =>
+        {
+            ConfigureWithPostgresOptions(serviceProvider, options);
+            optionsAction?.Invoke(options);
+        });
         return services;
     }
 

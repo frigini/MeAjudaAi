@@ -39,7 +39,7 @@ internal sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<Outb
 
         builder.HasIndex(x => x.CorrelationId)
             .IsUnique()
-            .HasFilter("\"CorrelationId\" IS NOT Null");
+            .HasFilter("\"correlation_id\" IS NOT Null");
 
         builder.HasIndex(x => new { x.Status, x.ScheduledAt, x.Priority, x.CreatedAt });
     }

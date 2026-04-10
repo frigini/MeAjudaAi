@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using EFCore.NamingConventions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
@@ -140,6 +141,8 @@ public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbCo
 
         // Permite que classes derivadas configurem opções adicionais
         ConfigureAdditionalOptions(optionsBuilder);
+
+        optionsBuilder.UseSnakeCaseNamingConvention();
 
         return CreateDbContextInstance(optionsBuilder.Options);
     }

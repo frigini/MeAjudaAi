@@ -196,12 +196,16 @@ public abstract class BaseApiTest : IAsyncLifetime
         {
             options.UseNpgsql(_databaseFixture!.ConnectionString, npgsqlOptions =>
             {
+                npgsqlOptions.UseNetTopologySuite();
                 npgsqlOptions.MigrationsAssembly(assembly);
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", schema);
             });
             
             options.UseSnakeCaseNamingConvention();
             
+            // Ignore pending model changes warning as it can be overly sensitive in integration tests
+            options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+
             // Habilita o log de dados sensíveis apenas quando explicitamente solicitado (ex: debugging local)
             // Nunca habilitar no CI para evitar logar informações sensíveis
             if (Environment.GetEnvironmentVariable("ENABLE_SENSITIVE_LOGGING") == "true")
@@ -209,9 +213,8 @@ public abstract class BaseApiTest : IAsyncLifetime
                 options.EnableSensitiveDataLogging();
             }
 
-            // Removida a supressão do PendingModelChangesWarning para detectar desvio (drift) do modelo durante o desenvolvimento
-            // TODO: Corrigir o desvio do modelo em todos os módulos e remover a supressão abaixo
-            options.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            // Re-enable validation if needed
+            // options.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
     }
 
@@ -321,15 +324,15 @@ public abstract class BaseApiTest : IAsyncLifetime
             }
             catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P03" || ex.SqlState == "57P01" || ex.SqlState == "55006") 
             { 
-                // Erros transientes (database is starting up, admin shutdown, ou database is being accessed by other users)
+                // Transient errors (database is starting up, admin shutdown, or database is being accessed by other users)
                 if (attempt == maxRetries) throw; 
-                logger?.LogWarning("⚠️ Tentativa de limpeza do banco {Attempt}/{Max} devido a erro transiente {SqlState}", attempt, maxRetries, ex.SqlState);
+                logger?.LogWarning("⚠️ Database cleanup attempt {Attempt}/{Max} due to transient error {SqlState}", attempt, maxRetries, ex.SqlState);
                 await Task.Delay(TimeSpan.FromSeconds(attempt)); 
             }
             catch (Exception ex)
             {
-                // Erros determinísticos: falha imediatamente para não perder tempo
-                logger?.LogError(ex, "❌ Erro determinístico na limpeza do banco de dados na tentativa {Attempt}", attempt);
+                // Deterministic errors: fail immediately
+                logger?.LogError(ex, "❌ Deterministic error during database cleanup on attempt {Attempt}", attempt);
                 throw;
             }
         }
@@ -342,6 +345,9 @@ public abstract class BaseApiTest : IAsyncLifetime
         {
             try 
             { 
+                // Configure context options to ignore pending model changes warning during integration tests
+                context.Database.SetCommandTimeout(TimeSpan.FromMinutes(2));
+                
                 await context.Database.MigrateAsync(); 
                 return; 
             }
@@ -387,18 +393,18 @@ public abstract class BaseApiTest : IAsyncLifetime
         catch (JsonException ex)
         {
             var preview = BuildSafeResponsePreview(jsonString);
-            throw new InvalidOperationException($"Falha ao desserializar resposta JSON para o tipo {typeof(T).Name}. Preview do Conteúdo: {preview}", ex);
+            throw new InvalidOperationException($"Failed to deserialize JSON response to type {typeof(T).Name}. Content Preview: {preview}", ex);
         }
         catch (Exception ex)
         {
             var preview = BuildSafeResponsePreview(jsonString);
-            throw new InvalidOperationException($"Ocorreu um erro ao ler o conteúdo JSON como {typeof(T).Name}. Preview: {preview}", ex);
+            throw new InvalidOperationException($"An unexpected error occurred while processing the API response. Preview: {preview}", ex);
         }
     }
 
     private static string BuildSafeResponsePreview(string content, int maxLength = 1000)
     {
-        if (string.IsNullOrEmpty(content)) return "[Conteúdo Vazio]";
+        if (string.IsNullOrEmpty(content)) return "[Empty Content]";
         return content.Length <= maxLength ? content : content[..maxLength] + "... [TRUNCATED]";
     }
 

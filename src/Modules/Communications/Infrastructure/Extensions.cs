@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Communications.Infrastructure.Services;
 using MeAjudaAi.Shared.Database;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,7 +15,10 @@ public static class Extensions
     public static IServiceCollection AddCommunicationsInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         // Persistence
-        services.AddPostgresContext<CommunicationsDbContext>();
+        services.AddPostgresContext<CommunicationsDbContext>(builder => 
+        {
+            builder.UseSnakeCaseNamingConvention();
+        });
 
         // Repositories
         services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();

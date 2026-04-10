@@ -61,7 +61,7 @@ internal sealed class EmailTemplateRepository(CommunicationsDbContext context) :
 
         if (template.IsSystemTemplate)
         {
-            throw new InvalidOperationException($"Não é possível excluir o template do sistema com ID {id}.");
+            throw new InvalidOperationException($"Cannot delete system template with ID {id}.");
         }
 
         context.EmailTemplates.Remove(template);

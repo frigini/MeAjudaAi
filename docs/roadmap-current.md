@@ -818,8 +818,8 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 **Arquitetura de Projetos**:
 ```text
 src/
-├── Contracts/
-│   └── Contracts/Modules/Communications/
+├── Shared/
+│   └── MeAjudaAi.Shared.Contracts/Modules/Communications/
 │       ├── ICommunicationsModuleApi.cs
 │       ├── DTOs/
 │       │   ├── EmailMessageDto.cs
@@ -846,7 +846,7 @@ src/
 │       │   │   └── CommunicationsModuleApi.cs
 │       │   └── Services/
 │       │       └── Email/
-│       │           └── SendGridEmailService.cs  # Stub inicial
+│       │           └── SendGridEmailService.cs  # Provedor padrão
 │       ├── Domain/
 │       │   ├── MeAjudaAi.Modules.Communications.Domain.csproj
 │       │   └── Entities/
@@ -887,7 +887,7 @@ src/
 ---
 
 **Interface ICommunicationsModuleApi (Atualizada)**:
-> **Nota**: `ECommunicationPriority` é proveniente de `MeAjudaAi.Contracts.Shared` (não redeclare o enum — use o tipo compartilhado `ECommunicationPriority` diretamente).
+> **Nota**: `ECommunicationPriority` é proveniente de `MeAjudaAi.Shared.Contracts` (não redeclare o enum — use o tipo compartilhado `ECommunicationPriority` diretamente).
 
 ```csharp
 public interface ICommunicationsModuleApi : IModuleApi
