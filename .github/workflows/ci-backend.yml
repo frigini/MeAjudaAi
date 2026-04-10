@@ -46,7 +46,7 @@ jobs:
   build-and-test:
     name: Build and Test (Backend)
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 60
 
     services:
       postgres:
@@ -193,7 +193,6 @@ jobs:
         id: integration-tests
         if: success()
         timeout-minutes: 45
-        continue-on-error: true
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true
@@ -206,7 +205,7 @@ jobs:
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
           AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
         run: |
-          echo "🚀 Running Integration Tests (Attempt 1)..."
+          echo "🚀 Running Integration Tests..."
           dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
             --configuration Release --no-build \
             --collect:"XPlat Code Coverage" \
@@ -215,47 +214,18 @@ jobs:
             --blame-hang-timeout 10min \
             --verbosity normal
 
-      - name: Retry Integration Tests on Failure
-        if: steps.integration-tests.outcome == 'failure'
-        timeout-minutes: 45
-        env:
-          ASPNETCORE_ENVIRONMENT: Testing
-          INTEGRATION_TESTS: true
-          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
-          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
-          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
-          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
-          AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
-        run: |
-          echo "🔄 Retrying Integration Tests due to previous failure (transient Docker issues?)..."
-          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
-            --configuration Release --no-build \
-            --collect:"XPlat Code Coverage" \
-            --results-directory ./coverage/integration_retry \
-            --settings ./coverlet.runsettings \
-            --blame-hang-timeout 10min \
-            --verbosity normal
-
       - name: Check test results
         if: always()
         run: |
-          FAILED=false
           if [[ "${{ steps.unit-tests.outcome }}" == "failure" ]]; then
             echo "❌ Unit tests failed."
-            FAILED=true
-          fi
-          if [[ "${{ steps.integration-tests.outcome }}" == "failure" && "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]]; then
-             # Se Attempt 1 falhou E Attempt 2 (Retry) também falhou ou não rodou
-             if [[ ! -d "./coverage/integration_retry" ]]; then
-                echo "❌ Integration tests failed on first attempt and retry was not possible."
-                FAILED=true
-             fi
-          fi
-          
-          if [[ "$FAILED" == "true" ]]; then
             exit 1
           fi
-          echo "✅ Tests passed (or recovered via retry)."
+          if [[ "${{ steps.integration-tests.outcome }}" == "failure" ]]; then
+            echo "❌ Integration tests failed."
+            exit 1
+          fi
+          echo "✅ All tests passed."
 
       - name: Collect and aggregate coverage files
         if: always()
