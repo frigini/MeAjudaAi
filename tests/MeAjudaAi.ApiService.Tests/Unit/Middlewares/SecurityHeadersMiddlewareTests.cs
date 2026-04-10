@@ -137,11 +137,7 @@ public class SecurityHeadersMiddlewareTests
         var mockContext = new Mock<HttpContext>();
         mockContext.SetupGet(c => c.Response).Returns(mockResponse.Object);
 
-        return new MiddlewareTestSetup(context, mockContext, mockResponse, (cb, st) => 
-        {
-            onStartingCallback = cb;
-            capturedState = st;
-        })
+        return new MiddlewareTestSetup(context, mockContext, mockResponse)
         {
             OnStartingCallback = onStartingCallback,
             CapturedState = capturedState
