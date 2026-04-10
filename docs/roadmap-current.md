@@ -1463,7 +1463,7 @@ export function ActivityTimeline() {
 2. ✅ **Sprint 8C: App Web do Prestador (React + NX)** (Concluída - 21 Mar 2026)
 3. ✅ **Sprint 8D: Migração do Portal Administrativo** (Concluída - 24 Mar 2026)
 4. ✅ **Sprint 8E: Testes E2E Apps React (Playwright)** (Concluída - 25 Mar 2026)
-5. ⏳ **Sprint 9: BUFFER E MITIGAÇÃO DE RISCO** (Abril/Maio 2026)
+5. ⏳ **Sprint 9: BUFFER E MITIGAÇÃO DE RISCO** (25 Mar - 11 Abr 2026)
 6. 🎯 **MVP Final Launch: 12 - 16 de Maio de 2026**
 7. 📋 Coleções de API - Arquivos .bru do Bruno para todos os módulos
 

@@ -55,6 +55,7 @@ public enum TestModule
 /// <summary>
 /// Classe base unificada para testes de integração com suporte a autenticação baseada em instância.
 /// </summary>
+[Collection("Integration")]
 public abstract class BaseApiTest : IAsyncLifetime
 {
     private static readonly SemaphoreSlim MigrationLock = new(1, 1);
@@ -110,6 +111,7 @@ public abstract class BaseApiTest : IAsyncLifetime
 
                 builder.ConfigureAppConfiguration((context, config) =>
                 {
+                    var wireMockUrl = _wireMockFixture!.BaseUrl;
                     config.AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         ["Logging:LogLevel:Default"] = "Warning",
@@ -121,6 +123,17 @@ public abstract class BaseApiTest : IAsyncLifetime
                         ["Messaging:Provider"] = "Mock",
                         ["Keycloak:Enabled"] = "false",
                         ["FeatureManagement:GeographicRestriction"] = "true",
+                        ["GeographicRestriction:AllowedStates:0"] = "MG",
+                        ["GeographicRestriction:AllowedStates:1"] = "RJ",
+                        ["GeographicRestriction:AllowedStates:2"] = "ES",
+                        ["GeographicRestriction:AllowedCities:0"] = "Muriaé",
+                        ["GeographicRestriction:AllowedCities:1"] = "Itaperuna",
+                        ["GeographicRestriction:AllowedCities:2"] = "Linhares",
+                        ["Locations:ExternalApis:ViaCep:BaseUrl"] = wireMockUrl,
+                        ["Locations:ExternalApis:BrasilApi:BaseUrl"] = wireMockUrl,
+                        ["Locations:ExternalApis:OpenCep:BaseUrl"] = wireMockUrl,
+                        ["Locations:ExternalApis:Nominatim:BaseUrl"] = wireMockUrl,
+                        ["Locations:ExternalApis:IBGE:BaseUrl"] = $"{wireMockUrl}/api/v1/localidades/",
                         ["RateLimit:Enabled"] = "false",
                         ["AdvancedRateLimit:General:Enabled"] = "false"
                     });
@@ -135,8 +148,6 @@ public abstract class BaseApiTest : IAsyncLifetime
                     RemoveDbContextRegistrations<LocationsDbContext>(services);
                     RemoveDbContextRegistrations<SearchProvidersDbContext>(services);
                     RemoveDbContextRegistrations<CommunicationsDbContext>(services);
-
-                    ReconfigureCepProviderClients(services);
 
                     AddTestDbContext<UsersDbContext>(services, "users", "MeAjudaAi.Modules.Users.Infrastructure");
                     AddTestDbContext<ProvidersDbContext>(services, "providers", "MeAjudaAi.Modules.Providers.Infrastructure");
@@ -182,6 +193,8 @@ public abstract class BaseApiTest : IAsyncLifetime
                 npgsqlOptions.MigrationsAssembly(assembly);
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", schema);
             });
+            
+            options.UseSnakeCaseNamingConvention();
             
             // Only enable sensitive data logging when explicitly requested (e.g., local debugging)
             // Never enable in CI to prevent logging sensitive information
@@ -293,8 +306,23 @@ public abstract class BaseApiTest : IAsyncLifetime
         const int maxRetries = 10;
         for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
-            try { await context.Database.EnsureDeletedAsync(); break; }
-            catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P03") { if (attempt == maxRetries) throw; await Task.Delay(TimeSpan.FromSeconds(attempt)); }
+            try 
+            { 
+                await context.Database.EnsureDeletedAsync(); 
+                break; 
+            }
+            catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P03" || ex.SqlState == "57P01") 
+            { 
+                if (attempt == maxRetries) throw; 
+                logger?.LogWarning("⚠️ Database cleanup retry {Attempt}/{Max} due to {SqlState}", attempt, maxRetries, ex.SqlState);
+                await Task.Delay(TimeSpan.FromSeconds(attempt)); 
+            }
+            catch (Exception ex)
+            {
+                if (attempt == maxRetries) throw;
+                logger?.LogWarning("⚠️ Database cleanup retry {Attempt}/{Max} due to unexpected error: {Message}", attempt, maxRetries, ex.Message);
+                await Task.Delay(TimeSpan.FromSeconds(attempt));
+            }
         }
     }
 
@@ -337,15 +365,6 @@ public abstract class BaseApiTest : IAsyncLifetime
         if (contextDescriptor != null) services.Remove(contextDescriptor);
     }
 
-    private void ReconfigureCepProviderClients(IServiceCollection services)
-    {
-        services.AddHttpClient<ViaCepClient>(c => c.BaseAddress = new Uri(_wireMockFixture!.BaseUrl));
-        services.AddHttpClient<BrasilApiCepClient>(c => c.BaseAddress = new Uri(_wireMockFixture!.BaseUrl));
-        services.AddHttpClient<OpenCepClient>(c => c.BaseAddress = new Uri(_wireMockFixture!.BaseUrl));
-        services.AddHttpClient<IbgeClient>(c => c.BaseAddress = new Uri(_wireMockFixture!.BaseUrl + "/api/v1/localidades/"));
-        services.AddHttpClient<NominatimClient>(c => c.BaseAddress = new Uri(_wireMockFixture!.BaseUrl));
-    }
-
     protected async Task<T?> ReadJsonAsync<T>(HttpContent content)
     {
         var jsonString = await content.ReadAsStringAsync();
@@ -356,7 +375,14 @@ public abstract class BaseApiTest : IAsyncLifetime
                 return JsonSerializer.Deserialize<T>(v.GetRawText(), SerializationDefaults.Api);
             return JsonSerializer.Deserialize<T>(jsonString, SerializationDefaults.Api);
         }
-        catch { return JsonSerializer.Deserialize<T>(jsonString, SerializationDefaults.Api); }
+        catch (JsonException ex)
+        {
+            throw new InvalidOperationException($"Failed to deserialize JSON response to type {typeof(T).Name}. JSON Content: {jsonString}", ex);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"An error occurred while reading JSON content as {typeof(T).Name}. Content: {jsonString}", ex);
+        }
     }
 
     protected static JsonElement GetResponseData(JsonElement response)

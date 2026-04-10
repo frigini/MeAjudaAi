@@ -17,11 +17,16 @@ internal sealed class EmailTemplateRepository(CommunicationsDbContext context) :
         string language = "pt-BR",
         CancellationToken cancellationToken = default)
     {
-        // Tenta buscar primeiro por um override, depois pelo padrão
+        var templateKeyLower = templateKey.ToLowerInvariant();
+
+        // Tenta buscar primeiro por um override (correspondência exata), depois pelo padrão
         var templates = await context.EmailTemplates
-            .Where(x => x.TemplateKey == templateKey.ToLowerInvariant() && x.Language == language && x.IsActive)
+            .Where(x => (x.TemplateKey == templateKeyLower || x.OverrideKey == templateKeyLower) 
+                        && x.Language == language 
+                        && x.IsActive)
             .ToListAsync(cancellationToken);
 
+        // Prioriza templates que tenham OverrideKey (ordenando decrescente pelo booleano)
         return templates.OrderByDescending(x => x.OverrideKey != null).FirstOrDefault();
     }
 

@@ -14,6 +14,17 @@ public sealed class SecurityHeadersMiddleware(
 {
     private readonly RequestDelegate _next = next ?? throw new ArgumentNullException(nameof(next));
 
+    // Header Names
+    private const string XFrameOptions = "X-Frame-Options";
+    private const string XContentTypeOptions = "X-Content-Type-Options";
+    private const string ReferrerPolicy = "Referrer-Policy";
+    private const string XPoweredBy = "X-Powered-By";
+
+    // Header Values
+    private const string Deny = "DENY";
+    private const string NoSniff = "nosniff";
+    private const string StrictOriginWhenCrossOrigin = "strict-origin-when-cross-origin";
+
     public async Task InvokeAsync(HttpContext context)
     {
         context.Response.OnStarting((state) =>
@@ -24,25 +35,25 @@ public sealed class SecurityHeadersMiddleware(
             // Adiciona headers apenas se não existirem
             
             // Impede que o site seja emoldurado (clickjacking)
-            if (!ctx.Response.Headers.ContainsKey("X-Frame-Options"))
+            if (!ctx.Response.Headers.ContainsKey(XFrameOptions))
             {
-                ctx.Response.Headers.Append("X-Frame-Options", "DENY");
+                ctx.Response.Headers.Append(XFrameOptions, Deny);
             }
 
             // Impede que o navegador tente adivinhar o tipo de conteúdo (MIME sniffing)
-            if (!ctx.Response.Headers.ContainsKey("X-Content-Type-Options"))
+            if (!ctx.Response.Headers.ContainsKey(XContentTypeOptions))
             {
-                ctx.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+                ctx.Response.Headers.Append(XContentTypeOptions, NoSniff);
             }
 
             // Controla quanta informação de referência é enviada
-            if (!ctx.Response.Headers.ContainsKey("Referrer-Policy"))
+            if (!ctx.Response.Headers.ContainsKey(ReferrerPolicy))
             {
-                ctx.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+                ctx.Response.Headers.Append(ReferrerPolicy, StrictOriginWhenCrossOrigin);
             }
 
             // Remove o cabeçalho que identifica a tecnologia do servidor
-            ctx.Response.Headers.Remove("X-Powered-By");
+            ctx.Response.Headers.Remove(XPoweredBy);
 
             return Task.CompletedTask;
         }, context);

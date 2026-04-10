@@ -10,6 +10,7 @@ using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 
 namespace MeAjudaAi.Integration.Tests.Modules.SearchProviders;
 
+[Collection("Integration")]
 public class SearchProvidersE2ETests : BaseApiTest
 {
     protected override TestModule RequiredModules => TestModule.SearchProviders;
