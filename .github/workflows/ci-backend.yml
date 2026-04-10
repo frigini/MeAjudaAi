@@ -231,6 +231,7 @@ jobs:
       - name: Check test results
         if: always()
         run: |
+          FAILED=false
           if [[ "${{ steps.unit-tests.outcome }}" == "failure" ]]; then
             echo "❌ Unit tests failed."
             FAILED=true

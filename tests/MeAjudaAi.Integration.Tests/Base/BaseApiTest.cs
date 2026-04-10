@@ -77,6 +77,10 @@ public abstract class BaseApiTest : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
+        // ⚠️ CRÍTICO: Configura Npgsql ANTES de qualquer operação de banco
+        // Correção para compatibilidade DateTime UTC com PostgreSQL timestamp
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
@@ -109,6 +113,7 @@ public abstract class BaseApiTest : IAsyncLifetime
                     config.AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         ["Logging:LogLevel:Default"] = "Warning",
+                        ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Information",
                         ["Postgres:ConnectionString"] = _databaseFixture.ConnectionString,
                         ["ConnectionStrings:DefaultConnection"] = _databaseFixture.ConnectionString,
                         ["RabbitMQ:Enabled"] = "false",

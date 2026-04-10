@@ -2,30 +2,35 @@ using MeAjudaAi.Integration.Tests.Base;
 using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;
+using System.Globalization;
+using System.Text.Json;
 using MeAjudaAi.Contracts.Models;
+using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 
 namespace MeAjudaAi.Integration.Tests.Modules.SearchProviders;
 
 public class SearchProvidersE2ETests : BaseApiTest
 {
-    protected override TestModule RequiredModules => TestModule.SearchProviders | TestModule.Providers | TestModule.ServiceCatalogs;
+    protected override TestModule RequiredModules => TestModule.SearchProviders;
 
     [Fact]
     public async Task Search_ByServiceAndRadius_ShouldReturnNearbyProviders()
     {
         // 1. Arrange: Coordenadas do centro de São Paulo e o ID do serviço de teste
-        double lat = -23.5505; 
-        double lon = -46.6333;
-        double radius = 10.0;
+        string lat = (-23.5505).ToString(CultureInfo.InvariantCulture); 
+        string lon = (-46.6333).ToString(CultureInfo.InvariantCulture);
+        string radius = (10.0).ToString(CultureInfo.InvariantCulture);
         var serviceId = BaseApiTest.TestServiceId;
 
         // 2. Act: Busca com filtro de serviço
         var response = await Client.GetAsync($"/api/v1/search/providers?latitude={lat}&longitude={lon}&radiusInKm={radius}&serviceIds={serviceId}");
 
         // 3. Assert
-        response.IsSuccessStatusCode.Should().BeTrue();
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>();
+        var responseBody = await response.Content.ReadAsStringAsync();
+        response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
+        
+        var result = JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
         result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty("At least one provider should match the service and radius filter");
         result.Items.Should().OnlyContain(x => x.ServiceIds.Contains(serviceId), "All returned providers must offer the requested service");
@@ -35,16 +40,19 @@ public class SearchProvidersE2ETests : BaseApiTest
     public async Task Search_WithSmallRadius_ShouldFilterOutDistantProviders()
     {
         // Arrange
-        double lat = -23.5505;
-        double lon = -46.6333;
-        double tinyRadius = 0.1; // 100 metros
+        string lat = (-23.5505).ToString(CultureInfo.InvariantCulture);
+        string lon = (-46.6333).ToString(CultureInfo.InvariantCulture);
+        double tinyRadiusVal = 0.1;
+        string tinyRadius = tinyRadiusVal.ToString(CultureInfo.InvariantCulture); // 100 metros
 
         // Act
         var response = await Client.GetAsync($"/api/v1/search/providers?latitude={lat}&longitude={lon}&radiusInKm={tinyRadius}");
 
         // Assert
-        response.IsSuccessStatusCode.Should().BeTrue();
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>();
+        var responseBody = await response.Content.ReadAsStringAsync();
+        response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
+        
+        var result = JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
         result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty("At least one provider should be within the tiny radius for this test to be valid");
         
@@ -53,7 +61,7 @@ public class SearchProvidersE2ETests : BaseApiTest
             provider.DistanceInKm.HasValue.Should().BeTrue("DistanceInKm should be calculated");
             if (provider.DistanceInKm.HasValue)
             {
-                provider.DistanceInKm.Value.Should().BeLessThanOrEqualTo(tinyRadius, $"Provider {provider.Name} should be within {tinyRadius}km");
+                provider.DistanceInKm.Value.Should().BeLessThanOrEqualTo(tinyRadiusVal, $"Provider {provider.Name} should be within {tinyRadiusVal}km");
             }
         }
     }
@@ -62,16 +70,18 @@ public class SearchProvidersE2ETests : BaseApiTest
     public async Task Search_ShouldBeOrderedByDistanceAscending()
     {
         // Arrange
-        double lat = -23.5505;
-        double lon = -46.6333;
-        double radius = 50.0;
+        string lat = (-23.5505).ToString(CultureInfo.InvariantCulture);
+        string lon = (-46.6333).ToString(CultureInfo.InvariantCulture);
+        string radius = (50.0).ToString(CultureInfo.InvariantCulture);
 
         // Act
         var response = await Client.GetAsync($"/api/v1/search/providers?latitude={lat}&longitude={lon}&radiusInKm={radius}");
 
         // Assert
-        response.IsSuccessStatusCode.Should().BeTrue();
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>();
+        var responseBody = await response.Content.ReadAsStringAsync();
+        response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
+        
+        var result = JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
         result!.Items.Should().NotBeEmpty();
         result.Items.Should().OnlyContain(x => x.DistanceInKm.HasValue);
         result.Items.Should().BeInAscendingOrder(x => x.DistanceInKm);
@@ -81,16 +91,18 @@ public class SearchProvidersE2ETests : BaseApiTest
     public async Task Search_WithNoResults_ShouldReturnEmptyPage()
     {
         // Arrange: Coordenadas da Antártida (nenhum prestador esperado)
-        double lat = -90.0;
-        double lon = 0.0;
-        double radius = 1.0;
+        string lat = (-90.0).ToString(CultureInfo.InvariantCulture);
+        string lon = (0.0).ToString(CultureInfo.InvariantCulture);
+        string radius = (1.0).ToString(CultureInfo.InvariantCulture);
 
         // Act
         var response = await Client.GetAsync($"/api/v1/search/providers?latitude={lat}&longitude={lon}&radiusInKm={radius}");
 
         // Assert
-        response.IsSuccessStatusCode.Should().BeTrue();
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>();
+        var responseBody = await response.Content.ReadAsStringAsync();
+        response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
+        
+        var result = JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
         result!.Items.Should().BeEmpty();
         result.TotalItems.Should().Be(0);
     }
@@ -99,9 +111,9 @@ public class SearchProvidersE2ETests : BaseApiTest
     public async Task Search_Pagination_ShouldWork()
     {
         // Arrange
-        double lat = -23.5505;
-        double lon = -46.6333;
-        double radius = 100.0;
+        string lat = (-23.5505).ToString(CultureInfo.InvariantCulture);
+        string lon = (-46.6333).ToString(CultureInfo.InvariantCulture);
+        string radius = (100.0).ToString(CultureInfo.InvariantCulture);
         int pageSize = 2;
 
         // Act
@@ -111,7 +123,7 @@ public class SearchProvidersE2ETests : BaseApiTest
         var responseBody = await response.Content.ReadAsStringAsync();
         response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
         
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>();
+        var result = JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
         result!.Items.Count.Should().BeLessThanOrEqualTo(pageSize);
         result.PageSize.Should().Be(pageSize);
     }
@@ -120,9 +132,9 @@ public class SearchProvidersE2ETests : BaseApiTest
     public async Task Search_Performance_ShouldBeWithinLimit()
     {
         // Arrange
-        double lat = -23.5505;
-        double lon = -46.6333;
-        double radius = 20.0;
+        string lat = (-23.5505).ToString(CultureInfo.InvariantCulture);
+        string lon = (-46.6333).ToString(CultureInfo.InvariantCulture);
+        string radius = (20.0).ToString(CultureInfo.InvariantCulture);
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
         // Act
@@ -132,6 +144,8 @@ public class SearchProvidersE2ETests : BaseApiTest
         stopwatch.Stop();
         var responseBody = await response.Content.ReadAsStringAsync();
         response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
+        
+        var result = JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
         stopwatch.ElapsedMilliseconds.Should().BeLessThanOrEqualTo(5000, $"A busca deve ser rápida (< 5s). Tempo: {stopwatch.ElapsedMilliseconds}ms");
     }
 }

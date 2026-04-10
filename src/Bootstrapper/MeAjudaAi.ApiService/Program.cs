@@ -25,6 +25,9 @@ public partial class Program
 
     public static async Task Main(string[] args)
     {
+        // Correção para compatibilidade DateTime UTC com PostgreSQL timestamp
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
         try
         {
             var builder = WebApplication.CreateBuilder(args);

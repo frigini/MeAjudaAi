@@ -819,17 +819,20 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 ```text
 src/
 ├── Contracts/
-│   └── MeAjudaAi.Contracts.Communications/
+│   └── Contracts/Modules/Communications/
 │       ├── ICommunicationsModuleApi.cs
 │       ├── DTOs/
-│       │   ├── EmailMessageDto.cs (suporte a Anexos)
-│       │   ├── SmsMessageDto.cs
+│       │   ├── EmailMessageDto.cs
+│       │   ├── EmailTemplateDto.cs
 │       │   ├── PushMessageDto.cs
-│       │   └── EmailTemplateDto.cs
-│       └── Channels/
-│           ├── IEmailChannel.cs
-│           ├── ISmsChannel.cs
-│           └── IPushChannel.cs
+│       │   ├── SmsMessageDto.cs
+│       │   └── CommunicationLogDto.cs
+│       ├── Channels/
+│       │   ├── IEmailChannel.cs
+│       │   ├── IPushChannel.cs
+│       │   └── ISmsChannel.cs
+│       └── Queries/
+│           └── CommunicationLogQuery.cs
 │
 ├── Modules/
 │   └── Communications/

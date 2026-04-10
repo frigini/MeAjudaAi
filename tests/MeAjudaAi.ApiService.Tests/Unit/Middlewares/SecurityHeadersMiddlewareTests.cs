@@ -15,6 +15,7 @@ public class SecurityHeadersMiddlewareTests
     {
         // Arrange
         var mockNext = new Mock<RequestDelegate>();
+        mockNext.Setup(n => n(It.IsAny<HttpContext>())).Returns(Task.CompletedTask);
         var mockLogger = new Mock<ILogger<SecurityHeadersMiddleware>>();
 
         // Act
@@ -52,6 +53,7 @@ public class SecurityHeadersMiddlewareTests
     {
         // Arrange
         var mockNext = new Mock<RequestDelegate>();
+        mockNext.Setup(n => n(It.IsAny<HttpContext>())).Returns(Task.CompletedTask);
         var mockLogger = new Mock<ILogger<SecurityHeadersMiddleware>>();
         var middleware = new SecurityHeadersMiddleware(mockNext.Object, mockLogger.Object);
         
@@ -72,6 +74,7 @@ public class SecurityHeadersMiddlewareTests
     {
         // Arrange
         var mockNext = new Mock<RequestDelegate>();
+        mockNext.Setup(n => n(It.IsAny<HttpContext>())).Returns(Task.CompletedTask);
         var mockLogger = new Mock<ILogger<SecurityHeadersMiddleware>>();
         var middleware = new SecurityHeadersMiddleware(mockNext.Object, mockLogger.Object);
         
@@ -105,6 +108,7 @@ public class SecurityHeadersMiddlewareTests
     {
         // Arrange
         var mockNext = new Mock<RequestDelegate>();
+        mockNext.Setup(n => n(It.IsAny<HttpContext>())).Returns(Task.CompletedTask);
         var mockLogger = new Mock<ILogger<SecurityHeadersMiddleware>>();
         var middleware = new SecurityHeadersMiddleware(mockNext.Object, mockLogger.Object);
         
@@ -136,6 +140,7 @@ public class SecurityHeadersMiddlewareTests
     {
         // Arrange
         var mockNext = new Mock<RequestDelegate>();
+        mockNext.Setup(n => n(It.IsAny<HttpContext>())).Returns(Task.CompletedTask);
         var mockLogger = new Mock<ILogger<SecurityHeadersMiddleware>>();
         var middleware = new SecurityHeadersMiddleware(mockNext.Object, mockLogger.Object);
         
