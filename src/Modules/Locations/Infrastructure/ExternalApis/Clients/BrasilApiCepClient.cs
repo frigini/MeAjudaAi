@@ -20,7 +20,7 @@ public sealed class BrasilApiCepClient(HttpClient httpClient, ILogger<BrasilApiC
 
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogWarning("BrasilAPI retornou status {StatusCode} para CEP {Cep}", response.StatusCode, cep.Value);
+                logger.LogWarning("BrasilAPI returned status {StatusCode} for CEP {Cep}", response.StatusCode, cep.Value);
                 return null;
             }
 

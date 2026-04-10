@@ -11,6 +11,7 @@ public sealed class BusinessMetricsTests : IDisposable
     private readonly BusinessMetrics _sut;
     private readonly List<Measurement<long>> _longMeasurements;
     private readonly List<Measurement<double>> _doubleMeasurements;
+    private readonly object _lock = new();
 
     public BusinessMetricsTests()
     {
@@ -30,12 +31,18 @@ public sealed class BusinessMetricsTests : IDisposable
 
         _meterListener.SetMeasurementEventCallback<long>((_, measurement, tags, _) =>
         {
-            _longMeasurements.Add(new Measurement<long>(measurement, tags));
+            lock (_lock)
+            {
+                _longMeasurements.Add(new Measurement<long>(measurement, tags));
+            }
         });
 
         _meterListener.SetMeasurementEventCallback<double>((_, measurement, tags, _) =>
         {
-            _doubleMeasurements.Add(new Measurement<double>(measurement, tags));
+            lock (_lock)
+            {
+                _doubleMeasurements.Add(new Measurement<double>(measurement, tags));
+            }
         });
 
         _meterListener.Start();
@@ -50,7 +57,8 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.RecordUserRegistration("mobile");
 
         // Assert
-        var metric = _longMeasurements.Should().ContainSingle().Subject;
+        Measurement<long> metric;
+        lock (_lock) { metric = _longMeasurements.Should().ContainSingle().Subject; }
         metric.Value.Should().Be(1);
         metric.Tags.ToArray().Should().ContainEquivalentOf(new KeyValuePair<string, object?>("source", "mobile"));
     }
@@ -62,7 +70,8 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.RecordUserLogin("user-123", "oauth");
 
         // Assert
-        var metric = _longMeasurements.Should().ContainSingle().Subject;
+        Measurement<long> metric;
+        lock (_lock) { metric = _longMeasurements.Should().ContainSingle().Subject; }
         metric.Value.Should().Be(1);
         
         var tags = metric.Tags.ToArray();
@@ -77,7 +86,8 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.UpdateActiveUsers(42);
 
         // Assert
-        var metric = _longMeasurements.Should().ContainSingle().Subject;
+        Measurement<long> metric;
+        lock (_lock) { metric = _longMeasurements.Should().ContainSingle().Subject; }
         metric.Value.Should().Be(42);
     }
 
@@ -88,7 +98,8 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.RecordHelpRequestCreated("medical", "high");
 
         // Assert
-        var metric = _longMeasurements.Should().ContainSingle().Subject;
+        Measurement<long> metric;
+        lock (_lock) { metric = _longMeasurements.Should().ContainSingle().Subject; }
         metric.Value.Should().Be(1);
         
         var tags = metric.Tags.ToArray();
@@ -103,7 +114,8 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.RecordHelpRequestCompleted("medical", TimeSpan.FromMinutes(30));
 
         // Assert
-        var metric = _longMeasurements.Should().ContainSingle().Subject;
+        Measurement<long> metric;
+        lock (_lock) { metric = _longMeasurements.Should().ContainSingle().Subject; }
         metric.Value.Should().Be(1);
         metric.Tags.ToArray().Should().ContainEquivalentOf(new KeyValuePair<string, object?>("category", "medical"));
     }
@@ -115,7 +127,8 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.RecordHelpRequestDuration(TimeSpan.FromSeconds(120), "plumbing");
 
         // Assert
-        var metric = _doubleMeasurements.Should().ContainSingle().Subject;
+        Measurement<double> metric;
+        lock (_lock) { metric = _doubleMeasurements.Should().ContainSingle().Subject; }
         metric.Value.Should().Be(120);
         metric.Tags.ToArray().Should().ContainEquivalentOf(new KeyValuePair<string, object?>("category", "plumbing"));
     }
@@ -127,7 +140,8 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.UpdatePendingHelpRequests(15);
 
         // Assert
-        var metric = _longMeasurements.Should().ContainSingle().Subject;
+        Measurement<long> metric;
+        lock (_lock) { metric = _longMeasurements.Should().ContainSingle().Subject; }
         metric.Value.Should().Be(15);
     }
 
@@ -138,7 +152,8 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.RecordApiCall("/api/users", "GET", 200);
 
         // Assert
-        var metric = _longMeasurements.Should().ContainSingle().Subject;
+        Measurement<long> metric;
+        lock (_lock) { metric = _longMeasurements.Should().ContainSingle().Subject; }
         metric.Value.Should().Be(1);
         
         var tags = metric.Tags.ToArray();
@@ -154,14 +169,18 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.RecordDatabaseQuery(TimeSpan.FromMilliseconds(500), "SELECT");
 
         // Assert
-        var metric = _doubleMeasurements.Should().ContainSingle().Subject;
+        Measurement<double> metric;
+        lock (_lock) { metric = _doubleMeasurements.Should().ContainSingle().Subject; }
         metric.Value.Should().Be(0.5);
         metric.Tags.ToArray().Should().ContainEquivalentOf(new KeyValuePair<string, object?>("operation", "SELECT"));
     }
 
     public void Dispose()
     {
-        _meterListener.Dispose();
-        _sut.Dispose();
+        lock (_lock)
+        {
+            _meterListener.Dispose();
+            _sut.Dispose();
+        }
     }
 }

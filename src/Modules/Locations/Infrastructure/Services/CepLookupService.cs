@@ -58,14 +58,17 @@ public sealed class CepLookupService(
 
         foreach (var provider in DefaultProviderOrder)
         {
+            logger.LogDebug("Trying provider {Provider} for CEP {Cep}", provider, cep.Value);
             var address = await TryProviderAsync(provider, cep, cancellationToken);
+            
             if (address is not null)
             {
-                logger.LogInformation("CEP {Cep} found in provider {Provider}", cep.Value, provider);
+                logger.LogInformation("CEP {Cep} found in provider {Provider}. City: {City}, State: {State}", 
+                    cep.Value, provider, address.City, address.State);
                 return address;
             }
 
-            logger.LogWarning("Provider {Provider} failed for CEP {Cep}, trying next", provider, cep.Value);
+            logger.LogWarning("Provider {Provider} failed or returned no result for CEP {Cep}", provider, cep.Value);
         }
 
         logger.LogError("CEP {Cep} not found in any provider", cep.Value);
@@ -74,13 +77,21 @@ public sealed class CepLookupService(
 
     private async Task<Address?> TryProviderAsync(ECepProvider provider, Cep cep, CancellationToken cancellationToken)
     {
-        return provider switch
+        try
         {
-            ECepProvider.ViaCep => await viaCepClient.GetAddressAsync(cep, cancellationToken),
-            ECepProvider.BrasilApi => await brasilApiClient.GetAddressAsync(cep, cancellationToken),
-            ECepProvider.OpenCep => await openCepClient.GetAddressAsync(cep, cancellationToken),
-            _ => null
-        };
+            return provider switch
+            {
+                ECepProvider.ViaCep => await viaCepClient.GetAddressAsync(cep, cancellationToken),
+                ECepProvider.BrasilApi => await brasilApiClient.GetAddressAsync(cep, cancellationToken),
+                ECepProvider.OpenCep => await openCepClient.GetAddressAsync(cep, cancellationToken),
+                _ => null
+            };
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unexpected error in provider {Provider} for CEP {Cep}", provider, cep.Value);
+            return null;
+        }
     }
 
     private static string GetCacheKey(Cep cep)

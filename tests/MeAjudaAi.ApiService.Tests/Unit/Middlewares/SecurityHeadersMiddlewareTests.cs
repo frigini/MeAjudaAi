@@ -125,7 +125,6 @@ public class SecurityHeadersMiddlewareTests
         var mockResponse = new Mock<HttpResponse>();
         var mockContext = new Mock<HttpContext>();
 
-        // Coleção compartilhada de cabeçalhos
         var headers = new HeaderDictionary();
         mockResponse.SetupGet(r => r.Headers).Returns(headers);
         mockContext.SetupGet(c => c.Response).Returns(mockResponse.Object);

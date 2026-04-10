@@ -887,7 +887,7 @@ src/
 ---
 
 **Interface ICommunicationsModuleApi (Atualizada)**:
-> **Nota**: `ECommunicationPriority` é proveniente de `MeAjudaAi.Shared.Contracts` (não redeclare o enum — use o tipo compartilhado `ECommunicationPriority` diretamente).
+> **Nota**: `ECommunicationPriority` é proveniente de `MeAjudaAi.Contracts.Shared` (não redeclare o enum — use o tipo compartilhado `ECommunicationPriority` diretamente).
 
 ```csharp
 public interface ICommunicationsModuleApi : IModuleApi

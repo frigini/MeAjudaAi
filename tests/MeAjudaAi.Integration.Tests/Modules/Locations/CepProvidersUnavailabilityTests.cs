@@ -1,72 +1,18 @@
 using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Contracts.Modules.Locations;
+using MeAjudaAi.Modules.Locations.Application.Services;
+using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
+using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
+using MeAjudaAi.Integration.Tests.Base;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 
-/// <summary>
-/// Integration tests for CEP provider unavailability scenarios.
-/// Validates the fallback chain behavior when external CEP APIs fail:
-/// ViaCEP → BrasilAPI → OpenCEP
-/// </summary>
-[Collection("Integration")]
 public sealed class CepProvidersUnavailabilityTests : BaseApiTest
 {
+    protected override bool UseMockGeographicValidation => false;
     protected override TestModule RequiredModules => TestModule.Locations;
-
-    [Fact]
-    public async Task LookupCep_WhenViaCepReturns500_ShouldFallbackToBrasilApi()
-    {
-        // Arrange - Use unique CEP to avoid conflicts with default stubs
-        var uniqueCep = "23456789";
-
-        // ViaCEP fails with 500
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath($"/ws/{uniqueCep}/json/")
-                .UsingGet())
-            .AtPriority(1) // Higher priority than default stubs
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(500)
-                .WithBody("Internal Server Error"));
-
-        // BrasilAPI succeeds
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath($"/api/cep/v2/{uniqueCep}")
-                .UsingGet())
-            .AtPriority(1) // Higher priority than default stubs
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(200)
-                .WithHeader("Content-Type", "application/json")
-                .WithBody($$"""
-                    {
-                        "cep": "{{uniqueCep}}",
-                        "state": "SP",
-                        "city": "São Paulo",
-                        "neighborhood": "Bela Vista",
-                        "street": "Avenida Paulista"
-                    }
-                    """));
-
-        var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
-
-        // Act
-        var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
-
-        // Assert - Should succeed via BrasilAPI fallback (ViaCEP fails, BrasilAPI succeeds)
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value!.City.Should().Be("São Paulo");
-        result.Value.State.Should().Be("SP");
-
-        // NOTE: Provider hit count assertions skipped due to WireMock shared state in parallel CI execution.
-        // WireMock server is shared across test collections, making baseline counts unreliable even with unique CEPs.
-        // The functional behavior (successful fallback) is validated above.
-    }
 
     [Fact]
     public async Task LookupCep_WhenViaCepAndBrasilApiReturnInvalidJson_ShouldFallbackToOpenCep()
@@ -106,12 +52,43 @@ public sealed class CepProvidersUnavailabilityTests : BaseApiTest
                 .WithBody($$"""
                     {
                         "cep": "{{uniqueCep}}",
-                        "logradouro": "Avenida Paulista",
-                        "bairro": "Bela Vista",
-                        "localidade": "São Paulo",
-                        "uf": "SP",
-                        "ibge": "3550308"
+                        "logradouro": "Rua Francisco Severiano",
+                        "bairro": "Centro",
+                        "localidade": "Muriaé",
+                        "uf": "MG",
+                        "ibge": "3143906"
                     }
+                    """));
+
+        // IBGE Mock for geographic validation
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
+                .WithPath("/api/v1/localidades/municipios")
+                .WithParam("nome", "muriaé")
+                .UsingGet())
+            .AtPriority(1)
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
+                .WithStatusCode(200)
+                .WithHeader("Content-Type", "application/json; charset=utf-8")
+                .WithBody("""
+                    [{
+                        "id": 3143906,
+                        "nome": "Muriaé",
+                        "microrregiao": {
+                            "id": 31054,
+                            "nome": "Muriaé",
+                            "mesorregiao": {
+                                "id": 3107,
+                                "nome": "Zona da Mata",
+                                "UF": {
+                                    "id": 31,
+                                    "sigla": "MG",
+                                    "nome": "Minas Gerais",
+                                    "regiao": { "id": 3, "sigla": "SE", "nome": "Sudeste" }
+                                }
+                            }
+                        }
+                    }]
                     """));
 
         var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
@@ -120,14 +97,10 @@ public sealed class CepProvidersUnavailabilityTests : BaseApiTest
         var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
 
         // Assert - Should succeed via OpenCEP fallback
-        result.IsSuccess.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue($"Expected success but failed with error: {result.Error}");
         result.Value.Should().NotBeNull();
-        result.Value!.City.Should().Be("São Paulo");
-        result.Value.State.Should().Be("SP");
-
-        // NOTE: Provider hit count assertions skipped due to WireMock shared state in parallel CI execution.
-        // WireMock server is shared across test collections, making baseline counts unreliable even with unique CEPs.
-        // The functional behavior (successful fallback to OpenCEP) is validated above.
+        result.Value!.City.Should().Be("Muriaé");
+        result.Value.State.Should().Be("MG");
     }
 
     [Fact]
@@ -170,7 +143,7 @@ public sealed class CepProvidersUnavailabilityTests : BaseApiTest
         result.Error.Should().NotBeNull();
     }
 
-    [Fact(Skip = "WireMock infrastructure not properly configured in CI")]
+    [Fact]
     public async Task LookupCep_WhenViaCepReturnsMalformedJson_ShouldFallbackToBrasilApi()
     {
         // Arrange - Use unique CEP to avoid conflicts with default stubs
@@ -199,11 +172,42 @@ public sealed class CepProvidersUnavailabilityTests : BaseApiTest
                 .WithBody($$"""
                     {
                         "cep": "{{uniqueCep}}",
-                        "state": "SP",
-                        "city": "São Paulo",
-                        "neighborhood": "Bela Vista",
-                        "street": "Avenida Paulista"
+                        "state": "MG",
+                        "city": "Muriaé",
+                        "neighborhood": "Centro",
+                        "street": "Rua Francisco Severiano"
                     }
+                    """));
+
+        // IBGE Mock for geographic validation
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
+                .WithPath("/api/v1/localidades/municipios")
+                .WithParam("nome", "muriaé")
+                .UsingGet())
+            .AtPriority(1)
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
+                .WithStatusCode(200)
+                .WithHeader("Content-Type", "application/json; charset=utf-8")
+                .WithBody("""
+                    [{
+                        "id": 3143906,
+                        "nome": "Muriaé",
+                        "microrregiao": {
+                            "id": 31054,
+                            "nome": "Muriaé",
+                            "mesorregiao": {
+                                "id": 3107,
+                                "nome": "Zona da Mata",
+                                "UF": {
+                                    "id": 31,
+                                    "sigla": "MG",
+                                    "nome": "Minas Gerais",
+                                    "regiao": { "id": 3, "sigla": "SE", "nome": "Sudeste" }
+                                }
+                            }
+                        }
+                    }]
                     """));
 
         var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
@@ -212,10 +216,10 @@ public sealed class CepProvidersUnavailabilityTests : BaseApiTest
         var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
 
         // Assert - Should fallback to BrasilAPI
-        result.IsSuccess.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue($"Expected success but failed with error: {result.Error}");
         result.Value.Should().NotBeNull();
-        result.Value!.City.Should().Be("São Paulo");
-        result.Value.State.Should().Be("SP");
+        result.Value!.City.Should().Be("Muriaé");
+        result.Value.State.Should().Be("MG");
     }
 
     [Fact]

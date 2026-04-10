@@ -88,21 +88,27 @@ public static class Extensions
         services.AddHttpClient<ViaCepClient>(client =>
         {
             var baseUrl = configuration["Locations:ExternalApis:ViaCep:BaseUrl"]
-                ?? "https://viacep.com.br"; // Fallback para testes
+                ?? "https://viacep.com.br/"; // Fallback para testes
+            
+            if (!baseUrl.EndsWith('/')) baseUrl += "/";
             client.BaseAddress = new Uri(baseUrl);
         });
 
         services.AddHttpClient<BrasilApiCepClient>(client =>
         {
             var baseUrl = configuration["Locations:ExternalApis:BrasilApi:BaseUrl"]
-                ?? "https://brasilapi.com.br"; // Fallback para testes
+                ?? "https://brasilapi.com.br/"; // Fallback para testes
+            
+            if (!baseUrl.EndsWith('/')) baseUrl += "/";
             client.BaseAddress = new Uri(baseUrl);
         });
 
         services.AddHttpClient<OpenCepClient>(client =>
         {
             var baseUrl = configuration["Locations:ExternalApis:OpenCep:BaseUrl"]
-                ?? "https://opencep.com"; // Fallback para testes
+                ?? "https://opencep.com/"; // Fallback para testes
+            
+            if (!baseUrl.EndsWith('/')) baseUrl += "/";
             client.BaseAddress = new Uri(baseUrl);
         });
 

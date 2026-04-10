@@ -18,11 +18,12 @@ internal sealed class EmailTemplateRepository(CommunicationsDbContext context) :
         CancellationToken cancellationToken = default)
     {
         var templateKeyLower = templateKey.ToLowerInvariant();
+        var languageLower = (language ?? "pt-BR").ToLowerInvariant();
 
         // 1. Tenta buscar primeiro por um override exato (OverrideKey coincide com o solicitado)
         var overrideTemplate = await context.EmailTemplates
             .FirstOrDefaultAsync(x => x.OverrideKey == templateKeyLower 
-                                && x.Language == language 
+                                && x.Language == languageLower 
                                 && x.IsActive, cancellationToken);
 
         if (overrideTemplate != null) return overrideTemplate;
@@ -31,7 +32,7 @@ internal sealed class EmailTemplateRepository(CommunicationsDbContext context) :
         return await context.EmailTemplates
             .FirstOrDefaultAsync(x => x.TemplateKey == templateKeyLower 
                                 && x.OverrideKey == null
-                                && x.Language == language 
+                                && x.Language == languageLower 
                                 && x.IsActive, cancellationToken);
     }
 

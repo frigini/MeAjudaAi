@@ -319,15 +319,27 @@ public abstract class BaseApiTest : IAsyncLifetime
         {
             try 
             { 
+                // Clear all connection pools to prevent "database in use" errors or transient connection issues
+                if (attempt == 1)
+                {
+                    Npgsql.NpgsqlConnection.ClearAllPools();
+                }
+
                 await context.Database.EnsureDeletedAsync(); 
                 break; 
             }
-            catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P03" || ex.SqlState == "57P01" || ex.SqlState == "55006") 
+            catch (Exception ex) when (IsTransientException(ex))
             { 
                 // Transient errors (database is starting up, admin shutdown, or database is being accessed by other users)
                 if (attempt == maxRetries) throw; 
-                logger?.LogWarning("⚠️ Database cleanup attempt {Attempt}/{Max} due to transient error {SqlState}", attempt, maxRetries, ex.SqlState);
-                await Task.Delay(TimeSpan.FromSeconds(attempt)); 
+                
+                var sqlState = (ex as Npgsql.PostgresException)?.SqlState ?? 
+                              (ex.InnerException as Npgsql.PostgresException)?.SqlState ?? "Unknown";
+
+                logger?.LogWarning("⚠️ Database cleanup attempt {Attempt}/{Max} due to transient error {SqlState}. Message: {Message}", 
+                    attempt, maxRetries, sqlState, ex.Message);
+                
+                await Task.Delay(1000 * attempt);
             }
             catch (Exception ex)
             {
@@ -336,6 +348,23 @@ public abstract class BaseApiTest : IAsyncLifetime
                 throw;
             }
         }
+    }
+
+    private static bool IsTransientException(Exception ex)
+    {
+        // Direct PostgresException
+        if (ex is Npgsql.PostgresException pgEx && (pgEx.SqlState == "57P03" || pgEx.SqlState == "57P01" || pgEx.SqlState == "55006" || pgEx.SqlState == "53300"))
+            return true;
+
+        // EF Core often wraps transient errors into InvalidOperationException
+        if (ex is InvalidOperationException && ex.Message.Contains("transient failure") && ex.InnerException != null)
+            return IsTransientException(ex.InnerException);
+
+        // DbUpdateException often wraps Npgsql exceptions
+        if (ex is Microsoft.EntityFrameworkCore.DbUpdateException && ex.InnerException != null)
+            return IsTransientException(ex.InnerException);
+
+        return false;
     }
 
     private static async Task ApplyMigrationForContextAsync<TContext>(TContext context, string moduleName, ILogger? logger) where TContext : DbContext
