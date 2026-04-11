@@ -95,7 +95,7 @@ public abstract class BaseApiTest : IAsyncLifetime
         _wireMockFixture = new WireMockFixture();
         await _wireMockFixture.StartAsync();
 
-        var wireMockUrl = _wireMockFixture.BaseUrl;
+        var wireMockUrl = _wireMockFixture.BaseUrl.TrimEnd('/');
         Environment.SetEnvironmentVariable("Locations__ExternalApis__ViaCep__BaseUrl", wireMockUrl);
         Environment.SetEnvironmentVariable("Locations__ExternalApis__BrasilApi__BaseUrl", wireMockUrl);
         Environment.SetEnvironmentVariable("Locations__ExternalApis__OpenCep__BaseUrl", wireMockUrl);
@@ -139,7 +139,7 @@ public abstract class BaseApiTest : IAsyncLifetime
                         ["Locations:ExternalApis:BrasilApi:BaseUrl"] = wireMockUrl,
                         ["Locations:ExternalApis:OpenCep:BaseUrl"] = wireMockUrl,
                         ["Locations:ExternalApis:Nominatim:BaseUrl"] = wireMockUrl,
-                        ["Locations:ExternalApis:IBGE:BaseUrl"] = $"{wireMockUrl}/api/v1/localidades/",
+                        ["Locations:ExternalApis:IBGE:BaseUrl"] = $"{wireMockUrl}/api/v1/localidades",
                         ["RateLimit:Enabled"] = "false",
                         ["AdvancedRateLimit:General:Enabled"] = "false"
                     });
@@ -177,8 +177,9 @@ public abstract class BaseApiTest : IAsyncLifetime
                     services.RemoveRealAuthentication();
                     services.AddInstanceTestAuthentication();
 
-                    var claimsTransformationDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IClaimsTransformation));
-                    if (claimsTransformationDescriptor != null) services.Remove(claimsTransformationDescriptor);
+                    // As URLs dos serviços externos já são configuradas via builder.Configuration 
+                    // usando o BaseUrl do WireMock no início deste método.
+                    // Não re-registramos aqui para evitar conflitos no container de DI.
                 });
             });
 
@@ -415,8 +416,18 @@ public abstract class BaseApiTest : IAsyncLifetime
         try 
         {
             var json = JsonSerializer.Deserialize<JsonElement>(jsonString, SerializationDefaults.Api);
-            if (json.ValueKind == JsonValueKind.Object && json.TryGetProperty("isSuccess", out var s) && s.ValueKind == JsonValueKind.True && json.TryGetProperty("value", out var v))
+            
+            // Só tentamos desembrulhar se:
+            // 1. O JSON for um objeto com a estrutura do Result { items: ..., isSuccess: true, value: ... }
+            // 2. O tipo solicitado T NÃO for do tipo Result<T> ou Response<T> (para evitar erro de dupla desserialização)
+            
+            bool isResultType = typeof(T).IsGenericType && 
+                               (typeof(T).GetGenericTypeDefinition().Name.StartsWith("Result") || 
+                                typeof(T).GetGenericTypeDefinition().Name.StartsWith("Response"));
+
+            if (!isResultType && json.ValueKind == JsonValueKind.Object && json.TryGetProperty("isSuccess", out var s) && s.ValueKind == JsonValueKind.True && json.TryGetProperty("value", out var v))
                 return JsonSerializer.Deserialize<T>(v.GetRawText(), SerializationDefaults.Api);
+            
             return JsonSerializer.Deserialize<T>(jsonString, SerializationDefaults.Api);
         }
         catch (JsonException ex)

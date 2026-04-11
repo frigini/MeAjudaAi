@@ -28,19 +28,33 @@ public sealed class ViaCepClient(HttpClient httpClient, ILogger<ViaCepClient> lo
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
             var viaCepResponse = JsonSerializer.Deserialize<ViaCepResponse>(content, SerializationDefaults.Default);
 
-            if (viaCepResponse is null || viaCepResponse.Erro)
+            if (viaCepResponse is null)
             {
-                logger.LogInformation("CEP {Cep} not found in ViaCEP", cep.Value);
+                logger.LogInformation("CEP {Cep} not found in ViaCEP (null response)", cep.Value);
                 return null;
             }
 
-            return Address.Create(
+            if (viaCepResponse.Erro)
+            {
+                logger.LogInformation("CEP {Cep} not found in ViaCEP (erro=true)", cep.Value);
+                return null;
+            }
+
+            var address = Address.Create(
                 cep,
                 viaCepResponse.Logradouro,
                 viaCepResponse.Bairro,
                 viaCepResponse.Localidade,
                 viaCepResponse.Uf,
                 viaCepResponse.Complemento);
+
+            if (address is null)
+            {
+                logger.LogWarning("ViaCEP returned data for CEP {Cep}, but Address.Create failed. Data: {@Response}", 
+                    cep.Value, viaCepResponse);
+            }
+
+            return address;
         }
         catch (Exception ex)
         {

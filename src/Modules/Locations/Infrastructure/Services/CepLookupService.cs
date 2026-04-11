@@ -89,7 +89,8 @@ public sealed class CepLookupService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error in provider {Provider} for CEP {Cep}", provider, cep.Value);
+            logger.LogWarning(ex, "Provider {Provider} encountered an error for CEP {Cep}. Error: {Message}", 
+                provider, cep.Value, ex.Message);
             return null;
         }
     }

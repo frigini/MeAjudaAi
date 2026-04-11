@@ -25,20 +25,29 @@ public sealed class BrasilApiCepClient(HttpClient httpClient, ILogger<BrasilApiC
             }
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
+            
             var brasilApiResponse = JsonSerializer.Deserialize<BrasilApiCepResponse>(content, SerializationDefaults.Default);
 
             if (brasilApiResponse is null)
             {
-                logger.LogInformation("CEP {Cep} not found in BrasilAPI", cep.Value);
+                logger.LogInformation("CEP {Cep} not found in BrasilAPI (null deserialization)", cep.Value);
                 return null;
             }
 
-            return Address.Create(
+            var address = Address.Create(
                 cep,
                 brasilApiResponse.Street,
                 brasilApiResponse.Neighborhood,
                 brasilApiResponse.City,
                 brasilApiResponse.State);
+
+            if (address is null)
+            {
+                logger.LogWarning("BrasilAPI returned data for {Cep}, but Address.Create failed. Data: {@Response}", 
+                    cep.Value, brasilApiResponse);
+            }
+
+            return address;
         }
         catch (Exception ex)
         {
