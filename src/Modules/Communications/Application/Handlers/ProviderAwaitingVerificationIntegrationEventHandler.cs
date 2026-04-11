@@ -13,7 +13,7 @@ namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 /// <summary>
 /// Handler para notificar administradores quando um prestador aguarda verificação.
 /// </summary>
-internal sealed class ProviderAwaitingVerificationIntegrationEventHandler(
+public sealed class ProviderAwaitingVerificationIntegrationEventHandler(
     IOutboxMessageRepository outboxRepository,
     IConfiguration configuration,
     ILogger<ProviderAwaitingVerificationIntegrationEventHandler> logger)

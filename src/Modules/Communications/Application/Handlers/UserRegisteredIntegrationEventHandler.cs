@@ -12,7 +12,7 @@ namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 /// <summary>
 /// Consome o evento UserRegisteredIntegrationEvent e enfileira e-mail de boas-vindas no Outbox.
 /// </summary>
-internal sealed class UserRegisteredIntegrationEventHandler(
+public sealed class UserRegisteredIntegrationEventHandler(
     IOutboxMessageRepository outboxRepository,
     ICommunicationLogRepository logRepository,
     ILogger<UserRegisteredIntegrationEventHandler> logger)

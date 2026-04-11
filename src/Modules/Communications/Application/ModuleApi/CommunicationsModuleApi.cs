@@ -16,7 +16,7 @@ namespace MeAjudaAi.Modules.Communications.Application.ModuleApi;
 /// Implementação da API pública do módulo de comunicações.
 /// </summary>
 [MeAjudaAi.Contracts.Modules.ModuleApi(ModuleNames.Communications)]
-internal sealed class CommunicationsModuleApi(
+public sealed class CommunicationsModuleApi(
     IOutboxMessageRepository outboxRepository,
     IEmailTemplateRepository templateRepository,
     ICommunicationLogRepository logRepository)

@@ -25,7 +25,7 @@ public interface IOutboxProcessorService
 /// <summary>
 /// Implementação do processador de Outbox.
 /// </summary>
-internal sealed class OutboxProcessorService(
+public sealed class OutboxProcessorService(
     IOutboxMessageRepository outboxRepository,
     ICommunicationLogRepository logRepository,
     IEmailSender emailSender,

@@ -8,7 +8,7 @@ namespace MeAjudaAi.Modules.Communications.Application.Services.Email;
 /// Stub para envio de e-mails em desenvolvimento/MVP.
 /// Apenas loga no console as informações do e-mail.
 /// </summary>
-internal sealed class StubEmailService(ILogger<StubEmailService> logger) : IEmailService
+public sealed class StubEmailService(ILogger<StubEmailService> logger) : IEmailService
 {
     public async Task<Result<string>> SendAsync(EmailMessageDto message, CancellationToken cancellationToken = default)
     {

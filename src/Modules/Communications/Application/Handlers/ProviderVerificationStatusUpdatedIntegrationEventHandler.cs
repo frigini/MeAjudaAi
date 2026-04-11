@@ -14,7 +14,7 @@ namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 /// <summary>
 /// Handler para notificar o prestador quando seu status de verificação é atualizado.
 /// </summary>
-internal sealed class ProviderVerificationStatusUpdatedIntegrationEventHandler(
+public sealed class ProviderVerificationStatusUpdatedIntegrationEventHandler(
     IOutboxMessageRepository outboxRepository,
     IUsersModuleApi usersModuleApi,
     ILogger<ProviderVerificationStatusUpdatedIntegrationEventHandler> logger)

@@ -12,7 +12,7 @@ namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 /// <summary>
 /// Consome o ProviderActivatedIntegrationEvent e enfileira e-mail de aprovação do prestador.
 /// </summary>
-internal sealed class ProviderActivatedIntegrationEventHandler(
+public sealed class ProviderActivatedIntegrationEventHandler(
     IOutboxMessageRepository outboxRepository,
     ICommunicationLogRepository logRepository,
     ILogger<ProviderActivatedIntegrationEventHandler> logger)
