@@ -18,34 +18,26 @@ public sealed class CepProvidersUnavailabilityTests : BaseApiTest
     protected override bool UseMockGeographicValidation => false;
     protected override TestModule RequiredModules => TestModule.Locations;
 
-    private static string GetUniqueCep(string prefix)
-    {
-        // Garante CEPs únicos por teste para evitar poluição do cache
-        return prefix + Random.Shared.Next(1000, 9999).ToString("D4");
-    }
-
     [Fact]
     public async Task LookupCep_WhenViaCepFails_ShouldFallbackToBrasilApi()
     {
         // Arrange
-        var uniqueCep = GetUniqueCep("1111");
+        var uniqueCep = "11110001";
         AuthConfig.ConfigureAdmin();
 
-        // ViaCEP retorna erro 500
+        // 1. ViaCEP retorna erro 500
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath(new global::WireMock.Matchers.RegexMatcher($".*/ws/{uniqueCep}/json/.*"))
+                .WithPath($"/ws/{uniqueCep}/json/")
                 .UsingGet())
-            .AtPriority(1)
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
 
-        // BrasilAPI retorna sucesso
+        // 2. BrasilAPI retorna sucesso
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath(new global::WireMock.Matchers.RegexMatcher($".*/api/cep/v2/{uniqueCep}.*"))
+                .WithPath($"/api/cep/v2/{uniqueCep}")
                 .UsingGet())
-            .AtPriority(1)
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
@@ -54,15 +46,14 @@ public sealed class CepProvidersUnavailabilityTests : BaseApiTest
                         "cep": "{{uniqueCep}}",
                         "street": "Rua Fallback BrasilAPI",
                         "neighborhood": "Centro",
-                        "city": "Muriae",
-                        "state": "MG",
-                        "service": "brasilapi"
+                        "city": "Muriaé",
+                        "state": "MG"
                     }
                     """));
 
         var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
         
-        // Limpar cache para garantir que a consulta chegue aos provedores
+        // Limpar cache
         var cache = Services.GetRequiredService<MeAjudaAi.Shared.Caching.ICacheService>();
         await cache.RemoveAsync($"cep:{uniqueCep}");
 
@@ -78,22 +69,22 @@ public sealed class CepProvidersUnavailabilityTests : BaseApiTest
     public async Task LookupCep_WhenViaCepAndBrasilApiFail_ShouldFallbackToOpenCep()
     {
         // Arrange
-        var uniqueCep = GetUniqueCep("2222");
+        var uniqueCep = "22220002";
         AuthConfig.ConfigureAdmin();
 
-        // ViaCEP e BrasilAPI retornam erro
+        // 1. ViaCEP e BrasilAPI retornam erro
         WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create().WithPath(new global::WireMock.Matchers.RegexMatcher($".*/ws/{uniqueCep}/.*")).UsingGet())
+            .Given(global::WireMock.RequestBuilders.Request.Create().WithPath($"/ws/{uniqueCep}/json/").UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create().WithStatusCode(500));
 
         WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create().WithPath(new global::WireMock.Matchers.RegexMatcher($".*/api/cep/v2/{uniqueCep}.*")).UsingGet())
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create().WithStatusCode(503));
+            .Given(global::WireMock.RequestBuilders.Request.Create().WithPath($"/api/cep/v2/{uniqueCep}").UsingGet())
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create().WithStatusCode(500));
 
-        // OpenCEP retorna sucesso
+        // 2. OpenCEP retorna sucesso
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath(new global::WireMock.Matchers.RegexMatcher($".*/api/cep/{uniqueCep}.json.*"))
+                .WithPath($"/api/cep/{uniqueCep}.json")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -103,7 +94,7 @@ public sealed class CepProvidersUnavailabilityTests : BaseApiTest
                         "cep": "{{uniqueCep}}",
                         "logradouro": "Rua Fallback OpenCEP",
                         "bairro": "Centro",
-                        "localidade": "Muriae",
+                        "localidade": "Muriaé",
                         "uf": "MG"
                     }
                     """));
@@ -124,19 +115,19 @@ public sealed class CepProvidersUnavailabilityTests : BaseApiTest
     public async Task LookupCep_WhenViaCepReturnsMalformedJson_ShouldFallbackToBrasilApi()
     {
         // Arrange
-        var uniqueCep = GetUniqueCep("3333");
+        var uniqueCep = "33330003";
         AuthConfig.ConfigureAdmin();
 
-        // ViaCEP retorna JSON inválido
+        // 1. ViaCEP retorna JSON inválido
         WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create().WithPath(new global::WireMock.Matchers.RegexMatcher($".*/ws/{uniqueCep}/.*")).UsingGet())
+            .Given(global::WireMock.RequestBuilders.Request.Create().WithPath($"/ws/{uniqueCep}/json/").UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithBody("INVALID JSON { ..."));
 
-        // BrasilAPI retorna sucesso
+        // 2. BrasilAPI retorna sucesso
         WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create().WithPath(new global::WireMock.Matchers.RegexMatcher($".*/api/cep/v2/{uniqueCep}.*")).UsingGet())
+            .Given(global::WireMock.RequestBuilders.Request.Create().WithPath($"/api/cep/v2/{uniqueCep}").UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
@@ -145,7 +136,7 @@ public sealed class CepProvidersUnavailabilityTests : BaseApiTest
                         "cep": "{{uniqueCep}}",
                         "street": "Rua Apos ViaCep Invalido",
                         "neighborhood": "Centro",
-                        "city": "Muriae",
+                        "city": "Muriaé",
                         "state": "MG"
                     }
                     """));

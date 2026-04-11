@@ -21,6 +21,7 @@ using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -118,6 +119,22 @@ public abstract class BaseApiTest : IAsyncLifetime
                 builder.ConfigureAppConfiguration((context, config) =>
                 {
                     var wireMockUrl = _wireMockFixture!.BaseUrl;
+                    
+                    // Configurar variáveis de ambiente para garantir o override supremo
+                    Environment.SetEnvironmentVariable("Locations__ExternalApis__ViaCep__BaseUrl", wireMockUrl);
+                    Environment.SetEnvironmentVariable("Locations__ExternalApis__BrasilApi__BaseUrl", wireMockUrl);
+                    Environment.SetEnvironmentVariable("Locations__ExternalApis__OpenCep__BaseUrl", wireMockUrl);
+                    Environment.SetEnvironmentVariable("Locations__ExternalApis__Nominatim__BaseUrl", wireMockUrl);
+                    Environment.SetEnvironmentVariable("Locations__ExternalApis__IBGE__BaseUrl", $"{wireMockUrl}/api/v1/localidades");
+
+                    // Configurar URLs do WireMock nos provedores de CEP
+                    // Usamos UseSetting para garantir que sobreponha appsettings.json
+                    builder.UseSetting("Locations:ExternalApis:ViaCep:BaseUrl", wireMockUrl);
+                    builder.UseSetting("Locations:ExternalApis:BrasilApi:BaseUrl", wireMockUrl);
+                    builder.UseSetting("Locations:ExternalApis:OpenCep:BaseUrl", wireMockUrl);
+                    builder.UseSetting("Locations:ExternalApis:Nominatim:BaseUrl", wireMockUrl);
+                    builder.UseSetting("Locations:ExternalApis:IBGE:BaseUrl", $"{wireMockUrl}/api/v1/localidades");
+
                     config.AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         ["Logging:LogLevel:Default"] = "Warning",
@@ -147,6 +164,19 @@ public abstract class BaseApiTest : IAsyncLifetime
 
                 builder.ConfigureServices(services =>
                 {
+                    var wireMockUrl = _wireMockFixture!.BaseUrl;
+
+                    // Forçar o uso de cache em memória para IDistributedCache
+                    services.AddDistributedMemoryCache();
+
+                    // Sobrescrever URLs dos HttpClients para apontar para o WireMock
+                    // Isso garante que o redirecionamento funcione mesmo que o Program.cs já tenha registrado os clientes
+                    services.AddHttpClient<ViaCepClient>(c => { c.BaseAddress = new Uri(wireMockUrl); });
+                    services.AddHttpClient<BrasilApiCepClient>(c => { c.BaseAddress = new Uri(wireMockUrl + (wireMockUrl.EndsWith('/') ? "" : "/")); });
+                    services.AddHttpClient<OpenCepClient>(c => { c.BaseAddress = new Uri(wireMockUrl); });
+                    services.AddHttpClient<NominatimClient>(c => { c.BaseAddress = new Uri(wireMockUrl); });
+                    services.AddHttpClient<IIbgeClient, IbgeClient>(c => { c.BaseAddress = new Uri($"{wireMockUrl}/api/v1/localidades/"); });
+
                     RemoveDbContextRegistrations<UsersDbContext>(services);
                     RemoveDbContextRegistrations<ProvidersDbContext>(services);
                     RemoveDbContextRegistrations<DocumentsDbContext>(services);
