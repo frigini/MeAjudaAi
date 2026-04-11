@@ -20,13 +20,15 @@ public sealed class BrasilApiCepClient(HttpClient httpClient, ILogger<BrasilApiC
 
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogWarning("BrasilAPI returned status {StatusCode} for CEP {Cep}", response.StatusCode, cep.Value);
+                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                logger.LogWarning("BrasilAPI returned status {StatusCode} for CEP {Cep}. Content: {Content}", 
+                    response.StatusCode, cep.Value, errorContent);
                 return null;
             }
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
-            
-            var brasilApiResponse = JsonSerializer.Deserialize<BrasilApiCepResponse>(content, SerializationDefaults.Default);
+            logger.LogDebug("BrasilAPI response for {Cep}: {Content}", cep.Value, content);
+            var brasilApiResponse = JsonSerializer.Deserialize<BrasilApiCepResponse>(content, SerializationDefaults.Api);
 
             if (brasilApiResponse is null)
             {

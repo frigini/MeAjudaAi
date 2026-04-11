@@ -9,7 +9,6 @@ namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 /// These tests validate that the middleware is properly configured and blocking requests.
 /// If these tests fail, it indicates a middleware registration or configuration issue.
 /// </summary>
-[Collection("Integration")]
 public sealed class GeographicRestrictionConfigTests : BaseApiTest
 {
     protected override TestModule RequiredModules => TestModule.None;

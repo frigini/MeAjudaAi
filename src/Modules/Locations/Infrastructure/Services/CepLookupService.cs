@@ -54,11 +54,11 @@ public sealed class CepLookupService(
 
     private async Task<Address?> LookupFromProvidersAsync(Cep cep, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Starting CEP lookup {Cep}", cep.Value);
+        logger.LogInformation("Starting CEP lookup for {Cep}", cep.Value);
 
         foreach (var provider in DefaultProviderOrder)
         {
-            logger.LogDebug("Trying provider {Provider} for CEP {Cep}", provider, cep.Value);
+            logger.LogInformation("Trying provider {Provider} for CEP {Cep}", provider, cep.Value);
             var address = await TryProviderAsync(provider, cep, cancellationToken);
             
             if (address is not null)
@@ -68,10 +68,10 @@ public sealed class CepLookupService(
                 return address;
             }
 
-            logger.LogWarning("Provider {Provider} failed or returned no result for CEP {Cep}", provider, cep.Value);
+            logger.LogWarning("Provider {Provider} returned no result for CEP {Cep}", provider, cep.Value);
         }
 
-        logger.LogError("CEP {Cep} not found in any provider", cep.Value);
+        logger.LogError("CEP {Cep} not found in any of the configured providers", cep.Value);
         return null;
     }
 

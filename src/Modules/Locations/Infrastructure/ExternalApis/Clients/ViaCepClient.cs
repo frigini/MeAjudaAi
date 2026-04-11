@@ -21,12 +21,15 @@ public sealed class ViaCepClient(HttpClient httpClient, ILogger<ViaCepClient> lo
 
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogWarning("ViaCEP returned status {StatusCode} for CEP {Cep}", response.StatusCode, cep.Value);
+                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                logger.LogWarning("ViaCEP returned status {StatusCode} for CEP {Cep}. Content: {Content}", 
+                    response.StatusCode, cep.Value, errorContent);
                 return null;
             }
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
-            var viaCepResponse = JsonSerializer.Deserialize<ViaCepResponse>(content, SerializationDefaults.Default);
+            logger.LogDebug("ViaCEP response for {Cep}: {Content}", cep.Value, content);
+            var viaCepResponse = JsonSerializer.Deserialize<ViaCepResponse>(content, SerializationDefaults.Api);
 
             if (viaCepResponse is null)
             {

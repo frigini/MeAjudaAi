@@ -23,11 +23,62 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
     /// <summary>
     /// Connection string com detalhes de erro habilitados para diagnóstico em CI
     /// </summary>
-    public string? ConnectionString => _postgresContainer != null 
-        ? $"{_postgresContainer.GetConnectionString()};Include Error Detail=true" 
-        : null;
-    
+    public string GetConnectionString(string databaseName) => _postgresContainer != null 
+        ? $"{_postgresContainer.GetConnectionString().Replace("Database=meajudaai_test", $"Database={databaseName}")};Include Error Detail=true" 
+        : throw new InvalidOperationException("Postgres container not initialized");
+
+    public string? ConnectionString => _postgresContainer?.GetConnectionString();
+
     public string? AzuriteConnectionString => _azuriteContainer?.GetConnectionString();
+
+    public async Task CreateDatabaseAsync(string databaseName)
+    {
+        if (_postgresContainer == null) throw new InvalidOperationException("Postgres container not initialized");
+
+        var masterConnectionString = _postgresContainer.GetConnectionString(); // Default to postgres DB
+        await using var conn = new NpgsqlConnection(masterConnectionString);
+        await conn.OpenAsync();
+        
+        // Verifica se banco já existe
+        await using var checkCmd = new NpgsqlCommand($"SELECT 1 FROM pg_database WHERE datname = '{databaseName}'", conn);
+        var exists = await checkCmd.ExecuteScalarAsync();
+        
+        if (exists == null)
+        {
+            await using var cmd = new NpgsqlCommand($"CREATE DATABASE {databaseName}", conn);
+            await cmd.ExecuteNonQueryAsync();
+            Console.WriteLine($"[DB-FIXTURE] Database {databaseName} created");
+        }
+    }
+
+    public async Task DropDatabaseAsync(string databaseName)
+    {
+        if (_postgresContainer == null) return;
+
+        try
+        {
+            var masterConnectionString = _postgresContainer.GetConnectionString();
+            await using var conn = new NpgsqlConnection(masterConnectionString);
+            await conn.OpenAsync();
+            
+            // Forçar encerramento de conexões
+            await using var terminateCmd = new NpgsqlCommand($"""
+                SELECT pg_terminate_backend(pg_stat_activity.pid)
+                FROM pg_stat_activity
+                WHERE pg_stat_activity.datname = '{databaseName}'
+                AND pid <> pg_backend_pid();
+                """, conn);
+            await terminateCmd.ExecuteNonQueryAsync();
+
+            await using var cmd = new NpgsqlCommand($"DROP DATABASE IF EXISTS {databaseName}", conn);
+            await cmd.ExecuteNonQueryAsync();
+            Console.WriteLine($"[DB-FIXTURE] Database {databaseName} dropped");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DB-FIXTURE] Warning: Could not drop database {databaseName}: {ex.Message}");
+        }
+    }
 
     public async ValueTask InitializeAsync()
     {

@@ -32,8 +32,8 @@ using Microsoft.Extensions.Logging;
 using Xunit;
 using System.Runtime.CompilerServices;
 
-// Disable parallel execution to prevent race conditions when using shared database containers
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
+// Enable parallel execution by isolating databases per test class
+// [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
@@ -57,7 +57,6 @@ public enum TestModule
 /// <summary>
 /// Classe base unificada para testes de integração com suporte a autenticação baseada em instância.
 /// </summary>
-[Collection("Integration")]
 public abstract class BaseApiTest : IAsyncLifetime
 {
     [ModuleInitializer]
@@ -73,11 +72,13 @@ public abstract class BaseApiTest : IAsyncLifetime
     private SimpleDatabaseFixture? _databaseFixture;
     private WireMockFixture? _wireMockFixture;
     private WebApplicationFactory<Program>? _factory;
+    private string? _databaseName;
 
     protected HttpClient Client { get; private set; } = null!;
     protected IServiceProvider Services => _factory!.Services;
     protected ITestAuthenticationConfiguration AuthConfig { get; private set; } = null!;
     protected WireMockFixture WireMock => _wireMockFixture ?? throw new InvalidOperationException("WireMock not initialized");
+    protected string DatabaseName => _databaseName ??= $"test_{GetType().Name.ToLowerInvariant()}_{Guid.NewGuid().ToString("n")[..8]}";
 
     protected virtual TestModule RequiredModules => TestModule.All;
     protected virtual bool UseMockGeographicValidation => true;
@@ -96,19 +97,16 @@ public abstract class BaseApiTest : IAsyncLifetime
         _wireMockFixture = new WireMockFixture();
         await _wireMockFixture.StartAsync();
 
-        var wireMockUrl = _wireMockFixture.BaseUrl.TrimEnd('/');
-        Environment.SetEnvironmentVariable("Locations__ExternalApis__ViaCep__BaseUrl", wireMockUrl);
-        Environment.SetEnvironmentVariable("Locations__ExternalApis__BrasilApi__BaseUrl", wireMockUrl);
-        Environment.SetEnvironmentVariable("Locations__ExternalApis__OpenCep__BaseUrl", wireMockUrl);
-        Environment.SetEnvironmentVariable("Locations__ExternalApis__Nominatim__BaseUrl", wireMockUrl);
-        Environment.SetEnvironmentVariable("Locations__ExternalApis__IBGE__BaseUrl", $"{wireMockUrl}/api/v1/localidades");
-
         _databaseFixture = new SimpleDatabaseFixture();
         await _databaseFixture.InitializeAsync();
 
-#pragma warning disable CA2000 
+        // Criar banco de dados isolado para esta classe de teste
+        await _databaseFixture.CreateDatabaseAsync(DatabaseName);
+        var connectionString = _databaseFixture.GetConnectionString(DatabaseName);
+
+    #pragma warning disable CA2000 
         _factory = new WebApplicationFactory<Program>()
-#pragma warning restore CA2000
+    #pragma warning restore CA2000
             .WithWebHostBuilder(builder =>
             {
                 var apiServicePath = ResolveApiServicePath();
@@ -116,66 +114,49 @@ public abstract class BaseApiTest : IAsyncLifetime
 
                 builder.UseEnvironment("Testing");
 
+                var wireMockUrl = _wireMockFixture!.BaseUrl;
+
+                // Configurar URLs do WireMock nos provedores de CEP específicos para esta instância
+                builder.UseSetting("Locations:ExternalApis:ViaCep:BaseUrl", wireMockUrl);
+                builder.UseSetting("Locations:ExternalApis:BrasilApi:BaseUrl", wireMockUrl);
+                builder.UseSetting("Locations:ExternalApis:OpenCep:BaseUrl", wireMockUrl);
+                builder.UseSetting("Locations:ExternalApis:Nominatim:BaseUrl", wireMockUrl);
+                builder.UseSetting("Locations:ExternalApis:IBGE:BaseUrl", $"{wireMockUrl}/api/v1/localidades");
+
                 builder.ConfigureAppConfiguration((context, config) =>
                 {
-                    var wireMockUrl = _wireMockFixture!.BaseUrl;
-                    
-                    // Configurar variáveis de ambiente para garantir o override supremo
-                    Environment.SetEnvironmentVariable("Locations__ExternalApis__ViaCep__BaseUrl", wireMockUrl);
-                    Environment.SetEnvironmentVariable("Locations__ExternalApis__BrasilApi__BaseUrl", wireMockUrl);
-                    Environment.SetEnvironmentVariable("Locations__ExternalApis__OpenCep__BaseUrl", wireMockUrl);
-                    Environment.SetEnvironmentVariable("Locations__ExternalApis__Nominatim__BaseUrl", wireMockUrl);
-                    Environment.SetEnvironmentVariable("Locations__ExternalApis__IBGE__BaseUrl", $"{wireMockUrl}/api/v1/localidades");
-
-                    // Configurar URLs do WireMock nos provedores de CEP
-                    // Usamos UseSetting para garantir que sobreponha appsettings.json
-                    builder.UseSetting("Locations:ExternalApis:ViaCep:BaseUrl", wireMockUrl);
-                    builder.UseSetting("Locations:ExternalApis:BrasilApi:BaseUrl", wireMockUrl);
-                    builder.UseSetting("Locations:ExternalApis:OpenCep:BaseUrl", wireMockUrl);
-                    builder.UseSetting("Locations:ExternalApis:Nominatim:BaseUrl", wireMockUrl);
-                    builder.UseSetting("Locations:ExternalApis:IBGE:BaseUrl", $"{wireMockUrl}/api/v1/localidades");
-
                     config.AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         ["Logging:LogLevel:Default"] = "Warning",
+                        ["Logging:LogLevel:Microsoft.AspNetCore"] = "Warning",
                         ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Information",
-                        ["Postgres:ConnectionString"] = _databaseFixture.ConnectionString,
-                        ["ConnectionStrings:DefaultConnection"] = _databaseFixture.ConnectionString,
+                        ["Postgres:ConnectionString"] = connectionString,
+                        ["ConnectionStrings:DefaultConnection"] = connectionString,
                         ["RabbitMQ:Enabled"] = "false",
                         ["Messaging:Enabled"] = "false",
                         ["Messaging:Provider"] = "Mock",
                         ["Keycloak:Enabled"] = "false",
                         ["FeatureManagement:GeographicRestriction"] = "true",
-                        ["GeographicRestriction:AllowedStates:0"] = "MG",
-                        ["GeographicRestriction:AllowedStates:1"] = "RJ",
-                        ["GeographicRestriction:AllowedStates:2"] = "ES",
-                        ["GeographicRestriction:AllowedCities:0"] = "Muriaé",
-                        ["GeographicRestriction:AllowedCities:1"] = "Itaperuna",
-                        ["GeographicRestriction:AllowedCities:2"] = "Linhares",
                         ["Locations:ExternalApis:ViaCep:BaseUrl"] = wireMockUrl,
                         ["Locations:ExternalApis:BrasilApi:BaseUrl"] = wireMockUrl,
                         ["Locations:ExternalApis:OpenCep:BaseUrl"] = wireMockUrl,
                         ["Locations:ExternalApis:Nominatim:BaseUrl"] = wireMockUrl,
                         ["Locations:ExternalApis:IBGE:BaseUrl"] = $"{wireMockUrl}/api/v1/localidades",
+                        ["GeographicRestriction:AllowedCities:0"] = "Muriaé",
+                        ["GeographicRestriction:AllowedCities:1"] = "Itaperuna",
+                        ["GeographicRestriction:AllowedCities:2"] = "Linhares",
+                        ["GeographicRestriction:AllowedStates:0"] = "MG",
+                        ["GeographicRestriction:AllowedStates:1"] = "RJ",
+                        ["GeographicRestriction:AllowedStates:2"] = "ES",
+                        ["Cache:Enabled"] = "false",
                         ["RateLimit:Enabled"] = "false",
                         ["AdvancedRateLimit:General:Enabled"] = "false"
                     });
                 });
-
                 builder.ConfigureServices(services =>
                 {
-                    var wireMockUrl = _wireMockFixture!.BaseUrl;
-
                     // Forçar o uso de cache em memória para IDistributedCache
                     services.AddDistributedMemoryCache();
-
-                    // Sobrescrever URLs dos HttpClients para apontar para o WireMock
-                    // Isso garante que o redirecionamento funcione mesmo que o Program.cs já tenha registrado os clientes
-                    services.AddHttpClient<ViaCepClient>(c => { c.BaseAddress = new Uri(wireMockUrl); });
-                    services.AddHttpClient<BrasilApiCepClient>(c => { c.BaseAddress = new Uri(wireMockUrl + (wireMockUrl.EndsWith('/') ? "" : "/")); });
-                    services.AddHttpClient<OpenCepClient>(c => { c.BaseAddress = new Uri(wireMockUrl); });
-                    services.AddHttpClient<NominatimClient>(c => { c.BaseAddress = new Uri(wireMockUrl); });
-                    services.AddHttpClient<IIbgeClient, IbgeClient>(c => { c.BaseAddress = new Uri($"{wireMockUrl}/api/v1/localidades/"); });
 
                     RemoveDbContextRegistrations<UsersDbContext>(services);
                     RemoveDbContextRegistrations<ProvidersDbContext>(services);
@@ -206,10 +187,6 @@ public abstract class BaseApiTest : IAsyncLifetime
 
                     services.RemoveRealAuthentication();
                     services.AddInstanceTestAuthentication();
-
-                    // As URLs dos serviços externos já são configuradas via builder.Configuration 
-                    // usando o BaseUrl do WireMock no início deste método.
-                    // Não re-registramos aqui para evitar conflitos no container de DI.
                 });
             });
 
@@ -225,7 +202,8 @@ public abstract class BaseApiTest : IAsyncLifetime
     {
         services.AddDbContext<TContext>(options =>
         {
-            options.UseNpgsql(_databaseFixture!.ConnectionString, npgsqlOptions =>
+            var connectionString = _databaseFixture!.GetConnectionString(DatabaseName);
+            options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.UseNetTopologySuite();
                 npgsqlOptions.MigrationsAssembly(assembly);
@@ -233,19 +211,12 @@ public abstract class BaseApiTest : IAsyncLifetime
             });
             
             options.UseSnakeCaseNamingConvention();
-            
-            // Ignore pending model changes warning as it can be overly sensitive in integration tests
             options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 
-            // Habilita o log de dados sensíveis apenas quando explicitamente solicitado (ex: debugging local)
-            // Nunca habilitar no CI para evitar logar informações sensíveis
             if (Environment.GetEnvironmentVariable("ENABLE_SENSITIVE_LOGGING") == "true")
             {
                 options.EnableSensitiveDataLogging();
             }
-
-            // Re-enable validation if needed
-            // options.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
     }
 
@@ -267,17 +238,12 @@ public abstract class BaseApiTest : IAsyncLifetime
             if (!modules.HasFlag(TestModule.ServiceCatalogs)) modules |= TestModule.ServiceCatalogs;
         }
 
+        // Lock para evitar que múltiplas migrações ocorram simultaneamente no MESMO banco, 
+        // mas como os bancos agora são isolados, o lock serve apenas como precaução 
+        // caso algo tente acessar o banco master simultaneamente.
         await MigrationLock.WaitAsync();
         try
         {
-            // Usa SearchProvidersDbContext como proxy para limpeza se disponível, ou qualquer outro
-            DbContext cleanContext;
-            if (modules.HasFlag(TestModule.SearchProviders)) cleanContext = serviceProvider.GetRequiredService<SearchProvidersDbContext>();
-            else if (modules.HasFlag(TestModule.Users)) cleanContext = serviceProvider.GetRequiredService<UsersDbContext>();
-            else cleanContext = serviceProvider.GetRequiredService<CommunicationsDbContext>();
-
-            await EnsureCleanDatabaseAsync(cleanContext, logger);
-
             // Apply migrations in order
             if (modules.HasFlag(TestModule.Users)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<UsersDbContext>(), "Users", logger);
             if (modules.HasFlag(TestModule.ServiceCatalogs)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<ServiceCatalogsDbContext>(), "ServiceCatalogs", logger);
@@ -294,7 +260,7 @@ public abstract class BaseApiTest : IAsyncLifetime
             }
 
             await SeedTestDataAsync(serviceProvider, logger);
-            logger?.LogInformation("✅ Migrations and Seeding applied successfully");
+            logger?.LogInformation("✅ Migrations and Seeding applied successfully to {DbName}", DatabaseName);
         }
         finally { MigrationLock.Release(); }
     }
@@ -350,7 +316,7 @@ public abstract class BaseApiTest : IAsyncLifetime
         {
             try 
             { 
-                // Clear all connection pools to prevent "database in use" errors or transient connection issues
+                // Clear all connection pools to prevent "database in use" errors
                 if (attempt == 1)
                 {
                     Npgsql.NpgsqlConnection.ClearAllPools();
@@ -361,7 +327,6 @@ public abstract class BaseApiTest : IAsyncLifetime
             }
             catch (Exception ex) when (IsTransientException(ex))
             { 
-                // Transient errors (database is starting up, admin shutdown, or database is being accessed by other users)
                 if (attempt == maxRetries) throw; 
                 
                 var sqlState = (ex as Npgsql.PostgresException)?.SqlState ?? 
@@ -374,7 +339,6 @@ public abstract class BaseApiTest : IAsyncLifetime
             }
             catch (Exception ex)
             {
-                // Deterministic errors: fail immediately
                 logger?.LogError(ex, "❌ Deterministic error during database cleanup on attempt {Attempt}", attempt);
                 throw;
             }
@@ -405,9 +369,7 @@ public abstract class BaseApiTest : IAsyncLifetime
         {
             try 
             { 
-                // Configure context options to ignore pending model changes warning during integration tests
                 context.Database.SetCommandTimeout(TimeSpan.FromMinutes(2));
-                
                 await context.Database.MigrateAsync(); 
                 return; 
             }
@@ -428,7 +390,7 @@ public abstract class BaseApiTest : IAsyncLifetime
     {
         Client?.Dispose();
         _factory?.Dispose();
-        if (_databaseFixture != null) await _databaseFixture.DisposeAsync();
+        if (_databaseFixture != null && _databaseName != null) await _databaseFixture.DropDatabaseAsync(_databaseName);
         if (_wireMockFixture != null) await _wireMockFixture.DisposeAsync();
     }
 
