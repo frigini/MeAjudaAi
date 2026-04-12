@@ -17,6 +17,10 @@ internal sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<Outb
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(x => x.Type)
+            .HasMaxLength(100)
+            .IsRequired();
+
         builder.Property(x => x.CorrelationId)
             .HasMaxLength(200);
 
