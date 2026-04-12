@@ -37,7 +37,7 @@ public sealed class CepLookupService(
             cacheKey,
             async ct =>
             {
-                logger.LogInformation("Cache miss para CEP {Cep}, consultando APIs", cep.Value);
+                logger.LogInformation("Cache miss for CEP {Cep}, querying APIs", cep.Value);
                 return await LookupFromProvidersAsync(cep, ct);
             },
             expiration: TimeSpan.FromHours(24),

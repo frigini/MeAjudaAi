@@ -34,17 +34,23 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
     public async Task CreateDatabaseAsync(string databaseName)
     {
         if (_postgresContainer == null) throw new InvalidOperationException("Postgres container not initialized");
+        
+        // Sanitização: apenas letras, números e underscores
+        if (!System.Text.RegularExpressions.Regex.IsMatch(databaseName, @"^[A-Za-z0-9_]+$"))
+            throw new ArgumentException("Invalid database name format", nameof(databaseName));
 
         var masterConnectionString = _postgresContainer.GetConnectionString(); // Default to postgres DB
         await using var conn = new NpgsqlConnection(masterConnectionString);
         await conn.OpenAsync();
         
-        // Verifica se banco já existe
-        await using var checkCmd = new NpgsqlCommand($"SELECT 1 FROM pg_database WHERE datname = '{databaseName}'", conn);
+        // Verifica se banco já existe - usando parâmetros para o SELECT
+        await using var checkCmd = new NpgsqlCommand("SELECT 1 FROM pg_database WHERE datname = @dbName", conn);
+        checkCmd.Parameters.AddWithValue("dbName", databaseName);
         var exists = await checkCmd.ExecuteScalarAsync();
         
         if (exists == null)
         {
+            // CREATE DATABASE não suporta parâmetros, mas o nome já foi validado pela regex acima
             await using var cmd = new NpgsqlCommand($"CREATE DATABASE {databaseName}", conn);
             await cmd.ExecuteNonQueryAsync();
             Console.WriteLine($"[DB-FIXTURE] Database {databaseName} created");
@@ -54,6 +60,10 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
     public async Task DropDatabaseAsync(string databaseName)
     {
         if (_postgresContainer == null) return;
+        
+        // Sanitização idêntica ao Create
+        if (!System.Text.RegularExpressions.Regex.IsMatch(databaseName, @"^[A-Za-z0-9_]+$"))
+            return;
 
         try
         {
@@ -70,6 +80,7 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
                 """, conn);
             await terminateCmd.ExecuteNonQueryAsync();
 
+            // DROP DATABASE não suporta parâmetros, mas o nome já foi validado pela regex acima
             await using var cmd = new NpgsqlCommand($"DROP DATABASE IF EXISTS {databaseName}", conn);
             await cmd.ExecuteNonQueryAsync();
             Console.WriteLine($"[DB-FIXTURE] Database {databaseName} dropped");

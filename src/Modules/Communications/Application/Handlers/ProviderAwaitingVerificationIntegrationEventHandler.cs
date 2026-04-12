@@ -21,7 +21,12 @@ public sealed class ProviderAwaitingVerificationIntegrationEventHandler(
 {
     public async Task HandleAsync(ProviderAwaitingVerificationIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
     {
-        var adminEmail = configuration["Communications:AdminEmail"] ?? "suporte@meajudaai.com.br";
+        var adminEmail = configuration["Communications:AdminEmail"];
+        if (string.IsNullOrWhiteSpace(adminEmail))
+        {
+            adminEmail = "suporte@meajudaai.com.br";
+        }
+        
         var correlationId = $"admin_verification_alert:{integrationEvent.ProviderId}";
 
         var emailPayload = new

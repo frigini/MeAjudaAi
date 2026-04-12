@@ -94,26 +94,17 @@ public class UserRegisteredIntegrationEventHandlerTests
         _logRepositoryMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
-        // Simular exceção de violação de constraint única (Postgres Error Code 23505)
-        // O handler usa PostgreSqlExceptionProcessor.ProcessException
-        var innerException = new Exception("duplicate key value violates unique constraint");
-        // Em um teste real, precisaríamos de uma DbUpdateException com o erro correto do Postgres, 
-        // mas aqui estamos testando a captura do catch.
+        // Throw UniqueConstraintException directly
         _outboxRepositoryMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new DbUpdateException("Error", innerException));
+            .ThrowsAsync(new MeAjudaAi.Shared.Database.Exceptions.UniqueConstraintException("Already exists"));
 
         // Act
-        // Não deve lançar exceção se for UniqueConstraintException processada
-        // NOTA: O PostgreSqlExceptionProcessor depende de NpgsqlException. 
-        // Para simplificar, vamos garantir que o handler capture e não re-lance se processado.
-        
         var act = () => _handler.HandleAsync(integrationEvent);
 
-        // Se lançar, é porque o mock do processador não identificou como unique constraint (esperado sem Npgsql real)
-        // Mas o objetivo é cobrir as linhas do catch.
-        try { await act(); } catch { /* ignore for coverage if mock setup is hard */ }
-
         // Assert
+        // Should not throw because handler catches it
+        await act.Should().NotThrowAsync();
+
         _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }

@@ -71,16 +71,16 @@ Desenvolver aplicações frontend usando **React + Next.js** (Customer Web App, 
 | Artefato | Fonte Backend | Saída Frontend | Método de Sincronização |
 |----------|----------------|-----------------|-------------|
 | **DTOs** | `Contracts/*.cs` | `types/api/*.ts` | OpenAPI Generator (auto) |
-| **Enums** | `Shared.Contracts/Enums/` | `types/enums.ts` | OpenAPI Generator (auto) |
+| **Enums** | `MeAjudaAi.Contracts/Enums/` | `types/enums.ts` | OpenAPI Generator (auto) |
 | **Validação** | FluentValidation | Zod schemas | Geração Automática (Sprint 8A) |
-| **Constantes** | `Shared.Contracts/Constants/` | `lib/constants.ts` | Geração Automática (Sprint 8A) |
+| **Constantes** | `MeAjudaAi.Contracts/Constants/` | `lib/constants.ts` | Geração Automática (Sprint 8A) |
 
 **Plano de Geração**:
-1. Implementar ferramenta CLI para converter `Shared.Contracts` Enums e Constants em `types/enums.ts` e `lib/constants.ts`.
+1. Implementar ferramenta CLI para converter `MeAjudaAi.Contracts` Enums e Constants em `types/enums.ts` e `lib/constants.ts`.
 2. Implementar conversor de metadados FluentValidation para Zod schemas em `types/api/validation.ts`.
 3. Adicionar tickets no backlog para verificação em CI e versionamento semântico dos artefatos gerados.
 
-**Nota de Estratégia**: Priorizamos o reuso de `MeAjudaAi.Shared.Contracts` para enums e constantes para manter o Frontend alinhado com o Backend e evitar desvios.
+**Nota de Estratégia**: Priorizamos o reuso de `MeAjudaAi.Contracts` para enums e constantes para manter o Frontend alinhado com o Backend e evitar desvios.
 
 **Localização dos Arquivos Gerados**:
 ```text
@@ -113,7 +113,7 @@ src/
 │   └── MeAjudaAi.Mobile.Customer/    # 🚀 React Native + Expo (Sprint 8B)
 └── Shared/
     ├── MeAjudaAi.Shared.DTOs/        # DTOs C# (backend)
-    └── MeAjudaAi.Shared.Contracts/   # OpenAPI spec → TypeScript types
+    └── MeAjudaAi.Contracts/         # OpenAPI spec → TypeScript types
 ```
 
 ### 🔐 Autenticação Unificada
@@ -819,7 +819,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 ```text
 src/
 ├── Shared/
-│   └── MeAjudaAi.Shared.Contracts/Modules/Communications/
+│   └── MeAjudaAi.Contracts/Modules/Communications/
 │       ├── ICommunicationsModuleApi.cs
 │       ├── DTOs/
 │       │   ├── EmailMessageDto.cs
@@ -846,7 +846,7 @@ src/
 │       │   │   └── CommunicationsModuleApi.cs
 │       │   └── Services/
 │       │       └── Email/
-│       │           └── SendGridEmailService.cs  # Provedor padrão
+│       │           └── StubEmailService.cs  # Provedor atual (Stubs)
 │       ├── Domain/
 │       │   ├── MeAjudaAi.Modules.Communications.Domain.csproj
 │       │   └── Entities/

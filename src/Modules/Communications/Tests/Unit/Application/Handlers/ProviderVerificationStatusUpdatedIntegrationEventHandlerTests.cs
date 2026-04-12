@@ -67,13 +67,38 @@ public class ProviderVerificationStatusUpdatedIntegrationEventHandlerTests
             "Pending",
             "Verified");
 
+        // Success result with null value means not found
         _usersModuleApiMock.Setup(x => x.GetUserByIdAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<ModuleUserDto?>.Failure("Not found"));
+            .ReturnsAsync(Result<ModuleUserDto?>.Success(null));
 
         // Act
         await _handler.HandleAsync(integrationEvent);
 
         // Assert
         _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenApiFails_ShouldThrow()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var integrationEvent = new ProviderVerificationStatusUpdatedIntegrationEvent(
+            "Providers",
+            Guid.NewGuid(),
+            userId,
+            "Test Provider",
+            "Pending",
+            "Verified");
+
+        _usersModuleApiMock.Setup(x => x.GetUserByIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleUserDto?>.Failure("API Error"));
+
+        // Act
+        var act = () => _handler.HandleAsync(integrationEvent);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*API Error*");
     }
 }

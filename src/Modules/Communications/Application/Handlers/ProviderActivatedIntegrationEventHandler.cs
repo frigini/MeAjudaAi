@@ -4,8 +4,10 @@ using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using MeAjudaAi.Contracts.Shared;
+using MeAjudaAi.Contracts.Modules.Users;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using System.Text.Encodings.Web;
 
 namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 
@@ -15,6 +17,7 @@ namespace MeAjudaAi.Modules.Communications.Application.Handlers;
 public sealed class ProviderActivatedIntegrationEventHandler(
     IOutboxMessageRepository outboxRepository,
     ICommunicationLogRepository logRepository,
+    IUsersModuleApi usersModuleApi,
     ILogger<ProviderActivatedIntegrationEventHandler> logger)
     : IEventHandler<ProviderActivatedIntegrationEvent>
 {
@@ -34,14 +37,23 @@ public sealed class ProviderActivatedIntegrationEventHandler(
             return;
         }
 
-        // NOTE: O e-mail do usuário virá do módulo Users via lookup futuro.
-        // Por agora, loggamos com o ProviderId para rastreamento.
+        var userResult = await usersModuleApi.GetUserByIdAsync(integrationEvent.UserId, cancellationToken);
+        if (!userResult.IsSuccess || userResult.Value == null || string.IsNullOrWhiteSpace(userResult.Value.Email))
+        {
+            logger.LogWarning(
+                "Could not resolve email for user {UserId}. Skipping provider activation email for provider {ProviderId}.",
+                integrationEvent.UserId, integrationEvent.ProviderId);
+            return;
+        }
+
+        var safeName = HtmlEncoder.Default.Encode(integrationEvent.Name);
+        var recipientEmail = userResult.Value.Email;
+
         var payload = JsonSerializer.Serialize(new
         {
-            // Placeholder: em um cenário real, iriamos buscar o email via IUsersModuleApi
-            To = $"provider_{integrationEvent.ProviderId}@placeholder.com",
+            To = recipientEmail,
             Subject = "Seu cadastro foi aprovado!",
-            HtmlBody = $"<h1>Olá, {integrationEvent.Name}!</h1><p>Seu cadastro foi aprovado. Você já pode receber solicitações de serviço.</p>",
+            HtmlBody = $"<h1>Olá, {safeName}!</h1><p>Seu cadastro foi aprovado. Você já pode receber solicitações de serviço.</p>",
             TextBody = $"Olá, {integrationEvent.Name}!\nSeu cadastro foi aprovado. Você já pode receber solicitações de serviço.",
             From = (string?)null,
             CorrelationId = correlationId,

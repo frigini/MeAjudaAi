@@ -30,37 +30,12 @@ public sealed class FullModuleCepTest : BaseApiTest
                 .WithBody("{\"cep\":\"01310000\",\"logradouro\":\"WIRE_MOCK_STUB\",\"complemento\":\"\",\"bairro\":\"Bela Vista\",\"localidade\":\"São Paulo\",\"uf\":\"SP\",\"erro\":false}"));
         
         // Act
-        var client = Services.GetRequiredService<BrasilApiCepClient>(); // Just to check BaseAddress
-        var httpClientField = typeof(BrasilApiCepClient)
-            .GetFields(BindingFlags.NonPublic | BindingFlags.Instance)
-            .FirstOrDefault(f => f.FieldType == typeof(HttpClient));
-        
-        var httpClient = (HttpClient)httpClientField!.GetValue(client)!;
-        var config = Services.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>();
-        var debugInfo = $"[DEBUG] URL: {httpClient.BaseAddress}\n";
-        debugInfo += $"[CONFIG] ViaCep: {config["Locations:ExternalApis:ViaCep:BaseUrl"]}\n";
-
-        // Test manual deserialization to see if it works here
-        try 
-        {
-            var testJson = "{\"cep\":\"01310000\",\"logradouro\":\"WIRE_MOCK_STUB\",\"complemento\":\"\",\"bairro\":\"Bela Vista\",\"localidade\":\"São Paulo\",\"uf\":\"SP\",\"erro\":false}";
-            var testResponse = global::System.Text.Json.JsonSerializer.Deserialize<MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses.ViaCepResponse>(testJson, MeAjudaAi.Shared.Serialization.SerializationDefaults.Api);
-            debugInfo += $"[DEBUG] Manual Deserialization Logradouro: {testResponse?.Logradouro}\n";
-        } catch(Exception ex) {
-            debugInfo += $"[DEBUG] Manual Deserialization FAILED: {ex.Message}\n";
-        }
-
         var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
         
-        // Final debug: Test client directly
-        var viaClient = Services.GetRequiredService<MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.ViaCepClient>();
-        var directAddress = await viaClient.GetAddressAsync(MeAjudaAi.Modules.Locations.Domain.ValueObjects.Cep.Create(uniqueCep)!, default);
-        debugInfo += $"[DEBUG] Direct Client Address: {directAddress?.Street ?? "NULL"}\n";
-
         // Assert
         if (!result.IsSuccess)
         {
-            debugInfo += $"[ERROR] Result failed: {result.Error}\n";
+            var debugInfo = $"[ERROR] Result failed: {result.Error}\n";
             var logs = WireMock.Server.LogEntries;
             debugInfo += $"[DEBUG] WireMock Logs count: {logs.Count()}\n";
             foreach (var log in logs)
@@ -68,9 +43,10 @@ public sealed class FullModuleCepTest : BaseApiTest
                 debugInfo += $"[WireMock Log] Request: {log.RequestMessage.Method} {log.RequestMessage.Url}\n";
                 debugInfo += $"[WireMock Log] Response: {log.ResponseMessage.StatusCode}\n";
             }
+            
+            var logPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "debug_logs.txt");
+            await System.IO.File.WriteAllTextAsync(logPath, debugInfo);
         }
-
-        await System.IO.File.WriteAllTextAsync("C:\\Code\\MeAjudaAi\\tests\\debug_logs.txt", debugInfo);
 
         result.IsSuccess.Should().BeTrue(because: $"Deveria ter funcionado. Erro: {result.Error}");
         result.Value!.Street.Should().Be("WIRE_MOCK_STUB");

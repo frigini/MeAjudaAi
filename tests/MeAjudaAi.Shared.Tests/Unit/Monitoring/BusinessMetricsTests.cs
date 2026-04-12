@@ -57,8 +57,7 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.RecordUserRegistration("mobile");
 
         // Assert
-        Measurement<long> metric;
-        lock (_lock) { metric = _longMeasurements.Should().ContainSingle().Subject; }
+        var metric = GetSingleLongMeasurement();
         metric.Value.Should().Be(1);
         metric.Tags.ToArray().Should().ContainEquivalentOf(new KeyValuePair<string, object?>("source", "mobile"));
     }
@@ -70,8 +69,7 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.RecordUserLogin("user-123", "oauth");
 
         // Assert
-        Measurement<long> metric;
-        lock (_lock) { metric = _longMeasurements.Should().ContainSingle().Subject; }
+        var metric = GetSingleLongMeasurement();
         metric.Value.Should().Be(1);
         
         var tags = metric.Tags.ToArray();
@@ -86,8 +84,7 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.UpdateActiveUsers(42);
 
         // Assert
-        Measurement<long> metric;
-        lock (_lock) { metric = _longMeasurements.Should().ContainSingle().Subject; }
+        var metric = GetSingleLongMeasurement();
         metric.Value.Should().Be(42);
     }
 
@@ -98,8 +95,7 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.RecordHelpRequestCreated("medical", "high");
 
         // Assert
-        Measurement<long> metric;
-        lock (_lock) { metric = _longMeasurements.Should().ContainSingle().Subject; }
+        var metric = GetSingleLongMeasurement();
         metric.Value.Should().Be(1);
         
         var tags = metric.Tags.ToArray();
@@ -114,8 +110,7 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.RecordHelpRequestCompleted("medical", TimeSpan.FromMinutes(30));
 
         // Assert
-        Measurement<long> metric;
-        lock (_lock) { metric = _longMeasurements.Should().ContainSingle().Subject; }
+        var metric = GetSingleLongMeasurement();
         metric.Value.Should().Be(1);
         metric.Tags.ToArray().Should().ContainEquivalentOf(new KeyValuePair<string, object?>("category", "medical"));
     }
@@ -127,8 +122,7 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.RecordHelpRequestDuration(TimeSpan.FromSeconds(120), "plumbing");
 
         // Assert
-        Measurement<double> metric;
-        lock (_lock) { metric = _doubleMeasurements.Should().ContainSingle().Subject; }
+        var metric = GetSingleDoubleMeasurement();
         metric.Value.Should().Be(120);
         metric.Tags.ToArray().Should().ContainEquivalentOf(new KeyValuePair<string, object?>("category", "plumbing"));
     }
@@ -140,8 +134,7 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.UpdatePendingHelpRequests(15);
 
         // Assert
-        Measurement<long> metric;
-        lock (_lock) { metric = _longMeasurements.Should().ContainSingle().Subject; }
+        var metric = GetSingleLongMeasurement();
         metric.Value.Should().Be(15);
     }
 
@@ -152,8 +145,7 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.RecordApiCall("/api/users", "GET", 200);
 
         // Assert
-        Measurement<long> metric;
-        lock (_lock) { metric = _longMeasurements.Should().ContainSingle().Subject; }
+        var metric = GetSingleLongMeasurement();
         metric.Value.Should().Be(1);
         
         var tags = metric.Tags.ToArray();
@@ -169,10 +161,25 @@ public sealed class BusinessMetricsTests : IDisposable
         _sut.RecordDatabaseQuery(TimeSpan.FromMilliseconds(500), "SELECT");
 
         // Assert
-        Measurement<double> metric;
-        lock (_lock) { metric = _doubleMeasurements.Should().ContainSingle().Subject; }
+        var metric = GetSingleDoubleMeasurement();
         metric.Value.Should().Be(0.5);
         metric.Tags.ToArray().Should().ContainEquivalentOf(new KeyValuePair<string, object?>("operation", "SELECT"));
+    }
+
+    private Measurement<long> GetSingleLongMeasurement()
+    {
+        lock (_lock)
+        {
+            return _longMeasurements.Should().ContainSingle().Subject;
+        }
+    }
+
+    private Measurement<double> GetSingleDoubleMeasurement()
+    {
+        lock (_lock)
+        {
+            return _doubleMeasurements.Should().ContainSingle().Subject;
+        }
     }
 
     public void Dispose()

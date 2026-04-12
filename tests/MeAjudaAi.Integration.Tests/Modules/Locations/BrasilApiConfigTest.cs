@@ -30,7 +30,9 @@ public sealed class BrasilApiConfigTest : BaseApiTest
         
         // Act
         var cepVo = Cep.Create(uniqueCep);
-        var address = await client.GetAddressAsync(cepVo!, default);
+        Assert.NotNull(cepVo);
+        
+        var address = await client.GetAddressAsync(cepVo, default);
         
         // Assert
         address.Should().NotBeNull(because: "O cliente deveria ter atingido o WireMock e retornado o endereço mockado");

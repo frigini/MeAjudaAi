@@ -24,7 +24,12 @@ public sealed class ProviderVerificationStatusUpdatedIntegrationEventHandler(
     {
         var userResult = await usersModuleApi.GetUserByIdAsync(integrationEvent.UserId, cancellationToken);
         
-        if (!userResult.IsSuccess || userResult.Value == null || string.IsNullOrWhiteSpace(userResult.Value.Email))
+        if (!userResult.IsSuccess)
+        {
+            throw new InvalidOperationException($"Failed to fetch user {integrationEvent.UserId} for provider {integrationEvent.ProviderId} verification update: {userResult.Error.Message}");
+        }
+
+        if (userResult.Value == null || string.IsNullOrWhiteSpace(userResult.Value.Email))
         {
             logger.LogWarning(
                 "Could not resolve email for user {UserId}. Skipping verification status notification for provider {ProviderId}.",
@@ -43,7 +48,7 @@ public sealed class ProviderVerificationStatusUpdatedIntegrationEventHandler(
             _ => "provider-verification-status-update" // default/fallback
         };
 
-        var correlationId = $"verification_status_update:{integrationEvent.ProviderId}:{normalizedStatus}";
+        var correlationId = $"verification_status_update:{integrationEvent.Id}:{integrationEvent.ProviderId}:{normalizedStatus}";
 
         var emailPayload = new
         {

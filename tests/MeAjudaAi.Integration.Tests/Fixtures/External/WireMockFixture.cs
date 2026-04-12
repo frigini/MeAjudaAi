@@ -83,7 +83,7 @@ public class WireMockFixture : IAsyncDisposable
                     }]
                     """));
 
-        // Search by city name: Itaperuna/RJ
+        // Busca por nome de cidade: Itaperuna/RJ
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios")
@@ -113,7 +113,7 @@ public class WireMockFixture : IAsyncDisposable
                     }]
                     """));
 
-        // Search by city name: Linhares/ES
+        // Busca por nome de cidade: Linhares/ES
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios")
@@ -143,7 +143,7 @@ public class WireMockFixture : IAsyncDisposable
                     }]
                     """));
 
-        // Get city by ID: Muriaé/MG
+        // Busca cidade por ID: Muriaé/MG
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios/3143906")
@@ -220,7 +220,7 @@ public class WireMockFixture : IAsyncDisposable
                     }
                     """));
 
-        // Get state by UF: MG
+        // Busca estado por UF: MG
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/estados/MG")
@@ -237,7 +237,7 @@ public class WireMockFixture : IAsyncDisposable
                     }
                     """));
 
-        // Search by state: SP
+        // Busca por estado: SP
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/estados/SP/municipios")
@@ -276,7 +276,7 @@ public class WireMockFixture : IAsyncDisposable
                 .WithHeader("Content-Type", "application/json; charset=utf-8")
                 .WithBody("[]"));
 
-        // Invalid state ID - 404
+        // ID de estado inválido - 404
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/estados/999")
@@ -286,7 +286,7 @@ public class WireMockFixture : IAsyncDisposable
                 .WithHeader("Content-Type", "application/json; charset=utf-8")
                 .WithBody("[]"));
 
-        // Special characters handling: São Paulo
+        // Tratamento de caracteres especiais: São Paulo
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios")
@@ -321,9 +321,9 @@ public class WireMockFixture : IAsyncDisposable
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios")
-                .WithParam("nome")  // Match any nome parameter
+                .WithParam("nome")  // Corresponde a qualquer parâmetro nome
                 .UsingGet())
-            .AtPriority(100)  // Lower priority so specific stubs match first
+            .AtPriority(100)  // Prioridade menor para que stubs específicos coincidam primeiro
             .RespondWith(WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json; charset=utf-8")

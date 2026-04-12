@@ -89,6 +89,65 @@ public class CommunicationsModuleApiTests
     }
 
     [Fact]
+    public async Task SendEmailAsync_WithNullDto_ShouldReturnFailure()
+    {
+        // Act
+        var result = await _api.SendEmailAsync(null!);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SendEmailAsync_WithInvalidPriority_ShouldReturnFailure()
+    {
+        // Arrange
+        var dto = new EmailMessageDto("test@test.com", "Subject", "Body");
+
+        // Act
+        var result = await _api.SendEmailAsync(dto, (ECommunicationPriority)999);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SendSmsAsync_WithNullDto_ShouldReturnFailure()
+    {
+        // Act
+        var result = await _api.SendSmsAsync(null!);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SendPushAsync_WithNullDto_ShouldReturnFailure()
+    {
+        // Act
+        var result = await _api.SendPushAsync(null!);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetLogsAsync_WithInvalidPagination_ShouldReturnFailure()
+    {
+        // Arrange
+        var query = new CommunicationLogQuery { PageNumber = 0, PageSize = 10 };
+
+        // Act
+        var result = await _api.GetLogsAsync(query);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        _logRepositoryMock.Verify(x => x.SearchAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task GetTemplatesAsync_ShouldReturnDtos()
     {
         // Arrange

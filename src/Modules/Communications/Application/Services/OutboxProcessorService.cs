@@ -79,6 +79,9 @@ public sealed class OutboxProcessorService(
             // 2. Persistência do Resultado (Estado Local)
             try
             {
+                var recipientRaw = ExtractRecipient(message);
+                var recipientMasked = MaskRecipientForChannel(recipientRaw, message.Channel);
+
                 if (dispatchSuccess == true)
                 {
                     message.MarkAsSent(DateTime.UtcNow);
@@ -86,8 +89,8 @@ public sealed class OutboxProcessorService(
                     var log = CommunicationLog.CreateSuccess(
                         correlationId: message.CorrelationId ?? $"outbox:{message.Id}",
                         channel: message.Channel,
-                        recipient: ExtractRecipient(message),
-                        attemptCount: message.RetryCount,
+                        recipient: recipientRaw,
+                        attemptCount: message.RetryCount + 1,
                         outboxMessageId: message.Id,
                         templateKey: ExtractTemplateKey(message));
                     
@@ -99,7 +102,7 @@ public sealed class OutboxProcessorService(
 
                     processed++;
                     logger.LogInformation("Outbox message {Id} ({Channel}) sent to {Recipient}.", 
-                        message.Id, message.Channel, PiiMaskingHelper.MaskEmail(log.Recipient));
+                        message.Id, message.Channel, recipientMasked);
                 }
                 else
                 {
@@ -111,7 +114,7 @@ public sealed class OutboxProcessorService(
                         var log = CommunicationLog.CreateFailure(
                             correlationId: message.CorrelationId ?? $"outbox:{message.Id}",
                             channel: message.Channel,
-                            recipient: ExtractRecipient(message),
+                            recipient: recipientRaw,
                             errorMessage: errorMessage ?? "Max retries reached.",
                             attemptCount: message.RetryCount,
                             outboxMessageId: message.Id,
@@ -121,8 +124,8 @@ public sealed class OutboxProcessorService(
                     }
 
                     await outboxRepository.SaveChangesAsync(cancellationToken);
-                    logger.LogWarning("Outbox message {Id} dispatch failed. Retry {Retry}/{Max}.",
-                        message.Id, message.RetryCount, message.MaxRetries);
+                    logger.LogWarning("Outbox message {Id} dispatch failed to {Recipient}. Retry {Retry}/{Max}.",
+                        message.Id, message.Channel, recipientMasked, message.RetryCount, message.MaxRetries);
                 }
             }
             catch (Exception persistEx)
@@ -133,6 +136,17 @@ public sealed class OutboxProcessorService(
         }
 
         return processed;
+    }
+
+    private string MaskRecipientForChannel(string recipient, ECommunicationChannel channel)
+    {
+        return channel switch
+        {
+            ECommunicationChannel.Email => PiiMaskingHelper.MaskEmail(recipient),
+            ECommunicationChannel.Sms => PiiMaskingHelper.MaskPhoneNumber(recipient),
+            ECommunicationChannel.Push => PiiMaskingHelper.MaskUserId(recipient),
+            _ => recipient
+        };
     }
 
     private string? ExtractTemplateKey(OutboxMessage message)
