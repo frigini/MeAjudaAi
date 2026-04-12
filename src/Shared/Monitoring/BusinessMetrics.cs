@@ -21,9 +21,9 @@ public class BusinessMetrics : IDisposable
     private readonly Gauge<long> _activeUsers;
     private readonly Gauge<long> _pendingHelpRequests;
 
-    public BusinessMetrics()
+    public BusinessMetrics(string meterName = "MeAjudaAi.Business")
     {
-        _meter = new Meter("MeAjudaAi.Business", "1.0.0");
+        _meter = new Meter(meterName, "1.0.0");
 
         // User metrics
         _userRegistrations = _meter.CreateCounter<long>(

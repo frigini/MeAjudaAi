@@ -5,7 +5,7 @@
 ### Objetivo
 Desenvolver aplicações frontend usando **React + Next.js** (Customer Web App, Admin Portal) + **React Native** (Mobile App).
 
-> **📅 Status Atual**: Sprint 9 (Estabilização) em andamento (26 Mar 2026)  
+> **📅 Status Atual**: Sprint 9 (Estabilização) encerrada (11 Abr 2026)  
 > **📝 Decisão Técnica**: Cobertura Global de 70% atingida e reforçada no CI/CD.
 > **🎉 MIGRAÇÃO CONCLUÍDA**: Admin Portal migrado de Blazor para React + Next.js na Sprint 8D
 

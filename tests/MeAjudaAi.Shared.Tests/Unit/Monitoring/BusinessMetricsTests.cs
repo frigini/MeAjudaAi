@@ -11,10 +11,12 @@ public sealed class BusinessMetricsTests : IDisposable
     private readonly BusinessMetrics _sut;
     private readonly List<Measurement<long>> _longMeasurements;
     private readonly List<Measurement<double>> _doubleMeasurements;
+    private readonly string _meterName;
     private readonly object _lock = new();
 
     public BusinessMetricsTests()
     {
+        _meterName = $"MeAjudaAi.Business.Test.{Guid.NewGuid()}";
         _longMeasurements = new List<Measurement<long>>();
         _doubleMeasurements = new List<Measurement<double>>();
 
@@ -22,7 +24,7 @@ public sealed class BusinessMetricsTests : IDisposable
         {
             InstrumentPublished = (instrument, listener) =>
             {
-                if (instrument.Meter.Name == "MeAjudaAi.Business")
+                if (instrument.Meter.Name == _meterName)
                 {
                     listener.EnableMeasurementEvents(instrument);
                 }
@@ -47,7 +49,7 @@ public sealed class BusinessMetricsTests : IDisposable
 
         _meterListener.Start();
         
-        _sut = new BusinessMetrics();
+        _sut = new BusinessMetrics(_meterName);
     }
 
     [Fact]
