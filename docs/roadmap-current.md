@@ -864,7 +864,7 @@ src/
 **Localização de Modelos**:
 - **Fonte de Verdade**: Arquivos `.cshtml` em `Shared/Communications/Templates/` (compilados).
 - **Sistema de Sobreposição (Override)**: A entidade `EmailTemplate` no banco permite sobrescrever o Assunto (`Subject`) ou trechos do Corpo (`Body`) via Portal Administrativo sem nova implantação.
-- **IsSystemTemplate**: Flag para proteger modelos críticos de deleção (Garantido em `EmailTemplateRepository.DeleteAsync`).
+- **IsSystemTemplate**: Flag para proteger modelos críticos de deleção (Garantido via validação em `EmailTemplateRepository.DeleteAsync`).
 
 ---
 

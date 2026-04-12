@@ -62,18 +62,26 @@ public sealed class OutboxProcessorService(
         var recipientRaw = ExtractRecipient(message);
         var recipientMasked = MaskRecipientForChannel(recipientRaw, message.Channel);
 
-        var log = CommunicationLog.CreateSuccess(
-            correlationId: message.CorrelationId ?? $"outbox:{message.Id}",
-            channel: message.Channel,
-            recipient: recipientRaw,
-            attemptCount: message.RetryCount + 1,
-            outboxMessageId: message.Id,
-            templateKey: ExtractTemplateKey(message));
-        
-        await logRepository.AddAsync(log, cancellationToken);
-        // Remove immediate SaveChanges to allow OutboxProcessorBase to commit everything together
+        try
+        {
+            var log = CommunicationLog.CreateSuccess(
+                correlationId: message.CorrelationId ?? $"outbox:{message.Id}",
+                channel: message.Channel,
+                recipient: recipientRaw,
+                attemptCount: message.RetryCount + 1,
+                outboxMessageId: message.Id,
+                templateKey: ExtractTemplateKey(message));
+            
+            await logRepository.AddAsync(log, cancellationToken);
+            // Removido SaveChanges imediato para permitir que o OutboxProcessorBase confirme tudo junto
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Falha ao criar log de sucesso para mensagem outbox {Id} (CorrelationId: {CorrelationId}).", 
+                message.Id, message.CorrelationId);
+        }
 
-        logger.LogInformation("Outbox message {Id} ({Channel}) sent to {Recipient}.", 
+        logger.LogInformation("Mensagem outbox {Id} ({Channel}) enviada para {Recipient}.", 
             message.Id, message.Channel, recipientMasked);
     }
 
@@ -84,20 +92,28 @@ public sealed class OutboxProcessorService(
 
         if (!message.HasRetriesLeft)
         {
-            var log = CommunicationLog.CreateFailure(
-                correlationId: message.CorrelationId ?? $"outbox:{message.Id}",
-                channel: message.Channel,
-                recipient: recipientRaw,
-                errorMessage: error ?? "Max retries reached.",
-                attemptCount: message.RetryCount,
-                outboxMessageId: message.Id,
-                templateKey: ExtractTemplateKey(message));
-            
-            await logRepository.AddAsync(log, cancellationToken);
-            // Remove immediate SaveChanges to allow OutboxProcessorBase to commit everything together
+            try
+            {
+                var log = CommunicationLog.CreateFailure(
+                    correlationId: message.CorrelationId ?? $"outbox:{message.Id}",
+                    channel: message.Channel,
+                    recipient: recipientRaw,
+                    errorMessage: error ?? "Limite máximo de tentativas atingido.",
+                    attemptCount: message.RetryCount,
+                    outboxMessageId: message.Id,
+                    templateKey: ExtractTemplateKey(message));
+                
+                await logRepository.AddAsync(log, cancellationToken);
+                // Removido SaveChanges imediato para permitir que o OutboxProcessorBase confirme tudo junto
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Falha ao criar log de erro para mensagem outbox {Id} (CorrelationId: {CorrelationId}).", 
+                    message.Id, message.CorrelationId);
+            }
         }
 
-        logger.LogWarning("Outbox message {Id} dispatch to {Channel} for {Recipient} failed. Retry {Retry}/{Max}.",
+        logger.LogWarning("Falha no despacho da mensagem outbox {Id} para {Channel} para {Recipient}. Tentativa {Retry}/{Max}.",
             message.Id, message.Channel, recipientMasked, message.RetryCount, message.MaxRetries);
     }
 

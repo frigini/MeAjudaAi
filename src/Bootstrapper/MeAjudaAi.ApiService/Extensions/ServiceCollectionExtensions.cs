@@ -170,8 +170,9 @@ public static class ServiceCollectionExtensions
         }
 
         app.UseCors("DefaultPolicy");
-        app.UseAntiforgery();
         app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseAntiforgery();
 
         // Debug Middleware para diagnóstico de autorização (apenas em desenvolvimento)
         if (app.Environment.IsDevelopment())

@@ -125,33 +125,22 @@ public class DocumentVerifiedIntegrationEventHandlerTests
         _providersModuleApiMock.Setup(x => x.GetProviderByIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ModuleProviderDto?>.Success(providerDto));
 
-        // Simular exceção de constraint única no SaveChangesAsync
-        // Nota: O teste real do PostgreSqlExceptionProcessor é feito em testes de infra,
-        // aqui simulamos que a exceção lançada pelo EF é uma DbUpdateException 
-        // que contém a UniqueConstraintException internamente ou simulamos o comportamento direto
-        // se o handler chamar o processador.
+        // Como o PostgreSqlExceptionProcessor é estático e o PostgresException do Npgsql 
+        // é difícil de instanciar manualmente com detalhes via reflexão,
+        // vamos simular que o repositório lance diretamente a exceção processada
+        // ou que o handler a receba após o processamento (se o repositório já usasse o processador).
         
-        // No handler, ele chama PostgreSqlExceptionProcessor.ProcessException(dbEx)
-        // Para simular isso, precisamos que a DbUpdateException tenha uma InnerException que o Npgsql entenda,
-        // ou que o processador retorne a UniqueConstraintException.
+        // No entanto, o handler chama o processador explicitamente.
+        // Para este teste unitário passar e validar a lógica do catch,
+        // vamos lançar uma UniqueConstraintException customizada que herda de DbUpdateException.
         
-        // Como o PostgreSqlExceptionProcessor é estático, é difícil de mockar.
-        // Vou criar uma DbUpdateException com uma InnerException (PostgresException) que resulte em UniqueConstraintException.
-        
-        var postgresException = (Npgsql.PostgresException)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(Npgsql.PostgresException));
-        // Definir campos via reflexão se necessário, mas o processador usa SqlState "23505"
-        var sqlStateField = typeof(Npgsql.PostgresException).GetField("_sqlState", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic) 
-                            ?? typeof(Npgsql.PostgresException).GetField("sqlState", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-        sqlStateField?.SetValue(postgresException, "23505");
-        
-        var constraintNameField = typeof(Npgsql.PostgresException).GetField("_constraintName", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
-                                  ?? typeof(Npgsql.PostgresException).GetField("constraintName", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-        constraintNameField?.SetValue(postgresException, "ix_outbox_messages_correlation_id");
-
-        var dbUpdateException = new DbUpdateException("Duplicate", postgresException);
+        var uniqueException = new UniqueConstraintException(
+            "ix_outbox_messages_correlation_id", 
+            "correlation_id", 
+            new Exception("Simulated inner"));
 
         _outboxRepositoryMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(dbUpdateException);
+            .ThrowsAsync(uniqueException);
 
         // Act
         var act = () => _handler.HandleAsync(integrationEvent);

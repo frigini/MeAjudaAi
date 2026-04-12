@@ -599,7 +599,8 @@ public static class SecurityExtensions
     /// </summary>
     public static IApplicationBuilder UseSecurityHardening(this IApplicationBuilder app)
     {
-        app.UseMiddleware<SecurityHeadersMiddleware>();
+        // NOTA: SecurityHeadersMiddleware é registrado em UseApiMiddlewares() 
+        // para garantir ordem determinística no pipeline.
         return app;
     }
 
