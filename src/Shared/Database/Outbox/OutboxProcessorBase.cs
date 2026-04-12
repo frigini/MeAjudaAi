@@ -39,6 +39,10 @@ public abstract class OutboxProcessorBase<TMessage>(
                 var message = messages[i];
                 processedCount++;
 
+                // Marcar explicitamente como processando e persistir para garantir bloqueio/visibilidade
+                message.MarkAsProcessing();
+                await outboxRepository.SaveChangesAsync(cancellationToken);
+
                 try
                 {
                     var result = await DispatchAsync(message, cancellationToken);
