@@ -173,6 +173,9 @@ public static class ServiceCollectionExtensions
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseAntiforgery();
+        
+        // Middleware para expor o cookie de antiforgery em requisições GET (Hardening)
+        app.UseMiddleware<AntiforgeryCookieMiddleware>();
 
         // Debug Middleware para diagnóstico de autorização (apenas em desenvolvimento)
         if (app.Environment.IsDevelopment())

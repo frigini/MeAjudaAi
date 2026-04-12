@@ -113,6 +113,7 @@ public abstract class BaseApiTest : IAsyncLifetime
                 if (!string.IsNullOrEmpty(apiServicePath)) builder.UseContentRoot(apiServicePath);
 
                 builder.UseEnvironment("Testing");
+                builder.UseSetting("https_port", "443");
 
                 var wireMockUrl = _wireMockFixture!.BaseUrl;
 
