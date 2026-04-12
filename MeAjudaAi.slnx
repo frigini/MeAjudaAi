@@ -33,6 +33,9 @@
   <Folder Name="/src/Modules/Communications/Infrastructure/">
     <Project Path="src/Modules/Communications/Infrastructure/MeAjudaAi.Modules.Communications.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Communications/Tests/">
+    <Project Path="src/Modules/Communications/Tests/MeAjudaAi.Modules.Communications.Tests.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Documents/" />
   <Folder Name="/src/Modules/Documents/API/">
     <Project Path="src/Modules/Documents/API/MeAjudaAi.Modules.Documents.API.csproj" />
