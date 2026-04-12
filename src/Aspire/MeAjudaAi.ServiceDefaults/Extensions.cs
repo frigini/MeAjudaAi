@@ -29,6 +29,8 @@ public static class Extensions
 
         builder.ConfigureHttpClients();
 
+        builder.Services.AddLocalization();
+
         return builder;
     }
 
@@ -121,6 +123,14 @@ public static class Extensions
 
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
     {
+        var supportedCultures = new[] { "pt-BR", "en-US" };
+        var localizationOptions = new RequestLocalizationOptions()
+            .SetDefaultCulture(supportedCultures[0])
+            .AddSupportedCultures(supportedCultures)
+            .AddSupportedUICultures(supportedCultures);
+
+        app.UseRequestLocalization(localizationOptions);
+
         if (app.Environment.IsDevelopment() || IsTestingEnvironment())
         {
             // Health endpoint excludes critical infrastructure (database) - only external services

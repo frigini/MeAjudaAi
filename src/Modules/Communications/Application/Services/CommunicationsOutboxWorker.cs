@@ -1,10 +1,9 @@
-using MeAjudaAi.Modules.Communications.Application.Services;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Communications.Infrastructure.Services;
+namespace MeAjudaAi.Modules.Communications.Application.Services;
 
 /// <summary>
 /// Worker de background para processamento periódico do Outbox de comunicações.

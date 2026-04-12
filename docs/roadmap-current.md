@@ -717,15 +717,7 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - [ ] Resolver todos os TODOs/FIXMEs adicionados durante a implementação
 - [ ] Fechar issues abertas durante o desenvolvimento frontend
 
-#### 1.1. 🧪 SearchProviders Testes E2E (Movido da Sprint 7.16)
-**Prioridade**: MÉDIA - Débito Técnico da Sprint 7.16  
-**Estimativa**: 1-2 dias
-
-**Objetivo**: Testar busca geolocalizada ponta a ponta.
-
-**Contexto**: A Tarefa 5 da Sprint 7.16 foi marcada como OPCIONAL e movida para a Sprint 9 para permitir a execução com qualidade sem pressão de prazo. A Sprint 7.16 completou 4/4 tarefas obrigatórias.
-
-**Entregáveis**:
+#### 1.1. ✅ 🧪 SearchProviders Testes E2E (Concluído)
 - [x] Teste E2E: Buscar prestadores por serviço + raio (2km, 5km, 10km)
 - [x] Teste E2E: Validar ordenação por distância crescente
 - [x] Teste E2E: Validar restrição geográfica (AllowedCities) - prestadores fora da cidade não aparecem
@@ -883,8 +875,8 @@ src/
 | `UserRegisteredIntegrationEvent` | ✅ Enviar e-mail de boas-vindas |
 | `ProviderAwaitingVerificationIntegrationEvent` | ✅ Notificar administrador |
 | `ProviderVerificationStatusUpdatedIntegrationEvent` | ✅ Notificar prestador |
-| `DocumentVerifiedIntegrationEvent` | → Notificar prestador |
-| `DocumentRejectedIntegrationEvent` | → Notificar prestador |
+| `DocumentVerifiedIntegrationEvent` | [ ] Notificar prestador |
+| `DocumentRejectedIntegrationEvent` | [ ] Notificar prestador |
 
 ---
 
@@ -989,19 +981,19 @@ Para garantir que as comunicações não sejam perdidas em caso de falha:
 
 **Estimativa de Esforço**:
 
-| Tarefa | Esforço | Dependência |
+| Tarefa | Esforço | Status |
 |------|--------|-----------|
-| ✅ 1. Criar estrutura de projetos | 2h | - |
-| ✅ 2. Interfaces ICommunicationsModuleApi | 2h | - |
-| ✅ 3. Implementar OutboxMessage (Agendamento) | 5h | - |
-| ✅ 4. Implementar EmailTemplate (Sistema de sobreposição) | 3h | - |
-| ✅ 5. Implementar CommunicationLog (CorrelationId) | 2h | - |
-| ✅ 6. Implementar ModuleApi + Orquestrador | 6h | Itens 1-5 |
-| ✅ 7. Handlers de Canal de Stub (E-mail/Sms/Push) | 5h | - |
-| ✅ 8. Criar modelos básicos (.cshtml) | 3h | - |
-| ✅ 9. Handlers de evento (IntegrationEvents) | 4h | Eventos existentes |
-| ✅ 10. Configuração de DI + Políticas Polly | 3h | - |
-| **Total** | **~35h (~5 dias)** | - |
+| 1. Criar estrutura de projetos | 2h | ✅ |
+| 2. Interfaces ICommunicationsModuleApi | 2h | ✅ |
+| 3. Implementar OutboxMessage (Agendamento) | 5h | ✅ |
+| 4. Implementar EmailTemplate (Sistema de sobreposição) | 3h | ✅ |
+| 5. Implementar CommunicationLog (CorrelationId) | 2h | ✅ |
+| 6. Implementar ModuleApi + Orquestrador | 6h | ✅ |
+| 7. Handlers de Canal de Stub (E-mail/Sms/Push) | 5h | ✅ |
+| 8. Integração com Eventos Existentes (3/5) | 4h | ✅ |
+| 9. Criar modelos básicos (.cshtml) | 3h | ✅ |
+| 10. Configuração de DI + Políticas Polly | 3h | ✅ |
+| **Total** | **~35h (~5 dias)** | ✅ |
 
 ---
 

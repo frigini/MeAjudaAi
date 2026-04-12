@@ -71,7 +71,7 @@ public abstract class BaseApiTest : IAsyncLifetime
     
     private SimpleDatabaseFixture? _databaseFixture;
     private WireMockFixture? _wireMockFixture;
-    private WebApplicationFactory<Program>? _factory;
+    protected WebApplicationFactory<Program>? _factory;
     private string? _databaseName;
 
     protected HttpClient Client { get; private set; } = null!;

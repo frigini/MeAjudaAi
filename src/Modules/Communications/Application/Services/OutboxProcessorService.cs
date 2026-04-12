@@ -48,8 +48,7 @@ public sealed class OutboxProcessorService(
         }
         catch (OperationCanceledException)
         {
-            // Propagate cancellation to allow graceful worker shutdown without marking as failed
-            throw;
+            return DispatchResult.Canceled();
         }
         catch (Exception ex)
         {
@@ -72,7 +71,7 @@ public sealed class OutboxProcessorService(
             templateKey: ExtractTemplateKey(message));
         
         await logRepository.AddAsync(log, cancellationToken);
-        await logRepository.SaveChangesAsync(cancellationToken);
+        // Remove immediate SaveChanges to allow OutboxProcessorBase to commit everything together
 
         logger.LogInformation("Outbox message {Id} ({Channel}) sent to {Recipient}.", 
             message.Id, message.Channel, recipientMasked);
@@ -95,10 +94,10 @@ public sealed class OutboxProcessorService(
                 templateKey: ExtractTemplateKey(message));
             
             await logRepository.AddAsync(log, cancellationToken);
-            await logRepository.SaveChangesAsync(cancellationToken);
+            // Remove immediate SaveChanges to allow OutboxProcessorBase to commit everything together
         }
 
-        logger.LogWarning("Outbox message {Id} dispatch failed to {Recipient}. Retry {Retry}/{Max}.",
+        logger.LogWarning("Outbox message {Id} dispatch to {Channel} for {Recipient} failed. Retry {Retry}/{Max}.",
             message.Id, message.Channel, recipientMasked, message.RetryCount, message.MaxRetries);
     }
 

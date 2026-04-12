@@ -579,6 +579,21 @@ public static class SecurityExtensions
         return services;
     }
 
+    public static IServiceCollection AddCustomAntiforgery(this IServiceCollection services)
+    {
+        services.AddAntiforgery(options =>
+        {
+            // O token é enviado via header (comum em APIs/SPAs)
+            options.HeaderName = "X-XSRF-TOKEN";
+            options.Cookie.Name = "XSRF-TOKEN";
+            options.Cookie.HttpOnly = false; // Deve ser acessível pelo JS para ler e enviar no header
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            options.Cookie.SameSite = SameSiteMode.Strict;
+        });
+
+        return services;
+    }
+
     /// <summary>
     /// Ativa middlewares de endurecimento de segurança.
     /// </summary>

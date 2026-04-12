@@ -7,12 +7,15 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Queries.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Events.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -30,7 +33,8 @@ public static class Extensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Configura DbContext
+        // ... rest of DB configuration ...
+
         services.AddDbContext<ServiceCatalogsDbContext>((serviceProvider, options) =>
         {
             var environment = serviceProvider.GetService<IHostEnvironment>();
@@ -100,6 +104,10 @@ public static class Extensions
         services.AddScoped<IQueryHandler<GetAllServicesQuery, Result<IReadOnlyList<ServiceListDto>>>, GetAllServicesQueryHandler>();
         services.AddScoped<IQueryHandler<GetServiceByIdQuery, Result<ServiceDto?>>, GetServiceByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetServicesByCategoryQuery, Result<IReadOnlyList<ServiceListDto>>>, GetServicesByCategoryQueryHandler>();
+
+        // Registra domain event handlers
+        services.AddScoped<IEventHandler<ServiceActivatedDomainEvent>, ServiceActivatedDomainEventHandler>();
+        services.AddScoped<IEventHandler<ServiceDeactivatedDomainEvent>, ServiceDeactivatedDomainEventHandler>();
 
         return services;
     }

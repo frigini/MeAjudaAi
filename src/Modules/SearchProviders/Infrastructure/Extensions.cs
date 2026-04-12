@@ -10,6 +10,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
+
 namespace MeAjudaAi.Modules.SearchProviders.Infrastructure;
 
 /// <summary>
@@ -108,6 +110,8 @@ public static class Extensions
     {
         // Integration Event Handlers
         services.AddScoped<IEventHandler<ProviderActivatedIntegrationEvent>, ProviderActivatedIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<ProviderServicesUpdatedIntegrationEvent>, ProviderServicesUpdatedIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<ServiceDeactivatedIntegrationEvent>, ServiceDeactivatedIntegrationEventHandler>();
 
         return services;
     }

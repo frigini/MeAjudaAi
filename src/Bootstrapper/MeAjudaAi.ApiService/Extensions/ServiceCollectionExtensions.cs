@@ -56,6 +56,7 @@ public static class ServiceCollectionExtensions
         services.AddDocumentation();
         services.AddApiVersioning(); // Adiciona versionamento de API
         services.AddCorsPolicy(configuration, environment);
+        services.AddCustomAntiforgery();
         services.AddMemoryCache();
 
         // Configura ForwardedHeaders para suporte a proxy reverso (load balancers, nginx, etc.)
@@ -123,6 +124,13 @@ public static class ServiceCollectionExtensions
         // Exception handling DEVE estar no início do pipeline
         app.UseExceptionHandler();
 
+        if (!environment.IsDevelopment() && !environment.IsEnvironment("Testing"))
+        {
+            app.UseHsts();
+        }
+
+        app.UseHttpsRedirection();
+
         // Content Security Policy - adicionar no início para proteger todas as respostas
         app.UseContentSecurityPolicy();
 
@@ -162,6 +170,7 @@ public static class ServiceCollectionExtensions
         }
 
         app.UseCors("DefaultPolicy");
+        app.UseAntiforgery();
         app.UseAuthentication();
 
         // Debug Middleware para diagnóstico de autorização (apenas em desenvolvimento)

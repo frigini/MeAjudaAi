@@ -47,6 +47,11 @@ public interface ISearchableProviderRepository
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Recupera todos os provedores que oferecem um serviço específico.
+    /// </summary>
+    Task<IReadOnlyList<SearchableProvider>> GetByServiceIdAsync(Guid serviceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Adiciona um novo provedor pesquisável ao repositório.
     /// </summary>
     Task AddAsync(SearchableProvider provider, CancellationToken cancellationToken = default);

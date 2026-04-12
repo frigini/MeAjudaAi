@@ -33,7 +33,10 @@ public class SearchProvidersE2ETests : BaseApiTest
         var result = JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
         result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty("At least one provider should match the service and radius filter");
+        
+        // Validar filtro de serviço e raio
         result.Items.Should().OnlyContain(x => x.ServiceIds.Contains(serviceId), "All returned providers must offer the requested service");
+        result.Items.Should().OnlyContain(x => x.DistanceInKm.HasValue && x.DistanceInKm <= 10.0, "All returned providers must be within the 10km radius");
     }
 
     [Fact]
@@ -82,6 +85,7 @@ public class SearchProvidersE2ETests : BaseApiTest
         response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
         
         var result = JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
+        result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty();
         result.Items.Should().OnlyContain(x => x.DistanceInKm.HasValue);
         result.Items.Should().BeInAscendingOrder(x => x.DistanceInKm);
@@ -103,6 +107,7 @@ public class SearchProvidersE2ETests : BaseApiTest
         response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
         
         var result = JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
+        result.Should().NotBeNull();
         result!.Items.Should().BeEmpty();
         result.TotalItems.Should().Be(0);
     }
@@ -124,6 +129,7 @@ public class SearchProvidersE2ETests : BaseApiTest
         response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
         
         var result = JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
+        result.Should().NotBeNull();
         result!.Items.Count.Should().BeLessThanOrEqualTo(pageSize);
         result.PageSize.Should().Be(pageSize);
     }

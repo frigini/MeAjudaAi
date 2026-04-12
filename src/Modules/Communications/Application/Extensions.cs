@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Communications.Application.ModuleApi;
 using MeAjudaAi.Modules.Communications.Application.Services;
 using MeAjudaAi.Modules.Communications.Application.Services.Email;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +30,11 @@ public static class Extensions
         services.AddScoped<IEventHandler<ProviderActivatedIntegrationEvent>, ProviderActivatedIntegrationEventHandler>();
         services.AddScoped<IEventHandler<ProviderAwaitingVerificationIntegrationEvent>, ProviderAwaitingVerificationIntegrationEventHandler>();
         services.AddScoped<IEventHandler<ProviderVerificationStatusUpdatedIntegrationEvent>, ProviderVerificationStatusUpdatedIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<DocumentVerifiedIntegrationEvent>, DocumentVerifiedIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<DocumentRejectedIntegrationEvent>, DocumentRejectedIntegrationEventHandler>();
+
+        // Background Workers
+        services.AddHostedService<CommunicationsOutboxWorker>();
 
         return services;
     }

@@ -39,6 +39,13 @@ public abstract class OutboxProcessorBase<TMessage>(
             {
                 var result = await DispatchAsync(message, cancellationToken);
 
+                if (result.IsCanceled)
+                {
+                    message.ResetToPending();
+                    await outboxRepository.SaveChangesAsync(cancellationToken);
+                    break;
+                }
+
                 if (result.IsSuccess)
                 {
                     message.MarkAsSent(DateTime.UtcNow);
@@ -50,6 +57,12 @@ public abstract class OutboxProcessorBase<TMessage>(
                     message.MarkAsFailed(result.ErrorMessage ?? "Dispatch failed without error message.");
                     await OnFailureAsync(message, result.ErrorMessage, cancellationToken);
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                message.ResetToPending();
+                await outboxRepository.SaveChangesAsync(CancellationToken.None); // Force save status reset
+                throw;
             }
             catch (Exception ex)
             {
@@ -82,9 +95,10 @@ public abstract class OutboxProcessorBase<TMessage>(
     /// <summary>
     /// Resultado de um despacho de mensagem.
     /// </summary>
-    public record DispatchResult(bool IsSuccess, string? ErrorMessage = null)
+    public record DispatchResult(bool IsSuccess, string? ErrorMessage = null, bool IsCanceled = false)
     {
         public static DispatchResult Success() => new(true);
         public static DispatchResult Failure(string errorMessage) => new(false, errorMessage);
+        public static DispatchResult Canceled() => new(false, null, true);
     }
 }
