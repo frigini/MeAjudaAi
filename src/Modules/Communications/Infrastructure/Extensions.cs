@@ -27,7 +27,8 @@ public static class Extensions
         services.AddScoped<ICommunicationLogRepository, CommunicationLogRepository>();
 
         // Stubs de remetentes (ativados via feature flag para dev/testes)
-        if (configuration.GetValue("Communications:EnableStubs", false))
+        // Por padrão, ativa se não houver configuração para evitar crash na injeção de dependência do OutboxProcessorService
+        if (configuration.GetValue("Communications:EnableStubs", true))
         {
             services.TryAddScoped<IEmailSender, EmailSenderStub>();
             services.TryAddScoped<ISmsSender, SmsSenderStub>();
