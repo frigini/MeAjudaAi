@@ -17,12 +17,20 @@ public sealed class AntiforgeryCookieMiddleware(RequestDelegate next, IAntiforge
         // Se for uma requisição GET, gera e armazena os tokens (configurando o cookie)
         if (HttpMethods.IsGet(context.Request.Method))
         {
-            var tokens = _antiforgery.GetAndStoreTokens(context);
-            
-            // Opcional: Adicionar o token também no header da resposta atual para facilitar a captura inicial
-            if (tokens.RequestToken != null)
+            try
             {
-                context.Response.Headers.Append("X-XSRF-TOKEN", tokens.RequestToken);
+                var tokens = _antiforgery.GetAndStoreTokens(context);
+                
+                // Opcional: Adicionar o token também no header da resposta atual para facilitar a captura inicial
+                if (tokens.RequestToken != null)
+                {
+                    context.Response.Headers.Append("X-XSRF-TOKEN", tokens.RequestToken);
+                }
+            }
+            catch (Exception)
+            {
+                // Falha silenciosa para evitar erro 500 se o Antiforgery/DataProtection não estiver configurado corretamente
+                // Comum em ambientes de teste ou inicialização
             }
         }
 

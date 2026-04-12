@@ -187,7 +187,6 @@ public static class ServiceCollectionExtensions
         app.UseMiddleware<RequestLoggingMiddleware>();
 
         app.UsePermissionOptimization(); // Middleware de otimização após autenticação
-        app.UseAuthorization();
 
         // Mapear endpoints de configuração (deve ser chamado após UseAuthorization)
         app.MapConfigurationEndpoints();
