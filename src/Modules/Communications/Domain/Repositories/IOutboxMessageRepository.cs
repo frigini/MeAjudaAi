@@ -1,44 +1,27 @@
-using MeAjudaAi.Modules.Communications.Domain.Entities;
-using MeAjudaAi.Modules.Communications.Domain.Enums;
+using MeAjudaAi.Shared.Database.Outbox;
+using MeAjudaAi.Contracts.Shared;
+using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
 
 namespace MeAjudaAi.Modules.Communications.Domain.Repositories;
 
 /// <summary>
-/// Repositório de mensagens do Outbox.
+/// Repositório para gestão de mensagens Outbox de comunicação.
+/// Herda da interface genérica para garantir consistência no processamento.
 /// </summary>
-public interface IOutboxMessageRepository
+public interface IOutboxMessageRepository : IOutboxRepository<OutboxMessage>
 {
     /// <summary>
-    /// Adiciona uma nova mensagem ao Outbox.
-    /// </summary>
-    Task AddAsync(OutboxMessage message, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Retorna as próximas mensagens prontas para processamento,
-    /// ordenadas por prioridade e data de criação.
-    /// </summary>
-    Task<IReadOnlyList<OutboxMessage>> GetPendingAsync(
-        int batchSize,
-        DateTime utcNow,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Retorna uma mensagem pelo ID.
-    /// </summary>
-    Task<OutboxMessage?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Conta mensagens com um determinado status.
+    /// Retorna o total de mensagens por status (usado para monitoramento/health checks).
     /// </summary>
     Task<int> CountByStatusAsync(EOutboxMessageStatus status, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Persiste as alterações no banco de dados.
+    /// Limpa mensagens muito antigas já enviadas para economizar espaço em disco.
     /// </summary>
-    Task SaveChangesAsync(CancellationToken cancellationToken = default);
+    Task<int> CleanupOldMessagesAsync(DateTime threshold, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Recupera mensagens que ficaram travadas no estado Processing.
+    /// Reseta mensagens travadas no status 'Processing' por muito tempo.
     /// </summary>
-    Task<int> ResetStuckMessagesAsync(TimeSpan timeout, CancellationToken cancellationToken = default);
+    Task<int> ResetStaleProcessingMessagesAsync(DateTime threshold, CancellationToken cancellationToken = default);
 }

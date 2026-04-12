@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Modules.Communications.Domain.Enums;
+namespace MeAjudaAi.Contracts.Shared;
 
 /// <summary>
 /// Status de processamento de uma mensagem no Outbox.

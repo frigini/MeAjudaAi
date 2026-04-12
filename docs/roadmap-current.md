@@ -746,13 +746,15 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - ✅ CI/CD executando testes E2E na pipeline
 
 #### 1.2. 🛠️ Excelência Técnica e Débito (Sprint 9)
-**Prioridade**: MÉDIA  
+**Prioridade**: MÉDIA
 **Estimativa**: 3-4 dias
 
 **Objetivo**: Resolver pendências técnicas e melhorar a resiliência do sistema.
 
 **Entregáveis**:
+- [x] **Generalização do Outbox Pattern**: Mover estrutura base (entidade, repositório, worker base) para `MeAjudaAi.Shared` para reuso em futuros módulos (Payments, Bookings).
 - [ ] **Handlers de Evento**: Implementar handlers para comunicação entre SearchProviders e ServiceCatalogs.
+
 - [ ] **Login Social**: Reintegrar login com Instagram via Keycloak OIDC (Issue #141).
 - [ ] **Resiliência**: Aplicar `CancellationToken` nos Effects de `ServiceCatalogs`, `Documents` e `Locations`.
 - [ ] **Localização (Backend)**: Migrar strings de erro da API para `.resx` e integrar FluentValidation para suporte a multi-idioma via cabeçalhos.

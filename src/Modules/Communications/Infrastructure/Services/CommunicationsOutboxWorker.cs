@@ -28,7 +28,8 @@ internal sealed class CommunicationsOutboxWorker(
                 
                 // 1. Recupera mensagens travadas em processamento
                 var repository = scope.ServiceProvider.GetRequiredService<IOutboxMessageRepository>();
-                int resetCount = await repository.ResetStuckMessagesAsync(_stuckTimeout, stoppingToken);
+                var resetCount = await repository.ResetStaleProcessingMessagesAsync(DateTime.UtcNow.Subtract(_stuckTimeout), stoppingToken);
+
                 
                 if (resetCount > 0)
                 {

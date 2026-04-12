@@ -1,7 +1,8 @@
-using MeAjudaAi.Modules.Communications.Domain.Entities;
-using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
+using MeAjudaAi.Shared.Database.Outbox;
+using MeAjudaAi.Contracts.Shared;
 using Microsoft.EntityFrameworkCore;
+using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
 
 namespace MeAjudaAi.Modules.Communications.Infrastructure.Persistence.Repositories;
 
@@ -13,10 +14,11 @@ internal sealed class OutboxMessageRepository(CommunicationsDbContext context) :
     }
 
     public async Task<IReadOnlyList<OutboxMessage>> GetPendingAsync(
-        int batchSize,
-        DateTime utcNow,
+        int batchSize = 20,
+        DateTime? utcNow = null,
         CancellationToken cancellationToken = default)
     {
+        var now = utcNow ?? DateTime.UtcNow;
         var strategy = context.Database.CreateExecutionStrategy();
 
         return await strategy.ExecuteAsync(async () =>
@@ -26,7 +28,7 @@ internal sealed class OutboxMessageRepository(CommunicationsDbContext context) :
             try
             {
                 var messages = await context.OutboxMessages
-                    .Where(x => x.Status == EOutboxMessageStatus.Pending && (x.ScheduledAt == null || x.ScheduledAt <= utcNow))
+                    .Where(x => x.Status == EOutboxMessageStatus.Pending && (x.ScheduledAt == null || x.ScheduledAt <= now))
                     .OrderByDescending(x => x.Priority)
                     .ThenBy(x => x.CreatedAt)
                     .Take(batchSize)
@@ -53,37 +55,43 @@ internal sealed class OutboxMessageRepository(CommunicationsDbContext context) :
         });
     }
 
-    public async Task<OutboxMessage?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await context.OutboxMessages.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-    }
-
     public async Task<int> CountByStatusAsync(EOutboxMessageStatus status, CancellationToken cancellationToken = default)
     {
         return await context.OutboxMessages.CountAsync(x => x.Status == status, cancellationToken);
     }
 
-    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    public async Task<int> CleanupOldMessagesAsync(DateTime threshold, CancellationToken cancellationToken = default)
     {
+        var oldMessages = await context.OutboxMessages
+            .Where(x => x.Status == EOutboxMessageStatus.Sent && x.CreatedAt < threshold)
+            .ToListAsync(cancellationToken);
+
+        if (oldMessages.Count == 0) return 0;
+
+        context.OutboxMessages.RemoveRange(oldMessages);
         await context.SaveChangesAsync(cancellationToken);
+        return oldMessages.Count;
     }
 
-    public async Task<int> ResetStuckMessagesAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
+    public async Task<int> ResetStaleProcessingMessagesAsync(DateTime threshold, CancellationToken cancellationToken = default)
     {
-        var threshold = DateTime.UtcNow.Subtract(timeout);
-
-        var stuckMessages = await context.OutboxMessages
+        var staleMessages = await context.OutboxMessages
             .Where(x => x.Status == EOutboxMessageStatus.Processing && (x.UpdatedAt ?? x.CreatedAt) < threshold)
             .ToListAsync(cancellationToken);
 
-        if (stuckMessages.Count == 0) return 0;
+        if (staleMessages.Count == 0) return 0;
 
-        foreach (var message in stuckMessages)
+        foreach (var message in staleMessages)
         {
             message.ResetToPending();
         }
 
         await context.SaveChangesAsync(cancellationToken);
-        return stuckMessages.Count;
+        return staleMessages.Count;
+    }
+
+    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        await context.SaveChangesAsync(cancellationToken);
     }
 }
