@@ -28,50 +28,69 @@ public abstract class OutboxProcessorBase<TMessage>(
         logger.LogInformation("Processing {Count} pending outbox messages...", messages.Count);
 
         var processed = 0;
-        foreach (var message in messages)
+        var processedCount = 0;
+        
+        try
         {
-            if (cancellationToken.IsCancellationRequested) break;
-
-            message.MarkAsProcessing();
-            await outboxRepository.SaveChangesAsync(cancellationToken);
-
-            try
+            for (int i = 0; i < messages.Count; i++)
             {
-                var result = await DispatchAsync(message, cancellationToken);
+                if (cancellationToken.IsCancellationRequested) break;
 
-                if (result.IsCanceled)
+                var message = messages[i];
+                processedCount++;
+
+                try
+                {
+                    var result = await DispatchAsync(message, cancellationToken);
+
+                    if (result.IsCanceled)
+                    {
+                        message.ResetToPending();
+                        await outboxRepository.SaveChangesAsync(cancellationToken);
+                        break;
+                    }
+
+                    if (result.IsSuccess)
+                    {
+                        message.MarkAsSent(DateTime.UtcNow);
+                        await OnSuccessAsync(message, cancellationToken);
+                        processed++;
+                    }
+                    else
+                    {
+                        message.MarkAsFailed(result.ErrorMessage ?? "Dispatch failed without error message.");
+                        await OnFailureAsync(message, result.ErrorMessage, cancellationToken);
+                    }
+                }
+                catch (OperationCanceledException)
                 {
                     message.ResetToPending();
-                    await outboxRepository.SaveChangesAsync(cancellationToken);
-                    break;
+                    await outboxRepository.SaveChangesAsync(CancellationToken.None);
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error processing outbox message {Id}: {Message}", message.Id, ex.Message);
+                    message.MarkAsFailed(ex.Message);
+                    await OnFailureAsync(message, ex.Message, cancellationToken);
                 }
 
-                if (result.IsSuccess)
-                {
-                    message.MarkAsSent(DateTime.UtcNow);
-                    await OnSuccessAsync(message, cancellationToken);
-                    processed++;
-                }
-                else
-                {
-                    message.MarkAsFailed(result.ErrorMessage ?? "Dispatch failed without error message.");
-                    await OnFailureAsync(message, result.ErrorMessage, cancellationToken);
-                }
+                await outboxRepository.SaveChangesAsync(cancellationToken);
             }
-            catch (OperationCanceledException)
+        }
+        finally
+        {
+            // Resetar mensagens que foram buscadas como 'Processing' mas não foram processadas devido a cancelamento/erro
+            var remainingMessages = messages.Skip(processedCount).ToList();
+            if (remainingMessages.Count != 0)
             {
-                message.ResetToPending();
-                await outboxRepository.SaveChangesAsync(CancellationToken.None); // Force save status reset
-                throw;
+                logger.LogInformation("Resetting {Count} unprocessed outbox messages back to Pending due to shutdown/cancellation.", remainingMessages.Count);
+                foreach (var remaining in remainingMessages)
+                {
+                    remaining.ResetToPending();
+                }
+                await outboxRepository.SaveChangesAsync(CancellationToken.None);
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error processing outbox message {Id}: {Message}", message.Id, ex.Message);
-                message.MarkAsFailed(ex.Message);
-                await OnFailureAsync(message, ex.Message, cancellationToken);
-            }
-
-            await outboxRepository.SaveChangesAsync(cancellationToken);
         }
 
         return processed;

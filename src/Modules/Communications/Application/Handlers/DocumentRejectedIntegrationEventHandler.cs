@@ -40,7 +40,7 @@ public sealed class DocumentRejectedIntegrationEventHandler(
         }
 
         var recipientEmail = providerResult.Value.Email;
-        var correlationId = $"document_rejected:{integrationEvent.DocumentId}:{integrationEvent.ProviderId}";
+        var correlationId = $"{TemplateKey}:{integrationEvent.DocumentId}:{integrationEvent.ProviderId}";
 
         var emailPayload = new
         {

@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Globalization;
 using System.Text.Json;
+using System.Linq;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
@@ -88,7 +89,15 @@ public class SearchProvidersE2ETests : BaseApiTest
         result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty();
         result.Items.Should().OnlyContain(x => x.DistanceInKm.HasValue);
-        result.Items.Should().BeInAscendingOrder(x => x.DistanceInKm);
+        
+        // Verificar ordenação composta: SubscriptionTier (DESC), AverageRating (DESC), DistanceInKm (ASC)
+        var orderedItems = result.Items
+            .OrderByDescending(x => x.SubscriptionTier)
+            .ThenByDescending(x => x.AverageRating)
+            .ThenBy(x => x.DistanceInKm)
+            .ToList();
+
+        result.Items.Should().Equal(orderedItems, "A lista deve estar ordenada por Tier, Rating e Distância");
     }
 
     [Fact]

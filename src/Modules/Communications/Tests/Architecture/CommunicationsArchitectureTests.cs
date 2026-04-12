@@ -16,12 +16,17 @@ public class CommunicationsArchitectureTests
     [Fact]
     public void Domain_Should_Not_Have_Dependency_On_Other_Layers()
     {
-        var result = Types.InAssembly(DomainAssembly)
+        Types.InAssembly(DomainAssembly)
             .ShouldNot()
-            .HaveDependencyOnAll("MeAjudaAi.Modules.Communications.Application", "MeAjudaAi.Modules.Communications.Infrastructure")
-            .GetResult();
+            .HaveDependencyOn("MeAjudaAi.Modules.Communications.Application")
+            .GetResult()
+            .IsSuccessful.Should().BeTrue("Domain should not depend on Application");
 
-        result.IsSuccessful.Should().BeTrue();
+        Types.InAssembly(DomainAssembly)
+            .ShouldNot()
+            .HaveDependencyOn("MeAjudaAi.Modules.Communications.Infrastructure")
+            .GetResult()
+            .IsSuccessful.Should().BeTrue("Domain should not depend on Infrastructure");
     }
 
     [Fact]

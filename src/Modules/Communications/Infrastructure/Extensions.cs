@@ -7,6 +7,7 @@ using MeAjudaAi.Shared.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace MeAjudaAi.Modules.Communications.Infrastructure;
 
@@ -14,21 +15,24 @@ public static class Extensions
 {
     public static IServiceCollection AddCommunicationsInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        // Persistence
+        // Persistência
         services.AddPostgresContext<CommunicationsDbContext>(builder => 
         {
             builder.UseSnakeCaseNamingConvention();
         });
 
-        // Repositories
+        // Repositórios
         services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();
         services.AddScoped<IEmailTemplateRepository, EmailTemplateRepository>();
         services.AddScoped<ICommunicationLogRepository, CommunicationLogRepository>();
 
-        // Senders Stubs
-        services.AddScoped<IEmailSender, EmailSenderStub>();
-        services.AddScoped<ISmsSender, SmsSenderStub>();
-        services.AddScoped<IPushSender, PushSenderStub>();
+        // Stubs de remetentes (ativados via feature flag para dev/testes)
+        if (configuration.GetValue("Communications:EnableStubs", false))
+        {
+            services.TryAddScoped<IEmailSender, EmailSenderStub>();
+            services.TryAddScoped<ISmsSender, SmsSenderStub>();
+            services.TryAddScoped<IPushSender, PushSenderStub>();
+        }
 
         return services;
     }

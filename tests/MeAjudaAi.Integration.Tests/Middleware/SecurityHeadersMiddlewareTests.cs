@@ -186,12 +186,8 @@ public sealed class SecurityHeadersMiddlewareTests : BaseApiTest
 
         // Assert
         // O ASP.NET Core gera o cookie de antiforgery em requisições GET para que o SPA possa lê-lo
-        // NOTA: Dependendo da configuração, o cookie só é gerado se explicitamente acessado ou se o middleware
-        // for configurado para tal. Como adicionamos UseAntiforgery(), verificamos se o Set-Cookie está presente.
-        if (response.Headers.TryGetValues("Set-Cookie", out var cookies))
-        {
-            cookies.Should().Contain(c => c.Contains("XSRF-TOKEN"), "O cookie de antiforgery deve ser enviado para o cliente");
-        }
+        response.Headers.TryGetValues("Set-Cookie", out var cookies).Should().BeTrue("O header Set-Cookie deve estar presente");
+        cookies.Should().Contain(c => c.Contains("XSRF-TOKEN"), "O cookie de antiforgery deve ser enviado para o cliente");
     }
 
     [Fact]
@@ -210,14 +206,9 @@ public sealed class SecurityHeadersMiddlewareTests : BaseApiTest
         using var response = await noRedirectClient.GetAsync("/health");
 
         // Assert
-        // Em ambiente de teste, o middleware pode não redirecionar se detectar localhost ou se não estiver configurado para HTTPS
-        // Mas se estiver ativo, esperamos 307 (Temporary Redirect) ou 308 (Permanent Redirect)
-        // Se retornar 200, significa que o redirecionamento não ocorreu (comum em testes se a porta HTTPS não for definida)
-        if (response.StatusCode != HttpStatusCode.OK)
-        {
-            response.StatusCode.Should().BeOneOf([HttpStatusCode.TemporaryRedirect, HttpStatusCode.PermanentRedirect], 
-                "Requisições HTTP devem ser redirecionadas para HTTPS");
-            response.Headers.Location!.Scheme.Should().Be("https");
-        }
+        // Esperamos 307 (Temporary Redirect) ou 308 (Permanent Redirect)
+        response.StatusCode.Should().BeOneOf([HttpStatusCode.TemporaryRedirect, HttpStatusCode.PermanentRedirect], 
+            "Requisições HTTP devem ser redirecionadas para HTTPS");
+        response.Headers.Location!.Scheme.Should().Be("https");
     }
 }

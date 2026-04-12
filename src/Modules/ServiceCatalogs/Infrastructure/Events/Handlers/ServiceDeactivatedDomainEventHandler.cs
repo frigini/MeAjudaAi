@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Events.Service;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
@@ -15,7 +16,7 @@ public sealed class ServiceDeactivatedDomainEventHandler(
         try
         {
             var integrationEvent = new ServiceDeactivatedIntegrationEvent(
-                "ServiceCatalogs",
+                ModuleNames.ServiceCatalogs,
                 domainEvent.ServiceId.Value);
 
             await messageBus.PublishAsync(integrationEvent, cancellationToken: cancellationToken);
@@ -25,6 +26,7 @@ public sealed class ServiceDeactivatedDomainEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error handling ServiceDeactivatedDomainEvent for service {ServiceId}", domainEvent.ServiceId);
+            throw;
         }
     }
 }

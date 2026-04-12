@@ -46,7 +46,7 @@ public sealed class OutboxProcessorService(
                 ? DispatchResult.Success() 
                 : DispatchResult.Failure("Dispatch service returned false.");
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             return DispatchResult.Canceled();
         }

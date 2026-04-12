@@ -559,7 +559,7 @@ public static class SecurityExtensions
             {
                 var isAuthenticated = context.User.Identity?.IsAuthenticated == true;
                 var key = isAuthenticated 
-                    ? context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? context.Connection.RemoteIpAddress?.ToString() ?? context.Connection.Id ?? "authenticated-anonymous"
+                    ? context.User.FindFirst("sub")?.Value ?? context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? context.Connection.RemoteIpAddress?.ToString() ?? context.Connection.Id ?? "authenticated-anonymous"
                     : context.Connection.RemoteIpAddress?.ToString() ?? context.Connection.Id ?? "test-client";
 
                 var permitLimit = isAuthenticated 

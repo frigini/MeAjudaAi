@@ -646,9 +646,9 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 - [x] Testes unitários Prestador (hooks; components: dashboard cards, profile)
 - [x] Configurar MSW handlers para Admin e Prestador
 
-### ⏳ Sprint 9 - BUFFER & Mitigação de Risco (25 Mar - 11 Abr 2026)
+### ✅ Sprint 9 - BUFFER & Mitigação de Risco (25 Mar - 11 Abr 2026)
 
-**Status**: ⏳ EM ANDAMENTO
+**Status**: ✅ ENCERRADA (Snapshot: encerrada em 11 Abr 2026)
 **Duração**: 12 dias de buffer (finalização do MVP)
 - Polimento, Refatoração e Correção.
 - Mover tarefas Opcionais da 8B.2 para cá se necessário.

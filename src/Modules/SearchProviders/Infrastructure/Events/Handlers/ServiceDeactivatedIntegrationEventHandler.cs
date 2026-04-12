@@ -14,32 +14,25 @@ public sealed class ServiceDeactivatedIntegrationEventHandler(
 {
     public async Task HandleAsync(ServiceDeactivatedIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
     {
-        try
+        logger.LogInformation("Handling ServiceDeactivatedIntegrationEvent for service {ServiceId}", integrationEvent.ServiceId);
+
+        var providers = await repository.GetByServiceIdAsync(integrationEvent.ServiceId, cancellationToken);
+        
+        if (!providers.Any())
         {
-            logger.LogInformation("Handling ServiceDeactivatedIntegrationEvent for service {ServiceId}", integrationEvent.ServiceId);
-
-            var providers = await repository.GetByServiceIdAsync(integrationEvent.ServiceId, cancellationToken);
-            
-            if (!providers.Any())
-            {
-                return;
-            }
-
-            foreach (var provider in providers)
-            {
-                var updatedServices = provider.ServiceIds.Where(id => id != integrationEvent.ServiceId).ToArray();
-                provider.UpdateServices(updatedServices);
-                await repository.UpdateAsync(provider, cancellationToken);
-            }
-
-            await repository.SaveChangesAsync(cancellationToken);
-            
-            logger.LogInformation("Successfully removed service {ServiceId} from {Count} searchable providers.", 
-                integrationEvent.ServiceId, providers.Count);
+            return;
         }
-        catch (Exception ex)
+
+        foreach (var provider in providers)
         {
-            logger.LogError(ex, "Error handling ServiceDeactivatedIntegrationEvent for service {ServiceId}", integrationEvent.ServiceId);
+            var updatedServices = provider.ServiceIds.Where(id => id != integrationEvent.ServiceId).ToArray();
+            provider.UpdateServices(updatedServices);
+            await repository.UpdateAsync(provider, cancellationToken);
         }
+
+        await repository.SaveChangesAsync(cancellationToken);
+        
+        logger.LogInformation("Successfully removed service {ServiceId} from {Count} searchable providers.", 
+            integrationEvent.ServiceId, providers.Count);
     }
 }

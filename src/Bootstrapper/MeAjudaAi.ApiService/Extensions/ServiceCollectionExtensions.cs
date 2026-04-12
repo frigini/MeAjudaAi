@@ -129,14 +129,14 @@ public static class ServiceCollectionExtensions
             app.UseHsts();
         }
 
+        // ForwardedHeaders deve ser o primeiro para popular corretamente RemoteIpAddress para rate limiting
+        // Processa cabeçalhos X-Forwarded-* de proxies reversos (load balancers, nginx, etc.)
+        app.UseForwardedHeaders();
+
         app.UseHttpsRedirection();
 
         // Content Security Policy - adicionar no início para proteger todas as respostas
         app.UseContentSecurityPolicy();
-
-        // ForwardedHeaders deve ser o primeiro para popular corretamente RemoteIpAddress para rate limiting
-        // Processa cabeçalhos X-Forwarded-* de proxies reversos (load balancers, nginx, etc.)
-        app.UseForwardedHeaders();
 
         // Logging Context Middleware - adiciona correlation ID aos logs e response headers
         app.UseLoggingContext();

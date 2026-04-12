@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
@@ -24,7 +25,7 @@ public sealed class ServiceActivatedDomainEventHandler(
             }
 
             var integrationEvent = new ServiceActivatedIntegrationEvent(
-                "ServiceCatalogs",
+                ModuleNames.ServiceCatalogs,
                 service.Id.Value,
                 service.Name);
 
@@ -35,6 +36,7 @@ public sealed class ServiceActivatedDomainEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error handling ServiceActivatedDomainEvent for service {ServiceId}", domainEvent.ServiceId);
+            throw;
         }
     }
 }

@@ -71,7 +71,8 @@ public sealed class DocumentVerifiedIntegrationEventHandler(
             {
                 var processedException = MeAjudaAi.Shared.Database.Exceptions.PostgreSqlExceptionProcessor.ProcessException(dbEx);
 
-                if (processedException is MeAjudaAi.Shared.Database.Exceptions.UniqueConstraintException)
+                if (processedException is MeAjudaAi.Shared.Database.Exceptions.UniqueConstraintException uniqueEx && 
+                    uniqueEx.ConstraintName == "ix_outbox_messages_correlation_id")
                 {
                     logger.LogInformation(
                         "Skipping document verified notification for document {DocumentId} — already enqueued (correlationId: {CorrelationId}).",
