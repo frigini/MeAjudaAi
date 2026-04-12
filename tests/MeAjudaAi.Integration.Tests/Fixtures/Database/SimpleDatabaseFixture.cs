@@ -23,9 +23,18 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
     /// <summary>
     /// Connection string com detalhes de erro habilitados para diagnóstico em CI
     /// </summary>
-    public string GetConnectionString(string databaseName) => _postgresContainer != null 
-        ? $"{_postgresContainer.GetConnectionString().Replace("Database=meajudaai_test", $"Database={databaseName}")};Include Error Detail=true" 
-        : throw new InvalidOperationException("Postgres container not initialized");
+    public string GetConnectionString(string databaseName)
+    {
+        if (_postgresContainer == null) throw new InvalidOperationException("Postgres container not initialized");
+
+        var builder = new NpgsqlConnectionStringBuilder(_postgresContainer.GetConnectionString())
+        {
+            Database = databaseName,
+            IncludeErrorDetail = true
+        };
+        
+        return builder.ConnectionString;
+    }
 
     public string? ConnectionString => _postgresContainer?.GetConnectionString();
 
@@ -36,8 +45,8 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
         if (_postgresContainer == null) throw new InvalidOperationException("Postgres container not initialized");
         
         // Sanitização: apenas letras, números e underscores
-        if (!System.Text.RegularExpressions.Regex.IsMatch(databaseName, @"^[A-Za-z0-9_]+$"))
-            throw new ArgumentException("Invalid database name format", nameof(databaseName));
+        if (string.IsNullOrWhiteSpace(databaseName) || !System.Text.RegularExpressions.Regex.IsMatch(databaseName, @"^[A-Za-z0-9_]+$"))
+            throw new ArgumentException("Invalid database name format. Only letters, numbers and underscores allowed.", nameof(databaseName));
 
         var masterConnectionString = _postgresContainer.GetConnectionString(); // Default to postgres DB
         await using var conn = new NpgsqlConnection(masterConnectionString);
@@ -62,8 +71,8 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
         if (_postgresContainer == null) return;
         
         // Sanitização idêntica ao Create
-        if (!System.Text.RegularExpressions.Regex.IsMatch(databaseName, @"^[A-Za-z0-9_]+$"))
-            return;
+        if (string.IsNullOrWhiteSpace(databaseName) || !System.Text.RegularExpressions.Regex.IsMatch(databaseName, @"^[A-Za-z0-9_]+$"))
+            throw new ArgumentException("Invalid database name format. Only letters, numbers and underscores allowed.", nameof(databaseName));
 
         try
         {
@@ -87,7 +96,8 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[DB-FIXTURE] Warning: Could not drop database {databaseName}: {ex.Message}");
+            Console.WriteLine($"[DB-FIXTURE] ERROR: Could not drop database {databaseName}: {ex.Message}");
+            throw;
         }
     }
 

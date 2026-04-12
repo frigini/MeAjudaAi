@@ -46,6 +46,11 @@ public sealed class OutboxProcessorService(
                 ? DispatchResult.Success() 
                 : DispatchResult.Failure("Dispatch service returned false.");
         }
+        catch (OperationCanceledException)
+        {
+            // Propagate cancellation to allow graceful worker shutdown without marking as failed
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error dispatching outbox message {Id} ({Channel}).", message.Id, message.Channel);
@@ -113,7 +118,7 @@ public sealed class OutboxProcessorService(
         var email = JsonSerializer.Deserialize<EmailOutboxPayload>(message.Payload)
             ?? throw new InvalidOperationException("Invalid email payload.");
 
-        var htmlBody = email.HtmlBody ?? email.Body ?? string.Empty;
+        var htmlBody = email.HtmlBody ?? (email.Body != null ? System.Net.WebUtility.HtmlEncode(email.Body) : string.Empty);
         var textBody = email.TextBody ?? email.Body ?? string.Empty;
 
         return await emailSender.SendAsync(
@@ -147,8 +152,8 @@ public sealed class OutboxProcessorService(
         {
             ECommunicationChannel.Email => PiiMaskingHelper.MaskEmail(recipient),
             ECommunicationChannel.Sms => PiiMaskingHelper.MaskPhoneNumber(recipient),
-            ECommunicationChannel.Push => PiiMaskingHelper.MaskUserId(recipient),
-            _ => recipient
+            ECommunicationChannel.Push => PiiMaskingHelper.MaskSensitiveData(recipient),
+            _ => PiiMaskingHelper.MaskSensitiveData(recipient)
         };
     }
 

@@ -71,23 +71,24 @@ public sealed class ProviderActivatedIntegrationEventHandler(
             await outboxRepository.AddAsync(message, cancellationToken);
             await outboxRepository.SaveChangesAsync(cancellationToken);
 
-            logger.LogInformation(
-                "Provider activation email enqueued for provider {ProviderId} (outboxId: {OutboxId}, correlationId: {CorrelationId}).",
-                integrationEvent.ProviderId, message.Id, correlationId);
+            logger.LogInformation("Provider activation email enqueued for provider {ProviderId} (UserId: {UserId}, correlationId: {CorrelationId}).", 
+                integrationEvent.ProviderId, integrationEvent.UserId, correlationId);
         }
         catch (Exception ex)
         {
-            var processedException = MeAjudaAi.Shared.Database.Exceptions.PostgreSqlExceptionProcessor.ProcessException(
-                ex as Microsoft.EntityFrameworkCore.DbUpdateException ?? new Microsoft.EntityFrameworkCore.DbUpdateException(ex.Message, ex));
-
-            if (processedException is MeAjudaAi.Shared.Database.Exceptions.UniqueConstraintException)
+            if (ex is Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
-                logger.LogInformation(
-                    "Skipping provider activation email for {ProviderId} — already enqueued or sent (correlationId: {CorrelationId}).",
-                    integrationEvent.ProviderId, correlationId);
-                return;
+                var processedException = MeAjudaAi.Shared.Database.Exceptions.PostgreSqlExceptionProcessor.ProcessException(dbEx);
+
+                if (processedException is MeAjudaAi.Shared.Database.Exceptions.UniqueConstraintException)
+                {
+                    logger.LogInformation(
+                        "Skipping provider activation email for {ProviderId} — already enqueued or sent (correlationId: {CorrelationId}).",
+                        integrationEvent.ProviderId, correlationId);
+                    return;
+                }
             }
-            
+
             throw;
         }
     }

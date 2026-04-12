@@ -48,13 +48,21 @@ public sealed class ProviderVerificationStatusUpdatedIntegrationEventHandler(
             _ => "provider-verification-status-update" // default/fallback
         };
 
+        var displayStatus = normalizedStatus switch
+        {
+            "verified" or "approved" => "aprovado",
+            "rejected" or "denied" => "rejeitado",
+            "pending" or "awaiting" => "pendente",
+            _ => normalizedStatus
+        };
+
         var correlationId = $"verification_status_update:{integrationEvent.Id}:{integrationEvent.ProviderId}:{normalizedStatus}";
 
         var emailPayload = new
         {
             To = recipientEmail,
-            Subject = $"Atualização no status de verificação: {integrationEvent.NewStatus}",
-            Body = $"Olá {integrationEvent.Name}, seu status de verificação foi alterado para: {integrationEvent.NewStatus}. {integrationEvent.Comments}",
+            Subject = $"Atualização no status de verificação: {displayStatus}",
+            Body = $"Olá {integrationEvent.Name}, seu status de verificação foi alterado para: {displayStatus}. {integrationEvent.Comments}",
             TemplateKey = templateKey,
             CorrelationId = correlationId
         };

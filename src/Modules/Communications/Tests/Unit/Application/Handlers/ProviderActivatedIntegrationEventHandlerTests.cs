@@ -6,6 +6,8 @@ using MeAjudaAi.Contracts.Modules.Users;
 using MeAjudaAi.Contracts.Modules.Users.DTOs;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Communications.Tests.Unit.Application.Handlers;
 

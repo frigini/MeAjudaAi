@@ -145,10 +145,12 @@ public class SearchProvidersE2ETests : BaseApiTest
         stopwatch.Stop();
         var responseBody = await response.Content.ReadAsStringAsync();
         response.IsSuccessStatusCode.Should().BeTrue($"Search request failed with status {response.StatusCode}. Body: {responseBody}");
-        
+
         var result = JsonSerializer.Deserialize<PagedResult<SearchableProviderDto>>(responseBody, SerializationDefaults.Api);
-        
+        result.Should().NotBeNull();
+        result!.Items.Should().NotBeNullOrEmpty();
+
         // Threshold aumentado para 10s para evitar falhas intermitentes em ambientes de CI lentos
         stopwatch.ElapsedMilliseconds.Should().BeLessThanOrEqualTo(10000, $"A busca deve ser rápida (< 10s). Tempo: {stopwatch.ElapsedMilliseconds}ms");
-    }
-}
+        }
+        }
