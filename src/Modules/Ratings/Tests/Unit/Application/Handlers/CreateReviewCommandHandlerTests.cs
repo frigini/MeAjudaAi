@@ -104,6 +104,21 @@ public class CreateReviewCommandHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_Rating5WithWhitespaceComment_ShouldAutoApprove()
+    {
+        // Arrange
+        var command = new CreateReviewCommand(Guid.NewGuid(), Guid.NewGuid(), 5, "   ");
+
+        // Act
+        await _handler.HandleAsync(command);
+
+        // Assert
+        _repositoryMock.Verify(r => r.AddAsync(
+            It.Is<Review>(rev => rev.Status == EReviewStatus.Approved), 
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task HandleAsync_DirtyContent_ShouldMarkAsFlagged()
     {
         // Arrange

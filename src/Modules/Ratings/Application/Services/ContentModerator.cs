@@ -10,19 +10,14 @@ public interface IContentModerator
 public class ContentModerator : IContentModerator
 {
     private static readonly string[] BadWords = ["idiota", "burro", "lixo", "golpe", "fake"];
-    private readonly List<Regex> _patterns;
-
-    public ContentModerator()
-    {
-        _patterns = BadWords
-            .Select(word => new Regex($@"\b{Regex.Escape(word)}\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled))
-            .ToList();
-    }
+    private static readonly List<Regex> Patterns = BadWords
+        .Select(word => new Regex($@"\b{Regex.Escape(word)}\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled))
+        .ToList();
 
     public bool IsClean(string? content)
     {
         if (string.IsNullOrWhiteSpace(content)) return true;
 
-        return !_patterns.Any(regex => regex.IsMatch(content));
+        return !Patterns.Any(regex => regex.IsMatch(content));
     }
 }

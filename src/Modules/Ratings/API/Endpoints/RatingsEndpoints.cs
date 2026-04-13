@@ -19,11 +19,18 @@ public static class RatingsEndpoints
         group.MapPost("/", CreateReviewAsync)
             .WithName("CreateReview")
             .Produces<Guid>(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status400BadRequest);
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized);
+
+        group.MapGet("/{id:guid}", GetReviewByIdAsync)
+            .WithName("GetReviewById")
+            .Produces<ProviderReviewResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .AllowAnonymous();
 
         group.MapGet("/provider/{providerId:guid}", GetProviderReviewsAsync)
             .WithName("GetProviderReviews")
-            .Produces<IEnumerable<object>>(StatusCodes.Status200OK)
+            .Produces<IEnumerable<ProviderReviewResponse>>(StatusCodes.Status200OK)
             .AllowAnonymous();
     }
 
@@ -51,6 +58,21 @@ public static class RatingsEndpoints
         return Results.Created($"/api/v1/ratings/{reviewId}", reviewId);
     }
 
+    private static async Task<IResult> GetReviewByIdAsync(
+        Guid id,
+        [FromServices] IReviewRepository repository,
+        CancellationToken cancellationToken)
+    {
+        var review = await repository.GetByIdAsync(id, cancellationToken);
+        if (review == null) return Results.NotFound();
+
+        return Results.Ok(new ProviderReviewResponse(
+            review.Id.Value,
+            review.Rating,
+            review.Comment,
+            review.CreatedAt));
+    }
+
     private static async Task<IResult> GetProviderReviewsAsync(
         Guid providerId,
         [FromServices] IReviewRepository repository,
@@ -58,17 +80,15 @@ public static class RatingsEndpoints
     {
         var reviews = await repository.GetByProviderIdAsync(providerId, cancellationToken);
         
-        var result = reviews.Select(r => new
-        {
-            r.Id,
+        var result = reviews.Select(r => new ProviderReviewResponse(
+            r.Id.Value,
             r.Rating,
             r.Comment,
-            r.CreatedAt
-            // CustomerId removido para não expor identificadores de usuários publicamente
-        });
+            r.CreatedAt));
 
         return Results.Ok(result);
     }
 
     public record CreateReviewRequest(Guid ProviderId, int Rating, string? Comment);
+    public record ProviderReviewResponse(Guid Id, int Rating, string? Comment, DateTime CreatedAt);
 }

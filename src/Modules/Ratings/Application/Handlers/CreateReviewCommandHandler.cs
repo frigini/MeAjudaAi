@@ -16,7 +16,7 @@ public sealed class CreateReviewCommandHandler(
     {
         logger.LogInformation("Creating review for provider {ProviderId} by customer {CustomerId}", command.ProviderId, command.CustomerId);
 
-        // Validar duplicidade
+        // Validar duplicidade (UX check)
         var existingReview = await repository.GetByProviderAndCustomerAsync(command.ProviderId, command.CustomerId, cancellationToken);
         if (existingReview != null)
         {
@@ -30,24 +30,44 @@ public sealed class CreateReviewCommandHandler(
             command.Rating,
             command.Comment);
 
-        // Moderação Automática
-        var isClean = contentModerator.IsClean(command.Comment);
-
-        if (!isClean)
+        // Moderação Automática e Regras de Auto-aprovação
+        if (string.IsNullOrWhiteSpace(command.Comment))
         {
-            logger.LogWarning("Review {ReviewId} flagged for moderation due to inappropriate content", review.Id.Value);
-            review.MarkAsFlagged();
+            if (command.Rating >= 4)
+            {
+                review.Approve();
+            }
         }
-        else if (command.Rating >= 4 && string.IsNullOrWhiteSpace(command.Comment))
+        else
         {
-            // Auto-aprovação para notas altas sem comentário
-            review.Approve();
+            var isClean = contentModerator.IsClean(command.Comment);
+            if (!isClean)
+            {
+                logger.LogWarning("Review {ReviewId} flagged for moderation due to inappropriate content", review.Id.Value);
+                review.MarkAsFlagged();
+            }
         }
 
-        await repository.AddAsync(review, cancellationToken);
+        try
+        {
+            await repository.AddAsync(review, cancellationToken);
+        }
+        catch (Exception ex) when (IsUniqueConstraintViolation(ex))
+        {
+            logger.LogWarning(ex, "Concurrency/Duplicate detected at DB level for Review between Provider {ProviderId} and Customer {CustomerId}", 
+                command.ProviderId, command.CustomerId);
+            throw new InvalidOperationException("Você já avaliou este prestador.");
+        }
 
         logger.LogInformation("Review {ReviewId} created with status {Status}", review.Id.Value, review.Status);
 
         return review.Id.Value;
+    }
+
+    private static bool IsUniqueConstraintViolation(Exception ex)
+    {
+        // Detecta violação de unicidade (Postgres 23505)
+        var message = ex.ToString();
+        return message.Contains("23505") || message.Contains("unique constraint") || (ex.InnerException?.Message.Contains("23505") ?? false);
     }
 }

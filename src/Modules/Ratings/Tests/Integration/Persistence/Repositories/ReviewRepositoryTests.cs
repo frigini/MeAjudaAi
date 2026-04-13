@@ -3,23 +3,35 @@ using MeAjudaAi.Modules.Ratings.Domain.Enums;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
 using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Integration.Persistence.Repositories;
 
-public class ReviewRepositoryTests
+public class ReviewRepositoryTests : IAsyncDisposable
 {
     private readonly RatingsDbContext _context;
     private readonly ReviewRepository _repository;
+    private readonly SqliteConnection _connection;
 
     public ReviewRepositoryTests()
     {
+        _connection = new SqliteConnection("DataSource=:memory:");
+        _connection.Open();
+
         var options = new DbContextOptionsBuilder<RatingsDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseSqlite(_connection)
             .Options;
 
         _context = new RatingsDbContext(options);
+        _context.Database.EnsureCreated();
         _repository = new ReviewRepository(_context);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _context.DisposeAsync();
+        await _connection.DisposeAsync();
     }
 
     [Fact]

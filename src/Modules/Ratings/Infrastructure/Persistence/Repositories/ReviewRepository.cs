@@ -41,15 +41,15 @@ public class ReviewRepository(RatingsDbContext context) : IReviewRepository
 
     public async Task<(decimal AverageRating, int TotalReviews)> GetAverageRatingForProviderAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
-        var reviews = await context.Reviews
-            .Where(r => r.ProviderId == providerId && r.Status == EReviewStatus.Approved)
-            .Select(r => r.Rating)
-            .ToListAsync(cancellationToken);
+        var query = context.Reviews
+            .Where(r => r.ProviderId == providerId && r.Status == EReviewStatus.Approved);
 
-        if (reviews.Count == 0)
+        var total = await query.CountAsync(cancellationToken);
+
+        if (total == 0)
             return (0, 0);
 
-        var average = (decimal)reviews.Average();
-        return (Math.Round(average, 2), reviews.Count);
+        var average = await query.AverageAsync(r => r.Rating, cancellationToken);
+        return (Math.Round((decimal)average, 2), total);
     }
 }

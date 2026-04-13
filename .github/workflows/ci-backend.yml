@@ -172,6 +172,7 @@ jobs:
             "src/Modules/ServiceCatalogs/Tests/MeAjudaAi.Modules.ServiceCatalogs.Tests.csproj"
             "src/Modules/Locations/Tests/MeAjudaAi.Modules.Locations.Tests.csproj"
             "src/Modules/Communications/Tests/MeAjudaAi.Modules.Communications.Tests.csproj"
+            "src/Modules/Ratings/Tests/MeAjudaAi.Modules.Ratings.Tests.csproj"
             "src/Modules/SearchProviders/Tests/MeAjudaAi.Modules.SearchProviders.Tests.csproj"
             "tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj"
             "tests/MeAjudaAi.ApiService.Tests/MeAjudaAi.ApiService.Tests.csproj"

@@ -20,6 +20,7 @@ public static class Extensions
 
         // Manipuladores de eventos de domínio
         services.AddScoped<IEventHandler<ReviewApprovedDomainEvent>, ReviewApprovedDomainEventHandler>();
+        services.AddScoped<IEventHandler<ReviewRejectedDomainEvent>, ReviewRejectedDomainEventHandler>();
 
         return services;
     }
