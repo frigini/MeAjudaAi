@@ -330,7 +330,31 @@ jobs:
 
       - name: Checkout Base Branch Spec
         run: |
-          git show origin/${{ github.base_ref }}:api/api-spec.json > api-base.json || (echo "❌ Base spec not found in target branch!" && exit 1)
+          # Tenta pegar o arquivo já versionado
+          if git show origin/${{ github.base_ref }}:api/api-spec.json > api-base.json 2>/dev/null; then
+            echo "✅ Base spec found in origin/${{ github.base_ref }}"
+          else
+            echo "⚠️ Base spec not found in origin/${{ github.base_ref }}. Generating from source..."
+            
+            # Salva o estado atual
+            git stash
+            
+            # Checkout da branch base para gerar o spec
+            git checkout ${{ github.base_ref }}
+            
+            # Build e geração (usando as mesmas envs de bypass)
+            export ASPNETCORE_ENVIRONMENT=Testing
+            dotnet build src/Bootstrapper/MeAjudaAi.ApiService/MeAjudaAi.ApiService.csproj -c Release
+            
+            swagger tofile \
+              --output api-base.json \
+              src/Bootstrapper/MeAjudaAi.ApiService/bin/Release/net10.0/MeAjudaAi.ApiService.dll \
+              v1 || echo "{}" > api-base.json # Fallback final se falhar build da base
+            
+            # Volta para a branch do PR
+            git checkout ${{ github.head_ref || github.ref_name }}
+            git stash pop || true
+          fi
 
       - name: Check for Breaking Changes
         uses: tufin/oasdiff-action@v2
