@@ -5,7 +5,7 @@ namespace MeAjudaAi.Modules.Ratings.Domain.Exceptions;
 public class DuplicateReviewException : BusinessRuleException
 {
     public DuplicateReviewException(Guid providerId, Guid customerId)
-        : base($"O cliente '{customerId}' já avaliou o prestador '{providerId}'.")
+        : base("DuplicateReview", $"O cliente '{customerId}' já avaliou o prestador '{providerId}'.")
     {
     }
 }
