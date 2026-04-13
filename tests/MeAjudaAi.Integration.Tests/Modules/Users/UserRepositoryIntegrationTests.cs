@@ -158,8 +158,9 @@ public class UserRepositoryIntegrationTests : BaseApiTest
 
     private User CreateValidUser()
     {
-        var username = new Username(_faker.Internet.UserName());
-        var email = new Email(_faker.Internet.Email());
+        var suffix = Guid.NewGuid().ToString("n")[..6];
+        var username = new Username(_faker.Internet.UserName() + "_" + suffix);
+        var email = new Email(suffix + "_" + _faker.Internet.Email());
         var firstName = _faker.Name.FirstName();
         var lastName = _faker.Name.LastName();
         var keycloakId = UuidGenerator.NewId().ToString();
