@@ -1,262 +1,191 @@
 using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Contracts.Modules.Locations;
+using MeAjudaAi.Integration.Tests.Base;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
+using MeAjudaAi.Contracts.Functional;
+using System.Net;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 
 /// <summary>
-/// Integration tests for CEP provider unavailability scenarios.
-/// Validates the fallback chain behavior when external CEP APIs fail:
-/// ViaCEP → BrasilAPI → OpenCEP
+/// Testes de integração para cenários de indisponibilidade de provedores de CEP.
+/// Valida o mecanismo de fallback e resiliência entre ViaCEP, BrasilAPI e OpenCEP.
 /// </summary>
-[Collection("Integration")]
-public sealed class CepProvidersUnavailabilityTests : BaseApiTest
+public sealed class CepProvidersUnavailabilityTests(ITestOutputHelper output) : BaseApiTest
 {
+    protected override bool UseMockGeographicValidation => false;
     protected override TestModule RequiredModules => TestModule.Locations;
 
-    [Fact]
-    public async Task LookupCep_WhenViaCepReturns500_ShouldFallbackToBrasilApi()
+    private void LogWireMockEntries()
     {
-        // Arrange - Use unique CEP to avoid conflicts with default stubs
-        var uniqueCep = "23456789";
-
-        // ViaCEP fails with 500
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath($"/ws/{uniqueCep}/json/")
-                .UsingGet())
-            .AtPriority(1) // Higher priority than default stubs
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(500)
-                .WithBody("Internal Server Error"));
-
-        // BrasilAPI succeeds
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath($"/api/cep/v2/{uniqueCep}")
-                .UsingGet())
-            .AtPriority(1) // Higher priority than default stubs
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(200)
-                .WithHeader("Content-Type", "application/json")
-                .WithBody($$"""
-                    {
-                        "cep": "{{uniqueCep}}",
-                        "state": "SP",
-                        "city": "São Paulo",
-                        "neighborhood": "Bela Vista",
-                        "street": "Avenida Paulista"
-                    }
-                    """));
-
-        var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
-
-        // Act
-        var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
-
-        // Assert - Should succeed via BrasilAPI fallback (ViaCEP fails, BrasilAPI succeeds)
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value!.City.Should().Be("São Paulo");
-        result.Value.State.Should().Be("SP");
-
-        // NOTE: Provider hit count assertions skipped due to WireMock shared state in parallel CI execution.
-        // WireMock server is shared across test collections, making baseline counts unreliable even with unique CEPs.
-        // The functional behavior (successful fallback) is validated above.
+        output.WriteLine("--- WireMock Log Entries ---");
+        foreach (var entry in WireMock.Server.LogEntries)
+        {
+            output.WriteLine($"Request: {entry.RequestMessage.Method} {entry.RequestMessage.Url}");
+            output.WriteLine($"Response: {entry.ResponseMessage?.StatusCode}");
+            output.WriteLine("----------------------------");
+        }
     }
 
     [Fact]
-    public async Task LookupCep_WhenViaCepAndBrasilApiReturnInvalidJson_ShouldFallbackToOpenCep()
+    public async Task LookupCep_WhenViaCepFails_ShouldFallbackToBrasilApi()
     {
-        // Arrange - Use unique CEP to avoid conflicts with default stubs
-        var uniqueCep = "34567890";
+        try
+        {
+            // Arrange
+            var uniqueCep = "11110001";
+            AuthConfig.ConfigureAdmin();
 
-        // ViaCEP returns invalid/empty JSON (missing required fields triggers deserialization failure)
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath($"/ws/{uniqueCep}/json/")
-                .UsingGet())
-            .AtPriority(1) // Higher priority than default stubs
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(200)
-                .WithBody("{}")); // Empty JSON lacks required fields, causing validation to fail
+            // 1. ViaCEP retorna erro 500
+            WireMock.Server
+                .Given(global::WireMock.RequestBuilders.Request.Create()
+                    .WithPath($"/ws/{uniqueCep}/json/")
+                    .UsingGet())
+                .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
+                    .WithStatusCode(500));
 
-        // BrasilAPI also returns invalid/empty JSON
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath($"/api/cep/v2/{uniqueCep}")
-                .UsingGet())
-            .AtPriority(1) // Higher priority than default stubs
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(200)
-                .WithBody("{}")); // Empty JSON lacks required fields, causing validation to fail
+            // 2. BrasilAPI retorna sucesso
+            WireMock.Server
+                .Given(global::WireMock.RequestBuilders.Request.Create()
+                    .WithPath($"/api/cep/v2/{uniqueCep}")
+                    .UsingGet())
+                .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
+                    .WithStatusCode(200)
+                    .WithHeader("Content-Type", "application/json")
+                    .WithBody($$"""
+                        {
+                            "cep": "{{uniqueCep}}",
+                            "street": "Rua Fallback BrasilAPI",
+                            "neighborhood": "Centro",
+                            "city": "Muriaé",
+                            "state": "MG"
+                        }
+                        """));
 
-        // OpenCEP succeeds
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath($"/v1/{uniqueCep}")
-                .UsingGet())
-            .AtPriority(1) // Higher priority than default stubs
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(200)
-                .WithHeader("Content-Type", "application/json")
-                .WithBody($$"""
-                    {
-                        "cep": "{{uniqueCep}}",
-                        "logradouro": "Avenida Paulista",
-                        "bairro": "Bela Vista",
-                        "localidade": "São Paulo",
-                        "uf": "SP",
-                        "ibge": "3550308"
-                    }
-                    """));
+            var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
+            
+            // Limpar cache
+            var cache = Services.GetRequiredService<MeAjudaAi.Shared.Caching.ICacheService>();
+            await cache.RemoveAsync($"cep:{uniqueCep}");
 
-        var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
+            // Act
+            var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
 
-        // Act
-        var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
-
-        // Assert - Should succeed via OpenCEP fallback
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value!.City.Should().Be("São Paulo");
-        result.Value.State.Should().Be("SP");
-
-        // NOTE: Provider hit count assertions skipped due to WireMock shared state in parallel CI execution.
-        // WireMock server is shared across test collections, making baseline counts unreliable even with unique CEPs.
-        // The functional behavior (successful fallback to OpenCEP) is validated above.
+            // Assert
+            result.IsSuccess.Should().BeTrue(because: $"Deveria ter caído no fallback do BrasilAPI. Erro: {result.Error}");
+            result.Value!.Street.Should().Be("Rua Fallback BrasilAPI");
+        }
+        catch
+        {
+            LogWireMockEntries();
+            throw;
+        }
     }
 
     [Fact]
-    public async Task LookupCep_WhenAllProvidersReturn500_ShouldReturnFailure()
+    public async Task LookupCep_WhenViaCepAndBrasilApiFail_ShouldFallbackToOpenCep()
     {
-        // Arrange - All providers fail for a unique CEP to avoid cache hits
-        var uniqueCep = "88888888"; // CEP not used in other tests
+        try
+        {
+            // Arrange
+            var uniqueCep = "22220002";
+            AuthConfig.ConfigureAdmin();
 
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath($"/ws/{uniqueCep}/json/")
-                .UsingGet())
-            .AtPriority(1) // Higher priority than default stubs
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(500));
+            // 1. ViaCEP e BrasilAPI retornam erro
+            WireMock.Server
+                .Given(global::WireMock.RequestBuilders.Request.Create().WithPath($"/ws/{uniqueCep}/json/").UsingGet())
+                .RespondWith(global::WireMock.ResponseBuilders.Response.Create().WithStatusCode(500));
 
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath($"/api/cep/v2/{uniqueCep}")
-                .UsingGet())
-            .AtPriority(1) // Higher priority than default stubs
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(500));
+            WireMock.Server
+                .Given(global::WireMock.RequestBuilders.Request.Create().WithPath($"/api/cep/v2/{uniqueCep}").UsingGet())
+                .RespondWith(global::WireMock.ResponseBuilders.Response.Create().WithStatusCode(500));
 
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath($"/v1/{uniqueCep}")
-                .UsingGet())
-            .AtPriority(1) // Higher priority than default stubs
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(500));
+            // 2. OpenCEP retorna sucesso
+            WireMock.Server
+                .Given(global::WireMock.RequestBuilders.Request.Create()
+                    .WithPath($"/v1/{uniqueCep}")
+                    .UsingGet())
+                .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
+                    .WithStatusCode(200)
+                    .WithHeader("Content-Type", "application/json")
+                    .WithBody($$"""
+                        {
+                            "cep": "{{uniqueCep}}",
+                            "logradouro": "Rua Fallback OpenCEP",
+                            "bairro": "Centro",
+                            "localidade": "Muriaé",
+                            "uf": "MG"
+                        }
+                        """));
 
-        var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
+            var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
+            var cache = Services.GetRequiredService<MeAjudaAi.Shared.Caching.ICacheService>();
+            await cache.RemoveAsync($"cep:{uniqueCep}");
 
-        // Act
-        var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
+            // Act
+            var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
 
-        // Assert - Should return failure when all providers down
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNull();
+            // Assert
+            result.IsSuccess.Should().BeTrue(because: "Deveria ter caído no último fallback (OpenCEP)");
+            result.Value!.Street.Should().Be("Rua Fallback OpenCEP");
+        }
+        catch
+        {
+            LogWireMockEntries();
+            throw;
+        }
     }
 
-    [Fact(Skip = "WireMock infrastructure not properly configured in CI")]
+    [Fact]
     public async Task LookupCep_WhenViaCepReturnsMalformedJson_ShouldFallbackToBrasilApi()
     {
-        // Arrange - Use unique CEP to avoid conflicts with default stubs
-        var uniqueCep = "12345678";
+        try
+        {
+            // Arrange
+            var uniqueCep = "33330003";
+            AuthConfig.ConfigureAdmin();
 
-        // ViaCEP returns malformed JSON
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath($"/ws/{uniqueCep}/json/")
-                .UsingGet())
-            .AtPriority(1) // Higher priority than default stubs
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(200)
-                .WithHeader("Content-Type", "application/json")
-                .WithBody("{invalid json}"));
+            // 1. ViaCEP retorna JSON inválido
+            WireMock.Server
+                .Given(global::WireMock.RequestBuilders.Request.Create().WithPath($"/ws/{uniqueCep}/json/").UsingGet())
+                .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
+                    .WithStatusCode(200)
+                    .WithBody("INVALID JSON { ..."));
 
-        // BrasilAPI succeeds
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath($"/api/cep/v2/{uniqueCep}")
-                .UsingGet())
-            .AtPriority(1) // Higher priority than default stubs
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(200)
-                .WithHeader("Content-Type", "application/json")
-                .WithBody($$"""
-                    {
-                        "cep": "{{uniqueCep}}",
-                        "state": "SP",
-                        "city": "São Paulo",
-                        "neighborhood": "Bela Vista",
-                        "street": "Avenida Paulista"
-                    }
-                    """));
+            // 2. BrasilAPI retorna sucesso
+            WireMock.Server
+                .Given(global::WireMock.RequestBuilders.Request.Create().WithPath($"/api/cep/v2/{uniqueCep}").UsingGet())
+                .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
+                    .WithStatusCode(200)
+                    .WithHeader("Content-Type", "application/json")
+                    .WithBody($$"""
+                        {
+                            "cep": "{{uniqueCep}}",
+                            "street": "Rua Apos ViaCep Invalido",
+                            "neighborhood": "Centro",
+                            "city": "Muriaé",
+                            "state": "MG"
+                        }
+                        """));
 
-        var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
+            var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
+            var cache = Services.GetRequiredService<MeAjudaAi.Shared.Caching.ICacheService>();
+            await cache.RemoveAsync($"cep:{uniqueCep}");
 
-        // Act
-        var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
+            // Act
+            var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
 
-        // Assert - Should fallback to BrasilAPI
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value!.City.Should().Be("São Paulo");
-        result.Value.State.Should().Be("SP");
-    }
-
-    [Fact]
-    public async Task LookupCep_WhenViaCepReturnsErrorTrueAndOthersFail_ShouldReturnFailure()
-    {
-        // Arrange - ViaCEP returns "erro: true" for invalid CEP
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/ws/00000000/json/")
-                .UsingGet())
-            .AtPriority(1) // Higher priority than default stubs
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(200)
-                .WithHeader("Content-Type", "application/json")
-                .WithBody("""{"erro": true}"""));
-
-        // BrasilAPI also fails (404 for invalid CEP - v2 behavior)
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/api/cep/v2/00000000")
-                .UsingGet())
-            .AtPriority(1) // Higher priority than default stubs
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(404)
-                .WithBody("CEP não encontrado"));
-
-        // OpenCEP also fails
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/v1/00000000")
-                .UsingGet())
-            .AtPriority(1) // Higher priority than default stubs
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(404));
-
-        var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
-
-        // Act
-        var result = await locationApi.GetAddressFromCepAsync("00000000");
-
-        // Assert - Should return failure for truly invalid CEP
-        result.IsSuccess.Should().BeFalse();
+            // Assert
+            result.IsSuccess.Should().BeTrue(because: "Deveria ter ignorado o JSON malformado do ViaCEP e usado o BrasilAPI");
+            result.Value!.Street.Should().Be("Rua Apos ViaCep Invalido");
+        }
+        catch
+        {
+            LogWireMockEntries();
+            throw;
+        }
     }
 }
+

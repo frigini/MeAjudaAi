@@ -23,11 +23,83 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
     /// <summary>
     /// Connection string com detalhes de erro habilitados para diagnóstico em CI
     /// </summary>
-    public string? ConnectionString => _postgresContainer != null 
-        ? $"{_postgresContainer.GetConnectionString()};Include Error Detail=true" 
-        : null;
-    
+    public string GetConnectionString(string databaseName)
+    {
+        if (_postgresContainer == null) throw new InvalidOperationException("Postgres container not initialized");
+
+        var builder = new NpgsqlConnectionStringBuilder(_postgresContainer.GetConnectionString())
+        {
+            Database = databaseName,
+            IncludeErrorDetail = true
+        };
+        
+        return builder.ConnectionString;
+    }
+
+    public string? ConnectionString => _postgresContainer?.GetConnectionString();
+
     public string? AzuriteConnectionString => _azuriteContainer?.GetConnectionString();
+
+    public async Task CreateDatabaseAsync(string databaseName)
+    {
+        if (_postgresContainer == null) throw new InvalidOperationException("Postgres container not initialized");
+        
+        // Sanitização: apenas letras, números e underscores
+        if (string.IsNullOrWhiteSpace(databaseName) || !System.Text.RegularExpressions.Regex.IsMatch(databaseName, @"^[A-Za-z0-9_]+$"))
+            throw new ArgumentException("Invalid database name format. Only letters, numbers and underscores allowed.", nameof(databaseName));
+
+        var masterConnectionString = _postgresContainer.GetConnectionString(); // Default to postgres DB
+        await using var conn = new NpgsqlConnection(masterConnectionString);
+        await conn.OpenAsync();
+        
+        // Verifica se banco já existe - usando parâmetros para o SELECT
+        await using var checkCmd = new NpgsqlCommand("SELECT 1 FROM pg_database WHERE datname = @dbName", conn);
+        checkCmd.Parameters.AddWithValue("dbName", databaseName);
+        var exists = await checkCmd.ExecuteScalarAsync();
+        
+        if (exists == null)
+        {
+            // CREATE DATABASE não suporta parâmetros, mas o nome já foi validado pela regex acima
+            await using var cmd = new NpgsqlCommand($"CREATE DATABASE {databaseName}", conn);
+            await cmd.ExecuteNonQueryAsync();
+            Console.WriteLine($"[DB-FIXTURE] Database {databaseName} created");
+        }
+    }
+
+    public async Task DropDatabaseAsync(string databaseName)
+    {
+        if (_postgresContainer == null) return;
+        
+        // Sanitização idêntica ao Create
+        if (string.IsNullOrWhiteSpace(databaseName) || !System.Text.RegularExpressions.Regex.IsMatch(databaseName, @"^[A-Za-z0-9_]+$"))
+            throw new ArgumentException("Invalid database name format. Only letters, numbers and underscores allowed.", nameof(databaseName));
+
+        try
+        {
+            var masterConnectionString = _postgresContainer.GetConnectionString();
+            await using var conn = new NpgsqlConnection(masterConnectionString);
+            await conn.OpenAsync();
+            
+            // Forçar encerramento de conexões
+            await using var terminateCmd = new NpgsqlCommand($"""
+                SELECT pg_terminate_backend(pg_stat_activity.pid)
+                FROM pg_stat_activity
+                WHERE pg_stat_activity.datname = '{databaseName}'
+                AND pid <> pg_backend_pid();
+                """, conn);
+            await terminateCmd.ExecuteNonQueryAsync();
+
+            // DROP DATABASE não suporta parâmetros, mas o nome já foi validado pela regex acima
+            await using var cmd = new NpgsqlCommand($"DROP DATABASE IF EXISTS {databaseName}", conn);
+            await cmd.ExecuteNonQueryAsync();
+            Console.WriteLine($"[DB-FIXTURE] Database {databaseName} dropped");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DB-FIXTURE] ERROR: Could not drop database {databaseName}: {ex.Message}");
+            throw;
+        }
+    }
 
     public async ValueTask InitializeAsync()
     {

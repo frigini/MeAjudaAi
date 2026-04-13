@@ -18,7 +18,7 @@ public class ModuleNamesTests
     [InlineData(ModuleNames.SearchProviders, true)]
     [InlineData(ModuleNames.Locations, true)]
     [InlineData(ModuleNames.Bookings, true)]
-    [InlineData(ModuleNames.Notifications, true)]
+    [InlineData(ModuleNames.Communications, true)]
     [InlineData(ModuleNames.Payments, true)]
     [InlineData(ModuleNames.Reports, true)]
     [InlineData(ModuleNames.Reviews, true)]
@@ -90,7 +90,7 @@ public class ModuleNamesTests
 
     [Theory]
     [InlineData(ModuleNames.Bookings)]
-    [InlineData(ModuleNames.Notifications)]
+    [InlineData(ModuleNames.Communications)]
     [InlineData(ModuleNames.Payments)]
     [InlineData(ModuleNames.Reports)]
     [InlineData(ModuleNames.Reviews)]
@@ -182,7 +182,7 @@ public class ModuleNamesTests
         var plannedModules = new[]
         {
             ModuleNames.Bookings,
-            ModuleNames.Notifications,
+            ModuleNames.Communications,
             ModuleNames.Payments,
             ModuleNames.Reports,
             ModuleNames.Reviews
@@ -230,7 +230,7 @@ public class ModuleNamesTests
             ModuleNames.SearchProviders,
             ModuleNames.Locations,
             ModuleNames.Bookings,
-            ModuleNames.Notifications,
+            ModuleNames.Communications,
             ModuleNames.Payments,
             ModuleNames.Reports,
             ModuleNames.Reviews
@@ -304,7 +304,7 @@ public class ModuleNamesTests
         var plannedModules = new[]
         {
             ModuleNames.Bookings,
-            ModuleNames.Notifications,
+            ModuleNames.Communications,
             ModuleNames.Payments,
             ModuleNames.Reports,
             ModuleNames.Reviews

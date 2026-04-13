@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses;
 
 /// <summary>
@@ -6,9 +8,18 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses;
 /// </summary>
 public sealed class BrasilApiCepResponse
 {
+    [JsonPropertyName("cep")]
     public string? Cep { get; set; }
+
+    [JsonPropertyName("street")]
     public string? Street { get; set; }
+
+    [JsonPropertyName("neighborhood")]
     public string? Neighborhood { get; set; }
+
+    [JsonPropertyName("city")]
     public string? City { get; set; }
+
+    [JsonPropertyName("state")]
     public string? State { get; set; }
 }

@@ -18,9 +18,7 @@ public class UserRepositoryTests : BaseDatabaseTest
     {
         await base.InitializeAsync();
 
-        var options = new DbContextOptionsBuilder<UsersDbContext>()
-            .UseNpgsql(ConnectionString)
-            .Options;
+        var options = CreateDbContextOptions<UsersDbContext>();
 
         _context = new UsersDbContext(options);
         await _context.Database.MigrateAsync();

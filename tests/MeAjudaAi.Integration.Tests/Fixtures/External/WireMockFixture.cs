@@ -7,7 +7,7 @@ namespace MeAjudaAi.Integration.Tests.Infrastructure;
 
 /// <summary>
 /// Fixture para servidor HTTP WireMock usado para simular APIs externas em testes de integração.
-/// Fornece stubs para APIs ViaCep, BrasilApi, OpenCep, Nominatim e IBGE.
+/// Fornece stubs para as APIs ViaCep, BrasilApi, OpenCep, Nominatim e IBGE.
 /// </summary>
 public class WireMockFixture : IAsyncDisposable
 {
@@ -30,14 +30,14 @@ public class WireMockFixture : IAsyncDisposable
     {
         _server = WireMockServer.Start(new WireMockServerSettings
         {
-            Port = 0, // Use dynamic port to avoid conflicts in parallel test execution
+            Port = 0, // Usa porta dinâmica para evitar conflitos na execução paralela de testes
             StartAdminInterface = true,
             ReadStaticMappings = false,
             WatchStaticMappings = false,
             Logger = new WireMockConsoleLogger()
         });
 
-        // Configure all API stubs
+        // Configura todos os stubs de API
         ConfigureIbgeStubs();
         ConfigureViaCepStubs();
         ConfigureBrasilApiStubs();
@@ -48,15 +48,16 @@ public class WireMockFixture : IAsyncDisposable
     }
 
     /// <summary>
-    /// Configures IBGE Localidades API stubs.
+    /// Configura os stubs da API IBGE Localidades.
     /// </summary>
     private void ConfigureIbgeStubs()
     {
-        // Search by city name: Muriaé/MG - IBGE code: 3143906
+        // Busca por nome de cidade: Muriaé/MG - Código IBGE: 3143906
+        // Usando Regex para o parâmetro 'nome' para lidar com variações de codificação de URL (ex: %C3%A9 para é)
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios")
-                .WithParam("nome", "muriaé")
+                .WithParam("nome", new WireMock.Matchers.RegexMatcher("(?i)^muria(%C3%A9|\u00E9|e)$", true))
                 .UsingGet())
             .RespondWith(WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -82,11 +83,11 @@ public class WireMockFixture : IAsyncDisposable
                     }]
                     """));
 
-        // Search by city name: Itaperuna/RJ - IBGE code: 3302205
+        // Busca por nome de cidade: Itaperuna/RJ
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios")
-                .WithParam("nome", "itaperuna")
+                .WithParam("nome", new WireMock.Matchers.RegexMatcher("(?i)^itaperuna$", true))
                 .UsingGet())
             .RespondWith(WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -112,7 +113,37 @@ public class WireMockFixture : IAsyncDisposable
                     }]
                     """));
 
-        // Get city by ID: Muriaé/MG
+        // Busca por nome de cidade: Linhares/ES
+        Server
+            .Given(WireMock.RequestBuilders.Request.Create()
+                .WithPath("/api/v1/localidades/municipios")
+                .WithParam("nome", new WireMock.Matchers.RegexMatcher("(?i)^linhares$", true))
+                .UsingGet())
+            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+                .WithStatusCode(200)
+                .WithHeader("Content-Type", "application/json; charset=utf-8")
+                .WithBody("""
+                    [{
+                        "id": 3201506,
+                        "nome": "Linhares",
+                        "microrregiao": {
+                            "id": 32004,
+                            "nome": "Linhares",
+                            "mesorregiao": {
+                                "id": 3202,
+                                "nome": "Litoral Norte Espírito-Santense",
+                                "UF": {
+                                    "id": 32,
+                                    "sigla": "ES",
+                                    "nome": "Espírito Santo",
+                                    "regiao": { "id": 3, "sigla": "SE", "nome": "Sudeste" }
+                                }
+                            }
+                        }
+                    }]
+                    """));
+
+        // Busca cidade por ID: Muriaé/MG
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios/3143906")
@@ -141,7 +172,7 @@ public class WireMockFixture : IAsyncDisposable
                     }
                     """));
 
-        // Get all states (UFs)
+        // Busca todas as UFs
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/estados")
@@ -172,7 +203,7 @@ public class WireMockFixture : IAsyncDisposable
                     ]
                     """));
 
-        // Get state by ID: MG
+        // Busca estado por ID: MG
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/estados/31")
@@ -189,7 +220,7 @@ public class WireMockFixture : IAsyncDisposable
                     }
                     """));
 
-        // Get state by UF: MG
+        // Busca estado por UF: MG
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/estados/MG")
@@ -206,7 +237,7 @@ public class WireMockFixture : IAsyncDisposable
                     }
                     """));
 
-        // Search by state: SP
+        // Busca por estado: SP
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/estados/SP/municipios")
@@ -235,7 +266,7 @@ public class WireMockFixture : IAsyncDisposable
                     }]
                     """));
 
-        // Invalid city ID - 404
+        // ID de cidade inválido - 404
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios/9999999")
@@ -245,7 +276,7 @@ public class WireMockFixture : IAsyncDisposable
                 .WithHeader("Content-Type", "application/json; charset=utf-8")
                 .WithBody("[]"));
 
-        // Invalid state ID - 404
+        // ID de estado inválido - 404
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/estados/999")
@@ -255,7 +286,7 @@ public class WireMockFixture : IAsyncDisposable
                 .WithHeader("Content-Type", "application/json; charset=utf-8")
                 .WithBody("[]"));
 
-        // Special characters handling: São Paulo
+        // Tratamento de caracteres especiais: São Paulo
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios")
@@ -285,20 +316,20 @@ public class WireMockFixture : IAsyncDisposable
                     }]
                     """));
 
-        // Catch-all for unknown cities - return empty array (200 status, not 404)
-        // This allows IbgeClient to return null instead of throwing exception
+        // Catch-all para cidades desconhecidas - retorna array vazio (status 200, não 404)
+        // Isso permite que o IbgeClient retorne null em vez de lançar exceção
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios")
-                .WithParam("nome")  // Match any nome parameter
+                .WithParam("nome")  // Corresponde a qualquer parâmetro nome
                 .UsingGet())
-            .AtPriority(100)  // Lower priority so specific stubs match first
+            .AtPriority(100)  // Prioridade menor para que stubs específicos coincidam primeiro
             .RespondWith(WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json; charset=utf-8")
                 .WithBody("[]"));
 
-        // Service unavailability simulation - 500 error
+        // Simulação de indisponibilidade de serviço - erro 500
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios/unavailable")
@@ -308,7 +339,7 @@ public class WireMockFixture : IAsyncDisposable
                 .WithHeader("Content-Type", "text/plain")
                 .WithBody("Internal Server Error"));
 
-        // Timeout simulation - 5 second delay (well within the 30 second HTTP client timeout configured for tests)
+        // Simulação de timeout - delay de 5 segundos (dentro do timeout de 30s do HttpClient configurado nos testes)
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios/timeout")
@@ -319,7 +350,7 @@ public class WireMockFixture : IAsyncDisposable
                 .WithBody("[]")
                 .WithDelay(TimeSpan.FromSeconds(5)));
 
-        // Malformed response simulation - invalid JSON
+        // Simulação de resposta malformada - JSON inválido
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios/malformed")
@@ -331,7 +362,7 @@ public class WireMockFixture : IAsyncDisposable
     }
 
     /// <summary>
-    /// Configures ViaCep API stubs.
+    /// Configura os stubs da API ViaCep.
     /// </summary>
     private void ConfigureViaCepStubs()
     {
@@ -371,7 +402,7 @@ public class WireMockFixture : IAsyncDisposable
     }
 
     /// <summary>
-    /// Configures BrasilApi CEP stubs.
+    /// Configura os stubs da API BrasilApi CEP.
     /// </summary>
     private void ConfigureBrasilApiStubs()
     {
@@ -396,7 +427,7 @@ public class WireMockFixture : IAsyncDisposable
     }
 
     /// <summary>
-    /// Configures OpenCep API stubs.
+    /// Configura os stubs da API OpenCep.
     /// </summary>
     private void ConfigureOpenCepStubs()
     {
@@ -422,11 +453,11 @@ public class WireMockFixture : IAsyncDisposable
     }
 
     /// <summary>
-    /// Configures Nominatim geocoding API stubs.
+    /// Configura os stubs da API Nominatim (geocoding).
     /// </summary>
     private void ConfigureNominatimStubs()
     {
-        // São Paulo search
+        // Busca por São Paulo
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/search")
@@ -450,7 +481,7 @@ public class WireMockFixture : IAsyncDisposable
     }
 
     /// <summary>
-    /// Resets all configured stubs and request logs.
+    /// Reseta todos os stubs configurados e logs de requisição.
     /// </summary>
     public void Reset()
     {
@@ -463,7 +494,7 @@ public class WireMockFixture : IAsyncDisposable
     }
 
     /// <summary>
-    /// Disposes the WireMock server.
+    /// Descarta o servidor WireMock.
     /// </summary>
     public ValueTask DisposeAsync()
     {
@@ -476,13 +507,13 @@ public class WireMockFixture : IAsyncDisposable
 }
 
 /// <summary>
-/// Console logger for WireMock server.
+/// Logger de console para o servidor WireMock.
 /// </summary>
 internal class WireMockConsoleLogger : IWireMockLogger
 {
     public void Debug(string formatString, params object[] args)
     {
-        // Suppress debug logs to reduce noise
+        // Suprime logs de debug para reduzir ruído
     }
 
     public void Info(string formatString, params object[] args)
@@ -507,6 +538,6 @@ internal class WireMockConsoleLogger : IWireMockLogger
 
     public void DebugRequestResponse(LogEntryModel logEntryModel, bool isAdminRequest)
     {
-        // Suppress request/response logs to reduce noise
+        // Suprime logs de requisição/resposta para reduzir ruído
     }
 }

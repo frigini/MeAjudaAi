@@ -21,12 +21,15 @@ public sealed class OpenCepClient(HttpClient httpClient, ILogger<OpenCepClient> 
 
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogWarning("OpenCEP returned status {StatusCode} for CEP {Cep}", response.StatusCode, cep.Value);
+                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                logger.LogWarning("OpenCEP returned status {StatusCode} for CEP {Cep}. Content: {Content}", 
+                    response.StatusCode, cep.Value, errorContent);
                 return null;
             }
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
-            var openCepResponse = JsonSerializer.Deserialize<OpenCepResponse>(content, SerializationDefaults.Default);
+            logger.LogDebug("OpenCEP response for {Cep}: {Content}", cep.Value, content);
+            var openCepResponse = JsonSerializer.Deserialize<OpenCepResponse>(content, SerializationDefaults.Api);
 
             if (openCepResponse is null)
             {

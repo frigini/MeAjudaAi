@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.ApiService.Endpoints;
 using MeAjudaAi.ApiService.Extensions;
+using MeAjudaAi.Modules.Communications.API;
 using MeAjudaAi.Modules.Documents.API;
 using MeAjudaAi.Modules.Locations.API;
 using MeAjudaAi.Modules.Providers.API;
@@ -24,6 +25,9 @@ public partial class Program
 
     public static async Task Main(string[] args)
     {
+        // Correção para compatibilidade DateTime UTC com PostgreSQL timestamp
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
         try
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -44,6 +48,7 @@ public partial class Program
             builder.Services.AddSearchProvidersModule(builder.Configuration, builder.Environment);
             builder.Services.AddLocationsModule(builder.Configuration);
             builder.Services.AddServiceCatalogsModule(builder.Configuration);
+            builder.Services.AddCommunicationsModule(builder.Configuration);
 
             // Shared services por último (GlobalExceptionHandler atua como fallback)
             builder.Services.AddSharedServices(builder.Configuration);
@@ -127,9 +132,11 @@ public partial class Program
         app.UseSearchProvidersModule();
         app.UseLocationsModule();
         app.UseServiceCatalogsModule();
+        app.UseCommunicationsModule();
 
         // Endpoints de orquestração cross-módulo (ficam no ApiService)
         app.MapProviderRegistrationEndpoints();
+        app.MapCommunicationsEndpoints();
     }
 
     private static void LogStartupComplete(WebApplication app)

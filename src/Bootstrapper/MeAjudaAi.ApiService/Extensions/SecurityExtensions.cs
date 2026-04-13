@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using MeAjudaAi.ApiService.Handlers;
+using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.ApiService.Services.HostedServices;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
@@ -282,7 +283,13 @@ public static class SecurityExtensions
                 }
                 else
                 {
-                    policy.WithHeaders([.. corsOptions.AllowedHeaders]);
+                    // Garante que X-XSRF-TOKEN seja incluído nos headers permitidos para o preflight
+                    var headers = corsOptions.AllowedHeaders.ToList();
+                    if (!headers.Contains("X-XSRF-TOKEN", StringComparer.OrdinalIgnoreCase))
+                    {
+                        headers.Add("X-XSRF-TOKEN");
+                    }
+                    policy.WithHeaders([.. headers]);
                 }
 
                 // Configura credenciais (apenas se explicitamente habilitado)
@@ -293,6 +300,9 @@ public static class SecurityExtensions
 
                 // Define tempo máximo de cache do preflight
                 policy.SetPreflightMaxAge(TimeSpan.FromSeconds(corsOptions.PreflightMaxAge));
+
+                // Expor header do token de antiforgery para clientes SPA
+                policy.WithExposedHeaders("X-XSRF-TOKEN");
             });
         });
 
@@ -552,6 +562,42 @@ public static class SecurityExtensions
                     }));
 
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            // Política Global Dinâmica (IP vs Usuário Autenticado)
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+            {
+                var isAuthenticated = context.User.Identity?.IsAuthenticated == true;
+                var key = isAuthenticated 
+                    ? context.User.FindFirst("sub")?.Value ?? context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? context.Connection.RemoteIpAddress?.ToString() ?? context.Connection.Id ?? "authenticated-anonymous"
+                    : context.Connection.RemoteIpAddress?.ToString() ?? context.Connection.Id ?? "test-client";
+
+                var permitLimit = isAuthenticated 
+                    ? configuration.GetValue("AdvancedRateLimit:Authenticated:RequestsPerMinute", 120)
+                    : configuration.GetValue("AdvancedRateLimit:Anonymous:RequestsPerMinute", 30);
+
+                return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
+                {
+                    AutoReplenishment = true,
+                    PermitLimit = permitLimit,
+                    QueueLimit = 0,
+                    Window = TimeSpan.FromMinutes(1)
+                });
+            });
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddCustomAntiforgery(this IServiceCollection services)
+    {
+        services.AddAntiforgery(options =>
+        {
+            // O token é enviado via header (comum em APIs/SPAs)
+            options.HeaderName = "X-XSRF-TOKEN";
+            options.Cookie.Name = "XSRF-TOKEN";
+            options.Cookie.HttpOnly = false; // Deve ser acessível pelo JS para ler e enviar no header
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            options.Cookie.SameSite = SameSiteMode.Strict;
         });
 
         return services;

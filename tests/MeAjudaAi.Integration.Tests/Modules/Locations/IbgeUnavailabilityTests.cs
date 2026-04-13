@@ -9,9 +9,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 /// Testes de integração para cenários de indisponibilidade do serviço IBGE.
 /// Valida que o middleware de restrição geográfica trata corretamente falhas do IBGE
 /// fazendo fallback para validação simples (correspondência de nome de cidade/estado).
-/// Usa IGeographicValidationService real com stubs WireMock para a API do IBGE.
+/// Utiliza o IGeographicValidationService real com stubs WireMock para a API do IBGE.
 /// </summary>
-[Collection("Integration")]
 public sealed class IbgeUnavailabilityTests : BaseApiTest
 {
     protected override TestModule RequiredModules => TestModule.Locations | TestModule.Providers;

@@ -239,6 +239,13 @@ public sealed class SearchableProviderRepository(
             state: dto.State);
     }
 
+    public async Task<IReadOnlyList<SearchableProvider>> GetByServiceIdAsync(Guid serviceId, CancellationToken cancellationToken = default)
+    {
+        return await context.SearchableProviders
+            .Where(p => p.ServiceIds.Contains(serviceId))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(SearchableProvider provider, CancellationToken cancellationToken = default)
     {
         await context.SearchableProviders.AddAsync(provider, cancellationToken);

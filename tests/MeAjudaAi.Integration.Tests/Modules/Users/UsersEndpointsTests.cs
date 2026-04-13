@@ -6,7 +6,7 @@ using MeAjudaAi.Integration.Tests.Base;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Users;
 
-public class UsersEndpointsTests(ITestOutputHelper testOutput) : BaseApiTest
+public class UsersEndpointsTests : BaseApiTest
 {
     protected override TestModule RequiredModules => TestModule.Users;
 

@@ -6,7 +6,7 @@ using MeAjudaAi.Integration.Tests.Base;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Documents;
 
-public class DocumentsEndpointsTests(ITestOutputHelper testOutput) : BaseApiTest
+public class DocumentsEndpointsTests : BaseApiTest
 {
     protected override TestModule RequiredModules => TestModule.Documents | TestModule.Providers;
 

@@ -10,7 +10,6 @@ namespace MeAjudaAi.Integration.Tests.Middleware;
 /// Testes para GeographicRestrictionMiddleware.
 /// Usa validação baseada em configuração (não mock IBGE) para consistência.
 /// </summary>
-[Collection("Integration")]
 public class GeographicRestrictionIntegrationTests : BaseApiTest
 {
     /// <summary>

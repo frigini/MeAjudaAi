@@ -37,7 +37,7 @@ public sealed class CepLookupService(
             cacheKey,
             async ct =>
             {
-                logger.LogInformation("Cache miss para CEP {Cep}, consultando APIs", cep.Value);
+                logger.LogInformation("Cache miss for CEP {Cep}, querying APIs", cep.Value);
                 return await LookupFromProvidersAsync(cep, ct);
             },
             expiration: TimeSpan.FromHours(24),
@@ -54,33 +54,45 @@ public sealed class CepLookupService(
 
     private async Task<Address?> LookupFromProvidersAsync(Cep cep, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Starting CEP lookup {Cep}", cep.Value);
+        logger.LogInformation("Starting CEP lookup for {Cep}", cep.Value);
 
         foreach (var provider in DefaultProviderOrder)
         {
+            logger.LogInformation("Trying provider {Provider} for CEP {Cep}", provider, cep.Value);
             var address = await TryProviderAsync(provider, cep, cancellationToken);
+            
             if (address is not null)
             {
-                logger.LogInformation("CEP {Cep} found in provider {Provider}", cep.Value, provider);
+                logger.LogInformation("CEP {Cep} found in provider {Provider}. City: {City}, State: {State}", 
+                    cep.Value, provider, address.City, address.State);
                 return address;
             }
 
-            logger.LogWarning("Provider {Provider} failed for CEP {Cep}, trying next", provider, cep.Value);
+            logger.LogWarning("Provider {Provider} returned no result for CEP {Cep}", provider, cep.Value);
         }
 
-        logger.LogError("CEP {Cep} not found in any provider", cep.Value);
+        logger.LogError("CEP {Cep} not found in any of the configured providers", cep.Value);
         return null;
     }
 
     private async Task<Address?> TryProviderAsync(ECepProvider provider, Cep cep, CancellationToken cancellationToken)
     {
-        return provider switch
+        try
         {
-            ECepProvider.ViaCep => await viaCepClient.GetAddressAsync(cep, cancellationToken),
-            ECepProvider.BrasilApi => await brasilApiClient.GetAddressAsync(cep, cancellationToken),
-            ECepProvider.OpenCep => await openCepClient.GetAddressAsync(cep, cancellationToken),
-            _ => null
-        };
+            return provider switch
+            {
+                ECepProvider.ViaCep => await viaCepClient.GetAddressAsync(cep, cancellationToken),
+                ECepProvider.BrasilApi => await brasilApiClient.GetAddressAsync(cep, cancellationToken),
+                ECepProvider.OpenCep => await openCepClient.GetAddressAsync(cep, cancellationToken),
+                _ => null
+            };
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Provider {Provider} encountered an error for CEP {Cep}. Error: {Message}", 
+                provider, cep.Value, ex.Message);
+            return null;
+        }
     }
 
     private static string GetCacheKey(Cep cep)

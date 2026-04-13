@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Shared.Monitoring;
 
 /// <summary>
-/// Métricas customizadas de negócio para MeAjudaAi
+/// Custom business metrics for MeAjudaAi
 /// </summary>
 [ExcludeFromCodeCoverage]
 public class BusinessMetrics : IDisposable
@@ -21,9 +21,11 @@ public class BusinessMetrics : IDisposable
     private readonly Gauge<long> _activeUsers;
     private readonly Gauge<long> _pendingHelpRequests;
 
-    public BusinessMetrics()
+    public const string DefaultMeterName = "MeAjudaAi.Business";
+
+    public BusinessMetrics(string meterName = DefaultMeterName)
     {
-        _meter = new Meter("MeAjudaAi.Business", "1.0.0");
+        _meter = new Meter(meterName, "1.0.0");
 
         // User metrics
         _userRegistrations = _meter.CreateCounter<long>(

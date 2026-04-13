@@ -56,6 +56,7 @@ public static class ServiceCollectionExtensions
         services.AddDocumentation();
         services.AddApiVersioning(); // Adiciona versionamento de API
         services.AddCorsPolicy(configuration, environment);
+        services.AddCustomAntiforgery();
         services.AddMemoryCache();
 
         // Configura ForwardedHeaders para suporte a proxy reverso (load balancers, nginx, etc.)
@@ -123,12 +124,19 @@ public static class ServiceCollectionExtensions
         // Exception handling DEVE estar no início do pipeline
         app.UseExceptionHandler();
 
-        // Content Security Policy - adicionar no início para proteger todas as respostas
-        app.UseContentSecurityPolicy();
+        if (!environment.IsDevelopment() && !environment.IsEnvironment("Testing"))
+        {
+            app.UseHsts();
+        }
 
         // ForwardedHeaders deve ser o primeiro para popular corretamente RemoteIpAddress para rate limiting
         // Processa cabeçalhos X-Forwarded-* de proxies reversos (load balancers, nginx, etc.)
         app.UseForwardedHeaders();
+
+        app.UseHttpsRedirection();
+
+        // Content Security Policy - adicionar no início para proteger todas as respostas
+        app.UseContentSecurityPolicy();
 
         // Logging Context Middleware - adiciona correlation ID aos logs e response headers
         app.UseLoggingContext();
@@ -163,6 +171,11 @@ public static class ServiceCollectionExtensions
 
         app.UseCors("DefaultPolicy");
         app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseAntiforgery();
+        
+        // Middleware para expor o cookie de antiforgery em requisições GET (Hardening)
+        app.UseMiddleware<AntiforgeryCookieMiddleware>();
 
         // Debug Middleware para diagnóstico de autorização (apenas em desenvolvimento)
         if (app.Environment.IsDevelopment())
@@ -174,7 +187,6 @@ public static class ServiceCollectionExtensions
         app.UseMiddleware<RequestLoggingMiddleware>();
 
         app.UsePermissionOptimization(); // Middleware de otimização após autenticação
-        app.UseAuthorization();
 
         // Mapear endpoints de configuração (deve ser chamado após UseAuthorization)
         app.MapConfigurationEndpoints();

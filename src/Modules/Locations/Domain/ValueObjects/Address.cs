@@ -55,27 +55,14 @@ public sealed class Address : ValueObject
             return null;
         }
 
-        if (string.IsNullOrWhiteSpace(street))
+        if (string.IsNullOrWhiteSpace(street) || 
+            string.IsNullOrWhiteSpace(neighborhood) || 
+            string.IsNullOrWhiteSpace(city) || 
+            string.IsNullOrWhiteSpace(state))
         {
             return null;
         }
 
-        if (string.IsNullOrWhiteSpace(neighborhood))
-        {
-            return null;
-        }
-
-        if (string.IsNullOrWhiteSpace(city))
-        {
-            return null;
-        }
-
-        if (string.IsNullOrWhiteSpace(state))
-        {
-            return null;
-        }
-
-        // Validar UF (2 letras e código válido)
         var upperState = state.ToUpperInvariant();
         if (!ValidUfs.Contains(upperState))
         {

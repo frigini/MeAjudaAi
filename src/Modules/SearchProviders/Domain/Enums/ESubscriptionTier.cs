@@ -1,3 +1,4 @@
+
 namespace MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 
 /// <summary>

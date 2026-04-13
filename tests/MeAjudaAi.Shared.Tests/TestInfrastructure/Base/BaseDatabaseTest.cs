@@ -53,6 +53,7 @@ public abstract class BaseDatabaseTest : IAsyncLifetime
     {
         return new DbContextOptionsBuilder<TContext>()
             .UseNpgsql(ConnectionString)
+            .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
             .EnableSensitiveDataLogging()
             .EnableDetailedErrors()
             .Options;
