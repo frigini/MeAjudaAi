@@ -1254,7 +1254,9 @@
       "meajudaai.modules.ratings.application": {
         "type": "Project",
         "dependencies": {
-          "MeAjudaAi.Modules.Ratings.Domain": "[1.0.0, )"
+          "MeAjudaAi.Modules.Ratings.Domain": "[1.0.0, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.5, )",
+          "Npgsql": "[10.0.2, )"
         }
       },
       "meajudaai.modules.ratings.domain": {
