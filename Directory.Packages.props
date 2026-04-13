@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
-  <!-- Central Package Management for xUnit v3 Migration -->
+  <!-- Gerenciamento Central de Pacotes (CPM) -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <!-- Enabled xUnit v3 -->
+    <!-- xUnit v3 Habilitado -->
     <UseXUnitV3>true</UseXUnitV3>
-    <!-- Enable transitive pinning to override EF Core Design's Microsoft.Build dependencies -->
+    <!-- Ativar fixação transitiva para sobrescrever dependências do Microsoft.Build do EF Core Design -->
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <!-- Microsoft.Extensions.* family version alignment -->
-    <!-- Keep all Microsoft.Extensions.* packages on the same major version (10.x) to avoid version skew -->
+    <!-- Alinhamento de versão da família Microsoft.Extensions.* -->
+    <!-- Mantendo todos os pacotes Microsoft.Extensions.* na mesma versão major (10.x) para evitar divergências -->
     <PackageVersion Include="bunit.web" Version="1.40.0" />
     <PackageVersion Include="HtmlSanitizer" Version="9.0.892" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.5" />
     <!-- .NET & Microsoft Core -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
-    <!-- Microsoft.Build packages - updated to 18.0.2 (CVE-2025-55247 resolved) -->
+    <!-- Pacotes Microsoft.Build - atualizados para 18.0.2 (CVE-2025-55247 resolvido) -->
     <PackageVersion Include="Microsoft.Build" Version="18.0.2" />
     <PackageVersion Include="Microsoft.Build.Framework" Version="18.0.2" />
     <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.0.2" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.0.2" />
     <PackageVersion Include="Microsoft.NET.StringTools" Version="18.0.2" />
-    <!-- ⚠️ COMPATIBILITY RISK: Npgsql 10.x + Hangfire.PostgreSql 1.21.1 -->
-    <!-- Hangfire.PostgreSql built against Npgsql 6.x, runtime compatibility UNVALIDATED -->
-    <!-- VALIDATION: Staging smoke tests + Hangfire dashboard + health checks required before production -->
-    <!-- MONITORING: Issue #39 tracks Npgsql 10.x compatibility -->
-    <!-- FALLBACK: Rollback to EF Core 9.x + Npgsql 8.x if job failure rate > 5% -->
-    <!-- Breaking changes: https://www.npgsql.org/doc/release-notes/10.0.html -->
-    <!-- TODO: Implement automated pipeline gate for staging validation (Issue #39) -->
+    <!-- ⚠️ RISCO DE COMPATIBILIDADE: Npgsql 10.x + Hangfire.PostgreSql 1.21.1 -->
+    <!-- Hangfire.PostgreSql compilado contra Npgsql 6.x, compatibilidade em runtime NÃO VALIDADA -->
+    <!-- VALIDAÇÃO: Testes de fumaça em Staging + Dashboard Hangfire + Health Checks necessários antes da produção -->
+    <!-- MONITORAMENTO: Issue #39 rastreia compatibilidade com Npgsql 10.x -->
+    <!-- FALLBACK: Rollback para EF Core 9.x + Npgsql 8.x se a taxa de falha de jobs > 5% -->
+    <!-- Mudanças de quebra: https://www.npgsql.org/doc/release-notes/10.0.html -->
+    <!-- TODO: Implementar gate automático de pipeline para validação em staging (Issue #39) -->
     <!-- ASP.NET Core -->
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.5" />
@@ -40,7 +40,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.5" />
-    <!-- API Versioning -->
+    <!-- Versionamento de API -->
     <PackageVersion Include="Asp.Versioning.Http" Version="8.1.1" />
     <PackageVersion Include="Asp.Versioning.Mvc" Version="8.1.1" />
     <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.1" />
@@ -50,24 +50,20 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.5" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.5" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.5" />
-    <!-- EFCore.NamingConventions: Updated to 10.0.0 stable -->
+    <!-- EFCore.NamingConventions: Atualizado para 10.0.1 -->
     <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />
-    <!-- Microsoft.OpenApi: Updated to 2.6.1 (2026-02-05) -->
-    <!-- TESTED: 2.6.1 builds successfully with SDK 10.0.102 (NO CS0200 error) -->
-    <!-- Previous versions (2.3.0, 3.x) had incompatibility with ASP.NET Core source generators -->
-    <!-- Version 2.6.1 resolves the IOpenApiMediaType.Example read-only issue -->
+    <!-- Microsoft.OpenApi: Mantido em 2.x devido a incompatibilidade com geradores do .NET 10 -->
+    <!-- Analisado em 2026-04-12: Versão 3.5.1 causa erro CS0200 em IOpenApiMediaType.Example -->
     <PackageVersion Include="Microsoft.OpenApi" Version="2.7.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.1" />
-    <!-- Data Access -->
+    <!-- Acesso a Dados -->
     <PackageVersion Include="Npgsql" Version="10.0.2" />
-    <!-- Note: Dapper.AOT is transitively brought in by Hangfire.PostgreSql (1.21.1 -> Dapper.AOT 1.0.48) -->
-    <!-- It is benign for now, as we don't enable strict AOT on backend services yet. -->
+    <!-- Nota: Dapper.AOT é trazido pelo Hangfire.PostgreSql. Inofensivo pois não usamos AOT estrito ainda. -->
     <PackageVersion Include="Dapper" Version="2.1.72" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.5" />
-    <!-- Microsoft Extensions -->
+    <!-- Extensões Microsoft -->
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.5" />
-    <!-- Microsoft.Extensions.Caching.Hybrid: 10.4.0 includes critical bug fixes not in 10.3.0 -->
     <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.4.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.5" />
@@ -80,10 +76,8 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.Abstractions" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.5" />
-    <!-- Microsoft.Extensions.TimeProvider.Testing: 10.3.0 includes critical bug fixes not in 10.0.3 -->
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.4.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.5" />
-    <!-- Microsoft.Extensions.Http.Resilience: 10.4.0 includes critical bug fixes not in 10.3.0 -->
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.4.0" />
     <PackageVersion Include="Polly" Version="8.6.6" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.5" />
@@ -91,7 +85,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Configuration" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.5" />
-    <!-- Feature Management -->
+    <!-- Gerenciamento de Funcionalidades -->
     <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.4.0" />
     <!-- OpenTelemetry -->
     <PackageVersion Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.4.0" />
@@ -111,17 +105,17 @@
     <PackageVersion Include="Serilog.Settings.Configuration" Version="10.0.0" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageVersion Include="Serilog.Sinks.Seq" Version="9.0.0" />
-    <!-- Documentation -->
+    <!-- Documentação -->
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.1.7" />
     <PackageVersion Include="Swashbuckle.AspNetCore.Annotations" Version="10.1.7" />
-    <!-- Validation -->
+    <!-- Validação -->
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageVersion Include="FluentValidation.AspNetCore" Version="12.1.1" />
     <!-- Azure -->
     <PackageVersion Include="Azure.AI.DocumentIntelligence" Version="1.0.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.27.0" />
-    <!-- Messaging -->
+    <!-- Mensageria -->
     <PackageVersion Include="RabbitMQ.Client" Version="7.2.1" />
     <PackageVersion Include="Rebus" Version="8.9.0" />
     <PackageVersion Include="Rebus.RabbitMq" Version="10.1.1" />
@@ -130,32 +124,29 @@
     <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.Redis" Version="9.0.0" />
-    <!-- Background Jobs -->
+    <!-- Jobs em Segundo Plano -->
     <PackageVersion Include="Hangfire.Core" Version="1.8.23" />
     <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.23" />
     <PackageVersion Include="Hangfire.PostgreSql" Version="1.21.1" />
     <PackageVersion Include="Hangfire.InMemory" Version="1.0.0" />
-    <!-- Dependency Injection -->
+    <!-- Injeção de Dependência -->
     <PackageVersion Include="Scrutor" Version="7.0.0" />
-    <!-- System -->
+    <!-- Sistema -->
     <PackageVersion Include="Azure.Storage.Common" Version="12.26.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.1.7" />
-    <!-- System.IO.Hashing: Version 9.0.10 required by Aspire.Hosting.Azure.AppContainers 13.0.2 -->
-    <!-- Note: Azure.Storage.Common 12.25.0 depends on 8.0.0, but NuGet resolves to 9.0.10 via transitive lift -->
-    <!-- This is acceptable as System.IO.Hashing maintains backward compatibility -->
+    <!-- System.IO.Hashing: Mantido na v10 para alinhamento com a stack do .NET 10 -->
     <PackageVersion Include="System.IO.Hashing" Version="10.0.5" />
     <PackageVersion Include="System.Text.Json" Version="10.0.0" />
-    <!-- IdentityModel family - aligned to 8.16.0 to avoid version skew -->
+    <!-- Família IdentityModel - alinhada para evitar divergências de versão -->
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.17.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Protocols" Version="8.16.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.16.0" />
-    <!-- Testing Framework -->
-    <!-- Using xUnit v3 only -->
+    <!-- Framework de Testes (Apenas xUnit v3) -->
     <PackageVersion Include="WireMock.Net" Version="2.2.0" />
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="coverlet.collector" Version="8.0.1" />
-    <!-- Testing Libraries -->
+    <!-- Bibliotecas de Teste -->
     <PackageVersion Include="FluentAssertions" Version="8.9.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
@@ -168,39 +159,30 @@
     <PackageVersion Include="Testcontainers.RabbitMq" Version="4.11.0" />
     <PackageVersion Include="Testcontainers.Redis" Version="4.11.0" />
     <PackageVersion Include="Respawn" Version="7.0.0" />
-    <!-- Aspire - 13.0.0 stable + preview (Keycloak/Testing) -->
-    <!-- Aspire.Hosting.AppHost removido - incluído implicitamente pelo Aspire.AppHost.Sdk 13.0 -->
-    <!-- DECISION: Aspire.Npgsql.EntityFrameworkCore.PostgreSQL NOT NEEDED -->
-    <!--   Projects use Npgsql.EntityFrameworkCore.PostgreSQL directly (10.0.0) -->
-    <!--   AppHost uses Aspire.Hosting.PostgreSQL for orchestration (not this package) -->
-    <!--   Tested: Build + Integration tests pass without this Aspire wrapper -->
-    <PackageVersion Include="Aspire.Hosting.Azure.AppContainers" Version="13.2.1" />
-    <PackageVersion Include="Aspire.Hosting.Azure.PostgreSQL" Version="13.2.1" />
-    <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.2.1" />
-    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.2.1" />
-    <!-- Aspire.Hosting.Keycloak: Updated to 13.2.1-preview.1.26180.6 (Nearest version for Aspire 13.2.1) -->
-    <PackageVersion Include="Aspire.Hosting.Keycloak" Version="13.2.1-preview.1.26180.6" />
-    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.2.1" />
-    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="13.2.1" />
-    <!-- Aspire.Hosting.Redis: Updated to 13.1.0 (2026-02-05) -->
-    <!-- TLS bug from early 13.1.0 release was FIXED in late 2025 -->
-    <!-- TESTED: 13.1.0 builds and runs without SSL Handshake errors -->
-    <!-- HTTPS termination is now opt-in (not forced) -->
-    <PackageVersion Include="Aspire.Hosting.Redis" Version="13.2.1" />
-    <PackageVersion Include="Aspire.Hosting.Seq" Version="13.2.1" />
-    <PackageVersion Include="Aspire.Npgsql" Version="13.2.1" />
-    <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.2.1" />
-    <!-- Architecture Testing -->
+    <!-- .NET Aspire - Atualizado para 13.2.2 -->
+    <PackageVersion Include="Aspire.Hosting.Azure.AppContainers" Version="13.2.2" />
+    <PackageVersion Include="Aspire.Hosting.Azure.PostgreSQL" Version="13.2.2" />
+    <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.2.2" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.2.2" />
+    <!-- Aspire.Hosting.Keycloak: Atualizado para 13.2.2-preview.1.26207.2 (Compatível com Aspire 13.2.2) -->
+    <PackageVersion Include="Aspire.Hosting.Keycloak" Version="13.2.2-preview.1.26207.2" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.2.2" />
+    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="13.2.2" />
+    <PackageVersion Include="Aspire.Hosting.Redis" Version="13.2.2" />
+    <PackageVersion Include="Aspire.Hosting.Seq" Version="13.2.2" />
+    <PackageVersion Include="Aspire.Npgsql" Version="13.2.2" />
+    <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.2.2" />
+    <!-- Testes de Arquitetura -->
     <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
-    <!-- Code Analysis -->
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.22.0.136894" />
-    <!-- Blazor UI & State Management -->
+    <!-- Análise de Código -->
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.23.0.137933" />
+    <!-- Blazor UI & Gerenciamento de Estado -->
     <PackageVersion Include="MudBlazor" Version="8.15.0" />
     <PackageVersion Include="Fluxor.Blazor.Web" Version="6.9.0" />
     <PackageVersion Include="Fluxor.Blazor.Web.ReduxDevTools" Version="6.9.0" />
     <PackageVersion Include="Refit" Version="10.1.6" />
     <PackageVersion Include="Refit.HttpClientFactory" Version="10.1.6" />
-    <!-- Blazor Testing -->
+    <!-- Testes Blazor -->
     <PackageVersion Include="bUnit" Version="2.6.2" />
   </ItemGroup>
 </Project>
