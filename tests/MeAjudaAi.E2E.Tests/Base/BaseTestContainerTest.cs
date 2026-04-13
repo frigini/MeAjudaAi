@@ -43,6 +43,12 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     private static RedisContainer? _redisContainer;
     private static AzuriteContainer? _azuriteContainer;
 
+    /// <summary>
+    /// Override in derived classes to enable synchronous in-memory message bus and domain events.
+    /// Used for tests that depend on cross-module integration events (e.g. Ratings -> SearchProviders).
+    /// </summary>
+    protected virtual bool EnableEventsAndMessageBus => false;
+
     // Locking for thread-safe initialization
     private static readonly SemaphoreSlim _initializationLock = new(1, 1);
     private static bool _initialized = false;
@@ -142,6 +148,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                         ["ConnectionStrings:meajudaai-db"] = _postgresContainer!.GetConnectionString(),
                         ["ConnectionStrings:UsersDb"] = _postgresContainer!.GetConnectionString(),
                         ["ConnectionStrings:ProvidersDb"] = _postgresContainer!.GetConnectionString(),
+                        ["ConnectionStrings:RatingsDb"] = _postgresContainer!.GetConnectionString(),
                         ["ConnectionStrings:DocumentsDb"] = _postgresContainer!.GetConnectionString(),
                         ["ConnectionStrings:Redis"] = _redisContainer!.GetConnectionString(),
                         ["Azure:Storage:ConnectionString"] = _azuriteContainer!.GetConnectionString(),
@@ -191,6 +198,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                     // Reconfigurar todos os DbContexts com TestContainer connection string
                     ReconfigureDbContext<UsersDbContext>(services);
                     ReconfigureDbContext<ProvidersDbContext>(services);
+                    ReconfigureDbContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
                     ReconfigureDbContext<DocumentsDbContext>(services);
                     ReconfigureDbContext<ServiceCatalogsDbContext>(services);
                     ReconfigureSearchProvidersDbContext(services);
@@ -239,24 +247,29 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 
                     services.AddScoped<IBlobStorageService, MockBlobStorageService>();
 
-                    // Substituir IMessageBus por MockMessageBus para testes (RabbitMQ desabilitado)
-                    // Remover TODAS as implementações existentes de IMessageBus e adicionar o mock
-                    var messageBusDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Messaging.IMessageBus)).ToList();
-                    foreach (var descriptor in messageBusDescriptors)
+                    if (EnableEventsAndMessageBus)
                     {
-                        services.Remove(descriptor);
-                    }
-                    
-                    // Adicionar como Singleton com factory para injetar IServiceProvider
-                    services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MockMessageBus>();
+                        var messageBusDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Messaging.IMessageBus)).ToList();
+                        foreach (var descriptor in messageBusDescriptors) services.Remove(descriptor);
+                        services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MeAjudaAi.E2E.Tests.Infrastructure.SynchronousInMemoryMessageBus>();
 
-                    // Substituir IDomainEventProcessor por um mock que não processa eventos
-                    var domainEventProcessorDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Events.IDomainEventProcessor)).ToList();
-                    foreach (var descriptor in domainEventProcessorDescriptors)
-                    {
-                        services.Remove(descriptor);
+                        // Mantenha IDomainEventProcessor original (Default) 
+                        var domainEventProcessorDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Events.IDomainEventProcessor)).ToList();
+                        foreach (var descriptor in domainEventProcessorDescriptors) services.Remove(descriptor);
+                        services.AddScoped<MeAjudaAi.Shared.Events.IDomainEventProcessor, MeAjudaAi.Shared.Events.DomainEventProcessor>();
                     }
-                    services.AddScoped<MeAjudaAi.Shared.Events.IDomainEventProcessor, MockDomainEventProcessor>();
+                    else
+                    {
+                        // Substituir IMessageBus por MockMessageBus para testes (RabbitMQ desabilitado)
+                        var messageBusDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Messaging.IMessageBus)).ToList();
+                        foreach (var descriptor in messageBusDescriptors) services.Remove(descriptor);
+                        services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MockMessageBus>();
+
+                        // Substituir IDomainEventProcessor por um mock que não processa eventos
+                        var domainEventProcessorDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Events.IDomainEventProcessor)).ToList();
+                        foreach (var descriptor in domainEventProcessorDescriptors) services.Remove(descriptor);
+                        services.AddScoped<MeAjudaAi.Shared.Events.IDomainEventProcessor, MockDomainEventProcessor>();
+                    }
 
                     // Remove todas as configurações de autenticação existentes
                     var authDescriptors = services
@@ -359,6 +372,10 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             // 3. Providers (Depends on ServiceCatalogs)
             var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
             await providersContext.Database.MigrateAsync();
+
+            // 3.1 Ratings (Depends on Providers)
+            var ratingsContext = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>();
+            await ratingsContext.Database.MigrateAsync();
 
             // 4. Documents
             var documentsContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();

@@ -362,7 +362,6 @@ jobs:
           base: 'api-base.json'
           revision: 'api-current/api-spec.json'
           breaking-only: true
-          format: text
           fail-on-diff: true
 
   security-scan:

@@ -12,25 +12,25 @@ public static class Extensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
-
-        if (string.IsNullOrWhiteSpace(connectionString) && !MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
+        services.AddDbContext<RatingsDbContext>((serviceProvider, options) =>
         {
-            throw new InvalidOperationException("A string de conexão 'DefaultConnection' não foi configurada para o módulo de Ratings.");
-        }
+            var resolvedConfig = serviceProvider.GetRequiredService<IConfiguration>();
+            var connStr = resolvedConfig.GetConnectionString("DefaultConnection") ?? 
+                          resolvedConfig.GetConnectionString("Ratings") ??
+                          resolvedConfig.GetConnectionString("meajudaai-db");
 
-        // EM TESTES E2E: O TestContainerFixture registra o DbContext.
-        // Se registrarmos aqui, podemos causar conflitos de configuração.
-        if (!MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
-        {
-            services.AddDbContext<RatingsDbContext>(options =>
+            if (string.IsNullOrWhiteSpace(connStr) && MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
             {
-                if (!string.IsNullOrWhiteSpace(connectionString))
-                {
-                    options.UseNpgsql(connectionString, m => m.MigrationsHistoryTable("__EFMigrationsHistory", "ratings"));
-                }
-            });
-        }
+#pragma warning disable S2068
+                connStr = "Host=localhost;Port=5432;Database=meajudaai_test;Username=postgres;Password=test";
+#pragma warning restore S2068
+            }
+
+            if (!string.IsNullOrWhiteSpace(connStr))
+            {
+                options.UseNpgsql(connStr, m => m.MigrationsHistoryTable("__EFMigrationsHistory", "ratings"));
+            }
+        });
 
         services.AddScoped<IReviewRepository, ReviewRepository>();
 
