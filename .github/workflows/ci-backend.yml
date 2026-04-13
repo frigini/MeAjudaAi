@@ -311,6 +311,8 @@ jobs:
           # Fornece configurações dummy para evitar falha na inicialização do host durante a geração do swagger
           ConnectionStrings__DefaultConnection: "Host=localhost;Database=dummy;Username=dummy;Password=dummy"
           Azure__Storage__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
+          Azure__DocumentIntelligence__Endpoint: "https://dummy.cognitiveservices.azure.com/"
+          Azure__DocumentIntelligence__ApiKey: "dummy"
           ASPNETCORE_ENVIRONMENT: Production
         run: |
           dotnet build src/Bootstrapper/MeAjudaAi.ApiService/MeAjudaAi.ApiService.csproj \
@@ -324,6 +326,8 @@ jobs:
         env:
           ConnectionStrings__DefaultConnection: "Host=localhost;Database=dummy;Username=dummy;Password=dummy"
           Azure__Storage__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
+          Azure__DocumentIntelligence__Endpoint: "https://dummy.cognitiveservices.azure.com/"
+          Azure__DocumentIntelligence__ApiKey: "dummy"
         run: |
           mkdir -p api-current
           swagger tofile \
