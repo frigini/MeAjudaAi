@@ -698,6 +698,33 @@
           "MeAjudaAi.Shared": "[1.0.0, )"
         }
       },
+      "meajudaai.modules.ratings.api": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Modules.Ratings.Infrastructure": "[1.0.0, )"
+        }
+      },
+      "meajudaai.modules.ratings.application": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Modules.Ratings.Domain": "[1.0.0, )"
+        }
+      },
+      "meajudaai.modules.ratings.domain": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Shared": "[1.0.0, )"
+        }
+      },
+      "meajudaai.modules.ratings.infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Modules.Ratings.Application": "[1.0.0, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.5, )",
+          "Microsoft.EntityFrameworkCore.Design": "[10.0.5, )",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )"
+        }
+      },
       "meajudaai.modules.searchproviders.api": {
         "type": "Project",
         "dependencies": {

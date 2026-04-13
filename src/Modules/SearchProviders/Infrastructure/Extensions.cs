@@ -112,6 +112,7 @@ public static class Extensions
         services.AddScoped<IEventHandler<ProviderActivatedIntegrationEvent>, ProviderActivatedIntegrationEventHandler>();
         services.AddScoped<IEventHandler<ProviderServicesUpdatedIntegrationEvent>, ProviderServicesUpdatedIntegrationEventHandler>();
         services.AddScoped<IEventHandler<ServiceDeactivatedIntegrationEvent>, ServiceDeactivatedIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<MeAjudaAi.Shared.Messaging.Messages.Ratings.ReviewCreatedIntegrationEvent>, ReviewCreatedIntegrationEventHandler>();
 
         return services;
     }

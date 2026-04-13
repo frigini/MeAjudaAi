@@ -1,0 +1,44 @@
+meta {
+  name: Get Communication Logs
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/communications/logs?pageNumber=1&pageSize=10
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get Communication Logs
+  
+  Retorna o histórico de comunicações (E-mail, SMS, Push) enviadas pelo sistema.
+  
+  ## Autorização
+  - **Requer token**: Sim (Admin)
+  
+  ## Parâmetros Query
+  - `pageNumber` (int): Padrão 1
+  - `pageSize` (int): Padrão 10
+  - `type` (string): Opcional (Email, SMS, Push)
+  - `status` (string): Opcional (Sent, Failed, Pending)
+  
+  ## Resposta Esperada (200 OK)
+  ```json
+  {
+    "items": [],
+    "totalCount": 0,
+    "pageNumber": 1,
+    "pageSize": 10
+  }
+  ```
+}

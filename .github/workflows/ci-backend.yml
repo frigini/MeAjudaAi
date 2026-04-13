@@ -283,13 +283,58 @@ jobs:
           thresholds: "90 80" # line branch
           fail_below_min: true
 
-      - name: Add Coverage PR Comment
+      - name: Generate Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v3
         if: always() && github.event_name == 'pull_request'
         with:
           recreate: true
           header: coverage-report
           path: code-coverage-results.md
+
+  openapi-breaking-change-check:
+    name: OpenAPI Breaking Change Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout PR Branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Build API
+        run: |
+          dotnet build src/Bootstrapper/MeAjudaAi.ApiService/MeAjudaAi.ApiService.csproj \
+            -c Release \
+            -p:GenerateDocumentationFile=true
+
+      - name: Install Swashbuckle CLI
+        run: dotnet tool install -g Swashbuckle.AspNetCore.Cli --version 10.1.5
+
+      - name: Generate Current OpenAPI Spec
+        run: |
+          mkdir -p api-current
+          swagger tofile \
+            --output api-current/api-spec.json \
+            src/Bootstrapper/MeAjudaAi.ApiService/bin/Release/net10.0/MeAjudaAi.ApiService.dll \
+            v1
+
+      - name: Checkout Base Branch Spec
+        run: |
+          git show origin/${{ github.base_ref }}:api/api-spec.json > api-base.json || echo "{}" > api-base.json
+
+      - name: Check for Breaking Changes
+        uses: tufin/oasdiff-action@v2
+        with:
+          base: 'api-base.json'
+          revision: 'api-current/api-spec.json'
+          breaking-only: true
+          format: text
+          fail-on-diff: true
 
   security-scan:
     name: Security Scan

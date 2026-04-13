@@ -1,0 +1,57 @@
+meta {
+  name: Create Review
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/ratings
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "providerId": "00000000-0000-0000-0000-000000000000",
+    "rating": 5,
+    "comment": "Excellent service!"
+  }
+}
+
+docs {
+  # Create Review
+  
+  Cria uma nova avaliação para um prestador de serviços.
+  
+  ## Autorização
+  - **Política**: Authenticated
+  - **Requer token**: Sim
+  
+  ## Parâmetros Body
+  - `providerId` (guid): ID do prestador avaliado (Obrigatório)
+  - `rating` (int): Nota de 1 a 5 (Obrigatório)
+  - `comment` (string): Comentário textual (Opcional, máx 1000 caracteres)
+  
+  ## Moderação
+  - Avaliações com nota >= 4 e sem comentário são auto-aprovadas.
+  - Comentários com palavras ofensivas são marcados para moderação manual.
+  
+  ## Resposta Esperada (201 Created)
+  ```json
+  "uuid-da-review"
+  ```
+  
+  ## Códigos de Status
+  - **201**: Criado com sucesso
+  - **400**: Dados inválidos (rating fora do range, etc)
+  - **401**: Não autenticado
+}

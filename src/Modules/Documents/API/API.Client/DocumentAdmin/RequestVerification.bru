@@ -1,0 +1,30 @@
+meta {
+  name: Request Document Verification
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/v1/documents/{{documentId}}/request-verification
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Request Document Verification
+  
+  Solicita a verificação manual ou automática de um documento enviado.
+  
+  ## Parâmetros Path
+  - `documentId` (guid): ID do documento
+  
+  ## Resposta Esperada (202 Accepted)
+}

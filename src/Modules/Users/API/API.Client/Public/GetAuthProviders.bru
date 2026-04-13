@@ -1,0 +1,17 @@
+meta {
+  name: Get Auth Providers
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users/auth-providers
+  body: none
+  auth: none
+}
+
+docs {
+  # Get Auth Providers
+  
+  Retorna os provedores de autenticação externa configurados (Instagram, Google, etc).
+}

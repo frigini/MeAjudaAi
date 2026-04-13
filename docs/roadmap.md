@@ -6,35 +6,35 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## 📊 Status Atual (Abril 2026)
 
-**Sprint Atual**: 10 (Qualidade & Infraestrutura)
-**Status**: 🔄 Em Andamento
+**Sprint Atual**: 11 (Monetização & Polimento)
+**Status**: 🔄 Em Planejamento
 **Meta MVP**: 12 - 16 de Maio de 2026
 
 **Stack Principal**: .NET 10 LTS + Aspire 13 + PostgreSQL + NX Monorepo + React 19 + Next.js 15 + Tailwind v4
 
 ---
 
-## 🚀 Sprint 10 - Qualidade & Onboarding (12 Abr - 26 Abr 2026)
+## 🚀 Sprint 10 - Qualidade & Onboarding (12 Abr - 26 Abr 2026) [CONCLUÍDA]
 
 **Objetivo**: Estabelecer confiança na plataforma através de avaliações e simplificar o acesso de novos prestadores.
 
 ### 🔴 MUST-HAVE:
 
-#### 1. 🌟 Ratings Module (Módulo de Avaliações)
+#### 1. 🌟 Ratings Module (Módulo de Avaliações) [CONCLUÍDO]
 *   **Arquitetura**: **Consistência Eventual**. O módulo de busca (`SearchProviders`) não fará Join com o módulo de Ratings. Sempre que um review for postado, um `ReviewCreatedIntegrationEvent` será disparado e o módulo de busca atualizará o campo `AverageRating` no seu próprio registro desnormalizado.
 *   **Funcionalidades**:
-    *   **Avaliação de Prestadores**: Clientes podem adicionar nota (1 a 5 estrelas) e comentário textual após a conclusão de um serviço.
-    *   **Moderação de Conteúdo**: Filtro automático e manual para comentários que violem as regras (xingamentos, ofensas, SPAM).
-    *   **Ranking de Busca**: Algoritmo de busca priorizando prestadores com melhor média e maior volume de avaliações verificadas.
+    *   ✅ **Avaliação de Prestadores**: Clientes podem adicionar nota (1 a 5 estrelas) e comentário textual após a conclusão de um serviço.
+    *   ✅ **Moderação de Conteúdo**: Filtro automático e manual para comentários que violem as regras (xingamentos, ofensas, SPAM).
+    *   ✅ **Ranking de Busca**: Algoritmo de busca priorizando prestadores com melhor média e maior volume de avaliações verificadas.
 *   **Schema DB**: `ratings` | **ModuleName**: `Ratings`.
 
-#### 2. 🔑 Login Social (Instagram) - ISSUE #141
+#### 2. 🔑 Login Social (Instagram) - ISSUE #141 [CONCLUÍDO]
 *   **Ação**: Configuração de Identity Provider OIDC genérico no Keycloak para permitir que prestadores usem seu perfil do Instagram para autenticação.
 
-#### 3. 🛡️ OpenAPI Breaking Change Gating (CI)
+#### 3. 🛡️ OpenAPI Breaking Change Gating (CI) [CONCLUÍDO]
 *   **Ação**: Novo step no workflow de PR para comparar o `swagger.json` e falhar o build se houver mudanças destrutivas sem bump de versão.
 
-#### 4. 📋 Coleções Bruno (.bru)
+#### 4. 📋 Coleções Bruno (.bru) [CONCLUÍDO]
 *   **Ação**: Documentação técnica de 100% dos endpoints existentes em `tools/api-collections/`.
 
 ---
