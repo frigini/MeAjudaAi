@@ -4,6 +4,7 @@ using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
+using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 using Xunit;
@@ -63,10 +64,8 @@ public class RatingsEndToEndTests : BaseTestContainerTest
         var reviewId = await response.Content.ReadFromJsonAsync<Guid>();
         reviewId.Should().NotBeEmpty();
 
-        // 3. Aguardar processamento do evento de integração (consistência eventual)
-        await Task.Delay(1000);
-
-        // 4. Verificar se a média foi atualizada no módulo de busca
+        // 3. Verificar se a média foi atualizada no módulo de busca
+        // O SynchronousInMemoryMessageBus garante que o processamento ocorreu antes do retorno da API
         var searchResponse = await ApiClient.GetAsync($"/api/v1/search/providers?searchTerm={providerId}");
         searchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         
@@ -78,56 +77,57 @@ public class RatingsEndToEndTests : BaseTestContainerTest
         providerInSearch!.AverageRating.Should().Be(5.0m);
         providerInSearch.TotalReviews.Should().Be(1);
     }
-private async Task<Guid> CreateTestProviderAsync()
-{
-    AuthenticateAsAdmin();
 
-    var userId = await CreateTestUserAsync();
-    var name = $"Provider_{Guid.NewGuid():N}";
-    var request = new
+    private async Task<Guid> CreateTestProviderAsync()
     {
-        UserId = userId.ToString(),
-        Name = name,
-        Type = 0, // Individual
-        BusinessProfile = new
+        AuthenticateAsAdmin();
+
+        var userId = await CreateTestUserAsync();
+        var name = $"Provider_{Guid.NewGuid():N}";
+        var request = new
         {
-            LegalName = name,
-            FantasyName = name,
-            Description = $"Test provider {name}",
-            ContactInfo = new
+            UserId = userId.ToString(),
+            Name = name,
+            Type = EProviderType.Individual,
+            BusinessProfile = new
             {
-                Email = $"{name}@example.com",
-                PhoneNumber = "+5511999999999"
-            },
-            PrimaryAddress = new
-            {
-                Street = "Avenida Paulista",
-                Number = "1578",
-                Neighborhood = "Bela Vista",
-                City = "São Paulo",
-                State = "SP",
-                ZipCode = "01310-200",
-                Country = "Brasil"
+                LegalName = name,
+                FantasyName = name,
+                Description = $"Test provider {name}",
+                ContactInfo = new
+                {
+                    Email = $"{name}@example.com",
+                    PhoneNumber = "+5511999999999"
+                },
+                PrimaryAddress = new
+                {
+                    Street = "Avenida Paulista",
+                    Number = "1578",
+                    Neighborhood = "Bela Vista",
+                    City = "São Paulo",
+                    State = "SP",
+                    ZipCode = "01310-200",
+                    Country = "Brasil"
+                }
             }
-        }
-    };
+        };
 
-    var response = await ApiClient.PostAsJsonAsync("/api/v1/providers", request);
-    response.EnsureSuccessStatusCode();
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/providers", request);
+        response.EnsureSuccessStatusCode();
 
-    var location = response.Headers.Location?.ToString();
-    var providerId = ExtractIdFromLocation(location!);
+        var location = response.Headers.Location?.ToString();
+        var providerId = ExtractIdFromLocation(location!);
 
-    // Verificar o prestador para que ele apareça na busca
-    var verifyRequest = new
-    {
-        Status = 1, // Verified
-        Notes = "E2E automatic verification"
-    };
+        // Verificar o prestador para que ele apareça na busca
+        var verifyRequest = new
+        {
+            Status = EVerificationStatus.Verified,
+            Notes = "E2E automatic verification"
+        };
 
-    var verifyResponse = await ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}/verification-status", verifyRequest);
-    verifyResponse.EnsureSuccessStatusCode();
+        var verifyResponse = await ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}/verification-status", verifyRequest);
+        verifyResponse.EnsureSuccessStatusCode();
 
-    return providerId;
+        return providerId;
     }
-    }
+}

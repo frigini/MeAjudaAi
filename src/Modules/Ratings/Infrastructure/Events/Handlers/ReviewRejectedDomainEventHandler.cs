@@ -9,8 +9,15 @@ public sealed class ReviewRejectedDomainEventHandler(
 {
     public Task HandleAsync(ReviewRejectedDomainEvent domainEvent, CancellationToken cancellationToken = default)
     {
-        logger.LogWarning("Review {ReviewId} for provider {ProviderId} was rejected. Reason: {Reason}", 
-            domainEvent.AggregateId, domainEvent.ProviderId, domainEvent.Reason);
+        logger.LogWarning("Review {ReviewId} for provider {ProviderId} was rejected.", 
+            domainEvent.AggregateId, domainEvent.ProviderId);
+            
+        var reasonPreview = domainEvent.Reason?.Length > 100 
+            ? domainEvent.Reason[..100] + "..." 
+            : domainEvent.Reason;
+            
+        logger.LogDebug("Rejection reason for Review {ReviewId}: {Reason}", 
+            domainEvent.AggregateId, reasonPreview);
             
         return Task.CompletedTask;
     }

@@ -3,7 +3,9 @@ using MeAjudaAi.Modules.Ratings.Application.Services;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace MeAjudaAi.Modules.Ratings.Application.Handlers;
 
@@ -16,7 +18,7 @@ public sealed class CreateReviewCommandHandler(
     {
         logger.LogInformation("Creating review for provider {ProviderId} by customer {CustomerId}", command.ProviderId, command.CustomerId);
 
-        // Validar duplicidade (UX check)
+        // Validar duplicidade (UX check antecipado)
         var existingReview = await repository.GetByProviderAndCustomerAsync(command.ProviderId, command.CustomerId, cancellationToken);
         if (existingReview != null)
         {
@@ -31,6 +33,7 @@ public sealed class CreateReviewCommandHandler(
             command.Comment);
 
         // Moderação Automática e Regras de Auto-aprovação
+        // Short-circuit: Se não houver comentário, aplicar regra de auto-aprovação direta
         if (string.IsNullOrWhiteSpace(command.Comment))
         {
             if (command.Rating >= 4)
@@ -40,6 +43,7 @@ public sealed class CreateReviewCommandHandler(
         }
         else
         {
+            // Se houver comentário, passar pela moderação
             var isClean = contentModerator.IsClean(command.Comment);
             if (!isClean)
             {
@@ -52,9 +56,9 @@ public sealed class CreateReviewCommandHandler(
         {
             await repository.AddAsync(review, cancellationToken);
         }
-        catch (Exception ex) when (IsUniqueConstraintViolation(ex))
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
         {
-            logger.LogWarning(ex, "Concurrency/Duplicate detected at DB level for Review between Provider {ProviderId} and Customer {CustomerId}", 
+            logger.LogWarning(ex, "Unique constraint violation at DB level for Review between Provider {ProviderId} and Customer {CustomerId}", 
                 command.ProviderId, command.CustomerId);
             throw new InvalidOperationException("Você já avaliou este prestador.");
         }
@@ -62,12 +66,5 @@ public sealed class CreateReviewCommandHandler(
         logger.LogInformation("Review {ReviewId} created with status {Status}", review.Id.Value, review.Status);
 
         return review.Id.Value;
-    }
-
-    private static bool IsUniqueConstraintViolation(Exception ex)
-    {
-        // Detecta violação de unicidade (Postgres 23505)
-        var message = ex.ToString();
-        return message.Contains("23505") || message.Contains("unique constraint") || (ex.InnerException?.Message.Contains("23505") ?? false);
     }
 }

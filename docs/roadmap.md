@@ -6,21 +6,21 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## 📊 Status Atual (Abril 2026)
 
-**Sprint Atual**: 11 (Monetização & Polimento)
-**Status**: 🔄 Em Planejamento
+**Sprint Atual**: 10 (Qualidade & Onboarding)
+**Status**: 🔄 Em Andamento
 **Meta MVP**: 12 - 16 de Maio de 2026
 
 **Stack Principal**: .NET 10 LTS + Aspire 13 + PostgreSQL + NX Monorepo + React 19 + Next.js 15 + Tailwind v4
 
 ---
 
-## 🚀 Sprint 10 - Qualidade & Onboarding (12 Abr - 26 Abr 2026) [CONCLUÍDA]
+## 🚀 Sprint 10 - Qualidade & Onboarding (12 Abr - 26 Abr 2026) [EM ANDAMENTO]
 
 **Objetivo**: Estabelecer confiança na plataforma através de avaliações e simplificar o acesso de novos prestadores.
 
 ### 🔴 MUST-HAVE:
 
-#### 1. 🌟 Ratings Module (Módulo de Avaliações) [CONCLUÍDO]
+#### 1. 🌟 Ratings Module (Módulo de Avaliações) [EM ANDAMENTO]
 *   **Arquitetura**: **Consistência Eventual**. O módulo de busca (`SearchProviders`) não fará Join com o módulo de Ratings. Sempre que um review for aprovado, um `ReviewApprovedIntegrationEvent` será disparado e o módulo de busca atualizará o campo `AverageRating` no seu próprio registro desnormalizado.
 *   **Funcionalidades**:
     *   ✅ **Avaliação de Prestadores**: Clientes podem adicionar nota (1 a 5 estrelas) e comentário textual após a conclusão de um serviço.
@@ -28,18 +28,18 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
     *   ✅ **Ranking de Busca**: Algoritmo de busca priorizando prestadores com melhor média e maior volume de avaliações verificadas.
 *   **Schema DB**: `ratings` | **ModuleName**: `Ratings`.
 
-#### 2. 🔑 Login Social (Instagram) - ISSUE #141 [CONCLUÍDO]
+#### 2. 🔑 Login Social (Instagram) - ISSUE #141 [EM ANDAMENTO]
 *   **Ação**: Configuração de Identity Provider nativo do Instagram no Keycloak para permitir que prestadores usem seu perfil do Instagram para autenticação.
 
-#### 3. 🛡️ OpenAPI Breaking Change Gating (CI) [CONCLUÍDO]
+#### 3. 🛡️ OpenAPI Breaking Change Gating (CI) [EM ANDAMENTO]
 *   **Ação**: Novo step no workflow de PR para comparar o `swagger.json` e falhar o build se houver mudanças destrutivas sem bump de versão. Corrigido para rodar em ambiente `Testing` para evitar dependências de segredos reais.
 
-#### 4. 📋 Coleções Bruno (.bru) [CONCLUÍDO]
+#### 4. 📋 Coleções Bruno (.bru) [EM ANDAMENTO]
 *   **Ação**: Documentação técnica de 100% dos endpoints existentes em `src/Modules/*/API/API.Client/`.
 
 ---
 
-## 💰 Sprint 11 - Monetização & Polimento (27 Abr - 11 Mai 2026)
+## 💰 Sprint 11 - Monetização & Polimento (27 Abr - 11 Mai 2026) [EM PLANEJAMENTO]
 
 **Objetivo**: Habilitar o faturamento da plataforma e finalizar a experiência do usuário.
 

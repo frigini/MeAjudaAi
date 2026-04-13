@@ -258,6 +258,7 @@ public class TestContainerFixture : IAsyncLifetime
         ReconfigureDbContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
+        ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
 
@@ -281,6 +282,9 @@ public class TestContainerFixture : IAsyncLifetime
 
     private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext
     {
+        var contextName = typeof(TContext).Name;
+        // Console.WriteLine($"[DEBUG] Reconfiguring DbContext: {contextName}");
+        
         var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
         if (descriptor != null)
             services.Remove(descriptor);
@@ -289,6 +293,7 @@ public class TestContainerFixture : IAsyncLifetime
         {
             options.UseNpgsql(PostgresConnectionString, npgsqlOptions =>
             {
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", GetSchemaName(contextName));
                 npgsqlOptions.MigrationsAssembly(typeof(TContext).Assembly.FullName);
                 npgsqlOptions.UseNetTopologySuite();
                 npgsqlOptions.CommandTimeout(120);
@@ -298,6 +303,21 @@ public class TestContainerFixture : IAsyncLifetime
             options.ConfigureWarnings(warnings =>
                 warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
+    }
+
+    private static string GetSchemaName(string contextName)
+    {
+        return contextName switch
+        {
+            "UsersDbContext" => "users",
+            "ProvidersDbContext" => "providers",
+            "DocumentsDbContext" => "documents",
+            "ServiceCatalogsDbContext" => "service_catalogs",
+            "LocationsDbContext" => "locations",
+            "SearchProvidersDbContext" => "search_providers",
+            "RatingsDbContext" => "ratings",
+            _ => "public"
+        };
     }
 
     private async Task ApplyMigrationsAsync()
@@ -312,6 +332,7 @@ public class TestContainerFixture : IAsyncLifetime
             await ApplyMigrationForContext<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services);
             await ApplyMigrationForContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services);
             await ApplyMigrationForContext<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
+            await ApplyMigrationForContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
             await ApplyMigrationForContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
             await ApplyMigrationForContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
 
@@ -339,6 +360,8 @@ public class TestContainerFixture : IAsyncLifetime
         await CleanupContext<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services);
         await CleanupContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services);
         await CleanupContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
+        await CleanupContext<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
+        await CleanupContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
         await CleanupContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
         await CleanupContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
 
