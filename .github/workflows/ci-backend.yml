@@ -357,12 +357,11 @@ jobs:
           fi
 
       - name: Check for Breaking Changes
-        uses: tufin/oasdiff-action@v2
+        uses: oasdiff/oasdiff-action/breaking@v0.0.39
         with:
           base: 'api-base.json'
           revision: 'api-current/api-spec.json'
-          breaking-only: true
-          fail-on-diff: true
+          fail-on: 'ERR'
 
   security-scan:
     name: Security Scan
