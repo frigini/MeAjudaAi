@@ -19,13 +19,18 @@ public static class Extensions
             throw new InvalidOperationException("A string de conexão 'DefaultConnection' não foi configurada para o módulo de Ratings.");
         }
 
-        services.AddDbContext<RatingsDbContext>(options =>
+        // EM TESTES E2E: O TestContainerFixture registra o DbContext.
+        // Se registrarmos aqui, podemos causar conflitos de configuração.
+        if (!MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
         {
-            if (!string.IsNullOrWhiteSpace(connectionString))
+            services.AddDbContext<RatingsDbContext>(options =>
             {
-                options.UseNpgsql(connectionString, m => m.MigrationsHistoryTable("__EFMigrationsHistory", "ratings"));
-            }
-        });
+                if (!string.IsNullOrWhiteSpace(connectionString))
+                {
+                    options.UseNpgsql(connectionString, m => m.MigrationsHistoryTable("__EFMigrationsHistory", "ratings"));
+                }
+            });
+        }
 
         services.AddScoped<IReviewRepository, ReviewRepository>();
 

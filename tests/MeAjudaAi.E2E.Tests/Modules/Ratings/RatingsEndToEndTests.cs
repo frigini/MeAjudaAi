@@ -14,6 +14,13 @@ namespace MeAjudaAi.E2E.Tests.Modules.Ratings;
 [Trait("Module", "Ratings")]
 public class RatingsEndToEndTests : BaseTestContainerTest
 {
+    private readonly ITestOutputHelper _output;
+
+    public RatingsEndToEndTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [Fact]
     public async Task CreateReview_WithValidData_ShouldUpdateProviderRatingInSearch()
     {
@@ -21,13 +28,17 @@ public class RatingsEndToEndTests : BaseTestContainerTest
         // Note: BaseTestContainerTest handles initialization and authentication setup
         
         // 1. Criar um prestador para ser avaliado
+        _output.WriteLine("Step 1: Creating test provider...");
         AuthenticateAsAdmin();
         var providerId = await CreateTestProviderAsync();
+        _output.WriteLine($"Provider created: {providerId}");
         
         // 2. Autenticar como cliente (diferente do prestador)
+        _output.WriteLine("Step 2: Creating test user (customer)...");
         AuthenticateAsAdmin();
         var customerId = await CreateTestUserAsync();
         AuthenticateAsUser(customerId.ToString());
+        _output.WriteLine($"Customer created: {customerId}");
 
         var reviewRequest = new
         {
@@ -37,10 +48,17 @@ public class RatingsEndToEndTests : BaseTestContainerTest
         };
 
         // Act - Criar a avaliação
+        _output.WriteLine("Step 3: Posting review...");
         AuthenticateAsUser(customerId.ToString());
         var response = await ApiClient.PostAsJsonAsync("/api/v1/ratings", reviewRequest);
 
         // Assert
+        if (response.StatusCode != HttpStatusCode.Created)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            _output.WriteLine($"DEBUG RESPONSE BODY: {body}");
+        }
+        
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         var reviewId = await response.Content.ReadFromJsonAsync<Guid>();
         reviewId.Should().NotBeEmpty();

@@ -58,6 +58,7 @@ public static class RatingsEndpoints
         return Results.Created($"/api/v1/ratings/{reviewId}", reviewId);
     }
 
+
     private static async Task<IResult> GetReviewByIdAsync(
         Guid id,
         [FromServices] IReviewRepository repository,
