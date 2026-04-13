@@ -48,7 +48,7 @@ public static class RatingsEndpoints
 
         var reviewId = await handler.HandleAsync(command, cancellationToken);
 
-        return Results.CreatedAtRoute("CreateReview", new { id = reviewId }, reviewId);
+        return Results.Created($"/api/v1/ratings/{reviewId}", reviewId);
     }
 
     private static async Task<IResult> GetProviderReviewsAsync(
@@ -63,8 +63,8 @@ public static class RatingsEndpoints
             r.Id,
             r.Rating,
             r.Comment,
-            r.CreatedAt,
-            r.CustomerId
+            r.CreatedAt
+            // CustomerId removido para não expor identificadores de usuários publicamente
         });
 
         return Results.Ok(result);

@@ -18,7 +18,7 @@ public static class Extensions
         services.AddApplication();
         services.AddInfrastructure(configuration);
 
-        // Domain Event Handlers
+        // Manipuladores de eventos de domínio
         services.AddScoped<IEventHandler<ReviewApprovedDomainEvent>, ReviewApprovedDomainEventHandler>();
 
         return services;

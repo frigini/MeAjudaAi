@@ -60,7 +60,7 @@ public class ReviewTests
     }
 
     [Fact]
-    public void Reject_WithReason_ShouldChangeStatusToRejected()
+    public void Reject_WithReason_ShouldChangeStatusToRejectedAndAddDomainEvent()
     {
         // Arrange
         var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 1, "Spam");
@@ -72,5 +72,37 @@ public class ReviewTests
         // Assert
         review.Status.Should().Be(EReviewStatus.Rejected);
         review.RejectionReason.Should().Be(reason);
+        review.DomainEvents.Should().ContainSingle(e => e is ReviewRejectedDomainEvent);
+        var domainEvent = review.DomainEvents.OfType<ReviewRejectedDomainEvent>().First();
+        domainEvent.Reason.Should().Be(reason);
+        domainEvent.AggregateId.Should().Be(review.Id.Value);
+    }
+
+    [Fact]
+    public void MarkAsFlagged_ShouldChangeStatusToFlagged()
+    {
+        // Arrange
+        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 3, "Suspicious");
+
+        // Act
+        review.MarkAsFlagged();
+
+        // Assert
+        review.Status.Should().Be(EReviewStatus.Flagged);
+    }
+
+    [Fact]
+    public void Approve_WhenPreviouslyRejected_ShouldClearRejectionReason()
+    {
+        // Arrange
+        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Fixed");
+        review.Reject("Bad content");
+
+        // Act
+        review.Approve();
+
+        // Assert
+        review.Status.Should().Be(EReviewStatus.Approved);
+        review.RejectionReason.Should().BeNull();
     }
 }

@@ -126,21 +126,13 @@
                               },
                               {
                                   "trustEmail":  false,
-                                  "providerId":  "oidc",
+                                  "providerId":  "instagram",
                                   "enabled":  true,
                                   "authenticateByDefault":  false,
                                   "storeToken":  false,
                                   "config":  {
-                                                 "logoutUrl":  "",
                                                  "clientId":  "${INSTAGRAM_CLIENT_ID}",
-                                                 "jwksUrl":  "",
-                                                 "userInfoUrl":  "https://graph.instagram.com/me?fields=id,username",
-                                                 "guiOrder":  "",
-                                                 "authorizationUrl":  "https://api.instagram.com/oauth/authorize",
-                                                 "clientSecret":  "${INSTAGRAM_CLIENT_SECRET}",
-                                                 "issuer":  "https://www.instagram.com",
-                                                 "clientAuthMethod":  "client_secret_post",
-                                                 "tokenUrl":  "https://api.instagram.com/oauth/access_token"
+                                                 "clientSecret":  "${INSTAGRAM_CLIENT_SECRET}"
                                              },
                                   "alias":  "instagram",
                                   "addReadTokenRoleOnCreate":  false,
@@ -296,7 +288,7 @@
                         "attributes":  {
                                            "access.token.lifespan":  "3600"
                                        },
-                        "secret":  "meajudaai-api-secret-dev-2024",
+                        "secret":  "${CLIENT_SECRET_MEAJUDAAI_API}",
                         "authorizationServicesEnabled":  false
                     }
                 ],

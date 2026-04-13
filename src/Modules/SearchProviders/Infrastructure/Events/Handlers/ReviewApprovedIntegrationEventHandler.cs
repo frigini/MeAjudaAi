@@ -6,14 +6,14 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 
 /// <summary>
-/// Handler para processar o evento de criação/aprovação de uma avaliação.
+/// Handler para processar o evento de aprovação de uma avaliação.
 /// Atualiza a média de avaliação do provedor no módulo de busca.
 /// </summary>
-public sealed class ReviewCreatedIntegrationEventHandler(
+public sealed class ReviewApprovedIntegrationEventHandler(
     ISearchableProviderRepository repository,
-    ILogger<ReviewCreatedIntegrationEventHandler> logger) : IEventHandler<ReviewCreatedIntegrationEvent>
+    ILogger<ReviewApprovedIntegrationEventHandler> logger) : IEventHandler<ReviewApprovedIntegrationEvent>
 {
-    public async Task HandleAsync(ReviewCreatedIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(ReviewApprovedIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -40,8 +40,8 @@ public sealed class ReviewCreatedIntegrationEventHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error handling ReviewCreatedIntegrationEvent for provider {ProviderId}", integrationEvent.ProviderId);
-            // Considerar política de retry aqui se falhar
+            logger.LogError(ex, "Error handling ReviewApprovedIntegrationEvent for provider {ProviderId}", integrationEvent.ProviderId);
+            throw; // Rethrow para permitir retry pelo broker
         }
     }
 }

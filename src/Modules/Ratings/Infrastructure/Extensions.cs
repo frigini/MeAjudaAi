@@ -13,6 +13,11 @@ public static class Extensions
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException("A string de conexão 'DefaultConnection' não foi configurada para o módulo de Ratings.");
+        }
+
         services.AddDbContext<RatingsDbContext>(options =>
             options.UseNpgsql(connectionString, m => m.MigrationsHistoryTable("__EFMigrationsHistory", "ratings")));
 

@@ -33,6 +33,12 @@ public class ReviewRepository(RatingsDbContext context) : IReviewRepository
         await context.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<Review?> GetByProviderAndCustomerAsync(Guid providerId, Guid customerId, CancellationToken cancellationToken = default)
+    {
+        return await context.Reviews
+            .FirstOrDefaultAsync(r => r.ProviderId == providerId && r.CustomerId == customerId, cancellationToken);
+    }
+
     public async Task<(decimal AverageRating, int TotalReviews)> GetAverageRatingForProviderAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
         var reviews = await context.Reviews

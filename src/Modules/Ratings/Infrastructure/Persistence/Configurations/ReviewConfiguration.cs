@@ -53,9 +53,12 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
         builder.Property(r => r.UpdatedAt)
             .HasColumnName("updated_at");
             
-        // Índices para performance
+        // Índices para performance e integridade
         builder.HasIndex(r => r.ProviderId);
         builder.HasIndex(r => r.CustomerId);
         builder.HasIndex(r => r.Status);
+        
+        // Unicidade: Um cliente só pode avaliar um prestador uma vez
+        builder.HasIndex(r => new { r.ProviderId, r.CustomerId }).IsUnique();
     }
 }

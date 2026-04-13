@@ -58,7 +58,53 @@ public class CreateReviewCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_DirtyContent_ShouldNotAutoApprove()
+    public async Task HandleAsync_Rating4WithoutComment_ShouldAutoApprove()
+    {
+        // Arrange
+        var command = new CreateReviewCommand(Guid.NewGuid(), Guid.NewGuid(), 4, null);
+
+        // Act
+        await _handler.HandleAsync(command);
+
+        // Assert
+        _repositoryMock.Verify(r => r.AddAsync(
+            It.Is<Review>(rev => rev.Status == EReviewStatus.Approved), 
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Rating5WithCleanComment_ShouldNotAutoApprove()
+    {
+        // Arrange
+        var command = new CreateReviewCommand(Guid.NewGuid(), Guid.NewGuid(), 5, "Great service!");
+        _moderatorMock.Setup(m => m.IsClean(It.IsAny<string>())).Returns(true);
+
+        // Act
+        await _handler.HandleAsync(command);
+
+        // Assert
+        _repositoryMock.Verify(r => r.AddAsync(
+            It.Is<Review>(rev => rev.Status == EReviewStatus.Pending), 
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Rating3WithoutComment_ShouldNotAutoApprove()
+    {
+        // Arrange
+        var command = new CreateReviewCommand(Guid.NewGuid(), Guid.NewGuid(), 3, null);
+
+        // Act
+        await _handler.HandleAsync(command);
+
+        // Assert
+        _repositoryMock.Verify(r => r.AddAsync(
+            It.Is<Review>(rev => rev.Status == EReviewStatus.Pending), 
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_DirtyContent_ShouldMarkAsFlagged()
     {
         // Arrange
         var command = new CreateReviewCommand(Guid.NewGuid(), Guid.NewGuid(), 5, "Some bad word");
@@ -69,7 +115,25 @@ public class CreateReviewCommandHandlerTests
 
         // Assert
         _repositoryMock.Verify(r => r.AddAsync(
-            It.Is<Review>(rev => rev.Status == EReviewStatus.Pending), 
+            It.Is<Review>(rev => rev.Status == EReviewStatus.Flagged), 
             It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_DuplicateReview_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var customerId = Guid.NewGuid();
+        var command = new CreateReviewCommand(providerId, customerId, 5, null);
+        
+        _repositoryMock.Setup(r => r.GetByProviderAndCustomerAsync(providerId, customerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Review.Create(providerId, customerId, 1, "Existing"));
+
+        // Act
+        Func<Task> act = () => _handler.HandleAsync(command);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Você já avaliou este prestador.");
     }
 }

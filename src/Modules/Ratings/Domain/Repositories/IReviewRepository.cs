@@ -14,6 +14,11 @@ public interface IReviewRepository
     Task UpdateAsync(Review review, CancellationToken cancellationToken = default);
     
     /// <summary>
+    /// Recupera uma avaliação específica de um cliente para um prestador.
+    /// </summary>
+    Task<Review?> GetByProviderAndCustomerAsync(Guid providerId, Guid customerId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Obtém a média de avaliações e total de reviews aprovados de um provedor.
     /// </summary>
     Task<(decimal AverageRating, int TotalReviews)> GetAverageRatingForProviderAsync(Guid providerId, CancellationToken cancellationToken = default);

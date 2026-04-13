@@ -79,11 +79,12 @@ public sealed class Review : AggregateRoot<ReviewId>
         if (Status == EReviewStatus.Approved) return;
 
         Status = EReviewStatus.Approved;
+        RejectionReason = null; // Limpa o motivo de rejeição se estava rejeitado anteriormente
         MarkAsUpdated();
         
         AddDomainEvent(new ReviewApprovedDomainEvent(
             Id,
-            0, // Versioning is simple for now
+            0, // Versionamento simples por enquanto
             ProviderId,
             Rating,
             Comment));
@@ -99,6 +100,19 @@ public sealed class Review : AggregateRoot<ReviewId>
 
         Status = EReviewStatus.Rejected;
         RejectionReason = reason;
+        MarkAsUpdated();
+
+        AddDomainEvent(new ReviewRejectedDomainEvent(Id, 0, ProviderId, reason));
+    }
+
+    /// <summary>
+    /// Sinaliza a avaliação para moderação manual.
+    /// </summary>
+    public void MarkAsFlagged()
+    {
+        if (Status == EReviewStatus.Flagged) return;
+
+        Status = EReviewStatus.Flagged;
         MarkAsUpdated();
     }
 }

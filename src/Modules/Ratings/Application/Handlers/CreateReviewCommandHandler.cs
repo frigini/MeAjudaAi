@@ -16,6 +16,14 @@ public sealed class CreateReviewCommandHandler(
     {
         logger.LogInformation("Creating review for provider {ProviderId} by customer {CustomerId}", command.ProviderId, command.CustomerId);
 
+        // Validar duplicidade
+        var existingReview = await repository.GetByProviderAndCustomerAsync(command.ProviderId, command.CustomerId, cancellationToken);
+        if (existingReview != null)
+        {
+            logger.LogWarning("Customer {CustomerId} already reviewed provider {ProviderId}", command.CustomerId, command.ProviderId);
+            throw new InvalidOperationException("Você já avaliou este prestador.");
+        }
+
         var review = Review.Create(
             command.ProviderId,
             command.CustomerId,
@@ -28,7 +36,7 @@ public sealed class CreateReviewCommandHandler(
         if (!isClean)
         {
             logger.LogWarning("Review {ReviewId} flagged for moderation due to inappropriate content", review.Id.Value);
-            // Por enquanto só deixamos Pending, mas poderíamos marcar como Flagged se a entidade suportasse
+            review.MarkAsFlagged();
         }
         else if (command.Rating >= 4 && string.IsNullOrWhiteSpace(command.Comment))
         {

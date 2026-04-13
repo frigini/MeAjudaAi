@@ -21,7 +21,7 @@ public sealed class ReviewApprovedDomainEventHandler(
             // Calcula a nova média
             var (average, total) = await repository.GetAverageRatingForProviderAsync(domainEvent.ProviderId, cancellationToken);
 
-            var integrationEvent = new ReviewCreatedIntegrationEvent(
+            var integrationEvent = new ReviewApprovedIntegrationEvent(
                 Source: "Ratings",
                 ProviderId: domainEvent.ProviderId,
                 ReviewId: domainEvent.AggregateId,
@@ -34,7 +34,7 @@ public sealed class ReviewApprovedDomainEventHandler(
 
             await messageBus.PublishAsync(integrationEvent, cancellationToken: cancellationToken);
 
-            logger.LogInformation("Successfully published ReviewCreatedIntegrationEvent for provider {ProviderId} (Average: {Average}, Total: {Total})", 
+            logger.LogInformation("Successfully published ReviewApprovedIntegrationEvent for provider {ProviderId} (Average: {Average}, Total: {Total})", 
                 domainEvent.ProviderId, average, total);
         }
         catch (Exception ex)

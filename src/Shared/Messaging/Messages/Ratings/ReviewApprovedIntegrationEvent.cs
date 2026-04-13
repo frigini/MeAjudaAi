@@ -5,7 +5,7 @@ namespace MeAjudaAi.Shared.Messaging.Messages.Ratings;
 /// <summary>
 /// Evento de integração disparado quando uma nova avaliação é aprovada e incorporada à média do prestador.
 /// </summary>
-public record ReviewCreatedIntegrationEvent(
+public record ReviewApprovedIntegrationEvent(
     string Source,
     Guid ProviderId,
     Guid ReviewId,

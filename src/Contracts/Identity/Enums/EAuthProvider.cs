@@ -24,5 +24,10 @@ public enum EAuthProvider
     /// <summary>
     /// Login social da Apple
     /// </summary>
-    Apple
+    Apple,
+
+    /// <summary>
+    /// Login social do Instagram
+    /// </summary>
+    Instagram
 }

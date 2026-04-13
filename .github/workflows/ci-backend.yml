@@ -307,6 +307,10 @@ jobs:
           dotnet-version: "10.0.x"
 
       - name: Build API
+        env:
+          # Fornece string de conexão dummy para evitar falha na inicialização do host durante a geração do swagger
+          ConnectionStrings__DefaultConnection: "Host=localhost;Database=dummy;Username=dummy;Password=dummy"
+          ASPNETCORE_ENVIRONMENT: Production
         run: |
           dotnet build src/Bootstrapper/MeAjudaAi.ApiService/MeAjudaAi.ApiService.csproj \
             -c Release \
@@ -316,6 +320,8 @@ jobs:
         run: dotnet tool install -g Swashbuckle.AspNetCore.Cli --version 10.1.5
 
       - name: Generate Current OpenAPI Spec
+        env:
+          ConnectionStrings__DefaultConnection: "Host=localhost;Database=dummy;Username=dummy;Password=dummy"
         run: |
           mkdir -p api-current
           swagger tofile \
@@ -325,7 +331,7 @@ jobs:
 
       - name: Checkout Base Branch Spec
         run: |
-          git show origin/${{ github.base_ref }}:api/api-spec.json > api-base.json || echo "{}" > api-base.json
+          git show origin/${{ github.base_ref }}:api/api-spec.json > api-base.json || (echo "❌ Base spec not found in target branch!" && exit 1)
 
       - name: Check for Breaking Changes
         uses: tufin/oasdiff-action@v2
