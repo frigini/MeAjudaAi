@@ -363,10 +363,11 @@ jobs:
 
       - name: Check for Breaking Changes
         uses: oasdiff/oasdiff-action/breaking@v0.0.39
+        continue-on-error: true # Permite que o pipeline continue mesmo com quebras de contrato (Auditoria)
         with:
           base: 'api-base.json'
           revision: 'api-current/api-spec.json'
-          fail-on: 'NONE' # Alterado para NONE para não bloquear o desenvolvimento inicial
+          fail-on: 'ERR'
 
   security-scan:
     name: Security Scan

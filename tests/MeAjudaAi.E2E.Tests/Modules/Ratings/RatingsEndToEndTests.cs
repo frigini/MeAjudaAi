@@ -47,7 +47,7 @@ public class RatingsEndToEndTests : BaseTestContainerTest
         {
             providerId = providerId,
             rating = 5,
-            comment = "Excellent service!"
+            comment = "" // Sem comentário para disparar auto-aprovação e atualizar busca
         };
 
         // Act - Criar a avaliação
