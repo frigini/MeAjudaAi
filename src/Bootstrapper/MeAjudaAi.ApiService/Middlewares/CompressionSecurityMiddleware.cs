@@ -62,7 +62,7 @@ public class CompressionSecurityMiddleware
         var sensitivePaths = new[]
         {
             "/auth", "/login", "/token", "/refresh", "/logout",
-            "/api/auth", "/api/login", "/api/token", "/api/refresh",
+            "/api/auth", "/api/login", "/api/token", "/api/refresh", "/api/logout",
             "/connect", "/oauth", "/openid", "/identity",
             "/users/profile", "/users/me", "/account"
         };

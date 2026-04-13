@@ -36,17 +36,15 @@ public sealed class AntiforgeryCookieMiddleware(
             catch (Exception ex)
             {
                 // Em ambientes de teste ou bypass, falha silenciosa é aceitável para evitar ruído
-                if (env.IsEnvironment("Testing") || env.IsEnvironment("Test"))
+                if (!env.IsEnvironment("Testing") && !env.IsEnvironment("Test"))
                 {
-                    return;
-                }
-
-                logger.LogError(ex, "Error generating or storing antiforgery token for request {Path}", context.Request.Path);
-                
-                // Em produção ou outros ambientes, não queremos derrubar a requisição mas queremos que o erro seja visível
-                if (!env.IsDevelopment())
-                {
-                    throw;
+                    logger.LogError(ex, "Error generating or storing antiforgery token for request {Path}", context.Request.Path);
+                    
+                    // Em produção ou outros ambientes, não queremos derrubar a requisição mas queremos que o erro seja visível
+                    if (!env.IsDevelopment())
+                    {
+                        throw;
+                    }
                 }
             }
         }
