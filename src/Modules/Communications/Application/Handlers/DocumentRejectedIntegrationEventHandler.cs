@@ -41,7 +41,7 @@ public sealed class DocumentRejectedIntegrationEventHandler(
 
         var recipientEmail = providerResult.Value.Email;
         var templateKey = CommunicationTemplateKeys.DocumentRejected;
-        var correlationId = $"{templateKey}:{integrationEvent.DocumentId}:{integrationEvent.ProviderId}";
+        var correlationId = $"document_rejected:{integrationEvent.DocumentId}:{integrationEvent.ProviderId}";
 
         var templateData = new Dictionary<string, string>
         {

@@ -283,7 +283,13 @@ public static class SecurityExtensions
                 }
                 else
                 {
-                    policy.WithHeaders([.. corsOptions.AllowedHeaders]);
+                    // Garante que X-XSRF-TOKEN seja incluído nos headers permitidos para o preflight
+                    var headers = corsOptions.AllowedHeaders.ToList();
+                    if (!headers.Contains("X-XSRF-TOKEN", StringComparer.OrdinalIgnoreCase))
+                    {
+                        headers.Add("X-XSRF-TOKEN");
+                    }
+                    policy.WithHeaders([.. headers]);
                 }
 
                 // Configura credenciais (apenas se explicitamente habilitado)
@@ -566,8 +572,8 @@ public static class SecurityExtensions
                     : context.Connection.RemoteIpAddress?.ToString() ?? context.Connection.Id ?? "test-client";
 
                 var permitLimit = isAuthenticated 
-                    ? configuration.GetValue("AdvancedRateLimit:Authenticated:RequestsPerMinute", 1000)
-                    : configuration.GetValue("AdvancedRateLimit:Anonymous:RequestsPerMinute", 100);
+                    ? configuration.GetValue("AdvancedRateLimit:Authenticated:RequestsPerMinute", 120)
+                    : configuration.GetValue("AdvancedRateLimit:Anonymous:RequestsPerMinute", 30);
 
                 return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
                 {
@@ -595,16 +601,6 @@ public static class SecurityExtensions
         });
 
         return services;
-    }
-
-    /// <summary>
-    /// Ativa middlewares de endurecimento de segurança.
-    /// </summary>
-    public static IApplicationBuilder UseSecurityHardening(this IApplicationBuilder app)
-    {
-        // NOTA: SecurityHeadersMiddleware é registrado em UseApiMiddlewares() 
-        // para garantir ordem determinística no pipeline.
-        return app;
     }
 
     /// <summary>

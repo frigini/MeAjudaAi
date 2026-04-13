@@ -57,6 +57,10 @@ public sealed class CompressionSecurityMiddlewareTests : BaseApiTest
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
+        // Verify if security middleware DID NOT act (debug header absent)
+        response.Headers.Contains("X-Compression-Disabled").Should().BeFalse(
+            "Security middleware should not disable compression for anonymous users");
+
         // For anonymous users, compression may be enabled
         // (public content is not vulnerable to BREACH)
         // Note: whether the server decides to compress or not depends on other factors

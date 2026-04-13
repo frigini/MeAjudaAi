@@ -28,6 +28,8 @@ public class CompressionSecurityMiddleware
         // Verifica se é seguro comprimir antes de permitir que o middleware de compressão processe
         if (!isSafe)
         {
+            _logger.LogWarning("Compression disabled for request {Path} due to security policy (BREACH/CRIME protection).", context.Request.Path);
+            
             // Desabilita a compressão para esta requisição. 
             // Definir como "identity" é mais explícito do que remover o header para alguns proxies/middlewares.
             context.Request.Headers["Accept-Encoding"] = "identity";
@@ -46,7 +48,7 @@ public class CompressionSecurityMiddleware
     /// Verifica se é seguro comprimir esta requisição.
     /// Executado antes da autenticação para prevenir ataques CRIME/BREACH.
     /// </summary>
-    private bool IsSafeForCompression(HttpContext context)
+    private static bool IsSafeForCompression(HttpContext context)
     {
         var request = context.Request;
 

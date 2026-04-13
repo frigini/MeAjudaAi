@@ -422,9 +422,21 @@ public abstract class BaseApiTest : IAsyncLifetime
             // 1. O JSON for um objeto com a estrutura do Result { items: ..., isSuccess: true, value: ... }
             // 2. O tipo solicitado T NÃO for do tipo Result<T> ou Response<T> (para evitar erro de dupla desserialização)
             
-            bool isResultType = typeof(T).IsGenericType && 
-                               (typeof(T).GetGenericTypeDefinition().Name.StartsWith("Result") || 
-                                typeof(T).GetGenericTypeDefinition().Name.StartsWith("Response"));
+            var type = typeof(T);
+            bool isResultType = false;
+
+            if (type.IsGenericType)
+            {
+                var genericTypeDefinition = type.GetGenericTypeDefinition();
+                isResultType = genericTypeDefinition.Name == "Result`1" || 
+                               genericTypeDefinition.Name == "Response`1";
+            }
+            else
+            {
+                // Tratar tipos de wrapper de resposta não genéricos (ex: UploadDocumentResponse)
+                isResultType = type.Name.EndsWith("Response") || 
+                               (type.Namespace?.Contains("Contracts.Functional") ?? false);
+            }
 
             if (!isResultType && json.ValueKind == JsonValueKind.Object && json.TryGetProperty("isSuccess", out var s) && s.ValueKind == JsonValueKind.True && json.TryGetProperty("value", out var v))
                 return JsonSerializer.Deserialize<T>(v.GetRawText(), SerializationDefaults.Api);

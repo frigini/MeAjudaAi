@@ -125,7 +125,6 @@ public partial class Program
         // Configurar serviços e módulos
         await app.UseSharedServicesAsync();
         app.UseApiServices(app.Environment);
-        app.UseSecurityHardening();
         app.UseRateLimiter();
         app.UseUsersModule();
         app.UseProvidersModule();
