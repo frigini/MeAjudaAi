@@ -34,10 +34,10 @@ public class GetServicesByCategoryEndpoint : BaseEndpoint, IEndpoint
             .Produces<Response<IReadOnlyList<ServiceListDto>>>(StatusCodes.Status200OK);
 
     private static async Task<IResult> GetByCategoryAsync(
-        Guid categoryId,
-        [FromQuery] bool activeOnly,
+        [FromRoute] Guid categoryId,
         IQueryDispatcher queryDispatcher,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        [FromQuery] bool activeOnly = false)
     {
         var queryWithCategory = new GetServicesByCategoryQuery(categoryId, activeOnly);
         var result = await queryDispatcher.QueryAsync<GetServicesByCategoryQuery, Result<IReadOnlyList<ServiceListDto>>>(queryWithCategory, cancellationToken);

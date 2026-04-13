@@ -329,31 +329,36 @@ jobs:
             v1
 
       - name: Checkout Base Branch Spec
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          # Tenta pegar o arquivo já versionado
-          if git show origin/${{ github.base_ref }}:api/api-spec.json > api-base.json 2>/dev/null; then
-            echo "✅ Base spec found in origin/${{ github.base_ref }}"
+          # Usa variáveis de ambiente para evitar interpolação direta no shell
+          if git show origin/$BASE_REF:api/api-spec.json > api-base.json 2>/dev/null; then
+            echo "✅ Base spec found in origin/$BASE_REF"
           else
-            echo "⚠️ Base spec not found in origin/${{ github.base_ref }}. Generating from source..."
+            echo "⚠️ Base spec not found in origin/$BASE_REF. Generating from source using worktree..."
             
-            # Salva o estado atual
-            git stash
+            # Cria um worktree para a branch base em diretório irmão
+            git worktree add ../base-branch origin/$BASE_REF
             
-            # Checkout da branch base para gerar o spec
-            git checkout ${{ github.base_ref }}
-            
-            # Build e geração (usando as mesmas envs de bypass)
+            # Gera o spec a partir do build da base
+            cd ../base-branch
             export ASPNETCORE_ENVIRONMENT=Testing
             dotnet build src/Bootstrapper/MeAjudaAi.ApiService/MeAjudaAi.ApiService.csproj -c Release
             
             swagger tofile \
-              --output api-base.json \
+              --output $GITHUB_WORKSPACE/api-base.json \
               src/Bootstrapper/MeAjudaAi.ApiService/bin/Release/net10.0/MeAjudaAi.ApiService.dll \
-              v1 || echo "{}" > api-base.json # Fallback final se falhar build da base
-            
-            # Volta para a branch do PR
-            git checkout ${{ github.head_ref || github.ref_name }}
-            git stash pop || true
+              v1
+              
+            cd $GITHUB_WORKSPACE
+            git worktree remove ../base-branch --force
+          fi
+          
+          # Validação final: falha se não houver spec base (remove o fallback silencioso de {})
+          if [ ! -f api-base.json ]; then
+            echo "❌ CRITICAL: api-base.json could not be retrieved or generated for $BASE_REF."
+            exit 1
           fi
 
       - name: Check for Breaking Changes

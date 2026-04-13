@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Ratings.Application.Commands;
 using MeAjudaAi.Modules.Ratings.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Contracts.Contracts.Modules.Ratings.DTOs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -40,9 +41,12 @@ public static class RatingsEndpoints
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
-        // Pega o CustomerId do token (UserId)
-        var customerIdClaim = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-        if (customerIdClaim == null || !Guid.TryParse(customerIdClaim.Value, out var customerId))
+        // Pega o CustomerId do token (UserId) com fallback (sub -> id -> NameIdentifier)
+        var customerIdClaimValue = httpContext.User.FindFirst("sub")?.Value 
+                                   ?? httpContext.User.FindFirst("id")?.Value
+                                   ?? httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(customerIdClaimValue) || !Guid.TryParse(customerIdClaimValue, out var customerId))
         {
             return Results.Unauthorized();
         }
@@ -90,6 +94,4 @@ public static class RatingsEndpoints
         return Results.Ok(result);
     }
 
-    public record CreateReviewRequest(Guid ProviderId, int Rating, string? Comment);
-    public record ProviderReviewResponse(Guid Id, int Rating, string? Comment, DateTime CreatedAt);
 }

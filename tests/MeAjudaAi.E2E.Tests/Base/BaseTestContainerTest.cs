@@ -44,8 +44,8 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     private static AzuriteContainer? _azuriteContainer;
 
     /// <summary>
-    /// Override in derived classes to enable synchronous in-memory message bus and domain events.
-    /// Used for tests that depend on cross-module integration events (e.g. Ratings -> SearchProviders).
+    /// Sobrescreva em classes derivadas para habilitar o message bus em memória síncrono e eventos de domínio.
+    /// Usado para testes que dependem de eventos de integração entre módulos (ex: Ratings -> SearchProviders).
     /// </summary>
     protected virtual bool EnableEventsAndMessageBus => false;
 
@@ -249,26 +249,13 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 
                     if (EnableEventsAndMessageBus)
                     {
-                        var messageBusDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Messaging.IMessageBus)).ToList();
-                        foreach (var descriptor in messageBusDescriptors) services.Remove(descriptor);
-                        services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MeAjudaAi.E2E.Tests.Infrastructure.SynchronousInMemoryMessageBus>();
-
-                        // Mantenha IDomainEventProcessor original (Default) 
-                        var domainEventProcessorDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Events.IDomainEventProcessor)).ToList();
-                        foreach (var descriptor in domainEventProcessorDescriptors) services.Remove(descriptor);
-                        services.AddScoped<MeAjudaAi.Shared.Events.IDomainEventProcessor, MeAjudaAi.Shared.Events.DomainEventProcessor>();
+                        ReplaceService<MeAjudaAi.Shared.Messaging.IMessageBus, MeAjudaAi.E2E.Tests.Infrastructure.SynchronousInMemoryMessageBus>(services, ServiceLifetime.Singleton);
+                        ReplaceService<MeAjudaAi.Shared.Events.IDomainEventProcessor, MeAjudaAi.Shared.Events.DomainEventProcessor>(services, ServiceLifetime.Scoped);
                     }
                     else
                     {
-                        // Substituir IMessageBus por MockMessageBus para testes (RabbitMQ desabilitado)
-                        var messageBusDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Messaging.IMessageBus)).ToList();
-                        foreach (var descriptor in messageBusDescriptors) services.Remove(descriptor);
-                        services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MockMessageBus>();
-
-                        // Substituir IDomainEventProcessor por um mock que não processa eventos
-                        var domainEventProcessorDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Events.IDomainEventProcessor)).ToList();
-                        foreach (var descriptor in domainEventProcessorDescriptors) services.Remove(descriptor);
-                        services.AddScoped<MeAjudaAi.Shared.Events.IDomainEventProcessor, MockDomainEventProcessor>();
+                        ReplaceService<MeAjudaAi.Shared.Messaging.IMessageBus, MockMessageBus>(services, ServiceLifetime.Singleton);
+                        ReplaceService<MeAjudaAi.Shared.Events.IDomainEventProcessor, MockDomainEventProcessor>(services, ServiceLifetime.Scoped);
                     }
 
                     // Remove todas as configurações de autenticação existentes
@@ -689,5 +676,21 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             // No-op: domain events are not processed in E2E tests to avoid integration event publication
             return Task.CompletedTask;
         }
+    }
+
+    /// <summary>
+    /// Helper para substituir um serviço existente na IServiceCollection.
+    /// </summary>
+    protected static void ReplaceService<TService, TImplementation>(IServiceCollection services, ServiceLifetime lifetime)
+        where TImplementation : class, TService
+    {
+        var descriptors = services.Where(d => d.ServiceType == typeof(TService)).ToList();
+        foreach (var descriptor in descriptors)
+        {
+            services.Remove(descriptor);
+        }
+
+        var newDescriptor = new ServiceDescriptor(typeof(TService), typeof(TImplementation), lifetime);
+        services.Add(newDescriptor);
     }
 }

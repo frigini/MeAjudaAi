@@ -129,7 +129,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             _ => (
                 StatusCodes.Status500InternalServerError,
                 "Erro Interno do Servidor",
-                $"Ocorreu um erro inesperado: {exception.Message} - {exception.ToString()}",
+                "Ocorreu um erro inesperado no servidor.",
                 null,
                 new Dictionary<string, object?>
                 {

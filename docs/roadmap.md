@@ -32,7 +32,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 *   **Ação**: Configuração de Identity Provider nativo do Instagram no Keycloak para permitir que prestadores usem seu perfil do Instagram para autenticação.
 
 #### 3. 🛡️ OpenAPI Breaking Change Gating (CI) [EM ANDAMENTO]
-*   **Ação**: Novo step no workflow de PR para comparar o `swagger.json` e falhar o build se houver mudanças destrutivas sem bump de versão. Corrigido para rodar em ambiente `Testing` para evitar dependências de segredos reais.
+*   **Ação**: Novo step no workflow de PR para comparar o `api-base.json` com `api-current/api-spec.json` usando `breaking-only` e `fail-on-diff` para falhar o build caso existam mudanças destrutivas na API. Corrigido para rodar em ambiente `Testing` para evitar dependências de segredos reais.
 
 #### 4. 📋 Coleções Bruno (.bru) [EM ANDAMENTO]
 *   **Ação**: Documentação técnica de 100% dos endpoints existentes em `src/Modules/*/API/API.Client/`.

@@ -26,10 +26,10 @@ export const serviceKeys = {
   detail: (id: string) => [...serviceKeys.details(), id] as const,
 };
 
-export function useServices(categoryId?: string) {
+export function useServices(categoryId?: string, activeOnly: boolean = false) {
   return useQuery({
-    queryKey: serviceKeys.list({ categoryId } as any),
-    queryFn: () => categoryId ? apiCategoryGet({ path: { categoryId } }) : apiServicesGet(),
+    queryKey: serviceKeys.list({ categoryId, activeOnly } as any),
+    queryFn: () => categoryId ? apiCategoryGet({ path: { categoryId }, query: { activeOnly } }) : apiServicesGet(),
     select: (data: any) => data.data ?? data,
   });
 }
