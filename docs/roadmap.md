@@ -1,46 +1,86 @@
-# 🗺️ Roadmap - MeAjudaAi
+# 🗺️ Roadmap MeAjudaAi
 
-Este documento consolida o planejamento estratégico e tático da plataforma MeAjudaAi. Para facilitar a leitura e manutenção, o roadmap foi dividido em seções específicas:
-
----
-
-## 🚀 [Roadmap Atual](./roadmap-current.md)
-**Status**: Fase 2 em andamento (Frontend React + Mobile).  
-Contém o status atual das sprints, o cronograma detalhado até o MVP e o plano de mitigação de riscos.
-- **Sprint Atual**: 9 (Buffer & Risk Mitigation)
-- **Sprint Concluída**: 8E (E2E Tests & React Unit Infrastructure)
-- **Sprint em Andamento**: 9E (Buffer & Risk Mitigation + Módulo Comunicações)
-- **Meta MVP**: Maio 2026 (12-16)
+Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ---
 
-## 📜 [Histórico do Roadmap](./roadmap-history.md)
-Contém o registro de todas as fases e sprints já concluídos.
-- **Fase 1**: Fundação (Janeiro 2025)
-- **Fase 1.5**: Fundação Técnica (Março 2026)
-- **Sprints**: 0 a 8B.1
+## 📊 Status Atual (Abril 2026)
+
+**Sprint Atual**: 10 (Qualidade & Infraestrutura)
+**Status**: 🔄 Em Andamento
+**Meta MVP**: 12 - 16 de Maio de 2026
+
+**Stack Principal**: .NET 10 LTS + Aspire 13 + PostgreSQL + NX Monorepo + React 19 + Next.js 15 + Tailwind v4
 
 ---
 
-## 🔮 [Roadmap Futuro](./roadmap-future.md)
-Contém os objetivos pós-MVP e ideias para o backlog de longo prazo.
-- **Fase 3**: Qualidade e Monetização
-- **Fase 4**: Experiência e Engajamento
+## 🚀 Sprint 10 - Qualidade & Onboarding (12 Abr - 26 Abr 2026)
+
+**Objetivo**: Estabelecer confiança na plataforma através de avaliações e simplificar o acesso de novos prestadores.
+
+### 🔴 MUST-HAVE:
+
+#### 1. 🌟 Ratings Module (Módulo de Avaliações)
+*   **Arquitetura**: **Consistência Eventual**. O módulo de busca (`SearchProviders`) não fará Join com o módulo de Ratings. Sempre que um review for postado, um `ReviewCreatedIntegrationEvent` será disparado e o módulo de busca atualizará o campo `AverageRating` no seu próprio registro desnormalizado.
+*   **Funcionalidades**:
+    *   **Avaliação de Prestadores**: Clientes podem adicionar nota (1 a 5 estrelas) e comentário textual após a conclusão de um serviço.
+    *   **Moderação de Conteúdo**: Filtro automático e manual para comentários que violem as regras (xingamentos, ofensas, SPAM).
+    *   **Ranking de Busca**: Algoritmo de busca priorizando prestadores com melhor média e maior volume de avaliações verificadas.
+*   **Schema DB**: `ratings` | **ModuleName**: `Ratings`.
+
+#### 2. 🔑 Login Social (Instagram) - ISSUE #141
+*   **Ação**: Configuração de Identity Provider OIDC genérico no Keycloak para permitir que prestadores usem seu perfil do Instagram para autenticação.
+
+#### 3. 🛡️ OpenAPI Breaking Change Gating (CI)
+*   **Ação**: Novo step no workflow de PR para comparar o `swagger.json` e falhar o build se houver mudanças destrutivas sem bump de versão.
+
+#### 4. 📋 Coleções Bruno (.bru)
+*   **Ação**: Documentação técnica de 100% dos endpoints existentes em `tools/api-collections/`.
 
 ---
 
-## 📊 Sumário Executivo Atualizado
+## 💰 Sprint 11 - Monetização & Polimento (27 Abr - 11 Mai 2026)
 
-**Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Stack Principal**: .NET 10 LTS + Aspire 13 + PostgreSQL + NX Monorepo + React 19 + Next.js 15 (Customer, Provider) + Tailwind v4
-> [!NOTE]
-> *Admin Portal migrado de Blazor WASM para React durante o Sprint 8D (concluído em 24 de Março de 2026).*
+**Objetivo**: Habilitar o faturamento da plataforma e finalizar a experiência do usuário.
+
+### 🔴 MUST-HAVE:
+
+#### 1. 💳 Payments Module (Módulo de Pagamentos)
+*   **Arquitetura**: Padrão de **Anti-Corruption Layer (ACL)**. A lógica de negócio não conhece tipos do Stripe. Abstração via `IPaymentGateway`.
+*   **Funcionalidades**:
+    *   **Assinaturas de Prestadores**: Planos Free, Standard e Gold.
+    *   **Stripe Checkout & Webhooks**: Redirecionamento seguro e processamento de eventos (`invoice.paid`, etc.).
+    *   **Portal de Billing**: Gestão de cartões e cancelamentos.
+*   **Schema DB**: `payments` | **ModuleName**: `Payments`.
+
+#### 2. 🌍 Localização Frontend (i18n)
+*   **Arquitetura**: `i18next` + `react-i18next`.
+*   **Funcionalidades**: Suporte PT-BR/EN-US, tradução automática de erros do **Zod** e seletor de idioma na UI.
+
+#### 3. 🏁 Preparação para Lançamento
+*   **Endurecimento**: Skeletons de carregamento e mensagens de erro amigáveis em todos os fluxos.
+*   **Documentação Final**: Manuais de Usuário e Guias de Implantação.
 
 ---
 
-## 🏗️ Decisões Arquiteturais Recentes
+## 🔮 Roadmaps Futuros (Pós-MVP)
 
-- **NX Monorepo**: Adotado para unificar o desenvolvimento frontend e compartilhamento de código.
-- **Dual-Stack Transition**: Transição de Blazor WASM para React 19 (Next.js) para unificação da stack.
-- **Testing Infrastructure**: Implementação de Vitest + MSW para unitários e Playwright para E2E, com agregação de cobertura global.
-- **Módulo Comunicações** (Abril 2026): Implementado durante Sprint 9 com Outbox Pattern - provedor configurável pós-MVP.
+### Fase 3: Escala e Provedores Reais
+*   **Provedores de Comunicação**: Substituir Stubs por SendGrid (E-mail), Twilio (SMS) e Firebase (Push).
+*   **Verificação Automatizada**: OCR via Azure AI Vision e integração com APIs de antecedentes criminais.
+
+### Fase 4: Experiência e Engajamento
+*   **Módulo de Agendamentos (Bookings)**: Calendário de disponibilidade.
+*   **Sistema de Disputas**: Mediação administrativa para conflitos.
+
+---
+
+## ✅ Concluído Recentemente
+
+*   **Sprint 9**: Estabilização global, Módulo de Comunicações (Infra), Resiliência (`CancellationToken`) e Localização Backend (.resx).
+*   **Sprint 8D/8E**: Migração completa do Admin Portal para React e Testes E2E com Playwright.
+
+---
+
+## 📜 Histórico Completo
+Para detalhes das sprints anteriores, consulte o [Histórico do Roadmap](./roadmap-history.md).
