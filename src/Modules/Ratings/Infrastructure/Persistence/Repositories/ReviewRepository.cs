@@ -1,8 +1,10 @@
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.Enums;
+using MeAjudaAi.Modules.Ratings.Domain.Exceptions;
 using MeAjudaAi.Modules.Ratings.Domain.Repositories;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.Repositories;
 
@@ -10,8 +12,15 @@ public class ReviewRepository(RatingsDbContext context) : IReviewRepository
 {
     public async Task AddAsync(Review review, CancellationToken cancellationToken = default)
     {
-        await context.Reviews.AddAsync(review, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await context.Reviews.AddAsync(review, cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
+        {
+            throw new DuplicateReviewException(review.ProviderId, review.CustomerId);
+        }
     }
 
     public async Task<Review?> GetByIdAsync(ReviewId id, CancellationToken cancellationToken = default)

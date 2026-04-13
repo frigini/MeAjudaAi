@@ -34,20 +34,10 @@ public class SynchronousInMemoryMessageBus(
         {
             if (handler == null) continue;
             
-            try 
+            var method = handlerType.GetMethod("HandleAsync");
+            if (method != null)
             {
-                var method = handlerType.GetMethod("HandleAsync");
-                if (method != null)
-                {
-                    await (Task)method.Invoke(handler, [@event, cancellationToken])!;
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error executing handler {HandlerType} for event {EventType}. SWALLOWING exception to avoid crashing test.", 
-                    handler.GetType().Name, typeof(TMessage).Name);
-                // Swallowing to avoid crashing the main transaction/operation in E2E tests
-                // In a real scenario with RabbitMQ, this would be handled by retries/DLQ
+                await (Task)method.Invoke(handler, [@event, cancellationToken])!;
             }
         }
     }

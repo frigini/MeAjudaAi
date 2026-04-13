@@ -69,7 +69,9 @@ public static class RatingsEndpoints
         CancellationToken cancellationToken)
     {
         var review = await repository.GetByIdAsync(id, cancellationToken);
-        if (review == null) return Results.NotFound();
+        
+        if (review == null || review.Status != MeAjudaAi.Modules.Ratings.Domain.Enums.EReviewStatus.Approved) 
+            return Results.NotFound();
 
         return Results.Ok(new ProviderReviewResponse(
             review.Id.Value,

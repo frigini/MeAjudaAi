@@ -1,11 +1,10 @@
 using MeAjudaAi.Modules.Ratings.Application.Commands;
 using MeAjudaAi.Modules.Ratings.Application.Services;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
+using MeAjudaAi.Modules.Ratings.Domain.Exceptions;
 using MeAjudaAi.Modules.Ratings.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Npgsql;
 
 namespace MeAjudaAi.Modules.Ratings.Application.Handlers;
 
@@ -57,9 +56,9 @@ public sealed class CreateReviewCommandHandler(
         {
             await repository.AddAsync(review, cancellationToken);
         }
-        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
+        catch (DuplicateReviewException ex)
         {
-            logger.LogWarning(ex, "Unique constraint violation at DB level for Review between Provider {ProviderId} and Customer {CustomerId}", 
+            logger.LogWarning(ex, "Duplicate review detected at persistence level for Provider {ProviderId} and Customer {CustomerId}", 
                 command.ProviderId, command.CustomerId);
             throw new InvalidOperationException("Você já avaliou este prestador.");
         }
