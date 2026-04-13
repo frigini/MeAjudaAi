@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Shared.Monitoring;
 
 /// <summary>
-/// Métricas customizadas de negócio para MeAjudaAi
+/// Custom business metrics for MeAjudaAi
 /// </summary>
 [ExcludeFromCodeCoverage]
 public class BusinessMetrics : IDisposable

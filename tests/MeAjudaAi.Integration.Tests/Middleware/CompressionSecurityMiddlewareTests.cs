@@ -7,7 +7,7 @@ using Xunit;
 namespace MeAjudaAi.Integration.Tests.Middleware;
 
 /// <summary>
-/// Testes de integração para CompressionSecurityMiddleware
+/// Integration tests for CompressionSecurityMiddleware
 /// </summary>
 public sealed class CompressionSecurityMiddlewareTests : BaseApiTest
 {
@@ -17,8 +17,8 @@ public sealed class CompressionSecurityMiddlewareTests : BaseApiTest
     public async Task CompressionSecurity_AuthenticatedUser_ShouldDisableCompression()
     {
         // Arrange
-        // O middleware CompressionSecurity verifica este header antes de UseAuthentication() executar
-        // Não precisamos de um usuário real no banco, apenas do header presente
+        // CompressionSecurity middleware checks this header before UseAuthentication() executes
+        // We don't need a real user in DB, just the header presence
         HttpClient.DefaultRequestHeaders.Add("Authorization", "Bearer test-token");
         HttpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
@@ -27,18 +27,18 @@ public sealed class CompressionSecurityMiddlewareTests : BaseApiTest
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK,
-            "O endpoint de health deve ser acessível");
+            "Health endpoint should be accessible");
 
-        // Verifica se o middleware de segurança agiu
+        // Verify if security middleware acted
         response.Headers.Should().ContainKey("X-Compression-Disabled", 
-            "O middleware de segurança deve adicionar o header de debug quando desabilita compressão");
+            "Security middleware should add debug header when disabling compression");
 
-        // CompressionSecurityMiddleware deve desabilitar compressão para usuários autenticados
-        // Isso previne ataques BREACH/CRIME que exploram compressão
+        // CompressionSecurityMiddleware should disable compression for authenticated users
+        // This prevents BREACH/CRIME attacks that exploit compression
         response.Content.Headers.ContentEncoding.Should().NotContain("gzip",
-            "Compressão deve ser desabilitada para usuários autenticados (proteção BREACH)");
+            "Compression must be disabled for authenticated users (BREACH protection)");
         response.Content.Headers.ContentEncoding.Should().NotContain("br",
-            "Brotli deve ser desabilitado para usuários autenticados (proteção BREACH)");
+            "Brotli must be disabled for authenticated users (BREACH protection)");
 
         HttpClient.DefaultRequestHeaders.Remove("Authorization");
         HttpClient.DefaultRequestHeaders.Remove("Accept-Encoding");
@@ -57,10 +57,10 @@ public sealed class CompressionSecurityMiddlewareTests : BaseApiTest
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        // Para usuários anônimos, compressão pode estar habilitada
-        // (conteúdo público não é vulnerável a BREACH)
-        // Nota: se o servidor decidir comprimir ou não depende de outros fatores
-        // Este teste valida que middleware NÃO bloqueia compressão para anônimos
+        // For anonymous users, compression may be enabled
+        // (public content is not vulnerable to BREACH)
+        // Note: whether the server decides to compress or not depends on other factors
+        // This test validates that middleware does NOT block compression for anonymous
         
         HttpClient.DefaultRequestHeaders.Remove("Accept-Encoding");
     }
@@ -95,7 +95,7 @@ public sealed class CompressionSecurityMiddlewareTests : BaseApiTest
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             
             response.Content.Headers.ContentEncoding.Should().NotContain("gzip",
-                "Todas as requisições autenticadas devem ter compressão desabilitada");
+                "All authenticated requests must have compression disabled");
         }
 
         HttpClient.DefaultRequestHeaders.Remove("Authorization");
@@ -118,7 +118,7 @@ public sealed class CompressionSecurityMiddlewareTests : BaseApiTest
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 response.Content.Headers.ContentEncoding.Should().NotContain("gzip",
-                    $"Endpoint {endpoint} não deve comprimir para usuários autenticados");
+                    $"Endpoint {endpoint} should not compress for authenticated users");
             }
         }
 
