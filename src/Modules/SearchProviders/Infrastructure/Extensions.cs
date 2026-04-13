@@ -37,7 +37,7 @@ public static class Extensions
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        if (string.IsNullOrWhiteSpace(connectionString))
+        if (string.IsNullOrWhiteSpace(connectionString) && !MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
         {
             throw new InvalidOperationException(
                 "Database connection string is not configured. " +
@@ -48,11 +48,14 @@ public static class Extensions
         // DbContext principal para escrita/comandos (EF Core)
         services.AddDbContext<SearchProvidersDbContext>(options =>
         {
-            options.UseNpgsql(connectionString, npgsqlOptions =>
+            if (!string.IsNullOrWhiteSpace(connectionString))
             {
-                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
-                npgsqlOptions.EnableRetryOnFailure(3);
-            });
+                options.UseNpgsql(connectionString, npgsqlOptions =>
+                {
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
+                    npgsqlOptions.EnableRetryOnFailure(3);
+                });
+            }
 
             if (environment.IsDevelopment())
             {

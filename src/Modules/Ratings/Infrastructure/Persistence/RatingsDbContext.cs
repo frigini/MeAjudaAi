@@ -10,12 +10,10 @@ namespace MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 
 public class RatingsDbContext : BaseDbContext
 {
-    public RatingsDbContext(DbContextOptions<RatingsDbContext> options) : base(options)
-    {
-    }
-
-    public RatingsDbContext(DbContextOptions<RatingsDbContext> options, IDomainEventProcessor domainEventProcessor)
-        : base(options, domainEventProcessor)
+    public RatingsDbContext(
+        DbContextOptions<RatingsDbContext> options, 
+        IDomainEventProcessor? domainEventProcessor = null) 
+        : base(options, domainEventProcessor!)
     {
     }
 

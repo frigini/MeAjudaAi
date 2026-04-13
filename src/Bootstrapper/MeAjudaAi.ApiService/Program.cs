@@ -50,7 +50,7 @@ public partial class Program
             builder.Services.AddLocationsModule(builder.Configuration);
             builder.Services.AddServiceCatalogsModule(builder.Configuration);
             builder.Services.AddCommunicationsModule(builder.Configuration);
-            builder.Services.AddRatingsModule(builder.Configuration);
+            builder.Services.AddRatingsModule(builder.Configuration, builder.Environment);
 
             // Shared services por último (GlobalExceptionHandler atua como fallback)
             builder.Services.AddSharedServices(builder.Configuration);

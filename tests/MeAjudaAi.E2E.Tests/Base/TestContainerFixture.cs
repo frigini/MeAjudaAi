@@ -261,6 +261,12 @@ public class TestContainerFixture : IAsyncLifetime
         if (ocrDescriptor != null)
             services.Remove(ocrDescriptor);
         services.AddSingleton<IDocumentIntelligenceService, MockDocumentIntelligenceService>();
+
+        // Message Bus Síncrono para E2E
+        var busDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(MeAjudaAi.Shared.Messaging.IMessageBus));
+        if (busDescriptor != null)
+            services.Remove(busDescriptor);
+        services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MeAjudaAi.E2E.Tests.Infrastructure.SynchronousInMemoryMessageBus>();
     }
 
     private void ReconfigureDbContexts(IServiceCollection services)
@@ -271,6 +277,7 @@ public class TestContainerFixture : IAsyncLifetime
         ReconfigureDbContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
+        ReconfigureDbContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
 
         // PostgresOptions para SearchProviders (Dapper)
         var postgresOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(PostgresOptions));
@@ -334,6 +341,7 @@ public class TestContainerFixture : IAsyncLifetime
             await ApplyMigrationForContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services);
             await ApplyMigrationForContext<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
             await ApplyMigrationForContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
+            await ApplyMigrationForContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
 
             Console.WriteLine("✅ Database migrations applied successfully");
         }

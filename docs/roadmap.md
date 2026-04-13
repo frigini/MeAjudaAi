@@ -21,21 +21,21 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 ### 🔴 MUST-HAVE:
 
 #### 1. 🌟 Ratings Module (Módulo de Avaliações) [CONCLUÍDO]
-*   **Arquitetura**: **Consistência Eventual**. O módulo de busca (`SearchProviders`) não fará Join com o módulo de Ratings. Sempre que um review for postado, um `ReviewCreatedIntegrationEvent` será disparado e o módulo de busca atualizará o campo `AverageRating` no seu próprio registro desnormalizado.
+*   **Arquitetura**: **Consistência Eventual**. O módulo de busca (`SearchProviders`) não fará Join com o módulo de Ratings. Sempre que um review for aprovado, um `ReviewApprovedIntegrationEvent` será disparado e o módulo de busca atualizará o campo `AverageRating` no seu próprio registro desnormalizado.
 *   **Funcionalidades**:
     *   ✅ **Avaliação de Prestadores**: Clientes podem adicionar nota (1 a 5 estrelas) e comentário textual após a conclusão de um serviço.
-    *   ✅ **Moderação de Conteúdo**: Filtro automático e manual para comentários que violem as regras (xingamentos, ofensas, SPAM).
+    *   ✅ **Moderação de Conteúdo**: Filtro automático via Regex e manual para comentários que violem as regras (xingamentos, ofensas, SPAM).
     *   ✅ **Ranking de Busca**: Algoritmo de busca priorizando prestadores com melhor média e maior volume de avaliações verificadas.
 *   **Schema DB**: `ratings` | **ModuleName**: `Ratings`.
 
 #### 2. 🔑 Login Social (Instagram) - ISSUE #141 [CONCLUÍDO]
-*   **Ação**: Configuração de Identity Provider OIDC genérico no Keycloak para permitir que prestadores usem seu perfil do Instagram para autenticação.
+*   **Ação**: Configuração de Identity Provider nativo do Instagram no Keycloak para permitir que prestadores usem seu perfil do Instagram para autenticação.
 
 #### 3. 🛡️ OpenAPI Breaking Change Gating (CI) [CONCLUÍDO]
-*   **Ação**: Novo step no workflow de PR para comparar o `swagger.json` e falhar o build se houver mudanças destrutivas sem bump de versão.
+*   **Ação**: Novo step no workflow de PR para comparar o `swagger.json` e falhar o build se houver mudanças destrutivas sem bump de versão. Corrigido para rodar em ambiente `Testing` para evitar dependências de segredos reais.
 
 #### 4. 📋 Coleções Bruno (.bru) [CONCLUÍDO]
-*   **Ação**: Documentação técnica de 100% dos endpoints existentes em `tools/api-collections/`.
+*   **Ação**: Documentação técnica de 100% dos endpoints existentes em `src/Modules/*/API/API.Client/`.
 
 ---
 
