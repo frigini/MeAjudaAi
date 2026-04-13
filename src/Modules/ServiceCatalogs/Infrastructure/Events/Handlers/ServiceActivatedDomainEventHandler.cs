@@ -20,8 +20,7 @@ public sealed class ServiceActivatedDomainEventHandler(
             var service = await serviceRepository.GetByIdAsync(domainEvent.ServiceId, cancellationToken);
             if (service == null)
             {
-                logger.LogWarning("Service {ServiceId} not found when handling activation event.", domainEvent.ServiceId);
-                return;
+                throw new InvalidOperationException($"Service {domainEvent.ServiceId} not found when handling activation event.");
             }
 
             var integrationEvent = new ServiceActivatedIntegrationEvent(

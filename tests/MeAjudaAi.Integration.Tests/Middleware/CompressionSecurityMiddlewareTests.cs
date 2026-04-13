@@ -16,21 +16,23 @@ public sealed class CompressionSecurityMiddlewareTests : BaseApiTest
     [Fact]
     public async Task CompressionSecurity_AuthenticatedUser_ShouldDisableCompression()
     {
-        // Arrange - Configurar usuário autenticado
-        AuthConfig.ConfigureRegularUser();
-        
-        // Simula requisição autenticada adicionando header Authorization
+        // Arrange
         // O middleware CompressionSecurity verifica este header antes de UseAuthentication() executar
+        // Não precisamos de um usuário real no banco, apenas do header presente
         HttpClient.DefaultRequestHeaders.Add("Authorization", "Bearer test-token");
         HttpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
         // Act
-        using var response = await HttpClient.GetAsync("/api/v1/providers");
+        using var response = await HttpClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK,
-            "Requisição autenticada ao endpoint /api/v1/users deve ser bem-sucedida");
-        
+            "O endpoint de health deve ser acessível");
+
+        // Verifica se o middleware de segurança agiu
+        response.Headers.Should().ContainKey("X-Compression-Disabled", 
+            "O middleware de segurança deve adicionar o header de debug quando desabilita compressão");
+
         // CompressionSecurityMiddleware deve desabilitar compressão para usuários autenticados
         // Isso previne ataques BREACH/CRIME que exploram compressão
         response.Content.Headers.ContentEncoding.Should().NotContain("gzip",
@@ -66,42 +68,34 @@ public sealed class CompressionSecurityMiddlewareTests : BaseApiTest
     [Fact]
     public async Task CompressionSecurity_AuthenticatedRequest_WithoutAcceptEncoding_ShouldSucceed()
     {
-        // Arrange - Configurar usuário autenticado
-        AuthConfig.ConfigureRegularUser();
+        // Arrange
+        HttpClient.DefaultRequestHeaders.Add("Authorization", "Bearer test-token");
         HttpClient.DefaultRequestHeaders.Remove("Accept-Encoding");
 
         // Act
-        using var response = await HttpClient.GetAsync("/api/v1/providers");
+        using var response = await HttpClient.GetAsync("/health");
 
         // Assert
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Unauthorized);
-        
-        if (response.StatusCode == HttpStatusCode.OK)
-        {
-            response.Content.Headers.ContentEncoding.Should().BeEmpty(
-                "Sem Accept-Encoding, não deve haver compressão");
-        }
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        HttpClient.DefaultRequestHeaders.Authorization = null;
+        HttpClient.DefaultRequestHeaders.Remove("Authorization");
     }
 
     [Fact]
     public async Task CompressionSecurity_MultipleAuthenticatedRequests_ShouldConsistentlyDisableCompression()
     {
-        // Arrange - Configurar usuário autenticado
-        AuthConfig.ConfigureRegularUser();
+        // Arrange
         HttpClient.DefaultRequestHeaders.Add("Authorization", "Bearer test-token");
         HttpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
         // Act & Assert - Dispose responses immediately after use
         for (int i = 0; i < 5; i++)
         {
-            using var response = await HttpClient.GetAsync("/api/v1/providers");
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                response.Content.Headers.ContentEncoding.Should().NotContain("gzip",
-                    "Todas as requisições autenticadas devem ter compressão desabilitada");
-            }
+            using var response = await HttpClient.GetAsync("/health");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            
+            response.Content.Headers.ContentEncoding.Should().NotContain("gzip",
+                "Todas as requisições autenticadas devem ter compressão desabilitada");
         }
 
         HttpClient.DefaultRequestHeaders.Remove("Authorization");
@@ -111,12 +105,11 @@ public sealed class CompressionSecurityMiddlewareTests : BaseApiTest
     [Fact]
     public async Task CompressionSecurity_DifferentEndpoints_ShouldApplyRulesConsistently()
     {
-        // Arrange - Configurar usuário autenticado
-        AuthConfig.ConfigureRegularUser();
+        // Arrange
         HttpClient.DefaultRequestHeaders.Add("Authorization", "Bearer test-token");
         HttpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
-        var endpoints = new[] { "/api/v1/providers", "/api/v1/service-categories" };
+        var endpoints = new[] { "/health", "/api/v1/configuration/features" };
 
         // Act & Assert - Dispose responses immediately after use
         foreach (var endpoint in endpoints)

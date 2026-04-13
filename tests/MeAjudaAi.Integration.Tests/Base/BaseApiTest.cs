@@ -191,7 +191,12 @@ public abstract class BaseApiTest : IAsyncLifetime
                 });
             });
 
-        Client = _factory.CreateClient();
+        var options = new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = true,
+            BaseAddress = new Uri("https://localhost")
+        };
+        Client = _factory.CreateClient(options);
         AuthConfig = _factory.Services.GetRequiredService<ITestAuthenticationConfiguration>();
 
         using var scope = _factory.Services.CreateScope();
@@ -212,6 +217,9 @@ public abstract class BaseApiTest : IAsyncLifetime
             });
             
             options.UseSnakeCaseNamingConvention();
+            
+            // Suprime aviso de mudanças pendentes no modelo durante testes de integração.
+            // Útil para ignorar drifts menores de convenção de nomes (ex: PK_ casing) sem forçar novas migrations em dev.
             options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 
             if (Environment.GetEnvironmentVariable("ENABLE_SENSITIVE_LOGGING") == "true")
@@ -245,12 +253,12 @@ public abstract class BaseApiTest : IAsyncLifetime
         await MigrationLock.WaitAsync();
         try
         {
-            // Apply migrations in order
+            // Apply migrations in production priority order: Users -> ServiceCatalogs -> Locations -> Documents -> Providers -> Communications
             if (modules.HasFlag(TestModule.Users)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<UsersDbContext>(), "Users", logger);
             if (modules.HasFlag(TestModule.ServiceCatalogs)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<ServiceCatalogsDbContext>(), "ServiceCatalogs", logger);
-            if (modules.HasFlag(TestModule.Providers)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<ProvidersDbContext>(), "Providers", logger);
-            if (modules.HasFlag(TestModule.Documents)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<DocumentsDbContext>(), "Documents", logger);
             if (modules.HasFlag(TestModule.Locations)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<LocationsDbContext>(), "Locations", logger);
+            if (modules.HasFlag(TestModule.Documents)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<DocumentsDbContext>(), "Documents", logger);
+            if (modules.HasFlag(TestModule.Providers)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<ProvidersDbContext>(), "Providers", logger);
             if (modules.HasFlag(TestModule.Communications)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<CommunicationsDbContext>(), "Communications", logger);
             
             if (modules.HasFlag(TestModule.SearchProviders))

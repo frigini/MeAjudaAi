@@ -1,11 +1,13 @@
 using MeAjudaAi.Contracts.Modules.Providers;
-using MeAjudaAi.Modules.Communications.Domain.Entities;
+using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
 using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Modules.Communications.Domain.Repositories;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using MeAjudaAi.Contracts.Shared;
+using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Database.Outbox;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -20,8 +22,6 @@ public sealed class DocumentRejectedIntegrationEventHandler(
     ILogger<DocumentRejectedIntegrationEventHandler> logger)
     : IEventHandler<DocumentRejectedIntegrationEvent>
 {
-    private const string TemplateKey = "document-rejected";
-
     public async Task HandleAsync(DocumentRejectedIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
     {
         var providerResult = await providersModuleApi.GetProviderByIdAsync(integrationEvent.ProviderId, cancellationToken);
@@ -40,16 +40,23 @@ public sealed class DocumentRejectedIntegrationEventHandler(
         }
 
         var recipientEmail = providerResult.Value.Email;
-        var correlationId = $"{TemplateKey}:{integrationEvent.DocumentId}:{integrationEvent.ProviderId}";
+        var templateKey = CommunicationTemplateKeys.DocumentRejected;
+        var correlationId = $"{templateKey}:{integrationEvent.DocumentId}:{integrationEvent.ProviderId}";
 
-        var emailPayload = new
+        var templateData = new Dictionary<string, string>
         {
-            To = recipientEmail,
-            Subject = $"Documento rejeitado: {integrationEvent.DocumentType}",
-            Body = $"Olá {providerResult.Value.Name}, seu documento ({integrationEvent.DocumentType}) foi rejeitado. Motivo: {integrationEvent.Reason}",
-            TemplateKey = TemplateKey,
-            CorrelationId = correlationId
+            ["ProviderName"] = providerResult.Value.Name,
+            ["DocumentType"] = integrationEvent.DocumentType,
+            ["Reason"] = integrationEvent.Reason
         };
+
+        var emailPayload = new EmailOutboxPayload(
+            To: recipientEmail,
+            Subject: $"Documento rejeitado: {integrationEvent.DocumentType}",
+            Body: $"Olá {providerResult.Value.Name}, seu documento ({integrationEvent.DocumentType}) foi rejeitado. Motivo: {integrationEvent.Reason}",
+            TemplateKey: templateKey,
+            TemplateData: templateData
+        );
 
         var message = OutboxMessage.Create(
             channel: ECommunicationChannel.Email,
@@ -71,7 +78,8 @@ public sealed class DocumentRejectedIntegrationEventHandler(
             {
                 var processedException = MeAjudaAi.Shared.Database.Exceptions.PostgreSqlExceptionProcessor.ProcessException(dbEx);
 
-                if (processedException is MeAjudaAi.Shared.Database.Exceptions.UniqueConstraintException)
+                if (processedException is MeAjudaAi.Shared.Database.Exceptions.UniqueConstraintException uniqueEx &&
+                    uniqueEx.ConstraintName == OutboxMessageConstraints.CorrelationIdIndexName)
                 {
                     logger.LogInformation(
                         "Skipping document rejected notification for document {DocumentId} — already enqueued (correlationId: {CorrelationId}).",

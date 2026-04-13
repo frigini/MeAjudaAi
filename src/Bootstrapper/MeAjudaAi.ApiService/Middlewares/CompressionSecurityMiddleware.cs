@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+
 namespace MeAjudaAi.ApiService.Middlewares;
 
 /// <summary>
@@ -10,19 +13,30 @@ namespace MeAjudaAi.ApiService.Middlewares;
 public class CompressionSecurityMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly ILogger<CompressionSecurityMiddleware> _logger;
 
-    public CompressionSecurityMiddleware(RequestDelegate next)
+    public CompressionSecurityMiddleware(RequestDelegate next, ILogger<CompressionSecurityMiddleware> logger)
     {
         _next = next;
+        _logger = logger;
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
+        var isSafe = IsSafeForCompression(context);
+        
         // Verifica se é seguro comprimir antes de permitir que o middleware de compressão processe
-        if (!IsSafeForCompression(context))
+        if (!isSafe)
         {
-            // Desabilita a compressão para esta requisição removendo o Accept-Encoding
-            context.Request.Headers.Remove("Accept-Encoding");
+            // Desabilita a compressão para esta requisição. 
+            // Definir como "identity" é mais explícito do que remover o header para alguns proxies/middlewares.
+            context.Request.Headers["Accept-Encoding"] = "identity";
+            
+            // Adiciona um marker no context para auditoria/testes
+            context.Items["CompressionDisabledBySecurity"] = true;
+            
+            // Adiciona o header de resposta ANTES de chamar o próximo middleware
+            context.Response.Headers["X-Compression-Disabled"] = "Security-Policy";
         }
 
         await _next(context);
@@ -32,7 +46,7 @@ public class CompressionSecurityMiddleware
     /// Verifica se é seguro comprimir esta requisição.
     /// Executado antes da autenticação para prevenir ataques CRIME/BREACH.
     /// </summary>
-    private static bool IsSafeForCompression(HttpContext context)
+    private bool IsSafeForCompression(HttpContext context)
     {
         var request = context.Request;
 

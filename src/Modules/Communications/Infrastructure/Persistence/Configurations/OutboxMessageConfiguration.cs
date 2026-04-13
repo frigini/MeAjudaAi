@@ -1,4 +1,5 @@
-using MeAjudaAi.Modules.Communications.Domain.Entities;
+using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
+using MeAjudaAi.Shared.Database.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -42,6 +43,7 @@ internal sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<Outb
             .HasMaxLength(2000);
 
         builder.HasIndex(x => x.CorrelationId)
+            .HasDatabaseName(OutboxMessageConstraints.CorrelationIdIndexName)
             .IsUnique()
             .HasFilter("\"correlation_id\" IS NOT Null");
 

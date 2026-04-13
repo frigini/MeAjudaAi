@@ -294,6 +294,9 @@ public static class SecurityExtensions
 
                 // Define tempo máximo de cache do preflight
                 policy.SetPreflightMaxAge(TimeSpan.FromSeconds(corsOptions.PreflightMaxAge));
+
+                // Expor header do token de antiforgery para clientes SPA
+                policy.WithExposedHeaders("X-XSRF-TOKEN");
             });
         });
 
@@ -563,8 +566,8 @@ public static class SecurityExtensions
                     : context.Connection.RemoteIpAddress?.ToString() ?? context.Connection.Id ?? "test-client";
 
                 var permitLimit = isAuthenticated 
-                    ? configuration.GetValue("RateLimit:AuthenticatedRequestsPerMinute", 1000)
-                    : configuration.GetValue("RateLimit:DefaultRequestsPerMinute", 100);
+                    ? configuration.GetValue("AdvancedRateLimit:Authenticated:RequestsPerMinute", 1000)
+                    : configuration.GetValue("AdvancedRateLimit:Anonymous:RequestsPerMinute", 100);
 
                 return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
                 {

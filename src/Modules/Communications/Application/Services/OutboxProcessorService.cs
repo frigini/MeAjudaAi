@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Communications.Domain.Enums;
 using MeAjudaAi.Shared.Database.Outbox;
 using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Contracts.Shared;
+using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMessage;
@@ -73,15 +74,15 @@ public sealed class OutboxProcessorService(
                 templateKey: ExtractTemplateKey(message));
             
             await logRepository.AddAsync(log, cancellationToken);
-            // Removido SaveChanges imediato para permitir que o OutboxProcessorBase confirme tudo junto
+            // SaveChanges handled by OutboxProcessorBase
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Falha ao criar log de sucesso para mensagem outbox {Id} (CorrelationId: {CorrelationId}).", 
+            logger.LogError(ex, "Failed to create success log for outbox message {Id} (CorrelationId: {CorrelationId}).", 
                 message.Id, message.CorrelationId);
         }
 
-        logger.LogInformation("Mensagem outbox {Id} ({Channel}) enviada para {Recipient}.", 
+        logger.LogInformation("Outbox message {Id} ({Channel}) sent to {Recipient}.", 
             message.Id, message.Channel, recipientMasked);
     }
 
@@ -98,22 +99,22 @@ public sealed class OutboxProcessorService(
                     correlationId: message.CorrelationId ?? $"outbox:{message.Id}",
                     channel: message.Channel,
                     recipient: recipientRaw,
-                    errorMessage: error ?? "Limite máximo de tentativas atingido.",
+                    errorMessage: error ?? "Max retries reached.",
                     attemptCount: message.RetryCount,
                     outboxMessageId: message.Id,
                     templateKey: ExtractTemplateKey(message));
                 
                 await logRepository.AddAsync(log, cancellationToken);
-                // Removido SaveChanges imediato para permitir que o OutboxProcessorBase confirme tudo junto
+                // SaveChanges handled by OutboxProcessorBase
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Falha ao criar log de erro para mensagem outbox {Id} (CorrelationId: {CorrelationId}).", 
+                logger.LogError(ex, "Failed to create failure log for outbox message {Id} (CorrelationId: {CorrelationId}).", 
                     message.Id, message.CorrelationId);
             }
         }
 
-        logger.LogWarning("Falha no despacho da mensagem outbox {Id} para {Channel} para {Recipient}. Tentativa {Retry}/{Max}.",
+        logger.LogWarning("Outbox message {Id} dispatch to {Channel} for {Recipient} failed. Attempt {Retry}/{Max}.",
             message.Id, message.Channel, recipientMasked, message.RetryCount, message.MaxRetries);
     }
 
@@ -202,8 +203,4 @@ public sealed class OutboxProcessorService(
             return "error-extracting";
         }
     }
-
-    private sealed record EmailOutboxPayload(string To, string Subject, string? HtmlBody = null, string? TextBody = null, string? Body = null, string? From = null, string? TemplateKey = null);
-    private sealed record SmsOutboxPayload(string PhoneNumber, string Body);
-    private sealed record PushOutboxPayload(string DeviceToken, string Title, string Body, IDictionary<string, string>? Data = null);
 }

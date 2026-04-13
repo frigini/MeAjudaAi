@@ -16,7 +16,7 @@ public sealed class BusinessMetricsTests : IDisposable
 
     public BusinessMetricsTests()
     {
-        _meterName = $"MeAjudaAi.Business.Test.{Guid.NewGuid()}";
+        _meterName = $"{BusinessMetrics.DefaultMeterName}.Test.{Guid.NewGuid()}";
         _longMeasurements = new List<Measurement<long>>();
         _doubleMeasurements = new List<Measurement<double>>();
 
