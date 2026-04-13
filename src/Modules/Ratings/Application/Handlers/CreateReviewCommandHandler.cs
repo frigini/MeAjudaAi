@@ -50,12 +50,7 @@ public sealed class CreateReviewCommandHandler(
                 logger.LogWarning("Review {ReviewId} flagged for moderation due to inappropriate content", review.Id.Value);
                 review.MarkAsFlagged();
             }
-            else
-            {
-                // Se está limpo, podemos aprovar automaticamente dependendo da nota ou sempre aprovar.
-                // Neste caso, vamos assumir que comentários limpos são aprovados automaticamente.
-                review.Approve();
-            }
+            // Se isClean for true, o status permanece Pending por padrão para moderação manual
         }
 
         try

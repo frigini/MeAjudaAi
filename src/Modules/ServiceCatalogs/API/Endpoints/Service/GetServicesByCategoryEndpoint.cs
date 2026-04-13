@@ -24,7 +24,6 @@ public class GetServicesByCategoryEndpoint : BaseEndpoint, IEndpoint
                 
                 **Parâmetros:**
                 - `categoryId` (route): ID da categoria
-                - `activeOnly` (query, opcional): Filtrar apenas serviços ativos (padrão: false)
                 
                 **Casos de Uso:**
                 - Exibir serviços disponíveis em uma categoria
@@ -36,10 +35,9 @@ public class GetServicesByCategoryEndpoint : BaseEndpoint, IEndpoint
     private static async Task<IResult> GetByCategoryAsync(
         [FromRoute] Guid categoryId,
         IQueryDispatcher queryDispatcher,
-        CancellationToken cancellationToken,
-        [FromQuery] bool activeOnly = false)
+        CancellationToken cancellationToken)
     {
-        var queryWithCategory = new GetServicesByCategoryQuery(categoryId, activeOnly);
+        var queryWithCategory = new GetServicesByCategoryQuery(categoryId);
         var result = await queryDispatcher.QueryAsync<GetServicesByCategoryQuery, Result<IReadOnlyList<ServiceListDto>>>(queryWithCategory, cancellationToken);
         return Handle(result);
     }

@@ -19,7 +19,7 @@ public sealed class GetServicesByCategoryQueryHandler(IServiceRepository reposit
             return Result<IReadOnlyList<ServiceListDto>>.Success(Array.Empty<ServiceListDto>());
 
         var categoryId = ServiceCategoryId.From(request.CategoryId);
-        var services = await repository.GetByCategoryAsync(categoryId, request.ActiveOnly, cancellationToken);
+        var services = await repository.GetByCategoryAsync(categoryId, false, cancellationToken);
 
         var dtos = services.Select(s => s.ToListDto()).ToList();
 
