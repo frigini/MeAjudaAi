@@ -127,6 +127,8 @@ public class CommunicationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+        _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -160,6 +162,8 @@ public class CommunicationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+        _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Theory]
@@ -176,6 +180,8 @@ public class CommunicationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+        _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -189,6 +195,8 @@ public class CommunicationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+        _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -215,6 +223,14 @@ public class CommunicationsModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeFalse();
+        _logRepositoryMock.Verify(x => x.SearchAsync(
+            It.IsAny<string?>(),
+            It.IsAny<string?>(),
+            It.IsAny<string?>(),
+            It.IsAny<bool?>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
