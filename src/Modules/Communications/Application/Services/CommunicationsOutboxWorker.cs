@@ -8,7 +8,7 @@ namespace MeAjudaAi.Modules.Communications.Application.Services;
 /// <summary>
 /// Worker de background para processamento periódico do Outbox de comunicações.
 /// </summary>
-internal sealed class CommunicationsOutboxWorker(
+public sealed class CommunicationsOutboxWorker(
     IServiceScopeFactory scopeFactory,
     ILogger<CommunicationsOutboxWorker> logger) : BackgroundService
 {
