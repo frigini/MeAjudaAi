@@ -3,8 +3,10 @@ using Bogus;
 using MeAjudaAi.ApiService;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Tests.Mocks;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
@@ -201,6 +203,8 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                     ReconfigureDbContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
                     ReconfigureDbContext<DocumentsDbContext>(services);
                     ReconfigureDbContext<ServiceCatalogsDbContext>(services);
+                    ReconfigureDbContext<LocationsDbContext>(services);
+                    ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
                     ReconfigureSearchProvidersDbContext(services);
 
                     // Configurar PostgresOptions e Dapper para SearchProviders
@@ -345,32 +349,33 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 
             using var scope = _factory.Services.CreateScope();
 
-            // Garantir que o banco está limpo primeiro se necessário
-            var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-            await usersContext.Database.EnsureDeletedAsync();
-
             // 1. Users (Core)
-            await usersContext.Database.MigrateAsync();
+            var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+            await ApplyMigrationForContext(usersContext);
 
             // 2. ServiceCatalogs (Critical Prerequisite for Providers)
             var catalogsContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
-            await catalogsContext.Database.MigrateAsync();
+            await ApplyMigrationForContext(catalogsContext);
 
             // 3. Providers (Depends on ServiceCatalogs)
             var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
-            await providersContext.Database.MigrateAsync();
+            await ApplyMigrationForContext(providersContext);
 
             // 3.1 Ratings (Depends on Providers)
-            var ratingsContext = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>();
-            await ratingsContext.Database.MigrateAsync();
+            var ratingsContext = scope.ServiceProvider.GetRequiredService<RatingsDbContext>();
+            await ApplyMigrationForContext(ratingsContext);
 
             // 4. Documents
             var documentsContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
-            await documentsContext.Database.MigrateAsync();
+            await ApplyMigrationForContext(documentsContext);
 
             // 5. Locations
             var locationsContext = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
-            await locationsContext.Database.MigrateAsync();
+            await ApplyMigrationForContext(locationsContext);
+
+            // 5.1 Communications
+            var communicationsContext = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
+            await ApplyMigrationForContext(communicationsContext);
 
             // 6. SearchProviders (Depends on Providers + PostGIS)
             try
@@ -378,12 +383,11 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                 var searchContext = scope.ServiceProvider.GetService<SearchProvidersDbContext>();
                 if (searchContext != null)
                 {
-                    await searchContext.Database.MigrateAsync();
+                    await ApplyMigrationForContext(searchContext);
                 }
             }
             catch (Exception ex)
             {
-                // Log but rethrow to avoid masking issues
                 throw new Exception($"Failed to apply SearchProviders migrations: {ex.Message}", ex);
             }
 
@@ -392,6 +396,69 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         finally
         {
             _migrationLock.Release();
+        }
+    }
+
+    private static async Task ApplyMigrationForContext(DbContext context)
+    {
+        // Ensure schema exists before migrating
+        var schema = GetSchemaName(context.GetType().Name);
+        if (schema != "public")
+        {
+            await context.Database.ExecuteSqlRawAsync($"CREATE SCHEMA IF NOT EXISTS \"{schema}\";");
+        }
+        
+        await context.Database.MigrateAsync();
+    }
+
+    /// <summary>
+    /// Limpa todas as tabelas de todos os contextos registrados para garantir isolamento entre testes.
+    /// </summary>
+    protected async Task CleanupDatabaseAsync()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var services = scope.ServiceProvider;
+
+        await CleanupContext<UsersDbContext>(services);
+        await CleanupContext<ProvidersDbContext>(services);
+        await CleanupContext<DocumentsDbContext>(services);
+        await CleanupContext<ServiceCatalogsDbContext>(services);
+        await CleanupContext<LocationsDbContext>(services);
+        await CleanupContext<CommunicationsDbContext>(services);
+        await CleanupContext<SearchProvidersDbContext>(services);
+        await CleanupContext<RatingsDbContext>(services);
+
+        if (_redisContainer != null)
+        {
+            await _redisContainer.ExecAsync(new[] { "redis-cli", "FLUSHALL" });
+        }
+    }
+
+    private static async Task CleanupContext<TContext>(IServiceProvider services) where TContext : DbContext
+    {
+        var context = services.GetRequiredService<TContext>();
+        var tableNames = new List<string>();
+
+        foreach (var entityType in context.Model.GetEntityTypes())
+        {
+            var tableName = entityType.GetTableName();
+            var schema = entityType.GetSchema();
+
+            if (!string.IsNullOrEmpty(tableName))
+            {
+                var qualifiedTableName = string.IsNullOrEmpty(schema) || schema == "public"
+                    ? $"\"{tableName}\""
+                    : $"\"{schema}\".\"{tableName}\"";
+                
+                tableNames.Add(qualifiedTableName);
+            }
+        }
+
+        if (tableNames.Count > 0)
+        {
+            var uniqueTables = tableNames.Distinct().ToList();
+            var batchSql = $"TRUNCATE TABLE {string.Join(", ", uniqueTables)} CASCADE";
+            await context.Database.ExecuteSqlRawAsync(batchSql);
         }
     }
 
@@ -522,22 +589,45 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     protected async Task<HttpResponseMessage> PutJsonAsync<T>(Uri requestUri, T content)
         => await PutJsonAsync(requestUri.ToString(), content);
 
+    private static string GetSchemaName(string contextName)
+    {
+        return contextName switch
+        {
+            "UsersDbContext" => "users",
+            "ProvidersDbContext" => "providers",
+            "DocumentsDbContext" => "documents",
+            "ServiceCatalogsDbContext" => "service_catalogs",
+            "LocationsDbContext" => "locations",
+            "CommunicationsDbContext" => "communications",
+            "SearchProvidersDbContext" => "search_providers",
+            "RatingsDbContext" => "ratings",
+            _ => "public"
+        };
+    }
+
     /// <summary>
     /// Reconfigura um DbContext para usar a connection string do TestContainer
     /// </summary>
     private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext
     {
+        var contextName = typeof(TContext).Name;
         var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
         if (descriptor != null)
             services.Remove(descriptor);
 
         services.AddDbContext<TContext>(options =>
         {
-            options.UseNpgsql(_postgresContainer.GetConnectionString())
-                   .UseSnakeCaseNamingConvention()
-                   .EnableSensitiveDataLogging(true)  // Useful for test debugging
-                   .ConfigureWarnings(warnings =>
-                       warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            options.UseNpgsql(_postgresContainer!.GetConnectionString(), npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", GetSchemaName(contextName));
+                npgsqlOptions.MigrationsAssembly(typeof(TContext).Assembly.FullName);
+                npgsqlOptions.UseNetTopologySuite();
+                npgsqlOptions.CommandTimeout(120);
+            })
+            .UseSnakeCaseNamingConvention()
+            .EnableSensitiveDataLogging(true)
+            .ConfigureWarnings(warnings =>
+                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
     }
 
@@ -609,7 +699,8 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         var response = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
         if (response.StatusCode != HttpStatusCode.Created)
         {
-            throw new InvalidOperationException($"Failed to create test user. Status: {response.StatusCode}");
+            var body = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"Failed to create test user. Status: {response.StatusCode}, Body: {body}");
         }
 
         var locationHeader = response.Headers.Location?.ToString();

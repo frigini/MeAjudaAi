@@ -314,6 +314,7 @@ public class TestContainerFixture : IAsyncLifetime
             "DocumentsDbContext" => "documents",
             "ServiceCatalogsDbContext" => "service_catalogs",
             "LocationsDbContext" => "locations",
+            "CommunicationsDbContext" => "communications",
             "SearchProvidersDbContext" => "search_providers",
             "RatingsDbContext" => "ratings",
             _ => "public"
@@ -348,6 +349,14 @@ public class TestContainerFixture : IAsyncLifetime
     private static async Task ApplyMigrationForContext<TContext>(IServiceProvider services) where TContext : DbContext
     {
         var context = services.GetRequiredService<TContext>();
+        
+        // Ensure schema exists before migrating
+        var schema = GetSchemaName(typeof(TContext).Name);
+        if (schema != "public")
+        {
+            await context.Database.ExecuteSqlRawAsync($"CREATE SCHEMA IF NOT EXISTS \"{schema}\";");
+        }
+        
         await context.Database.MigrateAsync();
     }
 
