@@ -130,6 +130,26 @@ public class CommunicationsModuleApiTests
     }
 
     [Fact]
+    public async Task SendSmsAsync_WithNullDto_ShouldReturnFailure()
+    {
+        // Act
+        var result = await _api.SendSmsAsync(null!);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SendPushAsync_WithNullDto_ShouldReturnFailure()
+    {
+        // Act
+        var result = await _api.SendPushAsync(null!);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task SendSmsAsync_WithInvalidPriority_ShouldReturnFailure()
     {
         // Arrange

@@ -10,9 +10,10 @@ namespace MeAjudaAi.Modules.Communications.Application.Services;
 /// </summary>
 public sealed class CommunicationsOutboxWorker(
     IServiceScopeFactory scopeFactory,
-    ILogger<CommunicationsOutboxWorker> logger) : BackgroundService
+    ILogger<CommunicationsOutboxWorker> logger,
+    TimeSpan? checkInterval = null) : BackgroundService
 {
-    private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(10);
+    private readonly TimeSpan _checkInterval = checkInterval ?? TimeSpan.FromSeconds(10);
     private readonly TimeSpan _stuckTimeout = TimeSpan.FromMinutes(5);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

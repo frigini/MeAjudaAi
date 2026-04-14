@@ -122,19 +122,23 @@ public class OutboxProcessorServiceTests
     }
 
     [Fact]
-    public async Task ProcessPendingMessagesAsync_WhenOperationCanceled_ShouldReturnZero()
+    public async Task ProcessPendingMessagesAsync_WhenOperationCanceledDuringDispatch_ShouldReturnZeroAndStayPending()
     {
         // Arrange
         var payload = JsonSerializer.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
         var message = OutboxMessage.Create(ECommunicationChannel.Email, payload);
         var cts = new CancellationTokenSource();
-        cts.Cancel();
 
         _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<OutboxMessage> { message });
 
         _emailSenderMock.Setup(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new OperationCanceledException(cts.Token));
+            .Returns(async (EmailMessage msg, CancellationToken ct) => 
+            {
+                cts.Cancel(); // Cancel while dispatching
+                await Task.Yield();
+                throw new OperationCanceledException(ct);
+            });
 
         // Act
         var result = await _service.ProcessPendingMessagesAsync(cancellationToken: cts.Token);
@@ -142,6 +146,7 @@ public class OutboxProcessorServiceTests
         // Assert
         result.Should().Be(0);
         message.Status.Should().Be(EOutboxMessageStatus.Pending);
+        _emailSenderMock.Verify(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

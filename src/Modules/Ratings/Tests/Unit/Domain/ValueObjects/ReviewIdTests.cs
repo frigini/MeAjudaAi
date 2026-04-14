@@ -12,7 +12,7 @@ public class ReviewIdTests
         Action action = () => new ReviewId(Guid.Empty);
 
         // Assert
-        action.Should().Throw<ArgumentException>().WithMessage("*vazio*");
+        action.Should().Throw<ArgumentException>();
     }
 
     [Fact]

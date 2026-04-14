@@ -86,11 +86,14 @@ public class ReviewRepositoryTests : IAsyncDisposable
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var r1 = Review.Create(providerId, Guid.NewGuid(), 5, "Latest");
+        var r1 = Review.Create(providerId, Guid.NewGuid(), 4, "Oldest");
         r1.Approve();
-        await Task.Delay(10); // Ensure different CreatedAt
-        var r2 = Review.Create(providerId, Guid.NewGuid(), 4, "Oldest");
+        
+        await Task.Delay(20); // Garantir timestamps diferentes (SQLite pode ser rápido demais)
+        
+        var r2 = Review.Create(providerId, Guid.NewGuid(), 5, "Latest");
         r2.Approve();
+        
         var r3 = Review.Create(providerId, Guid.NewGuid(), 1, "Rejected");
         r3.Reject("Bad");
 

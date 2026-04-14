@@ -76,7 +76,7 @@ public class ReviewTests
 
         // Assert
         review.Status.Should().Be(EReviewStatus.Approved);
-        review.DomainEvents.Should().Contain(e => e is ReviewApprovedDomainEvent);
+        review.DomainEvents.OfType<ReviewApprovedDomainEvent>().Should().ContainSingle();
     }
 
     [Fact]
@@ -123,17 +123,20 @@ public class ReviewTests
         // Assert
         review.Status.Should().Be(EReviewStatus.Rejected);
         review.RejectionReason.Should().Be(reason);
-        review.DomainEvents.Should().ContainSingle(e => e is ReviewRejectedDomainEvent);
+        review.DomainEvents.OfType<ReviewRejectedDomainEvent>().Should().ContainSingle();
     }
 
-    [Fact]
-    public void Reject_WithEmptyReason_ShouldThrowArgumentException()
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    [InlineData("   ")]
+    public void Reject_WithInvalidReason_ShouldThrowArgumentException(string invalidReason)
     {
         // Arrange
         var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 1, "Comment");
 
         // Act
-        Action action = () => review.Reject("");
+        Action action = () => review.Reject(invalidReason!);
 
         // Assert
         action.Should().Throw<ArgumentException>().WithMessage("*Motivo*");

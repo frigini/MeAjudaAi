@@ -35,17 +35,22 @@ public class CommunicationsOutboxWorkerTests
     public async Task ExecuteAsync_ShouldResetStaleMessagesAndProcessPending()
     {
         // Arrange
-        var worker = new CommunicationsOutboxWorker(_scopeFactoryMock.Object, _loggerMock.Object);
+        var worker = new CommunicationsOutboxWorker(_scopeFactoryMock.Object, _loggerMock.Object, TimeSpan.FromMilliseconds(10));
         var cts = new CancellationTokenSource();
+        var iterationTcs = new TaskCompletionSource<bool>();
 
         _repositoryMock.Setup(x => x.ResetStaleProcessingMessagesAsync(It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
         _processorMock.Setup(x => x.ProcessPendingMessagesAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(1);
+            .ReturnsAsync(1)
+            .Callback(() => iterationTcs.TrySetResult(true));
 
         // Act
         var task = worker.StartAsync(cts.Token);
-        await Task.Delay(100); // Give it some time to run the first iteration
+        
+        // Wait for at least one iteration to complete deterministically
+        await iterationTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        
         await worker.StopAsync(cts.Token);
 
         // Assert
@@ -57,15 +62,38 @@ public class CommunicationsOutboxWorkerTests
     public async Task ExecuteAsync_WhenExceptionOccurs_ShouldContinue()
     {
         // Arrange
-        var worker = new CommunicationsOutboxWorker(_scopeFactoryMock.Object, _loggerMock.Object);
+        var worker = new CommunicationsOutboxWorker(_scopeFactoryMock.Object, _loggerMock.Object, TimeSpan.FromMilliseconds(10));
         var cts = new CancellationTokenSource();
+        
+        var iterationCount = 0;
+        var secondIterationTcs = new TaskCompletionSource<bool>();
 
         _repositoryMock.Setup(x => x.ResetStaleProcessingMessagesAsync(It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Database error"));
+            .Returns(() =>
+            {
+                iterationCount++;
+                if (iterationCount == 1)
+                {
+                    throw new Exception("Database error");
+                }
+                
+                if (iterationCount >= 2)
+                {
+                    secondIterationTcs.TrySetResult(true);
+                }
+                
+                return Task.FromResult(0);
+            });
+
+        _processorMock.Setup(x => x.ProcessPendingMessagesAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
 
         // Act
         var task = worker.StartAsync(cts.Token);
-        await Task.Delay(100);
+        
+        // Wait for the second iteration to prove it continued after the error
+        await secondIterationTcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        
         await worker.StopAsync(cts.Token);
 
         // Assert
@@ -77,5 +105,7 @@ public class CommunicationsOutboxWorkerTests
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.AtLeastOnce);
+            
+        iterationCount.Should().BeGreaterThanOrEqualTo(2);
     }
 }
