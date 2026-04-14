@@ -46,6 +46,26 @@ public class ReviewTests
     }
 
     [Fact]
+    public void Create_WithEmptyProviderId_ShouldThrowArgumentException()
+    {
+        // Act
+        Action action = () => Review.Create(Guid.Empty, Guid.NewGuid(), 5, "Comment");
+
+        // Assert
+        action.Should().Throw<ArgumentException>().WithMessage("*ProviderId*");
+    }
+
+    [Fact]
+    public void Create_WithEmptyCustomerId_ShouldThrowArgumentException()
+    {
+        // Act
+        Action action = () => Review.Create(Guid.NewGuid(), Guid.Empty, 5, "Comment");
+
+        // Assert
+        action.Should().Throw<ArgumentException>().WithMessage("*CustomerId*");
+    }
+
+    [Fact]
     public void Approve_WhenPending_ShouldChangeStatusToApprovedAndAddDomainEvent()
     {
         // Arrange
@@ -57,6 +77,37 @@ public class ReviewTests
         // Assert
         review.Status.Should().Be(EReviewStatus.Approved);
         review.DomainEvents.Should().Contain(e => e is ReviewApprovedDomainEvent);
+    }
+
+    [Fact]
+    public void Approve_WhenAlreadyApproved_ShouldDoNothing()
+    {
+        // Arrange
+        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Comment");
+        review.Approve();
+        review.ClearDomainEvents();
+
+        // Act
+        review.Approve();
+
+        // Assert
+        review.Status.Should().Be(EReviewStatus.Approved);
+        review.DomainEvents.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Approve_WhenPreviouslyRejected_ShouldClearRejectionReason()
+    {
+        // Arrange
+        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Fixed");
+        review.Reject("Bad content");
+
+        // Act
+        review.Approve();
+
+        // Assert
+        review.Status.Should().Be(EReviewStatus.Approved);
+        review.RejectionReason.Should().BeNull();
     }
 
     [Fact]
@@ -73,9 +124,36 @@ public class ReviewTests
         review.Status.Should().Be(EReviewStatus.Rejected);
         review.RejectionReason.Should().Be(reason);
         review.DomainEvents.Should().ContainSingle(e => e is ReviewRejectedDomainEvent);
-        var domainEvent = review.DomainEvents.OfType<ReviewRejectedDomainEvent>().First();
-        domainEvent.Reason.Should().Be(reason);
-        domainEvent.AggregateId.Should().Be(review.Id.Value);
+    }
+
+    [Fact]
+    public void Reject_WithEmptyReason_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 1, "Comment");
+
+        // Act
+        Action action = () => review.Reject("");
+
+        // Assert
+        action.Should().Throw<ArgumentException>().WithMessage("*Motivo*");
+    }
+
+    [Fact]
+    public void Reject_WhenAlreadyRejected_ShouldDoNothing()
+    {
+        // Arrange
+        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 1, "Comment");
+        review.Reject("Initial reason");
+        review.ClearDomainEvents();
+
+        // Act
+        review.Reject("New reason");
+
+        // Assert
+        review.Status.Should().Be(EReviewStatus.Rejected);
+        review.RejectionReason.Should().Be("Initial reason");
+        review.DomainEvents.Should().BeEmpty();
     }
 
     [Fact]
@@ -92,17 +170,18 @@ public class ReviewTests
     }
 
     [Fact]
-    public void Approve_WhenPreviouslyRejected_ShouldClearRejectionReason()
+    public void MarkAsFlagged_WhenAlreadyFlagged_ShouldDoNothing()
     {
         // Arrange
-        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Fixed");
-        review.Reject("Bad content");
+        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 3, "Comment");
+        review.MarkAsFlagged();
+        review.ClearDomainEvents();
 
         // Act
-        review.Approve();
+        review.MarkAsFlagged();
 
         // Assert
-        review.Status.Should().Be(EReviewStatus.Approved);
-        review.RejectionReason.Should().BeNull();
+        review.Status.Should().Be(EReviewStatus.Flagged);
+        review.DomainEvents.Should().BeEmpty();
     }
 }

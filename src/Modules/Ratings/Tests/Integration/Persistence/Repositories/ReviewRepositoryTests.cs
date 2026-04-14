@@ -67,6 +67,63 @@ public class ReviewRepositoryTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task GetByIdAsync_WithValidId_ShouldReturnReview()
+    {
+        // Arrange
+        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Test");
+        await _repository.AddAsync(review);
+
+        // Act
+        var result = await _repository.GetByIdAsync(review.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(review.Id);
+    }
+
+    [Fact]
+    public async Task GetByProviderIdAsync_WithApprovedReviews_ShouldReturnPaginatedAndOrdered()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var r1 = Review.Create(providerId, Guid.NewGuid(), 5, "Latest");
+        r1.Approve();
+        await Task.Delay(10); // Ensure different CreatedAt
+        var r2 = Review.Create(providerId, Guid.NewGuid(), 4, "Oldest");
+        r2.Approve();
+        var r3 = Review.Create(providerId, Guid.NewGuid(), 1, "Rejected");
+        r3.Reject("Bad");
+
+        await _repository.AddAsync(r1);
+        await _repository.AddAsync(r2);
+        await _repository.AddAsync(r3);
+
+        // Act
+        var result = (await _repository.GetByProviderIdAsync(providerId, 1, 10)).ToList();
+
+        // Assert
+        result.Should().HaveCount(2);
+        result[0].Comment.Should().Be("Latest");
+        result[1].Comment.Should().Be("Oldest");
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ShouldPersistChanges()
+    {
+        // Arrange
+        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), 5, "Test");
+        await _repository.AddAsync(review);
+        review.Approve();
+
+        // Act
+        await _repository.UpdateAsync(review);
+
+        // Assert
+        var persisted = await _context.Reviews.FindAsync(review.Id);
+        persisted!.Status.Should().Be(EReviewStatus.Approved);
+    }
+
+    [Fact]
     public async Task GetAverageRatingForProviderAsync_ShouldCalculateCorrectly()
     {
         // Arrange
@@ -88,5 +145,52 @@ public class ReviewRepositoryTests : IAsyncDisposable
         // Assert
         average.Should().Be(4.5m);
         total.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task GetAverageRatingForProviderAsync_WhenNoApprovedReviews_ShouldReturnZero()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var review = Review.Create(providerId, Guid.NewGuid(), 5, "Pending");
+        await _repository.AddAsync(review);
+
+        // Act
+        var (average, total) = await _repository.GetAverageRatingForProviderAsync(providerId);
+
+        // Assert
+        average.Should().Be(0);
+        total.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task GetByProviderIdAsync_Pagination_ShouldReturnCorrectSubset()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        for (int i = 1; i <= 5; i++)
+        {
+            var r = Review.Create(providerId, Guid.NewGuid(), 5, $"Review {i}");
+            r.Approve();
+            await _repository.AddAsync(r);
+        }
+
+        // Act
+        var page1 = await _repository.GetByProviderIdAsync(providerId, 1, 3);
+        var page2 = await _repository.GetByProviderIdAsync(providerId, 2, 3);
+
+        // Assert
+        page1.Should().HaveCount(3);
+        page2.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task GetByProviderIdAsync_WhenNoReviews_ShouldReturnEmpty()
+    {
+        // Act
+        var result = await _repository.GetByProviderIdAsync(Guid.NewGuid());
+
+        // Assert
+        result.Should().BeEmpty();
     }
 }
