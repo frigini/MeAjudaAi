@@ -9,44 +9,17 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 **Sprint**: Sprint 6-7 (30 Dez 2025 - 16 Jan 2026)  
 **Status**: Itens de baixa a média prioridade
 
-### 📊 Frontend - Cobertura de Testes (MÉDIA)
-
-**Severidade**: MÉDIA (quality assurance)  
-**Status**: 🔄 EM SPRINT 8E (E2E Tests com Playwright)
-
-**Descrição**: Admin Portal foi migrado para React. Testes de frontend agora focam em E2E com Playwright.
-
-**Framework de Testes**: Playwright (para todos os apps React)
-- Customer Web App
-- Provider Web App
-- Admin Portal (React)
-
-**BDD**: Playwright para testes end-to-end de fluxos completos (Frontend → Backend → APIs terceiras).
-
----
 
 
 ## 🔄 Refatorações de Código (BACKLOG)
 
 **Status**: Baixa prioridade, não críticos para MVP
 
-### 🏗️ Refatoração MeAjudaAi.Shared.Messaging (OTIMIZADO)
-
-**Status**: ✅ `IRabbitMqInfrastructureManager` implementado.
-**Pendente**: Event handlers para comunicação entre novos módulos (SearchProviders, ServiceCatalogs).
-
----
 
 ## 🔗 GitHub Issues - Débitos Técnicos Sincronizados
 
 
 
-### 🚀 [ISSUE #112] tech: aguardar versão stable do Aspire.Hosting.Keycloak
-**Status**: 📋 OTIMIZADO (Sprint 8B.2)  
-**Descrição**: Aspire.Hosting.Keycloak (preview) não suporta health checks reais. Serviços iniciam sem esperar Keycloak estar pronto.
-**Impacto**: Console logs do backend e Admin Portal mostram falhas de conexão transientes até Keycloak inicializar.
-
----
 
 ## ⚠️ CRÍTICO: Hangfire + Npgsql 10.x Compatibility Risk
 
@@ -92,9 +65,7 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 **Severidade**: MÉDIA  
 **Sprint**: Backlog
 
-- [ ] Apply CancellationToken to ServiceCatalogs/Documents/Locations Effects
-- [ ] Add per-component CancellationTokenSource
-- [ ] Implement navigation-triggered cancellation
+- [ ] Implement focus-based cancellation strategy
 
 **Origem**: Sprint 7.18
 
@@ -113,13 +84,6 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 
 ---
 
-## ✅ Resumo de Débitos Técnicos Resolvidos (Sprint 8B.2 - Tech Excellence)
-
-### 🛡️ Final Technical Excellence - Automação e Padrões
-- ✅ **Automação Keycloak**: Implementado `KeycloakBootstrapService` no AppHost para criar automaticamente os clients via API REST do Keycloak durante a inicialização, substituindo a necessidade de scripts PowerShell externos.
-- ✅ **Refatoração Shared**: Extensões de monitoramento centralizadas em `MonitoringExtensions.cs`.
-- ✅ **Issue #113**: Configuração de logging de resiliência HTTP com Polly modernizada para injetar `ILogger` a partir do DI, corrigindo problemas de log tracking.
-- ✅ **Padronização de Records**: Sintaxe de DTOs atualizada para o formato "Positional Records" (ex: `ModuleDocumentDto`), mantendo a abordagem property-based apenas onde há validação complexa de domínio.
 ## 📝 Instruções para Mantenedores
 
 1. **Conversão para Issues**: Copiar descrição para GitHub issue com labels (`technical-debt`, `testing`, `enhancement`)
