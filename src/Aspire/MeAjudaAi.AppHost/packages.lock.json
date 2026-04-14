@@ -2,11 +2,11 @@
   "version": 2,
   "dependencies": {
     "net10.0": {
-      "Aspire.Dashboard.Sdk.win-x64": {
+      "Aspire.Dashboard.Sdk.linux-x64": {
         "type": "Direct",
         "requested": "[13.2.2, )",
         "resolved": "13.2.2",
-        "contentHash": "a3AOGoRskQuvcvD9OipwKOGWvhgajUN8qHAoOkQnpmC6TmELzZ6RLAA+lHbEyyoJsnenuRbliuwkqvnDLsUtWw=="
+        "contentHash": "zwZY2xKzx2S95WjWLF9SjTnSL/YWwKJkSq8Qta+9TmpGJbtkYRHlhy7U8tL993hp2VcJ75ni/MWfM0m5fqBtow=="
       },
       "Aspire.Hosting.AppHost": {
         "type": "Direct",
@@ -201,11 +201,11 @@
           "System.IO.Hashing": "10.0.3"
         }
       },
-      "Aspire.Hosting.Orchestration.win-x64": {
+      "Aspire.Hosting.Orchestration.linux-x64": {
         "type": "Direct",
         "requested": "[13.2.2, )",
         "resolved": "13.2.2",
-        "contentHash": "BlQpgpIaABomSSSJI64n7KgtBSuEcEjaMANL3K70h5ZwCqLBrkIeJBUbCOUrs6DRt+Bqo27VtO/nfKWIQM510w=="
+        "contentHash": "uG+sK1jZ3INzZvKVLUvDgYdUKWJ/W+EbnwTmhz65qHIF8t+lF0siPezWOAC05Rcif0TYtkXAy9NofSE9GHO8JA=="
       },
       "Aspire.Hosting.PostgreSQL": {
         "type": "Direct",
@@ -1860,9 +1860,9 @@
       },
       "Microsoft.OpenApi": {
         "type": "CentralTransitive",
-        "requested": "[2.7.0, )",
-        "resolved": "2.7.0",
-        "contentHash": "b9xmpnmjq6p+HqF3uWG7u7/PlB38t/UB5UtXdi6xEAP9ZJGKHneYyjMGzBflB1rpLxYEcU6KRme+cz5wNPlxqA=="
+        "requested": "[2.7.2, )",
+        "resolved": "2.7.2",
+        "contentHash": "Vq8N3Jkn/yR7LoCXKtQD3jFXhse8NXUL3MKyDKGkRwrBX2ATehvw2aeki0zljkRhMjqc0TPHxOryjUXB2emzZw=="
       },
       "Npgsql": {
         "type": "CentralTransitive",
