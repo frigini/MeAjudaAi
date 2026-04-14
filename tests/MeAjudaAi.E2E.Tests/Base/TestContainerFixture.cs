@@ -325,7 +325,7 @@ public class TestContainerFixture : IAsyncLifetime
                 warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
     }
-...
+
     private async Task ApplyMigrationsAsync()
     {
         using var scope = _factory.Services.CreateScope();

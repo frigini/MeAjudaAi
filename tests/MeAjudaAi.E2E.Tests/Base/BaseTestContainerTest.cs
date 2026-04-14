@@ -379,14 +379,21 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         }
     }
 
-    private static async Task ApplyMigrationForContext(DbContext context)
-    {
-        await MigrationTestHelper.ApplyMigrationForContext(context);
-    }
-
     /// <summary>
-    /// Limpa todas as tabelas de todos os contextos registrados para garantir isolamento entre testes.
+    /// Limpa todas as tabelas de todos os contextos registrados e o cache do Redis para garantir isolamento entre testes.
     /// </summary>
+    /// <remarks>
+    /// Este método não é chamado automaticamente pelo <see cref="InitializeAsync"/> ou <see cref="DisposeAsync"/>.
+    /// Deve ser invocado explicitamente por testes derivados quando o isolamento do teste exigir a limpeza do estado 
+    /// do banco de dados e do Redis.
+    /// <para>
+    /// Uso típico: Chamada no início ou no final de um teste ou fixture, por exemplo: <c>await CleanupDatabaseAsync();</c>
+    /// </para>
+    /// <para>
+    /// Efeitos colaterais: Limpa todos os <c>DbContexts</c> registrados via <see cref="CleanupContext{T}"/> 
+    /// e executa um <c>FLUSHALL</c> no Redis se <c>_redisContainer</c> estiver disponível.
+    /// </para>
+    /// </remarks>
     protected async Task CleanupDatabaseAsync()
     {
         using var scope = _factory.Services.CreateScope();
@@ -686,43 +693,6 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             }
 
             return await base.SendAsync(request, cancellationToken);
-        }
-    }
-
-    /// <summary>
-    /// Mock implementation of IMessageBus for E2E tests.
-    /// Does not process events to avoid deadlocks - tests should use APIs directly.
-    /// </summary>
-    private class MockMessageBus : MeAjudaAi.Shared.Messaging.IMessageBus
-    {
-        public Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task PublishAsync<TMessage>(TMessage @event, string? topicName = null, CancellationToken cancellationToken = default)
-        {
-            // No-op: E2E tests should trigger actions via HTTP APIs, not via events
-            return Task.CompletedTask;
-        }
-
-        public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task> handler, string? subscriptionName = null, CancellationToken cancellationToken = default)
-        {
-            // No-op: subscriptions are not actually created in E2E tests
-            return Task.CompletedTask;
-        }
-    }
-
-    /// <summary>
-    /// Mock implementation of IDomainEventProcessor for E2E tests
-    /// Does not process domain events to avoid integration event publication
-    /// </summary>
-    private class MockDomainEventProcessor : MeAjudaAi.Shared.Events.IDomainEventProcessor
-    {
-        public Task ProcessDomainEventsAsync(IEnumerable<MeAjudaAi.Shared.Events.IDomainEvent> domainEvents, CancellationToken cancellationToken = default)
-        {
-            // No-op: domain events are not processed in E2E tests to avoid integration event publication
-            return Task.CompletedTask;
         }
     }
 

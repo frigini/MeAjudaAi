@@ -7,6 +7,7 @@ on:
       - 'src/Modules/**'
       - 'src/Bootstrapper/**'
       - 'src/Shared/**'
+      - 'src/Contracts/**'
       - 'tests/**'
       - '!tests/MeAjudaAi.E2E.Tests/**'
       - '.github/workflows/ci-backend.yml'
@@ -20,6 +21,7 @@ on:
       - 'src/Modules/**'
       - 'src/Bootstrapper/**'
       - 'src/Shared/**'
+      - 'src/Contracts/**'
       - 'tests/**'
       - '!tests/MeAjudaAi.E2E.Tests/**'
       - '.github/workflows/ci-backend.yml'
@@ -332,34 +334,29 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
-          # Usa variáveis de ambiente para evitar interpolação direta no shell
-          if git show origin/$BASE_REF:api/api-spec.json > api-base.json 2>/dev/null; then
-            echo "✅ Base spec found in origin/$BASE_REF"
-          else
-            echo "⚠️ Base spec not found in origin/$BASE_REF. Generating from source using worktree..."
-            
-            # Cria um worktree para a branch base em diretório irmão
-            git worktree add ../base-branch origin/$BASE_REF
-            
-            # Gera o spec a partir do build da base
-            cd ../base-branch
-            export ASPNETCORE_ENVIRONMENT=Testing
-            dotnet build src/Bootstrapper/MeAjudaAi.ApiService/MeAjudaAi.ApiService.csproj \
-              -c Release \
-              -p:GenerateDocumentationFile=true
-            
-            swagger tofile \
-              --output $GITHUB_WORKSPACE/api-base.json \
-              src/Bootstrapper/MeAjudaAi.ApiService/bin/Release/net10.0/MeAjudaAi.ApiService.dll \
-              v1
-              
-            cd $GITHUB_WORKSPACE
-            git worktree remove ../base-branch --force
-          fi
+          echo "⚠️ Generating base spec from source using worktree for origin/$BASE_REF..."
           
-          # Validação final: falha se não houver spec base (remove o fallback silencioso de {})
+          # Cria um worktree para a branch base em diretório irmão
+          git worktree add ../base-branch origin/$BASE_REF
+          
+          # Gera o spec a partir do build da base
+          cd ../base-branch
+          export ASPNETCORE_ENVIRONMENT=Testing
+          dotnet build src/Bootstrapper/MeAjudaAi.ApiService/MeAjudaAi.ApiService.csproj \
+            -c Release \
+            -p:GenerateDocumentationFile=true
+          
+          swagger tofile \
+            --output $GITHUB_WORKSPACE/api-base.json \
+            src/Bootstrapper/MeAjudaAi.ApiService/bin/Release/net10.0/MeAjudaAi.ApiService.dll \
+            v1
+            
+          cd $GITHUB_WORKSPACE
+          git worktree remove ../base-branch --force
+          
+          # Validação final: falha se não houver spec base
           if [ ! -f api-base.json ]; then
-            echo "❌ CRITICAL: api-base.json could not be retrieved or generated for $BASE_REF."
+            echo "❌ CRITICAL: api-base.json could not be generated for $BASE_REF."
             exit 1
           fi
 

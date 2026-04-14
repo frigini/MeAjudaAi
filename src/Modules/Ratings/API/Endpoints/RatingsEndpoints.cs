@@ -85,9 +85,9 @@ public static class RatingsEndpoints
         [FromQuery] int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
-        // Enforce limits
+        // Aplicar limites
         page = page < 1 ? 1 : page;
-        pageSize = pageSize > 100 ? 100 : pageSize;
+        pageSize = pageSize < 1 ? 1 : pageSize > 100 ? 100 : pageSize;
 
         var reviews = await repository.GetByProviderIdAsync(providerId, page, pageSize, cancellationToken);
         

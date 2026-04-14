@@ -8,7 +8,7 @@ public static class MigrationTestHelper
     {
         var contextName = context.GetType().Name;
         
-        // Ensure schema exists before migrating
+        // Garantir que o esquema exista antes da migração
         var schema = DbContextSchemaHelper.GetSchemaName(contextName);
         if (schema != "public")
         {

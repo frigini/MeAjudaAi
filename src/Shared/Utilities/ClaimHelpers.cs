@@ -18,5 +18,9 @@ public static class ClaimHelpers
         return Guid.TryParse(id, out var guid) ? guid : null;
     }
 
-    public static Guid? GetUserIdGuid(HttpContext context) => GetUserIdGuid(context.User);
+    public static Guid? GetUserIdGuid(HttpContext context)
+    {
+        if (context == null) throw new ArgumentNullException(nameof(context));
+        return GetUserIdGuid(context.User);
+    }
 }
