@@ -79,6 +79,10 @@
     <ProjectReference Include="..\..\src\Modules\Locations\Domain\MeAjudaAi.Modules.Locations.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Locations\Application\MeAjudaAi.Modules.Locations.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Locations\Infrastructure\MeAjudaAi.Modules.Locations.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\Domain\MeAjudaAi.Modules.Payments.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\Application\MeAjudaAi.Modules.Payments.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\Infrastructure\MeAjudaAi.Modules.Payments.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\API\MeAjudaAi.Modules.Payments.API.csproj" />
   </ItemGroup>
 
   <ItemGroup>
