@@ -60,6 +60,8 @@ internal sealed class CommunicationsOutboxWorker : BackgroundService
                 {
                     _logger.LogInformation("Processed {Count} outbox messages.", processedCount);
                 }
+
+                await Task.Delay(_checkInterval, stoppingToken);
             }
             catch (OperationCanceledException)
             {
@@ -68,15 +70,15 @@ internal sealed class CommunicationsOutboxWorker : BackgroundService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while processing communications outbox.");
-            }
-
-            try
-            {
-                await Task.Delay(_checkInterval, stoppingToken);
-            }
-            catch (OperationCanceledException)
-            {
-                break;
+                
+                try
+                {
+                    await Task.Delay(_checkInterval, stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Exit loop
+                }
             }
         }
 

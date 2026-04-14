@@ -214,6 +214,7 @@ public class CommunicationsModuleApiTests
             It.IsAny<int>(),
             It.IsAny<int>(),
             It.IsAny<CancellationToken>()), Times.Never);
+        _logRepositoryMock.VerifyNoOtherCalls();
     }
 
     [Theory]
