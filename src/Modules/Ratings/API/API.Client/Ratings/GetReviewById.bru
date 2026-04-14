@@ -1,0 +1,36 @@
+meta {
+  name: Get Review By Id
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/ratings/{{id}}
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  id: 00000000-0000-0000-0000-000000000000
+}
+
+docs {
+  # Get Review By Id
+  
+  Busca os detalhes de uma avaliação previamente postada.
+  
+  ## Autorização
+  - **Política**: AllowAnonymous (Público)
+  - **Requer token**: Não
+  
+  ## Parâmetros Route
+  - `id` (guid): ID da avaliação a ser buscada (Obrigatório)
+  
+  ## Comportamento
+  - Só retorna HTTP 200 OK caso a avaliação já esteja com status **Approved**.
+  - Retorna HTTP 404 Not Found caso não exista ou caso ainda esteja sob moderação / rejeitada.
+  
+  ## Códigos de Status
+  - **200**: Sucesso, a avaliação e dados em JSON são retornados
+  - **404**: Avaliação não existe ou não foi aprovada pelo comitê
+}

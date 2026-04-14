@@ -76,7 +76,7 @@ public sealed class ModuleExtensionsTests
         var exception = Assert.Throws<InvalidOperationException>(() =>
             services.AddSearchProvidersModule(configuration, mockEnv.Object));
 
-        Assert.Contains("Database connection string not found", exception.Message);
+        Assert.Contains("Database connection string is not configured", exception.Message);
     }
 
     [Theory]

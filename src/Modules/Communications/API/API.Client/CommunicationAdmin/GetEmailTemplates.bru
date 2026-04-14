@@ -1,0 +1,39 @@
+meta {
+  name: Get Email Templates
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/communications/templates
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get Email Templates
+  
+  Lista todos os templates de e-mail registrados no módulo de comunicação.
+  
+  ## Autorização
+  - **Requer token**: Sim (Admin)
+  
+  ## Resposta Esperada (200 OK)
+  ```json
+  [
+    {
+      "name": "WelcomeEmail",
+      "subject": "Bem-vindo ao MeAjudaAi!",
+      "isHtml": true
+    }
+  ]
+  ```
+}

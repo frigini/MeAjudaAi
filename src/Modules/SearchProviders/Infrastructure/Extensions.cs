@@ -5,12 +5,12 @@ using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Providers;
+using MeAjudaAi.Shared.Messaging.Messages.Ratings;
+using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-
-using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
 
 namespace MeAjudaAi.Modules.SearchProviders.Infrastructure;
 
@@ -19,86 +19,53 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure;
 /// </summary>
 public static class Extensions
 {
-    /// <summary>
-    /// Registra serviços da camada de Infrastructure do SearchProviders.
-    /// </summary>
-    /// <param name="services">A coleção de serviços.</param>
-    /// <param name="configuration">A configuração para ler strings de conexão e configurações.</param>
-    /// <param name="environment">O ambiente de hospedagem para determinar comportamento em Testing.</param>
-    /// <returns>A coleção de serviços para encadeamento.</returns>
     public static IServiceCollection AddSearchProvidersInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration,
         IHostEnvironment environment)
     {
-        // Registrar DbContext com suporte PostGIS
-        // IMPORTANTE: EF Core usa GetConnectionString("DefaultConnection") enquanto Dapper (via PostgresOptions)
-        // resolve de "Postgres:ConnectionString" ou "ConnectionStrings:meajudaai-db".
-        // Certifique-se de que estas chaves de configuração apontem para o mesmo database para evitar que EF e Dapper
-        // se comuniquem com databases/schemas diferentes entre ambientes (dev/test/prod, Aspire, etc.).
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
-                              ?? configuration.GetConnectionString("Search")
-                              ?? configuration.GetConnectionString("meajudaai-db");
+        services.AddPersistence(configuration, environment);
+        services.AddEventHandlers();
 
-        // Em ambiente de teste, permitir inicialização sem connection string
-        // (útil para testes unitários que não acessam o banco)
-        // Só fazemos bypass se estivermos explicitamente em Desenvolvimento e NÃO for um live environment
-        var isTesting = MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment);
+        return services;
+    }
 
-        if (string.IsNullOrEmpty(connectionString))
+    private static IServiceCollection AddPersistence(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IHostEnvironment environment)
+    {
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+        if (string.IsNullOrWhiteSpace(connectionString) && !MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
         {
-            if (isTesting)
-            {
-#pragma warning disable S2068 // "password" detected here, make sure this is not a hard-coded credential
-                connectionString = MeAjudaAi.Shared.Database.DatabaseConstants.DefaultTestConnectionString;
-#pragma warning restore S2068
-            }
-            else
-            {
-                var env1 = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-                var env2 = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
-                var env3 = environment?.EnvironmentName;
-                throw new InvalidOperationException(
-                    $"DEBUG: isTesting={isTesting}, ASPNETCORE={env1}, INTEGRATION_TESTS={env2}, EnvName={env3} " +
-                    "Database connection string not found. Tried: 'DefaultConnection', 'Search', 'meajudaai-db'.");
-            }
+            throw new InvalidOperationException(
+                "Database connection string is not configured. " +
+                "Please set one of the following configuration keys: " +
+                "'ConnectionStrings:DefaultConnection', 'ConnectionStrings:Search', or 'ConnectionStrings:meajudaai-db'");
         }
 
-        // Sempre registrar DbContext (mesmo que connection string seja vazia em testes unitários)
-        // Em E2E tests, a connection string será fornecida via configuração
-        services.AddDbContext<SearchProvidersDbContext>((serviceProvider, options) =>
+        // DbContext principal para escrita/comandos (EF Core)
+        services.AddDbContext<SearchProvidersDbContext>(options =>
         {
-            options.UseNpgsql(connectionString, npgsqlOptions =>
+            if (!string.IsNullOrWhiteSpace(connectionString))
             {
-                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
-                npgsqlOptions.UseNetTopologySuite(); // Habilitar suporte PostGIS/geoespacial
-            });
-
-            options.UseSnakeCaseNamingConvention();
-
-            // Suprimir o warning PendingModelChangesWarning apenas em ambiente de desenvolvimento
-            if (environment.IsDevelopment())
-            {
-                options.ConfigureWarnings(warnings =>
-                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+                options.UseNpgsql(connectionString, npgsqlOptions =>
+                {
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
+                    npgsqlOptions.EnableRetryOnFailure(3);
+                });
             }
 
-            // Habilitar erros detalhados em desenvolvimento
-            if (configuration.GetValue<bool>("DetailedErrors"))
+            if (environment.IsDevelopment())
             {
-                options.EnableDetailedErrors();
                 options.EnableSensitiveDataLogging();
+                options.EnableDetailedErrors();
             }
         });
 
-        // Registrar Dapper para queries espaciais otimizadas
-        services.AddDapper();
-
-        // Registrar repositórios
+        // Repositórios
         services.AddScoped<ISearchableProviderRepository, SearchableProviderRepository>();
-
-        // Registrar Event Handlers (sempre necessário, independente de connection string)
-        services.AddEventHandlers();
 
         return services;
     }
@@ -112,6 +79,7 @@ public static class Extensions
         services.AddScoped<IEventHandler<ProviderActivatedIntegrationEvent>, ProviderActivatedIntegrationEventHandler>();
         services.AddScoped<IEventHandler<ProviderServicesUpdatedIntegrationEvent>, ProviderServicesUpdatedIntegrationEventHandler>();
         services.AddScoped<IEventHandler<ServiceDeactivatedIntegrationEvent>, ServiceDeactivatedIntegrationEventHandler>();
+        services.AddScoped<IEventHandler<ReviewApprovedIntegrationEvent>, ReviewApprovedIntegrationEventHandler>();
 
         return services;
     }

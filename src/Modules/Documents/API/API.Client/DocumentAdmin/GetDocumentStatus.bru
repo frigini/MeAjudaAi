@@ -1,0 +1,38 @@
+meta {
+  name: Get Document Status
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/v1/documents/{{documentId}}/status
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get Document Status
+  
+  Consulta o status de processamento e verificação de um documento específico.
+  
+  ## Parâmetros Path
+  - `documentId` (guid): ID do documento
+  
+  ## Resposta Esperada (200 OK)
+  ```json
+  {
+    "id": "uuid",
+    "status": "Verified",
+    "rejectionReason": null,
+    "verifiedAt": "2026-04-13T10:00:00Z"
+  }
+  ```
+}

@@ -8,22 +8,39 @@ namespace MeAjudaAi.Modules.Communications.Application.Services;
 /// <summary>
 /// Worker de background para processamento periódico do Outbox de comunicações.
 /// </summary>
-internal sealed class CommunicationsOutboxWorker(
-    IServiceScopeFactory scopeFactory,
-    ILogger<CommunicationsOutboxWorker> logger) : BackgroundService
+internal sealed class CommunicationsOutboxWorker : BackgroundService
 {
-    private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(10);
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<CommunicationsOutboxWorker> _logger;
+    private readonly TimeSpan _checkInterval;
+
+    public CommunicationsOutboxWorker(
+        IServiceScopeFactory scopeFactory,
+        ILogger<CommunicationsOutboxWorker> logger,
+        TimeSpan? checkInterval = null)
+    {
+        _scopeFactory = scopeFactory;
+        _logger = logger;
+        
+        var interval = checkInterval ?? TimeSpan.FromSeconds(10);
+        if (interval <= TimeSpan.Zero && interval != Timeout.InfiniteTimeSpan)
+        {
+            throw new ArgumentOutOfRangeException(nameof(checkInterval), "Check interval must be greater than zero or InfiniteTimeSpan.");
+        }
+        
+        _checkInterval = interval;
+    }
     private readonly TimeSpan _stuckTimeout = TimeSpan.FromMinutes(5);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("Communications Outbox Worker started.");
+        _logger.LogInformation("Communications Outbox Worker started.");
 
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                using var scope = scopeFactory.CreateScope();
+                using var scope = _scopeFactory.CreateScope();
                 
                 // 1. Recupera mensagens travadas em processamento
                 var repository = scope.ServiceProvider.GetRequiredService<IOutboxMessageRepository>();
@@ -32,7 +49,7 @@ internal sealed class CommunicationsOutboxWorker(
                 
                 if (resetCount > 0)
                 {
-                    logger.LogWarning("Reset {Count} stuck outbox messages back to Pending.", resetCount);
+                    _logger.LogWarning("Reset {Count} stuck outbox messages back to Pending.", resetCount);
                 }
 
                 // 2. Processa mensagens pendentes
@@ -41,8 +58,10 @@ internal sealed class CommunicationsOutboxWorker(
 
                 if (processedCount > 0)
                 {
-                    logger.LogInformation("Processed {Count} outbox messages.", processedCount);
+                    _logger.LogInformation("Processed {Count} outbox messages.", processedCount);
                 }
+
+                await Task.Delay(_checkInterval, stoppingToken);
             }
             catch (OperationCanceledException)
             {
@@ -50,12 +69,19 @@ internal sealed class CommunicationsOutboxWorker(
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error occurred while processing communications outbox.");
+                _logger.LogError(ex, "Error occurred while processing communications outbox.");
+                
+                try
+                {
+                    await Task.Delay(_checkInterval, stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Exit loop
+                }
             }
-
-            await Task.Delay(_checkInterval, stoppingToken);
         }
 
-        logger.LogInformation("Communications Outbox Worker stopped.");
+        _logger.LogInformation("Communications Outbox Worker stopped.");
     }
 }

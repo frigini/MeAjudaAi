@@ -1,0 +1,43 @@
+meta {
+  name: Get Review Status
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/ratings/{{id}}/status
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  id: 00000000-0000-0000-0000-000000000000
+}
+
+docs {
+  # Get Review Status
+  
+  Retorna o status puro de uma avaliação existente, validando se está sob moderação, rejeitada ou aprovada.
+  
+  ## Autorização
+  - **Política**: AllowAnonymous (Público/Integrador)
+  - **Requer token**: Não
+  
+  ## Parâmetros Route
+  - `id` (guid): ID da avaliação a ser checada (Obrigatório)
+  
+  ## Comportamento
+  - Uma enumeração de status: 1 = Pending, 2 = Approved, 3 = Rejected.
+  
+  ## Resposta Esperada (200 OK)
+  ```json
+  {
+    "id": "uuid-da-review",
+    "status": 2
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Status devolvido com sucesso
+  - **404**: Avaliação não existe
+}

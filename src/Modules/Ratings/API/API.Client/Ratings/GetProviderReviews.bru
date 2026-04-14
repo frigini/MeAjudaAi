@@ -1,0 +1,41 @@
+meta {
+  name: Get Provider Reviews
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/ratings/provider/{{providerId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get Provider Reviews
+  
+  Retorna todas as avaliações aprovadas de um prestador de serviços.
+  
+  ## Autorização
+  - **Pública**
+  - **Requer token**: Não
+  
+  ## Parâmetros Path
+  - `providerId` (guid): ID do prestador (Obrigatório)
+  
+  ## Resposta Esperada (200 OK)
+  ```json
+  [
+    {
+      "id": "uuid-da-review",
+      "rating": 5,
+      "comment": "Muito bom!",
+      "createdAt": "2026-04-13T10:00:00Z",
+      "customerId": "uuid-do-cliente"
+    }
+  ]
+  ```
+}

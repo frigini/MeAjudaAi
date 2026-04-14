@@ -35,11 +35,11 @@ public class GetServicesByCategoryEndpoint : BaseEndpoint, IEndpoint
 
     private static async Task<IResult> GetByCategoryAsync(
         Guid categoryId,
-        [AsParameters] GetServicesByCategoryQuery query,
+        [FromQuery] bool? activeOnly,
         IQueryDispatcher queryDispatcher,
         CancellationToken cancellationToken)
     {
-        var queryWithCategory = query with { CategoryId = categoryId };
+        var queryWithCategory = new GetServicesByCategoryQuery(categoryId, activeOnly ?? false);
         var result = await queryDispatcher.QueryAsync<GetServicesByCategoryQuery, Result<IReadOnlyList<ServiceListDto>>>(queryWithCategory, cancellationToken);
         return Handle(result);
     }

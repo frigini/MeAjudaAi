@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Communications.API;
 using MeAjudaAi.Modules.Documents.API;
 using MeAjudaAi.Modules.Locations.API;
 using MeAjudaAi.Modules.Providers.API;
+using MeAjudaAi.Modules.Ratings.API;
 using MeAjudaAi.Modules.SearchProviders.API;
 using MeAjudaAi.Modules.ServiceCatalogs.API;
 using MeAjudaAi.Modules.Users.API;
@@ -49,6 +50,7 @@ public partial class Program
             builder.Services.AddLocationsModule(builder.Configuration);
             builder.Services.AddServiceCatalogsModule(builder.Configuration);
             builder.Services.AddCommunicationsModule(builder.Configuration);
+            builder.Services.AddRatingsModule(builder.Configuration, builder.Environment);
 
             // Shared services por último (GlobalExceptionHandler atua como fallback)
             builder.Services.AddSharedServices(builder.Configuration);
@@ -133,6 +135,7 @@ public partial class Program
         app.UseLocationsModule();
         app.UseServiceCatalogsModule();
         app.UseCommunicationsModule();
+        app.UseRatingsModule();
 
         // Endpoints de orquestração cross-módulo (ficam no ApiService)
         app.MapProviderRegistrationEndpoints();

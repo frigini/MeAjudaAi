@@ -34,7 +34,10 @@ describe('useServices Hook (Admin)', () => {
     
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toHaveLength(1);
-    expect(api.apiCategoryGet).toHaveBeenCalledWith({ path: { categoryId: 'cat-123' } });
+    expect(api.apiCategoryGet).toHaveBeenCalledWith({ 
+      path: { categoryId: 'cat-123' },
+      query: { activeOnly: false }
+    });
   });
 
   it('deve buscar serviço por ID', async () => {

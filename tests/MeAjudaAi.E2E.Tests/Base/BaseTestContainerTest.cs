@@ -3,8 +3,10 @@ using Bogus;
 using MeAjudaAi.ApiService;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Tests.Mocks;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
@@ -14,6 +16,7 @@ using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
+using MeAjudaAi.E2E.Tests.Base.Helpers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -42,6 +45,12 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     private static PostgreSqlContainer? _postgresContainer;
     private static RedisContainer? _redisContainer;
     private static AzuriteContainer? _azuriteContainer;
+
+    /// <summary>
+    /// Sobrescreva em classes derivadas para habilitar o message bus em memória síncrono e eventos de domínio.
+    /// Usado para testes que dependem de eventos de integração entre módulos (ex: Ratings -> SearchProviders).
+    /// </summary>
+    protected virtual bool EnableEventsAndMessageBus => false;
 
     // Locking for thread-safe initialization
     private static readonly SemaphoreSlim _initializationLock = new(1, 1);
@@ -142,6 +151,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                         ["ConnectionStrings:meajudaai-db"] = _postgresContainer!.GetConnectionString(),
                         ["ConnectionStrings:UsersDb"] = _postgresContainer!.GetConnectionString(),
                         ["ConnectionStrings:ProvidersDb"] = _postgresContainer!.GetConnectionString(),
+                        ["ConnectionStrings:RatingsDb"] = _postgresContainer!.GetConnectionString(),
                         ["ConnectionStrings:DocumentsDb"] = _postgresContainer!.GetConnectionString(),
                         ["ConnectionStrings:Redis"] = _redisContainer!.GetConnectionString(),
                         ["Azure:Storage:ConnectionString"] = _azuriteContainer!.GetConnectionString(),
@@ -155,7 +165,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                         ["ExternalServices:Keycloak:Enabled"] = "false",
                         ["ExternalServices:PaymentGateway:Enabled"] = "false",
                         ["ExternalServices:Geolocation:Enabled"] = "false",
-                        ["Cache:Enabled"] = "false", // Desabilitar Redis por enquanto
+                        ["Cache:Enabled"] = "false",
                         ["Cache:ConnectionString"] = _redisContainer!.GetConnectionString(),
                         // Desabilitar completamente Rate Limiting nos testes E2E
                         ["AdvancedRateLimit:General:Enabled"] = "false",
@@ -191,8 +201,11 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                     // Reconfigurar todos os DbContexts com TestContainer connection string
                     ReconfigureDbContext<UsersDbContext>(services);
                     ReconfigureDbContext<ProvidersDbContext>(services);
+                    ReconfigureDbContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
                     ReconfigureDbContext<DocumentsDbContext>(services);
                     ReconfigureDbContext<ServiceCatalogsDbContext>(services);
+                    ReconfigureDbContext<LocationsDbContext>(services);
+                    ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
                     ReconfigureSearchProvidersDbContext(services);
 
                     // Configurar PostgresOptions e Dapper para SearchProviders
@@ -239,24 +252,16 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 
                     services.AddScoped<IBlobStorageService, MockBlobStorageService>();
 
-                    // Substituir IMessageBus por MockMessageBus para testes (RabbitMQ desabilitado)
-                    // Remover TODAS as implementações existentes de IMessageBus e adicionar o mock
-                    var messageBusDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Messaging.IMessageBus)).ToList();
-                    foreach (var descriptor in messageBusDescriptors)
+                    if (EnableEventsAndMessageBus)
                     {
-                        services.Remove(descriptor);
+                        ReplaceService<MeAjudaAi.Shared.Messaging.IMessageBus, MeAjudaAi.E2E.Tests.Infrastructure.SynchronousInMemoryMessageBus>(services, ServiceLifetime.Singleton);
+                        ReplaceService<MeAjudaAi.Shared.Events.IDomainEventProcessor, MeAjudaAi.Shared.Events.DomainEventProcessor>(services, ServiceLifetime.Scoped);
                     }
-                    
-                    // Adicionar como Singleton com factory para injetar IServiceProvider
-                    services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MockMessageBus>();
-
-                    // Substituir IDomainEventProcessor por um mock que não processa eventos
-                    var domainEventProcessorDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Events.IDomainEventProcessor)).ToList();
-                    foreach (var descriptor in domainEventProcessorDescriptors)
+                    else
                     {
-                        services.Remove(descriptor);
+                        ReplaceService<MeAjudaAi.Shared.Messaging.IMessageBus, MockMessageBus>(services, ServiceLifetime.Singleton);
+                        ReplaceService<MeAjudaAi.Shared.Events.IDomainEventProcessor, MockDomainEventProcessor>(services, ServiceLifetime.Scoped);
                     }
-                    services.AddScoped<MeAjudaAi.Shared.Events.IDomainEventProcessor, MockDomainEventProcessor>();
 
                     // Remove todas as configurações de autenticação existentes
                     var authDescriptors = services
@@ -344,50 +349,96 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             if (_migrationsApplied) return;
 
             using var scope = _factory.Services.CreateScope();
+            var services = scope.ServiceProvider;
 
-            // Garantir que o banco está limpo primeiro se necessário
-            var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-            await usersContext.Database.EnsureDeletedAsync();
-
-            // 1. Users (Core)
-            await usersContext.Database.MigrateAsync();
-
-            // 2. ServiceCatalogs (Critical Prerequisite for Providers)
-            var catalogsContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
-            await catalogsContext.Database.MigrateAsync();
-
-            // 3. Providers (Depends on ServiceCatalogs)
-            var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
-            await providersContext.Database.MigrateAsync();
-
-            // 4. Documents
-            var documentsContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
-            await documentsContext.Database.MigrateAsync();
-
-            // 5. Locations
-            var locationsContext = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
-            await locationsContext.Database.MigrateAsync();
+            // Apply migrations for all DbContexts using helper
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<UsersDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<ServiceCatalogsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<ProvidersDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<RatingsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<DocumentsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<LocationsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<CommunicationsDbContext>());
 
             // 6. SearchProviders (Depends on Providers + PostGIS)
-            try
+            var searchContext = scope.ServiceProvider.GetService<SearchProvidersDbContext>();
+            if (searchContext != null)
             {
-                var searchContext = scope.ServiceProvider.GetService<SearchProvidersDbContext>();
-                if (searchContext != null)
-                {
-                    await searchContext.Database.MigrateAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                // Log but rethrow to avoid masking issues
-                throw new Exception($"Failed to apply SearchProviders migrations: {ex.Message}", ex);
+                await MigrationTestHelper.ApplyMigrationForContext(searchContext);
             }
 
             _migrationsApplied = true;
         }
+        catch (Exception ex)
+        {
+            throw new Exception($"Failed to apply migrations: {ex.Message}", ex);
+        }
         finally
         {
             _migrationLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Limpa todas as tabelas de todos os contextos registrados e o cache do Redis para garantir isolamento entre testes.
+    /// </summary>
+    /// <remarks>
+    /// Este método não é chamado automaticamente pelo <see cref="InitializeAsync"/> ou <see cref="DisposeAsync"/>.
+    /// Deve ser invocado explicitamente por testes derivados quando o isolamento do teste exigir a limpeza do estado 
+    /// do banco de dados e do Redis.
+    /// <para>
+    /// Uso típico: Chamada no início ou no final de um teste ou fixture, por exemplo: <c>await CleanupDatabaseAsync();</c>
+    /// </para>
+    /// <para>
+    /// Efeitos colaterais: Limpa todos os <c>DbContexts</c> registrados via <see cref="CleanupContext{T}"/> 
+    /// e executa um <c>FLUSHALL</c> no Redis se <c>_redisContainer</c> estiver disponível.
+    /// </para>
+    /// </remarks>
+    protected async Task CleanupDatabaseAsync()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var services = scope.ServiceProvider;
+
+        await CleanupContext<UsersDbContext>(services);
+        await CleanupContext<ProvidersDbContext>(services);
+        await CleanupContext<DocumentsDbContext>(services);
+        await CleanupContext<ServiceCatalogsDbContext>(services);
+        await CleanupContext<LocationsDbContext>(services);
+        await CleanupContext<CommunicationsDbContext>(services);
+        await CleanupContext<SearchProvidersDbContext>(services);
+        await CleanupContext<RatingsDbContext>(services);
+
+        if (_redisContainer != null)
+        {
+            await _redisContainer.ExecAsync(new[] { "redis-cli", "FLUSHALL" });
+        }
+    }
+
+    private static async Task CleanupContext<TContext>(IServiceProvider services) where TContext : DbContext
+    {
+        var context = services.GetRequiredService<TContext>();
+        var tableNames = new List<string>();
+
+        foreach (var entityType in context.Model.GetEntityTypes())
+        {
+            var tableName = entityType.GetTableName();
+            var schema = entityType.GetSchema();
+
+            if (!string.IsNullOrEmpty(tableName))
+            {
+                var qualifiedTableName = string.IsNullOrEmpty(schema) || schema == "public"
+                    ? $"\"{tableName}\""
+                    : $"\"{schema}\".\"{tableName}\"";
+                
+                tableNames.Add(qualifiedTableName);
+            }
+        }
+
+        if (tableNames.Count > 0)
+        {
+            var uniqueTables = tableNames.Distinct().ToList();
+            var batchSql = $"TRUNCATE TABLE {string.Join(", ", uniqueTables)} CASCADE";
+            await context.Database.ExecuteSqlRawAsync(batchSql);
         }
     }
 
@@ -523,17 +574,24 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     /// </summary>
     private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext
     {
+        var contextName = typeof(TContext).Name;
         var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
         if (descriptor != null)
             services.Remove(descriptor);
 
         services.AddDbContext<TContext>(options =>
         {
-            options.UseNpgsql(_postgresContainer.GetConnectionString())
-                   .UseSnakeCaseNamingConvention()
-                   .EnableSensitiveDataLogging(true)  // Useful for test debugging
-                   .ConfigureWarnings(warnings =>
-                       warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            options.UseNpgsql(_postgresContainer!.GetConnectionString(), npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));
+                npgsqlOptions.MigrationsAssembly(typeof(TContext).Assembly.FullName);
+                npgsqlOptions.UseNetTopologySuite();
+                npgsqlOptions.CommandTimeout(120);
+            })
+            .UseSnakeCaseNamingConvention()
+            .EnableSensitiveDataLogging(true)
+            .ConfigureWarnings(warnings =>
+                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
     }
 
@@ -605,7 +663,8 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         var response = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
         if (response.StatusCode != HttpStatusCode.Created)
         {
-            throw new InvalidOperationException($"Failed to create test user. Status: {response.StatusCode}");
+            var body = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"Failed to create test user. Status: {response.StatusCode}, Body: {body}");
         }
 
         var locationHeader = response.Headers.Location?.ToString();
@@ -638,39 +697,18 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     }
 
     /// <summary>
-    /// Mock implementation of IMessageBus for E2E tests.
-    /// Does not process events to avoid deadlocks - tests should use APIs directly.
+    /// Helper para substituir um serviço existente na IServiceCollection.
     /// </summary>
-    private class MockMessageBus : MeAjudaAi.Shared.Messaging.IMessageBus
+    protected static void ReplaceService<TService, TImplementation>(IServiceCollection services, ServiceLifetime lifetime)
+        where TImplementation : class, TService
     {
-        public Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
+        var descriptors = services.Where(d => d.ServiceType == typeof(TService)).ToList();
+        foreach (var descriptor in descriptors)
         {
-            return Task.CompletedTask;
+            services.Remove(descriptor);
         }
 
-        public Task PublishAsync<TMessage>(TMessage @event, string? topicName = null, CancellationToken cancellationToken = default)
-        {
-            // No-op: E2E tests should trigger actions via HTTP APIs, not via events
-            return Task.CompletedTask;
-        }
-
-        public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task> handler, string? subscriptionName = null, CancellationToken cancellationToken = default)
-        {
-            // No-op: subscriptions are not actually created in E2E tests
-            return Task.CompletedTask;
-        }
-    }
-
-    /// <summary>
-    /// Mock implementation of IDomainEventProcessor for E2E tests
-    /// Does not process domain events to avoid integration event publication
-    /// </summary>
-    private class MockDomainEventProcessor : MeAjudaAi.Shared.Events.IDomainEventProcessor
-    {
-        public Task ProcessDomainEventsAsync(IEnumerable<MeAjudaAi.Shared.Events.IDomainEvent> domainEvents, CancellationToken cancellationToken = default)
-        {
-            // No-op: domain events are not processed in E2E tests to avoid integration event publication
-            return Task.CompletedTask;
-        }
+        var newDescriptor = new ServiceDescriptor(typeof(TService), typeof(TImplementation), lifetime);
+        services.Add(newDescriptor);
     }
 }

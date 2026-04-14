@@ -37,6 +37,7 @@ public static class ServiceCollectionExtensions
         // Serilog configurado no Program.cs do ApiService
 
         services.AddPostgres(configuration);
+        services.AddDapper();
         services.AddCaching(configuration);
 
         // Só adiciona messaging se não estiver em ambiente de teste

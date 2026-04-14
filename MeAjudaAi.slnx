@@ -84,6 +84,22 @@
   <Folder Name="/src/Modules/Providers/Tests/">
     <Project Path="src/Modules/Providers/Tests/MeAjudaAi.Modules.Providers.Tests.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Ratings/" />
+  <Folder Name="/src/Modules/Ratings/API/">
+    <Project Path="src/Modules/Ratings/API/MeAjudaAi.Modules.Ratings.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Ratings/Application/">
+    <Project Path="src/Modules/Ratings/Application/MeAjudaAi.Modules.Ratings.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Ratings/Domain/">
+    <Project Path="src/Modules/Ratings/Domain/MeAjudaAi.Modules.Ratings.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Ratings/Infrastructure/">
+    <Project Path="src/Modules/Ratings/Infrastructure/MeAjudaAi.Modules.Ratings.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Ratings/Tests/">
+    <Project Path="src/Modules/Ratings/Tests/MeAjudaAi.Modules.Ratings.Tests.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/SearchProviders/" />
   <Folder Name="/src/Modules/SearchProviders/API/">
     <Project Path="src/Modules/SearchProviders/API/MeAjudaAi.Modules.SearchProviders.API.csproj" />
