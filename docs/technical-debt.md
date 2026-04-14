@@ -39,10 +39,6 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 
 ## 🔗 GitHub Issues - Débitos Técnicos Sincronizados
 
-### 🔐 [ISSUE #141] Reintegrar login social com Instagram via Keycloak OIDC
-**Severidade**: BAIXA (feature parity)
-**Status**: ✅ OTIMIZADO (Sprint 10)
-**Resolução**: Configurado como generic OIDC e sincronizado entre os realms `dev` e `prod`.
 
 
 ### 🚀 [ISSUE #112] tech: aguardar versão stable do Aspire.Hosting.Keycloak
