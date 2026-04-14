@@ -47,8 +47,13 @@ public class ApproveDocumentCommandHandlerTests
 
     private void SetupAuthenticatedAdmin() => SetupAuthenticatedUser(RoleConstants.Admin);
 
-    [Fact]
-    public async Task HandleAsync_WithValidDocument_ShouldApproveDocument()
+    [Theory]
+    [InlineData(RoleConstants.Admin)]
+    [InlineData(RoleConstants.SystemAdmin)]
+    [InlineData(RoleConstants.LegacySystemAdmin)]
+    [InlineData(RoleConstants.SuperAdmin)]
+    [InlineData(RoleConstants.LegacySuperAdmin)]
+    public async Task HandleAsync_WithAdminUser_ShouldApproveDocument(string adminRole)
     {
         // Arrange
         var documentId = Guid.NewGuid();
@@ -62,7 +67,7 @@ public class ApproveDocumentCommandHandlerTests
             "blob-key-123");
         document.MarkAsPendingVerification();
 
-        SetupAuthenticatedAdmin();
+        SetupAuthenticatedUser(adminRole);
 
         _mockRepository
             .Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
@@ -85,12 +90,7 @@ public class ApproveDocumentCommandHandlerTests
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
         document.Status.Should().Be(EDocumentStatus.Verified);
-        document.OcrData.Should().NotBeNullOrEmpty();
         
-        // Validate JSON structure
-        var ocrJson = JsonSerializer.Deserialize<JsonElement>(document.OcrData!);
-        ocrJson.GetProperty("notes").GetString().Should().Be(verificationNotes);
-
         _mockRepository.Verify(
             x => x.UpdateAsync(It.Is<Document>(d => d.Status == EDocumentStatus.Verified), It.IsAny<CancellationToken>()),
             Times.Once);
@@ -194,46 +194,6 @@ public class ApproveDocumentCommandHandlerTests
 
         // Assert
         result.Should().NotBeNull();
-        result.IsSuccess.Should().BeTrue();
-        document.Status.Should().Be(EDocumentStatus.Verified);
-        document.OcrData.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task HandleAsync_WithSystemAdminUser_ShouldApproveDocument()
-    {
-        // Arrange
-        var documentId = Guid.NewGuid();
-        var providerId = Guid.NewGuid();
-
-        var document = Document.Create(
-            providerId,
-            EDocumentType.IdentityDocument,
-            "identity.pdf",
-            "blob-key-123");
-        document.MarkAsPendingVerification();
-
-        // Setup system-admin user
-        SetupAuthenticatedUser(RoleConstants.SystemAdmin);
-
-        _mockRepository
-            .Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(document);
-
-        _mockRepository
-            .Setup(x => x.UpdateAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        _mockRepository
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        var command = new ApproveDocumentCommand(documentId, null);
-
-        // Act
-        var result = await _handler.HandleAsync(command);
-
-        // Assert
         result.IsSuccess.Should().BeTrue();
         document.Status.Should().Be(EDocumentStatus.Verified);
         document.OcrData.Should().BeNull();

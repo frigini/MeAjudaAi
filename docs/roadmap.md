@@ -52,7 +52,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## ✅ Concluído Recentemente
 
-*   **Sprint 10**: Módulo de Ratings, Moderação de Conteúdo, Login Social Instagram (#141) e Alinhamento de Realms Keycloak.
+*   **Sprint 10**: Módulo de Ratings, Moderação de Conteúdo, Login Social Instagram (#141), Alinhamento de Realms Keycloak, Infra CI/CD (OpenAPI gating) e Documentação (coleções Bruno).
 *   **Sprint 9**: Estabilização global, Módulo de Comunicações (Infra), Resiliência (`CancellationToken`) e Localização Backend (.resx).
 *   **Sprint 8D/8E**: Migração completa do Admin Portal para React e Testes E2E com Playwright.
 

@@ -61,9 +61,7 @@ public class UploadDocumentCommandHandler(
             if (!Guid.TryParse(userId, out var userGuid) || userGuid != command.ProviderId)
             {
                 // Verificar se o usuário possui o papel de administrador
-                var isAdmin = user.IsInRole(RoleConstants.Admin) || 
-                              user.IsInRole(RoleConstants.SystemAdmin) ||
-                              user.IsInRole(RoleConstants.LegacySystemAdmin);
+                var isAdmin = RoleConstants.AdminEquivalentRoles.Any(user.IsInRole);
                 if (!isAdmin)
                 {
                     _logger.LogWarning(

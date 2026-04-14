@@ -49,9 +49,7 @@ public class RejectDocumentCommandHandler(
             if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
                 throw new UnauthorizedAccessException("User is not authenticated");
 
-            var isAdmin = user.IsInRole(RoleConstants.Admin) || 
-                          user.IsInRole(RoleConstants.SystemAdmin) ||
-                          user.IsInRole(RoleConstants.LegacySystemAdmin);
+            var isAdmin = RoleConstants.AdminEquivalentRoles.Any(user.IsInRole);
             if (!isAdmin)
             {
                 var userId = user.FindFirst("sub")?.Value ?? user.FindFirst("id")?.Value;

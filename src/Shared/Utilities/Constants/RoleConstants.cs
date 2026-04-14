@@ -40,4 +40,25 @@ public static class RoleConstants
     // Roles legadas para compatibilidade (remover após transição completa)
     public const string LegacySystemAdmin = "system-admin";
     public const string LegacySuperAdmin = "super-admin";
+
+    /// <summary>
+    /// Lista de roles equivalentes a administrador para verificações de segurança.
+    /// </summary>
+    public static readonly string[] AdminEquivalentRoles = 
+    [
+        Admin,
+        SystemAdmin,
+        SuperAdmin,
+        LegacySystemAdmin,
+        LegacySuperAdmin
+    ];
+
+    /// <summary>
+    /// Lista de roles equivalentes a super-administrador.
+    /// </summary>
+    public static readonly string[] SuperAdminEquivalentRoles = 
+    [
+        SuperAdmin,
+        LegacySuperAdmin
+    ];
 }

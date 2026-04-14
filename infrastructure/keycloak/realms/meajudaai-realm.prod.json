@@ -41,7 +41,7 @@
       },
       {
         "name": "meajudaai-system-admin",
-        "description": "Administrador do sistema - todas as permissÃµes"
+        "description": "Administrador do sistema - todas as permissões"
       },
       {
         "name": "meajudaai-super-admin",
@@ -131,7 +131,7 @@
     {
       "alias": "instagram",
       "displayName": "Instagram",
-      "providerId": "instagram",
+      "providerId": "oidc",
       "enabled": true,
       "trustEmail": false,
       "storeToken": false,
@@ -140,7 +140,12 @@
       "firstBrokerLoginFlowAlias": "first broker login",
       "config": {
         "clientId": "${INSTAGRAM_CLIENT_ID}",
-        "clientSecret": "${INSTAGRAM_CLIENT_SECRET}"
+        "clientSecret": "${INSTAGRAM_CLIENT_SECRET}",
+        "issuer": "https://api.instagram.com",
+        "authorizationUrl": "https://api.instagram.com/oauth/authorize",
+        "tokenUrl": "https://api.instagram.com/oauth/access_token",
+        "userInfoUrl": "https://graph.instagram.com/me",
+        "logoutUrl": "https://api.instagram.com/oauth/logout"
       }
     }
   ],
@@ -192,7 +197,7 @@
       "publicClient": true,
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": true,
+      "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "protocol": "openid-connect",
       "redirectUris": [
@@ -232,7 +237,7 @@
       "publicClient": true,
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": true,
+      "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "protocol": "openid-connect",
       "redirectUris": [
@@ -282,5 +287,18 @@
       "authorizationServicesEnabled": false
     }
   ],
-  "users": []
+  "users": [
+    {
+      "username": "service-account-meajudaai-api-service",
+      "enabled": true,
+      "serviceAccountClientId": "meajudaai-api-service",
+      "clientRoles": {
+        "realm-management": [
+          "realm-admin",
+          "manage-users",
+          "view-realm"
+        ]
+      }
+    }
+  ]
 }

@@ -124,8 +124,13 @@ public class RequestVerificationCommandHandlerTests
         _mockRepository.Verify(x => x.UpdateAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
-    [Fact]
-    public async Task HandleAsync_WithAdminUser_ShouldAllowVerificationForAnyDocument()
+    [Theory]
+    [InlineData(RoleConstants.Admin)]
+    [InlineData(RoleConstants.SystemAdmin)]
+    [InlineData(RoleConstants.LegacySystemAdmin)]
+    [InlineData(RoleConstants.SuperAdmin)]
+    [InlineData(RoleConstants.LegacySuperAdmin)]
+    public async Task HandleAsync_WithAdminUser_ShouldAllowVerificationForAnyDocument(string adminRole)
     {
         // Arrange
         var documentId = Guid.NewGuid();
@@ -143,7 +148,7 @@ public class RequestVerificationCommandHandlerTests
         {
             new Claim("sub", adminUserId.ToString()),
             new Claim(ClaimTypes.Name, "admin-user"),
-            new Claim(ClaimTypes.Role, RoleConstants.Admin)
+            new Claim(ClaimTypes.Role, adminRole)
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         httpContext.User = new ClaimsPrincipal(identity);
