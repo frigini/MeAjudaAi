@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Ratings.Application.Commands;
 using MeAjudaAi.Modules.Ratings.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Contracts.Modules.Ratings.DTOs;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -41,19 +42,16 @@ public static class RatingsEndpoints
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
-        // Pega o CustomerId do token (UserId) com fallback (sub -> id -> NameIdentifier)
-        var customerIdClaimValue = httpContext.User.FindFirst("sub")?.Value 
-                                   ?? httpContext.User.FindFirst("id")?.Value
-                                   ?? httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var customerId = ClaimHelpers.GetUserIdGuid(httpContext);
 
-        if (string.IsNullOrEmpty(customerIdClaimValue) || !Guid.TryParse(customerIdClaimValue, out var customerId))
+        if (customerId == null)
         {
             return Results.Unauthorized();
         }
 
         var command = new CreateReviewCommand(
             request.ProviderId,
-            customerId,
+            customerId.Value,
             request.Rating,
             request.Comment);
 
@@ -83,9 +81,15 @@ public static class RatingsEndpoints
     private static async Task<IResult> GetProviderReviewsAsync(
         Guid providerId,
         [FromServices] IReviewRepository repository,
-        CancellationToken cancellationToken)
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken cancellationToken = default)
     {
-        var reviews = await repository.GetByProviderIdAsync(providerId, cancellationToken);
+        // Enforce limits
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize > 100 ? 100 : pageSize;
+
+        var reviews = await repository.GetByProviderIdAsync(providerId, page, pageSize, cancellationToken);
         
         var result = reviews.Select(r => new ProviderReviewResponse(
             r.Id.Value,

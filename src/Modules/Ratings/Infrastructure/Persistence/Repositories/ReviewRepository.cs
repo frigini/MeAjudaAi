@@ -28,11 +28,13 @@ public class ReviewRepository(RatingsDbContext context) : IReviewRepository
         return await context.Reviews.FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
-    public async Task<IEnumerable<Review>> GetByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Review>> GetByProviderIdAsync(Guid providerId, int page = 1, int pageSize = 10, CancellationToken cancellationToken = default)
     {
         return await context.Reviews
             .Where(r => r.ProviderId == providerId && r.Status == EReviewStatus.Approved)
             .OrderByDescending(r => r.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync(cancellationToken);
     }
 

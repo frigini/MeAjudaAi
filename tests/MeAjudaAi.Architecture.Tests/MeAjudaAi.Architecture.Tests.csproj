@@ -31,6 +31,12 @@
     <ProjectReference Include="..\..\src\Modules\Users\Application\MeAjudaAi.Modules.Users.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Users\Infrastructure\MeAjudaAi.Modules.Users.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Users\API\MeAjudaAi.Modules.Users.API.csproj" />
+    
+    <ProjectReference Include="..\..\src\Modules\Ratings\Domain\MeAjudaAi.Modules.Ratings.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Ratings\Application\MeAjudaAi.Modules.Ratings.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Ratings\Infrastructure\MeAjudaAi.Modules.Ratings.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Ratings\API\MeAjudaAi.Modules.Ratings.API.csproj" />
+
     <ProjectReference Include="..\..\src\Shared\MeAjudaAi.Shared.csproj" />
     <ProjectReference Include="..\..\src\Bootstrapper\MeAjudaAi.ApiService\MeAjudaAi.ApiService.csproj" />
   </ItemGroup>

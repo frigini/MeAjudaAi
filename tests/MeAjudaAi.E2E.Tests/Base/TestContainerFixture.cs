@@ -7,7 +7,7 @@ using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Serialization;
-using Moq;
+using MeAjudaAi.E2E.Tests.Base.Helpers;
 using Microsoft.AspNetCore.Hosting;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -43,6 +43,12 @@ public class TestContainerFixture : IAsyncLifetime
     public string RedisConnectionString { get; private set; } = null!;
     public string AzuriteConnectionString { get; private set; } = null!;
     public Faker Faker { get; } = new();
+
+    /// <summary>
+    /// Define se o sistema de mensagens síncrono e processamento de eventos devem estar ativos.
+    /// Por padrão é falso para isolar testes unitários/E2E simples.
+    /// </summary>
+    public virtual bool EnableEventsAndMessageBus => false;
 
     public static System.Text.Json.JsonSerializerOptions JsonOptions => SerializationDefaults.Api;
 
@@ -171,7 +177,7 @@ public class TestContainerFixture : IAsyncLifetime
                         ["Keycloak:ClientSecret"] = "test-secret",
                         ["Keycloak:AdminUsername"] = "test-admin",
                         ["Keycloak:AdminPassword"] = "test-password",
-                        ["Cache:Enabled"] = "true",
+                        ["Cache:Enabled"] = "false", // Sincronizado com BaseTestContainerTest
                         ["Cache:ConnectionString"] = RedisConnectionString,
                         ["AdvancedRateLimit:General:Enabled"] = "false",
                         ["AdvancedRateLimit:Anonymous:RequestsPerMinute"] = "10000",
@@ -245,10 +251,25 @@ public class TestContainerFixture : IAsyncLifetime
             services.Remove(ocrDescriptor);
         services.AddSingleton<IDocumentIntelligenceService, MockDocumentIntelligenceService>();
 
+        // Message Bus Condicional para E2E
         var busDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(MeAjudaAi.Shared.Messaging.IMessageBus));
         if (busDescriptor != null)
             services.Remove(busDescriptor);
-        services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MeAjudaAi.E2E.Tests.Infrastructure.SynchronousInMemoryMessageBus>();
+
+        var domainProcessorDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(MeAjudaAi.Shared.Events.IDomainEventProcessor));
+        if (domainProcessorDescriptor != null)
+            services.Remove(domainProcessorDescriptor);
+
+        if (EnableEventsAndMessageBus)
+        {
+            services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MeAjudaAi.E2E.Tests.Infrastructure.SynchronousInMemoryMessageBus>();
+            services.AddScoped<MeAjudaAi.Shared.Events.IDomainEventProcessor, MeAjudaAi.Shared.Events.DomainEventProcessor>();
+        }
+        else
+        {
+            services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MockMessageBus>();
+            services.AddScoped<MeAjudaAi.Shared.Events.IDomainEventProcessor, MockDomainEventProcessor>();
+        }
     }
 
     private void ReconfigureDbContexts(IServiceCollection services)
@@ -293,7 +314,7 @@ public class TestContainerFixture : IAsyncLifetime
         {
             options.UseNpgsql(PostgresConnectionString, npgsqlOptions =>
             {
-                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", GetSchemaName(contextName));
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));
                 npgsqlOptions.MigrationsAssembly(typeof(TContext).Assembly.FullName);
                 npgsqlOptions.UseNetTopologySuite();
                 npgsqlOptions.CommandTimeout(120);
@@ -304,23 +325,7 @@ public class TestContainerFixture : IAsyncLifetime
                 warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
     }
-
-    private static string GetSchemaName(string contextName)
-    {
-        return contextName switch
-        {
-            "UsersDbContext" => "users",
-            "ProvidersDbContext" => "providers",
-            "DocumentsDbContext" => "documents",
-            "ServiceCatalogsDbContext" => "service_catalogs",
-            "LocationsDbContext" => "locations",
-            "CommunicationsDbContext" => "communications",
-            "SearchProvidersDbContext" => "search_providers",
-            "RatingsDbContext" => "ratings",
-            _ => "public"
-        };
-    }
-
+...
     private async Task ApplyMigrationsAsync()
     {
         using var scope = _factory.Services.CreateScope();
@@ -328,14 +333,14 @@ public class TestContainerFixture : IAsyncLifetime
 
         try
         {
-            await ApplyMigrationForContext<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>(services);
-            await ApplyMigrationForContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
-            await ApplyMigrationForContext<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>(services);
-            await ApplyMigrationForContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services);
-            await ApplyMigrationForContext<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
-            await ApplyMigrationForContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
-            await ApplyMigrationForContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
-            await ApplyMigrationForContext<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>(services);
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<MeAjudaAi.Modules.Ratings.Infrastructure.Persistence.RatingsDbContext>());
 
             Console.WriteLine("✅ Database migrations applied successfully");
         }
@@ -344,20 +349,6 @@ public class TestContainerFixture : IAsyncLifetime
             Console.WriteLine($"❌ Error applying migrations: {ex.Message}");
             throw;
         }
-    }
-
-    private static async Task ApplyMigrationForContext<TContext>(IServiceProvider services) where TContext : DbContext
-    {
-        var context = services.GetRequiredService<TContext>();
-        
-        // Ensure schema exists before migrating
-        var schema = GetSchemaName(typeof(TContext).Name);
-        if (schema != "public")
-        {
-            await context.Database.ExecuteSqlRawAsync($"CREATE SCHEMA IF NOT EXISTS \"{schema}\";");
-        }
-        
-        await context.Database.MigrateAsync();
     }
 
     public async Task CleanupDatabaseAsync()

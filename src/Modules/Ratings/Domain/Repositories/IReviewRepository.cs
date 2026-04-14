@@ -10,7 +10,7 @@ public interface IReviewRepository
 {
     Task AddAsync(Review review, CancellationToken cancellationToken = default);
     Task<Review?> GetByIdAsync(ReviewId id, CancellationToken cancellationToken = default);
-    Task<IEnumerable<Review>> GetByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Review>> GetByProviderIdAsync(Guid providerId, int page = 1, int pageSize = 10, CancellationToken cancellationToken = default);
     Task UpdateAsync(Review review, CancellationToken cancellationToken = default);
     
     /// <summary>

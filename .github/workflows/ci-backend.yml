@@ -344,7 +344,9 @@ jobs:
             # Gera o spec a partir do build da base
             cd ../base-branch
             export ASPNETCORE_ENVIRONMENT=Testing
-            dotnet build src/Bootstrapper/MeAjudaAi.ApiService/MeAjudaAi.ApiService.csproj -c Release
+            dotnet build src/Bootstrapper/MeAjudaAi.ApiService/MeAjudaAi.ApiService.csproj \
+              -c Release \
+              -p:GenerateDocumentationFile=true
             
             swagger tofile \
               --output $GITHUB_WORKSPACE/api-base.json \
@@ -363,7 +365,6 @@ jobs:
 
       - name: Check for Breaking Changes
         uses: oasdiff/oasdiff-action/breaking@v0.0.39
-        continue-on-error: true # Permite que o pipeline continue mesmo com quebras de contrato (Auditoria)
         with:
           base: 'api-base.json'
           revision: 'api-current/api-spec.json'

@@ -16,6 +16,7 @@ using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
+using MeAjudaAi.E2E.Tests.Base.Helpers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -164,7 +165,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                         ["ExternalServices:Keycloak:Enabled"] = "false",
                         ["ExternalServices:PaymentGateway:Enabled"] = "false",
                         ["ExternalServices:Geolocation:Enabled"] = "false",
-                        ["Cache:Enabled"] = "false", // Desabilitar Redis por enquanto
+                        ["Cache:Enabled"] = "false",
                         ["Cache:ConnectionString"] = _redisContainer!.GetConnectionString(),
                         // Desabilitar completamente Rate Limiting nos testes E2E
                         ["AdvancedRateLimit:General:Enabled"] = "false",
@@ -348,50 +349,29 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             if (_migrationsApplied) return;
 
             using var scope = _factory.Services.CreateScope();
+            var services = scope.ServiceProvider;
 
-            // 1. Users (Core)
-            var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-            await ApplyMigrationForContext(usersContext);
-
-            // 2. ServiceCatalogs (Critical Prerequisite for Providers)
-            var catalogsContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
-            await ApplyMigrationForContext(catalogsContext);
-
-            // 3. Providers (Depends on ServiceCatalogs)
-            var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
-            await ApplyMigrationForContext(providersContext);
-
-            // 3.1 Ratings (Depends on Providers)
-            var ratingsContext = scope.ServiceProvider.GetRequiredService<RatingsDbContext>();
-            await ApplyMigrationForContext(ratingsContext);
-
-            // 4. Documents
-            var documentsContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
-            await ApplyMigrationForContext(documentsContext);
-
-            // 5. Locations
-            var locationsContext = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
-            await ApplyMigrationForContext(locationsContext);
-
-            // 5.1 Communications
-            var communicationsContext = scope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
-            await ApplyMigrationForContext(communicationsContext);
+            // Apply migrations for all DbContexts using helper
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<UsersDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<ServiceCatalogsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<ProvidersDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<RatingsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<DocumentsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<LocationsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<CommunicationsDbContext>());
 
             // 6. SearchProviders (Depends on Providers + PostGIS)
-            try
+            var searchContext = scope.ServiceProvider.GetService<SearchProvidersDbContext>();
+            if (searchContext != null)
             {
-                var searchContext = scope.ServiceProvider.GetService<SearchProvidersDbContext>();
-                if (searchContext != null)
-                {
-                    await ApplyMigrationForContext(searchContext);
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to apply SearchProviders migrations: {ex.Message}", ex);
+                await MigrationTestHelper.ApplyMigrationForContext(searchContext);
             }
 
             _migrationsApplied = true;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Failed to apply migrations: {ex.Message}", ex);
         }
         finally
         {
@@ -401,14 +381,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
 
     private static async Task ApplyMigrationForContext(DbContext context)
     {
-        // Ensure schema exists before migrating
-        var schema = GetSchemaName(context.GetType().Name);
-        if (schema != "public")
-        {
-            await context.Database.ExecuteSqlRawAsync($"CREATE SCHEMA IF NOT EXISTS \"{schema}\";");
-        }
-        
-        await context.Database.MigrateAsync();
+        await MigrationTestHelper.ApplyMigrationForContext(context);
     }
 
     /// <summary>
@@ -589,22 +562,6 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     protected async Task<HttpResponseMessage> PutJsonAsync<T>(Uri requestUri, T content)
         => await PutJsonAsync(requestUri.ToString(), content);
 
-    private static string GetSchemaName(string contextName)
-    {
-        return contextName switch
-        {
-            "UsersDbContext" => "users",
-            "ProvidersDbContext" => "providers",
-            "DocumentsDbContext" => "documents",
-            "ServiceCatalogsDbContext" => "service_catalogs",
-            "LocationsDbContext" => "locations",
-            "CommunicationsDbContext" => "communications",
-            "SearchProvidersDbContext" => "search_providers",
-            "RatingsDbContext" => "ratings",
-            _ => "public"
-        };
-    }
-
     /// <summary>
     /// Reconfigura um DbContext para usar a connection string do TestContainer
     /// </summary>
@@ -619,7 +576,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         {
             options.UseNpgsql(_postgresContainer!.GetConnectionString(), npgsqlOptions =>
             {
-                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", GetSchemaName(contextName));
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));
                 npgsqlOptions.MigrationsAssembly(typeof(TContext).Assembly.FullName);
                 npgsqlOptions.UseNetTopologySuite();
                 npgsqlOptions.CommandTimeout(120);
