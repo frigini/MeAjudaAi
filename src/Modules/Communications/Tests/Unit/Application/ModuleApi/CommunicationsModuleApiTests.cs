@@ -205,8 +205,15 @@ public class CommunicationsModuleApiTests
         // Act
         var result = await _api.GetLogsAsync(null!);
 
-        // Assert
         result.IsSuccess.Should().BeFalse();
+        _logRepositoryMock.Verify(x => x.SearchAsync(
+            It.IsAny<string?>(),
+            It.IsAny<string?>(),
+            It.IsAny<string?>(),
+            It.IsAny<bool?>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Theory]

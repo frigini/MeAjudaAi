@@ -7,14 +7,14 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 ## 📊 Status Atual (Abril 2026)
 
 **Sprint Atual**: 10 (Qualidade & Onboarding)
-**Status**: ✅ Concluída
+**Status**: 🚧 Em andamento
 **Meta MVP**: 12 - 16 de Maio de 2026
 
 **Stack Principal**: .NET 10 LTS + Aspire 13 + PostgreSQL + NX Monorepo + React 19 + Next.js 15 + Tailwind v4
 
 ---
 
-## 🚀 Sprint 10 - Qualidade & Onboarding (12 Abr - 26 Abr 2026) ✅ [CONCLUÍDO]
+## 🚀 Sprint 10 - Qualidade & Onboarding (12 Abr - 26 Abr 2026) 🚧 [EM ANDAMENTO]
 
 **Objetivo**: Estabelecer confiança na plataforma através de avaliações e simplificar o acesso de novos prestadores.
 

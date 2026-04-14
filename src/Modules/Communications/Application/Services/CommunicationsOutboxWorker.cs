@@ -70,7 +70,14 @@ internal sealed class CommunicationsOutboxWorker : BackgroundService
                 _logger.LogError(ex, "Error occurred while processing communications outbox.");
             }
 
-            await Task.Delay(_checkInterval, stoppingToken);
+            try
+            {
+                await Task.Delay(_checkInterval, stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
         }
 
         _logger.LogInformation("Communications Outbox Worker stopped.");
