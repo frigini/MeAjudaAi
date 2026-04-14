@@ -4,8 +4,8 @@ using MeAjudaAi.Shared.Events;
 namespace MeAjudaAi.E2E.Tests.Base;
 
 /// <summary>
-/// Mock implementation of IMessageBus for E2E tests.
-/// Does not process events to avoid deadlocks - tests should use APIs directly.
+/// Implementação mock de IMessageBus para testes E2E.
+/// Não processa eventos para evitar deadlocks - os testes devem usar as APIs diretamente.
 /// </summary>
 internal class MockMessageBus : IMessageBus
 {
@@ -16,26 +16,26 @@ internal class MockMessageBus : IMessageBus
 
     public Task PublishAsync<TMessage>(TMessage @event, string? topicName = null, CancellationToken cancellationToken = default)
     {
-        // No-op: E2E tests should trigger actions via HTTP APIs, not via events
+        // No-op: testes E2E devem disparar ações via APIs HTTP, não via eventos
         return Task.CompletedTask;
     }
 
     public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task> handler, string? subscriptionName = null, CancellationToken cancellationToken = default)
     {
-        // No-op: subscriptions are not actually created in E2E tests
+        // No-op: assinaturas não são realmente criadas em testes E2E
         return Task.CompletedTask;
     }
 }
 
 /// <summary>
-/// Mock implementation of IDomainEventProcessor for E2E tests
-/// Does not process domain events to avoid integration event publication
+/// Implementação mock de IDomainEventProcessor usada em testes E2E;
+/// não processa eventos de domínio para evitar publicação de eventos de integração.
 /// </summary>
 internal class MockDomainEventProcessor : IDomainEventProcessor
 {
     public Task ProcessDomainEventsAsync(IEnumerable<IDomainEvent> domainEvents, CancellationToken cancellationToken = default)
     {
-        // No-op: domain events are not processed in E2E tests to avoid integration event publication
+        // No-op: eventos de domínio não são processados em testes E2E para evitar publicação de eventos de integração
         return Task.CompletedTask;
     }
 }

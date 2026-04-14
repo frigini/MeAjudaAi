@@ -1,7 +1,9 @@
 using MeAjudaAi.Modules.Ratings.Application.Commands;
 using MeAjudaAi.Modules.Ratings.Domain.Repositories;
+using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Contracts.Modules.Ratings.DTOs;
+using MeAjudaAi.Contracts.Contracts.Modules.Ratings.Enums;
 using MeAjudaAi.Shared.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -30,6 +32,11 @@ public static class RatingsEndpoints
             .Produces(StatusCodes.Status404NotFound)
             .AllowAnonymous();
 
+        group.MapGet("/{id:guid}/status", GetReviewStatusAsync)
+            .WithName("GetReviewStatus")
+            .Produces<ReviewStatusResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound);
+
         group.MapGet("/provider/{providerId:guid}", GetProviderReviewsAsync)
             .WithName("GetProviderReviews")
             .Produces<IEnumerable<ProviderReviewResponse>>(StatusCodes.Status200OK)
@@ -57,16 +64,17 @@ public static class RatingsEndpoints
 
         var reviewId = await handler.HandleAsync(command, cancellationToken);
 
-        return Results.Created($"/api/v1/ratings/{reviewId}", reviewId);
+        // Location points to the status endpoint as reviews require moderation before being visible publically
+        return Results.Created($"/api/v1/ratings/{reviewId}/status", reviewId);
     }
-
 
     private static async Task<IResult> GetReviewByIdAsync(
         Guid id,
         [FromServices] IReviewRepository repository,
         CancellationToken cancellationToken)
     {
-        var review = await repository.GetByIdAsync(id, cancellationToken);
+        // Explicitly cast to ReviewId for clarity
+        var review = await repository.GetByIdAsync((ReviewId)id, cancellationToken);
         
         if (review == null || review.Status != MeAjudaAi.Modules.Ratings.Domain.Enums.EReviewStatus.Approved) 
             return Results.NotFound();
@@ -76,6 +84,22 @@ public static class RatingsEndpoints
             review.Rating,
             review.Comment,
             review.CreatedAt));
+    }
+
+    private static async Task<IResult> GetReviewStatusAsync(
+        Guid id,
+        [FromServices] IReviewRepository repository,
+        CancellationToken cancellationToken)
+    {
+        // Explicitly cast to ReviewId for clarity
+        var review = await repository.GetByIdAsync((ReviewId)id, cancellationToken);
+        
+        if (review == null) 
+            return Results.NotFound();
+
+        return Results.Ok(new ReviewStatusResponse(
+            review.Id.Value, 
+            (EReviewStatus)(int)review.Status));
     }
 
     private static async Task<IResult> GetProviderReviewsAsync(
@@ -99,5 +123,4 @@ public static class RatingsEndpoints
 
         return Results.Ok(result);
     }
-
 }

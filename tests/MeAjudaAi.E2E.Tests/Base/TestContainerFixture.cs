@@ -236,29 +236,24 @@ public class TestContainerFixture : IAsyncLifetime
             services.AddAuthorization();
         }
         
-        var keycloakDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IKeycloakService));
-        if (keycloakDescriptor != null)
-            services.Remove(keycloakDescriptor);
+        var keycloakDescriptors = services.Where(d => d.ServiceType == typeof(IKeycloakService)).ToList();
+        foreach (var d in keycloakDescriptors) services.Remove(d);
         services.AddSingleton<IKeycloakService, MockKeycloakService>();
 
-        var blobDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IBlobStorageService));
-        if (blobDescriptor != null)
-            services.Remove(blobDescriptor);
+        var blobDescriptors = services.Where(d => d.ServiceType == typeof(IBlobStorageService)).ToList();
+        foreach (var d in blobDescriptors) services.Remove(d);
         services.AddSingleton<IBlobStorageService, MockBlobStorageService>();
 
-        var ocrDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IDocumentIntelligenceService));
-        if (ocrDescriptor != null)
-            services.Remove(ocrDescriptor);
+        var ocrDescriptors = services.Where(d => d.ServiceType == typeof(IDocumentIntelligenceService)).ToList();
+        foreach (var d in ocrDescriptors) services.Remove(d);
         services.AddSingleton<IDocumentIntelligenceService, MockDocumentIntelligenceService>();
 
         // Message Bus Condicional para E2E
-        var busDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(MeAjudaAi.Shared.Messaging.IMessageBus));
-        if (busDescriptor != null)
-            services.Remove(busDescriptor);
+        var busDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Messaging.IMessageBus)).ToList();
+        foreach (var d in busDescriptors) services.Remove(d);
 
-        var domainProcessorDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(MeAjudaAi.Shared.Events.IDomainEventProcessor));
-        if (domainProcessorDescriptor != null)
-            services.Remove(domainProcessorDescriptor);
+        var domainProcessorDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Events.IDomainEventProcessor)).ToList();
+        foreach (var d in domainProcessorDescriptors) services.Remove(d);
 
         if (EnableEventsAndMessageBus)
         {
