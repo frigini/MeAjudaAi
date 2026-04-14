@@ -14,7 +14,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ---
 
-## 💰 Sprint 11 - Monetização & Polimento (27 Abr - 11 Mai 2026) 🚧 [EM ANDAMENTO]
+## 💰 Sprint 11 - Monetização & Polimento (13 Abr - 27 Abr 2026) 🚧 [EM ANDAMENTO]
 
 **Objetivo**: Habilitar o faturamento da plataforma e finalizar a experiência do usuário.
 
@@ -52,7 +52,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## ✅ Concluído Recentemente
 
-*   **Sprint 10**: Módulo de Ratings, Moderação de Conteúdo, Login Social Instagram (@issue #141) e Alinhamento de Realms Keycloak.
+*   **Sprint 10**: Módulo de Ratings, Moderação de Conteúdo, Login Social Instagram (#141) e Alinhamento de Realms Keycloak.
 *   **Sprint 9**: Estabilização global, Módulo de Comunicações (Infra), Resiliência (`CancellationToken`) e Localização Backend (.resx).
 *   **Sprint 8D/8E**: Migração completa do Admin Portal para React e Testes E2E com Playwright.
 

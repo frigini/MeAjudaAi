@@ -472,9 +472,16 @@ public static class SecurityExtensions
             .AddPolicy("SelfOrAdmin", policy =>
                 policy.AddRequirements(new SelfOrAdminRequirement()))
             .AddPolicy("AdminOnly", policy =>
-                policy.RequireRole("admin", "super-admin"))
+                policy.RequireRole(
+                    RoleConstants.Admin, 
+                    RoleConstants.SystemAdmin, 
+                    RoleConstants.SuperAdmin,
+                    RoleConstants.LegacySystemAdmin,
+                    RoleConstants.LegacySuperAdmin))
             .AddPolicy("SuperAdminOnly", policy =>
-                policy.RequireRole("super-admin"));
+                policy.RequireRole(
+                    RoleConstants.SuperAdmin,
+                    RoleConstants.LegacySuperAdmin));
 
         // Registra handlers de autorização customizados
         services.AddScoped<IAuthorizationHandler, SelfOrAdminHandler>();

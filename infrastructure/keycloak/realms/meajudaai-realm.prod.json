@@ -41,7 +41,11 @@
       },
       {
         "name": "meajudaai-system-admin",
-        "description": "Administrador do sistema - todas as permissões"
+        "description": "Administrador do sistema - todas as permissÃµes"
+      },
+      {
+        "name": "meajudaai-super-admin",
+        "description": "Super Administrador - acesso total irrestrito"
       },
       {
         "name": "meajudaai-user-admin",

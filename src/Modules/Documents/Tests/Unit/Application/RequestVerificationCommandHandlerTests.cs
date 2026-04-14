@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
 
@@ -142,7 +143,7 @@ public class RequestVerificationCommandHandlerTests
         {
             new Claim("sub", adminUserId.ToString()),
             new Claim(ClaimTypes.Name, "admin-user"),
-            new Claim(ClaimTypes.Role, "admin")
+            new Claim(ClaimTypes.Role, RoleConstants.Admin)
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         httpContext.User = new ClaimsPrincipal(identity);

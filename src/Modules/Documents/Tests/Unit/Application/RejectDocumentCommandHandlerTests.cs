@@ -35,7 +35,7 @@ public class RejectDocumentCommandHandlerTests
         var claims = new List<Claim>
         {
             new(AuthConstants.Claims.Subject, Guid.NewGuid().ToString()),
-            new(ClaimTypes.Role, "admin")
+            new(ClaimTypes.Role, RoleConstants.Admin)
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);

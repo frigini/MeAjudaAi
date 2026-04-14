@@ -45,7 +45,7 @@ public class ApproveDocumentCommandHandlerTests
         _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
     }
 
-    private void SetupAuthenticatedAdmin() => SetupAuthenticatedUser("admin");
+    private void SetupAuthenticatedAdmin() => SetupAuthenticatedUser(RoleConstants.Admin);
 
     [Fact]
     public async Task HandleAsync_WithValidDocument_ShouldApproveDocument()
@@ -214,7 +214,7 @@ public class ApproveDocumentCommandHandlerTests
         document.MarkAsPendingVerification();
 
         // Setup system-admin user
-        SetupAuthenticatedUser("system-admin");
+        SetupAuthenticatedUser(RoleConstants.SystemAdmin);
 
         _mockRepository
             .Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))

@@ -7,6 +7,7 @@ using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
@@ -48,7 +49,9 @@ public class RejectDocumentCommandHandler(
             if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
                 throw new UnauthorizedAccessException("User is not authenticated");
 
-            var isAdmin = user.IsInRole("admin") || user.IsInRole("system-admin");
+            var isAdmin = user.IsInRole(RoleConstants.Admin) || 
+                          user.IsInRole(RoleConstants.SystemAdmin) ||
+                          user.IsInRole(RoleConstants.LegacySystemAdmin);
             if (!isAdmin)
             {
                 var userId = user.FindFirst("sub")?.Value ?? user.FindFirst("id")?.Value;
