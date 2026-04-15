@@ -23,7 +23,7 @@ public static class RoleConstants
     public const string ProviderAdmin = "meajudaai-provider-admin";
     public const string Provider = "meajudaai-provider";
 
-    // Provider Tiers
+    // Níveis de Provedor
     public const string ProviderStandard = "meajudaai-provider-standard";
     public const string ProviderSilver = "meajudaai-provider-silver";
     public const string ProviderGold = "meajudaai-provider-gold";

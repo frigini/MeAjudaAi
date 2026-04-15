@@ -22,6 +22,18 @@ public class Subscription : AggregateRoot<Guid>
     /// <param name="amount">Valor monetário da assinatura.</param>
     public Subscription(Guid providerId, string planId, Money amount)
     {
+        if (providerId == Guid.Empty)
+            throw new ArgumentException("ProviderId cannot be empty.", nameof(providerId));
+
+        if (string.IsNullOrWhiteSpace(planId))
+            throw new ArgumentNullException(nameof(planId), "PlanId cannot be null or empty.");
+
+        if (amount == null)
+            throw new ArgumentNullException(nameof(amount), "Amount cannot be null.");
+
+        if (amount.Amount <= 0)
+            throw new ArgumentException("Amount must be greater than zero.", nameof(amount));
+
         ProviderId = providerId;
         PlanId = planId;
         Amount = amount;
@@ -39,6 +51,8 @@ public class Subscription : AggregateRoot<Guid>
     public void Activate(string externalSubscriptionId, DateTime startedAt, DateTime? expiresAt)
     {
         if (Status == ESubscriptionStatus.Active) return;
+        if (Status == ESubscriptionStatus.Canceled) return;
+        if (Status == ESubscriptionStatus.Expired) return;
 
         ExternalSubscriptionId = externalSubscriptionId;
         StartedAt = startedAt;
@@ -50,6 +64,7 @@ public class Subscription : AggregateRoot<Guid>
     public void Cancel()
     {
         if (Status == ESubscriptionStatus.Canceled) return;
+        if (Status == ESubscriptionStatus.Expired) return;
 
         Status = ESubscriptionStatus.Canceled;
         MarkAsUpdated();
@@ -58,6 +73,7 @@ public class Subscription : AggregateRoot<Guid>
     public void Expire()
     {
         if (Status == ESubscriptionStatus.Expired) return;
+        if (Status == ESubscriptionStatus.Canceled) return;
 
         Status = ESubscriptionStatus.Expired;
         MarkAsUpdated();

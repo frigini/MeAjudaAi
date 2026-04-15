@@ -178,7 +178,11 @@ public abstract class BaseApiTest : IAsyncLifetime
                     AddTestDbContext<LocationsDbContext>(services, "locations", "MeAjudaAi.Modules.Locations.Infrastructure");
                     AddTestDbContext<SearchProvidersDbContext>(services, "search_providers", "MeAjudaAi.Modules.SearchProviders.Infrastructure");
                     AddTestDbContext<CommunicationsDbContext>(services, "communications", "MeAjudaAi.Modules.Communications.Infrastructure");
-                    AddTestDbContext<PaymentsDbContext>(services, "payments", "MeAjudaAi.Modules.Payments.Infrastructure");
+
+                    if (RequiredModules.HasFlag(TestModule.Payments))
+                    {
+                        AddTestDbContext<PaymentsDbContext>(services, "payments", "MeAjudaAi.Modules.Payments.Infrastructure");
+                    }
 
                     services.AddDocumentsTestServices(useAzurite: false);
                     services.AddSingleton<IBackgroundJobService, MockBackgroundJobService>();

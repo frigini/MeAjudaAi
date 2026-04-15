@@ -13,8 +13,12 @@ public record Money
         if (string.IsNullOrWhiteSpace(currency))
             throw new ArgumentNullException(nameof(currency), "Currency cannot be null or empty.");
 
+        var normalized = currency.Trim().ToUpperInvariant();
+        if (normalized.Length != 3)
+            throw new ArgumentException("Currency must be a 3-character ISO code.", nameof(currency));
+
         Amount = amount;
-        Currency = currency;
+        Currency = normalized;
     }
 
     public static Money Zero(string currency = "BRL") => new(0, currency);

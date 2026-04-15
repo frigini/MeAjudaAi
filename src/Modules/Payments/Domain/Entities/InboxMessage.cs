@@ -12,7 +12,15 @@ public class InboxMessage
     public int MaxRetries { get; set; } = 5;
     public DateTime? NextAttemptAt { get; set; }
 
-    public InboxMessage() { }
+    private InboxMessage() { }
+
+    public static InboxMessage CreateEmpty() => new()
+    {
+        Id = Guid.NewGuid(),
+        Type = string.Empty,
+        Content = string.Empty,
+        CreatedAt = DateTime.UtcNow
+    };
 
     public InboxMessage(string type, string content)
     {

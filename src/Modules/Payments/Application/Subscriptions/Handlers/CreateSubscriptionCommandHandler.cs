@@ -36,9 +36,31 @@ public class CreateSubscriptionCommandHandler(
                 throw new SubscriptionCreationException("URL de checkout ausente no resultado do gateway.");
             }
 
-            await subscriptionRepository.AddAsync(subscription, cancellationToken);
+            try
+            {
+                await subscriptionRepository.AddAsync(subscription, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                if (!string.IsNullOrEmpty(result.ExternalSubscriptionId))
+                {
+                    try
+                    {
+                        await paymentGateway.CancelSubscriptionAsync(result.ExternalSubscriptionId, cancellationToken);
+                    }
+                    catch
+                    {
+                        // Ignore cleanup failure
+                    }
+                }
+                throw new SubscriptionCreationException("Erro ao persistir assinatura.", ex);
+            }
 
             return result.CheckoutUrl;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex) when (ex is not SubscriptionCreationException)
         {
