@@ -132,7 +132,7 @@
       "alias": "instagram",
       "displayName": "Instagram",
       "providerId": "facebook",
-      "_comment": "Nota: Suporte nativo ao Instagram removido no Keycloak 26.x. Utilizando o provedor do Facebook configurado para o Instagram Basic Display API.",
+      "_comment": "Nota: Suporte nativo ao Instagram removido no Keycloak 26.x. Utilizando o provedor do Facebook configurado para o Instagram Basic Display API (OAuth2 puro, sem OIDC).",
       "enabled": true,
       "trustEmail": false,
       "storeToken": false,
