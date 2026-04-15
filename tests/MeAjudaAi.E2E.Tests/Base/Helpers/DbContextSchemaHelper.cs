@@ -14,6 +14,7 @@ public static class DbContextSchemaHelper
             "CommunicationsDbContext" => "communications",
             "SearchProvidersDbContext" => "search_providers",
             "RatingsDbContext" => "ratings",
+            "PaymentsDbContext" => "payments",
             _ => "public"
         };
     }
