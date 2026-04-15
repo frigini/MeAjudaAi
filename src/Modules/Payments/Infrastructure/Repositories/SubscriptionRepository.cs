@@ -10,12 +10,15 @@ public class SubscriptionRepository(PaymentsDbContext context) : ISubscriptionRe
 {
     public async Task<Subscription?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await context.Subscriptions.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+        return await context.Subscriptions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 
     public async Task<Subscription?> GetActiveByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
         return await context.Subscriptions
+            .AsNoTracking()
             .Where(s => s.ProviderId == providerId && s.Status == ESubscriptionStatus.Active)
             .OrderByDescending(s => s.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);

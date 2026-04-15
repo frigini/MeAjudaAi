@@ -21,13 +21,13 @@ public class CreateSubscriptionEndpoint : IEndpoint
                 request.ProviderId,
                 request.PlanId,
                 request.Amount,
-                request.Currency ?? "BRL");
+                string.IsNullOrWhiteSpace(request.Currency) ? "BRL" : request.Currency);
 
             var checkoutUrl = await dispatcher.SendAsync<CreateSubscriptionCommand, string>(command, cancellationToken);
 
             return Results.Ok(new { checkoutUrl });
         })
-        .WithTags("Payments")
+        .WithTags(PaymentsEndpoints.Tag)
         .WithName("CreateSubscription")
         .WithSummary("Cria uma nova assinatura e retorna a URL do checkout.");
     }

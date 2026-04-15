@@ -78,7 +78,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
         var providerId = Guid.NewGuid();
         
         // 1. Create a pending subscription first
-        var createRequest = new { ProviderId = providerId, PlanId = "price_premium", Amount = 99.90m };
+        var createRequest = new { ProviderId = providerId, PlanId = "price_premium", Amount = 99.90m, Currency = "BRL" };
         var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/payments/subscriptions", createRequest, TestContainerFixture.JsonOptions);
         createResponse.EnsureSuccessStatusCode();
 
@@ -114,18 +114,38 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
 
         webhookResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // 3. Give the background worker a moment to process the Inbox
-        await Task.Delay(2000); 
+        // 3. Poll until the background worker processes the Inbox (max 10s)
+        await WaitForConditionAsync(async () =>
+        {
+            using var scope = _fixture.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
+            var sub = await dbContext.Subscriptions.AsNoTracking().FirstOrDefaultAsync(s => s.ProviderId == providerId);
+            return sub?.Status == ESubscriptionStatus.Active;
+        }, timeoutMs: 10000, intervalMs: 250);
 
-        // Assert - Verify subscription exists
+        // Assert - Verify subscription was activated with correct data
         await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<PaymentsDbContext>();
-            var subscription = await dbContext.Subscriptions.FirstOrDefaultAsync(s => s.ProviderId == providerId);
+            var subscription = await dbContext.Subscriptions.AsNoTracking().FirstOrDefaultAsync(s => s.ProviderId == providerId);
             
             subscription.Should().NotBeNull();
+            subscription!.Status.Should().Be(ESubscriptionStatus.Active);
+            subscription.ExternalSubscriptionId.Should().NotBeNullOrWhiteSpace();
         });
     }
 
     private record CheckoutResponse(string CheckoutUrl);
+
+    private static async Task WaitForConditionAsync(Func<Task<bool>> condition, int timeoutMs = 10000, int intervalMs = 250)
+    {
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        while (stopwatch.ElapsedMilliseconds < timeoutMs)
+        {
+            if (await condition()) return;
+            await Task.Delay(intervalMs);
+        }
+
+        throw new TimeoutException($"Condition was not met within {timeoutMs}ms.");
+    }
 }

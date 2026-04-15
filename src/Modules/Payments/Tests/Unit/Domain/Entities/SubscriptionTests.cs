@@ -24,6 +24,8 @@ public class SubscriptionTests
         subscription.Status.Should().Be(ESubscriptionStatus.Pending);
         subscription.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
         subscription.ExternalSubscriptionId.Should().BeNull();
+        subscription.StartedAt.Should().BeNull();
+        subscription.ExpiresAt.Should().BeNull();
     }
 
     [Fact]
@@ -33,15 +35,47 @@ public class SubscriptionTests
         var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
         var externalId = "sub_stripe_123";
         var startedAt = DateTime.UtcNow;
+        var expiresAt = DateTime.UtcNow.AddMonths(1);
 
         // Act
-        subscription.Activate(externalId, startedAt, null);
+        subscription.Activate(externalId, startedAt, expiresAt);
 
         // Assert
         subscription.Status.Should().Be(ESubscriptionStatus.Active);
         subscription.ExternalSubscriptionId.Should().Be(externalId);
         subscription.StartedAt.Should().Be(startedAt);
+        subscription.ExpiresAt.Should().Be(expiresAt);
         subscription.UpdatedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Activate_ShouldBeIdempotent_WhenAlreadyActive()
+    {
+        // Arrange
+        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        subscription.Activate("sub_123", DateTime.UtcNow, null);
+        var originalUpdatedAt = subscription.UpdatedAt;
+
+        // Act - Activate again
+        subscription.Activate("sub_456", DateTime.UtcNow.AddDays(1), null);
+
+        // Assert - Should be idempotent, not change
+        subscription.Status.Should().Be(ESubscriptionStatus.Active);
+        subscription.ExternalSubscriptionId.Should().Be("sub_123"); // Original value kept
+    }
+
+    [Fact]
+    public void Activate_ShouldAcceptNullExpiresAt()
+    {
+        // Arrange
+        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+
+        // Act
+        subscription.Activate("sub_123", DateTime.UtcNow, null);
+
+        // Assert
+        subscription.ExpiresAt.Should().BeNull();
+        subscription.Status.Should().Be(ESubscriptionStatus.Active);
     }
 
     [Fact]
@@ -50,6 +84,35 @@ public class SubscriptionTests
         // Arrange
         var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
         subscription.Activate("sub_123", DateTime.UtcNow, null);
+
+        // Act
+        subscription.Cancel();
+
+        // Assert
+        subscription.Status.Should().Be(ESubscriptionStatus.Canceled);
+        subscription.UpdatedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Cancel_ShouldBeIdempotent_WhenAlreadyCanceled()
+    {
+        // Arrange
+        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        subscription.Activate("sub_123", DateTime.UtcNow, null);
+        subscription.Cancel();
+
+        // Act - Cancel again
+        subscription.Cancel();
+
+        // Assert
+        subscription.Status.Should().Be(ESubscriptionStatus.Canceled);
+    }
+
+    [Fact]
+    public void Cancel_ShouldWorkFromPendingStatus()
+    {
+        // Arrange
+        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
 
         // Act
         subscription.Cancel();
@@ -70,18 +133,55 @@ public class SubscriptionTests
 
         // Assert
         subscription.Status.Should().Be(ESubscriptionStatus.Expired);
+        subscription.UpdatedAt.Should().NotBeNull();
     }
 
     [Fact]
-    public void UpdateStatus_ShouldChangeStatus()
+    public void Expire_ShouldBeIdempotent_WhenAlreadyExpired()
     {
         // Arrange
         var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        subscription.Activate("sub_123", DateTime.UtcNow, DateTime.UtcNow.AddMonths(1));
+        subscription.Expire();
 
         // Act
-        subscription.UpdateStatus(ESubscriptionStatus.PastDue);
+        subscription.Expire();
 
         // Assert
-        subscription.Status.Should().Be(ESubscriptionStatus.PastDue);
+        subscription.Status.Should().Be(ESubscriptionStatus.Expired);
+    }
+
+
+    [Fact]
+    public void FullLifecycle_Pending_Activate_Cancel()
+    {
+        // Arrange
+        var subscription = new Subscription(Guid.NewGuid(), "plan_full", Money.FromDecimal(199.90m, "USD"));
+
+        // Assert initial
+        subscription.Status.Should().Be(ESubscriptionStatus.Pending);
+
+        // Activate
+        subscription.Activate("sub_ext", DateTime.UtcNow, null);
+        subscription.Status.Should().Be(ESubscriptionStatus.Active);
+
+        // Cancel
+        subscription.Cancel();
+        subscription.Status.Should().Be(ESubscriptionStatus.Canceled);
+    }
+
+    [Fact]
+    public void FullLifecycle_Pending_Activate_Expire()
+    {
+        // Arrange
+        var subscription = new Subscription(Guid.NewGuid(), "plan_full", Money.FromDecimal(199.90m, "BRL"));
+
+        // Activate
+        subscription.Activate("sub_ext", DateTime.UtcNow, DateTime.UtcNow.AddMonths(6));
+        subscription.Status.Should().Be(ESubscriptionStatus.Active);
+
+        // Expire
+        subscription.Expire();
+        subscription.Status.Should().Be(ESubscriptionStatus.Expired);
     }
 }

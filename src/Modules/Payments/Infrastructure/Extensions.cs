@@ -28,10 +28,12 @@ public static class Extensions
 #pragma warning restore S2068
             }
 
-            if (!string.IsNullOrWhiteSpace(connStr))
+            if (string.IsNullOrWhiteSpace(connStr))
             {
-                options.UseNpgsql(connStr, m => m.MigrationsHistoryTable("__EFMigrationsHistory", "payments"));
+                throw new InvalidOperationException("Payments connection string is missing.");
             }
+
+            options.UseNpgsql(connStr, m => m.MigrationsHistoryTable("__EFMigrationsHistory", "payments"));
         });
 
         services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();

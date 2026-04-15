@@ -5,6 +5,8 @@ using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
 
+using MeAjudaAi.Modules.Payments.Application.Subscriptions.Exceptions;
+
 namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
 
 public class CreateSubscriptionCommandHandler(
@@ -24,7 +26,12 @@ public class CreateSubscriptionCommandHandler(
 
         if (!result.Success)
         {
-            throw new Exception($"Failed to create subscription: {result.ErrorMessage}");
+            throw new SubscriptionCreationException($"Failed to create subscription: {result.ErrorMessage}");
+        }
+
+        if (string.IsNullOrWhiteSpace(result.CheckoutUrl))
+        {
+            throw new SubscriptionCreationException("Checkout URL is missing from gateway result.");
         }
 
         // The checkout session doesn't create the subscription in Stripe yet,
@@ -33,6 +40,6 @@ public class CreateSubscriptionCommandHandler(
         
         await subscriptionRepository.AddAsync(subscription, cancellationToken);
 
-        return result.CheckoutUrl ?? throw new Exception("Checkout URL is missing.");
+        return result.CheckoutUrl;
     }
 }

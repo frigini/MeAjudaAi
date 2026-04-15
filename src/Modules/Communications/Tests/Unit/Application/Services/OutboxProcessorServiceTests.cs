@@ -201,6 +201,7 @@ public class OutboxProcessorServiceTests
         result.Should().Be(1);
         message.Status.Should().Be(EOutboxMessageStatus.Sent);
         _smsSenderMock.Verify(x => x.SendAsync(It.IsAny<SmsMessage>(), It.IsAny<CancellationToken>()), Times.Once);
+        _logRepositoryMock.Verify(x => x.AddAsync(It.Is<CommunicationLog>(l => l.IsSuccess), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -223,6 +224,7 @@ public class OutboxProcessorServiceTests
         result.Should().Be(1);
         message.Status.Should().Be(EOutboxMessageStatus.Sent);
         _pushSenderMock.Verify(x => x.SendAsync(It.IsAny<PushNotification>(), It.IsAny<CancellationToken>()), Times.Once);
+        _logRepositoryMock.Verify(x => x.AddAsync(It.Is<CommunicationLog>(l => l.IsSuccess), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

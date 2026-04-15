@@ -10,7 +10,6 @@ public class PaymentTransaction : BaseEntity
 
     public PaymentTransaction(Guid subscriptionId, Money amount)
     {
-        Id = Guid.NewGuid();
         SubscriptionId = subscriptionId;
         Amount = amount;
         Status = EPaymentStatus.Pending;
@@ -25,6 +24,9 @@ public class PaymentTransaction : BaseEntity
 
     public void Settle(string externalTransactionId)
     {
+        if (Status != EPaymentStatus.Pending)
+            throw new InvalidOperationException($"Cannot settle transaction in {Status} status.");
+
         ExternalTransactionId = externalTransactionId;
         Status = EPaymentStatus.Succeeded;
         ProcessedAt = DateTime.UtcNow;
@@ -33,6 +35,9 @@ public class PaymentTransaction : BaseEntity
 
     public void Fail()
     {
+        if (Status != EPaymentStatus.Pending)
+            throw new InvalidOperationException($"Cannot fail transaction in {Status} status.");
+
         Status = EPaymentStatus.Failed;
         ProcessedAt = DateTime.UtcNow;
         MarkAsUpdated();

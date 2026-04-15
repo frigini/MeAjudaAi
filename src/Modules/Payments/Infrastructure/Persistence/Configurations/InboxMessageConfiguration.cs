@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Payments.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -36,7 +36,17 @@ public class InboxMessageConfiguration : IEntityTypeConfiguration<InboxMessage>
         builder.Property(m => m.Error)
             .HasColumnName("error");
 
-        builder.HasIndex(m => m.ProcessedAt);
-        builder.HasIndex(m => m.CreatedAt);
+        builder.Property(m => m.RetryCount)
+            .HasDefaultValue(0)
+            .HasColumnName("retry_count");
+
+        builder.Property(m => m.MaxRetries)
+            .HasDefaultValue(5)
+            .HasColumnName("max_retries");
+
+        builder.Property(m => m.NextAttemptAt)
+            .HasColumnName("next_attempt_at");
+
+        builder.HasIndex(m => new { m.ProcessedAt, m.CreatedAt });
     }
 }

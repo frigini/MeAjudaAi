@@ -182,6 +182,8 @@ public abstract class BaseApiTest : IAsyncLifetime
 
                     services.AddDocumentsTestServices(useAzurite: false);
                     services.AddSingleton<IBackgroundJobService, MockBackgroundJobService>();
+                    var paymentGatewayDescriptors = services.Where(d => d.ServiceType == typeof(IPaymentGateway)).ToList();
+                    foreach (var descriptor in paymentGatewayDescriptors) services.Remove(descriptor);
                     services.AddScoped<IPaymentGateway, MockPaymentGateway>();
                     services.AddHttpContextAccessor();
 

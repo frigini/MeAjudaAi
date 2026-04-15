@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -7,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using MeAjudaAi.Shared.Endpoints;
 using Stripe;
+
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Payments.API.Endpoints.Public;
 
@@ -19,6 +22,7 @@ public class StripeWebhookEndpoint : IEndpoint
             [FromServices] IConfiguration configuration,
             [FromServices] IHostEnvironment environment,
             [FromServices] PaymentsDbContext dbContext,
+            [FromServices] ILogger<StripeWebhookEndpoint> logger,
             CancellationToken cancellationToken) =>
         {
             try
@@ -43,6 +47,12 @@ public class StripeWebhookEndpoint : IEndpoint
                     return Results.Ok();
                 }
 
+                if (string.IsNullOrWhiteSpace(webhookSecret))
+                {
+                    logger.LogError("Stripe:WebhookSecret is missing in configuration.");
+                    return Results.InternalServerError(new { error = "Webhook configuration error." });
+                }
+
                 var stripeEvent = EventUtility.ConstructEvent(
                     json,
                     stripeSignature,
@@ -55,15 +65,17 @@ public class StripeWebhookEndpoint : IEndpoint
             }
             catch (StripeException e)
             {
+                logger.LogWarning(e, "Stripe signature validation failed.");
                 return Results.BadRequest(new { error = e.Message });
             }
             catch (Exception e)
             {
-                return Results.InternalServerError(new { error = e.Message, stack = e.StackTrace });
+                logger.LogError(e, "Internal error processing Stripe webhook.");
+                return Results.InternalServerError(new { error = "Internal server error" });
             }
         })
         .AllowAnonymous()
-        .WithTags("Payments")
+        .WithTags(PaymentsEndpoints.Tag)
         .WithName("StripeWebhook")
         .WithSummary("Recebe webhooks do Stripe de forma assíncrona.");
     }

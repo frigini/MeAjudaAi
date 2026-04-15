@@ -27,7 +27,7 @@ public class ProcessInboxJob(
                 var subscriptionRepository = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
 
                 var messages = await dbContext.InboxMessages
-                    .Where(m => m.ProcessedAt == null)
+                    .Where(m => m.ProcessedAt == null && m.RetryCount < m.MaxRetries && (m.NextAttemptAt == null || m.NextAttemptAt <= DateTime.UtcNow))
                     .OrderBy(m => m.CreatedAt)
                     .Take(20)
                     .ToListAsync(stoppingToken);
@@ -46,11 +46,14 @@ public class ProcessInboxJob(
                         await ProcessStripeEventAsync(stripeEvent, subscriptionRepository, stoppingToken);
 
                         message.ProcessedAt = DateTime.UtcNow;
+                        message.Error = null;
                     }
                     catch (Exception ex)
                     {
                         logger.LogError(ex, "Error processing inbox message {Id}", message.Id);
                         message.Error = ex.Message;
+                        message.RetryCount++;
+                        message.NextAttemptAt = DateTime.UtcNow.AddMinutes(Math.Pow(2, message.RetryCount)); // Exponential backoff
                     }
                 }
 
@@ -82,7 +85,7 @@ public class ProcessInboxJob(
 
                     if (subscription.Status == ESubscriptionStatus.Active && subscription.ExternalSubscriptionId == session.SubscriptionId)
                     {
-                        // Already processed
+                        // Já processado
                         break;
                     }
 
@@ -106,6 +109,10 @@ public class ProcessInboxJob(
                         subscription.Cancel();
                         await repository.UpdateAsync(subscription, ct);
                         logger.LogInformation("Subscription {Id} canceled (external ID: {ExternalId})", subscription.Id, stripeSubscription.Id);
+                    }
+                    else
+                    {
+                        logger.LogWarning("Subscription not found for external ID: {ExternalId} (event: customer.subscription.deleted)", stripeSubscription.Id);
                     }
                 }
                 break;

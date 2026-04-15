@@ -10,7 +10,6 @@ public class Subscription : AggregateRoot<Guid>
 
     public Subscription(Guid providerId, string planId, Money amount)
     {
-        Id = Guid.NewGuid();
         ProviderId = providerId;
         PlanId = planId;
         Amount = amount;
@@ -28,6 +27,8 @@ public class Subscription : AggregateRoot<Guid>
 
     public void Activate(string externalSubscriptionId, DateTime startedAt, DateTime? expiresAt)
     {
+        if (Status == ESubscriptionStatus.Active) return;
+
         ExternalSubscriptionId = externalSubscriptionId;
         StartedAt = startedAt;
         ExpiresAt = expiresAt;
@@ -37,19 +38,19 @@ public class Subscription : AggregateRoot<Guid>
 
     public void Cancel()
     {
+        if (Status == ESubscriptionStatus.Canceled) return;
+
         Status = ESubscriptionStatus.Canceled;
         MarkAsUpdated();
     }
 
     public void Expire()
     {
+        if (Status == ESubscriptionStatus.Expired) return;
+
         Status = ESubscriptionStatus.Expired;
         MarkAsUpdated();
     }
 
-    public void UpdateStatus(ESubscriptionStatus newStatus)
-    {
-        Status = newStatus;
-        MarkAsUpdated();
-    }
+
 }

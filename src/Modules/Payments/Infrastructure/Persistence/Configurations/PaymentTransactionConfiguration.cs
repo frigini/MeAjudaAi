@@ -50,6 +50,9 @@ public class PaymentTransactionConfiguration : IEntityTypeConfiguration<PaymentT
             .IsRequired()
             .HasColumnName("created_at");
 
+        builder.Property(t => t.UpdatedAt)
+            .HasColumnName("updated_at");
+
         builder.Property(t => t.ProcessedAt)
             .HasColumnName("processed_at");
 

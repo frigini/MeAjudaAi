@@ -65,13 +65,13 @@ public class PaymentsApiTests : BaseApiTest
         var response = await Client.PostAsJsonAsync("/api/v1/payments/webhooks/stripe", webhookPayload);
 
         // Assert
-        if (response.StatusCode == HttpStatusCode.InternalServerError)
+        if (response.StatusCode != HttpStatusCode.OK)
         {
             var error = await response.Content.ReadAsStringAsync();
-            throw new Exception($"Webhook failed with 500. Error: {error}");
+            throw new Exception($"Webhook failed with {response.StatusCode}. Error: {error}");
         }
 
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     private record CheckoutResponse(string CheckoutUrl);

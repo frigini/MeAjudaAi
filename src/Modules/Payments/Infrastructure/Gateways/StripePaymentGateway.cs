@@ -3,16 +3,24 @@ using MeAjudaAi.Shared.Domain.ValueObjects;
 using Microsoft.Extensions.Configuration;
 using Stripe;
 using Stripe.Checkout;
+using Microsoft.Extensions.Logging;
+
 namespace MeAjudaAi.Modules.Payments.Infrastructure.Gateways;
 
 public class StripePaymentGateway : IPaymentGateway
 {
-    private readonly string _apiKey;
+    private readonly RequestOptions _requestOptions;
+    private readonly ILogger<StripePaymentGateway> _logger;
+    private readonly string _successUrl;
+    private readonly string _cancelUrl;
 
-    public StripePaymentGateway(IConfiguration configuration)
+    public StripePaymentGateway(IConfiguration configuration, ILogger<StripePaymentGateway> logger)
     {
-        _apiKey = configuration["Stripe:ApiKey"] ?? throw new ArgumentNullException("Stripe:ApiKey is missing");
-        StripeConfiguration.ApiKey = _apiKey;
+        var apiKey = configuration["Stripe:ApiKey"] ?? throw new ArgumentNullException("Stripe:ApiKey is missing");
+        _requestOptions = new RequestOptions { ApiKey = apiKey };
+        _logger = logger;
+        _successUrl = configuration["Payments:SuccessUrl"] ?? "https://meajudaai.com.br/payments/success?session_id={CHECKOUT_SESSION_ID}";
+        _cancelUrl = configuration["Payments:CancelUrl"] ?? "https://meajudaai.com.br/payments/cancel";
     }
 
     public async Task<SubscriptionGatewayResult> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, CancellationToken cancellationToken)
@@ -31,8 +39,8 @@ public class StripePaymentGateway : IPaymentGateway
                     },
                 ],
                 Mode = "subscription",
-                SuccessUrl = "https://meajudaai.com.br/payments/success?session_id={CHECKOUT_SESSION_ID}",
-                CancelUrl = "https://meajudaai.com.br/payments/cancel",
+                SuccessUrl = _successUrl,
+                CancelUrl = _cancelUrl,
                 Metadata = new Dictionary<string, string>
                 {
                     { "provider_id", providerId.ToString() }
@@ -40,12 +48,13 @@ public class StripePaymentGateway : IPaymentGateway
             };
 
             var service = new SessionService();
-            var session = await service.CreateAsync(options, cancellationToken: cancellationToken);
+            var session = await service.CreateAsync(options, _requestOptions, cancellationToken);
 
             return new SubscriptionGatewayResult(true, null, session.Url, null);
         }
         catch (StripeException ex)
         {
+            _logger.LogError(ex, "Stripe error creating subscription for Provider {ProviderId}", providerId);
             return new SubscriptionGatewayResult(false, null, null, ex.Message);
         }
     }
@@ -55,11 +64,12 @@ public class StripePaymentGateway : IPaymentGateway
         try
         {
             var service = new SubscriptionService();
-            await service.CancelAsync(externalSubscriptionId, cancellationToken: cancellationToken);
+            await service.CancelAsync(externalSubscriptionId, null, _requestOptions, cancellationToken);
             return true;
         }
-        catch (StripeException)
+        catch (StripeException ex)
         {
+            _logger.LogError(ex, "Stripe error canceling subscription {ExternalId}", externalSubscriptionId);
             return false;
         }
     }

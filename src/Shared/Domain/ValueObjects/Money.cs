@@ -1,7 +1,22 @@
 namespace MeAjudaAi.Shared.Domain.ValueObjects;
 
-public record Money(decimal Amount, string Currency)
+public record Money
 {
+    public decimal Amount { get; init; }
+    public string Currency { get; init; }
+
+    public Money(decimal amount, string currency)
+    {
+        if (amount < 0)
+            throw new ArgumentOutOfRangeException(nameof(amount), "Amount cannot be negative.");
+        
+        if (string.IsNullOrWhiteSpace(currency))
+            throw new ArgumentNullException(nameof(currency), "Currency cannot be null or empty.");
+
+        Amount = amount;
+        Currency = currency;
+    }
+
     public static Money Zero(string currency = "BRL") => new(0, currency);
 
     public static Money FromDecimal(decimal amount, string currency = "BRL") => new(amount, currency);
