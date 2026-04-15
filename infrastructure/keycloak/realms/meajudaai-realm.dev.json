@@ -130,7 +130,8 @@
                               },
                               {
                                   "trustEmail":  false,
-                                  "providerId":  "instagram",
+                                  "providerId":  "oidc",
+                                  "_comment": "Nota: O suporte nativo ao provedor Instagram foi removido no Keycloak 26.x. Utilizando OIDC genérico como alternativa conforme Issue #141.",
                                   "enabled":  true,
                                   "authenticateByDefault":  false,
                                   "storeToken":  false,
