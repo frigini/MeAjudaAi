@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -36,7 +37,7 @@ public class CreateSubscriptionEndpoint : IEndpoint
                 request.ProviderId,
                 request.PlanId,
                 request.Amount,
-                string.IsNullOrWhiteSpace(request.Currency) ? "BRL" : request.Currency);
+                string.IsNullOrWhiteSpace(request.Currency) ? Money.DefaultCurrency : request.Currency);
 
             var checkoutUrl = await dispatcher.SendAsync<CreateSubscriptionCommand, string>(command, cancellationToken);
 

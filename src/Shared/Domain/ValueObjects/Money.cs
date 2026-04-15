@@ -2,6 +2,8 @@ namespace MeAjudaAi.Shared.Domain.ValueObjects;
 
 public record Money
 {
+    public const string DefaultCurrency = "BRL";
+
     public decimal Amount { get; }
     public string Currency { get; }
 
@@ -21,9 +23,9 @@ public record Money
         Currency = normalized;
     }
 
-    public static Money Zero(string currency = "BRL") => new(0, currency);
+    public static Money Zero(string currency = DefaultCurrency) => new(0, currency);
 
-    public static Money FromDecimal(decimal amount, string currency = "BRL") => new(amount, currency);
+    public static Money FromDecimal(decimal amount, string currency = DefaultCurrency) => new(amount, currency);
 
     public override string ToString() => $"{Currency} {Amount:N2}";
 

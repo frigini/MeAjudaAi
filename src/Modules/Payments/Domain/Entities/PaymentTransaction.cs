@@ -28,7 +28,7 @@ public class PaymentTransaction : BaseEntity
             throw new InvalidOperationException($"Cannot settle transaction in {Status} status.");
 
         if (string.IsNullOrWhiteSpace(externalTransactionId))
-            throw new ArgumentException("ExternalTransactionId não pode ser vazio.", nameof(externalTransactionId));
+            throw new ArgumentException("ExternalTransactionId cannot be empty.", nameof(externalTransactionId));
 
         ExternalTransactionId = externalTransactionId;
         Status = EPaymentStatus.Succeeded;

@@ -27,6 +27,8 @@ public class ProcessInboxJob(
                 var subscriptionRepository = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
 
                 var messages = await dbContext.InboxMessages
+                    // NOTE: This SQL query must mirror InboxMessage.ShouldRetry logic
+                    // See: src/Modules/Payments/Domain/Entities/InboxMessage.cs - ShouldRetry property
                     .FromSqlRaw(@"
                         SELECT * FROM payments.inbox_messages
                         WHERE processed_at IS NULL 

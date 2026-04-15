@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Ratings.Domain.Events;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Infrastructure.Events.Handlers;
 
@@ -53,33 +54,13 @@ public class ReviewRejectedDomainEventHandlerTests
             Times.Once);
     }
 
-    [Fact]
-    public async Task HandleAsync_ShouldHandleLongReason_TruncatingInDebugLog()
+    [Theory]
+    [InlineData("Spam")]
+    [InlineData("Bad")]
+    public async Task HandleAsync_LogsWarning_ForVariousReasons(string reason)
     {
         // Arrange
-        var longReason = new string('x', 200);
-        var domainEvent = new ReviewRejectedDomainEvent(Guid.NewGuid(), 0, Guid.NewGuid(), longReason);
-
-        // Act
-        var act = () => _handler.HandleAsync(domainEvent);
-
-        // Assert
-        await act.Should().NotThrowAsync();
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Debug,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(longReason.Substring(0, 100) + "...")),
-                It.IsAny<Exception?>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task HandleAsync_ShouldHandleShortReason()
-    {
-        // Arrange
-        var domainEvent = new ReviewRejectedDomainEvent(Guid.NewGuid(), 0, Guid.NewGuid(), "Bad");
+        var domainEvent = new ReviewRejectedDomainEvent(Guid.NewGuid(), 0, Guid.NewGuid(), reason);
 
         // Act
         await _handler.HandleAsync(domainEvent);

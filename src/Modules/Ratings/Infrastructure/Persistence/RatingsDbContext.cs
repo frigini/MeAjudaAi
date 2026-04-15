@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Modules.Ratings.Domain.Entities;
 using MeAjudaAi.Modules.Ratings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
@@ -9,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
 
-[ExcludeFromCodeCoverage]
 public class RatingsDbContext : BaseDbContext
 {
     public RatingsDbContext(DbContextOptions<RatingsDbContext> options) 
