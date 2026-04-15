@@ -958,8 +958,7 @@
         "type": "Project",
         "dependencies": {
           "MeAjudaAi.Modules.Payments.Domain": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.6, )",
-          "Npgsql": "[10.0.2, )"
+          "Microsoft.EntityFrameworkCore": "[10.0.6, )"
         }
       },
       "meajudaai.modules.payments.domain": {
