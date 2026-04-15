@@ -177,7 +177,7 @@ public class ReviewRepositoryContractTests
         var (average, total) = await _repositoryMock.Object.GetAverageRatingForProviderAsync(providerId);
 
         // Assert
-        average.Should().Be(0);
+        average.Should().Be(0m);
         total.Should().Be(0);
     }
 

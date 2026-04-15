@@ -64,6 +64,11 @@ public class ProcessInboxJob(
 
                 await dbContext.SaveChangesAsync(stoppingToken);
             }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                logger.LogInformation("Inbox Processor for Payments stopping gracefully.");
+                return;
+            }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error in Inbox Processor loop");
@@ -78,42 +83,54 @@ public class ProcessInboxJob(
         {
             case "checkout.session.completed":
                 var session = stripeEvent.Data.Object as Session;
-                if (session?.Metadata.TryGetValue("provider_id", out var providerIdStr) == true &&
-                    Guid.TryParse(providerIdStr, out var providerId))
+                if (session == null)
                 {
-                    var subscription = await repository.GetLatestByProviderIdAsync(providerId, ct);
-                    if (subscription == null)
-                    {
-                        logger.LogWarning("Subscription not found for Provider {ProviderId}", providerId);
-                        break;
-                    }
-
-                    if (subscription.Status == ESubscriptionStatus.Active && subscription.ExternalSubscriptionId == session.SubscriptionId)
-                    {
-                        // Já processado
-                        break;
-                    }
-
-                    subscription.Activate(
-                        session.SubscriptionId, 
-                        DateTime.UtcNow, 
-                        null); 
-                    
-                    await repository.UpdateAsync(subscription, ct);
-                    logger.LogInformation("Subscription {Id} activated for Provider {ProviderId}", subscription.Id, providerId);
+                    logger.LogWarning("Session data is null for event {EventId}", stripeEvent.Id);
+                    throw new InvalidOperationException("Session data is missing from checkout.session.completed event");
                 }
+
+                if (!session.Metadata.TryGetValue("provider_id", out var providerIdStr) || 
+                    !Guid.TryParse(providerIdStr, out var providerId))
+                {
+                    logger.LogError(
+                        "Invalid or missing provider_id in checkout.session.completed event. SessionId: {SessionId}, Metadata: {Metadata}",
+                        session.Id,
+                        session.Metadata);
+                    throw new InvalidOperationException($"Invalid or missing provider_id in checkout.session.completed event. SessionId: {session.Id}");
+                }
+
+                var subscription = await repository.GetLatestByProviderIdAsync(providerId, ct);
+                if (subscription == null)
+                {
+                    logger.LogWarning("Subscription not found for Provider {ProviderId}", providerId);
+                    throw new InvalidOperationException($"Subscription not found for Provider {providerId}");
+                }
+
+                if (subscription.Status == ESubscriptionStatus.Active && subscription.ExternalSubscriptionId == session.SubscriptionId)
+                {
+                    logger.LogDebug("Subscription {Id} already active with same external ID, skipping", subscription.Id);
+                    break;
+                }
+
+                subscription.Activate(
+                    session.SubscriptionId, 
+                    DateTime.UtcNow, 
+                    null); 
+                
+                await repository.UpdateAsync(subscription, ct);
+                logger.LogInformation("Subscription {Id} activated for Provider {ProviderId}", subscription.Id, providerId);
                 break;
 
             case "customer.subscription.deleted":
                 var stripeSubscription = stripeEvent.Data.Object as Stripe.Subscription;
                 if (stripeSubscription != null)
                 {
-                    var subscription = await repository.GetByExternalIdAsync(stripeSubscription.Id, ct);
-                    if (subscription != null)
+                    var existingSubscription = await repository.GetByExternalIdAsync(stripeSubscription.Id, ct);
+                    if (existingSubscription != null)
                     {
-                        subscription.Cancel();
-                        await repository.UpdateAsync(subscription, ct);
-                        logger.LogInformation("Subscription {Id} canceled (external ID: {ExternalId})", subscription.Id, stripeSubscription.Id);
+                        existingSubscription.Cancel();
+                        await repository.UpdateAsync(existingSubscription, ct);
+                        logger.LogInformation("Subscription {Id} canceled (external ID: {ExternalId})", existingSubscription.Id, stripeSubscription.Id);
                     }
                     else
                     {
