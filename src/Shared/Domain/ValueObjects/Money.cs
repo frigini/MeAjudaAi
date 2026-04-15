@@ -2,8 +2,8 @@ namespace MeAjudaAi.Shared.Domain.ValueObjects;
 
 public record Money
 {
-    public decimal Amount { get; init; }
-    public string Currency { get; init; }
+    public decimal Amount { get; }
+    public string Currency { get; }
 
     public Money(decimal amount, string currency)
     {

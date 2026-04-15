@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
 using MeAjudaAi.Modules.Payments.Infrastructure.Gateways;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Infrastructure.Repositories;
+using MeAjudaAi.Shared.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +25,7 @@ public static class Extensions
             if (string.IsNullOrWhiteSpace(connStr) && MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
             {
 #pragma warning disable S2068
-                connStr = "Host=localhost;Port=5432;Database=meajudaai_test;Username=postgres;Password=test";
+                connStr = DatabaseConstants.DefaultTestConnectionString;
 #pragma warning restore S2068
             }
 

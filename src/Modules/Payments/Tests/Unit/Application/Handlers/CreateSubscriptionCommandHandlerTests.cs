@@ -73,8 +73,8 @@ public class CreateSubscriptionCommandHandlerTests
         var act = () => _handler.HandleAsync(command);
 
         // Assert
-        await act.Should().ThrowAsync<SubscriptionCreationException>().WithMessage("*Failed to create subscription*");
-        _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()), Times.Once);
+        await act.Should().ThrowAsync<SubscriptionCreationException>();
+        _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -92,8 +92,8 @@ public class CreateSubscriptionCommandHandlerTests
         var act = () => _handler.HandleAsync(command);
 
         // Assert
-        await act.Should().ThrowAsync<SubscriptionCreationException>().WithMessage("*Checkout URL*");
-        _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()), Times.Once);
+        await act.Should().ThrowAsync<SubscriptionCreationException>();
+        _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

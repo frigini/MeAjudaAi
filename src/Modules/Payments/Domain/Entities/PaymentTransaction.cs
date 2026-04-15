@@ -13,7 +13,7 @@ public class PaymentTransaction : BaseEntity
         SubscriptionId = subscriptionId;
         Amount = amount;
         Status = EPaymentStatus.Pending;
-        // CreatedAt is already in BaseEntity
+        // CreatedAt já está em BaseEntity
     }
 
     public Guid SubscriptionId { get; private set; }
@@ -26,6 +26,9 @@ public class PaymentTransaction : BaseEntity
     {
         if (Status != EPaymentStatus.Pending)
             throw new InvalidOperationException($"Cannot settle transaction in {Status} status.");
+
+        if (string.IsNullOrWhiteSpace(externalTransactionId))
+            throw new ArgumentException("ExternalTransactionId não pode ser vazio.", nameof(externalTransactionId));
 
         ExternalTransactionId = externalTransactionId;
         Status = EPaymentStatus.Succeeded;

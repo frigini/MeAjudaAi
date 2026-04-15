@@ -27,6 +27,7 @@ public class SubscriptionRepository(PaymentsDbContext context) : ISubscriptionRe
     public async Task<Subscription?> GetLatestByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
         return await context.Subscriptions
+            .AsNoTracking()
             .Where(s => s.ProviderId == providerId)
             .OrderByDescending(s => s.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
@@ -35,6 +36,7 @@ public class SubscriptionRepository(PaymentsDbContext context) : ISubscriptionRe
     public async Task<Subscription?> GetByExternalIdAsync(string externalSubscriptionId, CancellationToken cancellationToken = default)
     {
         return await context.Subscriptions
+            .AsNoTracking()
             .FirstOrDefaultAsync(s => s.ExternalSubscriptionId == externalSubscriptionId, cancellationToken);
     }
 

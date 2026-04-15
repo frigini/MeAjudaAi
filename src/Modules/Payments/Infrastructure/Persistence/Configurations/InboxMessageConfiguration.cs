@@ -47,6 +47,6 @@ public class InboxMessageConfiguration : IEntityTypeConfiguration<InboxMessage>
         builder.Property(m => m.NextAttemptAt)
             .HasColumnName("next_attempt_at");
 
-        builder.HasIndex(m => new { m.ProcessedAt, m.CreatedAt });
+        builder.HasIndex(m => new { m.ProcessedAt, m.NextAttemptAt, m.CreatedAt });
     }
 }

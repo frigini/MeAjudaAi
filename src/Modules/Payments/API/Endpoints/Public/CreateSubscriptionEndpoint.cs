@@ -17,6 +17,21 @@ public class CreateSubscriptionEndpoint : IEndpoint
             [FromServices] ICommandDispatcher dispatcher,
             CancellationToken cancellationToken) =>
         {
+            if (request.ProviderId == Guid.Empty)
+            {
+                return Results.BadRequest(new { error = "ProviderId inválido." });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.PlanId))
+            {
+                return Results.BadRequest(new { error = "PlanId inválido." });
+            }
+
+            if (request.Amount <= 0)
+            {
+                return Results.BadRequest(new { error = "Amount deve ser maior que zero." });
+            }
+
             var command = new CreateSubscriptionCommand(
                 request.ProviderId,
                 request.PlanId,

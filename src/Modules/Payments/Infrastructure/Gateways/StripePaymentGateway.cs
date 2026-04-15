@@ -34,7 +34,7 @@ public class StripePaymentGateway : IPaymentGateway
                 [
                     new SessionLineItemOptions
                     {
-                        Price = planId, // In Stripe, planId is often the Price ID
+                        Price = planId, // No Stripe, planId geralmente é o ID do Price
                         Quantity = 1,
                     },
                 ],

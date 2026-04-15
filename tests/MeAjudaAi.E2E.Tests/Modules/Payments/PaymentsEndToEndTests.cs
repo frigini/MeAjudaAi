@@ -71,7 +71,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
     }
 
     [Fact]
-    public async Task StripeWebhook_CheckoutSessionCompleted_Should_ActivateSubscription()
+    public async Task StripeWebhook_CheckoutSessionCompleted_Should_PersistToInbox()
     {
         // Arrange
         TestContainerFixture.AuthenticateAsAdmin();

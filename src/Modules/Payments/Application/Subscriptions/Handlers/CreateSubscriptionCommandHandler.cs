@@ -18,31 +18,31 @@ public class CreateSubscriptionCommandHandler(
         var amount = Money.FromDecimal(command.Amount, command.Currency);
         var subscription = new Subscription(command.ProviderId, command.PlanId, amount);
 
-        // Persistir primeiro em estado Pending para garantir consistência.
-        // Se a chamada ao gateway falhar depois, o registro local permanece como Pending
-        // e pode ser limpo ou reprocessado posteriormente.
-        await subscriptionRepository.AddAsync(subscription, cancellationToken);
-
-        var result = await paymentGateway.CreateSubscriptionAsync(
-            command.ProviderId,
-            command.PlanId,
-            amount,
-            cancellationToken);
-
-        if (!result.Success)
+        try
         {
-            throw new SubscriptionCreationException($"Failed to create subscription: {result.ErrorMessage}");
-        }
+            var result = await paymentGateway.CreateSubscriptionAsync(
+                command.ProviderId,
+                command.PlanId,
+                amount,
+                cancellationToken);
 
-        if (string.IsNullOrWhiteSpace(result.CheckoutUrl))
+            if (!result.Success)
+            {
+                throw new SubscriptionCreationException($"Falha ao criar assinatura: {result.ErrorMessage}");
+            }
+
+            if (string.IsNullOrWhiteSpace(result.CheckoutUrl))
+            {
+                throw new SubscriptionCreationException("URL de checkout ausente no resultado do gateway.");
+            }
+
+            await subscriptionRepository.AddAsync(subscription, cancellationToken);
+
+            return result.CheckoutUrl;
+        }
+        catch (Exception ex) when (ex is not SubscriptionCreationException)
         {
-            throw new SubscriptionCreationException("Checkout URL is missing from gateway result.");
+            throw new SubscriptionCreationException("Erro técnico ao criar assinatura.", ex);
         }
-
-        // A sessão de checkout não cria a assinatura no Stripe ainda,
-        // portanto normalmente não há ExternalSubscriptionId aqui.
-        // Ele será definido via Webhook quando o pagamento for concluído.
-
-        return result.CheckoutUrl;
     }
 }

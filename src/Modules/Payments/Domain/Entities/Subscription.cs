@@ -4,17 +4,28 @@ using MeAjudaAi.Shared.Domain;
 
 namespace MeAjudaAi.Modules.Payments.Domain.Entities;
 
+/// <summary>
+/// Representa uma assinatura de serviço de um provider.
+/// </summary>
+/// <remarks>
+/// CreatedAt está definido em BaseEntity.
+/// </remarks>
 public class Subscription : AggregateRoot<Guid>
 {
     private Subscription() { }
 
+    /// <summary>
+    /// Cria uma nova assinatura para um provider.
+    /// </summary>
+    /// <param name="providerId">Identificador único do provider.</param>
+    /// <param name="planId">Identificador do plano de assinatura.</param>
+    /// <param name="amount">Valor monetário da assinatura.</param>
     public Subscription(Guid providerId, string planId, Money amount)
     {
         ProviderId = providerId;
         PlanId = planId;
         Amount = amount;
         Status = ESubscriptionStatus.Pending;
-        // CreatedAt is in BaseEntity
     }
 
     public Guid ProviderId { get; private set; }

@@ -36,7 +36,7 @@ public class StripeWebhookEndpoint : IEndpoint
                     return Results.BadRequest(new { error = "Empty body" });
                 }
 
-                // In Testing environment, we might want to bypass signature validation
+                // No ambiente Testing, podemos ignorar a validação de assinatura
                 if (environment.IsEnvironment("Testing") && string.IsNullOrEmpty(stripeSignature))
                 {
                     // throwOnApiVersionMismatch: false para evitar erros em testes com payloads manuais
@@ -90,13 +90,7 @@ public class StripeWebhookEndpoint : IEndpoint
     {
         if (dbContext == null) throw new ArgumentNullException(nameof(dbContext));
 
-        var inboxMessage = new InboxMessage
-        {
-            Id = Guid.NewGuid(),
-            Type = type,
-            Content = content,
-            CreatedAt = DateTime.UtcNow
-        };
+        var inboxMessage = new InboxMessage(type, content);
 
         dbContext.InboxMessages.Add(inboxMessage);
         await dbContext.SaveChangesAsync(ct);

@@ -27,9 +27,14 @@ public class ProcessInboxJob(
                 var subscriptionRepository = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
 
                 var messages = await dbContext.InboxMessages
-                    .Where(m => m.ProcessedAt == null && m.RetryCount < m.MaxRetries && (m.NextAttemptAt == null || m.NextAttemptAt <= DateTime.UtcNow))
-                    .OrderBy(m => m.CreatedAt)
-                    .Take(20)
+                    .FromSqlRaw(@"
+                        SELECT * FROM payments.inbox_messages
+                        WHERE processed_at IS NULL 
+                        AND retry_count < max_retries 
+                        AND (next_attempt_at IS NULL OR next_attempt_at <= NOW())
+                        ORDER BY created_at
+                        LIMIT 20
+                        FOR UPDATE SKIP LOCKED")
                     .ToListAsync(stoppingToken);
 
                 if (messages.Count == 0)
@@ -123,19 +128,22 @@ public class ProcessInboxJob(
 
             case "customer.subscription.deleted":
                 var stripeSubscription = stripeEvent.Data.Object as Stripe.Subscription;
-                if (stripeSubscription != null)
+                if (stripeSubscription == null)
                 {
-                    var existingSubscription = await repository.GetByExternalIdAsync(stripeSubscription.Id, ct);
-                    if (existingSubscription != null)
-                    {
-                        existingSubscription.Cancel();
-                        await repository.UpdateAsync(existingSubscription, ct);
-                        logger.LogInformation("Subscription {Id} canceled (external ID: {ExternalId})", existingSubscription.Id, stripeSubscription.Id);
-                    }
-                    else
-                    {
-                        logger.LogWarning("Subscription not found for external ID: {ExternalId} (event: customer.subscription.deleted)", stripeSubscription.Id);
-                    }
+                    logger.LogWarning("Subscription data is null for event {EventId}", stripeEvent.Id);
+                    throw new InvalidOperationException("Subscription data is missing from customer.subscription.deleted event");
+                }
+
+                var existingSubscription = await repository.GetByExternalIdAsync(stripeSubscription.Id, ct);
+                if (existingSubscription != null)
+                {
+                    existingSubscription.Cancel();
+                    await repository.UpdateAsync(existingSubscription, ct);
+                    logger.LogInformation("Subscription {Id} canceled (external ID: {ExternalId})", existingSubscription.Id, stripeSubscription.Id);
+                }
+                else
+                {
+                    logger.LogWarning("Subscription not found for external ID: {ExternalId} (event: customer.subscription.deleted)", stripeSubscription.Id);
                 }
                 break;
 

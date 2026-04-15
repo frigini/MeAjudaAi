@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Users.Infrastructure.Mappers;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -48,7 +49,7 @@ internal sealed class UserRegisteredDomainEventHandler(
             var integrationEvent = baseEvent with
             {
                 KeycloakId = user.KeycloakId ?? string.Empty, // Será definido após criação no Keycloak
-                Roles = ["customer"] // Papel padrão
+                Roles = [RoleConstants.Customer] // Papel padrão
             };
 
             await messageBus.PublishAsync(integrationEvent, cancellationToken: cancellationToken);

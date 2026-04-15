@@ -62,6 +62,7 @@ public class SubscriptionTests
         // Assert - Should be idempotent, not change
         subscription.Status.Should().Be(ESubscriptionStatus.Active);
         subscription.ExternalSubscriptionId.Should().Be("sub_123"); // Original value kept
+        subscription.UpdatedAt.Should().Be(originalUpdatedAt);
     }
 
     [Fact]

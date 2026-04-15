@@ -142,10 +142,14 @@ public class ReviewApprovedDomainEventHandlerTests
         _repositoryMock.Setup(r => r.GetAverageRatingForProviderAsync(It.IsAny<Guid>(), cts.Token))
             .ReturnsAsync((4.0m, 5));
 
+        _messageBusMock.Setup(m => m.PublishAsync(It.IsAny<ReviewApprovedIntegrationEvent>(), It.IsAny<string?>(), cts.Token))
+            .Returns(Task.CompletedTask);
+
         // Act
         await _handler.HandleAsync(domainEvent, cts.Token);
 
         // Assert
         _repositoryMock.Verify(r => r.GetAverageRatingForProviderAsync(It.IsAny<Guid>(), cts.Token), Times.Once);
+        _messageBusMock.Verify(m => m.PublishAsync(It.IsAny<ReviewApprovedIntegrationEvent>(), It.IsAny<string?>(), cts.Token), Times.Once);
     }
 }
