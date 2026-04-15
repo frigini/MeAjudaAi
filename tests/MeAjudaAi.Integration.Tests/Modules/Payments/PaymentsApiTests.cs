@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Payments;
 
@@ -88,7 +90,7 @@ public class PaymentsApiTests : BaseApiTest
             providerId, 
             "plan_123", 
             MeAjudaAi.Shared.Domain.ValueObjects.Money.FromDecimal(99.90m, "BRL"));
-        sub.Activate("sub_mock", "cus_mock", DateTime.UtcNow.AddMonths(1));
+        sub.Activate("sub_mock", DateTime.UtcNow.AddMonths(1));
         dbContext.Subscriptions.Add(sub);
         await dbContext.SaveChangesAsync();
 
@@ -116,7 +118,7 @@ public class PaymentsApiTests : BaseApiTest
             providerId, 
             "plan_123", 
             MeAjudaAi.Shared.Domain.ValueObjects.Money.FromDecimal(99.90m, "BRL"));
-        sub.Activate(externalSubId, "cus_123", originalExpiresAt);
+        sub.Activate(externalSubId, originalExpiresAt);
         dbContext.Subscriptions.Add(sub);
         await dbContext.SaveChangesAsync();
 
@@ -156,7 +158,7 @@ public class PaymentsApiTests : BaseApiTest
         
         // Verify renovation in DB (Background jobs might take a second, but in integration tests we often run them manually or wait)
         // Actually, StripeWebhookEndpoint just saves to Inbox. We need to trigger the inbox processor or check the Inbox state.
-        var inboxMessage = await dbContext.InboxMessages.FirstOrDefaultAsync(m => m.ExternalEventId == "evt_paid_123");
+        var inboxMessage = await dbContext.InboxMessages.FirstOrDefaultAsync(m => m.Content.Contains("evt_paid_123"));
         inboxMessage.Should().NotBeNull();
         inboxMessage!.ProcessedAt.Should().BeNull(); // Initial state
     }

@@ -26,7 +26,6 @@ public class ProcessInboxJob(
                 using var scope = serviceProvider.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
                 var subscriptionRepository = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
-                var transactionRepository = scope.ServiceProvider.GetRequiredService<IPaymentTransactionRepository>();
 
                 using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
 
@@ -54,7 +53,7 @@ public class ProcessInboxJob(
                     try
                     {
                         var stripeEvent = EventUtility.ParseEvent(message.Content);
-                        await ProcessStripeEventAsync(stripeEvent, subscriptionRepository, transactionRepository, stoppingToken);
+                        await ProcessStripeEventAsync(stripeEvent, subscriptionRepository, stoppingToken);
 
                         message.ProcessedAt = DateTime.UtcNow;
                         message.Error = null;
@@ -92,7 +91,6 @@ public class ProcessInboxJob(
     private async Task ProcessStripeEventAsync(
         Event stripeEvent, 
         ISubscriptionRepository repository, 
-        IPaymentTransactionRepository transactionRepository,
         CancellationToken ct)
     {
         switch (stripeEvent.Type)
@@ -138,7 +136,6 @@ public class ProcessInboxJob(
 
                 subscription.Activate(
                     session.SubscriptionId, 
-                    session.CustomerId,
                     DateTime.UtcNow.AddMonths(1)); // Default for initial checkout if not specified
                 
                 await repository.UpdateAsync(subscription, ct);
@@ -171,14 +168,6 @@ public class ProcessInboxJob(
                 var nextPeriodEnd = (DateTime?)(invoice.Lines.Data[0].Period.End) ?? DateTime.UtcNow.AddMonths(1);
                 subToRenew.Renew(nextPeriodEnd);
                 await repository.UpdateAsync(subToRenew, ct);
-
-                // Record the payment transaction
-                var paymentTransaction = new MeAjudaAi.Modules.Payments.Domain.Entities.PaymentTransaction(
-                    subToRenew.Id, 
-                    new MeAjudaAi.Shared.Domain.ValueObjects.Money((long)invoice.AmountPaid / 100.0m, ((string)invoice.Currency).ToUpper()));
-                
-                paymentTransaction.Settle((string)invoice.Id);
-                await transactionRepository.AddAsync(paymentTransaction, ct);
 
                 logger.LogInformation("Subscription {Id} renewed until {ExpiresAt} due to Invoice {InvoiceId}", subToRenew.Id, nextPeriodEnd, (string)invoice.Id);
                 break;

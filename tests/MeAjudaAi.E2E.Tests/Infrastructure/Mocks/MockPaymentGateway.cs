@@ -19,4 +19,9 @@ public class MockPaymentGateway : IPaymentGateway
     {
         return Task.FromResult(true);
     }
+
+    public Task<string?> CreateBillingPortalSessionAsync(string externalCustomerId, string returnUrl, CancellationToken cancellationToken)
+    {
+        return Task.FromResult<string?>("https://billing.stripe.com/mock_session");
+    }
 }

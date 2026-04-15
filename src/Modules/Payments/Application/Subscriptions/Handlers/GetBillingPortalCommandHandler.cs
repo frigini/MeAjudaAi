@@ -16,13 +16,8 @@ public class GetBillingPortalCommandHandler(
         if (subscription == null)
             throw new ApplicationException($"Subscription not found for provider {command.ProviderId}");
 
-        if (string.IsNullOrEmpty(subscription.ExternalCustomerId))
-        {
-            throw new InvalidOperationException("External Customer ID is missing. The provider must complete at least one subscription checkout first.");
-        }
-
         var portalUrl = await paymentGateway.CreateBillingPortalSessionAsync(
-            subscription.ExternalCustomerId, 
+            subscription.ExternalSubscriptionId ?? subscription.Id.ToString(), 
             command.ReturnUrl, 
             cancellationToken);
 

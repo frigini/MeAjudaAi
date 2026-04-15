@@ -34,16 +34,14 @@ public class SubscriptionTests
         // Arrange
         var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
         var externalId = "sub_stripe_123";
-        var customerId = "cus_123";
         var expiresAt = DateTime.UtcNow.AddMonths(1);
 
         // Act
-        subscription.Activate(externalId, customerId, expiresAt);
+        subscription.Activate(externalId, expiresAt);
 
         // Assert
         subscription.Status.Should().Be(ESubscriptionStatus.Active);
         subscription.ExternalSubscriptionId.Should().Be(externalId);
-        subscription.ExternalCustomerId.Should().Be(customerId);
         subscription.ExpiresAt.Should().Be(expiresAt);
         subscription.UpdatedAt.Should().NotBeNull();
     }
@@ -53,11 +51,11 @@ public class SubscriptionTests
     {
         // Arrange
         var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
-        subscription.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
+        subscription.Activate("sub_123", DateTime.UtcNow.AddMonths(1));
         var originalUpdatedAt = subscription.UpdatedAt;
 
         // Act - Activate again
-        subscription.Activate("sub_456", "cus_456", DateTime.UtcNow.AddMonths(1));
+        subscription.Activate("sub_456", DateTime.UtcNow.AddMonths(1));
 
         // Assert - Should be idempotent, not change
         subscription.Status.Should().Be(ESubscriptionStatus.Active);
@@ -73,7 +71,7 @@ public class SubscriptionTests
         var expiresAt = DateTime.UtcNow.AddMonths(1);
 
         // Act
-        subscription.Activate("sub_123", "cus_123", expiresAt);
+        subscription.Activate("sub_123", expiresAt);
 
         // Assert
         subscription.ExpiresAt.Should().Be(expiresAt);
@@ -86,7 +84,7 @@ public class SubscriptionTests
         // Arrange
         var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.10m, "BRL"));
         var originalExpiresAt = DateTime.UtcNow.AddMonths(1);
-        subscription.Activate("sub_123", "cus_123", originalExpiresAt);
+        subscription.Activate("sub_123", originalExpiresAt);
         var newExpiresAt = originalExpiresAt.AddMonths(1);
 
         // Act
@@ -102,7 +100,7 @@ public class SubscriptionTests
     {
         // Arrange
         var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
-        subscription.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
+        subscription.Activate("sub_123", DateTime.UtcNow.AddMonths(1));
 
         // Act
         subscription.Cancel();
@@ -117,7 +115,7 @@ public class SubscriptionTests
     {
         // Arrange
         var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
-        subscription.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
+        subscription.Activate("sub_123", DateTime.UtcNow.AddMonths(1));
         subscription.Cancel();
 
         // Act - Cancel again
@@ -145,7 +143,7 @@ public class SubscriptionTests
     {
         // Arrange
         var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
-        subscription.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
+        subscription.Activate("sub_123", DateTime.UtcNow.AddMonths(1));
 
         // Act
         subscription.Expire();
@@ -160,7 +158,7 @@ public class SubscriptionTests
     {
         // Arrange
         var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
-        subscription.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
+        subscription.Activate("sub_123", DateTime.UtcNow.AddMonths(1));
         subscription.Expire();
 
         // Act
@@ -181,7 +179,7 @@ public class SubscriptionTests
         subscription.Status.Should().Be(ESubscriptionStatus.Pending);
 
         // Activate
-        subscription.Activate("sub_ext", "cus_ext", DateTime.UtcNow.AddMonths(1));
+        subscription.Activate("sub_ext", DateTime.UtcNow.AddMonths(1));
         subscription.Status.Should().Be(ESubscriptionStatus.Active);
 
         // Cancel
@@ -196,7 +194,7 @@ public class SubscriptionTests
         var subscription = new Subscription(Guid.NewGuid(), "plan_full", Money.FromDecimal(199.90m, "BRL"));
 
         // Activate
-        subscription.Activate("sub_ext", "cus_ext", DateTime.UtcNow.AddMonths(6));
+        subscription.Activate("sub_ext", DateTime.UtcNow.AddMonths(6));
         subscription.Status.Should().Be(ESubscriptionStatus.Active);
 
         // Expire

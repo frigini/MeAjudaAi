@@ -40,7 +40,7 @@ public class Subscription : AggregateRoot<Guid>
         Status = ESubscriptionStatus.Pending;
     }
 
-    public Guid ProviderId { get; private set; }
+public Guid ProviderId { get; private set; }
     public string PlanId { get; private set; } = null!;
     public string? ExternalSubscriptionId { get; private set; }
     public string? ExternalCustomerId { get; private set; }
@@ -48,17 +48,18 @@ public class Subscription : AggregateRoot<Guid>
     public ESubscriptionStatus Status { get; private set; }
     public DateTime? ExpiresAt { get; private set; }
 
-    public void Activate(string externalSubscriptionId, string externalCustomerId, DateTime expiresAt)
+    public void Activate(string externalSubscriptionId, DateTime expiresAt)
     {
+        if (string.IsNullOrWhiteSpace(externalSubscriptionId))
+            throw new ArgumentException("ExternalSubscriptionId cannot be empty.", nameof(externalSubscriptionId));
+
         if (Status == ESubscriptionStatus.Active) return;
-        
-        if (Status != ESubscriptionStatus.Pending)
-            throw new InvalidOperationException($"Cannot activate subscription in {Status} status.");
+        if (Status == ESubscriptionStatus.Canceled) return;
+        if (Status == ESubscriptionStatus.Expired) return;
 
         ExternalSubscriptionId = externalSubscriptionId;
-        ExternalCustomerId = externalCustomerId;
-        ExpiresAt = expiresAt;
         Status = ESubscriptionStatus.Active;
+        ExpiresAt = expiresAt;
         MarkAsUpdated();
     }
 
