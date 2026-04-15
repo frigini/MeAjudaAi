@@ -1,10 +1,25 @@
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
-import { afterEach } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import { TextEncoder, TextDecoder } from 'util';
 
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder as any;
+
+// Mock i18next
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: {
+      changeLanguage: () => Promise.resolve(),
+      language: 'pt',
+    },
+  }),
+  initReactI18next: {
+    type: '3rdParty',
+    init: () => {},
+  },
+}));
 
 if (!global.PointerEvent) {
   class PointerEvent extends MouseEvent {

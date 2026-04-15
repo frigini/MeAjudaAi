@@ -30,6 +30,10 @@ public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
             .HasMaxLength(255)
             .HasColumnName("external_subscription_id");
 
+        builder.Property(s => s.ExternalCustomerId)
+            .HasMaxLength(255)
+            .HasColumnName("external_customer_id");
+
         builder.OwnsOne(s => s.Amount, amount =>
         {
             amount.Property(m => m.Amount)
@@ -57,9 +61,6 @@ public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
 
         builder.Property(s => s.UpdatedAt)
             .HasColumnName("updated_at");
-
-        builder.Property(s => s.StartedAt)
-            .HasColumnName("started_at");
 
         builder.Property(s => s.ExpiresAt)
             .HasColumnName("expires_at");

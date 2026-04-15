@@ -43,19 +43,20 @@ public class Subscription : AggregateRoot<Guid>
     public Guid ProviderId { get; private set; }
     public string PlanId { get; private set; } = null!;
     public string? ExternalSubscriptionId { get; private set; }
+    public string? ExternalCustomerId { get; private set; }
     public Money Amount { get; private set; } = null!;
     public ESubscriptionStatus Status { get; private set; }
-    public DateTime? StartedAt { get; private set; }
     public DateTime? ExpiresAt { get; private set; }
 
-    public void Activate(string externalSubscriptionId, DateTime startedAt, DateTime? expiresAt)
+    public void Activate(string externalSubscriptionId, string externalCustomerId, DateTime expiresAt)
     {
         if (Status == ESubscriptionStatus.Active) return;
-        if (Status == ESubscriptionStatus.Canceled) return;
-        if (Status == ESubscriptionStatus.Expired) return;
+        
+        if (Status != ESubscriptionStatus.Pending)
+            throw new InvalidOperationException($"Cannot activate subscription in {Status} status.");
 
         ExternalSubscriptionId = externalSubscriptionId;
-        StartedAt = startedAt;
+        ExternalCustomerId = externalCustomerId;
         ExpiresAt = expiresAt;
         Status = ESubscriptionStatus.Active;
         MarkAsUpdated();
@@ -78,6 +79,13 @@ public class Subscription : AggregateRoot<Guid>
         Status = ESubscriptionStatus.Expired;
         MarkAsUpdated();
     }
+    public void Renew(DateTime newExpiresAt)
+    {
+        if (ExpiresAt.HasValue && newExpiresAt <= ExpiresAt.Value)
+            throw new ArgumentException("New expiration date must be after current expiration date.", nameof(newExpiresAt));
 
-
+        ExpiresAt = newExpiresAt;
+        Status = ESubscriptionStatus.Active;
+        MarkAsUpdated();
+    }
 }

@@ -14,14 +14,6 @@ public class InboxMessage
 
     private InboxMessage() { }
 
-    public static InboxMessage CreateEmpty() => new()
-    {
-        Id = Guid.NewGuid(),
-        Type = string.Empty,
-        Content = string.Empty,
-        CreatedAt = DateTime.UtcNow
-    };
-
     public InboxMessage(string type, string content)
     {
         if (string.IsNullOrWhiteSpace(type))

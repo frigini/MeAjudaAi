@@ -15,6 +15,7 @@ public static class PaymentsEndpoints
         var group = BaseEndpoint.CreateVersionedGroup(app, Route, Tag);
 
         group.MapEndpoint<CreateSubscriptionEndpoint>()
+             .MapEndpoint<GetBillingPortalEndpoint>()
              .MapEndpoint<StripeWebhookEndpoint>();
     }
 }

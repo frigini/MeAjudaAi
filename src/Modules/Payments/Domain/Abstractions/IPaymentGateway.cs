@@ -6,6 +6,7 @@ public interface IPaymentGateway
 {
     Task<SubscriptionGatewayResult> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, CancellationToken cancellationToken);
     Task<bool> CancelSubscriptionAsync(string externalSubscriptionId, CancellationToken cancellationToken);
+    Task<string?> CreateBillingPortalSessionAsync(string externalCustomerId, string returnUrl, CancellationToken cancellationToken);
 }
 
 public record SubscriptionGatewayResult(

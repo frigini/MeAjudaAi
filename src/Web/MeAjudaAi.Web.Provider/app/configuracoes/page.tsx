@@ -122,6 +122,37 @@ export default function ConfiguracoesPage() {
           </button>
         </div>
 
+        <div className="mt-8 border-t border-border pt-8">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-foreground-subtle mb-4">
+            Assinatura e Pagamentos
+          </h2>
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-foreground-subtle">
+              Gerencie seus dados de pagamento, faturas e plano de assinatura diretamente pelo portal seguro do Stripe.
+            </p>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={async () => {
+                try {
+                  const returnUrl = window.location.href;
+                  const response = await fetch(`/api/v1/payments/billing-portal?returnUrl=${encodeURIComponent(returnUrl)}`);
+                  if (!response.ok) throw new Error("Falha ao carregar portal");
+                  const data = await response.json();
+                  if (data.portalUrl) {
+                    window.location.href = data.portalUrl;
+                  }
+                } catch (error) {
+                  toast.error("Não foi possível carregar o portal de pagamentos.");
+                  console.error(error);
+                }
+              }}
+            >
+              Gerenciar Assinatura
+            </Button>
+          </div>
+        </div>
+
         <div className="mt-auto flex justify-center pt-12">
           <Button 
             variant="destructive" 

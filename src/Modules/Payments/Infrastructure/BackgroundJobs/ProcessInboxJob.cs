@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
@@ -25,6 +26,9 @@ public class ProcessInboxJob(
                 using var scope = serviceProvider.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
                 var subscriptionRepository = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
+                var transactionRepository = scope.ServiceProvider.GetRequiredService<IPaymentTransactionRepository>();
+
+                using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
 
                 var messages = await dbContext.InboxMessages
                     // NOTE: This SQL query must mirror InboxMessage.ShouldRetry logic
@@ -50,7 +54,7 @@ public class ProcessInboxJob(
                     try
                     {
                         var stripeEvent = EventUtility.ParseEvent(message.Content);
-                        await ProcessStripeEventAsync(stripeEvent, subscriptionRepository, stoppingToken);
+                        await ProcessStripeEventAsync(stripeEvent, subscriptionRepository, transactionRepository, stoppingToken);
 
                         message.ProcessedAt = DateTime.UtcNow;
                         message.Error = null;
@@ -70,6 +74,7 @@ public class ProcessInboxJob(
                 }
 
                 await dbContext.SaveChangesAsync(stoppingToken);
+                await transaction.CommitAsync(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -84,7 +89,11 @@ public class ProcessInboxJob(
         }
     }
 
-    private async Task ProcessStripeEventAsync(Event stripeEvent, ISubscriptionRepository repository, CancellationToken ct)
+    private async Task ProcessStripeEventAsync(
+        Event stripeEvent, 
+        ISubscriptionRepository repository, 
+        IPaymentTransactionRepository transactionRepository,
+        CancellationToken ct)
     {
         switch (stripeEvent.Type)
         {
@@ -99,6 +108,14 @@ public class ProcessInboxJob(
                 if (!session.Metadata.TryGetValue("provider_id", out var providerIdStr) || 
                     !Guid.TryParse(providerIdStr, out var providerId))
                 {
+                    if (session.Metadata == null)
+                    {
+                        logger.LogError(
+                            "Metadata is null in checkout.session.completed event. SessionId: {SessionId}",
+                            session.Id);
+                        throw new InvalidOperationException($"Metadata is null in checkout.session.completed event. SessionId: {session.Id}");
+                    }
+
                     logger.LogError(
                         "Invalid or missing provider_id in checkout.session.completed event. SessionId: {SessionId}, Metadata: {Metadata}",
                         session.Id,
@@ -121,11 +138,49 @@ public class ProcessInboxJob(
 
                 subscription.Activate(
                     session.SubscriptionId, 
-                    DateTime.UtcNow, 
-                    null); 
+                    session.CustomerId,
+                    DateTime.UtcNow.AddMonths(1)); // Default for initial checkout if not specified
                 
                 await repository.UpdateAsync(subscription, ct);
-                logger.LogInformation("Subscription {Id} activated for Provider {ProviderId}", subscription.Id, providerId);
+                logger.LogInformation("Subscription {Id} activated for Provider {ProviderId} (Customer: {CustomerId})", subscription.Id, providerId, session.CustomerId);
+                break;
+
+            case "invoice.paid":
+                var invoice = stripeEvent.Data.Object as dynamic;
+                if (invoice == null)
+                {
+                    logger.LogWarning("Invoice data is null for event {EventId}", stripeEvent.Id);
+                    throw new InvalidOperationException("Invoice data is missing from invoice.paid event");
+                }
+
+                string? externalSubscriptionId = invoice.SubscriptionId;
+                if (string.IsNullOrEmpty(externalSubscriptionId))
+                {
+                    logger.LogInformation("Invoice {InvoiceId} has no subscription, ignoring", (string)invoice.Id);
+                    break;
+                }
+
+                var subToRenew = await repository.GetByExternalIdAsync(externalSubscriptionId, ct);
+                if (subToRenew == null)
+                {
+                    logger.LogWarning("Subscription not found for external ID: {ExternalId} (invoice: {InvoiceId})", externalSubscriptionId, (string)invoice.Id);
+                    break;
+                }
+
+                // Renew the subscription
+                var nextPeriodEnd = (DateTime?)(invoice.Lines.Data[0].Period.End) ?? DateTime.UtcNow.AddMonths(1);
+                subToRenew.Renew(nextPeriodEnd);
+                await repository.UpdateAsync(subToRenew, ct);
+
+                // Record the payment transaction
+                var paymentTransaction = new MeAjudaAi.Modules.Payments.Domain.Entities.PaymentTransaction(
+                    subToRenew.Id, 
+                    new MeAjudaAi.Shared.Domain.ValueObjects.Money((long)invoice.AmountPaid / 100.0m, ((string)invoice.Currency).ToUpper()));
+                
+                paymentTransaction.Settle((string)invoice.Id);
+                await transactionRepository.AddAsync(paymentTransaction, ct);
+
+                logger.LogInformation("Subscription {Id} renewed until {ExpiresAt} due to Invoice {InvoiceId}", subToRenew.Id, nextPeriodEnd, (string)invoice.Id);
                 break;
 
             case "customer.subscription.deleted":

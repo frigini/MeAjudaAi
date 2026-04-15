@@ -6,12 +6,15 @@ import { Avatar } from "@/components/ui/avatar";
 import { Rating } from "@/components/ui/rating";
 import { ProviderDto, EVerificationStatus } from "@/types/api/provider";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 export interface ProviderCardProps {
     provider: ProviderDto;
 }
 
 export function ProviderCard({ provider }: ProviderCardProps) {
+    const { t } = useTranslation();
+
     return (
         <Link href={`/prestador/${provider.id}`}>
             <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer h-full">
@@ -38,7 +41,7 @@ export function ProviderCard({ provider }: ProviderCardProps) {
                             <Rating value={provider.averageRating ?? 0} size="sm" readOnly={true} />
                             <span className="text-sm text-foreground-subtle">
                                 ({provider.reviewCount}{" "}
-                                {provider.reviewCount === 1 ? "avaliação" : "avaliações"})
+                                {provider.reviewCount === 1 ? t("provider.review_singular", "avaliação") : t("provider.review_plural", "avaliações")})
                             </span>
                         </div>
 

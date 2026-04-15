@@ -38,6 +38,7 @@ public static class Extensions
         });
 
         services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+        services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
         services.AddScoped<IPaymentGateway, StripePaymentGateway>();
 
         services.AddHostedService<ProcessInboxJob>();

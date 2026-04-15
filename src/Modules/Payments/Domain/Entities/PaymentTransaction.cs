@@ -10,10 +10,18 @@ public class PaymentTransaction : BaseEntity
 
     public PaymentTransaction(Guid subscriptionId, Money amount)
     {
+        if (subscriptionId == Guid.Empty)
+            throw new ArgumentException("SubscriptionId cannot be empty.", nameof(subscriptionId));
+
+        if (amount == null)
+            throw new ArgumentNullException(nameof(amount), "Amount cannot be null.");
+
+        if (amount.Amount <= 0)
+            throw new ArgumentException("Amount must be greater than zero.", nameof(amount));
+
         SubscriptionId = subscriptionId;
         Amount = amount;
         Status = EPaymentStatus.Pending;
-        // CreatedAt já está em BaseEntity
     }
 
     public Guid SubscriptionId { get; private set; }

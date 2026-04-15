@@ -19,14 +19,32 @@ public class StripePaymentGateway : IPaymentGateway
         var apiKey = configuration["Stripe:ApiKey"] ?? throw new ArgumentNullException("Stripe:ApiKey is missing");
         _requestOptions = new RequestOptions { ApiKey = apiKey };
         _logger = logger;
-        _successUrl = configuration["Payments:SuccessUrl"] ?? "https://meajudaai.com.br/payments/success?session_id={CHECKOUT_SESSION_ID}";
-        _cancelUrl = configuration["Payments:CancelUrl"] ?? "https://meajudaai.com.br/payments/cancel";
+        
+        var successUrl = configuration["Payments:SuccessUrl"];
+        var cancelUrl = configuration["Payments:CancelUrl"];
+        
+        if (string.IsNullOrWhiteSpace(successUrl))
+            throw new ArgumentException("Payments:SuccessUrl configuration is missing. Cannot use production fallback.", "Payments:SuccessUrl");
+        
+        if (string.IsNullOrWhiteSpace(cancelUrl))
+            throw new ArgumentException("Payments:CancelUrl configuration is missing. Cannot use production fallback.", "Payments:CancelUrl");
+        
+        _successUrl = successUrl;
+        _cancelUrl = cancelUrl;
     }
 
     public async Task<SubscriptionGatewayResult> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, CancellationToken cancellationToken)
     {
         try
         {
+            var priceService = new PriceService();
+            var price = await priceService.GetAsync(planId, null, _requestOptions, cancellationToken);
+            
+            if (price.UnitAmount != (long)(amount.Amount * 100) || price.Currency != amount.Currency.ToLowerInvariant())
+            {
+                return new SubscriptionGatewayResult(false, null, null, $"Price mismatch: Stripe Price ({price.UnitAmount}, {price.Currency}) does not match provided amount ({amount.Amount * 100}, {amount.Currency})");
+            }
+
             var options = new SessionCreateOptions
             {
                 PaymentMethodTypes = ["card"],
@@ -34,7 +52,7 @@ public class StripePaymentGateway : IPaymentGateway
                 [
                     new SessionLineItemOptions
                     {
-                        Price = planId, // No Stripe, planId geralmente é o ID do Price
+                        Price = planId,
                         Quantity = 1,
                     },
                 ],
@@ -71,6 +89,28 @@ public class StripePaymentGateway : IPaymentGateway
         {
             _logger.LogError(ex, "Stripe error canceling subscription {ExternalId}", externalSubscriptionId);
             return false;
+        }
+    }
+
+    public async Task<string?> CreateBillingPortalSessionAsync(string externalCustomerId, string returnUrl, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var options = new Stripe.BillingPortal.SessionCreateOptions
+            {
+                Customer = externalCustomerId,
+                ReturnUrl = returnUrl,
+            };
+
+            var service = new Stripe.BillingPortal.SessionService();
+            var session = await service.CreateAsync(options, _requestOptions, cancellationToken);
+
+            return session.Url;
+        }
+        catch (StripeException ex)
+        {
+            _logger.LogError(ex, "Stripe error creating billing portal session for Customer {CustomerId}", externalCustomerId);
+            return null;
         }
     }
 }

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState, useEffect } from 'react';
 import { client } from '@/lib/api/generated/client.gen';
+import { I18nProvider } from './I18nProvider';
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
     // Sync client config with environment variable or window location
@@ -29,7 +30,9 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     return (
         <SessionProvider>
             <QueryClientProvider client={queryClient}>
-                {children}
+                <I18nProvider>
+                    {children}
+                </I18nProvider>
                 <ReactQueryDevtools initialIsOpen={false} />
             </QueryClientProvider>
         </SessionProvider>

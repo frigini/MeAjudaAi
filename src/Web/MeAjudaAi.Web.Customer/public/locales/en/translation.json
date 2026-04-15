@@ -1,0 +1,28 @@
+{
+  "search": {
+    "title": "What do you need today?",
+    "subtitle": "Find the best service providers near you.",
+    "placeholder": "What service are you looking for?",
+    "button": "Search",
+    "recent": "Recent searches",
+    "categories": "Categories",
+    "results": "Results found"
+  },
+  "provider": {
+    "view_profile": "View Profile",
+    "contact": "Contact",
+    "share": "Share",
+    "location": "Location",
+    "services": "Services",
+    "reviews": "Reviews",
+    "review_singular": "review",
+    "review_plural": "reviews"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel"
+  }
+}

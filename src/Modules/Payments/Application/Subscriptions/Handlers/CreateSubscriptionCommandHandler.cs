@@ -4,7 +4,6 @@ using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
-
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Exceptions;
 
 namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
@@ -36,25 +35,7 @@ public class CreateSubscriptionCommandHandler(
                 throw new SubscriptionCreationException("URL de checkout ausente no resultado do gateway.");
             }
 
-            try
-            {
-                await subscriptionRepository.AddAsync(subscription, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                if (!string.IsNullOrEmpty(result.ExternalSubscriptionId))
-                {
-                    try
-                    {
-                        await paymentGateway.CancelSubscriptionAsync(result.ExternalSubscriptionId, cancellationToken);
-                    }
-                    catch
-                    {
-                        // Ignore cleanup failure
-                    }
-                }
-                throw new SubscriptionCreationException("Erro ao persistir assinatura.", ex);
-            }
+            await subscriptionRepository.AddAsync(subscription, cancellationToken);
 
             return result.CheckoutUrl;
         }

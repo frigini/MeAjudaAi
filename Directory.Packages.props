@@ -23,13 +23,6 @@
     <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.0.2" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.0.2" />
     <PackageVersion Include="Microsoft.NET.StringTools" Version="18.0.2" />
-    <!-- ⚠️ RISCO DE COMPATIBILIDADE: Npgsql 10.x + Hangfire.PostgreSql 1.21.1 -->
-    <!-- Hangfire.PostgreSql compilado contra Npgsql 6.x, compatibilidade em runtime NÃO VALIDADA -->
-    <!-- VALIDAÇÃO: Testes de fumaça em Staging + Dashboard Hangfire + Health Checks necessários antes da produção -->
-    <!-- MONITORAMENTO: Issue #39 rastreia compatibilidade com Npgsql 10.x -->
-    <!-- FALLBACK: Rollback para EF Core 9.x + Npgsql 8.x se a taxa de falha de jobs > 5% -->
-    <!-- Mudanças de quebra: https://www.npgsql.org/doc/release-notes/10.0.html -->
-    <!-- TODO: Implementar gate automático de pipeline para validação em staging (Issue #39) -->
     <!-- ASP.NET Core -->
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.6" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.6" />

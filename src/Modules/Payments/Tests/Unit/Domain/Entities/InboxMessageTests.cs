@@ -8,7 +8,7 @@ public class InboxMessageTests
     public void Defaults_ShouldBeCorrect()
     {
         // Act
-        var message = InboxMessage.CreateEmpty();
+        var message = new InboxMessage("default_type", "{}");
 
         // Assert
         message.Id.Should().NotBeEmpty();
