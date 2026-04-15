@@ -9,11 +9,11 @@ using Moq;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Infrastructure.Persistence.Repositories;
 
-public class ReviewRepositoryTests
+public class ReviewRepositoryContractTests
 {
     private readonly Mock<IReviewRepository> _repositoryMock;
 
-    public ReviewRepositoryTests()
+    public ReviewRepositoryContractTests()
     {
         _repositoryMock = new Mock<IReviewRepository>();
     }

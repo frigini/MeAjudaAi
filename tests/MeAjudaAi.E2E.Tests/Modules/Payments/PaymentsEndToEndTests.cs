@@ -59,7 +59,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
         content.Should().NotBeNull();
         content!.CheckoutUrl.Should().StartWith("https://checkout.stripe.com/mock_");
 
-        // Verify database state
+        // Verificar estado no banco de dados
         await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<PaymentsDbContext>();
@@ -77,34 +77,37 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
         TestContainerFixture.AuthenticateAsAdmin();
         var providerId = Guid.NewGuid();
         
-        // 1. Create a pending subscription first
+        // 1. Criar uma subscription pendente primeiro
         var createRequest = new { ProviderId = providerId, PlanId = "price_premium", Amount = 99.90m, Currency = "BRL" };
         var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/payments/subscriptions", createRequest, TestContainerFixture.JsonOptions);
         createResponse.EnsureSuccessStatusCode();
 
-        // 2. Prepare mock Stripe Webhook payload with required Stripe.net fields
+        // 2. Preparar payload mock do Webhook Stripe com campos obrigatórios do Stripe.net
+        // Nota: Usar JSON bruto com snake_case pois EventUtility.ParseEvent exige o formato Stripe nativo
         var externalSubId = "sub_stripe_12345";
-        var webhookPayload = new 
-        { 
-            id = "evt_test_123",
-            @object = "event",
-            type = "checkout.session.completed",
-            api_version = "2024-06-20", // Added to prevent Stripe.net NullReferenceException
-            created = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            data = new 
-            {
-                @object = new 
-                {
-                    id = "cs_test_123",
-                    @object = "checkout.session",
-                    subscription = externalSubId,
-                    metadata = new { provider_id = providerId.ToString() }
+        var webhookJson = $$"""
+        {
+            "id": "evt_test_123",
+            "object": "event",
+            "type": "checkout.session.completed",
+            "api_version": "2024-06-20",
+            "created": {{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}},
+            "data": {
+                "object": {
+                    "id": "cs_test_123",
+                    "object": "checkout.session",
+                    "subscription": "{{externalSubId}}",
+                    "metadata": {
+                        "provider_id": "{{providerId}}"
+                    }
                 }
             }
-        };
+        }
+        """;
 
-        // Act - Send webhook
-        var webhookResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/payments/webhooks/stripe", webhookPayload, TestContainerFixture.JsonOptions);
+        // Act - Enviar webhook
+        var webhookContent = new StringContent(webhookJson, System.Text.Encoding.UTF8, "application/json");
+        var webhookResponse = await _fixture.ApiClient.PostAsync("/api/v1/payments/webhooks/stripe", webhookContent);
         
         if (webhookResponse.StatusCode != HttpStatusCode.OK)
         {
@@ -114,7 +117,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
 
         webhookResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // 3. Poll until the background worker processes the Inbox (max 10s)
+        // 3. Pollar até o worker processar o Inbox (máx. 10s)
         await WaitForConditionAsync(async () =>
         {
             using var scope = _fixture.Services.CreateScope();
@@ -123,7 +126,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
             return sub?.Status == ESubscriptionStatus.Active;
         }, timeoutMs: 10000, intervalMs: 250);
 
-        // Assert - Verify subscription was activated with correct data
+        // Assert - Verificar que a subscription foi ativada com dados corretos
         await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<PaymentsDbContext>();
@@ -131,7 +134,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
             
             subscription.Should().NotBeNull();
             subscription!.Status.Should().Be(ESubscriptionStatus.Active);
-            subscription.ExternalSubscriptionId.Should().NotBeNullOrWhiteSpace();
+            subscription.ExternalSubscriptionId.Should().Be(externalSubId);
         });
     }
 

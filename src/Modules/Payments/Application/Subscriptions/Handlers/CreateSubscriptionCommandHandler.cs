@@ -18,6 +18,11 @@ public class CreateSubscriptionCommandHandler(
         var amount = Money.FromDecimal(command.Amount, command.Currency);
         var subscription = new Subscription(command.ProviderId, command.PlanId, amount);
 
+        // Persistir primeiro em estado Pending para garantir consistência.
+        // Se a chamada ao gateway falhar depois, o registro local permanece como Pending
+        // e pode ser limpo ou reprocessado posteriormente.
+        await subscriptionRepository.AddAsync(subscription, cancellationToken);
+
         var result = await paymentGateway.CreateSubscriptionAsync(
             command.ProviderId,
             command.PlanId,
@@ -34,11 +39,9 @@ public class CreateSubscriptionCommandHandler(
             throw new SubscriptionCreationException("Checkout URL is missing from gateway result.");
         }
 
-        // The checkout session doesn't create the subscription in Stripe yet,
-        // so we don't have an ExternalSubscriptionId here usually.
-        // It'll be set via Webhook once the payment is completed.
-        
-        await subscriptionRepository.AddAsync(subscription, cancellationToken);
+        // A sessão de checkout não cria a assinatura no Stripe ainda,
+        // portanto normalmente não há ExternalSubscriptionId aqui.
+        // Ele será definido via Webhook quando o pagamento for concluído.
 
         return result.CheckoutUrl;
     }

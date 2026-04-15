@@ -69,7 +69,7 @@ public class ReviewRejectedDomainEventHandlerTests
             x => x.Log(
                 LogLevel.Debug,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => true),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(longReason.Substring(0, 100) + "...")),
                 It.IsAny<Exception?>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -112,7 +112,7 @@ public class ReviewRejectedDomainEventHandlerTests
     [Fact]
     public async Task HandleAsync_ShouldHandleNullReason()
     {
-        // Arrange - Reason is nullable based on the handler code using ?.Length
+        // Arrange - Reason é anulável com base no código do handler que usa ?.Length
         var domainEvent = new ReviewRejectedDomainEvent(Guid.NewGuid(), 0, Guid.NewGuid(), null!);
 
         // Act

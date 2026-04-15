@@ -48,12 +48,17 @@ public class ProcessInboxJob(
                         message.ProcessedAt = DateTime.UtcNow;
                         message.Error = null;
                     }
+                    catch (OperationCanceledException)
+                    {
+                        logger.LogInformation("Processing of inbox message {Id} was canceled", message.Id);
+                        throw;
+                    }
                     catch (Exception ex)
                     {
                         logger.LogError(ex, "Error processing inbox message {Id}", message.Id);
                         message.Error = ex.Message;
                         message.RetryCount++;
-                        message.NextAttemptAt = DateTime.UtcNow.AddMinutes(Math.Pow(2, message.RetryCount)); // Exponential backoff
+                        message.NextAttemptAt = DateTime.UtcNow.AddMinutes(Math.Pow(2, message.RetryCount)); // Backoff exponencial
                     }
                 }
 
