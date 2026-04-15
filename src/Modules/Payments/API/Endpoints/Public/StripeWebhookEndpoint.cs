@@ -50,7 +50,7 @@ public class StripeWebhookEndpoint : IEndpoint
                 if (string.IsNullOrWhiteSpace(webhookSecret))
                 {
                     logger.LogError("Stripe:WebhookSecret is missing in configuration.");
-                    return Results.InternalServerError(new { error = "Webhook configuration error." });
+                    return Results.InternalServerError(new { error = "Webhook configuration error: Stripe:WebhookSecret is missing." });
                 }
 
                 var stripeEvent = EventUtility.ConstructEvent(
@@ -71,6 +71,12 @@ public class StripeWebhookEndpoint : IEndpoint
             catch (Exception e)
             {
                 logger.LogError(e, "Internal error processing Stripe webhook.");
+                
+                if (environment.IsEnvironment("Testing"))
+                {
+                    return Results.InternalServerError(new { error = $"Internal error: {e.Message}", stackTrace = e.StackTrace });
+                }
+
                 return Results.InternalServerError(new { error = "Internal server error" });
             }
         })

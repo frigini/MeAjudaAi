@@ -41,34 +41,34 @@ public class PaymentsApiTests : BaseApiTest
     public async Task StripeWebhook_ShouldReturnOk()
     {
         // Arrange
-        // A more complete Stripe event payload
-        var webhookPayload = new 
-        { 
-            id = "evt_123",
-            @object = "event",
-            type = "checkout.session.completed",
-            api_version = "2024-06-20",
-            created = 1712345678,
-            data = new 
-            {
-                @object = new 
-                {
-                    id = "cs_test_123",
-                    @object = "checkout.session",
-                    customer = "cus_123",
-                    subscription = "sub_123"
+        var webhookJson = """
+        {
+            "id": "evt_123",
+            "object": "event",
+            "type": "checkout.session.completed",
+            "api_version": "2024-06-20",
+            "livemode": false,
+            "created": 1712345678,
+            "data": {
+                "object": {
+                    "id": "cs_test_123",
+                    "object": "checkout.session",
+                    "customer": "cus_123",
+                    "subscription": "sub_123"
                 }
             }
-        };
+        }
+        """;
         
         // Act
-        var response = await Client.PostAsJsonAsync("/api/v1/payments/webhooks/stripe", webhookPayload);
+        var content = new StringContent(webhookJson, System.Text.Encoding.UTF8, "application/json");
+        var response = await Client.PostAsync("/api/v1/payments/webhooks/stripe", content);
 
         // Assert
         if (response.StatusCode != HttpStatusCode.OK)
         {
-            var error = await response.Content.ReadAsStringAsync();
-            throw new Exception($"Webhook failed with {response.StatusCode}. Error: {error}");
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Webhook failed with {response.StatusCode}. Error Body: {errorBody}");
         }
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);

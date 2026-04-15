@@ -91,6 +91,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
             "object": "event",
             "type": "checkout.session.completed",
             "api_version": "2024-06-20",
+            "livemode": false,
             "created": {{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}},
             "data": {
                 "object": {
@@ -111,8 +112,8 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
         
         if (webhookResponse.StatusCode != HttpStatusCode.OK)
         {
-            var error = await webhookResponse.Content.ReadAsStringAsync();
-            throw new Exception($"Webhook failed with {webhookResponse.StatusCode}. Error: {error}");
+            var errorBody = await webhookResponse.Content.ReadAsStringAsync();
+            throw new Exception($"Webhook failed with {webhookResponse.StatusCode}. Error Body: {errorBody}");
         }
 
         webhookResponse.StatusCode.Should().Be(HttpStatusCode.OK);
