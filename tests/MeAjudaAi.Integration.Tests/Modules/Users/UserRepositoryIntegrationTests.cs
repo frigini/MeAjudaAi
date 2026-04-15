@@ -159,7 +159,10 @@ public class UserRepositoryIntegrationTests : BaseApiTest
     private User CreateValidUser()
     {
         var suffix = Guid.NewGuid().ToString("n")[..6];
-        var username = new Username(_faker.Internet.UserName() + "_" + suffix);
+        var fakerUser = _faker.Internet.UserName();
+        if (fakerUser.Length > 20) fakerUser = fakerUser[..20];
+        
+        var username = new Username(fakerUser + "_" + suffix);
         var email = new Email(suffix + "_" + _faker.Internet.Email());
         var firstName = _faker.Name.FirstName();
         var lastName = _faker.Name.LastName();
