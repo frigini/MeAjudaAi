@@ -1,8 +1,10 @@
 using System.Security.Claims;
 using FluentAssertions;
 using MeAjudaAi.ApiService.Handlers;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Handlers;
 
@@ -35,17 +37,24 @@ public class SelfOrAdminHandlerTests
         context.HasFailed.Should().BeTrue();
     }
 
-    [Fact]
-    public async Task HandleRequirementAsync_WithAdminRole_ShouldSucceed()
+    [Theory]
+    [InlineData(RoleConstants.Admin)]
+    [InlineData(RoleConstants.SystemAdmin)]
+    [InlineData(RoleConstants.SuperAdmin)]
+    [InlineData(RoleConstants.LegacySystemAdmin)]
+    [InlineData(RoleConstants.LegacySuperAdmin)]
+    public async Task HandleRequirementAsync_WithAdminRole_ShouldSucceed(string adminRole)
     {
         // Arrange
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim("sub", "user123"),
-            new Claim("roles", "admin")
+            new Claim(AuthConstants.Claims.Subject, "user123"),
+            new Claim(AuthConstants.Claims.Roles, adminRole)
         };
+        
         var identity = new ClaimsIdentity(claims, "test");
         var user = new ClaimsPrincipal(identity);
+        
         var resource = new DefaultHttpContext();
         var context = new AuthorizationHandlerContext([_requirement], user, resource);
 
@@ -64,7 +73,7 @@ public class SelfOrAdminHandlerTests
         var userId = "user123";
         var claims = new[]
         {
-            new Claim("sub", userId)
+            new Claim(AuthConstants.Claims.Subject, userId)
         };
         var identity = new ClaimsIdentity(claims, "test");
         var user = new ClaimsPrincipal(identity);
@@ -88,7 +97,7 @@ public class SelfOrAdminHandlerTests
         // Arrange
         var claims = new[]
         {
-            new Claim("sub", "user123")
+            new Claim(AuthConstants.Claims.Subject, "user123")
         };
         var identity = new ClaimsIdentity(claims, "test");
         var user = new ClaimsPrincipal(identity);
@@ -133,7 +142,7 @@ public class SelfOrAdminHandlerTests
         // Arrange
         var claims = new[]
         {
-            new Claim("sub", "user123")
+            new Claim(AuthConstants.Claims.Subject, "user123")
         };
         var identity = new ClaimsIdentity(claims, "test");
         var user = new ClaimsPrincipal(identity);

@@ -150,7 +150,8 @@ public class RequestVerificationCommandHandlerTests
             new Claim(ClaimTypes.Name, "admin-user"),
             new Claim(ClaimTypes.Role, adminRole)
         };
-        var identity = new ClaimsIdentity(claims, "TestAuth");
+        // Especificar explicitamente o RoleClaimType como ClaimTypes.Role
+        var identity = new ClaimsIdentity(claims, "TestAuth", "sub", ClaimTypes.Role);
         httpContext.User = new ClaimsPrincipal(identity);
         _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
 

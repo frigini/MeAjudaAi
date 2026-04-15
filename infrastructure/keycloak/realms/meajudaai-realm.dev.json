@@ -129,20 +129,23 @@
                                              }
                               },
                               {
-                                  "trustEmail":  false,
-                                  "providerId":  "oidc",
-                                  "_comment": "Nota: O suporte nativo ao provedor Instagram foi removido no Keycloak 26.x. Utilizando OIDC genérico como alternativa conforme Issue #141.",
+                                  "alias":  "instagram",
+                                  "displayName":  "Instagram",
+                                  "providerId":  "facebook",
+                                  "_comment": "Nota: Suporte nativo ao Instagram removido no Keycloak 26.x. Utilizando o provedor do Facebook configurado para o Instagram Basic Display API.",
                                   "enabled":  true,
-                                  "authenticateByDefault":  false,
+                                  "trustEmail":  false,
                                   "storeToken":  false,
+                                  "addReadTokenRoleOnCreate":  false,
+                                  "authenticateByDefault":  false,
+                                  "firstBrokerLoginFlowAlias":  "first broker login",
                                   "config":  {
                                                  "clientId":  "${INSTAGRAM_CLIENT_ID}",
-                                                 "clientSecret":  "${INSTAGRAM_CLIENT_SECRET}"
-                                             },
-                                  "alias":  "instagram",
-                                  "addReadTokenRoleOnCreate":  false,
-                                  "firstBrokerLoginFlowAlias":  "first broker login",
-                                  "displayName":  "Instagram"
+                                                 "clientSecret":  "${INSTAGRAM_CLIENT_SECRET}",
+                                                 "authorizationUrl": "https://api.instagram.com/oauth/authorize",
+                                                 "tokenUrl": "https://api.instagram.com/oauth/access_token",
+                                                 "userInfoUrl": "https://graph.instagram.com/me?fields=id,username"
+                                             }
                               }
                           ],
     "clients":  [
@@ -199,7 +202,7 @@
                         "publicClient":  true,
                         "standardFlowEnabled":  true,
                         "implicitFlowEnabled":  false,
-                        "directAccessGrantsEnabled":  true,
+                        "directAccessGrantsEnabled":  false,
                         "serviceAccountsEnabled":  false,
                         "protocol":  "openid-connect",
                         "redirectUris":  [
@@ -243,7 +246,7 @@
                         "publicClient":  true,
                         "standardFlowEnabled":  true,
                         "implicitFlowEnabled":  false,
-                        "directAccessGrantsEnabled":  true,
+                        "directAccessGrantsEnabled":  false,
                         "serviceAccountsEnabled":  false,
                         "protocol":  "openid-connect",
                         "redirectUris":  [
@@ -304,8 +307,7 @@
                       "serviceAccountClientId":  "meajudaai-api-service",
                       "clientRoles":  {
                                           "realm-management":  [
-                                                                   "view-users",
-                                                                   "query-users",
+                                                                   "manage-users",
                                                                    "view-realm"
                                                                ]
                                       }

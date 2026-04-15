@@ -131,8 +131,8 @@
     {
       "alias": "instagram",
       "displayName": "Instagram",
-      "providerId": "oidc",
-      "_comment": "Nota: O suporte nativo ao provedor Instagram foi removido no Keycloak 26.x. Utilizando OIDC genérico como alternativa conforme Issue #141.",
+      "providerId": "facebook",
+      "_comment": "Nota: Suporte nativo ao Instagram removido no Keycloak 26.x. Utilizando o provedor do Facebook configurado para o Instagram Basic Display API.",
       "enabled": true,
       "trustEmail": false,
       "storeToken": false,
@@ -142,11 +142,9 @@
       "config": {
         "clientId": "${INSTAGRAM_CLIENT_ID}",
         "clientSecret": "${INSTAGRAM_CLIENT_SECRET}",
-        "issuer": "https://api.instagram.com",
         "authorizationUrl": "https://api.instagram.com/oauth/authorize",
         "tokenUrl": "https://api.instagram.com/oauth/access_token",
-        "userInfoUrl": "https://graph.instagram.com/me",
-        "logoutUrl": "https://api.instagram.com/oauth/logout"
+        "userInfoUrl": "https://graph.instagram.com/me?fields=id,username"
       }
     }
   ],

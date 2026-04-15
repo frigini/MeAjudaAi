@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Shared.Utilities;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Utilities;
@@ -58,18 +59,18 @@ public class UserRolesTests
     public void RoleConstants_ShouldHaveExpectedValues()
     {
         // Assert
-        UserRoles.SuperAdmin.Should().Be("super-admin");
-        UserRoles.Admin.Should().Be("admin");
-        UserRoles.ProviderManager.Should().Be("provider-manager");
-        UserRoles.DocumentReviewer.Should().Be("document-reviewer");
-        UserRoles.CatalogManager.Should().Be("catalog-manager");
-        UserRoles.Operator.Should().Be("operator");
-        UserRoles.Viewer.Should().Be("viewer");
+        UserRoles.SuperAdmin.Should().Be(RoleConstants.SuperAdmin);
+        UserRoles.Admin.Should().Be(RoleConstants.SystemAdmin);
+        UserRoles.ProviderManager.Should().Be(RoleConstants.ProviderAdmin);
+        UserRoles.DocumentReviewer.Should().Be(RoleConstants.LegacySystemAdmin);
+        UserRoles.CatalogManager.Should().Be(RoleConstants.CatalogManager);
+        UserRoles.Operator.Should().Be(RoleConstants.UserOperator);
+        UserRoles.Viewer.Should().Be("meajudaai-viewer");
         UserRoles.Customer.Should().Be("customer");
-        UserRoles.ProviderStandard.Should().Be("provider-standard");
-        UserRoles.ProviderSilver.Should().Be("provider-silver");
-        UserRoles.ProviderGold.Should().Be("provider-gold");
-        UserRoles.ProviderPlatinum.Should().Be("provider-platinum");
+        UserRoles.ProviderStandard.Should().Be("meajudaai-provider-standard");
+        UserRoles.ProviderSilver.Should().Be("meajudaai-provider-silver");
+        UserRoles.ProviderGold.Should().Be("meajudaai-provider-gold");
+        UserRoles.ProviderPlatinum.Should().Be("meajudaai-provider-platinum");
     }
 
     #endregion
@@ -77,18 +78,18 @@ public class UserRolesTests
     #region IsValidRole Tests
 
     [Theory]
-    [InlineData("super-admin")]
-    [InlineData("admin")]
-    [InlineData("provider-manager")]
-    [InlineData("document-reviewer")]
-    [InlineData("catalog-manager")]
-    [InlineData("operator")]
-    [InlineData("viewer")]
+    [InlineData(RoleConstants.SuperAdmin)]
+    [InlineData(RoleConstants.SystemAdmin)]
+    [InlineData(RoleConstants.ProviderAdmin)]
+    [InlineData(RoleConstants.LegacySystemAdmin)]
+    [InlineData(RoleConstants.CatalogManager)]
+    [InlineData(RoleConstants.UserOperator)]
+    [InlineData("meajudaai-viewer")]
     [InlineData("customer")]
-    [InlineData("provider-standard")]
-    [InlineData("provider-silver")]
-    [InlineData("provider-gold")]
-    [InlineData("provider-platinum")]
+    [InlineData("meajudaai-provider-standard")]
+    [InlineData("meajudaai-provider-silver")]
+    [InlineData("meajudaai-provider-gold")]
+    [InlineData("meajudaai-provider-platinum")]
     public void IsValidRole_WithValidRole_ShouldReturnTrue(string role)
     {
         // Act
@@ -99,15 +100,15 @@ public class UserRolesTests
     }
 
     [Theory]
-    [InlineData("Super-Admin")]
-    [InlineData("ADMIN")]
-    [InlineData("Provider-Manager")]
-    [InlineData("DOCUMENT-REVIEWER")]
-    [InlineData("Catalog-Manager")]
-    [InlineData("Provider-Standard")]
-    [InlineData("PROVIDER-SILVER")]
-    [InlineData("ProViDeR-GoLd")]
-    [InlineData("PrOvIdEr-PlAtInUm")]
+    [InlineData("MeAjudaAi-SuPeR-AdMiN")]
+    [InlineData("MEAJUDAAI-SYSTEM-ADMIN")]
+    [InlineData("MeAjudaAi-PrOvIdEr-AdMiN")]
+    [InlineData("SYSTEM-ADMIN")]
+    [InlineData("MeAjudaAi-CaTaLoG-MaNaGeR")]
+    [InlineData("MeAjudaAi-PrOvIdEr-StAnDaRd")]
+    [InlineData("MEAJUDAAI-PROVIDER-SILVER")]
+    [InlineData("MeAjudaAi-PrOvIdEr-GoLd")]
+    [InlineData("MeAjudaAi-PrOvIdEr-PlAtInUm")]
     public void IsValidRole_WithValidRoleDifferentCase_ShouldReturnTrue(string role)
     {
         // Act
@@ -148,12 +149,12 @@ public class UserRolesTests
     #region IsAdminRole Tests
 
     [Theory]
-    [InlineData("super-admin")]
-    [InlineData("admin")]
-    [InlineData("provider-manager")]
-    [InlineData("document-reviewer")]
-    [InlineData("catalog-manager")]
-    [InlineData("operator")]
+    [InlineData(RoleConstants.SuperAdmin)]
+    [InlineData(RoleConstants.SystemAdmin)]
+    [InlineData(RoleConstants.ProviderAdmin)]
+    [InlineData(RoleConstants.LegacySystemAdmin)]
+    [InlineData(RoleConstants.CatalogManager)]
+    [InlineData(RoleConstants.UserOperator)]
     public void IsAdminRole_WithAdminRole_ShouldReturnTrue(string role)
     {
         // Act
@@ -164,9 +165,9 @@ public class UserRolesTests
     }
 
     [Theory]
-    [InlineData("ADMIN")]
-    [InlineData("Provider-Manager")]
-    [InlineData("DOCUMENT-REVIEWER")]
+    [InlineData("MEAJUDAAI-SYSTEM-ADMIN")]
+    [InlineData("MeAjudaAi-PrOvIdEr-AdMiN")]
+    [InlineData("SYSTEM-ADMIN")]
     public void IsAdminRole_WithAdminRoleDifferentCase_ShouldReturnTrue(string role)
     {
         // Act
@@ -178,11 +179,11 @@ public class UserRolesTests
 
     [Theory]
     [InlineData("customer")]
-    [InlineData("viewer")]
-    [InlineData("provider-standard")]
-    [InlineData("provider-silver")]
-    [InlineData("provider-gold")]
-    [InlineData("provider-platinum")]
+    [InlineData("meajudaai-viewer")]
+    [InlineData("meajudaai-provider-standard")]
+    [InlineData("meajudaai-provider-silver")]
+    [InlineData("meajudaai-provider-gold")]
+    [InlineData("meajudaai-provider-platinum")]
     public void IsAdminRole_WithNonAdminRole_ShouldReturnFalse(string role)
     {
         // Act
@@ -220,10 +221,10 @@ public class UserRolesTests
     #region IsProviderRole Tests
 
     [Theory]
-    [InlineData("provider-standard")]
-    [InlineData("provider-silver")]
-    [InlineData("provider-gold")]
-    [InlineData("provider-platinum")]
+    [InlineData("meajudaai-provider-standard")]
+    [InlineData("meajudaai-provider-silver")]
+    [InlineData("meajudaai-provider-gold")]
+    [InlineData("meajudaai-provider-platinum")]
     public void IsProviderRole_WithProviderRole_ShouldReturnTrue(string role)
     {
         // Act
@@ -234,14 +235,14 @@ public class UserRolesTests
     }
 
     [Theory]
-    [InlineData("super-admin")]
-    [InlineData("admin")]
-    [InlineData("provider-manager")]
-    [InlineData("document-reviewer")]
-    [InlineData("catalog-manager")]
-    [InlineData("operator")]
+    [InlineData(RoleConstants.SuperAdmin)]
+    [InlineData(RoleConstants.SystemAdmin)]
+    [InlineData(RoleConstants.ProviderAdmin)]
+    [InlineData(RoleConstants.LegacySystemAdmin)]
+    [InlineData(RoleConstants.CatalogManager)]
+    [InlineData(RoleConstants.UserOperator)]
     [InlineData("customer")]
-    [InlineData("viewer")]
+    [InlineData("meajudaai-viewer")]
     public void IsProviderRole_WithNonProviderRole_ShouldReturnFalse(string role)
     {
         // Act
@@ -275,10 +276,10 @@ public class UserRolesTests
     }
 
     [Theory]
-    [InlineData("Provider-Standard")]
-    [InlineData("PROVIDER-SILVER")]
-    [InlineData("provider-GOLD")]
-    [InlineData("PrOvIdEr-PlAtInUm")]
+    [InlineData("MeAjudaAi-PrOvIdEr-StAnDaRd")]
+    [InlineData("MEAJUDAAI-PROVIDER-SILVER")]
+    [InlineData("MeAjudaAi-PrOvIdEr-GoLd")]
+    [InlineData("MeAjudaAi-PrOvIdEr-PlAtInUm")]
     public void IsProviderRole_WithValidRoleDifferentCase_ShouldReturnTrue(string role)
     {
         // Act
