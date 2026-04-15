@@ -688,8 +688,7 @@
       "meajudaai.modules.payments.application": {
         "type": "Project",
         "dependencies": {
-          "MeAjudaAi.Modules.Payments.Domain": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.6, )"
+          "MeAjudaAi.Modules.Payments.Domain": "[1.0.0, )"
         }
       },
       "meajudaai.modules.payments.domain": {
