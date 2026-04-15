@@ -958,7 +958,7 @@
         "type": "Project",
         "dependencies": {
           "MeAjudaAi.Modules.Payments.Domain": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.5, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.6, )",
           "Npgsql": "[10.0.2, )"
         }
       },
@@ -972,8 +972,8 @@
         "type": "Project",
         "dependencies": {
           "MeAjudaAi.Modules.Payments.Application": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.5, )",
-          "Microsoft.EntityFrameworkCore.Design": "[10.0.5, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.6, )",
+          "Microsoft.EntityFrameworkCore.Design": "[10.0.6, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
           "Stripe.net": "[51.0.0, )"
         }
