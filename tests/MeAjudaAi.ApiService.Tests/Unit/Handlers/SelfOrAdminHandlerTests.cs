@@ -38,18 +38,21 @@ public class SelfOrAdminHandlerTests
     }
 
     [Theory]
-    [InlineData(RoleConstants.Admin)]
-    [InlineData(RoleConstants.SystemAdmin)]
-    [InlineData(RoleConstants.SuperAdmin)]
-    [InlineData(RoleConstants.LegacySystemAdmin)]
-    [InlineData(RoleConstants.LegacySuperAdmin)]
-    public async Task HandleRequirementAsync_WithAdminRole_ShouldSucceed(string adminRole)
+    [InlineData(RoleConstants.Admin, AuthConstants.Claims.Roles)]
+    [InlineData(RoleConstants.SystemAdmin, AuthConstants.Claims.Roles)]
+    [InlineData(RoleConstants.SuperAdmin, AuthConstants.Claims.Roles)]
+    [InlineData(RoleConstants.Admin, ClaimTypes.Role)]
+    [InlineData(RoleConstants.SystemAdmin, ClaimTypes.Role)]
+    [InlineData(RoleConstants.SuperAdmin, ClaimTypes.Role)]
+    [InlineData(RoleConstants.LegacySystemAdmin, AuthConstants.Claims.Roles)]
+    [InlineData(RoleConstants.LegacySuperAdmin, ClaimTypes.Role)]
+    public async Task HandleRequirementAsync_WithAdminRole_ShouldSucceed(string adminRole, string claimType)
     {
         // Arrange
         var claims = new List<Claim>
         {
             new Claim(AuthConstants.Claims.Subject, "user123"),
-            new Claim(AuthConstants.Claims.Roles, adminRole)
+            new Claim(claimType, adminRole)
         };
         
         var identity = new ClaimsIdentity(claims, "test");

@@ -39,14 +39,19 @@ public static class UserRoles
     public const string Operator = RoleConstants.UserOperator;
 
     /// <summary>
-    /// Visualizador - acesso somente leitura
+    /// Visualizador de relatórios - acesso somente leitura
     /// </summary>
-    public const string Viewer = "meajudaai-viewer"; // Novo padrão
+    public const string ReportViewer = RoleConstants.ReportViewer;
 
     /// <summary>
     /// Papel de cliente para contas de usuário final (Customer App)
     /// </summary>
     public const string Customer = "customer";
+
+    /// <summary>
+    /// Papel base para prestadores de serviços.
+    /// </summary>
+    public const string Provider = RoleConstants.Provider;
 
     // ===== PROVIDER TIER ROLES =====
     // Gerenciados automaticamente via webhook Stripe (módulo de pagamentos futuro).
@@ -84,8 +89,9 @@ public static class UserRoles
         DocumentReviewer,
         CatalogManager,
         Operator,
-        Viewer,
+        ReportViewer,
         Customer,
+        Provider,
         ProviderStandard,
         ProviderSilver,
         ProviderGold,
@@ -102,7 +108,8 @@ public static class UserRoles
         ProviderManager,
         DocumentReviewer,
         CatalogManager,
-        Operator
+        Operator,
+        ReportViewer
     ];
 
     /// <summary>
@@ -118,6 +125,7 @@ public static class UserRoles
     /// </summary>
     public static readonly string[] ProviderRoles =
     [
+        Provider,
         ProviderStandard,
         ProviderSilver,
         ProviderGold,

@@ -22,8 +22,9 @@ public class UserRolesTests
             UserRoles.DocumentReviewer,
             UserRoles.CatalogManager,
             UserRoles.Operator,
-            UserRoles.Viewer,
+            UserRoles.ReportViewer,
             UserRoles.Customer,
+            UserRoles.Provider,
             UserRoles.ProviderStandard,
             UserRoles.ProviderSilver,
             UserRoles.ProviderGold,
@@ -43,7 +44,8 @@ public class UserRolesTests
             UserRoles.ProviderManager,
             UserRoles.DocumentReviewer,
             UserRoles.CatalogManager,
-            UserRoles.Operator
+            UserRoles.Operator,
+            UserRoles.ReportViewer
         });
     }
 
@@ -65,8 +67,9 @@ public class UserRolesTests
         UserRoles.DocumentReviewer.Should().Be(RoleConstants.LegacySystemAdmin);
         UserRoles.CatalogManager.Should().Be(RoleConstants.CatalogManager);
         UserRoles.Operator.Should().Be(RoleConstants.UserOperator);
-        UserRoles.Viewer.Should().Be("meajudaai-viewer");
+        UserRoles.ReportViewer.Should().Be(RoleConstants.ReportViewer);
         UserRoles.Customer.Should().Be("customer");
+        UserRoles.Provider.Should().Be(RoleConstants.Provider);
         UserRoles.ProviderStandard.Should().Be("meajudaai-provider-standard");
         UserRoles.ProviderSilver.Should().Be("meajudaai-provider-silver");
         UserRoles.ProviderGold.Should().Be("meajudaai-provider-gold");
@@ -84,8 +87,9 @@ public class UserRolesTests
     [InlineData(RoleConstants.LegacySystemAdmin)]
     [InlineData(RoleConstants.CatalogManager)]
     [InlineData(RoleConstants.UserOperator)]
-    [InlineData("meajudaai-viewer")]
+    [InlineData(RoleConstants.ReportViewer)]
     [InlineData("customer")]
+    [InlineData(RoleConstants.Provider)]
     [InlineData("meajudaai-provider-standard")]
     [InlineData("meajudaai-provider-silver")]
     [InlineData("meajudaai-provider-gold")]
@@ -155,6 +159,7 @@ public class UserRolesTests
     [InlineData(RoleConstants.LegacySystemAdmin)]
     [InlineData(RoleConstants.CatalogManager)]
     [InlineData(RoleConstants.UserOperator)]
+    [InlineData(RoleConstants.ReportViewer)]
     public void IsAdminRole_WithAdminRole_ShouldReturnTrue(string role)
     {
         // Act
@@ -168,6 +173,7 @@ public class UserRolesTests
     [InlineData("MEAJUDAAI-SYSTEM-ADMIN")]
     [InlineData("MeAjudaAi-PrOvIdEr-AdMiN")]
     [InlineData("SYSTEM-ADMIN")]
+    [InlineData("MEAJUDAAI-REPORT-VIEWER")]
     public void IsAdminRole_WithAdminRoleDifferentCase_ShouldReturnTrue(string role)
     {
         // Act
@@ -179,7 +185,6 @@ public class UserRolesTests
 
     [Theory]
     [InlineData("customer")]
-    [InlineData("meajudaai-viewer")]
     [InlineData("meajudaai-provider-standard")]
     [InlineData("meajudaai-provider-silver")]
     [InlineData("meajudaai-provider-gold")]
@@ -221,6 +226,7 @@ public class UserRolesTests
     #region IsProviderRole Tests
 
     [Theory]
+    [InlineData(RoleConstants.Provider)]
     [InlineData("meajudaai-provider-standard")]
     [InlineData("meajudaai-provider-silver")]
     [InlineData("meajudaai-provider-gold")]
@@ -241,8 +247,8 @@ public class UserRolesTests
     [InlineData(RoleConstants.LegacySystemAdmin)]
     [InlineData(RoleConstants.CatalogManager)]
     [InlineData(RoleConstants.UserOperator)]
+    [InlineData(RoleConstants.ReportViewer)]
     [InlineData("customer")]
-    [InlineData("meajudaai-viewer")]
     public void IsProviderRole_WithNonProviderRole_ShouldReturnFalse(string role)
     {
         // Act
@@ -276,6 +282,7 @@ public class UserRolesTests
     }
 
     [Theory]
+    [InlineData("MeAjudaAi-PrOvIdEr")]
     [InlineData("MeAjudaAi-PrOvIdEr-StAnDaRd")]
     [InlineData("MEAJUDAAI-PROVIDER-SILVER")]
     [InlineData("MeAjudaAi-PrOvIdEr-GoLd")]
@@ -320,6 +327,7 @@ public class UserRolesTests
         // Assert
         UserRoles.ProviderRoles.Should().BeEquivalentTo(new[]
         {
+            UserRoles.Provider,
             UserRoles.ProviderStandard,
             UserRoles.ProviderSilver,
             UserRoles.ProviderGold,
