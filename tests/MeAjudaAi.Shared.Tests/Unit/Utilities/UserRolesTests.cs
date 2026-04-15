@@ -13,7 +13,7 @@ public class UserRolesTests
     public void AllRoles_ShouldContainAllDefinedRoles()
     {
         // Assert
-        UserRoles.AllRoles.Should().HaveCount(12);
+        UserRoles.AllRoles.Should().HaveCount(13);
         UserRoles.AllRoles.Should().Contain(new[]
         {
             UserRoles.SuperAdmin,
@@ -36,7 +36,7 @@ public class UserRolesTests
     public void AdminRoles_ShouldContainOnlyAdminRoles()
     {
         // Assert
-        UserRoles.AdminRoles.Should().HaveCount(6);
+        UserRoles.AdminRoles.Should().HaveCount(7);
         UserRoles.AdminRoles.Should().Contain(new[]
         {
             UserRoles.SuperAdmin,
