@@ -30,12 +30,12 @@ public class RejectDocumentCommandHandlerTests
             _mockLogger.Object);
     }
 
-    private void SetupAuthenticatedAdmin()
+    private void SetupAuthenticatedUser(string role)
     {
         var claims = new List<Claim>
         {
             new(AuthConstants.Claims.Subject, Guid.NewGuid().ToString()),
-            new(ClaimTypes.Role, "admin")
+            new(ClaimTypes.Role, role)
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
@@ -44,8 +44,15 @@ public class RejectDocumentCommandHandlerTests
         _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
     }
 
-    [Fact]
-    public async Task HandleAsync_WithValidDocument_ShouldRejectDocument()
+    private void SetupAuthenticatedAdmin() => SetupAuthenticatedUser(RoleConstants.Admin);
+
+    [Theory]
+    [InlineData(RoleConstants.Admin)]
+    [InlineData(RoleConstants.SystemAdmin)]
+    [InlineData(RoleConstants.LegacySystemAdmin)]
+    [InlineData(RoleConstants.SuperAdmin)]
+    [InlineData(RoleConstants.LegacySuperAdmin)]
+    public async Task HandleAsync_WithAdminUser_ShouldRejectDocument(string adminRole)
     {
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
@@ -54,7 +61,7 @@ public class RejectDocumentCommandHandlerTests
         var document = Document.Create(providerId, EDocumentType.IdentityDocument, "identity.pdf", "blob-key-123");
         document.MarkAsPendingVerification();
 
-        SetupAuthenticatedAdmin();
+        SetupAuthenticatedUser(adminRole);
 
         _mockRepository.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>())).ReturnsAsync(document);
         _mockRepository.Setup(x => x.UpdateAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);

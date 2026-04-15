@@ -1,120 +1,162 @@
+using MeAjudaAi.Shared.Utilities.Constants;
+
 namespace MeAjudaAi.Shared.Utilities;
 
 /// <summary>
-/// Papéis do sistema para autorização e controle de acesso
+/// Papéis do sistema para autorização e controle de acesso.
+/// Centraliza a lógica de agrupamento de papéis usando as constantes canônicas de RoleConstants.
 /// </summary>
 public static class UserRoles
 {
     /// <summary>
-    /// Super Administrador - acesso irrestrito ao sistema inteiro
+    /// Papel legado 'admin' (Keycloak default).
     /// </summary>
-    public const string SuperAdmin = "super-admin";
+    public const string AdminLegacy = RoleConstants.Admin;
 
     /// <summary>
-    /// Administrador com permissões elevadas - acesso total ao Admin Portal
+    /// Administrador do sistema - acesso total às configurações e logs.
     /// </summary>
-    public const string Admin = "admin";
+    public const string SystemAdmin = RoleConstants.SystemAdmin;
 
     /// <summary>
-    /// Gerente de provedores - pode criar, editar e deletar provedores
+    /// Super Administrador - acesso irrestrito ao sistema inteiro.
     /// </summary>
-    public const string ProviderManager = "provider-manager";
+    public const string SuperAdmin = RoleConstants.SuperAdmin;
 
     /// <summary>
-    /// Revisor de documentos - pode revisar e aprovar documentos
+    /// Administrador de usuários - pode gerenciar contas e permissões.
     /// </summary>
-    public const string DocumentReviewer = "document-reviewer";
+    public const string UserAdmin = RoleConstants.UserAdmin;
 
     /// <summary>
-    /// Gerente de catálogo - pode gerenciar serviços e categorias
+    /// Operador de usuários - leitura e atualização limitada de perfis.
     /// </summary>
-    public const string CatalogManager = "catalog-manager";
+    public const string UserOperator = RoleConstants.UserOperator;
 
     /// <summary>
-    /// Operador com leitura/escrita limitada
+    /// Usuário básico do sistema.
     /// </summary>
-    public const string Operator = "operator";
+    public const string User = RoleConstants.User;
 
     /// <summary>
-    /// Visualizador - acesso somente leitura
+    /// Administrador de prestadores - CRUD completo de perfis de serviço.
     /// </summary>
-    public const string Viewer = "viewer";
+    public const string ProviderAdmin = RoleConstants.ProviderAdmin;
 
     /// <summary>
-    /// Papel de cliente para contas de usuário final (Customer App)
+    /// Prestador de serviços - acesso ao painel do prestador.
+    /// </summary>
+    public const string Provider = RoleConstants.Provider;
+
+    /// <summary>
+    /// Administrador de pedidos - gerenciar transações e fluxos de serviço.
+    /// </summary>
+    public const string OrderAdmin = RoleConstants.OrderAdmin;
+
+    /// <summary>
+    /// Operador de pedidos - leitura e atualização de status de serviço.
+    /// </summary>
+    public const string OrderOperator = RoleConstants.OrderOperator;
+
+    /// <summary>
+    /// Administrador de relatórios - criar e exportar dados estatísticos.
+    /// </summary>
+    public const string ReportAdmin = RoleConstants.ReportAdmin;
+
+    /// <summary>
+    /// Visualizador de relatórios - acesso somente leitura a dashboards.
+    /// </summary>
+    public const string ReportViewer = RoleConstants.ReportViewer;
+
+    /// <summary>
+    /// Gerente de catálogo - gerenciar serviços e categorias.
+    /// </summary>
+    public const string CatalogManager = RoleConstants.CatalogManager;
+
+    /// <summary>
+    /// Gerente de localidades - gerenciar cidades e estados atendidos.
+    /// </summary>
+    public const string LocationManager = RoleConstants.LocationManager;
+
+    /// <summary>
+    /// Papel de cliente para contas de usuário final (Customer App).
     /// </summary>
     public const string Customer = "customer";
 
     // ===== PROVIDER TIER ROLES =====
-    // Gerenciados automaticamente via webhook Stripe (módulo de pagamentos futuro).
-    // Todo prestador começa como provider-standard (plano gratuito).
-
+    
     /// <summary>
     /// Prestador de serviços no plano gratuito (Standard).
-    /// Atribuído automaticamente no auto-registro.
     /// </summary>
-    public const string ProviderStandard = "provider-standard";
+    public const string ProviderStandard = "meajudaai-provider-standard";
 
     /// <summary>
-    /// Prestador de serviços no plano Silver (pago via Stripe).
+    /// Prestador de serviços no plano Silver.
     /// </summary>
-    public const string ProviderSilver = "provider-silver";
+    public const string ProviderSilver = "meajudaai-provider-silver";
 
     /// <summary>
-    /// Prestador de serviços no plano Gold (pago via Stripe).
+    /// Prestador de serviços no plano Gold.
     /// </summary>
-    public const string ProviderGold = "provider-gold";
+    public const string ProviderGold = "meajudaai-provider-gold";
 
     /// <summary>
-    /// Prestador de serviços no plano Platinum (pago via Stripe).
+    /// Prestador de serviços no plano Platinum.
     /// </summary>
-    public const string ProviderPlatinum = "provider-platinum";
+    public const string ProviderPlatinum = "meajudaai-provider-platinum";
 
     /// <summary>
-    /// Obtém todos os papéis disponíveis no sistema
+    /// Obtém todos os papéis disponíveis no sistema (Catálogo Canônico).
     /// </summary>
     public static readonly string[] AllRoles =
     [
+        AdminLegacy,
+        SystemAdmin,
         SuperAdmin,
-        Admin,
-        ProviderManager,
-        DocumentReviewer,
+        UserAdmin,
+        UserOperator,
+        User,
+        ProviderAdmin,
+        Provider,
+        OrderAdmin,
+        OrderOperator,
+        ReportAdmin,
+        ReportViewer,
         CatalogManager,
-        Operator,
-        Viewer,
+        LocationManager,
         Customer,
         ProviderStandard,
         ProviderSilver,
         ProviderGold,
-        ProviderPlatinum
+        ProviderPlatinum,
+        RoleConstants.LegacySystemAdmin,
+        RoleConstants.LegacySuperAdmin
     ];
 
     /// <summary>
-    /// Obtém papéis que possuem privilégios administrativos (Admin Portal)
+    /// Obtém papéis que possuem privilégios administrativos (Acesso ao Admin Portal).
     /// </summary>
     public static readonly string[] AdminRoles =
     [
+        AdminLegacy,
+        SystemAdmin,
         SuperAdmin,
-        Admin,
-        ProviderManager,
-        DocumentReviewer,
+        UserAdmin,
+        ProviderAdmin,
+        OrderAdmin,
+        ReportAdmin,
         CatalogManager,
-        Operator
+        LocationManager,
+        RoleConstants.LegacySystemAdmin,
+        RoleConstants.LegacySuperAdmin
     ];
 
     /// <summary>
-    /// Obtém papéis disponíveis para aplicativo do cliente
-    /// </summary>
-    public static readonly string[] CustomerRoles =
-    [
-        Customer
-    ];
-
-    /// <summary>
-    /// Obtém todos os papéis de prestador (qualquer tier)
+    /// Obtém todos os papéis de prestador (qualquer tier).
     /// </summary>
     public static readonly string[] ProviderRoles =
     [
+        Provider,
         ProviderStandard,
         ProviderSilver,
         ProviderGold,
@@ -122,27 +164,23 @@ public static class UserRoles
     ];
 
     /// <summary>
-    /// Valida se um papel é válido no sistema
+    /// Valida se um papel é válido no sistema.
     /// </summary>
-    /// <param name="role">Papel a ser validado</param>
-    /// <returns>True se o papel for válido, false caso contrário</returns>
     public static bool IsValidRole(string role)
     {
         return AllRoles.Contains(role, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
-    /// Valida se um papel possui privilégios administrativos
+    /// Valida se um papel possui privilégios administrativos.
     /// </summary>
-    /// <param name="role">Papel a ser verificado</param>
-    /// <returns>True se o papel for de nível admin, false caso contrário</returns>
     public static bool IsAdminRole(string role)
     {
         return AdminRoles.Contains(role, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
-    /// Valida se um papel é de prestador de serviços (qualquer tier)
+    /// Valida se um papel é de prestador de serviços.
     /// </summary>
     public static bool IsProviderRole(string role)
     {

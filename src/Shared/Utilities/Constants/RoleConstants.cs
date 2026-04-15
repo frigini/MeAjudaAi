@@ -12,6 +12,7 @@ public static class RoleConstants
     // Roles de sistema/admin
     public const string Admin = "admin";
     public const string SystemAdmin = "meajudaai-system-admin";
+    public const string SuperAdmin = "meajudaai-super-admin";
 
     // Roles de usuários
     public const string UserAdmin = "meajudaai-user-admin";
@@ -35,4 +36,29 @@ public static class RoleConstants
 
     // Roles de localização
     public const string LocationManager = "meajudaai-location-manager";
+
+    // Roles legadas para compatibilidade (remover após transição completa)
+    public const string LegacySystemAdmin = "system-admin";
+    public const string LegacySuperAdmin = "super-admin";
+
+    /// <summary>
+    /// Lista de roles equivalentes a administrador para verificações de segurança.
+    /// </summary>
+    public static readonly string[] AdminEquivalentRoles = 
+    [
+        Admin,
+        SystemAdmin,
+        SuperAdmin,
+        LegacySystemAdmin,
+        LegacySuperAdmin
+    ];
+
+    /// <summary>
+    /// Lista de roles equivalentes a super-administrador.
+    /// </summary>
+    public static readonly string[] SuperAdminEquivalentRoles = 
+    [
+        SuperAdmin,
+        LegacySuperAdmin
+    ];
 }

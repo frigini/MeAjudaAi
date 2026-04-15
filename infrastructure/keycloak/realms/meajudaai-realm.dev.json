@@ -44,6 +44,10 @@
                                     "description":  "Administrador do sistema - todas as permissões"
                                 },
                                 {
+                                    "name":  "meajudaai-super-admin",
+                                    "description":  "Super Administrador - acesso total irrestrito"
+                                },
+                                {
                                     "name":  "meajudaai-user-admin",
                                     "description":  "Administrador de usuários - gerenciar usuários"
                                 },
@@ -88,6 +92,22 @@
                                     "description":  "Gerente de localidades - gerenciar cidades e estados"
                                 },
                                 {
+                                    "name":  "meajudaai-provider-standard",
+                                    "description":  "Prestador de serviços - Plano Standard (Gratuito)"
+                                },
+                                {
+                                    "name":  "meajudaai-provider-silver",
+                                    "description":  "Prestador de serviços - Plano Silver (Premium)"
+                                },
+                                {
+                                    "name":  "meajudaai-provider-gold",
+                                    "description":  "Prestador de serviços - Plano Gold (Premium Plus)"
+                                },
+                                {
+                                    "name":  "meajudaai-provider-platinum",
+                                    "description":  "Prestador de serviços - Plano Platinum (Elite)"
+                                },
+                                {
                                     "name":  "customer",
                                     "description":  "Cliente da plataforma"
                                 }
@@ -125,21 +145,59 @@
                                              }
                               },
                               {
-                                  "trustEmail":  false,
-                                  "providerId":  "instagram",
+                                  "alias":  "instagram",
+                                  "displayName":  "Instagram",
+                                  "providerId":  "oauth2",
+                                  "_comment": "Nota: Suporte nativo ao Instagram removido no Keycloak 26.x. Utilizando o provedor OAuth2 genérico para garantir que as URLs da Basic Display API sejam respeitadas e contornar a ausência de OIDC discovery no Instagram.",
                                   "enabled":  true,
-                                  "authenticateByDefault":  false,
+                                  "trustEmail":  false,
                                   "storeToken":  false,
+                                  "addReadTokenRoleOnCreate":  false,
+                                  "authenticateByDefault":  false,
+                                  "firstBrokerLoginFlowAlias":  "first broker login",
                                   "config":  {
                                                  "clientId":  "${INSTAGRAM_CLIENT_ID}",
-                                                 "clientSecret":  "${INSTAGRAM_CLIENT_SECRET}"
-                                             },
-                                  "alias":  "instagram",
-                                  "addReadTokenRoleOnCreate":  false,
-                                  "firstBrokerLoginFlowAlias":  "first broker login",
-                                  "displayName":  "Instagram"
+                                                 "clientSecret":  "${INSTAGRAM_CLIENT_SECRET}",
+                                                 "authorizationUrl": "https://api.instagram.com/oauth/authorize",
+                                                 "tokenUrl": "https://api.instagram.com/oauth/access_token",
+                                                 "userInfoUrl": "https://graph.instagram.com/me?fields=id,username",
+                                                 "defaultScope": "user_profile",
+                                                 "syncMode": "IMPORT",
+                                                 "userIp": "false"
+                                             }
                               }
                           ],
+    "identityProviderMappers": [
+        {
+            "identityProviderAlias": "instagram",
+            "identityProviderMapper": "hardcoded-role-idp-mapper",
+            "name": "instagram-user-role",
+            "config": {
+                "syncMode": "INHERIT",
+                "role": "customer"
+            }
+        },
+        {
+            "identityProviderAlias": "instagram",
+            "identityProviderMapper": "oauth2-user-attribute-idp-mapper",
+            "name": "instagram-username",
+            "config": {
+                "syncMode": "INHERIT",
+                "jsonField": "username",
+                "userAttribute": "username"
+            }
+        },
+        {
+            "identityProviderAlias": "instagram",
+            "identityProviderMapper": "oauth2-user-attribute-idp-mapper",
+            "name": "instagram-id-to-userid",
+            "config": {
+                "syncMode": "INHERIT",
+                "jsonField": "id",
+                "userAttribute": "userID"
+            }
+        }
+    ],
     "clients":  [
                     {
                         "clientId":  "admin-portal",
@@ -194,7 +252,7 @@
                         "publicClient":  true,
                         "standardFlowEnabled":  true,
                         "implicitFlowEnabled":  false,
-                        "directAccessGrantsEnabled":  true,
+                        "directAccessGrantsEnabled":  false,
                         "serviceAccountsEnabled":  false,
                         "protocol":  "openid-connect",
                         "redirectUris":  [
@@ -238,7 +296,7 @@
                         "publicClient":  true,
                         "standardFlowEnabled":  true,
                         "implicitFlowEnabled":  false,
-                        "directAccessGrantsEnabled":  true,
+                        "directAccessGrantsEnabled":  false,
                         "serviceAccountsEnabled":  false,
                         "protocol":  "openid-connect",
                         "redirectUris":  [
@@ -299,8 +357,7 @@
                       "serviceAccountClientId":  "meajudaai-api-service",
                       "clientRoles":  {
                                           "realm-management":  [
-                                                                   "view-users",
-                                                                   "query-users",
+                                                                   "manage-users",
                                                                    "view-realm"
                                                                ]
                                       }
