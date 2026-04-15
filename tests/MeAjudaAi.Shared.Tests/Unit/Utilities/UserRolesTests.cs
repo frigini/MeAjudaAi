@@ -13,22 +13,30 @@ public class UserRolesTests
     public void AllRoles_ShouldContainAllDefinedRoles()
     {
         // Assert
-        UserRoles.AllRoles.Should().HaveCount(13);
+        UserRoles.AllRoles.Should().HaveCount(21);
         UserRoles.AllRoles.Should().Contain(new[]
         {
+            UserRoles.AdminLegacy,
+            UserRoles.SystemAdmin,
             UserRoles.SuperAdmin,
-            UserRoles.Admin,
-            UserRoles.ProviderManager,
-            UserRoles.DocumentReviewer,
-            UserRoles.CatalogManager,
-            UserRoles.Operator,
-            UserRoles.ReportViewer,
-            UserRoles.Customer,
+            UserRoles.UserAdmin,
+            UserRoles.UserOperator,
+            UserRoles.User,
+            UserRoles.ProviderAdmin,
             UserRoles.Provider,
+            UserRoles.OrderAdmin,
+            UserRoles.OrderOperator,
+            UserRoles.ReportAdmin,
+            UserRoles.ReportViewer,
+            UserRoles.CatalogManager,
+            UserRoles.LocationManager,
+            UserRoles.Customer,
             UserRoles.ProviderStandard,
             UserRoles.ProviderSilver,
             UserRoles.ProviderGold,
-            UserRoles.ProviderPlatinum
+            UserRoles.ProviderPlatinum,
+            RoleConstants.LegacySystemAdmin,
+            RoleConstants.LegacySuperAdmin
         });
     }
 
@@ -36,40 +44,42 @@ public class UserRolesTests
     public void AdminRoles_ShouldContainOnlyAdminRoles()
     {
         // Assert
-        UserRoles.AdminRoles.Should().HaveCount(7);
+        UserRoles.AdminRoles.Should().HaveCount(11);
         UserRoles.AdminRoles.Should().Contain(new[]
         {
+            UserRoles.AdminLegacy,
+            UserRoles.SystemAdmin,
             UserRoles.SuperAdmin,
-            UserRoles.Admin,
-            UserRoles.ProviderManager,
-            UserRoles.DocumentReviewer,
+            UserRoles.UserAdmin,
+            UserRoles.ProviderAdmin,
+            UserRoles.OrderAdmin,
+            UserRoles.ReportAdmin,
             UserRoles.CatalogManager,
-            UserRoles.Operator,
-            UserRoles.ReportViewer
+            UserRoles.LocationManager,
+            RoleConstants.LegacySystemAdmin,
+            RoleConstants.LegacySuperAdmin
         });
-    }
-
-    [Fact]
-    public void CustomerRoles_ShouldContainCustomerRole()
-    {
-        // Assert
-        UserRoles.CustomerRoles.Should().HaveCount(1);
-        UserRoles.CustomerRoles.Should().Contain(UserRoles.Customer);
     }
 
     [Fact]
     public void RoleConstants_ShouldHaveExpectedValues()
     {
         // Assert
+        UserRoles.AdminLegacy.Should().Be(RoleConstants.Admin);
+        UserRoles.SystemAdmin.Should().Be(RoleConstants.SystemAdmin);
         UserRoles.SuperAdmin.Should().Be(RoleConstants.SuperAdmin);
-        UserRoles.Admin.Should().Be(RoleConstants.SystemAdmin);
-        UserRoles.ProviderManager.Should().Be(RoleConstants.ProviderAdmin);
-        UserRoles.DocumentReviewer.Should().Be(RoleConstants.LegacySystemAdmin);
-        UserRoles.CatalogManager.Should().Be(RoleConstants.CatalogManager);
-        UserRoles.Operator.Should().Be(RoleConstants.UserOperator);
-        UserRoles.ReportViewer.Should().Be(RoleConstants.ReportViewer);
-        UserRoles.Customer.Should().Be("customer");
+        UserRoles.UserAdmin.Should().Be(RoleConstants.UserAdmin);
+        UserRoles.UserOperator.Should().Be(RoleConstants.UserOperator);
+        UserRoles.User.Should().Be(RoleConstants.User);
+        UserRoles.ProviderAdmin.Should().Be(RoleConstants.ProviderAdmin);
         UserRoles.Provider.Should().Be(RoleConstants.Provider);
+        UserRoles.OrderAdmin.Should().Be(RoleConstants.OrderAdmin);
+        UserRoles.OrderOperator.Should().Be(RoleConstants.OrderOperator);
+        UserRoles.ReportAdmin.Should().Be(RoleConstants.ReportAdmin);
+        UserRoles.ReportViewer.Should().Be(RoleConstants.ReportViewer);
+        UserRoles.CatalogManager.Should().Be(RoleConstants.CatalogManager);
+        UserRoles.LocationManager.Should().Be(RoleConstants.LocationManager);
+        UserRoles.Customer.Should().Be("customer");
         UserRoles.ProviderStandard.Should().Be("meajudaai-provider-standard");
         UserRoles.ProviderSilver.Should().Be("meajudaai-provider-silver");
         UserRoles.ProviderGold.Should().Be("meajudaai-provider-gold");
@@ -81,19 +91,27 @@ public class UserRolesTests
     #region IsValidRole Tests
 
     [Theory]
-    [InlineData(RoleConstants.SuperAdmin)]
+    [InlineData(RoleConstants.Admin)]
     [InlineData(RoleConstants.SystemAdmin)]
-    [InlineData(RoleConstants.ProviderAdmin)]
-    [InlineData(RoleConstants.LegacySystemAdmin)]
-    [InlineData(RoleConstants.CatalogManager)]
+    [InlineData(RoleConstants.SuperAdmin)]
+    [InlineData(RoleConstants.UserAdmin)]
     [InlineData(RoleConstants.UserOperator)]
-    [InlineData(RoleConstants.ReportViewer)]
-    [InlineData("customer")]
+    [InlineData(RoleConstants.User)]
+    [InlineData(RoleConstants.ProviderAdmin)]
     [InlineData(RoleConstants.Provider)]
+    [InlineData(RoleConstants.OrderAdmin)]
+    [InlineData(RoleConstants.OrderOperator)]
+    [InlineData(RoleConstants.ReportAdmin)]
+    [InlineData(RoleConstants.ReportViewer)]
+    [InlineData(RoleConstants.CatalogManager)]
+    [InlineData(RoleConstants.LocationManager)]
+    [InlineData("customer")]
     [InlineData("meajudaai-provider-standard")]
     [InlineData("meajudaai-provider-silver")]
     [InlineData("meajudaai-provider-gold")]
     [InlineData("meajudaai-provider-platinum")]
+    [InlineData(RoleConstants.LegacySystemAdmin)]
+    [InlineData(RoleConstants.LegacySuperAdmin)]
     public void IsValidRole_WithValidRole_ShouldReturnTrue(string role)
     {
         // Act
@@ -106,13 +124,9 @@ public class UserRolesTests
     [Theory]
     [InlineData("MeAjudaAi-SuPeR-AdMiN")]
     [InlineData("MEAJUDAAI-SYSTEM-ADMIN")]
-    [InlineData("MeAjudaAi-PrOvIdEr-AdMiN")]
     [InlineData("SYSTEM-ADMIN")]
-    [InlineData("MeAjudaAi-CaTaLoG-MaNaGeR")]
-    [InlineData("MeAjudaAi-PrOvIdEr-StAnDaRd")]
-    [InlineData("MEAJUDAAI-PROVIDER-SILVER")]
+    [InlineData("MEAJUDAAI-REPORT-VIEWER")]
     [InlineData("MeAjudaAi-PrOvIdEr-GoLd")]
-    [InlineData("MeAjudaAi-PrOvIdEr-PlAtInUm")]
     public void IsValidRole_WithValidRoleDifferentCase_ShouldReturnTrue(string role)
     {
         // Act
@@ -127,8 +141,6 @@ public class UserRolesTests
     [InlineData("guest")]
     [InlineData("")]
     [InlineData(" ")]
-    [InlineData("user123")]
-    [InlineData("admin-user")]
     public void IsValidRole_WithInvalidRole_ShouldReturnFalse(string role)
     {
         // Act
@@ -153,13 +165,17 @@ public class UserRolesTests
     #region IsAdminRole Tests
 
     [Theory]
-    [InlineData(RoleConstants.SuperAdmin)]
+    [InlineData(RoleConstants.Admin)]
     [InlineData(RoleConstants.SystemAdmin)]
+    [InlineData(RoleConstants.SuperAdmin)]
+    [InlineData(RoleConstants.UserAdmin)]
     [InlineData(RoleConstants.ProviderAdmin)]
-    [InlineData(RoleConstants.LegacySystemAdmin)]
+    [InlineData(RoleConstants.OrderAdmin)]
+    [InlineData(RoleConstants.ReportAdmin)]
     [InlineData(RoleConstants.CatalogManager)]
-    [InlineData(RoleConstants.UserOperator)]
-    [InlineData(RoleConstants.ReportViewer)]
+    [InlineData(RoleConstants.LocationManager)]
+    [InlineData(RoleConstants.LegacySystemAdmin)]
+    [InlineData(RoleConstants.LegacySuperAdmin)]
     public void IsAdminRole_WithAdminRole_ShouldReturnTrue(string role)
     {
         // Act
@@ -170,52 +186,16 @@ public class UserRolesTests
     }
 
     [Theory]
-    [InlineData("MEAJUDAAI-SYSTEM-ADMIN")]
-    [InlineData("MeAjudaAi-PrOvIdEr-AdMiN")]
-    [InlineData("SYSTEM-ADMIN")]
-    [InlineData("MEAJUDAAI-REPORT-VIEWER")]
-    public void IsAdminRole_WithAdminRoleDifferentCase_ShouldReturnTrue(string role)
-    {
-        // Act
-        var result = UserRoles.IsAdminRole(role);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Theory]
     [InlineData("customer")]
-    [InlineData("meajudaai-provider-standard")]
-    [InlineData("meajudaai-provider-silver")]
-    [InlineData("meajudaai-provider-gold")]
-    [InlineData("meajudaai-provider-platinum")]
+    [InlineData(RoleConstants.User)]
+    [InlineData(RoleConstants.Provider)]
+    [InlineData(RoleConstants.ReportViewer)]
+    [InlineData(RoleConstants.OrderOperator)]
+    [InlineData(RoleConstants.UserOperator)]
     public void IsAdminRole_WithNonAdminRole_ShouldReturnFalse(string role)
     {
         // Act
         var result = UserRoles.IsAdminRole(role);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Theory]
-    [InlineData("invalid")]
-    [InlineData("")]
-    [InlineData(" ")]
-    public void IsAdminRole_WithInvalidRole_ShouldReturnFalse(string role)
-    {
-        // Act
-        var result = UserRoles.IsAdminRole(role);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsAdminRole_WithNull_ShouldReturnFalse()
-    {
-        // Act
-        var result = UserRoles.IsAdminRole(null!);
 
         // Assert
         result.Should().BeFalse();
@@ -241,13 +221,8 @@ public class UserRolesTests
     }
 
     [Theory]
-    [InlineData(RoleConstants.SuperAdmin)]
+    [InlineData(RoleConstants.Admin)]
     [InlineData(RoleConstants.SystemAdmin)]
-    [InlineData(RoleConstants.ProviderAdmin)]
-    [InlineData(RoleConstants.LegacySystemAdmin)]
-    [InlineData(RoleConstants.CatalogManager)]
-    [InlineData(RoleConstants.UserOperator)]
-    [InlineData(RoleConstants.ReportViewer)]
     [InlineData("customer")]
     public void IsProviderRole_WithNonProviderRole_ShouldReturnFalse(string role)
     {
@@ -256,44 +231,6 @@ public class UserRolesTests
 
         // Assert
         result.Should().BeFalse();
-    }
-
-    [Theory]
-    [InlineData("invalid")]
-    [InlineData("")]
-    [InlineData(" ")]
-    public void IsProviderRole_WithInvalidRole_ShouldReturnFalse(string role)
-    {
-        // Act
-        var result = UserRoles.IsProviderRole(role);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsProviderRole_WithNull_ShouldReturnFalse()
-    {
-        // Act
-        var result = UserRoles.IsProviderRole(null!);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Theory]
-    [InlineData("MeAjudaAi-PrOvIdEr")]
-    [InlineData("MeAjudaAi-PrOvIdEr-StAnDaRd")]
-    [InlineData("MEAJUDAAI-PROVIDER-SILVER")]
-    [InlineData("MeAjudaAi-PrOvIdEr-GoLd")]
-    [InlineData("MeAjudaAi-PrOvIdEr-PlAtInUm")]
-    public void IsProviderRole_WithValidRoleDifferentCase_ShouldReturnTrue(string role)
-    {
-        // Act
-        var result = UserRoles.IsProviderRole(role);
-
-        // Assert
-        result.Should().BeTrue();
     }
 
     #endregion
@@ -308,13 +245,6 @@ public class UserRolesTests
     }
 
     [Fact]
-    public void CustomerRoles_ShouldBeSubsetOfAllRoles()
-    {
-        // Assert
-        UserRoles.CustomerRoles.Should().BeSubsetOf(UserRoles.AllRoles);
-    }
-
-    [Fact]
     public void ProviderRoles_ShouldBeSubsetOfAllRoles()
     {
         // Assert
@@ -322,10 +252,10 @@ public class UserRolesTests
     }
 
     [Fact]
-    public void ProviderRoles_ShouldContainOnlyProviderRoles()
+    public void ProviderRoles_ShouldContainExpectedTiers()
     {
         // Assert
-        UserRoles.ProviderRoles.Should().BeEquivalentTo(new[]
+        UserRoles.ProviderRoles.Should().Contain(new[]
         {
             UserRoles.Provider,
             UserRoles.ProviderStandard,

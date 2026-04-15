@@ -92,6 +92,22 @@
                                     "description":  "Gerente de localidades - gerenciar cidades e estados"
                                 },
                                 {
+                                    "name":  "meajudaai-provider-standard",
+                                    "description":  "Prestador de serviços - Plano Standard (Gratuito)"
+                                },
+                                {
+                                    "name":  "meajudaai-provider-silver",
+                                    "description":  "Prestador de serviços - Plano Silver (Premium)"
+                                },
+                                {
+                                    "name":  "meajudaai-provider-gold",
+                                    "description":  "Prestador de serviços - Plano Gold (Premium Plus)"
+                                },
+                                {
+                                    "name":  "meajudaai-provider-platinum",
+                                    "description":  "Prestador de serviços - Plano Platinum (Elite)"
+                                },
+                                {
                                     "name":  "customer",
                                     "description":  "Cliente da plataforma"
                                 }
@@ -131,8 +147,8 @@
                               {
                                   "alias":  "instagram",
                                   "displayName":  "Instagram",
-                                  "providerId":  "facebook",
-                                  "_comment": "Nota: Suporte nativo ao Instagram removido no Keycloak 26.x. Utilizando o provedor do Facebook configurado para o Instagram Basic Display API (OAuth2 puro, sem OIDC).",
+                                  "providerId":  "oauth2",
+                                  "_comment": "Nota: Suporte nativo ao Instagram removido no Keycloak 26.x. Utilizando o provedor OAuth2 genérico para garantir que as URLs da Basic Display API sejam respeitadas e contornar a ausência de OIDC discovery no Instagram.",
                                   "enabled":  true,
                                   "trustEmail":  false,
                                   "storeToken":  false,
@@ -144,10 +160,44 @@
                                                  "clientSecret":  "${INSTAGRAM_CLIENT_SECRET}",
                                                  "authorizationUrl": "https://api.instagram.com/oauth/authorize",
                                                  "tokenUrl": "https://api.instagram.com/oauth/access_token",
-                                                 "userInfoUrl": "https://graph.instagram.com/me?fields=id,username"
+                                                 "userInfoUrl": "https://graph.instagram.com/me?fields=id,username",
+                                                 "defaultScope": "user_profile",
+                                                 "syncMode": "IMPORT",
+                                                 "userIp": "false"
                                              }
                               }
                           ],
+    "identityProviderMappers": [
+        {
+            "identityProviderAlias": "instagram",
+            "identityProviderMapper": "hardcoded-role-idp-mapper",
+            "name": "instagram-user-role",
+            "config": {
+                "syncMode": "INHERIT",
+                "role": "customer"
+            }
+        },
+        {
+            "identityProviderAlias": "instagram",
+            "identityProviderMapper": "oauth2-user-attribute-idp-mapper",
+            "name": "instagram-username",
+            "config": {
+                "syncMode": "INHERIT",
+                "jsonField": "username",
+                "userAttribute": "username"
+            }
+        },
+        {
+            "identityProviderAlias": "instagram",
+            "identityProviderMapper": "oauth2-user-attribute-idp-mapper",
+            "name": "instagram-id-to-userid",
+            "config": {
+                "syncMode": "INHERIT",
+                "jsonField": "id",
+                "userAttribute": "userID"
+            }
+        }
+    ],
     "clients":  [
                     {
                         "clientId":  "admin-portal",
