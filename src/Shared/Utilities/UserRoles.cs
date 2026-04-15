@@ -81,7 +81,7 @@ public static class UserRoles
     /// <summary>
     /// Papel de cliente para contas de usuário final (Customer App).
     /// </summary>
-    public const string Customer = "customer";
+    public const string Customer = RoleConstants.Customer;
 
     // ===== PROVIDER TIER ROLES =====
     

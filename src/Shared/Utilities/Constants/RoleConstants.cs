@@ -37,6 +37,9 @@ public static class RoleConstants
     // Roles de localização
     public const string LocationManager = "meajudaai-location-manager";
 
+    // Papel de cliente para contas de usuário final (Customer App)
+    public const string Customer = "customer";
+
     // Roles legadas para compatibilidade (remover após transição completa)
     public const string LegacySystemAdmin = "system-admin";
     public const string LegacySuperAdmin = "super-admin";
