@@ -1,7 +1,6 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Communications.DTOs;
 using Microsoft.Extensions.Logging;
-
 namespace MeAjudaAi.Modules.Communications.Application.Services.Email;
 
 /// <summary>

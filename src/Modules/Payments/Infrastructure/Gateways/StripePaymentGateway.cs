@@ -3,7 +3,6 @@ using MeAjudaAi.Shared.Domain.ValueObjects;
 using Microsoft.Extensions.Configuration;
 using Stripe;
 using Stripe.Checkout;
-
 namespace MeAjudaAi.Modules.Payments.Infrastructure.Gateways;
 
 public class StripePaymentGateway : IPaymentGateway

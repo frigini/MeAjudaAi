@@ -57,4 +57,31 @@ public class SubscriptionTests
         // Assert
         subscription.Status.Should().Be(ESubscriptionStatus.Canceled);
     }
+
+    [Fact]
+    public void Expire_ShouldUpdateStatus()
+    {
+        // Arrange
+        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        subscription.Activate("sub_123", DateTime.UtcNow, DateTime.UtcNow.AddMonths(1));
+
+        // Act
+        subscription.Expire();
+
+        // Assert
+        subscription.Status.Should().Be(ESubscriptionStatus.Expired);
+    }
+
+    [Fact]
+    public void UpdateStatus_ShouldChangeStatus()
+    {
+        // Arrange
+        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+
+        // Act
+        subscription.UpdateStatus(ESubscriptionStatus.PastDue);
+
+        // Assert
+        subscription.Status.Should().Be(ESubscriptionStatus.PastDue);
+    }
 }

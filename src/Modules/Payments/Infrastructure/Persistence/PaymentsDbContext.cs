@@ -4,7 +4,6 @@ using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
-
 namespace MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 
 public class PaymentsDbContext : BaseDbContext
