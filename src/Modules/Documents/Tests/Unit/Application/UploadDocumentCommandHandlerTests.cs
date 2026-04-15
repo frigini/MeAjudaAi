@@ -365,7 +365,7 @@ public class UploadDocumentCommandHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
         var adminUserId = Guid.NewGuid();
-        SetupAuthenticatedUser(adminUserId, "admin"); // Admin user with different ID
+        SetupAuthenticatedUser(adminUserId, RoleConstants.Admin); // Admin user with different ID
 
         var command = new UploadDocumentCommand(
             providerId,
@@ -414,7 +414,7 @@ public class UploadDocumentCommandHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
         var systemAdminUserId = Guid.NewGuid();
-        SetupAuthenticatedUser(systemAdminUserId, "system-admin"); // System admin
+        SetupAuthenticatedUser(systemAdminUserId, RoleConstants.SystemAdmin); // System admin
 
         var command = new UploadDocumentCommand(
             providerId,

@@ -4,6 +4,20 @@ Este documento contém o registro de todas as sprints concluídas para fins de a
 
 ---
 
+## ✅ Sprint 10 - Qualidade & Onboarding (Concluída em 14 Abr 2026)
+
+**Objetivo**: Estabelecer confiança na plataforma através de avaliações e simplificar o acesso de novos prestadores.
+
+### Entregas:
+- ✅ **Ratings Module**: Sistema de avaliações completo com desnormalização para performance de busca.
+- ✅ **Moderação**: Filtros automáticos e manuais para comentários.
+- ✅ **Login Social (Instagram)**: Reintegração via OIDC sincronizada entre ambientes (Issue #141).
+- ✅ **Infra CI/CD**: OpenAPI Breaking Change Gating funcional no pipeline.
+- ✅ **Documentação**: 100% de cobertura de coleções Bruno (.bru) para módulos ativos.
+- ✅ **Keycloak Alignment**: Realms de `dev` e `prod` estruturalmente sincronizados (Roles e Clients).
+
+---
+
 ## ✅ Sprint 9 - BUFFER & Mitigação de Risco (Concluída em 11 Abr 2026)
 
 **Foco**: Estabilização, Refatoração e Módulo de Comunicações (Infra).

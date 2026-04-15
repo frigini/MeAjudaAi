@@ -8,6 +8,7 @@ using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Functional;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
@@ -49,7 +50,7 @@ public class ApproveDocumentCommandHandler(
             if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
                 throw new UnauthorizedAccessException("É necessário estar autenticado para aprovar documentos");
 
-            var isAdmin = user.IsInRole("admin") || user.IsInRole("system-admin");
+            var isAdmin = RoleConstants.AdminEquivalentRoles.Any(user.IsInRole);
             if (!isAdmin)
             {
                 var userId = user.FindFirst("sub")?.Value ?? user.FindFirst("id")?.Value;

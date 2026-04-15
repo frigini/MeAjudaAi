@@ -472,9 +472,9 @@ public static class SecurityExtensions
             .AddPolicy("SelfOrAdmin", policy =>
                 policy.AddRequirements(new SelfOrAdminRequirement()))
             .AddPolicy("AdminOnly", policy =>
-                policy.RequireRole("admin", "super-admin"))
+                policy.RequireRole(RoleConstants.AdminEquivalentRoles))
             .AddPolicy("SuperAdminOnly", policy =>
-                policy.RequireRole("super-admin"));
+                policy.RequireRole(RoleConstants.SuperAdminEquivalentRoles));
 
         // Registra handlers de autorização customizados
         services.AddScoped<IAuthorizationHandler, SelfOrAdminHandler>();
@@ -492,7 +492,18 @@ public static class SecurityExtensions
     {
         var roleClaims = new List<Claim>();
 
-        // Extrai roles do realm_access
+        // 1. Extrai roles da claim raiz 'roles' (suportada por mappers customizados como o realm-roles)
+        if (jwtToken.Payload.TryGetValue("roles", out var rootRolesObj) &&
+            rootRolesObj is IEnumerable<object> rootRolesList)
+        {
+            foreach (var role in rootRolesList.OfType<string>())
+            {
+                if (!roleClaims.Any(c => c.Value == role))
+                    roleClaims.Add(new Claim(ClaimTypes.Role, role));
+            }
+        }
+
+        // 2. Extrai roles do realm_access (padrão do Keycloak)
         if (jwtToken.Payload.TryGetValue("realm_access", out var realmObj) &&
             realmObj is IDictionary<string, object> realmDict &&
             realmDict.TryGetValue("roles", out var realmRoles) &&
@@ -500,11 +511,12 @@ public static class SecurityExtensions
         {
             foreach (var role in realmRolesList.OfType<string>())
             {
-                roleClaims.Add(new Claim(ClaimTypes.Role, role));
+                if (!roleClaims.Any(c => c.Value == role))
+                    roleClaims.Add(new Claim(ClaimTypes.Role, role));
             }
         }
 
-        // Extrai roles do resource_access para o cliente específico
+        // 3. Extrai roles do resource_access para o cliente específico
         if (jwtToken.Payload.TryGetValue("resource_access", out var resourceObj) &&
             resourceObj is IDictionary<string, object> resourceDict &&
             resourceDict.TryGetValue(clientId, out var clientObj) &&
@@ -514,7 +526,8 @@ public static class SecurityExtensions
         {
             foreach (var role in clientRolesList.OfType<string>())
             {
-                roleClaims.Add(new Claim(ClaimTypes.Role, role));
+                if (!roleClaims.Any(c => c.Value == role))
+                    roleClaims.Add(new Claim(ClaimTypes.Role, role));
             }
         }
 

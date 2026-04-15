@@ -1,4 +1,7 @@
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace MeAjudaAi.ApiService.Handlers;
 
@@ -10,38 +13,36 @@ public class SelfOrAdminHandler : AuthorizationHandler<SelfOrAdminRequirement>
         AuthorizationHandlerContext context,
         SelfOrAdminRequirement requirement)
     {
-        // Se o usuário não está autenticado, falha imediatamente
-        if (!context.User.Identity?.IsAuthenticated ?? true)
+        // 1. Se o usuário não está autenticado, falha imediatamente
+        if (context.User.Identity?.IsAuthenticated != true)
         {
             context.Fail();
             return Task.CompletedTask;
         }
 
-        var userIdClaim = context.User.FindFirst(MeAjudaAi.Shared.Utilities.Constants.AuthConstants.Claims.Subject)?.Value 
-                          ?? context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        
-        var roles = context.User.FindAll(MeAjudaAi.Shared.Utilities.Constants.AuthConstants.Claims.Roles)
-            .Concat(context.User.FindAll(System.Security.Claims.ClaimTypes.Role))
+        // 2. Extrai todas as roles de forma robusta (suporta 'roles' e ClaimTypes.Role)
+        var userRoles = context.User.FindAll(AuthConstants.Claims.Roles)
+            .Concat(context.User.FindAll(ClaimTypes.Role))
             .Select(c => c.Value)
             .Distinct();
 
-        // Verifica se o usuário é admin
-        if (roles.Any(r =>
-            string.Equals(r, MeAjudaAi.Shared.Utilities.UserRoles.Admin, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(r, MeAjudaAi.Shared.Utilities.UserRoles.SuperAdmin, StringComparison.OrdinalIgnoreCase)))
+        // 3. Verifica se o usuário é admin
+        if (userRoles.Any(role => RoleConstants.AdminEquivalentRoles.Contains(role, StringComparer.OrdinalIgnoreCase)))
         {
             context.Succeed(requirement);
             return Task.CompletedTask;
         }
 
-        // Verifica se está acessando o próprio recurso
+        // 4. Verifica se está acessando o próprio recurso (validação de ID)
         if (context.Resource is HttpContext httpContext)
         {
-            var routeUserId = httpContext.GetRouteValue("id")?.ToString()
-                               ?? httpContext.GetRouteValue("userId")?.ToString()
+            var userIdClaim = context.User.FindFirst(AuthConstants.Claims.Subject)?.Value 
+                              ?? context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var routeUserId = httpContext.GetRouteValue("userId")?.ToString()
+                               ?? httpContext.GetRouteValue("id")?.ToString()
                                ?? httpContext.GetRouteValue("providerId")?.ToString();
 
-            // Só permite acesso se ambos os IDs estão presentes e são iguais
             if (!string.IsNullOrWhiteSpace(userIdClaim) &&
                 !string.IsNullOrWhiteSpace(routeUserId) &&
                 string.Equals(userIdClaim, routeUserId, StringComparison.OrdinalIgnoreCase))
@@ -51,7 +52,7 @@ public class SelfOrAdminHandler : AuthorizationHandler<SelfOrAdminRequirement>
             }
         }
 
-        // Se chegou até aqui, o usuário não tem permissão
+        // 5. Se nenhuma condição foi atendida, falha explicitamente
         context.Fail();
         return Task.CompletedTask;
     }

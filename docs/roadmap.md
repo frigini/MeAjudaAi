@@ -6,7 +6,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## 📊 Status Atual (Abril 2026)
 
-**Sprint Atual**: 10 (Qualidade & Onboarding)
+**Sprint Atual**: 11 (Monetização & Polimento)
 **Status**: 🚧 Em andamento
 **Meta MVP**: 12 - 16 de Maio de 2026
 
@@ -14,32 +14,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ---
 
-## 🚀 Sprint 10 - Qualidade & Onboarding (12 Abr - 26 Abr 2026) 🚧 [EM ANDAMENTO]
-
-**Objetivo**: Estabelecer confiança na plataforma através de avaliações e simplificar o acesso de novos prestadores.
-
-### 🔴 MUST-HAVE:
-
-#### 1. 🌟 Ratings Module (Módulo de Avaliações) ✅ [CONCLUÍDO]
-*   **Arquitetura**: **Consistência Eventual**. O módulo de busca (`SearchProviders`) não fará Join com o módulo de Ratings. Sempre que um review for aprovado, um `ReviewApprovedIntegrationEvent` será disparado e o módulo de busca atualizará o campo `AverageRating` no seu próprio registro desnormalizado.
-*   **Funcionalidades**:
-    *   ✅ **Avaliação de Prestadores**: Clientes podem adicionar nota (1 a 5 estrelas) e comentário textual após a conclusão de um serviço.
-    *   ✅ **Moderação de Conteúdo**: Filtro automático via Regex e manual para comentários que violem as regras (xingamentos, ofensas, SPAM).
-    *   ✅ **Ranking de Busca**: Algoritmo de busca priorizando prestadores com melhor média e maior volume de avaliações verificadas.
-*   **Schema DB**: `ratings` | **ModuleName**: `Ratings`.
-
-#### 2. 🔑 Login Social (Instagram) - ISSUE #141 ✅ [CONCLUÍDO]
-*   **Ação**: Configuração de Identity Provider nativo do Instagram no Keycloak para permitir que prestadores usem seu perfil do Instagram para autenticação.
-
-#### 3. 🛡️ OpenAPI Breaking Change Gating (CI) ✅ [CONCLUÍDO]
-*   **Ação**: Novo step no workflow de PR para comparar o `api-base.json` com `api-current/api-spec.json` usando `breaking-only` e `fail-on-diff` para falhar o build caso existam mudanças destrutivas na API. Corrigido para rodar em ambiente `Testing` para evitar dependências de segredos reais.
-
-#### 4. 📋 Coleções Bruno (.bru) ✅ [CONCLUÍDO]
-*   **Ação**: Documentação técnica de 100% dos endpoints existentes em `src/Modules/*/API/API.Client/`.
-
----
-
-## 💰 Sprint 11 - Monetização & Polimento (27 Abr - 11 Mai 2026) [EM PLANEJAMENTO]
+## 💰 Sprint 11 - Monetização & Polimento (13 Abr - 27 Abr 2026) 🚧 [EM ANDAMENTO]
 
 **Objetivo**: Habilitar o faturamento da plataforma e finalizar a experiência do usuário.
 
@@ -77,6 +52,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## ✅ Concluído Recentemente
 
+*   **Sprint 10**: Módulo de Ratings, Moderação de Conteúdo, Login Social Instagram (#141), Alinhamento de Realms Keycloak, Infra CI/CD (OpenAPI gating) e Documentação (coleções Bruno).
 *   **Sprint 9**: Estabilização global, Módulo de Comunicações (Infra), Resiliência (`CancellationToken`) e Localização Backend (.resx).
 *   **Sprint 8D/8E**: Migração completa do Admin Portal para React e Testes E2E com Playwright.
 

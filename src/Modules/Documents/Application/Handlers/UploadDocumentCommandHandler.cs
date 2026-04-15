@@ -12,6 +12,7 @@ using MeAjudaAi.Shared.Jobs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
@@ -60,7 +61,7 @@ public class UploadDocumentCommandHandler(
             if (!Guid.TryParse(userId, out var userGuid) || userGuid != command.ProviderId)
             {
                 // Verificar se o usuário possui o papel de administrador
-                var isAdmin = user.IsInRole("admin") || user.IsInRole("system-admin");
+                var isAdmin = RoleConstants.AdminEquivalentRoles.Any(user.IsInRole);
                 if (!isAdmin)
                 {
                     _logger.LogWarning(

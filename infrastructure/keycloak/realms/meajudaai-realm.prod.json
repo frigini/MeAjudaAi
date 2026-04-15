@@ -28,33 +28,84 @@
   "accountTheme": "meajudaai",
   "emailTheme": "meajudaai",
   "internationalizationEnabled": true,
-  "supportedLocales": ["pt-BR", "en"],
+  "supportedLocales": [
+    "pt-BR",
+    "en"
+  ],
   "defaultLocale": "pt-BR",
   "roles": {
     "realm": [
       {
         "name": "admin",
-        "description": "Administrador total da plataforma"
+        "description": "Administrador total da plataforma - todas as permissões"
       },
       {
-        "name": "provider-manager",
-        "description": "Gerente de provedores - pode criar, editar e deletar provedores"
+        "name": "meajudaai-system-admin",
+        "description": "Administrador do sistema - todas as permissões"
       },
       {
-        "name": "document-reviewer",
-        "description": "Revisor de documentos - pode revisar e aprovar documentos"
+        "name": "meajudaai-super-admin",
+        "description": "Super Administrador - acesso total irrestrito"
       },
       {
-        "name": "catalog-manager",
-        "description": "Gerente de catálogo - pode gerenciar serviços e categorias"
+        "name": "meajudaai-user-admin",
+        "description": "Administrador de usuários - gerenciar usuários"
       },
       {
-        "name": "operator",
-        "description": "Operador com leitura/escrita limitada"
+        "name": "meajudaai-user-operator",
+        "description": "Operador de usuários - leitura e atualização"
       },
       {
-        "name": "viewer",
-        "description": "Visualizador somente leitura"
+        "name": "meajudaai-user",
+        "description": "Usuário básico - perfil próprio"
+      },
+      {
+        "name": "meajudaai-provider-admin",
+        "description": "Administrador de prestadores - CRUD completo"
+      },
+      {
+        "name": "meajudaai-provider",
+        "description": "Prestador - apenas leitura"
+      },
+      {
+        "name": "meajudaai-order-admin",
+        "description": "Administrador de pedidos - CRUD completo"
+      },
+      {
+        "name": "meajudaai-order-operator",
+        "description": "Operador de pedidos - leitura e atualização"
+      },
+      {
+        "name": "meajudaai-report-admin",
+        "description": "Administrador de relatórios - criar e exportar"
+      },
+      {
+        "name": "meajudaai-report-viewer",
+        "description": "Visualizador de relatórios - apenas visualizar"
+      },
+      {
+        "name": "meajudaai-catalog-manager",
+        "description": "Gerente de catálogo - gerenciar serviços e categorias"
+      },
+      {
+        "name": "meajudaai-location-manager",
+        "description": "Gerente de localidades - gerenciar cidades e estados"
+      },
+      {
+        "name": "meajudaai-provider-standard",
+        "description": "Prestador de serviços - Plano Standard (Gratuito)"
+      },
+      {
+        "name": "meajudaai-provider-silver",
+        "description": "Prestador de serviços - Plano Silver (Premium)"
+      },
+      {
+        "name": "meajudaai-provider-gold",
+        "description": "Prestador de serviços - Plano Gold (Premium Plus)"
+      },
+      {
+        "name": "meajudaai-provider-platinum",
+        "description": "Prestador de serviços - Plano Platinum (Elite)"
       },
       {
         "name": "customer",
@@ -62,6 +113,91 @@
       }
     ]
   },
+  "identityProviders": [
+    {
+      "alias": "google",
+      "displayName": "Google",
+      "providerId": "google",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${GOOGLE_CLIENT_ID}",
+        "clientSecret": "${GOOGLE_CLIENT_SECRET}"
+      }
+    },
+    {
+      "alias": "facebook",
+      "displayName": "Facebook",
+      "providerId": "facebook",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${FACEBOOK_APP_ID}",
+        "clientSecret": "${FACEBOOK_APP_SECRET}"
+      }
+    },
+    {
+      "alias": "instagram",
+      "displayName": "Instagram",
+      "providerId": "oauth2",
+      "_comment": "Nota: Suporte nativo ao Instagram removido no Keycloak 26.x. Utilizando o provedor OAuth2 genérico para garantir que as URLs da Basic Display API sejam respeitadas e contornar a ausência de OIDC discovery no Instagram.",
+      "enabled": true,
+      "trustEmail": false,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${INSTAGRAM_CLIENT_ID}",
+        "clientSecret": "${INSTAGRAM_CLIENT_SECRET}",
+        "authorizationUrl": "https://api.instagram.com/oauth/authorize",
+        "tokenUrl": "https://api.instagram.com/oauth/access_token",
+        "userInfoUrl": "https://graph.instagram.com/me?fields=id,username",
+        "defaultScope": "user_profile",
+        "syncMode": "IMPORT",
+        "userIp": "false"
+      }
+    }
+  ],
+  "identityProviderMappers": [
+    {
+      "identityProviderAlias": "instagram",
+      "identityProviderMapper": "hardcoded-role-idp-mapper",
+      "name": "instagram-user-role",
+      "config": {
+        "syncMode": "INHERIT",
+        "role": "customer"
+      }
+    },
+    {
+      "identityProviderAlias": "instagram",
+      "identityProviderMapper": "oauth2-user-attribute-idp-mapper",
+      "name": "instagram-username",
+      "config": {
+        "syncMode": "INHERIT",
+        "jsonField": "username",
+        "userAttribute": "username"
+      }
+    },
+    {
+      "identityProviderAlias": "instagram",
+      "identityProviderMapper": "oauth2-user-attribute-idp-mapper",
+      "name": "instagram-id-to-userid",
+      "config": {
+        "syncMode": "INHERIT",
+        "jsonField": "id",
+        "userAttribute": "userID"
+      }
+    }
+  ],
   "clients": [
     {
       "clientId": "admin-portal",
@@ -120,10 +256,97 @@
       "webOrigins": [
         "https://app.meajudaai.com.br"
       ],
+      "frontchannelLogout": true,
       "attributes": {
-        "pkce.code.challenge.method": "S256"
-      }
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+"
+      },
+      "protocolMappers": [
+        {
+          "name": "realm-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "claim.name": "roles",
+            "jsonType.label": "String",
+            "multivalued": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "provider-app",
+      "name": "Provider App - Web + Mobile",
+      "description": "MeAjudaAi Provider App OIDC Client",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "redirectUris": [
+        "https://provider.meajudaai.com.br/*",
+        "meajudaai-provider://callback"
+      ],
+      "webOrigins": [
+        "https://provider.meajudaai.com.br"
+      ],
+      "frontchannelLogout": true,
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+"
+      },
+      "protocolMappers": [
+        {
+          "name": "realm-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "claim.name": "roles",
+            "jsonType.label": "String",
+            "multivalued": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "meajudaai-api-service",
+      "name": "MeAjudaAi API Service Account",
+      "description": "Service account for API to access Keycloak Admin API",
+      "enabled": true,
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "access.token.lifespan": "3600"
+      },
+      "secret": "${CLIENT_SECRET_MEAJUDAAI_API}",
+      "authorizationServicesEnabled": false
     }
   ],
-  "users": []
+  "users": [
+    {
+      "username": "service-account-meajudaai-api-service",
+      "enabled": true,
+      "serviceAccountClientId": "meajudaai-api-service",
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "view-realm"
+        ]
+      }
+    }
+  ]
 }
