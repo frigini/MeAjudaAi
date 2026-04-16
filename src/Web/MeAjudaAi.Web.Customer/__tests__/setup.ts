@@ -36,6 +36,8 @@ vi.mock('react-i18next', () => ({
     type: '3rdParty',
     init: () => {},
   },
+  I18nextProvider: ({ children }: any) => children,
+  Trans: ({ children }: any) => children,
 }));
 
 if (!global.PointerEvent) {

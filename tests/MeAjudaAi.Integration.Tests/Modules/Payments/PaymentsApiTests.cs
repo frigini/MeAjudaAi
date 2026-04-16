@@ -114,7 +114,7 @@ public class PaymentsApiTests : BaseApiTest
         var externalSubId = "sub_live_123";
         var providerId = Guid.NewGuid();
         
-        // Setup: Create an active subscription in DB
+        // Setup: Criar uma assinatura ativa no DB
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
         var originalExpiresAt = DateTime.UtcNow.AddDays(1);
@@ -164,7 +164,7 @@ public class PaymentsApiTests : BaseApiTest
         // Na verdade, o StripeWebhookEndpoint apenas salva na Inbox. Precisamos acionar o processador de inbox ou verificar o estado da Inbox.
         var inboxMessage = await dbContext.InboxMessages.FirstOrDefaultAsync(m => EF.Functions.Like((string)(object)m.Content, "%evt_paid_123%"));
         inboxMessage.Should().NotBeNull();
-        inboxMessage!.ProcessedAt.Should().BeNull(); // Initial state
+        inboxMessage!.ProcessedAt.Should().BeNull(); // Estado inicial
     }
 
     private record CheckoutResponse(string CheckoutUrl);
