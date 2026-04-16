@@ -6,7 +6,8 @@
     "button": "Buscar",
     "recent": "Buscas recentes",
     "categories": "Categorias",
-    "results": "Resultados encontrados"
+    "results": "Resultados encontrados",
+    "loadingResults": "Carregando resultados da busca"
   },
   "provider": {
     "view_profile": "Ver Perfil",
@@ -15,8 +16,8 @@
     "location": "Localização",
     "services": "Serviços",
     "reviews": "Avaliações",
-    "review_singular": "avaliação",
-    "review_plural": "avaliações"
+    "review_one": "{{count}} avaliação",
+    "review_other": "{{count}} avaliações"
   },
   "common": {
     "loading": "Carregando...",

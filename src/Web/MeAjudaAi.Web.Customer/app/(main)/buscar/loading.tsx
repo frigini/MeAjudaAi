@@ -1,9 +1,13 @@
+"use client";
+
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
+import { useTranslation } from 'react-i18next';
 
 export default function Loading() {
+    const { t } = useTranslation();
     return (
-        <div className="container mx-auto px-4 py-8" role="status" aria-label="Carregando resultados da busca">
+        <div className="container mx-auto px-4 py-8" role="status" aria-label={t('search.loadingResults')}>
             {/* Search Header Skeleton */}
             <div className="mb-8">
                 <Skeleton className="h-8 w-64" />
@@ -51,4 +55,3 @@ export default function Loading() {
         </div>
     );
 }
-

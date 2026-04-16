@@ -27,8 +27,6 @@ public class ProcessInboxJob(
                 var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
                 var subscriptionRepository = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
 
-                using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
-
                 var messages = await dbContext.InboxMessages
                     // NOTE: This SQL query must mirror InboxMessage.ShouldRetry logic
                     // See: src/Modules/Payments/Domain/Entities/InboxMessage.cs - ShouldRetry property
@@ -47,6 +45,8 @@ public class ProcessInboxJob(
                     await Task.Delay(5000, stoppingToken);
                     continue;
                 }
+
+                using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
 
                 foreach (var message in messages)
                 {
@@ -103,7 +103,8 @@ public class ProcessInboxJob(
                     throw new InvalidOperationException("Session data is missing from checkout.session.completed event");
                 }
 
-                if (!session.Metadata.TryGetValue("provider_id", out var providerIdStr) || 
+                if (session.Metadata == null || 
+                    !session.Metadata.TryGetValue("provider_id", out var providerIdStr) || 
                     !Guid.TryParse(providerIdStr, out var providerId))
                 {
                     if (session.Metadata == null)
@@ -136,7 +137,7 @@ public class ProcessInboxJob(
 
                 subscription.Activate(
                     session.SubscriptionId, 
-                    DateTime.UtcNow.AddMonths(1)); // Default for initial checkout if not specified
+                    session.CustomerId); // O período real será preenchido pelo invoice.paid
                 
                 await repository.UpdateAsync(subscription, ct);
                 logger.LogInformation("Subscription {Id} activated for Provider {ProviderId} (Customer: {CustomerId})", subscription.Id, providerId, session.CustomerId);

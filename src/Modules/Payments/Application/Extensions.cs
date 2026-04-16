@@ -11,6 +11,7 @@ public static class Extensions
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<ICommandHandler<CreateSubscriptionCommand, string>, CreateSubscriptionCommandHandler>();
+        services.AddScoped<ICommandHandler<GetBillingPortalCommand, string>, GetBillingPortalCommandHandler>();
 
         return services;
     }

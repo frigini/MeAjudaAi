@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Shared.Domain.ValueObjects;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -14,17 +15,19 @@ public class GetBillingPortalCommandHandlerTests
 {
     private readonly Mock<ISubscriptionRepository> _repositoryMock;
     private readonly Mock<IPaymentGateway> _gatewayMock;
+    private readonly Mock<ILogger<GetBillingPortalCommandHandler>> _loggerMock;
     private readonly GetBillingPortalCommandHandler _handler;
 
     public GetBillingPortalCommandHandlerTests()
     {
         _repositoryMock = new Mock<ISubscriptionRepository>();
         _gatewayMock = new Mock<IPaymentGateway>();
-        _handler = new GetBillingPortalCommandHandler(_repositoryMock.Object, _gatewayMock.Object);
+        _loggerMock = new Mock<ILogger<GetBillingPortalCommandHandler>>();
+        _handler = new GetBillingPortalCommandHandler(_repositoryMock.Object, _gatewayMock.Object, _loggerMock.Object);
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldReturnPortalUrl_WhenSubscriptionExists()
+    public async Task HandleAsync_ShouldReturnPortalUrl_WhenSubscriptionIsActive()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -32,14 +35,14 @@ public class GetBillingPortalCommandHandlerTests
         var expectedPortalUrl = "https://billing.stripe.com/p/session/abc";
         
         var subscription = new Subscription(providerId, "plan_premium", Money.FromDecimal(99.90m, "BRL"));
-        subscription.Activate("sub_123", DateTime.UtcNow.AddMonths(1));
+        subscription.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
 
         var command = new GetBillingPortalCommand(providerId, returnUrl);
 
-        _repositoryMock.Setup(r => r.GetLatestByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(r => r.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(subscription);
 
-        _gatewayMock.Setup(g => g.CreateBillingPortalSessionAsync("sub_123", returnUrl, It.IsAny<CancellationToken>()))
+        _gatewayMock.Setup(g => g.CreateBillingPortalSessionAsync("cus_123", returnUrl, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedPortalUrl);
 
         // Act
@@ -56,7 +59,7 @@ public class GetBillingPortalCommandHandlerTests
         var providerId = Guid.NewGuid();
         var command = new GetBillingPortalCommand(providerId, "https://example.com");
 
-        _repositoryMock.Setup(r => r.GetLatestByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(r => r.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Subscription)null!);
 
         // Act
@@ -64,26 +67,30 @@ public class GetBillingPortalCommandHandlerTests
 
         // Assert
         await act.Should().ThrowAsync<ApplicationException>()
-            .WithMessage("*Subscription not found*");
+            .WithMessage("*Subscription not found or not active*");
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldSucceed_WhenExternalSubscriptionIdIsAvailable()
+    public async Task HandleAsync_ShouldThrowApplicationException_WhenGatewayReturnsNull()
     {
         // Arrange
         var providerId = Guid.NewGuid();
         var subscription = new Subscription(providerId, "plan_premium", Money.FromDecimal(99.90m, "BRL"));
-        
+        subscription.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
+
         var command = new GetBillingPortalCommand(providerId, "https://example.com");
 
-        _repositoryMock.Setup(r => r.GetLatestByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(r => r.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(subscription);
 
-        _gatewayMock.Setup(g => g.CreateBillingPortalSessionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync("https://billing.stripe.com/mock");
+        _gatewayMock.Setup(g => g.CreateBillingPortalSessionAsync("cus_123", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string)null!);
 
-        // Act & Assert
-        var result = await _handler.HandleAsync(command);
-        result.Should().NotBeNullOrEmpty();
+        // Act
+        var act = () => _handler.HandleAsync(command);
+
+        // Assert
+        await act.Should().ThrowAsync<ApplicationException>()
+            .WithMessage("Failed to generate Billing Portal session.");
     }
 }

@@ -48,16 +48,23 @@ public Guid ProviderId { get; private set; }
     public ESubscriptionStatus Status { get; private set; }
     public DateTime? ExpiresAt { get; private set; }
 
-    public void Activate(string externalSubscriptionId, DateTime expiresAt)
+    public void Activate(string externalSubscriptionId, string externalCustomerId, DateTime? expiresAt = null)
     {
         if (string.IsNullOrWhiteSpace(externalSubscriptionId))
             throw new ArgumentException("ExternalSubscriptionId cannot be empty.", nameof(externalSubscriptionId));
+
+        if (string.IsNullOrWhiteSpace(externalCustomerId))
+            throw new ArgumentException("ExternalCustomerId cannot be empty.", nameof(externalCustomerId));
+
+        if (expiresAt.HasValue && (expiresAt.Value == default || expiresAt.Value <= DateTime.UtcNow))
+            throw new ArgumentException("ExpiresAt must be a valid future date.", nameof(expiresAt));
 
         if (Status == ESubscriptionStatus.Active) return;
         if (Status == ESubscriptionStatus.Canceled) return;
         if (Status == ESubscriptionStatus.Expired) return;
 
         ExternalSubscriptionId = externalSubscriptionId;
+        ExternalCustomerId = externalCustomerId;
         Status = ESubscriptionStatus.Active;
         ExpiresAt = expiresAt;
         MarkAsUpdated();

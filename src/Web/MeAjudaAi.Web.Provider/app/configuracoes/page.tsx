@@ -131,12 +131,15 @@ export default function ConfiguracoesPage() {
               Gerencie seus dados de pagamento, faturas e plano de assinatura diretamente pelo portal seguro do Stripe.
             </p>
             <Button
-              variant="outline"
+              variant="secondary"
               className="w-full sm:w-auto"
               onClick={async () => {
                 try {
-                  const returnUrl = window.location.href;
-                  const response = await fetch(`/api/v1/payments/billing-portal?returnUrl=${encodeURIComponent(returnUrl)}`);
+                  const response = await fetch(`/api/v1/payments/subscriptions/billing-portal`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ returnUrl: 'account' })
+                  });
                   if (!response.ok) throw new Error("Falha ao carregar portal");
                   const data = await response.json();
                   if (data.portalUrl) {

@@ -9,7 +9,24 @@ global.TextDecoder = TextDecoder as any;
 // Mock i18next
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string, options?: any) => {
+      if (typeof options === 'string') return options;
+      if (typeof options === 'object' && options?.defaultValue) return options.defaultValue;
+      
+      let result = key;
+      if (typeof options === 'object' && options?.count !== undefined) {
+        // Simple pluralization mock
+        result = `${key}_${options.count === 1 ? 'one' : 'other'}`;
+      }
+
+      // Simple interpolation mock
+      if (typeof options === 'object') {
+        Object.keys(options).forEach((optKey) => {
+          result = result.replace(`{{${optKey}}}`, options[optKey]);
+        });
+      }
+      return result;
+    },
     i18n: {
       changeLanguage: () => Promise.resolve(),
       language: 'pt',

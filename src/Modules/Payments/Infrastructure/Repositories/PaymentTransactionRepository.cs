@@ -9,6 +9,12 @@ public class PaymentTransactionRepository(PaymentsDbContext context) : IPaymentT
 {
     public async Task AddAsync(PaymentTransaction transaction, CancellationToken cancellationToken = default)
     {
+        if (!string.IsNullOrEmpty(transaction.ExternalTransactionId))
+        {
+            var exists = await context.Transactions.AnyAsync(t => t.ExternalTransactionId == transaction.ExternalTransactionId, cancellationToken);
+            if (exists) return;
+        }
+
         await context.Transactions.AddAsync(transaction, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }

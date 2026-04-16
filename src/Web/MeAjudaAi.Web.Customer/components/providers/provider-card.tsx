@@ -1,3 +1,5 @@
+"use client";
+
 import { MapPin } from "lucide-react";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { Card } from "@/components/ui/card";
@@ -40,8 +42,7 @@ export function ProviderCard({ provider }: ProviderCardProps) {
                         <div className="flex items-center gap-2 mt-1">
                             <Rating value={provider.averageRating ?? 0} size="sm" readOnly={true} />
                             <span className="text-sm text-foreground-subtle">
-                                ({provider.reviewCount}{" "}
-                                {provider.reviewCount === 1 ? t("provider.review_singular", "avaliação") : t("provider.review_plural", "avaliações")})
+                                ({t("provider.review", { count: provider.reviewCount })})
                             </span>
                         </div>
 

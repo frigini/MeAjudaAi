@@ -6,7 +6,8 @@
     "button": "Search",
     "recent": "Recent searches",
     "categories": "Categories",
-    "results": "Results found"
+    "results": "Results found",
+    "loadingResults": "Loading search results"
   },
   "provider": {
     "view_profile": "View Profile",
@@ -15,8 +16,8 @@
     "location": "Location",
     "services": "Services",
     "reviews": "Reviews",
-    "review_singular": "review",
-    "review_plural": "reviews"
+    "review_one": "{{count}} review",
+    "review_other": "{{count}} reviews"
   },
   "common": {
     "loading": "Loading...",

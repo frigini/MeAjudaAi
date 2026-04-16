@@ -40,9 +40,10 @@ public class StripePaymentGateway : IPaymentGateway
             var priceService = new PriceService();
             var price = await priceService.GetAsync(planId, null, _requestOptions, cancellationToken);
             
-            if (price.UnitAmount != (long)(amount.Amount * 100) || price.Currency != amount.Currency.ToLowerInvariant())
+            var expectedAmount = ConvertToMinorUnits(amount.Currency, amount.Amount);
+            if (price.UnitAmount != expectedAmount || price.Currency != amount.Currency.ToLowerInvariant())
             {
-                return new SubscriptionGatewayResult(false, null, null, $"Price mismatch: Stripe Price ({price.UnitAmount}, {price.Currency}) does not match provided amount ({amount.Amount * 100}, {amount.Currency})");
+                return new SubscriptionGatewayResult(false, null, null, $"Price mismatch: Stripe Price ({price.UnitAmount}, {price.Currency}) does not match provided amount ({expectedAmount}, {amount.Currency})");
             }
 
             var options = new SessionCreateOptions
@@ -112,5 +113,20 @@ public class StripePaymentGateway : IPaymentGateway
             _logger.LogError(ex, "Stripe error creating billing portal session for Customer {CustomerId}", externalCustomerId);
             return null;
         }
+    }
+
+    private static long ConvertToMinorUnits(string currency, decimal amount)
+    {
+        var zeroDecimalCurrencies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "BIF", "CLP", "DJF", "GNF", "JPY", "KMF", "KRW", "MGA", "PYG", "RWF", "UGX", "VND", "VUV", "XAF", "XOF", "XPF"
+        };
+
+        if (zeroDecimalCurrencies.Contains(currency))
+        {
+            return (long)amount;
+        }
+
+        return (long)Math.Round(amount * 100, MidpointRounding.AwayFromZero);
     }
 }

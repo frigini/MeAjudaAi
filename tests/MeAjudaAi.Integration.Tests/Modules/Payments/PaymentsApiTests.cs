@@ -14,7 +14,7 @@ public class PaymentsApiTests : BaseApiTest
     [Fact]
     public async Task CreateSubscription_ShouldReturnCheckoutUrl()
     {
-        // Arrange
+        // Pré-condições
         var request = new
         {
             ProviderId = Guid.NewGuid(),
@@ -23,10 +23,10 @@ public class PaymentsApiTests : BaseApiTest
             Currency = "BRL"
         };
 
-        // Act
+        // Execução
         var response = await Client.PostAsJsonAsync("/api/v1/payments/subscriptions", request);
 
-        // Assert
+        // Verificação
         if (response.StatusCode != HttpStatusCode.OK)
         {
             var error = await response.Content.ReadAsStringAsync();
@@ -42,7 +42,7 @@ public class PaymentsApiTests : BaseApiTest
     [Fact]
     public async Task StripeWebhook_ShouldReturnOk()
     {
-        // Arrange
+        // Pré-condições
         var webhookJson = """
         {
             "id": "evt_123",
@@ -62,11 +62,11 @@ public class PaymentsApiTests : BaseApiTest
         }
         """;
         
-        // Act
+        // Execução
         var content = new StringContent(webhookJson, System.Text.Encoding.UTF8, "application/json");
         var response = await Client.PostAsync("/api/v1/payments/webhooks/stripe", content);
 
-        // Assert
+        // Verificação
         if (response.StatusCode != HttpStatusCode.OK)
         {
             var errorBody = await response.Content.ReadAsStringAsync();
@@ -79,34 +79,38 @@ public class PaymentsApiTests : BaseApiTest
     [Fact]
     public async Task GetBillingPortal_ShouldReturnUrl()
     {
-        // Arrange
+        // Pré-condições
         var providerId = Guid.NewGuid();
-        var returnUrl = "https://localhost/dashboard";
         
-        // Setup: Create an active subscription first
+        // Setup: Criar uma assinatura ativa primeiro
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
         var sub = new MeAjudaAi.Modules.Payments.Domain.Entities.Subscription(
             providerId, 
             "plan_123", 
             MeAjudaAi.Shared.Domain.ValueObjects.Money.FromDecimal(99.90m, "BRL"));
-        sub.Activate("sub_mock", DateTime.UtcNow.AddMonths(1));
+        sub.Activate("sub_mock", "cus_mock", DateTime.UtcNow.AddMonths(1));
         dbContext.Subscriptions.Add(sub);
         await dbContext.SaveChangesAsync();
 
-        // Act
-        var response = await Client.GetAsync($"/api/v1/payments/billing-portal?providerId={providerId}&returnUrl={returnUrl}");
+        // Execução
+        var request = new { providerId, returnUrl = "account" };
+        var response = await Client.PostAsJsonAsync("/api/v1/payments/subscriptions/billing-portal", request);
 
-        // Assert
+        // Verificação
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var url = await response.Content.ReadAsStringAsync();
-        url.Should().Contain("mock_portal_");
+        var portalResponse = await response.Content.ReadFromJsonAsync<BillingPortalResponse>();
+        string? url = portalResponse?.PortalUrl;
+        url.Should().NotBeNull();
+        url!.Should().Contain("mock_portal_");
     }
+
+    private record BillingPortalResponse(string PortalUrl);
 
     [Fact]
     public async Task StripeWebhook_InvoicePaid_ShouldRenewSubscription()
     {
-        // Arrange
+        // Pré-condições
         var externalSubId = "sub_live_123";
         var providerId = Guid.NewGuid();
         
@@ -118,7 +122,7 @@ public class PaymentsApiTests : BaseApiTest
             providerId, 
             "plan_123", 
             MeAjudaAi.Shared.Domain.ValueObjects.Money.FromDecimal(99.90m, "BRL"));
-        sub.Activate(externalSubId, originalExpiresAt);
+        sub.Activate(externalSubId, "cus_123", originalExpiresAt);
         dbContext.Subscriptions.Add(sub);
         await dbContext.SaveChangesAsync();
 
@@ -130,7 +134,7 @@ public class PaymentsApiTests : BaseApiTest
             "data": {
                 "object": {
                     "id": "in_123",
-                    "subscription": "{{externalSubId}}",
+                    "subscription": "{{{externalSubId}}}",
                     "customer": "cus_123",
                     "amount_paid": 9990,
                     "currency": "brl",
@@ -149,16 +153,16 @@ public class PaymentsApiTests : BaseApiTest
         }
         """;
         
-        // Act
+        // Execução
         var content = new StringContent(webhookJson, System.Text.Encoding.UTF8, "application/json");
         var response = await Client.PostAsync("/api/v1/payments/webhooks/stripe", content);
 
-        // Assert
+        // Verificação
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        // Verify renovation in DB (Background jobs might take a second, but in integration tests we often run them manually or wait)
-        // Actually, StripeWebhookEndpoint just saves to Inbox. We need to trigger the inbox processor or check the Inbox state.
-        var inboxMessage = await dbContext.InboxMessages.FirstOrDefaultAsync(m => m.Content.Contains("evt_paid_123"));
+        // Verificar a renovação no DB (Background jobs podem levar um tempo, mas em testes de integração costumamos executá-los manualmente ou aguardar)
+        // Na verdade, o StripeWebhookEndpoint apenas salva na Inbox. Precisamos acionar o processador de inbox ou verificar o estado da Inbox.
+        var inboxMessage = await dbContext.InboxMessages.FirstOrDefaultAsync(m => EF.Functions.Like((string)(object)m.Content, "%evt_paid_123%"));
         inboxMessage.Should().NotBeNull();
         inboxMessage!.ProcessedAt.Should().BeNull(); // Initial state
     }
