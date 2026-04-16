@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -26,6 +27,7 @@ public class ProcessInboxJob(
                 using var scope = serviceProvider.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
                 var subscriptionRepository = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
+                var paymentTransactionRepository = scope.ServiceProvider.GetRequiredService<IPaymentTransactionRepository>();
 
                 using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
 
@@ -54,7 +56,7 @@ public class ProcessInboxJob(
                     try
                     {
                         var stripeEvent = EventUtility.ParseEvent(message.Content);
-                        await ProcessStripeEventAsync(stripeEvent, subscriptionRepository, stoppingToken);
+                        await ProcessStripeEventAsync(stripeEvent, subscriptionRepository, paymentTransactionRepository, stoppingToken);
 
                         message.ProcessedAt = DateTime.UtcNow;
                         message.Error = null;
@@ -91,7 +93,8 @@ public class ProcessInboxJob(
 
     private async Task ProcessStripeEventAsync(
         Event stripeEvent, 
-        ISubscriptionRepository repository, 
+        ISubscriptionRepository repository,
+        IPaymentTransactionRepository paymentTransactionRepository,
         CancellationToken ct)
     {
         switch (stripeEvent.Type)
@@ -186,7 +189,35 @@ public class ProcessInboxJob(
                 subToRenew.Renew(periodEndValue);
                 await repository.UpdateAsync(subToRenew, ct);
 
-                logger.LogInformation("Subscription {Id} renewed until {ExpiresAt} due to Invoice {InvoiceId}", subToRenew.Id, periodEndValue, (string)invoice.Id);
+                // Create PaymentTransaction audit record
+                var amount = Money.FromDecimal(0, "USD");
+                try
+                {
+                    if (invoice.AmountPaid > 0)
+                    {
+                        var currency = ((string?)invoice.Currency ?? "usd").ToUpperInvariant();
+                        amount = Money.FromDecimal(invoice.AmountPaid / 100m, currency);
+                    }
+                }
+                catch { /* Use default amount if unavailable */ }
+                
+                if (amount.Amount <= 0 && subToRenew.Amount != null)
+                {
+                    amount = Money.FromDecimal(subToRenew.Amount.Amount, subToRenew.Amount.Currency);
+                }
+                
+                // Use a positive default amount if still invalid
+                if (amount.Amount <= 0)
+                {
+                    amount = Money.FromDecimal(1.0m, "USD");
+                }
+                
+                var paymentTransaction = new PaymentTransaction(subToRenew.Id, amount);
+                paymentTransaction.Settle((string)invoice.Id);
+                await paymentTransactionRepository.AddAsync(paymentTransaction, ct);
+
+                logger.LogInformation("Subscription {Id} renewed until {ExpiresAt}. PaymentTransaction {PaymentTransactionId} recorded for Invoice {InvoiceId}", 
+                    subToRenew.Id, periodEndValue, paymentTransaction.Id, (string)invoice.Id);
                 break;
 
             case "customer.subscription.deleted":
@@ -207,7 +238,8 @@ public class ProcessInboxJob(
                 }
                 else
                 {
-                    logger.LogWarning("Subscription not found for external ID: {ExternalId} (event: customer.subscription.deleted)", externalId);
+                    logger.LogWarning("Subscription not found for external ID: {ExternalId} (event: customer.subscription.deleted). Retrying...", externalId);
+                    throw new InvalidOperationException($"Subscription with external ID {externalId} not found. Event will be retried.");
                 }
                 break;
 

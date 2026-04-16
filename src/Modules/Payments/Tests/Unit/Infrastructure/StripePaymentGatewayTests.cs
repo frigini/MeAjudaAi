@@ -89,6 +89,6 @@ public class StripePaymentGatewayTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("não coincide");
+        result.ErrorMessage.Should().Contain("does not match");
     }
 }

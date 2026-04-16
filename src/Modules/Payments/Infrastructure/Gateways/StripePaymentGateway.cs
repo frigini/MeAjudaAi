@@ -23,6 +23,11 @@ public class StripePaymentGateway : IPaymentGateway
         _logger = logger;
         _stripeService = stripeService;
         var apiKey = configuration["Stripe:ApiKey"];
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            throw new ArgumentException("Stripe API key is not configured. Please set Stripe:ApiKey in configuration.");
+        }
+        
         _successUrl = configuration["Payments:SuccessUrl"] ?? "";
         _cancelUrl = configuration["Payments:CancelUrl"] ?? "";
 
@@ -47,9 +52,9 @@ public class StripePaymentGateway : IPaymentGateway
             var expectedAmount = ConvertToMinorUnits(amount.Currency, amount.Amount);
             if (price.UnitAmount != expectedAmount || price.Currency != amount.Currency.ToLowerInvariant())
             {
-                _logger.LogError("Divergência de preço detectada. Stripe: {StripeAmount} {StripeCurrency}, Esperado: {ExpectedAmount} {ExpectedCurrency}", 
+                _logger.LogError("Price mismatch detected. Stripe: {StripeAmount} {StripeCurrency}, Expected: {ExpectedAmount} {ExpectedCurrency}", 
                     price.UnitAmount, price.Currency, expectedAmount, amount.Currency);
-                return new SubscriptionGatewayResult(false, null, null, "O valor ou moeda do plano não coincide com as informações do provedor de pagamento.");
+                return new SubscriptionGatewayResult(false, null, null, "The plan amount or currency does not match the payment provider information.");
             }
 
             var options = new SessionCreateOptions

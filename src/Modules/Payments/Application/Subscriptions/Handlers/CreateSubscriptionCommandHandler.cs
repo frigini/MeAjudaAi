@@ -28,6 +28,10 @@ public class CreateSubscriptionCommandHandler(
                 moneyAmount,
                 cancellationToken);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             throw new SubscriptionCreationException("Falha ao comunicar com o provedor de pagamento.", ex);
@@ -46,6 +50,10 @@ public class CreateSubscriptionCommandHandler(
         try
         {
             await subscriptionRepository.AddAsync(subscription, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
