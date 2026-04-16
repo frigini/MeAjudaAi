@@ -8,11 +8,11 @@ using Moq;
 using Stripe;
 using FluentAssertions;
 using Xunit;
-using System.Reflection;
-using DomainSubscription = MeAjudaAi.Modules.Payments.Domain.Entities.Subscription;
-using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Infrastructure;
+
+using DomainSubscription = MeAjudaAi.Modules.Payments.Domain.Entities.Subscription;
+using DomainPaymentTransaction = MeAjudaAi.Modules.Payments.Domain.Entities.PaymentTransaction;
 
 public class ProcessInboxJobTests
 {
@@ -20,7 +20,7 @@ public class ProcessInboxJobTests
     private readonly Mock<ILogger<ProcessInboxJob>> _loggerMock;
     private readonly Mock<ISubscriptionRepository> _repositoryMock;
     private readonly Mock<IPaymentTransactionRepository> _paymentTransactionRepositoryMock;
-    
+
     public ProcessInboxJobTests()
     {
         _serviceProviderMock = new Mock<IServiceProvider>();
@@ -67,11 +67,9 @@ public class ProcessInboxJobTests
             .ReturnsAsync(subscription);
 
         var job = new ProcessInboxJob(_serviceProviderMock.Object, _loggerMock.Object);
-        var method = typeof(ProcessInboxJob).GetMethod("ProcessStripeEventAsync", 
-            BindingFlags.NonPublic | BindingFlags.Instance);
 
         // Act
-        await (Task)method!.Invoke(job, new object[] { stripeEvent, _repositoryMock.Object, _paymentTransactionRepositoryMock.Object, CancellationToken.None })!;
+        await job.ProcessStripeEventAsync(stripeEvent, _repositoryMock.Object, _paymentTransactionRepositoryMock.Object, CancellationToken.None);
 
         // Assert
         subscription.Status.Should().Be(ESubscriptionStatus.Active);
@@ -96,6 +94,7 @@ public class ProcessInboxJobTests
                 "object": {
                     "id": "in_1",
                     "subscription": "{{externalSubId}}",
+                    "customer": "cus_123",
                     "amount_paid": 9990,
                     "currency": "brl",
                     "lines": {
@@ -119,21 +118,19 @@ public class ProcessInboxJobTests
         _repositoryMock.Setup(x => x.GetByExternalIdAsync(externalSubId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(subscription);
 
-        _paymentTransactionRepositoryMock.Setup(x => x.AddAsync(It.IsAny<PaymentTransaction>(), It.IsAny<CancellationToken>()))
+        _paymentTransactionRepositoryMock.Setup(x => x.AddAsync(It.IsAny<DomainPaymentTransaction>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         var job = new ProcessInboxJob(_serviceProviderMock.Object, _loggerMock.Object);
-        var method = typeof(ProcessInboxJob).GetMethod("ProcessStripeEventAsync", 
-            BindingFlags.NonPublic | BindingFlags.Instance);
 
         // Act
-        await (Task)method!.Invoke(job, new object[] { stripeEvent, _repositoryMock.Object, _paymentTransactionRepositoryMock.Object, CancellationToken.None })!;
+        await job.ProcessStripeEventAsync(stripeEvent, _repositoryMock.Object, _paymentTransactionRepositoryMock.Object, CancellationToken.None);
 
         // Assert
         subscription.Status.Should().Be(ESubscriptionStatus.Active);
         subscription.ExpiresAt.Should().BeCloseTo(nextPeriodEnd, TimeSpan.FromSeconds(2));
         _repositoryMock.Verify(x => x.UpdateAsync(subscription, It.IsAny<CancellationToken>()), Times.Once);
-        _paymentTransactionRepositoryMock.Verify(x => x.AddAsync(It.IsAny<PaymentTransaction>(), It.IsAny<CancellationToken>()), Times.Once);
+        _paymentTransactionRepositoryMock.Verify(x => x.AddAsync(It.IsAny<DomainPaymentTransaction>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -161,11 +158,9 @@ public class ProcessInboxJobTests
             .ReturnsAsync(subscription);
 
         var job = new ProcessInboxJob(_serviceProviderMock.Object, _loggerMock.Object);
-        var method = typeof(ProcessInboxJob).GetMethod("ProcessStripeEventAsync", 
-            BindingFlags.NonPublic | BindingFlags.Instance);
 
         // Act
-        await (Task)method!.Invoke(job, new object[] { stripeEvent, _repositoryMock.Object, _paymentTransactionRepositoryMock.Object, CancellationToken.None })!;
+        await job.ProcessStripeEventAsync(stripeEvent, _repositoryMock.Object, _paymentTransactionRepositoryMock.Object, CancellationToken.None);
 
         // Assert
         subscription.Status.Should().Be(ESubscriptionStatus.Canceled);
@@ -186,11 +181,9 @@ public class ProcessInboxJobTests
         var stripeEvent = CreateMockEvent(json);
         
         var job = new ProcessInboxJob(_serviceProviderMock.Object, _loggerMock.Object);
-        var method = typeof(ProcessInboxJob).GetMethod("ProcessStripeEventAsync", 
-            BindingFlags.NonPublic | BindingFlags.Instance);
 
         // Act & Assert
-        var task = (Task)method!.Invoke(job, new object[] { stripeEvent, _repositoryMock.Object, _paymentTransactionRepositoryMock.Object, CancellationToken.None })!;
+        var task = job.ProcessStripeEventAsync(stripeEvent, _repositoryMock.Object, _paymentTransactionRepositoryMock.Object, CancellationToken.None);
         
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => task);
         exception.Message.Should().Contain("Session data is missing");

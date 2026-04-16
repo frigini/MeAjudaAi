@@ -88,21 +88,21 @@ public class CreateSubscriptionCommandHandler(
     private (decimal Amount, string Currency) GetPlanDetails(string planId)
     {
         var planSection = configuration.GetSection($"Payments:Plans:{planId}");
-        if (!planSection.Exists())
+        if (string.IsNullOrEmpty(planSection.Value) && !planSection.GetChildren().Any())
         {
             logger.LogWarning("Invalid plan attempted: {PlanId}", planId);
             throw new SubscriptionCreationException($"Plano inválido ou não suportado: {planId}");
         }
 
-        var amount = planSection.GetValue<decimal?>("Amount");
-        var currency = planSection.GetValue<string>("Currency");
+        var amountStr = configuration[$"Payments:Plans:{planId}:Amount"];
+        var currency = configuration[$"Payments:Plans:{planId}:Currency"];
 
-        if (amount == null || string.IsNullOrEmpty(currency))
+        if (!decimal.TryParse(amountStr, out var amount) || string.IsNullOrEmpty(currency))
         {
             logger.LogError("Incomplete configuration for plan: {PlanId}", planId);
             throw new SubscriptionCreationException($"Configuração incompleta para o plano: {planId}");
         }
 
-        return (amount.Value, currency);
+        return (amount, currency);
     }
 }

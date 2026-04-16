@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Shared.Domain.ValueObjects;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.Configuration;
 using Stripe;
 using Stripe.Checkout;
@@ -28,8 +29,17 @@ public class StripePaymentGateway : IPaymentGateway
             throw new ArgumentException("Stripe API key is not configured. Please set Stripe:ApiKey in configuration.");
         }
 
-        _successUrl = configuration["Payments:SuccessUrl"] ?? throw new ArgumentException("Payments:SuccessUrl is missing in configuration.");
-        _cancelUrl = configuration["Payments:CancelUrl"] ?? throw new ArgumentException("Payments:CancelUrl is missing in configuration.");
+        var clientBaseUrl = (configuration["ClientBaseUrl"] ?? "").TrimEnd('/');
+        if (string.IsNullOrEmpty(clientBaseUrl))
+        {
+            throw new ArgumentException("ClientBaseUrl is missing in configuration.");
+        }
+
+        var successPath = configuration["Payments:SuccessUrl"] ?? throw new ArgumentException("Payments:SuccessUrl is missing in configuration.");
+        var cancelPath = configuration["Payments:CancelUrl"] ?? throw new ArgumentException("Payments:CancelUrl is missing in configuration.");
+
+        _successUrl = successPath.StartsWith("http") ? successPath : $"{clientBaseUrl}/{successPath.TrimStart('/')}";
+        _cancelUrl = cancelPath.StartsWith("http") ? cancelPath : $"{clientBaseUrl}/{cancelPath.TrimStart('/')}";
 
         _requestOptions = new RequestOptions
         {
@@ -39,23 +49,27 @@ public class StripePaymentGateway : IPaymentGateway
 
     public async Task<SubscriptionGatewayResult> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, CancellationToken cancellationToken)
     {
-        if (IsZeroDecimalCurrency(amount.Currency) && amount.Amount % 1 != 0)
+        if (CurrencyUtils.IsZeroDecimalCurrency(amount.Currency) && amount.Amount % 1 != 0)
         {
             _logger.LogWarning("Attempt to create subscription with fractional amount for zero-decimal currency: {Currency} {Amount}", amount.Currency, amount.Amount);
-            return new SubscriptionGatewayResult(false, null, null, $"Zero-decimal currency ({amount.Currency}) does not accept fractional amounts: {amount.Amount}");
+            return SubscriptionGatewayResult.Failed($"Zero-decimal currency ({amount.Currency}) does not accept fractional amounts: {amount.Amount}");
         }
 
         try
         {
             var price = await _stripeService.GetPriceAsync(planId, _requestOptions, cancellationToken);
             
-            var expectedAmount = ConvertToMinorUnits(amount.Currency, amount.Amount);
-            if (price.UnitAmount != expectedAmount || price.Currency != amount.Currency.ToLowerInvariant())
+            var expectedAmount = CurrencyUtils.ConvertToMinorUnits(amount.Amount, amount.Currency);
+            if (price.UnitAmount != expectedAmount || !string.Equals(price.Currency, amount.Currency, StringComparison.OrdinalIgnoreCase))
             {
                 _logger.LogError("Price mismatch detected. Stripe: {StripeAmount} {StripeCurrency}, Expected: {ExpectedAmount} {ExpectedCurrency}", 
                     price.UnitAmount, price.Currency, expectedAmount, amount.Currency);
-                return new SubscriptionGatewayResult(false, null, null, "The plan amount or currency does not match the payment provider information.");
+                return SubscriptionGatewayResult.Failed("The plan amount or currency does not match the payment provider information.");
             }
+
+            var successUrlWithSession = _successUrl.Contains('?') 
+                ? $"{_successUrl}&session_id={{CHECKOUT_SESSION_ID}}" 
+                : $"{_successUrl}?session_id={{CHECKOUT_SESSION_ID}}";
 
             var options = new SessionCreateOptions
             {
@@ -69,7 +83,7 @@ public class StripePaymentGateway : IPaymentGateway
                     },
                 ],
                 Mode = "subscription",
-                SuccessUrl = _successUrl + "?session_id={CHECKOUT_SESSION_ID}",
+                SuccessUrl = successUrlWithSession,
                 CancelUrl = _cancelUrl,
                 Metadata = new Dictionary<string, string>
                 {
@@ -79,12 +93,12 @@ public class StripePaymentGateway : IPaymentGateway
 
             var session = await _stripeService.CreateCheckoutSessionAsync(options, _requestOptions, cancellationToken);
 
-            return new SubscriptionGatewayResult(true, null, session.Url, null);
+            return SubscriptionGatewayResult.Succeeded(null, session.Url);
         }
         catch (StripeException ex)
         {
             _logger.LogError(ex, "Stripe error creating subscription for Provider {ProviderId}", providerId);
-            return new SubscriptionGatewayResult(false, null, null, "Payment provider communication failure.");
+            return SubscriptionGatewayResult.Failed("Payment provider communication failure.");
         }
     }
 
@@ -119,25 +133,5 @@ public class StripePaymentGateway : IPaymentGateway
             _logger.LogError(ex, "Stripe error creating billing portal session for Customer {CustomerId}", externalCustomerId);
             return null;
         }
-    }
-
-    private static long ConvertToMinorUnits(string currency, decimal amount)
-    {
-        if (IsZeroDecimalCurrency(currency))
-        {
-            return (long)amount;
-        }
-
-        return (long)Math.Round(amount * 100, MidpointRounding.AwayFromZero);
-    }
-
-    private static bool IsZeroDecimalCurrency(string currency)
-    {
-        var zeroDecimalCurrencies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "BIF", "CLP", "DJF", "GNF", "JPY", "KMF", "KRW", "MGA", "PYG", "RWF", "UGX", "VND", "VUV", "XAF", "XOF", "XPF"
-        };
-
-        return zeroDecimalCurrencies.Contains(currency);
     }
 }

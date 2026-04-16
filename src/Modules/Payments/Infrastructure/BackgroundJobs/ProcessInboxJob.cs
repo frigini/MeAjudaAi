@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Domain.ValueObjects;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -89,13 +90,12 @@ public class ProcessInboxJob(
         }
     }
 
-    private async Task ProcessStripeEventAsync(
+    public async Task ProcessStripeEventAsync(
         Event stripeEvent, 
-        ISubscriptionRepository repository,
+        ISubscriptionRepository repository, 
         IPaymentTransactionRepository paymentTransactionRepository,
         CancellationToken ct)
-    {
-        switch (stripeEvent.Type)
+    {        switch (stripeEvent.Type)
         {
             case "checkout.session.completed":
                 var session = stripeEvent.Data.Object as dynamic;
@@ -197,7 +197,8 @@ public class ProcessInboxJob(
                     if (invoice.AmountPaid > 0)
                     {
                         var currency = ((string?)invoice.Currency ?? "usd").ToUpperInvariant();
-                        amount = Money.FromDecimal(invoice.AmountPaid / 100m, currency);
+                        var decimalAmount = CurrencyUtils.ConvertFromMinorUnits((long)invoice.AmountPaid, currency);
+                        amount = Money.FromDecimal(decimalAmount, currency);
                     }
                 }
                 catch (Exception ex)

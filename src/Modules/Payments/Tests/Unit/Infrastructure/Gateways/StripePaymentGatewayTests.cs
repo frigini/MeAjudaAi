@@ -24,8 +24,9 @@ public class StripePaymentGatewayTests
         _stripeServiceMock = new Mock<IStripeService>();
 
         _configurationMock.Setup(c => c["Stripe:ApiKey"]).Returns("sk_test_123");
-        _configurationMock.Setup(c => c["Payments:SuccessUrl"]).Returns("https://success.com");
-        _configurationMock.Setup(c => c["Payments:CancelUrl"]).Returns("https://cancel.com");
+        _configurationMock.Setup(c => c["Payments:SuccessUrl"]).Returns("/success");
+        _configurationMock.Setup(c => c["Payments:CancelUrl"]).Returns("/cancel");
+        _configurationMock.Setup(c => c["ClientBaseUrl"]).Returns("https://test.com");
 
         _gateway = new StripePaymentGateway(_configurationMock.Object, _loggerMock.Object, _stripeServiceMock.Object);
     }

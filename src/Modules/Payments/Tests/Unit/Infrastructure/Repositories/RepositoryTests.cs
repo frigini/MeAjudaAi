@@ -63,7 +63,9 @@ public class RepositoryTests : IDisposable
         _context.Subscriptions.Add(sub1);
         await _context.SaveChangesAsync();
 
-        // Força uma data posterior para o segundo objeto via reflexão (necessário para InMemoryDB)
+        // Força uma data posterior para o segundo objeto via reflexão.
+        // NOTA: O uso de reflexão aqui é um workaround intencional para o banco de dados em memória (InMemoryDatabase),
+        // que não emula ordenação temporal real de forma confiável para testes de lógica "Latest".
         var sub2 = new Subscription(providerId, "plan2", Money.FromDecimal(20));
         typeof(MeAjudaAi.Shared.Domain.BaseEntity).GetProperty("CreatedAt")?.SetValue(sub2, DateTime.UtcNow.AddSeconds(1));
         

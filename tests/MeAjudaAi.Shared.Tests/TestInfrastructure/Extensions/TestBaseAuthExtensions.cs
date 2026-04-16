@@ -63,8 +63,12 @@ public static class TestBaseAuthExtensions
             return;
         }
 
-        var prop = testBase.GetType().GetProperty("AuthConfig") ?? 
-                 testBase.GetType().GetProperty("Auth");
+        var bindingFlags = System.Reflection.BindingFlags.Instance | 
+                           System.Reflection.BindingFlags.Public | 
+                           System.Reflection.BindingFlags.NonPublic;
+
+        var prop = testBase.GetType().GetProperty("AuthConfig", bindingFlags) ?? 
+                 testBase.GetType().GetProperty("Auth", bindingFlags);
         var configValue = prop?.GetValue(testBase);
         if (configValue is ITestAuthenticationConfiguration instanceConfig)
         {

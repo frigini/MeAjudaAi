@@ -20,8 +20,9 @@ public class PaymentsDbContextTests
         using var context = new PaymentsDbContext(options);
         var sub = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
         
-        // Ativar gera um evento de domínio (se implementado na entidade)
+        // Ativar e depois Cancelar para garantir a geração de eventos de domínio
         sub.Activate("sub_123", "cus_123"); 
+        sub.Cancel();
         
         context.Subscriptions.Add(sub);
 

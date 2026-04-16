@@ -22,6 +22,9 @@ i18n
       order: ['cookie', 'localStorage', 'navigator'],
       caches: ['cookie'],
     },
+    react: {
+      useSuspense: false,
+    },
   });
 
 export default i18n;

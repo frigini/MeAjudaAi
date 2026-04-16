@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using MeAjudaAi.Shared.Endpoints;
+using Microsoft.EntityFrameworkCore;
 using Stripe;
 
 using Microsoft.Extensions.Logging;
@@ -43,7 +44,7 @@ public class StripeWebhookEndpoint : IEndpoint
                     var mockEvent = EventUtility.ParseEvent(json, throwOnApiVersionMismatch: false);
                     if (mockEvent == null) return Results.BadRequest(new { error = "Falha ao processar evento mock" });
                     
-                    await SaveToInbox(mockEvent.Type, json, dbContext, cancellationToken);
+                    await SaveToInbox(mockEvent.Type, json, mockEvent.Id, dbContext, cancellationToken);
                     return Results.Ok();
                 }
 
@@ -59,7 +60,7 @@ public class StripeWebhookEndpoint : IEndpoint
                     webhookSecret,
                     throwOnApiVersionMismatch: false);
 
-                await SaveToInbox(stripeEvent.Type, json, dbContext, cancellationToken);
+                await SaveToInbox(stripeEvent.Type, json, stripeEvent.Id, dbContext, cancellationToken);
 
                 return Results.Ok();
             }
@@ -86,11 +87,15 @@ public class StripeWebhookEndpoint : IEndpoint
         .WithSummary("Recebe webhooks do Stripe de forma assíncrona.");
     }
 
-    private static async Task SaveToInbox(string type, string content, PaymentsDbContext dbContext, CancellationToken ct)
+    private static async Task SaveToInbox(string type, string content, string externalEventId, PaymentsDbContext dbContext, CancellationToken ct)
     {
         if (dbContext == null) throw new ArgumentNullException(nameof(dbContext));
 
-        var inboxMessage = new InboxMessage(type, content);
+        // Idempotência: verifica se o evento já existe
+        var exists = await dbContext.InboxMessages.AnyAsync(m => m.ExternalEventId == externalEventId, ct);
+        if (exists) return;
+
+        var inboxMessage = new InboxMessage(type, content, externalEventId);
 
         dbContext.InboxMessages.Add(inboxMessage);
         await dbContext.SaveChangesAsync(ct);

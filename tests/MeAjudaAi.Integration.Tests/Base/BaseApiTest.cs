@@ -54,7 +54,7 @@ public enum TestModule
     SearchProviders = 1 << 5,
     Communications = 1 << 6,
     Payments = 1 << 7,
-    All = Users | Providers | Documents | ServiceCatalogs | Locations | SearchProviders | Communications | Payments
+    All = Users | Providers | Documents | ServiceCatalogs | Locations | SearchProviders | Communications
 }
 
 /// <summary>

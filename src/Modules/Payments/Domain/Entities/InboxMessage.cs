@@ -3,6 +3,7 @@ namespace MeAjudaAi.Modules.Payments.Domain.Entities;
 public class InboxMessage
 {
     public Guid Id { get; private set; }
+    public string? ExternalEventId { get; private set; }
     public string Type { get; private set; } = null!;
     public string Content { get; private set; } = null!;
     public DateTime CreatedAt { get; private set; }
@@ -14,7 +15,7 @@ public class InboxMessage
 
     private InboxMessage() { }
 
-    public InboxMessage(string type, string content)
+    public InboxMessage(string type, string content, string? externalEventId = null)
     {
         if (string.IsNullOrWhiteSpace(type))
             throw new ArgumentNullException(nameof(type), "Type cannot be null or empty.");
@@ -37,6 +38,7 @@ public class InboxMessage
         }
 
         Id = Guid.NewGuid();
+        ExternalEventId = externalEventId;
         Type = trimmedType;
         Content = content;
         CreatedAt = DateTime.UtcNow;

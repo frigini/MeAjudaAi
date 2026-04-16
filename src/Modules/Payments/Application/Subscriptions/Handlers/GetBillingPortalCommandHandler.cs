@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Exceptions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
@@ -11,12 +12,15 @@ namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
 public class GetBillingPortalCommandHandler(
     ISubscriptionRepository subscriptionRepository,
     IPaymentGateway paymentGateway,
+    IConfiguration configuration,
     ILogger<GetBillingPortalCommandHandler> logger) : ICommandHandler<GetBillingPortalCommand, string>
 {
     public async Task<string> HandleAsync(GetBillingPortalCommand command, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Generating billing portal for Provider {ProviderId}", command.ProviderId);
         
+        ValidateReturnUrl(command.ReturnUrl);
+
         var subscription = await subscriptionRepository.GetActiveByProviderIdAsync(command.ProviderId, cancellationToken);
         
         if (subscription == null)
@@ -47,5 +51,27 @@ public class GetBillingPortalCommandHandler(
         }
 
         return portalUrl;
+    }
+
+    private void ValidateReturnUrl(string returnUrl)
+    {
+        if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var uri))
+        {
+            throw new BusinessRuleException("INVALID_RETURN_URL", "A URL de retorno deve ser uma URL absoluta válida.");
+        }
+
+        if (uri.Scheme != Uri.UriSchemeHttps && uri.Host != "localhost")
+        {
+            throw new BusinessRuleException("INVALID_RETURN_URL_SCHEME", "A URL de retorno deve utilizar o protocolo HTTPS.");
+        }
+
+        var allowedHostsSection = configuration.GetSection("Payments:AllowedReturnHosts");
+        var allowedHosts = allowedHostsSection.GetChildren().Select(c => c.Value).Where(v => v != null).ToList();
+        
+        if (!allowedHosts.Contains(uri.Host, StringComparer.OrdinalIgnoreCase))
+        {
+            logger.LogWarning("Blocked billing portal redirect to untrusted host: {Host}", uri.Host);
+            throw new BusinessRuleException("UNTRUSTED_RETURN_HOST", "O domínio da URL de retorno não é confiável.");
+        }
     }
 }

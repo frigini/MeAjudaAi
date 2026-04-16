@@ -51,12 +51,14 @@ public class GetBillingPortalEndpoint : IEndpoint
         {
             throw new InvalidOperationException("Missing 'ClientBaseUrl' configuration; cannot resolve return URL.");
         }
-        
+
+        clientBaseUrl = clientBaseUrl.TrimEnd('/');
+
         var resolvedReturnUrl = request.ReturnUrl?.ToLowerInvariant() switch
         {
             "account" => $"{clientBaseUrl}/account",
             "billing" => $"{clientBaseUrl}/billing",
-            _ => clientBaseUrl
+            _ => request.ReturnUrl ?? clientBaseUrl
         };
 
         var command = new GetBillingPortalCommand(request.ProviderId, resolvedReturnUrl);

@@ -16,6 +16,10 @@ public class InboxMessageConfiguration : IEntityTypeConfiguration<InboxMessage>
             .ValueGeneratedNever()
             .HasColumnName("id");
 
+        builder.Property(m => m.ExternalEventId)
+            .HasMaxLength(255)
+            .HasColumnName("external_event_id");
+
         builder.Property(m => m.Type)
             .IsRequired()
             .HasMaxLength(255)
@@ -46,6 +50,10 @@ public class InboxMessageConfiguration : IEntityTypeConfiguration<InboxMessage>
 
         builder.Property(m => m.NextAttemptAt)
             .HasColumnName("next_attempt_at");
+
+        builder.HasIndex(m => m.ExternalEventId)
+            .IsUnique()
+            .HasFilter("external_event_id IS NOT NULL");
 
         builder.HasIndex(m => new { m.ProcessedAt, m.NextAttemptAt, m.CreatedAt });
     }

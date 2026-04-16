@@ -55,6 +55,41 @@ public class ReviewRejectedDomainEventHandlerTests
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.Once);
         }
+        else
+        {
+            _loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Debug,
+                    It.IsAny<EventId>(),
+                    It.IsAny<It.IsAnyType>(),
+                    It.IsAny<Exception?>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+                Times.Never);
+        }
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldTruncateLongReasonInDebugLog()
+    {
+        // Arrange
+        var reviewId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
+        var longReason = new string('A', 150);
+        var expectedPreview = longReason.Substring(0, 100) + "...";
+        var domainEvent = new ReviewRejectedDomainEvent(reviewId, 0, providerId, longReason);
+
+        // Act
+        await _handler.HandleAsync(domainEvent);
+
+        // Assert
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Debug,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(expectedPreview)),
+                It.IsAny<Exception?>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 
     [Fact]

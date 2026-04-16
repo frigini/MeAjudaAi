@@ -8,11 +8,9 @@ public class MockPaymentGateway : IPaymentGateway
     public Task<SubscriptionGatewayResult> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, CancellationToken cancellationToken)
     {
         var token = Guid.NewGuid().ToString("n");
-        return Task.FromResult(new SubscriptionGatewayResult(
-            true, 
+        return Task.FromResult(SubscriptionGatewayResult.Succeeded(
             "sub_mock_" + token, 
-            "https://checkout.stripe.com/mock_" + token, 
-            null));
+            "https://checkout.stripe.com/mock_" + token));
     }
 
     public Task<bool> CancelSubscriptionAsync(string externalSubscriptionId, CancellationToken cancellationToken)

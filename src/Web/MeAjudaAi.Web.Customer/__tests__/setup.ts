@@ -20,7 +20,7 @@ vi.mock('react-i18next', () => ({
       }
 
       // Simple interpolation mock
-      if (typeof options === 'object') {
+      if (options && typeof options === 'object') {
         Object.keys(options).forEach((optKey) => {
           result = result.replace(`{{${optKey}}}`, options[optKey]);
         });
