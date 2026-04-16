@@ -54,7 +54,7 @@
     <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />
     <!-- Microsoft.OpenApi: Mantido em 2.x devido a incompatibilidade com geradores do .NET 10 -->
     <!-- Analisado em 2026-04-12: Versão 3.5.1 causa erro CS0200 em IOpenApiMediaType.Example -->
-    <PackageVersion Include="Microsoft.OpenApi" Version="2.7.2" />
+    <PackageVersion Include="Microsoft.OpenApi" Version="2.7.3" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.1" />
     <!-- Acesso a Dados -->
