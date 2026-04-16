@@ -27,9 +27,9 @@ public static class CurrencyUtils
         if (IsZeroDecimalCurrency(currency))
         {
             // Moedas zero-decimal não aceitam frações
-            return (long)Math.Round(amount);
+            return (long)Math.Round(amount, 0, MidpointRounding.AwayFromZero);
         }
 
-        return (long)Math.Round(amount * 100);
+        return (long)Math.Round(amount * 100m, 0, MidpointRounding.AwayFromZero);
     }
 }

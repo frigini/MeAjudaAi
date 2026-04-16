@@ -203,7 +203,7 @@ public class CreateSubscriptionCommandHandlerTests
         var gatewayResult = SubscriptionGatewayResult.Succeeded("sub_123", "https://checkout");
         _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(gatewayResult);
-        _repositoryMock.Setup(r => r.AddAsync(It.Is<Subscription>(s => s.ProviderId == Guid.Empty || s.ProviderId != Guid.Empty), It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
         // Act

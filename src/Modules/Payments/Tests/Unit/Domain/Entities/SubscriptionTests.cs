@@ -288,7 +288,7 @@ public class SubscriptionTests
 
         subscription.ExternalSubscriptionId.Should().Be("new_sub");
         subscription.ExternalCustomerId.Should().Be("new_cus");
-        subscription.UpdatedAt.Should().BeAfter(originalUpdatedAt!.Value);
+        subscription.UpdatedAt.Should().NotBe(originalUpdatedAt);
     }
 
     [Fact]

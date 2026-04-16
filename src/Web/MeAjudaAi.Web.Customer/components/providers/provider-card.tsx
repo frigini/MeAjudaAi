@@ -42,7 +42,7 @@ export function ProviderCard({ provider }: ProviderCardProps) {
                         <div className="flex items-center gap-2 mt-1">
                             <Rating value={provider.averageRating ?? 0} size="sm" readOnly={true} />
                             <span className="text-sm text-foreground-subtle">
-                                ({t("provider.review", { count: provider.reviewCount })})
+                                ({t("provider.review", { count: provider.reviewCount ?? 0 })})
                             </span>
                         </div>
 

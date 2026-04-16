@@ -38,8 +38,15 @@ public class StripePaymentGateway : IPaymentGateway
         var successPath = configuration["Payments:SuccessUrl"] ?? throw new ArgumentException("Payments:SuccessUrl is missing in configuration.");
         var cancelPath = configuration["Payments:CancelUrl"] ?? throw new ArgumentException("Payments:CancelUrl is missing in configuration.");
 
-        _successUrl = successPath.StartsWith("http") ? successPath : $"{clientBaseUrl}/{successPath.TrimStart('/')}";
-        _cancelUrl = cancelPath.StartsWith("http") ? cancelPath : $"{clientBaseUrl}/{cancelPath.TrimStart('/')}";
+        _successUrl = Uri.TryCreate(successPath, UriKind.Absolute, out var successUri) && 
+                     (successUri.Scheme == Uri.UriSchemeHttp || successUri.Scheme == Uri.UriSchemeHttps)
+                     ? successPath 
+                     : $"{clientBaseUrl}/{successPath.TrimStart('/')}";
+
+        _cancelUrl = Uri.TryCreate(cancelPath, UriKind.Absolute, out var cancelUri) && 
+                    (cancelUri.Scheme == Uri.UriSchemeHttp || cancelUri.Scheme == Uri.UriSchemeHttps)
+                    ? cancelPath 
+                    : $"{clientBaseUrl}/{cancelPath.TrimStart('/')}";
 
         _requestOptions = new RequestOptions
         {

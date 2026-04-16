@@ -21,6 +21,7 @@ public class ReviewRejectedDomainEventHandlerTests
     [Theory]
     [InlineData("Spam")]
     [InlineData("Offensive Content")]
+    [InlineData("   ")]
     [InlineData(null)]
     public async Task HandleAsync_ShouldLogExpectedMessages(string? reason)
     {
@@ -43,8 +44,8 @@ public class ReviewRejectedDomainEventHandlerTests
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
 
-        // Verifica o Debug (deve conter o motivo se presente)
-        if (reason != null)
+        // Verifica o Debug (deve conter o motivo se presente e não for apenas whitespace)
+        if (!string.IsNullOrWhiteSpace(reason))
         {
             _loggerMock.Verify(
                 x => x.Log(

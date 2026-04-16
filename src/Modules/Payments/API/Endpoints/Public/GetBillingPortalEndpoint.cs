@@ -58,7 +58,7 @@ public class GetBillingPortalEndpoint : IEndpoint
         {
             "account" => $"{clientBaseUrl}/account",
             "billing" => $"{clientBaseUrl}/billing",
-            _ => request.ReturnUrl ?? clientBaseUrl
+            _ => clientBaseUrl // Proteção contra Open Redirect: ignora valores desconhecidos
         };
 
         var command = new GetBillingPortalCommand(request.ProviderId, resolvedReturnUrl);
@@ -68,4 +68,4 @@ public class GetBillingPortalEndpoint : IEndpoint
     }
 }
 
-public record GetBillingPortalRequest(Guid ProviderId, string ReturnUrl);
+public record GetBillingPortalRequest(Guid ProviderId, string? ReturnUrl);

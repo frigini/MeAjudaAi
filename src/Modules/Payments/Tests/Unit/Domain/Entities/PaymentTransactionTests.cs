@@ -175,10 +175,10 @@ public class PaymentTransactionTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public void Settle_ShouldThrow_WhenExternalTransactionIdIsInvalid(string externalId)
+    public void Settle_ShouldThrow_WhenExternalTransactionIdIsInvalid(string? externalId)
     {
         var transaction = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10));
-        var act = () => transaction.Settle(externalId);
+        var act = () => transaction.Settle(externalId!);
         act.Should().Throw<ArgumentException>().WithMessage("*ExternalTransactionId*");
     }
 }

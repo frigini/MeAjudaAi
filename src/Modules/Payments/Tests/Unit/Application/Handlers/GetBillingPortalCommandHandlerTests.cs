@@ -135,8 +135,11 @@ public class GetBillingPortalCommandHandlerTests
         
         var subscription = new DomainSubscription(providerId, "plan_premium", Money.FromDecimal(99.90m, "BRL"));
         
-        var statusField = typeof(DomainSubscription).GetProperty("Status");
-        statusField?.SetValue(subscription, ESubscriptionStatus.Active);
+        var statusField = typeof(DomainSubscription).GetProperty("Status", 
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+        
+        statusField.Should().NotBeNull("Status property should be accessible via reflection");
+        statusField!.SetValue(subscription, ESubscriptionStatus.Active);
 
         var command = new GetBillingPortalCommand(providerId, "https://localhost/return");
 

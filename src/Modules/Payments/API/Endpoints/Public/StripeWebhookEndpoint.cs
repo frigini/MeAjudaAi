@@ -91,13 +91,22 @@ public class StripeWebhookEndpoint : IEndpoint
     {
         if (dbContext == null) throw new ArgumentNullException(nameof(dbContext));
 
-        // Idempotência: verifica se o evento já existe
-        var exists = await dbContext.InboxMessages.AnyAsync(m => m.ExternalEventId == externalEventId, ct);
-        if (exists) return;
+        try
+        {
+            // Idempotência: verifica se o evento já existe
+            var exists = await dbContext.InboxMessages.AnyAsync(m => m.ExternalEventId == externalEventId, ct);
+            if (exists) return;
 
-        var inboxMessage = new InboxMessage(type, content, externalEventId);
+            var inboxMessage = new InboxMessage(type, content, externalEventId);
 
-        dbContext.InboxMessages.Add(inboxMessage);
-        await dbContext.SaveChangesAsync(ct);
+            dbContext.InboxMessages.Add(inboxMessage);
+            await dbContext.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException { SqlState: "23505" })
+        {
+            // Violação de chave única: evento já processado por outra requisição concorrente.
+            // Tratamos como sucesso silencioso para idempotência.
+            return;
+        }
     }
 }

@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Infrastructure\MeAjudaAi.Modules.Payments.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\Providers\Application\MeAjudaAi.Modules.Providers.Application.csproj" />
   </ItemGroup>
 
 </Project>

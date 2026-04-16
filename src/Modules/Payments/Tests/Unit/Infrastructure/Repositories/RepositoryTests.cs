@@ -108,10 +108,14 @@ public class RepositoryTests : IDisposable
         _context.Subscriptions.Add(sub);
         await _context.SaveChangesAsync();
 
-        sub.Activate("new_id", "cus_id");
+        sub.Activate("new_id", "cus_id", DateTime.UtcNow.AddMonths(1));
         await _subscriptionRepository.UpdateAsync(sub);
 
-        var updated = await _context.Subscriptions.FindAsync(sub.Id);
+        // Limpa o rastreamento para garantir leitura do banco
+        _context.Entry(sub).State = EntityState.Detached;
+
+        var updated = await _context.Subscriptions.AsNoTracking().FirstOrDefaultAsync(s => s.Id == sub.Id);
+        updated.Should().NotBeNull();
         updated!.ExternalSubscriptionId.Should().Be("new_id");
     }
 

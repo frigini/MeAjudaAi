@@ -51,6 +51,7 @@ public class CreateSubscriptionCommandHandler(
         if (string.IsNullOrWhiteSpace(result.CheckoutUrl))
         {
             logger.LogError("Missing checkout URL for Provider {ProviderId}", command.ProviderId);
+            await TryCompensateAsync(result);
             throw new SubscriptionCreationException("URL de checkout ausente no resultado do gateway.");
         }
 
@@ -65,24 +66,28 @@ public class CreateSubscriptionCommandHandler(
         catch (Exception ex)
         {
             // Compensação: cancelar no gateway se a persistência local falhar
-            if (!string.IsNullOrEmpty(result.ExternalSubscriptionId))
-            {
-                logger.LogInformation("Compensating: cancelling external subscription {ExternalSubscriptionId} due to local failure", 
-                    result.ExternalSubscriptionId);
-                
-                var cancelled = await paymentGateway.CancelSubscriptionAsync(result.ExternalSubscriptionId, CancellationToken.None);
-                
-                if (!cancelled)
-                {
-                    logger.LogError("Critical: Failed to cancel external subscription {ExternalSubscriptionId} during rollback. Manual intervention may be required.", 
-                        result.ExternalSubscriptionId);
-                }
-            }
-            
+            await TryCompensateAsync(result);
             throw new SubscriptionCreationException("Falha ao persistir assinatura localmente. Operação revertida no gateway.", ex);
         }
 
         return result.CheckoutUrl;
+    }
+
+    private async Task TryCompensateAsync(SubscriptionGatewayResult result)
+    {
+        if (!string.IsNullOrEmpty(result.ExternalSubscriptionId))
+        {
+            logger.LogInformation("Compensating: cancelling external subscription {ExternalSubscriptionId} due to failure", 
+                result.ExternalSubscriptionId);
+            
+            var cancelled = await paymentGateway.CancelSubscriptionAsync(result.ExternalSubscriptionId, CancellationToken.None);
+            
+            if (!cancelled)
+            {
+                logger.LogError("Critical: Failed to cancel external subscription {ExternalSubscriptionId} during rollback. Manual intervention may be required.", 
+                    result.ExternalSubscriptionId);
+            }
+        }
     }
 
     private (decimal Amount, string Currency) GetPlanDetails(string planId)

@@ -156,7 +156,7 @@ public class PaymentsApiTests : BaseApiTest
         await SeedProviderAsync();
         var providerId = _seededProviderId;
         var otherProviderId = Guid.NewGuid();
-        AuthConfig.ConfigureProvider("provider-id", "provider", otherProviderId); // Authenticated as different provider
+        AuthConfig.ConfigureProvider("provider-id", "provider", otherProviderId); // Autenticado como provedor diferente
         var request = new { providerId, returnUrl = "account" };
 
         // Act
@@ -229,7 +229,7 @@ public class PaymentsApiTests : BaseApiTest
         
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
-        var inboxMessage = await dbContext.InboxMessages.FirstOrDefaultAsync(m => EF.Functions.Like((string)(object)m.Content, "%cs_missing_id%"));
+        var inboxMessage = await dbContext.InboxMessages.FirstOrDefaultAsync(m => EF.Functions.Like(m.Content, "%cs_missing_id%"));
         inboxMessage.Should().NotBeNull();
     }
 
@@ -290,7 +290,7 @@ public class PaymentsApiTests : BaseApiTest
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
         // Verificar se a mensagem foi gravada na Inbox
-        var inboxMessage = await dbContext.InboxMessages.FirstOrDefaultAsync(m => EF.Functions.Like((string)(object)m.Content, "%evt_paid_123%"));
+        var inboxMessage = await dbContext.InboxMessages.FirstOrDefaultAsync(m => EF.Functions.Like(m.Content, "%evt_paid_123%"));
         inboxMessage.Should().NotBeNull();
         inboxMessage!.ProcessedAt.Should().BeNull(); // Estado inicial
     }

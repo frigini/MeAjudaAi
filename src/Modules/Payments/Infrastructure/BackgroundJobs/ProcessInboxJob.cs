@@ -9,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Stripe;
-using Stripe.Checkout;
 
 namespace MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
 
@@ -33,8 +32,6 @@ public class ProcessInboxJob(
                 using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
 
                 var messages = await dbContext.InboxMessages
-                    // NOTA: Esta consulta SQL deve espelhar a lógica de InboxMessage.ShouldRetry
-                    // Veja: src/Modules/Payments/Domain/Entities/InboxMessage.cs - propriedade ShouldRetry
                     .FromSqlRaw(@"
                         SELECT * FROM payments.inbox_messages
                         WHERE processed_at IS NULL 
@@ -101,28 +98,19 @@ public class ProcessInboxJob(
                 var session = stripeEvent.Data.Object as dynamic;
                 if (session == null)
                 {
-                    logger.LogWarning("Session data is null for event {EventId}", stripeEvent.Id);
+                    logger.LogWarning("Event object is not a Session for event {EventId}", stripeEvent.Id);
                     throw new InvalidOperationException("Session data is missing from checkout.session.completed event");
                 }
 
-                string providerIdStr = null!;
+                string? providerIdStr = null;
                 Guid providerId = Guid.Empty;
                 if (session.Metadata == null || 
                     !session.Metadata.TryGetValue("provider_id", out providerIdStr) || 
                     !Guid.TryParse(providerIdStr, out providerId))
                 {
-                    if (session.Metadata == null)
-                    {
-                        logger.LogError(
-                            "Metadata is null in checkout.session.completed event. SessionId: {SessionId}",
-                            (string)session.Id);
-                        throw new InvalidOperationException($"Metadata is null in checkout.session.completed event. SessionId: {session.Id}");
-                    }
-
                     logger.LogError(
-                        "Invalid or missing provider_id in checkout.session.completed event. SessionId: {SessionId}, Metadata: {Metadata}",
-                        (string)session.Id,
-                        (object)session.Metadata);
+                        "Invalid or missing provider_id in checkout.session.completed event. SessionId: {SessionId}",
+                        (string)session.Id);
                     throw new InvalidOperationException($"Invalid or missing provider_id in checkout.session.completed event. SessionId: {session.Id}");
                 }
 
@@ -141,7 +129,7 @@ public class ProcessInboxJob(
 
                 subscription.Activate(
                     (string)session.SubscriptionId, 
-                    (string)session.CustomerId); // O período real será preenchido pelo invoice.paid
+                    (string)session.CustomerId); 
                 
                 await repository.UpdateAsync(subscription, ct);
                 logger.LogInformation("Subscription {Id} activated for Provider {ProviderId} (Customer: {CustomerId})", subscription.Id, providerId, (string)session.CustomerId);
@@ -151,11 +139,11 @@ public class ProcessInboxJob(
                 var invoice = stripeEvent.Data.Object as dynamic;
                 if (invoice == null)
                 {
-                    logger.LogWarning("Invoice data is null for event {EventId}", stripeEvent.Id);
+                    logger.LogWarning("Event object is not an Invoice for event {EventId}", stripeEvent.Id);
                     throw new InvalidOperationException("Invoice data is missing from invoice.paid event");
                 }
 
-                string? externalSubscriptionId = invoice.SubscriptionId;
+                string? externalSubscriptionId = (string)invoice.SubscriptionId;
                 if (string.IsNullOrEmpty(externalSubscriptionId))
                 {
                     logger.LogInformation("Invoice {InvoiceId} has no subscription, ignoring", (string)invoice.Id);
@@ -169,7 +157,6 @@ public class ProcessInboxJob(
                     throw new InvalidOperationException($"Subscription with external ID {externalSubscriptionId} not found. Event will be retried.");
                 }
 
-                // Renovar a assinatura
                 DateTime periodEndValue = DateTime.UtcNow.AddMonths(1);
                 try
                 {
@@ -178,8 +165,8 @@ public class ProcessInboxJob(
                     {
                         var firstLine = linesData[0];
                         var period = firstLine?.Period;
-                        if (period?.End != null)
-                            periodEndValue = period.End.Value;
+                        if (period != null)
+                            periodEndValue = period.End;
                     }
                 }
                 catch (Exception ex)
@@ -190,7 +177,6 @@ public class ProcessInboxJob(
                 subToRenew.Renew(periodEndValue);
                 await repository.UpdateAsync(subToRenew, ct);
 
-                // Create PaymentTransaction audit record
                 Money? amount = null;
                 try
                 {
@@ -203,12 +189,12 @@ public class ProcessInboxJob(
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Error computing amount for PaymentTransaction from Invoice {InvoiceId}", (string)invoice.Id);
+                    logger.LogError(ex, "Error computing amount for PaymentTransaction from Invoice {InvoiceId} (Currency: {Currency}, AmountPaid: {AmountPaid})", 
+                        (string)invoice.Id, (string)invoice.Currency, (long)invoice.AmountPaid);
                 }
                 
                 if ((amount == null || amount.Amount <= 0) && subToRenew.Amount != null)
                 {
-                    // Se falhou ao ler da fatura, tenta usar o valor base da assinatura
                     amount = Money.FromDecimal(subToRenew.Amount.Amount, subToRenew.Amount.Currency);
                 }
                 
@@ -231,7 +217,7 @@ public class ProcessInboxJob(
                 var stripeSubscription = stripeEvent.Data.Object as dynamic;
                 if (stripeSubscription == null)
                 {
-                    logger.LogWarning("Subscription data is null for event {EventId}", stripeEvent.Id);
+                    logger.LogWarning("Event object is not a Subscription for event {EventId}", stripeEvent.Id);
                     throw new InvalidOperationException("Subscription data is missing from customer.subscription.deleted event");
                 }
 
