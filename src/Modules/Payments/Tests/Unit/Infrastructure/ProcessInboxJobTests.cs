@@ -76,7 +76,7 @@ public class ProcessInboxJobTests
         _repositoryMock.Verify(x => x.UpdateAsync(subscription, It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    [Fact(Skip = "Needs review - PaymentTransaction creation needs IPaymentTransactionRepository setup in handler")]
+    [Fact]
     public async Task ProcessStripeEventAsync_InvoicePaid_ShouldRenewSubscription()
     {
         // Arrange
@@ -86,6 +86,8 @@ public class ProcessInboxJobTests
         var invoice = new MockStripeObject();
         invoice.Set("Id", "in_1");
         invoice.Set("SubscriptionId", externalSubId);
+        invoice.Set("AmountPaid", 9990L); // 99.90
+        invoice.Set("Currency", "BRL");
         
         var period = new MockStripeObject();
         period.Set("End", nextPeriodEnd);
@@ -105,7 +107,7 @@ public class ProcessInboxJobTests
         _repositoryMock.Setup(x => x.GetByExternalIdAsync(externalSubId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(subscription);
 
-        _paymentTransactionRepositoryMock.Setup(x => x.AddAsync(It.IsAny<MeAjudaAi.Modules.Payments.Domain.Entities.PaymentTransaction>(), It.IsAny<CancellationToken>()))
+        _paymentTransactionRepositoryMock.Setup(x => x.AddAsync(It.IsAny<PaymentTransaction>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         var job = new ProcessInboxJob(_serviceProviderMock.Object, _loggerMock.Object);
@@ -119,6 +121,7 @@ public class ProcessInboxJobTests
         subscription.Status.Should().Be(ESubscriptionStatus.Active);
         subscription.ExpiresAt.Should().BeCloseTo(nextPeriodEnd, TimeSpan.FromSeconds(1));
         _repositoryMock.Verify(x => x.UpdateAsync(subscription, It.IsAny<CancellationToken>()), Times.Once);
+        _paymentTransactionRepositoryMock.Verify(x => x.AddAsync(It.IsAny<PaymentTransaction>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

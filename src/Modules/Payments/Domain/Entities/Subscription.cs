@@ -21,6 +21,7 @@ public class Subscription : AggregateRoot<Guid>
     /// <param name="planId">Identificador do plano de assinatura.</param>
     /// <param name="amount">Valor monetário da assinatura.</param>
     public Subscription(Guid providerId, string planId, Money amount)
+        : base(Guid.NewGuid())
     {
         if (providerId == Guid.Empty)
             throw new ArgumentException("ProviderId cannot be empty.", nameof(providerId));

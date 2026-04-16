@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
+using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Exceptions;
@@ -30,7 +31,7 @@ public class GetBillingPortalCommandHandler(
             throw new BusinessRuleException("MISSING_EXTERNAL_CUSTOMER_ID", $"Assinatura encontrada ({subscription.Id}), mas sem identificador de cliente externo.");
         }
 
-        var maskedCustomerId = MaskExternalId(subscription.ExternalCustomerId);
+        var maskedCustomerId = Subscription.MaskExternalId(subscription.ExternalCustomerId);
         logger.LogInformation("Assinatura {SubscriptionId} encontrada para o Cliente {CustomerId}. Criando sessão...", 
             subscription.Id, maskedCustomerId);
 
@@ -46,12 +47,5 @@ public class GetBillingPortalCommandHandler(
         }
 
         return portalUrl;
-    }
-
-    private static string MaskExternalId(string externalId)
-    {
-        if (string.IsNullOrEmpty(externalId)) return string.Empty;
-        if (externalId.Length <= 8) return "****" + externalId[^Math.Min(4, externalId.Length)..];
-        return externalId[..4] + "****" + externalId[^4..];
     }
 }

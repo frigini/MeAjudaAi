@@ -132,4 +132,87 @@ public class CreateSubscriptionCommandHandlerTests
         await act.Should().ThrowAsync<SubscriptionCreationException>().WithMessage("*Operação revertida no gateway*");
         _gatewayMock.Verify(g => g.CancelSubscriptionAsync("sub_rollback", It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Fact]
+    public async Task HandleAsync_ShouldThrowSubscriptionCreationException_WhenPlanIdIsInvalid()
+    {
+        // Arrange
+        var command = new CreateSubscriptionCommand(Guid.NewGuid(), "invalid_plan");
+
+        // Act
+        var act = () => _handler.HandleAsync(command);
+
+        // Assert
+        await act.Should().ThrowAsync<SubscriptionCreationException>().WithMessage("*Plano inválido*");
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithGoldPlan_ShouldSucceed()
+    {
+        // Arrange
+        var command = new CreateSubscriptionCommand(Guid.NewGuid(), "price_gold_monthly");
+        var gatewayResult = new SubscriptionGatewayResult(true, "sub_123", "https://checkout", null);
+        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), "price_gold_monthly", It.IsAny<Money>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(gatewayResult);
+
+        // Act
+        var result = await _handler.HandleAsync(command);
+
+        // Assert
+        result.Should().Be(gatewayResult.CheckoutUrl);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldPropagateOperationCanceledException_WhenGatewayIsCanceled()
+    {
+        // Arrange
+        var command = new CreateSubscriptionCommand(Guid.NewGuid(), "price_premium_monthly");
+        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+
+        // Act
+        var act = () => _handler.HandleAsync(command);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldPropagateOperationCanceledException_WhenRepositoryIsCanceled()
+    {
+        // Arrange
+        var command = new CreateSubscriptionCommand(Guid.NewGuid(), "price_premium_monthly");
+        var gatewayResult = new SubscriptionGatewayResult(true, "sub_123", "https://checkout", null);
+        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(gatewayResult);
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+
+        // Act
+        var act = () => _handler.HandleAsync(command);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldNotCallCancel_WhenRepositoryFails_AndExternalSubIdIsNull()
+    {
+        // Arrange
+        var command = new CreateSubscriptionCommand(Guid.NewGuid(), "price_premium_monthly");
+        var gatewayResult = new SubscriptionGatewayResult(true, null, "https://checkout", null); // Sub ID is null
+
+        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(gatewayResult);
+
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("DB Error"));
+
+        // Act
+        var act = () => _handler.HandleAsync(command);
+
+        // Assert
+        await act.Should().ThrowAsync<SubscriptionCreationException>();
+        _gatewayMock.Verify(g => g.CancelSubscriptionAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
 }
