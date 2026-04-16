@@ -97,6 +97,24 @@ public class CreateSubscriptionCommandHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_ShouldThrowSubscriptionCreationException_WhenUnexpectedExceptionOccurs()
+    {
+        // Arrange
+        var command = new CreateSubscriptionCommand(Guid.NewGuid(), "plan_123", 99.90m, "BRL");
+
+        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(
+            It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Unexpected error"));
+
+        // Act
+        var act = () => _handler.HandleAsync(command);
+
+        // Assert
+        var exception = await act.Should().ThrowAsync<SubscriptionCreationException>();
+        exception.WithInnerException<Exception>().WithMessage("Unexpected error");
+    }
+
+    [Fact]
     public async Task HandleAsync_ShouldUseBrlCurrency_WhenDefaultCurrencyUsed()
     {
         // Arrange

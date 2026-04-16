@@ -147,4 +147,38 @@ public class PaymentTransactionTests
         transaction.Amount.Should().Be(amount);
         transaction.Amount.Currency.Should().Be("USD");
     }
+
+    [Fact]
+    public void Constructor_ShouldThrow_WhenSubscriptionIdIsEmpty()
+    {
+        var act = () => new PaymentTransaction(Guid.Empty, Money.FromDecimal(10));
+        act.Should().Throw<ArgumentException>().WithMessage("*SubscriptionId*");
+    }
+
+    [Fact]
+    public void Constructor_ShouldThrow_WhenAmountIsNull()
+    {
+        var act = () => new PaymentTransaction(Guid.NewGuid(), null!);
+        act.Should().Throw<ArgumentNullException>().WithMessage("*Amount*");
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Constructor_ShouldThrow_WhenAmountIsNonPositive(decimal amount)
+    {
+        var act = () => new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(amount));
+        act.Should().Throw<ArgumentException>().WithMessage("*Amount*");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Settle_ShouldThrow_WhenExternalTransactionIdIsInvalid(string externalId)
+    {
+        var transaction = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10));
+        var act = () => transaction.Settle(externalId);
+        act.Should().Throw<ArgumentException>().WithMessage("*ExternalTransactionId*");
+    }
 }

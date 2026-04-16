@@ -35,6 +35,11 @@ public class StripePaymentGateway : IPaymentGateway
 
     public async Task<SubscriptionGatewayResult> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, CancellationToken cancellationToken)
     {
+        if (IsZeroDecimalCurrency(amount.Currency) && amount.Amount % 1 != 0)
+        {
+            return new SubscriptionGatewayResult(false, null, null, $"Zero-decimal currency {amount.Currency} cannot have fractional amounts: {amount.Amount}");
+        }
+
         try
         {
             var priceService = new PriceService();
@@ -117,16 +122,21 @@ public class StripePaymentGateway : IPaymentGateway
 
     private static long ConvertToMinorUnits(string currency, decimal amount)
     {
-        var zeroDecimalCurrencies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "BIF", "CLP", "DJF", "GNF", "JPY", "KMF", "KRW", "MGA", "PYG", "RWF", "UGX", "VND", "VUV", "XAF", "XOF", "XPF"
-        };
-
-        if (zeroDecimalCurrencies.Contains(currency))
+        if (IsZeroDecimalCurrency(currency))
         {
             return (long)amount;
         }
 
         return (long)Math.Round(amount * 100, MidpointRounding.AwayFromZero);
+    }
+
+    private static bool IsZeroDecimalCurrency(string currency)
+    {
+        var zeroDecimalCurrencies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "BIF", "CLP", "DJF", "GNF", "JPY", "KMF", "KRW", "MGA", "PYG", "RWF", "UGX", "VND", "VUV", "XAF", "XOF", "XPF"
+        };
+
+        return zeroDecimalCurrencies.Contains(currency);
     }
 }

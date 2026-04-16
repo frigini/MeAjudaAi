@@ -51,7 +51,11 @@ public class GetBillingPortalEndpoint : IEndpoint
         if (request.ProviderId == Guid.Empty)
             return Results.BadRequest(new { error = "ProviderId é obrigatório." });
 
-        var clientBaseUrl = configuration["ClientBaseUrl"] ?? "http://localhost:5165";
+        var clientBaseUrl = configuration["ClientBaseUrl"];
+        if (string.IsNullOrEmpty(clientBaseUrl))
+        {
+            throw new InvalidOperationException("ClientBaseUrl configuration is missing. Cannot resolve return URL.");
+        }
         
         var resolvedReturnUrl = request.ReturnUrl?.ToLowerInvariant() switch
         {

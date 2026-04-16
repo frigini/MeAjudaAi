@@ -14,7 +14,7 @@ public class PaymentsApiTests : BaseApiTest
     [Fact]
     public async Task CreateSubscription_ShouldReturnCheckoutUrl()
     {
-        // Pré-condições
+        // Arrange
         var request = new
         {
             ProviderId = Guid.NewGuid(),
@@ -23,10 +23,10 @@ public class PaymentsApiTests : BaseApiTest
             Currency = "BRL"
         };
 
-        // Execução
+        // Act
         var response = await Client.PostAsJsonAsync("/api/v1/payments/subscriptions", request);
 
-        // Verificação
+        // Assert
         if (response.StatusCode != HttpStatusCode.OK)
         {
             var error = await response.Content.ReadAsStringAsync();
@@ -42,7 +42,7 @@ public class PaymentsApiTests : BaseApiTest
     [Fact]
     public async Task StripeWebhook_ShouldReturnOk()
     {
-        // Pré-condições
+        // Arrange
         var webhookJson = """
         {
             "id": "evt_123",
@@ -62,11 +62,11 @@ public class PaymentsApiTests : BaseApiTest
         }
         """;
         
-        // Execução
+        // Act
         var content = new StringContent(webhookJson, System.Text.Encoding.UTF8, "application/json");
         var response = await Client.PostAsync("/api/v1/payments/webhooks/stripe", content);
 
-        // Verificação
+        // Assert
         if (response.StatusCode != HttpStatusCode.OK)
         {
             var errorBody = await response.Content.ReadAsStringAsync();
@@ -79,7 +79,7 @@ public class PaymentsApiTests : BaseApiTest
     [Fact]
     public async Task GetBillingPortal_ShouldReturnUrl()
     {
-        // Pré-condições
+        // Arrange
         var providerId = Guid.NewGuid();
         
         // Setup: Criar uma assinatura ativa primeiro
@@ -93,11 +93,11 @@ public class PaymentsApiTests : BaseApiTest
         dbContext.Subscriptions.Add(sub);
         await dbContext.SaveChangesAsync();
 
-        // Execução
+        // Act
         var request = new { providerId, returnUrl = "account" };
         var response = await Client.PostAsJsonAsync("/api/v1/payments/subscriptions/billing-portal", request);
 
-        // Verificação
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var portalResponse = await response.Content.ReadFromJsonAsync<BillingPortalResponse>();
         string? url = portalResponse?.PortalUrl;
@@ -108,9 +108,9 @@ public class PaymentsApiTests : BaseApiTest
     private record BillingPortalResponse(string PortalUrl);
 
     [Fact]
-    public async Task StripeWebhook_InvoicePaid_ShouldRenewSubscription()
+    public async Task StripeWebhook_InvoicePaid_ShouldEnqueueInboxMessage()
     {
-        // Pré-condições
+        // Arrange
         var externalSubId = "sub_live_123";
         var providerId = Guid.NewGuid();
         
@@ -153,15 +153,15 @@ public class PaymentsApiTests : BaseApiTest
         }
         """;
         
-        // Execução
+        // Act
         var content = new StringContent(webhookJson, System.Text.Encoding.UTF8, "application/json");
         var response = await Client.PostAsync("/api/v1/payments/webhooks/stripe", content);
 
-        // Verificação
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        // Verificar a renovação no DB (Background jobs podem levar um tempo, mas em testes de integração costumamos executá-los manualmente ou aguardar)
-        // Na verdade, o StripeWebhookEndpoint apenas salva na Inbox. Precisamos acionar o processador de inbox ou verificar o estado da Inbox.
+        // Verificar se a mensagem foi gravada na Inbox
+        // Na verdade, o StripeWebhookEndpoint apenas salva na Inbox. A renovação real ocorre via ProcessInboxJob.
         var inboxMessage = await dbContext.InboxMessages.FirstOrDefaultAsync(m => EF.Functions.Like((string)(object)m.Content, "%evt_paid_123%"));
         inboxMessage.Should().NotBeNull();
         inboxMessage!.ProcessedAt.Should().BeNull(); // Estado inicial

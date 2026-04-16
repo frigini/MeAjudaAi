@@ -27,9 +27,11 @@ public class ProcessInboxJob(
                 var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
                 var subscriptionRepository = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
 
+                using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
+
                 var messages = await dbContext.InboxMessages
-                    // NOTE: This SQL query must mirror InboxMessage.ShouldRetry logic
-                    // See: src/Modules/Payments/Domain/Entities/InboxMessage.cs - ShouldRetry property
+                    // NOTA: Esta consulta SQL deve espelhar a lógica de InboxMessage.ShouldRetry
+                    // Veja: src/Modules/Payments/Domain/Entities/InboxMessage.cs - propriedade ShouldRetry
                     .FromSqlRaw(@"
                         SELECT * FROM payments.inbox_messages
                         WHERE processed_at IS NULL 
@@ -42,11 +44,10 @@ public class ProcessInboxJob(
 
                 if (messages.Count == 0)
                 {
+                    await transaction.RollbackAsync(stoppingToken);
                     await Task.Delay(5000, stoppingToken);
                     continue;
                 }
-
-                using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
 
                 foreach (var message in messages)
                 {
@@ -96,29 +97,31 @@ public class ProcessInboxJob(
         switch (stripeEvent.Type)
         {
             case "checkout.session.completed":
-                var session = stripeEvent.Data.Object as Session;
+                var session = stripeEvent.Data.Object as dynamic;
                 if (session == null)
                 {
                     logger.LogWarning("Session data is null for event {EventId}", stripeEvent.Id);
                     throw new InvalidOperationException("Session data is missing from checkout.session.completed event");
                 }
 
+                string providerIdStr = null!;
+                Guid providerId = Guid.Empty;
                 if (session.Metadata == null || 
-                    !session.Metadata.TryGetValue("provider_id", out var providerIdStr) || 
-                    !Guid.TryParse(providerIdStr, out var providerId))
+                    !session.Metadata.TryGetValue("provider_id", out providerIdStr) || 
+                    !Guid.TryParse(providerIdStr, out providerId))
                 {
                     if (session.Metadata == null)
                     {
                         logger.LogError(
                             "Metadata is null in checkout.session.completed event. SessionId: {SessionId}",
-                            session.Id);
+                            (string)session.Id);
                         throw new InvalidOperationException($"Metadata is null in checkout.session.completed event. SessionId: {session.Id}");
                     }
 
                     logger.LogError(
                         "Invalid or missing provider_id in checkout.session.completed event. SessionId: {SessionId}, Metadata: {Metadata}",
-                        session.Id,
-                        session.Metadata);
+                        (string)session.Id,
+                        (object)session.Metadata);
                     throw new InvalidOperationException($"Invalid or missing provider_id in checkout.session.completed event. SessionId: {session.Id}");
                 }
 
@@ -129,18 +132,18 @@ public class ProcessInboxJob(
                     throw new InvalidOperationException($"Subscription not found for Provider {providerId}");
                 }
 
-                if (subscription.Status == ESubscriptionStatus.Active && subscription.ExternalSubscriptionId == session.SubscriptionId)
+                if (subscription.Status == ESubscriptionStatus.Active && subscription.ExternalSubscriptionId == (string)session.SubscriptionId)
                 {
                     logger.LogDebug("Subscription {Id} already active with same external ID, skipping", subscription.Id);
                     break;
                 }
 
                 subscription.Activate(
-                    session.SubscriptionId, 
-                    session.CustomerId); // O período real será preenchido pelo invoice.paid
+                    (string)session.SubscriptionId, 
+                    (string)session.CustomerId); // O período real será preenchido pelo invoice.paid
                 
                 await repository.UpdateAsync(subscription, ct);
-                logger.LogInformation("Subscription {Id} activated for Provider {ProviderId} (Customer: {CustomerId})", subscription.Id, providerId, session.CustomerId);
+                logger.LogInformation("Subscription {Id} activated for Provider {ProviderId} (Customer: {CustomerId})", subscription.Id, providerId, (string)session.CustomerId);
                 break;
 
             case "invoice.paid":
@@ -165,7 +168,7 @@ public class ProcessInboxJob(
                     break;
                 }
 
-                // Renew the subscription
+                // Renovar a assinatura
                 var nextPeriodEnd = (DateTime?)(invoice.Lines.Data[0].Period.End) ?? DateTime.UtcNow.AddMonths(1);
                 subToRenew.Renew(nextPeriodEnd);
                 await repository.UpdateAsync(subToRenew, ct);
@@ -174,23 +177,24 @@ public class ProcessInboxJob(
                 break;
 
             case "customer.subscription.deleted":
-                var stripeSubscription = stripeEvent.Data.Object as Stripe.Subscription;
+                var stripeSubscription = stripeEvent.Data.Object as dynamic;
                 if (stripeSubscription == null)
                 {
                     logger.LogWarning("Subscription data is null for event {EventId}", stripeEvent.Id);
                     throw new InvalidOperationException("Subscription data is missing from customer.subscription.deleted event");
                 }
 
-                var existingSubscription = await repository.GetByExternalIdAsync(stripeSubscription.Id, ct);
+                var externalId = (string)stripeSubscription.Id;
+                var existingSubscription = await repository.GetByExternalIdAsync(externalId, ct);
                 if (existingSubscription != null)
                 {
                     existingSubscription.Cancel();
                     await repository.UpdateAsync(existingSubscription, ct);
-                    logger.LogInformation("Subscription {Id} canceled (external ID: {ExternalId})", existingSubscription.Id, stripeSubscription.Id);
+                    logger.LogInformation("Subscription {Id} canceled (external ID: {ExternalId})", existingSubscription.Id, externalId);
                 }
                 else
                 {
-                    logger.LogWarning("Subscription not found for external ID: {ExternalId} (event: customer.subscription.deleted)", stripeSubscription.Id);
+                    logger.LogWarning("Subscription not found for external ID: {ExternalId} (event: customer.subscription.deleted)", externalId);
                 }
                 break;
 

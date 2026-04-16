@@ -229,17 +229,100 @@ public class SubscriptionTests
     }
 
     [Fact]
-    public void FullLifecycle_Pending_Activate_Expire()
+    public void Constructor_ShouldThrow_WhenProviderIdIsEmpty()
+    {
+        var act = () => new Subscription(Guid.Empty, "plan", Money.FromDecimal(10));
+        act.Should().Throw<ArgumentException>().WithMessage("*ProviderId*");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Constructor_ShouldThrow_WhenPlanIdIsInvalid(string planId)
+    {
+        var act = () => new Subscription(Guid.NewGuid(), planId, Money.FromDecimal(10));
+        act.Should().Throw<ArgumentNullException>().WithMessage("*PlanId*");
+    }
+
+    [Fact]
+    public void Constructor_ShouldThrow_WhenAmountIsNull()
+    {
+        var act = () => new Subscription(Guid.NewGuid(), "plan", null!);
+        act.Should().Throw<ArgumentNullException>().WithMessage("*Amount*");
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Constructor_ShouldThrow_WhenAmountIsNonPositive(decimal amount)
+    {
+        var act = () => new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(amount));
+        act.Should().Throw<ArgumentException>().WithMessage("*Amount*");
+    }
+
+    [Fact]
+    public void Activate_ShouldBeIdempotent_WhenAlreadyCanceledOrExpired()
     {
         // Arrange
-        var subscription = new Subscription(Guid.NewGuid(), "plan_full", Money.FromDecimal(199.90m, "BRL"));
+        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        
+        // Canceled
+        subscription.Cancel();
+        subscription.Activate("sub", "cus", DateTime.UtcNow.AddDays(1));
+        subscription.Status.Should().Be(ESubscriptionStatus.Canceled);
 
-        // Activate
-        subscription.Activate("sub_ext", "cus_ext", DateTime.UtcNow.AddMonths(6));
-        subscription.Status.Should().Be(ESubscriptionStatus.Active);
+        // Expired
+        var sub2 = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        sub2.Activate("sub", "cus", DateTime.UtcNow.AddDays(1));
+        sub2.Expire();
+        sub2.Activate("sub2", "cus2", DateTime.UtcNow.AddDays(1));
+        sub2.Status.Should().Be(ESubscriptionStatus.Expired);
+    }
 
-        // Expire
+    [Fact]
+    public void Renew_ShouldThrow_WhenStatusIsCanceled()
+    {
+        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        subscription.Cancel();
+        var act = () => subscription.Renew(DateTime.UtcNow.AddDays(1));
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Canceled*");
+    }
+
+    [Fact]
+    public void Renew_ShouldThrow_WhenStatusIsExpired()
+    {
+        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        subscription.Activate("sub", "cus", DateTime.UtcNow.AddDays(1));
         subscription.Expire();
+        var act = () => subscription.Renew(DateTime.UtcNow.AddDays(1));
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Expired*");
+    }
+
+    [Fact]
+    public void Renew_ShouldThrow_WhenDateIsNotInFuture()
+    {
+        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        var act = () => subscription.Renew(DateTime.UtcNow.AddSeconds(-1));
+        act.Should().Throw<ArgumentException>().WithMessage("*future date*");
+    }
+
+    [Fact]
+    public void Cancel_ShouldBeIdempotent_WhenExpired()
+    {
+        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        subscription.Activate("sub", "cus", DateTime.UtcNow.AddDays(1));
+        subscription.Expire();
+        subscription.Cancel();
         subscription.Status.Should().Be(ESubscriptionStatus.Expired);
+    }
+
+    [Fact]
+    public void Expire_ShouldBeIdempotent_WhenCanceled()
+    {
+        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        subscription.Cancel();
+        subscription.Expire();
+        subscription.Status.Should().Be(ESubscriptionStatus.Canceled);
     }
 }

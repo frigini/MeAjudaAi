@@ -9,14 +9,17 @@ public class PaymentTransactionRepository(PaymentsDbContext context) : IPaymentT
 {
     public async Task AddAsync(PaymentTransaction transaction, CancellationToken cancellationToken = default)
     {
-        if (!string.IsNullOrEmpty(transaction.ExternalTransactionId))
+        try
         {
-            var exists = await context.Transactions.AnyAsync(t => t.ExternalTransactionId == transaction.ExternalTransactionId, cancellationToken);
-            if (exists) return;
+            await context.Transactions.AddAsync(transaction, cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
         }
-
-        await context.Transactions.AddAsync(transaction, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        catch (DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException { SqlState: "23505" })
+        {
+            // Violação de chave única (duplicata de ExternalTransactionId). 
+            // Ignoramos para garantir idempotência.
+            context.Entry(transaction).State = EntityState.Detached;
+        }
     }
 
     public async Task<PaymentTransaction?> GetByExternalIdAsync(string externalTransactionId, CancellationToken cancellationToken = default)

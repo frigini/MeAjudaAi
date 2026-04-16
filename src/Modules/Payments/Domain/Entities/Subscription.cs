@@ -89,6 +89,12 @@ public Guid ProviderId { get; private set; }
     }
     public void Renew(DateTime newExpiresAt)
     {
+        if (Status == ESubscriptionStatus.Canceled || Status == ESubscriptionStatus.Expired)
+            throw new InvalidOperationException($"Cannot renew a subscription with status {Status}.");
+
+        if (newExpiresAt <= DateTime.UtcNow)
+            throw new ArgumentException("New expiration date must be a valid future date.", nameof(newExpiresAt));
+
         if (ExpiresAt.HasValue && newExpiresAt <= ExpiresAt.Value)
             throw new ArgumentException("New expiration date must be after current expiration date.", nameof(newExpiresAt));
 

@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
+using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
@@ -92,5 +93,40 @@ public class GetBillingPortalCommandHandlerTests
         // Assert
         await act.Should().ThrowAsync<ApplicationException>()
             .WithMessage("Failed to generate Billing Portal session.");
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldThrowApplicationException_WhenSubscriptionHasNoExternalCustomerId()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        
+        // Mock sub sem ExternalCustomerId (via reflection ou mockando props se fosse interface, 
+        // mas aqui usamos a entidade real. Activate exige ExternalCustomerId, então vamos forçar via construtor ou outro meio se possível,
+        // ou apenas aceitar que se Activate foi chamado corretamente, terá ID.
+        // Mas o review pede para testar este branch do handler.)
+        
+        // Como Activate agora valida externalCustomerId, para testar esse branch no handler 
+        // precisaríamos de uma sub que de alguma forma não tem o ID (ex: persistida incorretamente antes da validação).
+        
+        var subscription = new Subscription(providerId, "plan_premium", Money.FromDecimal(99.90m, "BRL"));
+        // Não chamamos Activate, mas o repositório vai retornar ela se mockarmos. 
+        // Porém o handler usa GetActiveByProviderIdAsync que filtra por Status == Active.
+        // Vamos usar um truque de reflexão para simular o estado inválido para o teste de branch.
+        
+        var statusField = typeof(Subscription).GetProperty("Status");
+        statusField?.SetValue(subscription, ESubscriptionStatus.Active);
+
+        var command = new GetBillingPortalCommand(providerId, "https://example.com");
+
+        _repositoryMock.Setup(r => r.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(subscription);
+
+        // Act
+        var act = () => _handler.HandleAsync(command);
+
+        // Assert
+        await act.Should().ThrowAsync<ApplicationException>()
+            .WithMessage($"*has no ExternalCustomerId*");
     }
 }
