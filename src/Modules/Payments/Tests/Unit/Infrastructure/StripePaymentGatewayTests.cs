@@ -43,7 +43,7 @@ public class StripePaymentGatewayTests
 
         // Assert
         result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("não aceitam valores fracionados");
+        result.ErrorMessage.Should().Contain("does not accept fractional amounts");
     }
 
     [Fact]

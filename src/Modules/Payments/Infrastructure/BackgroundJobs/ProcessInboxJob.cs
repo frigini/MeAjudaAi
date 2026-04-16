@@ -169,11 +169,24 @@ public class ProcessInboxJob(
                 }
 
                 // Renovar a assinatura
-                var nextPeriodEnd = (DateTime?)(invoice.Lines.Data[0].Period.End) ?? DateTime.UtcNow.AddMonths(1);
-                subToRenew.Renew(nextPeriodEnd);
+                DateTime periodEndValue = DateTime.UtcNow.AddMonths(1);
+                try
+                {
+                    var linesData = invoice.Lines?.Data;
+                    if (linesData != null && linesData.Count > 0)
+                    {
+                        var firstLine = linesData[0];
+                        var period = firstLine?.Period;
+                        if (period?.End != null)
+                            periodEndValue = period.End.Value;
+                    }
+                }
+                catch { /* Silently ignore access errors */ }
+                
+                subToRenew.Renew(periodEndValue);
                 await repository.UpdateAsync(subToRenew, ct);
 
-                logger.LogInformation("Subscription {Id} renewed until {ExpiresAt} due to Invoice {InvoiceId}", subToRenew.Id, nextPeriodEnd, (string)invoice.Id);
+                logger.LogInformation("Subscription {Id} renewed until {ExpiresAt} due to Invoice {InvoiceId}", subToRenew.Id, periodEndValue, (string)invoice.Id);
                 break;
 
             case "customer.subscription.deleted":

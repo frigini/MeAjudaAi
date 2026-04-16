@@ -14,7 +14,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ---
 
-## ✅ Sprint 11 - Monetização & Polimento (13 Abr - 27 Abr 2026) 🏆 [CONCLUÍDO]
+## ✅ Sprint 11 - Monetização & Polimento (13 Abr - 27 Abr 2026) 🏆 [CONCLUÍDO] — Concluída em 15 Abr 2026
 
 **Objetivo**: Habilitar o faturamento da plataforma e finalizar a experiência do usuário.
 
@@ -23,7 +23,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 #### 1. 💳 Payments Module (Módulo de Pagamentos)
 *   **Arquitetura**: Padrão de **Anti-Corruption Layer (ACL)**. A lógica de negócio não conhece tipos do Stripe. Abstração via `IPaymentGateway`. ✅
 *   **Funcionalidades**:
-    *   ✅ **Assinaturas de Prestadores**: Planos Free, Standard e Gold — implementado com `CreateSubscriptionCommandHandler` e padrão persist-first.
+    *   ✅ **Assinaturas de Prestadores**: Planos Free, Standard e Gold — implementado com `CreateSubscriptionCommandHandler` com padrão gateway-first e compensação em caso de falha.
     *   ✅ **Stripe Checkout & Webhooks**: Redirecionamento seguro via `CreateSubscriptionEndpoint` e processamento assíncrono via padrão Inbox (`ProcessInboxJob`).
     *   ✅ **Qualidade & Testes**: Suíte completa de testes unitários e de integração validando fluxos críticos e tratamento de erros.
     *   ✅ **Handler `invoice.paid`**: Processamento de renovações mensais e registro de `PaymentTransaction` para auditoria.

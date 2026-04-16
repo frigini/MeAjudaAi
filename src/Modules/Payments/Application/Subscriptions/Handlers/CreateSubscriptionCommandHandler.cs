@@ -19,11 +19,19 @@ public class CreateSubscriptionCommandHandler(
         var moneyAmount = Money.FromDecimal(amount, currency);
         var subscription = new Subscription(command.ProviderId, command.PlanId, moneyAmount);
 
-        var result = await paymentGateway.CreateSubscriptionAsync(
-            command.ProviderId,
-            command.PlanId,
-            moneyAmount,
-            cancellationToken);
+        SubscriptionGatewayResult result;
+        try
+        {
+            result = await paymentGateway.CreateSubscriptionAsync(
+                command.ProviderId,
+                command.PlanId,
+                moneyAmount,
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            throw new SubscriptionCreationException("Falha ao comunicar com o provedor de pagamento.", ex);
+        }
 
         if (!result.Success)
         {

@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Shared.Domain.ValueObjects;
+using MeAjudaAi.Shared.Exceptions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -54,7 +55,7 @@ public class GetBillingPortalCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldThrowApplicationException_WhenSubscriptionNotFound()
+    public async Task HandleAsync_ShouldThrowNotFoundException_WhenSubscriptionNotFound()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -67,12 +68,12 @@ public class GetBillingPortalCommandHandlerTests
         var act = () => _handler.HandleAsync(command);
 
         // Assert
-        await act.Should().ThrowAsync<ApplicationException>()
-            .WithMessage("*Subscription not found or not active*");
+        await act.Should().ThrowAsync<NotFoundException>()
+            .WithMessage("*was not found*");
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldThrowApplicationException_WhenGatewayReturnsNull()
+    public async Task HandleAsync_ShouldThrowBusinessRuleException_WhenGatewayReturnsNull()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -91,12 +92,12 @@ public class GetBillingPortalCommandHandlerTests
         var act = () => _handler.HandleAsync(command);
 
         // Assert
-        await act.Should().ThrowAsync<ApplicationException>()
-            .WithMessage("Failed to generate Billing Portal session.");
+        await act.Should().ThrowAsync<BusinessRuleException>()
+            .WithMessage("*Falha ao gerar sessão*");
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldThrowApplicationException_WhenSubscriptionHasNoExternalCustomerId()
+    public async Task HandleAsync_ShouldThrowBusinessRuleException_WhenSubscriptionHasNoExternalCustomerId()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -126,7 +127,7 @@ public class GetBillingPortalCommandHandlerTests
         var act = () => _handler.HandleAsync(command);
 
         // Assert
-        await act.Should().ThrowAsync<ApplicationException>()
-            .WithMessage($"*has no ExternalCustomerId*");
+        await act.Should().ThrowAsync<BusinessRuleException>()
+            .WithMessage("*sem identificador de cliente externo*");
     }
 }

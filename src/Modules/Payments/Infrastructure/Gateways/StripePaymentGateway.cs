@@ -36,8 +36,8 @@ public class StripePaymentGateway : IPaymentGateway
     {
         if (IsZeroDecimalCurrency(amount.Currency) && amount.Amount % 1 != 0)
         {
-            _logger.LogWarning("Tentativa de criar assinatura com valor fracionado para moeda de zero decimais: {Currency} {Amount}", amount.Currency, amount.Amount);
-            return new SubscriptionGatewayResult(false, null, null, $"Moedas sem casas decimais ({amount.Currency}) não aceitam valores fracionados: {amount.Amount}");
+            _logger.LogWarning("Attempt to create subscription with fractional amount for zero-decimal currency: {Currency} {Amount}", amount.Currency, amount.Amount);
+            return new SubscriptionGatewayResult(false, null, null, $"Zero-decimal currency ({amount.Currency}) does not accept fractional amounts: {amount.Amount}");
         }
 
         try
@@ -78,16 +78,23 @@ public class StripePaymentGateway : IPaymentGateway
         }
         catch (StripeException ex)
         {
-            _logger.LogError(ex, "Erro no Stripe ao criar assinatura para o Provider {ProviderId}", providerId);
-            return new SubscriptionGatewayResult(false, null, null, "Falha na comunicação com o provedor de pagamento.");
+            _logger.LogError(ex, "Stripe error creating subscription for Provider {ProviderId}", providerId);
+            return new SubscriptionGatewayResult(false, null, null, "Payment provider communication failure.");
         }
     }
 
-    public Task<bool> CancelSubscriptionAsync(string externalSubscriptionId, CancellationToken cancellationToken)
+    public async Task<bool> CancelSubscriptionAsync(string externalSubscriptionId, CancellationToken cancellationToken)
     {
-        // Implementação real usaria SubscriptionService.CancelAsync via IStripeService
-        _logger.LogInformation("Cancelamento de assinatura solicitado para {ExternalId} (Simulado)", externalSubscriptionId);
-        return Task.FromResult(true);
+        try
+        {
+            var result = await _stripeService.CancelSubscriptionAsync(externalSubscriptionId, _requestOptions, cancellationToken);
+            return result;
+        }
+        catch (StripeException ex)
+        {
+            _logger.LogError(ex, "Stripe error canceling subscription {ExternalId}", externalSubscriptionId);
+            return false;
+        }
     }
 
     public async Task<string?> CreateBillingPortalSessionAsync(string externalCustomerId, string returnUrl, CancellationToken cancellationToken)
