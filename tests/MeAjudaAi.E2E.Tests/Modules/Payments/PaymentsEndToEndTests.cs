@@ -4,6 +4,10 @@ using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
+using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -31,12 +35,39 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
         return ValueTask.CompletedTask;
     }
 
+    private async Task<Guid> CreateTestProviderAsync()
+    {
+        var providerId = Guid.NewGuid();
+        await _fixture.WithServiceScopeAsync(async services =>
+        {
+            var dbContext = services.GetRequiredService<ProvidersDbContext>();
+            
+            var contactInfo = new ContactInfo("test@company.com", "+5511999999999");
+            var businessProfile = new BusinessProfile(
+                "Test Company",
+                contactInfo,
+                null,
+                description: "Test Description");
+
+            var provider = new Provider(
+                providerId,
+                Guid.NewGuid(),
+                "Test Provider",
+                EProviderType.Company,
+                businessProfile);
+
+            dbContext.Providers.Add(provider);
+            await dbContext.SaveChangesAsync();
+        });
+        return providerId;
+    }
+
     [Fact]
     public async Task CreateSubscription_Should_PersistPendingSubscription()
     {
         // Arrange
         TestContainerFixture.AuthenticateAsAdmin();
-        var providerId = Guid.NewGuid();
+        var providerId = await CreateTestProviderAsync();
         var request = new
         {
             ProviderId = providerId,
@@ -73,7 +104,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
     {
         // Arrange
         TestContainerFixture.AuthenticateAsAdmin();
-        var providerId = Guid.NewGuid();
+        var providerId = await CreateTestProviderAsync();
         
         // 1. Criar uma subscription pendente primeiro
         var createRequest = new { ProviderId = providerId, PlanId = "price_premium_monthly" };

@@ -64,12 +64,19 @@ public class CreateSubscriptionCommandHandler(
         }
         catch (Exception ex)
         {
-            // Compensation: Cancel in gateway if local persistence fails
+            // Compensação: cancelar no gateway se a persistência local falhar
             if (!string.IsNullOrEmpty(result.ExternalSubscriptionId))
             {
                 logger.LogInformation("Compensating: cancelling external subscription {ExternalSubscriptionId} due to local failure", 
                     result.ExternalSubscriptionId);
-                await paymentGateway.CancelSubscriptionAsync(result.ExternalSubscriptionId, CancellationToken.None);
+                
+                var cancelled = await paymentGateway.CancelSubscriptionAsync(result.ExternalSubscriptionId, CancellationToken.None);
+                
+                if (!cancelled)
+                {
+                    logger.LogError("Critical: Failed to cancel external subscription {ExternalSubscriptionId} during rollback. Manual intervention may be required.", 
+                        result.ExternalSubscriptionId);
+                }
             }
             
             throw new SubscriptionCreationException("Falha ao persistir assinatura localmente. Operação revertida no gateway.", ex);

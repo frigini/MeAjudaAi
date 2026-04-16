@@ -3,15 +3,36 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
+using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Payments;
 
-public class PaymentsApiTests : BaseApiTest
+public class PaymentsApiTests : BaseApiTest, IAsyncLifetime
 {
     protected override TestModule RequiredModules => TestModule.Payments;
+    private Guid _seededProviderId;
+
+    public async Task InitializeAsync()
+    {
+        _seededProviderId = Guid.NewGuid();
+        using var scope = Services.CreateScope();
+        var providersDb = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
+        
+        var contactInfo = new ContactInfo("test@company.com", "+5511999999999");
+        var businessProfile = new BusinessProfile("Test Company", contactInfo, null);
+        var provider = new Provider(_seededProviderId, Guid.NewGuid(), "Test Provider", EProviderType.Company, businessProfile);
+        
+        providersDb.Providers.Add(provider);
+        await providersDb.SaveChangesAsync();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task CreateSubscription_ShouldReturnCheckoutUrl()
@@ -19,9 +40,12 @@ public class PaymentsApiTests : BaseApiTest
         // Arrange
         var request = new
         {
-            ProviderId = Guid.NewGuid(),
+            ProviderId = _seededProviderId,
             PlanId = "price_premium_monthly"
         };
+        
+        // Autentica como o dono do provider
+        AuthConfig.ConfigureProvider("user-1", "user", _seededProviderId);
 
         // Act
         var response = await Client.PostAsJsonAsync("/api/v1/payments/subscriptions", request);
@@ -80,7 +104,7 @@ public class PaymentsApiTests : BaseApiTest
     public async Task GetBillingPortal_ShouldReturnUrl()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
+        var providerId = _seededProviderId;
         
         // Setup: Autenticar como o dono do provider para passar no ownership check
         AuthConfig.ConfigureProvider("provider-id", "provider", providerId);
@@ -127,7 +151,7 @@ public class PaymentsApiTests : BaseApiTest
     public async Task GetBillingPortal_ForOtherProvider_ShouldReturnForbidden()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
+        var providerId = _seededProviderId;
         var otherProviderId = Guid.NewGuid();
         AuthConfig.ConfigureProvider("provider-id", "provider", otherProviderId); // Authenticated as different provider
         var request = new { providerId, returnUrl = "account" };
@@ -143,8 +167,7 @@ public class PaymentsApiTests : BaseApiTest
     public async Task GetBillingPortal_WithEmptyProviderId_ShouldReturnBadRequest()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
-        AuthConfig.ConfigureProvider("provider-id", "provider", providerId);
+        AuthConfig.ConfigureProvider("provider-id", "provider", _seededProviderId);
         
         var request = new { providerId = Guid.Empty, returnUrl = "account" };
 
@@ -161,9 +184,11 @@ public class PaymentsApiTests : BaseApiTest
         // Arrange
         var request = new
         {
-            ProviderId = Guid.NewGuid(),
+            ProviderId = _seededProviderId,
             PlanId = "invalid_plan"
         };
+        
+        AuthConfig.ConfigureProvider("user-1", "user", _seededProviderId);
 
         // Act
         var response = await Client.PostAsJsonAsync("/api/v1/payments/subscriptions", request);
@@ -173,7 +198,7 @@ public class PaymentsApiTests : BaseApiTest
     }
 
     [Fact]
-    public async Task StripeWebhook_CheckoutSessionMissingProviderId_ShouldReturnError()
+    public async Task StripeWebhook_CheckoutSessionMissingProviderId_ShouldEnqueueInboxMessage()
     {
         // Arrange
         var webhookJson = $$$"""
@@ -210,7 +235,7 @@ public class PaymentsApiTests : BaseApiTest
     {
         // Arrange
         var externalSubId = "sub_live_123";
-        var providerId = Guid.NewGuid();
+        var providerId = _seededProviderId;
         
         // Setup: Criar uma assinatura ativa no DB
         using var scope = Services.CreateScope();
@@ -259,7 +284,6 @@ public class PaymentsApiTests : BaseApiTest
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
         // Verificar se a mensagem foi gravada na Inbox
-        // Na verdade, o StripeWebhookEndpoint apenas salva na Inbox. A renovação real ocorre via ProcessInboxJob.
         var inboxMessage = await dbContext.InboxMessages.FirstOrDefaultAsync(m => EF.Functions.Like((string)(object)m.Content, "%evt_paid_123%"));
         inboxMessage.Should().NotBeNull();
         inboxMessage!.ProcessedAt.Should().BeNull(); // Estado inicial

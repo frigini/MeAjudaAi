@@ -216,7 +216,7 @@ public class ConfigurableTestAuthenticationHandler(
     /// Configura um usuário comum (não-admin) com permissões básicas.
     /// </summary>
     /// <param name="userId">O ID do usuário</param>
-    /// <param name="userName">O nome de usuário</param>
+    /// <param name="username">O nome de usuário</param>
     /// <param name="email">O email do usuário</param>
     public static void ConfigureRegularUser(string userId = "user-id", string username = "user", string email = "user@test.com")
     {

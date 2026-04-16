@@ -49,7 +49,7 @@ public class StripeWebhookEndpoint : IEndpoint
 
                 if (string.IsNullOrWhiteSpace(webhookSecret))
                 {
-                    logger.LogError("Stripe:WebhookSecret não configurado.");
+                    logger.LogError("Stripe:WebhookSecret not configured.");
                     return Results.InternalServerError(new { error = "Erro de configuração do webhook: Stripe:WebhookSecret ausente." });
                 }
 

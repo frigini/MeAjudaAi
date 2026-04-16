@@ -182,13 +182,16 @@ public class ProcessInboxJob(
                             periodEndValue = period.End.Value;
                     }
                 }
-                catch { /* Silently ignore access errors */ }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error parsing invoice lines or period for Invoice {InvoiceId}. Using default expiration.", (string)invoice.Id);
+                }
                 
                 subToRenew.Renew(periodEndValue);
                 await repository.UpdateAsync(subToRenew, ct);
 
                 // Create PaymentTransaction audit record
-                var amount = Money.FromDecimal(0, "USD");
+                Money? amount = null;
                 try
                 {
                     if (invoice.AmountPaid > 0)
@@ -197,25 +200,30 @@ public class ProcessInboxJob(
                         amount = Money.FromDecimal(invoice.AmountPaid / 100m, currency);
                     }
                 }
-                catch { /* Use default amount if unavailable */ }
-                
-                if (amount.Amount <= 0 && subToRenew.Amount != null)
+                catch (Exception ex)
                 {
+                    logger.LogError(ex, "Error computing amount for PaymentTransaction from Invoice {InvoiceId}", (string)invoice.Id);
+                }
+                
+                if ((amount == null || amount.Amount <= 0) && subToRenew.Amount != null)
+                {
+                    // Se falhou ao ler da fatura, tenta usar o valor base da assinatura
                     amount = Money.FromDecimal(subToRenew.Amount.Amount, subToRenew.Amount.Currency);
                 }
                 
-                // Use a positive default amount if still invalid
-                if (amount.Amount <= 0)
+                if (amount != null && amount.Amount > 0)
                 {
-                    amount = Money.FromDecimal(1.0m, "USD");
-                }
-                
-                var paymentTransaction = new PaymentTransaction(subToRenew.Id, amount);
-                paymentTransaction.Settle((string)invoice.Id);
-                await paymentTransactionRepository.AddAsync(paymentTransaction, ct);
+                    var paymentTransaction = new PaymentTransaction(subToRenew.Id, amount);
+                    paymentTransaction.Settle((string)invoice.Id);
+                    await paymentTransactionRepository.AddAsync(paymentTransaction, ct);
 
-                logger.LogInformation("Subscription {Id} renewed until {ExpiresAt}. PaymentTransaction {PaymentTransactionId} recorded for Invoice {InvoiceId}", 
-                    subToRenew.Id, periodEndValue, paymentTransaction.Id, (string)invoice.Id);
+                    logger.LogInformation("Subscription {Id} renewed until {ExpiresAt}. PaymentTransaction {PaymentTransactionId} recorded for Invoice {InvoiceId}", 
+                        subToRenew.Id, periodEndValue, paymentTransaction.Id, (string)invoice.Id);
+                }
+                else
+                {
+                    logger.LogWarning("Skipping PaymentTransaction creation for Invoice {InvoiceId} due to unknown or zero amount", (string)invoice.Id);
+                }
                 break;
 
             case "customer.subscription.deleted":

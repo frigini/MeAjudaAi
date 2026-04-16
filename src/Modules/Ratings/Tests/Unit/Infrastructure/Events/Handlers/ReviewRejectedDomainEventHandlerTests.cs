@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Ratings.Infrastructure.Events.Handlers;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using FluentAssertions;
 
 namespace MeAjudaAi.Modules.Ratings.Tests.Unit.Infrastructure.Events.Handlers;
 
@@ -17,64 +18,43 @@ public class ReviewRejectedDomainEventHandlerTests
         _handler = new ReviewRejectedDomainEventHandler(_loggerMock.Object);
     }
 
-    [Fact]
-    public async Task HandleAsync_ShouldCompleteSuccessfully()
-    {
-        // Arrange
-        var reviewId = Guid.NewGuid();
-        var providerId = Guid.NewGuid();
-        var domainEvent = new ReviewRejectedDomainEvent(reviewId, 0, providerId, "Inappropriate content");
-
-        // Act
-        var act = () => _handler.HandleAsync(domainEvent);
-
-        // Assert
-        await act.Should().NotThrowAsync();
-    }
-
-    [Fact]
-    public async Task HandleAsync_ShouldLogWarning()
-    {
-        // Arrange
-        var reviewId = Guid.NewGuid();
-        var providerId = Guid.NewGuid();
-        var reason = "Spam";
-        var domainEvent = new ReviewRejectedDomainEvent(reviewId, 0, providerId, reason);
-
-        // Act
-        await _handler.HandleAsync(domainEvent);
-
-        // Assert
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Warning,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(reason) && v.ToString()!.Contains(reviewId.ToString())),
-                It.IsAny<Exception?>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-    }
-
     [Theory]
     [InlineData("Spam")]
-    [InlineData("Bad")]
-    public async Task HandleAsync_LogsWarning_ForVariousReasons(string reason)
+    [InlineData("Offensive Content")]
+    [InlineData(null)]
+    public async Task HandleAsync_ShouldLogExpectedMessages(string? reason)
     {
         // Arrange
-        var domainEvent = new ReviewRejectedDomainEvent(Guid.NewGuid(), 0, Guid.NewGuid(), reason);
+        var reviewId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
+        var domainEvent = new ReviewRejectedDomainEvent(reviewId, 0, providerId, reason!);
 
         // Act
         await _handler.HandleAsync(domainEvent);
 
         // Assert
+        // Verifica o Warning (sempre deve conter o ID do review)
         _loggerMock.Verify(
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(reason)),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(reviewId.ToString())),
                 It.IsAny<Exception?>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
+
+        // Verifica o Debug (deve conter o motivo se presente)
+        if (reason != null)
+        {
+            _loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Debug,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(reason)),
+                    It.IsAny<Exception?>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+                Times.Once);
+        }
     }
 
     [Fact]
@@ -93,7 +73,7 @@ public class ReviewRejectedDomainEventHandlerTests
     [Fact]
     public async Task HandleAsync_ShouldHandleNullReason()
     {
-        // Arrange - Reason é anulável com base no código do handler que usa ?.Length
+        // Arrange
         var domainEvent = new ReviewRejectedDomainEvent(Guid.NewGuid(), 0, Guid.NewGuid(), null!);
 
         // Act

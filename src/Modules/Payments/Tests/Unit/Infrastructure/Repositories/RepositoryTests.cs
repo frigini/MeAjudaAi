@@ -57,17 +57,25 @@ public class RepositoryTests : IDisposable
     [Fact]
     public async Task SubscriptionRepository_GetLatestByProviderIdAsync_ShouldReturnLatest()
     {
+        // Arrange
         var providerId = Guid.NewGuid();
         var sub1 = new Subscription(providerId, "plan1", Money.FromDecimal(10));
-        var sub2 = new Subscription(providerId, "plan2", Money.FromDecimal(20));
-        _context.Subscriptions.AddRange(sub1, sub2);
+        _context.Subscriptions.Add(sub1);
         await _context.SaveChangesAsync();
 
+        // Força uma data posterior para o segundo objeto via reflexão (necessário para InMemoryDB)
+        var sub2 = new Subscription(providerId, "plan2", Money.FromDecimal(20));
+        typeof(MeAjudaAi.Shared.Domain.BaseEntity).GetProperty("CreatedAt")?.SetValue(sub2, DateTime.UtcNow.AddSeconds(1));
+        
+        _context.Subscriptions.Add(sub2);
+        await _context.SaveChangesAsync();
+
+        // Act
         var result = await _subscriptionRepository.GetLatestByProviderIdAsync(providerId);
 
+        // Assert
         result.Should().NotBeNull();
-        // Since both have same created at in memory, check if it's one of them
-        result!.ProviderId.Should().Be(providerId);
+        result!.PlanId.Should().Be("plan2");
     }
 
     [Fact]
@@ -121,20 +129,18 @@ public class RepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task PaymentTransactionRepository_AddAsync_ShouldHandleDbUpdateException()
+    public async Task PaymentTransactionRepository_AddAsync_ShouldPersistTransaction()
     {
         // Arrange
         var subId = Guid.NewGuid();
         var tx = new PaymentTransaction(subId, Money.FromDecimal(10));
-        tx.Settle("tx_duplicate");
+        tx.Settle("tx_new");
 
-        // Mocking the behavior for a unique constraint violation is hard with InMemoryDatabase.
-        // But we can test the repository logic by ensuring it calls SaveChanges.
-        // To test the catch block specifically, we'd need a real Postgres or a very complex mock of DbContext.
-        // Given the goal is increasing coverage, I will ensure all other paths are covered.
-
+        // Act
         await _transactionRepository.AddAsync(tx);
-        var saved = await _transactionRepository.GetByExternalIdAsync("tx_duplicate");
+        
+        // Assert
+        var saved = await _transactionRepository.GetByExternalIdAsync("tx_new");
         saved.Should().NotBeNull();
     }
 
