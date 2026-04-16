@@ -83,6 +83,7 @@
     <ProjectReference Include="..\..\src\Modules\Payments\Application\MeAjudaAi.Modules.Payments.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Payments\Infrastructure\MeAjudaAi.Modules.Payments.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Payments\API\MeAjudaAi.Modules.Payments.API.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\Tests\MeAjudaAi.Modules.Payments.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>
