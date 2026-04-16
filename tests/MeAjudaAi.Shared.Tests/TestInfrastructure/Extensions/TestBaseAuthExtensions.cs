@@ -42,6 +42,37 @@ public static class TestBaseAuthExtensions
     }
 
     /// <summary>
+    /// Configura um usuário prestador para o teste usando autenticação baseada em instância
+    /// </summary>
+    public static void AuthenticateAsProviderInstance(this object testBase,
+        Guid providerId,
+        ITestAuthenticationConfiguration? authConfig = null,
+        string userId = "provider-id",
+        string username = "provider",
+        string email = "provider@test.com")
+    {
+        if (authConfig != null)
+        {
+            authConfig.ConfigureProvider(userId, username, providerId, email);
+            return;
+        }
+        
+        if (testBase is ITestAuthenticationConfiguration config)
+        {
+            config.ConfigureProvider(userId, username, providerId, email);
+            return;
+        }
+
+        var prop = testBase.GetType().GetProperty("AuthConfig") ?? 
+                 testBase.GetType().GetProperty("Auth");
+        var configValue = prop?.GetValue(testBase);
+        if (configValue is ITestAuthenticationConfiguration instanceConfig)
+        {
+            instanceConfig.ConfigureProvider(userId, username, providerId, email);
+        }
+    }
+
+    /// <summary>
     /// Configura usuário customizado para o teste
     /// </summary>
     public static void AuthenticateAsCustomUser(this object testBase,

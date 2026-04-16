@@ -83,7 +83,7 @@ public class PaymentsApiTests : BaseApiTest
         var providerId = Guid.NewGuid();
         
         // Setup: Autenticar como o dono do provider para passar no ownership check
-        this.AuthenticateAsProvider(providerId);
+        AuthConfig.ConfigureProvider("provider-id", "provider", providerId);
 
         // Setup: Criar uma assinatura ativa primeiro
         using var scope = Services.CreateScope();
@@ -113,7 +113,7 @@ public class PaymentsApiTests : BaseApiTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        this.AuthenticateAsProvider(providerId);
+        AuthConfig.ConfigureProvider("provider-id", "provider", providerId);
         var request = new { providerId, returnUrl = "account" };
 
         // Act
@@ -129,7 +129,7 @@ public class PaymentsApiTests : BaseApiTest
         // Arrange
         var providerId = Guid.NewGuid();
         var otherProviderId = Guid.NewGuid();
-        this.AuthenticateAsProvider(otherProviderId); // Authenticated as different provider
+        AuthConfig.ConfigureProvider("provider-id", "provider", otherProviderId); // Authenticated as different provider
         var request = new { providerId, returnUrl = "account" };
 
         // Act
@@ -143,6 +143,9 @@ public class PaymentsApiTests : BaseApiTest
     public async Task GetBillingPortal_WithEmptyProviderId_ShouldReturnBadRequest()
     {
         // Arrange
+        var providerId = Guid.NewGuid();
+        AuthConfig.ConfigureProvider("provider-id", "provider", providerId);
+        
         var request = new { providerId = Guid.Empty, returnUrl = "account" };
 
         // Act

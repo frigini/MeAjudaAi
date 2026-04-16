@@ -8,6 +8,7 @@ public interface ITestAuthenticationConfiguration
     string? UserId { get; }
     string? UserName { get; }
     string? Email { get; }
+    Guid? ProviderId { get; }
     IReadOnlyList<string>? Roles { get; }
     bool HasUser { get; }
     bool AllowUnauthenticated { get; }

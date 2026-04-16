@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using System.Text.Encodings.Web;
+using MeAjudaAi.Shared.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -41,4 +43,16 @@ public class InstanceTestAuthenticationHandler(
     protected override string GetTestUserEmail() => _configuration.Email ?? base.GetTestUserEmail();
     protected override string[] GetTestUserRoles() => _configuration.Roles?.ToArray() ?? base.GetTestUserRoles();
     protected override string GetAuthenticationScheme() => SchemeName;
+
+    protected override Claim[] CreateStandardClaims()
+    {
+        var claims = base.CreateStandardClaims().ToList();
+        
+        if (_configuration.ProviderId.HasValue)
+        {
+            claims.Add(new Claim("provider_id", _configuration.ProviderId.Value.ToString(), ClaimValueTypes.String));
+        }
+        
+        return [.. claims];
+    }
 }

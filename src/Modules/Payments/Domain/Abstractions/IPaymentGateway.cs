@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 
 namespace MeAjudaAi.Modules.Payments.Domain.Abstractions;
@@ -9,6 +10,7 @@ public interface IPaymentGateway
     Task<string?> CreateBillingPortalSessionAsync(string externalCustomerId, string returnUrl, CancellationToken cancellationToken);
 }
 
+[ExcludeFromCodeCoverage]
 public record SubscriptionGatewayResult(
     bool Success,
     string? ExternalSubscriptionId,
