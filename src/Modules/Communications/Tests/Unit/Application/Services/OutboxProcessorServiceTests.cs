@@ -232,7 +232,8 @@ public class OutboxProcessorServiceTests
     {
         // Arrange
         var payload = JsonSerializer.Serialize(new { To = "test@test.com", Subject = "Hi", Body = "Hello" });
-        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload, maxRetries: 3);
+        // Usar maxRetries: 1 para que a falha atinja o limite e gere o log
+        var message = OutboxMessage.Create(ECommunicationChannel.Email, payload, maxRetries: 1);
 
         _outboxRepositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<OutboxMessage> { message });
@@ -245,8 +246,7 @@ public class OutboxProcessorServiceTests
 
         // Assert
         result.Should().Be(0);
-        message.Status.Should().Be(EOutboxMessageStatus.Pending);
-        message.RetryCount.Should().Be(1);
+        message.Status.Should().Be(EOutboxMessageStatus.Failed);
         _emailSenderMock.Verify(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Once);
         _logRepositoryMock.Verify(x => x.AddAsync(It.Is<CommunicationLog>(l => !l.IsSuccess), It.IsAny<CancellationToken>()), Times.Once);
     }

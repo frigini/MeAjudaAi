@@ -951,8 +951,7 @@
       "meajudaai.modules.payments.api": {
         "type": "Project",
         "dependencies": {
-          "MeAjudaAi.Modules.Payments.Infrastructure": "[1.0.0, )",
-          "MeAjudaAi.Modules.Providers.Application": "[1.0.0, )"
+          "MeAjudaAi.Modules.Payments.Infrastructure": "[1.0.0, )"
         }
       },
       "meajudaai.modules.payments.application": {

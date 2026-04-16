@@ -62,7 +62,7 @@ public class MessagingExtensionsTests
         options.Port.Should().Be(5672);
         options.Username.Should().Be("guest");
         options.Password.Should().Be("guest");
-        options.DefaultQueueName.Should().Be("MeAjudaAi-events");
+        options.DefaultQueueName.Should().Be("meajudaai-events");
     }
 
     [Fact]

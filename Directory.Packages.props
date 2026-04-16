@@ -114,7 +114,7 @@
     <PackageVersion Include="Rebus" Version="8.9.0" />
     <PackageVersion Include="Rebus.RabbitMq" Version="10.1.1" />
     <PackageVersion Include="Rebus.ServiceProvider" Version="10.7.2" />
-    <!-- Health Checks -->
+    <!-- Autenticação e Autorização -->
     <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.Redis" Version="9.0.0" />

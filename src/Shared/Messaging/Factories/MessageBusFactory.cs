@@ -1,6 +1,6 @@
 using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Messaging.NoOp;
-using MeAjudaAi.Shared.Messaging.RabbitMq;
+using MeAjudaAi.Shared.Messaging.Rebus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -10,7 +10,7 @@ namespace MeAjudaAi.Shared.Messaging.Factories;
 
 /// <summary>
 /// Implementação do factory que seleciona o MessageBus baseado no ambiente:
-/// - Default: RabbitMQ (se habilitado)
+/// - Default: Rebus (se habilitado)
 /// - Fallback: NoOpMessageBus para testes sem RabbitMQ
 /// </summary>
 public class MessageBusFactory : IMessageBusFactory
@@ -34,43 +34,23 @@ public class MessageBusFactory : IMessageBusFactory
 
     public IMessageBus CreateMessageBus()
     {
-        // Check if RabbitMQ is explicitly disabled
-        var rabbitMqEnabled = _configuration.GetValue<bool?>("RabbitMQ:Enabled");
+        // Check if Messaging is enabled
+        var isEnabled = _configuration.GetValue<bool>("Messaging:Enabled", true);
 
-        if (_environment.IsDevelopment() || _environment.IsEnvironment(EnvironmentNames.Testing))
+        if (_environment.IsEnvironment(EnvironmentNames.Testing) || !isEnabled)
         {
-            // Use RabbitMQ only if explicitly enabled or not configured (default behavior)
-            if (rabbitMqEnabled != false)
-            {
-                try
-                {
-                    _logger.LogInformation("Creating RabbitMQ MessageBus for environment: {Environment}", _environment.EnvironmentName);
-                    return _serviceProvider.GetRequiredService<RabbitMqMessageBus>();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to create RabbitMQ MessageBus, falling back to NoOp for testing");
-                    return _serviceProvider.GetRequiredService<NoOpMessageBus>();
-                }
-            }
-            else
-            {
-                _logger.LogInformation("RabbitMQ is disabled, using NoOp MessageBus for environment: {Environment}", _environment.EnvironmentName);
-                return _serviceProvider.GetRequiredService<NoOpMessageBus>();
-            }
+            return _serviceProvider.GetRequiredService<NoOpMessageBus>();
         }
-        else
+
+        try
         {
-            try
-            {
-                _logger.LogInformation("Creating RabbitMQ MessageBus as default for environment: {Environment}", _environment.EnvironmentName);
-                return _serviceProvider.GetRequiredService<RabbitMqMessageBus>();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to initialize RabbitMQ MessageBus for environment {Environment}", _environment.EnvironmentName);
-                throw new InvalidOperationException($"Failed to initialize RabbitMQ MessageBus for environment {_environment.EnvironmentName}", ex);
-            }
+            _logger.LogInformation("Creating Rebus MessageBus for environment: {Environment}", _environment.EnvironmentName);
+            return _serviceProvider.GetRequiredService<RebusMessageBus>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to initialize Rebus MessageBus for environment {Environment}", _environment.EnvironmentName);
+            throw new InvalidOperationException($"Failed to initialize Rebus MessageBus for environment {_environment.EnvironmentName}", ex);
         }
     }
 }

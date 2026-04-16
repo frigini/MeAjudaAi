@@ -9,7 +9,7 @@ public sealed class RabbitMqOptions
     public const string SectionName = "Messaging:RabbitMQ";
 
     public string ConnectionString { get; set; } = string.Empty;
-    public string DefaultQueueName { get; set; } = "MeAjudaAi-events";
+    public string DefaultQueueName { get; set; } = "meajudaai-events";
     public string VirtualHost { get; set; } = "/";
     public string Username { get; set; } = "guest";
     public string Password { get; set; } = "guest";
@@ -19,11 +19,15 @@ public sealed class RabbitMqOptions
 
     public Dictionary<string, string> DomainQueues { get; set; } = new()
     {
-        ["Users"] = "users-events"
-        //["ServiceProvider"] = "serviceprovider-events",
-        //["Customer"] = "customer-events",
-        //["Billing"] = "billing-events",
-        //["Notification"] = "notification-events"
+        ["Users"] = "users-events",
+        ["Payments"] = "payments-events",
+        ["Communications"] = "communications-events",
+        ["Ratings"] = "ratings-events",
+        ["Providers"] = "providers-events",
+        ["Documents"] = "documents-events",
+        ["Locations"] = "locations-events",
+        ["SearchProviders"] = "searchproviders-events",
+        ["ServiceCatalogs"] = "servicecatalogs-events"
     };
 
     public string GetQueueForDomain(string domain)

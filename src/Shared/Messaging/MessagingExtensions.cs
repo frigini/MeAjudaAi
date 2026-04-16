@@ -6,11 +6,15 @@ using MeAjudaAi.Shared.Messaging.Handlers;
 using MeAjudaAi.Shared.Messaging.NoOp;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
+using MeAjudaAi.Shared.Messaging.Rebus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Rebus.Config;
+using Rebus.Routing.TypeBased;
+using Rebus.RabbitMq;
 
 namespace MeAjudaAi.Shared.Messaging;
 
@@ -44,17 +48,9 @@ public static class MessagingExtensions
         }
 
         // Registro direto das configurações do RabbitMQ
-        services.AddSingleton(provider =>
-        {
-            var options = new RabbitMqOptions();
-            ConfigureRabbitMqOptions(options, configuration);
-
-            // Validação manual
-            if (string.IsNullOrWhiteSpace(options.ConnectionString))
-                throw new InvalidOperationException("RabbitMQ connection string not found. Ensure Aspire rabbitmq connection is available or configure 'Messaging:RabbitMQ:ConnectionString' in appsettings.json");
-
-            return options;
-        });
+        var rabbitMqOptions = new RabbitMqOptions();
+        ConfigureRabbitMqOptions(rabbitMqOptions, configuration);
+        services.AddSingleton(rabbitMqOptions);
 
         // Registro direto das configurações do MessageBus
         services.AddSingleton(provider =>
@@ -67,16 +63,23 @@ public static class MessagingExtensions
         services.AddSingleton<IEventTypeRegistry, EventTypeRegistry>();
 
         // Registrar implementações específicas do MessageBus condicionalmente baseado no ambiente
-        // para reduzir o risco de resolução acidental em ambientes de teste
         if (environment.IsEnvironment(EnvironmentNames.Testing))
         {
-            // Testing: Registra apenas NoOp - mocks serão adicionados via AddMessagingMocks()
             services.TryAddSingleton<NoOp.NoOpMessageBus>();
         }
         else
         {
-            // Default: Registra RabbitMQ e NoOp (fallback)
-            services.TryAddSingleton<RabbitMqMessageBus>();
+            // Configuração do Rebus
+            services.AddRebus((configure, provider) => configure
+                .Transport(t => t.UseRabbitMq(rabbitMqOptions.ConnectionString, rabbitMqOptions.DefaultQueueName))
+                .Options(o => 
+                {
+                    o.SetMaxParallelism(10);
+                    o.SetNumberOfWorkers(1);
+                })
+                .Routing(r => r.TypeBased()));
+
+            services.TryAddSingleton<RebusMessageBus>();
             services.TryAddSingleton<NoOp.NoOpMessageBus>();
         }
 
@@ -92,13 +95,6 @@ public static class MessagingExtensions
 
         // Adicionar sistema de Dead Letter Queue
         services.AddDeadLetterQueue(configuration);
-
-        // TODO(#248): Re-enable after Rebus v3 migration completes.
-        // Blockers: (1) Rebus.ServiceProvider v10+ required for .NET 10 compatibility,
-        // (2) Breaking changes in IHandleMessages<T> interface signatures,
-        // (3) RebusConfigurer fluent API changes require ConfigureRebus() refactor.
-        // Timeline: Planned for Sprint 5 after stabilizing current MassTransit/RabbitMQ integration.
-        // Rebus configuration temporariamente desabilitada
 
         return services;
     }

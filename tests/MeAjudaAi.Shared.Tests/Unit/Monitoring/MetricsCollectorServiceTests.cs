@@ -118,14 +118,14 @@ public sealed class MetricsCollectorServiceTests : IDisposable
         }
         catch (OperationCanceledException) { }
 
-        // Assert
+        // Assert - Verifica se logou o aviso no CollectMetrics
         _loggerMock.Verify(
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Failed to collect some metrics") || v.ToString()!.Contains("Failed to get active users count")),
                 It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()), 
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.AtLeastOnce);
     }
 
