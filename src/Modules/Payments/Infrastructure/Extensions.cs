@@ -17,10 +17,9 @@ public static class Extensions
     {
         services.AddDbContext<PaymentsDbContext>((serviceProvider, options) =>
         {
-            var resolvedConfig = serviceProvider.GetRequiredService<IConfiguration>();
-            var connStr = resolvedConfig.GetConnectionString("Payments") ??
-                          resolvedConfig.GetConnectionString("DefaultConnection") ?? 
-                          resolvedConfig.GetConnectionString("meajudaai-db");
+            var connStr = configuration.GetConnectionString("Payments") ??
+                          configuration.GetConnectionString("DefaultConnection") ?? 
+                          configuration.GetConnectionString("meajudaai-db");
 
             if (string.IsNullOrWhiteSpace(connStr) && MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
             {

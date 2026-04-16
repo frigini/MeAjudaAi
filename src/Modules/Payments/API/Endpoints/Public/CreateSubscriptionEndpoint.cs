@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
+using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Domain.ValueObjects;
+using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -16,6 +17,7 @@ public class CreateSubscriptionEndpoint : IEndpoint
         app.MapPost("subscriptions", async (
             [FromBody] CreateSubscriptionRequest request,
             [FromServices] ICommandDispatcher dispatcher,
+            [FromServices] IQueryDispatcher queryDispatcher,
             CancellationToken cancellationToken) =>
         {
             if (request.ProviderId == Guid.Empty)
@@ -26,6 +28,13 @@ public class CreateSubscriptionEndpoint : IEndpoint
             if (string.IsNullOrWhiteSpace(request.PlanId))
             {
                 return Results.BadRequest(new { error = "PlanId inválido." });
+            }
+
+            // Valida se o prestador existe
+            var providerResult = await queryDispatcher.QueryAsync<GetProviderByIdQuery, MeAjudaAi.Contracts.Functional.Result<MeAjudaAi.Modules.Providers.Application.DTOs.ProviderDto?>>(new GetProviderByIdQuery(request.ProviderId), cancellationToken);
+            if (providerResult.IsFailure || providerResult.Value == null)
+            {
+                return Results.NotFound(new { error = "Prestador não encontrado." });
             }
 
             var command = new CreateSubscriptionCommand(request.ProviderId, request.PlanId);

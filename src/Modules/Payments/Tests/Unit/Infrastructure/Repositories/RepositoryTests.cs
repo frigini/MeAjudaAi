@@ -118,11 +118,11 @@ public class RepositoryTests : IDisposable
 
         result.Should().NotBeNull();
         result!.ExternalTransactionId.Should().Be("tx_123");
-        }
+    }
 
-        [Fact]
-        public async Task PaymentTransactionRepository_AddAsync_ShouldHandleDbUpdateException()
-        {
+    [Fact]
+    public async Task PaymentTransactionRepository_AddAsync_ShouldHandleDbUpdateException()
+    {
         // Arrange
         var subId = Guid.NewGuid();
         var tx = new PaymentTransaction(subId, Money.FromDecimal(10));
@@ -136,8 +136,8 @@ public class RepositoryTests : IDisposable
         await _transactionRepository.AddAsync(tx);
         var saved = await _transactionRepository.GetByExternalIdAsync("tx_duplicate");
         saved.Should().NotBeNull();
-        }
-        }
+    }
+
     public void Dispose()
     {
         _context.Database.EnsureDeleted();

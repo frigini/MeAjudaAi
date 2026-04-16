@@ -17,7 +17,8 @@
     "services": "Services",
     "reviews": "Reviews",
     "review_one": "{{count}} review",
-    "review_other": "{{count}} reviews"
+    "review_other": "{{count}} reviews",
+    "loadingProfile": "Loading provider profile..."
   },
   "common": {
     "loading": "Loading...",

@@ -134,5 +134,8 @@ public class UserRegisteredIntegrationEventHandlerTests
 
         // Assert
         await act.Should().ThrowAsync<Exception>().WithMessage("Generic database error");
+        _logRepositoryMock.Verify(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
+        _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

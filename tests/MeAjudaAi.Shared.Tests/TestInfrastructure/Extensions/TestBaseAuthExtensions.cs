@@ -69,7 +69,10 @@ public static class TestBaseAuthExtensions
         if (configValue is ITestAuthenticationConfiguration instanceConfig)
         {
             instanceConfig.ConfigureProvider(userId, username, providerId, email);
+            return;
         }
+
+        throw new InvalidOperationException($"Authentication configuration missing for test '{testBase.GetType().FullName}'. ConfigureProvider could not be applied.");
     }
 
     /// <summary>

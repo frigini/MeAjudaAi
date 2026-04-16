@@ -19,6 +19,7 @@ public class TestAuthenticationConfiguration : ITestAuthenticationConfiguration
         UserName = userName;
         Email = email;
         Roles = roles;
+        ProviderId = null;
     }
 
     public void ConfigureAdmin(string userId = "admin-id", string userName = "admin", string email = "admin@test.com")

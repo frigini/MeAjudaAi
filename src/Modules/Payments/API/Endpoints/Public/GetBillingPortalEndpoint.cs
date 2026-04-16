@@ -49,7 +49,7 @@ public class GetBillingPortalEndpoint : IEndpoint
         var clientBaseUrl = configuration["ClientBaseUrl"];
         if (string.IsNullOrEmpty(clientBaseUrl))
         {
-            throw new InvalidOperationException("Configuração 'ClientBaseUrl' ausente. Não é possível resolver a URL de retorno.");
+            throw new InvalidOperationException("Missing 'ClientBaseUrl' configuration; cannot resolve return URL.");
         }
         
         var resolvedReturnUrl = request.ReturnUrl?.ToLowerInvariant() switch

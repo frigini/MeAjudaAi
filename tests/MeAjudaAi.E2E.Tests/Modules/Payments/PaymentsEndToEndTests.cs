@@ -114,8 +114,6 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
             throw new Exception($"Webhook failed with {webhookResponse.StatusCode}. Error Body: {errorBody}");
         }
 
-        webhookResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-
         // 3. Verificar que a mensagem foi salva na inbox (teste síncrono do endpoint)
         await _fixture.WithServiceScopeAsync(async services =>
         {

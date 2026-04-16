@@ -27,9 +27,9 @@ public class StripePaymentGateway : IPaymentGateway
         {
             throw new ArgumentException("Stripe API key is not configured. Please set Stripe:ApiKey in configuration.");
         }
-        
-        _successUrl = configuration["Payments:SuccessUrl"] ?? "";
-        _cancelUrl = configuration["Payments:CancelUrl"] ?? "";
+
+        _successUrl = configuration["Payments:SuccessUrl"] ?? throw new ArgumentException("Payments:SuccessUrl is missing in configuration.");
+        _cancelUrl = configuration["Payments:CancelUrl"] ?? throw new ArgumentException("Payments:CancelUrl is missing in configuration.");
 
         _requestOptions = new RequestOptions
         {
@@ -116,7 +116,7 @@ public class StripePaymentGateway : IPaymentGateway
         }
         catch (StripeException ex)
         {
-            _logger.LogError(ex, "Erro no Stripe ao criar sessão do portal para o Cliente {CustomerId}", externalCustomerId);
+            _logger.LogError(ex, "Stripe error creating billing portal session for Customer {CustomerId}", externalCustomerId);
             return null;
         }
     }

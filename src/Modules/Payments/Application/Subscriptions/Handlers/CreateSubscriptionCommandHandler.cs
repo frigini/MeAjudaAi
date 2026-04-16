@@ -5,16 +5,19 @@ using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Exceptions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
 
 public class CreateSubscriptionCommandHandler(
     ISubscriptionRepository subscriptionRepository,
-    IPaymentGateway paymentGateway) : ICommandHandler<CreateSubscriptionCommand, string>
+    IPaymentGateway paymentGateway,
+    IConfiguration configuration,
+    ILogger<CreateSubscriptionCommandHandler> logger) : ICommandHandler<CreateSubscriptionCommand, string>
 {
     public async Task<string> HandleAsync(CreateSubscriptionCommand command, CancellationToken cancellationToken = default)
     {
-        // Obtendo detalhes do plano de uma fonte confiável (hardcoded para exemplo, deveria ser repositório)
         var (amount, currency) = GetPlanDetails(command.PlanId);
         var moneyAmount = Money.FromDecimal(amount, currency);
         var subscription = new Subscription(command.ProviderId, command.PlanId, moneyAmount);
@@ -34,16 +37,20 @@ public class CreateSubscriptionCommandHandler(
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Payment provider communication failure for Provider {ProviderId}", command.ProviderId);
             throw new SubscriptionCreationException("Falha ao comunicar com o provedor de pagamento.", ex);
         }
 
         if (!result.Success)
         {
+            logger.LogWarning("Gateway failed to create subscription for Provider {ProviderId}: {ErrorMessage}", 
+                command.ProviderId, result.ErrorMessage);
             throw new SubscriptionCreationException($"Falha ao criar assinatura no gateway: {result.ErrorMessage}");
         }
 
         if (string.IsNullOrWhiteSpace(result.CheckoutUrl))
         {
+            logger.LogError("Missing checkout URL for Provider {ProviderId}", command.ProviderId);
             throw new SubscriptionCreationException("URL de checkout ausente no resultado do gateway.");
         }
 
@@ -57,10 +64,12 @@ public class CreateSubscriptionCommandHandler(
         }
         catch (Exception ex)
         {
-            // Compensação: Cancelar no gateway se falhar a persistência local
+            // Compensation: Cancel in gateway if local persistence fails
             if (!string.IsNullOrEmpty(result.ExternalSubscriptionId))
             {
-                await paymentGateway.CancelSubscriptionAsync(result.ExternalSubscriptionId, cancellationToken);
+                logger.LogInformation("Compensating: cancelling external subscription {ExternalSubscriptionId} due to local failure", 
+                    result.ExternalSubscriptionId);
+                await paymentGateway.CancelSubscriptionAsync(result.ExternalSubscriptionId, CancellationToken.None);
             }
             
             throw new SubscriptionCreationException("Falha ao persistir assinatura localmente. Operação revertida no gateway.", ex);
@@ -69,14 +78,24 @@ public class CreateSubscriptionCommandHandler(
         return result.CheckoutUrl;
     }
 
-    private static (decimal Amount, string Currency) GetPlanDetails(string planId)
+    private (decimal Amount, string Currency) GetPlanDetails(string planId)
     {
-        // Mapeamento confiável de planos (Id do Preço no Stripe -> Valor/Moeda)
-        return planId switch
+        var planSection = configuration.GetSection($"Payments:Plans:{planId}");
+        if (!planSection.Exists())
         {
-            "price_premium_monthly" => (99.90m, "BRL"),
-            "price_gold_monthly" => (199.90m, "BRL"),
-            _ => throw new SubscriptionCreationException($"Plano inválido ou não suportado: {planId}")
-        };
+            logger.LogWarning("Invalid plan attempted: {PlanId}", planId);
+            throw new SubscriptionCreationException($"Plano inválido ou não suportado: {planId}");
+        }
+
+        var amount = planSection.GetValue<decimal?>("Amount");
+        var currency = planSection.GetValue<string>("Currency");
+
+        if (amount == null || string.IsNullOrEmpty(currency))
+        {
+            logger.LogError("Incomplete configuration for plan: {PlanId}", planId);
+            throw new SubscriptionCreationException($"Configuração incompleta para o plano: {planId}");
+        }
+
+        return (amount.Value, currency);
     }
 }

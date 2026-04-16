@@ -58,8 +58,7 @@ public class ProcessInboxJob(
                         var stripeEvent = EventUtility.ParseEvent(message.Content);
                         await ProcessStripeEventAsync(stripeEvent, subscriptionRepository, paymentTransactionRepository, stoppingToken);
 
-                        message.ProcessedAt = DateTime.UtcNow;
-                        message.Error = null;
+                        message.MarkAsProcessed();
                     }
                     catch (OperationCanceledException)
                     {
@@ -69,9 +68,8 @@ public class ProcessInboxJob(
                     catch (Exception ex)
                     {
                         logger.LogError(ex, "Error processing inbox message {Id}", message.Id);
-                        message.Error = ex.Message;
-                        message.RetryCount++;
-                        message.NextAttemptAt = DateTime.UtcNow.AddMinutes(Math.Pow(2, message.RetryCount)); // Backoff exponencial
+                        message.IncrementRetry();
+                        message.RecordError(ex.Message);
                     }
                 }
 

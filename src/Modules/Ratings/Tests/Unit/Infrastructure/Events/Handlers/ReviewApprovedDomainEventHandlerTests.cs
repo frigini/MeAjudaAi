@@ -118,6 +118,10 @@ public class ReviewApprovedDomainEventHandlerTests
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("DB error");
+        _messageBusMock.Verify(m => m.PublishAsync(
+            It.IsAny<ReviewApprovedIntegrationEvent>(),
+            It.IsAny<string?>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

@@ -17,9 +17,10 @@ public class PaymentTransactionRepository(PaymentsDbContext context) : IPaymentT
         }
         catch (DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException { SqlState: "23505" })
         {
-            // Valida se a violação é especificamente no índice de transação externa
             var databaseException = PostgreSqlExceptionProcessor.ProcessException(ex);
-            if (databaseException.Message.Contains("IX_transactions_external_transaction_id", StringComparison.OrdinalIgnoreCase))
+            
+            if (databaseException is UniqueConstraintException uniqueEx && 
+                "IX_transactions_external_transaction_id".Equals(uniqueEx.ConstraintName, StringComparison.OrdinalIgnoreCase))
             {
                 // Violação de chave única esperada para garantir idempotência.
                 context.Entry(transaction).State = EntityState.Detached;

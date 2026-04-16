@@ -45,6 +45,7 @@ public static class AuthConstants
         public const string TenantId = "tenant_id";
         public const string Organization = "organization";
         public const string IsSystemAdmin = "is_system_admin";
+        public const string ProviderId = "provider_id";
     }
 
     /// <summary>

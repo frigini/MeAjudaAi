@@ -1243,7 +1243,8 @@
       "meajudaai.modules.payments.api": {
         "type": "Project",
         "dependencies": {
-          "MeAjudaAi.Modules.Payments.Infrastructure": "[1.0.0, )"
+          "MeAjudaAi.Modules.Payments.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.Providers.Application": "[1.0.0, )"
         }
       },
       "meajudaai.modules.payments.application": {
@@ -1263,7 +1264,6 @@
         "dependencies": {
           "MeAjudaAi.Modules.Payments.Application": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.6, )",
-          "Microsoft.EntityFrameworkCore.Design": "[10.0.6, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
           "Stripe.net": "[51.0.0, )"
         }

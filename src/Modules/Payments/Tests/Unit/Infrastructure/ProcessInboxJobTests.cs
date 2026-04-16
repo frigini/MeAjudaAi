@@ -29,16 +29,10 @@ public class ProcessInboxJobTests
         _paymentTransactionRepositoryMock = new Mock<IPaymentTransactionRepository>();
     }
 
-    private Event CreateMockEvent(string type, object dataObject)
+    private Event CreateMockEvent(string json)
     {
-        var stripeEvent = new Event { Type = type, Id = "evt_mock" };
-        var eventData = new EventData();
-        
-        // Force the object into the event data via reflection
-        typeof(EventData).GetProperty("Object")?.SetValue(eventData, dataObject);
-        typeof(Event).GetProperty("Data")?.SetValue(stripeEvent, eventData);
-        
-        return stripeEvent;
+        // Usa o utilitário nativo do Stripe para processar o JSON sem reflexão
+        return EventUtility.ParseEvent(json, throwOnApiVersionMismatch: false);
     }
 
     [Fact]
@@ -49,14 +43,24 @@ public class ProcessInboxJobTests
         var externalSubId = "sub_123";
         var customerId = "cus_123";
         
-        // Use reflection to create a session-like object that the handler can cast to dynamic
-        var session = new MockStripeObject();
-        session.Set("Id", "cs_1");
-        session.Set("SubscriptionId", externalSubId);
-        session.Set("CustomerId", customerId);
-        session.Set("Metadata", new Dictionary<string, string> { { "provider_id", providerId.ToString() } });
+        var json = $$"""
+        {
+            "id": "evt_1",
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": "cs_1",
+                    "subscription": "{{externalSubId}}",
+                    "customer": "{{customerId}}",
+                    "metadata": {
+                        "provider_id": "{{providerId}}"
+                    }
+                }
+            }
+        }
+        """;
 
-        var stripeEvent = CreateMockEvent("checkout.session.completed", session);
+        var stripeEvent = CreateMockEvent(json);
         var subscription = new DomainSubscription(providerId, "plan", Money.FromDecimal(10));
         
         _repositoryMock.Setup(x => x.GetLatestByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
@@ -82,25 +86,33 @@ public class ProcessInboxJobTests
         // Arrange
         var externalSubId = "sub_123";
         var nextPeriodEnd = DateTime.UtcNow.AddMonths(1);
+        var nextPeriodEndUnix = new DateTimeOffset(nextPeriodEnd).ToUnixTimeSeconds();
         
-        var invoice = new MockStripeObject();
-        invoice.Set("Id", "in_1");
-        invoice.Set("SubscriptionId", externalSubId);
-        invoice.Set("AmountPaid", 9990L); // 99.90
-        invoice.Set("Currency", "BRL");
-        
-        var period = new MockStripeObject();
-        period.Set("End", nextPeriodEnd);
-        
-        var line = new MockStripeObject();
-        line.Set("Period", period);
-        
-        var lines = new MockStripeObject();
-        lines.Set("Data", new List<object> { line });
-        
-        invoice.Set("Lines", lines);
+        var json = $$"""
+        {
+            "id": "evt_2",
+            "type": "invoice.paid",
+            "data": {
+                "object": {
+                    "id": "in_1",
+                    "subscription": "{{externalSubId}}",
+                    "amount_paid": 9990,
+                    "currency": "brl",
+                    "lines": {
+                        "data": [
+                            {
+                                "period": {
+                                    "end": {{nextPeriodEndUnix}}
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        """;
 
-        var stripeEvent = CreateMockEvent("invoice.paid", invoice);
+        var stripeEvent = CreateMockEvent(json);
         var subscription = new DomainSubscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
         subscription.Activate(externalSubId, "cus_123", DateTime.UtcNow.AddDays(1));
         
@@ -119,7 +131,7 @@ public class ProcessInboxJobTests
 
         // Assert
         subscription.Status.Should().Be(ESubscriptionStatus.Active);
-        subscription.ExpiresAt.Should().BeCloseTo(nextPeriodEnd, TimeSpan.FromSeconds(1));
+        subscription.ExpiresAt.Should().BeCloseTo(nextPeriodEnd, TimeSpan.FromSeconds(2));
         _repositoryMock.Verify(x => x.UpdateAsync(subscription, It.IsAny<CancellationToken>()), Times.Once);
         _paymentTransactionRepositoryMock.Verify(x => x.AddAsync(It.IsAny<PaymentTransaction>(), It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -129,10 +141,19 @@ public class ProcessInboxJobTests
     {
         // Arrange
         var externalSubId = "sub_123";
-        var stripeSubscription = new MockStripeObject();
-        stripeSubscription.Set("Id", externalSubId);
+        var json = $$"""
+        {
+            "id": "evt_3",
+            "type": "customer.subscription.deleted",
+            "data": {
+                "object": {
+                    "id": "{{externalSubId}}"
+                }
+            }
+        }
+        """;
 
-        var stripeEvent = CreateMockEvent("customer.subscription.deleted", stripeSubscription);
+        var stripeEvent = CreateMockEvent(json);
         var subscription = new DomainSubscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
         subscription.Activate(externalSubId, "cus_123", DateTime.UtcNow.AddMonths(1));
         
@@ -154,31 +175,26 @@ public class ProcessInboxJobTests
     [Fact]
     public async Task ProcessStripeEventAsync_WhenEventObjectIsNull_ShouldThrow()
     {
-        // Arrange
-        var stripeEvent = new Event { Type = "checkout.session.completed", Data = new EventData { Object = null } };
+        // Arrange - Criamos um evento onde o campo object dentro de data está faltando ou nulo
+        var json = """
+        {
+            "id": "evt_err",
+            "type": "checkout.session.completed",
+            "data": { }
+        }
+        """;
+        var stripeEvent = CreateMockEvent(json);
+        
         var job = new ProcessInboxJob(_serviceProviderMock.Object, _loggerMock.Object);
         var method = typeof(ProcessInboxJob).GetMethod("ProcessStripeEventAsync", 
             BindingFlags.NonPublic | BindingFlags.Instance);
 
-        // Act
-        var act = () => method!.Invoke(job, new object[] { stripeEvent, _repositoryMock.Object, _paymentTransactionRepositoryMock.Object, CancellationToken.None }) as Task;
-
-        // Assert
-        var task = act();
-        Assert.NotNull(task);
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await task!);
+        // Act & Assert
+        var task = (Task)method!.Invoke(job, new object[] { stripeEvent, _repositoryMock.Object, _paymentTransactionRepositoryMock.Object, CancellationToken.None })!;
+        
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => task);
         exception.Message.Should().Contain("Session data is missing");
     }
 
-    // A class that session/invoice/etc will be cast to dynamic
-    private class MockStripeObject : System.Dynamic.DynamicObject, IHasObject
-    {
-        private readonly Dictionary<string, object> _properties = new();
-        public void Set(string name, object value) => _properties[name] = value;
-        public override bool TryGetMember(System.Dynamic.GetMemberBinder binder, out object? result)
-            => _properties.TryGetValue(binder.Name, out result);
-
-        // Explicitly implement IHasObject to satisfy the cast if needed
-        public string Object { get; set; } = "mock";
-    }
+    // A classe MockStripeObject foi removida pois agora usamos JSON real e EventUtility.ParseEvent
 }

@@ -14,7 +14,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ---
 
-## ✅ Sprint 11 - Monetização & Polimento (13 Abr - 27 Abr 2026) 🏆 [CONCLUÍDO] — Concluída em 15 Abr 2026
+## ✅ Sprint 11 - Monetização & Polimento (13-27 Abr 2026) 🏆 [CONCLUÍDO] — Concluída em 15 Abr 2026
 
 **Objetivo**: Habilitar o faturamento da plataforma e finalizar a experiência do usuário.
 

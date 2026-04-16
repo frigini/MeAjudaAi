@@ -33,7 +33,7 @@ public class StripeWebhookEndpoint : IEndpoint
 
                 if (string.IsNullOrEmpty(json))
                 {
-                    return Results.BadRequest(new { error = "Empty body" });
+                    return Results.BadRequest(new { error = "Corpo da requisição vazio" });
                 }
 
                 // No ambiente Testing, podemos ignorar a validação de assinatura
@@ -41,7 +41,7 @@ public class StripeWebhookEndpoint : IEndpoint
                 {
                     // throwOnApiVersionMismatch: false para evitar erros em testes com payloads manuais
                     var mockEvent = EventUtility.ParseEvent(json, throwOnApiVersionMismatch: false);
-                    if (mockEvent == null) return Results.BadRequest(new { error = "Failed to parse mock event" });
+                    if (mockEvent == null) return Results.BadRequest(new { error = "Falha ao processar evento mock" });
                     
                     await SaveToInbox(mockEvent.Type, json, dbContext, cancellationToken);
                     return Results.Ok();
@@ -49,8 +49,8 @@ public class StripeWebhookEndpoint : IEndpoint
 
                 if (string.IsNullOrWhiteSpace(webhookSecret))
                 {
-                    logger.LogError("Stripe:WebhookSecret is missing in configuration.");
-                    return Results.InternalServerError(new { error = "Webhook configuration error: Stripe:WebhookSecret is missing." });
+                    logger.LogError("Stripe:WebhookSecret não configurado.");
+                    return Results.InternalServerError(new { error = "Erro de configuração do webhook: Stripe:WebhookSecret ausente." });
                 }
 
                 var stripeEvent = EventUtility.ConstructEvent(
@@ -66,7 +66,7 @@ public class StripeWebhookEndpoint : IEndpoint
             catch (StripeException e)
             {
                 logger.LogWarning(e, "Stripe signature validation failed.");
-                return Results.BadRequest(new { error = e.Message });
+                return Results.BadRequest(new { error = "Requisição de webhook inválida" });
             }
             catch (Exception e)
             {
@@ -74,10 +74,10 @@ public class StripeWebhookEndpoint : IEndpoint
                 
                 if (environment.IsEnvironment("Testing"))
                 {
-                    return Results.InternalServerError(new { error = $"Internal error: {e.Message}" });
+                    return Results.InternalServerError(new { error = $"Erro interno: {e.Message}" });
                 }
 
-                return Results.InternalServerError(new { error = "Internal server error" });
+                return Results.InternalServerError(new { error = "Erro interno no servidor" });
             }
         })
         .AllowAnonymous()

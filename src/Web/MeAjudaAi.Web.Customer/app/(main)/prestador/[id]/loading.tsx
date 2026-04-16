@@ -1,9 +1,13 @@
+"use client";
+
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
 
 export default function Loading() {
+    const { t } = useTranslation();
     return (
         <div className="container mx-auto px-4 py-8" role="status" aria-live="polite">
-            <span className="sr-only">Carregando perfil do prestador...</span>
+            <span className="sr-only">{t('provider.loadingProfile')}</span>
             <div className="max-w-4xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12">
                     {/* Sidebar Area */}

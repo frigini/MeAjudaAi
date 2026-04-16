@@ -169,7 +169,7 @@ public class PaymentsApiTests : BaseApiTest
         var response = await Client.PostAsJsonAsync("/api/v1/payments/subscriptions", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]

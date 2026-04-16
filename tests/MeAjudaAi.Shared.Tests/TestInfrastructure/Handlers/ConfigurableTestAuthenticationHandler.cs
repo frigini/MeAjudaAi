@@ -122,18 +122,19 @@ public class ConfigurableTestAuthenticationHandler(
                 }
             }
 
-            // Always align IsSystemAdmin claim with config when a user config is present
+            // Alinha a claim IsSystemAdmin com a config quando presente
             baseClaims.RemoveAll(c => c.Type == AuthConstants.Claims.IsSystemAdmin);
             if (config.IsSystemAdmin)
             {
                 baseClaims.Add(new System.Security.Claims.Claim(AuthConstants.Claims.IsSystemAdmin, "true"));
             }
 
-            // Add provider_id claim if present
+            // Adiciona claim provider_id se presente
             if (config.ProviderId.HasValue)
             {
-                baseClaims.RemoveAll(c => c.Type == "provider_id");
-                baseClaims.Add(new System.Security.Claims.Claim("provider_id", config.ProviderId.Value.ToString()));
+                var pIdValue = config.ProviderId.Value.ToString();
+                baseClaims.RemoveAll(c => c.Type == AuthConstants.Claims.ProviderId);
+                baseClaims.Add(new System.Security.Claims.Claim(AuthConstants.Claims.ProviderId, pIdValue));
             }
         }
 
@@ -142,14 +143,14 @@ public class ConfigurableTestAuthenticationHandler(
 
     protected override string GetAuthenticationScheme() => SchemeName;
 
-    // Thread-local storage for test context ID
+    // Armazenamento local de thread para o ID de contexto do teste
     private static readonly AsyncLocal<string?> _currentTestContextId = new();
 
     /// <summary>
-    /// Gets or creates a test context ID for the current async flow.
-    /// Each test gets its own isolated context for thread-safe parallel execution.
+    /// Obtém ou cria um ID de contexto de teste para o fluxo assíncrono atual.
+    /// Cada teste recebe seu próprio contexto isolado para execução paralela thread-safe.
     /// </summary>
-    /// <returns>The test context ID</returns>
+    /// <returns>O ID do contexto de teste</returns>
     public static string GetOrCreateTestContext()
     {
         if (_currentTestContextId.Value == null)
@@ -160,14 +161,14 @@ public class ConfigurableTestAuthenticationHandler(
     }
 
     /// <summary>
-    /// Configures a test user with specific permissions and roles.
+    /// Configura um usuário de teste com permissões e roles específicas.
     /// </summary>
-    /// <param name="userId">The user ID</param>
-    /// <param name="userName">The username</param>
-    /// <param name="email">The user email</param>
-    /// <param name="permissions">Array of permissions to grant</param>
-    /// <param name="isSystemAdmin">Whether the user is a system administrator</param>
-    /// <param name="roles">Array of roles to assign</param>
+    /// <param name="userId">O ID do usuário</param>
+    /// <param name="userName">O nome de usuário</param>
+    /// <param name="email">O email do usuário</param>
+    /// <param name="permissions">Array de permissões concedidas</param>
+    /// <param name="isSystemAdmin">Indica se o usuário é um administrador do sistema</param>
+    /// <param name="roles">Array de roles atribuídas</param>
     public static void ConfigureUser(string userId, string userName, string email, string[] permissions, bool isSystemAdmin = false, params string[] roles)
     {
         var contextId = GetOrCreateTestContext();
@@ -181,13 +182,13 @@ public class ConfigurableTestAuthenticationHandler(
     }
 
     /// <summary>
-    /// Configures a test user with only roles (no explicit permissions).
-    /// Permissions will be derived from the roles based on the base handler logic.
+    /// Configura um usuário de teste apenas com roles (sem permissões explícitas).
+    /// As permissões serão derivadas das roles com base na lógica do handler base.
     /// </summary>
-    /// <param name="userId">The user ID</param>
-    /// <param name="userName">The username</param>
-    /// <param name="email">The user email</param>
-    /// <param name="roles">Array of roles to assign</param>
+    /// <param name="userId">O ID do usuário</param>
+    /// <param name="userName">O nome de usuário</param>
+    /// <param name="email">O email do usuário</param>
+    /// <param name="roles">Array de roles atribuídas</param>
     public static void ConfigureUserWithRoles(string userId, string userName, string email, params string[] roles)
     {
         var contextId = GetOrCreateTestContext();
@@ -195,11 +196,11 @@ public class ConfigurableTestAuthenticationHandler(
     }
 
     /// <summary>
-    /// Configures an admin user with full system administrator privileges.
+    /// Configura um usuário administrador com privilégios totais de administrador do sistema.
     /// </summary>
-    /// <param name="userId">The user ID</param>
-    /// <param name="userName">The username</param>
-    /// <param name="email">The user email</param>
+    /// <param name="userId">O ID do usuário</param>
+    /// <param name="userName">O nome de usuário</param>
+    /// <param name="email">O email do usuário</param>
     public static void ConfigureAdmin(string userId = "admin-id", string userName = "admin", string email = "admin@test.com")
     {
         ConfigureUser(
@@ -212,18 +213,18 @@ public class ConfigurableTestAuthenticationHandler(
     }
 
     /// <summary>
-    /// Configures a regular (non-admin) user with basic permissions.
+    /// Configura um usuário comum (não-admin) com permissões básicas.
     /// </summary>
-    /// <param name="userId">The user ID</param>
-    /// <param name="userName">The username</param>
-    /// <param name="email">The user email</param>
-    public static void ConfigureRegularUser(string userId = "user-id", string userName = "user", string email = "user@test.com")
+    /// <param name="userId">O ID do usuário</param>
+    /// <param name="userName">O nome de usuário</param>
+    /// <param name="email">O email do usuário</param>
+    public static void ConfigureRegularUser(string userId = "user-id", string username = "user", string email = "user@test.com")
     {
-        ConfigureUserWithRoles(userId, userName, email, "user");
+        ConfigureUserWithRoles(userId, username, email, "user");
     }
 
     /// <summary>
-    /// Configures a provider user with a specific provider ID.
+    /// Configura um usuário prestador com um ID de prestador específico.
     /// </summary>
     public static void ConfigureProvider(string userId = "provider-id", string userName = "provider", Guid? providerId = null, string email = "provider@test.com")
     {
@@ -239,9 +240,9 @@ public class ConfigurableTestAuthenticationHandler(
     }
 
     /// <summary>
-    /// Clears the authentication configuration for the current test context.
-    /// Should be called at the end of each test to avoid state pollution.
-    /// Recommended: invoke from test cleanup hooks (e.g., xUnit IAsyncLifetime.DisposeAsync) rather than ad hoc in tests.
+    /// Limpa a configuração de autenticação para o contexto de teste atual.
+    /// Deve ser chamado ao final de cada teste para evitar poluição de estado.
+    /// Recomendado: invocar a partir de ganchos de limpeza de teste (ex.: xUnit IAsyncLifetime.DisposeAsync).
     /// </summary>
     public static void ClearConfiguration()
     {
@@ -255,10 +256,10 @@ public class ConfigurableTestAuthenticationHandler(
     }
 
     /// <summary>
-    /// Sets whether unauthenticated requests should be allowed for the current test context.
-    /// When true, requests succeed with an anonymous principal (no claims/roles/permissions).
+    /// Define se requisições não autenticadas devem ser permitidas para o contexto de teste atual.
+    /// Quando verdadeiro, as requisições sucedem com um principal anônimo (sem claims/roles/permissões).
     /// </summary>
-    /// <param name="allow">True to allow unauthenticated requests, false to require authentication</param>
+    /// <param name="allow">True para permitir requisições não autenticadas, false para exigir autenticação</param>
     public static void SetAllowUnauthenticated(bool allow)
     {
         var contextId = GetOrCreateTestContext();
@@ -266,9 +267,9 @@ public class ConfigurableTestAuthenticationHandler(
     }
 
     /// <summary>
-    /// Checks if authentication is configured for the current test context.
+    /// Verifica se a autenticação está configurada para o contexto de teste atual.
     /// </summary>
-    /// <returns>True if a user configuration exists for the current context</returns>
+    /// <returns>True se existir uma configuração de usuário para o contexto atual</returns>
     public static bool HasConfiguration()
     {
         var contextId = _currentTestContextId.Value;
@@ -276,9 +277,9 @@ public class ConfigurableTestAuthenticationHandler(
     }
 
     /// <summary>
-    /// Gets the current allowUnauthenticated setting for the current test context.
+    /// Obtém a configuração atual de allowUnauthenticated para o contexto de teste atual.
     /// </summary>
-    /// <returns>True if unauthenticated requests are allowed, false otherwise</returns>
+    /// <returns>True se requisições não autenticadas são permitidas, false caso contrário</returns>
     public static bool GetAllowUnauthenticated()
     {
         var contextId = _currentTestContextId.Value;
@@ -288,9 +289,9 @@ public class ConfigurableTestAuthenticationHandler(
     }
 
     /// <summary>
-    /// Gets the current test context ID for debugging purposes.
+    /// Obtém o ID do contexto de teste atual para fins de depuração.
     /// </summary>
-    /// <returns>The current test context ID, or null if not initialized</returns>
+    /// <returns>O ID do contexto de teste atual, ou null se não inicializado</returns>
     public static string? GetCurrentTestContextId() => _currentTestContextId.Value;
 
     private record UserConfig(string UserId, string UserName, string Email, string[] Roles, string[] Permissions, bool IsSystemAdmin, Guid? ProviderId = null);

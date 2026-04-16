@@ -198,7 +198,7 @@ public class ReviewRepositoryTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task AddAsync_ShouldThrowDuplicateReviewException_WhenDuplicateExternalId()
+    public async Task AddAsync_ShouldThrowDbUpdateException_WhenDuplicateProviderAndCustomer()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -206,19 +206,14 @@ public class ReviewRepositoryTests : IAsyncDisposable
         var review1 = Review.Create(providerId, customerId, 5, "First");
         await _repository.AddAsync(review1);
 
-        // Para forçar a exceção de duplicidade no banco, precisamos tentar inserir
-        // outro review para o mesmo par ProviderId/CustomerId se houver índice único,
-        // ou forçar via mock do DbContext se quisermos testar especificamente o catch do Npgsql.
-        
-        // No SQLite, vamos apenas garantir que a restrição de unicidade (se existir) dispare o erro.
+        // Tenta inserir outro review para o mesmo par ProviderId/CustomerId, 
+        // o que deve disparar uma violação de chave única no banco de dados.
         var review2 = Review.Create(providerId, customerId, 4, "Second");
         
         // Act & Assert
         var act = () => _repository.AddAsync(review2);
         
-        // Como o repositório captura apenas PostgresException, no SQLite ele vai lançar DbUpdateException
-        // Para subir a cobertura do Branch do repositório, precisaríamos que o catch fosse genérico ou
-        // simular o PostgresException.
+        // No ambiente de teste (como SQLite), a violação de unicidade lança uma DbUpdateException.
         await act.Should().ThrowAsync<DbUpdateException>();
     }
 }

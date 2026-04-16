@@ -246,6 +246,7 @@ public class OutboxProcessorServiceTests
         // Assert
         result.Should().Be(0);
         message.Status.Should().Be(EOutboxMessageStatus.Failed);
+        _emailSenderMock.Verify(x => x.SendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Once);
         _logRepositoryMock.Verify(x => x.AddAsync(It.Is<CommunicationLog>(l => !l.IsSuccess), It.IsAny<CancellationToken>()), Times.Once);
     }
 

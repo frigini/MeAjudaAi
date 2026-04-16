@@ -50,7 +50,7 @@ public class InstanceTestAuthenticationHandler(
         
         if (_configuration.ProviderId.HasValue)
         {
-            claims.Add(new Claim("provider_id", _configuration.ProviderId.Value.ToString(), ClaimValueTypes.String));
+            claims.Add(new Claim(MeAjudaAi.Shared.Utilities.Constants.AuthConstants.Claims.ProviderId, _configuration.ProviderId.Value.ToString(), ClaimValueTypes.String));
         }
         
         return [.. claims];

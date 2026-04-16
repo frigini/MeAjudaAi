@@ -17,7 +17,8 @@
     "services": "Serviços",
     "reviews": "Avaliações",
     "review_one": "{{count}} avaliação",
-    "review_other": "{{count}} avaliações"
+    "review_other": "{{count}} avaliações",
+    "loadingProfile": "Carregando perfil do prestador..."
   },
   "common": {
     "loading": "Carregando...",

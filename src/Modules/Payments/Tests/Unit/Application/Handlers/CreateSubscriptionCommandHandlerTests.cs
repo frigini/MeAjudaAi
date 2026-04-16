@@ -9,19 +9,49 @@ using Moq;
 using FluentAssertions;
 using Xunit;
 
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.Handlers;
 
 public class CreateSubscriptionCommandHandlerTests
 {
     private readonly Mock<ISubscriptionRepository> _repositoryMock;
     private readonly Mock<IPaymentGateway> _gatewayMock;
+    private readonly Mock<IConfiguration> _configurationMock;
+    private readonly Mock<ILogger<CreateSubscriptionCommandHandler>> _loggerMock;
     private readonly CreateSubscriptionCommandHandler _handler;
 
     public CreateSubscriptionCommandHandlerTests()
     {
         _repositoryMock = new Mock<ISubscriptionRepository>();
         _gatewayMock = new Mock<IPaymentGateway>();
-        _handler = new CreateSubscriptionCommandHandler(_repositoryMock.Object, _gatewayMock.Object);
+        _configurationMock = new Mock<IConfiguration>();
+        _loggerMock = new Mock<ILogger<CreateSubscriptionCommandHandler>>();
+        
+        SetupDefaultPlans();
+        
+        _handler = new CreateSubscriptionCommandHandler(
+            _repositoryMock.Object, 
+            _gatewayMock.Object, 
+            _configurationMock.Object, 
+            _loggerMock.Object);
+    }
+
+    private void SetupDefaultPlans()
+    {
+        var premiumSection = new Mock<IConfigurationSection>();
+        premiumSection.Setup(s => s.Exists()).Returns(true);
+        premiumSection.Setup(s => s["Amount"]).Returns("99.90");
+        premiumSection.Setup(s => s["Currency"]).Returns("BRL");
+
+        var goldSection = new Mock<IConfigurationSection>();
+        goldSection.Setup(s => s.Exists()).Returns(true);
+        goldSection.Setup(s => s["Amount"]).Returns("199.90");
+        goldSection.Setup(s => s["Currency"]).Returns("BRL");
+
+        _configurationMock.Setup(c => c.GetSection("Payments:Plans:price_premium_monthly")).Returns(premiumSection.Object);
+        _configurationMock.Setup(c => c.GetSection("Payments:Plans:price_gold_monthly")).Returns(goldSection.Object);
     }
 
     [Fact]

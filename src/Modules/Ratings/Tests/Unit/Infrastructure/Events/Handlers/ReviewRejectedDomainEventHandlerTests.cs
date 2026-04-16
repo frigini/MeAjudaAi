@@ -38,7 +38,8 @@ public class ReviewRejectedDomainEventHandlerTests
         // Arrange
         var reviewId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
-        var domainEvent = new ReviewRejectedDomainEvent(reviewId, 0, providerId, "Spam");
+        var reason = "Spam";
+        var domainEvent = new ReviewRejectedDomainEvent(reviewId, 0, providerId, reason);
 
         // Act
         await _handler.HandleAsync(domainEvent);
@@ -48,7 +49,7 @@ public class ReviewRejectedDomainEventHandlerTests
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => true),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(reason) && v.ToString()!.Contains(reviewId.ToString())),
                 It.IsAny<Exception?>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -70,24 +71,23 @@ public class ReviewRejectedDomainEventHandlerTests
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => true),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(reason)),
                 It.IsAny<Exception?>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldReturnCompletedTask()
+    public async Task HandleAsync_ShouldCompleteSuccessfully_WithoutCoupling()
     {
         // Arrange
         var domainEvent = new ReviewRejectedDomainEvent(Guid.NewGuid(), 0, Guid.NewGuid(), "Offensive");
 
         // Act
-        var task = _handler.HandleAsync(domainEvent);
+        var act = () => _handler.HandleAsync(domainEvent);
 
         // Assert
-        task.IsCompleted.Should().BeTrue();
-        await task; // Should not throw
+        await act.Should().NotThrowAsync();
     }
 
     [Fact]
