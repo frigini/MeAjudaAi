@@ -302,4 +302,26 @@ public class SubscriptionTests
         
         act.Should().Throw<ArgumentException>().WithMessage("*after current expiration date*");
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void MaskExternalId_ShouldReturnEmpty_WhenInputIsNullOrEmpty(string? input)
+    {
+        Subscription.MaskExternalId(input!).Should().BeEmpty();
+    }
+
+    [Fact]
+    public void MaskExternalId_ShouldMaskShortId()
+    {
+        var result = Subscription.MaskExternalId("abc123");
+        result.Should().Be("****c123");
+    }
+
+    [Fact]
+    public void MaskExternalId_ShouldMaskLongId()
+    {
+        var result = Subscription.MaskExternalId("sub_abc123xyz789");
+        result.Should().Be("sub_****z789");
+    }
 }

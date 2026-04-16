@@ -111,4 +111,11 @@ public Guid ProviderId { get; private set; }
         Status = ESubscriptionStatus.Active;
         MarkAsUpdated();
     }
+
+    public static string MaskExternalId(string externalId)
+    {
+        if (string.IsNullOrEmpty(externalId)) return string.Empty;
+        if (externalId.Length <= 8) return "****" + externalId[^Math.Min(4, externalId.Length)..];
+        return externalId[..4] + "****" + externalId[^4..];
+    }
 }
