@@ -31,6 +31,9 @@ public record Money
 
     public static Money operator +(Money a, Money b)
     {
+        ArgumentNullException.ThrowIfNull(a);
+        ArgumentNullException.ThrowIfNull(b);
+
         if (a.Currency != b.Currency)
             throw new InvalidOperationException("Cannot add money with different currencies.");
         return new Money(a.Amount + b.Amount, a.Currency);

@@ -8,6 +8,7 @@ public class TestAuthenticationConfiguration : ITestAuthenticationConfiguration
     public string? UserId { get; private set; }
     public string? UserName { get; private set; }
     public string? Email { get; private set; }
+    public Guid? ProviderId { get; private set; }
     public IReadOnlyList<string>? Roles { get; private set; }
     public bool HasUser => UserId != null;
     public bool AllowUnauthenticated { get; private set; }
@@ -30,12 +31,19 @@ public class TestAuthenticationConfiguration : ITestAuthenticationConfiguration
         ConfigureUser(userId, userName, email, "user");
     }
 
+    public void ConfigureProvider(string userId = "provider-id", string userName = "provider", Guid? providerId = null, string email = "provider@test.com")
+    {
+        ConfigureUser(userId, userName, email, "provider");
+        ProviderId = providerId;
+    }
+
     public void ClearConfiguration()
     {
         UserId = null;
         UserName = null;
         Email = null;
         Roles = null;
+        ProviderId = null;
         AllowUnauthenticated = false;
     }
 

@@ -125,14 +125,11 @@ public class InboxMessageTests
     public void Properties_ShouldBeSettable()
     {
         // Arrange
-        var id = Guid.NewGuid();
         var now = DateTime.UtcNow;
 
         // Act
         var message = new InboxMessage("checkout.session.completed", "{\"event\":\"test\"}")
         {
-            Id = id,
-            CreatedAt = now,
             ProcessedAt = now.AddMinutes(1),
             Error = "Some error",
             RetryCount = 2,
@@ -141,15 +138,36 @@ public class InboxMessageTests
         };
 
         // Assert
-        message.Id.Should().Be(id);
         message.Type.Should().Be("checkout.session.completed");
         message.Content.Should().Be("{\"event\":\"test\"}");
-        message.CreatedAt.Should().Be(now);
         message.ProcessedAt.Should().Be(now.AddMinutes(1));
         message.Error.Should().Be("Some error");
         message.RetryCount.Should().Be(2);
         message.MaxRetries.Should().Be(10);
         message.NextAttemptAt.Should().Be(now.AddMinutes(5));
+    }
+
+    [Fact]
+    public void Constructor_ShouldThrow_WhenTypeTooLong()
+    {
+        // Arrange
+        var longType = new string('a', 256);
+
+        // Act
+        var act = () => new InboxMessage(longType, "{}");
+
+        // Assert
+        act.Should().Throw<ArgumentException>().WithMessage("*Type length cannot exceed 255*");
+    }
+
+    [Fact]
+    public void Constructor_ShouldThrow_WhenContentIsNotValidJson()
+    {
+        // Act
+        var act = () => new InboxMessage("test", "invalid-json");
+
+        // Assert
+        act.Should().Throw<ArgumentException>().WithMessage("*must be a valid JSON*");
     }
 
     [Fact]

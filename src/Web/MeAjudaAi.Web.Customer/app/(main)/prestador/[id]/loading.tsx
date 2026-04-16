@@ -2,7 +2,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8" role="status" aria-live="polite">
+            <span className="sr-only">Carregando perfil do prestador...</span>
             <div className="max-w-4xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12">
                     {/* Sidebar Area */}

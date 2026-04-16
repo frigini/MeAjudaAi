@@ -14,38 +14,53 @@ public class CreateSubscriptionCommandHandler(
 {
     public async Task<string> HandleAsync(CreateSubscriptionCommand command, CancellationToken cancellationToken = default)
     {
-        var amount = Money.FromDecimal(command.Amount, command.Currency);
-        var subscription = new Subscription(command.ProviderId, command.PlanId, amount);
+        // Obtendo detalhes do plano de uma fonte confiável (hardcoded para exemplo, deveria ser repositório)
+        var (amount, currency) = GetPlanDetails(command.PlanId);
+        var moneyAmount = Money.FromDecimal(amount, currency);
+        var subscription = new Subscription(command.ProviderId, command.PlanId, moneyAmount);
+
+        var result = await paymentGateway.CreateSubscriptionAsync(
+            command.ProviderId,
+            command.PlanId,
+            moneyAmount,
+            cancellationToken);
+
+        if (!result.Success)
+        {
+            throw new SubscriptionCreationException($"Falha ao criar assinatura no gateway: {result.ErrorMessage}");
+        }
+
+        if (string.IsNullOrWhiteSpace(result.CheckoutUrl))
+        {
+            throw new SubscriptionCreationException("URL de checkout ausente no resultado do gateway.");
+        }
 
         try
         {
-            var result = await paymentGateway.CreateSubscriptionAsync(
-                command.ProviderId,
-                command.PlanId,
-                amount,
-                cancellationToken);
-
-            if (!result.Success)
-            {
-                throw new SubscriptionCreationException($"Falha ao criar assinatura: {result.ErrorMessage}");
-            }
-
-            if (string.IsNullOrWhiteSpace(result.CheckoutUrl))
-            {
-                throw new SubscriptionCreationException("URL de checkout ausente no resultado do gateway.");
-            }
-
             await subscriptionRepository.AddAsync(subscription, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            // Compensação: Cancelar no gateway se falhar a persistência local
+            if (!string.IsNullOrEmpty(result.ExternalSubscriptionId))
+            {
+                await paymentGateway.CancelSubscriptionAsync(result.ExternalSubscriptionId, cancellationToken);
+            }
+            
+            throw new SubscriptionCreationException("Falha ao persistir assinatura localmente. Operação revertida no gateway.", ex);
+        }
 
-            return result.CheckoutUrl;
-        }
-        catch (OperationCanceledException)
+        return result.CheckoutUrl;
+    }
+
+    private static (decimal Amount, string Currency) GetPlanDetails(string planId)
+    {
+        // Mapeamento confiável de planos (Id do Preço no Stripe -> Valor/Moeda)
+        return planId switch
         {
-            throw;
-        }
-        catch (Exception ex) when (ex is not SubscriptionCreationException)
-        {
-            throw new SubscriptionCreationException("Erro técnico ao criar assinatura.", ex);
-        }
+            "price_premium_monthly" => (99.90m, "BRL"),
+            "price_gold_monthly" => (199.90m, "BRL"),
+            _ => throw new SubscriptionCreationException($"Plano inválido ou não suportado: {planId}")
+        };
     }
 }

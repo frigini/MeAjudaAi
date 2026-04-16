@@ -35,6 +35,9 @@ public class SubscriptionRepository(PaymentsDbContext context) : ISubscriptionRe
 
     public async Task<Subscription?> GetByExternalIdAsync(string externalSubscriptionId, CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(externalSubscriptionId))
+            throw new ArgumentException("ExternalSubscriptionId cannot be null or empty.", nameof(externalSubscriptionId));
+
         return await context.Subscriptions
             .AsNoTracking()
             .FirstOrDefaultAsync(s => s.ExternalSubscriptionId == externalSubscriptionId, cancellationToken);

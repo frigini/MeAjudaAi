@@ -30,6 +30,18 @@ public static class TestBaseAuthExtensions
     }
 
     /// <summary>
+    /// Configura um usuário prestador para o teste
+    /// </summary>
+    public static void AuthenticateAsProvider(this object testBase,
+        Guid providerId,
+        string userId = "provider-id",
+        string username = "provider",
+        string email = "provider@test.com")
+    {
+        ConfigurableTestAuthenticationHandler.ConfigureProvider(userId, username, providerId, email);
+    }
+
+    /// <summary>
     /// Configura usuário customizado para o teste
     /// </summary>
     public static void AuthenticateAsCustomUser(this object testBase,

@@ -25,7 +25,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 *   **Funcionalidades**:
     *   ✅ **Assinaturas de Prestadores**: Planos Free, Standard e Gold — implementado com `CreateSubscriptionCommandHandler` e padrão persist-first.
     *   ✅ **Stripe Checkout & Webhooks**: Redirecionamento seguro via `CreateSubscriptionEndpoint` e processamento assíncrono via padrão Inbox (`ProcessInboxJob`).
-    *   ✅ **Qualidade & Testes**: Suíte completa de testes unitários e de integração (42 testes passados).
+    *   ✅ **Qualidade & Testes**: Suíte completa de testes unitários e de integração validando fluxos críticos e tratamento de erros.
     *   ✅ **Handler `invoice.paid`**: Processamento de renovações mensais e registro de `PaymentTransaction` para auditoria.
     *   ✅ **Billing Portal**: Endpoint para gestão de assinaturas via Stripe Customer Portal.
     *   **Localização & i18n**:
@@ -59,7 +59,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## ✅ Concluído Recentemente
 
-*   **Sprint 11**: Monetização completa (Checkout, Webhooks, Billing Portal, Renovação Automática), Localização i18n Frontend, Skeleton Loaders e cobertura de testes 100% OK.
+*   **Sprint 11**: Monetização completa (Checkout, Webhooks, Billing Portal, Renovação Automática), Localização i18n Frontend, Skeleton Loaders e cobertura de testes abrangente.
 *   **Sprint 10**: Módulo de Ratings, Moderação de Conteúdo, Login Social Instagram (#141), Alinhamento de Realms Keycloak, Infra CI/CD (OpenAPI gating) e Documentação (coleções Bruno).
 *   **Sprint 9**: Estabilização global, Módulo de Comunicações (Infra), Resiliência (`CancellationToken`) e Localização Backend (.resx).
 *   **Sprint 8D/8E**: Migração completa do Admin Portal para React e Testes E2E com Playwright.

@@ -74,7 +74,7 @@ public class StripeWebhookEndpoint : IEndpoint
                 
                 if (environment.IsEnvironment("Testing"))
                 {
-                    return Results.InternalServerError(new { error = $"Internal error: {e.Message}", stackTrace = e.StackTrace });
+                    return Results.InternalServerError(new { error = $"Internal error: {e.Message}" });
                 }
 
                 return Results.InternalServerError(new { error = "Internal server error" });

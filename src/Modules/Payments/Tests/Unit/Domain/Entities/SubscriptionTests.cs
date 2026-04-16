@@ -318,11 +318,46 @@ public class SubscriptionTests
     }
 
     [Fact]
-    public void Expire_ShouldBeIdempotent_WhenCanceled()
+    public void Renew_ShouldThrow_WhenStatusIsPending()
+    {
+        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        var act = () => subscription.Renew(DateTime.UtcNow.AddDays(1));
+        act.Should().Throw<InvalidOperationException>().WithMessage("*Only Active subscriptions can be renewed*");
+    }
+
+    [Fact]
+    public void Activate_ShouldUpdateExternalIds_WhenStatusIsActiveButIdsAreDifferent()
+    {
+        // Arrange
+        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        subscription.Activate("old_sub", "old_cus", DateTime.UtcNow.AddDays(1));
+        var originalUpdatedAt = subscription.UpdatedAt;
+
+        // Act
+        subscription.Activate("new_sub", "new_cus", DateTime.UtcNow.AddDays(2));
+
+        // Assert
+        subscription.ExternalSubscriptionId.Should().Be("new_sub");
+        subscription.ExternalCustomerId.Should().Be("new_cus");
+        subscription.UpdatedAt.Should().BeAfter(originalUpdatedAt!.Value);
+    }
+
+    [Fact]
+    public void Activate_ShouldThrow_WhenStatusIsCanceled()
     {
         var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
         subscription.Cancel();
+        var act = () => subscription.Activate("sub", "cus", DateTime.UtcNow.AddDays(1));
+        act.Should().Throw<InvalidOperationException>().WithMessage("*canceled*");
+    }
+
+    [Fact]
+    public void Activate_ShouldThrow_WhenStatusIsExpired()
+    {
+        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        subscription.Activate("sub", "cus", DateTime.UtcNow.AddDays(1));
         subscription.Expire();
-        subscription.Status.Should().Be(ESubscriptionStatus.Canceled);
+        var act = () => subscription.Activate("new_sub", "cus", DateTime.UtcNow.AddDays(1));
+        act.Should().Throw<InvalidOperationException>().WithMessage("*expired*");
     }
 }

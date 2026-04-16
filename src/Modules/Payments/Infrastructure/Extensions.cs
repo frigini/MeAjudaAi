@@ -18,8 +18,8 @@ public static class Extensions
         services.AddDbContext<PaymentsDbContext>((serviceProvider, options) =>
         {
             var resolvedConfig = serviceProvider.GetRequiredService<IConfiguration>();
-            var connStr = resolvedConfig.GetConnectionString("DefaultConnection") ?? 
-                          resolvedConfig.GetConnectionString("Payments") ??
+            var connStr = resolvedConfig.GetConnectionString("Payments") ??
+                          resolvedConfig.GetConnectionString("DefaultConnection") ?? 
                           resolvedConfig.GetConnectionString("meajudaai-db");
 
             if (string.IsNullOrWhiteSpace(connStr) && MeAjudaAi.Shared.Utilities.EnvironmentHelpers.IsSecurityBypassEnvironment(environment))
@@ -39,6 +39,7 @@ public static class Extensions
 
         services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
         services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
+        services.AddScoped<IStripeService, StripeService>();
         services.AddScoped<IPaymentGateway, StripePaymentGateway>();
 
         services.AddHostedService<ProcessInboxJob>();

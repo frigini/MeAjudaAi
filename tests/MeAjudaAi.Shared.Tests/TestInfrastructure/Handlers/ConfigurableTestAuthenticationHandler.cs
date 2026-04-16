@@ -128,6 +128,13 @@ public class ConfigurableTestAuthenticationHandler(
             {
                 baseClaims.Add(new System.Security.Claims.Claim(AuthConstants.Claims.IsSystemAdmin, "true"));
             }
+
+            // Add provider_id claim if present
+            if (config.ProviderId.HasValue)
+            {
+                baseClaims.RemoveAll(c => c.Type == "provider_id");
+                baseClaims.Add(new System.Security.Claims.Claim("provider_id", config.ProviderId.Value.ToString()));
+            }
         }
 
         return [.. baseClaims];
@@ -216,6 +223,22 @@ public class ConfigurableTestAuthenticationHandler(
     }
 
     /// <summary>
+    /// Configures a provider user with a specific provider ID.
+    /// </summary>
+    public static void ConfigureProvider(string userId = "provider-id", string userName = "provider", Guid? providerId = null, string email = "provider@test.com")
+    {
+        var contextId = GetOrCreateTestContext();
+        _userConfigs[contextId] = new UserConfig(
+            userId,
+            userName,
+            email,
+            ["provider"],
+            [],
+            false,
+            providerId);
+    }
+
+    /// <summary>
     /// Clears the authentication configuration for the current test context.
     /// Should be called at the end of each test to avoid state pollution.
     /// Recommended: invoke from test cleanup hooks (e.g., xUnit IAsyncLifetime.DisposeAsync) rather than ad hoc in tests.
@@ -270,5 +293,5 @@ public class ConfigurableTestAuthenticationHandler(
     /// <returns>The current test context ID, or null if not initialized</returns>
     public static string? GetCurrentTestContextId() => _currentTestContextId.Value;
 
-    private record UserConfig(string UserId, string UserName, string Email, string[] Roles, string[] Permissions, bool IsSystemAdmin);
+    private record UserConfig(string UserId, string UserName, string Email, string[] Roles, string[] Permissions, bool IsSystemAdmin, Guid? ProviderId = null);
 }

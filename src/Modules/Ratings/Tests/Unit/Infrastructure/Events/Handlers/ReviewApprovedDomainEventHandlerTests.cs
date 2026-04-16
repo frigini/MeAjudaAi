@@ -62,9 +62,16 @@ public class ReviewApprovedDomainEventHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
         var domainEvent = new ReviewApprovedDomainEvent(Guid.NewGuid(), 0, providerId, 3, null);
+        var seq = new MockSequence();
 
-        _repositoryMock.Setup(r => r.GetAverageRatingForProviderAsync(providerId, It.IsAny<CancellationToken>()))
+        _repositoryMock.InSequence(seq).Setup(r => r.GetAverageRatingForProviderAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((3.75m, 4));
+
+        _messageBusMock.InSequence(seq).Setup(m => m.PublishAsync(
+            It.IsAny<ReviewApprovedIntegrationEvent>(),
+            It.IsAny<string?>(),
+            It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         // Act
         await _handler.HandleAsync(domainEvent);

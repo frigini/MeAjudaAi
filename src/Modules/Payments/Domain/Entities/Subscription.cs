@@ -59,9 +59,18 @@ public Guid ProviderId { get; private set; }
         if (expiresAt.HasValue && (expiresAt.Value == default || expiresAt.Value <= DateTime.UtcNow))
             throw new ArgumentException("ExpiresAt must be a valid future date.", nameof(expiresAt));
 
-        if (Status == ESubscriptionStatus.Active) return;
-        if (Status == ESubscriptionStatus.Canceled) return;
-        if (Status == ESubscriptionStatus.Expired) return;
+        // Se já está ativa e os IDs são os mesmos, nada a fazer (idempotência)
+        if (Status == ESubscriptionStatus.Active && 
+            ExternalSubscriptionId == externalSubscriptionId && 
+            ExternalCustomerId == externalCustomerId) 
+            return;
+
+        // Se estiver terminalmente fechada, não permite reativar por este método (deveria criar nova)
+        if (Status == ESubscriptionStatus.Canceled)
+            throw new InvalidOperationException("Cannot activate a canceled subscription.");
+        
+        if (Status == ESubscriptionStatus.Expired)
+            throw new InvalidOperationException("Cannot activate an expired subscription.");
 
         ExternalSubscriptionId = externalSubscriptionId;
         ExternalCustomerId = externalCustomerId;
@@ -89,8 +98,8 @@ public Guid ProviderId { get; private set; }
     }
     public void Renew(DateTime newExpiresAt)
     {
-        if (Status == ESubscriptionStatus.Canceled || Status == ESubscriptionStatus.Expired)
-            throw new InvalidOperationException($"Cannot renew a subscription with status {Status}.");
+        if (Status != ESubscriptionStatus.Active)
+            throw new InvalidOperationException($"Cannot renew a subscription with status {Status}. Only Active subscriptions can be renewed.");
 
         if (newExpiresAt <= DateTime.UtcNow)
             throw new ArgumentException("New expiration date must be a valid future date.", nameof(newExpiresAt));

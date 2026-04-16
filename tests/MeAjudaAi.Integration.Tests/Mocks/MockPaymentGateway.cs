@@ -7,6 +7,7 @@ public class MockPaymentGateway : IPaymentGateway
 {
     public Task<SubscriptionGatewayResult> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var token = Guid.NewGuid().ToString("n");
         return Task.FromResult(new SubscriptionGatewayResult(
             true, 
@@ -17,11 +18,13 @@ public class MockPaymentGateway : IPaymentGateway
 
     public Task<bool> CancelSubscriptionAsync(string externalSubscriptionId, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(true);
     }
 
-    public Task<string?> CreateBillingPortalSessionAsync(string externalCustomerId, string returnUrl, CancellationToken cancellationToken)
+    public async Task<string?> CreateBillingPortalSessionAsync(string externalCustomerId, string returnUrl, CancellationToken cancellationToken)
     {
-        return Task.FromResult<string?>("https://billing.stripe.com/mock_portal_" + Guid.NewGuid().ToString("n"));
+        cancellationToken.ThrowIfCancellationRequested();
+        return await Task.FromResult<string?>("https://billing.stripe.com/mock_portal_" + Guid.NewGuid().ToString("n"));
     }
 }

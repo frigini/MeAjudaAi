@@ -14,6 +14,7 @@ i18n
     interpolation: {
       escapeValue: false,
     },
+    load: 'languageOnly',
     backend: {
       loadPath: '/locales/{{lng}}/{{ns}}.json',
     },

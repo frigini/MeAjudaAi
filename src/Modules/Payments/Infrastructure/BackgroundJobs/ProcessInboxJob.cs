@@ -164,8 +164,8 @@ public class ProcessInboxJob(
                 var subToRenew = await repository.GetByExternalIdAsync(externalSubscriptionId, ct);
                 if (subToRenew == null)
                 {
-                    logger.LogWarning("Subscription not found for external ID: {ExternalId} (invoice: {InvoiceId})", externalSubscriptionId, (string)invoice.Id);
-                    break;
+                    logger.LogWarning("Subscription not found for external ID: {ExternalId} (invoice: {InvoiceId}). Retrying...", externalSubscriptionId, (string)invoice.Id);
+                    throw new InvalidOperationException($"Subscription with external ID {externalSubscriptionId} not found. Event will be retried.");
                 }
 
                 // Renovar a assinatura

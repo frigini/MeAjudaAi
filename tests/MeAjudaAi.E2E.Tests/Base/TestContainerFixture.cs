@@ -248,6 +248,9 @@ public class TestContainerFixture : IAsyncLifetime
         var ocrDescriptors = services.Where(d => d.ServiceType == typeof(IDocumentIntelligenceService)).ToList();
         foreach (var d in ocrDescriptors) services.Remove(d);
         services.AddSingleton<IDocumentIntelligenceService, MockDocumentIntelligenceService>();
+
+        var gatewayDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Modules.Payments.Domain.Abstractions.IPaymentGateway)).ToList();
+        foreach (var d in gatewayDescriptors) services.Remove(d);
         services.AddScoped<MeAjudaAi.Modules.Payments.Domain.Abstractions.IPaymentGateway, MockPaymentGateway>();
 
         // Message Bus Condicional para E2E

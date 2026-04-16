@@ -156,11 +156,9 @@ public class ProcessInboxJobTests
 
         // Assert
         var task = act();
-        if (task != null)
-        {
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await task);
-            exception.Message.Should().Contain("Session data is missing");
-        }
+        Assert.NotNull(task);
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await task!);
+        exception.Message.Should().Contain("Session data is missing");
     }
 
     // A class that session/invoice/etc will be cast to dynamic

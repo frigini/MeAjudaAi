@@ -5,9 +5,7 @@ namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
 
 public record CreateSubscriptionCommand(
     Guid ProviderId,
-    string PlanId,
-    decimal Amount,
-    string Currency = "BRL"
+    string PlanId
 ) : ICommand<string>
 {
     public Guid CorrelationId { get; init; } = UuidGenerator.NewId();

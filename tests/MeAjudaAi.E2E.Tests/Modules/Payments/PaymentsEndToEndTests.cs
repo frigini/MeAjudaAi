@@ -40,9 +40,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
         var request = new
         {
             ProviderId = providerId,
-            PlanId = "price_premium_monthly",
-            Amount = 99.90m,
-            Currency = "BRL"
+            PlanId = "price_premium_monthly"
         };
 
         // Act
@@ -78,7 +76,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
         var providerId = Guid.NewGuid();
         
         // 1. Criar uma subscription pendente primeiro
-        var createRequest = new { ProviderId = providerId, PlanId = "price_premium", Amount = 99.90m, Currency = "BRL" };
+        var createRequest = new { ProviderId = providerId, PlanId = "price_premium_monthly" };
         var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/payments/subscriptions", createRequest, TestContainerFixture.JsonOptions);
         createResponse.EnsureSuccessStatusCode();
 
@@ -131,7 +129,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
 
         // 4. O processamento assíncrono pelo ProcessInboxJob acontece em background.
         // Em ambiente de testes E2E com containers, o job pode não executar ou ter delay.
-        // Por isso, verificamos apenas que o endpointgrava corretamente na inbox.
+        // Por isso, verificamos apenas que o endpoint grava corretamente na inbox.
         // A ativação da subscription via background job é coberta em outros testes de integração.
     }
 

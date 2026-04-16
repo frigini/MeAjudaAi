@@ -28,16 +28,7 @@ public class CreateSubscriptionEndpoint : IEndpoint
                 return Results.BadRequest(new { error = "PlanId inválido." });
             }
 
-            if (request.Amount <= 0)
-            {
-                return Results.BadRequest(new { error = "Amount deve ser maior que zero." });
-            }
-
-            var command = new CreateSubscriptionCommand(
-                request.ProviderId,
-                request.PlanId,
-                request.Amount,
-                string.IsNullOrWhiteSpace(request.Currency) ? Money.DefaultCurrency : request.Currency);
+            var command = new CreateSubscriptionCommand(request.ProviderId, request.PlanId);
 
             var checkoutUrl = await dispatcher.SendAsync<CreateSubscriptionCommand, string>(command, cancellationToken);
 
@@ -49,4 +40,4 @@ public class CreateSubscriptionEndpoint : IEndpoint
     }
 }
 
-public record CreateSubscriptionRequest(Guid ProviderId, string PlanId, decimal Amount, string? Currency);
+public record CreateSubscriptionRequest(Guid ProviderId, string PlanId);

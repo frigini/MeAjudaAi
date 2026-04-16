@@ -3,7 +3,9 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Tests.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Payments;
 
@@ -18,9 +20,7 @@ public class PaymentsApiTests : BaseApiTest
         var request = new
         {
             ProviderId = Guid.NewGuid(),
-            PlanId = "price_premium_monthly",
-            Amount = 99.90m,
-            Currency = "BRL"
+            PlanId = "price_premium_monthly"
         };
 
         // Act
@@ -82,12 +82,15 @@ public class PaymentsApiTests : BaseApiTest
         // Arrange
         var providerId = Guid.NewGuid();
         
+        // Setup: Autenticar como o dono do provider para passar no ownership check
+        this.AuthenticateAsProvider(providerId);
+
         // Setup: Criar uma assinatura ativa primeiro
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
         var sub = new MeAjudaAi.Modules.Payments.Domain.Entities.Subscription(
             providerId, 
-            "plan_123", 
+            "price_premium_monthly", 
             MeAjudaAi.Shared.Domain.ValueObjects.Money.FromDecimal(99.90m, "BRL"));
         sub.Activate("sub_mock", "cus_mock", DateTime.UtcNow.AddMonths(1));
         dbContext.Subscriptions.Add(sub);
@@ -106,38 +109,34 @@ public class PaymentsApiTests : BaseApiTest
     }
 
     [Fact]
-    public async Task CreateSubscription_WithInvalidAmount_ShouldReturnBadRequest()
-    {
-        // Arrange
-        var request = new
-        {
-            ProviderId = Guid.NewGuid(),
-            PlanId = "price_premium_monthly",
-            Amount = -10.00m, // Invalid amount to trigger domain exception
-            Currency = "BRL"
-        };
-
-        // Act
-        var response = await Client.PostAsJsonAsync("/api/v1/payments/subscriptions", request);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-    }
-
-    [Fact]
     public async Task GetBillingPortal_WithNonExistentProvider_ShouldReturnNotFound()
     {
         // Arrange
         var providerId = Guid.NewGuid();
+        this.AuthenticateAsProvider(providerId);
         var request = new { providerId, returnUrl = "account" };
 
         // Act
         var response = await Client.PostAsJsonAsync("/api/v1/payments/subscriptions/billing-portal", request);
 
         // Assert
-        // The handler throws ApplicationException which is mapped to 500 or 400 depending on middleware
-        // But it exercises the "Subscription not found" branch.
-        response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetBillingPortal_ForOtherProvider_ShouldReturnForbidden()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var otherProviderId = Guid.NewGuid();
+        this.AuthenticateAsProvider(otherProviderId); // Authenticated as different provider
+        var request = new { providerId, returnUrl = "account" };
+
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/v1/payments/subscriptions/billing-portal", request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -151,6 +150,23 @@ public class PaymentsApiTests : BaseApiTest
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task CreateSubscription_WithInvalidPlan_ShouldReturnError()
+    {
+        // Arrange
+        var request = new
+        {
+            ProviderId = Guid.NewGuid(),
+            PlanId = "invalid_plan"
+        };
+
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/v1/payments/subscriptions", request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
     }
 
     [Fact]
@@ -199,7 +215,7 @@ public class PaymentsApiTests : BaseApiTest
         var originalExpiresAt = DateTime.UtcNow.AddDays(1);
         var sub = new MeAjudaAi.Modules.Payments.Domain.Entities.Subscription(
             providerId, 
-            "plan_123", 
+            "price_premium_monthly", 
             MeAjudaAi.Shared.Domain.ValueObjects.Money.FromDecimal(99.90m, "BRL"));
         sub.Activate(externalSubId, "cus_123", originalExpiresAt);
         dbContext.Subscriptions.Add(sub);
