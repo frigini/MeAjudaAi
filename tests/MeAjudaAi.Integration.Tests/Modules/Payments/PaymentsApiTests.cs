@@ -229,7 +229,8 @@ public class PaymentsApiTests : BaseApiTest
         
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
-        var inboxMessage = await dbContext.InboxMessages.FirstOrDefaultAsync(m => EF.Functions.Like(m.Content, "%cs_missing_id%"));
+        var messages = await dbContext.InboxMessages.AsNoTracking().ToListAsync();
+        var inboxMessage = messages.FirstOrDefault(m => m.Content.Contains("cs_missing_id"));
         inboxMessage.Should().NotBeNull();
     }
 
@@ -290,7 +291,8 @@ public class PaymentsApiTests : BaseApiTest
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
         // Verificar se a mensagem foi gravada na Inbox
-        var inboxMessage = await dbContext.InboxMessages.FirstOrDefaultAsync(m => EF.Functions.Like(m.Content, "%evt_paid_123%"));
+        var messages = await dbContext.InboxMessages.AsNoTracking().ToListAsync();
+        var inboxMessage = messages.FirstOrDefault(m => m.Content.Contains("evt_paid_123"));
         inboxMessage.Should().NotBeNull();
         inboxMessage!.ProcessedAt.Should().BeNull(); // Estado inicial
     }
