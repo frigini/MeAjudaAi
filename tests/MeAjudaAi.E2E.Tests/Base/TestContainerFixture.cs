@@ -448,6 +448,17 @@ public class TestContainerFixture : IAsyncLifetime
         MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ClearConfiguration();
     }
 
+    public static void AuthenticateAsAdminWithProvider(Guid providerId)
+    {
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureProvider(
+            userId: "admin-provider-id",
+            userName: "admin-provider",
+            providerId: providerId,
+            email: "admin@test.com",
+            isSystemAdmin: true);
+    }
+
     public static void BeforeEachTest()
     {
         MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ClearConfiguration();

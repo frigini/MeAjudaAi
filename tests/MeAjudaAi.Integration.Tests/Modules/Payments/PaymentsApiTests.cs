@@ -13,13 +13,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Payments;
 
-public class PaymentsApiTests : BaseApiTest, IAsyncLifetime
+public class PaymentsApiTests : BaseApiTest
 {
-    protected override TestModule RequiredModules => TestModule.Payments;
+    protected override TestModule RequiredModules => TestModule.Payments | TestModule.Providers;
     private Guid _seededProviderId;
 
-    public async Task InitializeAsync()
+    private async Task SeedProviderAsync()
     {
+        if (_seededProviderId != Guid.Empty) return;
+
         _seededProviderId = Guid.NewGuid();
         using var scope = Services.CreateScope();
         var providersDb = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
@@ -32,12 +34,11 @@ public class PaymentsApiTests : BaseApiTest, IAsyncLifetime
         await providersDb.SaveChangesAsync();
     }
 
-    public Task DisposeAsync() => Task.CompletedTask;
-
     [Fact]
     public async Task CreateSubscription_ShouldReturnCheckoutUrl()
     {
         // Arrange
+        await SeedProviderAsync();
         var request = new
         {
             ProviderId = _seededProviderId,
@@ -104,6 +105,7 @@ public class PaymentsApiTests : BaseApiTest, IAsyncLifetime
     public async Task GetBillingPortal_ShouldReturnUrl()
     {
         // Arrange
+        await SeedProviderAsync();
         var providerId = _seededProviderId;
         
         // Setup: Autenticar como o dono do provider para passar no ownership check
@@ -151,6 +153,7 @@ public class PaymentsApiTests : BaseApiTest, IAsyncLifetime
     public async Task GetBillingPortal_ForOtherProvider_ShouldReturnForbidden()
     {
         // Arrange
+        await SeedProviderAsync();
         var providerId = _seededProviderId;
         var otherProviderId = Guid.NewGuid();
         AuthConfig.ConfigureProvider("provider-id", "provider", otherProviderId); // Authenticated as different provider
@@ -167,6 +170,7 @@ public class PaymentsApiTests : BaseApiTest, IAsyncLifetime
     public async Task GetBillingPortal_WithEmptyProviderId_ShouldReturnBadRequest()
     {
         // Arrange
+        await SeedProviderAsync();
         AuthConfig.ConfigureProvider("provider-id", "provider", _seededProviderId);
         
         var request = new { providerId = Guid.Empty, returnUrl = "account" };
@@ -182,6 +186,7 @@ public class PaymentsApiTests : BaseApiTest, IAsyncLifetime
     public async Task CreateSubscription_WithInvalidPlan_ShouldReturnError()
     {
         // Arrange
+        await SeedProviderAsync();
         var request = new
         {
             ProviderId = _seededProviderId,
@@ -234,6 +239,7 @@ public class PaymentsApiTests : BaseApiTest, IAsyncLifetime
     public async Task StripeWebhook_InvoicePaid_ShouldEnqueueInboxMessage()
     {
         // Arrange
+        await SeedProviderAsync();
         var externalSubId = "sub_live_123";
         var providerId = _seededProviderId;
         

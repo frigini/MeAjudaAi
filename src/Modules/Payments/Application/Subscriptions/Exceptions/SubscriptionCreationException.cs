@@ -1,6 +1,8 @@
+using MeAjudaAi.Shared.Exceptions;
+
 namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Exceptions;
 
-public class SubscriptionCreationException : Exception
+public class SubscriptionCreationException : DomainException
 {
     public SubscriptionCreationException(string message) : base(message)
     {

@@ -8,6 +8,8 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Tests.Extensions;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -66,8 +68,12 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
     public async Task CreateSubscription_Should_PersistPendingSubscription()
     {
         // Arrange
-        TestContainerFixture.AuthenticateAsAdmin();
         var providerId = await CreateTestProviderAsync();
+        
+        // Autentica como admin para ter permissão total, mas garante a claim de provider_id para o ownership check
+        TestContainerFixture.AuthenticateAsAdmin();
+        ConfigurableTestAuthenticationHandler.ConfigureProvider(providerId: providerId);
+        
         var request = new
         {
             ProviderId = providerId,
@@ -103,8 +109,8 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
     public async Task StripeWebhook_CheckoutSessionCompleted_Should_PersistToInbox()
     {
         // Arrange
-        TestContainerFixture.AuthenticateAsAdmin();
         var providerId = await CreateTestProviderAsync();
+        TestContainerFixture.AuthenticateAsAdminWithProvider(providerId);
         
         // 1. Criar uma subscription pendente primeiro
         var createRequest = new { ProviderId = providerId, PlanId = "price_premium_monthly" };
