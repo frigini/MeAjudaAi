@@ -8,18 +8,24 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Payments.Infrastructure.Gateways;
 
-public class StripePaymentGateway(
-    IConfiguration configuration,
-    ILogger<StripePaymentGateway> logger,
-    IStripeService stripeService) : IPaymentGateway
+public class StripePaymentGateway : IPaymentGateway
 {
     private readonly string _successUrl;
     private readonly string _cancelUrl;
     private readonly RequestOptions _requestOptions;
+    private readonly IStripeService _stripeService;
+    private readonly ILogger<StripePaymentGateway> _logger;
+    private readonly IConfiguration _configuration;
 
-    public StripePaymentGateway(IConfiguration configuration, ILogger<StripePaymentGateway> logger)
-        : this(configuration, logger, new StripeService())
+    public StripePaymentGateway(
+        IConfiguration configuration,
+        ILogger<StripePaymentGateway> logger,
+        IStripeService stripeService)
     {
+        _configuration = configuration;
+        _logger = logger;
+        _stripeService = stripeService;
+
         var apiKey = configuration["Stripe:ApiKey"];
         if (string.IsNullOrEmpty(apiKey))
         {
@@ -51,25 +57,31 @@ public class StripePaymentGateway(
         };
     }
 
-    public async Task<SubscriptionGatewayResult> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, CancellationToken cancellationToken, string? idempotencyKey = null)
+    // Legacy constructor for backward compatibility
+    public StripePaymentGateway(IConfiguration configuration, ILogger<StripePaymentGateway> logger)
+        : this(configuration, logger, new StripeService())
+    {
+    }
+
+    public async Task<SubscriptionGatewayResult> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, string? idempotencyKey = null, CancellationToken cancellationToken = default)
     {
         if (CurrencyUtils.IsZeroDecimalCurrency(amount.Currency) && amount.Amount % 1 != 0)
         {
-            logger.LogWarning("Attempt to create subscription with fractional amount for zero-decimal currency: {Currency} {Amount}", amount.Currency, amount.Amount);
+            _logger.LogWarning("Attempt to create subscription with fractional amount for zero-decimal currency: {Currency} {Amount}", amount.Currency, amount.Amount);
             return SubscriptionGatewayResult.Failed($"Zero-decimal currency ({amount.Currency}) does not accept fractional amounts: {amount.Amount}");
         }
 
         try
         {
             // Resolve domain planId to actual Stripe Price ID via configuration mapping
-            var stripePriceId = configuration[$"Payments:Plans:{planId}:StripePriceId"] ?? planId;
+            var stripePriceId = _configuration[$"Payments:Plans:{planId}:StripePriceId"] ?? planId;
 
-            var price = await stripeService.GetPriceAsync(stripePriceId, _requestOptions, cancellationToken);
+            var price = await _stripeService.GetPriceAsync(stripePriceId, _requestOptions, cancellationToken);
             
             var expectedAmount = CurrencyUtils.ConvertToMinorUnits(amount.Amount, amount.Currency);
             if (price.UnitAmount != expectedAmount || !string.Equals(price.Currency, amount.Currency, StringComparison.OrdinalIgnoreCase))
             {
-                logger.LogError("Price mismatch detected. Stripe: {StripeAmount} {StripeCurrency}, Expected: {ExpectedAmount} {ExpectedCurrency}", 
+                _logger.LogError("Price mismatch detected. Stripe: {StripeAmount} {StripeCurrency}, Expected: {ExpectedAmount} {ExpectedCurrency}", 
                     price.UnitAmount, price.Currency, expectedAmount, amount.Currency);
                 return SubscriptionGatewayResult.Failed("The plan amount or currency does not match the payment provider information.");
             }
@@ -104,13 +116,13 @@ public class StripePaymentGateway(
                 requestOptions.IdempotencyKey = idempotencyKey;
             }
 
-            var session = await stripeService.CreateCheckoutSessionAsync(options, requestOptions, cancellationToken);
+            var session = await _stripeService.CreateCheckoutSessionAsync(options, requestOptions, cancellationToken);
 
-            return SubscriptionGatewayResult.Succeeded(session.SubscriptionId, session.Url);
+            return SubscriptionGatewayResult.Succeeded(null, session.Url!);
         }
         catch (StripeException ex)
         {
-            logger.LogError(ex, "Stripe communication failure during subscription creation for Provider {ProviderId}", providerId);
+            _logger.LogError(ex, "Stripe error creating subscription for Provider {ProviderId}", providerId);
             return SubscriptionGatewayResult.Failed("Payment provider communication failure.");
         }
     }
@@ -119,14 +131,12 @@ public class StripePaymentGateway(
     {
         try
         {
-            var subscription = await stripeService.CancelSubscriptionAsync(externalSubscriptionId, _requestOptions, cancellationToken);
-            
-            // subscription.CancelAtPeriodEnd é bool?, precisamos tratar a nulidade corretamente
-            return subscription?.Status == "canceled" || (subscription?.CancelAtPeriodEnd ?? false);
+            var subscription = await _stripeService.CancelSubscriptionAsync(externalSubscriptionId, _requestOptions, cancellationToken);
+            return subscription.Status == "canceled";
         }
         catch (StripeException ex)
         {
-            logger.LogError(ex, "Stripe error cancelling subscription {SubscriptionId}", externalSubscriptionId);
+            _logger.LogError(ex, "Stripe error canceling subscription {ExternalId}", externalSubscriptionId);
             return false;
         }
     }
@@ -141,12 +151,12 @@ public class StripePaymentGateway(
                 ReturnUrl = returnUrl
             };
 
-            var session = await stripeService.CreateBillingPortalSessionAsync(options, _requestOptions, cancellationToken);
-            return session?.Url;
+            var session = await _stripeService.CreateBillingPortalSessionAsync(options, _requestOptions, cancellationToken);
+            return session.Url;
         }
         catch (StripeException ex)
         {
-            logger.LogError(ex, "Stripe error creating billing portal session for Customer {CustomerId}", externalCustomerId);
+            _logger.LogError(ex, "Stripe error creating customer portal session for Customer {CustomerId}", externalCustomerId);
             return null;
         }
     }

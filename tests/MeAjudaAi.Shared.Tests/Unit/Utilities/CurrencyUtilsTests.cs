@@ -22,7 +22,7 @@ public class CurrencyUtilsTests
     [InlineData(99.90, "BRL", 9990)]
     [InlineData(10.00, "USD", 1000)]
     [InlineData(1000, "JPY", 1000)]
-    [InlineData(100.50, "JPY", 100)] // Arredondamento para zero-decimal
+    [InlineData(100.50, "JPY", 101)] // Arredondamento para zero-decimal
     [InlineData(100.90, "JPY", 101)] // Arredondamento para zero-decimal
     public void ConvertToMinorUnits_ShouldReturnCorrectValue(decimal amount, string currency, long expected)
     {

@@ -41,7 +41,7 @@ public static class CurrencyUtils
     {
         if (IsZeroDecimalCurrency(currency))
         {
-            // Moedas zero-decimal não aceitam frações
+            // Zero-decimal currencies: round to nearest integer (e.g., JPY, KRW)
             return (long)Math.Round(amount, 0, MidpointRounding.AwayFromZero);
         }
 

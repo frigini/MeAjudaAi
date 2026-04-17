@@ -58,7 +58,7 @@ act.Should().Throw<ArgumentException>().WithMessage("*ClientBaseUrl*");
             .ThrowsAsync(new StripeException("Error"));
 
         // Act
-        var result = await _gateway!.CreateSubscriptionAsync(Guid.NewGuid(), "plan_123", Money.FromDecimal(10), CancellationToken.None);
+        var result = await _gateway!.CreateSubscriptionAsync(Guid.NewGuid(), "plan_123", Money.FromDecimal(10), null, CancellationToken.None);
 
         // Assert
         result.Success.Should().BeFalse();
@@ -75,7 +75,7 @@ act.Should().Throw<ArgumentException>().WithMessage("*ClientBaseUrl*");
             .ReturnsAsync(stripePrice);
 
         // Act
-        var result = await _gateway!.CreateSubscriptionAsync(Guid.NewGuid(), "plan_123", Money.FromDecimal(10), CancellationToken.None); // Expected 10.00
+        var result = await _gateway!.CreateSubscriptionAsync(Guid.NewGuid(), "plan_123", Money.FromDecimal(10), null, CancellationToken.None); // Expected 10.00
 
         // Assert
         result.Success.Should().BeFalse();

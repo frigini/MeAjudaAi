@@ -30,8 +30,8 @@ public class CreateSubscriptionCommandHandler(
                 command.ProviderId,
                 command.PlanId,
                 moneyAmount,
-                cancellationToken,
-                command.IdempotencyKey);
+                command.IdempotencyKey,
+                cancellationToken);
         }
         catch (OperationCanceledException)
         {

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Payments.API.Endpoints.Public;
 
@@ -19,10 +20,11 @@ public class GetBillingPortalEndpoint : IEndpoint
             GetBillingPortalRequest request,
             [FromServices] ICommandDispatcher dispatcher,
             [FromServices] IConfiguration configuration,
+            [FromServices] ILogger<GetBillingPortalEndpoint> logger,
             HttpContext httpContext,
             CancellationToken cancellationToken) =>
         {
-            return await HandleRequest(request, dispatcher, configuration, httpContext, cancellationToken);
+            return await HandleRequest(request, dispatcher, configuration, logger, httpContext, cancellationToken);
         })
         .WithTags(PaymentsEndpoints.Tag)
         .WithName("GetBillingPortal")
@@ -34,6 +36,7 @@ public class GetBillingPortalEndpoint : IEndpoint
         GetBillingPortalRequest request, 
         ICommandDispatcher dispatcher, 
         IConfiguration configuration, 
+        ILogger<GetBillingPortalEndpoint> logger,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
@@ -58,12 +61,13 @@ public class GetBillingPortalEndpoint : IEndpoint
         var clientBaseUrl = configuration["ClientBaseUrl"];
         if (string.IsNullOrEmpty(clientBaseUrl))
         {
+            logger.LogError("ClientBaseUrl configuration missing");
             return Results.Problem("ClientBaseUrl não configurada.");
         }
 
         clientBaseUrl = clientBaseUrl.TrimEnd('/');
 
-        // Se ReturnUrl é um路径 conhecido, resolver. Se é URL completa, passar para o handler validar
+        // Se ReturnUrl é um caminho conhecido, resolver. Se for uma URL completa, passar para o handler validar
         string finalReturnUrl;
         var returnUrl = request.ReturnUrl ?? "";
         
@@ -74,7 +78,7 @@ public class GetBillingPortalEndpoint : IEndpoint
         else if (Uri.TryCreate(returnUrl, UriKind.Absolute, out _))
             finalReturnUrl = returnUrl; // Passar URL completa para o handler validar
         else
-            finalReturnUrl = clientBaseUrl; // Fallback para URL inválida/não reconhecidade
+            finalReturnUrl = clientBaseUrl; // Fallback para URL inválida/não reconhecida
 
         var command = new GetBillingPortalCommand(request.ProviderId, finalReturnUrl);
         var portalUrl = await dispatcher.SendAsync<GetBillingPortalCommand, string>(command, cancellationToken);

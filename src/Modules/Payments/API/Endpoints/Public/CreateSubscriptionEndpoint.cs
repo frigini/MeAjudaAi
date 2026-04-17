@@ -29,6 +29,11 @@ public class CreateSubscriptionEndpoint : IEndpoint
                 return Results.BadRequest(new { error = "ProviderId é obrigatório." });
             }
 
+            if (string.IsNullOrWhiteSpace(request.PlanId))
+            {
+                return Results.BadRequest(new { error = "PlanId é obrigatório." });
+            }
+
             // Validação de Autorização (Admin ou Dono do Provider)
             var isSystemAdmin = string.Equals(
                 httpContext.User?.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, 

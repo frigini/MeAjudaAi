@@ -4,9 +4,9 @@ namespace MeAjudaAi.Modules.Payments.Domain.Abstractions;
 
 public interface IPaymentGateway
 {
-    Task<SubscriptionGatewayResult> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, CancellationToken cancellationToken, string? idempotencyKey = null);
-    Task<bool> CancelSubscriptionAsync(string externalSubscriptionId, CancellationToken cancellationToken);
-    Task<string?> CreateBillingPortalSessionAsync(string externalCustomerId, string returnUrl, CancellationToken cancellationToken);
+    Task<SubscriptionGatewayResult> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, string? idempotencyKey = null, CancellationToken cancellationToken = default);
+    Task<bool> CancelSubscriptionAsync(string externalSubscriptionId, CancellationToken cancellationToken = default);
+    Task<string?> CreateBillingPortalSessionAsync(string externalCustomerId, string returnUrl, CancellationToken cancellationToken = default);
 }
 
 public record SubscriptionGatewayResult(
@@ -21,14 +21,6 @@ public record SubscriptionGatewayResult(
             throw new ArgumentException("CheckoutUrl is required for successful result.", nameof(checkoutUrl));
 
         return new SubscriptionGatewayResult(true, externalSubscriptionId, checkoutUrl, null);
-    }
-
-    public static SubscriptionGatewayResult SucceededWithoutExternalId(string checkoutUrl)
-    {
-        if (string.IsNullOrWhiteSpace(checkoutUrl))
-            throw new ArgumentException("CheckoutUrl is required for successful result.", nameof(checkoutUrl));
-
-        return new SubscriptionGatewayResult(true, null, checkoutUrl, null);
     }
 
     public static SubscriptionGatewayResult Failed(string errorMessage)

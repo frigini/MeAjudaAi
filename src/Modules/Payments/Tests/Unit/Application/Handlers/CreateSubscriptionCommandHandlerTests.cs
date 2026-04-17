@@ -49,7 +49,7 @@ public class CreateSubscriptionCommandHandlerTests
         var checkoutUrl = "https://stripe.com/checkout/123";
         
         var gatewayResult = SubscriptionGatewayResult.Succeeded("sub_123", checkoutUrl);
-        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<CancellationToken>()))
+        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(gatewayResult);
 
         // Act
@@ -96,7 +96,7 @@ public class CreateSubscriptionCommandHandlerTests
         
         // Simular sucesso no gateway mas sem URL de checkout (cenário de erro raro)
         var badResult = new SubscriptionGatewayResult(true, "sub_123", null, null);
-        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<CancellationToken>()))
+        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(badResult);
 
         // Act
@@ -114,7 +114,7 @@ public class CreateSubscriptionCommandHandlerTests
         var command = new CreateSubscriptionCommand(Guid.NewGuid(), "price_premium_monthly");
         var gatewayResult = SubscriptionGatewayResult.Succeeded("sub_123", "https://checkout");
         
-        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<CancellationToken>()))
+        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(gatewayResult);
 
         _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
@@ -134,9 +134,9 @@ public class CreateSubscriptionCommandHandlerTests
         // Arrange
         var command = new CreateSubscriptionCommand(Guid.NewGuid(), "price_premium_monthly");
         
-        var gatewayResult = SubscriptionGatewayResult.SucceededWithoutExternalId("https://checkout");
+        var gatewayResult = SubscriptionGatewayResult.Succeeded(null, "https://checkout");
 
-        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<CancellationToken>()))
+        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(gatewayResult);
 
         _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
