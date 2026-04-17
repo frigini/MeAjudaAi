@@ -56,6 +56,8 @@ public class PaymentTransactionConfiguration : IEntityTypeConfiguration<PaymentT
         builder.Property(t => t.ProcessedAt)
             .HasColumnName("processed_at");
 
+        builder.Ignore(t => t.RefundedAt);
+
         builder.HasIndex(t => t.SubscriptionId);
         builder.HasIndex(t => t.Status);
         builder.HasIndex(t => t.ExternalTransactionId)

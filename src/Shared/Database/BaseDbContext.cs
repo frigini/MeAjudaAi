@@ -45,4 +45,17 @@ public abstract class BaseDbContext : DbContext
 
     protected abstract Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default);
     protected abstract void ClearDomainEvents();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            if (entityType.ClrType.GetProperty("Version") != null)
+            {
+                modelBuilder.Entity(entityType.ClrType).Ignore("Version");
+            }
+        }
+    }
 }

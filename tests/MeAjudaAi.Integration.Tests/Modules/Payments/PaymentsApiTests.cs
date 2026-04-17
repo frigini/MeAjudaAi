@@ -45,7 +45,7 @@ public class PaymentsApiTests : BaseApiTest
         var request = new
         {
             ProviderId = _seededProviderId,
-            PlanId = "price_premium_monthly"
+            PlanId = "premium"
         };
         
         // Autentica como o dono do provider
@@ -119,7 +119,7 @@ public class PaymentsApiTests : BaseApiTest
         var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
         var sub = new Subscription(
             providerId, 
-            "price_premium_monthly", 
+            "premium", 
             Money.FromDecimal(99.90m, "BRL"));
         sub.Activate("sub_mock", "cus_mock", DateTime.UtcNow.AddMonths(1));
         dbContext.Subscriptions.Add(sub);
@@ -248,7 +248,7 @@ public class PaymentsApiTests : BaseApiTest
         using (var scope = Services.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
-            var sub = new Subscription(providerId, "price_premium_monthly", Money.FromDecimal(99.90m, "BRL"));
+            var sub = new Subscription(providerId, "premium", Money.FromDecimal(99.90m, "BRL"));
             sub.Activate(externalSubId, "cus_e2e", DateTime.UtcNow.AddDays(1));
             dbContext.Subscriptions.Add(sub);
             await dbContext.SaveChangesAsync();
@@ -453,7 +453,7 @@ public class PaymentsApiTests : BaseApiTest
         using (var scope = Services.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
-            var sub = new Subscription(providerId, "price_premium_monthly", Money.FromDecimal(99.90m, "BRL"));
+            var sub = new Subscription(providerId, "premium", Money.FromDecimal(99.90m, "BRL"));
             sub.Activate("sub_untrusted", "cus_untrusted", DateTime.UtcNow.AddMonths(1));
             dbContext.Subscriptions.Add(sub);
             await dbContext.SaveChangesAsync();

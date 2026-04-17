@@ -11,7 +11,7 @@ namespace MeAjudaAi.Modules.Communications.Domain.Entities;
 /// sem alterar o código-fonte. O sistema verifica templates com <see cref="OverrideKey"/>
 /// antes de aplicar o template padrão.
 /// </remarks>
-public sealed class EmailTemplate : BaseEntity
+public sealed class EmailTemplate : AggregateRoot<Guid>
 {
     private EmailTemplate() { }
 

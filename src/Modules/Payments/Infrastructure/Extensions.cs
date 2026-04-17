@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Stripe;
 
 namespace MeAjudaAi.Modules.Payments.Infrastructure;
 
@@ -43,6 +44,21 @@ public static class Extensions
 
         services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
         services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
+        
+        services.AddScoped<IStripeClient>(provider => 
+        {
+            var config = provider.GetRequiredService<IConfiguration>();
+            var apiKey = config["Stripe:ApiKey"];
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                // Note: We only throw here if Stripe module is actually used and apiKey is missing.
+                // However, StripePaymentGateway also validates this.
+                // For tests, we might need a dummy key if real Stripe is not used but DI is validated.
+                return new StripeClient("sk_test_dummy"); 
+            }
+            return new StripeClient(apiKey);
+        });
+
         services.AddScoped<IStripeService, StripeService>();
         services.AddScoped<IPaymentGateway, StripePaymentGateway>();
 

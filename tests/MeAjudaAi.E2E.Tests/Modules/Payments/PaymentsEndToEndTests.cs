@@ -77,7 +77,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
         var request = new
         {
             ProviderId = providerId,
-            PlanId = "price_premium_monthly"
+            PlanId = "premium"
         };
 
         // Act

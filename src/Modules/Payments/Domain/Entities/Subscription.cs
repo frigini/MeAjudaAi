@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Modules.Payments.Domain.Events;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MeAjudaAi.Modules.Payments.Domain.Entities;
 
@@ -39,6 +40,7 @@ public class Subscription : AggregateRoot<Guid>
         PlanId = planId;
         Amount = amount;
         Status = ESubscriptionStatus.Pending;
+        Version = 1;
     }
 
     public Subscription(Guid id, Guid providerId, string planId, Money amount, ESubscriptionStatus status, DateTime createdAt)
@@ -57,6 +59,7 @@ public class Subscription : AggregateRoot<Guid>
         Amount = amount;
         Status = status;
         CreatedAt = createdAt;
+        Version = 1;
     }
 
     public Guid ProviderId { get; private set; }

@@ -11,7 +11,7 @@ namespace MeAjudaAi.Shared.Events;
 [ExcludeFromCodeCoverage]
 public abstract record DomainEvent(
     Guid AggregateId,
-    int Version
+    int Version = 1
 ) : IDomainEvent
 {
     public Guid Id { get; } = UuidGenerator.NewId();

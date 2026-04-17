@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MeAjudaAi.Modules.Payments.Domain.Entities;
 
@@ -29,6 +30,8 @@ public class PaymentTransaction : BaseEntity
     public Money Amount { get; private set; } = null!;
     public EPaymentStatus Status { get; private set; }
     public DateTime? ProcessedAt { get; private set; }
+    
+    [NotMapped]
     public DateTime? RefundedAt { get; private set; }
 
     public void Settle(string externalTransactionId)
