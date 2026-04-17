@@ -49,6 +49,20 @@ public static class MessagingExtensions
 
         // Registro das configurações do RabbitMQ via Options pipeline
         services.Configure<RabbitMqOptions>(configuration.GetSection("Messaging:RabbitMQ"));
+        
+        // Fallback para ConnectionString do Aspire se não fornecida explicitamente
+        services.PostConfigure<RabbitMqOptions>(options => 
+        {
+            if (string.IsNullOrWhiteSpace(options.ConnectionString))
+            {
+                var aspireConn = configuration.GetConnectionString("rabbitmq");
+                if (!string.IsNullOrWhiteSpace(aspireConn))
+                {
+                    options.ConnectionString = aspireConn;
+                }
+            }
+        });
+
         services.AddSingleton(provider => provider.GetRequiredService<IOptions<RabbitMqOptions>>().Value);
 
         // Registro direto das configurações do MessageBus
@@ -72,12 +86,17 @@ public static class MessagingExtensions
             services.AddRebus((configure, provider) => {
                 var options = provider.GetRequiredService<RabbitMqOptions>();
                 
-                // Garantir que a ConnectionString esteja preenchida via fallback se necessário
+                // Fail-fast validation
+                if (string.IsNullOrWhiteSpace(options.ConnectionString) && 
+                    (string.IsNullOrWhiteSpace(options.Host) || options.Host == "localhost"))
+                {
+                    // Se não tem connection string e o host é o default (ou vazio), 
+                    // consideramos que a configuração está ausente ou incompleta.
+                    throw new InvalidOperationException("RabbitMQ configuration is missing or incomplete. Please provide a ConnectionString or Host/Username/Password.");
+                }
+
                 var connectionString = options.BuildConnectionString();
                 
-                if (string.IsNullOrWhiteSpace(connectionString))
-                    throw new InvalidOperationException("RabbitMQ connection string could not be resolved.");
-
                 return configure
                     .Transport(t => t.UseRabbitMq(connectionString, options.DefaultQueueName))
                     .Options(o => 
@@ -124,22 +143,6 @@ public static class MessagingExtensions
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to ensure messaging infrastructure.");
-        }
-    }
-
-    private static void ConfigureRabbitMqOptions(RabbitMqOptions options, IConfiguration configuration)
-    {
-        configuration.GetSection(RabbitMqOptions.SectionName).Bind(options);
-
-        // Fallback para ConnectionString se não fornecida explicitamente
-        if (string.IsNullOrWhiteSpace(options.ConnectionString))
-        {
-            // Tenta pegar do Aspire Service Discovery se disponível
-            var aspireConn = configuration.GetConnectionString("rabbitmq");
-            if (!string.IsNullOrWhiteSpace(aspireConn))
-            {
-                options.ConnectionString = aspireConn;
-            }
         }
     }
 

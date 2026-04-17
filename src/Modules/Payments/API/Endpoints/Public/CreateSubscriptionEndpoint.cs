@@ -65,7 +65,14 @@ public class CreateSubscriptionEndpoint : IEndpoint
             }
 
             // Repassar Idempotency-Key se presente
-            var idempotencyKey = httpContext.Request.Headers["Idempotency-Key"].ToString();
+            string? idempotencyKey = httpContext.Request.Headers.TryGetValue("Idempotency-Key", out var values) 
+                ? values.ToString() 
+                : null;
+            
+            if (string.IsNullOrWhiteSpace(idempotencyKey))
+            {
+                idempotencyKey = null;
+            }
             
             var command = new CreateSubscriptionCommand(request.ProviderId, request.PlanId, idempotencyKey);
             var checkoutUrl = await dispatcher.SendAsync<CreateSubscriptionCommand, string>(command, cancellationToken);

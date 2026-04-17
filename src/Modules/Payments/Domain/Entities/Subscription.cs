@@ -28,10 +28,9 @@ public class Subscription : AggregateRoot<Guid>
             throw new ArgumentException("ProviderId cannot be empty.", nameof(providerId));
 
         if (string.IsNullOrWhiteSpace(planId))
-            throw new ArgumentNullException(nameof(planId), "PlanId cannot be null or empty.");
+            throw new ArgumentException("PlanId cannot be null or empty.", nameof(planId));
 
-        if (amount == null)
-            throw new ArgumentNullException(nameof(amount), "Amount cannot be null.");
+        ArgumentNullException.ThrowIfNull(amount);
 
         if (amount.Amount <= 0)
             throw new ArgumentException("Amount must be greater than zero.", nameof(amount));
@@ -42,17 +41,25 @@ public class Subscription : AggregateRoot<Guid>
         Status = ESubscriptionStatus.Pending;
     }
 
-    public Subscription(Guid id, Guid providerId, string planId, Money amount, DateTime createdAt)
+    internal Subscription(Guid id, Guid providerId, string planId, Money amount, ESubscriptionStatus status, DateTime createdAt)
         : base(id)
     {
+        if (providerId == Guid.Empty)
+            throw new ArgumentException("ProviderId cannot be empty.", nameof(providerId));
+
+        if (string.IsNullOrWhiteSpace(planId))
+            throw new ArgumentException("PlanId cannot be null or empty.", nameof(planId));
+
+        ArgumentNullException.ThrowIfNull(amount);
+
         ProviderId = providerId;
         PlanId = planId;
         Amount = amount;
-        Status = ESubscriptionStatus.Pending;
+        Status = status;
         CreatedAt = createdAt;
     }
 
-public Guid ProviderId { get; private set; }
+    public Guid ProviderId { get; private set; }
     public string PlanId { get; private set; } = null!;
     public string? ExternalSubscriptionId { get; private set; }
     public string? ExternalCustomerId { get; private set; }
@@ -71,11 +78,19 @@ public Guid ProviderId { get; private set; }
         if (expiresAt.HasValue && (expiresAt.Value == default || expiresAt.Value <= DateTime.UtcNow))
             throw new ArgumentException("ExpiresAt must be a valid future date.", nameof(expiresAt));
 
-        // Se já está ativa e os IDs são os mesmos, nada a fazer (idempotência)
+        // Se já está ativa e os IDs são os mesmos
         if (Status == ESubscriptionStatus.Active && 
             ExternalSubscriptionId == externalSubscriptionId && 
-            ExternalCustomerId == externalCustomerId) 
+            ExternalCustomerId == externalCustomerId)
+        {
+            // Se o expiresAt mudou, atualiza (idempotência com atualização de expiração)
+            if (expiresAt != ExpiresAt)
+            {
+                ExpiresAt = expiresAt;
+                MarkAsUpdated();
+            }
             return;
+        }
 
         // Se estiver terminalmente fechada, não permite reativar por este método (deveria criar nova)
         if (Status == ESubscriptionStatus.Canceled)
@@ -111,7 +126,10 @@ public Guid ProviderId { get; private set; }
 
         Status = ESubscriptionStatus.Expired;
         MarkAsUpdated();
+
+        AddDomainEvent(new SubscriptionExpiredDomainEvent(Id, ProviderId));
     }
+
     public void Renew(DateTime newExpiresAt)
     {
         if (Status != ESubscriptionStatus.Active)
@@ -126,6 +144,8 @@ public Guid ProviderId { get; private set; }
         ExpiresAt = newExpiresAt;
         Status = ESubscriptionStatus.Active;
         MarkAsUpdated();
+
+        AddDomainEvent(new SubscriptionRenewedDomainEvent(Id, ProviderId, ExpiresAt.Value));
     }
 
     public static string MaskExternalId(string externalId)

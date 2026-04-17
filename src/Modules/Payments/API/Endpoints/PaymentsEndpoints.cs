@@ -18,7 +18,8 @@ public static class PaymentsEndpoints
              .MapEndpoint<GetBillingPortalEndpoint>();
 
         // Stripe webhooks must be outside versioned group for stability
-        var webhookGroup = app.MapGroup("/api/payments/webhooks");
+        var webhookGroup = app.MapGroup("/api/payments/webhooks")
+                              .WithTags("Webhooks");
         webhookGroup.MapEndpoint<StripeWebhookEndpoint>();
     }
 }

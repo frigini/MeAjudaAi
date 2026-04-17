@@ -70,7 +70,7 @@ public class GetBillingPortalEndpoint : IEndpoint
         // Se ReturnUrl é um caminho conhecido, resolver. Se for uma URL completa, passar para o handler validar
         string finalReturnUrl;
         var returnUrl = request.ReturnUrl ?? "";
-        
+
         if (returnUrl.Equals("account", StringComparison.OrdinalIgnoreCase))
             finalReturnUrl = $"{clientBaseUrl}/account";
         else if (returnUrl.Equals("billing", StringComparison.OrdinalIgnoreCase))
@@ -79,7 +79,6 @@ public class GetBillingPortalEndpoint : IEndpoint
             finalReturnUrl = returnUrl; // Passar URL completa para o handler validar
         else
             finalReturnUrl = clientBaseUrl; // Fallback para URL inválida/não reconhecida
-
         var command = new GetBillingPortalCommand(request.ProviderId, finalReturnUrl);
         var portalUrl = await dispatcher.SendAsync<GetBillingPortalCommand, string>(command, cancellationToken);
 

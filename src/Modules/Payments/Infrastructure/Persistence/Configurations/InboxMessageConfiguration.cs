@@ -55,6 +55,8 @@ public class InboxMessageConfiguration : IEntityTypeConfiguration<InboxMessage>
             .IsUnique()
             .HasFilter("external_event_id IS NOT NULL");
 
-        builder.HasIndex(m => new { m.ProcessedAt, m.NextAttemptAt, m.CreatedAt });
+        builder.HasIndex(m => new { m.NextAttemptAt, m.CreatedAt })
+            .HasFilter("processed_at IS NULL")
+            .HasDatabaseName("IX_inbox_messages_pending_processing");
     }
 }

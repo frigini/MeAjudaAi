@@ -18,7 +18,7 @@ public class StripeWebhookEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
     {
-        app.MapPost("webhooks/stripe", async (
+        app.MapPost("stripe", async (
             HttpContext context,
             [FromServices] IConfiguration configuration,
             [FromServices] IHostEnvironment environment,
@@ -40,7 +40,7 @@ public class StripeWebhookEndpoint : IEndpoint
                     bufferSize: 1024, 
                     leaveOpen: true))
                 {
-                    json = await reader.ReadToEndAsync();
+                    json = await reader.ReadToEndAsync(cancellationToken);
                 }
 
                 var stripeSignature = context.Request.Headers["Stripe-Signature"];

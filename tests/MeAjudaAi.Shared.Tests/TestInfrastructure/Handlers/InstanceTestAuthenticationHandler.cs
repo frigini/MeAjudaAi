@@ -1,9 +1,11 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using static MeAjudaAi.Shared.Utilities.Constants.AuthConstants.Claims;
 
 namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 
@@ -46,13 +48,13 @@ public class InstanceTestAuthenticationHandler(
 
     protected override Claim[] CreateStandardClaims()
     {
-        var claims = base.CreateStandardClaims().ToList();
+        var baseClaims = base.CreateStandardClaims();
         
         if (_configuration.ProviderId.HasValue)
         {
-            claims.Add(new Claim(MeAjudaAi.Shared.Utilities.Constants.AuthConstants.Claims.ProviderId, _configuration.ProviderId.Value.ToString(), ClaimValueTypes.String));
+            return baseClaims.Concat(new[] { new Claim(ProviderId, _configuration.ProviderId.Value.ToString(), ClaimValueTypes.String) }).ToArray();
         }
         
-        return [.. claims];
+        return baseClaims;
     }
 }

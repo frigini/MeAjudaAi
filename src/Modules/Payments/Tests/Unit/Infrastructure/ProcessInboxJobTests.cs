@@ -32,7 +32,7 @@ public class ProcessInboxJobTests
     }
 
     [Fact]
-    public void MapToStripeEventData_CheckoutSessionCompleted_ShouldMapCorrectively()
+    public void MapToStripeEventData_CheckoutSessionCompleted_ShouldMapCorrectly()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -64,7 +64,7 @@ public class ProcessInboxJobTests
     }
 
     [Fact]
-    public void MapToStripeEventData_InvoicePaid_ShouldMapCorrectively()
+    public void MapToStripeEventData_InvoicePaid_ShouldMapCorrectly()
     {
         // Arrange
         var json = """
@@ -78,10 +78,7 @@ public class ProcessInboxJobTests
                     "customer": "cus_1",
                     "amount_paid": 5000,
                     "currency": "brl",
-                    "parent": {
-                        "type": "subscription_details",
-                        "subscription_details": { "subscription": "sub_2" }
-                    },
+                    "subscription": "sub_2",
                     "lines": {
                         "data": [{ "period": { "end": 1740000000 } }]
                     }
@@ -104,7 +101,7 @@ public class ProcessInboxJobTests
     }
 
     [Fact]
-    public void MapToStripeEventData_SubscriptionDeleted_ShouldMapCorrectively()
+    public void MapToStripeEventData_SubscriptionDeleted_ShouldMapCorrectly()
     {
         // Arrange
         var json = """

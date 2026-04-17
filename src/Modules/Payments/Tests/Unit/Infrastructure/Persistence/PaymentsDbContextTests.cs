@@ -41,8 +41,13 @@ public class PaymentsDbContextTests
         // Assert
         result.Should().BeGreaterThan(0);
         
+        // Verifica se o processador foi chamado
+        domainEventProcessorMock.Verify(x => x.ProcessDomainEventsAsync(
+            It.IsAny<IEnumerable<IDomainEvent>>(), 
+            It.IsAny<CancellationToken>()), 
+            Times.Once());
+
         // O DbContext do projeto limpa os eventos após o save bem-sucedido.
-        // Se eles foram limpos, a lógica de despacho/limpeza foi executada.
         sub.DomainEvents.Should().BeEmpty();
     }
 }

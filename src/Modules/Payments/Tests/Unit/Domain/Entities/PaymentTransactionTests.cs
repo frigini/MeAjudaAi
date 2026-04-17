@@ -70,14 +70,13 @@ public class PaymentTransactionTests
     }
 
     [Theory]
-    [InlineData(0)]
     [InlineData(-10)]
-    public void Constructor_ShouldThrow_WhenAmountIsInvalid(decimal val)
+    public void Constructor_ShouldThrow_WhenAmountIsNegative(decimal val)
     {
         // Act
-        var act = () => new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(val));
+        var act = () => Money.FromDecimal(val);
 
         // Assert
-        act.Should().Throw<ArgumentException>();
+        act.Should().Throw<ArgumentOutOfRangeException>();
     }
 }

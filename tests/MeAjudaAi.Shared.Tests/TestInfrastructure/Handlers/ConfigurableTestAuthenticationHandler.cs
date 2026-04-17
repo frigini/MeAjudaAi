@@ -226,7 +226,7 @@ public class ConfigurableTestAuthenticationHandler(
     /// <summary>
     /// Configura um usuário prestador com um ID de prestador específico.
     /// </summary>
-    public static void ConfigureProvider(string userId = "provider-id", string userName = "provider", Guid? providerId = null, string email = "provider@test.com", bool isSystemAdmin = false)
+    public static void ConfigureProvider(Guid providerId, string userId = "provider-id", string userName = "provider", string email = "provider@test.com", bool isSystemAdmin = false)
     {
         var contextId = GetOrCreateTestContext();
         _userConfigs[contextId] = new UserConfig(

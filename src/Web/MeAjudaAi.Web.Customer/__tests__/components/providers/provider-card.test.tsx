@@ -39,7 +39,7 @@ describe('ProviderCard', () => {
 
   it('deve renderizar avaliação com número de avaliações', () => {
     render(<ProviderCard provider={mockProvider} />);
-    expect(screen.getByText('(provider.review_other)')).toBeInTheDocument();
+    expect(screen.getByText('25 avaliações')).toBeInTheDocument();
   });
 
   it('deve renderizar avaliação singular', () => {
@@ -49,7 +49,7 @@ describe('ProviderCard', () => {
       averageRating: 5,
     };
     render(<ProviderCard provider={providerWithOneReview} />);
-    expect(screen.getByText('(provider.review_one)')).toBeInTheDocument();
+    expect(screen.getByText('1 avaliação')).toBeInTheDocument();
   });
 
   it('deve renderizar serviços', () => {

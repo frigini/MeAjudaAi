@@ -36,11 +36,11 @@ public class RebusMessageBus(global::Rebus.Bus.IBus bus, ILogger<RebusMessageBus
         return bus.Publish(@event!);
     }
 
-    public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task> handler, string? subscriptionName = null, CancellationToken cancellationToken = default)
+    public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task>? handler = null, string? subscriptionName = null, CancellationToken cancellationToken = default)
     {
         if (handler != null)
         {
-            logger.LogWarning("Rebus: Explicit handler provided to SubscribeAsync<{MessageType}> will be ignored. callers must register IHandleMessages<{MessageType}> via Dependency Injection.", 
+            logger.LogWarning("Rebus: Explicit handler provided to SubscribeAsync<{MessageType}> will be ignored. Callers must register IHandleMessages<{MessageType}> via Dependency Injection.", 
                 typeof(TMessage).Name, typeof(TMessage).Name);
             
             throw new NotSupportedException($"Explicit delegate handlers are not supported in RebusMessageBus. Please register a class implementing IHandleMessages<{typeof(TMessage).Name}> in the DI container.");

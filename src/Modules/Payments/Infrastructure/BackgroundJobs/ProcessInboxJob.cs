@@ -109,7 +109,10 @@ public class ProcessInboxJob(
                 new StripeEventData(
                     stripeEvent.Type,
                     stripeEvent.Id,
-                    invoice.Parent?.SubscriptionDetails?.SubscriptionId ?? invoice.Lines?.Data?.FirstOrDefault()?.SubscriptionId,
+                    invoice.Parent?.Subscription ?? 
+                    invoice.Lines?.Data?.FirstOrDefault()?.Parent?.SubscriptionItemDetails?.Subscription ?? 
+                    invoice.Lines?.Data?.FirstOrDefault()?.Parent?.InvoiceItemDetails?.Subscription ?? 
+                    invoice.SubscriptionId,
                     invoice.CustomerId,
                     null,
                     invoice.Lines?.Data?.FirstOrDefault()?.Period?.End,
@@ -168,12 +171,6 @@ public class ProcessInboxJob(
                 {
                     logger.LogDebug("Subscription {Id} already active with same external ID, skipping", subscription.Id);
                     break;
-                }
-
-                if (string.IsNullOrWhiteSpace(data.CustomerId))
-                {
-                    logger.LogError("CustomerId is required to activate subscription {SubscriptionId}", data.SubscriptionId);
-                    throw new InvalidOperationException("CustomerId is required to activate subscription");
                 }
 
                 subscription.Activate(data.SubscriptionId, data.CustomerId); 
@@ -236,12 +233,6 @@ public class ProcessInboxJob(
                 {
                     logger.LogError(ex, "Error computing amount for PaymentTransaction from Invoice {InvoiceId} (Currency: {Currency}, AmountPaid: {AmountPaid})", 
                         data.InvoiceId, data.Currency ?? "null", data.AmountPaid);
-                }
-                
-                if ((amount == null || amount.Amount <= 0) && subToRenew.Amount != null)
-                {
-                    var fallbackCurrency = (data.Currency ?? subToRenew.Amount.Currency ?? "usd").ToUpperInvariant();
-                    amount = Money.FromDecimal(subToRenew.Amount.Amount, fallbackCurrency);
                 }
                 
                 if (amount != null && amount.Amount > 0)

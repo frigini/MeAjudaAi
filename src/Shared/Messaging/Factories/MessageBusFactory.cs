@@ -51,7 +51,7 @@ public class MessageBusFactory : IMessageBusFactory
         {
             throw;
         }
-        catch (Exception ex) when (ex is InvalidOperationException || ex.GetType().Name.Contains("ServiceActivationException"))
+        catch (Exception ex) when (ex is InvalidOperationException)
         {
             _logger.LogError(ex, "Failed to initialize Rebus MessageBus for environment {Environment}", _environment.EnvironmentName);
             throw new InvalidOperationException($"Failed to initialize Rebus MessageBus for environment {_environment.EnvironmentName}", ex);

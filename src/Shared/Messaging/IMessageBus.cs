@@ -6,5 +6,5 @@ public interface IMessageBus
 
     Task PublishAsync<TMessage>(TMessage @event, string? topicName = null, CancellationToken cancellationToken = default);
 
-    Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task> handler, string? subscriptionName = null, CancellationToken cancellationToken = default);
+    Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task>? handler = null, string? subscriptionName = null, CancellationToken cancellationToken = default);
 }

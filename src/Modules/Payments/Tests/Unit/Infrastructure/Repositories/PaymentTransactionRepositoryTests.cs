@@ -6,12 +6,15 @@ using MeAjudaAi.Shared.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using FluentAssertions;
 using Xunit;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Infrastructure.Repositories;
 
 public class PaymentTransactionRepositoryTests : IDisposable
 {
     private readonly PaymentsDbContext _context;
+    private readonly Mock<ILogger<PaymentTransactionRepository>> _loggerMock;
     private readonly PaymentTransactionRepository _transactionRepository;
 
     public PaymentTransactionRepositoryTests()
@@ -21,7 +24,8 @@ public class PaymentTransactionRepositoryTests : IDisposable
             .Options;
 
         _context = new PaymentsDbContext(options);
-        _transactionRepository = new PaymentTransactionRepository(_context);
+        _loggerMock = new Mock<ILogger<PaymentTransactionRepository>>();
+        _transactionRepository = new PaymentTransactionRepository(_context, _loggerMock.Object);
     }
 
     [Fact]
@@ -44,7 +48,7 @@ public class PaymentTransactionRepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task AddAsync_ShouldPersistTransactionCorrectively()
+    public async Task AddAsync_ShouldPersistTransactionCorrectly()
     {
         // Arrange
         var subId = Guid.NewGuid();
@@ -75,10 +79,10 @@ public class PaymentTransactionRepositoryTests : IDisposable
         // Act - Adicionamos a primeira
         await _transactionRepository.AddAsync(tx1);
 
-        // Act - Tentamos adicionar a segunda (mesmo ExternalTransactionId)
-        // O repositório real trata a UniqueConstraintException de forma resiliente.
-        // No InMemory, precisamos simular esse comportamento se quisermos testar a lógica do catch,
-        // mas o teste foca em garantir que o repositório suporte o fluxo de idempotência.
+        // Para testar a lógica de catch no repositório usando InMemory (que não lança UniqueConstraint),
+        // precisaríamos de um Mock do DbContext, mas como o repositório é o SUT e usa o DbContext diretamente,
+        // o ideal para este teste de infra é um teste de integração real com Postgres (Testcontainers).
+        // Por ora, garantimos que o método não lança exceção no fluxo feliz.
         var act = () => _transactionRepository.AddAsync(tx2);
 
         // Assert

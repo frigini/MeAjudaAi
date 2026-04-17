@@ -80,7 +80,7 @@ public class RebusMessageBusTests
     public async Task SubscribeAsync_ShouldDelegateToBus()
     {
         // Act
-        await _messageBus.SubscribeAsync<string>(null!);
+        await _messageBus.SubscribeAsync<string>();
 
         // Assert
         _busMock.Verify(x => x.Subscribe<string>(), Times.Once);

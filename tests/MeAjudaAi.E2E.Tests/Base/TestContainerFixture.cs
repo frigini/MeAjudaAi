@@ -448,13 +448,18 @@ public class TestContainerFixture : IAsyncLifetime
         MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ClearConfiguration();
     }
 
+    /// <summary>
+    /// Configura o contexto de autenticação para um usuário que é simultaneamente administrador do sistema 
+    /// e vinculado a um prestador específico. Usa ConfigureProvider internamente com isSystemAdmin: true.
+    /// </summary>
+    /// <param name="providerId">O identificador do prestador ao qual o usuário será vinculado.</param>
     public static void AuthenticateAsAdminWithProvider(Guid providerId)
     {
         MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
         MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureProvider(
+            providerId: providerId,
             userId: "admin-provider-id",
             userName: "admin-provider",
-            providerId: providerId,
             email: "admin@test.com",
             isSystemAdmin: true);
     }

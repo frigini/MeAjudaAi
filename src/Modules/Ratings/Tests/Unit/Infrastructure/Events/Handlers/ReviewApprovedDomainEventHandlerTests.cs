@@ -64,16 +64,18 @@ public class ReviewApprovedDomainEventHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
         var domainEvent = new ReviewApprovedDomainEvent(Guid.NewGuid(), 0, providerId, 3, null);
-        var seq = new MockSequence();
+        var averageRatingCalculated = false;
 
-        _repositoryMock.InSequence(seq).Setup(r => r.GetAverageRatingForProviderAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((3.75m, 4));
+        _repositoryMock.Setup(r => r.GetAverageRatingForProviderAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((3.75m, 4))
+            .Callback(() => averageRatingCalculated = true);
 
-        _messageBusMock.InSequence(seq).Setup(m => m.PublishAsync(
+        _messageBusMock.Setup(m => m.PublishAsync(
             It.IsAny<ReviewApprovedIntegrationEvent>(),
             It.IsAny<string?>(),
             It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .Returns(Task.CompletedTask)
+            .Callback(() => averageRatingCalculated.Should().BeTrue("Average rating must be calculated before publishing the event"));
 
         // Act
         await _handler.HandleAsync(domainEvent);

@@ -195,7 +195,9 @@
         "syncMode": "INHERIT",
         "jsonField": "id",
         "userAttribute": "userId"
-      }    }
+
+      }
+    }
   ],
   "clients": [
     {
@@ -349,3 +351,4 @@
     }
   ]
 }
+

@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Payments.Infrastructure.Repositories;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
 using FluentAssertions;
 using Xunit;
 
@@ -11,16 +12,22 @@ namespace MeAjudaAi.Modules.Payments.Tests.Unit.Infrastructure.Repositories;
 
 public class SubscriptionRepositoryTests : IDisposable
 {
+    private readonly SqliteConnection _connection;
     private readonly PaymentsDbContext _context;
     private readonly SubscriptionRepository _subscriptionRepository;
 
     public SubscriptionRepositoryTests()
     {
+        _connection = new SqliteConnection("DataSource=:memory:");
+        _connection.Open();
+
         var options = new DbContextOptionsBuilder<PaymentsDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseSqlite(_connection)
             .Options;
 
         _context = new PaymentsDbContext(options);
+        _context.Database.EnsureCreated();
+        
         _subscriptionRepository = new SubscriptionRepository(_context);
     }
 
@@ -67,8 +74,8 @@ public class SubscriptionRepositoryTests : IDisposable
         _context.Subscriptions.Add(sub1);
         await _context.SaveChangesAsync();
 
-        // Usa o construtor internal com CreatedAt
-        var sub2 = new Subscription(Guid.NewGuid(), providerId, "plan2", Money.FromDecimal(20), DateTime.UtcNow.AddSeconds(10));
+        // Usa o construtor internal com Status e CreatedAt
+        var sub2 = new Subscription(Guid.NewGuid(), providerId, "plan2", Money.FromDecimal(20), ESubscriptionStatus.Pending, DateTime.UtcNow.AddSeconds(10));
         _context.Subscriptions.Add(sub2);
         await _context.SaveChangesAsync();
 
@@ -131,8 +138,8 @@ public class SubscriptionRepositoryTests : IDisposable
 
     public void Dispose()
     {
-        _context.Database.EnsureDeleted();
         _context.Dispose();
+        _connection.Dispose();
         GC.SuppressFinalize(this);
     }
 }

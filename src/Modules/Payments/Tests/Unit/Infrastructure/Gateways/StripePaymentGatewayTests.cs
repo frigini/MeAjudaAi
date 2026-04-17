@@ -32,11 +32,11 @@ public class StripePaymentGatewayTests
 
     private void CreateGateway() => _gateway = new StripePaymentGateway(_configurationMock.Object, _loggerMock.Object, _stripeServiceMock.Object);
 
-[Fact]
+    [Fact]
     public void Constructor_ShouldThrow_WhenApiKeyIsMissing()
     {
         _configurationMock.Setup(x => x["Stripe:ApiKey"]).Returns("");
-        var act = () => new StripePaymentGateway(_configurationMock.Object, _loggerMock.Object);
+        var act = () => new StripePaymentGateway(_configurationMock.Object, _loggerMock.Object, _stripeServiceMock.Object);
         act.Should().Throw<ArgumentException>().WithMessage("*ApiKey*");
     }
 
@@ -45,8 +45,40 @@ public class StripePaymentGatewayTests
     {
         _configurationMock.Setup(x => x["Stripe:ApiKey"]).Returns("sk_test_123");
         _configurationMock.Setup(x => x["ClientBaseUrl"]).Returns("");
-        var act = () => new StripePaymentGateway(_configurationMock.Object, _loggerMock.Object);
-act.Should().Throw<ArgumentException>().WithMessage("*ClientBaseUrl*");
+        var act = () => new StripePaymentGateway(_configurationMock.Object, _loggerMock.Object, _stripeServiceMock.Object);
+        act.Should().Throw<ArgumentException>().WithMessage("*ClientBaseUrl*");
+    }
+
+    [Fact]
+    public async Task CreateSubscriptionAsync_ShouldReturnSuccess_WhenEverythingIsCorrect()
+    {
+        // Arrange
+        CreateGateway();
+        var providerId = Guid.NewGuid();
+        var planId = "plan_test";
+        var amount = Money.FromDecimal(10, "BRL");
+        
+        var stripePrice = new Price { UnitAmount = 1000, Currency = "brl" }; // 10.00
+        _stripeServiceMock.Setup(x => x.GetPriceAsync(It.IsAny<string>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(stripePrice);
+
+        var stripeSession = new Stripe.Checkout.Session { Url = "https://checkout.stripe.com/pay/session_123", SubscriptionId = "sub_123" };
+        _stripeServiceMock.Setup(x => x.CreateCheckoutSessionAsync(It.IsAny<Stripe.Checkout.SessionCreateOptions>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(stripeSession);
+
+        // Act
+        var result = await _gateway!.CreateSubscriptionAsync(providerId, planId, amount, "idempotency-key", CancellationToken.None);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        result.CheckoutUrl.Should().Be("https://checkout.stripe.com/pay/session_123");
+        
+        _stripeServiceMock.Verify(x => x.CreateCheckoutSessionAsync(
+            It.Is<Stripe.Checkout.SessionCreateOptions>(o => 
+                o.Metadata["provider_id"] == providerId.ToString() &&
+                o.LineItems[0].Price == planId), // Assuming planId maps directly or via config (here directly)
+            It.Is<RequestOptions>(ro => ro.IdempotencyKey == "idempotency-key"),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

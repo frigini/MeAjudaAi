@@ -92,7 +92,7 @@ public class PaymentsApiTests : BaseApiTest
         
         // Act
         var content = new StringContent(webhookJson, System.Text.Encoding.UTF8, "application/json");
-        var response = await Client.PostAsync("/api/v1/payments/webhooks/stripe", content);
+        var response = await Client.PostAsync("/api/payments/webhooks/stripe", content);
 
         // Assert
         if (response.StatusCode != HttpStatusCode.OK)
@@ -225,7 +225,7 @@ public class PaymentsApiTests : BaseApiTest
         
         // Act
         var content = new StringContent(webhookJson, System.Text.Encoding.UTF8, "application/json");
-        var response = await Client.PostAsync("/api/v1/payments/webhooks/stripe", content);
+        var response = await Client.PostAsync("/api/payments/webhooks/stripe", content);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK); // Webhook endpoint sempre retorna OK se salvou na inbox
@@ -290,7 +290,7 @@ public class PaymentsApiTests : BaseApiTest
         
         // Act - Enfileiramento via Webhook
         var content = new StringContent(webhookJson, System.Text.Encoding.UTF8, "application/json");
-        var response = await Client.PostAsync("/api/v1/payments/webhooks/stripe", content);
+        var response = await Client.PostAsync("/api/payments/webhooks/stripe", content);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Act - Disparo manual do processamento em background para o teste
@@ -384,7 +384,7 @@ public class PaymentsApiTests : BaseApiTest
         
         // Act
         var content = new StringContent(webhookJson, System.Text.Encoding.UTF8, "application/json");
-        var response = await Client.PostAsync("/api/v1/payments/webhooks/stripe", content);
+        var response = await Client.PostAsync("/api/payments/webhooks/stripe", content);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -413,11 +413,11 @@ public class PaymentsApiTests : BaseApiTest
         var content = new StringContent(webhookJson, System.Text.Encoding.UTF8, "application/json");
 
         // Act - First call
-        var response1 = await Client.PostAsync("/api/v1/payments/webhooks/stripe", content);
+        var response1 = await Client.PostAsync("/api/payments/webhooks/stripe", content);
         
         // Act - Second call (duplicate)
         var content2 = new StringContent(webhookJson, System.Text.Encoding.UTF8, "application/json");
-        var response2 = await Client.PostAsync("/api/v1/payments/webhooks/stripe", content2);
+        var response2 = await Client.PostAsync("/api/payments/webhooks/stripe", content2);
 
         // Assert
         response1.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -433,7 +433,7 @@ public class PaymentsApiTests : BaseApiTest
     public async Task StripeWebhook_EmptyBody_ShouldReturnBadRequest()
     {
         // Act
-        var response = await Client.PostAsync("/api/v1/payments/webhooks/stripe", new StringContent("", System.Text.Encoding.UTF8, "application/json"));
+        var response = await Client.PostAsync("/api/payments/webhooks/stripe", new StringContent("", System.Text.Encoding.UTF8, "application/json"));
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);

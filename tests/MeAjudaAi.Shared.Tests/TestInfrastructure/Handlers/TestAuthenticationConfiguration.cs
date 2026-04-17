@@ -32,7 +32,7 @@ public class TestAuthenticationConfiguration : ITestAuthenticationConfiguration
         ConfigureUser(userId, userName, email, "user");
     }
 
-    public void ConfigureProvider(string userId = "provider-id", string userName = "provider", Guid? providerId = null, string email = "provider@test.com")
+    public void ConfigureProvider(Guid providerId, string userId = "provider-id", string userName = "provider", string email = "provider@test.com")
     {
         ConfigureUser(userId, userName, email, "provider");
         ProviderId = providerId;

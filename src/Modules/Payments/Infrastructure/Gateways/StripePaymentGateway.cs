@@ -57,12 +57,6 @@ public class StripePaymentGateway : IPaymentGateway
         };
     }
 
-    // Legacy constructor for backward compatibility
-    public StripePaymentGateway(IConfiguration configuration, ILogger<StripePaymentGateway> logger)
-        : this(configuration, logger, new StripeService())
-    {
-    }
-
     public async Task<SubscriptionGatewayResult> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, string? idempotencyKey = null, CancellationToken cancellationToken = default)
     {
         if (CurrencyUtils.IsZeroDecimalCurrency(amount.Currency) && amount.Amount % 1 != 0)

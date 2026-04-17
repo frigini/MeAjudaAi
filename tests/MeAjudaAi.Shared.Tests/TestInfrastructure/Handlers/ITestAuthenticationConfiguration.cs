@@ -16,7 +16,7 @@ public interface ITestAuthenticationConfiguration
     void ConfigureUser(string userId, string userName, string email, params string[] roles);
     void ConfigureAdmin(string userId = "admin-id", string userName = "admin", string email = "admin@test.com");
     void ConfigureRegularUser(string userId = "user-id", string userName = "user", string email = "user@test.com");
-    void ConfigureProvider(string userId = "provider-id", string userName = "provider", Guid? providerId = null, string email = "provider@test.com");
+    void ConfigureProvider(Guid providerId, string userId = "provider-id", string userName = "provider", string email = "provider@test.com");
     void ClearConfiguration();
     void SetAllowUnauthenticated(bool allow);
 }

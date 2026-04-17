@@ -19,4 +19,12 @@ describe('Skeleton Component', () => {
     
     expect(skeleton).toHaveClass('custom-class');
   });
+
+  it('overrides conflicting classes using twMerge', () => {
+    const { container } = render(<Skeleton className="rounded-none" />);
+    const skeleton = container.firstChild as HTMLElement;
+    
+    expect(skeleton).toHaveClass('rounded-none');
+    expect(skeleton).not.toHaveClass('rounded-md');
+  });
 });

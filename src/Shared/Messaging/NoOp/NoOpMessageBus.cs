@@ -21,7 +21,7 @@ internal class NoOpMessageBus(ILogger<NoOpMessageBus> logger) : IMessageBus
         return Task.CompletedTask;
     }
 
-    public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task> handler, string? subscriptionName = null, CancellationToken cancellationToken = default)
+    public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task>? handler = null, string? subscriptionName = null, CancellationToken cancellationToken = default)
     {
         logger.LogDebug("NoOpMessageBus: Ignoring subscription to messages of type {MessageType} with subscription {SubscriptionName}",
             typeof(TMessage).Name, subscriptionName ?? "default");

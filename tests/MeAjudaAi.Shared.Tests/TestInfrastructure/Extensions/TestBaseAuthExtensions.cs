@@ -38,7 +38,7 @@ public static class TestBaseAuthExtensions
         string username = "provider",
         string email = "provider@test.com")
     {
-        ConfigurableTestAuthenticationHandler.ConfigureProvider(userId, username, providerId, email);
+        ConfigurableTestAuthenticationHandler.ConfigureProvider(providerId, userId, username, email);
     }
 
     /// <summary>
@@ -53,13 +53,13 @@ public static class TestBaseAuthExtensions
     {
         if (authConfig != null)
         {
-            authConfig.ConfigureProvider(userId, username, providerId, email);
+            authConfig.ConfigureProvider(providerId, userId, username, email);
             return;
         }
         
         if (testBase is ITestAuthenticationConfiguration config)
         {
-            config.ConfigureProvider(userId, username, providerId, email);
+            config.ConfigureProvider(providerId, userId, username, email);
             return;
         }
 
@@ -72,7 +72,7 @@ public static class TestBaseAuthExtensions
         var configValue = prop?.GetValue(testBase);
         if (configValue is ITestAuthenticationConfiguration instanceConfig)
         {
-            instanceConfig.ConfigureProvider(userId, username, providerId, email);
+            instanceConfig.ConfigureProvider(providerId, userId, username, email);
             return;
         }
 

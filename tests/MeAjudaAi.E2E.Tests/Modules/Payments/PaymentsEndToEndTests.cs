@@ -143,7 +143,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
 
         // Act - Enviar webhook
         var webhookContent = new StringContent(webhookJson, System.Text.Encoding.UTF8, "application/json");
-        var webhookResponse = await _fixture.ApiClient.PostAsync("/api/v1/payments/webhooks/stripe", webhookContent);
+        var webhookResponse = await _fixture.ApiClient.PostAsync("/api/payments/webhooks/stripe", webhookContent);
         
         if (webhookResponse.StatusCode != HttpStatusCode.OK)
         {

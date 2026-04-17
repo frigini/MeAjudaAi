@@ -56,6 +56,18 @@ A estratégia de Dead Letter Queue para RabbitMQ inclui:
 - ✅ **Dead Letter Exchange (DLX)** automático
 - ✅ **TTL configurável** para mensagens na DLQ
 
-## 3. Conclusão
+## 3. Apêndice: Guia de Migração de Filas (PascalCase para lowercase)
+
+Com a mudança para nomes de fila em lowercase (ex: `MeAjudaAi-Events` para `meajudaai-events`), siga este checklist antes do deploy:
+
+1. **Descoberta**: Identifique filas PascalCase existentes via Management UI ou `rabbitmqctl list_queues`.
+2. **Drenagem**: Certifique-se de que todos os consumidores antigos processaram as mensagens pendentes.
+3. **Migração (Opcional)**: Se houver volume crítico, use a ferramenta `rabbitmqadmin` para mover mensagens entre filas.
+4. **Verificação**: Confirme se os novos consumidores estão apontando para as filas em lowercase.
+5. **Limpeza**: Remova as filas PascalCase vazias para evitar confusão operacional.
+
+Ferramentas recomendadas: `rabbitmqctl`, `rabbitmqadmin` e RabbitMQ Management UI.
+
+## 4. Conclusão
 
 A plataforma unificou sua infraestrutura de messaging no **RabbitMQ** através do **Rebus**, simplificando a arquitetura e garantindo paridade entre os ambientes de desenvolvimento e produção.

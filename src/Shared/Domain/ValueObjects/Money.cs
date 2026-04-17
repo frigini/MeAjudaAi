@@ -6,13 +6,9 @@ public record Money
 {
     public const string DefaultCurrency = "BRL";
     
-    private static readonly HashSet<string> SupportedCurrencies = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> CommonCurrencies = new(StringComparer.OrdinalIgnoreCase)
     {
-        "BRL", "USD", "EUR", "GBP", "CAD", "AUD", "CHF",
-        // Zero-decimal
-        "BIF", "CLP", "DJF", "GNF", "JPY", "KMF", "KRW", "MGA", "PYG", "RWF", "UGX", "VND", "VUV", "XAF", "XOF", "XPF",
-        // Three-decimal
-        "BHD", "JOD", "KWD", "OMR", "TND"
+        "BRL", "USD", "EUR", "GBP", "CAD", "AUD", "CHF"
     };
 
     public decimal Amount { get; }
@@ -23,16 +19,24 @@ public record Money
         if (amount < 0)
             throw new ArgumentOutOfRangeException(nameof(amount), "Amount cannot be negative.");
         
-        if (string.IsNullOrWhiteSpace(currency))
-            throw new ArgumentNullException(nameof(currency), "Currency cannot be null or empty.");
+        ArgumentException.ThrowIfNullOrOrWhiteSpace(currency);
 
         var normalized = currency.Trim().ToUpperInvariant();
         
-        if (!SupportedCurrencies.Contains(normalized))
+        if (!IsSupported(normalized))
             throw new ArgumentException($"Currency '{normalized}' is not supported.", nameof(currency));
 
         Amount = amount;
         Currency = normalized;
+    }
+
+    public static bool IsSupported(string currency)
+    {
+        if (string.IsNullOrWhiteSpace(currency)) return false;
+        var normalized = currency.Trim();
+        return CommonCurrencies.Contains(normalized) || 
+               CurrencyUtils.IsZeroDecimalCurrency(normalized) || 
+               CurrencyUtils.IsThreeDecimalCurrency(normalized);
     }
 
     public static Money Zero(string currency = DefaultCurrency) => new(0, currency);

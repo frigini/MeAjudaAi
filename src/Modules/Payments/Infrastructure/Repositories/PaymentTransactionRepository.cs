@@ -3,10 +3,13 @@ using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Database.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Payments.Infrastructure.Repositories;
 
-public class PaymentTransactionRepository(PaymentsDbContext context) : IPaymentTransactionRepository
+public class PaymentTransactionRepository(
+    PaymentsDbContext context,
+    ILogger<PaymentTransactionRepository> logger) : IPaymentTransactionRepository
 {
     public async Task AddAsync(PaymentTransaction transaction, CancellationToken cancellationToken = default)
     {
@@ -24,6 +27,7 @@ public class PaymentTransactionRepository(PaymentsDbContext context) : IPaymentT
             if (databaseException is UniqueConstraintException uniqueEx && 
                 uniqueEx.ConstraintName.Contains("external_transaction_id", StringComparison.OrdinalIgnoreCase))
             {
+                logger.LogInformation("Duplicate external transaction id {ExternalTransactionId} detected; treating as idempotent replay.", transaction.ExternalTransactionId);
                 // Violação de chave única esperada para garantir idempotência.
                 context.Entry(transaction).State = EntityState.Detached;
                 return;
