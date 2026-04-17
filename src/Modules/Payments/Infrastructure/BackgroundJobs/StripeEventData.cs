@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
 
+[ExcludeFromCodeCoverage]
 public record StripeEventData(
     string Type,
     string? ExternalEventId,

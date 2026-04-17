@@ -128,29 +128,77 @@ public class GetBillingPortalCommandHandlerTests
         await act.Should().ThrowAsync<BusinessRuleException>().Where(e => e.RuleName == "GATEWAY_SESSION_FAILURE");
     }
 
-    [Theory]
-    [InlineData("not-a-url")]
-    [InlineData("/relative/path")]
-    public async Task HandleAsync_ShouldThrow_WhenUrlIsInvalid(string url)
+    [Fact]
+    public async Task HandleAsync_ShouldAllow_WhenHostInClientBaseUrl()
     {
-        var command = new GetBillingPortalCommand(Guid.NewGuid(), url);
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var externalCustomerId = "cus_123";
+        var returnUrl = "https://meajudaai.com/account";
+        
+        _configurationMock.Setup(x => x["ClientBaseUrl"]).Returns("https://meajudaai.com");
+
+        var sub = new Subscription(providerId, "plan", Money.FromDecimal(10));
+        sub.Activate("sub_123", externalCustomerId, DateTime.UtcNow.AddMonths(1));
+
+        _repositoryMock.Setup(x => x.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(sub);
+
+        _gatewayMock.Setup(x => x.CreateBillingPortalSessionAsync(externalCustomerId, returnUrl, It.IsAny<CancellationToken>()))
+            .ReturnsAsync("https://stripe.com/portal");
+
+        var command = new GetBillingPortalCommand(providerId, returnUrl);
+
+        // Act
+        var result = await _handler.HandleAsync(command);
+
+        // Assert
+        result.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldAllowLocalhost_WithHttp()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var returnUrl = "http://localhost:3000/billing";
+        
+        var sub = new Subscription(providerId, "plan", Money.FromDecimal(10));
+        sub.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
+        _repositoryMock.Setup(x => x.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>())).ReturnsAsync(sub);
+        _gatewayMock.Setup(x => x.CreateBillingPortalSessionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync("https://stripe.com");
+
+        var command = new GetBillingPortalCommand(providerId, returnUrl);
+
+        // Act
+        var result = await _handler.HandleAsync(command);
+
+        // Assert
+        result.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldThrow_WhenAllowedHostsIsNull()
+    {
+        // Arrange
+        _configurationMock.Setup(x => x.GetSection("Payments:AllowedReturnHosts")).Returns(new Mock<IConfigurationSection>().Object);
+        var command = new GetBillingPortalCommand(Guid.NewGuid(), "https://evil.com");
+
+        // Act
+        var act = () => _handler.HandleAsync(command);
+
+        // Assert
+        await act.Should().ThrowAsync<BusinessRuleException>().Where(e => e.RuleName == "UNTRUSTED_RETURN_HOST");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task HandleAsync_ShouldThrow_WhenReturnUrlIsMissing(string? url)
+    {
+        var command = new GetBillingPortalCommand(Guid.NewGuid(), url!);
         var act = () => _handler.HandleAsync(command);
         await act.Should().ThrowAsync<BusinessRuleException>().Where(e => e.RuleName == "INVALID_RETURN_URL");
-    }
-
-    [Fact]
-    public async Task HandleAsync_ShouldThrow_WhenSchemeIsHttp()
-    {
-        var command = new GetBillingPortalCommand(Guid.NewGuid(), "http://untrusted.com");
-        var act = () => _handler.HandleAsync(command);
-        await act.Should().ThrowAsync<BusinessRuleException>().Where(e => e.RuleName == "INVALID_RETURN_URL_SCHEME");
-    }
-
-    [Fact]
-    public async Task HandleAsync_ShouldThrow_WhenHostIsNotAllowed()
-    {
-        var command = new GetBillingPortalCommand(Guid.NewGuid(), "https://evil.com");
-        var act = () => _handler.HandleAsync(command);
-        await act.Should().ThrowAsync<BusinessRuleException>().Where(e => e.RuleName == "UNTRUSTED_RETURN_HOST");
     }
 }

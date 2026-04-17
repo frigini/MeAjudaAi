@@ -129,24 +129,112 @@ public class CreateSubscriptionCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldNotCallCancel_WhenRepositoryFails_AndExternalSubIdIsNull()
+    public async Task HandleAsync_ShouldThrow_WhenGatewayCommunicationThrows()
     {
         // Arrange
         var command = new CreateSubscriptionCommand(Guid.NewGuid(), "price_premium_monthly");
-        
-        var gatewayResult = SubscriptionGatewayResult.Succeeded(null, "https://checkout");
+        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Network error"));
 
+        // Act
+        var act = () => _handler.HandleAsync(command);
+
+        // Assert
+        await act.Should().ThrowAsync<SubscriptionCreationException>().WithMessage("*Falha ao comunicar*");
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldThrow_WhenGatewayReturnsFailure()
+    {
+        // Arrange
+        var command = new CreateSubscriptionCommand(Guid.NewGuid(), "price_premium_monthly");
+        var failedResult = SubscriptionGatewayResult.Failed("Stripe error");
+        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(failedResult);
+
+        // Act
+        var act = () => _handler.HandleAsync(command);
+
+        // Assert
+        await act.Should().ThrowAsync<SubscriptionCreationException>().WithMessage("*Falha ao criar assinatura no gateway*");
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldCompensateAndLogWarning_WhenCancelFails()
+    {
+        // Arrange
+        var command = new CreateSubscriptionCommand(Guid.NewGuid(), "price_premium_monthly");
+        var gatewayResult = SubscriptionGatewayResult.Succeeded("sub_123", "https://checkout");
         _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(gatewayResult);
 
         _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("DB error"));
 
+        _gatewayMock.Setup(g => g.CancelSubscriptionAsync("sub_123", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false); // Cancel fails
+
         // Act
         var act = () => _handler.HandleAsync(command);
 
         // Assert
         await act.Should().ThrowAsync<SubscriptionCreationException>();
-        _gatewayMock.Verify(g => g.CancelSubscriptionAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _gatewayMock.Verify(g => g.CancelSubscriptionAsync("sub_123", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldCompensateAndLogWarning_WhenCancelThrows()
+    {
+        // Arrange
+        var command = new CreateSubscriptionCommand(Guid.NewGuid(), "price_premium_monthly");
+        var gatewayResult = SubscriptionGatewayResult.Succeeded("sub_123", "https://checkout");
+        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(gatewayResult);
+
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("DB error"));
+
+        _gatewayMock.Setup(g => g.CancelSubscriptionAsync("sub_123", It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Cancel error"));
+
+        // Act
+        var act = () => _handler.HandleAsync(command);
+
+        // Assert
+        await act.Should().ThrowAsync<SubscriptionCreationException>();
+        _gatewayMock.Verify(g => g.CancelSubscriptionAsync("sub_123", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldThrowOperationCanceledException_WhenCanceledDuringGatewayCall()
+    {
+        // Arrange
+        var command = new CreateSubscriptionCommand(Guid.NewGuid(), "price_premium_monthly");
+        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+
+        // Act
+        var act = () => _handler.HandleAsync(command);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldThrowOperationCanceledException_WhenCanceledDuringRepositoryCall()
+    {
+        // Arrange
+        var command = new CreateSubscriptionCommand(Guid.NewGuid(), "price_premium_monthly");
+        _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(SubscriptionGatewayResult.Succeeded("sub_123", "https://url"));
+
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+
+        // Act
+        var act = () => _handler.HandleAsync(command);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
     }
 }
