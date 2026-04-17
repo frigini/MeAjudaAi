@@ -53,4 +53,13 @@ public class PaymentTransaction : BaseEntity
         ProcessedAt = DateTime.UtcNow;
         MarkAsUpdated();
     }
+
+    public void Refund()
+    {
+        if (Status != EPaymentStatus.Succeeded)
+            throw new InvalidOperationException($"Cannot refund transaction in {Status} status. Only Succeeded transactions can be refunded.");
+
+        Status = EPaymentStatus.Refunded;
+        MarkAsUpdated();
+    }
 }

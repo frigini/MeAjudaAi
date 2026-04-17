@@ -28,9 +28,13 @@ public class StripeWebhookEndpoint : IEndpoint
         {
             try
             {
+                // Copiamos para MemoryStream para suportar CancellationToken na leitura e manter body aberto se necessário
+                using var ms = new System.IO.MemoryStream();
+                await context.Request.Body.CopyToAsync(ms, context.RequestAborted);
+                ms.Position = 0;
+
                 string json;
-                using (var reader = new System.IO.StreamReader(
-                    context.Request.Body, 
+                using (var reader = new System.IO.StreamReader(ms, 
                     encoding: System.Text.Encoding.UTF8, 
                     detectEncodingFromByteOrderMarks: true, 
                     bufferSize: 1024, 
@@ -50,7 +54,6 @@ public class StripeWebhookEndpoint : IEndpoint
                 // No ambiente Testing, podemos ignorar a validação de assinatura
                 if (environment.IsEnvironment("Testing") && string.IsNullOrEmpty(stripeSignature))
                 {
-                    // throwOnApiVersionMismatch: false para evitar erros em testes com payloads manuais
                     var mockEvent = EventUtility.ParseEvent(json, throwOnApiVersionMismatch: false);
                     if (mockEvent == null) return Results.BadRequest(new { error = "Falha ao processar evento mock" });
                     
@@ -61,7 +64,7 @@ public class StripeWebhookEndpoint : IEndpoint
                 if (string.IsNullOrWhiteSpace(webhookSecret))
                 {
                     logger.LogError("Stripe:WebhookSecret not configured.");
-                    return Results.InternalServerError(new { error = "Erro de configuração do webhook: Stripe:WebhookSecret ausente." });
+                    return Results.InternalServerError(new { error = "Erro interno no servidor" });
                 }
 
                 var stripeEvent = EventUtility.ConstructEvent(
@@ -78,6 +81,11 @@ public class StripeWebhookEndpoint : IEndpoint
             {
                 logger.LogWarning(e, "Stripe signature validation failed.");
                 return Results.BadRequest(new { error = "Requisição de webhook inválida" });
+            }
+            catch (OperationCanceledException)
+            {
+                // Requisição abortada pelo cliente ou host
+                return Results.StatusCode(499); 
             }
             catch (Exception e)
             {
@@ -109,7 +117,6 @@ public class StripeWebhookEndpoint : IEndpoint
         catch (DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException { SqlState: "23505" })
         {
             // Violação de chave única: evento já processado por outra requisição concorrente.
-            // Tratamos como sucesso silencioso para idempotência.
             return;
         }
     }

@@ -40,19 +40,6 @@ public class InboxMessageTests
     }
 
     [Fact]
-    public void IncrementRetry_ShouldUpdateCount()
-    {
-        // Arrange
-        var msg = new InboxMessage("t", "{}", "e");
-
-        // Act
-        msg.IncrementRetry();
-
-        // Assert
-        msg.RetryCount.Should().Be(1);
-    }
-
-    [Fact]
     public void RecordError_ShouldIncrementRetryAndSetNextAttempt()
     {
         // Arrange

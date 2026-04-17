@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
 namespace MeAjudaAi.Modules.Payments.API.Endpoints.Public;
@@ -16,20 +17,16 @@ public class CreateSubscriptionEndpoint : IEndpoint
     public static void Map(IEndpointRouteBuilder app)
     {
         app.MapPost("subscriptions", async (
-            [FromBody] CreateSubscriptionRequest request,
+            CreateSubscriptionRequest request,
             [FromServices] ICommandDispatcher dispatcher,
             [FromServices] IProvidersModuleApi providersApi,
+            [FromServices] ILogger<CreateSubscriptionEndpoint> logger,
             HttpContext httpContext,
             CancellationToken cancellationToken) =>
         {
             if (request.ProviderId == Guid.Empty)
             {
-                return Results.BadRequest(new { error = "ProviderId inválido." });
-            }
-
-            if (string.IsNullOrWhiteSpace(request.PlanId))
-            {
-                return Results.BadRequest(new { error = "PlanId inválido." });
+                return Results.BadRequest(new { error = "ProviderId é obrigatório." });
             }
 
             // Validação de Autorização (Admin ou Dono do Provider)
@@ -49,15 +46,25 @@ public class CreateSubscriptionEndpoint : IEndpoint
 
             // Valida se o prestador existe no banco via API do módulo
             var existsResult = await providersApi.ProviderExistsAsync(request.ProviderId, cancellationToken);
-            if (existsResult.IsFailure || !existsResult.Value)
+            
+            if (existsResult.IsFailure)
+            {
+                logger.LogError("Error checking provider existence for {ProviderId}: {Error}", 
+                    request.ProviderId, existsResult.Error);
+                return Results.Problem("Erro ao validar prestador. Tente novamente mais tarde.", statusCode: 502);
+            }
+
+            if (!existsResult.Value)
             {
                 return Results.NotFound(new { error = "Prestador não encontrado." });
             }
 
-            var command = new CreateSubscriptionCommand(request.ProviderId, request.PlanId);
-
+            // Repassar Idempotency-Key se presente
+            var idempotencyKey = httpContext.Request.Headers["Idempotency-Key"].ToString();
+            
+            var command = new CreateSubscriptionCommand(request.ProviderId, request.PlanId, idempotencyKey);
             var checkoutUrl = await dispatcher.SendAsync<CreateSubscriptionCommand, string>(command, cancellationToken);
-
+            
             return Results.Ok(new { checkoutUrl });
         })
         .RequireAuthorization()

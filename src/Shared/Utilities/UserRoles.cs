@@ -83,7 +83,7 @@ public static class UserRoles
     /// </summary>
     public const string Customer = RoleConstants.Customer;
 
-    // ===== PROVIDER TIER ROLES =====
+    // ===== FUNÇÕES/FAIXAS DO PROVEDOR =====
     
     /// <summary>
     /// Prestador de serviços no plano gratuito (Standard).

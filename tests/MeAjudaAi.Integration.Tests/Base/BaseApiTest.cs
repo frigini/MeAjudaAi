@@ -55,7 +55,7 @@ public enum TestModule
     Communications = 1 << 6,
     Payments = 1 << 7,
     All = Users | Providers | Documents | ServiceCatalogs | Locations | SearchProviders | Communications | Payments
-}
+    }
 
 /// <summary>
 /// Classe base unificada para testes de integração com suporte a autenticação baseada em instância.

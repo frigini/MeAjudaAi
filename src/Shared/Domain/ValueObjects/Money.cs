@@ -1,8 +1,19 @@
+using MeAjudaAi.Shared.Utilities;
+
 namespace MeAjudaAi.Shared.Domain.ValueObjects;
 
 public record Money
 {
     public const string DefaultCurrency = "BRL";
+    
+    private static readonly HashSet<string> SupportedCurrencies = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "BRL", "USD", "EUR", "GBP", "CAD", "AUD", "CHF",
+        // Zero-decimal
+        "BIF", "CLP", "DJF", "GNF", "JPY", "KMF", "KRW", "MGA", "PYG", "RWF", "UGX", "VND", "VUV", "XAF", "XOF", "XPF",
+        // Three-decimal
+        "BHD", "JOD", "KWD", "OMR", "TND"
+    };
 
     public decimal Amount { get; }
     public string Currency { get; }
@@ -16,8 +27,9 @@ public record Money
             throw new ArgumentNullException(nameof(currency), "Currency cannot be null or empty.");
 
         var normalized = currency.Trim().ToUpperInvariant();
-        if (normalized.Length != 3)
-            throw new ArgumentException("Currency must be a 3-character ISO code.", nameof(currency));
+        
+        if (!SupportedCurrencies.Contains(normalized))
+            throw new ArgumentException($"Currency '{normalized}' is not supported.", nameof(currency));
 
         Amount = amount;
         Currency = normalized;

@@ -6,4 +6,4 @@ public record SubscriptionActivatedDomainEvent(
     Guid SubscriptionId, 
     Guid ProviderId, 
     string ExternalSubscriptionId
-) : DomainEvent(SubscriptionId, 0);
+) : DomainEvent(SubscriptionId, DomainConstants.InitialVersion);

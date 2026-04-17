@@ -151,6 +151,12 @@ public class ProcessInboxJob(
                     throw new InvalidOperationException("Essential data missing from checkout.session.completed event");
                 }
 
+                if (string.IsNullOrWhiteSpace(data.CustomerId))
+                {
+                    logger.LogError("CustomerId is required to activate subscription. EventId: {EventId}", data.ExternalEventId);
+                    throw new InvalidOperationException("CustomerId is required to activate subscription");
+                }
+
                 var subscription = await repository.GetLatestByProviderIdAsync(data.ProviderId.Value, ct);
                 if (subscription == null)
                 {
@@ -164,7 +170,13 @@ public class ProcessInboxJob(
                     break;
                 }
 
-                subscription.Activate(data.SubscriptionId, data.CustomerId ?? string.Empty); 
+                if (string.IsNullOrWhiteSpace(data.CustomerId))
+                {
+                    logger.LogError("CustomerId is required to activate subscription {SubscriptionId}", data.SubscriptionId);
+                    throw new InvalidOperationException("CustomerId is required to activate subscription");
+                }
+
+                subscription.Activate(data.SubscriptionId, data.CustomerId); 
                 
                 await repository.UpdateAsync(subscription, ct);
                 logger.LogInformation("Subscription {Id} activated for Provider {ProviderId} (Customer: {CustomerId})", subscription.Id, data.ProviderId, data.CustomerId);
@@ -198,6 +210,12 @@ public class ProcessInboxJob(
                 await repository.UpdateAsync(subToRenew, ct);
 
                 // Create PaymentTransaction audit record
+                if (string.IsNullOrWhiteSpace(data.InvoiceId))
+                {
+                    logger.LogWarning("Skipping PaymentTransaction creation for subscription {Id}: InvoiceId is missing", subToRenew.Id);
+                    break;
+                }
+
                 Money? amount = null;
                 try
                 {
@@ -229,7 +247,7 @@ public class ProcessInboxJob(
                 if (amount != null && amount.Amount > 0)
                 {
                     var paymentTransaction = new PaymentTransaction(subToRenew.Id, amount);
-                    paymentTransaction.Settle(data.InvoiceId!);
+                    paymentTransaction.Settle(data.InvoiceId);
                     await paymentTransactionRepository.AddAsync(paymentTransaction, ct);
 
                     logger.LogInformation("Subscription {Id} renewed until {ExpiresAt}. PaymentTransaction {PaymentTransactionId} recorded for Invoice {InvoiceId}", 

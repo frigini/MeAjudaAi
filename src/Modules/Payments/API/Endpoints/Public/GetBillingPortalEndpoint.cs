@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Configuration;
 
 namespace MeAjudaAi.Modules.Payments.API.Endpoints.Public;
@@ -16,8 +17,8 @@ public class GetBillingPortalEndpoint : IEndpoint
         // POST: /api/v1/payments/subscriptions/billing-portal
         app.MapPost("subscriptions/billing-portal", async (
             GetBillingPortalRequest request,
-            ICommandDispatcher dispatcher,
-            IConfiguration configuration,
+            [FromServices] ICommandDispatcher dispatcher,
+            [FromServices] IConfiguration configuration,
             HttpContext httpContext,
             CancellationToken cancellationToken) =>
         {
@@ -39,33 +40,47 @@ public class GetBillingPortalEndpoint : IEndpoint
         if (request.ProviderId == Guid.Empty)
             return Results.BadRequest(new { error = "ProviderId é obrigatório." });
 
-        // Validação de Ownership: O usuário autenticado deve ser o dono do ProviderId
-        var userProviderIdStr = httpContext.User?.FindFirst("provider_id")?.Value;
-        if (string.IsNullOrEmpty(userProviderIdStr) || !Guid.TryParse(userProviderIdStr, out var userProviderId) || userProviderId != request.ProviderId)
+        // Validação de Autorização (Admin ou Dono do Provider)
+        var isSystemAdmin = string.Equals(
+            httpContext.User?.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, 
+            "true", 
+            StringComparison.OrdinalIgnoreCase);
+
+        if (!isSystemAdmin)
         {
-            return Results.Forbid();
+            var userProviderIdClaim = httpContext.User?.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
+            if (string.IsNullOrEmpty(userProviderIdClaim) || !Guid.TryParse(userProviderIdClaim, out var userProviderId) || userProviderId != request.ProviderId)
+            {
+                return string.IsNullOrEmpty(userProviderIdClaim) ? Results.Unauthorized() : Results.Forbid();
+            }
         }
 
         var clientBaseUrl = configuration["ClientBaseUrl"];
         if (string.IsNullOrEmpty(clientBaseUrl))
         {
-            throw new InvalidOperationException("Missing 'ClientBaseUrl' configuration; cannot resolve return URL.");
+            return Results.Problem("ClientBaseUrl não configurada.");
         }
 
         clientBaseUrl = clientBaseUrl.TrimEnd('/');
 
-        var resolvedReturnUrl = request.ReturnUrl?.ToLowerInvariant() switch
-        {
-            "account" => $"{clientBaseUrl}/account",
-            "billing" => $"{clientBaseUrl}/billing",
-            _ => clientBaseUrl // Proteção contra Open Redirect: ignora valores desconhecidos e usa a base como fallback
-        };
+        // Se ReturnUrl é um路径 conhecido, resolver. Se é URL completa, passar para o handler validar
+        string finalReturnUrl;
+        var returnUrl = request.ReturnUrl ?? "";
+        
+        if (returnUrl.Equals("account", StringComparison.OrdinalIgnoreCase))
+            finalReturnUrl = $"{clientBaseUrl}/account";
+        else if (returnUrl.Equals("billing", StringComparison.OrdinalIgnoreCase))
+            finalReturnUrl = $"{clientBaseUrl}/billing";
+        else if (Uri.TryCreate(returnUrl, UriKind.Absolute, out _))
+            finalReturnUrl = returnUrl; // Passar URL completa para o handler validar
+        else
+            finalReturnUrl = clientBaseUrl; // Fallback para URL inválida/não reconhecidade
 
-        var command = new GetBillingPortalCommand(request.ProviderId, resolvedReturnUrl);
+        var command = new GetBillingPortalCommand(request.ProviderId, finalReturnUrl);
         var portalUrl = await dispatcher.SendAsync<GetBillingPortalCommand, string>(command, cancellationToken);
 
         return Results.Ok(new { portalUrl });
-        }
-        }
+    }
+}
 
-        public record GetBillingPortalRequest(Guid ProviderId, string? ReturnUrl);
+public record GetBillingPortalRequest(Guid ProviderId, string? ReturnUrl);

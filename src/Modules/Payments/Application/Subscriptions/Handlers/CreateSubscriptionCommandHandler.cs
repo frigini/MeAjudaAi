@@ -30,7 +30,8 @@ public class CreateSubscriptionCommandHandler(
                 command.ProviderId,
                 command.PlanId,
                 moneyAmount,
-                cancellationToken);
+                cancellationToken,
+                command.IdempotencyKey);
         }
         catch (OperationCanceledException)
         {
@@ -87,11 +88,19 @@ public class CreateSubscriptionCommandHandler(
             logger.LogInformation("Compensating: cancelling external subscription {ExternalSubscriptionId} due to failure", 
                 result.ExternalSubscriptionId);
             
-            var cancelled = await paymentGateway.CancelSubscriptionAsync(result.ExternalSubscriptionId, CancellationToken.None);
-            
-            if (!cancelled)
+            try
             {
-                logger.LogError("Critical: Failed to cancel external subscription {ExternalSubscriptionId} during rollback. Manual intervention may be required.", 
+                var cancelled = await paymentGateway.CancelSubscriptionAsync(result.ExternalSubscriptionId, CancellationToken.None);
+                
+                if (!cancelled)
+                {
+                    logger.LogError("Failed to cancel external subscription {ExternalSubscriptionId} during rollback. Manual intervention may be required.", 
+                        result.ExternalSubscriptionId);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error during compensation rollback for subscription {ExternalSubscriptionId}. Keeping original failure.", 
                     result.ExternalSubscriptionId);
             }
         }

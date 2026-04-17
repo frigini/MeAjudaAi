@@ -10,44 +10,36 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
 
 public class GetBillingPortalCommandHandler(
-    ISubscriptionRepository subscriptionRepository,
-    IPaymentGateway paymentGateway,
+    ISubscriptionRepository repository,
+    IPaymentGateway gateway,
     IConfiguration configuration,
     ILogger<GetBillingPortalCommandHandler> logger) : ICommandHandler<GetBillingPortalCommand, string>
 {
     public async Task<string> HandleAsync(GetBillingPortalCommand command, CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Generating billing portal for Provider {ProviderId}", command.ProviderId);
-        
         ValidateReturnUrl(command.ReturnUrl);
 
-        var subscription = await subscriptionRepository.GetActiveByProviderIdAsync(command.ProviderId, cancellationToken);
-        
+        var subscription = await repository.GetActiveByProviderIdAsync(command.ProviderId, cancellationToken);
         if (subscription == null)
         {
-            logger.LogWarning("Active subscription not found for Provider {ProviderId}", command.ProviderId);
-            throw new NotFoundException("Subscription", command.ProviderId);
+            throw new NotFoundException(nameof(Subscription), command.ProviderId);
         }
 
         if (string.IsNullOrEmpty(subscription.ExternalCustomerId))
         {
-            logger.LogWarning("Subscription {SubscriptionId} missing ExternalCustomerId", subscription.Id);
-            throw new BusinessRuleException("MISSING_EXTERNAL_CUSTOMER_ID", $"Assinatura encontrada ({subscription.Id}), mas sem identificador de cliente externo.");
+            logger.LogError("Active subscription {Id} for Provider {ProviderId} is missing ExternalCustomerId", 
+                subscription.Id, command.ProviderId);
+            throw new BusinessRuleException("MISSING_EXTERNAL_CUSTOMER_ID", "Não foi possível localizar o cadastro no provedor de pagamento.");
         }
 
-        var maskedCustomerId = Subscription.MaskExternalId(subscription.ExternalCustomerId);
-        logger.LogInformation("Subscription {SubscriptionId} found for Customer {CustomerId}. Creating session...", 
-            subscription.Id, maskedCustomerId);
-
-        var portalUrl = await paymentGateway.CreateBillingPortalSessionAsync(
+        var portalUrl = await gateway.CreateBillingPortalSessionAsync(
             subscription.ExternalCustomerId, 
             command.ReturnUrl, 
             cancellationToken);
 
         if (string.IsNullOrEmpty(portalUrl))
         {
-            logger.LogError("Gateway failed to generate portal URL for Customer {CustomerId}", maskedCustomerId);
-            throw new BusinessRuleException("GATEWAY_SESSION_FAILURE", "Falha ao gerar sessão do Portal de Faturamento no provedor de pagamento.");
+            throw new BusinessRuleException("GATEWAY_SESSION_FAILURE", "Falha ao criar sessão do portal de faturamento.");
         }
 
         return portalUrl;
@@ -55,22 +47,29 @@ public class GetBillingPortalCommandHandler(
 
     private void ValidateReturnUrl(string returnUrl)
     {
+        if (string.IsNullOrWhiteSpace(returnUrl))
+            throw new BusinessRuleException("INVALID_RETURN_URL", "A URL de retorno é obrigatória.");
+
         if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var uri))
-        {
-            throw new BusinessRuleException("INVALID_RETURN_URL", "A URL de retorno deve ser uma URL absoluta válida.");
-        }
+            throw new BusinessRuleException("INVALID_RETURN_URL", "A URL de retorno informada é inválida.");
 
-        if (uri.Scheme != Uri.UriSchemeHttps && uri.Host != "localhost")
-        {
-            throw new BusinessRuleException("INVALID_RETURN_URL_SCHEME", "A URL de retorno deve utilizar o protocolo HTTPS.");
-        }
+        if (uri.Scheme != Uri.UriSchemeHttps && !uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+            throw new BusinessRuleException("INVALID_RETURN_URL_SCHEME", "A URL de retorno deve usar o protocolo HTTPS.");
 
-        var allowedHostsSection = configuration.GetSection("Payments:AllowedReturnHosts");
-        var allowedHosts = allowedHostsSection.GetChildren().Select(c => c.Value).Where(v => v != null).ToList();
+        var allowedHosts = configuration.GetSection("Payments:AllowedReturnHosts").Get<string[]>() ?? Array.Empty<string>();
         
-        if (!allowedHosts.Contains(uri.Host, StringComparer.OrdinalIgnoreCase))
+        // Incluir ClientBaseUrl na lista de confiáveis se configurado
+        var clientBaseUrl = configuration["ClientBaseUrl"];
+        var trustedHosts = new HashSet<string>(allowedHosts, StringComparer.OrdinalIgnoreCase);
+        if (!string.IsNullOrEmpty(clientBaseUrl) && Uri.TryCreate(clientBaseUrl, UriKind.Absolute, out var clientUri))
         {
-            logger.LogWarning("Blocked billing portal redirect to untrusted host: {Host}", uri.Host);
+            trustedHosts.Add(clientUri.Host);
+        }
+
+        if (!trustedHosts.Contains(uri.Host))
+        {
+            logger.LogWarning("Blocked billing portal redirect to untrusted host: {Host}. Trusted: {Trusted}", 
+                uri.Host, string.Join(", ", trustedHosts));
             throw new BusinessRuleException("UNTRUSTED_RETURN_HOST", "O domínio da URL de retorno não é confiável.");
         }
     }

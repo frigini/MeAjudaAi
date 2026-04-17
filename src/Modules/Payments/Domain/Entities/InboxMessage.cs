@@ -67,7 +67,7 @@ public class InboxMessage
         }
     }
 
-    public void IncrementRetry()
+    private void IncrementRetry()
     {
         RetryCount++;
     }

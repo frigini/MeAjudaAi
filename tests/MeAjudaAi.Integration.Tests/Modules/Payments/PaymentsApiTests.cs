@@ -396,6 +396,76 @@ public class PaymentsApiTests : BaseApiTest
         inboxMessage!.ProcessedAt.Should().BeNull(); // Estado inicial
     }
 
+    [Fact]
+    public async Task StripeWebhook_DuplicateEvent_ShouldReturnOk_AndNotProcessTwice()
+    {
+        // Arrange
+        var externalEventId = "evt_duplicate_123";
+        var webhookJson = $$$"""
+        {
+            "id": "{{{externalEventId}}}",
+            "object": "event",
+            "type": "customer.subscription.updated",
+            "api_version": "2026-03-25.dahlia",
+            "data": { "object": { "id": "sub_123", "object": "subscription" } }
+        }
+        """;
+        var content = new StringContent(webhookJson, System.Text.Encoding.UTF8, "application/json");
+
+        // Act - First call
+        var response1 = await Client.PostAsync("/api/v1/payments/webhooks/stripe", content);
+        
+        // Act - Second call (duplicate)
+        var content2 = new StringContent(webhookJson, System.Text.Encoding.UTF8, "application/json");
+        var response2 = await Client.PostAsync("/api/v1/payments/webhooks/stripe", content2);
+
+        // Assert
+        response1.StatusCode.Should().Be(HttpStatusCode.OK);
+        response2.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        using var scope = Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
+        var messages = await dbContext.InboxMessages.Where(m => m.ExternalEventId == externalEventId).ToListAsync();
+        messages.Should().HaveCount(1); // Somente um registro deve existir
+    }
+
+    [Fact]
+    public async Task StripeWebhook_EmptyBody_ShouldReturnBadRequest()
+    {
+        // Act
+        var response = await Client.PostAsync("/api/v1/payments/webhooks/stripe", new StringContent("", System.Text.Encoding.UTF8, "application/json"));
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetBillingPortal_WithUntrustedReturnUrl_ShouldReturnError()
+    {
+        // Arrange
+        await SeedProviderAsync();
+        var providerId = _seededProviderId;
+        AuthConfig.ConfigureProvider("provider-id", "provider", providerId);
+
+        // Setup: Criar uma assinatura ativa no DB
+        using (var scope = Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
+            var sub = new Subscription(providerId, "price_premium_monthly", Money.FromDecimal(99.90m, "BRL"));
+            sub.Activate("sub_untrusted", "cus_untrusted", DateTime.UtcNow.AddMonths(1));
+            dbContext.Subscriptions.Add(sub);
+            await dbContext.SaveChangesAsync();
+        }
+
+        // Act
+        var response = await Client.PostAsJsonAsync($"/api/v1/payments/subscriptions/billing-portal", new { providerId, returnUrl = "https://evil.com" });
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var content = await response.Content.ReadAsStringAsync();
+        content.Should().Contain("não é confiável");
+    }
+
     private record BillingPortalResponse(string PortalUrl);
     private record CheckoutResponse(string CheckoutUrl);
 }

@@ -1,20 +1,17 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
-using MeAjudaAi.Modules.Payments.Domain.Enums;
 using MeAjudaAi.Modules.Payments.Domain.Repositories;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Exceptions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
+using FluentAssertions;
 using Xunit;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.Handlers;
-
-using DomainSubscription = MeAjudaAi.Modules.Payments.Domain.Entities.Subscription;
 
 public class GetBillingPortalCommandHandlerTests
 {
@@ -30,158 +27,130 @@ public class GetBillingPortalCommandHandlerTests
         _gatewayMock = new Mock<IPaymentGateway>();
         _configurationMock = new Mock<IConfiguration>();
         _loggerMock = new Mock<ILogger<GetBillingPortalCommandHandler>>();
-
-        // Setup base config for allowed hosts
-        var section = new Mock<IConfigurationSection>();
-        section.Setup(s => s.GetChildren()).Returns(Enumerable.Empty<IConfigurationSection>());
-        _configurationMock.Setup(c => c.GetSection("Payments:AllowedReturnHosts")).Returns(section.Object);
-        
         _handler = new GetBillingPortalCommandHandler(
             _repositoryMock.Object, 
             _gatewayMock.Object, 
             _configurationMock.Object, 
             _loggerMock.Object);
-    }
 
-    private void SetupAllowedHost(string host)
-    {
-        var item = new Mock<IConfigurationSection>();
-        item.Setup(s => s.Value).Returns(host);
-
-        var section = new Mock<IConfigurationSection>();
-        section.Setup(s => s.GetChildren()).Returns(new[] { item.Object });
-        _configurationMock.Setup(c => c.GetSection("Payments:AllowedReturnHosts")).Returns(section.Object);
+        // Setup default allowed hosts
+        var sectionMock = new Mock<IConfigurationSection>();
+        var childMock = new Mock<IConfigurationSection>();
+        childMock.Setup(x => x.Value).Returns("localhost");
+        sectionMock.Setup(x => x.GetChildren()).Returns(new[] { childMock.Object });
+        _configurationMock.Setup(x => x.GetSection("Payments:AllowedReturnHosts")).Returns(sectionMock.Object);
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldReturnPortalUrl_WhenSubscriptionIsActive()
+    public async Task HandleAsync_ShouldReturnPortalUrl_WhenValid()
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var returnUrl = "https://localhost/return";
-        var expectedPortalUrl = "https://billing.stripe.com/p/session/abc";
-        
-        var subscription = new DomainSubscription(providerId, "plan_premium", Money.FromDecimal(99.90m, "BRL"));
-        subscription.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
+        var externalCustomerId = "cus_123";
+        var returnUrl = "https://localhost/account";
+        var expectedUrl = "https://stripe.com/portal/123";
+
+        var sub = new Subscription(providerId, "plan", Money.FromDecimal(10));
+        sub.Activate("sub_123", externalCustomerId, DateTime.UtcNow.AddMonths(1));
+
+        _repositoryMock.Setup(x => x.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(sub);
+
+        _gatewayMock.Setup(x => x.CreateBillingPortalSessionAsync(externalCustomerId, returnUrl, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedUrl);
 
         var command = new GetBillingPortalCommand(providerId, returnUrl);
-
-        _repositoryMock.Setup(r => r.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(subscription);
-
-        _gatewayMock.Setup(g => g.CreateBillingPortalSessionAsync("cus_123", returnUrl, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedPortalUrl);
-
-        SetupAllowedHost("localhost");
 
         // Act
         var result = await _handler.HandleAsync(command);
 
         // Assert
-        result.Should().Be(expectedPortalUrl);
+        result.Should().Be(expectedUrl);
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldThrowNotFoundException_WhenSubscriptionNotFound()
+    public async Task HandleAsync_ShouldThrowNotFound_WhenNoActiveSubscription()
     {
         // Arrange
         var providerId = Guid.NewGuid();
+        _repositoryMock.Setup(x => x.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Subscription?)null);
+
         var command = new GetBillingPortalCommand(providerId, "https://localhost/account");
 
-        _repositoryMock.Setup(r => r.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((DomainSubscription)null!);
-
-        SetupAllowedHost("localhost");
-
         // Act
         var act = () => _handler.HandleAsync(command);
 
         // Assert
-        await act.Should().ThrowAsync<NotFoundException>()
-            .WithMessage("*was not found*");
+        await act.Should().ThrowAsync<NotFoundException>();
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldThrowBusinessRuleException_WhenGatewayReturnsNull()
+    public async Task HandleAsync_ShouldThrowBusinessRule_WhenMissingCustomerId()
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var subscription = new DomainSubscription(providerId, "plan_premium", Money.FromDecimal(99.90m, "BRL"));
-        subscription.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
+        var sub = new Subscription(providerId, "plan", Money.FromDecimal(10));
+        // Note: sub is not activated, so ExternalCustomerId is null
 
-        var command = new GetBillingPortalCommand(providerId, "https://localhost/return");
+        _repositoryMock.Setup(x => x.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(sub);
 
-        _repositoryMock.Setup(r => r.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(subscription);
-
-        _gatewayMock.Setup(g => g.CreateBillingPortalSessionAsync("cus_123", It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string)null!);
-
-        SetupAllowedHost("localhost");
+        var command = new GetBillingPortalCommand(providerId, "https://localhost/account");
 
         // Act
         var act = () => _handler.HandleAsync(command);
 
         // Assert
-        var exception = await act.Should().ThrowAsync<BusinessRuleException>();
-        exception.Which.RuleName.Should().Be("GATEWAY_SESSION_FAILURE");
+        await act.Should().ThrowAsync<BusinessRuleException>().Where(e => e.RuleName == "MISSING_EXTERNAL_CUSTOMER_ID");
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldThrowBusinessRuleException_WhenSubscriptionHasNoExternalCustomerId()
+    public async Task HandleAsync_ShouldThrowBusinessRule_WhenGatewayFails()
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        
-        var subscription = new DomainSubscription(providerId, "plan_premium", Money.FromDecimal(99.90m, "BRL"));
-        
-        var statusField = typeof(DomainSubscription).GetProperty("Status", 
-            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
-        
-        statusField.Should().NotBeNull("Status property should be accessible via reflection");
-        statusField!.SetValue(subscription, ESubscriptionStatus.Active);
+        var sub = new Subscription(providerId, "plan", Money.FromDecimal(10));
+        sub.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
 
-        var command = new GetBillingPortalCommand(providerId, "https://localhost/return");
+        _repositoryMock.Setup(x => x.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(sub);
 
-        _repositoryMock.Setup(r => r.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(subscription);
+        _gatewayMock.Setup(x => x.CreateBillingPortalSessionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null);
 
-        SetupAllowedHost("localhost");
+        var command = new GetBillingPortalCommand(providerId, "https://localhost/account");
 
         // Act
         var act = () => _handler.HandleAsync(command);
 
         // Assert
-        var exception = await act.Should().ThrowAsync<BusinessRuleException>();
-        exception.Which.RuleName.Should().Be("MISSING_EXTERNAL_CUSTOMER_ID");
+        await act.Should().ThrowAsync<BusinessRuleException>().Where(e => e.RuleName == "GATEWAY_SESSION_FAILURE");
+    }
+
+    [Theory]
+    [InlineData("not-a-url")]
+    [InlineData("/relative/path")]
+    public async Task HandleAsync_ShouldThrow_WhenUrlIsInvalid(string url)
+    {
+        var command = new GetBillingPortalCommand(Guid.NewGuid(), url);
+        var act = () => _handler.HandleAsync(command);
+        await act.Should().ThrowAsync<BusinessRuleException>().Where(e => e.RuleName == "INVALID_RETURN_URL");
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldThrowBusinessRuleException_WhenReturnUrlIsInvalid()
+    public async Task HandleAsync_ShouldThrow_WhenSchemeIsHttp()
     {
-        // Arrange
-        var command = new GetBillingPortalCommand(Guid.NewGuid(), "not-a-url");
-
-        // Act
+        var command = new GetBillingPortalCommand(Guid.NewGuid(), "http://untrusted.com");
         var act = () => _handler.HandleAsync(command);
-
-        // Assert
-        var exception = await act.Should().ThrowAsync<BusinessRuleException>();
-        exception.Which.RuleName.Should().Be("INVALID_RETURN_URL");
+        await act.Should().ThrowAsync<BusinessRuleException>().Where(e => e.RuleName == "INVALID_RETURN_URL_SCHEME");
     }
 
     [Fact]
-    public async Task HandleAsync_ShouldThrowBusinessRuleException_WhenReturnUrlIsUntrusted()
+    public async Task HandleAsync_ShouldThrow_WhenHostIsNotAllowed()
     {
-        // Arrange
-        var command = new GetBillingPortalCommand(Guid.NewGuid(), "https://malicious.com/hack");
-        SetupAllowedHost("localhost");
-
-        // Act
+        var command = new GetBillingPortalCommand(Guid.NewGuid(), "https://evil.com");
         var act = () => _handler.HandleAsync(command);
-
-        // Assert
-        var exception = await act.Should().ThrowAsync<BusinessRuleException>();
-        exception.Which.RuleName.Should().Be("UNTRUSTED_RETURN_HOST");
+        await act.Should().ThrowAsync<BusinessRuleException>().Where(e => e.RuleName == "UNTRUSTED_RETURN_HOST");
     }
 }

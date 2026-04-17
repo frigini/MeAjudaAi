@@ -42,6 +42,16 @@ public class Subscription : AggregateRoot<Guid>
         Status = ESubscriptionStatus.Pending;
     }
 
+    public Subscription(Guid id, Guid providerId, string planId, Money amount, DateTime createdAt)
+        : base(id)
+    {
+        ProviderId = providerId;
+        PlanId = planId;
+        Amount = amount;
+        Status = ESubscriptionStatus.Pending;
+        CreatedAt = createdAt;
+    }
+
 public Guid ProviderId { get; private set; }
     public string PlanId { get; private set; } = null!;
     public string? ExternalSubscriptionId { get; private set; }
