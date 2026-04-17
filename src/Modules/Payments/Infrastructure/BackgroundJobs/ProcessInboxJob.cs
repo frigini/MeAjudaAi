@@ -109,10 +109,8 @@ public class ProcessInboxJob(
                 new StripeEventData(
                     stripeEvent.Type,
                     stripeEvent.Id,
-                    invoice.Parent?.Subscription ?? 
-                    invoice.Lines?.Data?.FirstOrDefault()?.Parent?.SubscriptionItemDetails?.Subscription ?? 
-                    invoice.Lines?.Data?.FirstOrDefault()?.Parent?.InvoiceItemDetails?.Subscription ?? 
-                    invoice.SubscriptionId,
+                    invoice.Parent?.SubscriptionDetails?.Subscription?.Id ?? 
+                    invoice.Lines?.Data?.FirstOrDefault()?.SubscriptionId,
                     invoice.CustomerId,
                     null,
                     invoice.Lines?.Data?.FirstOrDefault()?.Period?.End,
