@@ -134,10 +134,6 @@
     <!-- System.IO.Hashing: Mantido na v10 para alinhamento com a stack do .NET 10 -->
     <PackageVersion Include="System.IO.Hashing" Version="10.0.6" />
     <PackageVersion Include="System.Text.Json" Version="10.0.0" />
-    <!-- Família IdentityModel - alinhada para evitar divergências de versão -->
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.17.0" />
-    <PackageVersion Include="Microsoft.IdentityModel.Protocols" Version="8.16.0" />
-    <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.16.0" />
     <!-- Framework de Testes (Apenas xUnit v3) -->
     <PackageVersion Include="WireMock.Net" Version="2.2.0" />
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
