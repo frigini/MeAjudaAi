@@ -42,7 +42,7 @@ public class SynchronousInMemoryMessageBus(
         }
     }
 
-    public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task> handler, string? subscriptionName = null, CancellationToken cancellationToken = default)
+    public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task>? handler = null, string? subscriptionName = null, CancellationToken cancellationToken = default)
     {
         // Não implementado para esta versão simplificada de teste
         return Task.CompletedTask;

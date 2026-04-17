@@ -20,7 +20,7 @@ internal class MockMessageBus : IMessageBus
         return Task.CompletedTask;
     }
 
-    public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task> handler, string? subscriptionName = null, CancellationToken cancellationToken = default)
+    public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task>? handler = null, string? subscriptionName = null, CancellationToken cancellationToken = default)
     {
         // No-op: assinaturas não são realmente criadas em testes E2E
         return Task.CompletedTask;

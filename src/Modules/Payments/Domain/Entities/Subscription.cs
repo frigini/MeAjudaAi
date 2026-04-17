@@ -41,7 +41,7 @@ public class Subscription : AggregateRoot<Guid>
         Status = ESubscriptionStatus.Pending;
     }
 
-    internal Subscription(Guid id, Guid providerId, string planId, Money amount, ESubscriptionStatus status, DateTime createdAt)
+    public Subscription(Guid id, Guid providerId, string planId, Money amount, ESubscriptionStatus status, DateTime createdAt)
         : base(id)
     {
         if (providerId == Guid.Empty)
