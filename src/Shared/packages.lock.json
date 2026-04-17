@@ -178,9 +178,9 @@
       },
       "Rebus": {
         "type": "Direct",
-        "requested": "[8.9.0, )",
-        "resolved": "8.9.0",
-        "contentHash": "UaPGZuXIL4J5GUDA05JzEEzuPMEXY0CoF92nC6bsFBPvwoYPQ0uKyH2vKqdV80CW7cjbwBgDlEZ7R9hO9b59XA==",
+        "requested": "[8.9.2, )",
+        "resolved": "8.9.2",
+        "contentHash": "JyiO5vkH76wxLKcgXle7ewZ7rfIg+/L8/EFJY8npRsI1QwW8YprZTQX7EBbIuBqfeaqUra+2/TEPen4Nx+PU6A==",
         "dependencies": {
           "Newtonsoft.Json": "13.0.4"
         }
