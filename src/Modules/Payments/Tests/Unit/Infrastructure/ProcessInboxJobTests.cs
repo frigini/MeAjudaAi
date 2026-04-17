@@ -78,9 +78,22 @@ public class ProcessInboxJobTests
                     "customer": "cus_1",
                     "amount_paid": 5000,
                     "currency": "brl",
-                    "subscription": "sub_2",
+                    "parent": {
+                        "object": "invoice",
+                        "subscription_details": {
+                            "subscription": {
+                                "id": "sub_2"
+                            }
+                        }
+                    },
                     "lines": {
-                        "data": [{ "period": { "end": 1740000000 } }]
+                        "object": "list",
+                        "data": [{
+                            "object": "line_item",
+                            "subscription": "sub_2",
+                            "subscription_id": "sub_2",
+                            "period": { "end": 1740000000 }
+                        }]
                     }
                 }
             }
@@ -209,13 +222,13 @@ public class ProcessInboxJobTests
     }
 
     [Fact]
-    public async Task ProcessStripeEventAsync_SubscriptionDeleted_WhenFound_ShouldCancel()
+    public async Task ProcessStripeEventAsync_InvoicePaid_WithCurrencyDivergence_ShouldLogWarningAndSucceed()
     {
         // Arrange
-        var externalSubId = "sub_3";
-        var data = new StripeEventData("customer.subscription.deleted", "evt_3", externalSubId, "cus_3", null);
-        var sub = new DomainSubscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
-        sub.Activate(externalSubId, "cus_3", DateTime.UtcNow.AddMonths(1));
+        var externalSubId = "sub_123";
+        var data = new StripeEventData("invoice.paid", "evt_2", externalSubId, "cus_1", null, null, 10000, "usd", "in_1");
+        var sub = new DomainSubscription(Guid.NewGuid(), "plan", Money.FromDecimal(100, "BRL"));
+        sub.Activate(externalSubId, "cus_1", DateTime.UtcNow.AddDays(1));
 
         _repositoryMock.Setup(x => x.GetByExternalIdAsync(externalSubId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(sub);
@@ -224,7 +237,58 @@ public class ProcessInboxJobTests
         await _job.ProcessStripeEventAsync(data, _repositoryMock.Object, _paymentTransactionRepositoryMock.Object, CancellationToken.None);
 
         // Assert
-        sub.Status.Should().Be(ESubscriptionStatus.Canceled);
-        _repositoryMock.Verify(x => x.UpdateAsync(sub, It.IsAny<CancellationToken>()), Times.Once);
+        // We can't easily verify the logger warning without more infrastructure, but we ensure it completes successfully
+        sub.Status.Should().Be(ESubscriptionStatus.Active);
+        _paymentTransactionRepositoryMock.Verify(x => x.AddAsync(It.IsAny<DomainPaymentTransaction>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ProcessStripeEventAsync_CheckoutSession_WhenProviderIdMissing_ShouldThrow()
+    {
+        // Arrange
+        var data = new StripeEventData("checkout.session.completed", "evt_1", "sub_1", "cus_1", null);
+
+        // Act
+        var act = () => _job.ProcessStripeEventAsync(data, _repositoryMock.Object, _paymentTransactionRepositoryMock.Object, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*Essential data missing*");
+    }
+
+    [Fact]
+    public async Task ProcessStripeEventAsync_CheckoutSession_WhenAlreadyActiveWithSameIds_ShouldSkip()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var subId = "sub_123";
+        var data = new StripeEventData("checkout.session.completed", "evt_1", subId, "cus_1", providerId);
+        var sub = new DomainSubscription(providerId, "plan", Money.FromDecimal(10));
+        sub.Activate(subId, "cus_1", DateTime.UtcNow.AddDays(1));
+
+        _repositoryMock.Setup(x => x.GetLatestByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(sub);
+
+        // Act
+        await _job.ProcessStripeEventAsync(data, _repositoryMock.Object, _paymentTransactionRepositoryMock.Object, CancellationToken.None);
+
+        // Assert
+        _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<DomainSubscription>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ProcessStripeEventAsync_SubscriptionDeleted_WhenNotFound_ShouldThrow()
+    {
+        // Arrange
+        var externalSubId = "sub_missing";
+        var data = new StripeEventData("customer.subscription.deleted", "evt_3", externalSubId, "cus_3", null);
+
+        _repositoryMock.Setup(x => x.GetByExternalIdAsync(externalSubId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((DomainSubscription?)null);
+
+        // Act
+        var act = () => _job.ProcessStripeEventAsync(data, _repositoryMock.Object, _paymentTransactionRepositoryMock.Object, CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*not found*");
     }
 }

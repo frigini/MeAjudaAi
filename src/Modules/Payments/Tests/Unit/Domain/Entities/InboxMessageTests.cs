@@ -40,18 +40,75 @@ public class InboxMessageTests
     }
 
     [Fact]
-    public void RecordError_ShouldIncrementRetryAndSetNextAttempt()
+    public void Constructor_ShouldThrow_WhenInvalidJson()
+    {
+        // Act
+        var act = () => new InboxMessage("type", "{ invalid json }");
+
+        // Assert
+        act.Should().Throw<ArgumentException>().WithMessage("*valid JSON*");
+    }
+
+    [Fact]
+    public void RecordError_ShouldFollowExponentialBackoff()
     {
         // Arrange
         var msg = new InboxMessage("t", "{}", "e");
-        var error = "Connection failed";
 
-        // Act
-        msg.RecordError(error);
+        // Act 1
+        msg.RecordError("err1");
+        var firstAttempt = msg.NextAttemptAt;
+
+        // Act 2
+        msg.RecordError("err2");
+        var secondAttempt = msg.NextAttemptAt;
 
         // Assert
-        msg.Error.Should().Contain(error);
-        msg.RetryCount.Should().Be(1);
-        msg.NextAttemptAt.Should().BeAfter(msg.CreatedAt);
+        secondAttempt.Should().BeAfter(firstAttempt!.Value);
+        (secondAttempt - DateTime.UtcNow).Should().BeGreaterThan(TimeSpan.FromSeconds(60)); // 2^2 * 30 = 120s
+    }
+
+    [Fact]
+    public void ShouldRetry_ShouldReturnTrue_WhenPendingAndUnderMaxRetries()
+    {
+        // Arrange
+        var msg = new InboxMessage("t", "{}", "e");
+
+        // Assert
+        msg.ShouldRetry.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ShouldRetry_ShouldReturnFalse_WhenProcessed()
+    {
+        // Arrange
+        var msg = new InboxMessage("t", "{}", "e");
+        msg.MarkAsProcessed();
+
+        // Assert
+        msg.ShouldRetry.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ShouldRetry_ShouldReturnFalse_WhenMaxRetriesReached()
+    {
+        // Arrange
+        var msg = new InboxMessage("t", "{}", "e");
+        for (int i = 0; i < 5; i++) msg.RecordError("err");
+
+        // Assert
+        msg.RetryCount.Should().Be(5);
+        msg.ShouldRetry.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ShouldRetry_ShouldRespectNextAttemptAt()
+    {
+        // Arrange
+        var msg = new InboxMessage("t", "{}", "e");
+        msg.RecordError("err", nextAttemptAt: DateTime.UtcNow.AddHours(1));
+
+        // Assert
+        msg.ShouldRetry.Should().BeFalse();
     }
 }

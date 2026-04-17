@@ -109,7 +109,7 @@ public class ProcessInboxJob(
                 new StripeEventData(
                     stripeEvent.Type,
                     stripeEvent.Id,
-                    invoice.Parent?.SubscriptionDetails?.Subscription?.Id ?? 
+                    invoice.Parent?.SubscriptionDetails?.Subscription?.Id ??
                     invoice.Lines?.Data?.FirstOrDefault()?.SubscriptionId,
                     invoice.CustomerId,
                     null,
@@ -117,7 +117,6 @@ public class ProcessInboxJob(
                     invoice.AmountPaid,
                     invoice.Currency,
                     invoice.Id),
-
             "customer.subscription.deleted" when stripeEvent.Data.Object is Stripe.Subscription sub =>
                 new StripeEventData(
                     stripeEvent.Type,

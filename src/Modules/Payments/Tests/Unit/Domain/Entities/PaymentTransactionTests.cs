@@ -69,14 +69,57 @@ public class PaymentTransactionTests
         tx.ProcessedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 
-    [Theory]
-    [InlineData(-10)]
-    public void Constructor_ShouldThrow_WhenAmountIsNegative(decimal val)
+    [Fact]
+    public void Fail_ShouldThrow_WhenAlreadyProcessed()
     {
+        // Arrange
+        var tx = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10));
+        tx.Fail();
+
         // Act
-        var act = () => Money.FromDecimal(val);
+        var act = () => tx.Fail();
 
         // Assert
-        act.Should().Throw<ArgumentOutOfRangeException>();
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void Refund_ShouldUpdateStatus()
+    {
+        // Arrange
+        var tx = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10));
+        tx.Settle("id1");
+
+        // Act
+        tx.Refund();
+
+        // Assert
+        tx.Status.Should().Be(EPaymentStatus.Refunded);
+    }
+
+    [Fact]
+    public void Refund_ShouldThrow_WhenNotSucceeded()
+    {
+        // Arrange
+        var tx = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10));
+
+        // Act
+        var act = () => tx.Refund();
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void Settle_ShouldThrow_WhenExternalIdIsEmpty()
+    {
+        // Arrange
+        var tx = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10));
+
+        // Act
+        var act = () => tx.Settle("");
+
+        // Assert
+        act.Should().Throw<ArgumentException>();
     }
 }

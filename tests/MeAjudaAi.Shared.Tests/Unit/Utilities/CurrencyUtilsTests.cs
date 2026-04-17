@@ -40,6 +40,21 @@ public class CurrencyUtilsTests
     }
 
     [Theory]
+    [InlineData("BRL", false)]
+    [InlineData("KWD", true)]
+    [InlineData("BHD", true)]
+    [InlineData("OMR", true)]
+    [InlineData("JOD", true)]
+    [InlineData("TND", true)]
+    [InlineData("kwd", true)]
+    [InlineData(null, false)]
+    [InlineData("", false)]
+    public void IsThreeDecimalCurrency_ShouldReturnCorrectValue(string? currency, bool expected)
+    {
+        CurrencyUtils.IsThreeDecimalCurrency(currency!).Should().Be(expected);
+    }
+
+    [Theory]
     [InlineData(9990, "BRL", 99.90)]
     [InlineData(1000, "USD", 10.00)]
     [InlineData(1000, "JPY", 1000.00)]
@@ -49,5 +64,17 @@ public class CurrencyUtilsTests
     public void ConvertFromMinorUnits_ShouldReturnCorrectValue(long amount, string currency, decimal expected)
     {
         CurrencyUtils.ConvertFromMinorUnits(amount, currency).Should().Be(expected);
+    }
+
+    [Fact]
+    public void ConvertFromMinorUnits_WithNullCurrency_ShouldUseDefaultTwoDecimals()
+    {
+        CurrencyUtils.ConvertFromMinorUnits(100, null!).Should().Be(1.00m);
+    }
+
+    [Fact]
+    public void ConvertToMinorUnits_WithEmptyCurrency_ShouldUseDefaultTwoDecimals()
+    {
+        CurrencyUtils.ConvertToMinorUnits(1.00m, "").Should().Be(100);
     }
 }

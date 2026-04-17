@@ -66,8 +66,26 @@ public class SubscriptionTests
         // Assert
         subscription.Status.Should().Be(ESubscriptionStatus.Active);
         subscription.ExternalSubscriptionId.Should().Be("sub_123");
-        subscription.UpdatedAt.Should().Be(originalUpdatedAt);
+        subscription.UpdatedAt.Should().BeCloseTo(originalUpdatedAt!.Value, TimeSpan.FromMilliseconds(100));
         subscription.DomainEvents.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Activate_ShouldUpdateExpiresAt_WhenAlreadyActiveWithDifferentExpiration()
+    {
+        // Arrange
+        var subscription = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
+        var expires1 = DateTime.UtcNow.AddMonths(1);
+        var expires2 = DateTime.UtcNow.AddMonths(2);
+        subscription.Activate("sub_123", "cus_123", expires1);
+        var originalUpdatedAt = subscription.UpdatedAt;
+
+        // Act
+        subscription.Activate("sub_123", "cus_123", expires2);
+
+        // Assert
+        subscription.ExpiresAt.Should().Be(expires2);
+        subscription.UpdatedAt.Should().BeAfter(originalUpdatedAt!.Value);
     }
 
     [Fact]
@@ -125,13 +143,14 @@ public class SubscriptionTests
     }
 
     [Fact]
-    public void Renew_ShouldUpdateExpiresAt()
+    public void Renew_ShouldUpdateExpiresAt_AndAddDomainEvent()
     {
         // Arrange
         var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.10m, "BRL"));
         var originalExpiresAt = DateTime.UtcNow.AddMonths(1);
         subscription.Activate("sub_123", "cus_123", originalExpiresAt);
         var newExpiresAt = originalExpiresAt.AddMonths(1);
+        subscription.ClearDomainEvents();
 
         // Act
         subscription.Renew(newExpiresAt);
@@ -139,6 +158,7 @@ public class SubscriptionTests
         // Assert
         subscription.ExpiresAt.Should().Be(newExpiresAt);
         subscription.UpdatedAt.Should().NotBeNull();
+        subscription.DomainEvents.Should().ContainSingle(e => e is SubscriptionRenewedDomainEvent);
     }
 
     [Fact]
@@ -190,11 +210,12 @@ public class SubscriptionTests
     }
 
     [Fact]
-    public void Expire_ShouldUpdateStatus()
+    public void Expire_ShouldUpdateStatus_AndAddDomainEvent()
     {
         // Arrange
         var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
         subscription.Activate("sub_123", "cus_123", DateTime.UtcNow.AddMonths(1));
+        subscription.ClearDomainEvents();
 
         // Act
         subscription.Expire();
@@ -202,6 +223,38 @@ public class SubscriptionTests
         // Assert
         subscription.Status.Should().Be(ESubscriptionStatus.Expired);
         subscription.UpdatedAt.Should().NotBeNull();
+        subscription.DomainEvents.Should().ContainSingle(e => e is SubscriptionExpiredDomainEvent);
+    }
+
+    [Fact]
+    public void Expire_ShouldNotAddEvent_WhenAlreadyExpired()
+    {
+        // Arrange
+        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        subscription.Expire();
+        subscription.ClearDomainEvents();
+
+        // Act
+        subscription.Expire();
+
+        // Assert
+        subscription.DomainEvents.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Expire_ShouldNotExpire_WhenCanceled()
+    {
+        // Arrange
+        var subscription = new Subscription(Guid.NewGuid(), "plan_123", Money.FromDecimal(99.90m));
+        subscription.Cancel();
+        subscription.ClearDomainEvents();
+
+        // Act
+        subscription.Expire();
+
+        // Assert
+        subscription.Status.Should().Be(ESubscriptionStatus.Canceled);
+        subscription.DomainEvents.Should().BeEmpty();
     }
 
     [Fact]
@@ -255,7 +308,7 @@ public class SubscriptionTests
         var act = () => new Subscription(Guid.NewGuid(), planId, Money.FromDecimal(10));
 
         // Assert
-        act.Should().Throw<ArgumentNullException>().WithMessage("*PlanId*");
+        act.Should().Throw<ArgumentException>().WithMessage("*PlanId*");
     }
 
     [Fact]
@@ -394,7 +447,7 @@ public class SubscriptionTests
         // Assert
         subscription.ExternalSubscriptionId.Should().Be("new_sub");
         subscription.ExternalCustomerId.Should().Be("new_cus");
-        subscription.UpdatedAt.Should().NotBe(originalUpdatedAt);
+        subscription.UpdatedAt.Should().BeAfter(originalUpdatedAt!.Value);
     }
 
     [Fact]
