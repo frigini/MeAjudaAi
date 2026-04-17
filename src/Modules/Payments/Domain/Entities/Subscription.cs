@@ -83,8 +83,8 @@ public class Subscription : AggregateRoot<Guid>
             ExternalSubscriptionId == externalSubscriptionId && 
             ExternalCustomerId == externalCustomerId)
         {
-            // Se o expiresAt mudou, atualiza (idempotência com atualização de expiração)
-            if (expiresAt != ExpiresAt)
+            // Se o expiresAt foi fornecido e mudou, atualiza
+            if (expiresAt.HasValue && expiresAt != ExpiresAt)
             {
                 ExpiresAt = expiresAt;
                 MarkAsUpdated();
@@ -102,10 +102,16 @@ public class Subscription : AggregateRoot<Guid>
         ExternalSubscriptionId = externalSubscriptionId;
         ExternalCustomerId = externalCustomerId;
         Status = ESubscriptionStatus.Active;
-        ExpiresAt = expiresAt;
+        
+        if (expiresAt.HasValue)
+        {
+            ExpiresAt = expiresAt;
+        }
+        
+        Version++;
         MarkAsUpdated();
 
-        AddDomainEvent(new SubscriptionActivatedDomainEvent(Id, ProviderId, ExternalSubscriptionId));
+        AddDomainEvent(new SubscriptionActivatedDomainEvent(Id, ProviderId, ExternalSubscriptionId, Version));
     }
 
     public void Cancel()
@@ -114,9 +120,10 @@ public class Subscription : AggregateRoot<Guid>
         if (Status == ESubscriptionStatus.Expired) return;
 
         Status = ESubscriptionStatus.Canceled;
+        Version++;
         MarkAsUpdated();
 
-        AddDomainEvent(new SubscriptionCanceledDomainEvent(Id, ProviderId));
+        AddDomainEvent(new SubscriptionCanceledDomainEvent(Id, ProviderId, Version));
     }
 
     public void Expire()
@@ -125,9 +132,10 @@ public class Subscription : AggregateRoot<Guid>
         if (Status == ESubscriptionStatus.Canceled) return;
 
         Status = ESubscriptionStatus.Expired;
+        Version++;
         MarkAsUpdated();
 
-        AddDomainEvent(new SubscriptionExpiredDomainEvent(Id, ProviderId));
+        AddDomainEvent(new SubscriptionExpiredDomainEvent(Id, ProviderId, Version));
     }
 
     public void Renew(DateTime newExpiresAt)
@@ -142,10 +150,10 @@ public class Subscription : AggregateRoot<Guid>
             throw new ArgumentException("New expiration date must be after current expiration date.", nameof(newExpiresAt));
 
         ExpiresAt = newExpiresAt;
-        Status = ESubscriptionStatus.Active;
+        Version++;
         MarkAsUpdated();
 
-        AddDomainEvent(new SubscriptionRenewedDomainEvent(Id, ProviderId, ExpiresAt.Value));
+        AddDomainEvent(new SubscriptionRenewedDomainEvent(Id, ProviderId, ExpiresAt.Value, Version));
     }
 
     public static string MaskExternalId(string externalId)

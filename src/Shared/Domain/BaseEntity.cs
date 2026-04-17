@@ -13,6 +13,7 @@ namespace MeAjudaAi.Shared.Domain;
 public abstract class BaseEntity
 {
     public Guid Id { get; protected set; } = UuidGenerator.NewId();
+    public int Version { get; protected set; } = 1;
     public DateTime CreatedAt { get; protected set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; protected set; }
 

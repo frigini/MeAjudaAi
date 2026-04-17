@@ -10,12 +10,12 @@ public interface IStripeService
     Task<Stripe.Subscription> CancelSubscriptionAsync(string subscriptionId, RequestOptions? requestOptions, CancellationToken cancellationToken);
 }
 
-public class StripeService : IStripeService
+public class StripeService(IStripeClient stripeClient) : IStripeService
 {
-    private readonly PriceService _priceService = new();
-    private readonly Stripe.Checkout.SessionService _checkoutSessionService = new();
-    private readonly Stripe.BillingPortal.SessionService _billingPortalSessionService = new();
-    private readonly Stripe.SubscriptionService _subscriptionService = new();
+    private readonly PriceService _priceService = new(stripeClient);
+    private readonly Stripe.Checkout.SessionService _checkoutSessionService = new(stripeClient);
+    private readonly Stripe.BillingPortal.SessionService _billingPortalSessionService = new(stripeClient);
+    private readonly Stripe.SubscriptionService _subscriptionService = new(stripeClient);
 
     public Task<Price> GetPriceAsync(string priceId, RequestOptions? requestOptions, CancellationToken cancellationToken)
     {

@@ -209,7 +209,7 @@ public class PaymentsApiTests : BaseApiTest
     public async Task StripeWebhook_CheckoutSessionMissingProviderId_ShouldEnqueueInboxMessage()
     {
         // Arrange
-        var webhookJson = $$$"""
+        var webhookJson = """
         {
             "id": "evt_missing_id",
             "object": "event",
@@ -341,7 +341,7 @@ public class PaymentsApiTests : BaseApiTest
         var originalExpiresAt = DateTime.UtcNow.AddDays(1);
         var sub = new Subscription(
             providerId, 
-            "price_premium_monthly", 
+            "premium", 
             Money.FromDecimal(99.90m, "BRL"));
         sub.Activate(externalSubId, "cus_123", originalExpiresAt);
         dbContext.Subscriptions.Add(sub);
@@ -364,7 +364,9 @@ public class PaymentsApiTests : BaseApiTest
                     "parent": {
                         "type": "subscription_details",
                         "subscription_details": {
-                            "subscription": "{{{externalSubId}}}"
+                            "subscription": {
+                                "id": "{{{externalSubId}}}"
+                            }
                         }
                     },
                     "lines": {

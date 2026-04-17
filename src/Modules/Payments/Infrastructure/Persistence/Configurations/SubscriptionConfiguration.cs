@@ -67,6 +67,8 @@ public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
 
         builder.HasIndex(s => s.ProviderId);
         builder.HasIndex(s => s.Status);
-        builder.HasIndex(s => s.ExternalSubscriptionId).IsUnique();
+        builder.HasIndex(s => s.ExternalSubscriptionId)
+            .IsUnique()
+            .HasFilter("external_subscription_id IS NOT NULL");
     }
 }

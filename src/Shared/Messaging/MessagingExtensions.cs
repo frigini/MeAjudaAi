@@ -143,6 +143,7 @@ public static class MessagingExtensions
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to ensure messaging infrastructure.");
+            throw;
         }
     }
 

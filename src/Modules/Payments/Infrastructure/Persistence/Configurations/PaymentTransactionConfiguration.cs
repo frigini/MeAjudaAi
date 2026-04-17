@@ -58,6 +58,8 @@ public class PaymentTransactionConfiguration : IEntityTypeConfiguration<PaymentT
 
         builder.HasIndex(t => t.SubscriptionId);
         builder.HasIndex(t => t.Status);
-        builder.HasIndex(t => t.ExternalTransactionId).IsUnique();
+        builder.HasIndex(t => t.ExternalTransactionId)
+            .IsUnique()
+            .HasFilter("external_transaction_id IS NOT NULL");
     }
 }

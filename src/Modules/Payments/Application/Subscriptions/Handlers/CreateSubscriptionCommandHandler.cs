@@ -19,6 +19,11 @@ public class CreateSubscriptionCommandHandler(
 {
     public async Task<string> HandleAsync(CreateSubscriptionCommand command, CancellationToken cancellationToken = default)
     {
+        if (command.IdempotencyKey?.Length > 255)
+        {
+            throw new SubscriptionCreationException("Chave de idempotência inválida ou muito longa (máximo 255 caracteres).");
+        }
+
         var (amount, currency) = GetPlanDetails(command.PlanId);
         var moneyAmount = Money.FromDecimal(amount, currency);
         var subscription = new Subscription(command.ProviderId, command.PlanId, moneyAmount);

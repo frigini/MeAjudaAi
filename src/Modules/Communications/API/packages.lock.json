@@ -399,6 +399,7 @@
           "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.6, )",
           "Microsoft.FeatureManagement.AspNetCore": "[4.4.0, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
+          "RabbitMQ.Client": "[7.2.1, )",
           "Rebus": "[8.9.0, )",
           "Rebus.RabbitMq": "[10.1.1, )",
           "Rebus.ServiceProvider": "[10.7.2, )",

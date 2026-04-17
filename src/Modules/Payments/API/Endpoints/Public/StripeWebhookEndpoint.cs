@@ -94,6 +94,9 @@ public class StripeWebhookEndpoint : IEndpoint
             }
         })
         .AllowAnonymous()
+        .DisableRateLimiting()
+        .RequireRateLimiting("StripeWebhookPolicy")
+        .WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(256_000))
         .WithTags(PaymentsEndpoints.Tag)
         .WithName("StripeWebhook")
         .WithSummary("Recebe webhooks do Stripe de forma assíncrona.");
@@ -114,10 +117,13 @@ public class StripeWebhookEndpoint : IEndpoint
             dbContext.InboxMessages.Add(inboxMessage);
             await dbContext.SaveChangesAsync(ct);
         }
-        catch (DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException { SqlState: "23505" })
+        catch (DbUpdateException)
         {
-            // Violação de chave única: evento já processado por outra requisição concorrente.
-            return;
+            // Violação de chave única ou erro de persistência: verifica se o evento já existe (idempotência agnóstica)
+            var exists = await dbContext.InboxMessages.AsNoTracking().AnyAsync(m => m.ExternalEventId == externalEventId, ct);
+            if (exists) return;
+            
+            throw;
         }
     }
 }

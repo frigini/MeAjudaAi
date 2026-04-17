@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
 using MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
+using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Repositories;
@@ -7,9 +8,8 @@ using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Exceptions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Payments.Tests.Unit.Application.Handlers;
 
@@ -18,6 +18,7 @@ public class GetBillingPortalCommandHandlerTests
     private readonly Mock<ISubscriptionRepository> _repositoryMock;
     private readonly Mock<IPaymentGateway> _gatewayMock;
     private readonly Mock<IConfiguration> _configurationMock;
+    private readonly Mock<IOptions<PaymentsOptions>> _optionsMock;
     private readonly Mock<ILogger<GetBillingPortalCommandHandler>> _loggerMock;
     private readonly GetBillingPortalCommandHandler _handler;
 
@@ -26,19 +27,18 @@ public class GetBillingPortalCommandHandlerTests
         _repositoryMock = new Mock<ISubscriptionRepository>();
         _gatewayMock = new Mock<IPaymentGateway>();
         _configurationMock = new Mock<IConfiguration>();
+        _optionsMock = new Mock<IOptions<PaymentsOptions>>();
         _loggerMock = new Mock<ILogger<GetBillingPortalCommandHandler>>();
+        
+        var options = new PaymentsOptions { AllowedReturnHosts = new[] { "localhost" } };
+        _optionsMock.Setup(x => x.Value).Returns(options);
+
         _handler = new GetBillingPortalCommandHandler(
             _repositoryMock.Object, 
             _gatewayMock.Object, 
             _configurationMock.Object, 
+            _optionsMock.Object,
             _loggerMock.Object);
-
-        // Setup default allowed hosts
-        var sectionMock = new Mock<IConfigurationSection>();
-        var childMock = new Mock<IConfigurationSection>();
-        childMock.Setup(x => x.Value).Returns("localhost");
-        sectionMock.Setup(x => x.GetChildren()).Returns(new[] { childMock.Object });
-        _configurationMock.Setup(x => x.GetSection("Payments:AllowedReturnHosts")).Returns(sectionMock.Object);
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class GetBillingPortalCommandHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
         var sub = new Subscription(providerId, "plan", Money.FromDecimal(10));
-        // Note: sub is not activated, so ExternalCustomerId is null
+        // Observação: o sub não está ativado, portanto ExternalCustomerId é nulo
 
         _repositoryMock.Setup(x => x.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(sub);

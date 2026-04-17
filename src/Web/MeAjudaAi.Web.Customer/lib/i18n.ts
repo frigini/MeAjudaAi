@@ -25,6 +25,20 @@ i18n
     react: {
       useSuspense: false,
     },
+    resources: {
+      pt: {
+        common: {
+          loading: "Carregando...",
+          error: "Ocorreu um erro"
+        }
+      },
+      en: {
+        common: {
+          loading: "Loading...",
+          error: "An error occurred"
+        }
+      }
+    }
   });
 
 export default i18n;

@@ -38,7 +38,9 @@ vi.mock('react-i18next', () => ({
           if (parentTranslation?.[pluralKey]) {
             result = parentTranslation[pluralKey];
           }
-        } else if (options.defaultValue && result === key) {
+        }
+
+        if (options.defaultValue && result === key) {
           return options.defaultValue as string;
         }
 

@@ -459,7 +459,7 @@ public class TestContainerFixture : IAsyncLifetime
         MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers.ConfigurableTestAuthenticationHandler.ConfigureProvider(
             providerId: providerId,
             userId: "admin-provider-id",
-            userName: "admin-provider",
+            username: "admin-provider",
             email: "admin@test.com",
             isSystemAdmin: true);
     }

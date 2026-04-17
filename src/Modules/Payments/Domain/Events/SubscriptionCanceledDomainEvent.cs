@@ -6,5 +6,6 @@ namespace MeAjudaAi.Modules.Payments.Domain.Events;
 [ExcludeFromCodeCoverage]
 public record SubscriptionCanceledDomainEvent(
     Guid SubscriptionId, 
-    Guid ProviderId
-) : DomainEvent(SubscriptionId, DomainConstants.InitialVersion);
+    Guid ProviderId,
+    int Version
+) : DomainEvent(SubscriptionId, Version);

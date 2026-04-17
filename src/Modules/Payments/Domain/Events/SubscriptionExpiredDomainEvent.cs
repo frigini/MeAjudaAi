@@ -9,5 +9,6 @@ namespace MeAjudaAi.Modules.Payments.Domain.Events;
 [ExcludeFromCodeCoverage]
 public record SubscriptionExpiredDomainEvent(
     Guid SubscriptionId, 
-    Guid ProviderId
-) : DomainEvent(SubscriptionId, DomainConstants.InitialVersion);
+    Guid ProviderId,
+    int Version
+) : DomainEvent(SubscriptionId, Version);

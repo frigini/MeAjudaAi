@@ -57,6 +57,7 @@
     <PackageReference Include="Serilog.Sinks.Seq" />
     
     <!-- Messaging -->
+    <PackageReference Include="RabbitMQ.Client" />
     <PackageReference Include="Rebus" />
     <PackageReference Include="Rebus.RabbitMq" />
     <PackageReference Include="Rebus.ServiceProvider" />

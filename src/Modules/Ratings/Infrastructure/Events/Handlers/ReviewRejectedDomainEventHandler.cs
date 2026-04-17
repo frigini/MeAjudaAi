@@ -14,9 +14,10 @@ public sealed class ReviewRejectedDomainEventHandler(
             
         if (!string.IsNullOrWhiteSpace(domainEvent.Reason))
         {
-            var reasonPreview = domainEvent.Reason.Length > 100 
-                ? domainEvent.Reason[..100] + "..." 
-                : domainEvent.Reason;
+            var reason = domainEvent.Reason;
+            var reasonPreview = reason.Length > 100 
+                ? new string(new System.Globalization.StringInfo(reason).SubstringByTextElements(0, 100).ToCharArray()) + "..." 
+                : reason;
 
             logger.LogDebug("Rejection reason for Review {ReviewId}: {Reason}", 
                 domainEvent.AggregateId, reasonPreview);

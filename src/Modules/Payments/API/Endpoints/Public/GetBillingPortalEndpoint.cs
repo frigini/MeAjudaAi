@@ -78,7 +78,11 @@ public class GetBillingPortalEndpoint : IEndpoint
         else if (Uri.TryCreate(returnUrl, UriKind.Absolute, out _))
             finalReturnUrl = returnUrl; // Passar URL completa para o handler validar
         else
+        {
+            logger.LogInformation("Billing portal ReturnUrl fallback taken for Provider {ProviderId}. Original value: {ReturnUrl}", 
+                request.ProviderId, returnUrl);
             finalReturnUrl = clientBaseUrl; // Fallback para URL inválida/não reconhecida
+        }
         var command = new GetBillingPortalCommand(request.ProviderId, finalReturnUrl);
         var portalUrl = await dispatcher.SendAsync<GetBillingPortalCommand, string>(command, cancellationToken);
 

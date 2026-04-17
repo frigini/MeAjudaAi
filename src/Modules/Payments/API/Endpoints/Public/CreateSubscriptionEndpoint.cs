@@ -64,15 +64,10 @@ public class CreateSubscriptionEndpoint : IEndpoint
                 return Results.NotFound(new { error = "Prestador não encontrado." });
             }
 
-            // Repassar Idempotency-Key se presente
-            string? idempotencyKey = httpContext.Request.Headers.TryGetValue("Idempotency-Key", out var values) 
-                ? values.ToString() 
+            // Extração simplificada e validação do Idempotency-Key (limite Stripe de 255 chars)
+            string? idempotencyKey = httpContext.Request.Headers.TryGetValue("Idempotency-Key", out var v) 
+                ? (string.IsNullOrWhiteSpace(v.ToString()) || v.ToString().Length > 255 ? null : v.ToString()) 
                 : null;
-            
-            if (string.IsNullOrWhiteSpace(idempotencyKey))
-            {
-                idempotencyKey = null;
-            }
             
             var command = new CreateSubscriptionCommand(request.ProviderId, request.PlanId, idempotencyKey);
             var checkoutUrl = await dispatcher.SendAsync<CreateSubscriptionCommand, string>(command, cancellationToken);

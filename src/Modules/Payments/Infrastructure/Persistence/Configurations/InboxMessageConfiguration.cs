@@ -56,7 +56,7 @@ public class InboxMessageConfiguration : IEntityTypeConfiguration<InboxMessage>
             .HasFilter("external_event_id IS NOT NULL");
 
         builder.HasIndex(m => new { m.NextAttemptAt, m.CreatedAt })
-            .HasFilter("processed_at IS NULL")
+            .HasFilter("processed_at IS NULL AND retry_count < max_retries")
             .HasDatabaseName("IX_inbox_messages_pending_processing");
     }
 }

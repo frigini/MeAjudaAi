@@ -27,19 +27,25 @@ public class StripePaymentGateway : IPaymentGateway
         _stripeService = stripeService;
 
         var apiKey = configuration["Stripe:ApiKey"];
-        if (string.IsNullOrEmpty(apiKey))
+        if (string.IsNullOrWhiteSpace(apiKey))
         {
-            throw new ArgumentException("Stripe ApiKey is missing in configuration.");
+            throw new ArgumentException("Stripe ApiKey is missing or empty in configuration.");
         }
 
         var clientBaseUrl = (configuration["ClientBaseUrl"] ?? "").TrimEnd('/');
-        if (string.IsNullOrEmpty(clientBaseUrl))
+        if (string.IsNullOrWhiteSpace(clientBaseUrl))
         {
-            throw new ArgumentException("ClientBaseUrl is missing in configuration.");
+            throw new ArgumentException("ClientBaseUrl is missing or empty in configuration.");
         }
 
-        var successPath = configuration["Payments:SuccessUrl"] ?? throw new ArgumentException("Payments:SuccessUrl is missing in configuration.");
-        var cancelPath = configuration["Payments:CancelUrl"] ?? throw new ArgumentException("Payments:CancelUrl is missing in configuration.");
+        var successPath = (configuration["Payments:SuccessUrl"] ?? "").Trim();
+        var cancelPath = (configuration["Payments:CancelUrl"] ?? "").Trim();
+
+        if (string.IsNullOrWhiteSpace(successPath))
+            throw new ArgumentException("Payments:SuccessUrl is missing or empty in configuration.");
+        
+        if (string.IsNullOrWhiteSpace(cancelPath))
+            throw new ArgumentException("Payments:CancelUrl is missing or empty in configuration.");
 
         _successUrl = Uri.TryCreate(successPath, UriKind.Absolute, out var successUri) && 
                      (successUri.Scheme == Uri.UriSchemeHttp || successUri.Scheme == Uri.UriSchemeHttps)
@@ -67,7 +73,7 @@ public class StripePaymentGateway : IPaymentGateway
 
         try
         {
-            // Resolve domain planId to actual Stripe Price ID via configuration mapping
+            // O planId do domínio é resolvido para o Stripe Price ID via mapeamento de configuração
             var stripePriceId = _configuration[$"Payments:Plans:{planId}:StripePriceId"] ?? planId;
 
             var price = await _stripeService.GetPriceAsync(stripePriceId, _requestOptions, cancellationToken);

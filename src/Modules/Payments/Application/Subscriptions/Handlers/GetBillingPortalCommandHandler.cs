@@ -2,10 +2,12 @@ using MeAjudaAi.Modules.Payments.Application.Subscriptions.Commands;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Repositories;
+using MeAjudaAi.Modules.Payments.Application.Options;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Exceptions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace MeAjudaAi.Modules.Payments.Application.Subscriptions.Handlers;
 
@@ -13,8 +15,11 @@ public class GetBillingPortalCommandHandler(
     ISubscriptionRepository repository,
     IPaymentGateway gateway,
     IConfiguration configuration,
+    IOptions<PaymentsOptions> paymentsOptions,
     ILogger<GetBillingPortalCommandHandler> logger) : ICommandHandler<GetBillingPortalCommand, string>
 {
+    private readonly PaymentsOptions _options = paymentsOptions.Value;
+
     public async Task<string> HandleAsync(GetBillingPortalCommand command, CancellationToken cancellationToken = default)
     {
         ValidateReturnUrl(command.ReturnUrl);
@@ -53,14 +58,16 @@ public class GetBillingPortalCommandHandler(
         if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var uri))
             throw new BusinessRuleException("INVALID_RETURN_URL", "A URL de retorno informada é inválida.");
 
-        if (uri.Scheme != Uri.UriSchemeHttps && !uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+        var isLocalhost = uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) || 
+                         (System.Net.IPAddress.TryParse(uri.Host, out var ip) && System.Net.IPAddress.IsLoopback(ip));
+
+        if (uri.Scheme != Uri.UriSchemeHttps && !isLocalhost)
             throw new BusinessRuleException("INVALID_RETURN_URL_SCHEME", "A URL de retorno deve usar o protocolo HTTPS.");
 
-        var allowedHosts = configuration.GetSection("Payments:AllowedReturnHosts").Get<string[]>() ?? Array.Empty<string>();
+        var trustedHosts = new HashSet<string>(_options.AllowedReturnHosts, StringComparer.OrdinalIgnoreCase);
         
         // Incluir ClientBaseUrl na lista de confiáveis se configurado
         var clientBaseUrl = configuration["ClientBaseUrl"];
-        var trustedHosts = new HashSet<string>(allowedHosts, StringComparer.OrdinalIgnoreCase);
         if (!string.IsNullOrEmpty(clientBaseUrl) && Uri.TryCreate(clientBaseUrl, UriKind.Absolute, out var clientUri))
         {
             trustedHosts.Add(clientUri.Host);

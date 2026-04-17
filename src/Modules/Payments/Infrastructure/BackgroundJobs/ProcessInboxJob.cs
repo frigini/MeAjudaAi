@@ -9,11 +9,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Stripe;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs;
 
 public class ProcessInboxJob(
-    IServiceProvider serviceProvider,
+    IServiceProvider sp,
     ILogger<ProcessInboxJob> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -24,53 +29,28 @@ public class ProcessInboxJob(
         {
             try
             {
-                using var scope = serviceProvider.CreateScope();
+                using var scope = sp.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
                 var subscriptionRepository = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
                 var paymentTransactionRepository = scope.ServiceProvider.GetRequiredService<IPaymentTransactionRepository>();
 
                 using var transaction = await dbContext.Database.BeginTransactionAsync(stoppingToken);
 
+                // Processar em lote para eficiência
                 var messages = await dbContext.InboxMessages
-                    .FromSqlRaw(@"
-                        SELECT * FROM payments.inbox_messages
-                        WHERE processed_at IS NULL 
-                        AND retry_count < max_retries 
-                        AND (next_attempt_at IS NULL OR next_attempt_at <= NOW())
-                        ORDER BY created_at
-                        LIMIT 20
-                        FOR UPDATE SKIP LOCKED")
+                    .Where(m => m.ProcessedAt == null && m.RetryCount < m.MaxRetries && (m.NextAttemptAt == null || m.NextAttemptAt <= DateTime.UtcNow))
+                    .OrderBy(m => m.CreatedAt)
+                    .Take(20)
                     .ToListAsync(stoppingToken);
 
                 if (messages.Count == 0)
                 {
-                    await transaction.RollbackAsync(stoppingToken);
+                    await transaction.CommitAsync(stoppingToken);
                     await Task.Delay(5000, stoppingToken);
                     continue;
                 }
 
-                foreach (var message in messages)
-                {
-                    try
-                    {
-                        var stripeEvent = EventUtility.ParseEvent(message.Content, throwOnApiVersionMismatch: false);
-                        var data = MapToStripeEventData(stripeEvent);
-                        
-                        await ProcessStripeEventAsync(data, subscriptionRepository, paymentTransactionRepository, stoppingToken);
-
-                        message.MarkAsProcessed();
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        logger.LogInformation("Processing of inbox message {Id} was canceled", message.Id);
-                        throw;
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogError(ex, "Error processing inbox message {Id}", message.Id);
-                        message.RecordError(ex.Message);
-                    }
-                }
+                await ProcessMessagesBatchAsync(messages, dbContext, subscriptionRepository, paymentTransactionRepository, stoppingToken);
 
                 await dbContext.SaveChangesAsync(stoppingToken);
                 await transaction.CommitAsync(stoppingToken);
@@ -84,6 +64,37 @@ public class ProcessInboxJob(
             {
                 logger.LogError(ex, "Error in Inbox Processor loop");
                 await Task.Delay(10000, stoppingToken);
+            }
+        }
+    }
+
+    public virtual async Task ProcessMessagesBatchAsync(
+        List<InboxMessage> messages, 
+        PaymentsDbContext dbContext, 
+        ISubscriptionRepository subscriptionRepository, 
+        IPaymentTransactionRepository paymentTransactionRepository, 
+        CancellationToken ct)
+    {
+        foreach (var message in messages)
+        {
+            try
+            {
+                var stripeEvent = EventUtility.ParseEvent(message.Content, throwOnApiVersionMismatch: false);
+                var data = MapToStripeEventData(stripeEvent);
+                
+                await ProcessStripeEventAsync(data, subscriptionRepository, paymentTransactionRepository, ct);
+
+                message.MarkAsProcessed();
+            }
+            catch (OperationCanceledException)
+            {
+                logger.LogInformation("Processing of inbox message {Id} was canceled", message.Id);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error processing inbox message {Id}", message.Id);
+                message.RecordError(ex.Message);
             }
         }
     }
@@ -129,7 +140,7 @@ public class ProcessInboxJob(
         };
     }
 
-    private Guid? GetProviderIdFromMetadata(System.Collections.Generic.Dictionary<string, string> metadata)
+    private Guid? GetProviderIdFromMetadata(Dictionary<string, string> metadata)
     {
         if (metadata != null && metadata.TryGetValue("provider_id", out var idStr) && Guid.TryParse(idStr, out var id))
             return id;
@@ -148,20 +159,16 @@ public class ProcessInboxJob(
                 if (data.ProviderId == null || string.IsNullOrEmpty(data.SubscriptionId))
                 {
                     logger.LogError("Invalid or missing data in checkout.session.completed event. EventId: {EventId}", data.ExternalEventId);
-                    throw new InvalidOperationException("Essential data missing from checkout.session.completed event");
+                    throw new InvalidOperationException("Essential data missing in checkout.session.completed event");
                 }
 
-                if (string.IsNullOrWhiteSpace(data.CustomerId))
-                {
-                    logger.LogError("CustomerId is required to activate subscription. EventId: {EventId}", data.ExternalEventId);
-                    throw new InvalidOperationException("CustomerId is required to activate subscription");
-                }
-
+                // Tenta carregar a assinatura mais recente pendente
                 var subscription = await repository.GetLatestByProviderIdAsync(data.ProviderId.Value, ct);
+
                 if (subscription == null)
                 {
-                    logger.LogWarning("Subscription not found for Provider {ProviderId}", data.ProviderId);
-                    throw new InvalidOperationException($"Subscription not found for Provider {data.ProviderId}");
+                    logger.LogError("Subscription for Provider {ProviderId} not found.", data.ProviderId);
+                    throw new InvalidOperationException("Subscription not found");
                 }
 
                 if (subscription.Status == ESubscriptionStatus.Active && subscription.ExternalSubscriptionId == data.SubscriptionId)
@@ -170,7 +177,7 @@ public class ProcessInboxJob(
                     break;
                 }
 
-                subscription.Activate(data.SubscriptionId, data.CustomerId); 
+                subscription.Activate(data.SubscriptionId, data.CustomerId ?? string.Empty); 
                 
                 await repository.UpdateAsync(subscription, ct);
                 logger.LogInformation("Subscription {Id} activated for Provider {ProviderId} (Customer: {CustomerId})", subscription.Id, data.ProviderId, data.CustomerId);
@@ -184,83 +191,71 @@ public class ProcessInboxJob(
                 }
 
                 var subToRenew = await repository.GetByExternalIdAsync(data.SubscriptionId, ct);
-                if (subToRenew == null)
+                if (subToRenew != null)
                 {
-                    logger.LogWarning("Subscription not found for external ID: {ExternalId} (invoice: {InvoiceId}). Retrying...", data.SubscriptionId, data.InvoiceId);
-                    throw new InvalidOperationException($"Subscription with external ID {data.SubscriptionId} not found. Event will be retried.");
-                }
-
-                // Renovar a assinatura
-                DateTime periodEndValue = data.PeriodEnd ?? DateTime.UtcNow.AddMonths(1);
-
-                // Garantir que a renovação seja sempre para uma data futura em relação à expiração atual
-                var minExpiration = (subToRenew.ExpiresAt ?? DateTime.UtcNow);
-                if (periodEndValue <= minExpiration)
-                {
-                    periodEndValue = minExpiration.AddMonths(1);
-                }
-                
-                subToRenew.Renew(periodEndValue);
-                await repository.UpdateAsync(subToRenew, ct);
-
-                // Create PaymentTransaction audit record
-                if (string.IsNullOrWhiteSpace(data.InvoiceId))
-                {
-                    logger.LogWarning("Skipping PaymentTransaction creation for subscription {Id}: InvoiceId is missing", subToRenew.Id);
-                    break;
-                }
-
-                Money? amount = null;
-                try
-                {
-                    if (data.AmountPaid > 0)
+                    if (data.PeriodEnd.HasValue)
                     {
-                        var currency = (data.Currency ?? "usd").ToUpperInvariant();
-                        var decimalAmount = CurrencyUtils.ConvertFromMinorUnits(data.AmountPaid, currency);
-                        amount = Money.FromDecimal(decimalAmount, currency);
+                        subToRenew.Renew(data.PeriodEnd.Value);
+                        await repository.UpdateAsync(subToRenew, ct);
+                        logger.LogInformation("Subscription {Id} renewed until {ExpiresAt}", subToRenew.Id, subToRenew.ExpiresAt);
+                    }
 
-                        if (subToRenew.Amount != null && !string.Equals(currency, subToRenew.Amount.Currency, StringComparison.OrdinalIgnoreCase))
+                    // Registrar a transação de pagamento
+                    Money? amount = null;
+                    try
+                    {
+                        if (data.AmountPaid > 0 && !string.IsNullOrEmpty(data.Currency))
                         {
-                            logger.LogWarning("Currency divergence detected for Invoice {InvoiceId}. Invoice: {InvoiceCurrency}, Subscription: {SubCurrency}", 
-                                data.InvoiceId, currency, subToRenew.Amount.Currency);
+                            amount = Money.FromDecimal(
+                                CurrencyUtils.ConvertFromMinorUnits(data.AmountPaid, data.Currency), 
+                                data.Currency);
+                            
+                            // Log warning if currency differs from subscription
+                            if (!string.Equals(amount.Currency, subToRenew.Amount.Currency, StringComparison.OrdinalIgnoreCase))
+                            {
+                                logger.LogWarning("Currency divergence detected for Subscription {Id}. Subscription: {SubCurrency}, Invoice: {InvCurrency}", 
+                                    subToRenew.Id, subToRenew.Amount.Currency, amount.Currency);
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Error computing amount for PaymentTransaction from Invoice {InvoiceId} (Currency: {Currency}, AmountPaid: {AmountPaid})", 
-                        data.InvoiceId, data.Currency ?? "null", data.AmountPaid);
-                }
-                
-                if (amount != null && amount.Amount > 0)
-                {
-                    var paymentTransaction = new PaymentTransaction(subToRenew.Id, amount);
-                    paymentTransaction.Settle(data.InvoiceId);
-                    await paymentTransactionRepository.AddAsync(paymentTransaction, ct);
-
-                    logger.LogInformation("Subscription {Id} renewed until {ExpiresAt}. PaymentTransaction {PaymentTransactionId} recorded for Invoice {InvoiceId}", 
-                        subToRenew.Id, periodEndValue, paymentTransaction.Id, data.InvoiceId);
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Error computing amount for PaymentTransaction from Invoice {InvoiceId} (Currency: {Currency}, AmountPaid: {AmountPaid})", 
+                            data.InvoiceId, data.Currency ?? "null", data.AmountPaid);
+                    }
+                    
+                    if (amount != null && amount.Amount > 0)
+                    {
+                        var paymentTransaction = new PaymentTransaction(subToRenew.Id, amount);
+                        paymentTransaction.Settle(data.InvoiceId!);
+                        await paymentTransactionRepository.AddAsync(paymentTransaction, ct);
+                    }
+                    else
+                    {
+                        logger.LogWarning("Skipping PaymentTransaction creation for Invoice {InvoiceId} due to unknown or zero amount", data.InvoiceId);
+                    }
                 }
                 else
                 {
-                    logger.LogWarning("Skipping PaymentTransaction creation for Invoice {InvoiceId} due to unknown or zero amount", data.InvoiceId);
+                    logger.LogWarning("Subscription {SubscriptionId} not found. Event will be retried.", data.SubscriptionId);
+                    throw new InvalidOperationException($"Subscription {data.SubscriptionId} not found. Event will be retried.");
                 }
                 break;
 
             case "customer.subscription.deleted":
                 if (string.IsNullOrEmpty(data.SubscriptionId)) break;
 
-                var existingSubscription = await repository.GetByExternalIdAsync(data.SubscriptionId, ct);
-                if (existingSubscription != null)
+                var subToCancel = await repository.GetByExternalIdAsync(data.SubscriptionId, ct);
+                if (subToCancel != null)
                 {
-                    existingSubscription.Cancel();
-                    await repository.UpdateAsync(existingSubscription, ct);
-                    logger.LogInformation("Subscription {Id} canceled (external ID: {ExternalId})", existingSubscription.Id, data.SubscriptionId);
+                    subToCancel.Cancel();
+                    await repository.UpdateAsync(subToCancel, ct);
+                    logger.LogInformation("Subscription {Id} canceled due to deletion in Stripe", subToCancel.Id);
                 }
                 else
                 {
-                    logger.LogWarning("Subscription not found for external ID: {ExternalId} (event: customer.subscription.deleted). Retrying...", data.SubscriptionId);
-                    throw new InvalidOperationException($"Subscription with external ID {data.SubscriptionId} not found. Event will be retried.");
+                    logger.LogWarning("Subscription {SubscriptionId} to cancel not found.", data.SubscriptionId);
+                    throw new InvalidOperationException($"Subscription {data.SubscriptionId} not found.");
                 }
                 break;
 

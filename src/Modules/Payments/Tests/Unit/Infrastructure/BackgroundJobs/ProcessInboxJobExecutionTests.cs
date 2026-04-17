@@ -57,7 +57,6 @@ public class ProcessInboxJobExecutionTests : IDisposable
         var cts = new CancellationTokenSource();
 
         // Act
-        // Run once and cancel
         await job.DoExecuteStepAsync(cts.Token);
 
         // Assert
@@ -69,18 +68,12 @@ public class ProcessInboxJobExecutionTests : IDisposable
     public async Task ExecuteAsync_ShouldRecordError_WhenProcessingFails()
     {
         // Arrange
-        var content = "invalid json"; // This will cause ParseEvent to fail
-        var message = new InboxMessage("type", "{}", "evt_fail");
-        // Manually set invalid content bypassing constructor validation if needed, 
-        // but here we can just use a type that we know will fail in MapToStripeEventData or ProcessStripeEventAsync
-        
-        // Let's use a valid JSON but a type that throws
         var validContent = "{\"id\": \"evt_2\", \"type\": \"checkout.session.completed\", \"data\": {\"object\": { \"id\": \"cs_1\" }}}";
         var failMessage = new InboxMessage("checkout.session.completed", validContent, "evt_2");
         _dbContext.InboxMessages.Add(failMessage);
         await _dbContext.SaveChangesAsync();
 
-        // This will throw InvalidOperationException: Essential data missing
+        // This will throw InvalidOperationException: Essential data missing (provider_id missing)
         var job = new ProcessInboxJobWrapper(_serviceProvider, _loggerMock.Object);
         
         // Act
@@ -100,19 +93,17 @@ public class ProcessInboxJobExecutionTests : IDisposable
         _serviceProvider.Dispose();
     }
 
-    // Helper class to expose protected ExecuteAsync or parts of it
+    // Helper class to expose protected methods for testing
     private class ProcessInboxJobWrapper(IServiceProvider sp, ILogger<ProcessInboxJob> logger) 
         : ProcessInboxJob(sp, logger)
     {
         public async Task DoExecuteStepAsync(CancellationToken ct)
         {
-            // We implement a single pass of the loop logic from ExecuteAsync
             using var scope = sp.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
             var subscriptionRepository = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
             var paymentTransactionRepository = scope.ServiceProvider.GetRequiredService<IPaymentTransactionRepository>();
 
-            // Note: Sqlite doesn't support FOR UPDATE SKIP LOCKED, so we use a simpler query for testing
             var messages = await dbContext.InboxMessages
                 .Where(m => m.ProcessedAt == null && m.RetryCount < m.MaxRetries)
                 .OrderBy(m => m.CreatedAt)
@@ -121,21 +112,7 @@ public class ProcessInboxJobExecutionTests : IDisposable
 
             if (messages.Count == 0) return;
 
-            foreach (var message in messages)
-            {
-                try
-                {
-                    var stripeEvent = Stripe.EventUtility.ParseEvent(message.Content, throwOnApiVersionMismatch: false);
-                    var data = MapToStripeEventData(stripeEvent);
-                    await ProcessStripeEventAsync(data, subscriptionRepository, paymentTransactionRepository, ct);
-                    message.MarkAsProcessed();
-                }
-                catch (Exception ex)
-                {
-                    message.RecordError(ex.Message);
-                }
-            }
-
+            await ProcessMessagesBatchAsync(messages, dbContext, subscriptionRepository, paymentTransactionRepository, ct);
             await dbContext.SaveChangesAsync(ct);
         }
     }

@@ -4,6 +4,20 @@ using MeAjudaAi.Shared.Messaging.Strategy;
 namespace MeAjudaAi.Shared.Messaging.Options;
 
 [ExcludeFromCodeCoverage]
+public static class ModuleNames
+{
+    public const string Users = "Users";
+    public const string Payments = "Payments";
+    public const string Communications = "Communications";
+    public const string Ratings = "Ratings";
+    public const string Providers = "Providers";
+    public const string Documents = "Documents";
+    public const string Locations = "Locations";
+    public const string SearchProviders = "SearchProviders";
+    public const string ServiceCatalogs = "ServiceCatalogs";
+}
+
+[ExcludeFromCodeCoverage]
 public sealed class RabbitMqOptions
 {
     public const string SectionName = "Messaging:RabbitMQ";
@@ -19,20 +33,21 @@ public sealed class RabbitMqOptions
 
     public Dictionary<string, string> DomainQueues { get; set; } = new()
     {
-        ["Users"] = "users-events",
-        ["Payments"] = "payments-events",
-        ["Communications"] = "communications-events",
-        ["Ratings"] = "ratings-events",
-        ["Providers"] = "providers-events",
-        ["Documents"] = "documents-events",
-        ["Locations"] = "locations-events",
-        ["SearchProviders"] = "searchproviders-events",
-        ["ServiceCatalogs"] = "servicecatalogs-events"
+        [ModuleNames.Users] = "users-events",
+        [ModuleNames.Payments] = "payments-events",
+        [ModuleNames.Communications] = "communications-events",
+        [ModuleNames.Ratings] = "ratings-events",
+        [ModuleNames.Providers] = "providers-events",
+        [ModuleNames.Documents] = "documents-events",
+        [ModuleNames.Locations] = "locations-events",
+        [ModuleNames.SearchProviders] = "searchproviders-events",
+        [ModuleNames.ServiceCatalogs] = "servicecatalogs-events"
     };
 
     public string GetQueueForDomain(string domain)
     {
-        return DomainQueues.TryGetValue(domain, out var queue) ? queue : DefaultQueueName;
+        if (string.IsNullOrWhiteSpace(domain)) return DefaultQueueName;
+        return DomainQueues.TryGetValue(domain.Trim(), out var queue) ? queue : DefaultQueueName;
     }
 
     public string BuildConnectionString()

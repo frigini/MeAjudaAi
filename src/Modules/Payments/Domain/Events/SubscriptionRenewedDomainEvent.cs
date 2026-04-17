@@ -10,5 +10,6 @@ namespace MeAjudaAi.Modules.Payments.Domain.Events;
 public record SubscriptionRenewedDomainEvent(
     Guid SubscriptionId, 
     Guid ProviderId, 
-    DateTime NewExpiresAt
-) : DomainEvent(SubscriptionId, DomainConstants.InitialVersion);
+    DateTime NewExpiresAt,
+    int Version
+) : DomainEvent(SubscriptionId, Version);

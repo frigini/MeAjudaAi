@@ -29,14 +29,15 @@ public class PaymentTransaction : BaseEntity
     public Money Amount { get; private set; } = null!;
     public EPaymentStatus Status { get; private set; }
     public DateTime? ProcessedAt { get; private set; }
+    public DateTime? RefundedAt { get; private set; }
 
     public void Settle(string externalTransactionId)
     {
-        if (Status != EPaymentStatus.Pending)
-            throw new InvalidOperationException($"Cannot settle transaction in {Status} status.");
-
         if (string.IsNullOrWhiteSpace(externalTransactionId))
             throw new ArgumentException("ExternalTransactionId cannot be empty.", nameof(externalTransactionId));
+
+        if (Status != EPaymentStatus.Pending)
+            throw new InvalidOperationException($"Cannot settle transaction in {Status} status.");
 
         ExternalTransactionId = externalTransactionId;
         Status = EPaymentStatus.Succeeded;
@@ -59,7 +60,10 @@ public class PaymentTransaction : BaseEntity
         if (Status != EPaymentStatus.Succeeded)
             throw new InvalidOperationException($"Cannot refund transaction in {Status} status. Only Succeeded transactions can be refunded.");
 
+        if (Status == EPaymentStatus.Refunded) return;
+
         Status = EPaymentStatus.Refunded;
+        RefundedAt = DateTime.UtcNow;
         MarkAsUpdated();
     }
 }

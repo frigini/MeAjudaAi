@@ -78,14 +78,15 @@ public class SubscriptionTests
         var expires1 = DateTime.UtcNow.AddMonths(1);
         var expires2 = DateTime.UtcNow.AddMonths(2);
         subscription.Activate("sub_123", "cus_123", expires1);
-        var originalUpdatedAt = subscription.UpdatedAt;
+        
+        var before = DateTime.UtcNow;
 
         // Act
         subscription.Activate("sub_123", "cus_123", expires2);
 
         // Assert
         subscription.ExpiresAt.Should().Be(expires2);
-        subscription.UpdatedAt.Should().BeAfter(originalUpdatedAt!.Value);
+        subscription.UpdatedAt.Should().BeOnOrAfter(before);
     }
 
     [Fact]

@@ -170,6 +170,12 @@
           "Npgsql": "10.0.2"
         }
       },
+      "RabbitMQ.Client": {
+        "type": "Direct",
+        "requested": "[7.2.1, )",
+        "resolved": "7.2.1",
+        "contentHash": "YKXEfg9fVQiTKgZlvIhAfPSFaamEgi8DsQmisCH0IAsU4FYLrtoguDrDj6JtJVGUt40QPnBLRH6fTQcAC4qsOg=="
+      },
       "Rebus": {
         "type": "Direct",
         "requested": "[8.9.0, )",
@@ -568,12 +574,6 @@
         "requested": "[10.0.2, )",
         "resolved": "10.0.2",
         "contentHash": "q5RfBI+wywJSFUNDE1L4ZbHEHCFTblo8Uf6A6oe4feOUFYiUQXyAf9GBh5qEZpvJaHiEbpBPkQumjEhXCJxdrg=="
-      },
-      "RabbitMQ.Client": {
-        "type": "CentralTransitive",
-        "requested": "[7.2.1, )",
-        "resolved": "7.2.1",
-        "contentHash": "YKXEfg9fVQiTKgZlvIhAfPSFaamEgi8DsQmisCH0IAsU4FYLrtoguDrDj6JtJVGUt40QPnBLRH6fTQcAC4qsOg=="
       }
     }
   }

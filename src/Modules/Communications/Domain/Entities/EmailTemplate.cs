@@ -56,11 +56,6 @@ public sealed class EmailTemplate : BaseEntity
     public string Language { get; private set; } = "pt-BR";
 
     /// <summary>
-    /// Versão do template (incrementada a cada update).
-    /// </summary>
-    public int Version { get; private set; }
-
-    /// <summary>
     /// Cria um novo template de e-mail.
     /// </summary>
     public static EmailTemplate Create(
@@ -78,7 +73,7 @@ public sealed class EmailTemplate : BaseEntity
         ArgumentException.ThrowIfNullOrWhiteSpace(textBody);
         ArgumentException.ThrowIfNullOrWhiteSpace(language);
 
-        return new EmailTemplate
+        var template = new EmailTemplate
         {
             TemplateKey = templateKey.ToLowerInvariant().Trim(),
             OverrideKey = string.IsNullOrWhiteSpace(overrideKey) ? null : overrideKey.ToLowerInvariant().Trim(),
@@ -87,9 +82,10 @@ public sealed class EmailTemplate : BaseEntity
             TextBody = textBody,
             Language = language.ToLowerInvariant().Trim(),
             IsActive = true,
-            Version = 1,
             IsSystemTemplate = isSystemTemplate
         };
+        template.Version = 1;
+        return template;
     }
 
     /// <summary>

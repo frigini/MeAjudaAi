@@ -6,12 +6,12 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 
 ## 🔮 Melhorias Futuras (Backlog)
 
-### 🧪 Testing & Quality Assurance
+### 🧪 Testes & Qualidade
 
 **Severidade**: BAIXA  
 **Sprint**: Backlog
 
-- [ ] Memory profiling in production
+- [ ] Perfilagem de memória em produção
 
 ### 🚀 Infraestrutura & Messaging
 
@@ -20,14 +20,14 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 
 - [ ] Avaliar migração para Rebus v3 ou alternativa de Enterprise Service Bus (ESB) assim que a compatibilidade com .NET 10 e `Rebus.ServiceProvider` (v10+) for estabilizada. Atualmente, o sistema utiliza `RabbitMQ.Client` diretamente com middleware de retry customizado.
 
-### 🎨 UI/UX Improvements
+### 🎨 Melhorias de UI/UX
 
 **Severidade**: BAIXA  
 **Sprint**: Backlog
 
-- [ ] Apply brand colors (blue, cream, orange) to entire Admin Portal (React)
-- [ ] Update React component library theme
-- [ ] Standardize component styling
+- [ ] Aplicar cores da marca (azul, creme, laranja) em todo o Portal Admin (React)
+- [ ] Atualizar o tema da biblioteca de componentes React
+- [ ] Padronizar a estilização dos componentes
 
 **Origem**: Sprint 7.19
 

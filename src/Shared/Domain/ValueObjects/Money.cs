@@ -43,7 +43,7 @@ public record Money
 
     public static Money FromDecimal(decimal amount, string currency = DefaultCurrency) => new(amount, currency);
 
-    public override string ToString() => $"{Currency} {Amount:N2}";
+    public override string ToString() => $"{Currency} {Amount.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)}";
 
     public static Money operator +(Money a, Money b)
     {

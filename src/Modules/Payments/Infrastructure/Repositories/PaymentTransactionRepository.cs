@@ -25,7 +25,7 @@ public class PaymentTransactionRepository(
             // Note: The constraint name might vary depending on EF Core naming convention.
             // Using a case-insensitive check for common patterns.
             if (databaseException is UniqueConstraintException uniqueEx && 
-                uniqueEx.ConstraintName.Contains("external_transaction_id", StringComparison.OrdinalIgnoreCase))
+                (uniqueEx.ConstraintName ?? string.Empty).Contains("external_transaction_id", StringComparison.OrdinalIgnoreCase))
             {
                 logger.LogInformation("Duplicate external transaction id {ExternalTransactionId} detected; treating as idempotent replay.", transaction.ExternalTransactionId);
                 // Violação de chave única esperada para garantir idempotência.
@@ -39,6 +39,9 @@ public class PaymentTransactionRepository(
 
     public async Task<PaymentTransaction?> GetByExternalIdAsync(string externalTransactionId, CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(externalTransactionId))
+            throw new ArgumentException("ExternalTransactionId cannot be empty.", nameof(externalTransactionId));
+
         return await context.PaymentTransactions
             .AsNoTracking()
             .FirstOrDefaultAsync(t => t.ExternalTransactionId == externalTransactionId, cancellationToken);

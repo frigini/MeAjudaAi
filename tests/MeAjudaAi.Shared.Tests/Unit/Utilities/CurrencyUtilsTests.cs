@@ -32,7 +32,7 @@ public class CurrencyUtilsTests
     [InlineData(100.90, "JPY", 101)] // Arredondamento para zero-decimal
     [InlineData(-10.50, "BRL", -1050)]
     [InlineData(-10.50, "JPY", -11)] // Arredondamento simétrico para negativos
-    [InlineData(1000.001, "KWD", 1000001)] // Three-decimal (Kuwaiti Dinar)
+    [InlineData(1000.001, "KWD", 1000001)] // Três casas decimais (Dinar kuwaitiano)
     [InlineData(1000000000.99, "USD", 100000000099)] // Valor grande
     public void ConvertToMinorUnits_ShouldReturnCorrectValue(decimal amount, string currency, long expected)
     {

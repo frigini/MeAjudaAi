@@ -140,4 +140,14 @@ public class MoneyTests
         Money.IsSupported("").Should().BeFalse();
         Money.IsSupported(null!).Should().BeFalse();
     }
+
+    [Fact]
+    public void ToString_ShouldReturnCorrectFormat()
+    {
+        // Act
+        var money = new Money(1234.56m, "USD");
+
+        // Assert
+        money.ToString().Should().Be("USD 1234.56");
+    }
 }

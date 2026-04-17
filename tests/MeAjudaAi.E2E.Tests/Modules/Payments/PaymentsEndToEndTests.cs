@@ -113,7 +113,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
         TestContainerFixture.AuthenticateAsAdminWithProvider(providerId);
         
         // 1. Criar uma subscription pendente primeiro
-        var createRequest = new { ProviderId = providerId, PlanId = "price_premium_monthly" };
+        var createRequest = new { ProviderId = providerId, PlanId = "premium" };
         var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/payments/subscriptions", createRequest, TestContainerFixture.JsonOptions);
         createResponse.EnsureSuccessStatusCode();
 

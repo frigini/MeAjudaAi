@@ -10,7 +10,7 @@
     "loadingResults": "Loading search results"
   },
   "provider": {
-    "view_profile": "View Profile",
+    "viewProfile": "View Profile",
     "contact": "Contact",
     "share": "Share",
     "location": "Location",

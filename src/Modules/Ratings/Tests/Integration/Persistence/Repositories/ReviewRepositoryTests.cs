@@ -213,7 +213,11 @@ public class ReviewRepositoryTests : IAsyncDisposable
         // Act & Assert
         var act = () => _repository.AddAsync(review2);
         
-        // No ambiente de teste (como SQLite), a violação de unicidade lança uma DbUpdateException.
-        await act.Should().ThrowAsync<DbUpdateException>();
+        // No ambiente de teste (SQLite), a violação de unicidade lança uma DbUpdateException
+        // com uma InnerException do tipo Microsoft.Data.Sqlite.SqliteException.
+        var assertions = await act.Should().ThrowAsync<DbUpdateException>();
+        var sqliteEx = assertions.Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>().Subject;
+        sqliteEx.SqliteErrorCode.Should().Be(19); // SQLITE_CONSTRAINT
+        sqliteEx.Message.Should().Contain("UNIQUE");
     }
 }
