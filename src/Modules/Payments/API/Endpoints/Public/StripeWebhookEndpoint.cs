@@ -28,7 +28,17 @@ public class StripeWebhookEndpoint : IEndpoint
         {
             try
             {
-                var json = await new System.IO.StreamReader(context.Request.Body).ReadToEndAsync();
+                string json;
+                using (var reader = new System.IO.StreamReader(
+                    context.Request.Body, 
+                    encoding: System.Text.Encoding.UTF8, 
+                    detectEncodingFromByteOrderMarks: true, 
+                    bufferSize: 1024, 
+                    leaveOpen: true))
+                {
+                    json = await reader.ReadToEndAsync();
+                }
+
                 var stripeSignature = context.Request.Headers["Stripe-Signature"];
                 var webhookSecret = configuration["Stripe:WebhookSecret"];
 
@@ -72,12 +82,6 @@ public class StripeWebhookEndpoint : IEndpoint
             catch (Exception e)
             {
                 logger.LogError(e, "Internal error processing Stripe webhook.");
-                
-                if (environment.IsEnvironment("Testing"))
-                {
-                    return Results.InternalServerError(new { error = $"Erro interno: {e.Message}" });
-                }
-
                 return Results.InternalServerError(new { error = "Erro interno no servidor" });
             }
         })

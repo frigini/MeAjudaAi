@@ -32,6 +32,14 @@ public record SubscriptionGatewayResult
         return new SubscriptionGatewayResult(true, externalSubscriptionId, checkoutUrl, null);
     }
 
+    public static SubscriptionGatewayResult SucceededWithoutExternalId(string checkoutUrl)
+    {
+        if (string.IsNullOrWhiteSpace(checkoutUrl))
+            throw new ArgumentException("CheckoutUrl is required for successful result.", nameof(checkoutUrl));
+
+        return new SubscriptionGatewayResult(true, null, checkoutUrl, null);
+    }
+
     public static SubscriptionGatewayResult Failed(string errorMessage)
     {
         if (string.IsNullOrWhiteSpace(errorMessage))

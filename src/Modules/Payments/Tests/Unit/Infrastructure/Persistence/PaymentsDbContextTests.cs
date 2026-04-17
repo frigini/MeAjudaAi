@@ -1,7 +1,9 @@
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Domain.ValueObjects;
+using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using FluentAssertions;
 using Xunit;
 
@@ -17,7 +19,11 @@ public class PaymentsDbContextTests
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        using var context = new PaymentsDbContext(options);
+        var domainEventProcessorMock = new Mock<IDomainEventProcessor>();
+        domainEventProcessorMock.Setup(x => x.ProcessDomainEventsAsync(It.IsAny<IEnumerable<IDomainEvent>>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        using var context = new PaymentsDbContext(options, domainEventProcessorMock.Object);
         var sub = new Subscription(Guid.NewGuid(), "plan", Money.FromDecimal(10));
         
         // Ativar e depois Cancelar para garantir a geração de eventos de domínio

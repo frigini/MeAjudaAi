@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Payments.Domain.Enums;
+using MeAjudaAi.Modules.Payments.Domain.Events;
 using MeAjudaAi.Shared.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain;
 
@@ -78,6 +79,8 @@ public Guid ProviderId { get; private set; }
         Status = ESubscriptionStatus.Active;
         ExpiresAt = expiresAt;
         MarkAsUpdated();
+
+        AddDomainEvent(new SubscriptionActivatedDomainEvent(Id, ProviderId, ExternalSubscriptionId));
     }
 
     public void Cancel()
@@ -87,6 +90,8 @@ public Guid ProviderId { get; private set; }
 
         Status = ESubscriptionStatus.Canceled;
         MarkAsUpdated();
+
+        AddDomainEvent(new SubscriptionCanceledDomainEvent(Id, ProviderId));
     }
 
     public void Expire()

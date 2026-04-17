@@ -12,15 +12,17 @@ public class PaymentTransactionRepository(PaymentsDbContext context) : IPaymentT
     {
         try
         {
-            await context.Transactions.AddAsync(transaction, cancellationToken);
+            await context.PaymentTransactions.AddAsync(transaction, cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException { SqlState: "23505" })
         {
             var databaseException = PostgreSqlExceptionProcessor.ProcessException(ex);
             
+            // Note: The constraint name might vary depending on EF Core naming convention.
+            // Using a case-insensitive check for common patterns.
             if (databaseException is UniqueConstraintException uniqueEx && 
-                "IX_transactions_external_transaction_id".Equals(uniqueEx.ConstraintName, StringComparison.OrdinalIgnoreCase))
+                uniqueEx.ConstraintName.Contains("external_transaction_id", StringComparison.OrdinalIgnoreCase))
             {
                 // Violação de chave única esperada para garantir idempotência.
                 context.Entry(transaction).State = EntityState.Detached;
@@ -33,7 +35,7 @@ public class PaymentTransactionRepository(PaymentsDbContext context) : IPaymentT
 
     public async Task<PaymentTransaction?> GetByExternalIdAsync(string externalTransactionId, CancellationToken cancellationToken = default)
     {
-        return await context.Transactions
+        return await context.PaymentTransactions
             .AsNoTracking()
             .FirstOrDefaultAsync(t => t.ExternalTransactionId == externalTransactionId, cancellationToken);
     }

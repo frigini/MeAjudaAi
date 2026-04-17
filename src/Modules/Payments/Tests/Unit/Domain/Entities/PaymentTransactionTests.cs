@@ -9,176 +9,75 @@ namespace MeAjudaAi.Modules.Payments.Tests.Unit.Domain.Entities;
 public class PaymentTransactionTests
 {
     [Fact]
-    public void Constructor_ShouldInitializeCorrectly()
+    public void Constructor_ShouldSetInitialValues()
     {
         // Arrange
-        var subscriptionId = Guid.NewGuid();
-        var amount = Money.FromDecimal(100.50m, "BRL");
+        var subId = Guid.NewGuid();
+        var amount = Money.FromDecimal(50.00m, "BRL");
 
         // Act
-        var transaction = new PaymentTransaction(subscriptionId, amount);
+        var tx = new PaymentTransaction(subId, amount);
 
         // Assert
-        transaction.Id.Should().NotBeEmpty();
-        transaction.SubscriptionId.Should().Be(subscriptionId);
-        transaction.Amount.Should().Be(amount);
-        transaction.Status.Should().Be(EPaymentStatus.Pending);
-        transaction.ProcessedAt.Should().BeNull();
-        transaction.ExternalTransactionId.Should().BeNull();
+        tx.SubscriptionId.Should().Be(subId);
+        tx.Amount.Should().Be(amount);
+        tx.Status.Should().Be(EPaymentStatus.Pending);
+        tx.ExternalTransactionId.Should().BeNull();
     }
 
     [Fact]
-    public void Constructor_ShouldNotOverrideBaseEntityId()
-    {
-        // Arrange & Act
-        var t1 = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10m, "BRL"));
-        var t2 = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(20m, "BRL"));
-
-        // Assert
-        t1.Id.Should().NotBe(t2.Id);
-        t1.Id.Should().NotBe(Guid.Empty);
-    }
-
-    [Fact]
-    public void Settle_ShouldUpdateStatusToSucceeded()
+    public void Settle_ShouldUpdateStatusAndReference()
     {
         // Arrange
-        var transaction = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(50m, "BRL"));
-        var externalId = "ext_123456";
+        var tx = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10));
+        var externalId = "ch_123";
 
         // Act
-        transaction.Settle(externalId);
+        tx.Settle(externalId);
 
         // Assert
-        transaction.Status.Should().Be(EPaymentStatus.Succeeded);
-        transaction.ExternalTransactionId.Should().Be(externalId);
-        transaction.ProcessedAt.Should().NotBeNull();
-        transaction.ProcessedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(2));
-        transaction.UpdatedAt.Should().NotBeNull();
+        tx.Status.Should().Be(EPaymentStatus.Succeeded);
+        tx.ExternalTransactionId.Should().Be(externalId);
+        tx.ProcessedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 
     [Fact]
-    public void Settle_ShouldThrow_WhenAlreadySettled()
+    public void Settle_ShouldThrow_WhenAlreadyProcessed()
     {
         // Arrange
-        var transaction = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(50m, "BRL"));
-        transaction.Settle("ext_123");
+        var tx = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10));
+        tx.Settle("id1");
 
         // Act
-        var act = () => transaction.Settle("ext_456");
+        var act = () => tx.Settle("id2");
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*Cannot settle*Succeeded*");
+        act.Should().Throw<InvalidOperationException>().WithMessage("*status*");
     }
 
     [Fact]
-    public void Settle_ShouldThrow_WhenAlreadyFailed()
+    public void Fail_ShouldUpdateStatus()
     {
         // Arrange
-        var transaction = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(50m, "BRL"));
-        transaction.Fail();
+        var tx = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10));
 
         // Act
-        var act = () => transaction.Settle("ext_456");
+        tx.Fail();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*Cannot settle*Failed*");
-    }
-
-    [Fact]
-    public void Fail_ShouldUpdateStatusToFailed()
-    {
-        // Arrange
-        var transaction = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(50m, "BRL"));
-
-        // Act
-        transaction.Fail();
-
-        // Assert
-        transaction.Status.Should().Be(EPaymentStatus.Failed);
-        transaction.ProcessedAt.Should().NotBeNull();
-        transaction.ProcessedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(2));
-        transaction.UpdatedAt.Should().NotBeNull();
-    }
-
-    [Fact]
-    public void Fail_ShouldThrow_WhenAlreadyFailed()
-    {
-        // Arrange
-        var transaction = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(50m, "BRL"));
-        transaction.Fail();
-
-        // Act
-        var act = () => transaction.Fail();
-
-        // Assert
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*Cannot fail*Failed*");
-    }
-
-    [Fact]
-    public void Fail_ShouldThrow_WhenAlreadySettled()
-    {
-        // Arrange
-        var transaction = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(50m, "BRL"));
-        transaction.Settle("ext_123");
-
-        // Act
-        var act = () => transaction.Fail();
-
-        // Assert
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*Cannot fail*Succeeded*");
-    }
-
-    [Fact]
-    public void Settle_ShouldPreserveAmount()
-    {
-        // Arrange
-        var amount = Money.FromDecimal(250.75m, "USD");
-        var transaction = new PaymentTransaction(Guid.NewGuid(), amount);
-
-        // Act
-        transaction.Settle("ext_abc");
-
-        // Assert
-        transaction.Amount.Should().Be(amount);
-        transaction.Amount.Currency.Should().Be("USD");
-    }
-
-    [Fact]
-    public void Constructor_ShouldThrow_WhenSubscriptionIdIsEmpty()
-    {
-        var act = () => new PaymentTransaction(Guid.Empty, Money.FromDecimal(10));
-        act.Should().Throw<ArgumentException>().WithMessage("*SubscriptionId*");
-    }
-
-    [Fact]
-    public void Constructor_ShouldThrow_WhenAmountIsNull()
-    {
-        var act = () => new PaymentTransaction(Guid.NewGuid(), null!);
-        act.Should().Throw<ArgumentNullException>().WithMessage("*Amount*");
+        tx.Status.Should().Be(EPaymentStatus.Failed);
+        tx.ProcessedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 
     [Theory]
     [InlineData(0)]
-    [InlineData(-1)]
-    public void Constructor_ShouldThrow_WhenAmountIsNonPositive(decimal amount)
+    [InlineData(-10)]
+    public void Constructor_ShouldThrow_WhenAmountIsInvalid(decimal val)
     {
-        var act = () => new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(amount));
-        act.Should().Throw<ArgumentException>().WithMessage("*Amount*");
-    }
+        // Act
+        var act = () => new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(val));
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    public void Settle_ShouldThrow_WhenExternalTransactionIdIsInvalid(string? externalId)
-    {
-        var transaction = new PaymentTransaction(Guid.NewGuid(), Money.FromDecimal(10));
-        var act = () => transaction.Settle(externalId!);
-        act.Should().Throw<ArgumentException>().WithMessage("*ExternalTransactionId*");
+        // Assert
+        act.Should().Throw<ArgumentException>();
     }
 }

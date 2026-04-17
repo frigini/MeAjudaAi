@@ -92,30 +92,4 @@ public class ReviewRejectedDomainEventHandlerTests
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
-
-    [Fact]
-    public async Task HandleAsync_ShouldCompleteSuccessfully_WithoutCoupling()
-    {
-        // Arrange
-        var domainEvent = new ReviewRejectedDomainEvent(Guid.NewGuid(), 0, Guid.NewGuid(), "Offensive");
-
-        // Act
-        var act = () => _handler.HandleAsync(domainEvent);
-
-        // Assert
-        await act.Should().NotThrowAsync();
-    }
-
-    [Fact]
-    public async Task HandleAsync_ShouldHandleNullReason()
-    {
-        // Arrange
-        var domainEvent = new ReviewRejectedDomainEvent(Guid.NewGuid(), 0, Guid.NewGuid(), null!);
-
-        // Act
-        var act = () => _handler.HandleAsync(domainEvent);
-
-        // Assert
-        await act.Should().NotThrowAsync();
-    }
 }

@@ -219,11 +219,7 @@ public class CreateSubscriptionCommandHandlerTests
         // Arrange
         var command = new CreateSubscriptionCommand(Guid.NewGuid(), "price_premium_monthly");
         
-        // Usa reflexão para simular o estado com ID nulo (factory não permite)
-        var gatewayResult = (SubscriptionGatewayResult)typeof(SubscriptionGatewayResult)
-            .GetConstructor(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance, null, 
-                new[] { typeof(bool), typeof(string), typeof(string), typeof(string) }, null)!
-            .Invoke(new object?[] { true, null, "https://checkout", null });
+        var gatewayResult = SubscriptionGatewayResult.SucceededWithoutExternalId("https://checkout");
 
         _gatewayMock.Setup(g => g.CreateSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Money>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(gatewayResult);

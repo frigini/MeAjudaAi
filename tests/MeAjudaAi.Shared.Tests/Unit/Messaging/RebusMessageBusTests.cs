@@ -1,11 +1,11 @@
-using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using MeAjudaAi.Shared.Messaging.Rebus;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Rebus.Bus;
+using FluentAssertions;
 using Xunit;
 
-namespace MeAjudaAi.Shared.Messaging.Tests.Unit.Messaging;
+namespace MeAjudaAi.Shared.Tests.Unit.Messaging;
 
 public class RebusMessageBusTests
 {
@@ -34,6 +34,16 @@ public class RebusMessageBusTests
     }
 
     [Fact]
+    public async Task SendAsync_WhenMessageIsNull_ShouldThrow()
+    {
+        // Act
+        var act = () => _messageBus.SendAsync<object>(null!);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentNullException>();
+    }
+
+    [Fact]
     public async Task PublishAsync_ShouldDelegateToBus()
     {
         // Arrange
@@ -47,6 +57,26 @@ public class RebusMessageBusTests
     }
 
     [Fact]
+    public async Task PublishAsync_WhenTopicIsProvided_ShouldLogWarning()
+    {
+        // Arrange
+        var @event = new { Data = "event" };
+
+        // Act
+        await _messageBus.PublishAsync(@event, "manual-topic");
+
+        // Assert
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Manual topic name")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    [Fact]
     public async Task SubscribeAsync_ShouldDelegateToBus()
     {
         // Act
@@ -54,5 +84,15 @@ public class RebusMessageBusTests
 
         // Assert
         _busMock.Verify(x => x.Subscribe<string>(), Times.Once);
+    }
+
+    [Fact]
+    public async Task SubscribeAsync_WithHandler_ShouldThrowNotSupported()
+    {
+        // Act
+        var act = () => _messageBus.SubscribeAsync<string>((m, ct) => Task.CompletedTask);
+
+        // Assert
+        await act.Should().ThrowAsync<NotSupportedException>();
     }
 }

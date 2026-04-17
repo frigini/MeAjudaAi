@@ -55,6 +55,8 @@ public class InboxMessage
     public void RecordError(string error, DateTime? nextAttemptAt = null)
     {
         Error = error;
+        IncrementRetry();
+        
         if (nextAttemptAt.HasValue)
         {
             NextAttemptAt = nextAttemptAt.Value;

@@ -34,7 +34,7 @@ public class MessageBusFactory : IMessageBusFactory
 
     public IMessageBus CreateMessageBus()
     {
-        // Check if Messaging is enabled
+        // Verificar se o serviço de Mensageria está habilitado
         var isEnabled = _configuration.GetValue<bool>("Messaging:Enabled", true);
 
         if (_environment.IsEnvironment(EnvironmentNames.Testing) || !isEnabled)
@@ -47,7 +47,11 @@ public class MessageBusFactory : IMessageBusFactory
             _logger.LogInformation("Creating Rebus MessageBus for environment: {Environment}", _environment.EnvironmentName);
             return _serviceProvider.GetRequiredService<RebusMessageBus>();
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex) when (ex is InvalidOperationException || ex.GetType().Name.Contains("ServiceActivationException"))
         {
             _logger.LogError(ex, "Failed to initialize Rebus MessageBus for environment {Environment}", _environment.EnvironmentName);
             throw new InvalidOperationException($"Failed to initialize Rebus MessageBus for environment {_environment.EnvironmentName}", ex);

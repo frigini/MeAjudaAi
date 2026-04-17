@@ -58,14 +58,14 @@ public class GetBillingPortalEndpoint : IEndpoint
         {
             "account" => $"{clientBaseUrl}/account",
             "billing" => $"{clientBaseUrl}/billing",
-            _ => clientBaseUrl // Proteção contra Open Redirect: ignora valores desconhecidos
+            _ => clientBaseUrl // Proteção contra Open Redirect: ignora valores desconhecidos e usa a base como fallback
         };
 
         var command = new GetBillingPortalCommand(request.ProviderId, resolvedReturnUrl);
         var portalUrl = await dispatcher.SendAsync<GetBillingPortalCommand, string>(command, cancellationToken);
-        
-        return Results.Ok(new { portalUrl });
-    }
-}
 
-public record GetBillingPortalRequest(Guid ProviderId, string? ReturnUrl);
+        return Results.Ok(new { portalUrl });
+        }
+        }
+
+        public record GetBillingPortalRequest(Guid ProviderId, string? ReturnUrl);

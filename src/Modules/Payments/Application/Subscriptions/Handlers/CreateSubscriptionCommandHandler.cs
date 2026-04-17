@@ -1,3 +1,4 @@
+using System.Globalization;
 using MeAjudaAi.Modules.Payments.Domain.Abstractions;
 using MeAjudaAi.Modules.Payments.Domain.Entities;
 using MeAjudaAi.Modules.Payments.Domain.Repositories;
@@ -45,6 +46,12 @@ public class CreateSubscriptionCommandHandler(
         {
             logger.LogWarning("Gateway failed to create subscription for Provider {ProviderId}: {ErrorMessage}", 
                 command.ProviderId, result.ErrorMessage);
+            
+            if (!string.IsNullOrWhiteSpace(result.ExternalSubscriptionId))
+            {
+                await TryCompensateAsync(result);
+            }
+            
             throw new SubscriptionCreationException($"Falha ao criar assinatura no gateway: {result.ErrorMessage}");
         }
 
@@ -102,7 +109,7 @@ public class CreateSubscriptionCommandHandler(
         var amountStr = configuration[$"Payments:Plans:{planId}:Amount"];
         var currency = configuration[$"Payments:Plans:{planId}:Currency"];
 
-        if (!decimal.TryParse(amountStr, out var amount) || string.IsNullOrEmpty(currency))
+        if (!decimal.TryParse(amountStr, NumberStyles.Number, CultureInfo.InvariantCulture, out var amount) || string.IsNullOrEmpty(currency))
         {
             logger.LogError("Incomplete configuration for plan: {PlanId}", planId);
             throw new SubscriptionCreationException($"Configuração incompleta para o plano: {planId}");

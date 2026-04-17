@@ -53,8 +53,10 @@ public class ProcessInboxJob(
                 {
                     try
                     {
-                        var stripeEvent = EventUtility.ParseEvent(message.Content);
-                        await ProcessStripeEventAsync(stripeEvent, subscriptionRepository, paymentTransactionRepository, stoppingToken);
+                        var stripeEvent = EventUtility.ParseEvent(message.Content, throwOnApiVersionMismatch: false);
+                        var data = MapToStripeEventData(stripeEvent);
+                        
+                        await ProcessStripeEventAsync(data, subscriptionRepository, paymentTransactionRepository, stoppingToken);
 
                         message.MarkAsProcessed();
                     }
@@ -66,7 +68,6 @@ public class ProcessInboxJob(
                     catch (Exception ex)
                     {
                         logger.LogError(ex, "Error processing inbox message {Id}", message.Id);
-                        message.IncrementRetry();
                         message.RecordError(ex.Message);
                     }
                 }
@@ -87,157 +88,178 @@ public class ProcessInboxJob(
         }
     }
 
+    public StripeEventData MapToStripeEventData(Event stripeEvent)
+    {
+        if (stripeEvent.Data?.Object == null)
+        {
+            return new StripeEventData(stripeEvent.Type, stripeEvent.Id, null, null, null);
+        }
+
+        return stripeEvent.Type switch
+        {
+            "checkout.session.completed" when stripeEvent.Data.Object is Stripe.Checkout.Session session =>
+                new StripeEventData(
+                    stripeEvent.Type,
+                    stripeEvent.Id,
+                    session.SubscriptionId,
+                    session.CustomerId,
+                    GetProviderIdFromMetadata(session.Metadata)),
+
+            "invoice.paid" when stripeEvent.Data.Object is Stripe.Invoice invoice =>
+                new StripeEventData(
+                    stripeEvent.Type,
+                    stripeEvent.Id,
+                    invoice.Parent?.SubscriptionDetails?.SubscriptionId ?? invoice.Lines?.Data?.FirstOrDefault()?.SubscriptionId,
+                    invoice.CustomerId,
+                    null,
+                    invoice.Lines?.Data?.FirstOrDefault()?.Period?.End,
+                    invoice.AmountPaid,
+                    invoice.Currency,
+                    invoice.Id),
+
+            "customer.subscription.deleted" when stripeEvent.Data.Object is Stripe.Subscription sub =>
+                new StripeEventData(
+                    stripeEvent.Type,
+                    stripeEvent.Id,
+                    sub.Id,
+                    sub.CustomerId,
+                    null),
+
+            _ => new StripeEventData(stripeEvent.Type, stripeEvent.Id, null, null, null)
+        };
+    }
+
+    private Guid? GetProviderIdFromMetadata(System.Collections.Generic.Dictionary<string, string> metadata)
+    {
+        if (metadata != null && metadata.TryGetValue("provider_id", out var idStr) && Guid.TryParse(idStr, out var id))
+            return id;
+        return null;
+    }
+
     public async Task ProcessStripeEventAsync(
-        Event stripeEvent, 
+        StripeEventData data, 
         ISubscriptionRepository repository, 
         IPaymentTransactionRepository paymentTransactionRepository,
         CancellationToken ct)
-    {        switch (stripeEvent.Type)
+    {
+        switch (data.Type)
         {
             case "checkout.session.completed":
-                var session = stripeEvent.Data.Object as dynamic;
-                if (session == null)
+                if (data.ProviderId == null || string.IsNullOrEmpty(data.SubscriptionId))
                 {
-                    logger.LogWarning("Event object is not a Session for event {EventId}", stripeEvent.Id);
-                    throw new InvalidOperationException("Session data is missing from checkout.session.completed event");
+                    logger.LogError("Invalid or missing data in checkout.session.completed event. EventId: {EventId}", data.ExternalEventId);
+                    throw new InvalidOperationException("Essential data missing from checkout.session.completed event");
                 }
 
-                string? providerIdStr = null;
-                Guid providerId = Guid.Empty;
-                if (session.Metadata == null || 
-                    !session.Metadata.TryGetValue("provider_id", out providerIdStr) || 
-                    !Guid.TryParse(providerIdStr, out providerId))
-                {
-                    logger.LogError(
-                        "Invalid or missing provider_id in checkout.session.completed event. SessionId: {SessionId}",
-                        (string)session.Id);
-                    throw new InvalidOperationException($"Invalid or missing provider_id in checkout.session.completed event. SessionId: {session.Id}");
-                }
-
-                var subscription = await repository.GetLatestByProviderIdAsync(providerId, ct);
+                var subscription = await repository.GetLatestByProviderIdAsync(data.ProviderId.Value, ct);
                 if (subscription == null)
                 {
-                    logger.LogWarning("Subscription not found for Provider {ProviderId}", providerId);
-                    throw new InvalidOperationException($"Subscription not found for Provider {providerId}");
+                    logger.LogWarning("Subscription not found for Provider {ProviderId}", data.ProviderId);
+                    throw new InvalidOperationException($"Subscription not found for Provider {data.ProviderId}");
                 }
 
-                if (subscription.Status == ESubscriptionStatus.Active && subscription.ExternalSubscriptionId == (string)session.SubscriptionId)
+                if (subscription.Status == ESubscriptionStatus.Active && subscription.ExternalSubscriptionId == data.SubscriptionId)
                 {
                     logger.LogDebug("Subscription {Id} already active with same external ID, skipping", subscription.Id);
                     break;
                 }
 
-                subscription.Activate(
-                    (string)session.SubscriptionId, 
-                    (string)session.CustomerId); 
+                subscription.Activate(data.SubscriptionId, data.CustomerId ?? string.Empty); 
                 
                 await repository.UpdateAsync(subscription, ct);
-                logger.LogInformation("Subscription {Id} activated for Provider {ProviderId} (Customer: {CustomerId})", subscription.Id, providerId, (string)session.CustomerId);
+                logger.LogInformation("Subscription {Id} activated for Provider {ProviderId} (Customer: {CustomerId})", subscription.Id, data.ProviderId, data.CustomerId);
                 break;
 
             case "invoice.paid":
-                var invoice = stripeEvent.Data.Object as dynamic;
-                if (invoice == null)
+                if (string.IsNullOrEmpty(data.SubscriptionId))
                 {
-                    logger.LogWarning("Event object is not an Invoice for event {EventId}", stripeEvent.Id);
-                    throw new InvalidOperationException("Invoice data is missing from invoice.paid event");
-                }
-
-                string? externalSubscriptionId = (string)invoice.SubscriptionId;
-                if (string.IsNullOrEmpty(externalSubscriptionId))
-                {
-                    logger.LogInformation("Invoice {InvoiceId} has no subscription, ignoring", (string)invoice.Id);
+                    logger.LogInformation("Invoice {InvoiceId} has no subscription, ignoring", data.InvoiceId);
                     break;
                 }
 
-                var subToRenew = await repository.GetByExternalIdAsync(externalSubscriptionId, ct);
+                var subToRenew = await repository.GetByExternalIdAsync(data.SubscriptionId, ct);
                 if (subToRenew == null)
                 {
-                    logger.LogWarning("Subscription not found for external ID: {ExternalId} (invoice: {InvoiceId}). Retrying...", externalSubscriptionId, (string)invoice.Id);
-                    throw new InvalidOperationException($"Subscription with external ID {externalSubscriptionId} not found. Event will be retried.");
+                    logger.LogWarning("Subscription not found for external ID: {ExternalId} (invoice: {InvoiceId}). Retrying...", data.SubscriptionId, data.InvoiceId);
+                    throw new InvalidOperationException($"Subscription with external ID {data.SubscriptionId} not found. Event will be retried.");
                 }
 
-                DateTime periodEndValue = DateTime.UtcNow.AddMonths(1);
-                try
+                // Renovar a assinatura
+                DateTime periodEndValue = data.PeriodEnd ?? DateTime.UtcNow.AddMonths(1);
+
+                // Garantir que a renovação seja sempre para uma data futura em relação à expiração atual
+                var minExpiration = (subToRenew.ExpiresAt ?? DateTime.UtcNow);
+                if (periodEndValue <= minExpiration)
                 {
-                    var linesData = invoice.Lines?.Data;
-                    if (linesData != null && linesData.Count > 0)
-                    {
-                        var firstLine = linesData[0];
-                        var period = firstLine?.Period;
-                        if (period != null)
-                            periodEndValue = period.End;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Error parsing invoice lines or period for Invoice {InvoiceId}. Using default expiration.", (string)invoice.Id);
+                    periodEndValue = minExpiration.AddMonths(1);
                 }
                 
                 subToRenew.Renew(periodEndValue);
                 await repository.UpdateAsync(subToRenew, ct);
 
+                // Create PaymentTransaction audit record
                 Money? amount = null;
                 try
                 {
-                    if (invoice.AmountPaid > 0)
+                    if (data.AmountPaid > 0)
                     {
-                        var currency = ((string?)invoice.Currency ?? "usd").ToUpperInvariant();
-                        var decimalAmount = CurrencyUtils.ConvertFromMinorUnits((long)invoice.AmountPaid, currency);
+                        var currency = (data.Currency ?? "usd").ToUpperInvariant();
+                        var decimalAmount = CurrencyUtils.ConvertFromMinorUnits(data.AmountPaid, currency);
                         amount = Money.FromDecimal(decimalAmount, currency);
+
+                        if (subToRenew.Amount != null && !string.Equals(currency, subToRenew.Amount.Currency, StringComparison.OrdinalIgnoreCase))
+                        {
+                            logger.LogWarning("Currency divergence detected for Invoice {InvoiceId}. Invoice: {InvoiceCurrency}, Subscription: {SubCurrency}", 
+                                data.InvoiceId, currency, subToRenew.Amount.Currency);
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
                     logger.LogError(ex, "Error computing amount for PaymentTransaction from Invoice {InvoiceId} (Currency: {Currency}, AmountPaid: {AmountPaid})", 
-                        (string)invoice.Id, (string)invoice.Currency, (long)invoice.AmountPaid);
+                        data.InvoiceId, data.Currency ?? "null", data.AmountPaid);
                 }
                 
                 if ((amount == null || amount.Amount <= 0) && subToRenew.Amount != null)
                 {
-                    amount = Money.FromDecimal(subToRenew.Amount.Amount, subToRenew.Amount.Currency);
+                    var fallbackCurrency = (data.Currency ?? subToRenew.Amount.Currency ?? "usd").ToUpperInvariant();
+                    amount = Money.FromDecimal(subToRenew.Amount.Amount, fallbackCurrency);
                 }
                 
                 if (amount != null && amount.Amount > 0)
                 {
                     var paymentTransaction = new PaymentTransaction(subToRenew.Id, amount);
-                    paymentTransaction.Settle((string)invoice.Id);
+                    paymentTransaction.Settle(data.InvoiceId!);
                     await paymentTransactionRepository.AddAsync(paymentTransaction, ct);
 
                     logger.LogInformation("Subscription {Id} renewed until {ExpiresAt}. PaymentTransaction {PaymentTransactionId} recorded for Invoice {InvoiceId}", 
-                        subToRenew.Id, periodEndValue, paymentTransaction.Id, (string)invoice.Id);
+                        subToRenew.Id, periodEndValue, paymentTransaction.Id, data.InvoiceId);
                 }
                 else
                 {
-                    logger.LogWarning("Skipping PaymentTransaction creation for Invoice {InvoiceId} due to unknown or zero amount", (string)invoice.Id);
+                    logger.LogWarning("Skipping PaymentTransaction creation for Invoice {InvoiceId} due to unknown or zero amount", data.InvoiceId);
                 }
                 break;
 
             case "customer.subscription.deleted":
-                var stripeSubscription = stripeEvent.Data.Object as dynamic;
-                if (stripeSubscription == null)
-                {
-                    logger.LogWarning("Event object is not a Subscription for event {EventId}", stripeEvent.Id);
-                    throw new InvalidOperationException("Subscription data is missing from customer.subscription.deleted event");
-                }
+                if (string.IsNullOrEmpty(data.SubscriptionId)) break;
 
-                var externalId = (string)stripeSubscription.Id;
-                var existingSubscription = await repository.GetByExternalIdAsync(externalId, ct);
+                var existingSubscription = await repository.GetByExternalIdAsync(data.SubscriptionId, ct);
                 if (existingSubscription != null)
                 {
                     existingSubscription.Cancel();
                     await repository.UpdateAsync(existingSubscription, ct);
-                    logger.LogInformation("Subscription {Id} canceled (external ID: {ExternalId})", existingSubscription.Id, externalId);
+                    logger.LogInformation("Subscription {Id} canceled (external ID: {ExternalId})", existingSubscription.Id, data.SubscriptionId);
                 }
                 else
                 {
-                    logger.LogWarning("Subscription not found for external ID: {ExternalId} (event: customer.subscription.deleted). Retrying...", externalId);
-                    throw new InvalidOperationException($"Subscription with external ID {externalId} not found. Event will be retried.");
+                    logger.LogWarning("Subscription not found for external ID: {ExternalId} (event: customer.subscription.deleted). Retrying...", data.SubscriptionId);
+                    throw new InvalidOperationException($"Subscription with external ID {data.SubscriptionId} not found. Event will be retried.");
                 }
                 break;
 
             default:
-                logger.LogDebug("Stripe event {Type} ignored", stripeEvent.Type);
+                logger.LogDebug("Stripe event {Type} ignored", data.Type);
                 break;
         }
     }

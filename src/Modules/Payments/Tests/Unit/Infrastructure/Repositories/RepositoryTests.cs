@@ -125,7 +125,7 @@ public class RepositoryTests : IDisposable
         var subId = Guid.NewGuid();
         var tx = new PaymentTransaction(subId, Money.FromDecimal(10));
         tx.Settle("tx_123");
-        _context.Transactions.Add(tx);
+        _context.PaymentTransactions.Add(tx);
         await _context.SaveChangesAsync();
 
         var result = await _transactionRepository.GetByExternalIdAsync("tx_123");

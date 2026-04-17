@@ -14,7 +14,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Rebus.Config;
 using Rebus.Routing.TypeBased;
-using Rebus.RabbitMq;
 
 namespace MeAjudaAi.Shared.Messaging;
 
@@ -47,10 +46,9 @@ public static class MessagingExtensions
             return services;
         }
 
-        // Registro direto das configurações do RabbitMQ
-        var rabbitMqOptions = new RabbitMqOptions();
-        ConfigureRabbitMqOptions(rabbitMqOptions, configuration);
-        services.AddSingleton(rabbitMqOptions);
+        // Registro das configurações do RabbitMQ via Options pipeline
+        services.Configure<RabbitMqOptions>(configuration.GetSection("Messaging:RabbitMQ"));
+        services.AddSingleton(provider => provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<RabbitMqOptions>>().Value);
 
         // Registro direto das configurações do MessageBus
         services.AddSingleton(provider =>
@@ -70,14 +68,17 @@ public static class MessagingExtensions
         else
         {
             // Configuração do Rebus
-            services.AddRebus((configure, provider) => configure
-                .Transport(t => t.UseRabbitMq(rabbitMqOptions.ConnectionString, rabbitMqOptions.DefaultQueueName))
-                .Options(o => 
-                {
-                    o.SetMaxParallelism(10);
-                    o.SetNumberOfWorkers(1);
-                })
-                .Routing(r => r.TypeBased()));
+            services.AddRebus((configure, provider) => {
+                var options = provider.GetRequiredService<RabbitMqOptions>();
+                return configure
+                    .Transport(t => t.UseRabbitMq(options.ConnectionString, options.DefaultQueueName))
+                    .Options(o => 
+                    {
+                        o.SetMaxParallelism(20);
+                        o.SetNumberOfWorkers(2);
+                    })
+                    .Routing(r => r.TypeBased());
+            });
 
             services.TryAddSingleton<RebusMessageBus>();
             services.TryAddSingleton<NoOp.NoOpMessageBus>();

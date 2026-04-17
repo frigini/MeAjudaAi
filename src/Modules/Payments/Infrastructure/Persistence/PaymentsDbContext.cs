@@ -21,7 +21,7 @@ public class PaymentsDbContext : BaseDbContext
     }
 
     public DbSet<Subscription> Subscriptions { get; set; } = null!;
-    public DbSet<PaymentTransaction> Transactions { get; set; } = null!;
+    public DbSet<PaymentTransaction> PaymentTransactions { get; set; } = null!;
     public DbSet<InboxMessage> InboxMessages { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

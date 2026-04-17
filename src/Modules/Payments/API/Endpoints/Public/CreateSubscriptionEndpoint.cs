@@ -41,14 +41,9 @@ public class CreateSubscriptionEndpoint : IEndpoint
             if (!isSystemAdmin)
             {
                 var userProviderIdClaim = httpContext.User?.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
-                if (string.IsNullOrEmpty(userProviderIdClaim))
+                if (string.IsNullOrEmpty(userProviderIdClaim) || !Guid.TryParse(userProviderIdClaim, out var userProviderId) || userProviderId != request.ProviderId)
                 {
-                    return Results.Unauthorized();
-                }
-
-                if (!Guid.TryParse(userProviderIdClaim, out var userProviderId) || userProviderId != request.ProviderId)
-                {
-                    return Results.Forbid();
+                    return string.IsNullOrEmpty(userProviderIdClaim) ? Results.Unauthorized() : Results.Forbid();
                 }
             }
 

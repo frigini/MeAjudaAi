@@ -8,6 +8,9 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.Extensions;
+using MeAjudaAi.Modules.Payments.Domain.Entities;
+using MeAjudaAi.Modules.Payments.Domain.Repositories;
+using MeAjudaAi.Shared.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -114,10 +117,10 @@ public class PaymentsApiTests : BaseApiTest
         // Setup: Criar uma assinatura ativa primeiro
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
-        var sub = new MeAjudaAi.Modules.Payments.Domain.Entities.Subscription(
+        var sub = new Subscription(
             providerId, 
             "price_premium_monthly", 
-            MeAjudaAi.Shared.Domain.ValueObjects.Money.FromDecimal(99.90m, "BRL"));
+            Money.FromDecimal(99.90m, "BRL"));
         sub.Activate("sub_mock", "cus_mock", DateTime.UtcNow.AddMonths(1));
         dbContext.Subscriptions.Add(sub);
         await dbContext.SaveChangesAsync();
@@ -225,7 +228,7 @@ public class PaymentsApiTests : BaseApiTest
         var response = await Client.PostAsync("/api/v1/payments/webhooks/stripe", content);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK); // Webhook endpoint always returns OK if saved to inbox
+        response.StatusCode.Should().Be(HttpStatusCode.OK); // Webhook endpoint sempre retorna OK se salvou na inbox
         
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
@@ -234,7 +237,95 @@ public class PaymentsApiTests : BaseApiTest
         inboxMessage.Should().NotBeNull();
     }
 
-    private record BillingPortalResponse(string PortalUrl);
+    [Fact]
+    public async Task StripeWebhook_InvoicePaid_ShouldProcessSuccessfully_E2E()
+    {
+        // Arrange
+        await SeedProviderAsync();
+        var externalSubId = "sub_e2e_123";
+        var providerId = _seededProviderId;
+        
+        using (var scope = Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
+            var sub = new Subscription(providerId, "price_premium_monthly", Money.FromDecimal(99.90m, "BRL"));
+            sub.Activate(externalSubId, "cus_e2e", DateTime.UtcNow.AddDays(1));
+            dbContext.Subscriptions.Add(sub);
+            await dbContext.SaveChangesAsync();
+        }
+
+        var webhookJson = $$$"""
+        {
+            "id": "evt_e2e_paid",
+            "object": "event",
+            "type": "invoice.paid",
+            "api_version": "2026-03-25.dahlia",
+            "data": {
+                "object": {
+                    "object": "invoice",
+                    "id": "in_e2e_123",
+                    "customer": "cus_e2e",
+                    "amount_paid": 9990,
+                    "currency": "brl",
+                    "parent": {
+                        "type": "subscription_details",
+                        "subscription_details": {
+                            "subscription": "{{{externalSubId}}}"
+                        }
+                    },
+                    "lines": {
+                        "data": [
+                            {
+                                "subscription": "{{{externalSubId}}}",
+                                "period": {
+                                    "end": 1800000000
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        """;
+        
+        // Act - Enfileiramento via Webhook
+        var content = new StringContent(webhookJson, System.Text.Encoding.UTF8, "application/json");
+        var response = await Client.PostAsync("/api/v1/payments/webhooks/stripe", content);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Act - Disparo manual do processamento em background para o teste
+        using (var scope = Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
+            var subRepo = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
+            var txRepo = scope.ServiceProvider.GetRequiredService<IPaymentTransactionRepository>();
+            
+            var messages = await dbContext.InboxMessages.Where(m => m.ExternalEventId == "evt_e2e_paid").ToListAsync();
+            messages.Should().HaveCount(1);
+            
+            var job = ActivatorUtilities.CreateInstance<MeAjudaAi.Modules.Payments.Infrastructure.BackgroundJobs.ProcessInboxJob>(scope.ServiceProvider);
+            var stripeEvent = Stripe.EventUtility.ParseEvent(messages[0].Content, throwOnApiVersionMismatch: false);
+            var data = job.MapToStripeEventData(stripeEvent);
+            
+            await job.ProcessStripeEventAsync(data, subRepo, txRepo, CancellationToken.None);
+            
+            messages[0].MarkAsProcessed();
+            await dbContext.SaveChangesAsync();
+        }
+
+        // Assert - Verificar efeitos no domínio
+        using (var scope = Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
+            var sub = await dbContext.Subscriptions.FirstAsync(s => s.ExternalSubscriptionId == externalSubId);
+            
+            // Período de expiração deve ter sido avançado para 2027-01-15 (timestamp 1800000000)
+            sub.ExpiresAt.Should().Be(DateTimeOffset.FromUnixTimeSeconds(1800000000).UtcDateTime);
+            
+            var transaction = await dbContext.PaymentTransactions.AnyAsync(t => t.ExternalTransactionId == "in_e2e_123");
+            transaction.Should().BeTrue();
+        }
+    }
 
     [Fact]
     public async Task StripeWebhook_InvoicePaid_ShouldEnqueueInboxMessage()
@@ -248,10 +339,10 @@ public class PaymentsApiTests : BaseApiTest
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
         var originalExpiresAt = DateTime.UtcNow.AddDays(1);
-        var sub = new MeAjudaAi.Modules.Payments.Domain.Entities.Subscription(
+        var sub = new Subscription(
             providerId, 
             "price_premium_monthly", 
-            MeAjudaAi.Shared.Domain.ValueObjects.Money.FromDecimal(99.90m, "BRL"));
+            Money.FromDecimal(99.90m, "BRL"));
         sub.Activate(externalSubId, "cus_123", originalExpiresAt);
         dbContext.Subscriptions.Add(sub);
         await dbContext.SaveChangesAsync();
@@ -261,19 +352,27 @@ public class PaymentsApiTests : BaseApiTest
             "id": "evt_paid_123",
             "object": "event",
             "type": "invoice.paid",
+            "api_version": "2026-03-25.dahlia",
             "data": {
                 "object": {
                     "id": "in_123",
-                    "subscription": "{{{externalSubId}}}",
+                    "object": "invoice",
                     "customer": "cus_123",
                     "amount_paid": 9990,
                     "currency": "brl",
                     "hosted_invoice_url": "https://stripe.com/invoice/123",
+                    "parent": {
+                        "type": "subscription_details",
+                        "subscription_details": {
+                            "subscription": "{{{externalSubId}}}"
+                        }
+                    },
                     "lines": {
                         "data": [
                             {
+                                "subscription": "{{{externalSubId}}}",
                                 "period": {
-                                    "end": 1740000000
+                                    "end": 1800000000
                                 }
                             }
                         ]
@@ -297,5 +396,6 @@ public class PaymentsApiTests : BaseApiTest
         inboxMessage!.ProcessedAt.Should().BeNull(); // Estado inicial
     }
 
+    private record BillingPortalResponse(string PortalUrl);
     private record CheckoutResponse(string CheckoutUrl);
 }

@@ -9,71 +9,16 @@ Este documento descreve a estratégia completa de messaging da plataforma MeAjud
 ### 2.1 Resumo da Implementação
 
 ✅ A implementação garante seleção automática de MessageBus por ambiente:
-- **RabbitMQ** para desenvolvimento e produção
+- **RabbitMQ (via Rebus)** para desenvolvimento e produção
 - **NoOp/Mocks** para testes (sem dependências externas)
 
 ### 2.2 Factory Pattern para Seleção de MessageBus
 
 **Arquivo**: `src/Shared/Messaging/Factories/MessageBusFactory.cs`
 
-```csharp
-public class MessageBusFactory : IMessageBusFactory
-{
-    private readonly IHostEnvironment _environment;
-    private readonly IConfiguration _configuration;
-    private readonly IServiceProvider _serviceProvider;
-    
-    public MessageBusFactory(
-        IHostEnvironment environment,
-        IConfiguration configuration,
-        IServiceProvider serviceProvider)
-    {
-        _environment = environment;
-        _configuration = configuration;
-        _serviceProvider = serviceProvider;
-    }
-    
-    public IMessageBus CreateMessageBus()
-    {
-        var rabbitMqEnabled = _configuration.GetValue<bool?>("RabbitMQ:Enabled");
-        
-        if (_environment.IsEnvironment(EnvironmentNames.Testing))
-        {
-            // TESTE: Sempre NoOp para evitar dependências externas
-            return _serviceProvider.GetRequiredService<NoOpMessageBus>();
-        }
-        else
-        {
-            // PADRÃO (Dev/Prod): RabbitMQ (apenas se explicitamente habilitado) ou NoOp (fallback)
-            if (rabbitMqEnabled != false)
-            {
-                return _serviceProvider.GetRequiredService<RabbitMqMessageBus>();
-            }
-            return _serviceProvider.GetRequiredService<NoOpMessageBus>();
-        }
-    }
-}
-```
+O sistema utiliza um Factory para instanciar o provedor correto baseado no ambiente, garantindo que testes nunca tentem conectar em brokers reais.
 
-### 2.3 Configuração de Dependency Injection
-
-**Arquivo**: `src/Shared/Messaging/MessagingExtensions.cs`
-
-```csharp
-// Registrar RabbitMQ e NoOp (fallback)
-services.TryAddSingleton<RabbitMqMessageBus>();
-services.TryAddSingleton<NoOpMessageBus>();
-
-// Registrar o factory e o IMessageBus
-services.AddSingleton<IMessageBusFactory, MessageBusFactory>();
-services.AddSingleton<IMessageBus>(serviceProvider =>
-{
-    var factory = serviceProvider.GetRequiredService<IMessageBusFactory>();
-    return factory.CreateMessageBus();
-});
-```
-
-### 2.4 Configurações por Ambiente
+### 2.3 Configurações por Ambiente
 
 #### Desenvolvimento (`appsettings.Development.json`)
 
@@ -82,9 +27,7 @@ services.AddSingleton<IMessageBus>(serviceProvider =>
   "Messaging": {
     "Enabled": true,
     "RabbitMQ": {
-      "Enabled": true,
-      "ConnectionString": "amqp://guest:guest@localhost:5672/",
-      "DefaultQueueName": "MeAjudaAi-events-dev"
+      "DefaultQueueName": "meajudaai-events-dev"
     }
   }
 }
@@ -97,14 +40,15 @@ services.AddSingleton<IMessageBus>(serviceProvider =>
   "Messaging": {
     "Enabled": true,
     "RabbitMQ": {
-      "ConnectionString": "${RABBITMQ_CONNECTION_STRING}",
-      "DefaultQueueName": "MeAjudaAi-events-prod"
+      "DefaultQueueName": "meajudaai-events-prod"
     }
   }
 }
 ```
 
-### 2.5 Dead Letter Queue (DLQ)
+> **Nota de Migração**: Os nomes das filas foram alterados para lowercase (ex: `meajudaai-events`) para seguir as melhores práticas do RabbitMQ e consistência com `DefaultQueueName` no `RabbitMqOptions.cs`. Antes de realizar o deploy com estas novas configurações, certifique-se de que as filas antigas (com PascalCase) foram drenadas ou migradas, pois o sistema criará novas filas automaticamente.
+
+### 2.4 Dead Letter Queue (DLQ)
 
 A estratégia de Dead Letter Queue para RabbitMQ inclui:
 - ✅ **Retentativa automática** com backoff exponencial
@@ -112,10 +56,6 @@ A estratégia de Dead Letter Queue para RabbitMQ inclui:
 - ✅ **Dead Letter Exchange (DLX)** automático
 - ✅ **TTL configurável** para mensagens na DLQ
 
-### 2.6 Mocks para Testes
-
-Testes de integração usam `AddMessagingMocks()` para substituir o sistema real por rastreadores em memória, permitindo verificar publicações sem infraestrutura externa.
-
 ## 3. Conclusão
 
-A plataforma unificou sua infraestrutura de messaging no **RabbitMQ**, simplificando a arquitetura e garantindo paridade entre os ambientes de desenvolvimento e produção.
+A plataforma unificou sua infraestrutura de messaging no **RabbitMQ** através do **Rebus**, simplificando a arquitetura e garantindo paridade entre os ambientes de desenvolvimento e produção.
