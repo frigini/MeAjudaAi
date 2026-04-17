@@ -1,5 +1,6 @@
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Application.Commands;
 
@@ -10,6 +11,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Commands;
 /// <param name="ProviderId">Identificador do prestador de serviços</param>
 /// <param name="Reason">Motivo da correção necessária (obrigatório para auditoria e notificação)</param>
 /// <param name="RequestedBy">Quem está solicitando a correção (verificador/administrador)</param>
+[ExcludeFromCodeCoverage]
 public sealed record RequireBasicInfoCorrectionCommand(
     Guid ProviderId,
     string Reason,

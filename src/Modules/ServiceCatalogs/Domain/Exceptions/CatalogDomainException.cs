@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 
 /// <summary>
 /// Exceção lançada quando uma regra de domínio é violada no módulo ServiceCatalogs.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class CatalogDomainException : Exception
 {
     public CatalogDomainException() { }

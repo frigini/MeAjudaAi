@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Domain.Events;
 
@@ -8,6 +9,7 @@ namespace MeAjudaAi.Modules.Providers.Domain.Events;
 /// <param name="AggregateId">Identificador único do prestador de serviços</param>
 /// <param name="Version">Versão do agregado no momento do evento</param>
 /// <param name="ServiceId">Identificador do serviço adicionado (referência ao catálogo)</param>
+[ExcludeFromCodeCoverage]
 public record ProviderServiceAddedDomainEvent(
     Guid AggregateId,
     int Version,

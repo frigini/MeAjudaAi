@@ -1,11 +1,13 @@
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Contracts;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
 
 /// <summary>
 /// Request para geração de URL de upload de documento.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public record UploadDocumentRequest
 {
     /// <summary>

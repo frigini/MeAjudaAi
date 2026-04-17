@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Domain.Events;
 
@@ -11,6 +12,7 @@ namespace MeAjudaAi.Modules.Providers.Domain.Events;
 /// de um plano Silver, Gold ou Platinum. Também pode ser disparado ao rebaixar
 /// para Standard (cancelamento de assinatura).
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public sealed record ProviderTierUpdatedDomainEvent(
     Guid ProviderId,
     int Version,

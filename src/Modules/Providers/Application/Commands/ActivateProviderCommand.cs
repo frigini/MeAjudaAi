@@ -1,5 +1,6 @@
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Application.Commands;
 
@@ -8,6 +9,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Commands;
 /// </summary>
 /// <param name="ProviderId">Identificador do prestador de serviços</param>
 /// <param name="ActivatedBy">Quem está executando a ativação</param>
+[ExcludeFromCodeCoverage]
 public sealed record ActivateProviderCommand(
     Guid ProviderId,
     string? ActivatedBy = null

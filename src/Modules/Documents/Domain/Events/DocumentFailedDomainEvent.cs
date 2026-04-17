@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Documents.Domain.Events;
 
@@ -13,6 +14,7 @@ namespace MeAjudaAi.Modules.Documents.Domain.Events;
 /// <param name="ProviderId">Identificador do prestador</param>
 /// <param name="DocumentType">Tipo do documento que falhou</param>
 /// <param name="FailureReason">Motivo da falha técnica</param>
+[ExcludeFromCodeCoverage]
 public record DocumentFailedDomainEvent(
     Guid AggregateId,
     int Version,

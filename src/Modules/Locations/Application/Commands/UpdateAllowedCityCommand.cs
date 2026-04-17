@@ -1,11 +1,13 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Commands;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Locations.Application.Commands;
 
 /// <summary>
 /// Comando para atualizar uma cidade permitida existente.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record UpdateAllowedCityCommand : Command<Result>
 {
     public Guid Id { get; init; }

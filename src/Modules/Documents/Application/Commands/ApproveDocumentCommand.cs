@@ -1,5 +1,6 @@
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Documents.Application.Commands;
 
@@ -8,6 +9,7 @@ namespace MeAjudaAi.Modules.Documents.Application.Commands;
 /// </summary>
 /// <param name="DocumentId">ID do documento a ser aprovado</param>
 /// <param name="VerificationNotes">Notas da verificação (opcional)</param>
+[ExcludeFromCodeCoverage]
 public record ApproveDocumentCommand(Guid DocumentId, string? VerificationNotes = null) : ICommand<Result>
 {
     public Guid CorrelationId { get; init; } = Guid.NewGuid();

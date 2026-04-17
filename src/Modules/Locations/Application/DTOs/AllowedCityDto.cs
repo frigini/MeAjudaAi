@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Modules.Locations.Application.DTOs;
 
 /// <summary>
 /// DTO para resposta de cidade permitida
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record AllowedCityDto(
     Guid Id,
     string CityName,

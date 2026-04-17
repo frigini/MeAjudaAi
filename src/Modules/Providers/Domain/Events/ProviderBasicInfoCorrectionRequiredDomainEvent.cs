@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Domain.Events;
 
@@ -18,6 +19,7 @@ namespace MeAjudaAi.Modules.Providers.Domain.Events;
 /// <param name="Name">Nome do prestador de serviços</param>
 /// <param name="Reason">Motivo detalhado da correção necessária</param>
 /// <param name="RequestedBy">Identificador de quem solicitou a correção (verificador/administrador)</param>
+[ExcludeFromCodeCoverage]
 public record ProviderBasicInfoCorrectionRequiredDomainEvent(
     Guid AggregateId,
     int Version,

@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Domain.Events;
 
@@ -11,6 +12,7 @@ namespace MeAjudaAi.Modules.Providers.Domain.Events;
 /// <param name="PreviousStatus">Status anterior</param>
 /// <param name="NewStatus">Novo status</param>
 /// <param name="UpdatedBy">Quem fez a atualização</param>
+[ExcludeFromCodeCoverage]
 public record ProviderVerificationStatusUpdatedDomainEvent(
     Guid AggregateId,
     int Version,

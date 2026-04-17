@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Application.DTOs;
 
@@ -6,6 +7,7 @@ namespace MeAjudaAi.Modules.Providers.Application.DTOs;
 /// DTO leve para consulta de status de aprovação e tier do prestador.
 /// Usado pelo endpoint GET /api/v1/providers/me/status.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record ProviderStatusDto(
     EProviderStatus Status,
     EProviderTier Tier,

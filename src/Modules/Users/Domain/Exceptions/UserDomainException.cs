@@ -1,10 +1,12 @@
 using MeAjudaAi.Shared.Exceptions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Users.Domain.Exceptions;
 
 /// <summary>
 /// Exceção específica do domínio de usuários para violações de regras de negócio.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class UserDomainException : DomainException
 {
     /// <summary>

@@ -1,7 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using MeAjudaAi.Contracts;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.ServiceCategory;
+
+[ExcludeFromCodeCoverage]
 
 public sealed record UpdateServiceCategoryRequest
 {

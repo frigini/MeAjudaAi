@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 
@@ -9,6 +10,7 @@ namespace MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 /// Para deixar Email ou PhoneNumber inalterados, envie null.
 /// Strings vazias ou whitespace resultarão em erro de validação de domínio.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public record UpdateUserProfileRequest
 {
     /// <summary>

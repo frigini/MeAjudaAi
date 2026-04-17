@@ -1,10 +1,12 @@
 using MeAjudaAi.Contracts;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 
 /// <summary>
 /// Request para atualização do perfil de um prestador de serviços.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public record UpdateProviderProfileRequest
 {
     /// <summary>

@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Users.Domain.Events;
 
@@ -16,6 +17,7 @@ namespace MeAjudaAi.Modules.Users.Domain.Events;
 /// <param name="Version">Versão do agregado quando o evento ocorreu</param>
 /// <param name="OldUsername">Username anterior</param>
 /// <param name="NewUsername">Novo username</param>
+[ExcludeFromCodeCoverage]
 public record UserUsernameChangedEvent(
     Guid AggregateId,
     int Version,

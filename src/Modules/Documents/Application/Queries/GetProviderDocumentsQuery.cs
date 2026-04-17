@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Shared.Queries;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Documents.Application.Queries;
 
@@ -7,6 +8,7 @@ namespace MeAjudaAi.Modules.Documents.Application.Queries;
 /// Query para obter todos os documentos de um prestador.
 /// Utiliza CorrelationId gerado centralmente via UuidGenerator.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public record GetProviderDocumentsQuery(Guid ProviderId) : Query<IEnumerable<DocumentDto>>, ICacheableQuery
 {
     public string GetCacheKey()

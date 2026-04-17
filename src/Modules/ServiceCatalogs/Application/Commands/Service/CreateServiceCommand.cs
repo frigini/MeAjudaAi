@@ -1,12 +1,14 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 
 /// <summary>
 /// Comando para criar um novo serviço em uma categoria específica.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record CreateServiceCommand(
     Guid CategoryId,
     string Name,

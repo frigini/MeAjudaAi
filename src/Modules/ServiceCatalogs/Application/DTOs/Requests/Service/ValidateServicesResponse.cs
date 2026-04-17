@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.Service;
 
 /// <summary>
@@ -6,6 +7,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.Service;
 /// <param name="AllValid">Indica se todos os serviços são válidos.</param>
 /// <param name="InvalidServiceIds">IDs dos serviços que não existem.</param>
 /// <param name="InactiveServiceIds">IDs dos serviços que estão inativos.</param>
+[ExcludeFromCodeCoverage]
 public sealed record ValidateServicesResponse(
     bool AllValid,
     IReadOnlyCollection<Guid> InvalidServiceIds,

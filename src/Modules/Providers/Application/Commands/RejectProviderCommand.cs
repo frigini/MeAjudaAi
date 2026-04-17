@@ -1,5 +1,6 @@
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Application.Commands;
 
@@ -9,6 +10,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Commands;
 /// <param name="ProviderId">Identificador do prestador de serviços</param>
 /// <param name="RejectedBy">Quem está executando a rejeição</param>
 /// <param name="Reason">Motivo da rejeição (obrigatório para auditoria)</param>
+[ExcludeFromCodeCoverage]
 public sealed record RejectProviderCommand(
     Guid ProviderId,
     string RejectedBy,

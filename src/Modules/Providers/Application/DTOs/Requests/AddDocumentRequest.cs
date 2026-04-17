@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Contracts;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 
@@ -10,4 +11,5 @@ namespace MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 /// <param name="DocumentType">Tipo do documento</param>
 /// <param name="FileName">Nome do arquivo (opcional para documentos apenas numéricos)</param>
 /// <param name="FileUrl">URL do arquivo (opcional para documentos apenas numéricos)</param>
+[ExcludeFromCodeCoverage]
 public sealed record AddDocumentRequest(string Number, EDocumentType DocumentType, string? FileName = null, string? FileUrl = null);

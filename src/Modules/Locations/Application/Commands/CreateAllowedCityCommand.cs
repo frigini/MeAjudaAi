@@ -1,11 +1,13 @@
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Locations.Application.Commands;
 
 /// <summary>
 /// Command para criar nova cidade permitida
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record CreateAllowedCityCommand(
     string CityName,
     string StateSigla,

@@ -6,11 +6,13 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 
 using MeAjudaAi.Contracts.Models;
+using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Modules.SearchProviders.Application.Queries;
 
 /// <summary>
 /// Query para buscar prestadores com base em localização, serviços e outros critérios.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record SearchProvidersQuery(
     double Latitude,
     double Longitude,

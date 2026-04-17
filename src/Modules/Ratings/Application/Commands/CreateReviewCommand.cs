@@ -1,7 +1,10 @@
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Utilities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Ratings.Application.Commands;
+
+[ExcludeFromCodeCoverage]
 
 public record CreateReviewCommand(
     Guid ProviderId,

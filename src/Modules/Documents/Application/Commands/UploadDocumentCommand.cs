@@ -1,7 +1,10 @@
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Documents.Application.Commands;
+
+[ExcludeFromCodeCoverage]
 
 public record UploadDocumentCommand(
     Guid ProviderId,

@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Users.Application.Commands;
 
@@ -8,6 +9,7 @@ namespace MeAjudaAi.Modules.Users.Application.Commands;
 /// Comando para atualização do perfil básico do usuário (nome, sobrenome, email, phone).
 /// Para alterações de username, use comandos específicos.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record UpdateUserProfileCommand(
     Guid UserId,
     string FirstName,
