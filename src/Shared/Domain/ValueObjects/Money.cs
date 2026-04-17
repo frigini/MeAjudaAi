@@ -19,7 +19,7 @@ public record Money
         if (amount < 0)
             throw new ArgumentOutOfRangeException(nameof(amount), "Amount cannot be negative.");
         
-        ArgumentException.ThrowIfNullOrOrWhiteSpace(currency);
+        ArgumentException.ThrowIfNullOrWhiteSpace(currency);
 
         var normalized = currency.Trim().ToUpperInvariant();
         
