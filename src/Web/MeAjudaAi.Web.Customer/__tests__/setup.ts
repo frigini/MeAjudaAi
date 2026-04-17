@@ -6,26 +6,45 @@ import { TextEncoder, TextDecoder } from 'util';
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder as any;
 
+import ptTranslations from '../public/locales/pt/translation.json';
+
 // Mock i18next
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, options?: Record<string, unknown> | string) => {
       if (typeof options === 'string') return options;
       
-      let result = key;
+      const keys = key.split('.');
+      let translation: any = ptTranslations;
+      for (const k of keys) {
+        translation = translation?.[k];
+        if (!translation) break;
+      }
+
+      let result = typeof translation === 'string' ? translation : key;
+
       if (typeof options === 'object' && options !== null) {
         if (options.count !== undefined) {
-          // Simple pluralization mock: count takes precedence over defaultValue
-          result = `${key}_${options.count === 1 ? 'one' : 'other'}`;
-        } else if (options.defaultValue) {
+          const suffix = options.count === 1 ? 'one' : 'other';
+          const baseKey = keys[keys.length - 1];
+          const parentKeys = keys.slice(0, -1);
+          let parentTranslation: any = ptTranslations;
+          for (const pk of parentKeys) {
+            parentTranslation = parentTranslation?.[pk];
+            if (!parentTranslation) break;
+          }
+          
+          const pluralKey = `${baseKey}_${suffix}`;
+          if (parentTranslation?.[pluralKey]) {
+            result = parentTranslation[pluralKey];
+          }
+        } else if (options.defaultValue && result === key) {
           return options.defaultValue as string;
         }
 
         // Simple interpolation mock
         Object.keys(options).forEach((optKey) => {
-          if (optKey !== 'count' && optKey !== 'defaultValue') {
-            result = result.replace(`{{${optKey}}}`, String(options[optKey]));
-          }
+          result = result.replace(`{{${optKey}}}`, String(options[optKey]));
         });
       }
       return result;
