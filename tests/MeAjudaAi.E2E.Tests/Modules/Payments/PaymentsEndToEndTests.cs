@@ -72,7 +72,7 @@ public class PaymentsEndToEndTests : IClassFixture<TestContainerFixture>, IAsync
         
         // Autentica como admin para ter permissão total, mas garante a claim de provider_id para o ownership check
         TestContainerFixture.AuthenticateAsAdmin();
-        ConfigurableTestAuthenticationHandler.ConfigureProvider(providerId: providerId);
+        ConfigurableTestAuthenticationHandler.ConfigureProvider(providerId);
         
         var request = new
         {

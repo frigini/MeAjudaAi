@@ -49,7 +49,7 @@ public class PaymentsApiTests : BaseApiTest
         };
         
         // Autentica como o dono do provider
-        AuthConfig.ConfigureProvider("user-1", "user", _seededProviderId);
+        AuthConfig.ConfigureProvider(_seededProviderId, "user-1", "user");
 
         // Act
         var response = await Client.PostAsJsonAsync("/api/v1/payments/subscriptions", request);
@@ -112,7 +112,7 @@ public class PaymentsApiTests : BaseApiTest
         var providerId = _seededProviderId;
         
         // Setup: Autenticar como o dono do provider para passar no ownership check
-        AuthConfig.ConfigureProvider("provider-id", "provider", providerId);
+        AuthConfig.ConfigureProvider(providerId, "provider-id", "provider");
 
         // Setup: Criar uma assinatura ativa primeiro
         using var scope = Services.CreateScope();
@@ -142,7 +142,7 @@ public class PaymentsApiTests : BaseApiTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        AuthConfig.ConfigureProvider("provider-id", "provider", providerId);
+        AuthConfig.ConfigureProvider(providerId, "provider-id", "provider");
         var request = new { providerId, returnUrl = "account" };
 
         // Act
@@ -159,7 +159,7 @@ public class PaymentsApiTests : BaseApiTest
         await SeedProviderAsync();
         var providerId = _seededProviderId;
         var otherProviderId = Guid.NewGuid();
-        AuthConfig.ConfigureProvider("provider-id", "provider", otherProviderId); // Autenticado como provedor diferente
+        AuthConfig.ConfigureProvider(otherProviderId, "provider-id", "provider"); // Autenticado como provedor diferente
         var request = new { providerId, returnUrl = "account" };
 
         // Act
@@ -174,7 +174,7 @@ public class PaymentsApiTests : BaseApiTest
     {
         // Arrange
         await SeedProviderAsync();
-        AuthConfig.ConfigureProvider("provider-id", "provider", _seededProviderId);
+        AuthConfig.ConfigureProvider(_seededProviderId, "provider-id", "provider");
         
         var request = new { providerId = Guid.Empty, returnUrl = "account" };
 
@@ -196,7 +196,7 @@ public class PaymentsApiTests : BaseApiTest
             PlanId = "invalid_plan"
         };
         
-        AuthConfig.ConfigureProvider("user-1", "user", _seededProviderId);
+        AuthConfig.ConfigureProvider(_seededProviderId, "user-1", "user");
 
         // Act
         var response = await Client.PostAsJsonAsync("/api/v1/payments/subscriptions", request);
@@ -445,7 +445,7 @@ public class PaymentsApiTests : BaseApiTest
         // Arrange
         await SeedProviderAsync();
         var providerId = _seededProviderId;
-        AuthConfig.ConfigureProvider("provider-id", "provider", providerId);
+        AuthConfig.ConfigureProvider(providerId, "provider-id", "provider");
 
         // Setup: Criar uma assinatura ativa no DB
         using (var scope = Services.CreateScope())
