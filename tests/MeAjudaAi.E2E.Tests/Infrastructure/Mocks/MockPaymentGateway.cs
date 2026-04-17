@@ -5,7 +5,7 @@ namespace MeAjudaAi.E2E.Tests.Infrastructure.Mocks;
 
 public class MockPaymentGateway : IPaymentGateway
 {
-    public Task<SubscriptionGatewayResult> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, CancellationToken cancellationToken)
+    public Task<SubscriptionGatewayResult> CreateSubscriptionAsync(Guid providerId, string planId, Money amount, CancellationToken cancellationToken, string? idempotencyKey = null)
     {
         var token = Guid.NewGuid().ToString("n");
         return Task.FromResult(SubscriptionGatewayResult.Succeeded(
