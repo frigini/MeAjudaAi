@@ -24,14 +24,16 @@ public sealed class MockHttpMessageHandler
         string urlPattern,
         HttpStatusCode statusCode,
         string content,
-        string contentType = "application/json")
+        string contentType = "application/json",
+        HttpMethod? method = null)
     {
+        method ??= HttpMethod.Get;
         _mockHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.Is<HttpRequestMessage>(req =>
-                    req.Method == HttpMethod.Get &&
+                    req.Method == method &&
                     req.RequestUri != null &&
                     req.RequestUri.ToString().Contains(urlPattern)),
                 ItExpr.IsAny<CancellationToken>())
@@ -49,14 +51,16 @@ public sealed class MockHttpMessageHandler
     /// </summary>
     public MockHttpMessageHandler SetupErrorResponse(
         string urlPattern,
-        HttpStatusCode statusCode = HttpStatusCode.InternalServerError)
+        HttpStatusCode statusCode = HttpStatusCode.InternalServerError,
+        HttpMethod? method = null)
     {
+        method ??= HttpMethod.Get;
         _mockHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.Is<HttpRequestMessage>(req =>
-                    req.Method == HttpMethod.Get &&
+                    req.Method == method &&
                     req.RequestUri != null &&
                     req.RequestUri.ToString().Contains(urlPattern)),
                 ItExpr.IsAny<CancellationToken>())
@@ -73,14 +77,15 @@ public sealed class MockHttpMessageHandler
     /// <summary>
     /// Configura uma exceção para um padrão de URL.
     /// </summary>
-    public MockHttpMessageHandler SetupException(string urlPattern, Exception exception)
+    public MockHttpMessageHandler SetupException(string urlPattern, Exception exception, HttpMethod? method = null)
     {
+        method ??= HttpMethod.Get;
         _mockHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.Is<HttpRequestMessage>(req =>
-                    req.Method == HttpMethod.Get &&
+                    req.Method == method &&
                     req.RequestUri != null &&
                     req.RequestUri.ToString().Contains(urlPattern)),
                 ItExpr.IsAny<CancellationToken>())
@@ -92,9 +97,9 @@ public sealed class MockHttpMessageHandler
     /// <summary>
     /// Configura um timeout para um padrão de URL.
     /// </summary>
-    public MockHttpMessageHandler SetupTimeout(string urlPattern)
+    public MockHttpMessageHandler SetupTimeout(string urlPattern, HttpMethod? method = null)
     {
-        return SetupException(urlPattern, new TaskCanceledException("Request timed out"));
+        return SetupException(urlPattern, new TaskCanceledException("Request timed out"), method);
     }
 
     /// <summary>
@@ -105,8 +110,9 @@ public sealed class MockHttpMessageHandler
     /// <summary>
     /// Verifica se uma requisição foi feita para um padrão de URL específico.
     /// </summary>
-    public void VerifyRequest(string urlPattern, Times times)
+    public void VerifyRequest(string urlPattern, Times times, HttpMethod? method = null)
     {
+        method ??= HttpMethod.Get;
         _mockHandler
             .Protected()
             .Verify(
@@ -114,7 +120,7 @@ public sealed class MockHttpMessageHandler
                 times,
                 ItExpr.Is<HttpRequestMessage>(req =>
                     req.RequestUri != null &&
-                    req.Method == HttpMethod.Get &&
+                    req.Method == method &&
                     req.RequestUri.ToString().Contains(urlPattern)),
                 ItExpr.IsAny<CancellationToken>());
     }

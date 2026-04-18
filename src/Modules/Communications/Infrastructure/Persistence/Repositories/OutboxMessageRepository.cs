@@ -6,7 +6,7 @@ using OutboxMessage = MeAjudaAi.Modules.Communications.Domain.Entities.OutboxMes
 
 namespace MeAjudaAi.Modules.Communications.Infrastructure.Persistence.Repositories;
 
-internal sealed class OutboxMessageRepository(CommunicationsDbContext context) : IOutboxMessageRepository
+public sealed class OutboxMessageRepository(CommunicationsDbContext context) : IOutboxMessageRepository
 {
     public async Task AddAsync(OutboxMessage message, CancellationToken cancellationToken = default)
     {

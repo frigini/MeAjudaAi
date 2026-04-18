@@ -1,12 +1,13 @@
-using MeAjudaAi.Modules.Communications.Domain.Services;
+﻿using MeAjudaAi.Modules.Communications.Domain.Services;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Communications.Infrastructure.Services;
 
 /// <summary>
-/// Stub para envio de notificações push na infraestrutura.
+/// Stub para envio de notificaÃ§Ãµes push na infraestrutura.
 /// </summary>
-internal sealed class PushSenderStub(ILogger<PushSenderStub> logger) : IPushSender
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+public sealed class PushSenderStub(ILogger<PushSenderStub> logger) : IPushSender
 {
     public async Task<bool> SendAsync(PushNotification notification, CancellationToken cancellationToken = default)
     {
@@ -15,3 +16,4 @@ internal sealed class PushSenderStub(ILogger<PushSenderStub> logger) : IPushSend
         return true;
     }
 }
+

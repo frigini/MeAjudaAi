@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
 
+[ExcludeFromCodeCoverage]
 public class KeycloakCreateUserRequest
 {
     public string Username { get; set; } = string.Empty;

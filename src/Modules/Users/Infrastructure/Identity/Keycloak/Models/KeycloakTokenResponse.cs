@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
 
+[ExcludeFromCodeCoverage]
 public class KeycloakTokenResponse
 {
     [JsonPropertyName("access_token")]

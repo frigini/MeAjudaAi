@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Communications.Domain.Services;
+﻿using MeAjudaAi.Modules.Communications.Domain.Services;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Communications.Infrastructure.Services;
@@ -6,7 +6,8 @@ namespace MeAjudaAi.Modules.Communications.Infrastructure.Services;
 /// <summary>
 /// Stub para envio de e-mails na infraestrutura.
 /// </summary>
-internal sealed class EmailSenderStub(ILogger<EmailSenderStub> logger) : IEmailSender
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+public sealed class EmailSenderStub(ILogger<EmailSenderStub> logger) : IEmailSender
 {
     public async Task<bool> SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
     {
@@ -15,3 +16,4 @@ internal sealed class EmailSenderStub(ILogger<EmailSenderStub> logger) : IEmailS
         return true;
     }
 }
+

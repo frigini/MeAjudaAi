@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Communications.Domain.Services;
+﻿using MeAjudaAi.Modules.Communications.Domain.Services;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Communications.Infrastructure.Services;
@@ -6,7 +6,8 @@ namespace MeAjudaAi.Modules.Communications.Infrastructure.Services;
 /// <summary>
 /// Stub para envio de SMS na infraestrutura.
 /// </summary>
-internal sealed class SmsSenderStub(ILogger<SmsSenderStub> logger) : ISmsSender
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+public sealed class SmsSenderStub(ILogger<SmsSenderStub> logger) : ISmsSender
 {
     public async Task<bool> SendAsync(SmsMessage message, CancellationToken cancellationToken = default)
     {
@@ -15,3 +16,4 @@ internal sealed class SmsSenderStub(ILogger<SmsSenderStub> logger) : ISmsSender
         return true;
     }
 }
+

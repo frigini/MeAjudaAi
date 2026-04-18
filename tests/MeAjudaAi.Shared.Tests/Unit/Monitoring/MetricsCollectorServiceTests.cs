@@ -4,6 +4,7 @@ using MeAjudaAi.Shared.Monitoring;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
 
@@ -18,10 +19,12 @@ public sealed class MetricsCollectorServiceTests : IDisposable
     private readonly Mock<IServiceProvider> _serviceProviderMock;
     private readonly Mock<ILogger<MetricsCollectorService>> _loggerMock;
     private readonly List<Measurement<long>> _longMeasurements;
+    private readonly FakeTimeProvider _timeProvider;
 
     public MetricsCollectorServiceTests()
     {
         _longMeasurements = new List<Measurement<long>>();
+        _timeProvider = new FakeTimeProvider();
 
         _meterListener = new MeterListener
         {
@@ -58,7 +61,7 @@ public sealed class MetricsCollectorServiceTests : IDisposable
         var service = new MetricsCollectorService(
             _businessMetrics,
             _scopeFactoryMock.Object,
-            TimeProvider.System,
+            _timeProvider,
             _loggerMock.Object,
             TimeSpan.FromMilliseconds(1)); // Fast cycle for testing
 
@@ -67,8 +70,9 @@ public sealed class MetricsCollectorServiceTests : IDisposable
         // Act
         var startTask = service.StartAsync(cts.Token);
         
-        // Wait just a bit to ensure it runs at least one cycle
-        await Task.Delay(50, CancellationToken.None);
+        // Advance time to trigger collection
+        _timeProvider.Advance(TimeSpan.FromMilliseconds(10));
+        
         cts.Cancel();
         
         try
@@ -99,7 +103,7 @@ public sealed class MetricsCollectorServiceTests : IDisposable
         var service = new MetricsCollectorService(
             _businessMetrics,
             _scopeFactoryMock.Object,
-            TimeProvider.System,
+            _timeProvider,
             _loggerMock.Object,
             TimeSpan.FromMilliseconds(1));
 
@@ -108,8 +112,9 @@ public sealed class MetricsCollectorServiceTests : IDisposable
         // Act
         var startTask = service.StartAsync(cts.Token);
         
-        // Wait to capture the log error
-        await Task.Delay(50, CancellationToken.None);
+        // Advance time to trigger collection and potential error
+        _timeProvider.Advance(TimeSpan.FromMilliseconds(10));
+        
         cts.Cancel();
         
         try

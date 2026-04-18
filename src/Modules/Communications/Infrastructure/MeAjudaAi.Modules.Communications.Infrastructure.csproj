@@ -7,12 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>MeAjudaAi.Modules.Communications.Tests</_Parameter1>
-    </AssemblyAttribute>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>MeAjudaAi.Integration.Tests</_Parameter1>
-    </AssemblyAttribute>
+    <InternalsVisibleTo Include="MeAjudaAi.Modules.Communications.Tests" />
+    <InternalsVisibleTo Include="MeAjudaAi.Integration.Tests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
 
   <ItemGroup>

@@ -55,6 +55,12 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 *   **Módulo de Agendamentos (Bookings)**: Calendário de disponibilidade.
 *   **Sistema de Disputas**: Mediação administrativa para conflitos.
 
+### 🚀 Arquitetura Evolutiva e Mensageria (Desejável)
+*   **Evolução do Service Bus**: Implementar lógica de infraestrutura no `Shared.Messaging` para interpretar atributos de mensageria:
+    *   `[DedicatedTopic]`: Uso de `ITopicNameConvention` no Rebus para desviar eventos críticos/frequentes para filas dedicadas, evitando o "vizinho barulhento".
+    *   `[HighVolumeEvent]`: Otimização de I/O no RabbitMQ (mensagens transientes ou Lazy Queues) e paralelismo massivo via `SetNumberOfWorkers`.
+    *   `[CriticalEvent]`: Garantia de persistência via Quorum Queues e priorização de processamento (`x-max-priority`).
+
 ---
 
 ## ✅ Concluído Recentemente
