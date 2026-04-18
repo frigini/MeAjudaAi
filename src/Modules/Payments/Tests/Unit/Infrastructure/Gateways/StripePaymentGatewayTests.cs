@@ -143,4 +143,19 @@ public class StripePaymentGatewayTests
         // Assert
         result.Should().BeNull();
     }
+
+    [Fact]
+    public async Task CreateSubscriptionAsync_ShouldReturnFailed_WhenZeroDecimalCurrencyHasFractionalAmount()
+    {
+        // Arrange
+        CreateGateway();
+        var amount = new Money(1.50m, "JPY"); // JPY é zero-decimal, fração inválida
+        
+        // Act
+        var result = await _gateway!.CreateSubscriptionAsync(Guid.NewGuid(), "plan_a", amount);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("fractional");
+    }
 }

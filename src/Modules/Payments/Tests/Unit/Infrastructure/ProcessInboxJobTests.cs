@@ -289,4 +289,18 @@ public class ProcessInboxJobTests
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*not found*");
     }
+
+    [Fact]
+    public async Task ProcessStripeEventAsync_UnknownEventType_ShouldReturnWithoutThrow()
+    {
+        // Arrange
+        var data = new StripeEventData("unknown.event", "evt_999", null, null, null);
+
+        // Act
+        Func<Task> act = () => _job.ProcessStripeEventAsync(data, _repositoryMock.Object, _paymentTransactionRepositoryMock.Object, CancellationToken.None);
+
+        // Assert
+        await act.Should().NotThrowAsync();
+        _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<DomainSubscription>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
 }

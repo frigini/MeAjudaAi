@@ -354,6 +354,19 @@ public class SubscriptionTests
     }
 
     [Fact]
+    public void Activate_ShouldThrow_WhenExpiresAtIsExactlyNow()
+    {
+        // Arrange
+        var sub = new Subscription(Guid.NewGuid(), "plan_a", new Money(99.90m, "BRL"));
+
+        // Act
+        Action act = () => sub.Activate("sub_ext", "cus_ext", DateTime.UtcNow);
+
+        // Assert
+        act.Should().Throw<ArgumentException>().WithMessage("*future*");
+    }
+
+    [Fact]
     public void Constructor_ShouldThrow_WhenProviderIdIsEmpty()
     {
         // Act
