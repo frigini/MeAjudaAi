@@ -2,7 +2,6 @@ using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Application.Commands;
 
@@ -14,7 +13,6 @@ namespace MeAjudaAi.Modules.Providers.Application.Commands;
 /// <param name="DocumentType">O tipo do documento.</param>
 /// <param name="FileName">Nome do ficheiro, opcional.</param>
 /// <param name="FileUrl">URL do ficheiro, opcional.</param>
-[ExcludeFromCodeCoverage]
 public sealed record AddDocumentCommand(
     Guid ProviderId,
     string DocumentNumber,
@@ -22,3 +20,4 @@ public sealed record AddDocumentCommand(
     string? FileName = null,
     string? FileUrl = null
 ) : Command<Result<ProviderDto>>;
+

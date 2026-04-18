@@ -290,6 +290,70 @@ public class SubscriptionTests
     }
 
     [Fact]
+    public void Cancel_ShouldBeNoOp_WhenAlreadyExpired()
+    {
+        // Arrange
+        var sub = new Subscription(Guid.NewGuid(), "plan_a", new Money(99.90m, "BRL"));
+        sub.Activate("sub_ext", "cus_ext");
+        sub.Expire();
+        sub.ClearDomainEvents();
+
+        // Act
+        sub.Cancel(); // deve ser no-op
+
+        // Assert
+        sub.Status.Should().Be(ESubscriptionStatus.Expired);
+        sub.DomainEvents.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Expire_ShouldBeNoOp_WhenAlreadyCanceled()
+    {
+        // Arrange
+        var sub = new Subscription(Guid.NewGuid(), "plan_a", new Money(99.90m, "BRL"));
+        sub.Activate("sub_ext", "cus_ext");
+        sub.Cancel();
+        sub.ClearDomainEvents();
+
+        // Act
+        sub.Expire(); // deve ser no-op
+
+        // Assert
+        sub.Status.Should().Be(ESubscriptionStatus.Canceled);
+        sub.DomainEvents.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Renew_ShouldThrow_WhenNewExpiresAtEqualsCurrentExpiresAt()
+    {
+        // Arrange
+        var expiresAt = DateTime.UtcNow.AddDays(30);
+        var sub = new Subscription(Guid.NewGuid(), "plan_a", new Money(99.90m, "BRL"));
+        sub.Activate("sub_ext", "cus_ext", expiresAt);
+
+        // Act
+        Action act = () => sub.Renew(expiresAt); // mesma data — não é posterior
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+           .WithMessage("*after current expiration*");
+    }
+
+    [Fact]
+    public void Activate_ShouldIncrementVersion_OnSuccessfulActivation()
+    {
+        // Arrange
+        var sub = new Subscription(Guid.NewGuid(), "plan_a", new Money(99.90m, "BRL"));
+        var initialVersion = sub.Version;
+
+        // Act
+        sub.Activate("sub_ext", "cus_ext");
+
+        // Assert
+        sub.Version.Should().BeGreaterThan(initialVersion);
+    }
+
+    [Fact]
     public void Constructor_ShouldThrow_WhenProviderIdIsEmpty()
     {
         // Act

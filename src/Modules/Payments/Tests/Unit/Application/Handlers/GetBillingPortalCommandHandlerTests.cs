@@ -191,6 +191,31 @@ public class GetBillingPortalCommandHandlerTests
         await act.Should().ThrowAsync<BusinessRuleException>().Where(e => e.RuleName == "UNTRUSTED_RETURN_HOST");
     }
 
+    [Fact]
+    public async Task HandleAsync_ShouldAllowLoopbackIp_WithHttp()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var sub = new Subscription(Guid.NewGuid(), "plan_a", new Money(99.90m, "BRL"));
+        sub.Activate("sub_ext", "cus_ext_loopback");
+
+        _repositoryMock
+            .Setup(r => r.GetActiveByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(sub);
+
+        _gatewayMock
+            .Setup(g => g.CreateBillingPortalSessionAsync("cus_ext_loopback", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("https://billing.stripe.com/portal_session");
+
+        var command = new GetBillingPortalCommand(providerId, "http://127.0.0.1/return");
+
+        // Act
+        var result = await _handler.HandleAsync(command);
+
+        // Assert
+        result.Should().Be("https://billing.stripe.com/portal_session");
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]

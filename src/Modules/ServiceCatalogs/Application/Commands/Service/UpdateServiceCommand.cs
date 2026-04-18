@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 
@@ -10,7 +9,6 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 /// Os limites de validação devem corresponder a ValidationConstants.CatalogLimits.
 /// Nota: Validação de Guid.Empty é tratada pelo command handler para fornecer mensagens de erro específicas do domínio.
 /// </summary>
-[ExcludeFromCodeCoverage]
 public sealed record UpdateServiceCommand(
     Guid Id,
     [Required]
@@ -21,3 +19,4 @@ public sealed record UpdateServiceCommand(
     [Range(0, int.MaxValue)]
     int DisplayOrder
 ) : Command<Result>;
+

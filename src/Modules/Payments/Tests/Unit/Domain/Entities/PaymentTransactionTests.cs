@@ -98,6 +98,40 @@ public class PaymentTransactionTests
     }
 
     [Fact]
+    public void Refund_ShouldBeIdempotent_WhenAlreadyRefunded()
+    {
+        // Arrange
+        var transaction = new PaymentTransaction(Guid.NewGuid(), new Money(100m, "BRL"));
+        transaction.Settle("tx_ext_001");
+        transaction.Refund(); // primeira chamada
+
+        // Act
+        Action act = () => transaction.Refund(); // segunda chamada
+
+        // Assert
+        act.Should().NotThrow();
+        transaction.Status.Should().Be(EPaymentStatus.Refunded);
+    }
+
+    [Fact]
+    public void Refund_ShouldPreserveRefundedAt_OnSecondCall()
+    {
+        // Arrange
+        var transaction = new PaymentTransaction(Guid.NewGuid(), new Money(50m, "BRL"));
+        transaction.Settle("tx_ext_002");
+        transaction.Refund();
+        var firstRefundedAt = transaction.RefundedAt;
+
+        Thread.Sleep(10); // garante delta de tempo
+
+        // Act
+        transaction.Refund(); // segunda chamada — no-op
+
+        // Assert
+        transaction.RefundedAt.Should().Be(firstRefundedAt);
+    }
+
+    [Fact]
     public void Refund_ShouldThrow_WhenNotSucceeded()
     {
         // Arrange

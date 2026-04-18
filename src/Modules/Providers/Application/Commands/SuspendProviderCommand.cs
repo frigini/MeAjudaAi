@@ -1,6 +1,5 @@
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Application.Commands;
 
@@ -10,9 +9,9 @@ namespace MeAjudaAi.Modules.Providers.Application.Commands;
 /// <param name="ProviderId">Identificador do prestador de serviços</param>
 /// <param name="SuspendedBy">Quem está executando a suspensão</param>
 /// <param name="Reason">Motivo da suspensão (obrigatório para auditoria)</param>
-[ExcludeFromCodeCoverage]
 public sealed record SuspendProviderCommand(
     Guid ProviderId,
     string SuspendedBy,
     string Reason
 ) : Command<Result>;
+

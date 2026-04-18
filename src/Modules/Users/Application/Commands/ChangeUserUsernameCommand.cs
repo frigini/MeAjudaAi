@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Users.Application.Commands;
 
@@ -16,10 +15,10 @@ namespace MeAjudaAi.Modules.Users.Application.Commands;
 /// <param name="NewUsername">Novo nome de usuário</param>
 /// <param name="UpdatedBy">Identificador de quem está fazendo a alteração</param>
 /// <param name="BypassRateLimit">Permite bypasser limite de frequência (apenas admins)</param>
-[ExcludeFromCodeCoverage]
 public sealed record ChangeUserUsernameCommand(
     Guid UserId,
     string NewUsername,
     string? UpdatedBy = null,
     bool BypassRateLimit = false
 ) : Command<Result<UserDto>>;
+

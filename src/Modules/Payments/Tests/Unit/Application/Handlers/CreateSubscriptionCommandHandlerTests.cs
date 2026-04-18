@@ -61,6 +61,21 @@ public class CreateSubscriptionCommandHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_ShouldThrow_WhenIdempotencyKeyExceeds255Chars()
+    {
+        // Arrange
+        var longKey = new string('x', 256);
+        var command = new CreateSubscriptionCommand(Guid.NewGuid(), "premium", longKey);
+
+        // Act
+        Func<Task> act = () => _handler.HandleAsync(command);
+
+        // Assert
+        var ex = await act.Should().ThrowAsync<SubscriptionCreationException>();
+        ex.Which.Message.Should().Contain("255");
+    }
+
+    [Fact]
     public async Task HandleAsync_ShouldThrow_WhenPlanIsInvalid()
     {
         // Arrange

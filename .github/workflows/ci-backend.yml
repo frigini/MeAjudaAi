@@ -160,6 +160,7 @@ jobs:
           ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Payments: ${{ steps.db.outputs.connection-string }}
           AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
         run: |
           echo "🧪 Running Unit & Architecture Tests..."
@@ -176,6 +177,7 @@ jobs:
             "src/Modules/Communications/Tests/MeAjudaAi.Modules.Communications.Tests.csproj"
             "src/Modules/Ratings/Tests/MeAjudaAi.Modules.Ratings.Tests.csproj"
             "src/Modules/SearchProviders/Tests/MeAjudaAi.Modules.SearchProviders.Tests.csproj"
+            "src/Modules/Payments/Tests/MeAjudaAi.Modules.Payments.Tests.csproj"
             "tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj"
             "tests/MeAjudaAi.ApiService.Tests/MeAjudaAi.ApiService.Tests.csproj"
             "tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj"

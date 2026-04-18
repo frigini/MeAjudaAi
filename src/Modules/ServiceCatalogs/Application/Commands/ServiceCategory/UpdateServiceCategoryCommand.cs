@@ -1,6 +1,5 @@
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Contracts.Functional;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 
@@ -10,10 +9,10 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory
 /// Melhoria futura: Considerar suporte a atualizações parciais onde clientes enviam apenas campos alterados
 /// usando campos nullable ou tipos wrapper opcionais se os requisitos da API evoluírem.
 /// </summary>
-[ExcludeFromCodeCoverage]
 public sealed record UpdateServiceCategoryCommand(
     Guid Id,
     string Name,
     string? Description,
     int DisplayOrder = 0
 ) : Command<Result>;
+

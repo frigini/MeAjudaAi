@@ -1,11 +1,9 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Users.Application.Commands;
 
-[ExcludeFromCodeCoverage]
 
 public sealed record RegisterCustomerCommand(
     string Name,
@@ -15,3 +13,4 @@ public sealed record RegisterCustomerCommand(
     bool TermsAccepted,
     bool AcceptedPrivacyPolicy
 ) : Command<Result<UserDto>>;
+
