@@ -187,6 +187,9 @@ public abstract class BaseApiTest : IAsyncLifetime
                     var paymentGatewayDescriptors = services.Where(d => d.ServiceType == typeof(IPaymentGateway)).ToList();
                     foreach (var descriptor in paymentGatewayDescriptors) services.Remove(descriptor);
                     services.AddScoped<IPaymentGateway, MockPaymentGateway>();
+
+                    // Register dummy Stripe client to satisfy DI validation
+                    services.AddSingleton<Stripe.IStripeClient>(new Stripe.StripeClient("sk_test_dummy"));
                     
                     services.AddHttpContextAccessor();
 

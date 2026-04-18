@@ -253,6 +253,9 @@ public class TestContainerFixture : IAsyncLifetime
         foreach (var d in gatewayDescriptors) services.Remove(d);
         services.AddScoped<MeAjudaAi.Modules.Payments.Domain.Abstractions.IPaymentGateway, MockPaymentGateway>();
 
+        // Register dummy Stripe client to satisfy DI validation
+        services.AddSingleton<Stripe.IStripeClient>(new Stripe.StripeClient("sk_test_dummy"));
+
         // Message Bus Condicional para E2E
         var busDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Messaging.IMessageBus)).ToList();
         foreach (var d in busDescriptors) services.Remove(d);
