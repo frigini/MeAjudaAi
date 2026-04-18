@@ -94,12 +94,12 @@ public class ProcessInboxJobExecutionTests : IDisposable
     }
 
     // Helper class to expose protected methods for testing
-    private class ProcessInboxJobWrapper(IServiceProvider sp, ILogger<ProcessInboxJob> logger) 
-        : ProcessInboxJob(sp, logger)
+    private class ProcessInboxJobWrapper(IServiceProvider serviceProvider, ILogger<ProcessInboxJob> logger) 
+        : ProcessInboxJob(serviceProvider, logger)
     {
         public async Task DoExecuteStepAsync(CancellationToken ct)
         {
-            using var scope = sp.CreateScope();
+            using var scope = _sp.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
             var subscriptionRepository = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
             var paymentTransactionRepository = scope.ServiceProvider.GetRequiredService<IPaymentTransactionRepository>();

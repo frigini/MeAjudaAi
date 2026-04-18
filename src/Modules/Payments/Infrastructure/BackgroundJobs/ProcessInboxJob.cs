@@ -21,6 +21,8 @@ public class ProcessInboxJob(
     IServiceProvider sp,
     ILogger<ProcessInboxJob> logger) : BackgroundService
 {
+    protected readonly IServiceProvider _sp = sp;
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Inbox Processor for Payments starting...");
@@ -29,7 +31,7 @@ public class ProcessInboxJob(
         {
             try
             {
-                using var scope = sp.CreateScope();
+                using var scope = _sp.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
                 var subscriptionRepository = scope.ServiceProvider.GetRequiredService<ISubscriptionRepository>();
                 var paymentTransactionRepository = scope.ServiceProvider.GetRequiredService<IPaymentTransactionRepository>();
