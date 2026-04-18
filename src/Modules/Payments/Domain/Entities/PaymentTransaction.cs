@@ -60,10 +60,10 @@ public class PaymentTransaction : BaseEntity
 
     public void Refund()
     {
+        if (Status == EPaymentStatus.Refunded) return;
+
         if (Status != EPaymentStatus.Succeeded)
             throw new InvalidOperationException($"Cannot refund transaction in {Status} status. Only Succeeded transactions can be refunded.");
-
-        if (Status == EPaymentStatus.Refunded) return;
 
         Status = EPaymentStatus.Refunded;
         RefundedAt = DateTime.UtcNow;

@@ -226,10 +226,10 @@ public class ProcessInboxJob(
                             data.InvoiceId, data.Currency ?? "null", data.AmountPaid);
                     }
                     
-                    if (amount != null && amount.Amount > 0)
+                    if (amount != null && amount.Amount > 0 && !string.IsNullOrEmpty(data.InvoiceId))
                     {
                         var paymentTransaction = new PaymentTransaction(subToRenew.Id, amount);
-                        paymentTransaction.Settle(data.InvoiceId!);
+                        paymentTransaction.Settle(data.InvoiceId);
                         await paymentTransactionRepository.AddAsync(paymentTransaction, ct);
                     }
                     else

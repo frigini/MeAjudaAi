@@ -59,6 +59,8 @@ public class GetBillingPortalCommandHandler(
             throw new BusinessRuleException("INVALID_RETURN_URL", "A URL de retorno informada é inválida.");
 
         var isLocalhost = uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) || 
+                         uri.Host.Equals("127.0.0.1") || 
+                         uri.Host.Equals("::1") ||
                          (System.Net.IPAddress.TryParse(uri.Host, out var ip) && System.Net.IPAddress.IsLoopback(ip));
 
         if (uri.Scheme != Uri.UriSchemeHttps && !isLocalhost)
@@ -73,7 +75,7 @@ public class GetBillingPortalCommandHandler(
             trustedHosts.Add(clientUri.Host);
         }
 
-        if (!trustedHosts.Contains(uri.Host))
+        if (!isLocalhost && !trustedHosts.Contains(uri.Host))
         {
             logger.LogWarning("Blocked billing portal redirect to untrusted host: {Host}. Trusted: {Trusted}", 
                 uri.Host, string.Join(", ", trustedHosts));
