@@ -28,29 +28,29 @@ public class NoOpDeadLetterServiceTests
     }
 
     [Theory]
-    [InlineData(1)]
-    [InlineData(3)]
-    public void ShouldRetry_ShouldReturnTrueForLowAttemptCount(int attemptCount)
+    [InlineData(1, true)]
+    [InlineData(3, true)]
+    [InlineData(4, false)]
+    public void ShouldRetry_WithTransientException_ShouldReturnExpectedResult(int attemptCount, bool expected)
     {
         // Arrange
-        var ex = new Exception("test"); 
+        var ex = new System.Net.Http.HttpRequestException("transient");
         
         // Act
         var result = _sut.ShouldRetry(ex, attemptCount);
 
         // Assert
-        // Nota: ClassifyFailure por padrão pode não retornar Transient para uma Exception genérica
-        // mas o NoOpDeadLetterService apenas checa a contagem se o classify permitir.
+        result.Should().Be(expected);
     }
 
     [Fact]
-    public void ShouldRetry_ShouldReturnFalseForHighAttemptCount()
+    public void ShouldRetry_WithPermanentException_ShouldReturnFalse()
     {
         // Arrange
-        var ex = new Exception("test");
+        var ex = new ArgumentException("permanent");
         
         // Act
-        var result = _sut.ShouldRetry(ex, 4);
+        var result = _sut.ShouldRetry(ex, 1);
 
         // Assert
         result.Should().BeFalse();
@@ -73,5 +73,35 @@ public class NoOpDeadLetterServiceTests
 
         // Assert
         result.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task ReprocessDeadLetterMessageAsync_ShouldCompleteSuccessfully()
+    {
+        // Act
+        var act = () => _sut.ReprocessDeadLetterMessageAsync("queue", "msg-id");
+
+        // Assert
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task ListDeadLetterMessagesAsync_ShouldReturnEmptyList()
+    {
+        // Act
+        var result = await _sut.ListDeadLetterMessagesAsync("queue");
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task PurgeDeadLetterMessageAsync_ShouldCompleteSuccessfully()
+    {
+        // Act
+        var act = () => _sut.PurgeDeadLetterMessageAsync("queue", "msg-id");
+
+        // Assert
+        await act.Should().NotThrowAsync();
     }
 }
