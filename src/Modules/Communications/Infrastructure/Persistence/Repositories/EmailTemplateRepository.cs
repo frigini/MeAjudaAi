@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Communications.Infrastructure.Persistence.Repositories;
 
-public sealed class EmailTemplateRepository(CommunicationsDbContext context) : IEmailTemplateRepository
+internal sealed class EmailTemplateRepository(CommunicationsDbContext context) : IEmailTemplateRepository
 {
     public async Task AddAsync(EmailTemplate template, CancellationToken cancellationToken = default)
     {

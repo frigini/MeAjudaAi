@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Communications.Infrastructure.Persistence.Repositories;
 
-public sealed class CommunicationLogRepository(CommunicationsDbContext context) : ICommunicationLogRepository
+internal sealed class CommunicationLogRepository(CommunicationsDbContext context) : ICommunicationLogRepository
 {
     public async Task AddAsync(CommunicationLog log, CancellationToken cancellationToken = default)
     {
