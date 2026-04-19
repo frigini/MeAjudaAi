@@ -13,7 +13,9 @@ public class CachingExtensionsRegistrationTests
     {
         // Arrange
         var services = new ServiceCollection();
+        services.AddLogging();
         var configuration = new ConfigurationBuilder().Build();
+        services.AddSingleton<IConfiguration>(configuration);
 
         // Act
         services.AddCaching(configuration);
