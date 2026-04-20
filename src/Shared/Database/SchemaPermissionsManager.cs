@@ -7,7 +7,7 @@ namespace MeAjudaAi.Shared.Database;
 /// Gerencia permissões de schema usando scripts SQL existentes da infraestrutura.
 /// Executa apenas quando necessário e de forma modular.
 /// </summary>
-internal class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger)
+public class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger)
 {
     /// <summary>
     /// Configura permissões usando os scripts existentes em infrastructure/database/schemas
