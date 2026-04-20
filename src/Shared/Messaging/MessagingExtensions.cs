@@ -21,7 +21,6 @@ namespace MeAjudaAi.Shared.Messaging;
 /// <summary>
 /// Classe interna para categorização de logs de messaging
 /// </summary>
-[ExcludeFromCodeCoverage]
 internal sealed class MessagingConfiguration
 {
 }
@@ -29,7 +28,6 @@ internal sealed class MessagingConfiguration
 /// <summary>
 /// Extension methods consolidados para configuração de Messaging, Dead Letter Queue e Message Retry
 /// </summary>
-[ExcludeFromCodeCoverage]
 public static class MessagingExtensions
 {
     public static IServiceCollection AddMessaging(

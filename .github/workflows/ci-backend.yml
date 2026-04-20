@@ -268,7 +268,7 @@ jobs:
           reporttypes: "Cobertura;JsonSummary"
           groupby: "Namespace"
           assemblyfilters: "+MeAjudaAi.*;-MeAjudaAi.AppHost;-MeAjudaAi.ServiceDefaults;-MeAjudaAi.Contracts;-MeAjudaAi.Modules.Ratings.API"
-          classfilters: "-*.Tests;-*.Tests.*;-*Test*;-testhost;-*.Migrations.*;-*Program*;-*.Seeding.*;-*.Monitoring.*;-MeAjudaAi.Shared.Jobs.*;-MeAjudaAi.Shared.Mediator.*;-MeAjudaAi.Shared.API.*;-*Endpoint;-*DbContextFactory;-*Configuration;-[*]*Options;-[*]*IntegrationEvent;-[*]*Request;-[*]*Response;-[*]*Dto;-[*]*DTO;-MeAjudaAi.Modules.Payments.Infrastructure.Gateways.StripeService"
+          classfilters: "-*.Tests;-*.Tests.*;-*Test*;-testhost;-*.Migrations.*;-*Program*;-*.Seeding.*;-*.Monitoring.*;-MeAjudaAi.Shared.Jobs.*;-MeAjudaAi.Shared.Mediator.*;-MeAjudaAi.Shared.API.*;-*Endpoint;-*DbContextFactory;-*Options;-*IntegrationEvent;-*Request;-*Response;-*Dto;-*DTO;-MeAjudaAi.Modules.Payments.Infrastructure.Gateways.StripeService"
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
