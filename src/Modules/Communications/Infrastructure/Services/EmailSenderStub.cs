@@ -6,7 +6,6 @@ namespace MeAjudaAi.Modules.Communications.Infrastructure.Services;
 /// <summary>
 /// Stub para envio de e-mails na infraestrutura.
 /// </summary>
-[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public sealed class EmailSenderStub(ILogger<EmailSenderStub> logger) : IEmailSender
 {
     public async Task<bool> SendAsync(EmailMessage message, CancellationToken cancellationToken = default)

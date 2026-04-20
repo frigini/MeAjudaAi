@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Monitoring;
 
 /// <summary>
 /// Classe de configuração para dashboards customizados
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class MonitoringDashboards
 {
     /// <summary>
