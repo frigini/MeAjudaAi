@@ -26,7 +26,7 @@ public class RabbitMqInfrastructureManagerTests
     {
         // Arrange
         _registryMock.Setup(r => r.GetAllEventTypesAsync()).ReturnsAsync(new List<Type> { typeof(string) });
-        _options.DomainQueues.Add("Users", "users-queue");
+        _options.DomainQueues["Users"] = "users-queue";
 
         // Act
         await _sut.EnsureInfrastructureAsync();
