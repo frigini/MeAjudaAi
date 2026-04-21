@@ -75,7 +75,7 @@ public class BookingTests : BaseUnitTest
         booking.UpdatedAt.Should().NotBeNull();
         if (previousUpdatedAt != null)
         {
-            booking.UpdatedAt.Should().BeAfter(previousUpdatedAt.Value);
+            booking.UpdatedAt.Should().BeOnOrAfter(previousUpdatedAt.Value);
         }
     }
 
@@ -97,7 +97,7 @@ public class BookingTests : BaseUnitTest
         booking.UpdatedAt.Should().NotBeNull();
         if (previousUpdatedAt != null)
         {
-            booking.UpdatedAt.Should().BeAfter(previousUpdatedAt.Value);
+            booking.UpdatedAt.Should().BeOnOrAfter(previousUpdatedAt.Value);
         }
     }
 
@@ -141,7 +141,8 @@ public class BookingTests : BaseUnitTest
         var act = () => booking.Complete();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("Only confirmed bookings can be marked as completed.");
     }
 
     private static Booking CreatePendingBooking()

@@ -27,7 +27,7 @@ public class CreateBookingEndpoint : IEndpoint
 
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var clientId))
             {
-                return Results.Json(new { error = "Unauthorized in endpoint", claim = userIdClaim }, statusCode: 403);
+                return Results.Unauthorized();
             }
 
             var command = new CreateBookingCommand(
@@ -45,8 +45,7 @@ public class CreateBookingEndpoint : IEndpoint
                 onFailure: error => Results.Problem(error.Message, statusCode: error.StatusCode)
             );
         })
-        .AllowAnonymous()
-        .DisableAntiforgery()
+        .RequireAuthorization()
         .Produces<BookingDto>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

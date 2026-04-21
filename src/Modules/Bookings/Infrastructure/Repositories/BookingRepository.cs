@@ -58,10 +58,11 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
         
         try
         {
-            // NOTA: Como usamos o tipo 'time' no banco, comparamos diretamente as propriedades TimeOnly
+            // NOTA: Agora incluímos a data no predicado para evitar conflitos em dias diferentes
             var hasOverlap = await context.Bookings
                 .AnyAsync(b => 
                     b.ProviderId == booking.ProviderId &&
+                    b.Date == booking.Date &&
                     b.Status != EBookingStatus.Cancelled &&
                     b.Status != EBookingStatus.Rejected &&
                     b.TimeSlot.Start < booking.TimeSlot.End &&
@@ -83,8 +84,9 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
         {
             await transaction.RollbackAsync(cancellationToken);
             
-            // Tratamento específico para erros de serialização do PostgreSQL (40001) ou Deadlocks (40P01)
-            if (ex.InnerException is PostgresException pgEx && (pgEx.SqlState == "40001" || pgEx.SqlState == "40P01"))
+            // Tratamento robusto para erros de serialização do PostgreSQL (40001) ou Deadlocks (40P01)
+            if (ex is PostgresException pgExDirect && (pgExDirect.SqlState == "40001" || pgExDirect.SqlState == "40P01") ||
+                ex.InnerException is PostgresException pgExInner && (pgExInner.SqlState == "40001" || pgExInner.SqlState == "40P01"))
             {
                 return Result.Failure(Error.Conflict("Conflito de concorrência ao validar agendamento. Tente novamente em instantes."));
             }

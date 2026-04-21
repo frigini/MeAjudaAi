@@ -42,6 +42,7 @@ public class ProviderScheduleTests : BaseUnitTest
         // Arrange
         var schedule = ProviderSchedule.Create(Guid.NewGuid());
         var dateTime = new DateTime(2026, 4, 20, 10, 0, 0); // Segunda-feira
+        dateTime.DayOfWeek.Should().Be(DayOfWeek.Monday);
         var duration = TimeSpan.FromHours(1);
 
         // Act

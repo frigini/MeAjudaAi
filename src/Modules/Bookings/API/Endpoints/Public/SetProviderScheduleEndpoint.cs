@@ -73,6 +73,7 @@ public class SetProviderScheduleEndpoint : IEndpoint
         .RequireAuthorization()
         .Produces(StatusCodes.Status204NoContent)
         .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status403Forbidden)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("SetProviderSchedule")
@@ -81,5 +82,8 @@ public class SetProviderScheduleEndpoint : IEndpoint
 }
 
 public record SetProviderScheduleRequest(
+    /// <summary>
+    /// ID do prestador. Honrado apenas se o solicitante for IsSystemAdmin.
+    /// </summary>
     Guid ProviderId,
     IEnumerable<AvailabilityDto> Availabilities);

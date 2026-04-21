@@ -53,7 +53,7 @@ public sealed class CancelBookingCommandHandler(
         catch (InvalidOperationException ex)
         {
             logger.LogWarning(ex, "Business rule error cancelling booking {BookingId}", command.BookingId);
-            return Result.Failure(Error.BadRequest("Não foi possível cancelar a reserva."));
+            return Result.Failure(Error.BadRequest("Apenas agendamentos pendentes ou confirmados podem ser cancelados."));
         }
         catch (ConcurrencyConflictException ex)
         {

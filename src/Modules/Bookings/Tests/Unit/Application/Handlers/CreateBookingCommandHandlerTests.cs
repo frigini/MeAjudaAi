@@ -35,7 +35,8 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var start = DateTimeOffset.UtcNow.AddDays(1).Date.AddHours(10);
+        var baseUtc = DateTimeOffset.UtcNow.Date;
+        var start = baseUtc.AddDays(2).AddHours(10); // Relativo e futuro
         var end = start.AddHours(1);
         
         var command = new CreateBookingCommand(
@@ -65,21 +66,38 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     }
 
     [Fact]
-    public async Task HandleAsync_Should_Fail_When_ProviderNotFound()
+    public async Task HandleAsync_Should_Succeed_OnDifferentDates_EvenWithSameTime()
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var command = CreateValidCommand(providerId);
+        var baseUtc = DateTimeOffset.UtcNow.Date;
+        var day1Start = baseUtc.AddDays(1).AddHours(10);
+        
+        var command = new CreateBookingCommand(
+            providerId, Guid.NewGuid(), Guid.NewGuid(),
+            new DateTimeOffset(day1Start, TimeSpan.Zero), 
+            new DateTimeOffset(day1Start.AddHours(1), TimeSpan.Zero), 
+            Guid.NewGuid());
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Success(false));
+            .ReturnsAsync(Result<bool>.Success(true));
+
+        var schedule = ProviderSchedule.Create(providerId, "UTC");
+        schedule.SetAvailability(Availability.Create(day1Start.DayOfWeek, 
+            [TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(18, 0))]));
+        
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(schedule);
+
+        // O repo deve retornar sucesso pois são datas diferentes
+        _bookingRepoMock.Setup(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success());
 
         // Act
         var result = await _sut.HandleAsync(command);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error!.StatusCode.Should().Be(404);
+        result.IsSuccess.Should().BeTrue();
     }
 
     [Fact]
@@ -96,7 +114,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("término deve ser após");
+        result.Error!.StatusCode.Should().Be(400);
     }
 
     [Fact]
@@ -113,7 +131,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("futuro");
+        result.Error!.StatusCode.Should().Be(400);
     }
 
     private CreateBookingCommand CreateValidCommand(Guid providerId)

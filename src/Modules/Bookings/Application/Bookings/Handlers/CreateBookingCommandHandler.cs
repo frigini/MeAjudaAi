@@ -71,8 +71,11 @@ public sealed class CreateBookingCommandHandler(
         }
 
         // 3. Criar e Tentar Adicionar atomicamente
-        var date = DateOnly.FromDateTime(command.Start.UtcDateTime);
-        var timeSlot = TimeSlot.FromDateTime(command.Start.UtcDateTime, command.End.UtcDateTime);
+        // Mantemos a data e o slot consistentes com o fuso horário do prestador
+        var localEndTime = localStartTime.Add(duration);
+        var date = DateOnly.FromDateTime(localStartTime);
+        var timeSlot = TimeSlot.FromDateTime(localStartTime, localEndTime);
+        
         var booking = Booking.Create(
             command.ProviderId, 
             command.ClientId, 
@@ -94,8 +97,8 @@ public sealed class CreateBookingCommandHandler(
             booking.ProviderId,
             booking.ClientId,
             booking.ServiceId,
-            booking.Date.ToDateTime(booking.TimeSlot.Start),
-            booking.Date.ToDateTime(booking.TimeSlot.End),
+            date.ToDateTime(booking.TimeSlot.Start),
+            date.ToDateTime(booking.TimeSlot.End),
             booking.Status);
     }
 }

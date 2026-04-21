@@ -72,6 +72,72 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
     }
 
     [Fact]
+    public async Task HandleAsync_Should_Succeed_When_UserIsSystemAdmin()
+    {
+        // Arrange
+        var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), new DateOnly(2026, 4, 22),
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        
+        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        // Setup Admin
+        var claims = new List<Claim>
+        {
+            new(AuthConstants.Claims.Subject, Guid.NewGuid().ToString()),
+            new(AuthConstants.Claims.IsSystemAdmin, "true")
+        };
+        var identity = new ClaimsIdentity(claims, "Test");
+        var principal = new ClaimsPrincipal(identity);
+        _httpContextMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext { User = principal });
+
+        // Act
+        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Admin Reason", Guid.NewGuid()));
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        booking.Status.Should().Be(Contracts.Bookings.Enums.EBookingStatus.Cancelled);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_ReturnConflict_When_ConcurrencyOccurs()
+    {
+        // Arrange
+        var clientId = Guid.NewGuid();
+        var booking = Booking.Create(Guid.NewGuid(), clientId, Guid.NewGuid(), new DateOnly(2026, 4, 22),
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        
+        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        _bookingRepoMock.Setup(x => x.UpdateAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new MeAjudaAi.Shared.Exceptions.ConcurrencyConflictException());
+
+        SetupUser(clientId, null);
+
+        // Act
+        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Reason", Guid.NewGuid()));
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(409);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_ReturnUnauthorized_When_UserNotAuthenticated()
+    {
+        // Arrange
+        _httpContextMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext()); // No User
+
+        // Act
+        var result = await _sut.HandleAsync(new CancelBookingCommand(Guid.NewGuid(), "Reason", Guid.NewGuid()));
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(401);
+    }
+
+    [Fact]
     public async Task HandleAsync_Should_Fail_When_BookingNotFound()
     {
         // Arrange

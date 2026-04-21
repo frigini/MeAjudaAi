@@ -33,10 +33,7 @@ public sealed class ConfirmBookingCommandHandler(
         }
 
         // 2. Validar Autorização (Somente o Provider dono ou Admin)
-        var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
-        var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
-
-        if (!isSystemAdmin && (string.IsNullOrEmpty(providerIdClaim) || !Guid.TryParse(providerIdClaim, out var userProviderId) || userProviderId != booking.ProviderId))
+        if (!UserOwnsProvider(user, booking.ProviderId))
         {
             return Result.Failure(Error.Forbidden("Você não tem permissão para confirmar este agendamento."));
         }
@@ -60,5 +57,16 @@ public sealed class ConfirmBookingCommandHandler(
         logger.LogInformation("Booking {BookingId} confirmed successfully.", command.BookingId);
 
         return Result.Success();
+    }
+
+    private static bool UserOwnsProvider(ClaimsPrincipal user, Guid expectedProviderId)
+    {
+        var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
+        if (isSystemAdmin) return true;
+
+        var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
+        return !string.IsNullOrEmpty(providerIdClaim) && 
+               Guid.TryParse(providerIdClaim, out var userProviderId) && 
+               userProviderId == expectedProviderId;
     }
 }
