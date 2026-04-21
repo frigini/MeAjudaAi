@@ -76,17 +76,32 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
             
             return Result.Success();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             await transaction.RollbackAsync(cancellationToken);
+            
+            // Tratamento especial para conflitos de concorrência no banco
+            if (ex is DbUpdateConcurrencyException or InvalidOperationException { Message: var m } && m.Contains("transaction", StringComparison.OrdinalIgnoreCase))
+            {
+                return Result.Failure(Error.Conflict("Conflito de concorrência ao validar agendamento. Tente novamente em instantes."));
+            }
+
             throw;
         }
     }
 
     public async Task UpdateAsync(Booking booking, CancellationToken cancellationToken = default)
     {
-        context.Bookings.Update(booking);
-        await context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            context.Bookings.Update(booking);
+            await context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // Lança uma exceção de domínio ou retorna erro dependendo de como o handler espera
+            throw new InvalidOperationException("O registro foi modificado por outro usuário. Por favor, recarregue a página.");
+        }
     }
 
     public async Task<bool> HasOverlapAsync(Guid providerId, DateTime start, DateTime end, CancellationToken cancellationToken = default)

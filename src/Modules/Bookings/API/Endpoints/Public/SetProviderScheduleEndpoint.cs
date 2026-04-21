@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Shared.Commands;
@@ -19,21 +20,38 @@ public class SetProviderScheduleEndpoint : IEndpoint
         app.MapPost("/schedule", async (
             SetProviderScheduleRequest request,
             [FromServices] ICommandDispatcher dispatcher,
+            [FromServices] IProvidersModuleApi providersApi,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
+            var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value;
             var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
             var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
 
-            if (!isSystemAdmin && (string.IsNullOrEmpty(providerIdClaim) || !Guid.TryParse(providerIdClaim, out _)))
-            {
-                return Results.Forbid();
-            }
+            Guid targetProviderId;
 
-            // Se for admin, pode usar o ID do corpo. Se for prestador, usa o ID do claim.
-            var targetProviderId = isSystemAdmin 
-                ? request.ProviderId 
-                : Guid.Parse(providerIdClaim!);
+            if (isSystemAdmin)
+            {
+                targetProviderId = request.ProviderId;
+            }
+            else if (!string.IsNullOrEmpty(providerIdClaim) && Guid.TryParse(providerIdClaim, out var pId))
+            {
+                targetProviderId = pId;
+            }
+            else if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var uId))
+            {
+                // Tenta resolver o ProviderId pelo UserId se o claim de provider não estiver presente
+                var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
+                if (providerResult.IsFailure || providerResult.Value == null)
+                {
+                    return Results.Forbid();
+                }
+                targetProviderId = providerResult.Value.Id;
+            }
+            else
+            {
+                return Results.Unauthorized();
+            }
 
             if (targetProviderId == Guid.Empty)
             {

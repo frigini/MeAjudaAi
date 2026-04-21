@@ -46,7 +46,7 @@ public sealed class ConfirmBookingCommandHandler(
         }
         catch (InvalidOperationException ex)
         {
-            logger.LogWarning(ex, "Erro de regra de negócio ao confirmar reserva {BookingId}", command.BookingId);
+            logger.LogWarning(ex, "Business rule error confirming booking {BookingId}", command.BookingId);
             return Result.Failure(Error.BadRequest("Não foi possível confirmar a reserva."));
         }
 

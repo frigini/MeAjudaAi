@@ -30,7 +30,12 @@ public sealed class CreateBookingCommandHandler(
 
         // 1. Validar existência do Provider
         var providerExists = await providersApi.ProviderExistsAsync(command.ProviderId, cancellationToken);
-        if (providerExists.IsFailure || !providerExists.Value)
+        if (providerExists.IsFailure)
+        {
+            return Result<BookingDto>.Failure(providerExists.Error);
+        }
+        
+        if (!providerExists.Value)
         {
             return Result<BookingDto>.Failure(Error.NotFound("Prestador não encontrado."));
         }
@@ -50,11 +55,15 @@ public sealed class CreateBookingCommandHandler(
             var tz = TimeZoneInfo.FindSystemTimeZoneById(tzId);
             localStartTime = TimeZoneInfo.ConvertTimeFromUtc(command.Start.UtcDateTime, tz);
         }
+        catch (Exception ex) when (ex is TimeZoneNotFoundException or InvalidTimeZoneException)
+        {
+            logger.LogError(ex, "Invalid timezone {TimeZoneId} for provider {ProviderId}", schedule.TimeZoneId, command.ProviderId);
+            return Result<BookingDto>.Failure(Error.BadRequest("Erro na configuração de fuso horário do prestador."));
+        }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Fuso horário {TimeZoneId} não encontrado. Usando UTC como fallback.", schedule.TimeZoneId);
-            // Fallback para UTC se o fuso não for encontrado (comum em ambientes de teste/CI mistos)
-            localStartTime = command.Start.UtcDateTime;
+            logger.LogError(ex, "Unexpected error converting timezone for provider {ProviderId}", command.ProviderId);
+            return Result<BookingDto>.Failure(Error.Internal("Erro interno ao processar fuso horário."));
         }
 
         var duration = command.End - command.Start;

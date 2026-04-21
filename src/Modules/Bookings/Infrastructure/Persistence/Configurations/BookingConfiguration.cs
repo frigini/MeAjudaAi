@@ -65,11 +65,16 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .HasColumnName("updated_at")
             .HasColumnType("timestamptz");
 
+        builder.Property(b => b.Version)
+            .IsRowVersion()
+            .HasColumnName("version");
+
         // Índices otimizados para busca de sobreposição e listagem
-        // Para indexar campos de owned types, devemos usar o builder.OwnsOne e configurar o index dentro dele ou referenciar as propriedades via string se já configuradas.
-        // A forma mais robusta é usar as propriedades mapeadas.
-        builder.HasIndex(b => new { b.ProviderId, b.Status });
-        
+        // Inclui StartTime no índice e EndTime via Include se suportado, para acelerar HasOverlapAsync
+        builder.HasIndex("ProviderId", "Status", "TimeSlot_Start")
+            .HasFilter("status NOT IN ('Cancelled', 'Rejected')")
+            .HasDatabaseName("ix_bookings_provider_active_overlap_check");
+
         builder.HasIndex(b => b.ClientId);
         builder.HasIndex(b => b.Status);
     }

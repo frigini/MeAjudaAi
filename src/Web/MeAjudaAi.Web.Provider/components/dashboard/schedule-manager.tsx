@@ -154,9 +154,9 @@ export function ScheduleManager() {
                                             </div>
                                             <Button 
                                                 variant="ghost" 
-                                                size="icon" 
+                                                size="sm" 
                                                 onClick={() => removeSlot(dayInfo.id, index)}
-                                                className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                                                className="h-8 w-8 p-0 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </Button>

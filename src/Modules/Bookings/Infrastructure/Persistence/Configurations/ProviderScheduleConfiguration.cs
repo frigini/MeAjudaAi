@@ -20,6 +20,11 @@ public class ProviderScheduleConfiguration : IEntityTypeConfiguration<ProviderSc
             .IsRequired()
             .HasColumnName("provider_id");
 
+        builder.Property(ps => ps.TimeZoneId)
+            .IsRequired()
+            .HasMaxLength(50)
+            .HasColumnName("time_zone_id");
+
         // Coleção de Value Objects
         builder.OwnsMany(ps => ps.Availabilities, availability =>
         {
@@ -35,7 +40,6 @@ public class ProviderScheduleConfiguration : IEntityTypeConfiguration<ProviderSc
                 .HasConversion<string>();
 
             // Índice único para garantir apenas uma configuração por dia da semana para o mesmo schedule
-            // Usamos o nome da propriedade CLR, não o nome da coluna
             availability.HasIndex("DayOfWeek", "provider_schedule_id").IsUnique();
 
             // Slots dentro de cada Availability (Coleção aninhada)
