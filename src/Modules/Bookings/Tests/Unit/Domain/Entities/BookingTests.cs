@@ -62,6 +62,7 @@ public class BookingTests : BaseUnitTest
         // Arrange
         var booking = CreatePendingBooking();
         var reason = "Client changed mind";
+        var previousUpdatedAt = booking.UpdatedAt;
 
         // Act
         booking.Cancel(reason);
@@ -69,6 +70,11 @@ public class BookingTests : BaseUnitTest
         // Assert
         booking.Status.Should().Be(EBookingStatus.Cancelled);
         booking.CancellationReason.Should().Be(reason);
+        booking.UpdatedAt.Should().NotBeNull();
+        if (previousUpdatedAt != null)
+        {
+            booking.UpdatedAt.Should().BeAfter(previousUpdatedAt.Value);
+        }
     }
 
     [Fact]
@@ -78,12 +84,19 @@ public class BookingTests : BaseUnitTest
         var booking = CreatePendingBooking();
         booking.Confirm();
         var reason = "Provider emergency";
+        var previousUpdatedAt = booking.UpdatedAt;
 
         // Act
         booking.Cancel(reason);
 
         // Assert
         booking.Status.Should().Be(EBookingStatus.Cancelled);
+        booking.CancellationReason.Should().Be(reason);
+        booking.UpdatedAt.Should().NotBeNull();
+        if (previousUpdatedAt != null)
+        {
+            booking.UpdatedAt.Should().BeAfter(previousUpdatedAt.Value);
+        }
     }
 
     [Fact]

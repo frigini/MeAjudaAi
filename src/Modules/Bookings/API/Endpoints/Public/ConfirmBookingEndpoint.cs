@@ -18,7 +18,7 @@ public class ConfirmBookingEndpoint : IEndpoint
             [FromServices] ICommandDispatcher dispatcher,
             CancellationToken cancellationToken) =>
         {
-            var command = new ConfirmBookingCommand(id);
+            var command = new ConfirmBookingCommand(id, Guid.NewGuid());
             var result = await dispatcher.SendAsync<ConfirmBookingCommand, Result>(command, cancellationToken);
 
             return result.Match(
@@ -27,6 +27,11 @@ public class ConfirmBookingEndpoint : IEndpoint
             );
         })
         .RequireAuthorization()
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status403Forbidden)
+        .ProducesProblem(StatusCodes.Status404NotFound)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("ConfirmBooking")
         .WithSummary("Confirma um agendamento pendente.");

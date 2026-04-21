@@ -10,7 +10,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 **Status**: 🚀 Em Início
 
-**Meta MVP**: 12 - 16 de Maio de 2026
+**Meta MVP**: 12 a 16 de maio de 2026
 
 **Stack Principal**: .NET 10 LTS + Aspire 13 + PostgreSQL + NX Monorepo + React 19 + Next.js 15 + Tailwind v4
 
@@ -28,8 +28,8 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 *   **Sistema de Disputas**: Mediação administrativa para conflitos.
 *   **Melhorias em Bookings**: Sincronização com Google Calendar/Outlook e lembretes automáticos.
 
-### 🚀 Arquitetura Evolutiva e Messaging (Evolução)
-*   **Performance do Service Bus**: Monitoramento de carga e ajuste fino de paralelismo via `[HighVolumeEvent]`.
+### 🚀 Arquitetura Evolutiva e Mensageria (Evolução)
+*   **Desempenho do Service Bus**: Monitoramento de carga e ajuste fino de paralelismo via `[HighVolumeEvent]`.
 *   **Resiliência Crítica**: Implementação de Quorum Queues para eventos marcados com `[CriticalEvent]`.
 
 ---

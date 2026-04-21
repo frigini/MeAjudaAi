@@ -119,7 +119,7 @@ public class BookingRepositoryTests : BaseDatabaseTest
     }
 
     [Fact]
-    public async Task AddIfNoOverlapAsync_ShouldBeAtomicAndSucceed_WhenNoOverlap()
+    public async Task AddIfNoOverlapAsync_ShouldPersist_WhenNoOverlap()
     {
         // Arrange
         var booking = CreateBooking();
@@ -134,25 +134,32 @@ public class BookingRepositoryTests : BaseDatabaseTest
     }
 
     [Fact]
-    public async Task AddIfNoOverlapAsync_ShouldFail_WhenOverlapExists()
+    public async Task AddIfNoOverlapAsync_ShouldHandleConcurrency_AllowingOnlyOneSucceed()
     {
         // Arrange
         var providerId = Guid.NewGuid();
         var baseTime = DateTime.UtcNow.AddDays(2).Date;
         
-        var existing = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
+        var booking1 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
             TimeSlot.Create(baseTime.AddHours(10), baseTime.AddHours(11)));
-        await _repository.AddAsync(existing);
-
-        var newBooking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
+        
+        var booking2 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
             TimeSlot.Create(baseTime.AddHours(10).AddMinutes(30), baseTime.AddHours(11).AddMinutes(30)));
 
         // Act
-        var result = await _repository.AddIfNoOverlapAsync(newBooking);
+        // Usamos instâncias separadas de repository/context para simular concorrência real se possível, 
+        // mas aqui como estamos no mesmo teste, simulamos via Task parallelism.
+        var task1 = _repository.AddIfNoOverlapAsync(booking1);
+        var task2 = _repository.AddIfNoOverlapAsync(booking2);
+
+        var results = await Task.WhenAll(task1, task2);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error!.StatusCode.Should().Be(409);
+        results.Count(r => r.IsSuccess).Should().Be(1);
+        results.Count(r => r.IsFailure).Should().Be(1);
+        
+        var count = await _context.Bookings.CountAsync(b => b.ProviderId == providerId);
+        count.Should().Be(1);
     }
 
     private static Booking CreateBooking()

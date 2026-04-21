@@ -10,4 +10,4 @@ public record CreateBookingCommand(
     Guid ServiceId,
     DateTimeOffset Start,
     DateTimeOffset End,
-    Guid CorrelationId = default) : ICommand<Result<BookingDto>>;
+    Guid CorrelationId) : ICommand<Result<BookingDto>>;

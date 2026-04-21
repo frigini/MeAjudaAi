@@ -29,13 +29,16 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
+        var date = new DateOnly(2026, 4, 22);
         var query = new GetProviderAvailabilityQuery(providerId, date);
 
         var schedule = ProviderSchedule.Create(providerId);
         var baseTime = date.ToDateTime(TimeOnly.MinValue);
+        var expectedStart = baseTime.AddHours(8);
+        var expectedEnd = baseTime.AddHours(10);
+        
         schedule.SetAvailability(Availability.Create(date.DayOfWeek, 
-            [TimeSlot.Create(baseTime.AddHours(8), baseTime.AddHours(10))]));
+            [TimeSlot.Create(expectedStart, expectedEnd)]));
 
         _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
@@ -48,6 +51,8 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Slots.Should().HaveCount(1);
+        result.Value.Slots.First().Start.Should().Be(expectedStart);
+        result.Value.Slots.First().End.Should().Be(expectedEnd);
     }
 
     [Fact]
@@ -55,7 +60,7 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
+        var date = new DateOnly(2026, 4, 22);
         var query = new GetProviderAvailabilityQuery(providerId, date);
 
         var schedule = ProviderSchedule.Create(providerId);

@@ -19,7 +19,17 @@ public class CancelBookingEndpoint : IEndpoint
             [FromServices] ICommandDispatcher dispatcher,
             CancellationToken cancellationToken) =>
         {
-            var command = new CancelBookingCommand(id, request.Reason);
+            if (string.IsNullOrWhiteSpace(request.Reason))
+            {
+                return Results.BadRequest(new { error = "O motivo do cancelamento é obrigatório." });
+            }
+
+            if (request.Reason.Length > 500)
+            {
+                return Results.BadRequest(new { error = "O motivo do cancelamento não pode exceder 500 caracteres." });
+            }
+
+            var command = new CancelBookingCommand(id, request.Reason, Guid.NewGuid());
             var result = await dispatcher.SendAsync<CancelBookingCommand, Result>(command, cancellationToken);
 
             return result.Match(
@@ -28,6 +38,11 @@ public class CancelBookingEndpoint : IEndpoint
             );
         })
         .RequireAuthorization()
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status403Forbidden)
+        .ProducesProblem(StatusCodes.Status404NotFound)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("CancelBooking")
         .WithSummary("Cancela um agendamento.");

@@ -33,7 +33,8 @@ public class CreateBookingEndpoint : IEndpoint
                 clientId,
                 request.ServiceId,
                 request.Start,
-                request.End);
+                request.End,
+                Guid.NewGuid());
 
             var result = await dispatcher.SendAsync<CreateBookingCommand, Result<BookingDto>>(command, cancellationToken);
 

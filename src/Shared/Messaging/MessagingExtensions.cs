@@ -98,14 +98,22 @@ public static class MessagingExtensions
 
                 var connectionString = options.BuildConnectionString();
                 
+                var useSystemTextJson = configuration.GetValue<bool>("Messaging:UseSystemTextJson", false);
+
+                configure
+                    .Transport(t => t.UseRabbitMq(connectionString, options.DefaultQueueName));
+
+                if (useSystemTextJson)
+                {
+                    configure.Serialization(s => s.UseSystemTextJson());
+                }
+
                 return configure
-                    .Transport(t => t.UseRabbitMq(connectionString, options.DefaultQueueName))
-                    .Serialization(s => s.UseSystemTextJson())
                     .Options(o => 
                     {
                         o.SetMaxParallelism(20);
                         o.SetNumberOfWorkers(2);
-                        o.Decorate<ITopicNameConvention>(_ => new AttributeTopicNameConvention());
+                        o.Decorate<ITopicNameConvention>(c => new AttributeTopicNameConvention(c.Get<ITopicNameConvention>()));
                     })
                     .Routing(r => r.TypeBased());
             });
@@ -139,6 +147,12 @@ public static class MessagingExtensions
 
         try
         {
+            var useSystemTextJson = host.Services.GetRequiredService<IConfiguration>().GetValue<bool>("Messaging:UseSystemTextJson", false);
+            if (useSystemTextJson)
+            {
+                logger.LogWarning("Messaging: System.Text.Json is ENABLED. Ensure all producers/consumers are updated and clear queues/DLQs if necessary.");
+            }
+
             logger.LogInformation("Ensuring messaging infrastructure (Queues/Exchanges)...");
             await manager.EnsureInfrastructureAsync();
             logger.LogInformation("Messaging infrastructure verified.");

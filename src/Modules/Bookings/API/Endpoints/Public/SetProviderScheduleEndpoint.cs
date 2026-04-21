@@ -42,7 +42,8 @@ public class SetProviderScheduleEndpoint : IEndpoint
 
             var command = new SetProviderScheduleCommand(
                 targetProviderId,
-                request.Availabilities);
+                request.Availabilities,
+                Guid.NewGuid());
 
             var result = await dispatcher.SendAsync<SetProviderScheduleCommand, Result>(command, cancellationToken);
 

@@ -7,7 +7,7 @@ namespace MeAjudaAi.Shared.Messaging.Rebus.Conventions;
 /// <summary>
 /// Convenção de nomes de tópicos que interpreta o atributo [DedicatedTopic]
 /// </summary>
-public class AttributeTopicNameConvention : ITopicNameConvention
+public class AttributeTopicNameConvention(ITopicNameConvention fallback) : ITopicNameConvention
 {
     public string GetTopic(Type eventType)
     {
@@ -18,7 +18,7 @@ public class AttributeTopicNameConvention : ITopicNameConvention
             return attribute.TopicName;
         }
 
-        // Fallback para o comportamento padrão do Rebus (FullName do tipo)
-        return eventType.FullName ?? eventType.Name;
+        // Delega para o fallback (convenção original do Rebus ou transporte)
+        return fallback.GetTopic(eventType);
     }
 }

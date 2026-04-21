@@ -6,7 +6,6 @@ using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Http;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
@@ -32,17 +31,19 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
+        var start = new DateTimeOffset(new DateTime(2026, 4, 22, 10, 0, 0), TimeSpan.Zero);
+        var end = new DateTimeOffset(new DateTime(2026, 4, 22, 11, 0, 0), TimeSpan.Zero);
+        
         var command = new CreateBookingCommand(
             providerId, Guid.NewGuid(), Guid.NewGuid(),
-            DateTimeOffset.UtcNow.AddDays(1).Date.AddHours(10),
-            DateTimeOffset.UtcNow.AddDays(1).Date.AddHours(11));
+            start, end);
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
         var schedule = ProviderSchedule.Create(providerId);
         schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
-            [TimeSlot.Create(command.Start.Date.AddHours(8), command.Start.Date.AddHours(18))]));
+            [TimeSlot.Create(start.UtcDateTime.Date.AddHours(8), start.UtcDateTime.Date.AddHours(18))]));
         
         _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
@@ -62,10 +63,12 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     public async Task HandleAsync_Should_Fail_When_EndBeforeStart()
     {
         // Arrange
+        var start = new DateTimeOffset(new DateTime(2026, 4, 22, 11, 0, 0), TimeSpan.Zero);
+        var end = new DateTimeOffset(new DateTime(2026, 4, 22, 10, 0, 0), TimeSpan.Zero);
+
         var command = new CreateBookingCommand(
             Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-            DateTimeOffset.UtcNow.AddHours(2),
-            DateTimeOffset.UtcNow.AddHours(1));
+            start, end);
 
         // Act
         var result = await _sut.HandleAsync(command);
@@ -73,21 +76,92 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(400);
+        result.Error!.Message.Should().Contain("término deve ser após");
     }
 
     [Fact]
-    public async Task HandleAsync_Should_Fail_When_ProviderNotFound()
+    public async Task HandleAsync_Should_Fail_When_ProviderHasNoSchedule()
     {
         // Arrange
-        var command = new CreateBookingCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
-        _providersApiMock.Setup(x => x.ProviderExistsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Success(false));
+        var providerId = Guid.NewGuid();
+        var start = new DateTimeOffset(new DateTime(2026, 4, 22, 10, 0, 0), TimeSpan.Zero);
+        var end = new DateTimeOffset(new DateTime(2026, 4, 22, 11, 0, 0), TimeSpan.Zero);
+        
+        var command = new CreateBookingCommand(providerId, Guid.NewGuid(), Guid.NewGuid(), start, end);
+
+        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+        
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ProviderSchedule?)null);
 
         // Act
         var result = await _sut.HandleAsync(command);
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(400);
+        result.Error!.Message.Should().Contain("não possui agenda configurada");
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Fail_When_ProviderIsUnavailable()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var start = new DateTimeOffset(new DateTime(2026, 4, 22, 10, 0, 0), TimeSpan.Zero);
+        var end = new DateTimeOffset(new DateTime(2026, 4, 22, 11, 0, 0), TimeSpan.Zero);
+        
+        var command = new CreateBookingCommand(providerId, Guid.NewGuid(), Guid.NewGuid(), start, end);
+
+        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+
+        var schedule = ProviderSchedule.Create(providerId);
+        // Disponibilidade apenas das 14:00 às 18:00
+        schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
+            [TimeSlot.Create(start.UtcDateTime.Date.AddHours(14), start.UtcDateTime.Date.AddHours(18))]));
+        
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(schedule);
+
+        // Act
+        var result = await _sut.HandleAsync(command);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(400);
+        result.Error!.Message.Should().Contain("indisponível");
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Fail_When_OverlapDetectedByRepo()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var start = new DateTimeOffset(new DateTime(2026, 4, 22, 10, 0, 0), TimeSpan.Zero);
+        var end = new DateTimeOffset(new DateTime(2026, 4, 22, 11, 0, 0), TimeSpan.Zero);
+        
+        var command = new CreateBookingCommand(providerId, Guid.NewGuid(), Guid.NewGuid(), start, end);
+
+        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+
+        var schedule = ProviderSchedule.Create(providerId);
+        schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
+            [TimeSlot.Create(start.UtcDateTime.Date.AddHours(8), start.UtcDateTime.Date.AddHours(18))]));
+        
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(schedule);
+
+        _bookingRepoMock.Setup(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Failure(Error.Conflict("Overlap")));
+
+        // Act
+        var result = await _sut.HandleAsync(command);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(409);
     }
 }

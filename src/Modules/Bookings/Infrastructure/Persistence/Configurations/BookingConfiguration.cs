@@ -66,12 +66,10 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .HasColumnType("timestamptz");
 
         // Índices otimizados para busca de sobreposição e listagem
-        // Usamos um índice filtrado para ignorar reservas canceladas/rejeitadas nas verificações de conflito
-        builder.HasIndex(b => new { b.ProviderId, b.Status, b.Id })
-            .IncludeProperties(b => new { b.CreatedAt }) // Exemplo de uso de include se suportado pelo provider
-            .HasFilter("status NOT IN ('Cancelled', 'Rejected')")
-            .HasDatabaseName("ix_bookings_provider_active_status");
-
+        // Para indexar campos de owned types, devemos usar o builder.OwnsOne e configurar o index dentro dele ou referenciar as propriedades via string se já configuradas.
+        // A forma mais robusta é usar as propriedades mapeadas.
+        builder.HasIndex(b => new { b.ProviderId, b.Status });
+        
         builder.HasIndex(b => b.ClientId);
         builder.HasIndex(b => b.Status);
     }

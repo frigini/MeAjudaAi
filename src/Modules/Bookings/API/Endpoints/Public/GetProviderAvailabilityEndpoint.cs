@@ -20,7 +20,7 @@ public class GetProviderAvailabilityEndpoint : IEndpoint
             [FromServices] IQueryDispatcher dispatcher,
             CancellationToken cancellationToken) =>
         {
-            var query = new GetProviderAvailabilityQuery(providerId, date);
+            var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
             var result = await dispatcher.QueryAsync<GetProviderAvailabilityQuery, Result<AvailabilityDto>>(query, cancellationToken);
 
             return result.Match(
