@@ -13,6 +13,7 @@ public sealed class Booking : BaseEntity
     public EBookingStatus Status { get; private set; }
     public string? RejectionReason { get; private set; }
     public string? CancellationReason { get; private set; }
+    public uint Version { get; private set; } // For optimistic concurrency
 
     private Booking() { } // Required by EF Core
 

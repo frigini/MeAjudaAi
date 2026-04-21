@@ -15,7 +15,6 @@ public abstract class BaseEntity
     public Guid Id { get; protected set; } = UuidGenerator.NewId();
     public DateTime CreatedAt { get; protected set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; protected set; }
-    public int Version { get; protected set; } // For optimistic concurrency
 
     private readonly List<IDomainEvent> _domainEvents = [];
     public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
