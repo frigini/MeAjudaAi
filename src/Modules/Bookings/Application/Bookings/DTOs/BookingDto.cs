@@ -7,8 +7,8 @@ public record BookingDto(
     Guid ProviderId,
     Guid ClientId,
     Guid ServiceId,
-    DateTime Start,
-    DateTime End,
+    DateTimeOffset Start,
+    DateTimeOffset End,
     EBookingStatus Status,
     string? RejectionReason = null,
     string? CancellationReason = null);

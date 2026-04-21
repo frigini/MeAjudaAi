@@ -92,8 +92,8 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
             }
             
             // Tratamento robusto para erros de serialização do PostgreSQL (40001) ou Deadlocks (40P01)
-            if (ex is PostgresException pgExDirect && (pgExDirect.SqlState == "40001" || pgExDirect.SqlState == "40P01") ||
-                ex.InnerException is PostgresException pgExInner && (pgExInner.SqlState == "40001" || pgExInner.SqlState == "40P01"))
+            if (ex is PostgresException { SqlState: "40001" or "40P01" } ||
+                ex.InnerException is PostgresException { SqlState: "40001" or "40P01" })
             {
                 return Result.Failure(Error.Conflict("Conflito de concorrência ao validar agendamento. Tente novamente em instantes."));
             }
@@ -113,21 +113,5 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
         {
             throw new ConcurrencyConflictException("O agendamento foi modificado por outro usuário. Por favor, recarregue os dados.", ex);
         }
-    }
-
-    [Obsolete("Use AddIfNoOverlapAsync para verificações atômicas de sobreposição e inserção.")]
-    public async Task<bool> HasOverlapAsync(Guid providerId, DateTime start, DateTime end, CancellationToken cancellationToken = default)
-    {
-        var startTime = TimeOnly.FromDateTime(start);
-        var endTime = TimeOnly.FromDateTime(end);
-
-        return await context.Bookings
-            .AnyAsync(b => 
-                b.ProviderId == providerId &&
-                b.Status != EBookingStatus.Cancelled &&
-                b.Status != EBookingStatus.Rejected &&
-                b.TimeSlot.Start < endTime &&
-                startTime < b.TimeSlot.End,
-                cancellationToken);
     }
 }

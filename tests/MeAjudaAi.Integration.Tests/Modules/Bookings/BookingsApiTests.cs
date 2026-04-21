@@ -27,9 +27,10 @@ public class BookingsApiTests : BaseApiTest
         // Arrange
         var providerId = await CreateTestProviderAsync();
         await CreateTestScheduleAsync(providerId);
-        
+
         var serviceId = Guid.NewGuid();
-        var start = DateTimeOffset.UtcNow.AddDays(1).Date.AddHours(10);
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var start = tomorrow.ToDateTime(new TimeOnly(10, 0));
         var request = new CreateBookingRequest(
             providerId,
             serviceId,
@@ -55,7 +56,7 @@ public class BookingsApiTests : BaseApiTest
         // Arrange
         var providerId = await CreateTestProviderAsync();
         await CreateTestScheduleAsync(providerId);
-        var date = DateTime.UtcNow.AddDays(1).ToString("yyyy-MM-dd");
+        var date = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1).ToString("yyyy-MM-dd");
 
         AuthConfig.ConfigureRegularUser("client-id");
         Client.AsUser();
@@ -69,6 +70,7 @@ public class BookingsApiTests : BaseApiTest
         availability.Should().NotBeNull();
         availability!.Slots.Should().NotBeEmpty();
     }
+
 
     private async Task<Guid> CreateTestProviderAsync()
     {

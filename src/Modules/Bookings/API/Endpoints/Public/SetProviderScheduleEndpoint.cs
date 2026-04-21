@@ -42,10 +42,17 @@ public class SetProviderScheduleEndpoint : IEndpoint
             {
                 // Tenta resolver o ProviderId pelo UserId se o claim de provider não estiver presente
                 var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
-                if (providerResult.IsFailure || providerResult.Value == null)
+                
+                if (providerResult.IsFailure)
+                {
+                    return Results.Problem(providerResult.Error.Message, statusCode: providerResult.Error.StatusCode);
+                }
+
+                if (providerResult.Value == null)
                 {
                     return Results.Forbid();
                 }
+
                 targetProviderId = providerResult.Value.Id;
             }
             else
@@ -55,7 +62,7 @@ public class SetProviderScheduleEndpoint : IEndpoint
 
             if (targetProviderId == Guid.Empty)
             {
-                return Results.BadRequest(new { error = "ProviderId inválido ou ausente." });
+                return Results.Problem("ProviderId inválido ou ausente.", statusCode: StatusCodes.Status400BadRequest);
             }
 
             var command = new SetProviderScheduleCommand(
@@ -75,6 +82,7 @@ public class SetProviderScheduleEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status403Forbidden)
+        .ProducesProblem(StatusCodes.Status404NotFound)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("SetProviderSchedule")
         .WithSummary("Define a agenda de horários de trabalho de um prestador.");

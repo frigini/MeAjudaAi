@@ -53,15 +53,16 @@ public sealed class CreateBookingCommandHandler(
 
         // Converte o início para o fuso horário local do prestador para validar DayOfWeek corretamente
         DateTime localStartTime;
+        TimeZoneInfo tz;
         try
         {
-            var tz = TimeZoneInfo.FindSystemTimeZoneById(schedule.TimeZoneId);
+            tz = TimeZoneInfo.FindSystemTimeZoneById(schedule.TimeZoneId);
             localStartTime = TimeZoneInfo.ConvertTimeFromUtc(command.Start.UtcDateTime, tz);
         }
         catch (Exception ex) when (ex is TimeZoneNotFoundException or InvalidTimeZoneException)
         {
-            logger.LogWarning(ex, "TimeZoneId {TimeZoneId} not found. Falling back to UTC.", schedule.TimeZoneId);
-            localStartTime = command.Start.UtcDateTime;
+            logger.LogError(ex, "Invalid timezone {TimeZoneId} for provider {ProviderId}", schedule.TimeZoneId, command.ProviderId);
+            return Result<BookingDto>.Failure(Error.BadRequest("Erro na configuração de fuso horário do prestador."));
         }
 
         var duration = command.End - command.Start;
@@ -97,8 +98,8 @@ public sealed class CreateBookingCommandHandler(
             booking.ProviderId,
             booking.ClientId,
             booking.ServiceId,
-            date.ToDateTime(booking.TimeSlot.Start),
-            date.ToDateTime(booking.TimeSlot.End),
+            new DateTimeOffset(date.ToDateTime(booking.TimeSlot.Start), tz.GetUtcOffset(date.ToDateTime(booking.TimeSlot.Start))),
+            new DateTimeOffset(date.ToDateTime(booking.TimeSlot.End), tz.GetUtcOffset(date.ToDateTime(booking.TimeSlot.End))),
             booking.Status);
     }
 }

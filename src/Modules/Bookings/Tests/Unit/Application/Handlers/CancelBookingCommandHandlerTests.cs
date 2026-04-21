@@ -34,7 +34,8 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var clientId = Guid.NewGuid();
-        var booking = Booking.Create(Guid.NewGuid(), clientId, Guid.NewGuid(), new DateOnly(2026, 4, 22),
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var booking = Booking.Create(Guid.NewGuid(), clientId, Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
         _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
@@ -52,16 +53,61 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
     }
 
     [Fact]
-    public async Task HandleAsync_Should_Fail_When_UserIsNotAuthorized()
+    public async Task HandleAsync_Should_Cancel_When_UserIsProviderOwner()
     {
         // Arrange
-        var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), new DateOnly(2026, 4, 22),
+        var providerId = Guid.NewGuid();
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
         _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        SetupUser(Guid.NewGuid(), null); // Random user
+        SetupUser(Guid.NewGuid(), providerId);
+
+        // Act
+        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Provider Reason", Guid.NewGuid()));
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        booking.Status.Should().Be(Contracts.Bookings.Enums.EBookingStatus.Cancelled);
+        _bookingRepoMock.Verify(x => x.UpdateAsync(booking, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Fail_When_UserIsNotAuthorized()
+    {
+        // Arrange
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), tomorrow,
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        
+        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        SetupUser(Guid.NewGuid(), null); // Usuário aleatório
+
+        // Act
+        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Reason", Guid.NewGuid()));
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(403);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Fail_When_UserIsDifferentProvider()
+    {
+        // Arrange
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), tomorrow,
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        
+        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        SetupUser(Guid.NewGuid(), Guid.NewGuid()); // Outro prestador
 
         // Act
         var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Reason", Guid.NewGuid()));
@@ -75,13 +121,14 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
     public async Task HandleAsync_Should_Succeed_When_UserIsSystemAdmin()
     {
         // Arrange
-        var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), new DateOnly(2026, 4, 22),
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
         _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        // Setup Admin
+        // Configura Admin
         var claims = new List<Claim>
         {
             new(AuthConstants.Claims.Subject, Guid.NewGuid().ToString()),
@@ -104,7 +151,8 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var clientId = Guid.NewGuid();
-        var booking = Booking.Create(Guid.NewGuid(), clientId, Guid.NewGuid(), new DateOnly(2026, 4, 22),
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var booking = Booking.Create(Guid.NewGuid(), clientId, Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
         _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
@@ -127,7 +175,7 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
     public async Task HandleAsync_Should_ReturnUnauthorized_When_UserNotAuthenticated()
     {
         // Arrange
-        _httpContextMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext()); // No User
+        _httpContextMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext()); // Sem usuário
 
         // Act
         var result = await _sut.HandleAsync(new CancelBookingCommand(Guid.NewGuid(), "Reason", Guid.NewGuid()));

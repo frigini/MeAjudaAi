@@ -18,9 +18,4 @@ public interface IBookingRepository
     Task<Result> AddIfNoOverlapAsync(Booking booking, CancellationToken cancellationToken = default);
     
     Task UpdateAsync(Booking booking, CancellationToken cancellationToken = default);
-    
-    /// <summary>
-    /// Verifica se há sobreposição de agendamentos para um prestador em um determinado intervalo.
-    /// </summary>
-    Task<bool> HasOverlapAsync(Guid providerId, DateTime start, DateTime end, CancellationToken cancellationToken = default);
 }
