@@ -4,6 +4,18 @@ Este documento contém o registro de todas as sprints concluídas para fins de a
 
 ---
 
+## ✅ Sprint 12 - Bookings & Messaging Excellence (Concluída em 21 Abr 2026)
+
+**Objetivo**: Implementar o sistema de agendamentos e consolidar a infraestrutura de mensageria com Rebus.
+
+### Entregas:
+- ✅ **Bookings Module**: Implementação completa (Backend/Frontend) de agendamentos com gestão de disponibilidade do prestador e fluxo de reserva do cliente.
+- ✅ **Messaging Excellence**: Migração final para Rebus v3 e implementação de atributos `[DedicatedTopic]`, `[HighVolumeEvent]` e `[CriticalEvent]` para roteamento avançado.
+- ✅ **Qualidade**: Cobertura total de testes unitários, integração e arquitetura para o novo módulo.
+- ✅ **API & Contratos**: Padronização de enums (`EBookingStatus`) e exposição via Minimal APIs com autorização.
+
+---
+
 ## ✅ Sprint 11 - Monetização & Polimento (Concluída em 15 Abr 2026)
 
 **Objetivo**: Habilitar o faturamento da plataforma e finalizar a experiência do usuário.

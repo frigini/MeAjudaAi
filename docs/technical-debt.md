@@ -13,15 +13,6 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 
 - [ ] Perfilagem de memória em produção
 
-### 🚀 Infraestrutura & Messaging
-
-**Severidade**: MÉDIA  
-**Sprint**: Sprint 12 (EM ANDAMENTO)
-
-- [x] Migração para Rebus: Implementação do `RebusMessageBus` concluída; infra RabbitMQ direta (stubs) a ser removida.
-- [ ] Consolidação: Remover totalmente o uso direto de `RabbitMQ.Client` (RabbitMqInfrastructureManager e handlers) em favor da abstração `IMessageBus`.
-- [ ] Validação: Certificar que o .NET 10 e `Rebus.ServiceProvider` (v10+) operam estavelmente sob carga.
-
 ### 🎨 Melhorias de UI/UX
 
 **Severidade**: BAIXA  
@@ -36,6 +27,11 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 ---
 
 ## 📋 Histórico
+
+### 🚀 Infraestrutura & Messaging (Migração Rebus v3)
+
+**Resolvido em**: Abr 2026 (Sprint 12) | **Severidade original**: MÉDIA  
+Migração para Rebus v3 concluída. Implementação do `RebusMessageBus` como abstração principal (`IMessageBus`) e remoção do uso direto de `RabbitMQ.Client` nos módulos. Introdução de atributos de roteamento avançado (`[DedicatedTopic]`, `[HighVolumeEvent]`, `[CriticalEvent]`) e convenções customizadas.
 
 ### ⚠️ Hangfire + Npgsql 10.x Compatibility Risk
 
