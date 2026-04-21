@@ -156,6 +156,7 @@ export function ScheduleManager() {
                                                 variant="ghost" 
                                                 size="sm" 
                                                 onClick={() => removeSlot(dayInfo.id, index)}
+                                                aria-label="Remover"
                                                 className="h-8 w-8 p-0 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                                             >
                                                 <Trash2 className="h-4 w-4" />
