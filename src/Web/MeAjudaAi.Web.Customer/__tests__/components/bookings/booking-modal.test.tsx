@@ -18,9 +18,13 @@ vi.mock("sonner", () => ({
   },
 }));
 
-// Mock fetch
-const globalFetch = vi.fn();
-global.fetch = globalFetch;
+// Mock Lucide components (prevents ESM issues in some environments)
+vi.mock("lucide-react", () => ({
+  X: () => <div data-testid="icon-x" />,
+  Calendar: () => <div data-testid="icon-calendar" />,
+  Clock: () => <div data-testid="icon-clock" />,
+  Loader2: () => <div data-testid="icon-loader" />,
+}));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,17 +56,23 @@ describe("BookingModal", () => {
       },
       status: "authenticated",
     });
+
+    // Mock global fetch
+    global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ slots: [] })
+    });
   });
 
-  it("should render trigger button", () => {
+  it("should render trigger button with default text", () => {
     render(<BookingModal {...defaultProps} />, { wrapper });
-    expect(screen.getByText("Solicitar Agendamento")).toBeDefined();
+    expect(screen.getByText("Agendar Horário")).toBeDefined();
   });
 
   it("should open modal when trigger is clicked", async () => {
     render(<BookingModal {...defaultProps} />, { wrapper });
     
-    const trigger = screen.getByText("Solicitar Agendamento");
+    const trigger = screen.getByText("Agendar Horário");
     fireEvent.click(trigger);
     
     await waitFor(() => {
@@ -70,35 +80,34 @@ describe("BookingModal", () => {
     });
   });
 
-  it("should display available slots when loaded", async () => {
+  it("should display available slots when loaded from API", async () => {
     const mockAvailability = {
-      dayOfWeek: "Monday",
       slots: [
         { start: "2026-04-22T10:00:00Z", end: "2026-04-22T11:00:00Z" }
       ]
     };
 
-    globalFetch.mockResolvedValueOnce({
+    (global.fetch as any).mockResolvedValueOnce({
       ok: true,
       json: async () => mockAvailability,
     });
 
     render(<BookingModal {...defaultProps} />, { wrapper });
-    fireEvent.click(screen.getByText("Solicitar Agendamento"));
+    fireEvent.click(screen.getByText("Agendar Horário"));
 
     await waitFor(() => {
-      expect(screen.getByText("10:00 - 11:00")).toBeDefined();
+      expect(screen.getByText("10:00")).toBeDefined();
     });
   });
 
-  it("should call create booking API when a slot is clicked", async () => {
+  it("should call create booking API when confirmed", async () => {
     const mockAvailability = {
       slots: [
-        { start: "2026-04-22T10:00:00Z", end: "2026-04-22T11:00:00Z" }
+        { start: "2026-04-22T10:00:00", end: "2026-04-22T11:00:00" }
       ]
     };
 
-    globalFetch
+    (global.fetch as any)
       .mockResolvedValueOnce({
         ok: true,
         json: async () => mockAvailability,
@@ -109,20 +118,34 @@ describe("BookingModal", () => {
       });
 
     render(<BookingModal {...defaultProps} />, { wrapper });
-    fireEvent.click(screen.getByText("Solicitar Agendamento"));
+    fireEvent.click(screen.getByText("Agendar Horário"));
 
-    const slotBtn = await waitFor(() => screen.getByText("10:00 - 11:00"));
+    const slotBtn = await waitFor(() => screen.getByText("10:00"));
     fireEvent.click(slotBtn);
 
     const confirmBtn = screen.getByText("Confirmar Agendamento");
     fireEvent.click(confirmBtn);
 
     await waitFor(() => {
-      expect(globalFetch).toHaveBeenCalledWith(
+      expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/v1/bookings"),
         expect.objectContaining({ method: "POST" })
       );
       expect(toast.success).toHaveBeenCalled();
+    });
+  });
+
+  it("should show empty state when no slots available", async () => {
+    (global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ slots: [] }),
+    });
+
+    render(<BookingModal {...defaultProps} />, { wrapper });
+    fireEvent.click(screen.getByText("Agendar Horário"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Nenhum horário disponível para esta data.")).toBeDefined();
     });
   });
 });

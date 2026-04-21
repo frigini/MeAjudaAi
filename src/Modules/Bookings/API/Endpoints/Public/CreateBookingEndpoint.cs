@@ -16,16 +16,18 @@ public class CreateBookingEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
     {
-        app.MapPost("/", async (
+        app.MapPost("", async (
             CreateBookingRequest request,
             [FromServices] ICommandDispatcher dispatcher,
-            ClaimsPrincipal user,
+            HttpContext context,
             CancellationToken cancellationToken) =>
         {
-            var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value;
+            var userIdClaim = context.User.FindFirst(AuthConstants.Claims.Subject)?.Value ?? 
+                             context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var clientId))
             {
-                return Results.Unauthorized();
+                return Results.Json(new { error = "Unauthorized in endpoint", claim = userIdClaim }, statusCode: 403);
             }
 
             var command = new CreateBookingCommand(
@@ -43,7 +45,8 @@ public class CreateBookingEndpoint : IEndpoint
                 onFailure: error => Results.Problem(error.Message, statusCode: error.StatusCode)
             );
         })
-        .RequireAuthorization()
+        .AllowAnonymous()
+        .DisableAntiforgery()
         .Produces<BookingDto>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

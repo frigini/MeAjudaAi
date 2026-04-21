@@ -8,6 +8,9 @@ using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
+using Moq;
+using FluentAssertions;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
@@ -66,6 +69,22 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(403);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Fail_When_BookingNotFound()
+    {
+        // Arrange
+        _bookingRepoMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Booking?)null);
+        SetupUser(Guid.NewGuid(), null);
+
+        // Act
+        var result = await _sut.HandleAsync(new CancelBookingCommand(Guid.NewGuid(), "Reason", Guid.NewGuid()));
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(404);
     }
 
     private void SetupUser(Guid userId, Guid? providerId)
