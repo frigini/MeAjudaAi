@@ -74,12 +74,12 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
     {
         var claims = new List<Claim>
         {
-            new(AuthConstants.Claims.ProviderId, providerId.ToString())
+            new(AuthConstants.Claims.ProviderId, providerId.ToString()),
+            new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
         };
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);
         var context = new DefaultHttpContext { User = principal };
         _httpContextMock.Setup(x => x.HttpContext).Returns(context);
-        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())); // ensure authenticated
     }
 }
