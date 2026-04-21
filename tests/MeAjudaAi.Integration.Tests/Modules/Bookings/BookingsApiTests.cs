@@ -37,7 +37,7 @@ public class BookingsApiTests : BaseApiTest
             new DateTimeOffset(start, TimeSpan.Zero),
             new DateTimeOffset(start.AddHours(1), TimeSpan.Zero));
 
-        AuthConfig.ConfigureRegularUser("client-id");
+        AuthConfig.ConfigureRegularUser(Guid.NewGuid().ToString());
         Client.AsTestInstance();
 
         // Act
