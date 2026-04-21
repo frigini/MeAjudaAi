@@ -2127,6 +2127,7 @@
           "MeAjudaAi.ApiService": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.AspNetCore.Mvc.Testing": "[10.0.6, )",
+          "Microsoft.EntityFrameworkCore.InMemory": "[10.0.6, )",
           "Microsoft.Extensions.Hosting": "[10.0.6, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.6, )",
           "Microsoft.Extensions.TimeProvider.Testing": "[10.5.0, )",
