@@ -38,7 +38,7 @@ public class BookingsApiTests : BaseApiTest
             new DateTimeOffset(start.AddHours(1), TimeSpan.Zero));
 
         AuthConfig.ConfigureRegularUser("client-id");
-        Client.AsUser();
+        Client.AsTestInstance();
 
         // Act
         var response = await Client.PostAsJsonAsync("/api/v1/bookings", request);
@@ -56,15 +56,22 @@ public class BookingsApiTests : BaseApiTest
         // Arrange
         var providerId = await CreateTestProviderAsync();
         await CreateTestScheduleAsync(providerId);
-        var date = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1).ToString("yyyy-MM-dd");
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var dateString = tomorrow.ToString("yyyy-MM-dd");
 
         AuthConfig.ConfigureRegularUser("client-id");
-        Client.AsUser();
+        Client.AsTestInstance();
 
         // Act
-        var response = await Client.GetAsync($"/api/v1/bookings/availability/{providerId}?date={date}");
+        var response = await Client.GetAsync($"/api/v1/bookings/availability/{providerId}?date={dateString}");
 
         // Assert
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Failed with status {response.StatusCode} and content: {error}");
+        }
+
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var availability = await ReadJsonAsync<AvailabilityDto>(response.Content);
         availability.Should().NotBeNull();
