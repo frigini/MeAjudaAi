@@ -4,6 +4,18 @@ Este documento contém o registro de todas as sprints concluídas para fins de a
 
 ---
 
+## ✅ Sprint 11 - Monetização & Polimento (Concluída em 15 Abr 2026)
+
+**Objetivo**: Habilitar o faturamento da plataforma e finalizar a experiência do usuário.
+
+### Entregas:
+- ✅ **Payments Module**: Implementação de assinaturas (Stripe), webhooks, billing portal e renovações automáticas com padrão ACL.
+- ✅ **Localização Frontend**: Suporte completo a i18n (PT-BR/EN-US) no Customer App, incluindo formulários e erros.
+- ✅ **UX Polish**: Implementação de skeleton loaders animados para melhor percepção de performance.
+- ✅ **Qualidade**: Cobertura de testes unitários e de integração para todos os fluxos críticos de pagamento e localização.
+
+---
+
 ## ✅ Sprint 10 - Qualidade & Onboarding (Concluída em 14 Abr 2026)
 
 **Objetivo**: Estabelecer confiança na plataforma através de avaliações e simplificar o acesso de novos prestadores.

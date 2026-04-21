@@ -16,9 +16,11 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 ### 🚀 Infraestrutura & Messaging
 
 **Severidade**: MÉDIA  
-**Sprint**: Backlog
+**Sprint**: Sprint 12 (EM ANDAMENTO)
 
-- [ ] Avaliar migração para Rebus v3 ou alternativa de Enterprise Service Bus (ESB) assim que a compatibilidade com .NET 10 e `Rebus.ServiceProvider` (v10+) for estabilizada. Atualmente, o sistema utiliza `RabbitMQ.Client` diretamente com middleware de retry customizado.
+- [x] Migração para Rebus: Implementação do `RebusMessageBus` concluída.
+- [ ] Consolidação: Remover totalmente o uso direto de `RabbitMQ.Client` nos handlers de eventos em favor da abstração `IMessageBus`.
+- [ ] Validação: Certificar que o .NET 10 e `Rebus.ServiceProvider` (v10+) operam estavelmente sob carga.
 
 ### 🎨 Melhorias de UI/UX
 
