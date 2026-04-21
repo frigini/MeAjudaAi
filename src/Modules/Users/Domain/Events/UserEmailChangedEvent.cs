@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Users.Domain.Events;
 
@@ -15,6 +16,7 @@ namespace MeAjudaAi.Modules.Users.Domain.Events;
 /// <param name="Version">Versão do agregado quando o evento ocorreu</param>
 /// <param name="OldEmail">Endereço de email anterior</param>
 /// <param name="NewEmail">Novo endereço de email</param>
+[ExcludeFromCodeCoverage]
 public record UserEmailChangedEvent(
     Guid AggregateId,
     int Version,

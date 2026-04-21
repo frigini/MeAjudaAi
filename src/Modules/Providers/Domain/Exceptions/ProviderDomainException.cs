@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Exceptions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Domain.Exceptions;
 
@@ -9,6 +10,7 @@ namespace MeAjudaAi.Modules.Providers.Domain.Exceptions;
 /// Esta exceção é lançada quando regras de negócio específicas do domínio
 /// de prestadores de serviços são violadas durante operações de domínio.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public class ProviderDomainException : DomainException
 {
     /// <summary>

@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Documents.Domain.Events;
 
@@ -11,6 +12,7 @@ namespace MeAjudaAi.Modules.Documents.Domain.Events;
 /// <param name="ProviderId">Identificador do prestador que enviou o documento</param>
 /// <param name="DocumentType">Tipo do documento enviado</param>
 /// <param name="FileUrl">URL do arquivo armazenado</param>
+[ExcludeFromCodeCoverage]
 public record DocumentUploadedDomainEvent(
     Guid AggregateId,
     int Version,

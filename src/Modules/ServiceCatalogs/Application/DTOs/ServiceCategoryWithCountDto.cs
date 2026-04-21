@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 
 /// <summary>
 /// DTO para categoria com a contagem de seus serviços.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record ServiceCategoryWithCountDto(
     Guid Id,
     string Name,

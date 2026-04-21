@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Modules.Providers.Application.DTOs;
 
 /// <summary>
 /// DTO para endereço.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record AddressDto(
     string Street,
     string Number,

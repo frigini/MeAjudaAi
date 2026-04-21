@@ -14,3 +14,4 @@ public sealed record CreateAllowedCityCommand(
     double Longitude = 0,
     double ServiceRadiusKm = 0,
     bool IsActive = true) : Command<Result<Guid>>;
+

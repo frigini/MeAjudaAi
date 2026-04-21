@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Documents.Domain.Events;
 
@@ -11,6 +12,7 @@ namespace MeAjudaAi.Modules.Documents.Domain.Events;
 /// <param name="ProviderId">Identificador do prestador</param>
 /// <param name="DocumentType">Tipo do documento rejeitado</param>
 /// <param name="RejectionReason">Motivo da rejeição</param>
+[ExcludeFromCodeCoverage]
 public record DocumentRejectedDomainEvent(
     Guid AggregateId,
     int Version,

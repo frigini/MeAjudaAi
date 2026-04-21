@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Shared.Exceptions;
 
 /// <summary>
@@ -15,6 +16,7 @@ namespace MeAjudaAi.Shared.Exceptions;
 /// - 400: Erros de formato/estrutura (campo obrigatório faltando, tipo errado, JSON inválido)
 /// - 422: Erros semânticos/regras de negócio (categoria não existe, transição inválida)
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public class UnprocessableEntityException : Exception
 {
     /// <summary>

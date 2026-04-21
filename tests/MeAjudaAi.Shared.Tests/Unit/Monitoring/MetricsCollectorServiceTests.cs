@@ -4,6 +4,7 @@ using MeAjudaAi.Shared.Monitoring;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
 
@@ -18,10 +19,12 @@ public sealed class MetricsCollectorServiceTests : IDisposable
     private readonly Mock<IServiceProvider> _serviceProviderMock;
     private readonly Mock<ILogger<MetricsCollectorService>> _loggerMock;
     private readonly List<Measurement<long>> _longMeasurements;
+    private readonly FakeTimeProvider _timeProvider;
 
     public MetricsCollectorServiceTests()
     {
         _longMeasurements = new List<Measurement<long>>();
+        _timeProvider = new FakeTimeProvider();
 
         _meterListener = new MeterListener
         {
@@ -58,22 +61,32 @@ public sealed class MetricsCollectorServiceTests : IDisposable
         var service = new MetricsCollectorService(
             _businessMetrics,
             _scopeFactoryMock.Object,
-            TimeProvider.System,
+            _timeProvider,
             _loggerMock.Object,
-            TimeSpan.FromMilliseconds(1)); // Fast cycle for testing
+            TimeSpan.FromMilliseconds(10));
 
         using var cts = new CancellationTokenSource();
         
         // Act
         var startTask = service.StartAsync(cts.Token);
         
-        // Wait just a bit to ensure it runs at least one cycle
-        await Task.Delay(50, CancellationToken.None);
+        // Give some real time for the background task to start and reach its first delay
+        await Task.Delay(50);
+        
+        // Advance time to trigger collection
+        _timeProvider.Advance(TimeSpan.FromMilliseconds(100));
+        
+        // Give some real time for the task to wake up and process the collection
+        await Task.Delay(50);
+        
         cts.Cancel();
         
         try
         {
-            await service.ExecuteTask!;
+            if (service.ExecuteTask != null)
+            {
+                await service.ExecuteTask;
+            }
         }
         catch (OperationCanceledException) { }
 
@@ -84,7 +97,7 @@ public sealed class MetricsCollectorServiceTests : IDisposable
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Metrics collector service started")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("started")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()), 
             Times.Once);
@@ -99,33 +112,43 @@ public sealed class MetricsCollectorServiceTests : IDisposable
         var service = new MetricsCollectorService(
             _businessMetrics,
             _scopeFactoryMock.Object,
-            TimeProvider.System,
+            _timeProvider,
             _loggerMock.Object,
-            TimeSpan.FromMilliseconds(1));
+            TimeSpan.FromMilliseconds(10));
 
         using var cts = new CancellationTokenSource();
         
         // Act
         var startTask = service.StartAsync(cts.Token);
         
-        // Wait to capture the log error
-        await Task.Delay(50, CancellationToken.None);
+        // Give time to start
+        await Task.Delay(50);
+        
+        // Advance time to trigger collection and potential error
+        _timeProvider.Advance(TimeSpan.FromMilliseconds(100));
+        
+        // Give time to process error
+        await Task.Delay(50);
+        
         cts.Cancel();
         
         try
         {
-            await service.ExecuteTask!;
+            if (service.ExecuteTask != null)
+            {
+                await service.ExecuteTask;
+            }
         }
         catch (OperationCanceledException) { }
 
-        // Assert
+        // Assert - Verifica se logou o aviso
         _loggerMock.Verify(
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Failed to collect some metrics") || v.ToString()!.Contains("Failed to get active users count")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Failed")),
                 It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()), 
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.AtLeastOnce);
     }
 

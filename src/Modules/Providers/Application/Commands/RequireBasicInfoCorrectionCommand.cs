@@ -15,3 +15,4 @@ public sealed record RequireBasicInfoCorrectionCommand(
     string Reason,
     string RequestedBy
 ) : Command<Result>;
+

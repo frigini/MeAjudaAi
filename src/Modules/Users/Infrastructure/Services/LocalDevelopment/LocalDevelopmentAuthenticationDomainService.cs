@@ -3,6 +3,7 @@ using System.Text;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.Services.Models;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Services.LocalDevelopment;
 
@@ -32,7 +33,7 @@ internal class LocalDevelopmentAuthenticationDomainService : IAuthenticationDoma
                 AccessToken: $"mock_token_{deterministicUserId}_{timestamp}",
                 RefreshToken: $"mock_refresh_{deterministicUserId}_{timestamp}",
                 ExpiresAt: DateTime.UtcNow.AddHours(1),
-                Roles: ["customer"]
+                Roles: [RoleConstants.Customer]
             );
             return Task.FromResult(Result<AuthenticationResult>.Success(result));
         }
@@ -59,7 +60,7 @@ internal class LocalDevelopmentAuthenticationDomainService : IAuthenticationDoma
                 // Use o userId extraído do token
                 var result = new TokenValidationResult(
                     UserId: userId,
-                    Roles: ["customer"],
+                    Roles: [RoleConstants.Customer],
                     Claims: new Dictionary<string, object> { ["sub"] = userId.ToString() }
                 );
                 return Task.FromResult(Result<TokenValidationResult>.Success(result));
@@ -70,7 +71,7 @@ internal class LocalDevelopmentAuthenticationDomainService : IAuthenticationDoma
                 var fallbackUserId = GenerateDeterministicGuid("fallback");
                 var result = new TokenValidationResult(
                     UserId: fallbackUserId,
-                    Roles: ["customer"],
+                    Roles: [RoleConstants.Customer],
                     Claims: new Dictionary<string, object> { ["sub"] = fallbackUserId.ToString() }
                 );
                 return Task.FromResult(Result<TokenValidationResult>.Success(result));

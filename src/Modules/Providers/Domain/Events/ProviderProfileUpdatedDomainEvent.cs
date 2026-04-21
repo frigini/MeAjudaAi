@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Domain.Events;
 
@@ -12,6 +13,7 @@ namespace MeAjudaAi.Modules.Providers.Domain.Events;
 /// <param name="Slug">Novo slug amigável para URL</param>
 /// <param name="UpdatedBy">Quem fez a atualização</param>
 /// <param name="UpdatedFields">Lista dos campos que foram atualizados</param>
+[ExcludeFromCodeCoverage]
 public record ProviderProfileUpdatedDomainEvent(
     Guid AggregateId,
     int Version,

@@ -12,12 +12,16 @@ public sealed class ReviewRejectedDomainEventHandler(
         logger.LogWarning("Review {ReviewId} for provider {ProviderId} was rejected.", 
             domainEvent.AggregateId, domainEvent.ProviderId);
             
-        var reasonPreview = domainEvent.Reason?.Length > 100 
-            ? domainEvent.Reason[..100] + "..." 
-            : domainEvent.Reason;
-            
-        logger.LogDebug("Rejection reason for Review {ReviewId}: {Reason}", 
-            domainEvent.AggregateId, reasonPreview);
+        if (!string.IsNullOrWhiteSpace(domainEvent.Reason))
+        {
+            var reason = domainEvent.Reason;
+            var reasonPreview = reason.Length > 100 
+                ? new string(new System.Globalization.StringInfo(reason).SubstringByTextElements(0, 100).ToCharArray()) + "..." 
+                : reason;
+
+            logger.LogDebug("Rejection reason for Review {ReviewId}: {Reason}", 
+                domainEvent.AggregateId, reasonPreview);
+        }
             
         return Task.CompletedTask;
     }

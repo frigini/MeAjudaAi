@@ -10,3 +10,4 @@ public sealed record ActivateProviderProfileCommand(
     Guid ProviderId,
     string? UpdatedBy = null
 ) : Command<Result>;
+

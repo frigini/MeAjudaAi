@@ -14,3 +14,4 @@ public sealed record SuspendProviderCommand(
     string SuspendedBy,
     string Reason
 ) : Command<Result>;
+

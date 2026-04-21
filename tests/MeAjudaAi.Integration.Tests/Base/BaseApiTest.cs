@@ -13,6 +13,8 @@ using MeAjudaAi.Modules.Documents.Tests;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Payments.Domain.Abstractions;
+using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Jobs;
@@ -51,8 +53,9 @@ public enum TestModule
     Locations = 1 << 4,
     SearchProviders = 1 << 5,
     Communications = 1 << 6,
-    All = Users | Providers | Documents | ServiceCatalogs | Locations | SearchProviders | Communications
-}
+    Payments = 1 << 7,
+    All = Users | Providers | Documents | ServiceCatalogs | Locations | SearchProviders | Communications | Payments
+    }
 
 /// <summary>
 /// Classe base unificada para testes de integração com suporte a autenticação baseada em instância.
@@ -166,6 +169,7 @@ public abstract class BaseApiTest : IAsyncLifetime
                     RemoveDbContextRegistrations<LocationsDbContext>(services);
                     RemoveDbContextRegistrations<SearchProvidersDbContext>(services);
                     RemoveDbContextRegistrations<CommunicationsDbContext>(services);
+                    RemoveDbContextRegistrations<PaymentsDbContext>(services);
 
                     AddTestDbContext<UsersDbContext>(services, "users", "MeAjudaAi.Modules.Users.Infrastructure");
                     AddTestDbContext<ProvidersDbContext>(services, "providers", "MeAjudaAi.Modules.Providers.Infrastructure");
@@ -174,9 +178,19 @@ public abstract class BaseApiTest : IAsyncLifetime
                     AddTestDbContext<LocationsDbContext>(services, "locations", "MeAjudaAi.Modules.Locations.Infrastructure");
                     AddTestDbContext<SearchProvidersDbContext>(services, "search_providers", "MeAjudaAi.Modules.SearchProviders.Infrastructure");
                     AddTestDbContext<CommunicationsDbContext>(services, "communications", "MeAjudaAi.Modules.Communications.Infrastructure");
+                    AddTestDbContext<PaymentsDbContext>(services, "payments", "MeAjudaAi.Modules.Payments.Infrastructure");
 
                     services.AddDocumentsTestServices(useAzurite: false);
                     services.AddSingleton<IBackgroundJobService, MockBackgroundJobService>();
+                    
+                    // Always mock IPaymentGateway to ensure no real external calls are made
+                    var paymentGatewayDescriptors = services.Where(d => d.ServiceType == typeof(IPaymentGateway)).ToList();
+                    foreach (var descriptor in paymentGatewayDescriptors) services.Remove(descriptor);
+                    services.AddScoped<IPaymentGateway, MockPaymentGateway>();
+
+                    // Register dummy Stripe client to satisfy DI validation
+                    services.AddSingleton<Stripe.IStripeClient>(new Stripe.StripeClient("sk_test_dummy"));
+                    
                     services.AddHttpContextAccessor();
 
                     if (UseMockGeographicValidation)
@@ -260,6 +274,7 @@ public abstract class BaseApiTest : IAsyncLifetime
             if (modules.HasFlag(TestModule.Documents)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<DocumentsDbContext>(), "Documents", logger);
             if (modules.HasFlag(TestModule.Providers)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<ProvidersDbContext>(), "Providers", logger);
             if (modules.HasFlag(TestModule.Communications)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<CommunicationsDbContext>(), "Communications", logger);
+            if (modules.HasFlag(TestModule.Payments)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<PaymentsDbContext>(), "Payments", logger);
             
             if (modules.HasFlag(TestModule.SearchProviders))
             {

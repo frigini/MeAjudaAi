@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Shared.Queries;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Application.Queries;
 
@@ -9,6 +10,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Queries;
 /// Query para buscar dados públicos de um prestador por ID (GUID) ou slug.
 /// Acessível sem autenticação.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record GetPublicProviderByIdOrSlugQuery(string IdOrSlug, bool IsAuthenticated = false) : Query<Result<PublicProviderDto?>>, ICacheableQuery
 {
     public string GetCacheKey() => $"provider:public:{IdOrSlug}:{(IsAuthenticated ? "auth" : "anon")}";

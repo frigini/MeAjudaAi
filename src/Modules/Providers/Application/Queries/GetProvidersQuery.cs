@@ -4,6 +4,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 
 using MeAjudaAi.Contracts.Models;
+using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Modules.Providers.Application.Queries;
 
 /// <summary>
@@ -14,6 +15,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Queries;
 /// <param name="Name">Filtro opcional por nome (busca parcial)</param>
 /// <param name="Type">Filtro opcional por tipo de prestador</param>
 /// <param name="VerificationStatus">Filtro opcional por status de verificação</param>
+[ExcludeFromCodeCoverage]
 public record GetProvidersQuery(
     int Page,
     int PageSize,

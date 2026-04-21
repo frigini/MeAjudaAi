@@ -27,6 +27,7 @@
         <Configuration>
           <Format>cobertura</Format>
           <IncludeTestAssembly>false</IncludeTestAssembly>
+          <Exclude>[*]*.Enums.*</Exclude>
         </Configuration>
       </DataCollector>
     </DataCollectors>

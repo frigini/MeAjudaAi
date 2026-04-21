@@ -1,6 +1,9 @@
 using MeAjudaAi.Modules.Documents.Domain.Enums;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Documents.Application.DTOs;
+
+[ExcludeFromCodeCoverage]
 
 public record DocumentDto(
     Guid Id,

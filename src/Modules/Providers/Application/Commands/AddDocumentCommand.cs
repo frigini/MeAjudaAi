@@ -20,3 +20,4 @@ public sealed record AddDocumentCommand(
     string? FileName = null,
     string? FileUrl = null
 ) : Command<Result<ProviderDto>>;
+

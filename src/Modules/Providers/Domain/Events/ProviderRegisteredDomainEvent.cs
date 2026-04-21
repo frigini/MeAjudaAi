@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Domain.Events;
 
@@ -18,6 +19,7 @@ namespace MeAjudaAi.Modules.Providers.Domain.Events;
 /// <param name="Type">Tipo do prestador de serviços</param>
 /// <param name="Email">Email de contato do prestador de serviços</param>
 /// <param name="Slug">Slug amigável para URL</param>
+[ExcludeFromCodeCoverage]
 public record ProviderRegisteredDomainEvent(
     Guid AggregateId,
     int Version,

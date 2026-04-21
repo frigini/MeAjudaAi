@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace MeAjudaAi.Shared.Messaging.DeadLetter;
@@ -5,6 +6,7 @@ namespace MeAjudaAi.Shared.Messaging.DeadLetter;
 /// <summary>
 /// Informações sobre uma mensagem que falhou durante o processamento
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class FailedMessageInfo
 {
     /// <summary>
@@ -71,6 +73,7 @@ public sealed class FailedMessageInfo
 /// <summary>
 /// Informações sobre uma tentativa de processamento que falhou
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class FailureAttempt
 {
     /// <summary>
@@ -112,6 +115,7 @@ public sealed class FailureAttempt
 /// <summary>
 /// Metadados do ambiente onde a falha ocorreu
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class EnvironmentMetadata
 {
     /// <summary>
@@ -174,6 +178,7 @@ public enum EFailureType
 /// <summary>
 /// Extensões para facilitar o trabalho com FailedMessageInfo
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class FailedMessageInfoExtensions
 {
     /// <summary>

@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Domain.Events;
 
@@ -9,6 +10,7 @@ namespace MeAjudaAi.Modules.Providers.Domain.Events;
 /// <param name="Version">Versão do agregado no momento do evento</param>
 /// <param name="QualificationName">Nome da qualificação</param>
 /// <param name="IssuingOrganization">Organização emissora</param>
+[ExcludeFromCodeCoverage]
 public record ProviderQualificationRemovedDomainEvent(
     Guid AggregateId,
     int Version,

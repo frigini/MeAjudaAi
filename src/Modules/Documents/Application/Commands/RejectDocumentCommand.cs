@@ -16,3 +16,4 @@ public record RejectDocumentCommand(
 {
     public Guid CorrelationId { get; init; } = Guid.NewGuid();
 }
+

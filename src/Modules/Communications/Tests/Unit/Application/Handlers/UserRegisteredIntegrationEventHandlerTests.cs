@@ -107,4 +107,35 @@ public class UserRegisteredIntegrationEventHandlerTests
 
         _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Fact]
+    public async Task HandleAsync_WhenGenericExceptionOccurs_ShouldPropagate()
+    {
+        // Arrange
+        var integrationEvent = new UserRegisteredIntegrationEvent(
+            "Users",
+            Guid.NewGuid(),
+            "test@test.com",
+            "testuser",
+            "John",
+            "Doe",
+            "kc-123",
+            new[] { "User" },
+            DateTime.UtcNow);
+
+        _logRepositoryMock.Setup(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        _outboxRepositoryMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Generic database error"));
+
+        // Act
+        var act = () => _handler.HandleAsync(integrationEvent);
+
+        // Assert
+        await act.Should().ThrowExactlyAsync<Exception>().WithMessage("Generic database error");
+        _logRepositoryMock.Verify(x => x.ExistsByCorrelationIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        _outboxRepositoryMock.Verify(x => x.AddAsync(It.IsAny<OutboxMessage>(), It.IsAny<CancellationToken>()), Times.Once);
+        _outboxRepositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
 }

@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 
@@ -11,6 +12,7 @@ namespace MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 /// o role 'provider-standard' no Keycloak e será redirecionado para o wizard
 /// de completar o perfil (PUT /api/v1/providers/me/profile).
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public record RegisterProviderRequest
 {
     /// <summary>

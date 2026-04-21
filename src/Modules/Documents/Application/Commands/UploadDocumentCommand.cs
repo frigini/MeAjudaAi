@@ -3,6 +3,7 @@ using MeAjudaAi.Shared.Commands;
 
 namespace MeAjudaAi.Modules.Documents.Application.Commands;
 
+
 public record UploadDocumentCommand(
     Guid ProviderId,
     string DocumentType,
@@ -12,3 +13,4 @@ public record UploadDocumentCommand(
 {
     public Guid CorrelationId { get; init; } = Guid.NewGuid();
 }
+

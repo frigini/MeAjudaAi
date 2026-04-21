@@ -8,7 +8,6 @@ namespace MeAjudaAi.Shared.Caching;
 /// <summary>
 /// Extension methods para configuração de Caching
 /// </summary>
-[ExcludeFromCodeCoverage]
 public static class CachingExtensions
 {
     public static IServiceCollection AddCaching(this IServiceCollection services,

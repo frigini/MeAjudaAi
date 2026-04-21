@@ -1,12 +1,14 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Contracts;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 
 /// <summary>
 /// Request para criação de um novo prestador de serviços.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public record CreateProviderRequest
 {
     /// <summary>

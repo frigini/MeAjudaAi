@@ -12,3 +12,4 @@ public sealed record ActivateProviderCommand(
     Guid ProviderId,
     string? ActivatedBy = null
 ) : Command<Result>;
+

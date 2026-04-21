@@ -1,6 +1,9 @@
 using System.Text.Json.Serialization;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses;
+
+[ExcludeFromCodeCoverage]
 
 public sealed class NominatimAddress
 {

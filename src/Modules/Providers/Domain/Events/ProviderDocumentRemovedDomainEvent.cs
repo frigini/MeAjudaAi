@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Domain.Events;
 
@@ -10,6 +11,7 @@ namespace MeAjudaAi.Modules.Providers.Domain.Events;
 /// <param name="Version">Versão do agregado no momento do evento</param>
 /// <param name="DocumentType">Tipo do documento removido</param>
 /// <param name="DocumentNumber">Número do documento</param>
+[ExcludeFromCodeCoverage]
 public record ProviderDocumentRemovedDomainEvent(
     Guid AggregateId,
     int Version,

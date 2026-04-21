@@ -48,9 +48,9 @@
       },
       "coverlet.collector": {
         "type": "Direct",
-        "requested": "[8.0.1, )",
-        "resolved": "8.0.1",
-        "contentHash": "heVQl5tKYnnIDYlR1QMVGueYH6iriZTcZB6AjDczQNwZzxkjDIt9C84Pt4cCiZYrbo7jkZOYGWbs6Lo9wAtVLg=="
+        "requested": "[10.0.0, )",
+        "resolved": "10.0.0",
+        "contentHash": "WFejCcOUR6k8UYyDnnR6Gk+obFYMsWrZuNqPJnsVFGVhpPSN0y20D4qbdKJnXinYGx9PQ397Hf9TnU1NBST8vA=="
       },
       "Dapper": {
         "type": "Direct",
@@ -793,6 +793,14 @@
         "resolved": "18.4.0",
         "contentHash": "9O0BtCfzCWrkAmK187ugKdq72HHOXoOUjuWFDVc2LsZZ0pOnA9bTt+Sg9q4cF+MoAaUU+MuWtvBuFsnduviJow=="
       },
+      "Microsoft.Data.Sqlite.Core": {
+        "type": "Transitive",
+        "resolved": "10.0.6",
+        "contentHash": "OqZDg2/SROHR33XJLaf3kIU2zEbxcZ2ef+O/HIyZWfiKenp/B2qgy/jv6wJmmsBgh4ETaRKdlcLyJ9es2woKCg==",
+        "dependencies": {
+          "SQLitePCLRaw.core": "2.1.11"
+        }
+      },
       "Microsoft.EntityFrameworkCore.Abstractions": {
         "type": "Transitive",
         "resolved": "10.0.6",
@@ -802,6 +810,20 @@
         "type": "Transitive",
         "resolved": "10.0.6",
         "contentHash": "PIcmALdKzeSJNWmxsLDsS8XKFqiH5+9GzIM+qd3w1efYIwmO0w5304i37/SkfynctHZwkiiQjb2mkoIXU1CGZg=="
+      },
+      "Microsoft.EntityFrameworkCore.Sqlite.Core": {
+        "type": "Transitive",
+        "resolved": "10.0.6",
+        "contentHash": "dxlPx5pTERV+MhoG35tDyZ5sj50uoOs3FjLaHjpG62dpGXKsDk85VN0H0iDbJYBU+7w7F0wNr4HPxgl62utWqw==",
+        "dependencies": {
+          "Microsoft.Data.Sqlite.Core": "10.0.6",
+          "Microsoft.EntityFrameworkCore.Relational": "10.0.6",
+          "Microsoft.Extensions.Caching.Memory": "10.0.6",
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.6",
+          "Microsoft.Extensions.DependencyModel": "10.0.6",
+          "Microsoft.Extensions.Logging": "10.0.6",
+          "SQLitePCLRaw.core": "2.1.11"
+        }
       },
       "Microsoft.Extensions.AI.Abstractions": {
         "type": "Transitive",
@@ -1387,6 +1409,33 @@
         "resolved": "1.4.2",
         "contentHash": "yjj+3zgz8zgXpiiC3ZdF/iyTBbz2fFvMxZFEBPUcwZjIvXOf37Ylm+K58hqMfIBt5JgU/Z2uoUS67JmTLe973A=="
       },
+      "SQLitePCLRaw.bundle_e_sqlite3": {
+        "type": "Transitive",
+        "resolved": "2.1.11",
+        "contentHash": "DC4nA7yWnf4UZdgJDF+9Mus4/cb0Y3Sfgi3gDnAoKNAIBwzkskNAbNbyu+u4atT0ruVlZNJfwZmwiEwE5oz9LQ==",
+        "dependencies": {
+          "SQLitePCLRaw.lib.e_sqlite3": "2.1.11",
+          "SQLitePCLRaw.provider.e_sqlite3": "2.1.11"
+        }
+      },
+      "SQLitePCLRaw.core": {
+        "type": "Transitive",
+        "resolved": "2.1.11",
+        "contentHash": "PK0GLFkfhZzLQeR3PJf71FmhtHox+U3vcY6ZtswoMjrefkB9k6ErNJEnwXqc5KgXDSjige2XXrezqS39gkpQKA=="
+      },
+      "SQLitePCLRaw.lib.e_sqlite3": {
+        "type": "Transitive",
+        "resolved": "2.1.11",
+        "contentHash": "Ev2ytaXiOlWZ4b3R67GZBsemTINslLD1DCJr2xiacpn4tbapu0Q4dHEzSvZSMnVWeE5nlObU3VZN2p81q3XOYQ=="
+      },
+      "SQLitePCLRaw.provider.e_sqlite3": {
+        "type": "Transitive",
+        "resolved": "2.1.11",
+        "contentHash": "Y/0ZkR+r0Cg3DQFuCl1RBnv/tmxpIZRU3HUvelPw6MVaKHwYYR8YNvgs0vuNuXCMvlyJ+Fh88U1D4tah1tt6qw==",
+        "dependencies": {
+          "SQLitePCLRaw.core": "2.1.11"
+        }
+      },
       "SSH.NET": {
         "type": "Transitive",
         "resolved": "2025.1.0",
@@ -1495,6 +1544,15 @@
           "System.Composition.Runtime": "9.0.0"
         }
       },
+      "System.Configuration.ConfigurationManager": {
+        "type": "Transitive",
+        "resolved": "9.0.0",
+        "contentHash": "PdkuMrwDhXoKFo/JxISIi9E8L+QGn9Iquj2OKDWHB6Y/HnUOuBouF7uS3R4Hw3FoNmwwMo6hWgazQdyHIIs27A==",
+        "dependencies": {
+          "System.Diagnostics.EventLog": "9.0.0",
+          "System.Security.Cryptography.ProtectedData": "9.0.0"
+        }
+      },
       "System.Diagnostics.EventLog": {
         "type": "Transitive",
         "resolved": "10.0.6",
@@ -1507,8 +1565,8 @@
       },
       "System.Security.Cryptography.ProtectedData": {
         "type": "Transitive",
-        "resolved": "4.5.0",
-        "contentHash": "wLBKzFnDCxP12VL9ANydSYhk59fC4cvOr9ypYQLPnAj48NQIhqnjdD2yhP8yEKyBJEjERWS9DisKL7rX5eU25Q=="
+        "resolved": "9.0.0",
+        "contentHash": "CJW+x/F6fmRQ7N6K8paasTw9PDZp4t7G76UjGNlSDgoHPF0h08vTzLYbLZpOLEJSg35d5wy2jCXGo84EN05DpQ=="
       },
       "System.Threading.RateLimiting": {
         "type": "Transitive",
@@ -1609,6 +1667,7 @@
           "MeAjudaAi.Modules.Communications.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.API": "[1.0.0, )",
+          "MeAjudaAi.Modules.Payments.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Providers.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Ratings.API": "[1.0.0, )",
           "MeAjudaAi.Modules.SearchProviders.API": "[1.0.0, )",
@@ -1777,6 +1836,34 @@
           "MeAjudaAi.Modules.Locations.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )"
+        }
+      },
+      "meajudaai.modules.payments.api": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Modules.Payments.Application": "[1.0.0, )",
+          "MeAjudaAi.Modules.Payments.Infrastructure": "[1.0.0, )"
+        }
+      },
+      "meajudaai.modules.payments.application": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Modules.Payments.Domain": "[1.0.0, )"
+        }
+      },
+      "meajudaai.modules.payments.domain": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Shared": "[1.0.0, )"
+        }
+      },
+      "meajudaai.modules.payments.infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Modules.Payments.Application": "[1.0.0, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.6, )",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
+          "Stripe.net": "[51.0.0, )"
         }
       },
       "meajudaai.modules.providers.api": {
@@ -1964,7 +2051,9 @@
           "MeAjudaAi.Modules.Users.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared.Tests": "[1.0.0, )",
           "Microsoft.AspNetCore.Mvc.Testing": "[10.0.6, )",
+          "Microsoft.Data.Sqlite": "[10.0.6, )",
           "Microsoft.EntityFrameworkCore.InMemory": "[10.0.6, )",
+          "Microsoft.EntityFrameworkCore.Sqlite": "[10.0.6, )",
           "Microsoft.NET.Test.Sdk": "[18.4.0, )",
           "Moq": "[4.20.72, )",
           "Respawn": "[7.0.0, )",
@@ -2012,7 +2101,7 @@
           "Microsoft.FeatureManagement.AspNetCore": "[4.4.0, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
           "RabbitMQ.Client": "[7.2.1, )",
-          "Rebus": "[8.9.0, )",
+          "Rebus": "[8.9.2, )",
           "Rebus.RabbitMq": "[10.1.1, )",
           "Rebus.ServiceProvider": "[10.7.2, )",
           "Scrutor": "[7.0.0, )",
@@ -2038,6 +2127,7 @@
           "MeAjudaAi.ApiService": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.AspNetCore.Mvc.Testing": "[10.0.6, )",
+          "Microsoft.EntityFrameworkCore.InMemory": "[10.0.6, )",
           "Microsoft.Extensions.Hosting": "[10.0.6, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.6, )",
           "Microsoft.Extensions.TimeProvider.Testing": "[10.5.0, )",
@@ -2595,6 +2685,17 @@
         "resolved": "18.0.2",
         "contentHash": "sOSb+0J4G/jCBW/YqmRuL0eOMXgfw1KQLdC9TkbvfA5xs7uNm+PBQXJCOzSJGXtZcZrtXozcwxPmUiRUbmd7FA=="
       },
+      "Microsoft.Data.Sqlite": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.6, )",
+        "resolved": "10.0.6",
+        "contentHash": "hlwbTByzt2tPyRHlG1SzMrnHdO7GE9dG945456rOu2s0Tv6PBgN7ykidAfsnOn6fhDdmbCMoU+pq7+6CbCneSg==",
+        "dependencies": {
+          "Microsoft.Data.Sqlite.Core": "10.0.6",
+          "SQLitePCLRaw.bundle_e_sqlite3": "2.1.11",
+          "SQLitePCLRaw.core": "2.1.11"
+        }
+      },
       "Microsoft.EntityFrameworkCore": {
         "type": "CentralTransitive",
         "requested": "[10.0.6, )",
@@ -2648,6 +2749,21 @@
           "Microsoft.Extensions.Caching.Memory": "10.0.6",
           "Microsoft.Extensions.Configuration.Abstractions": "10.0.6",
           "Microsoft.Extensions.Logging": "10.0.6"
+        }
+      },
+      "Microsoft.EntityFrameworkCore.Sqlite": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.6, )",
+        "resolved": "10.0.6",
+        "contentHash": "EEkOdl08u45mfcQwTZfcwA0D6vjR4XqpJSIsLn9Wd++buEja3VK7oy0nVMF9b58P6ZKerUf2vGszc/6owUAANg==",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore.Sqlite.Core": "10.0.6",
+          "Microsoft.Extensions.Caching.Memory": "10.0.6",
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.6",
+          "Microsoft.Extensions.DependencyModel": "10.0.6",
+          "Microsoft.Extensions.Logging": "10.0.6",
+          "SQLitePCLRaw.bundle_e_sqlite3": "2.1.11",
+          "SQLitePCLRaw.core": "2.1.11"
         }
       },
       "Microsoft.Extensions.ApiDescription.Server": {
@@ -2940,9 +3056,9 @@
       },
       "Microsoft.OpenApi": {
         "type": "CentralTransitive",
-        "requested": "[2.7.2, )",
-        "resolved": "2.7.2",
-        "contentHash": "Vq8N3Jkn/yR7LoCXKtQD3jFXhse8NXUL3MKyDKGkRwrBX2ATehvw2aeki0zljkRhMjqc0TPHxOryjUXB2emzZw=="
+        "requested": "[2.7.3, )",
+        "resolved": "2.7.3",
+        "contentHash": "riS56czrBUgnvTmJqgXXiKUuTZisnvFfi4BzW9vGcjvTMUPsbCrdG5Nohwsx7G+pVwXgZIQOM+MnT/xgT7bisA=="
       },
       "Moq": {
         "type": "CentralTransitive",
@@ -3062,9 +3178,9 @@
       },
       "Rebus": {
         "type": "CentralTransitive",
-        "requested": "[8.9.0, )",
-        "resolved": "8.9.0",
-        "contentHash": "UaPGZuXIL4J5GUDA05JzEEzuPMEXY0CoF92nC6bsFBPvwoYPQ0uKyH2vKqdV80CW7cjbwBgDlEZ7R9hO9b59XA==",
+        "requested": "[8.9.2, )",
+        "resolved": "8.9.2",
+        "contentHash": "JyiO5vkH76wxLKcgXle7ewZ7rfIg+/L8/EFJY8npRsI1QwW8YprZTQX7EBbIuBqfeaqUra+2/TEPen4Nx+PU6A==",
         "dependencies": {
           "Newtonsoft.Json": "13.0.4"
         }
@@ -3183,6 +3299,16 @@
         "dependencies": {
           "Serilog": "4.2.0",
           "Serilog.Sinks.File": "6.0.0"
+        }
+      },
+      "Stripe.net": {
+        "type": "CentralTransitive",
+        "requested": "[51.0.0, )",
+        "resolved": "51.0.0",
+        "contentHash": "9m29CCGBuFjmpj5Qa5bkAfiIUwx5/YoBikjg8vnyj88ecV6gHMWMtWCJLSZCtyKPYInS7auGdnSNp5HxeGP+XA==",
+        "dependencies": {
+          "Newtonsoft.Json": "13.0.3",
+          "System.Configuration.ConfigurationManager": "9.0.0"
         }
       },
       "Swashbuckle.AspNetCore": {

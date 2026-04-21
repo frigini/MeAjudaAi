@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Users.Domain.Events;
 
@@ -17,6 +18,7 @@ namespace MeAjudaAi.Modules.Users.Domain.Events;
 /// <param name="Username">Nome de usuário escolhido</param>
 /// <param name="FirstName">Primeiro nome do usuário</param>
 /// <param name="LastName">Sobrenome do usuário</param>
+[ExcludeFromCodeCoverage]
 public record UserRegisteredDomainEvent(
     Guid AggregateId,
     int Version,

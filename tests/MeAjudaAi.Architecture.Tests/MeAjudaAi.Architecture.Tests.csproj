@@ -39,6 +39,10 @@
 
     <ProjectReference Include="..\..\src\Shared\MeAjudaAi.Shared.csproj" />
     <ProjectReference Include="..\..\src\Bootstrapper\MeAjudaAi.ApiService\MeAjudaAi.ApiService.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\Domain\MeAjudaAi.Modules.Payments.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\Application\MeAjudaAi.Modules.Payments.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\Infrastructure\MeAjudaAi.Modules.Payments.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\API\MeAjudaAi.Modules.Payments.API.csproj" />
   </ItemGroup>
 
   <ItemGroup>

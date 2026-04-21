@@ -1,12 +1,14 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Application.Queries;
 
 /// <summary>
 /// Query para buscar múltiplos prestadores de serviços por IDs.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record GetProvidersByIdsQuery(IReadOnlyList<Guid> ProviderIds) : Query<Result<IReadOnlyList<ProviderDto>>>, ICacheableQuery
 {
     public string GetCacheKey()

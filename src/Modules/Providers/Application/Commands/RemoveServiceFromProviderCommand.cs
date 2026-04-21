@@ -12,3 +12,4 @@ public sealed record RemoveServiceFromProviderCommand(
     Guid ProviderId,
     Guid ServiceId
 ) : Command<Result>;
+

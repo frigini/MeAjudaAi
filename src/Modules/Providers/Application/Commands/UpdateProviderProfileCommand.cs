@@ -14,3 +14,4 @@ public sealed record UpdateProviderProfileCommand(
     List<ProviderServiceDto>? Services,
     string? UpdatedBy = null
 ) : Command<Result<ProviderDto>>;
+

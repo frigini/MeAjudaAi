@@ -14,3 +14,4 @@ public sealed record ChangeUserEmailCommand(
     string? UpdatedBy = null,
     bool RequireVerification = true
 ) : Command<Result<UserDto>>;
+

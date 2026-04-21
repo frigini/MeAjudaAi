@@ -1,6 +1,9 @@
 using MeAjudaAi.Shared.Exceptions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Ratings.Domain.Exceptions;
+
+[ExcludeFromCodeCoverage]
 
 public class DuplicateReviewException : BusinessRuleException
 {

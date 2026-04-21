@@ -5,7 +5,7 @@ namespace MeAjudaAi.Shared.Messaging.NoOp;
 /// <summary>
 /// Implementação do IMessageBus que não faz nada - para uso em testes ou quando messaging está desabilitado
 /// </summary>
-internal class NoOpMessageBus(ILogger<NoOpMessageBus> logger) : IMessageBus
+public class NoOpMessageBus(ILogger<NoOpMessageBus> logger) : IMessageBus
 {
     public Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
     {
@@ -21,7 +21,7 @@ internal class NoOpMessageBus(ILogger<NoOpMessageBus> logger) : IMessageBus
         return Task.CompletedTask;
     }
 
-    public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task> handler, string? subscriptionName = null, CancellationToken cancellationToken = default)
+    public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task>? handler = null, string? subscriptionName = null, CancellationToken cancellationToken = default)
     {
         logger.LogDebug("NoOpMessageBus: Ignoring subscription to messages of type {MessageType} with subscription {SubscriptionName}",
             typeof(TMessage).Name, subscriptionName ?? "default");

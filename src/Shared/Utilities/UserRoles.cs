@@ -81,29 +81,29 @@ public static class UserRoles
     /// <summary>
     /// Papel de cliente para contas de usuário final (Customer App).
     /// </summary>
-    public const string Customer = "customer";
+    public const string Customer = RoleConstants.Customer;
 
-    // ===== PROVIDER TIER ROLES =====
+    // ===== FUNÇÕES/FAIXAS DO PROVEDOR =====
     
     /// <summary>
     /// Prestador de serviços no plano gratuito (Standard).
     /// </summary>
-    public const string ProviderStandard = "meajudaai-provider-standard";
+    public const string ProviderStandard = RoleConstants.ProviderStandard;
 
     /// <summary>
     /// Prestador de serviços no plano Silver.
     /// </summary>
-    public const string ProviderSilver = "meajudaai-provider-silver";
+    public const string ProviderSilver = RoleConstants.ProviderSilver;
 
     /// <summary>
     /// Prestador de serviços no plano Gold.
     /// </summary>
-    public const string ProviderGold = "meajudaai-provider-gold";
+    public const string ProviderGold = RoleConstants.ProviderGold;
 
     /// <summary>
     /// Prestador de serviços no plano Platinum.
     /// </summary>
-    public const string ProviderPlatinum = "meajudaai-provider-platinum";
+    public const string ProviderPlatinum = RoleConstants.ProviderPlatinum;
 
     /// <summary>
     /// Obtém todos os papéis disponíveis no sistema (Catálogo Canônico).

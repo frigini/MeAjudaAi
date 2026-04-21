@@ -9,3 +9,4 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 /// histórico de auditoria e prevenir deleção quando provedores referenciam este serviço. Veja TODO no handler.
 /// </summary>
 public sealed record DeleteServiceCommand(Guid Id) : Command<Result>;
+

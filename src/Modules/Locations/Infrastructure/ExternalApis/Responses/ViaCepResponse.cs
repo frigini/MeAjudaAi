@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses;
 
@@ -6,6 +7,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses;
 /// Resposta da API ViaCEP.
 /// Documentação: https://viacep.com.br/
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class ViaCepResponse
 {
     [JsonPropertyName("cep")]

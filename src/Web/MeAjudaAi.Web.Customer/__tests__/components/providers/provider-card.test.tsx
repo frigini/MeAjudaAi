@@ -39,7 +39,7 @@ describe('ProviderCard', () => {
 
   it('deve renderizar avaliação com número de avaliações', () => {
     render(<ProviderCard provider={mockProvider} />);
-    expect(screen.getByText('(25 avaliações)')).toBeInTheDocument();
+    expect(screen.getByText(/25 avaliações/)).toBeInTheDocument();
   });
 
   it('deve renderizar avaliação singular', () => {

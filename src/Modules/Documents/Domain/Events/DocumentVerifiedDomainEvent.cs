@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Documents.Domain.Events;
 
@@ -13,6 +14,7 @@ namespace MeAjudaAi.Modules.Documents.Domain.Events;
 /// <param name="ProviderId">Identificador do prestador</param>
 /// <param name="DocumentType">Tipo do documento verificado</param>
 /// <param name="HasOcrData">Indica se o documento possui dados OCR extraídos</param>
+[ExcludeFromCodeCoverage]
 public record DocumentVerifiedDomainEvent(
     Guid AggregateId,
     int Version,

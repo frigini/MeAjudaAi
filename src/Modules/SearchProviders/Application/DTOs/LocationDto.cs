@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 
@@ -6,6 +7,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 /// DTO representando coordenadas geográficas.
 /// Intervalos válidos: Latitude [-90, 90], Longitude [-180, 180].
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record LocationDto(
     [property: Range(-90, 90, ErrorMessage = "Latitude deve estar entre -90 e 90")]
     double Latitude,

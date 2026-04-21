@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Shared.Queries;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Documents.Application.Queries;
 
@@ -7,6 +8,7 @@ namespace MeAjudaAi.Modules.Documents.Application.Queries;
 /// Query para consultar o status de um documento específico.
 /// Utiliza CorrelationId gerado centralmente via UuidGenerator.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public record GetDocumentStatusQuery(Guid DocumentId) : Query<DocumentDto?>, ICacheableQuery
 {
     public string GetCacheKey()

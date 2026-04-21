@@ -14,3 +14,4 @@ public sealed record CreateProviderCommand(
     EProviderType Type,
     BusinessProfileDto BusinessProfile
 ) : Command<Result<ProviderDto>>;
+

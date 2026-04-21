@@ -14,3 +14,4 @@ public sealed record RejectProviderCommand(
     string RejectedBy,
     string Reason
 ) : Command<Result>;
+

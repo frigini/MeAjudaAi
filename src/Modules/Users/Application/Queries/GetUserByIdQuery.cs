@@ -1,8 +1,11 @@
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Users.Application.Queries;
+
+[ExcludeFromCodeCoverage]
 
 public sealed record GetUserByIdQuery(Guid UserId) : Query<Result<UserDto>>, ICacheableQuery
 {

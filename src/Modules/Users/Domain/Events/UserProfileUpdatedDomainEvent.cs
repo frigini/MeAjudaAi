@@ -1,10 +1,12 @@
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Users.Domain.Events;
 
 /// <summary>
 /// Evento de domínio emitido quando o perfil de um usuário é atualizado
 /// </summary>
+[ExcludeFromCodeCoverage]
 public record UserProfileUpdatedDomainEvent(
     Guid AggregateId,
     int Version,

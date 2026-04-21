@@ -13,3 +13,4 @@ public sealed record CompleteBasicInfoCommand(
     Guid ProviderId,
     string? UpdatedBy = null
 ) : Command<Result>;
+

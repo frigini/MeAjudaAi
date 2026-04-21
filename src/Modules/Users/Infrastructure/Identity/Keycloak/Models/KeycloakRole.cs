@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
 
+[ExcludeFromCodeCoverage]
 public class KeycloakRole
 {
     public string Id { get; set; } = string.Empty;

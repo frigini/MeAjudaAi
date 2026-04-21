@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Domain.Events;
 
@@ -16,6 +17,7 @@ namespace MeAjudaAi.Modules.Providers.Domain.Events;
 /// <param name="UserId">Identificador do usuário no Keycloak</param>
 /// <param name="Name">Nome do prestador de serviços</param>
 /// <param name="ActivatedBy">Identificador de quem realizou a ativação (pode ser null para ativação automática)</param>
+[ExcludeFromCodeCoverage]
 public record ProviderActivatedDomainEvent(
     Guid AggregateId,
     int Version,

@@ -13,3 +13,4 @@ public sealed record UpdateVerificationStatusCommand(
     EVerificationStatus Status,
     string? UpdatedBy = null
 ) : Command<Result<ProviderDto>>;
+

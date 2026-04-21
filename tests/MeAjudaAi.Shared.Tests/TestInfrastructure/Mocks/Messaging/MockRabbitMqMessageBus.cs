@@ -67,7 +67,7 @@ public class MockRabbitMqMessageBus : IMessageBus
         _recordedMessages.Enqueue((@event, topicName, EMessageType.Publish));
     }
 
-    public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task> handler, string? subscriptionName = null, CancellationToken cancellationToken = default)
+    public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task>? handler = null, string? subscriptionName = null, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Mock RabbitMQ: Subscribing to messages of type {MessageType} with subscription {SubscriptionName}",
             typeof(TMessage).Name, subscriptionName);

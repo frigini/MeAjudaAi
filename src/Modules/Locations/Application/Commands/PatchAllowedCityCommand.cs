@@ -13,3 +13,4 @@ public sealed record PatchAllowedCityCommand(
 {
     public Guid CorrelationId { get; } = Guid.NewGuid();
 }
+

@@ -4,7 +4,10 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
 
 using MeAjudaAi.Contracts.Models;
+using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Modules.Users.Application.Queries;
+
+[ExcludeFromCodeCoverage]
 
 public sealed record GetUsersQuery(
     int Page,

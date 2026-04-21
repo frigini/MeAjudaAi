@@ -21,3 +21,4 @@ public sealed record ChangeUserUsernameCommand(
     string? UpdatedBy = null,
     bool BypassRateLimit = false
 ) : Command<Result<UserDto>>;
+

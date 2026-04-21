@@ -6,18 +6,21 @@ using MeAjudaAi.Shared.Messaging.Handlers;
 using MeAjudaAi.Shared.Messaging.NoOp;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
+using MeAjudaAi.Shared.Messaging.Rebus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Rebus.Config;
+using Rebus.Routing.TypeBased;
 
 namespace MeAjudaAi.Shared.Messaging;
 
 /// <summary>
 /// Classe interna para categorização de logs de messaging
 /// </summary>
-[ExcludeFromCodeCoverage]
 internal sealed class MessagingConfiguration
 {
 }
@@ -25,7 +28,6 @@ internal sealed class MessagingConfiguration
 /// <summary>
 /// Extension methods consolidados para configuração de Messaging, Dead Letter Queue e Message Retry
 /// </summary>
-[ExcludeFromCodeCoverage]
 public static class MessagingExtensions
 {
     public static IServiceCollection AddMessaging(
@@ -43,18 +45,23 @@ public static class MessagingExtensions
             return services;
         }
 
-        // Registro direto das configurações do RabbitMQ
-        services.AddSingleton(provider =>
+        // Registro das configurações do RabbitMQ via Options pipeline
+        services.Configure<RabbitMqOptions>(configuration.GetSection("Messaging:RabbitMQ"));
+        
+        // Fallback para ConnectionString do Aspire se não fornecida explicitamente
+        services.PostConfigure<RabbitMqOptions>(options => 
         {
-            var options = new RabbitMqOptions();
-            ConfigureRabbitMqOptions(options, configuration);
-
-            // Validação manual
             if (string.IsNullOrWhiteSpace(options.ConnectionString))
-                throw new InvalidOperationException("RabbitMQ connection string not found. Ensure Aspire rabbitmq connection is available or configure 'Messaging:RabbitMQ:ConnectionString' in appsettings.json");
-
-            return options;
+            {
+                var aspireConn = configuration.GetConnectionString("rabbitmq");
+                if (!string.IsNullOrWhiteSpace(aspireConn))
+                {
+                    options.ConnectionString = aspireConn;
+                }
+            }
         });
+
+        services.AddSingleton(provider => provider.GetRequiredService<IOptions<RabbitMqOptions>>().Value);
 
         // Registro direto das configurações do MessageBus
         services.AddSingleton(provider =>
@@ -67,16 +74,38 @@ public static class MessagingExtensions
         services.AddSingleton<IEventTypeRegistry, EventTypeRegistry>();
 
         // Registrar implementações específicas do MessageBus condicionalmente baseado no ambiente
-        // para reduzir o risco de resolução acidental em ambientes de teste
         if (environment.IsEnvironment(EnvironmentNames.Testing))
         {
-            // Testing: Registra apenas NoOp - mocks serão adicionados via AddMessagingMocks()
             services.TryAddSingleton<NoOp.NoOpMessageBus>();
         }
         else
         {
-            // Default: Registra RabbitMQ e NoOp (fallback)
-            services.TryAddSingleton<RabbitMqMessageBus>();
+            // Configuração do Rebus
+            services.AddRebus((configure, provider) => {
+                var options = provider.GetRequiredService<RabbitMqOptions>();
+                
+                // Fail-fast validation
+                if (string.IsNullOrWhiteSpace(options.ConnectionString) && 
+                    (string.IsNullOrWhiteSpace(options.Host) || options.Host == "localhost"))
+                {
+                    // Se não tem connection string e o host é o default (ou vazio), 
+                    // consideramos que a configuração está ausente ou incompleta.
+                    throw new InvalidOperationException("RabbitMQ configuration is missing or incomplete. Please provide a ConnectionString or Host/Username/Password.");
+                }
+
+                var connectionString = options.BuildConnectionString();
+                
+                return configure
+                    .Transport(t => t.UseRabbitMq(connectionString, options.DefaultQueueName))
+                    .Options(o => 
+                    {
+                        o.SetMaxParallelism(20);
+                        o.SetNumberOfWorkers(2);
+                    })
+                    .Routing(r => r.TypeBased());
+            });
+
+            services.TryAddSingleton<RebusMessageBus>();
             services.TryAddSingleton<NoOp.NoOpMessageBus>();
         }
 
@@ -93,81 +122,33 @@ public static class MessagingExtensions
         // Adicionar sistema de Dead Letter Queue
         services.AddDeadLetterQueue(configuration);
 
-        // TODO(#248): Re-enable after Rebus v3 migration completes.
-        // Blockers: (1) Rebus.ServiceProvider v10+ required for .NET 10 compatibility,
-        // (2) Breaking changes in IHandleMessages<T> interface signatures,
-        // (3) RebusConfigurer fluent API changes require ConfigureRebus() refactor.
-        // Timeline: Planned for Sprint 5 after stabilizing current MassTransit/RabbitMQ integration.
-        // Rebus configuration temporariamente desabilitada
-
         return services;
     }
 
 
-    public static async Task EnsureRabbitMqInfrastructureAsync(this IHost host)
-    {
-        using var scope = host.Services.CreateScope();
-        var infrastructureManager = scope.ServiceProvider.GetRequiredService<IRabbitMqInfrastructureManager>();
-        await infrastructureManager.EnsureInfrastructureAsync();
-    }
-
-    /// <summary>
-    /// Garante a infraestrutura de messaging usando RabbitMQ
-    /// </summary>
     public static async Task EnsureMessagingInfrastructureAsync(this IHost host)
     {
-        await host.EnsureRabbitMqInfrastructureAsync();
+        using var scope = host.Services.CreateScope();
+        var manager = scope.ServiceProvider.GetRequiredService<IRabbitMqInfrastructureManager>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingConfiguration>>();
 
-        // Registrar informações sobre infraestrutura de Dead Letter Queue
-        await host.LogDeadLetterInfrastructureInfo();
-
-        // Validar configuração de Dead Letter Queue
-        await host.ValidateDeadLetterConfigurationAsync();
-    }
-
-
-    private static void ConfigureRabbitMqOptions(RabbitMqOptions options, IConfiguration configuration)
-    {
-        configuration.GetSection(RabbitMqOptions.SectionName).Bind(options);
-        // Tenta obter a connection string do Aspire primeiro
-        if (string.IsNullOrWhiteSpace(options.ConnectionString))
+        try
         {
-            options.ConnectionString = configuration.GetConnectionString("rabbitmq") ?? options.BuildConnectionString();
+            logger.LogInformation("Ensuring messaging infrastructure (Queues/Exchanges)...");
+            await manager.EnsureInfrastructureAsync();
+            logger.LogInformation("Messaging infrastructure verified.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to ensure messaging infrastructure.");
+            throw;
         }
     }
 
-
-
-    #region Message Retry Extensions
+    #region Message Retry
 
     /// <summary>
-    /// Marker interface para mensagens que suportam retry automático
-    /// </summary>
-    public interface IMessage
-    {
-        // Marker interface - não requer implementação
-    }
-
-    /// <summary>
-    /// Executa um handler de mensagem com retry automático e Dead Letter Queue
-    /// </summary>
-    public static async Task<bool> ExecuteWithRetryAsync<TMessage>(
-        this TMessage message,
-        Func<TMessage, CancellationToken, Task> handler,
-        IServiceProvider serviceProvider,
-        string sourceQueue,
-        CancellationToken cancellationToken = default) where TMessage : class, IMessage
-    {
-        var middlewareFactory = serviceProvider.GetRequiredService<IMessageRetryMiddlewareFactory>();
-        var handlerType = handler.Method.DeclaringType?.FullName ?? "Unknown";
-
-        var middleware = middlewareFactory.CreateMiddleware<TMessage>(handlerType, sourceQueue);
-
-        return await middleware.ExecuteWithRetryAsync(message, handler, cancellationToken);
-    }
-
-    /// <summary>
-    /// Configura o middleware de retry para handlers de eventos
+    /// Adiciona o middleware de retry para mensagens
     /// </summary>
     public static IServiceCollection AddMessageRetryMiddleware(this IServiceCollection services)
     {

@@ -16,3 +16,4 @@ public sealed record AddQualificationCommand(
     DateTime? ExpirationDate,
     string? DocumentNumber
 ) : Command<Result<ProviderDto>>;
+

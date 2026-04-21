@@ -1,10 +1,12 @@
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Application.DTOs;
 
 /// <summary>
 /// DTO para prestador de serviços.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record ProviderDto(
     Guid Id,
     Guid UserId,

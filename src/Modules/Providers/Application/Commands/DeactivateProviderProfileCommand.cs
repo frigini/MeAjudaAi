@@ -10,3 +10,4 @@ public sealed record DeactivateProviderProfileCommand(
     Guid ProviderId,
     string? UpdatedBy = null
 ) : Command<Result>;
+

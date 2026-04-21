@@ -12,3 +12,4 @@ public sealed record AddServiceToProviderCommand(
     Guid ProviderId,
     Guid ServiceId
 ) : Command<Result>;
+

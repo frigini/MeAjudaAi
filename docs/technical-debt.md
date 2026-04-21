@@ -4,90 +4,73 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 
 ---
 
-## 🆕 Sprint 6-7 - Débitos Técnicos
-
-**Sprint**: Sprint 6-7 (30 Dez 2025 - 16 Jan 2026)  
-**Status**: Itens de baixa a média prioridade
-
-
-
-## 🔄 Refatorações de Código (BACKLOG)
-
-**Status**: Baixa prioridade, não críticos para MVP
-
-
-## 🔗 GitHub Issues - Débitos Técnicos Sincronizados
-
-
-
-
-## ⚠️ CRÍTICO: Hangfire + Npgsql 10.x Compatibility Risk
-
-**Situação**: MONITORAMENTO CONTÍNUO (Issue #39 CLOSED, mitigado)  
-**Severidade**: MÉDIA  
-**Status**: Atualizado para **Hangfire.PostgreSql 1.21.1**.
-**Nota**: Compatibilidade com Npgsql 10.x validada em desenvolvimento. Aguardar versão 2.x para suporte oficial total.
-
----
-
-
 ## 🔮 Melhorias Futuras (Backlog)
 
-### 🧪 Testing & Quality Assurance
-
-**Severidade**: MÉDIA  
-**Sprint**: Backlog
-
-- [ ] Unit tests for LocalizationSubscription disposal
-- [ ] Unit tests for PerformanceHelper LRU eviction
-- [ ] Memory profiling in production
-
-**Origem**: Sprint 7.16-7.17 (Memory & Localization)
-
----
-
-### 🌐 Localization Enhancements
-
-**Severidade**: MÉDIA  
-**Sprint**: Backlog
-
-- [ ] Migrate ErrorHandlingService hardcoded strings to .resx
-- [ ] Integrate FluentValidation with localized messages
-- [ ] Add pluralization examples
-- [ ] Add date/time and number formatting localization
-
-**Origem**: Sprint 7.17
-
----
-
-### ⚡ Error Handling & Resilience
-
-**Severidade**: MÉDIA  
-**Sprint**: Backlog
-
-- [ ] Implement focus-based cancellation strategy
-
-**Origem**: Sprint 7.18
-
----
-
-### 🎨 UI/UX Improvements
+### 🧪 Testes & Qualidade
 
 **Severidade**: BAIXA  
 **Sprint**: Backlog
 
-- [ ] Apply brand colors (blue, cream, orange) to entire Admin Portal (React)
-- [ ] Update React component library theme
-- [ ] Standardize component styling
+- [ ] Perfilagem de memória em produção
+
+### 🚀 Infraestrutura & Messaging
+
+**Severidade**: MÉDIA  
+**Sprint**: Backlog
+
+- [ ] Avaliar migração para Rebus v3 ou alternativa de Enterprise Service Bus (ESB) assim que a compatibilidade com .NET 10 e `Rebus.ServiceProvider` (v10+) for estabilizada. Atualmente, o sistema utiliza `RabbitMQ.Client` diretamente com middleware de retry customizado.
+
+### 🎨 Melhorias de UI/UX
+
+**Severidade**: BAIXA  
+**Sprint**: Backlog
+
+- [ ] Aplicar cores da marca (azul, creme, laranja) em todo o Portal Admin (React)
+- [ ] Atualizar o tema da biblioteca de componentes React
+- [ ] Padronizar a estilização dos componentes
 
 **Origem**: Sprint 7.19
 
 ---
 
-## 📝 Instruções para Mantenedores
+## 📋 Histórico
 
-1. **Conversão para Issues**: Copiar descrição para GitHub issue com labels (`technical-debt`, `testing`, `enhancement`)
-2. **Atualizando Documento**: Remover itens completos, adicionar novos conforme identificados
-3. **Referências**: Usar tag `[ISSUE]` em comentários TODO, incluir path e linhas
+### ⚠️ Hangfire + Npgsql 10.x Compatibility Risk
+
+**Resolvido em**: Abr 2026 (Sprint 11) | **Severidade original**: CRÍTICA  
+Hangfire.PostgreSql atualizado para 1.21.1 com compatibilidade validada. Risco de incompatibilidade com Npgsql 10.x monitorado e mitigado; entrada removida do backlog ativo.
+
+### 🔐 Keycloak Client - Configuração Manual
+
+**Resolvido em**: Jan 2026 (Sprint 7, PR `#107`) | **Severidade original**: MÉDIA  
+Automatização da configuração do Keycloak Client implementada.
+
+### ⚡ Otimização de Testes de Integração
+
+**Resolvido em**: Jan 2026 (Sprint 7.6) | **Severidade original**: ALTA  
+`TestModule` enum implementado — 83% de melhoria no tempo de execução; timeouts e erros 57P01 eliminados.
+
+### 🎨 Admin Portal - Warnings de Analyzers (SonarLint/MudBlazor)
+
+**Resolvido em**: Mar 2026 (Sprint 8B.2, PR `#151`) | **Severidade original**: BAIXA  
+Warnings S2094, S2953, S2933 e MUD0002 resolvidos no portal Admin.
+
+### 🌍 Localization Enhancements
+
+**Resolvido em**: Abr 2026 (Sprint 11) | **Severidade original**: BAIXA  
+Item reavaliado e removido do backlog ativo após implementação da i18n no `MeAjudaAi.Web.Customer` (Sprint 11).
+
+### 🛡️ Error Handling & Resilience
+
+**Resolvido em**: Abr 2026 (Sprint 11) | **Severidade original**: BAIXA  
+Item reavaliado e removido do backlog ativo; resiliência coberta pelas estratégias de compensação e inbox pattern implementadas no módulo Payments.
+
+> Para histórico completo anterior, consultar: `git log --oneline -- docs/technical-debt.md`
 
 ---
+
+## 📖 Instruções para Mantenedores
+
+- Sempre documentar novos débitos técnicos identificados.
+- Ao resolver um débito, movê-lo para a seção de Histórico com a nota de resolução.
+- Manter a severidade atualizada para auxiliar na priorização de Sprints.

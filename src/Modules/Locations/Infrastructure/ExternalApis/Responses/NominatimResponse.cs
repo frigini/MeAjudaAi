@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses;
 
@@ -6,6 +7,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Responses;
 /// Resposta da API Nominatim (OpenStreetMap).
 /// Documentação: https://nominatim.org/release-docs/latest/api/Search/
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class NominatimResponse
 {
     [JsonPropertyName("lat")]

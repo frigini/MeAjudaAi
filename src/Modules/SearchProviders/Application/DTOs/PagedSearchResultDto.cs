@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 
 /// <summary>
 /// DTO representando resultados de busca paginados.
 /// </summary>
 /// <typeparam name="T">Tipo dos itens no conjunto de resultados</typeparam>
+[ExcludeFromCodeCoverage]
 public sealed record PagedSearchResultDto<T>
 {
     /// <summary>

@@ -4,6 +4,7 @@ using MeAjudaAi.Shared.Commands;
 
 namespace MeAjudaAi.Modules.Users.Application.Commands;
 
+
 public sealed record RegisterCustomerCommand(
     string Name,
     string Email,
@@ -12,3 +13,4 @@ public sealed record RegisterCustomerCommand(
     bool TermsAccepted,
     bool AcceptedPrivacyPolicy
 ) : Command<Result<UserDto>>;
+

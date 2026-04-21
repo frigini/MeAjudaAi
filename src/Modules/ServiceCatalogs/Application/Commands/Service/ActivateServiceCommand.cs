@@ -7,3 +7,4 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 /// Comando para ativar um serviço, tornando-o disponível para uso.
 /// </summary>
 public sealed record ActivateServiceCommand(Guid Id) : Command<Result>;
+

@@ -12,3 +12,4 @@ public sealed record RemoveDocumentCommand(
     Guid ProviderId,
     EDocumentType DocumentType
 ) : Command<Result<ProviderDto>>;
+

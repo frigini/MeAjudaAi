@@ -196,4 +196,28 @@ public class ReviewRepositoryTests : IAsyncDisposable
         // Assert
         result.Should().BeEmpty();
     }
+
+    [Fact]
+    public async Task AddAsync_ShouldThrowDbUpdateException_WhenDuplicateProviderAndCustomer()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var customerId = Guid.NewGuid();
+        var review1 = Review.Create(providerId, customerId, 5, "First");
+        await _repository.AddAsync(review1);
+
+        // Tenta inserir outro review para o mesmo par ProviderId/CustomerId, 
+        // o que deve disparar uma violação de chave única no banco de dados.
+        var review2 = Review.Create(providerId, customerId, 4, "Second");
+        
+        // Act & Assert
+        var act = () => _repository.AddAsync(review2);
+        
+        // No ambiente de teste (SQLite), a violação de unicidade lança uma DbUpdateException
+        // com uma InnerException do tipo Microsoft.Data.Sqlite.SqliteException.
+        var assertions = await act.Should().ThrowAsync<DbUpdateException>();
+        var sqliteEx = assertions.Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>().Subject;
+        sqliteEx.SqliteErrorCode.Should().Be(19); // SQLITE_CONSTRAINT
+        sqliteEx.Message.Should().Contain("UNIQUE");
+    }
 }

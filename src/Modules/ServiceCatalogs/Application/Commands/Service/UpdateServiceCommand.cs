@@ -19,3 +19,4 @@ public sealed record UpdateServiceCommand(
     [Range(0, int.MaxValue)]
     int DisplayOrder
 ) : Command<Result>;
+

@@ -13,3 +13,4 @@ public sealed record CreateServiceCommand(
     string? Description,
     int DisplayOrder = 0
 ) : Command<Result<ServiceDto>>;
+

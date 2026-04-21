@@ -1,0 +1,30 @@
+{
+  "search": {
+    "title": "O que você precisa hoje?",
+    "subtitle": "Encontre os melhores prestadores de serviço perto de você.",
+    "placeholder": "Qual serviço você procura?",
+    "button": "Buscar",
+    "recent": "Buscas recentes",
+    "categories": "Categorias",
+    "results": "Resultados encontrados",
+    "loadingResults": "Carregando resultados da busca"
+  },
+  "provider": {
+    "viewProfile": "Ver Perfil",
+    "contact": "Contato",
+    "share": "Compartilhar",
+    "location": "Localização",
+    "services": "Serviços",
+    "reviews": "Avaliações",
+    "review_one": "{{count}} avaliação",
+    "review_other": "{{count}} avaliações",
+    "loadingProfile": "Carregando perfil do prestador..."
+  },
+  "common": {
+    "loading": "Carregando...",
+    "error": "Ocorreu um erro",
+    "back": "Voltar",
+    "save": "Salvar",
+    "cancel": "Cancelar"
+  }
+}

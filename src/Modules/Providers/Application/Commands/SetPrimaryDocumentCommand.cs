@@ -12,3 +12,4 @@ public sealed record SetPrimaryDocumentCommand(
     Guid ProviderId,
     EDocumentType DocumentType
 ) : Command<Result<ProviderDto>>;
+

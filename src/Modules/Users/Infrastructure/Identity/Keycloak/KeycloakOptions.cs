@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 
+[ExcludeFromCodeCoverage]
 public class KeycloakOptions
 {
     public const string SectionName = "Keycloak";

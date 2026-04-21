@@ -23,6 +23,7 @@ internal sealed class CommunicationLogRepository(CommunicationsDbContext context
         CancellationToken cancellationToken = default)
     {
         return await context.CommunicationLogs
+            .AsNoTracking()
             .Where(x => x.Recipient == recipient)
             .OrderByDescending(x => x.CreatedAt)
             .Take(maxResults)
@@ -38,7 +39,7 @@ internal sealed class CommunicationLogRepository(CommunicationsDbContext context
         int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        var query = context.CommunicationLogs.AsQueryable();
+        var query = context.CommunicationLogs.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(correlationId))
             query = query.Where(x => x.CorrelationId.Contains(correlationId));

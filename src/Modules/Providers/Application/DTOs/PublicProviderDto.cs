@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Modules.Providers.Application.DTOs;
 
@@ -6,6 +7,7 @@ namespace MeAjudaAi.Modules.Providers.Application.DTOs;
 /// DTO seguro para exibição pública de dados do prestador.
 /// Remove informações sensíveis como documentos, motivo de rejeição, etc.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed record PublicProviderDto(
     Guid Id,
     string Name,

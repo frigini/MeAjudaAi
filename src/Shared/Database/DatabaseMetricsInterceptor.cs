@@ -12,7 +12,7 @@ public class DatabaseMetricsInterceptor(DatabaseMetrics metrics, ILogger<Databas
         DbDataReader result,
         CancellationToken cancellationToken = default)
     {
-        RecordMetrics(command, eventData);
+        RecordMetrics(command, eventData.Duration);
         return await base.ReaderExecutedAsync(command, eventData, result, cancellationToken);
     }
 
@@ -22,18 +22,30 @@ public class DatabaseMetricsInterceptor(DatabaseMetrics metrics, ILogger<Databas
         int result,
         CancellationToken cancellationToken = default)
     {
-        RecordMetrics(command, eventData);
+        RecordMetrics(command, eventData.Duration);
         return await base.NonQueryExecutedAsync(command, eventData, result, cancellationToken);
     }
 
-    private void RecordMetrics(DbCommand command, CommandExecutedEventData eventData)
+    public override async Task CommandFailedAsync(
+        DbCommand command,
+        CommandErrorEventData eventData,
+        CancellationToken cancellationToken = default)
     {
-        var duration = eventData.Duration;
+        var queryType = GetQueryType(command.CommandText);
+        metrics.RecordQuery(queryType, eventData.Duration, isSuccess: false);
+        
+        logger.LogError(eventData.Exception, "Database command failed: {QueryType}", queryType);
+        
+        await base.CommandFailedAsync(command, eventData, cancellationToken);
+    }
+
+    internal void RecordMetrics(DbCommand command, TimeSpan duration, bool isSuccess = true)
+    {
         var queryType = GetQueryType(command.CommandText);
 
-        metrics.RecordQuery(queryType, duration);
+        metrics.RecordQuery(queryType, duration, isSuccess);
 
-        if (duration.TotalMilliseconds > 1000) // Limite de consulta lenta
+        if (isSuccess && duration.TotalMilliseconds > 1000) // Limite de consulta lenta
         {
             logger.LogWarning("Slow query: {Duration}ms - {QueryType}", duration.TotalMilliseconds, queryType);
         }

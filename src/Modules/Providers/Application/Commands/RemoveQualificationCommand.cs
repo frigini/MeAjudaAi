@@ -11,3 +11,4 @@ public sealed record RemoveQualificationCommand(
     Guid ProviderId,
     string QualificationName
 ) : Command<Result<ProviderDto>>;
+

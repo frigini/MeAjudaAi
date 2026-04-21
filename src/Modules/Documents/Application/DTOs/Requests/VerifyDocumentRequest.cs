@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
 
 /// <summary>
@@ -5,4 +6,5 @@ namespace MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
 /// </summary>
 /// <param name="IsVerified">True para aprovar, False para rejeitar</param>
 /// <param name="VerificationNotes">Notas da verificação</param>
+[ExcludeFromCodeCoverage]
 public record VerifyDocumentRequest(bool IsVerified, string? VerificationNotes);

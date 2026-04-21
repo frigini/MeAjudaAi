@@ -16,3 +16,4 @@ public sealed record UpdateUserProfileCommand(
     string? PhoneNumber = null,
     string? UpdatedBy = null
 ) : Command<Result<UserDto>>;
+

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Utilities;
 
 namespace MeAjudaAi.Shared.Events;
@@ -7,9 +8,10 @@ namespace MeAjudaAi.Shared.Events;
 /// no momento da execução de uma ação de domínio e não precisam de injeção de dependência.
 /// O timestamp representa o momento exato em que o evento ocorreu.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public abstract record DomainEvent(
     Guid AggregateId,
-    int Version
+    int Version = 1
 ) : IDomainEvent
 {
     public Guid Id { get; } = UuidGenerator.NewId();

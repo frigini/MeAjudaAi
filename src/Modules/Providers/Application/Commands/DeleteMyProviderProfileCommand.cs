@@ -10,3 +10,4 @@ public sealed record DeleteMyProviderProfileCommand(
     Guid ProviderId,
     string? DeletedBy = null
 ) : Command<Result>;
+

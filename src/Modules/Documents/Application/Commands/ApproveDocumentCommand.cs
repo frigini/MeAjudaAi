@@ -12,3 +12,4 @@ public record ApproveDocumentCommand(Guid DocumentId, string? VerificationNotes 
 {
     public Guid CorrelationId { get; init; } = Guid.NewGuid();
 }
+

@@ -10,3 +10,4 @@ public sealed record ChangeServiceCategoryCommand(
     Guid ServiceId,
     Guid NewCategoryId
 ) : Command<Result>;
+
