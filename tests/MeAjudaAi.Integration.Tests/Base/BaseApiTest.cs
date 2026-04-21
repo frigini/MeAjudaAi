@@ -54,7 +54,8 @@ public enum TestModule
     SearchProviders = 1 << 5,
     Communications = 1 << 6,
     Payments = 1 << 7,
-    All = Users | Providers | Documents | ServiceCatalogs | Locations | SearchProviders | Communications | Payments
+    Bookings = 1 << 8,
+    All = Users | Providers | Documents | ServiceCatalogs | Locations | SearchProviders | Communications | Payments | Bookings
     }
 
 /// <summary>
@@ -170,6 +171,7 @@ public abstract class BaseApiTest : IAsyncLifetime
                     RemoveDbContextRegistrations<SearchProvidersDbContext>(services);
                     RemoveDbContextRegistrations<CommunicationsDbContext>(services);
                     RemoveDbContextRegistrations<PaymentsDbContext>(services);
+                    RemoveDbContextRegistrations<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>(services);
 
                     AddTestDbContext<UsersDbContext>(services, "users", "MeAjudaAi.Modules.Users.Infrastructure");
                     AddTestDbContext<ProvidersDbContext>(services, "providers", "MeAjudaAi.Modules.Providers.Infrastructure");
@@ -179,6 +181,7 @@ public abstract class BaseApiTest : IAsyncLifetime
                     AddTestDbContext<SearchProvidersDbContext>(services, "search_providers", "MeAjudaAi.Modules.SearchProviders.Infrastructure");
                     AddTestDbContext<CommunicationsDbContext>(services, "communications", "MeAjudaAi.Modules.Communications.Infrastructure");
                     AddTestDbContext<PaymentsDbContext>(services, "payments", "MeAjudaAi.Modules.Payments.Infrastructure");
+                    AddTestDbContext<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>(services, "bookings", "MeAjudaAi.Modules.Bookings.Infrastructure");
 
                     services.AddDocumentsTestServices(useAzurite: false);
                     services.AddSingleton<IBackgroundJobService, MockBackgroundJobService>();
@@ -275,6 +278,7 @@ public abstract class BaseApiTest : IAsyncLifetime
             if (modules.HasFlag(TestModule.Providers)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<ProvidersDbContext>(), "Providers", logger);
             if (modules.HasFlag(TestModule.Communications)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<CommunicationsDbContext>(), "Communications", logger);
             if (modules.HasFlag(TestModule.Payments)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<PaymentsDbContext>(), "Payments", logger);
+            if (modules.HasFlag(TestModule.Bookings)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.BookingsDbContext>(), "Bookings", logger);
             
             if (modules.HasFlag(TestModule.SearchProviders))
             {
