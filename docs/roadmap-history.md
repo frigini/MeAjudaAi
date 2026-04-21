@@ -11,7 +11,7 @@ Este documento contém o registro de todas as sprints concluídas para fins de a
 ### Entregas:
 - ✅ **Payments Module**: Implementação de assinaturas (Stripe), webhooks, billing portal e renovações automáticas com padrão ACL.
 - ✅ **Localização Frontend**: Suporte completo a i18n (PT-BR/EN-US) no Customer App, incluindo formulários e erros.
-- ✅ **UX Polish**: Implementação de skeleton loaders animados para melhor percepção de performance.
+- ✅ **UX Polish**: Implementação de skeleton loaders animados para melhor percepção de desempenho.
 - ✅ **Qualidade**: Cobertura de testes unitários e de integração para todos os fluxos críticos de pagamento e localização.
 
 ---

@@ -28,7 +28,10 @@ public static class MigrationExtensions
             { "Documents", 4 },
             { "Providers", 5 },
             { "Communications", 6 },
-            { "SearchProviders", 7 }
+            { "Ratings", 7 },
+            { "Payments", 8 },
+            { "Bookings", 9 },
+            { "SearchProviders", 10 }
         };
 
         dbContextTypes = dbContextTypes.OrderBy(t => 

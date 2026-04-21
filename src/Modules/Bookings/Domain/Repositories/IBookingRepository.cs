@@ -1,0 +1,20 @@
+using MeAjudaAi.Modules.Bookings.Domain.Entities;
+using MeAjudaAi.Contracts.Bookings.Enums;
+
+namespace MeAjudaAi.Modules.Bookings.Domain.Repositories;
+
+public interface IBookingRepository
+{
+    Task<Booking?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Booking>> GetByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Booking>> GetByClientIdAsync(Guid clientId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Booking>> GetByProviderAndStatusAsync(Guid providerId, EBookingStatus status, CancellationToken cancellationToken = default);
+    Task AddAsync(Booking booking, CancellationToken cancellationToken = default);
+    Task UpdateAsync(Booking booking, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Verifica se há sobreposição de agendamentos para um prestador em um determinado intervalo.
+    /// Útil para validação de novas reservas.
+    /// </summary>
+    Task<bool> HasOverlapAsync(Guid providerId, DateTime start, DateTime end, CancellationToken cancellationToken = default);
+}

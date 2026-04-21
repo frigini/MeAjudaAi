@@ -18,8 +18,8 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 **Severidade**: MÉDIA  
 **Sprint**: Sprint 12 (EM ANDAMENTO)
 
-- [x] Migração para Rebus: Implementação do `RebusMessageBus` concluída.
-- [ ] Consolidação: Remover totalmente o uso direto de `RabbitMQ.Client` nos handlers de eventos em favor da abstração `IMessageBus`.
+- [x] Migração para Rebus: Implementação do `RebusMessageBus` concluída; infra RabbitMQ direta (stubs) a ser removida.
+- [ ] Consolidação: Remover totalmente o uso direto de `RabbitMQ.Client` (RabbitMqInfrastructureManager e handlers) em favor da abstração `IMessageBus`.
 - [ ] Validação: Certificar que o .NET 10 e `Rebus.ServiceProvider` (v10+) operam estavelmente sob carga.
 
 ### 🎨 Melhorias de UI/UX

@@ -1,6 +1,6 @@
-namespace MeAjudaAi.Modules.Bookings.Domain.Enums;
+namespace MeAjudaAi.Contracts.Bookings.Enums;
 
-public enum BookingStatus
+public enum EBookingStatus
 {
     Pending = 0,
     Confirmed = 1,

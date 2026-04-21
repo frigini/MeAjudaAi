@@ -7,6 +7,7 @@ using MeAjudaAi.Shared.Messaging.NoOp;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.Rebus;
+using MeAjudaAi.Shared.Messaging.Rebus.Conventions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -15,6 +16,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Rebus.Config;
 using Rebus.Routing.TypeBased;
+using Rebus.Serialization.Json;
+using Rebus.Topic;
 
 namespace MeAjudaAi.Shared.Messaging;
 
@@ -97,10 +100,12 @@ public static class MessagingExtensions
                 
                 return configure
                     .Transport(t => t.UseRabbitMq(connectionString, options.DefaultQueueName))
+                    .Serialization(s => s.UseSystemTextJson())
                     .Options(o => 
                     {
                         o.SetMaxParallelism(20);
                         o.SetNumberOfWorkers(2);
+                        o.Register<ITopicNameConvention>(_ => new AttributeTopicNameConvention());
                     })
                     .Routing(r => r.TypeBased());
             });
