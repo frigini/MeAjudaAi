@@ -115,7 +115,7 @@ export function ScheduleManager() {
                                 <div className="flex items-center justify-between">
                                     <CardTitle className="text-lg font-semibold">{dayInfo.name}</CardTitle>
                                     <Button 
-                                        variant="outline" 
+                                        variant="secondary" 
                                         size="sm" 
                                         onClick={() => addSlot(dayInfo.id)}
                                         className="h-8 border-[#002D62]/20 text-[#002D62] hover:bg-[#002D62]/5"
