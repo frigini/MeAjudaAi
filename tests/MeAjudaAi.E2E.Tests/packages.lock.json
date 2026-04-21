@@ -2152,6 +2152,7 @@
           "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.6, )",
           "Microsoft.FeatureManagement.AspNetCore": "[4.4.0, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
+          "OpenTelemetry.Exporter.Console": "[1.15.3, )",
           "RabbitMQ.Client": "[7.2.1, )",
           "Rebus": "[8.9.2, )",
           "Rebus.RabbitMq": "[10.1.1, )",
