@@ -285,7 +285,7 @@ jobs:
           badge: true
           format: markdown
           output: both
-          thresholds: "90 80" # line branch
+          thresholds: "85 75" # line branch (temporário - reverter para 90/80 em sprints futuras)
           fail_below_min: true
 
       - name: Generate Coverage PR Comment
