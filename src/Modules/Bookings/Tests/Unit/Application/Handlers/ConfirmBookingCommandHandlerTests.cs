@@ -40,7 +40,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         SetupUser(providerId);
 
         // Act
-        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id));
+        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid()));
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -62,7 +62,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         SetupUser(Guid.NewGuid()); // Outro provider
 
         // Act
-        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id));
+        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -80,5 +80,6 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         var principal = new ClaimsPrincipal(identity);
         var context = new DefaultHttpContext { User = principal };
         _httpContextMock.Setup(x => x.HttpContext).Returns(context);
+        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())); // ensure authenticated
     }
 }

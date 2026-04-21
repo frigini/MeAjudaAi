@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
+using System.Runtime.InteropServices;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
@@ -36,12 +37,12 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         
         var command = new CreateBookingCommand(
             providerId, Guid.NewGuid(), Guid.NewGuid(),
-            start, end);
+            start, end, Guid.NewGuid());
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
-        var schedule = ProviderSchedule.Create(providerId);
+        var schedule = ProviderSchedule.Create(providerId, "UTC");
         schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
             [TimeSlot.Create(start.UtcDateTime.Date.AddHours(8), start.UtcDateTime.Date.AddHours(18))]));
         
@@ -68,7 +69,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
 
         var command = new CreateBookingCommand(
             Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-            start, end);
+            start, end, Guid.NewGuid());
 
         // Act
         var result = await _sut.HandleAsync(command);
@@ -87,7 +88,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         var start = new DateTimeOffset(new DateTime(2026, 4, 22, 10, 0, 0), TimeSpan.Zero);
         var end = new DateTimeOffset(new DateTime(2026, 4, 22, 11, 0, 0), TimeSpan.Zero);
         
-        var command = new CreateBookingCommand(providerId, Guid.NewGuid(), Guid.NewGuid(), start, end);
+        var command = new CreateBookingCommand(providerId, Guid.NewGuid(), Guid.NewGuid(), start, end, Guid.NewGuid());
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
@@ -112,12 +113,12 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         var start = new DateTimeOffset(new DateTime(2026, 4, 22, 10, 0, 0), TimeSpan.Zero);
         var end = new DateTimeOffset(new DateTime(2026, 4, 22, 11, 0, 0), TimeSpan.Zero);
         
-        var command = new CreateBookingCommand(providerId, Guid.NewGuid(), Guid.NewGuid(), start, end);
+        var command = new CreateBookingCommand(providerId, Guid.NewGuid(), Guid.NewGuid(), start, end, Guid.NewGuid());
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
-        var schedule = ProviderSchedule.Create(providerId);
+        var schedule = ProviderSchedule.Create(providerId, "UTC");
         // Disponibilidade apenas das 14:00 às 18:00
         schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
             [TimeSlot.Create(start.UtcDateTime.Date.AddHours(14), start.UtcDateTime.Date.AddHours(18))]));
@@ -142,12 +143,12 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         var start = new DateTimeOffset(new DateTime(2026, 4, 22, 10, 0, 0), TimeSpan.Zero);
         var end = new DateTimeOffset(new DateTime(2026, 4, 22, 11, 0, 0), TimeSpan.Zero);
         
-        var command = new CreateBookingCommand(providerId, Guid.NewGuid(), Guid.NewGuid(), start, end);
+        var command = new CreateBookingCommand(providerId, Guid.NewGuid(), Guid.NewGuid(), start, end, Guid.NewGuid());
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
-        var schedule = ProviderSchedule.Create(providerId);
+        var schedule = ProviderSchedule.Create(providerId, "UTC");
         schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
             [TimeSlot.Create(start.UtcDateTime.Date.AddHours(8), start.UtcDateTime.Date.AddHours(18))]));
         

@@ -147,10 +147,17 @@ public class BookingRepositoryTests : BaseDatabaseTest
             TimeSlot.Create(baseTime.AddHours(10).AddMinutes(30), baseTime.AddHours(11).AddMinutes(30)));
 
         // Act
-        // Usamos instâncias separadas de repository/context para simular concorrência real se possível, 
-        // mas aqui como estamos no mesmo teste, simulamos via Task parallelism.
-        var task1 = _repository.AddIfNoOverlapAsync(booking1);
-        var task2 = _repository.AddIfNoOverlapAsync(booking2);
+        // Para testar concorrência real, usamos contextos separados
+        var options = CreateDbContextOptions<BookingsDbContext>();
+        
+        using var ctx1 = new BookingsDbContext(options);
+        using var ctx2 = new BookingsDbContext(options);
+        
+        var repo1 = new BookingRepository(ctx1);
+        var repo2 = new BookingRepository(ctx2);
+
+        var task1 = repo1.AddIfNoOverlapAsync(booking1);
+        var task2 = repo2.AddIfNoOverlapAsync(booking2);
 
         var results = await Task.WhenAll(task1, task2);
 
@@ -158,8 +165,9 @@ public class BookingRepositoryTests : BaseDatabaseTest
         results.Count(r => r.IsSuccess).Should().Be(1);
         results.Count(r => r.IsFailure).Should().Be(1);
         
-        var count = await _context.Bookings.CountAsync(b => b.ProviderId == providerId);
-        count.Should().Be(1);
+        // Verifica persistência final
+        var finalCount = await _context.Bookings.CountAsync(b => b.ProviderId == providerId);
+        finalCount.Should().Be(1);
     }
 
     private static Booking CreateBooking()

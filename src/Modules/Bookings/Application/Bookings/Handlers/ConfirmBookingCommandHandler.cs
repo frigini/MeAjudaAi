@@ -18,16 +18,20 @@ public sealed class ConfirmBookingCommandHandler(
     {
         logger.LogInformation("Confirming booking {BookingId}", command.BookingId);
 
+        // 1. Validar Autenticação
+        var user = httpContextAccessor.HttpContext?.User;
+        if (user?.Identity?.IsAuthenticated != true)
+        {
+            return Result.Failure(Error.Unauthorized("Usuário não autenticado."));
+        }
+
         var booking = await bookingRepository.GetByIdAsync(command.BookingId, cancellationToken);
         if (booking == null)
         {
             return Result.Failure(Error.NotFound("Reserva não encontrada."));
         }
 
-        // 1. Validar Autorização (Somente o Provider dono ou Admin)
-        var user = httpContextAccessor.HttpContext?.User;
-        if (user == null) return Result.Failure(Error.Unauthorized("Usuário não autenticado."));
-
+        // 2. Validar Autorização (Somente o Provider dono ou Admin)
         var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
         var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
 
@@ -39,11 +43,11 @@ public sealed class ConfirmBookingCommandHandler(
         try
         {
             booking.Confirm();
-            // A atualização do banco ocorre fora do try/catch da lógica de domínio para permitir propagação de erros de infra
         }
         catch (InvalidOperationException ex)
         {
-            return Result.Failure(Error.BadRequest(ex.Message));
+            logger.LogWarning(ex, "Erro de regra de negócio ao confirmar reserva {BookingId}", command.BookingId);
+            return Result.Failure(Error.BadRequest("Não foi possível confirmar a reserva."));
         }
 
         await bookingRepository.UpdateAsync(booking, cancellationToken);

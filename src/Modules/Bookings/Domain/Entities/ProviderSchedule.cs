@@ -7,16 +7,29 @@ public sealed class ProviderSchedule : BaseEntity
 {
     private readonly List<Availability> _availabilities = [];
     public Guid ProviderId { get; private set; }
+    public string TimeZoneId { get; private set; } = "E. South America Standard Time"; // Padrão Brasília
     public IReadOnlyList<Availability> Availabilities => _availabilities.AsReadOnly();
 
     private ProviderSchedule() { } // Required by EF Core
 
-    private ProviderSchedule(Guid providerId)
+    private ProviderSchedule(Guid providerId, string? timeZoneId = null)
     {
         ProviderId = providerId;
+        if (!string.IsNullOrWhiteSpace(timeZoneId))
+        {
+            TimeZoneId = timeZoneId;
+        }
     }
 
-    public static ProviderSchedule Create(Guid providerId) => new(providerId);
+    public static ProviderSchedule Create(Guid providerId, string? timeZoneId = null) 
+        => new(providerId, timeZoneId);
+
+    public void UpdateTimeZone(string timeZoneId)
+    {
+        if (string.IsNullOrWhiteSpace(timeZoneId)) throw new ArgumentException("TimeZoneId cannot be empty");
+        TimeZoneId = timeZoneId;
+        MarkAsUpdated();
+    }
 
     public void SetAvailability(Availability availability)
     {

@@ -42,6 +42,7 @@
     
     <!-- Feature Management -->
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" />
     
     <!-- Dependency Injection -->
     <PackageReference Include="Scrutor" />

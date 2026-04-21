@@ -18,16 +18,20 @@ public sealed class CancelBookingCommandHandler(
     {
         logger.LogInformation("Cancelling booking {BookingId}", command.BookingId);
 
+        // 1. Validar Autenticação
+        var user = httpContextAccessor.HttpContext?.User;
+        if (user?.Identity?.IsAuthenticated != true)
+        {
+            return Result.Failure(Error.Unauthorized("Usuário não autenticado."));
+        }
+
         var booking = await bookingRepository.GetByIdAsync(command.BookingId, cancellationToken);
         if (booking == null)
         {
             return Result.Failure(Error.NotFound("Reserva não encontrada."));
         }
 
-        // 1. Validar Autorização (Dono da reserva, Prestador ou Admin)
-        var user = httpContextAccessor.HttpContext?.User;
-        if (user == null) return Result.Failure(Error.Unauthorized("Usuário não autenticado."));
-
+        // 2. Validar Autorização (Dono da reserva, Prestador ou Admin)
         var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value;
         var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
         var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
@@ -46,7 +50,8 @@ public sealed class CancelBookingCommandHandler(
         }
         catch (InvalidOperationException ex)
         {
-            return Result.Failure(Error.BadRequest(ex.Message));
+            logger.LogWarning(ex, "Erro de regra de negócio ao cancelar reserva {BookingId}", command.BookingId);
+            return Result.Failure(Error.BadRequest("Não foi possível cancelar a reserva."));
         }
 
         await bookingRepository.UpdateAsync(booking, cancellationToken);

@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using Microsoft.Extensions.Logging;
+using System.Runtime.InteropServices;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 
@@ -41,13 +42,28 @@ public sealed class CreateBookingCommandHandler(
             return Result<BookingDto>.Failure(Error.BadRequest("Prestador não possui agenda configurada."));
         }
 
+        // Converte o início para o fuso horário local do prestador para validar DayOfWeek corretamente
+        DateTime localStartTime;
+        try
+        {
+            var tzId = ResolveTimeZoneId(schedule.TimeZoneId);
+            var tz = TimeZoneInfo.FindSystemTimeZoneById(tzId);
+            localStartTime = TimeZoneInfo.ConvertTimeFromUtc(command.Start.UtcDateTime, tz);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Fuso horário {TimeZoneId} não encontrado. Usando UTC como fallback.", schedule.TimeZoneId);
+            // Fallback para UTC se o fuso não for encontrado (comum em ambientes de teste/CI mistos)
+            localStartTime = command.Start.UtcDateTime;
+        }
+
         var duration = command.End - command.Start;
-        if (!schedule.IsAvailable(command.Start.UtcDateTime, duration))
+        if (!schedule.IsAvailable(localStartTime, duration))
         {
             return Result<BookingDto>.Failure(Error.BadRequest("Prestador indisponível no horário solicitado."));
         }
 
-        // 3. Criar e Tentar Adicionar atomicamente
+        // 3. Criar e Tentar Adicionar atomicamente (sempre salvando em UTC no banco)
         var timeSlot = TimeSlot.Create(command.Start.UtcDateTime, command.End.UtcDateTime);
         var booking = Booking.Create(
             command.ProviderId, 
@@ -72,5 +88,21 @@ public sealed class CreateBookingCommandHandler(
             booking.TimeSlot.Start,
             booking.TimeSlot.End,
             booking.Status);
+    }
+
+    private static string ResolveTimeZoneId(string timeZoneId)
+    {
+        // Mapeamento básico para garantir funcionamento no Linux (CI) se vier do Windows
+        if (timeZoneId == "E. South America Standard Time" && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return "America/Sao_Paulo";
+        }
+        
+        if (timeZoneId == "America/Sao_Paulo" && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return "E. South America Standard Time";
+        }
+
+        return timeZoneId;
     }
 }

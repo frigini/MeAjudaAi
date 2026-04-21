@@ -12,6 +12,7 @@ import { useSession } from "next-auth/react";
 interface BookingModalProps {
     providerId: string;
     providerName: string;
+    serviceId?: string; // Prop opcional, se não vier usa o default do prestador
     trigger?: React.ReactNode;
 }
 
@@ -20,7 +21,7 @@ interface TimeSlot {
     end: string;
 }
 
-export function BookingModal({ providerId, providerName, trigger }: BookingModalProps) {
+export function BookingModal({ providerId, providerName, serviceId, trigger }: BookingModalProps) {
     const { data: session } = useSession();
     const [open, setOpen] = useState(false);
     
@@ -60,6 +61,9 @@ export function BookingModal({ providerId, providerName, trigger }: BookingModal
                 throw new Error("Você precisa estar autenticado para realizar um agendamento.");
             }
 
+            // Garante que temos um serviceId válido
+            const targetServiceId = serviceId || "00000000-0000-0000-0000-000000000000";
+
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const res = await fetch(`${apiUrl}/api/v1/bookings`, {
                 method: "POST",
@@ -69,7 +73,7 @@ export function BookingModal({ providerId, providerName, trigger }: BookingModal
                 },
                 body: JSON.stringify({
                     providerId,
-                    serviceId: "00000000-0000-0000-0000-000000000000", // TODO: Implementar seleção de serviço na UI
+                    serviceId: targetServiceId,
                     start: selectedSlot.start,
                     end: selectedSlot.end
                 })
@@ -99,7 +103,14 @@ export function BookingModal({ providerId, providerName, trigger }: BookingModal
         setSelectedSlot(null);
     };
 
-    const isConfirmDisabled = !selectedSlot || createBooking.isPending || !session?.user?.id;
+    // Auxiliar para garantir parsing UTC de strings ISO sem fuso
+    const parseAsUtc = (isoString: string) => {
+        if (!isoString) return new Date();
+        const hasTz = isoString.includes('Z') || isoString.includes('+') || isoString.includes('-');
+        return new Date(hasTz ? isoString : `${isoString}Z`);
+    };
+
+    const isConfirmDisabled = !selectedSlot || createBooking.isPending || !session?.user?.id || !session?.accessToken;
 
     return (
         <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -150,7 +161,7 @@ export function BookingModal({ providerId, providerName, trigger }: BookingModal
                                                     : "hover:border-[#E0702B] hover:bg-[#E0702B]/5 text-gray-700"
                                             }`}
                                         >
-                                            {format(new Date(slot.start), "HH:mm")}
+                                            {format(parseAsUtc(slot.start), "HH:mm")}
                                         </button>
                                     ))}
                                 </div>

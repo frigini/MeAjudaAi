@@ -30,7 +30,7 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         // Arrange
         var providerId = Guid.NewGuid();
         var date = new DateOnly(2026, 4, 22);
-        var query = new GetProviderAvailabilityQuery(providerId, date);
+        var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
 
         var schedule = ProviderSchedule.Create(providerId);
         var baseTime = date.ToDateTime(TimeOnly.MinValue);
@@ -61,7 +61,7 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         // Arrange
         var providerId = Guid.NewGuid();
         var date = new DateOnly(2026, 4, 22);
-        var query = new GetProviderAvailabilityQuery(providerId, date);
+        var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
 
         var schedule = ProviderSchedule.Create(providerId);
         var baseTime = date.ToDateTime(TimeOnly.MinValue);
