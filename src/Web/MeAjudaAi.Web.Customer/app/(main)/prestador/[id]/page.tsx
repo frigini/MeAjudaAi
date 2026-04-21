@@ -12,6 +12,7 @@ import { ReviewForm } from "@/components/reviews/review-form";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Loader2, MapPin } from "lucide-react";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import { BookingModal } from "@/components/bookings/booking-modal";
 import { z } from "zod";
 import { getWhatsappLink } from "@/lib/utils/phone";
 import { EProviderType } from "@/types/api/provider";
@@ -104,7 +105,22 @@ export default function ProviderProfilePage() {
                             fallback={displayName.substring(0, 2).toUpperCase()}
                             containerClassName="h-32 w-32 border-4 border-white shadow-md text-3xl font-bold"
                         />
-                        <div className="flex items-center gap-2">
+                        
+                        {/* Botão de Agendamento */}
+                        <div className="w-full pt-2">
+                            {isAuthenticated ? (
+                                <BookingModal 
+                                    providerId={id} 
+                                    providerName={displayName} 
+                                />
+                            ) : (
+                                <Button asChild className="w-full bg-[#E0702B] hover:bg-[#C55A1F] text-white font-bold py-6 text-lg">
+                                    <Link href={`/api/auth/signin?callbackUrl=/prestador/${id}`}>Entrar para Agendar</Link>
+                                </Button>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-2">
                             <Rating value={rating} className="text-[#E0702B]" />
                             {reviewCount > 0 && (
                                 <span className="text-sm text-gray-600">({reviewCount} avaliações)</span>

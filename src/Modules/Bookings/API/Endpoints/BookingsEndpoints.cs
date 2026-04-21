@@ -1,0 +1,24 @@
+using MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
+using MeAjudaAi.Shared.Endpoints;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+
+namespace MeAjudaAi.Modules.Bookings.API.Endpoints;
+
+public static class BookingsEndpoints
+{
+    public const string Route = "bookings";
+    public const string Tag = "Bookings";
+
+    public static void Map(IEndpointRouteBuilder app)
+    {
+        var group = BaseEndpoint.CreateVersionedGroup(app, Route, Tag);
+
+        group.MapEndpoint<CreateBookingEndpoint>()
+             .MapEndpoint<ConfirmBookingEndpoint>()
+             .MapEndpoint<CancelBookingEndpoint>()
+             .MapEndpoint<GetProviderAvailabilityEndpoint>()
+             .MapEndpoint<SetProviderScheduleEndpoint>();
+    }
+}

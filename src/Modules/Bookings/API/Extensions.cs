@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Bookings.API.Endpoints;
 using MeAjudaAi.Modules.Bookings.Application;
 using MeAjudaAi.Modules.Bookings.Infrastructure;
 using Microsoft.AspNetCore.Builder;
@@ -35,7 +36,7 @@ public static class Extensions
     /// </summary>
     public static IEndpointRouteBuilder MapBookingsEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        // Endpoints serão mapeados aqui (ex: BookingsEndpoints.Map(endpoints))
+        BookingsEndpoints.Map(endpoints);
         return endpoints;
     }
 }

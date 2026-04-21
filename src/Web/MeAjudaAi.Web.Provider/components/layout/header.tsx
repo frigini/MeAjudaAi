@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { User } from "lucide-react";
+import { User, Calendar as CalendarIcon } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
 
 export interface HeaderProps {
@@ -46,6 +46,9 @@ export function Header({ className }: HeaderProps) {
                             <div className="h-5 w-5 animate-pulse bg-surface rounded-full" />
                         ) : session ? (
                             <>
+                                <Link href="/agenda" className="text-sm font-medium hover:underline flex flex-row items-center gap-2 mr-4 text-[#002D62]">
+                                    <CalendarIcon className="h-5 w-5" /> Agenda
+                                </Link>
                                 <Link href="/configuracoes" className="text-sm font-medium hover:underline flex flex-row items-center gap-2">
                                     <User className="h-5 w-5" /> Configurações
                                 </Link>

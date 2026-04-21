@@ -1,0 +1,163 @@
+"use client";
+
+import React, { useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { X, Calendar as CalendarIcon, Clock, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { format, addDays } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useSession } from "next-auth/react";
+
+interface BookingModalProps {
+    providerId: string;
+    providerName: string;
+    trigger?: React.ReactNode;
+}
+
+interface TimeSlot {
+    start: string;
+    end: string;
+}
+
+export function BookingModal({ providerId, providerName, trigger }: BookingModalProps) {
+    const { data: session } = useSession();
+    const [open, setOpen] = useState(false);
+    const [selectedDate, setSelectedDate] = useState<Date>(addDays(new Date(), 1));
+    const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+
+    // Consulta disponibilidade
+    const { data: availability, isLoading: isLoadingAvailability } = useQuery({
+        queryKey: ["provider-availability", providerId, format(selectedDate, "yyyy-MM-dd")],
+        queryFn: async () => {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+            const res = await fetch(`${apiUrl}/api/v1/bookings/availability/${providerId}?date=${format(selectedDate, "yyyy-MM-dd")}`, {
+                headers: session?.accessToken ? { "Authorization": `Bearer ${session.accessToken}` } : {}
+            });
+            if (!res.ok) throw new Error("Falha ao carregar disponibilidade");
+            return res.json();
+        },
+        enabled: open && !!providerId,
+    });
+
+    // Mutação para criar agendamento
+    const createBooking = useMutation({
+        mutationFn: async () => {
+            if (!selectedSlot) return;
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+            const res = await fetch(`${apiUrl}/api/v1/bookings`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${session?.accessToken}`
+                },
+                body: JSON.stringify({
+                    providerId,
+                    clientId: session?.user?.id, // Assumindo que o ID do usuário está no session
+                    serviceId: "00000000-0000-0000-0000-000000000000", // TODO: Permitir selecionar serviço
+                    start: selectedSlot.start,
+                    end: selectedSlot.end
+                })
+            });
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.detail || "Erro ao criar agendamento");
+            }
+            return res.json();
+        },
+        onSuccess: () => {
+            toast.success("Solicitação de agendamento enviada com sucesso!");
+            setOpen(false);
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+        }
+    });
+
+    return (
+        <Dialog.Root open={open} onOpenChange={setOpen}>
+            <Dialog.Trigger asChild>
+                {trigger || <Button className="w-full bg-[#E0702B] hover:bg-[#C55A1F] text-white font-bold py-6 text-lg shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]">Agendar Horário</Button>}
+            </Dialog.Trigger>
+            <Dialog.Portal>
+                <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-in fade-in duration-200" />
+                <Dialog.Content className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-md translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-6 shadow-2xl duration-200 animate-in fade-in zoom-in-95 sm:rounded-2xl">
+                    <div className="flex flex-col space-y-1.5 text-center sm:text-left">
+                        <Dialog.Title className="text-xl font-bold text-[#002D62]">Agendar com {providerName}</Dialog.Title>
+                        <Dialog.Description className="text-sm text-muted-foreground">
+                            Escolha a data e o horário desejado para o atendimento.
+                        </Dialog.Description>
+                    </div>
+
+                    <div className="grid gap-6 py-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold flex items-center gap-2">
+                                <CalendarIcon className="h-4 w-4 text-[#E0702B]" /> Selecione a Data
+                            </label>
+                            <input 
+                                type="date" 
+                                min={format(addDays(new Date(), 1), "yyyy-MM-dd")}
+                                value={format(selectedDate, "yyyy-MM-dd")}
+                                onChange={(e) => {
+                                    setSelectedDate(new Date(e.target.value));
+                                    setSelectedSlot(null);
+                                }}
+                                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#E0702B] outline-none"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-[#E0702B]" /> Horários Disponíveis
+                            </label>
+                            {isLoadingAvailability ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                </div>
+                            ) : availability?.slots?.length > 0 ? (
+                                <div className="grid grid-cols-3 gap-2 max-h-[200px] overflow-y-auto p-1">
+                                    {availability.slots.map((slot: TimeSlot, i: number) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setSelectedSlot(slot)}
+                                            className={`p-2 text-xs font-medium border rounded-md transition-colors ${
+                                                selectedSlot === slot 
+                                                    ? "bg-[#002D62] text-white border-[#002D62]" 
+                                                    : "hover:border-[#E0702B] hover:bg-[#E0702B]/5 text-gray-700"
+                                            }`}
+                                        >
+                                            {format(new Date(slot.start), "HH:mm")}
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground italic text-center py-8 bg-gray-50 rounded-lg border border-dashed">
+                                    Nenhum horário disponível para esta data.
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2">
+                        <Dialog.Close asChild>
+                            <Button variant="ghost">Cancelar</Button>
+                        </Dialog.Close>
+                        <Button 
+                            disabled={!selectedSlot || createBooking.isPending}
+                            onClick={() => createBooking.mutate()}
+                            className="bg-[#E0702B] hover:bg-[#C55A1F] text-white font-bold"
+                        >
+                            {createBooking.isPending ? "Confirmando..." : "Confirmar Agendamento"}
+                        </Button>
+                    </div>
+
+                    <Dialog.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Fechar</span>
+                    </Dialog.Close>
+                </Dialog.Content>
+            </Dialog.Portal>
+        </Dialog.Root>
+    );
+}
