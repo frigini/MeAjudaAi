@@ -69,11 +69,8 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .IsRowVersion()
             .HasColumnName("version");
 
-        // Índices otimizados para busca de sobreposição e listagem
-        // Inclui StartTime no índice e EndTime via Include se suportado, para acelerar HasOverlapAsync
-        builder.HasIndex("ProviderId", "Status", "TimeSlot_Start")
-            .HasFilter("status NOT IN ('Cancelled', 'Rejected')")
-            .HasDatabaseName("ix_bookings_provider_active_overlap_check");
+        // Índice para busca de agendamentos por prestador
+        builder.HasIndex(b => new { b.ProviderId, b.Status });
 
         builder.HasIndex(b => b.ClientId);
         builder.HasIndex(b => b.Status);

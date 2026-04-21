@@ -81,7 +81,8 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
             await transaction.RollbackAsync(cancellationToken);
             
             // Tratamento especial para conflitos de concorrência no banco
-            if (ex is DbUpdateConcurrencyException or InvalidOperationException { Message: var m } && m.Contains("transaction", StringComparison.OrdinalIgnoreCase))
+            if (ex is DbUpdateConcurrencyException || 
+                (ex is InvalidOperationException { Message: var m } && m.Contains("transaction", StringComparison.OrdinalIgnoreCase)))
             {
                 return Result.Failure(Error.Conflict("Conflito de concorrência ao validar agendamento. Tente novamente em instantes."));
             }
