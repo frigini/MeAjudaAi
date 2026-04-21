@@ -20,7 +20,7 @@ public sealed class GetProviderAvailabilityQueryHandler(
         var schedule = await scheduleRepository.GetByProviderIdAsync(query.ProviderId, cancellationToken);
         if (schedule == null)
         {
-            return Result<AvailabilityDto>.Failure(Error.NotFound("Provider schedule not found."));
+            return Result<AvailabilityDto>.Failure(Error.NotFound("Agenda do prestador não encontrada."));
         }
 
         var daySchedule = schedule.Availabilities.FirstOrDefault(a => a.DayOfWeek == query.Date.DayOfWeek);
@@ -31,19 +31,20 @@ public sealed class GetProviderAvailabilityQueryHandler(
 
         var bookings = await bookingRepository.GetByProviderIdAsync(query.ProviderId, cancellationToken);
         var dayBookings = bookings
-            .Where(b => b.TimeSlot.Start.Date == query.Date.Date && 
+            .Where(b => DateOnly.FromDateTime(b.TimeSlot.Start) == query.Date && 
                         b.Status != Contracts.Bookings.Enums.EBookingStatus.Cancelled &&
                         b.Status != Contracts.Bookings.Enums.EBookingStatus.Rejected)
             .ToList();
 
-        // Lógica simplificada: retorna os slots do schedule. 
-        // Em uma implementação real, subtrairíamos os dayBookings dos slots disponíveis.
-        // TODO: Refinar cálculo de slots livres subtraindo agendamentos existentes.
+        // Filtra os slots do schedule removendo aqueles que conflitam com bookings existentes
+        var availableSlots = daySchedule.Slots
+            .Select(s => new TimeSlotDto(
+                query.Date.ToDateTime(TimeOnly.FromDateTime(s.Start)), 
+                query.Date.ToDateTime(TimeOnly.FromDateTime(s.End))))
+            .Where(slot => !dayBookings.Any(b => 
+                slot.Start < b.TimeSlot.End && b.TimeSlot.Start < slot.End))
+            .ToList();
 
-        var slots = daySchedule.Slots.Select(s => new TimeSlotDto(
-            query.Date.Date.Add(s.Start.TimeOfDay), 
-            query.Date.Date.Add(s.End.TimeOfDay)));
-
-        return new AvailabilityDto(query.Date.DayOfWeek, slots);
+        return new AvailabilityDto(query.Date.DayOfWeek, availableSlots);
     }
 }

@@ -8,6 +8,6 @@ public record CreateBookingCommand(
     Guid ProviderId,
     Guid ClientId,
     Guid ServiceId,
-    DateTime Start,
-    DateTime End,
+    DateTimeOffset Start,
+    DateTimeOffset End,
     Guid CorrelationId = default) : ICommand<Result<BookingDto>>;

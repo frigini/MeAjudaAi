@@ -23,7 +23,7 @@ public sealed class SetProviderScheduleCommandHandler(
         var providerExists = await providersApi.ProviderExistsAsync(command.ProviderId, cancellationToken);
         if (providerExists.IsFailure || !providerExists.Value)
         {
-            return Result.Failure(Error.NotFound("Provider not found."));
+            return Result.Failure(Error.NotFound("Prestador não encontrado."));
         }
 
         // 2. Buscar ou criar Schedule
@@ -34,6 +34,11 @@ public sealed class SetProviderScheduleCommandHandler(
         {
             schedule = ProviderSchedule.Create(command.ProviderId);
             isNew = true;
+        }
+        else
+        {
+            // Limpa as disponibilidades existentes para garantir que a nova agenda seja absoluta
+            schedule.ClearAvailabilities();
         }
 
         // 3. Atualizar Disponibilidades
@@ -48,8 +53,8 @@ public sealed class SetProviderScheduleCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Invalid availability data provided for Provider {ProviderId}", command.ProviderId);
-            return Result.Failure(Error.BadRequest(ex.Message));
+            logger.LogWarning(ex, "Dados de disponibilidade inválidos para o Prestador {ProviderId}", command.ProviderId);
+            return Result.Failure(Error.BadRequest("Os dados de horário fornecidos são inválidos. Verifique sobreposições ou horários negativos."));
         }
 
         // 4. Persistir

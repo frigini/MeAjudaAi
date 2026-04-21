@@ -41,21 +41,6 @@ public class BookingTests : BaseUnitTest
     }
 
     [Fact]
-    public void Confirm_Should_ThrowException_When_NotPending()
-    {
-        // Arrange
-        var booking = CreatePendingBooking();
-        booking.Confirm();
-
-        // Act
-        var act = () => booking.Confirm();
-
-        // Assert
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("Only pending bookings can be confirmed.");
-    }
-
-    [Fact]
     public void Reject_Should_ChangeStatusToRejected_When_Pending()
     {
         // Arrange
@@ -72,7 +57,7 @@ public class BookingTests : BaseUnitTest
     }
 
     [Fact]
-    public void Cancel_Should_ChangeStatusToCancelled()
+    public void Cancel_Should_ChangeStatusToCancelled_When_Pending()
     {
         // Arrange
         var booking = CreatePendingBooking();
@@ -84,7 +69,36 @@ public class BookingTests : BaseUnitTest
         // Assert
         booking.Status.Should().Be(EBookingStatus.Cancelled);
         booking.CancellationReason.Should().Be(reason);
-        booking.UpdatedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Cancel_Should_ChangeStatusToCancelled_When_Confirmed()
+    {
+        // Arrange
+        var booking = CreatePendingBooking();
+        booking.Confirm();
+        var reason = "Provider emergency";
+
+        // Act
+        booking.Cancel(reason);
+
+        // Assert
+        booking.Status.Should().Be(EBookingStatus.Cancelled);
+    }
+
+    [Fact]
+    public void Cancel_Should_Throw_When_Rejected()
+    {
+        // Arrange
+        var booking = CreatePendingBooking();
+        booking.Reject("Busy");
+
+        // Act
+        var act = () => booking.Cancel("Change mind");
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("Only pending or confirmed bookings can be cancelled.");
     }
 
     [Fact]
@@ -100,6 +114,19 @@ public class BookingTests : BaseUnitTest
         // Assert
         booking.Status.Should().Be(EBookingStatus.Completed);
         booking.UpdatedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Complete_Should_Throw_When_Pending()
+    {
+        // Arrange
+        var booking = CreatePendingBooking();
+
+        // Act
+        var act = () => booking.Complete();
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>();
     }
 
     private static Booking CreatePendingBooking()

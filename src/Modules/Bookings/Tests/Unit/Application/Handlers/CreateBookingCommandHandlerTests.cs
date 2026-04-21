@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
@@ -33,8 +34,8 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         var providerId = Guid.NewGuid();
         var command = new CreateBookingCommand(
             providerId, Guid.NewGuid(), Guid.NewGuid(),
-            DateTime.UtcNow.AddDays(1).Date.AddHours(10),
-            DateTime.UtcNow.AddDays(1).Date.AddHours(11));
+            DateTimeOffset.UtcNow.AddDays(1).Date.AddHours(10),
+            DateTimeOffset.UtcNow.AddDays(1).Date.AddHours(11));
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
@@ -46,23 +47,39 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
 
-        _bookingRepoMock.Setup(x => x.HasOverlapAsync(providerId, command.Start, command.End, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
+        _bookingRepoMock.Setup(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success());
 
         // Act
         var result = await _sut.HandleAsync(command);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        _bookingRepoMock.Verify(x => x.AddAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Once);
+        _bookingRepoMock.Verify(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Fail_When_EndBeforeStart()
+    {
+        // Arrange
+        var command = new CreateBookingCommand(
+            Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
+            DateTimeOffset.UtcNow.AddHours(2),
+            DateTimeOffset.UtcNow.AddHours(1));
+
+        // Act
+        var result = await _sut.HandleAsync(command);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(400);
     }
 
     [Fact]
     public async Task HandleAsync_Should_Fail_When_ProviderNotFound()
     {
         // Arrange
-        var command = new CreateBookingCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow, DateTime.UtcNow);
+        var command = new CreateBookingCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
         _providersApiMock.Setup(x => x.ProviderExistsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(false));
 

@@ -2,6 +2,9 @@ using MeAjudaAi.Shared.Domain;
 
 namespace MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 
+/// <summary>
+/// Representa a disponibilidade de horários para um dia da semana específico.
+/// </summary>
 public sealed class Availability : ValueObject
 {
     private readonly List<TimeSlot> _slots = [];
@@ -12,12 +15,18 @@ public sealed class Availability : ValueObject
 
     private Availability(DayOfWeek dayOfWeek, IEnumerable<TimeSlot> slots)
     {
+        ArgumentNullException.ThrowIfNull(slots);
+
         DayOfWeek = dayOfWeek;
         _slots.AddRange(slots.OrderBy(s => s.Start));
 
         ValidateNoOverlaps();
     }
 
+    /// <summary>
+    /// Cria uma nova disponibilidade garantindo que não haja sobreposição entre os horários.
+    /// NOTA: Slots adjacentes (ex: 09:00-10:00 e 10:00-11:00) são permitidos.
+    /// </summary>
     public static Availability Create(DayOfWeek dayOfWeek, IEnumerable<TimeSlot> slots) 
         => new(dayOfWeek, slots);
 

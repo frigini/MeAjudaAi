@@ -1,11 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { format, startOfWeek, addDays, setHours, setMinutes, isSameDay } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { Plus, Trash2, Save, Calendar as CalendarIcon, Clock } from "lucide-react";
+import { Plus, Trash2, Save, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
@@ -91,7 +89,7 @@ export function ScheduleManager() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight text-[#002D62]">Minha Agenda</h2>
-                    <p className="text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                         Defina os horários em que você está disponível para atender clientes.
                     </p>
                 </div>

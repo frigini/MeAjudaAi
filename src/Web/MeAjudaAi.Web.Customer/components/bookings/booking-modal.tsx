@@ -5,7 +5,6 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X, Calendar as CalendarIcon, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, addDays } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
@@ -24,7 +23,15 @@ interface TimeSlot {
 export function BookingModal({ providerId, providerName, trigger }: BookingModalProps) {
     const { data: session } = useSession();
     const [open, setOpen] = useState(false);
-    const [selectedDate, setSelectedDate] = useState<Date>(addDays(new Date(), 1));
+    
+    // Inicializa com amanhã em fuso local para evitar problemas de parsing UTC
+    const [selectedDate, setSelectedDate] = useState<Date>(() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        d.setHours(0, 0, 0, 0);
+        return d;
+    });
+    
     const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
 
     // Consulta disponibilidade
@@ -45,35 +52,54 @@ export function BookingModal({ providerId, providerName, trigger }: BookingModal
     const createBooking = useMutation({
         mutationFn: async () => {
             if (!selectedSlot) return;
+            
+            const clientId = session?.user?.id;
+            const accessToken = session?.accessToken;
+
+            if (!clientId || !accessToken) {
+                throw new Error("Você precisa estar autenticado para realizar um agendamento.");
+            }
+
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const res = await fetch(`${apiUrl}/api/v1/bookings`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${session?.accessToken}`
+                    "Authorization": `Bearer ${accessToken}`
                 },
                 body: JSON.stringify({
                     providerId,
-                    clientId: session?.user?.id, // Assumindo que o ID do usuário está no session
-                    serviceId: "00000000-0000-0000-0000-000000000000", // TODO: Permitir selecionar serviço
+                    serviceId: "00000000-0000-0000-0000-000000000000", // TODO: Implementar seleção de serviço na UI
                     start: selectedSlot.start,
                     end: selectedSlot.end
                 })
             });
+
             if (!res.ok) {
                 const error = await res.json();
-                throw new Error(error.detail || "Erro ao criar agendamento");
+                throw new Error(error.detail || error.message || "Erro ao criar agendamento");
             }
             return res.json();
         },
         onSuccess: () => {
             toast.success("Solicitação de agendamento enviada com sucesso!");
             setOpen(false);
+            setSelectedSlot(null);
         },
         onError: (error: Error) => {
             toast.error(error.message);
         }
     });
+
+    const handleDateChange = (dateString: string) => {
+        // Parsing manual para evitar o "dia anterior" em fusos negativos (UTC vs Local)
+        const [year, month, day] = dateString.split('-').map(Number);
+        const newDate = new Date(year, month - 1, day, 0, 0, 0, 0);
+        setSelectedDate(newDate);
+        setSelectedSlot(null);
+    };
+
+    const isConfirmDisabled = !selectedSlot || createBooking.isPending || !session?.user?.id;
 
     return (
         <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -99,10 +125,7 @@ export function BookingModal({ providerId, providerName, trigger }: BookingModal
                                 type="date" 
                                 min={format(addDays(new Date(), 1), "yyyy-MM-dd")}
                                 value={format(selectedDate, "yyyy-MM-dd")}
-                                onChange={(e) => {
-                                    setSelectedDate(new Date(e.target.value));
-                                    setSelectedSlot(null);
-                                }}
+                                onChange={(e) => handleDateChange(e.target.value)}
                                 className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#E0702B] outline-none"
                             />
                         </div>
@@ -144,7 +167,7 @@ export function BookingModal({ providerId, providerName, trigger }: BookingModal
                             <Button variant="ghost">Cancelar</Button>
                         </Dialog.Close>
                         <Button 
-                            disabled={!selectedSlot || createBooking.isPending}
+                            disabled={isConfirmDisabled}
                             onClick={() => createBooking.mutate()}
                             className="bg-[#E0702B] hover:bg-[#C55A1F] text-white font-bold"
                         >

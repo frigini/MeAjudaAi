@@ -37,8 +37,10 @@ const PublicProviderSchema = z.object({
 
 export default function ProviderProfilePage() {
     const { id } = useParams() as { id: string };
-    const { data: session } = useSession();
-    const isAuthenticated = !!session?.user;
+    const { data: session, status } = useSession();
+    
+    const isAuthenticated = status === "authenticated";
+    const isLoadingAuth = status === "loading";
 
     const { data: providerData, isLoading, error } = useQuery({
         queryKey: ["public-provider", id],
@@ -108,7 +110,11 @@ export default function ProviderProfilePage() {
                         
                         {/* Botão de Agendamento */}
                         <div className="w-full pt-2">
-                            {isAuthenticated ? (
+                            {isLoadingAuth ? (
+                                <Button disabled className="w-full bg-slate-200 text-slate-500 py-6 text-lg">
+                                    <Loader2 className="h-4 w-4 animate-spin mr-2" /> Carregando...
+                                </Button>
+                            ) : isAuthenticated ? (
                                 <BookingModal 
                                     providerId={id} 
                                     providerName={displayName} 
@@ -149,11 +155,11 @@ export default function ProviderProfilePage() {
                                     );
                                 })}
                             </div>
-                        ) : isAuthenticated ? (
+                        ) : (status === "authenticated") ? (
                             <div className="w-full p-4 bg-blue-50 border border-blue-100 rounded-lg text-center">
                                 <p className="text-sm text-gray-700">Este prestador não informou contatos.</p>
                             </div>
-                        ) : (
+                        ) : !isLoadingAuth && (
                             <div className="w-full p-4 bg-orange-50 border border-orange-100 rounded-lg text-center">
                                 <p className="text-sm text-gray-700 mb-2">Faça login para visualizar os contatos deste prestador.</p>
                                 <Link

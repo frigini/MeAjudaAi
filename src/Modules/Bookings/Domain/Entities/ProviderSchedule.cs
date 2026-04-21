@@ -30,16 +30,26 @@ public sealed class ProviderSchedule : BaseEntity
         MarkAsUpdated();
     }
 
+    public void ClearAvailabilities()
+    {
+        _availabilities.Clear();
+        MarkAsUpdated();
+    }
+
     public bool IsAvailable(DateTime dateTime, TimeSpan duration)
     {
-        var dayAvailability = _availabilities.FirstOrDefault(a => a.DayOfWeek == dateTime.DayOfWeek);
-        if (dayAvailability == null) return false;
-
+        if (duration <= TimeSpan.Zero) return false;
+        
         var requestStart = dateTime;
         var requestEnd = dateTime.Add(duration);
 
+        // Rejeita intervalos que cruzam a meia-noite
+        if (requestEnd.Date != requestStart.Date) return false;
+
+        var dayAvailability = _availabilities.FirstOrDefault(a => a.DayOfWeek == dateTime.DayOfWeek);
+        if (dayAvailability == null) return false;
+
         // Verifica se o intervalo solicitado está dentro de algum dos slots permitidos do dia
-        // NOTA: Para simplificar, assumimos que o agendamento não vira o dia.
         return dayAvailability.Slots.Any(slot => 
             requestStart.TimeOfDay >= slot.Start.TimeOfDay && 
             requestEnd.TimeOfDay <= slot.End.TimeOfDay);

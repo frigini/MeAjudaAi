@@ -16,7 +16,7 @@ public class GetProviderAvailabilityEndpoint : IEndpoint
     {
         app.MapGet("/availability/{providerId}", async (
             Guid providerId,
-            [FromQuery] DateTime date,
+            [FromQuery] DateOnly date,
             [FromServices] IQueryDispatcher dispatcher,
             CancellationToken cancellationToken) =>
         {
@@ -29,6 +29,8 @@ public class GetProviderAvailabilityEndpoint : IEndpoint
             );
         })
         .RequireAuthorization()
+        .Produces<AvailabilityDto>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status404NotFound)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("GetProviderAvailability")
         .WithSummary("Consulta a disponibilidade de um prestador em uma data específica.");

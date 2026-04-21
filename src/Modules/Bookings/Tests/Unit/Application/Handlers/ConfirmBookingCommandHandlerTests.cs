@@ -1,0 +1,83 @@
+using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
+using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
+using MeAjudaAi.Modules.Bookings.Domain.Entities;
+using MeAjudaAi.Modules.Bookings.Domain.Repositories;
+using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+
+namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
+
+public class ConfirmBookingCommandHandlerTests : BaseUnitTest
+{
+    private readonly Mock<IBookingRepository> _bookingRepoMock = new();
+    private readonly Mock<IHttpContextAccessor> _httpContextMock = new();
+    private readonly Mock<ILogger<ConfirmBookingCommandHandler>> _loggerMock = new();
+    private readonly ConfirmBookingCommandHandler _sut;
+
+    public ConfirmBookingCommandHandlerTests()
+    {
+        _sut = new ConfirmBookingCommandHandler(
+            _bookingRepoMock.Object,
+            _httpContextMock.Object,
+            _loggerMock.Object);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Confirm_When_UserIsProviderOwner()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
+            TimeSlot.Create(DateTime.UtcNow.AddDays(1), DateTime.UtcNow.AddDays(1).AddHours(1)));
+        
+        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        SetupUser(providerId);
+
+        // Act
+        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id));
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        booking.Status.Should().Be(Contracts.Bookings.Enums.EBookingStatus.Confirmed);
+        _bookingRepoMock.Verify(x => x.UpdateAsync(booking, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Fail_When_UserIsNotOwner()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
+            TimeSlot.Create(DateTime.UtcNow.AddDays(1), DateTime.UtcNow.AddDays(1).AddHours(1)));
+        
+        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        SetupUser(Guid.NewGuid()); // Outro provider
+
+        // Act
+        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id));
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(403);
+    }
+
+    private void SetupUser(Guid providerId)
+    {
+        var claims = new List<Claim>
+        {
+            new(AuthConstants.Claims.ProviderId, providerId.ToString())
+        };
+        var identity = new ClaimsIdentity(claims, "Test");
+        var principal = new ClaimsPrincipal(identity);
+        var context = new DefaultHttpContext { User = principal };
+        _httpContextMock.Setup(x => x.HttpContext).Returns(context);
+    }
+}

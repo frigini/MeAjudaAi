@@ -105,7 +105,7 @@ public static class MessagingExtensions
                     {
                         o.SetMaxParallelism(20);
                         o.SetNumberOfWorkers(2);
-                        o.Register<ITopicNameConvention>(_ => new AttributeTopicNameConvention());
+                        o.Decorate<ITopicNameConvention>(_ => new AttributeTopicNameConvention());
                     })
                     .Routing(r => r.TypeBased());
             });

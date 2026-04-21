@@ -48,21 +48,6 @@ public class BookingRepositoryTests : BaseDatabaseTest
     }
 
     [Fact]
-    public async Task GetByIdAsync_ShouldReturnBooking()
-    {
-        // Arrange
-        var booking = CreateBooking();
-        await _repository.AddAsync(booking);
-
-        // Act
-        var result = await _repository.GetByIdAsync(booking.Id);
-
-        // Assert
-        result.Should().NotBeNull();
-        result!.Id.Should().Be(booking.Id);
-    }
-
-    [Fact]
     public async Task HasOverlapAsync_ShouldReturnTrue_WhenOverlapsExist()
     {
         // Arrange
@@ -70,46 +55,104 @@ public class BookingRepositoryTests : BaseDatabaseTest
         var baseTime = DateTime.UtcNow.AddDays(1);
         
         var existingBooking = Booking.Create(
-            providerId, 
-            Guid.NewGuid(), 
-            Guid.NewGuid(), 
+            providerId, Guid.NewGuid(), Guid.NewGuid(), 
             TimeSlot.Create(baseTime.AddHours(10), baseTime.AddHours(12)));
         
         await _repository.AddAsync(existingBooking);
 
         // Act
         var hasOverlap = await _repository.HasOverlapAsync(
-            providerId, 
-            baseTime.AddHours(11), 
-            baseTime.AddHours(13));
+            providerId, baseTime.AddHours(11), baseTime.AddHours(13));
 
         // Assert
         hasOverlap.Should().BeTrue();
     }
 
     [Fact]
-    public async Task HasOverlapAsync_ShouldReturnFalse_WhenNoOverlaps()
+    public async Task HasOverlapAsync_ShouldReturnFalse_WhenIntervalsAreAdjacent()
     {
         // Arrange
         var providerId = Guid.NewGuid();
         var baseTime = DateTime.UtcNow.AddDays(1);
         
         var existingBooking = Booking.Create(
-            providerId, 
-            Guid.NewGuid(), 
-            Guid.NewGuid(), 
+            providerId, Guid.NewGuid(), Guid.NewGuid(), 
             TimeSlot.Create(baseTime.AddHours(10), baseTime.AddHours(12)));
         
         await _repository.AddAsync(existingBooking);
 
+        // Act & Assert
+        // Caso 1: Novo agendamento termina exatamente quando o outro começa
+        var overlapBefore = await _repository.HasOverlapAsync(providerId, baseTime.AddHours(9), baseTime.AddHours(10));
+        overlapBefore.Should().BeFalse();
+
+        // Caso 2: Novo agendamento começa exatamente quando o outro termina
+        var overlapAfter = await _repository.HasOverlapAsync(providerId, baseTime.AddHours(12), baseTime.AddHours(13));
+        overlapAfter.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task HasOverlapAsync_ShouldIgnoreCancelledAndRejectedBookings()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var baseTime = DateTime.UtcNow.AddDays(1);
+        
+        var cancelledBooking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
+            TimeSlot.Create(baseTime.AddHours(10), baseTime.AddHours(12)));
+        cancelledBooking.Cancel("Test");
+
+        var rejectedBooking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
+            TimeSlot.Create(baseTime.AddHours(14), baseTime.AddHours(16)));
+        rejectedBooking.Reject("Test");
+        
+        await _repository.AddAsync(cancelledBooking);
+        await _repository.AddAsync(rejectedBooking);
+
         // Act
-        var hasOverlap = await _repository.HasOverlapAsync(
-            providerId, 
-            baseTime.AddHours(13), 
-            baseTime.AddHours(14));
+        var overlapWithCancelled = await _repository.HasOverlapAsync(providerId, baseTime.AddHours(10), baseTime.AddHours(11));
+        var overlapWithRejected = await _repository.HasOverlapAsync(providerId, baseTime.AddHours(14), baseTime.AddHours(15));
 
         // Assert
-        hasOverlap.Should().BeFalse();
+        overlapWithCancelled.Should().BeFalse();
+        overlapWithRejected.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task AddIfNoOverlapAsync_ShouldBeAtomicAndSucceed_WhenNoOverlap()
+    {
+        // Arrange
+        var booking = CreateBooking();
+
+        // Act
+        var result = await _repository.AddIfNoOverlapAsync(booking);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        var saved = await _repository.GetByIdAsync(booking.Id);
+        saved.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task AddIfNoOverlapAsync_ShouldFail_WhenOverlapExists()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var baseTime = DateTime.UtcNow.AddDays(2).Date;
+        
+        var existing = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
+            TimeSlot.Create(baseTime.AddHours(10), baseTime.AddHours(11)));
+        await _repository.AddAsync(existing);
+
+        var newBooking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
+            TimeSlot.Create(baseTime.AddHours(10).AddMinutes(30), baseTime.AddHours(11).AddMinutes(30)));
+
+        // Act
+        var result = await _repository.AddIfNoOverlapAsync(newBooking);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(409);
     }
 
     private static Booking CreateBooking()

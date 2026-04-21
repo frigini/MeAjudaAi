@@ -2,12 +2,16 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Utilities.Constants;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 
 public sealed class CancelBookingCommandHandler(
     IBookingRepository bookingRepository,
+    IHttpContextAccessor httpContextAccessor,
     ILogger<CancelBookingCommandHandler> logger) : ICommandHandler<CancelBookingCommand, Result>
 {
     public async Task<Result> HandleAsync(CancelBookingCommand command, CancellationToken cancellationToken = default)
@@ -17,18 +21,35 @@ public sealed class CancelBookingCommandHandler(
         var booking = await bookingRepository.GetByIdAsync(command.BookingId, cancellationToken);
         if (booking == null)
         {
-            return Result.Failure(Error.NotFound("Booking not found."));
+            return Result.Failure(Error.NotFound("Reserva não encontrada."));
+        }
+
+        // 1. Validar Autorização (Dono da reserva, Prestador ou Admin)
+        var user = httpContextAccessor.HttpContext?.User;
+        if (user == null) return Result.Failure(Error.Unauthorized("Usuário não autenticado."));
+
+        var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value;
+        var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
+        var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
+
+        bool isOwner = !string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var userId) && userId == booking.ClientId;
+        bool isProvider = !string.IsNullOrEmpty(providerIdClaim) && Guid.TryParse(providerIdClaim, out var userProviderId) && userProviderId == booking.ProviderId;
+
+        if (!isSystemAdmin && !isOwner && !isProvider)
+        {
+            return Result.Failure(Error.Forbidden("Você não tem permissão para cancelar este agendamento."));
         }
 
         try
         {
             booking.Cancel(command.Reason);
-            await bookingRepository.UpdateAsync(booking, cancellationToken);
         }
         catch (InvalidOperationException ex)
         {
             return Result.Failure(Error.BadRequest(ex.Message));
         }
+
+        await bookingRepository.UpdateAsync(booking, cancellationToken);
 
         logger.LogInformation("Booking {BookingId} cancelled successfully.", command.BookingId);
 

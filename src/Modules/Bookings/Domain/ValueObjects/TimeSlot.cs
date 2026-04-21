@@ -11,13 +11,22 @@ public sealed class TimeSlot : ValueObject
 
     private TimeSlot(DateTime start, DateTime end)
     {
-        if (start >= end)
+        // Garante que as datas sejam UTC
+        var utcStart = start.Kind == DateTimeKind.Unspecified 
+            ? DateTime.SpecifyKind(start, DateTimeKind.Utc) 
+            : start.ToUniversalTime();
+
+        var utcEnd = end.Kind == DateTimeKind.Unspecified 
+            ? DateTime.SpecifyKind(end, DateTimeKind.Utc) 
+            : end.ToUniversalTime();
+
+        if (utcStart >= utcEnd)
         {
             throw new ArgumentException("Start time must be before end time.");
         }
 
-        Start = start;
-        End = end;
+        Start = utcStart;
+        End = utcEnd;
     }
 
     public static TimeSlot Create(DateTime start, DateTime end) => new(start, end);

@@ -33,11 +33,13 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         {
             timeSlot.Property(ts => ts.Start)
                 .IsRequired()
-                .HasColumnName("start_time");
+                .HasColumnName("start_time")
+                .HasColumnType("timestamptz");
             
             timeSlot.Property(ts => ts.End)
                 .IsRequired()
-                .HasColumnName("end_time");
+                .HasColumnName("end_time")
+                .HasColumnType("timestamptz");
         });
 
         builder.Property(b => b.Status)
@@ -56,14 +58,21 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
 
         builder.Property(b => b.CreatedAt)
             .IsRequired()
-            .HasColumnName("created_at");
+            .HasColumnName("created_at")
+            .HasColumnType("timestamptz");
 
         builder.Property(b => b.UpdatedAt)
-            .HasColumnName("updated_at");
+            .HasColumnName("updated_at")
+            .HasColumnType("timestamptz");
 
-        builder.HasIndex(b => b.ProviderId);
+        // Índices otimizados para busca de sobreposição e listagem
+        // Usamos um índice filtrado para ignorar reservas canceladas/rejeitadas nas verificações de conflito
+        builder.HasIndex(b => new { b.ProviderId, b.Status, b.Id })
+            .IncludeProperties(b => new { b.CreatedAt }) // Exemplo de uso de include se suportado pelo provider
+            .HasFilter("status NOT IN ('Cancelled', 'Rejected')")
+            .HasDatabaseName("ix_bookings_provider_active_status");
+
         builder.HasIndex(b => b.ClientId);
         builder.HasIndex(b => b.Status);
-        builder.HasIndex(b => new { b.ProviderId, b.Status });
     }
 }

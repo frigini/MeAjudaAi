@@ -45,20 +45,24 @@ public class ProviderScheduleConfiguration : IEntityTypeConfiguration<ProviderSc
 
                 slot.Property(s => s.Start)
                     .IsRequired()
-                    .HasColumnName("start_time");
+                    .HasColumnName("start_time")
+                    .HasColumnType("timestamptz");
 
                 slot.Property(s => s.End)
                     .IsRequired()
-                    .HasColumnName("end_time");
+                    .HasColumnName("end_time")
+                    .HasColumnType("timestamptz");
             });
         });
 
         builder.Property(ps => ps.CreatedAt)
             .IsRequired()
-            .HasColumnName("created_at");
+            .HasColumnName("created_at")
+            .HasColumnType("timestamptz");
 
         builder.Property(ps => ps.UpdatedAt)
-            .HasColumnName("updated_at");
+            .HasColumnName("updated_at")
+            .HasColumnType("timestamptz");
 
         builder.HasIndex(ps => ps.ProviderId).IsUnique();
     }

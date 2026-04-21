@@ -55,13 +55,16 @@ public sealed class Booking : BaseEntity
 
     public void Cancel(string reason)
     {
-        if (Status is EBookingStatus.Completed or EBookingStatus.Cancelled)
+        // Só permite cancelar se estiver pendente ou confirmado
+        if (Status != EBookingStatus.Pending && Status != EBookingStatus.Confirmed)
         {
-            throw new InvalidOperationException("Completed or already cancelled bookings cannot be cancelled.");
+            throw new InvalidOperationException("Only pending or confirmed bookings can be cancelled.");
         }
 
         Status = EBookingStatus.Cancelled;
         CancellationReason = reason;
+        // Ao cancelar, garantimos que motivos de rejeição anteriores sejam limpos se necessário, 
+        // mas aqui optamos por manter o histórico de campos nullable e apenas mudar o status.
         MarkAsUpdated();
     }
 

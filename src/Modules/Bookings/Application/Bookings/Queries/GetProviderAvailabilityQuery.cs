@@ -6,5 +6,5 @@ namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 
 public record GetProviderAvailabilityQuery(
     Guid ProviderId,
-    DateTime Date,
+    DateOnly Date,
     Guid CorrelationId = default) : IQuery<Result<AvailabilityDto>>;
