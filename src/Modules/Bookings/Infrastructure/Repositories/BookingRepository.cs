@@ -82,7 +82,14 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync(cancellationToken);
+            try
+            {
+                await transaction.RollbackAsync(cancellationToken);
+            }
+            catch
+            {
+                // Ignora erro de rollback se a transação já tiver sido abortada pelo banco (comum em erros de serialização)
+            }
             
             // Tratamento robusto para erros de serialização do PostgreSQL (40001) ou Deadlocks (40P01)
             if (ex is PostgresException pgExDirect && (pgExDirect.SqlState == "40001" || pgExDirect.SqlState == "40P01") ||

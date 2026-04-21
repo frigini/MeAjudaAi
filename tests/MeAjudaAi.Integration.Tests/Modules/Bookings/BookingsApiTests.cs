@@ -36,8 +36,8 @@ public class BookingsApiTests : BaseApiTest
             new DateTimeOffset(start, TimeSpan.Zero),
             new DateTimeOffset(start.AddHours(1), TimeSpan.Zero));
 
-        AuthConfig.ConfigureRegularUser(Guid.NewGuid().ToString());
-        Client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "dummy");
+        AuthConfig.ConfigureRegularUser("client-id");
+        Client.AsUser();
 
         // Act
         var response = await Client.PostAsJsonAsync("/api/v1/bookings", request);
@@ -57,8 +57,8 @@ public class BookingsApiTests : BaseApiTest
         await CreateTestScheduleAsync(providerId);
         var date = DateTime.UtcNow.AddDays(1).ToString("yyyy-MM-dd");
 
-        AuthConfig.ConfigureRegularUser(Guid.NewGuid().ToString());
-        Client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "dummy");
+        AuthConfig.ConfigureRegularUser("client-id");
+        Client.AsUser();
 
         // Act
         var response = await Client.GetAsync($"/api/v1/bookings/availability/{providerId}?date={date}");

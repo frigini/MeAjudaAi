@@ -81,9 +81,11 @@ public class SetProviderScheduleEndpoint : IEndpoint
     }
 }
 
+/// <summary>
+/// Requisito para definição de agenda.
+/// </summary>
+/// <param name="ProviderId">ID do prestador. Honrado apenas se o solicitante for IsSystemAdmin.</param>
+/// <param name="Availabilities">Lista de disponibilidades por dia da semana.</param>
 public record SetProviderScheduleRequest(
-    /// <summary>
-    /// ID do prestador. Honrado apenas se o solicitante for IsSystemAdmin.
-    /// </summary>
     Guid ProviderId,
     IEnumerable<AvailabilityDto> Availabilities);
