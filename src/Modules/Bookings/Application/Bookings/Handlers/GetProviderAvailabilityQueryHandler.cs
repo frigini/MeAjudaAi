@@ -30,8 +30,9 @@ public sealed class GetProviderAvailabilityQueryHandler(
         }
 
         var bookings = await bookingRepository.GetByProviderIdAsync(query.ProviderId, cancellationToken);
+        // Filtra bookings ativos para a data solicitada usando o novo campo Date
         var dayBookings = bookings
-            .Where(b => DateOnly.FromDateTime(b.TimeSlot.Start) == query.Date && 
+            .Where(b => b.Date == query.Date && 
                         b.Status != Contracts.Bookings.Enums.EBookingStatus.Cancelled &&
                         b.Status != Contracts.Bookings.Enums.EBookingStatus.Rejected)
             .ToList();
@@ -39,10 +40,10 @@ public sealed class GetProviderAvailabilityQueryHandler(
         // Filtra os slots do schedule removendo aqueles que conflitam com bookings existentes
         var availableSlots = daySchedule.Slots
             .Select(s => new TimeSlotDto(
-                query.Date.ToDateTime(TimeOnly.FromDateTime(s.Start)), 
-                query.Date.ToDateTime(TimeOnly.FromDateTime(s.End))))
+                query.Date.ToDateTime(s.Start), 
+                query.Date.ToDateTime(s.End)))
             .Where(slot => !dayBookings.Any(b => 
-                slot.Start < b.TimeSlot.End && b.TimeSlot.Start < slot.End))
+                TimeOnly.FromDateTime(slot.Start) < b.TimeSlot.End && b.TimeSlot.Start < TimeOnly.FromDateTime(slot.End)))
             .ToList();
 
         return new AvailabilityDto(query.Date.DayOfWeek, availableSlots);

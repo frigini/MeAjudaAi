@@ -31,8 +31,9 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
-            TimeSlot.Create(DateTime.UtcNow.AddDays(1), DateTime.UtcNow.AddDays(1).AddHours(1)));
+        var date = new DateOnly(2026, 4, 22);
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
         _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
@@ -53,8 +54,9 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
-            TimeSlot.Create(DateTime.UtcNow.AddDays(1), DateTime.UtcNow.AddDays(1).AddHours(1)));
+        var date = new DateOnly(2026, 4, 22);
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
         _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);

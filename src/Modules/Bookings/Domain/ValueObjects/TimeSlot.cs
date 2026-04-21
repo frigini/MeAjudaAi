@@ -2,34 +2,37 @@ using MeAjudaAi.Shared.Domain;
 
 namespace MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 
+/// <summary>
+/// Representa um intervalo de tempo (hora início e hora fim) sem data associada.
+/// </summary>
 public sealed class TimeSlot : ValueObject
 {
-    public DateTime Start { get; }
-    public DateTime End { get; }
+    public TimeOnly Start { get; }
+    public TimeOnly End { get; }
 
     private TimeSlot() { } // Required by EF Core
 
-    private TimeSlot(DateTime start, DateTime end)
+    private TimeSlot(TimeOnly start, TimeOnly end)
     {
-        // Garante que as datas sejam UTC
-        var utcStart = start.Kind == DateTimeKind.Unspecified 
-            ? DateTime.SpecifyKind(start, DateTimeKind.Utc) 
-            : start.ToUniversalTime();
-
-        var utcEnd = end.Kind == DateTimeKind.Unspecified 
-            ? DateTime.SpecifyKind(end, DateTimeKind.Utc) 
-            : end.ToUniversalTime();
-
-        if (utcStart >= utcEnd)
+        if (start >= end)
         {
             throw new ArgumentException("Start time must be before end time.");
         }
 
-        Start = utcStart;
-        End = utcEnd;
+        Start = start;
+        End = end;
     }
 
-    public static TimeSlot Create(DateTime start, DateTime end) => new(start, end);
+    /// <summary>
+    /// Cria um TimeSlot a partir de TimeOnly.
+    /// </summary>
+    public static TimeSlot Create(TimeOnly start, TimeOnly end) => new(start, end);
+
+    /// <summary>
+    /// Cria um TimeSlot a partir de DateTime (ignora a data).
+    /// </summary>
+    public static TimeSlot FromDateTime(DateTime start, DateTime end) 
+        => new(TimeOnly.FromDateTime(start), TimeOnly.FromDateTime(end));
 
     public bool Overlaps(TimeSlot other)
     {

@@ -13,16 +13,18 @@ public class BookingTests : BaseUnitTest
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
-        var timeSlot = TimeSlot.Create(DateTime.UtcNow.AddHours(1), DateTime.UtcNow.AddHours(2));
+        var date = new DateOnly(2026, 4, 22);
+        var timeSlot = TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0));
 
         // Act
-        var booking = Booking.Create(providerId, clientId, serviceId, timeSlot);
+        var booking = Booking.Create(providerId, clientId, serviceId, date, timeSlot);
 
         // Assert
         booking.Status.Should().Be(EBookingStatus.Pending);
         booking.ProviderId.Should().Be(providerId);
         booking.ClientId.Should().Be(clientId);
         booking.ServiceId.Should().Be(serviceId);
+        booking.Date.Should().Be(date);
         booking.TimeSlot.Should().Be(timeSlot);
     }
 
@@ -148,6 +150,7 @@ public class BookingTests : BaseUnitTest
             Guid.NewGuid(), 
             Guid.NewGuid(), 
             Guid.NewGuid(), 
-            TimeSlot.Create(DateTime.UtcNow.AddHours(1), DateTime.UtcNow.AddHours(2)));
+            new DateOnly(2026, 4, 22),
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
     }
 }

@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -43,14 +44,18 @@ public sealed class ConfirmBookingCommandHandler(
         try
         {
             booking.Confirm();
+            await bookingRepository.UpdateAsync(booking, cancellationToken);
         }
         catch (InvalidOperationException ex)
         {
             logger.LogWarning(ex, "Business rule error confirming booking {BookingId}", command.BookingId);
             return Result.Failure(Error.BadRequest("Não foi possível confirmar a reserva."));
         }
-
-        await bookingRepository.UpdateAsync(booking, cancellationToken);
+        catch (ConcurrencyConflictException ex)
+        {
+            logger.LogWarning(ex, "Concurrency conflict confirming booking {BookingId}", command.BookingId);
+            return Result.Failure(Error.Conflict("O agendamento foi modificado por outro usuário."));
+        }
 
         logger.LogInformation("Booking {BookingId} confirmed successfully.", command.BookingId);
 

@@ -21,7 +21,12 @@ public sealed class SetProviderScheduleCommandHandler(
 
         // 1. Validar existência do Provider
         var providerExists = await providersApi.ProviderExistsAsync(command.ProviderId, cancellationToken);
-        if (providerExists.IsFailure || !providerExists.Value)
+        if (providerExists.IsFailure)
+        {
+            return Result.Failure(providerExists.Error);
+        }
+        
+        if (!providerExists.Value)
         {
             return Result.Failure(Error.NotFound("Prestador não encontrado."));
         }
@@ -46,7 +51,10 @@ public sealed class SetProviderScheduleCommandHandler(
         {
             foreach (var availabilityDto in command.Availabilities)
             {
-                var slots = availabilityDto.Slots.Select(s => TimeSlot.Create(s.Start, s.End));
+                var slots = availabilityDto.Slots.Select(s => TimeSlot.Create(
+                    TimeOnly.FromDateTime(s.Start), 
+                    TimeOnly.FromDateTime(s.End)));
+                
                 var availability = Availability.Create(availabilityDto.DayOfWeek, slots);
                 schedule.SetAvailability(availability);
             }

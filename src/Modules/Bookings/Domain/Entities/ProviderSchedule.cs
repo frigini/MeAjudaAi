@@ -49,22 +49,22 @@ public sealed class ProviderSchedule : BaseEntity
         MarkAsUpdated();
     }
 
-    public bool IsAvailable(DateTime dateTime, TimeSpan duration)
+    public bool IsAvailable(DateTime localDateTime, TimeSpan duration)
     {
         if (duration <= TimeSpan.Zero) return false;
         
-        var requestStart = dateTime;
-        var requestEnd = dateTime.Add(duration);
+        var requestStart = TimeOnly.FromDateTime(localDateTime);
+        var requestEnd = TimeOnly.FromDateTime(localDateTime.Add(duration));
 
         // Rejeita intervalos que cruzam a meia-noite
-        if (requestEnd.Date != requestStart.Date) return false;
+        if (localDateTime.Add(duration).Date != localDateTime.Date) return false;
 
-        var dayAvailability = _availabilities.FirstOrDefault(a => a.DayOfWeek == dateTime.DayOfWeek);
+        var dayAvailability = _availabilities.FirstOrDefault(a => a.DayOfWeek == localDateTime.DayOfWeek);
         if (dayAvailability == null) return false;
 
         // Verifica se o intervalo solicitado está dentro de algum dos slots permitidos do dia
         return dayAvailability.Slots.Any(slot => 
-            requestStart.TimeOfDay >= slot.Start.TimeOfDay && 
-            requestEnd.TimeOfDay <= slot.End.TimeOfDay);
+            requestStart >= slot.Start && 
+            requestEnd <= slot.End);
     }
 }

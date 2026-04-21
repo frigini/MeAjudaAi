@@ -45,92 +45,54 @@ public class BookingRepositoryTests : BaseDatabaseTest
         savedBooking.Should().NotBeNull();
         savedBooking!.ProviderId.Should().Be(booking.ProviderId);
         savedBooking.Status.Should().Be(EBookingStatus.Pending);
+        savedBooking.Date.Should().Be(booking.Date);
     }
 
     [Fact]
-    public async Task HasOverlapAsync_ShouldReturnTrue_WhenOverlapsExist()
+    public async Task AddIfNoOverlapAsync_ShouldSucceed_WhenNoOverlapsExist()
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var baseTime = DateTime.UtcNow.AddDays(1);
+        var date = new DateOnly(2026, 4, 22);
         
         var existingBooking = Booking.Create(
-            providerId, Guid.NewGuid(), Guid.NewGuid(), 
-            TimeSlot.Create(baseTime.AddHours(10), baseTime.AddHours(12)));
-        
+            providerId, Guid.NewGuid(), Guid.NewGuid(), date,
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(12, 0)));
         await _repository.AddAsync(existingBooking);
 
-        // Act
-        var hasOverlap = await _repository.HasOverlapAsync(
-            providerId, baseTime.AddHours(11), baseTime.AddHours(13));
-
-        // Assert
-        hasOverlap.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task HasOverlapAsync_ShouldReturnFalse_WhenIntervalsAreAdjacent()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        var baseTime = DateTime.UtcNow.AddDays(1);
-        
-        var existingBooking = Booking.Create(
-            providerId, Guid.NewGuid(), Guid.NewGuid(), 
-            TimeSlot.Create(baseTime.AddHours(10), baseTime.AddHours(12)));
-        
-        await _repository.AddAsync(existingBooking);
-
-        // Act & Assert
-        // Caso 1: Novo agendamento termina exatamente quando o outro começa
-        var overlapBefore = await _repository.HasOverlapAsync(providerId, baseTime.AddHours(9), baseTime.AddHours(10));
-        overlapBefore.Should().BeFalse();
-
-        // Caso 2: Novo agendamento começa exatamente quando o outro termina
-        var overlapAfter = await _repository.HasOverlapAsync(providerId, baseTime.AddHours(12), baseTime.AddHours(13));
-        overlapAfter.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task HasOverlapAsync_ShouldIgnoreCancelledAndRejectedBookings()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        var baseTime = DateTime.UtcNow.AddDays(1);
-        
-        var cancelledBooking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
-            TimeSlot.Create(baseTime.AddHours(10), baseTime.AddHours(12)));
-        cancelledBooking.Cancel("Test");
-
-        var rejectedBooking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
-            TimeSlot.Create(baseTime.AddHours(14), baseTime.AddHours(16)));
-        rejectedBooking.Reject("Test");
-        
-        await _repository.AddAsync(cancelledBooking);
-        await _repository.AddAsync(rejectedBooking);
+        var newBooking = Booking.Create(
+            providerId, Guid.NewGuid(), Guid.NewGuid(), date,
+            TimeSlot.Create(new TimeOnly(12, 0), new TimeOnly(13, 0))); // Adjacente
 
         // Act
-        var overlapWithCancelled = await _repository.HasOverlapAsync(providerId, baseTime.AddHours(10), baseTime.AddHours(11));
-        var overlapWithRejected = await _repository.HasOverlapAsync(providerId, baseTime.AddHours(14), baseTime.AddHours(15));
-
-        // Assert
-        overlapWithCancelled.Should().BeFalse();
-        overlapWithRejected.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task AddIfNoOverlapAsync_ShouldPersist_WhenNoOverlap()
-    {
-        // Arrange
-        var booking = CreateBooking();
-
-        // Act
-        var result = await _repository.AddIfNoOverlapAsync(booking);
+        var result = await _repository.AddIfNoOverlapAsync(newBooking);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        var saved = await _repository.GetByIdAsync(booking.Id);
-        saved.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task AddIfNoOverlapAsync_ShouldFail_WhenOverlapsExist()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var date = new DateOnly(2026, 4, 22);
+        
+        var existingBooking = Booking.Create(
+            providerId, Guid.NewGuid(), Guid.NewGuid(), date,
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(12, 0)));
+        await _repository.AddAsync(existingBooking);
+
+        var newBooking = Booking.Create(
+            providerId, Guid.NewGuid(), Guid.NewGuid(), date,
+            TimeSlot.Create(new TimeOnly(11, 0), new TimeOnly(13, 0))); // Sobrepõe
+
+        // Act
+        var result = await _repository.AddIfNoOverlapAsync(newBooking);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(409);
     }
 
     [Fact]
@@ -138,16 +100,15 @@ public class BookingRepositoryTests : BaseDatabaseTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var baseTime = DateTime.UtcNow.AddDays(2).Date;
+        var date = new DateOnly(2026, 4, 23);
         
-        var booking1 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
-            TimeSlot.Create(baseTime.AddHours(10), baseTime.AddHours(11)));
+        var booking1 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        var booking2 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
-            TimeSlot.Create(baseTime.AddHours(10).AddMinutes(30), baseTime.AddHours(11).AddMinutes(30)));
+        var booking2 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
+            TimeSlot.Create(new TimeOnly(10, 30), new TimeOnly(11, 30)));
 
         // Act
-        // Para testar concorrência real, usamos contextos separados
         var options = CreateDbContextOptions<BookingsDbContext>();
         
         using var ctx1 = new BookingsDbContext(options);
@@ -165,8 +126,7 @@ public class BookingRepositoryTests : BaseDatabaseTest
         results.Count(r => r.IsSuccess).Should().Be(1);
         results.Count(r => r.IsFailure).Should().Be(1);
         
-        // Verifica persistência final
-        var finalCount = await _context.Bookings.CountAsync(b => b.ProviderId == providerId);
+        var finalCount = await _context.Bookings.CountAsync(b => b.ProviderId == providerId && b.Date == date);
         finalCount.Should().Be(1);
     }
 
@@ -176,6 +136,7 @@ public class BookingRepositoryTests : BaseDatabaseTest
             Guid.NewGuid(), 
             Guid.NewGuid(), 
             Guid.NewGuid(), 
-            TimeSlot.Create(DateTime.UtcNow.AddDays(1), DateTime.UtcNow.AddDays(1).AddHours(1)));
+            new DateOnly(2026, 4, 22),
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
     }
 }

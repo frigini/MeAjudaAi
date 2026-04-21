@@ -33,12 +33,13 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
 
         var schedule = ProviderSchedule.Create(providerId);
-        var baseTime = date.ToDateTime(TimeOnly.MinValue);
-        var expectedStart = baseTime.AddHours(8);
-        var expectedEnd = baseTime.AddHours(10);
+        
+        // Slot das 08:00 às 10:00
+        var slotStart = new TimeOnly(8, 0);
+        var slotEnd = new TimeOnly(10, 0);
         
         schedule.SetAvailability(Availability.Create(date.DayOfWeek, 
-            [TimeSlot.Create(expectedStart, expectedEnd)]));
+            [TimeSlot.Create(slotStart, slotEnd)]));
 
         _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
@@ -51,8 +52,10 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Slots.Should().HaveCount(1);
-        result.Value.Slots.First().Start.Should().Be(expectedStart);
-        result.Value.Slots.First().End.Should().Be(expectedEnd);
+        
+        var returnedSlot = result.Value.Slots.First();
+        returnedSlot.Start.Should().Be(date.ToDateTime(slotStart));
+        returnedSlot.End.Should().Be(date.ToDateTime(slotEnd));
     }
 
     [Fact]
@@ -64,14 +67,13 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
 
         var schedule = ProviderSchedule.Create(providerId);
-        var baseTime = date.ToDateTime(TimeOnly.MinValue);
         // Slot das 08:00 às 10:00
         schedule.SetAvailability(Availability.Create(date.DayOfWeek, 
-            [TimeSlot.Create(baseTime.AddHours(8), baseTime.AddHours(10))]));
+            [TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(10, 0))]));
 
-        // Já existe um booking das 08:30 às 09:30
-        var existingBooking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
-            TimeSlot.Create(baseTime.AddHours(8).AddMinutes(30), baseTime.AddHours(9).AddMinutes(30)));
+        // Já existe um booking das 08:30 às 09:30 nesta data
+        var existingBooking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
+            TimeSlot.Create(new TimeOnly(8, 30), new TimeOnly(9, 30)));
 
         _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
@@ -83,6 +85,6 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Slots.Should().BeEmpty(); // O slot do schedule sobrepõe com o booking
+        result.Value.Slots.Should().BeEmpty();
     }
 }

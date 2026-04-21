@@ -51,15 +51,16 @@ public class ProviderScheduleConfiguration : IEntityTypeConfiguration<ProviderSc
                 slot.Property<Guid>("id");
                 slot.HasKey("id");
 
+                // Mapeia para o tipo 'time' do PostgreSQL (TimeOnly no C#)
                 slot.Property(s => s.Start)
                     .IsRequired()
                     .HasColumnName("start_time")
-                    .HasColumnType("timestamptz");
+                    .HasColumnType("time");
 
                 slot.Property(s => s.End)
                     .IsRequired()
                     .HasColumnName("end_time")
-                    .HasColumnType("timestamptz");
+                    .HasColumnType("time");
             });
         });
 

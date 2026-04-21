@@ -9,8 +9,8 @@ public class AvailabilityTests : BaseUnitTest
     {
         // Arrange
         var day = DayOfWeek.Monday;
-        var lateSlot = TimeSlot.Create(DateTime.UtcNow.AddHours(4), DateTime.UtcNow.AddHours(5));
-        var earlySlot = TimeSlot.Create(DateTime.UtcNow.AddHours(1), DateTime.UtcNow.AddHours(2));
+        var lateSlot = TimeSlot.Create(new TimeOnly(14, 0), new TimeOnly(15, 0));
+        var earlySlot = TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(10, 0));
         var slots = new[] { lateSlot, earlySlot };
 
         // Act
@@ -28,8 +28,8 @@ public class AvailabilityTests : BaseUnitTest
     {
         // Arrange
         var day = DayOfWeek.Monday;
-        var slot1 = TimeSlot.Create(DateTime.UtcNow.AddHours(1), DateTime.UtcNow.AddHours(3));
-        var slot2 = TimeSlot.Create(DateTime.UtcNow.AddHours(2), DateTime.UtcNow.AddHours(4));
+        var slot1 = TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(11, 0));
+        var slot2 = TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(12, 0));
         var slots = new[] { slot1, slot2 };
 
         // Act

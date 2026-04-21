@@ -4,7 +4,9 @@ using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Shared.Exceptions;
 using System.Data;
+using Npgsql;
 
 namespace MeAjudaAi.Modules.Bookings.Infrastructure.Repositories;
 
@@ -21,7 +23,7 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
         return await context.Bookings
             .AsNoTracking()
             .Where(b => b.ProviderId == providerId)
-            .OrderByDescending(b => b.TimeSlot.Start)
+            .OrderByDescending(b => b.CreatedAt)
             .ToListAsync(cancellationToken);
     }
 
@@ -30,7 +32,7 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
         return await context.Bookings
             .AsNoTracking()
             .Where(b => b.ClientId == clientId)
-            .OrderByDescending(b => b.TimeSlot.Start)
+            .OrderByDescending(b => b.CreatedAt)
             .ToListAsync(cancellationToken);
     }
 
@@ -39,7 +41,7 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
         return await context.Bookings
             .AsNoTracking()
             .Where(b => b.ProviderId == providerId && b.Status == status)
-            .OrderByDescending(b => b.TimeSlot.Start)
+            .OrderByDescending(b => b.CreatedAt)
             .ToListAsync(cancellationToken);
     }
 
@@ -52,10 +54,11 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
     public async Task<Result> AddIfNoOverlapAsync(Booking booking, CancellationToken cancellationToken = default)
     {
         // Usa transação Serializable para garantir atomicidade total do check-and-insert
-        using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+        await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
         
         try
         {
+            // NOTA: Como usamos o tipo 'time' no banco, comparamos diretamente as propriedades TimeOnly
             var hasOverlap = await context.Bookings
                 .AnyAsync(b => 
                     b.ProviderId == booking.ProviderId &&
@@ -80,9 +83,8 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
         {
             await transaction.RollbackAsync(cancellationToken);
             
-            // Tratamento especial para conflitos de concorrência no banco
-            if (ex is DbUpdateConcurrencyException || 
-                (ex is InvalidOperationException { Message: var m } && m.Contains("transaction", StringComparison.OrdinalIgnoreCase)))
+            // Tratamento específico para erros de serialização do PostgreSQL (40001) ou Deadlocks (40P01)
+            if (ex.InnerException is PostgresException pgEx && (pgEx.SqlState == "40001" || pgEx.SqlState == "40P01"))
             {
                 return Result.Failure(Error.Conflict("Conflito de concorrência ao validar agendamento. Tente novamente em instantes."));
             }
@@ -98,22 +100,25 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
             context.Bookings.Update(booking);
             await context.SaveChangesAsync(cancellationToken);
         }
-        catch (DbUpdateConcurrencyException)
+        catch (DbUpdateConcurrencyException ex)
         {
-            // Lança uma exceção de domínio ou retorna erro dependendo de como o handler espera
-            throw new InvalidOperationException("O registro foi modificado por outro usuário. Por favor, recarregue a página.");
+            throw new ConcurrencyConflictException("O agendamento foi modificado por outro usuário. Por favor, recarregue os dados.", ex);
         }
     }
 
+    [Obsolete("Use AddIfNoOverlapAsync para verificações atômicas de sobreposição e inserção.")]
     public async Task<bool> HasOverlapAsync(Guid providerId, DateTime start, DateTime end, CancellationToken cancellationToken = default)
     {
+        var startTime = TimeOnly.FromDateTime(start);
+        var endTime = TimeOnly.FromDateTime(end);
+
         return await context.Bookings
             .AnyAsync(b => 
                 b.ProviderId == providerId &&
                 b.Status != EBookingStatus.Cancelled &&
                 b.Status != EBookingStatus.Rejected &&
-                b.TimeSlot.Start < end &&
-                start < b.TimeSlot.End,
+                b.TimeSlot.Start < endTime &&
+                startTime < b.TimeSlot.End,
                 cancellationToken);
     }
 }

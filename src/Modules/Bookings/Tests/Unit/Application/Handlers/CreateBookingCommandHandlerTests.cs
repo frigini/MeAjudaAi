@@ -44,7 +44,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
 
         var schedule = ProviderSchedule.Create(providerId, "UTC");
         schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
-            [TimeSlot.Create(start.UtcDateTime.Date.AddHours(8), start.UtcDateTime.Date.AddHours(18))]));
+            [TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(18, 0))]));
         
         _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
@@ -78,6 +78,26 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(400);
         result.Error!.Message.Should().Contain("término deve ser após");
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Fail_When_StartIsPast()
+    {
+        // Arrange
+        var pastStart = DateTimeOffset.UtcNow.AddHours(-1);
+        var end = pastStart.AddHours(1);
+
+        var command = new CreateBookingCommand(
+            Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
+            pastStart, end, Guid.NewGuid());
+
+        // Act
+        var result = await _sut.HandleAsync(command);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(400);
+        result.Error!.Message.Should().Contain("horário de início deve ser no futuro");
     }
 
     [Fact]
@@ -121,7 +141,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         var schedule = ProviderSchedule.Create(providerId, "UTC");
         // Disponibilidade apenas das 14:00 às 18:00
         schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
-            [TimeSlot.Create(start.UtcDateTime.Date.AddHours(14), start.UtcDateTime.Date.AddHours(18))]));
+            [TimeSlot.Create(new TimeOnly(14, 0), new TimeOnly(18, 0))]));
         
         _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
@@ -150,7 +170,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
 
         var schedule = ProviderSchedule.Create(providerId, "UTC");
         schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
-            [TimeSlot.Create(start.UtcDateTime.Date.AddHours(8), start.UtcDateTime.Date.AddHours(18))]));
+            [TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(18, 0))]));
         
         _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);

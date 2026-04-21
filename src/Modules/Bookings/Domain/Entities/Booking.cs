@@ -9,6 +9,7 @@ public sealed class Booking : BaseEntity
     public Guid ProviderId { get; private set; }
     public Guid ClientId { get; private set; }
     public Guid ServiceId { get; private set; }
+    public DateOnly Date { get; private set; } // Data do agendamento
     public TimeSlot TimeSlot { get; private set; }
     public EBookingStatus Status { get; private set; }
     public string? RejectionReason { get; private set; }
@@ -17,18 +18,19 @@ public sealed class Booking : BaseEntity
 
     private Booking() { } // Required by EF Core
 
-    private Booking(Guid providerId, Guid clientId, Guid serviceId, TimeSlot timeSlot)
+    private Booking(Guid providerId, Guid clientId, Guid serviceId, DateOnly date, TimeSlot timeSlot)
     {
         ProviderId = providerId;
         ClientId = clientId;
         ServiceId = serviceId;
+        Date = date;
         TimeSlot = timeSlot;
         Status = EBookingStatus.Pending;
     }
 
-    public static Booking Create(Guid providerId, Guid clientId, Guid serviceId, TimeSlot timeSlot)
+    public static Booking Create(Guid providerId, Guid clientId, Guid serviceId, DateOnly date, TimeSlot timeSlot)
     {
-        return new Booking(providerId, clientId, serviceId, timeSlot);
+        return new Booking(providerId, clientId, serviceId, date, timeSlot);
     }
 
     public void Confirm()
@@ -64,8 +66,6 @@ public sealed class Booking : BaseEntity
 
         Status = EBookingStatus.Cancelled;
         CancellationReason = reason;
-        // Ao cancelar, garantimos que motivos de rejeição anteriores sejam limpos se necessário, 
-        // mas aqui optamos por manter o histórico de campos nullable e apenas mudar o status.
         MarkAsUpdated();
     }
 

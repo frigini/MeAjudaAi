@@ -25,7 +25,7 @@ public sealed class Availability : ValueObject
 
     /// <summary>
     /// Cria uma nova disponibilidade garantindo que não haja sobreposição entre os horários.
-    /// NOTA: Slots adjacentes (ex: 09:00-10:00 e 10:00-11:00) são permitidos.
+    /// NOTA: Slots adjacentes (ex: 09:00-10:00 e 10:00-11:00) são permitidos (limites exclusivos no Overlaps).
     /// </summary>
     public static Availability Create(DayOfWeek dayOfWeek, IEnumerable<TimeSlot> slots) 
         => new(dayOfWeek, slots);

@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
+using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.Repositories;
@@ -28,7 +29,16 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var command = new SetProviderScheduleCommand(providerId, [], Guid.NewGuid());
+        var baseDate = DateTime.Today;
+        var availabilities = new List<AvailabilityDto>
+        {
+            new(DayOfWeek.Monday, new List<TimeSlotDto> 
+            { 
+                new(baseDate.AddHours(8), baseDate.AddHours(12)) 
+            })
+        };
+        
+        var command = new SetProviderScheduleCommand(providerId, availabilities, Guid.NewGuid());
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));

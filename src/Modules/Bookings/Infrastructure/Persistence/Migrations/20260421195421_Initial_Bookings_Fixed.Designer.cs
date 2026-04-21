@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(BookingsDbContext))]
-    [Migration("20260421132527_Add_ProviderSchedule")]
-    partial class Add_ProviderSchedule
+    [Migration("20260421195421_Initial_Bookings_Fixed")]
+    partial class Initial_Bookings_Fixed
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,8 +42,12 @@ namespace MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.Migrations
                         .HasColumnName("client_id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamptz")
                         .HasColumnName("created_at");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("booking_date");
 
                     b.Property<Guid>("ProviderId")
                         .HasColumnType("uuid")
@@ -65,18 +69,16 @@ namespace MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.Migrations
                         .HasColumnName("status");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamptz")
                         .HasColumnName("updated_at");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ClientId");
 
-                    b.HasIndex("ProviderId");
-
                     b.HasIndex("Status");
 
-                    b.HasIndex("ProviderId", "Status");
+                    b.HasIndex("ProviderId", "Date", "Status");
 
                     b.ToTable("bookings", "bookings");
                 });
@@ -88,15 +90,21 @@ namespace MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.Migrations
                         .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamptz")
                         .HasColumnName("created_at");
 
                     b.Property<Guid>("ProviderId")
                         .HasColumnType("uuid")
                         .HasColumnName("provider_id");
 
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("time_zone_id");
+
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamptz")
                         .HasColumnName("updated_at");
 
                     b.HasKey("Id");
@@ -114,12 +122,12 @@ namespace MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.Migrations
                             b1.Property<Guid>("BookingId")
                                 .HasColumnType("uuid");
 
-                            b1.Property<DateTime>("End")
-                                .HasColumnType("timestamp without time zone")
+                            b1.Property<TimeOnly>("End")
+                                .HasColumnType("time")
                                 .HasColumnName("end_time");
 
-                            b1.Property<DateTime>("Start")
-                                .HasColumnType("timestamp without time zone")
+                            b1.Property<TimeOnly>("Start")
+                                .HasColumnType("time")
                                 .HasColumnName("start_time");
 
                             b1.HasKey("BookingId");
@@ -154,6 +162,9 @@ namespace MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.Migrations
 
                             b1.HasIndex("provider_schedule_id");
 
+                            b1.HasIndex("DayOfWeek", "provider_schedule_id")
+                                .IsUnique();
+
                             b1.ToTable("provider_availabilities", "bookings");
 
                             b1.WithOwner()
@@ -165,12 +176,12 @@ namespace MeAjudaAi.Modules.Bookings.Infrastructure.Persistence.Migrations
                                         .ValueGeneratedOnAdd()
                                         .HasColumnType("uuid");
 
-                                    b2.Property<DateTime>("End")
-                                        .HasColumnType("timestamp without time zone")
+                                    b2.Property<TimeOnly>("End")
+                                        .HasColumnType("time")
                                         .HasColumnName("end_time");
 
-                                    b2.Property<DateTime>("Start")
-                                        .HasColumnType("timestamp without time zone")
+                                    b2.Property<TimeOnly>("Start")
+                                        .HasColumnType("time")
                                         .HasColumnName("start_time");
 
                                     b2.Property<Guid>("availability_id")

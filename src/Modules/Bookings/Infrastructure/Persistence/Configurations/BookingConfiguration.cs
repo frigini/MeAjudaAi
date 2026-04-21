@@ -29,17 +29,21 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .IsRequired()
             .HasColumnName("service_id");
 
+        builder.Property(b => b.Date)
+            .IsRequired()
+            .HasColumnName("booking_date");
+
         builder.OwnsOne(b => b.TimeSlot, timeSlot =>
         {
             timeSlot.Property(ts => ts.Start)
                 .IsRequired()
                 .HasColumnName("start_time")
-                .HasColumnType("timestamptz");
+                .HasColumnType("time"); // Forçar 'time' para TimeOnly
             
             timeSlot.Property(ts => ts.End)
                 .IsRequired()
                 .HasColumnName("end_time")
-                .HasColumnType("timestamptz");
+                .HasColumnType("time");
         });
 
         builder.Property(b => b.Status)
@@ -69,8 +73,8 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .IsRowVersion()
             .HasColumnName("version");
 
-        // Índice para busca de agendamentos por prestador
-        builder.HasIndex(b => new { b.ProviderId, b.Status });
+        // Índice para busca de agendamentos por prestador e data
+        builder.HasIndex(b => new { b.ProviderId, b.Date, b.Status });
 
         builder.HasIndex(b => b.ClientId);
         builder.HasIndex(b => b.Status);
