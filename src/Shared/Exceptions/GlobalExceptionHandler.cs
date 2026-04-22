@@ -130,18 +130,22 @@ public class GlobalExceptionHandler(
                 []),
 
             BadHttpRequestException badHttpRequestException => (
-                badHttpRequestException.StatusCode,
+                badHttpRequestException.StatusCode is >= 400 and < 500 
+                    ? badHttpRequestException.StatusCode 
+                    : StatusCodes.Status400BadRequest,
                 "Requisição inválida",
                 "A requisição enviada é inválida ou está mal formatada.",
                 null,
-                new Dictionary<string, object?> { ["originalMessage"] = badHttpRequestException.Message }),
+                env.IsDevelopment() 
+                    ? new Dictionary<string, object?> { ["originalMessage"] = badHttpRequestException.Message }
+                    : []),
 
             _ => (
                 StatusCodes.Status500InternalServerError,
                 "Erro Interno do Servidor",
                 env.IsDevelopment() 
                     ? $"[{exception.GetType().Name}] {exception.Message} {(exception.InnerException != null ? exception.InnerException.Message : "")}"
-                    : "An unexpected error occurred",
+                    : "Ocorreu um erro inesperado",
                 null,
                 new Dictionary<string, object?>
                 {

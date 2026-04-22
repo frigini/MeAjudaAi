@@ -143,6 +143,11 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
         dto.Should().NotBeNull();
         dto!.Start.Hour.Should().Be(10);
         dto!.End.Hour.Should().Be(11);
+
+        // Verificando o UTC para Tokyo (UTC+9): 10:00 local -> 01:00 UTC
+        dto!.Start.UtcDateTime.Hour.Should().Be(1);
+        dto!.End.UtcDateTime.Hour.Should().Be(2);
+        dto!.Start.Offset.Should().Be(TimeSpan.FromHours(9));
     }
 
     [Fact]

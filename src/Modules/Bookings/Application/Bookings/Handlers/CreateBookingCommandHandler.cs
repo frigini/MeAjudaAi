@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
+using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
@@ -54,7 +55,7 @@ public sealed class CreateBookingCommandHandler(
         }
 
         // Converte o início para o fuso horário local do prestador para validar DayOfWeek corretamente
-        var tz = ResolveTimeZone(schedule.TimeZoneId);
+        var tz = TimeZoneResolver.ResolveTimeZone(schedule.TimeZoneId, logger);
         var localStartTime = TimeZoneInfo.ConvertTimeFromUtc(command.Start.UtcDateTime, tz);
 
         var duration = command.End - command.Start;
@@ -85,60 +86,6 @@ public sealed class CreateBookingCommandHandler(
 
         logger.LogInformation("Booking {BookingId} created successfully.", booking.Id);
 
-        // Garantir retorno correto com offset do fuso do prestador
-        var startUtc = TimeZoneInfo.ConvertTimeToUtc(localStartTime, tz);
-        var endUtc = TimeZoneInfo.ConvertTimeToUtc(localEndTime, tz);
-
-        return new BookingDto(
-            booking.Id,
-            booking.ProviderId,
-            booking.ClientId,
-            booking.ServiceId,
-            TimeZoneInfo.ConvertTimeFromUtc(startUtc, tz),
-            TimeZoneInfo.ConvertTimeFromUtc(endUtc, tz),
-            booking.Status);
-    }
-
-    private TimeZoneInfo ResolveTimeZone(string? timeZoneId)
-    {
-        if (!string.IsNullOrWhiteSpace(timeZoneId))
-        {
-            try
-            {
-                return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Failed to resolve time zone {TimeZoneId}. Falling back.", timeZoneId);
-            }
-        }
-
-        // Tenta fallback para o horário de Brasília (Windows)
-        try
-        {
-            return TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to resolve Windows Brazil time zone. Trying IANA.");
-            try
-            {
-                return TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
-            }
-            catch (Exception exIana)
-            {
-                logger.LogWarning(exIana, "Failed to resolve IANA Brazil time zone. Using local/UTC.");
-                try
-                {
-                    // Fallback para o horário local do sistema
-                    return TimeZoneInfo.Local;
-                }
-                catch
-                {
-                    // Último recurso: UTC
-                    return TimeZoneInfo.Utc;
-                }
-            }
-        }
+        return TimeZoneResolver.CreateValidatedBookingDto(booking, tz, logger);
     }
 }

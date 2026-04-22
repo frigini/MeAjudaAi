@@ -31,7 +31,7 @@ public class GetMyBookingsEndpoint : IEndpoint
 
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var clientId))
             {
-                return Results.Unauthorized();
+                return Results.Problem("Autenticação necessária.", statusCode: StatusCodes.Status401Unauthorized);
             }
 
             var correlationIdHeader = context.Request.Headers["X-Correlation-Id"].ToString();

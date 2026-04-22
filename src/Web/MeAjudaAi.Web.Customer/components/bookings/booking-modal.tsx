@@ -8,6 +8,14 @@ import { format, addDays } from "date-fns";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
+import { z } from "zod";
+
+const AvailabilitySchema = z.object({
+    slots: z.array(z.object({
+        start: z.string(),
+        end: z.string()
+    }))
+});
 
 interface BookingModalProps {
     providerId: string;
@@ -35,6 +43,23 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
     
     const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
 
+    const combineDateAndTime = (date: Date, timeString: string) => {
+        const [hours, minutes, seconds] = timeString.split(":").map(Number);
+        const combinedDate = new Date(date);
+        combinedDate.setHours(hours, minutes, seconds || 0, 0);
+        return format(combinedDate, "yyyy-MM-dd'T'HH:mm:ssXXX");
+    };
+
+    const parseSlotTime = (timeString: string) => {
+        if (!timeString) return new Date();
+        if (timeString.includes("T")) return new Date(timeString);
+        
+        const [hours, minutes, seconds] = timeString.split(":").map(Number);
+        const d = new Date(selectedDate);
+        d.setHours(hours, minutes, seconds || 0, 0);
+        return d;
+    };
+
     // Consulta disponibilidade
     const { data: availability, isLoading: isLoadingAvailability } = useQuery({
         queryKey: ["provider-availability", providerId, format(selectedDate, "yyyy-MM-dd")],
@@ -44,7 +69,8 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
                 headers: session?.accessToken ? { "Authorization": `Bearer ${session.accessToken}` } : {}
             });
             if (!res.ok) throw new Error("Falha ao carregar disponibilidade");
-            return res.json();
+            const data = await res.json();
+            return AvailabilitySchema.parse(data);
         },
         enabled: open && !!providerId,
     });
@@ -53,11 +79,9 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
     const createBooking = useMutation({
         mutationFn: async () => {
             if (!session) {
-                setOpen(false);
-                toast.error("Sua sessão expirou. Faça login novamente.");
-                return;
+                throw new Error("Sua sessão expirou. Faça login novamente.");
             }
-            if (!selectedSlot) return;
+            if (!selectedSlot) throw new Error("Selecione um horário.");
             
             const clientId = session?.user?.id;
             const accessToken = session?.accessToken;
@@ -75,8 +99,8 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
                 body: JSON.stringify({
                     providerId,
                     serviceId,
-                    start: format(selectedDate, "yyyy-MM-dd") + "T" + selectedSlot.start + ":00",
-                    end: format(selectedDate, "yyyy-MM-dd") + "T" + selectedSlot.end + ":00"
+                    start: combineDateAndTime(selectedDate, selectedSlot.start),
+                    end: combineDateAndTime(selectedDate, selectedSlot.end)
                 })
             });
 
@@ -92,9 +116,7 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
             setSelectedSlot(null);
         },
         onError: (error: Error) => {
-            if (error.message) {
-                toast.error(error.message);
-            }
+            toast.error(error.message || "Erro ao criar agendamento");
         }
     });
 
@@ -104,17 +126,6 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
         const newDate = new Date(year, month - 1, day, 0, 0, 0, 0);
         setSelectedDate(newDate);
         setSelectedSlot(null);
-    };
-
-    // Auxiliar para garantir parsing UTC de strings ISO sem fuso
-    const parseAsUtc = (isoString: string) => {
-        if (!isoString) return new Date();
-        const tIndex = isoString.indexOf('T');
-        if (tIndex === -1) return new Date(isoString); // Formato não-ISO
-        
-        const suffix = isoString.substring(tIndex);
-        const hasTz = suffix.includes('Z') || suffix.includes('+') || suffix.includes('-');
-        return new Date(hasTz ? isoString : `${isoString}Z`);
     };
 
     const isConfirmDisabled = !selectedSlot || !serviceId || createBooking.isPending || !session?.user?.id || !session?.accessToken;
@@ -168,7 +179,7 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
                                                     : "hover:border-[#E0702B] hover:bg-[#E0702B]/5 text-gray-700"
                                             }`}
                                         >
-                                            {format(parseAsUtc(slot.start), "HH:mm")} - {format(parseAsUtc(slot.end), "HH:mm")}
+                                            {format(parseSlotTime(slot.start), "HH:mm")} - {format(parseSlotTime(slot.end), "HH:mm")}
                                         </button>
                                     ))}
                                 </div>

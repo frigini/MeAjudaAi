@@ -589,7 +589,13 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             {
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));
                 npgsqlOptions.MigrationsAssembly(typeof(TContext).Assembly.FullName);
-                npgsqlOptions.UseNetTopologySuite();
+                
+                // Only SearchProviders requires NetTopologySuite (PostGIS)
+                if (typeof(TContext) == typeof(SearchProvidersDbContext))
+                {
+                    npgsqlOptions.UseNetTopologySuite();
+                }
+                
                 npgsqlOptions.CommandTimeout(120);
             })
             .UseSnakeCaseNamingConvention()

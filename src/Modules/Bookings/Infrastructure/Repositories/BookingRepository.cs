@@ -7,10 +7,11 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Exceptions;
 using System.Data;
 using Npgsql;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Infrastructure.Repositories;
 
-public class BookingRepository(BookingsDbContext context) : IBookingRepository
+public class BookingRepository(BookingsDbContext context, ILogger<BookingRepository> logger) : IBookingRepository
 {
     /// <summary>
     /// Obtém um agendamento pelo ID.
@@ -23,6 +24,7 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
 
+    [Obsolete]
     public async Task<IReadOnlyList<Booking>> GetByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
         return await context.Bookings
@@ -59,6 +61,7 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
         return (items, totalCount);
     }
 
+    [Obsolete]
     public async Task<IReadOnlyList<Booking>> GetByClientIdAsync(Guid clientId, CancellationToken cancellationToken = default)
     {
         return await context.Bookings
@@ -95,6 +98,7 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
         return (items, totalCount);
     }
 
+    [Obsolete]
     public async Task<IReadOnlyList<Booking>> GetByProviderAndStatusAsync(Guid providerId, EBookingStatus status, CancellationToken cancellationToken = default)
     {
         return await context.Bookings
@@ -134,6 +138,7 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
             while (true)
             {
                 attempt++;
+                context.ChangeTracker.Clear();
                 await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
                 
                 try
@@ -166,6 +171,8 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
                 }
                 catch (Exception ex)
                 {
+                    logger.LogError(ex, "Erro ao tentar adicionar agendamento {BookingId} (Tentativa {Attempt})", booking.Id, attempt);
+
                     try
                     {
                         await transaction.RollbackAsync(CancellationToken.None);
@@ -178,6 +185,8 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
                     // Checa por conflitos de concorrência (40001 ou 40P01)
                     if (IsConcurrencyError(ex) && attempt < maxRetryAttempts)
                     {
+                        logger.LogWarning("Conflito de concorrência ao validar agendamento {BookingId}. Retentando (Tentativa {Attempt})...", booking.Id, attempt);
+                        
                         // Aguarda um tempo aleatório curto antes de tentar novamente (jitter)
                         await Task.Delay(Random.Shared.Next(50, 200), cancellationToken);
                         continue;

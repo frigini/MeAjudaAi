@@ -5,6 +5,8 @@ using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Repositories;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Integration.Repositories;
 
@@ -12,6 +14,7 @@ public class BookingRepositoryTests : BaseDatabaseTest
 {
     private BookingRepository _repository = null!;
     private BookingsDbContext _context = null!;
+    private readonly Mock<ILogger<BookingRepository>> _loggerMock = new();
 
     public override async ValueTask InitializeAsync()
     {
@@ -22,7 +25,7 @@ public class BookingRepositoryTests : BaseDatabaseTest
         _context = new BookingsDbContext(options);
         await _context.Database.MigrateAsync();
 
-        _repository = new BookingRepository(_context);
+        _repository = new BookingRepository(_context, _loggerMock.Object);
     }
 
     public override async ValueTask DisposeAsync()
@@ -115,8 +118,8 @@ public class BookingRepositoryTests : BaseDatabaseTest
         await using var ctx1 = new BookingsDbContext(options);
         await using var ctx2 = new BookingsDbContext(options);
         
-        var repo1 = new BookingRepository(ctx1);
-        var repo2 = new BookingRepository(ctx2);
+        var repo1 = new BookingRepository(ctx1, _loggerMock.Object);
+        var repo2 = new BookingRepository(ctx2, _loggerMock.Object);
 
         var task1 = repo1.AddIfNoOverlapAsync(booking1);
         var task2 = repo2.AddIfNoOverlapAsync(booking2);

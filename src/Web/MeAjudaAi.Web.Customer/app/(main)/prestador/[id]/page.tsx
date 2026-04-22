@@ -115,11 +115,17 @@ export default function ProviderProfilePage() {
                                     <Loader2 className="h-4 w-4 animate-spin mr-2" /> Carregando...
                                 </Button>
                             ) : isAuthenticated ? (
-                                <BookingModal 
-                                    providerId={id} 
-                                    providerName={displayName} 
-                                    serviceId={services[0]?.id || ""}
-                                />
+                                services.length > 0 ? (
+                                    <BookingModal 
+                                        providerId={id} 
+                                        providerName={displayName} 
+                                        serviceId={services[0]?.id || ""}
+                                    />
+                                ) : (
+                                    <Button disabled className="w-full bg-slate-200 text-slate-500 py-6 text-lg">
+                                        Nenhum serviço disponível
+                                    </Button>
+                                )
                             ) : (
                                 <Button asChild className="w-full bg-[#E0702B] hover:bg-[#C55A1F] text-white font-bold py-6 text-lg">
                                     <Link href={`/api/auth/signin?callbackUrl=${encodeURIComponent(`/prestador/${id}`)}`}>Entrar para Agendar</Link>
@@ -196,9 +202,9 @@ export default function ProviderProfilePage() {
                             <div className="pt-4">
                                 <h2 className="text-lg font-bold text-gray-900 mb-3">Serviços</h2>
                                 <div className="flex flex-wrap gap-2">
-                                    {services.map((service, i) => (
+                                    {services.map((service) => (
                                         <Badge
-                                            key={i}
+                                            key={service.id}
                                             className="px-3 py-1 bg-[#E0702B] text-white text-sm rounded-full"
                                         >
                                             {service.name}

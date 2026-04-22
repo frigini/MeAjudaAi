@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
+using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
@@ -41,21 +42,15 @@ public sealed class GetBookingsByClientQueryHandler(
                 scheduleCache[booking.ProviderId] = schedule;
             }
 
-            var tz = ResolveTimeZone(schedule?.TimeZoneId);
+            var tz = TimeZoneResolver.ResolveTimeZone(schedule?.TimeZoneId, logger);
+            var dtoResult = TimeZoneResolver.CreateValidatedBookingDto(booking, tz, logger);
 
-            var startDate = booking.Date.ToDateTime(booking.TimeSlot.Start);
-            var endDate = booking.Date.ToDateTime(booking.TimeSlot.End);
+            if (dtoResult.IsFailure)
+            {
+                return Result<PagedResult<BookingDto>>.Failure(dtoResult.Error);
+            }
 
-            dtos.Add(new BookingDto(
-                booking.Id,
-                booking.ProviderId,
-                booking.ClientId,
-                booking.ServiceId,
-                TimeZoneInfo.ConvertTimeFromUtc(TimeZoneInfo.ConvertTimeToUtc(startDate, tz), tz),
-                TimeZoneInfo.ConvertTimeFromUtc(TimeZoneInfo.ConvertTimeToUtc(endDate, tz), tz),
-                booking.Status,
-                booking.RejectionReason,
-                booking.CancellationReason));
+            dtos.Add(dtoResult.Value);
         }
 
         return Result<PagedResult<BookingDto>>.Success(new PagedResult<BookingDto>
@@ -65,36 +60,5 @@ public sealed class GetBookingsByClientQueryHandler(
             PageSize = pageSize,
             TotalItems = totalCount
         });
-    }
-
-    private static TimeZoneInfo ResolveTimeZone(string? timeZoneId)
-    {
-        if (!string.IsNullOrWhiteSpace(timeZoneId))
-        {
-            try
-            {
-                return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-            }
-            catch
-            {
-                // Ignora e tenta fallback
-            }
-        }
-
-        try
-        {
-            return TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
-        }
-        catch
-        {
-            try
-            {
-                return TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
-            }
-            catch
-            {
-                return TimeZoneInfo.Utc;
-            }
-        }
     }
 }

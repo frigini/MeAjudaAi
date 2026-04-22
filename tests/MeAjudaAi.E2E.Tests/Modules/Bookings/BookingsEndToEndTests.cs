@@ -36,10 +36,16 @@ public class BookingsEndToEndTests : BaseTestContainerTest
 
         // 1. Criar um prestador feito com um providerId gerado
         var providerIdClaim = await CreateTestProviderAsync();
+
+        // 1.5 Criar um serviço real
+        var serviceId = await CreateTestServiceAsync();
         
         // 2. Definir agenda para o prestador
-        var tomorrow = DateTime.UtcNow.Date.AddDays(1);
-        int dayOfWeek = (int)tomorrow.DayOfWeek;
+        // Usar lógica de timezone para derivar datas
+        var tz = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
+        var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
+        var localTomorrow = localNow.Date.AddDays(1);
+        int dayOfWeek = (int)localTomorrow.DayOfWeek;
         
         var scheduleRequest = new
         {
@@ -73,13 +79,20 @@ public class BookingsEndToEndTests : BaseTestContainerTest
 
         // 4. Cliente cria um agendamento
         // Usando horários que caiam dentro do slot de 10h-11h local do prestador (Brasília UTC-3)
-        // 13:00 UTC = 10:00 Local
-        var startIso = $"{tomorrow:yyyy-MM-dd}T13:00:00Z";
-        var endIso = $"{tomorrow:yyyy-MM-dd}T14:00:00Z";
+        // Converter horários locais para UTC
+        var localStart = new DateTime(localTomorrow.Year, localTomorrow.Month, localTomorrow.Day, 10, 0, 0);
+        var localEnd = new DateTime(localTomorrow.Year, localTomorrow.Month, localTomorrow.Day, 11, 0, 0);
+        
+        var utcStart = TimeZoneInfo.ConvertTimeToUtc(localStart, tz);
+        var utcEnd = TimeZoneInfo.ConvertTimeToUtc(localEnd, tz);
+
+        var startIso = utcStart.ToString("yyyy-MM-ddTHH:mm:ssZ");
+        var endIso = utcEnd.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
         var bookingRequest = new
         {
             providerId = providerIdClaim,
-            serviceId = Guid.NewGuid(),
+            serviceId = serviceId,
             start = startIso,
             end = endIso
         };
@@ -118,6 +131,23 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         updatedBooking!.Status.Should().Be(Contracts.Bookings.Enums.EBookingStatus.Confirmed);
     }
 
+    private async Task<Guid> CreateTestServiceAsync()
+    {
+        var categoryName = $"Category_{Guid.NewGuid():N}";
+        var catResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new { name = categoryName, displayOrder = 1 });
+        catResponse.EnsureSuccessStatusCode();
+        Assert.NotNull(catResponse.Headers.Location);
+        var catId = ExtractIdFromLocation(catResponse.Headers.Location.ToString());
+
+        var serviceName = $"Service_{Guid.NewGuid():N}";
+        var svcResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new { name = serviceName, categoryId = catId });
+        svcResponse.EnsureSuccessStatusCode();
+        Assert.NotNull(svcResponse.Headers.Location);
+        var svcId = ExtractIdFromLocation(svcResponse.Headers.Location.ToString());
+
+        return svcId;
+    }
+
     private async Task<Guid> CreateTestProviderAsync()
     {
         var userId = await CreateTestUserAsync();
@@ -153,8 +183,9 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         var response = await ApiClient.PostAsJsonAsync("/api/v1/providers", request);
         response.EnsureSuccessStatusCode();
 
-        var location = response.Headers.Location?.ToString();
-        var providerId = ExtractIdFromLocation(location!);
+        Assert.NotNull(response.Headers.Location);
+        var location = response.Headers.Location.ToString();
+        var providerId = ExtractIdFromLocation(location);
 
         return providerId;
     }
