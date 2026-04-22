@@ -29,7 +29,6 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var baseDate = DateTime.Today;
         var availabilities = new List<AvailabilityDto>
         {
             new(DayOfWeek.Monday, new List<TimeSlotDto> 

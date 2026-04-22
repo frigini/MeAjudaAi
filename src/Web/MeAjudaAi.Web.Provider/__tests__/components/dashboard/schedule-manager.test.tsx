@@ -14,6 +14,7 @@ vi.mock("sonner", () => ({
 describe("ScheduleManager", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('fetch', vi.fn());
   });
 
   it("should render correctly with all days of week", () => {
@@ -47,6 +48,11 @@ describe("ScheduleManager", () => {
   });
 
   it("should call toast success when save button is clicked", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true }),
+    } as Response);
+
     render(<ScheduleManager />);
     
     const saveButton = screen.getByText("Salvar Alterações");

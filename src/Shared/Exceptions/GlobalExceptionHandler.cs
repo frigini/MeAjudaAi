@@ -129,7 +129,7 @@ public class GlobalExceptionHandler(
                 null,
                 []),
 
-            Microsoft.AspNetCore.Http.BadHttpRequestException badHttpRequestException => (
+            BadHttpRequestException badHttpRequestException => (
                 badHttpRequestException.StatusCode,
                 "Requisição inválida",
                 "A requisição enviada é inválida ou está mal formatada.",

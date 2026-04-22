@@ -31,6 +31,9 @@ public class BookingsEndToEndTests : BaseTestContainerTest
     [Fact]
     public async Task CreateAndConfirmBooking_ShouldSucceed()
     {
+        // Centraliza autenticação como admin no início do teste
+        AuthenticateAsAdmin();
+
         // 1. Criar um prestador feito com um providerId gerado
         var providerIdClaim = await CreateTestProviderAsync();
         
@@ -56,7 +59,6 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         };
 
         // Envia como admin ou provider (Admin pode setar p/ qq um pelo request body, Provider baseia no claim)
-        AuthenticateAsAdmin();
         var scheduleResponse = await ApiClient.PostAsJsonAsync("/api/v1/bookings/schedule", scheduleRequest);
         if (!scheduleResponse.IsSuccessStatusCode)
         {
@@ -118,8 +120,6 @@ public class BookingsEndToEndTests : BaseTestContainerTest
 
     private async Task<Guid> CreateTestProviderAsync()
     {
-        AuthenticateAsAdmin();
-
         var userId = await CreateTestUserAsync();
         var name = $"ProviderX_{Guid.NewGuid():N}";
         var request = new
