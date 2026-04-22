@@ -167,7 +167,7 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
                                 <div className="flex items-center justify-center py-8">
                                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                                 </div>
-                            ) : availability?.slots?.length > 0 ? (
+                            ) : (availability && availability.slots.length > 0) ? (
                                 <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto p-1">
                                     {availability.slots.map((slot: TimeSlot, i: number) => (
                                         <button
