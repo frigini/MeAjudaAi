@@ -3,6 +3,7 @@ using FluentAssertions;
 using MeAjudaAi.Shared.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 using Moq;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Middlewares;
@@ -12,12 +13,18 @@ namespace MeAjudaAi.ApiService.Tests.Unit.Middlewares;
 public class GlobalExceptionHandlerTests
 {
     private readonly Mock<ILogger<GlobalExceptionHandler>> _mockLogger;
+    private readonly Mock<IHostEnvironment> _mockEnv;
     private readonly GlobalExceptionHandler _handler;
 
     public GlobalExceptionHandlerTests()
     {
         _mockLogger = new Mock<ILogger<GlobalExceptionHandler>>();
-        _handler = new GlobalExceptionHandler(_mockLogger.Object);
+        _mockEnv = new Mock<IHostEnvironment>();
+        
+        // Configura ambiente de desenvolvimento por padrão para os testes existentes
+        _mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Development);
+        
+        _handler = new GlobalExceptionHandler(_mockLogger.Object, _mockEnv.Object);
     }
 
     [Fact]
