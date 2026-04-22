@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Application.Common;
@@ -11,9 +12,9 @@ namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 public sealed class GetBookingsByProviderQueryHandler(
     IBookingRepository bookingRepository,
     IProviderScheduleRepository scheduleRepository,
-    ILogger<GetBookingsByProviderQueryHandler> logger) : IQueryHandler<GetBookingsByProviderQuery, Result<IReadOnlyList<BookingDto>>>
+    ILogger<GetBookingsByProviderQueryHandler> logger) : IQueryHandler<GetBookingsByProviderQuery, Result<PagedResult<BookingDto>>>
 {
-    public async Task<Result<IReadOnlyList<BookingDto>>> HandleAsync(GetBookingsByProviderQuery query, CancellationToken cancellationToken = default)
+    public async Task<Result<PagedResult<BookingDto>>> HandleAsync(GetBookingsByProviderQuery query, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Getting bookings for provider {ProviderId}", query.ProviderId);
 
@@ -40,14 +41,20 @@ public sealed class GetBookingsByProviderQueryHandler(
         var dtos = new List<BookingDto>();
         foreach (var booking in bookings)
         {
-            var dtoResult = TimeZoneResolver.CreateValidatedBookingDto(booking, tz, logger);
+            var dtoResult = TimeZoneResolver.CreateValidatedBookingDto(booking, tz!, logger);
             if (dtoResult.IsFailure)
             {
-                return Result<IReadOnlyList<BookingDto>>.Failure(dtoResult.Error);
+                return Result<PagedResult<BookingDto>>.Failure(dtoResult.Error);
             }
             dtos.Add(dtoResult.Value);
         }
 
-        return Result<IReadOnlyList<BookingDto>>.Success(dtos.AsReadOnly());
+        return Result<PagedResult<BookingDto>>.Success(new PagedResult<BookingDto>
+        {
+            Items = dtos.AsReadOnly(),
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalItems = totalCount
+        });
     }
 }

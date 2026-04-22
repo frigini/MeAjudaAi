@@ -364,6 +364,7 @@ jobs:
           fi
 
       - name: Check for Breaking Changes
+        id: breaking-changes
         uses: oasdiff/oasdiff-action/breaking@v0.0.39
         continue-on-error: true # Permitir falhas durante a Sprint 12 para evolução de contrato
         with:
@@ -371,6 +372,12 @@ jobs:
           revision: 'api-current/api-spec.json'
           fail-on: 'ERR'
           err-ignore: '.oasdiff-ignore.yaml'
+
+      - name: Warn if Breaking Changes Found
+        if: steps.breaking-changes.outcome == 'failure'
+        run: |
+          echo "::warning title=Breaking Changes Detected::Changes that break the API contract were found. Review the oasdiff logs above."
+          echo "Record to revert continue-on-error: true after Sprint 12."
 
   security-scan:
     name: Security Scan

@@ -55,7 +55,12 @@ public sealed class CreateBookingCommandHandler(
         }
 
         // Converte o início para o fuso horário local do prestador para validar DayOfWeek corretamente
-        var tz = TimeZoneResolver.ResolveTimeZone(schedule.TimeZoneId, logger);
+        var tz = TimeZoneResolver.ResolveTimeZone(schedule.TimeZoneId, logger, allowFallback: false);
+        if (tz == null)
+        {
+            return Result<BookingDto>.Failure(Error.BadRequest("Fuso horário do prestador inválido."));
+        }
+
         var localStartTime = TimeZoneInfo.ConvertTimeFromUtc(command.Start.UtcDateTime, tz);
 
         var duration = command.End - command.Start;

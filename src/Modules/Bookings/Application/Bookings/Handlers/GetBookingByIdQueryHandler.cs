@@ -39,6 +39,6 @@ public sealed class GetBookingByIdQueryHandler(
         var schedule = await scheduleRepository.GetByProviderIdReadOnlyAsync(booking.ProviderId, cancellationToken);
         var tz = TimeZoneResolver.ResolveTimeZone(schedule?.TimeZoneId, logger);
 
-        return TimeZoneResolver.CreateValidatedBookingDto(booking, tz, logger);
+        return TimeZoneResolver.CreateValidatedBookingDto(booking, tz!, logger);
     }
 }

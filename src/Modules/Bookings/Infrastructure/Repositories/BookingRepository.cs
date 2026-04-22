@@ -70,7 +70,7 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
         int pageSize, 
         CancellationToken cancellationToken)
     {
-        // Normalize pagination
+        // Normalizar paginação
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
 
@@ -161,6 +161,25 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                 }
                 catch (Exception ex)
                 {
+                    // Checa por conflitos de concorrência (40001 ou 40P01) PRIMEIRO
+                    if (IsConcurrencyError(ex) && attempt < maxRetryAttempts)
+                    {
+                        logger.LogWarning("Concurrency conflict while validating booking {BookingId}. Retrying (Attempt {Attempt})...", booking.Id, attempt);
+
+                        try
+                        {
+                            await transaction.RollbackAsync(CancellationToken.None);
+                        }
+                        catch
+                        {
+                            // Ignora erro de rollback
+                        }
+
+                        // Aguarda um tempo aleatório curto antes de tentar novamente (jitter)
+                        await Task.Delay(Random.Shared.Next(50, 200), cancellationToken);
+                        continue;
+                    }
+
                     logger.LogError(ex, "Error while attempting to add booking {BookingId} (Attempt {Attempt})", booking.Id, attempt);
 
                     try
@@ -172,16 +191,6 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                         // Ignora erro de rollback
                     }
                     
-                    // Checa por conflitos de concorrência (40001 ou 40P01)
-                    if (IsConcurrencyError(ex) && attempt < maxRetryAttempts)
-                    {
-                        logger.LogWarning("Concurrency conflict while validating booking {BookingId}. Retrying (Attempt {Attempt})...", booking.Id, attempt);
-                        
-                        // Aguarda um tempo aleatório curto antes de tentar novamente (jitter)
-                        await Task.Delay(Random.Shared.Next(50, 200), cancellationToken);
-                        continue;
-                    }
-
                     if (IsConcurrencyError(ex))
                     {
                         return Result.Failure(Error.Conflict("Conflito de concorrência ao validar agendamento. Tente novamente em instantes."));

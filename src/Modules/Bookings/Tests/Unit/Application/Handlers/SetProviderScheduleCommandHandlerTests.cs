@@ -130,7 +130,7 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
         {
             new(DayOfWeek.Monday, new List<TimeSlotDto> 
             { 
-                new(new TimeOnly(12, 0), new TimeOnly(8, 0)) // Start > End
+                new(new TimeOnly(12, 0), new TimeOnly(8, 0)) // Início > Fim
             })
         };
         
@@ -157,7 +157,7 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
             new(DayOfWeek.Monday, new List<TimeSlotDto> 
             { 
                 new(new TimeOnly(8, 0), new TimeOnly(12, 0)),
-                new(new TimeOnly(11, 0), new TimeOnly(14, 0)) // Overlap
+                new(new TimeOnly(11, 0), new TimeOnly(14, 0)) // Sobreposição
             })
         };
         

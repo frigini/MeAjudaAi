@@ -26,7 +26,7 @@ public static class Extensions
         services.AddScoped<IQueryHandler<GetProviderAvailabilityQuery, Result<AvailabilityDto>>, GetProviderAvailabilityQueryHandler>();
         services.AddScoped<IQueryHandler<GetBookingByIdQuery, Result<BookingDto>>, GetBookingByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetBookingsByClientQuery, Result<PagedResult<BookingDto>>>, GetBookingsByClientQueryHandler>();
-        services.AddScoped<IQueryHandler<GetBookingsByProviderQuery, Result<IReadOnlyList<BookingDto>>>, GetBookingsByProviderQueryHandler>();
+        services.AddScoped<IQueryHandler<GetBookingsByProviderQuery, Result<PagedResult<BookingDto>>>, GetBookingsByProviderQueryHandler>();
 
         return services;
     }

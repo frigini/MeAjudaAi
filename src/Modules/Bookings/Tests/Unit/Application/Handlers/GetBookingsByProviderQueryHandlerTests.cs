@@ -52,8 +52,8 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().HaveCount(2);
-        result.Value.Should().AllSatisfy(b => b.ProviderId.Should().Be(providerId));
+        result.Value.Items.Should().HaveCount(2);
+        result.Value.Items.Should().AllSatisfy(b => b.ProviderId.Should().Be(providerId));
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEmpty();
+        result.Value.Items.Should().BeEmpty();
     }
 
     [Fact]
@@ -127,7 +127,7 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByProviderIdPagedAsync(providerId, null, null, 1, 10, It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<Booking> { booking }.AsReadOnly(), 1));
 
-        // Tokyo is UTC+9
+        // Tóquio está em UTC+9
         var schedule = ProviderSchedule.Create(providerId, "Tokyo Standard Time");
         
         _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
@@ -138,7 +138,7 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        var dto = result.Value?.First();
+        var dto = result.Value?.Items.First();
         
         dto.Should().NotBeNull();
         dto!.Start.Hour.Should().Be(10);
@@ -169,6 +169,6 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeEmpty();
+        result.Value.Items.Should().NotBeEmpty();
     }
 }

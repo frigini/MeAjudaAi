@@ -7,7 +7,7 @@ namespace MeAjudaAi.Modules.Bookings.Application.Common;
 
 public static class TimeZoneResolver
 {
-    public static TimeZoneInfo ResolveTimeZone(string? timeZoneId, ILogger logger)
+    public static TimeZoneInfo? ResolveTimeZone(string? timeZoneId, ILogger logger, bool allowFallback = true)
     {
         if (!string.IsNullOrWhiteSpace(timeZoneId))
         {
@@ -17,8 +17,21 @@ public static class TimeZoneResolver
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Failed to resolve time zone {TimeZoneId}. Falling back.", timeZoneId);
+                if (allowFallback)
+                {
+                    logger.LogWarning(ex, "Failed to resolve time zone {TimeZoneId}. Falling back.", timeZoneId);
+                }
+                else
+                {
+                    logger.LogError(ex, "Failed to resolve time zone {TimeZoneId}. Strict resolution requested.", timeZoneId);
+                    return null;
+                }
             }
+        }
+
+        if (!allowFallback)
+        {
+            return null;
         }
 
         try

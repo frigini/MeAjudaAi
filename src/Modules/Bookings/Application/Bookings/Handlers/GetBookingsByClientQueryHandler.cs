@@ -43,7 +43,7 @@ public sealed class GetBookingsByClientQueryHandler(
             }
 
             var tz = TimeZoneResolver.ResolveTimeZone(schedule?.TimeZoneId, logger);
-            var dtoResult = TimeZoneResolver.CreateValidatedBookingDto(booking, tz, logger);
+            var dtoResult = TimeZoneResolver.CreateValidatedBookingDto(booking, tz!, logger);
 
             if (dtoResult.IsFailure)
             {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Calendar as CalendarIcon, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -80,10 +80,21 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
         enabled: open && !!providerId,
     });
 
+    useEffect(() => {
+        if (selectedSlot && availability) {
+            const stillExists = availability.slots.some(
+                (s: TimeSlot) => s.start === selectedSlot.start && s.end === selectedSlot.end
+            );
+            if (!stillExists) {
+                setSelectedSlot(null);
+            }
+        }
+    }, [availability, selectedSlot]);
+
     // Mutação para criar agendamento
     const createBooking = useMutation({
         mutationFn: async () => {
-            if (!session || !session.user?.id || !session.accessToken) {
+            if (!session || !session.accessToken) {
                 throw new Error("Você precisa estar autenticado para realizar um agendamento.");
             }
             if (!selectedSlot) throw new Error("Selecione um horário.");
@@ -137,7 +148,7 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
         setSelectedSlot(null);
     };
 
-    const isConfirmDisabled = !selectedSlot || !serviceId || createBooking.isPending || !session?.user?.id || !session?.accessToken;
+    const isConfirmDisabled = !selectedSlot || !serviceId || createBooking.isPending || !session?.accessToken || !availability?.slots.some(s => s.start === selectedSlot?.start && s.end === selectedSlot?.end);
 
     return (
         <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -187,7 +198,7 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
                                             key={i}
                                             onClick={() => setSelectedSlot(slot)}
                                             className={`p-2 text-[11px] font-medium border rounded-md transition-colors ${
-                                                selectedSlot === slot 
+                                                (selectedSlot && slot.start === selectedSlot.start && slot.end === selectedSlot.end) 
                                                     ? "bg-[#002D62] text-white border-[#002D62]" 
                                                     : "hover:border-[#E0702B] hover:bg-[#E0702B]/5 text-gray-700"
                                             }`}

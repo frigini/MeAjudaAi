@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
@@ -18,6 +19,8 @@ public class GetProviderBookingsEndpoint : IEndpoint
     {
         app.MapGet("/provider/{providerId}", async (
             Guid providerId,
+            [FromQuery] int? page,
+            [FromQuery] int? pageSize,
             [FromServices] IQueryDispatcher dispatcher,
             [FromServices] IProvidersModuleApi providersApi,
             HttpContext context,
@@ -50,16 +53,15 @@ public class GetProviderBookingsEndpoint : IEndpoint
                 }
             }
 
-            var query = new GetBookingsByProviderQuery(providerId, Guid.NewGuid());
-            var result = await dispatcher.QueryAsync<GetBookingsByProviderQuery, Result<IReadOnlyList<BookingDto>>>(query, cancellationToken);
+            var query = new GetBookingsByProviderQuery(providerId, Guid.NewGuid(), page, pageSize);
+            var result = await dispatcher.QueryAsync<GetBookingsByProviderQuery, Result<PagedResult<BookingDto>>>(query, cancellationToken);
 
-            return result.Match(
-                onSuccess: bookings => Results.Ok(bookings),
-                onFailure: error => Results.Problem(error.Message, statusCode: error.StatusCode)
-            );
+            return result.IsSuccess 
+                ? Results.Ok(result.Value) 
+                : Results.Problem(result.Error.Message, statusCode: result.Error.StatusCode);
         })
         .RequireAuthorization()
-        .Produces<IReadOnlyList<BookingDto>>(StatusCodes.Status200OK)
+        .Produces<PagedResult<BookingDto>>(StatusCodes.Status200OK)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("GetProviderBookings")
         .WithSummary("Lista os agendamentos de um prestador.");

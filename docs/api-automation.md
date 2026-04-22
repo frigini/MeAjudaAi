@@ -296,8 +296,9 @@ Durante o desenvolvimento ativo, breaking changes podem ser necessárias. Para a
    ```yaml
    - method: GET
      path: /api/v1/exemplo
-     err-id: response-property-type-changed
+     err-id: response-property-type-changed # Motivo: <PR #xxx ou ticket> - <descrição curta>
    ```
+   > **Nota:** `err-id` deve ser usado para quebras que geram erros de compatibilidade (Breaking Changes), enquanto `id` pode ser usado para outros avisos.
 3. Documente no commit o motivo da mudança.
 
 ### 3. Estratégias para Produção (Futuro)
