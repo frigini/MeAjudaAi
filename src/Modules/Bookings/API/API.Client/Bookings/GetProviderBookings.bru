@@ -1,0 +1,32 @@
+meta {
+  name: Get Provider Bookings
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/v1/bookings/provider/00000000-0000-0000-0000-000000000000
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get Provider Bookings
+  
+  Lista os agendamentos de um prestador específico.
+  
+  ## Autorização
+  - **Política**: Authenticated
+  - **Requer token**: Sim
+  
+  ## Códigos de Status
+  - **200**: Sucesso (array de BookingDto)
+  - **401**: Não autenticado
+}

@@ -71,14 +71,39 @@ export function ScheduleManager() {
     const handleSave = async () => {
         setIsLoading(true);
         try {
-            // TODO: Integrar com a API SetProviderSchedule
-            // await api.bookings.setProviderSchedule({ availabilities });
-            console.log("Saving availabilities:", availabilities);
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
+            // Filtra apenas dias que possuem slots definidos
+            const payload = {
+                providerId: "00000000-0000-0000-0000-000000000000", // Resolvido pelo backend via claims
+                availabilities: availabilities
+                    .filter(day => day.slots.length > 0)
+                    .map(day => ({
+                        dayOfWeek: day.dayOfWeek,
+                        slots: day.slots.map(slot => ({
+                            start: `${new Date().toISOString().split('T')[0]}T${slot.start}:00`,
+                            end: `${new Date().toISOString().split('T')[0]}T${slot.end}:00`
+                        }))
+                    }))
+            };
+
+            const res = await fetch(`${apiUrl}/api/v1/bookings/schedule`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+            body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const error = await res.json().catch(() => null);
+                throw new Error(error?.detail || error?.message || "Erro ao salvar agenda.");
+            }
+            
             toast.success("Agenda atualizada com sucesso!");
         } catch (error) {
-            toast.error("Erro ao salvar agenda. Tente novamente.");
+            toast.error(error instanceof Error ? error.message : "Erro ao salvar agenda. Tente novamente.");
         } finally {
             setIsLoading(false);
         }

@@ -1,0 +1,32 @@
+meta {
+  name: Get Booking By Id
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/bookings/00000000-0000-0000-0000-000000000000
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get Booking By Id
+  
+  Obtém os detalhes de um agendamento pelo seu ID.
+  
+  ## Autorização
+  - **Política**: Authenticated
+  - **Requer token**: Sim
+  
+  ## Códigos de Status
+  - **200**: Sucesso
+  - **404**: Agendamento não encontrado
+}

@@ -66,7 +66,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     }
 
     [Fact]
-    public async Task HandleAsync_Should_Succeed_OnDifferentDates_EvenWithSameTime()
+    public async Task HandleAsync_Should_Call_AddIfNoOverlapAsync_Once()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -97,6 +97,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
+        _bookingRepoMock.Verify(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

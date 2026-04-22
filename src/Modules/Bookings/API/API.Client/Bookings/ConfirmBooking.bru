@@ -1,0 +1,26 @@
+meta {
+  name: Confirm Booking
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{baseUrl}}/api/v1/bookings/00000000-0000-0000-0000-000000000000/confirm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Confirm Booking
+  
+  Confirma um agendamento pendente. Apenas o prestador dono ou admin pode confirmar.
+  
+  ## Códigos de Status
+  - **204**: Confirmado com sucesso
+  - **400**: Estado inválido (não está pendente)
+  - **403**: Sem permissão
+  - **404**: Não encontrado
+}

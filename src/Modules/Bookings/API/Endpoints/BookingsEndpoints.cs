@@ -18,6 +18,11 @@ public static class BookingsEndpoints
         group.MapEndpoint<CreateBookingEndpoint>()
              .MapEndpoint<ConfirmBookingEndpoint>()
              .MapEndpoint<CancelBookingEndpoint>()
+             .MapEndpoint<RejectBookingEndpoint>()
+             .MapEndpoint<CompleteBookingEndpoint>()
+             .MapEndpoint<GetBookingByIdEndpoint>()
+             .MapEndpoint<GetMyBookingsEndpoint>()
+             .MapEndpoint<GetProviderBookingsEndpoint>()
              .MapEndpoint<GetProviderAvailabilityEndpoint>()
              .MapEndpoint<SetProviderScheduleEndpoint>();
     }

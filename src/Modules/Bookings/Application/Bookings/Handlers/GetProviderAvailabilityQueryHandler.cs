@@ -34,16 +34,16 @@ public sealed class GetProviderAvailabilityQueryHandler(
         var dayBookings = bookings
             .Where(b => b.Date == query.Date && 
                         b.Status != Contracts.Bookings.Enums.EBookingStatus.Cancelled &&
-                        b.Status != Contracts.Bookings.Enums.EBookingStatus.Rejected)
+                        b.Status != Contracts.Bookings.Enums.EBookingStatus.Rejected &&
+                        b.Status != Contracts.Bookings.Enums.EBookingStatus.Completed)
             .ToList();
 
-        // Filtra os slots do schedule removendo aqueles que conflitam com bookings existentes
+        var occupiedSlots = dayBookings.Select(b => b.TimeSlot).ToList();
+
+        // Filtra os slots do schedule subtraindo os intervalos ocupados
         var availableSlots = daySchedule.Slots
-            .Select(s => new TimeSlotDto(
-                query.Date.ToDateTime(s.Start), 
-                query.Date.ToDateTime(s.End)))
-            .Where(slot => !dayBookings.Any(b => 
-                TimeOnly.FromDateTime(slot.Start) < b.TimeSlot.End && b.TimeSlot.Start < TimeOnly.FromDateTime(slot.End)))
+            .SelectMany(slot => slot.Subtract(occupiedSlots))
+            .Select(s => new TimeSlotDto(s.Start, s.End))
             .ToList();
 
         return new AvailabilityDto(query.Date.DayOfWeek, availableSlots);

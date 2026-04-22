@@ -17,19 +17,16 @@ public class CancelBookingEndpoint : IEndpoint
             Guid id,
             CancelBookingRequest request,
             [FromServices] ICommandDispatcher dispatcher,
+            HttpContext context,
             CancellationToken cancellationToken) =>
         {
-            if (string.IsNullOrWhiteSpace(request.Reason))
+            var correlationIdHeader = context.Request.Headers["X-Correlation-Id"].ToString();
+            if (!Guid.TryParse(correlationIdHeader, out var correlationId))
             {
-                return Results.BadRequest(new { error = "O motivo do cancelamento é obrigatório." });
+                correlationId = Guid.NewGuid();
             }
 
-            if (request.Reason.Length > 500)
-            {
-                return Results.BadRequest(new { error = "O motivo do cancelamento não pode exceder 500 caracteres." });
-            }
-
-            var command = new CancelBookingCommand(id, request.Reason, Guid.NewGuid());
+            var command = new CancelBookingCommand(id, request.Reason, correlationId);
             var result = await dispatcher.SendAsync<CancelBookingCommand, Result>(command, cancellationToken);
 
             return result.Match(

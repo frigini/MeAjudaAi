@@ -3,7 +3,6 @@ using MeAjudaAi.ApiService;
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Integration.Tests.Mocks;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Payments.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Domain.Entities;

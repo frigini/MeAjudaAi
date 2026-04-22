@@ -30,8 +30,8 @@ Este documento rastreia **débitos técnicos e seu histórico de otimização**.
 
 ### 🚀 Infraestrutura & Messaging (Migração Rebus v3)
 
-**Resolvido em**: Abr 2026 (Sprint 12) | **Severidade original**: MÉDIA  
-Migração para Rebus v3 concluída. Implementação do `RebusMessageBus` como abstração principal (`IMessageBus`) e remoção do uso direto de `RabbitMQ.Client` nos módulos. Introdução de atributos de roteamento avançado (`[DedicatedTopic]`, `[HighVolumeEvent]`, `[CriticalEvent]`) e convenções customizadas.
+**Parcialmente Resolvido em**: Abr 2026 (Sprint 12) | **Severidade original**: MÉDIA  
+Integração parcial do Rebus v3 concluída com a introdução do `RebusMessageBus` e `IMessageBus`, além de atributos de roteamento avançado (`[DedicatedTopic]`, `[HighVolumeEvent]`, `[CriticalEvent]`). No entanto, a consolidação completa do RabbitMQ está **incompleta**: `RabbitMQ.Client` ainda está presente no `RabbitMqDeadLetterService` e no `RabbitMqInfrastructureManager`. Além disso, os métodos `CreateQueueAsync`, `CreateExchangeAsync` e `BindQueueToExchangeAsync` do `RabbitMqInfrastructureManager` são stubs (pendentes de implementação real). A remoção completa do uso direto do RabbitMQ e implementação total da infraestrutura permanecem pendentes.
 
 ### ⚠️ Hangfire + Npgsql 10.x Compatibility Risk
 
@@ -62,6 +62,11 @@ Item reavaliado e removido do backlog ativo após implementação da i18n no `Me
 
 **Resolvido em**: Abr 2026 (Sprint 11) | **Severidade original**: BAIXA  
 Item reavaliado e removido do backlog ativo; resiliência coberta pelas estratégias de compensação e inbox pattern implementadas no módulo Payments.
+
+### 📅 Bookings Funcionalidade e Integração (Sprint 12 Gaps)
+
+**Resolvido em**: Abr 2026 (Sprint 12) | **Severidade original**: MÉDIA  
+Implementados os command handlers de Reject e Complete, queries de listagem, automação com Domain Events, integração frontend de agenda, e cobertura E2E do módulo.
 
 > Para histórico completo anterior, consultar: `git log --oneline -- docs/technical-debt.md`
 

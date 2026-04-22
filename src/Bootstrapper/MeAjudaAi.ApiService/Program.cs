@@ -144,7 +144,6 @@ public partial class Program
         app.UseBookingsModule();
 
         // Endpoints de orquestração cross-módulo (ficam no ApiService)
-        app.MapBookingsEndpoints();
         app.MapProviderRegistrationEndpoints();
         app.MapCommunicationsEndpoints();
     }

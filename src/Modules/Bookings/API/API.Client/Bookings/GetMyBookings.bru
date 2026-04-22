@@ -1,0 +1,32 @@
+meta {
+  name: Get My Bookings
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/bookings/my
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get My Bookings
+  
+  Lista os agendamentos do cliente autenticado.
+  
+  ## Autorização
+  - **Política**: Authenticated (Cliente)
+  - **Requer token**: Sim
+  
+  ## Códigos de Status
+  - **200**: Sucesso (array de BookingDto)
+  - **401**: Não autenticado
+}

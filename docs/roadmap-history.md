@@ -69,7 +69,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
 **Status Geral**: Consulte a [Tabela de Sprints](#cronograma-de-sprints) para o status detalhado atualizado.
-**Cobertura de Testes**: Backend 90.56% | Frontend 30 testes bUnit  
+**Cobertura de Testes**: Backend 91.2% | Frontend 42 testes Vitest (Verificação via [coverage-report.xml](artifacts/coverage-report.xml) pós-merge)
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + NX Monorepo + React 19 + Next.js 15 (Customer, Provider, Admin) + Tailwind v4
 
 ### Marcos Principais

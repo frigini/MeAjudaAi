@@ -1,0 +1,26 @@
+meta {
+  name: Complete Booking
+  type: http
+  seq: 8
+}
+
+put {
+  url: {{baseUrl}}/api/v1/bookings/00000000-0000-0000-0000-000000000000/complete
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Complete Booking
+  
+  Marca um agendamento confirmado como concluído. Apenas o prestador dono ou admin pode concluir.
+  
+  ## Códigos de Status
+  - **204**: Concluído com sucesso
+  - **400**: Estado inválido (não está confirmado)
+  - **403**: Sem permissão
+  - **404**: Não encontrado
+}

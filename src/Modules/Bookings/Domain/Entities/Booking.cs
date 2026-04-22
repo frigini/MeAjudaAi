@@ -1,5 +1,6 @@
 using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Contracts.Bookings.Enums;
+using MeAjudaAi.Modules.Bookings.Domain.Events;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 
 namespace MeAjudaAi.Modules.Bookings.Domain.Entities;
@@ -26,6 +27,9 @@ public sealed class Booking : BaseEntity
         Date = date;
         TimeSlot = timeSlot;
         Status = EBookingStatus.Pending;
+
+        AddDomainEvent(new BookingCreatedDomainEvent(
+            Id, 0, ProviderId, ClientId, ServiceId, Date));
     }
 
     public static Booking Create(Guid providerId, Guid clientId, Guid serviceId, DateOnly date, TimeSlot timeSlot)
@@ -42,6 +46,9 @@ public sealed class Booking : BaseEntity
 
         Status = EBookingStatus.Confirmed;
         MarkAsUpdated();
+
+        AddDomainEvent(new BookingConfirmedDomainEvent(
+            Id, 0, ProviderId, ClientId));
     }
 
     public void Reject(string reason)
@@ -54,6 +61,9 @@ public sealed class Booking : BaseEntity
         Status = EBookingStatus.Rejected;
         RejectionReason = reason;
         MarkAsUpdated();
+
+        AddDomainEvent(new BookingRejectedDomainEvent(
+            Id, 0, ProviderId, ClientId, reason));
     }
 
     public void Cancel(string reason)
@@ -67,6 +77,9 @@ public sealed class Booking : BaseEntity
         Status = EBookingStatus.Cancelled;
         CancellationReason = reason;
         MarkAsUpdated();
+
+        AddDomainEvent(new BookingCancelledDomainEvent(
+            Id, 0, ProviderId, ClientId, reason));
     }
 
     public void Complete()
@@ -78,5 +91,8 @@ public sealed class Booking : BaseEntity
 
         Status = EBookingStatus.Completed;
         MarkAsUpdated();
+
+        AddDomainEvent(new BookingCompletedDomainEvent(
+            Id, 0, ProviderId, ClientId));
     }
 }

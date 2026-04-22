@@ -29,7 +29,7 @@ public sealed class CreateBookingCommandHandler(
 
         // Tolerância de 1 minuto para agendamentos imediatos
         var minimumLead = TimeSpan.FromMinutes(1);
-        if (command.Start < DateTimeOffset.UtcNow.Subtract(minimumLead))
+        if (command.Start < DateTimeOffset.UtcNow.Add(minimumLead))
         {
             return Result<BookingDto>.Failure(Error.BadRequest("O horário de início deve ser no futuro (mínimo 1 minuto de antecedência)."));
         }

@@ -70,7 +70,7 @@ public class SetProviderScheduleEndpoint : IEndpoint
             var correlationIdHeader = context.Request.Headers["X-Correlation-Id"].ToString();
             if (!Guid.TryParse(correlationIdHeader, out var correlationId))
             {
-                correlationId = Guid.TryParse(context.TraceIdentifier, out var traceId) ? traceId : Guid.NewGuid();
+                correlationId = Guid.NewGuid();
             }
 
             var command = new SetProviderScheduleCommand(

@@ -54,8 +54,8 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         result.Value.Slots.Should().HaveCount(1);
         
         var returnedSlot = result.Value.Slots.First();
-        returnedSlot.Start.Should().Be(date.ToDateTime(slotStart));
-        returnedSlot.End.Should().Be(date.ToDateTime(slotEnd));
+        returnedSlot.Start.Should().Be(slotStart);
+        returnedSlot.End.Should().Be(slotEnd);
     }
 
     [Fact]
@@ -85,6 +85,14 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Slots.Should().BeEmpty();
+        // Espera-se 08:00-08:30 e 09:30-10:00 após subtração
+        result.Value.Slots.Should().HaveCount(2);
+        var slots = result.Value.Slots.ToList();
+        
+        slots[0].Start.Should().Be(new TimeOnly(8, 0));
+        slots[0].End.Should().Be(new TimeOnly(8, 30));
+        
+        slots[1].Start.Should().Be(new TimeOnly(9, 30));
+        slots[1].End.Should().Be(new TimeOnly(10, 0));
     }
 }

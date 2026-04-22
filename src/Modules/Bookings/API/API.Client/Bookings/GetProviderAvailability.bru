@@ -1,0 +1,31 @@
+meta {
+  name: Get Provider Availability
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/v1/bookings/availability/00000000-0000-0000-0000-000000000000?date=2026-04-25
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get Provider Availability
+  
+  Consulta a disponibilidade de um prestador em uma data específica.
+  
+  ## Parâmetros Query
+  - `date` (DateOnly): Data para consulta (formato YYYY-MM-DD)
+  
+  ## Códigos de Status
+  - **200**: Sucesso (AvailabilityDto com slots disponíveis)
+  - **404**: Agenda não encontrada
+}

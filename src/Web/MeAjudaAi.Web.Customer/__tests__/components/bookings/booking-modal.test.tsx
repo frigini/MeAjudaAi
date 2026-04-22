@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
+process.env.TZ = 'UTC';
+
 // Mock next-auth
 vi.mock("next-auth/react", () => ({
   useSession: vi.fn(),

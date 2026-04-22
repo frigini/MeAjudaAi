@@ -87,11 +87,12 @@ public class ProviderScheduleTests : BaseUnitTest
     {
         // Arrange
         var schedule = ProviderSchedule.Create(Guid.NewGuid());
-        var slot = TimeSlot.Create(new TimeOnly(22, 0), new TimeOnly(23, 59));
+        // Slot covers until the very end of the day to ensure we fail by date crossing
+        var slot = TimeSlot.Create(new TimeOnly(22, 0), TimeOnly.MaxValue);
         schedule.SetAvailability(Availability.Create(DayOfWeek.Monday, [slot]));
 
-        var dateTime = new DateTime(2026, 4, 20, 23, 0, 0);
-        var duration = TimeSpan.FromHours(2); // Vai até 01:00 do dia seguinte
+        var dateTime = new DateTime(2026, 4, 20, 23, 30, 0); // Segunda, 23:30
+        var duration = TimeSpan.FromHours(1); // Vai até 00:30 do dia seguinte
 
         // Act
         var result = schedule.IsAvailable(dateTime, duration);

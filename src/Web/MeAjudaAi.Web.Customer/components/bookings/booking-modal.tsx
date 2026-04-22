@@ -12,7 +12,7 @@ import { useSession } from "next-auth/react";
 interface BookingModalProps {
     providerId: string;
     providerName: string;
-    serviceId?: string; // Prop opcional, se não vier usa o default do prestador
+    serviceId: string;
     trigger?: React.ReactNode;
 }
 
@@ -60,10 +60,6 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
             if (!clientId || !accessToken) {
                 throw new Error("Você precisa estar autenticado para realizar um agendamento.");
             }
-
-            // Garante que temos um serviceId válido
-            const targetServiceId = serviceId || "00000000-0000-0000-0000-000000000000";
-
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const res = await fetch(`${apiUrl}/api/v1/bookings`, {
                 method: "POST",
@@ -73,7 +69,7 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
                 },
                 body: JSON.stringify({
                     providerId,
-                    serviceId: targetServiceId,
+                    serviceId,
                     start: selectedSlot.start,
                     end: selectedSlot.end
                 })
@@ -106,11 +102,15 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
     // Auxiliar para garantir parsing UTC de strings ISO sem fuso
     const parseAsUtc = (isoString: string) => {
         if (!isoString) return new Date();
-        const hasTz = isoString.includes('Z') || isoString.includes('+') || isoString.includes('-');
+        const tIndex = isoString.indexOf('T');
+        if (tIndex === -1) return new Date(isoString); // Formato não-ISO
+        
+        const suffix = isoString.substring(tIndex);
+        const hasTz = suffix.includes('Z') || suffix.includes('+') || suffix.includes('-');
         return new Date(hasTz ? isoString : `${isoString}Z`);
     };
 
-    const isConfirmDisabled = !selectedSlot || createBooking.isPending || !session?.user?.id || !session?.accessToken;
+    const isConfirmDisabled = !selectedSlot || !serviceId || createBooking.isPending || !session?.user?.id || !session?.accessToken;
 
     return (
         <Dialog.Root open={open} onOpenChange={setOpen}>

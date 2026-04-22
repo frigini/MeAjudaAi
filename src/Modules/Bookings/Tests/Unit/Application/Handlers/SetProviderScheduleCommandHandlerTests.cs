@@ -34,7 +34,7 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
         {
             new(DayOfWeek.Monday, new List<TimeSlotDto> 
             { 
-                new(baseDate.AddHours(8), baseDate.AddHours(12)) 
+                new(new TimeOnly(8, 0), new TimeOnly(12, 0)) 
             })
         };
         

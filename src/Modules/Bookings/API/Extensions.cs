@@ -25,9 +25,9 @@ public static class Extensions
     /// <summary>
     /// Configura e mapeia os middlewares do módulo de agendamentos.
     /// </summary>
-    public static IApplicationBuilder UseBookingsModule(this IApplicationBuilder app)
+    public static WebApplication UseBookingsModule(this WebApplication app)
     {
-        // Middlewares específicos do módulo se necessário
+        app.MapBookingsEndpoints();
         return app;
     }
 

@@ -31,7 +31,29 @@ public sealed class SetProviderScheduleCommandHandler(
             return Result.Failure(Error.NotFound("Prestador não encontrado."));
         }
 
-        // 2. Buscar ou criar Schedule
+        // 2. Pré-validar e montar objetos de Domínio (Fail-fast antes de alterar estado do aggregate)
+        var newAvailabilities = new List<Availability>();
+        try
+        {
+            foreach (var availabilityDto in command.Availabilities)
+            {
+                var slots = availabilityDto.Slots.Select(s => TimeSlot.Create(s.Start, s.End));
+                var availability = Availability.Create(availabilityDto.DayOfWeek, slots);
+                newAvailabilities.Add(availability);
+            }
+        }
+        catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
+        {
+            logger.LogWarning(ex, "Invalid availability data provided for Provider {ProviderId}", command.ProviderId);
+            return Result.Failure(Error.BadRequest("Os dados de horário fornecidos são inválidos. Verifique sobreposições ou horários negativos."));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unexpected error processing availabilities for Provider {ProviderId}", command.ProviderId);
+            return Result.Failure(Error.Internal("Erro interno ao processar disponibilidades."));
+        }
+
+        // 3. Buscar ou criar Schedule
         var schedule = await scheduleRepository.GetByProviderIdAsync(command.ProviderId, cancellationToken);
         bool isNew = false;
 
@@ -42,27 +64,14 @@ public sealed class SetProviderScheduleCommandHandler(
         }
         else
         {
-            // Limpa as disponibilidades existentes para garantir que a nova agenda seja absoluta
+            // Limpa as disponibilidades existentes
             schedule.ClearAvailabilities();
         }
 
-        // 3. Atualizar Disponibilidades
-        try
+        // Aplica validações já efetuadas
+        foreach (var availability in newAvailabilities)
         {
-            foreach (var availabilityDto in command.Availabilities)
-            {
-                var slots = availabilityDto.Slots.Select(s => TimeSlot.Create(
-                    TimeOnly.FromDateTime(s.Start), 
-                    TimeOnly.FromDateTime(s.End)));
-                
-                var availability = Availability.Create(availabilityDto.DayOfWeek, slots);
-                schedule.SetAvailability(availability);
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Dados de disponibilidade inválidos para o Prestador {ProviderId}", command.ProviderId);
-            return Result.Failure(Error.BadRequest("Os dados de horário fornecidos são inválidos. Verifique sobreposições ou horários negativos."));
+            schedule.SetAvailability(availability);
         }
 
         // 4. Persistir

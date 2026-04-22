@@ -13,13 +13,21 @@ public static class Extensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        // Commands
         services.AddScoped<ICommandHandler<CreateBookingCommand, Result<BookingDto>>, CreateBookingCommandHandler>();
         services.AddScoped<ICommandHandler<SetProviderScheduleCommand, Result>, SetProviderScheduleCommandHandler>();
         services.AddScoped<ICommandHandler<ConfirmBookingCommand, Result>, ConfirmBookingCommandHandler>();
         services.AddScoped<ICommandHandler<CancelBookingCommand, Result>, CancelBookingCommandHandler>();
+        services.AddScoped<ICommandHandler<RejectBookingCommand, Result>, RejectBookingCommandHandler>();
+        services.AddScoped<ICommandHandler<CompleteBookingCommand, Result>, CompleteBookingCommandHandler>();
         
+        // Queries
         services.AddScoped<IQueryHandler<GetProviderAvailabilityQuery, Result<AvailabilityDto>>, GetProviderAvailabilityQueryHandler>();
+        services.AddScoped<IQueryHandler<GetBookingByIdQuery, Result<BookingDto>>, GetBookingByIdQueryHandler>();
+        services.AddScoped<IQueryHandler<GetBookingsByClientQuery, Result<IReadOnlyList<BookingDto>>>, GetBookingsByClientQueryHandler>();
+        services.AddScoped<IQueryHandler<GetBookingsByProviderQuery, Result<IReadOnlyList<BookingDto>>>, GetBookingsByProviderQueryHandler>();
 
         return services;
     }
 }
+
