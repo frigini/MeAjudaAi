@@ -16,30 +16,27 @@ public sealed class GetBookingsByProviderQueryHandler(
     {
         logger.LogInformation("Getting bookings for provider {ProviderId}", query.ProviderId);
 
-        var bookings = await bookingRepository.GetByProviderIdAsync(query.ProviderId, cancellationToken);
-
-        // Apply Date Filters
-        if (query.From.HasValue)
-        {
-            var fromDate = DateOnly.FromDateTime(query.From.Value);
-            bookings = bookings.Where(b => b.Date >= fromDate).ToList();
-        }
-
-        if (query.To.HasValue)
-        {
-            var toDate = DateOnly.FromDateTime(query.To.Value);
-            bookings = bookings.Where(b => b.Date <= toDate).ToList();
-        }
-
-        // Apply Pagination
+        // Prepara parâmetros de paginação e filtros
         var pageNumber = query.Page ?? 1;
         var pageSize = query.PageSize ?? 10;
-        var pagedBookings = bookings.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        var fromDate = query.From.HasValue ? DateOnly.FromDateTime(query.From.Value) : (DateOnly?)null;
+        var toDate = query.To.HasValue ? DateOnly.FromDateTime(query.To.Value) : (DateOnly?)null;
 
+        // Busca os agendamentos paginados do repositório
+        var (bookings, totalCount) = await bookingRepository.GetByProviderIdPagedAsync(
+            query.ProviderId, 
+            fromDate, 
+            toDate, 
+            pageNumber, 
+            pageSize, 
+            cancellationToken);
+
+        // Resolve o fuso horário do prestador
         var schedule = await scheduleRepository.GetByProviderIdAsync(query.ProviderId, cancellationToken);
         var tz = ResolveTimeZone(schedule?.TimeZoneId);
 
-        var dtos = pagedBookings.Select(booking =>
+        // Mapeia para DTOs garantindo o fuso horário correto
+        var dtos = bookings.Select(booking =>
         {
             var startDate = booking.Date.ToDateTime(booking.TimeSlot.Start);
             var endDate = booking.Date.ToDateTime(booking.TimeSlot.End);
@@ -49,8 +46,8 @@ public sealed class GetBookingsByProviderQueryHandler(
                 booking.ProviderId,
                 booking.ClientId,
                 booking.ServiceId,
-                new DateTimeOffset(startDate, tz.GetUtcOffset(startDate)),
-                new DateTimeOffset(endDate, tz.GetUtcOffset(endDate)),
+                TimeZoneInfo.ConvertTimeFromUtc(TimeZoneInfo.ConvertTimeToUtc(startDate, tz), tz),
+                TimeZoneInfo.ConvertTimeFromUtc(TimeZoneInfo.ConvertTimeToUtc(endDate, tz), tz),
                 booking.Status,
                 booking.RejectionReason,
                 booking.CancellationReason);
@@ -61,16 +58,32 @@ public sealed class GetBookingsByProviderQueryHandler(
 
     private static TimeZoneInfo ResolveTimeZone(string? timeZoneId)
     {
-        if (string.IsNullOrWhiteSpace(timeZoneId))
-            return TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
+        if (!string.IsNullOrWhiteSpace(timeZoneId))
+        {
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+            }
+            catch
+            {
+                // Ignora e tenta fallback
+            }
+        }
 
         try
         {
-            return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+            return TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
         }
         catch
         {
-            return TimeZoneInfo.Utc;
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
+            }
+            catch
+            {
+                return TimeZoneInfo.Utc;
+            }
         }
     }
 }

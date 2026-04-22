@@ -30,7 +30,7 @@ const PublicProviderSchema = z.object({
     rating: z.number().optional().nullable(),
     reviewCount: z.number().optional().nullable(),
     phoneNumbers: z.array(z.string()).optional().nullable(),
-    services: z.array(z.string()).optional().nullable(),
+    services: z.array(z.object({ id: z.string().uuid(), name: z.string() })).optional().nullable(),
     email: z.string().email().optional().nullable(),
     verificationStatus: VerificationStatusSchema
 });
@@ -118,11 +118,11 @@ export default function ProviderProfilePage() {
                                 <BookingModal 
                                     providerId={id} 
                                     providerName={displayName} 
-                                    serviceId={services[0] || ""}
+                                    serviceId={services[0]?.id || ""}
                                 />
                             ) : (
                                 <Button asChild className="w-full bg-[#E0702B] hover:bg-[#C55A1F] text-white font-bold py-6 text-lg">
-                                    <Link href={`/api/auth/signin?callbackUrl=/prestador/${id}`}>Entrar para Agendar</Link>
+                                    <Link href={`/api/auth/signin?callbackUrl=${encodeURIComponent(`/prestador/${id}`)}`}>Entrar para Agendar</Link>
                                 </Button>
                             )}
                         </div>
@@ -156,7 +156,7 @@ export default function ProviderProfilePage() {
                                     );
                                 })}
                             </div>
-                        ) : (status === "authenticated") ? (
+                        ) : isAuthenticated ? (
                             <div className="w-full p-4 bg-blue-50 border border-blue-100 rounded-lg text-center">
                                 <p className="text-sm text-gray-700">Este prestador não informou contatos.</p>
                             </div>
@@ -164,7 +164,7 @@ export default function ProviderProfilePage() {
                             <div className="w-full p-4 bg-orange-50 border border-orange-100 rounded-lg text-center">
                                 <p className="text-sm text-gray-700 mb-2">Faça login para visualizar os contatos deste prestador.</p>
                                 <Link
-                                    href={`/api/auth/signin?callbackUrl=/prestador/${id}`}
+                                    href={`/api/auth/signin?callbackUrl=${encodeURIComponent(`/prestador/${id}`)}`}
                                     className="text-sm font-bold text-[#E0702B] hover:underline"
                                 >
                                     Fazer Login
@@ -196,12 +196,12 @@ export default function ProviderProfilePage() {
                             <div className="pt-4">
                                 <h2 className="text-lg font-bold text-gray-900 mb-3">Serviços</h2>
                                 <div className="flex flex-wrap gap-2">
-                                    {services.map((service: string, i: number) => (
+                                    {services.map((service, i) => (
                                         <Badge
                                             key={i}
                                             className="px-3 py-1 bg-[#E0702B] text-white text-sm rounded-full"
                                         >
-                                            {service}
+                                            {service.name}
                                         </Badge>
                                     ))}
                                 </div>

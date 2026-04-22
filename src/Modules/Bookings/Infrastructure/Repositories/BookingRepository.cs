@@ -32,6 +32,33 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetByProviderIdPagedAsync(Guid providerId, DateOnly? from, DateOnly? to, int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var query = context.Bookings
+            .AsNoTracking()
+            .Where(b => b.ProviderId == providerId);
+
+        if (from.HasValue)
+        {
+            query = query.Where(b => b.Date >= from.Value);
+        }
+
+        if (to.HasValue)
+        {
+            query = query.Where(b => b.Date <= to.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderByDescending(b => b.Date)
+            .ThenByDescending(b => b.TimeSlot.Start)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
     public async Task<IReadOnlyList<Booking>> GetByClientIdAsync(Guid clientId, CancellationToken cancellationToken = default)
     {
         return await context.Bookings
@@ -39,6 +66,33 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
             .Where(b => b.ClientId == clientId)
             .OrderByDescending(b => b.CreatedAt)
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetByClientIdPagedAsync(Guid clientId, DateOnly? from, DateOnly? to, int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var query = context.Bookings
+            .AsNoTracking()
+            .Where(b => b.ClientId == clientId);
+
+        if (from.HasValue)
+        {
+            query = query.Where(b => b.Date >= from.Value);
+        }
+
+        if (to.HasValue)
+        {
+            query = query.Where(b => b.Date <= to.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderByDescending(b => b.Date)
+            .ThenByDescending(b => b.TimeSlot.Start)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
     }
 
     public async Task<IReadOnlyList<Booking>> GetByProviderAndStatusAsync(Guid providerId, EBookingStatus status, CancellationToken cancellationToken = default)

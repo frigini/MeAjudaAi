@@ -40,16 +40,41 @@ public sealed class GetBookingByIdQueryHandler(
         var endDate = booking.Date.ToDateTime(booking.TimeSlot.End);
 
         // Garantir tratamento correto de fuso horário e DST convertendo primeiro para UTC
-        var startUtc = TimeZoneInfo.ConvertTimeToUtc(startDate, tz);
-        var endUtc = TimeZoneInfo.ConvertTimeToUtc(endDate, tz);
+        if (tz.IsInvalidTime(startDate) || tz.IsInvalidTime(endDate))
+        {
+            logger.LogWarning("Invalid time detected for booking {BookingId} in time zone {TimeZoneId}", booking.Id, tz.Id);
+            return Result<BookingDto>.Failure(Error.BadRequest("Horário inválido para o fuso horário selecionado (possível transição de horário de verão)."));
+        }
+
+        if (tz.IsAmbiguousTime(startDate))
+        {
+            logger.LogInformation("Ambiguous start time detected for booking {BookingId}. Choosing the earlier offset.", booking.Id);
+            // Em caso de ambiguidade, pegamos o primeiro offset (geralmente o horário de verão que está terminando)
+            var offsets = tz.GetAmbiguousTimeOffsets(startDate);
+            startDate = DateTime.SpecifyKind(startDate, DateTimeKind.Unspecified);
+            var dto = new DateTimeOffset(startDate, offsets[0]);
+            startDate = dto.UtcDateTime; // Usaremos o UTC diretamente
+        }
+
+        if (tz.IsAmbiguousTime(endDate))
+        {
+            logger.LogInformation("Ambiguous end time detected for booking {BookingId}. Choosing the earlier offset.", booking.Id);
+            var offsets = tz.GetAmbiguousTimeOffsets(endDate);
+            endDate = DateTime.SpecifyKind(endDate, DateTimeKind.Unspecified);
+            var dto = new DateTimeOffset(endDate, offsets[0]);
+            endDate = dto.UtcDateTime;
+        }
+
+        var startUtc = startDate.Kind == DateTimeKind.Utc ? startDate : TimeZoneInfo.ConvertTimeToUtc(startDate, tz);
+        var endUtc = endDate.Kind == DateTimeKind.Utc ? endDate : TimeZoneInfo.ConvertTimeToUtc(endDate, tz);
 
         return new BookingDto(
             booking.Id,
             booking.ProviderId,
             booking.ClientId,
             booking.ServiceId,
-            TimeZoneInfo.ConvertTime(new DateTimeOffset(startUtc), tz),
-            TimeZoneInfo.ConvertTime(new DateTimeOffset(endUtc), tz),
+            TimeZoneInfo.ConvertTimeFromUtc(startUtc, tz),
+            TimeZoneInfo.ConvertTimeFromUtc(endUtc, tz),
             booking.Status,
             booking.RejectionReason,
             booking.CancellationReason);
@@ -63,9 +88,9 @@ public sealed class GetBookingByIdQueryHandler(
             {
                 return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignora e tenta fallback
+                logger.LogWarning(ex, "Failed to resolve time zone {TimeZoneId}. Falling back.", timeZoneId);
             }
         }
 
@@ -74,17 +99,27 @@ public sealed class GetBookingByIdQueryHandler(
         {
             return TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
         }
-        catch
+        catch (Exception ex)
         {
+            logger.LogWarning(ex, "Failed to resolve Windows Brazil time zone. Trying IANA.");
             try
             {
-                // Fallback para o horário local do sistema
-                return TimeZoneInfo.Local;
+                // Tenta fallback para IANA
+                return TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
             }
-            catch
+            catch (Exception exIana)
             {
-                // Último recurso: UTC
-                return TimeZoneInfo.Utc;
+                logger.LogWarning(exIana, "Failed to resolve IANA Brazil time zone. Using local/UTC.");
+                try
+                {
+                    // Fallback para o horário local do sistema
+                    return TimeZoneInfo.Local;
+                }
+                catch
+                {
+                    // Último recurso: UTC
+                    return TimeZoneInfo.Utc;
+                }
             }
         }
     }

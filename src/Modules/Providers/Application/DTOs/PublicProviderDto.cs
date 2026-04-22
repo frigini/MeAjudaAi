@@ -22,7 +22,7 @@ public sealed record PublicProviderDto(
     // Dados para UI refinada
     double? Rating,
     int ReviewCount,
-    IEnumerable<string> Services,
+    IEnumerable<PublicProviderServiceDto> Services,
     IEnumerable<string> PhoneNumbers,
     string? Email,
     EVerificationStatus VerificationStatus,

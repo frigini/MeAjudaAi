@@ -27,7 +27,7 @@ public class GlobalExceptionHandlerTests
         _loggerMock = new Mock<ILogger<GlobalExceptionHandler>>();
         _envMock = new Mock<IHostEnvironment>();
         
-        // Default to Development for existing tests
+        // Padrão para Development para testes existentes
         _envMock.Setup(e => e.EnvironmentName).Returns(Environments.Development);
         
         _handler = new GlobalExceptionHandler(_loggerMock.Object, _envMock.Object);

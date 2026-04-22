@@ -32,7 +32,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = new DateOnly(2026, 4, 25);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30));
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         booking.Confirm();
@@ -44,7 +44,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         SetupUser(providerId);
 
         // Act
-        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id));
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -57,7 +57,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = new DateOnly(2026, 4, 25);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30));
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         booking.ClearDomainEvents();
@@ -68,7 +68,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         SetupUser(providerId);
 
         // Act
-        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id));
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -81,7 +81,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = new DateOnly(2026, 4, 25);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30));
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         booking.Confirm();
@@ -93,7 +93,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         SetupUser(Guid.NewGuid()); // Outro provider
 
         // Act
-        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id));
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -110,7 +110,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
             .ReturnsAsync((Booking?)null);
 
         // Act
-        var result = await _sut.HandleAsync(new CompleteBookingCommand(Guid.NewGuid(), Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new CompleteBookingCommand(Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();

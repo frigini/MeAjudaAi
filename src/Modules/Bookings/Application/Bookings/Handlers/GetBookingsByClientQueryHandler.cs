@@ -17,32 +17,23 @@ public sealed class GetBookingsByClientQueryHandler(
     {
         logger.LogInformation("Getting bookings for client {ClientId}", query.ClientId);
 
-        var bookings = await bookingRepository.GetByClientIdAsync(query.ClientId, cancellationToken);
-
-        // Apply Date Filters
-        if (query.From.HasValue)
-        {
-            var fromDate = DateOnly.FromDateTime(query.From.Value);
-            bookings = bookings.Where(b => b.Date >= fromDate).ToList();
-        }
-
-        if (query.To.HasValue)
-        {
-            var toDate = DateOnly.FromDateTime(query.To.Value);
-            bookings = bookings.Where(b => b.Date <= toDate).ToList();
-        }
-
-        var totalItems = bookings.Count;
-
-        // Apply Pagination
         var pageNumber = query.Page ?? 1;
         var pageSize = query.PageSize ?? 10;
-        var pagedBookings = bookings.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        var fromDate = query.From.HasValue ? DateOnly.FromDateTime(query.From.Value) : (DateOnly?)null;
+        var toDate = query.To.HasValue ? DateOnly.FromDateTime(query.To.Value) : (DateOnly?)null;
+
+        var (bookings, totalCount) = await bookingRepository.GetByClientIdPagedAsync(
+            query.ClientId,
+            fromDate,
+            toDate,
+            pageNumber,
+            pageSize,
+            cancellationToken);
 
         var dtos = new List<BookingDto>();
         var scheduleCache = new Dictionary<Guid, Domain.Entities.ProviderSchedule?>();
 
-        foreach (var booking in pagedBookings)
+        foreach (var booking in bookings)
         {
             if (!scheduleCache.TryGetValue(booking.ProviderId, out var schedule))
             {
@@ -60,8 +51,8 @@ public sealed class GetBookingsByClientQueryHandler(
                 booking.ProviderId,
                 booking.ClientId,
                 booking.ServiceId,
-                new DateTimeOffset(startDate, tz.GetUtcOffset(startDate)),
-                new DateTimeOffset(endDate, tz.GetUtcOffset(endDate)),
+                TimeZoneInfo.ConvertTimeFromUtc(TimeZoneInfo.ConvertTimeToUtc(startDate, tz), tz),
+                TimeZoneInfo.ConvertTimeFromUtc(TimeZoneInfo.ConvertTimeToUtc(endDate, tz), tz),
                 booking.Status,
                 booking.RejectionReason,
                 booking.CancellationReason));
@@ -72,22 +63,38 @@ public sealed class GetBookingsByClientQueryHandler(
             Items = dtos.AsReadOnly(),
             PageNumber = pageNumber,
             PageSize = pageSize,
-            TotalItems = totalItems
+            TotalItems = totalCount
         });
     }
 
     private static TimeZoneInfo ResolveTimeZone(string? timeZoneId)
     {
-        if (string.IsNullOrWhiteSpace(timeZoneId))
-            return TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
+        if (!string.IsNullOrWhiteSpace(timeZoneId))
+        {
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+            }
+            catch
+            {
+                // Ignora e tenta fallback
+            }
+        }
 
         try
         {
-            return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+            return TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
         }
         catch
         {
-            return TimeZoneInfo.Utc;
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
+            }
+            catch
+            {
+                return TimeZoneInfo.Utc;
+            }
         }
     }
 }

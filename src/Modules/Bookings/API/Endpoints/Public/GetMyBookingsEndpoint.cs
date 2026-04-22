@@ -34,7 +34,10 @@ public class GetMyBookingsEndpoint : IEndpoint
                 return Results.Unauthorized();
             }
 
-            var query = new GetBookingsByClientQuery(clientId, Guid.NewGuid(), page, pageSize, from, to);
+            var correlationIdHeader = context.Request.Headers["X-Correlation-Id"].ToString();
+            var correlationId = Guid.TryParse(correlationIdHeader, out var parsedId) ? parsedId : Guid.NewGuid();
+
+            var query = new GetBookingsByClientQuery(clientId, correlationId, page, pageSize, from, to);
             var result = await dispatcher.QueryAsync<GetBookingsByClientQuery, Result<PagedResult<BookingDto>>>(query, cancellationToken);
 
             return result.Match(
@@ -44,7 +47,9 @@ public class GetMyBookingsEndpoint : IEndpoint
         })
         .RequireAuthorization()
         .Produces<PagedResult<BookingDto>>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("GetMyBookings")
         .WithSummary("Lista os agendamentos do cliente autenticado com paginação e filtros.");

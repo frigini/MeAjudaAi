@@ -76,8 +76,8 @@ public sealed class GetPublicProviderByIdOrSlugQueryHandler : IQueryHandler<GetP
             : null;
             
         var services = !shouldRedactContactInfo
-            ? provider.Services.Select(s => s.ServiceName).ToList()
-            : new List<string>();
+            ? provider.Services.Select(s => new PublicProviderServiceDto(s.ServiceId, s.ServiceName)).ToList()
+            : new List<PublicProviderServiceDto>();
 
         // Mapeamento para DTO seguro com valores default (reais virão de integração futura)
         var dto = new PublicProviderDto(

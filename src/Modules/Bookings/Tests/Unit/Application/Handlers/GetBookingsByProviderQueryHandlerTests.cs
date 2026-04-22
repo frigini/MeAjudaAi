@@ -40,8 +40,8 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
         };
         bookings.ForEach(b => b.ClearDomainEvents());
 
-        _bookingRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(bookings.AsReadOnly());
+        _bookingRepoMock.Setup(x => x.GetByProviderIdPagedAsync(providerId, null, null, 1, 10, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((bookings.AsReadOnly(), 2));
 
         var schedule = ProviderSchedule.Create(providerId);
         _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
@@ -61,8 +61,8 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        _bookingRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Booking>().AsReadOnly());
+        _bookingRepoMock.Setup(x => x.GetByProviderIdPagedAsync(providerId, null, null, 1, 10, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new List<Booking>().AsReadOnly(), 0));
 
         _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProviderSchedule?)null);
@@ -73,5 +73,97 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Apply_Filters_And_Pagination()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var from = DateTime.UtcNow;
+        var to = DateTime.UtcNow.AddDays(7);
+        var query = new GetBookingsByProviderQuery(providerId, Guid.NewGuid())
+        {
+            From = from,
+            To = to,
+            Page = 2,
+            PageSize = 20
+        };
+
+        _bookingRepoMock.Setup(x => x.GetByProviderIdPagedAsync(
+                providerId,
+                DateOnly.FromDateTime(from),
+                DateOnly.FromDateTime(to),
+                2,
+                20,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new List<Booking>().AsReadOnly(), 0));
+
+        // Act
+        await _sut.HandleAsync(query);
+
+        // Assert
+        _bookingRepoMock.Verify(x => x.GetByProviderIdPagedAsync(
+            providerId,
+            DateOnly.FromDateTime(from),
+            DateOnly.FromDateTime(to),
+            2,
+            20,
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Use_Provider_TimeZone()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var date = new DateOnly(2026, 4, 25);
+        var startTime = new TimeOnly(10, 0);
+        var endTime = new TimeOnly(11, 0);
+        
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
+            TimeSlot.Create(startTime, endTime));
+        
+        _bookingRepoMock.Setup(x => x.GetByProviderIdPagedAsync(providerId, null, null, 1, 10, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new List<Booking> { booking }.AsReadOnly(), 1));
+
+        // Tokyo is UTC+9
+        var schedule = ProviderSchedule.Create(providerId, "Tokyo Standard Time");
+        
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(schedule);
+
+        // Act
+        var result = await _sut.HandleAsync(new GetBookingsByProviderQuery(providerId, Guid.NewGuid()));
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        var dto = result.Value?.First();
+        
+        dto.Should().NotBeNull();
+        dto!.Start.Hour.Should().Be(10);
+        dto!.End.Hour.Should().Be(11);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Use_Fallback_TimeZone_When_ScheduleNotFound()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), new DateOnly(2026, 4, 25),
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        
+        _bookingRepoMock.Setup(x => x.GetByProviderIdPagedAsync(providerId, null, null, 1, 10, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new List<Booking> { booking }.AsReadOnly(), 1));
+
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ProviderSchedule?)null);
+
+        // Act
+        var result = await _sut.HandleAsync(new GetBookingsByProviderQuery(providerId, Guid.NewGuid()));
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeEmpty();
     }
 }

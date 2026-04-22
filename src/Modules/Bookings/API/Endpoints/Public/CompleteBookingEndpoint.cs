@@ -18,7 +18,7 @@ public class CompleteBookingEndpoint : IEndpoint
             [FromServices] ICommandDispatcher dispatcher,
             CancellationToken cancellationToken) =>
         {
-            var command = new CompleteBookingCommand(id, Guid.NewGuid());
+            var command = new CompleteBookingCommand(id);
             var result = await dispatcher.SendAsync<CompleteBookingCommand, Result>(command, cancellationToken);
 
             return result.Match(
@@ -32,6 +32,7 @@ public class CompleteBookingEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status403Forbidden)
         .ProducesProblem(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status409Conflict)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("CompleteBooking")
         .WithSummary("Marca um agendamento confirmado como concluído.");

@@ -41,12 +41,8 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
         };
         bookings.ForEach(b => b.ClearDomainEvents());
 
-        _bookingRepoMock.Setup(x => x.GetByClientIdAsync(clientId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(bookings.AsReadOnly());
-
-        var schedule = ProviderSchedule.Create(providerId);
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(schedule);
+        _bookingRepoMock.Setup(x => x.GetByClientIdPagedAsync(clientId, null, null, 1, 10, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((bookings.AsReadOnly(), 2));
 
         // Act
         var result = await _sut.HandleAsync(new GetBookingsByClientQuery(clientId, Guid.NewGuid()));
@@ -62,8 +58,8 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
     {
         // Arrange
         var clientId = Guid.NewGuid();
-        _bookingRepoMock.Setup(x => x.GetByClientIdAsync(clientId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Booking>().AsReadOnly());
+        _bookingRepoMock.Setup(x => x.GetByClientIdPagedAsync(clientId, null, null, 1, 10, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new List<Booking>().AsReadOnly(), 0));
 
         // Act
         var result = await _sut.HandleAsync(new GetBookingsByClientQuery(clientId, Guid.NewGuid()));

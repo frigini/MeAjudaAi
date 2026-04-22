@@ -52,6 +52,11 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
     // Mutação para criar agendamento
     const createBooking = useMutation({
         mutationFn: async () => {
+            if (!session) {
+                setOpen(false);
+                toast.error("Sua sessão expirou. Faça login novamente.");
+                return;
+            }
             if (!selectedSlot) return;
             
             const clientId = session?.user?.id;
@@ -70,8 +75,8 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
                 body: JSON.stringify({
                     providerId,
                     serviceId,
-                    start: selectedSlot.start,
-                    end: selectedSlot.end
+                    start: format(selectedDate, "yyyy-MM-dd") + "T" + selectedSlot.start + ":00",
+                    end: format(selectedDate, "yyyy-MM-dd") + "T" + selectedSlot.end + ":00"
                 })
             });
 
@@ -87,7 +92,9 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
             setSelectedSlot(null);
         },
         onError: (error: Error) => {
-            toast.error(error.message);
+            if (error.message) {
+                toast.error(error.message);
+            }
         }
     });
 
@@ -150,18 +157,18 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
                                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                                 </div>
                             ) : availability?.slots?.length > 0 ? (
-                                <div className="grid grid-cols-3 gap-2 max-h-[200px] overflow-y-auto p-1">
+                                <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto p-1">
                                     {availability.slots.map((slot: TimeSlot, i: number) => (
                                         <button
                                             key={i}
                                             onClick={() => setSelectedSlot(slot)}
-                                            className={`p-2 text-xs font-medium border rounded-md transition-colors ${
+                                            className={`p-2 text-[11px] font-medium border rounded-md transition-colors ${
                                                 selectedSlot === slot 
                                                     ? "bg-[#002D62] text-white border-[#002D62]" 
                                                     : "hover:border-[#E0702B] hover:bg-[#E0702B]/5 text-gray-700"
                                             }`}
                                         >
-                                            {format(parseAsUtc(slot.start), "HH:mm")}
+                                            {format(parseAsUtc(slot.start), "HH:mm")} - {format(parseAsUtc(slot.end), "HH:mm")}
                                         </button>
                                     ))}
                                 </div>
@@ -174,6 +181,11 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
                     </div>
 
                     <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2">
+                        {!serviceId && (
+                            <p className="text-[10px] text-red-500 self-center mr-auto">
+                                Nenhum serviço disponível para agendamento.
+                            </p>
+                        )}
                         <Dialog.Close asChild>
                             <Button variant="ghost">Cancelar</Button>
                         </Dialog.Close>

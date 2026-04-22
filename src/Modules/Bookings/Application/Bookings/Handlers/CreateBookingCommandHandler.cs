@@ -94,8 +94,8 @@ public sealed class CreateBookingCommandHandler(
             booking.ProviderId,
             booking.ClientId,
             booking.ServiceId,
-            TimeZoneInfo.ConvertTime(new DateTimeOffset(startUtc), tz),
-            TimeZoneInfo.ConvertTime(new DateTimeOffset(endUtc), tz),
+            TimeZoneInfo.ConvertTimeFromUtc(startUtc, tz),
+            TimeZoneInfo.ConvertTimeFromUtc(endUtc, tz),
             booking.Status);
     }
 
@@ -107,9 +107,9 @@ public sealed class CreateBookingCommandHandler(
             {
                 return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignora e tenta fallback
+                logger.LogWarning(ex, "Failed to resolve time zone {TimeZoneId}. Falling back.", timeZoneId);
             }
         }
 
@@ -118,17 +118,26 @@ public sealed class CreateBookingCommandHandler(
         {
             return TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
         }
-        catch
+        catch (Exception ex)
         {
+            logger.LogWarning(ex, "Failed to resolve Windows Brazil time zone. Trying IANA.");
             try
             {
-                // Fallback para o horário local do sistema
-                return TimeZoneInfo.Local;
+                return TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
             }
-            catch
+            catch (Exception exIana)
             {
-                // Último recurso: UTC
-                return TimeZoneInfo.Utc;
+                logger.LogWarning(exIana, "Failed to resolve IANA Brazil time zone. Using local/UTC.");
+                try
+                {
+                    // Fallback para o horário local do sistema
+                    return TimeZoneInfo.Local;
+                }
+                catch
+                {
+                    // Último recurso: UTC
+                    return TimeZoneInfo.Utc;
+                }
             }
         }
     }

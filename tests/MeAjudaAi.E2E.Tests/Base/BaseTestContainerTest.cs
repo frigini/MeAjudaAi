@@ -595,38 +595,12 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             .UseSnakeCaseNamingConvention()
             .EnableSensitiveDataLogging(true)
             .ConfigureWarnings(warnings =>
-                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-        });
-    }
+            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            });
+            }
 
-    /// <summary>
-    /// Reconfigura SearchProvidersDbContext com suporte PostGIS/NetTopologySuite
-    /// </summary>
-    private void ReconfigureSearchProvidersDbContext(IServiceCollection services)
-    {
-        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<SearchProvidersDbContext>));
-        if (descriptor != null)
-            services.Remove(descriptor);
-
-        services.AddDbContext<SearchProvidersDbContext>(options =>
-        {
-            options.UseNpgsql(
-                _postgresContainer.GetConnectionString(),
-                npgsqlOptions =>
-                {
-                    npgsqlOptions.UseNetTopologySuite(); // Habilitar suporte PostGIS
-                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
-                })
-                .UseSnakeCaseNamingConvention()
-                .EnableSensitiveDataLogging(false)
-                .ConfigureWarnings(warnings =>
-                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-        });
-    }
-
-    /// <summary>
-    /// Extrai o ID de um recurso do header Location de uma resposta HTTP 201 Created.
-    /// Suporta formatos: /api/v1/resource/{id}, /api/v1/resource?id={id}
+            /// <summary>
+            /// Extrai o ID de um recurso do header Location de uma resposta HTTP 201 Created.    /// Suporta formatos: /api/v1/resource/{id}, /api/v1/resource?id={id}
     /// </summary>
     protected static Guid ExtractIdFromLocation(string locationHeader)
     {
