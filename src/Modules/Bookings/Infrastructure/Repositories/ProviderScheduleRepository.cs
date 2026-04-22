@@ -10,6 +10,7 @@ public class ProviderScheduleRepository(BookingsDbContext context) : IProviderSc
     public async Task<ProviderSchedule?> GetByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
         return await context.ProviderSchedules
+            .AsNoTracking()
             .FirstOrDefaultAsync(ps => ps.ProviderId == providerId, cancellationToken);
     }
 

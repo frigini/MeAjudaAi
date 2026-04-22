@@ -27,7 +27,7 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     [Fact]
     public async Task HandleAsync_Should_Succeed_When_Valid()
     {
-        // Organizar
+        // Arrange
         var providerId = Guid.NewGuid();
         var availabilities = new List<AvailabilityDto>
         {
@@ -45,28 +45,29 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
         _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(ProviderSchedule.Create(providerId));
 
-        // Agir
+        // Act
         var result = await _sut.HandleAsync(command);
 
-        // Assertar
+        // Assert
         result.IsSuccess.Should().BeTrue();
         _scheduleRepoMock.Verify(x => x.UpdateAsync(It.IsAny<ProviderSchedule>(), It.IsAny<CancellationToken>()), Times.Once);
+        _scheduleRepoMock.Verify(x => x.AddAsync(It.IsAny<ProviderSchedule>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task HandleAsync_Should_Fail_When_ProviderNotFound()
     {
-        // Organizar
+        // Arrange
         var providerId = Guid.NewGuid();
         var command = new SetProviderScheduleCommand(providerId, [], Guid.NewGuid());
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(false));
 
-        // Agir
+        // Act
         var result = await _sut.HandleAsync(command);
 
-        // Assertar
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(404);
         result.Error!.Message.Should().Be("Prestador não encontrado.");
@@ -75,17 +76,17 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     [Fact]
     public async Task HandleAsync_Should_Fail_When_ProvidersApi_Returns_Failure()
     {
-        // Organizar
+        // Arrange
         var providerId = Guid.NewGuid();
         var command = new SetProviderScheduleCommand(providerId, [], Guid.NewGuid());
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Failure(Error.Internal("Api failure")));
 
-        // Agir
+        // Act
         var result = await _sut.HandleAsync(command);
 
-        // Assertar
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Be("Api failure");
     }
@@ -93,7 +94,7 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     [Fact]
     public async Task HandleAsync_Should_Call_AddAsync_When_Schedule_Does_Not_Exist()
     {
-        // Organizar
+        // Arrange
         var providerId = Guid.NewGuid();
         var availabilities = new List<AvailabilityDto>
         {
@@ -111,10 +112,10 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
         _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProviderSchedule?)null);
 
-        // Agir
+        // Act
         var result = await _sut.HandleAsync(command);
 
-        // Assertar
+        // Assert
         result.IsSuccess.Should().BeTrue();
         _scheduleRepoMock.Verify(x => x.AddAsync(It.IsAny<ProviderSchedule>(), It.IsAny<CancellationToken>()), Times.Once);
         _scheduleRepoMock.Verify(x => x.UpdateAsync(It.IsAny<ProviderSchedule>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -123,13 +124,13 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     [Fact]
     public async Task HandleAsync_Should_Fail_When_TimeSlot_Is_Invalid()
     {
-        // Organizar
+        // Arrange
         var providerId = Guid.NewGuid();
         var availabilities = new List<AvailabilityDto>
         {
             new(DayOfWeek.Monday, new List<TimeSlotDto> 
             { 
-                new(new TimeOnly(12, 0), new TimeOnly(8, 0)) // Início > Fim
+                new(new TimeOnly(12, 0), new TimeOnly(8, 0)) // Start > End
             })
         };
         
@@ -138,10 +139,10 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
-        // Agir
+        // Act
         var result = await _sut.HandleAsync(command);
 
-        // Assertar
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Be("Os dados de horário fornecidos são inválidos. Verifique sobreposições ou horários negativos.");
     }
@@ -149,14 +150,14 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     [Fact]
     public async Task HandleAsync_Should_Fail_When_TimeSlots_Overlap()
     {
-        // Organizar
+        // Arrange
         var providerId = Guid.NewGuid();
         var availabilities = new List<AvailabilityDto>
         {
             new(DayOfWeek.Monday, new List<TimeSlotDto> 
             { 
                 new(new TimeOnly(8, 0), new TimeOnly(12, 0)),
-                new(new TimeOnly(11, 0), new TimeOnly(14, 0)) // Sobreposição
+                new(new TimeOnly(11, 0), new TimeOnly(14, 0)) // Overlap
             })
         };
         
@@ -165,10 +166,10 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
-        // Agir
+        // Act
         var result = await _sut.HandleAsync(command);
 
-        // Assertar
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Be("Os dados de horário fornecidos são inválidos. Verifique sobreposições ou horários negativos.");
     }

@@ -45,8 +45,7 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
 
     const combineDateAndTime = (date: Date, timeString: string) => {
         const [hours, minutes, seconds] = timeString.split(":").map(Number);
-        const combinedDate = new Date(date);
-        combinedDate.setHours(hours, minutes, seconds || 0, 0);
+        const combinedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes, seconds || 0);
         return format(combinedDate, "yyyy-MM-dd'T'HH:mm:ssXXX");
     };
 
@@ -55,20 +54,22 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
         if (timeString.includes("T")) return new Date(timeString);
         
         const [hours, minutes, seconds] = timeString.split(":").map(Number);
-        const d = new Date(selectedDate);
-        d.setHours(hours, minutes, seconds || 0, 0);
+        const d = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), hours, minutes, seconds || 0);
         return d;
     };
 
     // Consulta disponibilidade
-    const { data: availability, isLoading: isLoadingAvailability } = useQuery({
+    const { data: availability, isLoading: isLoadingAvailability, isError, error } = useQuery({
         queryKey: ["provider-availability", providerId, format(selectedDate, "yyyy-MM-dd")],
         queryFn: async () => {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const res = await fetch(`${apiUrl}/api/v1/bookings/availability/${providerId}?date=${format(selectedDate, "yyyy-MM-dd")}`, {
                 headers: session?.accessToken ? { "Authorization": `Bearer ${session.accessToken}` } : {}
             });
-            if (!res.ok) throw new Error("Falha ao carregar disponibilidade");
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.detail || errorData.message || `Erro ${res.status}: Falha ao carregar disponibilidade`);
+            }
             const data = await res.json();
             return AvailabilitySchema.parse(data);
         },
@@ -78,23 +79,17 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
     // Mutação para criar agendamento
     const createBooking = useMutation({
         mutationFn: async () => {
-            if (!session) {
-                throw new Error("Sua sessão expirou. Faça login novamente.");
+            if (!session || !session.user?.id || !session.accessToken) {
+                throw new Error("Você precisa estar autenticado para realizar um agendamento.");
             }
             if (!selectedSlot) throw new Error("Selecione um horário.");
             
-            const clientId = session?.user?.id;
-            const accessToken = session?.accessToken;
-
-            if (!clientId || !accessToken) {
-                throw new Error("Você precisa estar autenticado para realizar um agendamento.");
-            }
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const res = await fetch(`${apiUrl}/api/v1/bookings`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${accessToken}`
+                    "Authorization": `Bearer ${session.accessToken}`
                 },
                 body: JSON.stringify({
                     providerId,
@@ -105,7 +100,7 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
             });
 
             if (!res.ok) {
-                const error = await res.json();
+                const error = await res.json().catch(() => ({}));
                 throw new Error(error.detail || error.message || "Erro ao criar agendamento");
             }
             return res.json();
@@ -121,9 +116,18 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
     });
 
     const handleDateChange = (dateString: string) => {
+        if (!dateString) return;
+        
         // Parsing manual para evitar o "dia anterior" em fusos negativos (UTC vs Local)
-        const [year, month, day] = dateString.split('-').map(Number);
+        const parts = dateString.split('-').map(Number);
+        if (parts.length !== 3 || parts.some(isNaN)) return;
+        
+        const [year, month, day] = parts;
         const newDate = new Date(year, month - 1, day, 0, 0, 0, 0);
+        
+        // Verifica se é uma data válida
+        if (isNaN(newDate.getTime())) return;
+
         setSelectedDate(newDate);
         setSelectedSlot(null);
     };
@@ -166,6 +170,10 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
                             {isLoadingAvailability ? (
                                 <div className="flex items-center justify-center py-8">
                                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                </div>
+                            ) : isError ? (
+                                <div className="p-4 bg-red-50 text-red-600 rounded-lg text-xs border border-red-100">
+                                    {(error as Error).message}
                                 </div>
                             ) : (availability && availability.slots.length > 0) ? (
                                 <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto p-1">

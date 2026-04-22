@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
@@ -41,9 +42,10 @@ export default function ProviderProfilePage() {
     
     const isAuthenticated = status === "authenticated";
     const isLoadingAuth = status === "loading";
+    const [selectedServiceId, setSelectedServiceId] = useState<string>("");
 
     const { data: providerData, isLoading, error } = useQuery({
-        queryKey: ["public-provider", id],
+        queryKey: ["public-provider", id, isAuthenticated, session?.accessToken],
         queryFn: async () => {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const res = await fetch(`${apiUrl}/api/v1/providers/${id}/public`, {
@@ -119,7 +121,15 @@ export default function ProviderProfilePage() {
                                     <BookingModal 
                                         providerId={id} 
                                         providerName={displayName} 
-                                        serviceId={services[0]?.id || ""}
+                                        serviceId={selectedServiceId}
+                                        trigger={
+                                            <Button 
+                                                disabled={!selectedServiceId}
+                                                className="w-full bg-[#E0702B] hover:bg-[#C55A1F] text-white font-bold py-6 text-lg shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                            >
+                                                {selectedServiceId ? "Agendar Horário" : "Selecione um Serviço"}
+                                            </Button>
+                                        }
                                     />
                                 ) : (
                                     <Button disabled className="w-full bg-slate-200 text-slate-500 py-6 text-lg">
@@ -205,12 +215,22 @@ export default function ProviderProfilePage() {
                                     {services.map((service) => (
                                         <Badge
                                             key={service.id}
-                                            className="px-3 py-1 bg-[#E0702B] text-white text-sm rounded-full"
+                                            onClick={() => setSelectedServiceId(service.id)}
+                                            className={`px-3 py-1 cursor-pointer transition-colors text-sm rounded-full ${
+                                                selectedServiceId === service.id 
+                                                    ? "bg-[#002D62] text-white ring-2 ring-offset-1 ring-[#002D62]" 
+                                                    : "bg-[#E0702B] text-white hover:bg-[#C55A1F]"
+                                            }`}
                                         >
                                             {service.name}
                                         </Badge>
                                     ))}
                                 </div>
+                                {!selectedServiceId && isAuthenticated && (
+                                    <p className="text-xs text-orange-600 mt-2 font-medium animate-pulse">
+                                        * Clique em um serviço acima para agendar
+                                    </p>
+                                )}
                             </div>
                         )}
                     </div>

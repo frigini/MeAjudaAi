@@ -56,7 +56,7 @@ public class BookingRepositoryTests : BaseDatabaseTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = new DateOnly(2026, 4, 22);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(2);
         
         var existingBooking = Booking.Create(
             providerId, Guid.NewGuid(), Guid.NewGuid(), date,
@@ -79,7 +79,7 @@ public class BookingRepositoryTests : BaseDatabaseTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = new DateOnly(2026, 4, 22);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(2);
         
         var existingBooking = Booking.Create(
             providerId, Guid.NewGuid(), Guid.NewGuid(), date,

@@ -605,8 +605,9 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             });
             }
 
-            /// <summary>
-            /// Extrai o ID de um recurso do header Location de uma resposta HTTP 201 Created.    /// Suporta formatos: /api/v1/resource/{id}, /api/v1/resource?id={id}
+    /// <summary>
+    /// Extrai o ID de um recurso do header Location de uma resposta HTTP 201 Created.
+    /// Suporta formatos: /api/v1/resource/{id}, /api/v1/resource?id={id}
     /// </summary>
     protected static Guid ExtractIdFromLocation(string locationHeader)
     {

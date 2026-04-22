@@ -171,7 +171,7 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Erro ao tentar adicionar agendamento {BookingId} (Tentativa {Attempt})", booking.Id, attempt);
+                    logger.LogError(ex, "Error while attempting to add booking {BookingId} (Attempt {Attempt})", booking.Id, attempt);
 
                     try
                     {
@@ -185,7 +185,7 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                     // Checa por conflitos de concorrência (40001 ou 40P01)
                     if (IsConcurrencyError(ex) && attempt < maxRetryAttempts)
                     {
-                        logger.LogWarning("Conflito de concorrência ao validar agendamento {BookingId}. Retentando (Tentativa {Attempt})...", booking.Id, attempt);
+                        logger.LogWarning("Concurrency conflict while validating booking {BookingId}. Retrying (Attempt {Attempt})...", booking.Id, attempt);
                         
                         // Aguarda um tempo aleatório curto antes de tentar novamente (jitter)
                         await Task.Delay(Random.Shared.Next(50, 200), cancellationToken);

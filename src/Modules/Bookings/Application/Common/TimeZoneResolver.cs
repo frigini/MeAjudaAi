@@ -82,16 +82,13 @@ public static class TimeZoneResolver
             endUtc = TimeZoneInfo.ConvertTimeToUtc(endDate, tz);
         }
 
-        var startLocal = TimeZoneInfo.ConvertTimeFromUtc(startUtc, tz);
-        var endLocal = TimeZoneInfo.ConvertTimeFromUtc(endUtc, tz);
-
         return Result<BookingDto>.Success(new BookingDto(
             booking.Id,
             booking.ProviderId,
             booking.ClientId,
             booking.ServiceId,
-            new DateTimeOffset(startLocal, tz.GetUtcOffset(startUtc)),
-            new DateTimeOffset(endLocal, tz.GetUtcOffset(endUtc)),
+            new DateTimeOffset(startDate, tz.GetUtcOffset(startUtc)),
+            new DateTimeOffset(endDate, tz.GetUtcOffset(endUtc)),
             booking.Status,
             booking.RejectionReason,
             booking.CancellationReason));
