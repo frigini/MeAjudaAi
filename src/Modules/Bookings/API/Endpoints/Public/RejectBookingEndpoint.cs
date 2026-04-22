@@ -21,12 +21,12 @@ public class RejectBookingEndpoint : IEndpoint
         {
             if (string.IsNullOrWhiteSpace(request.Reason))
             {
-                return Results.BadRequest(new { error = "O motivo da rejeição é obrigatório." });
+                return Results.Problem("O motivo da rejeição é obrigatório.", statusCode: StatusCodes.Status400BadRequest);
             }
 
             if (request.Reason.Length > 500)
             {
-                return Results.BadRequest(new { error = "O motivo da rejeição não pode exceder 500 caracteres." });
+                return Results.Problem("O motivo da rejeição não pode exceder 500 caracteres.", statusCode: StatusCodes.Status400BadRequest);
             }
 
             var command = new RejectBookingCommand(id, request.Reason, Guid.NewGuid());
@@ -43,6 +43,7 @@ public class RejectBookingEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status403Forbidden)
         .ProducesProblem(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status409Conflict)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("RejectBooking")
         .WithSummary("Rejeita um agendamento pendente.");

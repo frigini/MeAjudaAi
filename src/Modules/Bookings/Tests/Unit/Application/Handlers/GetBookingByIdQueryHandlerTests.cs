@@ -26,7 +26,7 @@ public class GetBookingByIdQueryHandlerTests : BaseUnitTest
     }
 
     [Fact]
-    public async Task HandleAsync_Should_Return_BookingDto_When_Found()
+    public async Task HandleAsync_Should_Return_BookingDto_When_Found_And_Authorized()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -43,8 +43,8 @@ public class GetBookingByIdQueryHandlerTests : BaseUnitTest
         _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
 
-        // Act
-        var result = await _sut.HandleAsync(new GetBookingByIdQuery(booking.Id, Guid.NewGuid()));
+        // Act - Autorizado pelo ClientId
+        var result = await _sut.HandleAsync(new GetBookingByIdQuery(booking.Id, clientId, null, false, Guid.NewGuid()));
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -55,6 +55,29 @@ public class GetBookingByIdQueryHandlerTests : BaseUnitTest
     }
 
     [Fact]
+    public async Task HandleAsync_Should_Return_NotFound_When_NotAuthorized()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var clientId = Guid.NewGuid();
+        var date = new DateOnly(2026, 4, 25);
+        var booking = Booking.Create(providerId, clientId, Guid.NewGuid(), date,
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        booking.ClearDomainEvents();
+
+        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        // Act - Não autorizado (outro UserId e nenhum ProviderId/Admin)
+        var result = await _sut.HandleAsync(new GetBookingByIdQuery(booking.Id, Guid.NewGuid(), null, false, Guid.NewGuid()));
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(404);
+        result.Error.Message.Should().Be("Agendamento não encontrado.");
+    }
+
+    [Fact]
     public async Task HandleAsync_Should_Return_NotFound_When_BookingDoesNotExist()
     {
         // Arrange
@@ -62,7 +85,7 @@ public class GetBookingByIdQueryHandlerTests : BaseUnitTest
             .ReturnsAsync((Booking?)null);
 
         // Act
-        var result = await _sut.HandleAsync(new GetBookingByIdQuery(Guid.NewGuid(), Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new GetBookingByIdQuery(Guid.NewGuid(), null, null, true, Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();

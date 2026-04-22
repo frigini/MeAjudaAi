@@ -19,6 +19,12 @@ public sealed class SetProviderScheduleCommandHandler(
     {
         logger.LogInformation("Setting schedule for Provider {ProviderId}", command.ProviderId);
 
+        if (command.Availabilities == null)
+        {
+            logger.LogWarning("Availabilities is null for Provider {ProviderId}", command.ProviderId);
+            return Result.Failure(Error.BadRequest("A lista de disponibilidades não pode ser nula."));
+        }
+
         // 1. Validar existência do Provider
         var providerExists = await providersApi.ProviderExistsAsync(command.ProviderId, cancellationToken);
         if (providerExists.IsFailure)
@@ -50,7 +56,7 @@ public sealed class SetProviderScheduleCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error processing availabilities for Provider {ProviderId}", command.ProviderId);
-            return Result.Failure(Error.BadRequest($"Erro interno ao processar disponibilidades: {ex.Message}"));
+            return Result.Failure(Error.Internal("Erro interno ao processar disponibilidades."));
         }
 
         // 3. Buscar ou criar Schedule

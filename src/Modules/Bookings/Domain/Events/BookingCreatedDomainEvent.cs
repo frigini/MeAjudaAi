@@ -6,7 +6,6 @@ namespace MeAjudaAi.Modules.Bookings.Domain.Events;
 /// <summary>
 /// Evento de domínio disparado quando um novo agendamento é criado.
 /// </summary>
-[ExcludeFromCodeCoverage]
 public record BookingCreatedDomainEvent(
     Guid AggregateId,
     int Version,

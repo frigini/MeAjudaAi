@@ -4,6 +4,7 @@ using MeAjudaAi.ApiService;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Communications.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Tests.Mocks;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Ratings.Infrastructure.Persistence;
@@ -206,7 +207,8 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                     ReconfigureDbContext<ServiceCatalogsDbContext>(services);
                     ReconfigureDbContext<LocationsDbContext>(services);
                     ReconfigureDbContext<MeAjudaAi.Modules.Communications.Infrastructure.Persistence.CommunicationsDbContext>(services);
-                    ReconfigureSearchProvidersDbContext(services);
+                    ReconfigureDbContext<BookingsDbContext>(services);
+                    ReconfigureDbContext<SearchProvidersDbContext>(services);
 
                     // Configurar PostgresOptions e Dapper para SearchProviders
                     var postgresOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(PostgresOptions));
@@ -359,6 +361,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<DocumentsDbContext>());
             await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<LocationsDbContext>());
             await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<CommunicationsDbContext>());
+            await MigrationTestHelper.ApplyMigrationForContext(services.GetRequiredService<BookingsDbContext>());
 
             // 6. SearchProviders (Depends on Providers + PostGIS)
             var searchContext = scope.ServiceProvider.GetService<SearchProvidersDbContext>();
@@ -405,6 +408,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         await CleanupContext<ServiceCatalogsDbContext>(services);
         await CleanupContext<LocationsDbContext>(services);
         await CleanupContext<CommunicationsDbContext>(services);
+        await CleanupContext<BookingsDbContext>(services);
         await CleanupContext<SearchProvidersDbContext>(services);
         await CleanupContext<RatingsDbContext>(services);
 

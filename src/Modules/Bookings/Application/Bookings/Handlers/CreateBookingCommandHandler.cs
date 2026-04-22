@@ -54,18 +54,8 @@ public sealed class CreateBookingCommandHandler(
         }
 
         // Converte o início para o fuso horário local do prestador para validar DayOfWeek corretamente
-        DateTime localStartTime;
-        TimeZoneInfo tz;
-        try
-        {
-            tz = TimeZoneInfo.FindSystemTimeZoneById(schedule.TimeZoneId);
-            localStartTime = TimeZoneInfo.ConvertTimeFromUtc(command.Start.UtcDateTime, tz);
-        }
-        catch (Exception ex) when (ex is TimeZoneNotFoundException or InvalidTimeZoneException)
-        {
-            logger.LogError(ex, "Invalid timezone {TimeZoneId} for provider {ProviderId}", schedule.TimeZoneId, command.ProviderId);
-            return Result<BookingDto>.Failure(Error.BadRequest("Erro na configuração de fuso horário do prestador."));
-        }
+        var tz = ResolveTimeZone(schedule.TimeZoneId);
+        var localStartTime = TimeZoneInfo.ConvertTimeFromUtc(command.Start.UtcDateTime, tz);
 
         var duration = command.End - command.Start;
         if (!schedule.IsAvailable(localStartTime, duration))
@@ -95,18 +85,51 @@ public sealed class CreateBookingCommandHandler(
 
         logger.LogInformation("Booking {BookingId} created successfully.", booking.Id);
 
-        var startDate = date.ToDateTime(booking.TimeSlot.Start);
-        var startOffset = tz.GetUtcOffset(startDate);
-        var endDate = date.ToDateTime(booking.TimeSlot.End);
-        var endOffset = tz.GetUtcOffset(endDate);
+        // Garantir retorno correto com offset do fuso do prestador
+        var startUtc = TimeZoneInfo.ConvertTimeToUtc(localStartTime, tz);
+        var endUtc = TimeZoneInfo.ConvertTimeToUtc(localEndTime, tz);
 
         return new BookingDto(
             booking.Id,
             booking.ProviderId,
             booking.ClientId,
             booking.ServiceId,
-            new DateTimeOffset(startDate, startOffset),
-            new DateTimeOffset(endDate, endOffset),
+            TimeZoneInfo.ConvertTime(new DateTimeOffset(startUtc), tz),
+            TimeZoneInfo.ConvertTime(new DateTimeOffset(endUtc), tz),
             booking.Status);
+    }
+
+    private TimeZoneInfo ResolveTimeZone(string? timeZoneId)
+    {
+        if (!string.IsNullOrWhiteSpace(timeZoneId))
+        {
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+            }
+            catch
+            {
+                // Ignora e tenta fallback
+            }
+        }
+
+        // Tenta fallback para o horário de Brasília (Windows)
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
+        }
+        catch
+        {
+            try
+            {
+                // Fallback para o horário local do sistema
+                return TimeZoneInfo.Local;
+            }
+            catch
+            {
+                // Último recurso: UTC
+                return TimeZoneInfo.Utc;
+            }
+        }
     }
 }

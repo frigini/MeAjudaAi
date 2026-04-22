@@ -6,7 +6,6 @@ namespace MeAjudaAi.Modules.Bookings.Domain.Events;
 /// <summary>
 /// Evento de domínio disparado quando um agendamento é rejeitado pelo prestador.
 /// </summary>
-[ExcludeFromCodeCoverage]
 public record BookingRejectedDomainEvent(
     Guid AggregateId,
     int Version,

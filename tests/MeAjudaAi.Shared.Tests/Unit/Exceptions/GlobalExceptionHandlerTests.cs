@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 using Moq;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Database.Exceptions;
@@ -18,12 +19,18 @@ namespace MeAjudaAi.Shared.Tests.Unit.Exceptions;
 public class GlobalExceptionHandlerTests
 {
     private readonly Mock<ILogger<GlobalExceptionHandler>> _loggerMock;
+    private readonly Mock<IHostEnvironment> _envMock;
     private readonly GlobalExceptionHandler _handler;
 
     public GlobalExceptionHandlerTests()
     {
         _loggerMock = new Mock<ILogger<GlobalExceptionHandler>>();
-        _handler = new GlobalExceptionHandler(_loggerMock.Object);
+        _envMock = new Mock<IHostEnvironment>();
+        
+        // Default to Development for existing tests
+        _envMock.Setup(e => e.EnvironmentName).Returns(Environments.Development);
+        
+        _handler = new GlobalExceptionHandler(_loggerMock.Object, _envMock.Object);
     }
 
     [Fact]

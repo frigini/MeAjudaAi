@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Shared.Endpoints;
@@ -17,6 +18,10 @@ public class GetMyBookingsEndpoint : IEndpoint
     public static void Map(IEndpointRouteBuilder app)
     {
         app.MapGet("/my", async (
+            [FromQuery] int? page,
+            [FromQuery] int? pageSize,
+            [FromQuery] DateTime? from,
+            [FromQuery] DateTime? to,
             [FromServices] IQueryDispatcher dispatcher,
             HttpContext context,
             CancellationToken cancellationToken) =>
@@ -29,8 +34,8 @@ public class GetMyBookingsEndpoint : IEndpoint
                 return Results.Unauthorized();
             }
 
-            var query = new GetBookingsByClientQuery(clientId, Guid.NewGuid());
-            var result = await dispatcher.QueryAsync<GetBookingsByClientQuery, Result<IReadOnlyList<BookingDto>>>(query, cancellationToken);
+            var query = new GetBookingsByClientQuery(clientId, Guid.NewGuid(), page, pageSize, from, to);
+            var result = await dispatcher.QueryAsync<GetBookingsByClientQuery, Result<PagedResult<BookingDto>>>(query, cancellationToken);
 
             return result.Match(
                 onSuccess: bookings => Results.Ok(bookings),
@@ -38,10 +43,10 @@ public class GetMyBookingsEndpoint : IEndpoint
             );
         })
         .RequireAuthorization()
-        .Produces<IReadOnlyList<BookingDto>>(StatusCodes.Status200OK)
+        .Produces<PagedResult<BookingDto>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("GetMyBookings")
-        .WithSummary("Lista os agendamentos do cliente autenticado.");
+        .WithSummary("Lista os agendamentos do cliente autenticado com paginação e filtros.");
     }
 }

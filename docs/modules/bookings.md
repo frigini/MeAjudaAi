@@ -12,7 +12,7 @@ O módulo de Bookings é responsável pela gestão completa do ciclo de vida de 
 
 O módulo segue a Clean Architecture com separação em 4 camadas:
 
-```
+```text
 Bookings/
 ├── Domain/           # Entidades, Value Objects, Interfaces de Repositório, Domain Events
 ├── Application/      # Commands, Queries, Handlers, DTOs

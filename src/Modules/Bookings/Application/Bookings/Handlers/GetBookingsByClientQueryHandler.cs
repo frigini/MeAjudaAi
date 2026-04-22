@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Modules.Bookings.Domain.Repositories;
@@ -10,18 +11,45 @@ namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 public sealed class GetBookingsByClientQueryHandler(
     IBookingRepository bookingRepository,
     IProviderScheduleRepository scheduleRepository,
-    ILogger<GetBookingsByClientQueryHandler> logger) : IQueryHandler<GetBookingsByClientQuery, Result<IReadOnlyList<BookingDto>>>
+    ILogger<GetBookingsByClientQueryHandler> logger) : IQueryHandler<GetBookingsByClientQuery, Result<PagedResult<BookingDto>>>
 {
-    public async Task<Result<IReadOnlyList<BookingDto>>> HandleAsync(GetBookingsByClientQuery query, CancellationToken cancellationToken = default)
+    public async Task<Result<PagedResult<BookingDto>>> HandleAsync(GetBookingsByClientQuery query, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Getting bookings for client {ClientId}", query.ClientId);
 
         var bookings = await bookingRepository.GetByClientIdAsync(query.ClientId, cancellationToken);
 
-        var dtos = new List<BookingDto>();
-        foreach (var booking in bookings)
+        // Apply Date Filters
+        if (query.From.HasValue)
         {
-            var schedule = await scheduleRepository.GetByProviderIdAsync(booking.ProviderId, cancellationToken);
+            var fromDate = DateOnly.FromDateTime(query.From.Value);
+            bookings = bookings.Where(b => b.Date >= fromDate).ToList();
+        }
+
+        if (query.To.HasValue)
+        {
+            var toDate = DateOnly.FromDateTime(query.To.Value);
+            bookings = bookings.Where(b => b.Date <= toDate).ToList();
+        }
+
+        var totalItems = bookings.Count;
+
+        // Apply Pagination
+        var pageNumber = query.Page ?? 1;
+        var pageSize = query.PageSize ?? 10;
+        var pagedBookings = bookings.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
+        var dtos = new List<BookingDto>();
+        var scheduleCache = new Dictionary<Guid, Domain.Entities.ProviderSchedule?>();
+
+        foreach (var booking in pagedBookings)
+        {
+            if (!scheduleCache.TryGetValue(booking.ProviderId, out var schedule))
+            {
+                schedule = await scheduleRepository.GetByProviderIdAsync(booking.ProviderId, cancellationToken);
+                scheduleCache[booking.ProviderId] = schedule;
+            }
+
             var tz = ResolveTimeZone(schedule?.TimeZoneId);
 
             var startDate = booking.Date.ToDateTime(booking.TimeSlot.Start);
@@ -39,7 +67,13 @@ public sealed class GetBookingsByClientQueryHandler(
                 booking.CancellationReason));
         }
 
-        return Result<IReadOnlyList<BookingDto>>.Success(dtos.AsReadOnly());
+        return Result<PagedResult<BookingDto>>.Success(new PagedResult<BookingDto>
+        {
+            Items = dtos.AsReadOnly(),
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalItems = totalItems
+        });
     }
 
     private static TimeZoneInfo ResolveTimeZone(string? timeZoneId)

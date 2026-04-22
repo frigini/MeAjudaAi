@@ -265,6 +265,13 @@ public abstract class BaseApiTest : IAsyncLifetime
             if (!modules.HasFlag(TestModule.ServiceCatalogs)) modules |= TestModule.ServiceCatalogs;
         }
 
+        if (modules.HasFlag(TestModule.Bookings))
+        {
+            if (!modules.HasFlag(TestModule.Users)) modules |= TestModule.Users;
+            if (!modules.HasFlag(TestModule.ServiceCatalogs)) modules |= TestModule.ServiceCatalogs;
+            if (!modules.HasFlag(TestModule.Providers)) modules |= TestModule.Providers;
+        }
+
         // Lock para evitar que múltiplas migrações ocorram simultaneamente no MESMO banco, 
         // mas como os bancos agora são isolados, o lock serve apenas como precaução 
         // caso algo tente acessar o banco master simultaneamente.

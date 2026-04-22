@@ -20,6 +20,16 @@ public class CancelBookingEndpoint : IEndpoint
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
+            if (string.IsNullOrWhiteSpace(request.Reason))
+            {
+                return Results.BadRequest(new { error = "O motivo do cancelamento é obrigatório." });
+            }
+
+            if (request.Reason.Length > 500)
+            {
+                return Results.BadRequest(new { error = "O motivo do cancelamento não pode exceder 500 caracteres." });
+            }
+
             var correlationIdHeader = context.Request.Headers["X-Correlation-Id"].ToString();
             if (!Guid.TryParse(correlationIdHeader, out var correlationId))
             {

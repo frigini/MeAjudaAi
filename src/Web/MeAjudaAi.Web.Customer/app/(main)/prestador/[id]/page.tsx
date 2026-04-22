@@ -118,6 +118,7 @@ export default function ProviderProfilePage() {
                                 <BookingModal 
                                     providerId={id} 
                                     providerName={displayName} 
+                                    serviceId={services[0] || ""}
                                 />
                             ) : (
                                 <Button asChild className="w-full bg-[#E0702B] hover:bg-[#C55A1F] text-white font-bold py-6 text-lg">

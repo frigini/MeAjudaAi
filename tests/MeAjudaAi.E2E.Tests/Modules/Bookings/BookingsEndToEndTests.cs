@@ -4,6 +4,7 @@ using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 using Xunit;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Bookings;
@@ -30,8 +31,7 @@ public class BookingsEndToEndTests : BaseTestContainerTest
     [Fact]
     public async Task CreateAndConfirmBooking_ShouldSucceed()
     {
-        // 1. Criar um prestador feto com um providerId gerado
-        AuthenticateAsAdmin();
+        // 1. Criar um prestador feito com um providerId gerado
         var providerIdClaim = await CreateTestProviderAsync();
         
         // 2. Definir agenda para o prestador
@@ -66,13 +66,14 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         scheduleResponse.EnsureSuccessStatusCode();
 
         // 3. Criar usuário (Cliente)
-        AuthenticateAsAdmin();
         var customerId = await CreateTestUserAsync();
         AuthenticateAsUser(customerId.ToString()); // Login como cliente
 
         // 4. Cliente cria um agendamento
-        var startIso = $"{tomorrow:yyyy-MM-dd}T10:00:00Z";
-        var endIso = $"{tomorrow:yyyy-MM-dd}T11:00:00Z";
+        // Usando horários que caiam dentro do slot de 10h-11h local do prestador (Brasília UTC-3)
+        // 13:00 UTC = 10:00 Local
+        var startIso = $"{tomorrow:yyyy-MM-dd}T13:00:00Z";
+        var endIso = $"{tomorrow:yyyy-MM-dd}T14:00:00Z";
         var bookingRequest = new
         {
             providerId = providerIdClaim,
@@ -85,16 +86,14 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         
         // Se retornar BadRequest, quer dizer que tem algum erro de fuso e validação de availability, 
         // mas para fins de teste garantimos 201 ou tratamos.
-        // Simulando que passa:
         if (createResponse.StatusCode != HttpStatusCode.Created)
         {
             var contentMsg = await createResponse.Content.ReadAsStringAsync();
             _output.WriteLine($"Creation failed: {contentMsg}");
-            contentMsg.Should().BeEmpty("Because create should succeed");
         }
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         
-        var bookingResponseData = await createResponse.Content.ReadFromJsonAsync<BookingDto>();
+        var bookingResponseData = await ReadJsonAsync<BookingDto>(createResponse);
         bookingResponseData.Should().NotBeNull();
         var bookingId = bookingResponseData!.Id;
         
@@ -112,7 +111,7 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         var getResponse = await ApiClient.GetAsync($"/api/v1/bookings/{bookingId}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        var updatedBooking = await getResponse.Content.ReadFromJsonAsync<BookingDto>();
+        var updatedBooking = await ReadJsonAsync<BookingDto>(getResponse);
         updatedBooking.Should().NotBeNull();
         updatedBooking!.Status.Should().Be(Contracts.Bookings.Enums.EBookingStatus.Confirmed);
     }
@@ -162,14 +161,7 @@ public class BookingsEndToEndTests : BaseTestContainerTest
 
     private void AuthenticateAsProvider(Guid providerId)
     {
-        // Limpa headers primeiro e seta tokens
-        ApiClient.DefaultRequestHeaders.Authorization = null;
-        
-        // Em um cenário real de E2E com TestContainer, isso deveria atualizar um MockToken 
-        // ou usar a trait de admin + claims. 
-        // Pela arquitetura, AuthenticateAsAdmin inclui o providerIdClaim se usarmos a abordagem do helper.
-        // O `BaseTestContainerTest` já tem `AuthenticateAsUser(userId)` mas não tem direto `AuthenticateAsProvider`.
-        // Mas como sabemos que Admin consegue by-pass AuthZ do Endpoint confirm:
-        AuthenticateAsAdmin();
+        ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        ConfigurableTestAuthenticationHandler.ConfigureProvider(providerId);
     }
 }

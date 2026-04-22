@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,9 +18,21 @@ public class GetBookingByIdEndpoint : IEndpoint
         app.MapGet("/{id}", async (
             Guid id,
             [FromServices] IQueryDispatcher dispatcher,
+            HttpContext context,
             CancellationToken cancellationToken) =>
         {
-            var query = new GetBookingByIdQuery(id, Guid.NewGuid());
+            var correlationIdHeader = context.Request.Headers["X-Correlation-Id"].ToString();
+            if (!Guid.TryParse(correlationIdHeader, out var correlationId))
+            {
+                correlationId = Guid.NewGuid();
+            }
+
+            var user = context.User;
+            var userId = Guid.TryParse(user.FindFirst(AuthConstants.Claims.Subject)?.Value, out var uId) ? uId : (Guid?)null;
+            var providerId = Guid.TryParse(user.FindFirst(AuthConstants.Claims.ProviderId)?.Value, out var pId) ? pId : (Guid?)null;
+            var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
+
+            var query = new GetBookingByIdQuery(id, userId, providerId, isSystemAdmin, correlationId);
             var result = await dispatcher.QueryAsync<GetBookingByIdQuery, Result<BookingDto>>(query, cancellationToken);
 
             return result.Match(

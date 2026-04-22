@@ -29,15 +29,8 @@ public sealed class GetProviderAvailabilityQueryHandler(
             return new AvailabilityDto(query.Date.DayOfWeek, []);
         }
 
-        var bookings = await bookingRepository.GetByProviderIdAsync(query.ProviderId, cancellationToken);
-        // Filtra bookings ativos para a data solicitada usando o novo campo Date
-        var dayBookings = bookings
-            .Where(b => b.Date == query.Date && 
-                        b.Status != Contracts.Bookings.Enums.EBookingStatus.Cancelled &&
-                        b.Status != Contracts.Bookings.Enums.EBookingStatus.Rejected &&
-                        b.Status != Contracts.Bookings.Enums.EBookingStatus.Completed)
-            .ToList();
-
+        // Obtém apenas os agendamentos ativos para a data solicitada diretamente do repositório
+        var dayBookings = await bookingRepository.GetActiveByProviderAndDateAsync(query.ProviderId, query.Date, cancellationToken);
         var occupiedSlots = dayBookings.Select(b => b.TimeSlot).ToList();
 
         // Filtra os slots do schedule subtraindo os intervalos ocupados

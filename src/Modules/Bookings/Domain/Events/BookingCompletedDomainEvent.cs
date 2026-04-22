@@ -6,7 +6,6 @@ namespace MeAjudaAi.Modules.Bookings.Domain.Events;
 /// <summary>
 /// Evento de domínio disparado quando um agendamento é marcado como concluído.
 /// </summary>
-[ExcludeFromCodeCoverage]
 public record BookingCompletedDomainEvent(
     Guid AggregateId,
     int Version,

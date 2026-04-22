@@ -6,4 +6,7 @@ namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 
 public record GetBookingByIdQuery(
     Guid BookingId,
+    Guid? UserId,
+    Guid? ProviderId,
+    bool IsSystemAdmin,
     Guid CorrelationId) : IQuery<Result<BookingDto>>;

@@ -24,6 +24,11 @@ public class SetProviderScheduleEndpoint : IEndpoint
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
+            if (request == null || request.Availabilities == null)
+            {
+                return Results.Problem("Corpo da requisição ou disponibilidades ausentes.", statusCode: StatusCodes.Status400BadRequest);
+            }
+
             var user = context.User;
             var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value;
             var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
@@ -64,6 +69,12 @@ public class SetProviderScheduleEndpoint : IEndpoint
             if (targetProviderId == Guid.Empty)
             {
                 return Results.Problem("ProviderId inválido ou ausente.", statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            // Para não-admins, valida se o ProviderId no request coincide (se enviado)
+            if (!isSystemAdmin && request.ProviderId != Guid.Empty && request.ProviderId != targetProviderId)
+            {
+                return Results.Problem("O ProviderId informado não coincide com o prestador autenticado.", statusCode: StatusCodes.Status400BadRequest);
             }
 
             // Resolve Correlation ID

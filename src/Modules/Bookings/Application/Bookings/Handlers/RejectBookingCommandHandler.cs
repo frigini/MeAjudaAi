@@ -19,6 +19,11 @@ public sealed class RejectBookingCommandHandler(
     {
         logger.LogInformation("Rejecting booking {BookingId}", command.BookingId);
 
+        if (string.IsNullOrWhiteSpace(command.Reason))
+        {
+            return Result.Failure(Error.BadRequest("O motivo da rejeição deve ser informado."));
+        }
+
         // 1. Validar Autenticação
         var user = httpContextAccessor.HttpContext?.User;
         if (user?.Identity?.IsAuthenticated != true)

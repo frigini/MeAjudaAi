@@ -53,8 +53,8 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().HaveCount(2);
-        result.Value.Should().AllSatisfy(b => b.ClientId.Should().Be(clientId));
+        result.Value.Items.Should().HaveCount(2);
+        result.Value.Items.Should().AllSatisfy(b => b.ClientId.Should().Be(clientId));
     }
 
     [Fact]
@@ -70,6 +70,6 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEmpty();
+        result.Value.Items.Should().BeEmpty();
     }
 }

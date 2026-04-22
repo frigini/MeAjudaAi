@@ -18,10 +18,28 @@ public sealed class GetBookingsByProviderQueryHandler(
 
         var bookings = await bookingRepository.GetByProviderIdAsync(query.ProviderId, cancellationToken);
 
+        // Apply Date Filters
+        if (query.From.HasValue)
+        {
+            var fromDate = DateOnly.FromDateTime(query.From.Value);
+            bookings = bookings.Where(b => b.Date >= fromDate).ToList();
+        }
+
+        if (query.To.HasValue)
+        {
+            var toDate = DateOnly.FromDateTime(query.To.Value);
+            bookings = bookings.Where(b => b.Date <= toDate).ToList();
+        }
+
+        // Apply Pagination
+        var pageNumber = query.Page ?? 1;
+        var pageSize = query.PageSize ?? 10;
+        var pagedBookings = bookings.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
         var schedule = await scheduleRepository.GetByProviderIdAsync(query.ProviderId, cancellationToken);
         var tz = ResolveTimeZone(schedule?.TimeZoneId);
 
-        var dtos = bookings.Select(booking =>
+        var dtos = pagedBookings.Select(booking =>
         {
             var startDate = booking.Date.ToDateTime(booking.TimeSlot.Start);
             var endDate = booking.Date.ToDateTime(booking.TimeSlot.End);

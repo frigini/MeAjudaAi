@@ -15,7 +15,7 @@ public sealed class Booking : BaseEntity
     public EBookingStatus Status { get; private set; }
     public string? RejectionReason { get; private set; }
     public string? CancellationReason { get; private set; }
-    public uint Version { get; private set; } // For optimistic concurrency
+    public int Version { get; private set; } // For optimistic concurrency
 
     private Booking() { } // Required by EF Core
 
@@ -27,9 +27,10 @@ public sealed class Booking : BaseEntity
         Date = date;
         TimeSlot = timeSlot;
         Status = EBookingStatus.Pending;
+        Version = 1;
 
         AddDomainEvent(new BookingCreatedDomainEvent(
-            Id, 0, ProviderId, ClientId, ServiceId, Date));
+            Id, Version, ProviderId, ClientId, ServiceId, Date));
     }
 
     public static Booking Create(Guid providerId, Guid clientId, Guid serviceId, DateOnly date, TimeSlot timeSlot)
@@ -45,10 +46,11 @@ public sealed class Booking : BaseEntity
         }
 
         Status = EBookingStatus.Confirmed;
+        Version++;
         MarkAsUpdated();
 
         AddDomainEvent(new BookingConfirmedDomainEvent(
-            Id, 0, ProviderId, ClientId));
+            Id, Version, ProviderId, ClientId));
     }
 
     public void Reject(string reason)
@@ -60,10 +62,11 @@ public sealed class Booking : BaseEntity
 
         Status = EBookingStatus.Rejected;
         RejectionReason = reason;
+        Version++;
         MarkAsUpdated();
 
         AddDomainEvent(new BookingRejectedDomainEvent(
-            Id, 0, ProviderId, ClientId, reason));
+            Id, Version, ProviderId, ClientId, reason));
     }
 
     public void Cancel(string reason)
@@ -76,10 +79,11 @@ public sealed class Booking : BaseEntity
 
         Status = EBookingStatus.Cancelled;
         CancellationReason = reason;
+        Version++;
         MarkAsUpdated();
 
         AddDomainEvent(new BookingCancelledDomainEvent(
-            Id, 0, ProviderId, ClientId, reason));
+            Id, Version, ProviderId, ClientId, reason));
     }
 
     public void Complete()
@@ -90,9 +94,10 @@ public sealed class Booking : BaseEntity
         }
 
         Status = EBookingStatus.Completed;
+        Version++;
         MarkAsUpdated();
 
         AddDomainEvent(new BookingCompletedDomainEvent(
-            Id, 0, ProviderId, ClientId));
+            Id, Version, ProviderId, ClientId));
     }
 }

@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
@@ -24,7 +25,7 @@ public static class Extensions
         // Queries
         services.AddScoped<IQueryHandler<GetProviderAvailabilityQuery, Result<AvailabilityDto>>, GetProviderAvailabilityQueryHandler>();
         services.AddScoped<IQueryHandler<GetBookingByIdQuery, Result<BookingDto>>, GetBookingByIdQueryHandler>();
-        services.AddScoped<IQueryHandler<GetBookingsByClientQuery, Result<IReadOnlyList<BookingDto>>>, GetBookingsByClientQueryHandler>();
+        services.AddScoped<IQueryHandler<GetBookingsByClientQuery, Result<PagedResult<BookingDto>>>, GetBookingsByClientQueryHandler>();
         services.AddScoped<IQueryHandler<GetBookingsByProviderQuery, Result<IReadOnlyList<BookingDto>>>, GetBookingsByProviderQueryHandler>();
 
         return services;

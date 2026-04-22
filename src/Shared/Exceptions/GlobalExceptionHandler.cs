@@ -3,11 +3,14 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Exceptions;
 
-public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
+public class GlobalExceptionHandler(
+    ILogger<GlobalExceptionHandler> logger,
+    IHostEnvironment env) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
@@ -127,16 +130,18 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                 []),
 
             Microsoft.AspNetCore.Http.BadHttpRequestException badHttpRequestException => (
-                StatusCodes.Status400BadRequest,
-                "Requisição Mal Formatada",
-                badHttpRequestException.Message,
+                badHttpRequestException.StatusCode,
+                "Requisição inválida",
+                "A requisição enviada é inválida ou está mal formatada.",
                 null,
-                []),
+                new Dictionary<string, object?> { ["originalMessage"] = badHttpRequestException.Message }),
 
             _ => (
                 StatusCodes.Status500InternalServerError,
                 "Erro Interno do Servidor",
-                $"[{exception.GetType().Name}] {exception.Message} {(exception.InnerException != null ? exception.InnerException.Message : "")}",
+                env.IsDevelopment() 
+                    ? $"[{exception.GetType().Name}] {exception.Message} {(exception.InnerException != null ? exception.InnerException.Message : "")}"
+                    : "An unexpected error occurred",
                 null,
                 new Dictionary<string, object?>
                 {

@@ -50,6 +50,18 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Booking>> GetActiveByProviderAndDateAsync(Guid providerId, DateOnly date, CancellationToken cancellationToken = default)
+    {
+        return await context.Bookings
+            .AsNoTracking()
+            .Where(b => b.ProviderId == providerId && 
+                        b.Date == date && 
+                        b.Status != EBookingStatus.Cancelled &&
+                        b.Status != EBookingStatus.Rejected &&
+                        b.Status != EBookingStatus.Completed)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(Booking booking, CancellationToken cancellationToken = default)
     {
         await context.Bookings.AddAsync(booking, cancellationToken);
