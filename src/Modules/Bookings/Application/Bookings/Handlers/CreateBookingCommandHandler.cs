@@ -48,7 +48,7 @@ public sealed class CreateBookingCommandHandler(
         }
 
         // 2. Validar Horário de Trabalho (Schedule)
-        var schedule = await scheduleRepository.GetByProviderIdAsync(command.ProviderId, cancellationToken);
+        var schedule = await scheduleRepository.GetByProviderIdReadOnlyAsync(command.ProviderId, cancellationToken);
         if (schedule == null)
         {
             return Result<BookingDto>.Failure(Error.BadRequest("Prestador não possui agenda configurada."));

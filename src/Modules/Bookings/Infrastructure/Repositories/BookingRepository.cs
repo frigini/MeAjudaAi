@@ -40,25 +40,7 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
             .AsNoTracking()
             .Where(b => b.ProviderId == providerId);
 
-        if (from.HasValue)
-        {
-            query = query.Where(b => b.Date >= from.Value);
-        }
-
-        if (to.HasValue)
-        {
-            query = query.Where(b => b.Date <= to.Value);
-        }
-
-        var totalCount = await query.CountAsync(cancellationToken);
-        var items = await query
-            .OrderByDescending(b => b.Date)
-            .ThenByDescending(b => b.TimeSlot.Start)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
-
-        return (items, totalCount);
+        return await GetBookingsPagedAsync(query, from, to, page, pageSize, cancellationToken);
     }
 
     [Obsolete]
@@ -77,15 +59,23 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
             .AsNoTracking()
             .Where(b => b.ClientId == clientId);
 
-        if (from.HasValue)
-        {
-            query = query.Where(b => b.Date >= from.Value);
-        }
+        return await GetBookingsPagedAsync(query, from, to, page, pageSize, cancellationToken);
+    }
 
-        if (to.HasValue)
-        {
-            query = query.Where(b => b.Date <= to.Value);
-        }
+    private async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetBookingsPagedAsync(
+        IQueryable<Booking> query, 
+        DateOnly? from, 
+        DateOnly? to, 
+        int page, 
+        int pageSize, 
+        CancellationToken cancellationToken)
+    {
+        // Normalize pagination
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        if (from.HasValue) query = query.Where(b => b.Date >= from.Value);
+        if (to.HasValue) query = query.Where(b => b.Date <= to.Value);
 
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query

@@ -36,7 +36,7 @@ public sealed class GetBookingByIdQueryHandler(
         }
 
         // Resolver fuso horário do prestador para retornar DateTimeOffset correto
-        var schedule = await scheduleRepository.GetByProviderIdAsync(booking.ProviderId, cancellationToken);
+        var schedule = await scheduleRepository.GetByProviderIdReadOnlyAsync(booking.ProviderId, cancellationToken);
         var tz = TimeZoneResolver.ResolveTimeZone(schedule?.TimeZoneId, logger);
 
         return TimeZoneResolver.CreateValidatedBookingDto(booking, tz, logger);

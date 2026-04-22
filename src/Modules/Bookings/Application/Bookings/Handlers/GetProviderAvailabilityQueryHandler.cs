@@ -17,7 +17,7 @@ public sealed class GetProviderAvailabilityQueryHandler(
         logger.LogInformation("Getting availability for Provider {ProviderId} on {Date}", 
             query.ProviderId, query.Date.ToShortDateString());
 
-        var schedule = await scheduleRepository.GetByProviderIdAsync(query.ProviderId, cancellationToken);
+        var schedule = await scheduleRepository.GetByProviderIdReadOnlyAsync(query.ProviderId, cancellationToken);
         if (schedule == null)
         {
             return Result<AvailabilityDto>.Failure(Error.NotFound("Agenda do prestador não encontrada."));

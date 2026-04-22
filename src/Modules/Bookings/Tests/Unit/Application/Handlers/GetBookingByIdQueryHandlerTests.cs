@@ -40,7 +40,7 @@ public class GetBookingByIdQueryHandlerTests : BaseUnitTest
             .ReturnsAsync(booking);
 
         var schedule = ProviderSchedule.Create(providerId);
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
 
         // Act - Autorizado pelo ClientId

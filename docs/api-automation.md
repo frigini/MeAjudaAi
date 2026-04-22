@@ -311,6 +311,14 @@ Quando o sistema tiver consumidores externos (Mobile ou Terceiros), as seguintes
     3. Monitorar o uso e remover o antigo apenas após migração total dos clientes.
 *   **Versionamento por Header**: Utilizar headers como `X-API-Version` para selecionar a lógica de resposta.
 
+### 4. Política de Limpeza do arquivo Ignore
+
+O arquivo `.oasdiff-ignore.yaml` deve ser revisado periodicamente para evitar o acúmulo de supressões obsoletas:
+- **Revisão Periódica**: A cada ciclo de release ou a cada 3 meses.
+- **Rastreabilidade**: Cada entrada deve estar vinculada a um ticket ou PR explicando o motivo.
+- **Validação de CI**: O passo de CI `Check for Breaking Changes` validará as entradas ativas.
+- **Alternativas**: Antes de adicionar uma supressão, verifique se estratégias de retrocompatibilidade (ex: `/api/v2`, `[Obsolete]`, versionamento por header) são mais adequadas.
+
 ## 📝 Troubleshooting
 
 ### Workflow falhou

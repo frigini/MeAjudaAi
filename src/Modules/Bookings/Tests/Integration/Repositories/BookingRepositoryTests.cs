@@ -134,6 +134,30 @@ public class BookingRepositoryTests : BaseDatabaseTest
         finalCount.Should().Be(1);
     }
 
+    [Fact]
+    public async Task AddIfNoOverlapAsync_ShouldSucceed_WhenSameTimeSlotOnDifferentDate()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var day2 = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(2);
+        var day3 = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(3);
+        var timeSlot = TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0));
+
+        var booking1 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), day2, timeSlot);
+        var booking2 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), day3, timeSlot);
+
+        // Act
+        var result1 = await _repository.AddIfNoOverlapAsync(booking1);
+        var result2 = await _repository.AddIfNoOverlapAsync(booking2);
+
+        // Assert
+        result1.IsSuccess.Should().BeTrue();
+        result2.IsSuccess.Should().BeTrue();
+        
+        var count = await _context.Bookings.CountAsync(b => b.ProviderId == providerId);
+        count.Should().Be(2);
+    }
+
     private static Booking CreateBooking()
     {
         return Booking.Create(

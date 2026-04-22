@@ -44,7 +44,7 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
             .ReturnsAsync((bookings.AsReadOnly(), 2));
 
         var schedule = ProviderSchedule.Create(providerId);
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
 
         // Act
@@ -64,7 +64,7 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByProviderIdPagedAsync(providerId, null, null, 1, 10, It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<Booking>().AsReadOnly(), 0));
 
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProviderSchedule?)null);
 
         // Act
@@ -130,7 +130,7 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
         // Tokyo is UTC+9
         var schedule = ProviderSchedule.Create(providerId, "Tokyo Standard Time");
         
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
 
         // Act
@@ -161,7 +161,7 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByProviderIdPagedAsync(providerId, null, null, 1, 10, It.IsAny<CancellationToken>()))
             .ReturnsAsync((new List<Booking> { booking }.AsReadOnly(), 1));
 
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProviderSchedule?)null);
 
         // Act

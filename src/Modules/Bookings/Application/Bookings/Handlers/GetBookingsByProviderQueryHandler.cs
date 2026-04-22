@@ -33,7 +33,7 @@ public sealed class GetBookingsByProviderQueryHandler(
             cancellationToken);
 
         // Resolve o fuso horário do prestador
-        var schedule = await scheduleRepository.GetByProviderIdAsync(query.ProviderId, cancellationToken);
+        var schedule = await scheduleRepository.GetByProviderIdReadOnlyAsync(query.ProviderId, cancellationToken);
         var tz = TimeZoneResolver.ResolveTimeZone(schedule?.TimeZoneId, logger);
 
         // Mapeia para DTOs garantindo o fuso horário correto

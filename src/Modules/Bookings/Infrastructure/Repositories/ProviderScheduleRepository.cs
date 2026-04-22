@@ -5,9 +5,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Bookings.Infrastructure.Repositories;
 
-public class ProviderScheduleRepository(BookingsDbContext context) : IProviderScheduleRepository
+public sealed class ProviderScheduleRepository(BookingsDbContext context) : IProviderScheduleRepository
 {
     public async Task<ProviderSchedule?> GetByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default)
+    {
+        return await context.ProviderSchedules
+            .FirstOrDefaultAsync(ps => ps.ProviderId == providerId, cancellationToken);
+    }
+
+    public async Task<ProviderSchedule?> GetByProviderIdReadOnlyAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
         return await context.ProviderSchedules
             .AsNoTracking()
@@ -22,7 +28,6 @@ public class ProviderScheduleRepository(BookingsDbContext context) : IProviderSc
 
     public async Task UpdateAsync(ProviderSchedule schedule, CancellationToken cancellationToken = default)
     {
-        context.ProviderSchedules.Update(schedule);
         await context.SaveChangesAsync(cancellationToken);
     }
 }

@@ -38,7 +38,7 @@ public sealed class GetBookingsByClientQueryHandler(
         {
             if (!scheduleCache.TryGetValue(booking.ProviderId, out var schedule))
             {
-                schedule = await scheduleRepository.GetByProviderIdAsync(booking.ProviderId, cancellationToken);
+                schedule = await scheduleRepository.GetByProviderIdReadOnlyAsync(booking.ProviderId, cancellationToken);
                 scheduleCache[booking.ProviderId] = schedule;
             }
 

@@ -52,7 +52,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
             [TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(18, 0))]));
         
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
 
         _bookingRepoMock.Setup(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
@@ -86,7 +86,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         schedule.SetAvailability(Availability.Create(day1Start.DayOfWeek, 
             [TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(18, 0))]));
         
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
 
         _bookingRepoMock.Setup(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
@@ -178,7 +178,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
         
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProviderSchedule?)null);
 
         // Act
@@ -211,7 +211,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
             [TimeSlot.Create(new TimeOnly(14, 0), new TimeOnly(18, 0))]));
         
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
 
         // Act
@@ -243,7 +243,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
             [TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(18, 0))]));
         
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
 
         _bookingRepoMock.Setup(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))

@@ -44,6 +44,9 @@ public class GetBookingsByClientQueryHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByClientIdPagedAsync(clientId, null, null, 1, 10, It.IsAny<CancellationToken>()))
             .ReturnsAsync((bookings.AsReadOnly(), 2));
 
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ProviderSchedule.Create(providerId));
+
         // Act
         var result = await _sut.HandleAsync(new GetBookingsByClientQuery(clientId, Guid.NewGuid()));
 

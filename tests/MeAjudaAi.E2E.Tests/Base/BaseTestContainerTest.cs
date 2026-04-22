@@ -590,7 +590,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", DbContextSchemaHelper.GetSchemaName(contextName));
                 npgsqlOptions.MigrationsAssembly(typeof(TContext).Assembly.FullName);
                 
-                // Only SearchProviders requires NetTopologySuite (PostGIS)
+                // Apenas SearchProviders requer NetTopologySuite (PostGIS)
                 if (typeof(TContext) == typeof(SearchProvidersDbContext))
                 {
                     npgsqlOptions.UseNetTopologySuite();

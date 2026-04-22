@@ -5,7 +5,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X, Calendar as CalendarIcon, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, addDays } from "date-fns";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { z } from "zod";
@@ -31,6 +31,7 @@ interface TimeSlot {
 
 export function BookingModal({ providerId, providerName, serviceId, trigger }: BookingModalProps) {
     const { data: session } = useSession();
+    const queryClient = useQueryClient();
     const [open, setOpen] = useState(false);
     
     // Inicializa com amanhã em fuso local para evitar problemas de parsing UTC
@@ -44,6 +45,9 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
     const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
 
     const combineDateAndTime = (date: Date, timeString: string) => {
+        if (timeString.includes("T")) {
+            return format(new Date(timeString), "yyyy-MM-dd'T'HH:mm:ssXXX");
+        }
         const [hours, minutes, seconds] = timeString.split(":").map(Number);
         const combinedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes, seconds || 0);
         return format(combinedDate, "yyyy-MM-dd'T'HH:mm:ssXXX");
@@ -106,6 +110,7 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
             return res.json();
         },
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["provider-availability", providerId, format(selectedDate, "yyyy-MM-dd")] });
             toast.success("Solicitação de agendamento enviada com sucesso!");
             setOpen(false);
             setSelectedSlot(null);

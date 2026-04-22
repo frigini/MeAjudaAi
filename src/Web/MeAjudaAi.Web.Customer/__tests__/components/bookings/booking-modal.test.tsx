@@ -5,8 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
-process.env.TZ = 'UTC';
-
 // Mock next-auth
 vi.mock("next-auth/react", () => ({
   useSession: vi.fn(),
@@ -28,7 +26,7 @@ vi.mock("lucide-react", () => ({
   Loader2: () => <div data-testid="icon-loader" />,
 }));
 
-const queryClient = new QueryClient({
+const createQueryClient = () => new QueryClient({
   defaultOptions: {
     queries: {
       retry: false,
@@ -36,7 +34,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const wrapper = ({ children }: { children: React.ReactNode }) => (
+const createWrapper = (queryClient: QueryClient) => ({ children }: { children: React.ReactNode }) => (
   <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 );
 
@@ -49,7 +47,6 @@ describe("BookingModal", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    queryClient.clear();
     
     process.env.NEXT_PUBLIC_API_URL = "http://localhost:3000";
 
@@ -69,12 +66,12 @@ describe("BookingModal", () => {
   });
 
   it("should render trigger button with default text", () => {
-    render(<BookingModal {...defaultProps} />, { wrapper });
+    render(<BookingModal {...defaultProps} />, { wrapper: createWrapper(createQueryClient()) });
     expect(screen.getByText("Agendar Horário")).toBeDefined();
   });
 
   it("should open modal when trigger is clicked", async () => {
-    render(<BookingModal {...defaultProps} />, { wrapper });
+    render(<BookingModal {...defaultProps} />, { wrapper: createWrapper(createQueryClient()) });
     
     const trigger = screen.getByText("Agendar Horário");
     fireEvent.click(trigger);
@@ -96,7 +93,7 @@ describe("BookingModal", () => {
       json: async () => mockAvailability,
     });
 
-    render(<BookingModal {...defaultProps} />, { wrapper });
+    render(<BookingModal {...defaultProps} />, { wrapper: createWrapper(createQueryClient()) });
     fireEvent.click(screen.getByText("Agendar Horário"));
 
     await waitFor(() => {
@@ -121,7 +118,7 @@ describe("BookingModal", () => {
         json: async () => ({ id: "booking-123" }),
       });
 
-    render(<BookingModal {...defaultProps} />, { wrapper });
+    render(<BookingModal {...defaultProps} />, { wrapper: createWrapper(createQueryClient()) });
     fireEvent.click(screen.getByText("Agendar Horário"));
 
     const slotBtn = await waitFor(() => screen.getByText(/10:00/));
@@ -150,7 +147,7 @@ describe("BookingModal", () => {
       json: async () => ({ slots: [] }),
     });
 
-    render(<BookingModal {...defaultProps} />, { wrapper });
+    render(<BookingModal {...defaultProps} />, { wrapper: createWrapper(createQueryClient()) });
     fireEvent.click(screen.getByText("Agendar Horário"));
 
     await waitFor(() => {
