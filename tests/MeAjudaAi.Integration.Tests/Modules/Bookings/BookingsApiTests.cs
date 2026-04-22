@@ -104,10 +104,11 @@ public class BookingsApiTests : BaseApiTest
         var context = scope.ServiceProvider.GetRequiredService<BookingsDbContext>();
         
         var schedule = ProviderSchedule.Create(providerId, "UTC");
-        var slots = new[] { TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(18, 0)) };
+        
         // Adiciona para todos os dias da semana para facilitar o teste
         foreach (DayOfWeek day in Enum.GetValues<DayOfWeek>())
         {
+            var slots = new[] { TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(18, 0)) };
             schedule.SetAvailability(Availability.Create(day, slots));
         }
         

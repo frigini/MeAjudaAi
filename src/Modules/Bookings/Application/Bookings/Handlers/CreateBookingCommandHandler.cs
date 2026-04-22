@@ -73,7 +73,7 @@ public sealed class CreateBookingCommandHandler(
 
         // 3. Criar e Tentar Adicionar atomicamente
         // Mantemos a data e o slot consistentes com o fuso horário do prestador
-        var localEndTime = localStartTime.Add(duration);
+        var localEndTime = TimeZoneInfo.ConvertTimeFromUtc(command.End.UtcDateTime, tz);
         var date = DateOnly.FromDateTime(localStartTime);
         var timeSlot = TimeSlot.FromDateTime(localStartTime, localEndTime);
         
@@ -93,13 +93,16 @@ public sealed class CreateBookingCommandHandler(
 
         logger.LogInformation("Booking {BookingId} created successfully.", booking.Id);
 
+        var startDate = date.ToDateTime(booking.TimeSlot.Start);
+        var endDate = date.ToDateTime(booking.TimeSlot.End);
+
         return new BookingDto(
             booking.Id,
             booking.ProviderId,
             booking.ClientId,
             booking.ServiceId,
-            new DateTimeOffset(date.ToDateTime(booking.TimeSlot.Start), tz.GetUtcOffset(date.ToDateTime(booking.TimeSlot.Start))),
-            new DateTimeOffset(date.ToDateTime(booking.TimeSlot.End), tz.GetUtcOffset(date.ToDateTime(booking.TimeSlot.End))),
+            new DateTimeOffset(startDate, tz.GetUtcOffset(startDate)),
+            new DateTimeOffset(endDate, tz.GetUtcOffset(endDate)),
             booking.Status);
     }
 }

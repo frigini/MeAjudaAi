@@ -201,6 +201,32 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         result.Error!.StatusCode.Should().Be(404);
     }
 
+    [Fact]
+    public async Task HandleAsync_Should_ReturnBadRequest_When_DomainThrowsInvalidOperation()
+    {
+        // Arrange
+        var clientId = Guid.NewGuid();
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var booking = Booking.Create(Guid.NewGuid(), clientId, Guid.NewGuid(), tomorrow,
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        
+        // Coloca o booking em um estado que não permite cancelamento (Rejeitado)
+        booking.Reject("Some reason");
+
+        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        SetupUser(clientId, null);
+
+        // Act
+        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Reason", Guid.NewGuid()));
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(400);
+        result.Error.Message.Should().Contain("Apenas agendamentos pendentes ou confirmados podem ser cancelados.");
+    }
+
     private void SetupUser(Guid userId, Guid? providerId)
     {
         var claims = new List<Claim>
