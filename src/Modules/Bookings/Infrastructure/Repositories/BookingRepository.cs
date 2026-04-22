@@ -88,14 +88,19 @@ public class BookingRepository(BookingsDbContext context) : IBookingRepository
             }
             catch
             {
-                // Ignora erro de rollback se a transação já tiver sido abortada pelo banco (comum em erros de serialização)
+                // Ignora erro de rollback se a transação já tiver sido abortada pelo banco
             }
             
             // Tratamento robusto para erros de serialização do PostgreSQL (40001) ou Deadlocks (40P01)
-            if (ex is PostgresException { SqlState: "40001" or "40P01" } ||
-                ex.InnerException is PostgresException { SqlState: "40001" or "40P01" })
+            // Checa recursivamente por PostgresException devido ao wrapping do EF Core e NpgsqlExecutionStrategy
+            var currentEx = ex;
+            while (currentEx != null)
             {
-                return Result.Failure(Error.Conflict("Conflito de concorrência ao validar agendamento. Tente novamente em instantes."));
+                if (currentEx is PostgresException { SqlState: "40001" or "40P01" })
+                {
+                    return Result.Failure(Error.Conflict("Conflito de concorrência ao validar agendamento. Tente novamente em instantes."));
+                }
+                currentEx = currentEx.InnerException;
             }
 
             throw;

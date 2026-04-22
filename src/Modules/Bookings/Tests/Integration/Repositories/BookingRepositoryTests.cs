@@ -100,15 +100,16 @@ public class BookingRepositoryTests : BaseDatabaseTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = new DateOnly(2026, 4, 23);
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
         
-        var booking1 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
+        var booking1 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        var booking2 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
+        var booking2 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 30), new TimeOnly(11, 30)));
 
         // Act
+        // Para testar concorrência real, usamos contextos separados
         var options = CreateDbContextOptions<BookingsDbContext>();
         
         using var ctx1 = new BookingsDbContext(options);
@@ -126,7 +127,7 @@ public class BookingRepositoryTests : BaseDatabaseTest
         results.Count(r => r.IsSuccess).Should().Be(1);
         results.Count(r => r.IsFailure).Should().Be(1);
         
-        var finalCount = await _context.Bookings.CountAsync(b => b.ProviderId == providerId && b.Date == date);
+        var finalCount = await _context.Bookings.CountAsync(b => b.ProviderId == providerId && b.Date == tomorrow);
         finalCount.Should().Be(1);
     }
 
@@ -136,7 +137,7 @@ public class BookingRepositoryTests : BaseDatabaseTest
             Guid.NewGuid(), 
             Guid.NewGuid(), 
             Guid.NewGuid(), 
-            new DateOnly(2026, 4, 22),
+            DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1),
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
     }
 }
