@@ -174,8 +174,8 @@ export function setupProviderMocks(page: Page) {
             }
           },
           services: [
-            { id: '550e8400-e29b-41d4-a716-446655440101', serviceName: 'Limpeza Residencial' },
-            { id: '550e8400-e29b-41d4-a716-446655440102', serviceName: 'Reparo Elétrico' }
+            { id: '550e8400-e29b-41d4-a716-446655440101', name: 'Limpeza Residencial' },
+            { id: '550e8400-e29b-41d4-a716-446655440102', name: 'Reparo Elétrico' }
           ]
         }
       }),
@@ -295,7 +295,10 @@ export function setupCustomerMocks(page: Page) {
           rating: 4.5,
           reviewCount: 10,
           phoneNumbers: ['11999999999'],
-          services: ['Limpeza Residencial', 'Reparo Elétrico'],
+          services: [
+            { id: '550e8400-e29b-41d4-a716-446655440101', name: 'Limpeza Residencial' },
+            { id: '550e8400-e29b-41d4-a716-446655440102', name: 'Reparo Elétrico' }
+          ],
           email: 'provider@test.com'
         }
       }),

@@ -281,6 +281,36 @@ python -m http.server 8000
 - ✅ Validação automática
 - ✅ Deploy sem intervenção
 
+## 🛡️ Gestão de Mudanças e Versionamento
+
+### 1. Detecção de Breaking Changes
+
+O CI do backend utiliza a ferramenta `oasdiff` para comparar a especificação da API da branch atual com a branch de destino (`master` ou `develop`). Se uma mudança quebrar a compatibilidade (ex: remover campo, mudar tipo, alterar rota), o build falhará.
+
+### 2. Mudanças Intencionais (Fase de Desenvolvimento)
+
+Durante o desenvolvimento ativo, breaking changes podem ser necessárias. Para aprová-las e permitir que o CI passe:
+
+1. Edite o arquivo `.oasdiff-ignore.yaml` na raiz do projeto.
+2. Adicione a rota e o ID do erro que deseja ignorar:
+   ```yaml
+   - method: GET
+     path: /api/v1/exemplo
+     err-id: response-property-type-changed
+   ```
+3. Documente no commit o motivo da mudança.
+
+### 3. Estratégias para Produção (Futuro)
+
+Quando o sistema tiver consumidores externos (Mobile ou Terceiros), as seguintes estratégias devem ser adotadas:
+
+*   **Versionamento por Path**: Criar `/api/v2/...` para mudanças estruturais profundas.
+*   **Expansão e Depreciação (Parallel Change)**:
+    1. Adicionar o novo campo/funcionalidade.
+    2. Marcar o antigo como `[Obsolete]` no C# e `deprecated: true` no OpenAPI.
+    3. Monitorar o uso e remover o antigo apenas após migração total dos clientes.
+*   **Versionamento por Header**: Utilizar headers como `X-API-Version` para selecionar a lógica de resposta.
+
 ## 📝 Troubleshooting
 
 ### Workflow falhou

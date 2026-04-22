@@ -1,0 +1,6 @@
+# Configuração para ignorar breaking changes intencionais no estágio de desenvolvimento.
+# Documentação: https://github.com/Tufin/oasdiff#ignore-breaking-changes
+
+- method: GET
+  path: /api/v1/providers/public/{idOrSlug}
+  err-id: response-property-type-changed

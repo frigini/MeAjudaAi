@@ -51,6 +51,8 @@ describe("BookingModal", () => {
     vi.clearAllMocks();
     queryClient.clear();
     
+    process.env.NEXT_PUBLIC_API_URL = "http://localhost:3000";
+
     (useSession as any).mockReturnValue({
       data: {
         user: { id: "client-123" },
@@ -85,7 +87,7 @@ describe("BookingModal", () => {
   it("should display available slots when loaded from API", async () => {
     const mockAvailability = {
       slots: [
-        { start: "2026-04-22T10:00:00Z", end: "2026-04-22T11:00:00Z" }
+        { start: "10:00:00", end: "11:00:00" }
       ]
     };
 
@@ -98,14 +100,14 @@ describe("BookingModal", () => {
     fireEvent.click(screen.getByText("Agendar Horário"));
 
     await waitFor(() => {
-      expect(screen.getByText("10:00")).toBeDefined();
+      expect(screen.getByText(/10:00/)).toBeDefined();
     });
   });
 
   it("should call create booking API when confirmed", async () => {
     const mockAvailability = {
       slots: [
-        { start: "2026-04-22T10:00:00", end: "2026-04-22T11:00:00" }
+        { start: "10:00:00", end: "11:00:00" }
       ]
     };
 
@@ -122,16 +124,21 @@ describe("BookingModal", () => {
     render(<BookingModal {...defaultProps} />, { wrapper });
     fireEvent.click(screen.getByText("Agendar Horário"));
 
-    const slotBtn = await waitFor(() => screen.getByText("10:00"));
+    const slotBtn = await waitFor(() => screen.getByText(/10:00/));
     fireEvent.click(slotBtn);
 
-    const confirmBtn = screen.getByText("Confirmar Agendamento");
+    const confirmBtn = await screen.findByText("Confirmar Agendamento");
+    // Ensure button is not disabled
+    expect(confirmBtn).not.toBeDisabled();
     fireEvent.click(confirmBtn);
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/v1/bookings"),
-        expect.objectContaining({ method: "POST" })
+        expect.objectContaining({ 
+          method: "POST",
+          body: expect.stringContaining('"serviceId":"service-456"')
+        })
       );
       expect(toast.success).toHaveBeenCalled();
     });

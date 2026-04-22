@@ -369,6 +369,7 @@ jobs:
           base: 'api-base.json'
           revision: 'api-current/api-spec.json'
           fail-on: 'ERR'
+          err-ignore: '.oasdiff-ignore.yaml'
 
   security-scan:
     name: Security Scan
