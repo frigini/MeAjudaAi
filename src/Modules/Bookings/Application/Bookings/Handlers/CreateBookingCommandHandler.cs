@@ -27,9 +27,11 @@ public sealed class CreateBookingCommandHandler(
             return Result<BookingDto>.Failure(Error.BadRequest("O horário de término deve ser após o horário de início."));
         }
 
-        if (command.Start <= DateTimeOffset.UtcNow)
+        // Tolerância de 1 minuto para agendamentos imediatos
+        var minimumLead = TimeSpan.FromMinutes(1);
+        if (command.Start < DateTimeOffset.UtcNow.Subtract(minimumLead))
         {
-            return Result<BookingDto>.Failure(Error.BadRequest("O horário de início deve ser no futuro."));
+            return Result<BookingDto>.Failure(Error.BadRequest("O horário de início deve ser no futuro (mínimo 1 minuto de antecedência)."));
         }
 
         // 1. Validar existência do Provider
@@ -73,7 +75,7 @@ public sealed class CreateBookingCommandHandler(
 
         // 3. Criar e Tentar Adicionar atomicamente
         // Mantemos a data e o slot consistentes com o fuso horário do prestador
-        var localEndTime = TimeZoneInfo.ConvertTimeFromUtc(command.End.UtcDateTime, tz);
+        var localEndTime = localStartTime.Add(duration);
         var date = DateOnly.FromDateTime(localStartTime);
         var timeSlot = TimeSlot.FromDateTime(localStartTime, localEndTime);
         
@@ -94,15 +96,17 @@ public sealed class CreateBookingCommandHandler(
         logger.LogInformation("Booking {BookingId} created successfully.", booking.Id);
 
         var startDate = date.ToDateTime(booking.TimeSlot.Start);
+        var startOffset = tz.GetUtcOffset(startDate);
         var endDate = date.ToDateTime(booking.TimeSlot.End);
+        var endOffset = tz.GetUtcOffset(endDate);
 
         return new BookingDto(
             booking.Id,
             booking.ProviderId,
             booking.ClientId,
             booking.ServiceId,
-            new DateTimeOffset(startDate, tz.GetUtcOffset(startDate)),
-            new DateTimeOffset(endDate, tz.GetUtcOffset(endDate)),
+            new DateTimeOffset(startDate, startOffset),
+            new DateTimeOffset(endDate, endOffset),
             booking.Status);
     }
 }

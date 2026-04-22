@@ -16,6 +16,7 @@ public class BookingRepositoryTests : BaseDatabaseTest
     public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
+        await ResetDatabaseAsync();
 
         var options = CreateDbContextOptions<BookingsDbContext>();
 
@@ -112,8 +113,8 @@ public class BookingRepositoryTests : BaseDatabaseTest
         // Para testar concorrência real, usamos contextos separados
         var options = CreateDbContextOptions<BookingsDbContext>();
         
-        using var ctx1 = new BookingsDbContext(options);
-        using var ctx2 = new BookingsDbContext(options);
+        await using var ctx1 = new BookingsDbContext(options);
+        await using var ctx2 = new BookingsDbContext(options);
         
         var repo1 = new BookingRepository(ctx1);
         var repo2 = new BookingRepository(ctx2);

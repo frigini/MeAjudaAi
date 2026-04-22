@@ -1,4 +1,5 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Bookings.Enums;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
@@ -48,7 +49,7 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        booking.Status.Should().Be(Contracts.Bookings.Enums.EBookingStatus.Cancelled);
+        booking.Status.Should().Be(EBookingStatus.Cancelled);
         _bookingRepoMock.Verify(x => x.UpdateAsync(booking, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -71,12 +72,12 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        booking.Status.Should().Be(Contracts.Bookings.Enums.EBookingStatus.Cancelled);
+        booking.Status.Should().Be(EBookingStatus.Cancelled);
         _bookingRepoMock.Verify(x => x.UpdateAsync(booking, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task HandleAsync_Should_Fail_When_UserIsNotAuthorized()
+    public async Task HandleAsync_Should_ReturnForbidden_When_UserIsDifferentClient()
     {
         // Arrange
         var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
@@ -97,7 +98,7 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
     }
 
     [Fact]
-    public async Task HandleAsync_Should_Fail_When_UserIsDifferentProvider()
+    public async Task HandleAsync_Should_ReturnForbidden_When_UserIsDifferentProvider()
     {
         // Arrange
         var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
@@ -128,22 +129,14 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        // Configura Admin
-        var claims = new List<Claim>
-        {
-            new(AuthConstants.Claims.Subject, Guid.NewGuid().ToString()),
-            new(AuthConstants.Claims.IsSystemAdmin, "true")
-        };
-        var identity = new ClaimsIdentity(claims, "Test");
-        var principal = new ClaimsPrincipal(identity);
-        _httpContextMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext { User = principal });
+        SetupUser(Guid.NewGuid(), null, isSystemAdmin: true);
 
         // Act
         var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Admin Reason", Guid.NewGuid()));
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        booking.Status.Should().Be(Contracts.Bookings.Enums.EBookingStatus.Cancelled);
+        booking.Status.Should().Be(EBookingStatus.Cancelled);
     }
 
     [Fact]
@@ -227,7 +220,7 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         result.Error.Message.Should().Contain("Apenas agendamentos pendentes ou confirmados podem ser cancelados.");
     }
 
-    private void SetupUser(Guid userId, Guid? providerId)
+    private void SetupUser(Guid userId, Guid? providerId, bool isSystemAdmin = false)
     {
         var claims = new List<Claim>
         {
@@ -237,6 +230,11 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         if (providerId.HasValue)
         {
             claims.Add(new Claim(AuthConstants.Claims.ProviderId, providerId.Value.ToString()));
+        }
+
+        if (isSystemAdmin)
+        {
+            claims.Add(new Claim(AuthConstants.Claims.IsSystemAdmin, "true"));
         }
 
         var identity = new ClaimsIdentity(claims, "Test");

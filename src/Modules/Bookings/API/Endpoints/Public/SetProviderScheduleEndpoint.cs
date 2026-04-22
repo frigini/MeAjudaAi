@@ -21,9 +21,10 @@ public class SetProviderScheduleEndpoint : IEndpoint
             SetProviderScheduleRequest request,
             [FromServices] ICommandDispatcher dispatcher,
             [FromServices] IProvidersModuleApi providersApi,
-            ClaimsPrincipal user,
+            HttpContext context,
             CancellationToken cancellationToken) =>
         {
+            var user = context.User;
             var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value;
             var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
             var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
@@ -65,10 +66,17 @@ public class SetProviderScheduleEndpoint : IEndpoint
                 return Results.Problem("ProviderId inválido ou ausente.", statusCode: StatusCodes.Status400BadRequest);
             }
 
+            // Resolve Correlation ID
+            var correlationIdHeader = context.Request.Headers["X-Correlation-Id"].ToString();
+            if (!Guid.TryParse(correlationIdHeader, out var correlationId))
+            {
+                correlationId = Guid.TryParse(context.TraceIdentifier, out var traceId) ? traceId : Guid.NewGuid();
+            }
+
             var command = new SetProviderScheduleCommand(
                 targetProviderId,
                 request.Availabilities,
-                Guid.NewGuid());
+                correlationId);
 
             var result = await dispatcher.SendAsync<SetProviderScheduleCommand, Result>(command, cancellationToken);
 
