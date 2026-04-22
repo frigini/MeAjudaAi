@@ -50,7 +50,7 @@ public sealed class SetProviderScheduleCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error processing availabilities for Provider {ProviderId}", command.ProviderId);
-            return Result.Failure(Error.Internal("Erro interno ao processar disponibilidades."));
+            return Result.Failure(Error.BadRequest($"Erro interno ao processar disponibilidades: {ex.Message}"));
         }
 
         // 3. Buscar ou criar Schedule

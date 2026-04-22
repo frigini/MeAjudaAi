@@ -58,6 +58,11 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         // Envia como admin ou provider (Admin pode setar p/ qq um pelo request body, Provider baseia no claim)
         AuthenticateAsAdmin();
         var scheduleResponse = await ApiClient.PostAsJsonAsync("/api/v1/bookings/schedule", scheduleRequest);
+        if (!scheduleResponse.IsSuccessStatusCode)
+        {
+            var content = await scheduleResponse.Content.ReadAsStringAsync();
+            _output.WriteLine($"Schedule POST failed: {scheduleResponse.StatusCode} - {content}");
+        }
         scheduleResponse.EnsureSuccessStatusCode();
 
         // 3. Criar usuário (Cliente)

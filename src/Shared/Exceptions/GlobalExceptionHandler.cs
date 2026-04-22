@@ -126,10 +126,17 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                 null,
                 []),
 
+            Microsoft.AspNetCore.Http.BadHttpRequestException badHttpRequestException => (
+                StatusCodes.Status400BadRequest,
+                "Requisição Mal Formatada",
+                badHttpRequestException.Message,
+                null,
+                []),
+
             _ => (
                 StatusCodes.Status500InternalServerError,
                 "Erro Interno do Servidor",
-                "Ocorreu um erro inesperado no servidor.",
+                $"[{exception.GetType().Name}] {exception.Message} {(exception.InnerException != null ? exception.InnerException.Message : "")}",
                 null,
                 new Dictionary<string, object?>
                 {
