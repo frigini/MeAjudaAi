@@ -16,7 +16,6 @@ public class BookingRepositoryTests : BaseDatabaseTest
     public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
-        await ResetDatabaseAsync();
 
         var options = CreateDbContextOptions<BookingsDbContext>();
 
