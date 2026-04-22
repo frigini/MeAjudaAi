@@ -83,6 +83,7 @@ public class SetProviderScheduleEndpoint : IEndpoint
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status403Forbidden)
         .ProducesProblem(StatusCodes.Status404NotFound)
+
         .WithTags(BookingsEndpoints.Tag)
         .WithName("SetProviderSchedule")
         .WithSummary("Define a agenda de horários de trabalho de um prestador.");

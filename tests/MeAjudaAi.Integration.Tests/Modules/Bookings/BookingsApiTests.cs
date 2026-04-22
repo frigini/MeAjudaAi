@@ -44,7 +44,12 @@ public class BookingsApiTests : BaseApiTest
         var response = await Client.PostAsJsonAsync("/api/v1/bookings", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        if (response.StatusCode != HttpStatusCode.Created)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            response.StatusCode.Should().Be(HttpStatusCode.Created, $"Error detail: {error}");
+        }
+
         var result = await ReadJsonAsync<BookingDto>(response.Content);
         result.Should().NotBeNull();
         result!.ProviderId.Should().Be(providerId);
