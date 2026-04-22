@@ -365,10 +365,11 @@ jobs:
 
       - name: Check for Breaking Changes
         uses: oasdiff/oasdiff-action/breaking@v0.0.39
+        continue-on-error: true # Permitir falhas durante a Sprint 12 para evolução de contrato
         with:
           base: 'api-base.json'
           revision: 'api-current/api-spec.json'
-          fail-on: 'NONE' # Temporariamente desabilitado para Sprint 12 para permitir evolução dos contratos
+          fail-on: 'ERR'
           err-ignore: '.oasdiff-ignore.yaml'
 
   security-scan:
