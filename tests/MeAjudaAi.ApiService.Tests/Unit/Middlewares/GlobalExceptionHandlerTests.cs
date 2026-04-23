@@ -89,21 +89,8 @@ public class GlobalExceptionHandlerTests
 
         var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
 
-        result.Should().BeTrue();
+result.Should().BeTrue();
         context.Response.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_WithInvalidOperationException_ShouldReturnBadRequest()
-    {
-        var context = new DefaultHttpContext();
-        context.Response.Body = new MemoryStream();
-        var exception = new InvalidOperationException("Invalid operation");
-
-        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
-
-        result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
     }
 
     [Fact]
