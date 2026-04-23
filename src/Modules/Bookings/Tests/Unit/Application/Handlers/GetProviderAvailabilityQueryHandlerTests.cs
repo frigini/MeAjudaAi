@@ -32,15 +32,10 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         var date = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
 
-        var schedule = ProviderSchedule.Create(providerId);
+        var schedule = ProviderSchedule.Create(providerId, "UTC");
         
-        // Slot das 08:00 às 10:00
         var slotStart = new TimeOnly(8, 0);
         var slotEnd = new TimeOnly(10, 0);
-        
-        var startDateTime = date.ToDateTime(slotStart);
-        var endDateTime = date.ToDateTime(slotEnd);
-        var offset = TimeSpan.Zero;
         
         schedule.SetAvailability(Availability.Create(date.DayOfWeek, 
             [TimeSlot.Create(slotStart, slotEnd)]));
@@ -58,8 +53,10 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         result.Value.Slots.Should().HaveCount(1);
         
         var returnedSlot = result.Value.Slots.First();
-        returnedSlot.Start.DateTime.Should().Be(startDateTime);
-        returnedSlot.End.DateTime.Should().Be(endDateTime);
+        returnedSlot.Start.Offset.Should().Be(TimeSpan.Zero);
+        returnedSlot.End.Offset.Should().Be(TimeSpan.Zero);
+        returnedSlot.Start.DateTime.Should().Be(date.ToDateTime(slotStart));
+        returnedSlot.End.DateTime.Should().Be(date.ToDateTime(slotEnd));
     }
 
     [Fact]
@@ -70,12 +67,10 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         var date = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
 
-        var schedule = ProviderSchedule.Create(providerId);
-        // Slot das 08:00 às 10:00
+        var schedule = ProviderSchedule.Create(providerId, "UTC");
         schedule.SetAvailability(Availability.Create(date.DayOfWeek, 
             [TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(10, 0))]));
 
-        // Já existe um booking das 08:30 às 09:30 nesta data
         var existingBooking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
             TimeSlot.Create(new TimeOnly(8, 30), new TimeOnly(9, 30)));
 
@@ -89,10 +84,11 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        // Espera-se 08:00-08:30 e 09:30-10:00 após subtração
         result.Value.Slots.Should().HaveCount(2);
         var slots = result.Value.Slots.ToList();
         
+        slots[0].Start.Offset.Should().Be(TimeSpan.Zero);
+        slots[0].End.Offset.Should().Be(TimeSpan.Zero);
         slots[0].Start.DateTime.Should().Be(date.ToDateTime(new TimeOnly(8, 0)));
         slots[0].End.DateTime.Should().Be(date.ToDateTime(new TimeOnly(8, 30)));
         
