@@ -6,5 +6,5 @@ namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 
 public record SetProviderScheduleCommand(
     Guid ProviderId,
-    IEnumerable<AvailabilityDto> Availabilities,
+    IEnumerable<ProviderScheduleDto> Availabilities,
     Guid CorrelationId) : ICommand<Result>;

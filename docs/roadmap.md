@@ -29,7 +29,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 *   **Melhorias em Bookings**: Sincronização com Google Calendar/Outlook e lembretes automáticos.
 
 ### 🚀 Arquitetura Evolutiva e Mensageria (Objetivos)
-*   **Performance do Service Bus (Planejado)**: Implementar ajuste fino de paralelismo baseado no atributo `[HighVolumeEvent]` e otimizações no `RabbitMqInfrastructureManager`.
+*   **Desempenho do Service Bus (Planejado)**: Implementar ajuste fino de paralelismo baseado no atributo `[HighVolumeEvent]` e otimizações no `RabbitMqInfrastructureManager`.
 *   **Resiliência Crítica (Planejado)**: Garantir persistência via Quorum Queues para eventos marcados com `[CriticalEvent]`.
 *   **Roteamento por Atributo (Em Andamento)**: Evolução do `AttributeTopicNameConvention` para suporte total a tópicos dedicados.
 

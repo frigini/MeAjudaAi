@@ -31,7 +31,7 @@ public sealed class TimeSlot : ValueObject
     /// <summary>
     /// Cria um TimeSlot a partir de DateTime (ignora a data).
     /// </summary>
-    /// <exception cref="ArgumentException">Lançada se as datas ou Kinds de DateTime e EndTime forem diferentes.</exception>
+    /// <exception cref="ArgumentException">Lançada se as datas ou Kinds de start e end forem diferentes.</exception>
     public static TimeSlot FromDateTime(DateTime start, DateTime end)
     {
         if (start.Date != end.Date || start.Kind != end.Kind)

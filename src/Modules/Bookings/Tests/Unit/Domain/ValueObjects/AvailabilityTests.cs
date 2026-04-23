@@ -24,6 +24,22 @@ public class AvailabilityTests : BaseUnitTest
     }
 
     [Fact]
+    public void Create_Should_NotThrow_When_SlotsAreAdjacent()
+    {
+        // Arrange
+        var day = DayOfWeek.Monday;
+        var slot1 = TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(10, 0));
+        var slot2 = TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(12, 0));
+        var slots = new[] { slot1, slot2 };
+
+        // Act
+        var act = () => Availability.Create(day, slots);
+
+        // Assert
+        act.Should().NotThrow();
+    }
+
+    [Fact]
     public void Create_Should_ThrowException_When_SlotsOverlap()
     {
         // Arrange

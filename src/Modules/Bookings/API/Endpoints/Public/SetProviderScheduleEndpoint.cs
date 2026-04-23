@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
@@ -82,7 +84,7 @@ public class SetProviderScheduleEndpoint : IEndpoint
             }
 
             // Resolve Correlation ID
-            var correlationIdHeader = context.Request.Headers["X-Correlation-Id"].ToString();
+            var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].ToString();
             if (!Guid.TryParse(correlationIdHeader, out var correlationId))
             {
                 correlationId = Guid.NewGuid();
@@ -120,4 +122,4 @@ public class SetProviderScheduleEndpoint : IEndpoint
 /// <param name="Availabilities">Lista de disponibilidades por dia da semana.</param>
 public record SetProviderScheduleRequest(
     Guid ProviderId,
-    IEnumerable<AvailabilityDto> Availabilities);
+    IEnumerable<ProviderScheduleDto> Availabilities);

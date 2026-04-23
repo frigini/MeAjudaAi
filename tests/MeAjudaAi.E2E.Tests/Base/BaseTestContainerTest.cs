@@ -598,10 +598,10 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                 
                 npgsqlOptions.CommandTimeout(120);
             })
-            .UseSnakeCaseNamingConvention()
-            .EnableSensitiveDataLogging(true)
-            .ConfigureWarnings(warnings =>
-            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+                .UseSnakeCaseNamingConvention()
+                .EnableSensitiveDataLogging(true)
+                .ConfigureWarnings(warnings =>
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
             });
             }
 

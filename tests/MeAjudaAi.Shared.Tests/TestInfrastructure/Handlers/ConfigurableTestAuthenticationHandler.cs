@@ -46,7 +46,7 @@ public class ConfigurableTestAuthenticationHandler(
         // Authentication must be explicitly configured via ConfigureUser/ConfigureAdmin/etc.
         if (contextId == null)
         {
-            Logger.LogDebug("AUTH_DEBUG HandleAuthenticateAsync: contextId is NULL");
+            Logger.LogDebug("No authentication configuration set (contextId is null)");
             return Task.FromResult(AuthenticateResult.Fail("No authentication configuration set"));
         }
         

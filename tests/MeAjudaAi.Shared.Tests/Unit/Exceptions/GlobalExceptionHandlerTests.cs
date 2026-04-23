@@ -378,8 +378,10 @@ public class GlobalExceptionHandlerTests
         
         var problemDetails = await ReadProblemDetailsAsync(context);
         problemDetails.Detail.Should().Be("Ocorreu um erro inesperado");
-        problemDetails.Detail.Should().NotContain("Sensitive internal error details");
-        problemDetails.Detail.Should().NotContain("Exception");
+        
+        var serializedPayload = System.Text.Json.JsonSerializer.Serialize(problemDetails);
+        serializedPayload.Should().NotContain("Sensitive internal error details");
+        serializedPayload.Should().NotContain("Exception");
     }
 
     private DefaultHttpContext CreateDefaultContext()

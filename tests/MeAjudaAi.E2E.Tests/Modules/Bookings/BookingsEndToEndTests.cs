@@ -131,6 +131,25 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         updatedBooking!.Status.Should().Be(Contracts.Bookings.Enums.EBookingStatus.Confirmed);
     }
 
+    private static TimeZoneInfo ResolveBrazilTimeZone()
+    {
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
+        }
+        catch (Exception)
+        {
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Could not resolve Brazil time zone on this system.", ex);
+            }
+        }
+    }
+
     private async Task<Guid> CreateTestServiceAsync()
     {
         var categoryName = $"Category_{Guid.NewGuid():N}";

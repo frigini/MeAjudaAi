@@ -33,6 +33,8 @@ internal sealed class MessagingConfiguration
 /// </summary>
 public static class MessagingExtensions
 {
+    private const string UseSystemTextJsonKey = "Messaging:UseSystemTextJson";
+
     public static IServiceCollection AddMessaging(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -147,7 +149,7 @@ public static class MessagingExtensions
 
         try
         {
-            var useSystemTextJson = host.Services.GetRequiredService<IConfiguration>().GetValue<bool>("Messaging:UseSystemTextJson", false);
+            var useSystemTextJson = host.Services.GetRequiredService<IConfiguration>().GetValue<bool>(UseSystemTextJsonKey, false);
             if (useSystemTextJson)
             {
                 logger.LogWarning("Messaging: System.Text.Json is ENABLED. Ensure all producers/consumers are updated and clear queues/DLQs if necessary.");

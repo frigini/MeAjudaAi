@@ -76,8 +76,10 @@ public static class TimeZoneResolver
         if (tz.IsAmbiguousTime(startDate))
         {
             var offsets = tz.GetAmbiguousTimeOffsets(startDate);
-            startOffset = offsets[0];
-            logger.LogInformation("Ambiguous start time detected for booking {BookingId}. Choosing the offset {Offset}.", booking.Id, startOffset);
+            // Escolha determinística: o maior offset (geralmente o de horário de verão)
+            startOffset = offsets.Max();
+            logger.LogInformation("Ambiguous start time detected for booking {BookingId}. Offsets: {Offsets}. Chosen: {Offset}.", 
+                booking.Id, string.Join(", ", offsets), startOffset);
         }
         else
         {
@@ -88,8 +90,10 @@ public static class TimeZoneResolver
         if (tz.IsAmbiguousTime(endDate))
         {
             var offsets = tz.GetAmbiguousTimeOffsets(endDate);
-            endOffset = offsets[0];
-            logger.LogInformation("Ambiguous end time detected for booking {BookingId}. Choosing the offset {Offset}.", booking.Id, endOffset);
+            // Escolha determinística: o maior offset
+            endOffset = offsets.Max();
+            logger.LogInformation("Ambiguous end time detected for booking {BookingId}. Offsets: {Offsets}. Chosen: {Offset}.", 
+                booking.Id, string.Join(", ", offsets), endOffset);
         }
         else
         {

@@ -156,10 +156,10 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
 
                     if (hasOverlap)
                     {
-                        return Result.Failure(Error.Conflict("Já existe um agendamento para este prestador no período solicitado."));
+                        return Result.Failure(Error.Conflict("Já existe um agendamento para este horário."));
                     }
 
-                    await context.Bookings.AddAsync(booking, cancellationToken);
+                    context.Bookings.Add(booking);
                     await context.SaveChangesAsync(cancellationToken);
                     await transaction.CommitAsync(cancellationToken);
                     

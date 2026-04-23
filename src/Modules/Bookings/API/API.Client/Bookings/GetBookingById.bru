@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/v1/bookings/00000000-0000-0000-0000-000000000000
+  url: {{baseUrl}}/api/v1/bookings/{{bookingId}}
   auth: bearer
 }
 
@@ -28,5 +28,7 @@ docs {
   
   ## Códigos de Status
   - **200**: Sucesso
+  - **401**: Não autenticado — token ausente ou inválido
+  - **403**: Proibido — você não tem permissão para ver este agendamento
   - **404**: Agendamento não encontrado
 }

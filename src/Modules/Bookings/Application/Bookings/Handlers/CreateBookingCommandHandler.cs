@@ -1,5 +1,6 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Common;
@@ -15,6 +16,7 @@ public sealed class CreateBookingCommandHandler(
     IBookingRepository bookingRepository,
     IProviderScheduleRepository scheduleRepository,
     IProvidersModuleApi providersApi,
+    IServiceCatalogsModuleApi serviceCatalogsApi,
     ILogger<CreateBookingCommandHandler> logger) : ICommandHandler<CreateBookingCommand, Result<BookingDto>>
 {
     public async Task<Result<BookingDto>> HandleAsync(CreateBookingCommand command, CancellationToken cancellationToken = default)
@@ -45,6 +47,13 @@ public sealed class CreateBookingCommandHandler(
         if (!providerExists.Value)
         {
             return Result<BookingDto>.Failure(Error.NotFound("Prestador não encontrado."));
+        }
+
+        // 1.5 Validar ServiceId
+        var serviceActive = await serviceCatalogsApi.IsServiceActiveAsync(command.ServiceId, cancellationToken);
+        if (serviceActive.IsFailure || !serviceActive.Value)
+        {
+            return Result<BookingDto>.Failure(Error.NotFound("Serviço não encontrado ou inativo."));
         }
 
         // 2. Validar Horário de Trabalho (Schedule)

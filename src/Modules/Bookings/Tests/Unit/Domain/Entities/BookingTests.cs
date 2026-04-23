@@ -1,6 +1,9 @@
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Contracts.Bookings.Enums;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
+using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
+using FluentAssertions;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Domain.Entities;
 
@@ -55,7 +58,6 @@ public class BookingTests : BaseUnitTest
         // Assert
         booking.Status.Should().Be(EBookingStatus.Rejected);
         booking.RejectionReason.Should().Be(reason);
-        booking.UpdatedAt.Should().NotBeNull();
     }
 
     [Fact]
@@ -112,7 +114,7 @@ public class BookingTests : BaseUnitTest
         var act = () => booking.Cancel("Change mind");
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<InvalidBookingStateException>()
             .WithMessage("Only pending or confirmed bookings can be cancelled.");
     }
 
@@ -141,28 +143,8 @@ public class BookingTests : BaseUnitTest
         var act = () => booking.Complete();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<InvalidBookingStateException>()
             .WithMessage("Only confirmed bookings can be marked as completed.");
-    }
-
-    [Fact]
-    public void Version_Should_Increment_On_Transitions()
-    {
-        // Arrange
-        var booking = CreatePendingBooking();
-        var initialVersion = booking.Version;
-
-        // Act 1: Confirm
-        booking.Confirm();
-        var versionAfterConfirm = booking.Version;
-
-        // Act 2: Complete
-        booking.Complete();
-        var versionAfterComplete = booking.Version;
-
-        // Assert
-        versionAfterConfirm.Should().Be(initialVersion + 1);
-        versionAfterComplete.Should().Be(versionAfterConfirm + 1);
     }
 
     [Fact]
@@ -176,7 +158,7 @@ public class BookingTests : BaseUnitTest
         var act = () => booking.Confirm();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<InvalidBookingStateException>()
             .WithMessage("Only pending bookings can be confirmed.");
     }
 
@@ -191,7 +173,7 @@ public class BookingTests : BaseUnitTest
         var act = () => booking.Reject("Busy");
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<InvalidBookingStateException>()
             .WithMessage("Only pending bookings can be rejected.");
     }
 

@@ -23,7 +23,6 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
     {
         _sut = new CompleteBookingCommandHandler(
             _bookingRepoMock.Object,
-            _httpContextMock.Object,
             _loggerMock.Object);
     }
 
@@ -41,10 +40,8 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        SetupUser(providerId);
-
         // Act
-        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, false, providerId, Guid.NewGuid()));
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -65,10 +62,8 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        SetupUser(providerId);
-
         // Act
-        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, false, providerId, Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -90,10 +85,8 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        SetupUser(Guid.NewGuid()); // Outro provider
-
         // Act
-        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, false, Guid.NewGuid(), Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -105,12 +98,11 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
     public async Task HandleAsync_Should_Fail_When_BookingNotFound()
     {
         // Arrange
-        SetupUser(Guid.NewGuid());
         _bookingRepoMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Booking?)null);
 
         // Act
-        var result = await _sut.HandleAsync(new CompleteBookingCommand(Guid.NewGuid(), Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new CompleteBookingCommand(Guid.NewGuid(), false, Guid.NewGuid(), Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();

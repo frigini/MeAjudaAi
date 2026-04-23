@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +22,7 @@ public class GetProviderAvailabilityEndpoint : IEndpoint
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
-            var correlationIdHeader = context.Request.Headers["X-Correlation-Id"].ToString();
+            var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].ToString();
             if (!Guid.TryParse(correlationIdHeader, out var correlationId))
             {
                 correlationId = Guid.NewGuid();

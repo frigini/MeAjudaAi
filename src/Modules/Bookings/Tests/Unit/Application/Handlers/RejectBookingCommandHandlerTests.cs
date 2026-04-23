@@ -32,7 +32,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = new DateOnly(2026, 4, 25);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
@@ -56,7 +56,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = new DateOnly(2026, 4, 25);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
@@ -96,7 +96,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = new DateOnly(2026, 4, 25);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         booking.Confirm(); // Já confirmado

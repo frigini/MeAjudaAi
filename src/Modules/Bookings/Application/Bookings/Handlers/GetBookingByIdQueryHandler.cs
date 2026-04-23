@@ -39,6 +39,12 @@ public sealed class GetBookingByIdQueryHandler(
         var schedule = await scheduleRepository.GetByProviderIdReadOnlyAsync(booking.ProviderId, cancellationToken);
         var tz = TimeZoneResolver.ResolveTimeZone(schedule?.TimeZoneId, logger);
 
-        return TimeZoneResolver.CreateValidatedBookingDto(booking, tz!, logger);
+        if (tz == null)
+        {
+            logger.LogError("Could not resolve time zone for provider {ProviderId} (Booking {BookingId})", booking.ProviderId, booking.Id);
+            return Result<BookingDto>.Failure(Error.Internal("Erro ao processar fuso horário do agendamento."));
+        }
+
+        return TimeZoneResolver.CreateValidatedBookingDto(booking, tz, logger);
     }
 }

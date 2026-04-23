@@ -67,7 +67,7 @@ public class GetProviderBookingsEndpoint : IEndpoint
             var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
             var correlationId = Guid.TryParse(correlationIdHeader, out var cId) ? cId : Guid.NewGuid();
 
-            var query = new GetBookingsByProviderQuery(providerId, correlationId, page, pageSize);
+            var query = new GetBookingsByProviderQuery(providerId, correlationId, page ?? 1, pageSize ?? 10);
             var result = await dispatcher.QueryAsync<GetBookingsByProviderQuery, Result<PagedResult<BookingDto>>>(query, cancellationToken);
 
             return result.IsSuccess 
@@ -76,6 +76,8 @@ public class GetProviderBookingsEndpoint : IEndpoint
         })
         .RequireAuthorization()
         .Produces<PagedResult<BookingDto>>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status403Forbidden)
+        .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("GetProviderBookings")
         .WithSummary("Lista os agendamentos de um prestador.");

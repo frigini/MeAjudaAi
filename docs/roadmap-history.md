@@ -12,7 +12,7 @@ Este documento contém o registro de todas as sprints concluídas para fins de a
 - ✅ **Bookings Module**: Implementação completa (Backend/Frontend) de agendamentos com gestão de disponibilidade do prestador e fluxo de reserva do cliente.
 - ✅ **Messaging Excellence**: Migração parcial para Rebus v3 e implementação de atributos `[DedicatedTopic]`, `[HighVolumeEvent]` e `[CriticalEvent]` para roteamento avançado.
     - **Nota Técnica**: `RabbitMQ.Client` ainda é utilizado diretamente em `RabbitMqDeadLetterService`. `RabbitMqInfrastructureManager` contém stubs não finalizados (`CreateQueueAsync`, etc.) que devem ser completados para finalizar a migração.
-- ✅ **Qualidade**: Cobertura total de testes unitários, integração e arquitetura para o novo módulo.
+- ✅ **Qualidade**: Cobertura completa aguardando inclusão do módulo Bookings no workflow (pendente adição do projeto MeAjudaAi.Modules.Bookings.Tests.csproj ao campo MODULES do workflow).
 - ✅ **API & Contratos**: Padronização de enums (`EBookingStatus`) e exposição via Minimal APIs com autorização.
 
 ---

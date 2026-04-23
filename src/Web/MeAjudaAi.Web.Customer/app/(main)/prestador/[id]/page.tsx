@@ -123,7 +123,7 @@ export default function ProviderProfilePage() {
                             ) : isAuthenticated ? (
                                 services.length > 0 ? (
                                     <BookingModal 
-                                        providerId={id} 
+                                        providerId={providerData.id} 
                                         providerName={displayName} 
                                         serviceId={selectedServiceId}
                                         trigger={

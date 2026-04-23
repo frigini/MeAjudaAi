@@ -1,5 +1,6 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
+using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
@@ -18,6 +19,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     private readonly Mock<IBookingRepository> _bookingRepoMock = new();
     private readonly Mock<IProviderScheduleRepository> _scheduleRepoMock = new();
     private readonly Mock<IProvidersModuleApi> _providersApiMock = new();
+    private readonly Mock<IServiceCatalogsModuleApi> _serviceCatalogsApiMock = new();
     private readonly Mock<ILogger<CreateBookingCommandHandler>> _loggerMock = new();
     private readonly CreateBookingCommandHandler _sut;
 
@@ -27,6 +29,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
             _bookingRepoMock.Object,
             _scheduleRepoMock.Object,
             _providersApiMock.Object,
+            _serviceCatalogsApiMock.Object,
             _loggerMock.Object);
     }
 
@@ -46,6 +49,9 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
             Guid.NewGuid());
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+
+        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
         var schedule = ProviderSchedule.Create(providerId, "UTC");
@@ -80,6 +86,9 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
             Guid.NewGuid());
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+
+        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
         var schedule = ProviderSchedule.Create(providerId, "UTC");
@@ -177,6 +186,9 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
+
+        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
         
         _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProviderSchedule?)null);
@@ -204,6 +216,9 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
             Guid.NewGuid());
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+
+        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
         var schedule = ProviderSchedule.Create(providerId, "UTC");
@@ -237,6 +252,9 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
             Guid.NewGuid());
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+
+        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
         var schedule = ProviderSchedule.Create(providerId, "UTC");

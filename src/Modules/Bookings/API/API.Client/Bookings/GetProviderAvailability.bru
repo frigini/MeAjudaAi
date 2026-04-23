@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/v1/bookings/availability/00000000-0000-0000-0000-000000000000?date={{availabilityDate}}
+  url: {{baseUrl}}/api/v1/bookings/availability/{{providerId}}?date={{availabilityDate}}
   auth: bearer
 }
 

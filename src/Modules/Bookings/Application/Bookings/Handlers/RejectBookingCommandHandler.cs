@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Domain.Repositories;
+using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -53,7 +54,7 @@ public sealed class RejectBookingCommandHandler(
             booking.Reject(command.Reason);
             await bookingRepository.UpdateAsync(booking, cancellationToken);
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidBookingStateException ex)
         {
             logger.LogWarning(ex, "Business rule error rejecting booking {BookingId}", command.BookingId);
             return Result.Failure(Error.BadRequest("Apenas agendamentos pendentes podem ser rejeitados."));

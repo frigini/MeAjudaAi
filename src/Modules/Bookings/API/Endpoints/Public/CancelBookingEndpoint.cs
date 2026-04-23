@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,17 +21,7 @@ public class CancelBookingEndpoint : IEndpoint
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
-            if (string.IsNullOrWhiteSpace(request.Reason))
-            {
-                return Results.Problem("O motivo do cancelamento é obrigatório.", statusCode: 400);
-            }
-
-            if (request.Reason.Length > 500)
-            {
-                return Results.Problem("O motivo do cancelamento não pode exceder 500 caracteres.", statusCode: 400);
-            }
-
-            var correlationIdHeader = context.Request.Headers["X-Correlation-Id"].ToString();
+            var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].ToString();
             if (!Guid.TryParse(correlationIdHeader, out var correlationId))
             {
                 correlationId = Guid.NewGuid();

@@ -26,7 +26,7 @@ public sealed class ProviderSchedule : BaseEntity
 
     public void UpdateTimeZone(string timeZoneId)
     {
-        if (string.IsNullOrWhiteSpace(timeZoneId)) throw new ArgumentException("TimeZoneId cannot be empty");
+        if (string.IsNullOrWhiteSpace(timeZoneId)) throw new ArgumentException("TimeZoneId não pode estar vazio", nameof(timeZoneId));
         TimeZoneId = timeZoneId;
         MarkAsUpdated();
     }

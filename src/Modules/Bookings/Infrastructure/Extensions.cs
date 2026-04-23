@@ -32,7 +32,11 @@ public static class Extensions
                 throw new InvalidOperationException("Bookings connection string is missing.");
             }
 
-            options.UseNpgsql(connStr, m => m.MigrationsHistoryTable("__EFMigrationsHistory", "bookings"));
+            options.UseNpgsql(connStr, m => 
+            {
+                m.MigrationsHistoryTable("__EFMigrationsHistory", "bookings");
+                m.MigrationsAssembly(typeof(BookingsDbContext).Assembly.FullName);
+            });
         });
 
         services.AddScoped<IBookingRepository, BookingRepository>();

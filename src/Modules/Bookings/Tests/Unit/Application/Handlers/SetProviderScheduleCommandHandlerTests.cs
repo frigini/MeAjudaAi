@@ -29,7 +29,7 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var availabilities = new List<AvailabilityDto>
+        var availabilities = new List<ProviderScheduleDto>
         {
             new(DayOfWeek.Monday, new List<TimeSlotDto> 
             { 
@@ -96,7 +96,7 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var availabilities = new List<AvailabilityDto>
+        var availabilities = new List<ProviderScheduleDto>
         {
             new(DayOfWeek.Monday, new List<TimeSlotDto> 
             { 
@@ -126,7 +126,7 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var availabilities = new List<AvailabilityDto>
+        var availabilities = new List<ProviderScheduleDto>
         {
             new(DayOfWeek.Monday, new List<TimeSlotDto> 
             { 
@@ -152,7 +152,7 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var availabilities = new List<AvailabilityDto>
+        var availabilities = new List<ProviderScheduleDto>
         {
             new(DayOfWeek.Monday, new List<TimeSlotDto> 
             { 

@@ -30,17 +30,13 @@ public class ConfirmBookingEndpoint : IEndpoint
                 return Results.Forbid();
             }
 
-            var correlationIdHeader = context.Request.Headers["X-Correlation-Id"].ToString();
+            var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].ToString();
             if (!Guid.TryParse(correlationIdHeader, out var correlationId))
             {
                 correlationId = Guid.NewGuid();
             }
 
-            var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
-            var providerIdClaimValue = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
-            Guid? userProviderId = Guid.TryParse(providerIdClaimValue, out var parsedProviderId) ? parsedProviderId : null;
-
-            var command = new ConfirmBookingCommand(id, userId, isSystemAdmin, userProviderId, correlationId);
+            var command = new ConfirmBookingCommand(id, correlationId);
             var result = await dispatcher.SendAsync<ConfirmBookingCommand, Result>(command, cancellationToken);
 
             return result.Match(
@@ -54,6 +50,7 @@ public class ConfirmBookingEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status403Forbidden)
         .ProducesProblem(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status409Conflict)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("ConfirmBooking")
         .WithSummary("Confirma um agendamento pendente.");

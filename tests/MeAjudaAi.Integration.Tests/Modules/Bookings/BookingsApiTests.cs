@@ -27,8 +27,8 @@ public class BookingsApiTests : BaseApiTest
         // Arrange
         var providerId = await CreateTestProviderAsync();
         await CreateTestScheduleAsync(providerId);
+        var serviceId = await CreateTestServiceAsync(providerId);
 
-        var serviceId = Guid.NewGuid();
         var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
         var start = tomorrow.ToDateTime(new TimeOnly(10, 0));
         var request = new CreateBookingRequest(
@@ -101,6 +101,28 @@ public class BookingsApiTests : BaseApiTest
         await context.SaveChangesAsync();
         
         return provider.Id.Value;
+    }
+
+    private async Task<Guid> CreateTestServiceAsync(Guid providerId)
+    {
+        using var scope = Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>();
+        
+        var category = new MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Category("Test Category", 1);
+        context.Categories.Add(category);
+        await context.SaveChangesAsync();
+
+        var service = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service.Create(
+            "Test Service",
+            "Description",
+            100.00m,
+            category.Id,
+            providerId);
+        
+        context.Services.Add(service);
+        await context.SaveChangesAsync();
+
+        return service.Id.Value;
     }
 
     private async Task CreateTestScheduleAsync(Guid providerId)

@@ -2,6 +2,7 @@ using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Contracts.Bookings.Enums;
 using MeAjudaAi.Modules.Bookings.Domain.Events;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
+using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
 
 namespace MeAjudaAi.Modules.Bookings.Domain.Entities;
 
@@ -15,7 +16,6 @@ public sealed class Booking : BaseEntity
     public EBookingStatus Status { get; private set; }
     public string? RejectionReason { get; private set; }
     public string? CancellationReason { get; private set; }
-    public int Version { get; private set; } // For optimistic concurrency
 
     private Booking() { } // Required by EF Core
 
@@ -27,10 +27,9 @@ public sealed class Booking : BaseEntity
         Date = date;
         TimeSlot = timeSlot;
         Status = EBookingStatus.Pending;
-        Version = 1;
 
         AddDomainEvent(new BookingCreatedDomainEvent(
-            Id, Version, ProviderId, ClientId, ServiceId, Date));
+            Id, 1, ProviderId, ClientId, ServiceId, Date));
     }
 
     public static Booking Create(Guid providerId, Guid clientId, Guid serviceId, DateOnly date, TimeSlot timeSlot)
@@ -42,31 +41,29 @@ public sealed class Booking : BaseEntity
     {
         if (Status != EBookingStatus.Pending)
         {
-            throw new InvalidOperationException("Only pending bookings can be confirmed.");
+            throw new InvalidBookingStateException("Only pending bookings can be confirmed.");
         }
 
         Status = EBookingStatus.Confirmed;
-        Version++;
         MarkAsUpdated();
 
         AddDomainEvent(new BookingConfirmedDomainEvent(
-            Id, Version, ProviderId, ClientId));
+            Id, 1, ProviderId, ClientId));
     }
 
     public void Reject(string reason)
     {
         if (Status != EBookingStatus.Pending)
         {
-            throw new InvalidOperationException("Only pending bookings can be rejected.");
+            throw new InvalidBookingStateException("Only pending bookings can be rejected.");
         }
 
         Status = EBookingStatus.Rejected;
         RejectionReason = reason;
-        Version++;
         MarkAsUpdated();
 
         AddDomainEvent(new BookingRejectedDomainEvent(
-            Id, Version, ProviderId, ClientId, reason));
+            Id, 1, ProviderId, ClientId, reason));
     }
 
     public void Cancel(string reason)
@@ -74,30 +71,28 @@ public sealed class Booking : BaseEntity
         // Só permite cancelar se estiver pendente ou confirmado
         if (Status != EBookingStatus.Pending && Status != EBookingStatus.Confirmed)
         {
-            throw new InvalidOperationException("Only pending or confirmed bookings can be cancelled.");
+            throw new InvalidBookingStateException("Only pending or confirmed bookings can be cancelled.");
         }
 
         Status = EBookingStatus.Cancelled;
         CancellationReason = reason;
-        Version++;
         MarkAsUpdated();
 
         AddDomainEvent(new BookingCancelledDomainEvent(
-            Id, Version, ProviderId, ClientId, reason));
+            Id, 1, ProviderId, ClientId, reason));
     }
 
     public void Complete()
     {
         if (Status != EBookingStatus.Confirmed)
         {
-            throw new InvalidOperationException("Only confirmed bookings can be marked as completed.");
+            throw new InvalidBookingStateException("Only confirmed bookings can be marked as completed.");
         }
 
         Status = EBookingStatus.Completed;
-        Version++;
         MarkAsUpdated();
 
         AddDomainEvent(new BookingCompletedDomainEvent(
-            Id, Version, ProviderId, ClientId));
+            Id, 1, ProviderId, ClientId));
     }
 }

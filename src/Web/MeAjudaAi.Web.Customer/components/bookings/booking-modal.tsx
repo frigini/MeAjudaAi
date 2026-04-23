@@ -48,7 +48,7 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
 
     const combineDateAndTime = (date: Date, timeString: string) => {
         if (timeString.includes("T")) {
-            return format(new Date(timeString), "yyyy-MM-dd'T'HH:mm:ssXXX");
+            return timeString;
         }
         const [hours, minutes, seconds] = timeString.split(":").map(Number);
         const combinedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes, seconds || 0);

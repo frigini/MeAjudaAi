@@ -17,13 +17,18 @@ public class CompleteBookingEndpoint : IEndpoint
         app.MapPut("/{id}/complete", async (
             Guid id,
             [FromServices] ICommandDispatcher dispatcher,
+            System.Security.Claims.ClaimsPrincipal user,
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
             var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
             var correlationId = Guid.TryParse(correlationIdHeader, out var cId) ? cId : Guid.NewGuid();
 
-            var command = new CompleteBookingCommand(id, correlationId);
+            var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
+            var providerIdClaimValue = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
+            Guid? userProviderId = Guid.TryParse(providerIdClaimValue, out var parsedProviderId) ? parsedProviderId : null;
+
+            var command = new CompleteBookingCommand(id, isSystemAdmin, userProviderId, correlationId);
             var result = await dispatcher.SendAsync<CompleteBookingCommand, Result>(command, cancellationToken);
 
             return result.Match(

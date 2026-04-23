@@ -14,6 +14,7 @@ namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 public class ConfirmBookingCommandHandlerTests : BaseUnitTest
 {
     private readonly Mock<IBookingRepository> _bookingRepoMock = new();
+    private readonly Mock<IHttpContextAccessor> _httpContextMock = new();
     private readonly Mock<ILogger<ConfirmBookingCommandHandler>> _loggerMock = new();
     private readonly ConfirmBookingCommandHandler _sut;
 
@@ -21,6 +22,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
     {
         _sut = new ConfirmBookingCommandHandler(
             _bookingRepoMock.Object,
+            _httpContextMock.Object,
             _loggerMock.Object);
     }
 
@@ -36,8 +38,10 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
+        SetupUser(providerId);
+
         // Act
-        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid(), false, providerId, Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid()));
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -57,8 +61,10 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
+        SetupUser(Guid.NewGuid());
+
         // Act
-        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid(), false, Guid.NewGuid(), Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -74,8 +80,10 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByIdAsync(bookingId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Booking?)null);
 
+        SetupUser(Guid.NewGuid());
+
         // Act
-        var result = await _sut.HandleAsync(new ConfirmBookingCommand(bookingId, Guid.NewGuid(), false, Guid.NewGuid(), Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new ConfirmBookingCommand(bookingId, Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -93,8 +101,10 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
+        SetupUser(null);
+
         // Act
-        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid(), false, null, Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -112,8 +122,10 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
+        SetupUser(null, isSystemAdmin: true);
+
         // Act
-        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid(), true, null, Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid()));
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -131,11 +143,31 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
+        SetupUser(providerId);
+
         // Act
-        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid(), false, providerId, Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(400);
+    }
+
+    private void SetupUser(Guid? providerId, bool isSystemAdmin = false)
+    {
+        var claims = new List<Claim>();
+        if (providerId.HasValue)
+        {
+            claims.Add(new Claim(AuthConstants.Claims.ProviderId, providerId.Value.ToString()));
+        }
+        if (isSystemAdmin)
+        {
+            claims.Add(new Claim(AuthConstants.Claims.IsSystemAdmin, "true"));
+        }
+        
+        var identity = new ClaimsIdentity(claims, "Test");
+        var principal = new ClaimsPrincipal(identity);
+        var context = new DefaultHttpContext { User = principal };
+        _httpContextMock.Setup(x => x.HttpContext).Returns(context);
     }
 }

@@ -278,7 +278,7 @@ public abstract class BaseApiTest : IAsyncLifetime
         await MigrationLock.WaitAsync();
         try
         {
-            // Apply migrations in production priority order: Users -> ServiceCatalogs -> Locations -> Documents -> Providers -> Communications
+            // Apply migrations in production priority order: Users -> ServiceCatalogs -> Locations -> Documents -> Providers -> Communications -> Payments -> Bookings
             if (modules.HasFlag(TestModule.Users)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<UsersDbContext>(), "Users", logger);
             if (modules.HasFlag(TestModule.ServiceCatalogs)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<ServiceCatalogsDbContext>(), "ServiceCatalogs", logger);
             if (modules.HasFlag(TestModule.Locations)) await ApplyMigrationForContextAsync(serviceProvider.GetRequiredService<LocationsDbContext>(), "Locations", logger);

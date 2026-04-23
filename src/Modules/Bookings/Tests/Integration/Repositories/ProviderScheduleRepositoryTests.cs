@@ -47,8 +47,10 @@ public class ProviderScheduleRepositoryTests : BaseDatabaseTest
         await _repository.AddAsync(schedule);
 
         // Assert
+        _context.ChangeTracker.Clear();
         var saved = await _context.ProviderSchedules
             .Include(ps => ps.Availabilities)
+                .ThenInclude(a => a.Slots)
             .FirstOrDefaultAsync(ps => ps.ProviderId == providerId);
 
         saved.Should().NotBeNull();
@@ -67,6 +69,7 @@ public class ProviderScheduleRepositoryTests : BaseDatabaseTest
         await _repository.AddAsync(schedule);
 
         // Act
+        _context.ChangeTracker.Clear();
         var result = await _repository.GetByProviderIdAsync(providerId);
 
         // Assert

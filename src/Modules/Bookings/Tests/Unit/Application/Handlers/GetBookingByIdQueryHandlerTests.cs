@@ -55,6 +55,73 @@ public class GetBookingByIdQueryHandlerTests : BaseUnitTest
     }
 
     [Fact]
+    public async Task HandleAsync_Should_Return_BookingDto_When_Authorized_As_Provider()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        booking.ClearDomainEvents();
+
+        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ProviderSchedule.Create(providerId));
+
+        // Act - Autorizado pelo ProviderId
+        var result = await _sut.HandleAsync(new GetBookingByIdQuery(booking.Id, null, providerId, false, Guid.NewGuid()));
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ProviderId.Should().Be(providerId);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Return_BookingDto_When_Authorized_As_Admin()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        
+        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ProviderSchedule.Create(providerId));
+
+        // Act - Autorizado como Admin
+        var result = await _sut.HandleAsync(new GetBookingByIdQuery(booking.Id, null, null, true, Guid.NewGuid()));
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Use_Fallback_TimeZone_When_Schedule_Not_Found()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        
+        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ProviderSchedule?)null);
+
+        // Act
+        var result = await _sut.HandleAsync(new GetBookingByIdQuery(booking.Id, null, null, true, Guid.NewGuid()));
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        // TimeZoneResolver.ResolveTimeZone retorna fallback UTC/Local se schedule é null
+    }
+
+    [Fact]
     public async Task HandleAsync_Should_Return_NotFound_When_NotAuthorized()
     {
         // Arrange

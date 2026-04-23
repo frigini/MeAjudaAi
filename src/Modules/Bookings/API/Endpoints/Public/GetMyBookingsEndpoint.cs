@@ -34,7 +34,12 @@ public class GetMyBookingsEndpoint : IEndpoint
                 return Results.Problem("Autenticação necessária.", statusCode: StatusCodes.Status401Unauthorized);
             }
 
-            var correlationIdHeader = context.Request.Headers["X-Correlation-Id"].ToString();
+            if (from.HasValue && to.HasValue && from > to)
+            {
+                return Results.Problem("A data inicial ('from') não pode ser posterior à data final ('to').", statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].ToString();
             var correlationId = Guid.TryParse(correlationIdHeader, out var parsedId) ? parsedId : Guid.NewGuid();
 
             var query = new GetBookingsByClientQuery(clientId, correlationId, page, pageSize, from, to);

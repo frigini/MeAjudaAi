@@ -6,7 +6,7 @@ using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Queries;
-using MeAjudaAi.Shared.Validators;
+using MeAjudaAi.Shared.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
