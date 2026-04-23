@@ -11,11 +11,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 
 public class GetProviderBookingsEndpoint : IEndpoint
 {
+    private const int MaxPageSize = 100;
+    
     public static void Map(IEndpointRouteBuilder app)
     {
         app.MapGet("/provider/{providerId}", async (
@@ -25,9 +28,20 @@ public class GetProviderBookingsEndpoint : IEndpoint
             [FromServices] IQueryDispatcher dispatcher,
             [FromServices] IProvidersModuleApi providersApi,
             [FromServices] IMemoryCache cache,
+            [FromServices] ILogger<GetProviderBookingsEndpoint> logger,
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
+            if (providerId == Guid.Empty)
+            {
+                return Results.Problem("ProviderId não pode ser vazio.", statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            var normalizedPage = Math.Max(1, page ?? 1);
+            var normalizedPageSize = pageSize.HasValue 
+                ? Math.Clamp(pageSize.Value, 1, MaxPageSize) 
+                : 10;
+
             var user = context.User;
             var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
             var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
@@ -48,11 +62,21 @@ public class GetProviderBookingsEndpoint : IEndpoint
                         if (!cache.TryGetValue(cacheKey, out Guid cachedProviderId))
                         {
                             var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
-                            if (providerResult.IsSuccess && providerResult.Value != null)
+                            if (providerResult.IsFailure)
                             {
-                                cachedProviderId = providerResult.Value.Id;
-                                cache.Set(cacheKey, cachedProviderId, TimeSpan.FromMinutes(30));
+                                logger.LogWarning("Failed to resolve provider for user {UserId}: {Error}", uId, providerResult.Error.Message);
+                                return Results.Problem(providerResult.Error.Message, statusCode: providerResult.Error.StatusCode);
                             }
+                            if (providerResult.Value == null)
+                            {
+                                return Results.Forbid();
+                            }
+                            cachedProviderId = providerResult.Value.Id;
+                            cache.Set(cacheKey, cachedProviderId, new MemoryCacheEntryOptions
+                            {
+                                SlidingExpiration = TimeSpan.FromMinutes(5),
+                                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+                            });
                         }
                         isAuthorized = cachedProviderId == providerId;
                     }
@@ -67,7 +91,7 @@ public class GetProviderBookingsEndpoint : IEndpoint
             var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
             var correlationId = Guid.TryParse(correlationIdHeader, out var cId) ? cId : Guid.NewGuid();
 
-            var query = new GetBookingsByProviderQuery(providerId, correlationId, page ?? 1, pageSize ?? 10);
+            var query = new GetBookingsByProviderQuery(providerId, correlationId, normalizedPage, normalizedPageSize);
             var result = await dispatcher.QueryAsync<GetBookingsByProviderQuery, Result<PagedResult<BookingDto>>>(query, cancellationToken);
 
             return result.IsSuccess 
@@ -76,6 +100,7 @@ public class GetProviderBookingsEndpoint : IEndpoint
         })
         .RequireAuthorization()
         .Produces<PagedResult<BookingDto>>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status403Forbidden)
         .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(BookingsEndpoints.Tag)

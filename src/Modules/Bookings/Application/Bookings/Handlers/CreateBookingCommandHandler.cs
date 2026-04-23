@@ -51,7 +51,12 @@ public sealed class CreateBookingCommandHandler(
 
         // 1.5 Validar ServiceId
         var serviceActive = await serviceCatalogsApi.IsServiceActiveAsync(command.ServiceId, cancellationToken);
-        if (serviceActive.IsFailure || !serviceActive.Value)
+        if (serviceActive.IsFailure)
+        {
+            return Result<BookingDto>.Failure(serviceActive.Error);
+        }
+        
+        if (!serviceActive.Value)
         {
             return Result<BookingDto>.Failure(Error.NotFound("Serviço não encontrado ou inativo."));
         }

@@ -173,5 +173,6 @@ public class GlobalExceptionHandlerTests
         var body = await new StreamReader(context.Response.Body).ReadToEndAsync();
         body.Should().NotContain("Dados sensíveis");
         body.Should().Contain("Ocorreu um erro inesperado");
+        body.Should().Contain("trace-abc");
     }
 }

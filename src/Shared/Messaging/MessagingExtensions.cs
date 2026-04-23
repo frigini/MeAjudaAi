@@ -100,7 +100,7 @@ public static class MessagingExtensions
 
                 var connectionString = options.BuildConnectionString();
                 
-                var useSystemTextJson = configuration.GetValue<bool>("Messaging:UseSystemTextJson", false);
+                var useSystemTextJson = configuration.GetValue<bool>(UseSystemTextJsonKey, false);
 
                 configure
                     .Transport(t => t.UseRabbitMq(connectionString, options.DefaultQueueName));

@@ -27,6 +27,16 @@ public sealed class ProviderSchedule : BaseEntity
     public void UpdateTimeZone(string timeZoneId)
     {
         if (string.IsNullOrWhiteSpace(timeZoneId)) throw new ArgumentException("TimeZoneId não pode estar vazio", nameof(timeZoneId));
+        
+        try
+        {
+            TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            throw new ArgumentException($"TimeZoneId inválido: {timeZoneId}", nameof(timeZoneId));
+        }
+        
         TimeZoneId = timeZoneId;
         MarkAsUpdated();
     }

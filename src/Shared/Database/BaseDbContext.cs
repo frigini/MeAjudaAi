@@ -49,13 +49,5 @@ public abstract class BaseDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-        {
-            if (entityType.ClrType.GetProperty("Version") != null && entityType.ClrType.Name != "Booking")
-            {
-                modelBuilder.Entity(entityType.ClrType).Ignore("Version");
-            }
-        }
     }
 }

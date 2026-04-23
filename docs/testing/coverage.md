@@ -69,14 +69,19 @@ Em cada execução do workflow, você pode baixar:
 ## 🎯 Thresholds Configurados
 
 ### **Limites Atuais**
-thresholds: '85 80'
+thresholds: '90 80'
 
-- **85%**: Limite mínimo obrigatório (pipeline falha se abaixo)
+- **90%**: Limite mínimo obrigatório (pipeline falha se abaixo)
 - **80%**: Limite de branches (mínimo recomendado)
 
 ### **Comportamento do Pipeline**
-- **Coverage ≥ 85%**: ✅ Pipeline passa com sucesso
-- **Coverage < 85%**: ❌ Pipeline falha (obrigatório)
+- **Coverage ≥ 90%**: ✅ Pipeline passa com sucesso
+- **Coverage < 90%**: ❌ Pipeline falha (obrigatório)
+
+### **Guidance: Excluir Glue/DTO Code**
+Para alcançar o target de 90%, prefira excluir código de infraestrutura/glue dos testes:
+- **Endpoints/Extensions/Options/IntegrationEvent/DbContextFactory**: Classes de infraestrutura sem lógica de negócio
+- Adicione `[ExcludeFromCodeCoverage]` ou configure filtros no CI para atingir a meta ao adicionar módulos como Bookings.
 
 ## 🔧 Como Melhorar o Coverage
 

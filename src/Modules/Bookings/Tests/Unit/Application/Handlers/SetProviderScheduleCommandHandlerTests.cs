@@ -89,6 +89,43 @@ public class SetProviderScheduleCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.Message.Should().Be("Api failure");
+        result.Error!.StatusCode.Should().Be(500);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Fail_When_Availabilities_Is_Null()
+    {
+        var providerId = Guid.NewGuid();
+        var command = new SetProviderScheduleCommand(providerId, null!, Guid.NewGuid());
+
+        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+
+        var result = await _sut.HandleAsync(command);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Be("A lista de disponibilidades não pode ser nula.");
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Fail_When_Availabilities_Contains_Null()
+    {
+        var providerId = Guid.NewGuid();
+        var availabilities = new List<ProviderScheduleDto>
+        {
+            new(DayOfWeek.Monday, new List<TimeSlotDto> { new(new TimeOnly(8, 0), new TimeOnly(12, 0)) }),
+            null!
+        };
+        
+        var command = new SetProviderScheduleCommand(providerId, availabilities, Guid.NewGuid());
+
+        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+
+        var result = await _sut.HandleAsync(command);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Message.Should().Be("Uma das disponibilidades fornecidas é nula.");
     }
 
     [Fact]

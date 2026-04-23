@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
@@ -9,7 +10,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using System.Security.Claims;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 
@@ -20,9 +22,10 @@ public class GetMyBookingsEndpoint : IEndpoint
         app.MapGet("/my", async (
             [FromQuery] int? page,
             [FromQuery] int? pageSize,
-            [FromQuery] DateTime? from,
-            [FromQuery] DateTime? to,
+            [FromQuery] DateTimeOffset? from,
+            [FromQuery] DateTimeOffset? to,
             [FromServices] IQueryDispatcher dispatcher,
+            [FromServices] ILogger<GetMyBookingsEndpoint> logger,
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
@@ -39,10 +42,17 @@ public class GetMyBookingsEndpoint : IEndpoint
                 return Results.Problem("A data inicial ('from') não pode ser posterior à data final ('to').", statusCode: StatusCodes.Status400BadRequest);
             }
 
-            var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].ToString();
-            var correlationId = Guid.TryParse(correlationIdHeader, out var parsedId) ? parsedId : Guid.NewGuid();
+            var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId];
+            var correlationIdRaw = correlationIdHeader.FirstOrDefault();
+            var correlationId = Guid.TryParse(correlationIdRaw, out var parsedId) ? parsedId : Guid.NewGuid();
+            
+            if (!string.IsNullOrEmpty(correlationIdRaw) && !Guid.TryParse(correlationIdRaw, out _))
+            {
+                logger.LogWarning("Failed to parse CorrelationId header '{HeaderKey}': raw value '{RawValue}'. Using new GUID instead.", 
+                    AuthConstants.Headers.CorrelationId, correlationIdRaw);
+            }
 
-            var query = new GetBookingsByClientQuery(clientId, correlationId, page, pageSize, from, to);
+            var query = new GetBookingsByClientQuery(clientId, correlationId, page, pageSize, from?.UtcDateTime, to?.UtcDateTime);
             var result = await dispatcher.QueryAsync<GetBookingsByClientQuery, Result<PagedResult<BookingDto>>>(query, cancellationToken);
 
             return result.Match(

@@ -11,6 +11,9 @@ using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -108,16 +111,11 @@ public class BookingsApiTests : BaseApiTest
         using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>();
         
-        var category = new MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Category("Test Category", 1);
-        context.Categories.Add(category);
+        var category = ServiceCategory.Create("Test Category", null, 1);
+        context.ServiceCategories.Add(category);
         await context.SaveChangesAsync();
 
-        var service = MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service.Create(
-            "Test Service",
-            "Description",
-            100.00m,
-            category.Id,
-            providerId);
+        var service = Service.Create(category.Id, "Test Service", "Description");
         
         context.Services.Add(service);
         await context.SaveChangesAsync();

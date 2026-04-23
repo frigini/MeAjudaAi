@@ -69,7 +69,7 @@ public class ConfigurableTestAuthenticationHandler(
             return Task.FromResult(AuthenticateResult.Fail("No authentication configuration set"));
         }
 
-        Logger.LogDebug("AUTH_DEBUG HandleAuthenticateAsync: SUCCESS for contextId {ContextId}", contextId);
+        Logger.LogDebug("HandleAuthenticateAsync: SUCCESS for contextId {ContextId}", contextId);
         return Task.FromResult(CreateSuccessResult());
     }
 

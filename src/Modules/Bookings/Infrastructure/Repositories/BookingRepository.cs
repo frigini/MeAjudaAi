@@ -24,7 +24,7 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
 
-    [Obsolete]
+    [Obsolete("Use GetByProviderIdPagedAsync(Filter) instead: supports paging and filtering.")]
     public async Task<IReadOnlyList<Booking>> GetByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
         return await context.Bookings
@@ -43,7 +43,7 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
         return await GetBookingsPagedAsync(query, from, to, page, pageSize, cancellationToken);
     }
 
-    [Obsolete]
+    [Obsolete("Use GetByClientIdPagedAsync(Filter) instead: supports paging and filtering.")]
     public async Task<IReadOnlyList<Booking>> GetByClientIdAsync(Guid clientId, CancellationToken cancellationToken = default)
     {
         return await context.Bookings
@@ -88,7 +88,7 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
         return (items, totalCount);
     }
 
-    [Obsolete]
+    [Obsolete("Use GetAsync(Filter) with Status filter instead: supports paging and filtering.")]
     public async Task<IReadOnlyList<Booking>> GetByProviderAndStatusAsync(Guid providerId, EBookingStatus status, CancellationToken cancellationToken = default)
     {
         return await context.Bookings
@@ -167,6 +167,7 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                 }
                 catch (OperationCanceledException)
                 {
+                    // Rethrow is intentional: transaction is managed via await using and DisposeAsync will auto-rollback.
                     throw;
                 }
                 catch (Exception ex)
