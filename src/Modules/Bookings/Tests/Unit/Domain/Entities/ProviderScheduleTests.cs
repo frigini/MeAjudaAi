@@ -16,7 +16,7 @@ public class ProviderScheduleTests : BaseUnitTest
 
         // Assert
         schedule.ProviderId.Should().Be(providerId);
-        schedule.TimeZoneId.Should().Be("E. South America Standard Time");
+        schedule.TimeZoneId.Should().Be("America/Sao_Paulo");
         schedule.Availabilities.Should().BeEmpty();
     }
 

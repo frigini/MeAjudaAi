@@ -123,7 +123,6 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
             while (true)
             {
                 attempt++;
-                context.Entry(booking).State = EntityState.Detached;
                 await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
                 
                 try
@@ -172,8 +171,9 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                         {
                             await transaction.RollbackAsync(CancellationToken.None);
                         }
-                        catch
+                        catch (Exception rollbackEx)
                         {
+                            logger.LogDebug("Rollback failed during retry (expected in some scenarios): {Error}", rollbackEx.Message);
                         }
 
                         await Task.Delay(Random.Shared.Next(50, 200), cancellationToken);
@@ -187,8 +187,9 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                     {
                         await transaction.RollbackAsync(CancellationToken.None);
                     }
-                    catch
+                    catch (Exception rollbackEx)
                     {
+                        logger.LogDebug("Rollback failed during error handling (expected in some scenarios): {Error}", rollbackEx.Message);
                     }
                     
                     if (IsConcurrencyError(ex))

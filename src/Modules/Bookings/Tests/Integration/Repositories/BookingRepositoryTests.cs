@@ -141,10 +141,12 @@ public class BookingRepositoryTests : BaseDatabaseTest
         var providerId = Guid.NewGuid();
         var day2 = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(2);
         var day3 = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(3);
-        var timeSlot = TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0));
 
-        var booking1 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), day2, timeSlot);
-        var booking2 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), day3, timeSlot);
+        // Creating bookings with same times but different dates and different TimeSlot instances
+        var booking1 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), day2, 
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        var booking2 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), day3, 
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
 
         // Act
         var result1 = await _repository.AddIfNoOverlapAsync(booking1);

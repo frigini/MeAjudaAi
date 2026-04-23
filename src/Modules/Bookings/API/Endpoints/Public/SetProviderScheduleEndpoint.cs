@@ -15,9 +15,101 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 
-public class SetProviderScheduleEndpoint : IEndpoint
+public class ProviderAuthorizationResult
+{
+    public bool IsAdmin { get; init; }
+    public Guid? ProviderId { get; init; }
+    public bool IsNotLinked { get; init; }
+    public bool IsUnauthorized { get; init; }
+    public string? ErrorMessage { get; init; }
+    public int? ErrorStatusCode { get; init; }
+
+    public static ProviderAuthorizationResult Admin() => new() { IsAdmin = true };
+    public static ProviderAuthorizationResult Authorized(Guid providerId) => new() { ProviderId = providerId };
+    public static ProviderAuthorizationResult NotLinked() => new() { IsNotLinked = true };
+    public static ProviderAuthorizationResult Unauthorized(string? message = null, int? statusCode = null) => 
+        new() { IsUnauthorized = true, ErrorMessage = message, ErrorStatusCode = statusCode };
+}
+
+public class ProviderAuthorizationResolver
 {
     private const string CacheKeyPrefix = "bookings:provider_by_user:";
+    private static readonly TimeSpan SlidingExpiration = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan AbsoluteExpiration = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan MissExpiration = TimeSpan.FromMinutes(2);
+
+    public async Task<ProviderAuthorizationResult> ResolveAsync(
+        HttpContext httpContext,
+        IProvidersModuleApi providersApi,
+        IMemoryCache cache,
+        ILogger logger,
+        CancellationToken cancellationToken = default)
+    {
+        var user = httpContext.User;
+        var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
+
+        if (isSystemAdmin)
+        {
+            return ProviderAuthorizationResult.Admin();
+        }
+
+        var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
+        if (!string.IsNullOrEmpty(providerIdClaim) && Guid.TryParse(providerIdClaim, out var pId))
+        {
+            return ProviderAuthorizationResult.Authorized(pId);
+        }
+
+        var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var uId))
+        {
+            return ProviderAuthorizationResult.Unauthorized("Identificação do usuário não encontrada.");
+        }
+
+        var cacheKey = $"{CacheKeyPrefix}{uId}";
+        if (cache.TryGetValue(cacheKey, out Guid cachedProviderId))
+        {
+            if (cachedProviderId == Guid.Empty)
+            {
+                logger.LogDebug("Cached miss for user {UserId}", uId);
+                return ProviderAuthorizationResult.NotLinked();
+            }
+            return ProviderAuthorizationResult.Authorized(cachedProviderId);
+        }
+
+        var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
+        
+        if (providerResult.IsFailure)
+        {
+            logger.LogWarning("Failed to resolve provider for user {UserId}: {Error}", uId, providerResult.Error.Message);
+            return ProviderAuthorizationResult.Unauthorized(providerResult.Error.Message, providerResult.Error.StatusCode);
+        }
+
+        if (providerResult.Value == null)
+        {
+            cache.Set(cacheKey, Guid.Empty, new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = MissExpiration,
+                AbsoluteExpirationRelativeToNow = MissExpiration
+            });
+            logger.LogDebug("User {UserId} has no associated provider (cached)", uId);
+            return ProviderAuthorizationResult.NotLinked();
+        }
+
+        var resolvedProviderId = providerResult.Value.Id;
+        cache.Set(cacheKey, resolvedProviderId, new MemoryCacheEntryOptions
+        {
+            SlidingExpiration = SlidingExpiration,
+            AbsoluteExpirationRelativeToNow = AbsoluteExpiration
+        });
+        logger.LogDebug("Resolved provider {ProviderId} for user {UserId}", resolvedProviderId, uId);
+        
+        return ProviderAuthorizationResult.Authorized(resolvedProviderId);
+    }
+}
+
+public class SetProviderScheduleEndpoint : IEndpoint
+{
+    private readonly static ProviderAuthorizationResolver _authResolver = new();
     
     public static void Map(IEndpointRouteBuilder app)
     {
@@ -35,64 +127,37 @@ public class SetProviderScheduleEndpoint : IEndpoint
                 return Results.Problem("Corpo da requisição ou disponibilidades ausentes.", statusCode: StatusCodes.Status400BadRequest);
             }
 
-            var user = context.User;
-            var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value
-                           ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
-            var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
+            var authResult = await _authResolver.ResolveAsync(context, providersApi, cache, logger, cancellationToken);
+
+            if (authResult.IsUnauthorized)
+            {
+                return Results.Problem(authResult.ErrorMessage, statusCode: authResult.ErrorStatusCode ?? StatusCodes.Status403Forbidden);
+            }
+
+            if (authResult.IsNotLinked)
+            {
+                return Results.NotFound("Usuário não possui prestador vinculado.");
+            }
 
             Guid targetProviderId;
 
-            if (isSystemAdmin)
+            if (authResult.IsAdmin)
             {
                 if (request.ProviderId == Guid.Empty)
                 {
                     return Results.Problem("ProviderId inválido para operação admin.", statusCode: StatusCodes.Status400BadRequest);
                 }
                 targetProviderId = request.ProviderId;
+                var userIdClaim = context.User.FindFirst(AuthConstants.Claims.Subject)?.Value;
                 logger.LogInformation("Admin {AdminId} is setting schedule for Provider {ProviderId}", userIdClaim, targetProviderId);
             }
-            else if (!string.IsNullOrEmpty(providerIdClaim) && Guid.TryParse(providerIdClaim, out var pId))
+            else if (authResult.ProviderId.HasValue)
             {
-                targetProviderId = pId;
+                targetProviderId = authResult.ProviderId.Value;
                 logger.LogInformation("Provider {ProviderId} is setting own schedule", targetProviderId);
-            }
-            else if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var uId))
-            {
-                var cacheKey = $"{CacheKeyPrefix}{uId}";
-                if (cache.TryGetValue(cacheKey, out Guid cachedProviderId))
-                {
-                    targetProviderId = cachedProviderId;
-                    logger.LogInformation("Resolved provider {ProviderId} from cache for user {UserId}", targetProviderId, userIdClaim);
-                }
-                else
-                {
-                    var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
-                    
-                    if (providerResult.IsFailure)
-                    {
-                        logger.LogWarning("Failed to resolve provider for user {UserId}: {Error}", userIdClaim, providerResult.Error.Message);
-                        return Results.Problem(providerResult.Error.Message, statusCode: providerResult.Error.StatusCode);
-                    }
-
-                    if (providerResult.Value == null)
-                    {
-                        logger.LogWarning("User {UserId} has no associated provider", userIdClaim);
-                        return Results.NotFound("Usuário não possui prestador vinculado.");
-                    }
-
-                    targetProviderId = providerResult.Value.Id;
-                    cache.Set(cacheKey, targetProviderId, new MemoryCacheEntryOptions
-                    {
-                        SlidingExpiration = TimeSpan.FromMinutes(5),
-                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
-                    });
-                    logger.LogInformation("Resolved provider {ProviderId} for user {UserId}", targetProviderId, userIdClaim);
-                }
             }
             else
             {
-                logger.LogWarning("Missing/invalid claims for user authentication");
                 return Results.Unauthorized();
             }
 
@@ -101,7 +166,7 @@ public class SetProviderScheduleEndpoint : IEndpoint
                 return Results.Problem("ProviderId inválido ou ausente.", statusCode: StatusCodes.Status400BadRequest);
             }
 
-            if (!isSystemAdmin && request.ProviderId != Guid.Empty && request.ProviderId != targetProviderId)
+            if (!authResult.IsAdmin && request.ProviderId != Guid.Empty && request.ProviderId != targetProviderId)
             {
                 return Results.Problem("O ProviderId informado não coincide com o prestador autenticado.", statusCode: StatusCodes.Status400BadRequest);
             }

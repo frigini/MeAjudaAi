@@ -18,7 +18,7 @@ namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 public class GetProviderBookingsEndpoint : IEndpoint
 {
     private const int MaxPageSize = 100;
-    private const string CacheKeyPrefix = "bookings:provider_by_user:";
+    private readonly static ProviderAuthorizationResolver _authResolver = new();
     
     public static void Map(IEndpointRouteBuilder app)
     {
@@ -43,50 +43,21 @@ public class GetProviderBookingsEndpoint : IEndpoint
                 ? Math.Clamp(pageSize.Value, 1, MaxPageSize) 
                 : 10;
 
-            var user = context.User;
-            var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
-            var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
+            var authResult = await _authResolver.ResolveAsync(context, providersApi, cache, logger, cancellationToken);
 
-            if (!isSystemAdmin)
+            if (authResult.IsUnauthorized)
             {
-                bool isAuthorized = false;
-                if (!string.IsNullOrEmpty(providerIdClaim) && Guid.TryParse(providerIdClaim, out var pId))
-                {
-                    isAuthorized = pId == providerId;
-                }
-                else
-                {
-                    var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value;
-                    if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var uId))
-                    {
-                        var cacheKey = $"{CacheKeyPrefix}{uId}";
-                        if (!cache.TryGetValue(cacheKey, out Guid cachedProviderId))
-                        {
-                            var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
-                            if (providerResult.IsFailure)
-                            {
-                                logger.LogWarning("Failed to resolve provider for user {UserId}: {Error}", uId, providerResult.Error.Message);
-                                return Results.Problem(providerResult.Error.Message, statusCode: providerResult.Error.StatusCode);
-                            }
-                            if (providerResult.Value == null)
-                            {
-                                return Results.NotFound("Usuário não possui prestador vinculado.");
-                            }
-                            cachedProviderId = providerResult.Value.Id;
-                            cache.Set(cacheKey, cachedProviderId, new MemoryCacheEntryOptions
-                            {
-                                SlidingExpiration = TimeSpan.FromMinutes(5),
-                                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
-                            });
-                        }
-                        isAuthorized = cachedProviderId == providerId;
-                    }
-                }
+                return Results.Problem(authResult.ErrorMessage, statusCode: authResult.ErrorStatusCode ?? StatusCodes.Status403Forbidden);
+            }
 
-                if (!isAuthorized)
-                {
-                    return Results.Forbid();
-                }
+            if (authResult.IsNotLinked)
+            {
+                return Results.NotFound("Usuário não possui prestador vinculado.");
+            }
+
+            if (!authResult.IsAdmin && authResult.ProviderId.HasValue && authResult.ProviderId.Value != providerId)
+            {
+                return Results.Forbid();
             }
 
             var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();

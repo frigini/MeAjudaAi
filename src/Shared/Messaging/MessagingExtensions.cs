@@ -33,7 +33,7 @@ internal sealed class MessagingConfiguration
 /// </summary>
 public static class MessagingExtensions
 {
-    private const string UseSystemTextJsonKey = "Messaging:UseSystemTextJson";
+    private const string UseNewtonsoftJsonKey = "Messaging:UseNewtonsoftJson";
 
     public static IServiceCollection AddMessaging(
         this IServiceCollection services,
@@ -100,14 +100,13 @@ public static class MessagingExtensions
 
                 var connectionString = options.BuildConnectionString();
                 
-                var useSystemTextJson = configuration.GetValue<bool>(UseSystemTextJsonKey, false);
-
                 configure
                     .Transport(t => t.UseRabbitMq(connectionString, options.DefaultQueueName));
 
-                if (useSystemTextJson)
+                var useNewtonsoftJson = configuration.GetValue<bool>(UseNewtonsoftJsonKey, false);
+                if (useNewtonsoftJson)
                 {
-                    configure.Serialization(s => s.UseSystemTextJson());
+                    configure.Serialization(s => s.UseNewtonsoftJson());
                 }
 
                 return configure
@@ -149,10 +148,10 @@ public static class MessagingExtensions
 
         try
         {
-            var useSystemTextJson = scope.ServiceProvider.GetRequiredService<IConfiguration>().GetValue<bool>(UseSystemTextJsonKey, false);
-            if (useSystemTextJson)
+            var useNewtonsoftJson = scope.ServiceProvider.GetRequiredService<IConfiguration>().GetValue<bool>(UseNewtonsoftJsonKey, false);
+            if (useNewtonsoftJson)
             {
-                logger.LogWarning("Messaging: System.Text.Json is ENABLED. Ensure all producers/consumers are updated and clear queues/DLQs if necessary.");
+                logger.LogInformation("Messaging: Newtonsoft.Json is ENABLED. Using legacy serializer.");
             }
 
             logger.LogInformation("Ensuring messaging infrastructure (Queues/Exchanges)...");
