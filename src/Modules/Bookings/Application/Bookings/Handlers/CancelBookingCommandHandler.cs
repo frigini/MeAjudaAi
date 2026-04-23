@@ -33,7 +33,7 @@ public sealed class CancelBookingCommandHandler(
         }
 
         // 2. Validar Autorização (Dono da reserva, Prestador ou Admin)
-        var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value;
+        var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
         var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
 

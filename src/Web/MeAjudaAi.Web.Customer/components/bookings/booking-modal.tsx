@@ -72,10 +72,16 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
             });
             if (!res.ok) {
                 const errorData = await res.json().catch(() => ({}));
-                throw new Error(errorData.detail || errorData.message || `Erro ${res.status}: Falha ao carregar disponibilidade`);
+                const errorMessage = errorData.detail || errorData.message || (errorData.errors ? Object.values(errorData.errors).flat().join(", ") : null) || `Erro ${res.status}: Falha ao carregar disponibilidade`;
+                throw new Error(errorMessage);
             }
             const data = await res.json();
-            return AvailabilitySchema.parse(data);
+            const result = AvailabilitySchema.safeParse(data);
+            if (!result.success) {
+                console.error("Erro de validação de disponibilidade:", result.error);
+                throw new Error("Os dados de disponibilidade retornados pelo servidor são inválidos.");
+            }
+            return result.data;
         },
         enabled: open && !!providerId,
     });

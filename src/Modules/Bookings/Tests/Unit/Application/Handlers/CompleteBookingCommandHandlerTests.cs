@@ -44,7 +44,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         SetupUser(providerId);
 
         // Act
-        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id));
+        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, Guid.NewGuid()));
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -68,7 +68,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         SetupUser(providerId);
 
         // Act
-        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id));
+        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -93,7 +93,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         SetupUser(Guid.NewGuid()); // Outro provider
 
         // Act
-        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id));
+        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -110,7 +110,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
             .ReturnsAsync((Booking?)null);
 
         // Act
-        var result = await _sut.HandleAsync(new CompleteBookingCommand(Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new CompleteBookingCommand(Guid.NewGuid(), Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();

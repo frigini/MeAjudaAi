@@ -11,7 +11,7 @@ public sealed class Availability : ValueObject
     public DayOfWeek DayOfWeek { get; }
     public IReadOnlyList<TimeSlot> Slots => _slots.AsReadOnly();
 
-    private Availability() { } // Required by EF Core
+    private Availability() { } // Necessário para o EF Core
 
     private Availability(DayOfWeek dayOfWeek, IEnumerable<TimeSlot> slots)
     {

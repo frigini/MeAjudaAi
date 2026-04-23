@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 
@@ -23,6 +24,7 @@ public class GetProviderBookingsEndpoint : IEndpoint
             [FromQuery] int? pageSize,
             [FromServices] IQueryDispatcher dispatcher,
             [FromServices] IProvidersModuleApi providersApi,
+            [FromServices] IMemoryCache cache,
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
@@ -42,8 +44,17 @@ public class GetProviderBookingsEndpoint : IEndpoint
                     var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value;
                     if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var uId))
                     {
-                        var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
-                        isAuthorized = providerResult.IsSuccess && providerResult.Value != null && providerResult.Value.Id == providerId;
+                        var cacheKey = $"provider_id_user_{uId}";
+                        if (!cache.TryGetValue(cacheKey, out Guid cachedProviderId))
+                        {
+                            var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
+                            if (providerResult.IsSuccess && providerResult.Value != null)
+                            {
+                                cachedProviderId = providerResult.Value.Id;
+                                cache.Set(cacheKey, cachedProviderId, TimeSpan.FromMinutes(30));
+                            }
+                        }
+                        isAuthorized = cachedProviderId == providerId;
                     }
                 }
 
@@ -53,7 +64,10 @@ public class GetProviderBookingsEndpoint : IEndpoint
                 }
             }
 
-            var query = new GetBookingsByProviderQuery(providerId, Guid.NewGuid(), page, pageSize);
+            var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
+            var correlationId = Guid.TryParse(correlationIdHeader, out var cId) ? cId : Guid.NewGuid();
+
+            var query = new GetBookingsByProviderQuery(providerId, correlationId, page, pageSize);
             var result = await dispatcher.QueryAsync<GetBookingsByProviderQuery, Result<PagedResult<BookingDto>>>(query, cancellationToken);
 
             return result.IsSuccess 

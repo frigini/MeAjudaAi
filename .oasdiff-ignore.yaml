@@ -1,25 +1,6 @@
 # Configuração para ignorar breaking changes intencionais.
+# Formato: METHOD PATH ERROR_ID
 
-- err-id: 'response-property-type-changed'
-  method: 'GET'
-  path: '/api/v1/providers/public/{idOrSlug}'
-
-- id: 'response-property-type-changed'
-  method: 'GET'
-  path: '/api/v1/providers/public/{idOrSlug}'
-
-- err-id: 'response-property-type-changed'
-  method: 'GET'
-  path: '/api/v1/providers/public/**'
-
-- id: 'response-property-type-changed'
-  method: 'GET'
-  path: '/api/v1/providers/public/**'
-
-- err-id: 'response-body-type-changed'
-  method: 'GET'
-  path: '/api/v1/providers/public/{idOrSlug}'
-
-- id: 'response-body-type-changed'
-  method: 'GET'
-  path: '/api/v1/providers/public/{idOrSlug}'
+GET /api/v1/providers/public/{idOrSlug} response-property-type-changed
+GET /api/v1/providers/public/** response-property-type-changed
+GET /api/v1/providers/public/{idOrSlug} response-body-type-changed

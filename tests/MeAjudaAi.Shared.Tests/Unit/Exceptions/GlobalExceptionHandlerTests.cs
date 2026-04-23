@@ -361,6 +361,27 @@ public class GlobalExceptionHandlerTests
         context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
     }
 
+    [Fact]
+    public async Task TryHandleAsync_InProduction_ShouldHideDiagnosticDetails()
+    {
+        // Arrange
+        var context = CreateDefaultContext();
+        var exception = new Exception("Sensitive internal error details");
+        _envMock.Setup(e => e.EnvironmentName).Returns(Environments.Production);
+
+        // Act
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        // Assert
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
+        
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Detail.Should().Be("Ocorreu um erro inesperado");
+        problemDetails.Detail.Should().NotContain("Sensitive internal error details");
+        problemDetails.Detail.Should().NotContain("Exception");
+    }
+
     private DefaultHttpContext CreateDefaultContext()
     {
         var context = new DefaultHttpContext();
@@ -379,5 +400,26 @@ public class GlobalExceptionHandlerTests
     }
 
     private class TestDomainException(string message) : DomainException(message) { }
-    private class TestBadRequestException(string message) : BadRequestException(message) { }
+
+    private sealed class TestBadRequestException(string message) : BadRequestException(message) { }
+
+    [Fact]
+    public async Task TryHandleAsync_WithBadRequestException_ShouldReturn400WithMessage()
+    {
+        // Arrange
+        var context = CreateDefaultContext();
+        var exception = new TestBadRequestException("Requisição inválida recebida.");
+
+        // Act
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        // Assert
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+
+        var problemDetails = await ReadProblemDetailsAsync(context);
+        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
+        problemDetails.Title.Should().Be("Erro de validação");
+        problemDetails.Detail.Should().Be("Requisição inválida recebida.");
+    }
 }

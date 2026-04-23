@@ -27,7 +27,7 @@ public class TimeSlotTests : BaseUnitTest
         var act = () => TimeSlot.Create(new TimeOnly(12, 0), new TimeOnly(8, 0));
 
         // Assert
-        act.Should().Throw<ArgumentException>().WithMessage("*before end time*");
+        act.Should().Throw<ArgumentException>().WithMessage("O horário de início deve ser anterior ao horário de término.");
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class TimeSlotTests : BaseUnitTest
         var act = () => TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(10, 0));
 
         // Assert
-        act.Should().Throw<ArgumentException>().WithMessage("*before end time*");
+        act.Should().Throw<ArgumentException>().WithMessage("O horário de início deve ser anterior ao horário de término.");
     }
 
     [Fact]

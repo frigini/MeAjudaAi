@@ -22,12 +22,12 @@ public class CancelBookingEndpoint : IEndpoint
         {
             if (string.IsNullOrWhiteSpace(request.Reason))
             {
-                return Results.BadRequest(new { error = "O motivo do cancelamento é obrigatório." });
+                return Results.Problem("O motivo do cancelamento é obrigatório.", statusCode: 400);
             }
 
             if (request.Reason.Length > 500)
             {
-                return Results.BadRequest(new { error = "O motivo do cancelamento não pode exceder 500 caracteres." });
+                return Results.Problem("O motivo do cancelamento não pode exceder 500 caracteres.", statusCode: 400);
             }
 
             var correlationIdHeader = context.Request.Headers["X-Correlation-Id"].ToString();

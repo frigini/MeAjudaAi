@@ -30,7 +30,9 @@ public class SetProviderScheduleEndpoint : IEndpoint
             }
 
             var user = context.User;
-            var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value;
+            // Verifica tanto o claim proprietário (sub) quanto o padrão do ASP.NET (NameIdentifier)
+            var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value
+                           ?? user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
             var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
 

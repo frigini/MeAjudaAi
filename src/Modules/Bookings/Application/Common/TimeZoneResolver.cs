@@ -71,28 +71,28 @@ public static class TimeZoneResolver
             return Result<BookingDto>.Failure(Error.BadRequest("Horário inválido para o fuso horário selecionado (possível transição de horário de verão)."));
         }
 
-        DateTime startUtc;
+        TimeSpan startOffset;
         if (tz.IsAmbiguousTime(startDate))
         {
             var offsets = tz.GetAmbiguousTimeOffsets(startDate);
-            logger.LogInformation("Ambiguous start time detected for booking {BookingId}. Choosing the offset {Offset} (before transition).", booking.Id, offsets[0]);
-            startUtc = new DateTimeOffset(startDate, offsets[0]).UtcDateTime;
+            startOffset = offsets[0];
+            logger.LogInformation("Ambiguous start time detected for booking {BookingId}. Choosing the offset {Offset}.", booking.Id, startOffset);
         }
         else
         {
-            startUtc = TimeZoneInfo.ConvertTimeToUtc(startDate, tz);
+            startOffset = tz.GetUtcOffset(startDate);
         }
 
-        DateTime endUtc;
+        TimeSpan endOffset;
         if (tz.IsAmbiguousTime(endDate))
         {
             var offsets = tz.GetAmbiguousTimeOffsets(endDate);
-            logger.LogInformation("Ambiguous end time detected for booking {BookingId}. Choosing the offset {Offset} (before transition).", booking.Id, offsets[0]);
-            endUtc = new DateTimeOffset(endDate, offsets[0]).UtcDateTime;
+            endOffset = offsets[0];
+            logger.LogInformation("Ambiguous end time detected for booking {BookingId}. Choosing the offset {Offset}.", booking.Id, endOffset);
         }
         else
         {
-            endUtc = TimeZoneInfo.ConvertTimeToUtc(endDate, tz);
+            endOffset = tz.GetUtcOffset(endDate);
         }
 
         return Result<BookingDto>.Success(new BookingDto(
@@ -100,8 +100,8 @@ public static class TimeZoneResolver
             booking.ProviderId,
             booking.ClientId,
             booking.ServiceId,
-            new DateTimeOffset(startDate, tz.GetUtcOffset(startUtc)),
-            new DateTimeOffset(endDate, tz.GetUtcOffset(endUtc)),
+            new DateTimeOffset(startDate, startOffset),
+            new DateTimeOffset(endDate, endOffset),
             booking.Status,
             booking.RejectionReason,
             booking.CancellationReason));

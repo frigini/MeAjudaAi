@@ -6,4 +6,4 @@ namespace MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 /// </summary>
 public record TimeSlotDto(TimeOnly Start, TimeOnly End);
 
-public record AvailabilityDto(DayOfWeek DayOfWeek, IEnumerable<TimeSlotDto> Slots);
+public record AvailabilityDto(DayOfWeek DayOfWeek, IReadOnlyList<TimeSlotDto> Slots);

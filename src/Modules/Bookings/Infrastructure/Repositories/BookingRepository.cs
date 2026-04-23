@@ -140,6 +140,7 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                             b.Date == booking.Date &&
                             b.Status != EBookingStatus.Cancelled &&
                             b.Status != EBookingStatus.Rejected &&
+                            b.Status != EBookingStatus.Completed &&
                             b.TimeSlot.Start < booking.TimeSlot.End &&
                             booking.TimeSlot.Start < b.TimeSlot.End,
                             cancellationToken);

@@ -16,6 +16,8 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
     private readonly Mock<ILogger<GetBookingsByProviderQueryHandler>> _loggerMock = new();
     private readonly GetBookingsByProviderQueryHandler _sut;
 
+    private static DateOnly FutureBookingDate() => DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30));
+
     public GetBookingsByProviderQueryHandlerTests()
     {
         _sut = new GetBookingsByProviderQueryHandler(
@@ -29,7 +31,7 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = new DateOnly(2026, 4, 25);
+        var date = FutureBookingDate();
 
         var bookings = new List<Booking>
         {
@@ -117,7 +119,7 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = new DateOnly(2026, 4, 25);
+        var date = FutureBookingDate();
         var startTime = new TimeOnly(10, 0);
         var endTime = new TimeOnly(11, 0);
         
@@ -155,7 +157,7 @@ public class GetBookingsByProviderQueryHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), new DateOnly(2026, 4, 25),
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), FutureBookingDate(),
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
         _bookingRepoMock.Setup(x => x.GetByProviderIdPagedAsync(providerId, null, null, 1, 10, It.IsAny<CancellationToken>()))

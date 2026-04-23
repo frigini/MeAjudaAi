@@ -145,6 +145,56 @@ public class BookingTests : BaseUnitTest
             .WithMessage("Only confirmed bookings can be marked as completed.");
     }
 
+    [Fact]
+    public void Version_Should_Increment_On_Transitions()
+    {
+        // Arrange
+        var booking = CreatePendingBooking();
+        var initialVersion = booking.Version;
+
+        // Act 1: Confirm
+        booking.Confirm();
+        var versionAfterConfirm = booking.Version;
+
+        // Act 2: Complete
+        booking.Complete();
+        var versionAfterComplete = booking.Version;
+
+        // Assert
+        versionAfterConfirm.Should().Be(initialVersion + 1);
+        versionAfterComplete.Should().Be(versionAfterConfirm + 1);
+    }
+
+    [Fact]
+    public void Confirm_Should_Throw_When_AlreadyConfirmed()
+    {
+        // Arrange
+        var booking = CreatePendingBooking();
+        booking.Confirm();
+
+        // Act
+        var act = () => booking.Confirm();
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("Only pending bookings can be confirmed.");
+    }
+
+    [Fact]
+    public void Reject_Should_Throw_When_AlreadyConfirmed()
+    {
+        // Arrange
+        var booking = CreatePendingBooking();
+        booking.Confirm();
+
+        // Act
+        var act = () => booking.Reject("Busy");
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("Only pending bookings can be rejected.");
+    }
+
     private static Booking CreatePendingBooking()
     {
         return Booking.Create(

@@ -142,6 +142,8 @@ legacy-analysis-report.*
 *-analysis-report.html
 *-analysis-report.json
 *QUALITY_ANALYSIS.md
+*.sarif
+**/errors.json
 
 # Archived scripts
 .archive/

@@ -75,7 +75,9 @@ public class ProviderScheduleTests : BaseUnitTest
     {
         // Arrange
         var schedule = ProviderSchedule.Create(Guid.NewGuid());
-        var dateTime = new DateTime(2026, 4, 20, 9, 0, 0);
+        var dateTime = new DateTime(2026, 4, 20, 9, 0, 0); // Segunda-feira
+        var slot = TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(12, 0));
+        schedule.SetAvailability(Availability.Create(DayOfWeek.Monday, [slot]));
 
         // Act & Assert
         schedule.IsAvailable(dateTime, TimeSpan.Zero).Should().BeFalse();
@@ -87,7 +89,7 @@ public class ProviderScheduleTests : BaseUnitTest
     {
         // Arrange
         var schedule = ProviderSchedule.Create(Guid.NewGuid());
-        // Slot covers until the very end of the day to ensure we fail by date crossing
+        // Slot cobre até o final do dia para garantir que falhemos por cruzamento de data
         var slot = TimeSlot.Create(new TimeOnly(22, 0), TimeOnly.MaxValue);
         schedule.SetAvailability(Availability.Create(DayOfWeek.Monday, [slot]));
 

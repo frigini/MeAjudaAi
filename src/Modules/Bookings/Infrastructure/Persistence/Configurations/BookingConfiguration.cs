@@ -70,7 +70,7 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .HasColumnType("timestamptz");
 
         builder.Property(b => b.Version)
-            .IsRowVersion()
+            .IsConcurrencyToken()
             .HasColumnName("version");
 
         // Índice para busca de agendamentos por prestador e data

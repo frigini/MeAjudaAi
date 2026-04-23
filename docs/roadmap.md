@@ -37,7 +37,7 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 
 ## ✅ Concluído Recentemente
 
-*   **Sprint 12**: Módulo de Bookings completo (Backend/Frontend), Migração final Rebus v3, Atributos de roteamento avançado e testes de arquitetura. (Abril 2026)
+*   **Sprint 12**: Módulo de Bookings completo (Backend/Frontend), Atributos de roteamento avançado de mensageria (`[DedicatedTopic]`, `[HighVolumeEvent]`, `[CriticalEvent]`) e testes de arquitetura. (Abril 2026)
 *   **Sprint 11**: Monetização completa (Checkout, Webhooks, Billing Portal, Renovação Automática), Localização i18n Frontend, Skeleton Loaders e cobertura de testes abrangente. (Abril 2026)
 *   **Sprint 10**: Módulo de Ratings, Moderação de Conteúdo, Login Social Instagram (#141), Alinhamento de Realms Keycloak, Infra CI/CD (OpenAPI gating) e Documentação (coleções Bruno). (Abril 2026)
 

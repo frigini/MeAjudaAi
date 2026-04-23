@@ -40,7 +40,7 @@ public class ProviderScheduleConfiguration : IEntityTypeConfiguration<ProviderSc
                 .HasConversion<string>();
 
             // Índice único para garantir apenas uma configuração por dia da semana para o mesmo schedule
-            availability.HasIndex("DayOfWeek", "provider_schedule_id").IsUnique();
+            availability.HasIndex("provider_schedule_id", "DayOfWeek").IsUnique();
 
             // Slots dentro de cada Availability (Coleção aninhada)
             availability.OwnsMany(a => a.Slots, slot =>

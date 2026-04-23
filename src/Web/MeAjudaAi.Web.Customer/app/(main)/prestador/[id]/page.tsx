@@ -45,7 +45,7 @@ export default function ProviderProfilePage() {
     const [selectedServiceId, setSelectedServiceId] = useState<string>("");
 
     const { data: providerData, isLoading, error } = useQuery({
-        queryKey: ["public-provider", id, isAuthenticated, session?.accessToken],
+        queryKey: ["public-provider", id, isAuthenticated],
         queryFn: async () => {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const res = await fetch(`${apiUrl}/api/v1/providers/${id}/public`, {
@@ -215,11 +215,19 @@ export default function ProviderProfilePage() {
                                     {services.map((service) => (
                                         <Badge
                                             key={service.id}
+                                            role="button"
+                                            tabIndex={0}
                                             onClick={() => setSelectedServiceId(service.id)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter" || e.key === " ") {
+                                                    e.preventDefault();
+                                                    setSelectedServiceId(service.id);
+                                                }
+                                            }}
                                             className={`px-3 py-1 cursor-pointer transition-colors text-sm rounded-full ${
                                                 selectedServiceId === service.id 
                                                     ? "bg-[#002D62] text-white ring-2 ring-offset-1 ring-[#002D62]" 
-                                                    : "bg-[#E0702B] text-white hover:bg-[#C55A1F]"
+                                                    : "hover:border-[#E0702B] hover:bg-[#E0702B]/5 text-gray-700"
                                             }`}
                                         >
                                             {service.name}
@@ -247,6 +255,12 @@ export default function ProviderProfilePage() {
                         <ReviewForm providerId={id} />
                     </div>
                     <ReviewList providerId={id} />
+                </div>
+            </div>
+        </div>
+    );
+}
+erId={id} />
                 </div>
             </div>
         </div>

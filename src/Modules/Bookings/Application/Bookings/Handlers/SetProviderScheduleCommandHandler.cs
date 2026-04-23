@@ -43,6 +43,16 @@ public sealed class SetProviderScheduleCommandHandler(
         {
             foreach (var availabilityDto in command.Availabilities)
             {
+                if (availabilityDto == null)
+                {
+                    return Result.Failure(Error.BadRequest("Uma das disponibilidades fornecidas é nula."));
+                }
+
+                if (availabilityDto.Slots == null)
+                {
+                    return Result.Failure(Error.BadRequest($"A lista de horários para {availabilityDto.DayOfWeek} não pode ser nula."));
+                }
+
                 var slots = availabilityDto.Slots.Select(s => TimeSlot.Create(s.Start, s.End));
                 var availability = Availability.Create(availabilityDto.DayOfWeek, slots);
                 newAvailabilities.Add(availability);

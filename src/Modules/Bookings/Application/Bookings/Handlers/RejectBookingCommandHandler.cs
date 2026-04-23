@@ -24,6 +24,11 @@ public sealed class RejectBookingCommandHandler(
             return Result.Failure(Error.BadRequest("O motivo da rejeição deve ser informado."));
         }
 
+        if (command.Reason.Length > 500)
+        {
+            return Result.Failure(Error.BadRequest("O motivo da rejeição não pode exceder 500 caracteres."));
+        }
+
         // 1. Validar Autenticação
         var user = httpContextAccessor.HttpContext?.User;
         if (user?.Identity?.IsAuthenticated != true)

@@ -14,9 +14,17 @@ public sealed class DedicatedTopicAttribute(string? topicName = null) : Attribut
 /// Indica que um evento tem alto volume e deve ser processado com maior paralelismo.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-public sealed class HighVolumeEventAttribute(int maxParallelism = 50) : Attribute
+public sealed class HighVolumeEventAttribute : Attribute
 {
-    public int MaxParallelism { get; } = maxParallelism;
+    public int MaxParallelism { get; }
+
+    public HighVolumeEventAttribute(int maxParallelism = 50)
+    {
+        if (maxParallelism < 1)
+            throw new ArgumentOutOfRangeException(nameof(maxParallelism), maxParallelism, "O paralelismo máximo deve ser pelo menos 1.");
+
+        MaxParallelism = maxParallelism;
+    }
 }
 
 /// <summary>

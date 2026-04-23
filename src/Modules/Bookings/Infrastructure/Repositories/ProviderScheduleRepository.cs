@@ -28,6 +28,7 @@ public sealed class ProviderScheduleRepository(BookingsDbContext context) : IPro
 
     public async Task UpdateAsync(ProviderSchedule schedule, CancellationToken cancellationToken = default)
     {
+        context.ProviderSchedules.Update(schedule);
         await context.SaveChangesAsync(cancellationToken);
     }
 }

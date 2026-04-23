@@ -41,7 +41,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         SetupUser(providerId);
 
         // Act
-        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid(), Guid.NewGuid()));
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -64,12 +64,74 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         SetupUser(Guid.NewGuid()); // Outro provider
 
         // Act
-        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid(), Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(403);
         _bookingRepoMock.Verify(x => x.UpdateAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_ReturnNotFound_When_BookingDoesNotExist()
+    {
+        // Arrange
+        var bookingId = Guid.NewGuid();
+        _bookingRepoMock.Setup(x => x.GetByIdAsync(bookingId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Booking?)null);
+
+        SetupUser(Guid.NewGuid());
+
+        // Act
+        var result = await _sut.HandleAsync(new ConfirmBookingCommand(bookingId, Guid.NewGuid(), Guid.NewGuid()));
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(404);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_RequireProviderClaim_When_UserHasNoProviderId()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), new DateOnly(2026, 4, 22),
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        
+        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        var context = new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim> { new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()) }, "Test")) };
+        _httpContextMock.Setup(x => x.HttpContext).Returns(context);
+
+        // Act
+        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid(), Guid.NewGuid()));
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(403);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_Fail_When_BookingStateIsNotTransitionable()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), new DateOnly(2026, 4, 22),
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        booking.Confirm(); // Já confirmado, não pode confirmar novamente
+        
+        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        SetupUser(providerId);
+
+        // Act
+        var result = await _sut.HandleAsync(new ConfirmBookingCommand(booking.Id, Guid.NewGuid(), Guid.NewGuid()));
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(400);
     }
 
     private void SetupUser(Guid providerId)

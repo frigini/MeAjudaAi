@@ -16,7 +16,7 @@ public sealed class TimeSlot : ValueObject
     {
         if (start >= end)
         {
-            throw new ArgumentException("Start time must be before end time.");
+            throw new ArgumentException("O horário de início deve ser anterior ao horário de término.");
         }
 
         Start = start;
@@ -36,7 +36,7 @@ public sealed class TimeSlot : ValueObject
     {
         if (start.Date != end.Date || start.Kind != end.Kind)
         {
-            throw new ArgumentException($"Start and End must have the same Date and Kind. Start: {start}, End: {end}");
+            throw new ArgumentException($"Início e Fim devem ter a mesma Data e Kind. Start: {start}, End: {end}");
         }
 
         return new(TimeOnly.FromDateTime(start), TimeOnly.FromDateTime(end));

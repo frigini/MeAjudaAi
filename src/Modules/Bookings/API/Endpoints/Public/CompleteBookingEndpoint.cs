@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,9 +17,13 @@ public class CompleteBookingEndpoint : IEndpoint
         app.MapPut("/{id}/complete", async (
             Guid id,
             [FromServices] ICommandDispatcher dispatcher,
+            HttpContext context,
             CancellationToken cancellationToken) =>
         {
-            var command = new CompleteBookingCommand(id);
+            var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
+            var correlationId = Guid.TryParse(correlationIdHeader, out var cId) ? cId : Guid.NewGuid();
+
+            var command = new CompleteBookingCommand(id, correlationId);
             var result = await dispatcher.SendAsync<CompleteBookingCommand, Result>(command, cancellationToken);
 
             return result.Match(

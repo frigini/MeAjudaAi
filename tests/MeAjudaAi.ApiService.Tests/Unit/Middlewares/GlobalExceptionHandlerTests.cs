@@ -125,7 +125,7 @@ public class GlobalExceptionHandlerTests
         await _handler.TryHandleAsync(context, exception, CancellationToken.None);
 
         // Assert
-        context.Response.ContentType.Should().Be("application/json; charset=utf-8");
+        context.Response.ContentType.Should().Be("application/problem+json");
     }
 
     [Fact]
@@ -149,5 +149,28 @@ public class GlobalExceptionHandlerTests
 
         var errorResponse = JsonSerializer.Deserialize<object>(responseContent);
         errorResponse.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_InProduction_ShouldHideExceptionDetails()
+    {
+        // Arrange
+        var context = new DefaultHttpContext();
+        context.Response.Body = new MemoryStream();
+        context.TraceIdentifier = "trace-abc";
+        var exception = new Exception("Dados sensíveis do sistema interno");
+        _mockEnv.Setup(e => e.EnvironmentName).Returns(Environments.Production);
+
+        // Act
+        var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        // Assert
+        result.Should().BeTrue();
+        context.Response.StatusCode.Should().Be(500);
+
+        context.Response.Body.Seek(0, SeekOrigin.Begin);
+        var body = await new StreamReader(context.Response.Body).ReadToEndAsync();
+        body.Should().NotContain("Dados sensíveis");
+        body.Should().Contain("Ocorreu um erro inesperado");
     }
 }

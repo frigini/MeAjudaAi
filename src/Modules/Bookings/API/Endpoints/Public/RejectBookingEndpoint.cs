@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,7 @@ public class RejectBookingEndpoint : IEndpoint
             Guid id,
             RejectBookingRequest request,
             [FromServices] ICommandDispatcher dispatcher,
+            HttpContext context,
             CancellationToken cancellationToken) =>
         {
             if (string.IsNullOrWhiteSpace(request.Reason))
@@ -29,7 +31,10 @@ public class RejectBookingEndpoint : IEndpoint
                 return Results.Problem("O motivo da rejeição não pode exceder 500 caracteres.", statusCode: StatusCodes.Status400BadRequest);
             }
 
-            var command = new RejectBookingCommand(id, request.Reason, Guid.NewGuid());
+            var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
+            var correlationId = Guid.TryParse(correlationIdHeader, out var cId) ? cId : Guid.NewGuid();
+
+            var command = new RejectBookingCommand(id, request.Reason, correlationId);
             var result = await dispatcher.SendAsync<RejectBookingCommand, Result>(command, cancellationToken);
 
             return result.Match(

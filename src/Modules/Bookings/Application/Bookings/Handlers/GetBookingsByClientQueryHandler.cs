@@ -50,7 +50,7 @@ public sealed class GetBookingsByClientQueryHandler(
                 return Result<PagedResult<BookingDto>>.Failure(dtoResult.Error);
             }
 
-            dtos.Add(dtoResult.Value);
+            dtos.Add(dtoResult.Value!);
         }
 
         return Result<PagedResult<BookingDto>>.Success(new PagedResult<BookingDto>

@@ -286,7 +286,7 @@ jobs:
           badge: true
           format: markdown
           output: both
-          thresholds: "85 75" # line branch (temporário - reverter para 90/80 em sprints futuras)
+          thresholds: "90 80" # line branch
           fail_below_min: true
 
       - name: Generate Coverage PR Comment
@@ -376,8 +376,22 @@ jobs:
       - name: Warn if Breaking Changes Found
         if: steps.breaking-changes.outcome == 'failure'
         run: |
-          echo "::warning title=Breaking Changes Detected::Changes that break the API contract were found. Review the oasdiff logs above."
-          echo "Record to revert continue-on-error: true after Sprint 12."
+          echo "::warning title=Breaking Changes Detected::Changes that break the API contract were found. Review the oasdiff output above."
+
+      - name: Post Breaking Changes PR Comment
+        if: steps.breaking-changes.outcome == 'failure'
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          recreate: true
+          header: oasdiff-breaking-changes
+          message: |
+            ## ⚠️ Breaking Changes Detectados
+
+            O `oasdiff` identificou mudanças que quebram o contrato da API em relação à branch base (`${{ github.base_ref }}`).
+
+            **Ação necessária:** Revise os logs do step _Check for Breaking Changes_ acima e garanta que as alterações são intencionais e documentadas em `.oasdiff-ignore.yaml`.
+
+            > Este aviso foi gerado automaticamente pelo CI. O build continua sendo permitido durante a Sprint 12 (`continue-on-error: true`).
 
   security-scan:
     name: Security Scan

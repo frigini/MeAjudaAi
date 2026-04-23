@@ -292,14 +292,12 @@ O CI do backend utiliza a ferramenta `oasdiff` para comparar a especificação d
 Durante o desenvolvimento ativo, breaking changes podem ser necessárias. Para aprová-las e permitir que o CI passe:
 
 1. Edite o arquivo `.oasdiff-ignore.yaml` na raiz do projeto.
-2. Adicione a rota e o ID do erro que deseja ignorar:
-   ```yaml
-   - method: GET
-     path: /api/v1/exemplo
-     err-id: response-property-type-changed # Motivo: <PR #xxx ou ticket> - <descrição curta>
+2. Adicione a linha com o método, rota e o ID do erro que deseja ignorar:
+   ```text
+   METHOD PATH ERROR_ID
    ```
-   > **Nota:** `err-id` deve ser usado para quebras que geram erros de compatibilidade (Breaking Changes), enquanto `id` pode ser usado para outros avisos.
-3. Documente no commit o motivo da mudança.
+   Exemplo: `GET /api/v1/providers/public/{idOrSlug} response-property-type-changed`
+3. Documente no commit o motivo da mudança e inclua o PR rationale.
 
 ### 3. Estratégias para Produção (Futuro)
 
@@ -315,7 +313,7 @@ Quando o sistema tiver consumidores externos (Mobile ou Terceiros), as seguintes
 ### 4. Política de Limpeza do arquivo Ignore
 
 O arquivo `.oasdiff-ignore.yaml` deve ser revisado periodicamente para evitar o acúmulo de supressões obsoletas:
-- **Revisão Periódica**: A cada ciclo de release ou a cada 3 meses.
+- **Revisão Periódica**: A cada ciclo de release ou a cada 3 meses. As entradas com mais de 3 meses devem ser removidas ou justificadas novamente.
 - **Rastreabilidade**: Cada entrada deve estar vinculada a um ticket ou PR explicando o motivo.
 - **Validação de CI**: O passo de CI `Check for Breaking Changes` validará as entradas ativas.
 - **Alternativas**: Antes de adicionar uma supressão, verifique se estratégias de retrocompatibilidade (ex: `/api/v2`, `[Obsolete]`, versionamento por header) são mais adequadas.
