@@ -44,10 +44,16 @@ public class ConfigurableTestAuthenticationHandler(
         var contextId = GetTestContextId();
 
         // Authentication must be explicitly configured via ConfigureUser/ConfigureAdmin/etc.
-        if (contextId == null || !_userConfigs.TryGetValue(contextId, out _))
+        if (contextId == null)
+        {
+            Console.WriteLine($"[AUTH_DEBUG] HandleAuthenticateAsync: contextId is NULL");
+            return Task.FromResult(AuthenticateResult.Fail("No authentication configuration set"));
+        }
+        
+        if (!_userConfigs.TryGetValue(contextId, out _))
         {
             // If allowUnauthenticated is true for this context, succeed with an anonymous principal
-            if (contextId != null && _allowUnauthenticatedByContext.TryGetValue(contextId, out var allowUnauth) && allowUnauth)
+            if (_allowUnauthenticatedByContext.TryGetValue(contextId, out var allowUnauth) && allowUnauth)
             {
                 // Return success with an empty identity (no claims, no roles, no permissions)
                 // This represents a truly anonymous/unauthenticated user
@@ -63,6 +69,7 @@ public class ConfigurableTestAuthenticationHandler(
             return Task.FromResult(AuthenticateResult.Fail("No authentication configuration set"));
         }
 
+        Console.WriteLine($"[AUTH_DEBUG] HandleAuthenticateAsync: SUCCESS for contextId {contextId}");
         return Task.FromResult(CreateSuccessResult());
     }
 

@@ -27,7 +27,7 @@ public class ConfirmBookingEndpoint : IEndpoint
 
             if (!Guid.TryParse(userIdClaim, out var userId))
             {
-                return Results.Unauthorized();
+                return Results.Forbid();
             }
 
             var correlationIdHeader = context.Request.Headers["X-Correlation-Id"].ToString();
@@ -36,7 +36,11 @@ public class ConfirmBookingEndpoint : IEndpoint
                 correlationId = Guid.NewGuid();
             }
 
-            var command = new ConfirmBookingCommand(id, userId, correlationId);
+            var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
+            var providerIdClaimValue = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
+            Guid? userProviderId = Guid.TryParse(providerIdClaimValue, out var parsedProviderId) ? parsedProviderId : null;
+
+            var command = new ConfirmBookingCommand(id, userId, isSystemAdmin, userProviderId, correlationId);
             var result = await dispatcher.SendAsync<ConfirmBookingCommand, Result>(command, cancellationToken);
 
             return result.Match(

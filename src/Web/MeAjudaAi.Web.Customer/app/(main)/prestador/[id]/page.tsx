@@ -260,9 +260,3 @@ export default function ProviderProfilePage() {
         </div>
     );
 }
-erId={id} />
-                </div>
-            </div>
-        </div>
-    );
-}
