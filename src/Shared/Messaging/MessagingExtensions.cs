@@ -149,7 +149,7 @@ public static class MessagingExtensions
 
         try
         {
-            var useSystemTextJson = host.Services.GetRequiredService<IConfiguration>().GetValue<bool>(UseSystemTextJsonKey, false);
+            var useSystemTextJson = scope.ServiceProvider.GetRequiredService<IConfiguration>().GetValue<bool>(UseSystemTextJsonKey, false);
             if (useSystemTextJson)
             {
                 logger.LogWarning("Messaging: System.Text.Json is ENABLED. Ensure all producers/consumers are updated and clear queues/DLQs if necessary.");

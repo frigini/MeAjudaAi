@@ -7,7 +7,7 @@ public sealed class ProviderSchedule : BaseEntity
 {
     private readonly List<Availability> _availabilities = [];
     public Guid ProviderId { get; private set; }
-    public string TimeZoneId { get; private set; } = "E. South America Standard Time"; // Padrão Brasília
+    public string TimeZoneId { get; private set; } = "America/Sao_Paulo"; // Padrão Brasília (IANA)
     public IReadOnlyList<Availability> Availabilities => _availabilities.AsReadOnly();
 
     private ProviderSchedule() { } // Required by EF Core
@@ -17,6 +17,7 @@ public sealed class ProviderSchedule : BaseEntity
         ProviderId = providerId;
         if (!string.IsNullOrWhiteSpace(timeZoneId))
         {
+            ValidateTimeZoneId(timeZoneId);
             TimeZoneId = timeZoneId;
         }
     }
@@ -28,6 +29,13 @@ public sealed class ProviderSchedule : BaseEntity
     {
         if (string.IsNullOrWhiteSpace(timeZoneId)) throw new ArgumentException("TimeZoneId não pode estar vazio", nameof(timeZoneId));
         
+        ValidateTimeZoneId(timeZoneId);
+        TimeZoneId = timeZoneId;
+        MarkAsUpdated();
+    }
+
+    private void ValidateTimeZoneId(string timeZoneId)
+    {
         try
         {
             TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
@@ -36,9 +44,10 @@ public sealed class ProviderSchedule : BaseEntity
         {
             throw new ArgumentException($"TimeZoneId inválido: {timeZoneId}", nameof(timeZoneId));
         }
-        
-        TimeZoneId = timeZoneId;
-        MarkAsUpdated();
+        catch (InvalidTimeZoneException)
+        {
+            throw new ArgumentException($"TimeZoneId inválido: {timeZoneId}", nameof(timeZoneId));
+        }
     }
 
     public void SetAvailability(Availability availability)
@@ -63,16 +72,15 @@ public sealed class ProviderSchedule : BaseEntity
     {
         if (duration <= TimeSpan.Zero) return false;
         
+        var endDate = localDateTime.Add(duration);
         var requestStart = TimeOnly.FromDateTime(localDateTime);
-        var requestEnd = TimeOnly.FromDateTime(localDateTime.Add(duration));
+        var requestEnd = TimeOnly.FromDateTime(endDate);
 
-        // Rejeita intervalos que cruzam a meia-noite
-        if (localDateTime.Add(duration).Date != localDateTime.Date) return false;
+        if (endDate.Date != localDateTime.Date) return false;
 
         var dayAvailability = _availabilities.FirstOrDefault(a => a.DayOfWeek == localDateTime.DayOfWeek);
         if (dayAvailability == null) return false;
 
-        // Verifica se o intervalo solicitado está dentro de algum dos slots permitidos do dia
         return dayAvailability.Slots.Any(slot => 
             requestStart >= slot.Start && 
             requestEnd <= slot.End);

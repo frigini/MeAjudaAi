@@ -18,6 +18,7 @@ namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 public class GetProviderBookingsEndpoint : IEndpoint
 {
     private const int MaxPageSize = 100;
+    private const string CacheKeyPrefix = "bookings:provider_by_user:";
     
     public static void Map(IEndpointRouteBuilder app)
     {
@@ -58,7 +59,7 @@ public class GetProviderBookingsEndpoint : IEndpoint
                     var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value;
                     if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var uId))
                     {
-                        var cacheKey = $"provider_id_user_{uId}";
+                        var cacheKey = $"{CacheKeyPrefix}{uId}";
                         if (!cache.TryGetValue(cacheKey, out Guid cachedProviderId))
                         {
                             var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
@@ -69,7 +70,7 @@ public class GetProviderBookingsEndpoint : IEndpoint
                             }
                             if (providerResult.Value == null)
                             {
-                                return Results.Forbid();
+                                return Results.NotFound("Usuário não possui prestador vinculado.");
                             }
                             cachedProviderId = providerResult.Value.Id;
                             cache.Set(cacheKey, cachedProviderId, new MemoryCacheEntryOptions
@@ -102,6 +103,7 @@ public class GetProviderBookingsEndpoint : IEndpoint
         .Produces<PagedResult<BookingDto>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status403Forbidden)
+        .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("GetProviderBookings")

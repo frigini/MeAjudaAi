@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
@@ -27,10 +28,9 @@ public class BookingsApiTests : BaseApiTest
     [Fact]
     public async Task CreateBooking_ShouldReturnCreated_WhenRequestIsValid()
     {
-        // Arrange
         var providerId = await CreateTestProviderAsync();
         await CreateTestScheduleAsync(providerId);
-        var serviceId = await CreateTestServiceAsync(providerId);
+        var serviceId = await CreateTestServiceAsync();
 
         var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
         var start = tomorrow.ToDateTime(new TimeOnly(10, 0));
@@ -43,10 +43,8 @@ public class BookingsApiTests : BaseApiTest
         AuthConfig.ConfigureRegularUser(Guid.NewGuid().ToString());
         Client.AsTestInstance();
 
-        // Act
         var response = await Client.PostAsJsonAsync("/api/v1/bookings", request);
 
-        // Assert
         if (response.StatusCode != HttpStatusCode.Created)
         {
             var error = await response.Content.ReadAsStringAsync();
@@ -61,31 +59,21 @@ public class BookingsApiTests : BaseApiTest
     [Fact]
     public async Task GetProviderAvailability_ShouldReturnSlots()
     {
-        // Arrange
         var providerId = await CreateTestProviderAsync();
         await CreateTestScheduleAsync(providerId);
         var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
-        var dateString = tomorrow.ToString("yyyy-MM-dd");
+        var dateString = tomorrow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
         AuthConfig.ConfigureRegularUser("client-id");
         Client.AsTestInstance();
 
-        // Act
         var response = await Client.GetAsync($"/api/v1/bookings/availability/{providerId}?date={dateString}");
 
-        // Assert
-        if (response.StatusCode != HttpStatusCode.OK)
-        {
-            var error = await response.Content.ReadAsStringAsync();
-            throw new Exception($"Failed with status {response.StatusCode} and content: {error}");
-        }
-
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.OK, $"server returned: {await response.Content.ReadAsStringAsync()}");
         var availability = await ReadJsonAsync<AvailabilityDto>(response.Content);
         availability.Should().NotBeNull();
         availability!.Slots.Should().NotBeEmpty();
     }
-
 
     private async Task<Guid> CreateTestProviderAsync()
     {
@@ -106,10 +94,10 @@ public class BookingsApiTests : BaseApiTest
         return provider.Id.Value;
     }
 
-    private async Task<Guid> CreateTestServiceAsync(Guid providerId)
+    private async Task<Guid> CreateTestServiceAsync()
     {
         using var scope = Services.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>();
+        var context = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
         
         var category = ServiceCategory.Create("Test Category", null, 1);
         context.ServiceCategories.Add(category);
@@ -130,7 +118,6 @@ public class BookingsApiTests : BaseApiTest
         
         var schedule = ProviderSchedule.Create(providerId, "UTC");
         
-        // Adiciona para todos os dias da semana para facilitar o teste
         foreach (DayOfWeek day in Enum.GetValues<DayOfWeek>())
         {
             var slots = new[] { TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(18, 0)) };

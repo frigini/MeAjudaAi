@@ -83,8 +83,7 @@ public sealed class CreateBookingCommandHandler(
             return Result<BookingDto>.Failure(Error.BadRequest("Prestador indisponível no horário solicitado."));
         }
 
-        // 3. Criar e Tentar Adicionar atomicamente
-        // Mantemos a data e o slot consistentes com o fuso horário do prestador
+        // 3. Criar booking para validação
         var localEndTime = localStartTime.Add(duration);
         var date = DateOnly.FromDateTime(localStartTime);
         var timeSlot = TimeSlot.FromDateTime(localStartTime, localEndTime);
@@ -96,6 +95,14 @@ public sealed class CreateBookingCommandHandler(
             date,
             timeSlot);
 
+        // 4. Validar DTO antes de persistir
+        var dtoResult = TimeZoneResolver.CreateValidatedBookingDto(booking, tz, logger);
+        if (dtoResult.IsFailure)
+        {
+            return Result<BookingDto>.Failure(dtoResult.Error);
+        }
+
+        // 5. Persistir atomicamente
         var result = await bookingRepository.AddIfNoOverlapAsync(booking, cancellationToken);
         
         if (result.IsFailure)
@@ -105,6 +112,6 @@ public sealed class CreateBookingCommandHandler(
 
         logger.LogInformation("Booking {BookingId} created successfully.", booking.Id);
 
-        return TimeZoneResolver.CreateValidatedBookingDto(booking, tz, logger);
+        return dtoResult;
     }
 }

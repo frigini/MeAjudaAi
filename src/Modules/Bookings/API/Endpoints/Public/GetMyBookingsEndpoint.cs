@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Globalization;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
@@ -42,17 +43,30 @@ public class GetMyBookingsEndpoint : IEndpoint
                 return Results.Problem("A data inicial ('from') não pode ser posterior à data final ('to').", statusCode: StatusCodes.Status400BadRequest);
             }
 
+            var normalizedPage = page ?? 1;
+            if (normalizedPage < 1)
+            {
+                return Results.Problem("O parâmetro 'page' deve ser maior ou igual a 1.", statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            var normalizedPageSize = pageSize ?? 20;
+            if (normalizedPageSize < 1 || normalizedPageSize > 100)
+            {
+                return Results.Problem("O parâmetro 'pageSize' deve estar entre 1 e 100.", statusCode: StatusCodes.Status400BadRequest);
+            }
+
             var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId];
             var correlationIdRaw = correlationIdHeader.FirstOrDefault();
-            var correlationId = Guid.TryParse(correlationIdRaw, out var parsedId) ? parsedId : Guid.NewGuid();
+            var parsed = Guid.TryParse(correlationIdRaw, out var parsedId);
+            var correlationId = parsed ? parsedId : Guid.NewGuid();
             
-            if (!string.IsNullOrEmpty(correlationIdRaw) && !Guid.TryParse(correlationIdRaw, out _))
+            if (!string.IsNullOrEmpty(correlationIdRaw) && !parsed)
             {
                 logger.LogWarning("Failed to parse CorrelationId header '{HeaderKey}': raw value '{RawValue}'. Using new GUID instead.", 
                     AuthConstants.Headers.CorrelationId, correlationIdRaw);
             }
 
-            var query = new GetBookingsByClientQuery(clientId, correlationId, page, pageSize, from?.UtcDateTime, to?.UtcDateTime);
+            var query = new GetBookingsByClientQuery(clientId, correlationId, normalizedPage, normalizedPageSize, from?.UtcDateTime, to?.UtcDateTime);
             var result = await dispatcher.QueryAsync<GetBookingsByClientQuery, Result<PagedResult<BookingDto>>>(query, cancellationToken);
 
             return result.Match(

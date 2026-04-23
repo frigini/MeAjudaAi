@@ -80,8 +80,10 @@ thresholds: '90 80'
 
 ### **Guidance: Excluir Glue/DTO Code**
 Para alcançar o target de 90%, prefira excluir código de infraestrutura/glue dos testes:
-- **Endpoints/Extensions/Options/IntegrationEvent/DbContextFactory**: Classes de infraestrutura sem lógica de negócio
-- Adicione `[ExcludeFromCodeCoverage]` ou configure filtros no CI para atingir a meta ao adicionar módulos como Bookings.
+- **Request/Response/Dto/DTO/IntegrationEvent**: DTOs de API, Requests/Responses
+- ***DbContextFactory**: Classes factory de DbContext (ex: ProvidersDbContextFactory)
+- **Endpoints**: Endpoints são excluídos por convenção
+- **NOTA**: *Configuration e *Extensions NÃO devem ser globalmente excluídos - exclua apenas classes específicas quando necessário
 
 ## 🔧 Como Melhorar o Coverage
 

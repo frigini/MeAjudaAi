@@ -27,9 +27,8 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
     [Fact]
     public async Task HandleAsync_Should_ReturnAvailableSlots_When_NoBookingsExist()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
-        var date = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
 
         var schedule = ProviderSchedule.Create(providerId, "UTC");
@@ -45,10 +44,8 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, date, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Booking>());
 
-        // Act
         var result = await _sut.HandleAsync(query);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Slots.Should().HaveCount(1);
         
@@ -62,9 +59,8 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
     [Fact]
     public async Task HandleAsync_Should_FilterOut_BookedSlots()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
-        var date = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
 
         var schedule = ProviderSchedule.Create(providerId, "UTC");
@@ -79,10 +75,8 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, date, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Booking> { existingBooking });
 
-        // Act
         var result = await _sut.HandleAsync(query);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Slots.Should().HaveCount(2);
         var slots = result.Value.Slots.ToList();
@@ -99,18 +93,15 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
     [Fact]
     public async Task HandleAsync_Should_Handle_NullSchedule()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
-        var date = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
 
         _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProviderSchedule?)null);
 
-        // Act
         var result = await _sut.HandleAsync(query);
 
-        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(404);
     }
@@ -118,12 +109,11 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
     [Fact]
     public async Task HandleAsync_Should_ReturnNoSlots_When_BookingCoversEntireSlot()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
-        var date = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
 
-        var schedule = ProviderSchedule.Create(providerId);
+        var schedule = ProviderSchedule.Create(providerId, "UTC");
         var slotStart = new TimeOnly(8, 0);
         var slotEnd = new TimeOnly(10, 0);
         schedule.SetAvailability(Availability.Create(date.DayOfWeek, 
@@ -137,10 +127,8 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, date, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Booking> { existingBooking });
 
-        // Act
         var result = await _sut.HandleAsync(query);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Slots.Should().BeEmpty();
     }
@@ -148,29 +136,30 @@ public class GetProviderAvailabilityQueryHandlerTests : BaseUnitTest
     [Fact]
     public async Task HandleAsync_Should_Ignore_BookingsOnDifferentDate()
     {
-        // Arrange
         var providerId = Guid.NewGuid();
-        var date = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
         var query = new GetProviderAvailabilityQuery(providerId, date, Guid.NewGuid());
 
-        var schedule = ProviderSchedule.Create(providerId);
+        var schedule = ProviderSchedule.Create(providerId, "UTC");
         var slotStart = new TimeOnly(8, 0);
         var slotEnd = new TimeOnly(10, 0);
         schedule.SetAvailability(Availability.Create(date.DayOfWeek, 
             [TimeSlot.Create(slotStart, slotEnd)]));
 
-        // Simulamos que o repositório retorna uma lista vazia, o que é o esperado para uma data diferente.
+        var otherDate = date.AddDays(2);
+        var bookingOnOtherDate = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), otherDate,
+            TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(9, 0)));
+
         _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
-        _bookingRepoMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, date, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, It.Is<DateOnly>(d => d == date), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Booking>());
+        _bookingRepoMock.Setup(x => x.GetActiveByProviderAndDateAsync(providerId, It.Is<DateOnly>(d => d == otherDate), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Booking> { bookingOnOtherDate });
 
-        // Act
         var result = await _sut.HandleAsync(query);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Slots.Should().HaveCount(1);
     }
 }
-

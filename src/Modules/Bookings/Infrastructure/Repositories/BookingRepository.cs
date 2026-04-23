@@ -13,11 +13,6 @@ namespace MeAjudaAi.Modules.Bookings.Infrastructure.Repositories;
 
 public class BookingRepository(BookingsDbContext context, ILogger<BookingRepository> logger) : IBookingRepository
 {
-    /// <summary>
-    /// Obtém um agendamento pelo ID.
-    /// Deliberadamente não utiliza AsNoTracking pois o objeto retornado é comumente 
-    /// utilizado para atualizações subsequentes via UpdateAsync (ex: Confirm/Cancel).
-    /// </summary>
     public async Task<Booking?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await context.Bookings
@@ -70,7 +65,6 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
         int pageSize, 
         CancellationToken cancellationToken)
     {
-        // Normalizar paginação
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
 
@@ -110,6 +104,7 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
             .ToListAsync(cancellationToken);
     }
 
+    [Obsolete("Use AddIfNoOverlapAsync for atomic overlap-protected inserts", false)]
     public async Task AddAsync(Booking booking, CancellationToken cancellationToken = default)
     {
         await context.Bookings.AddAsync(booking, cancellationToken);
@@ -128,13 +123,11 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
             while (true)
             {
                 attempt++;
-                context.ChangeTracker.Clear();
+                context.Entry(booking).State = EntityState.Detached;
                 await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
                 
                 try
                 {
-                    // Verificação idempotente: se o agendamento com este ID já existir, 
-                    // significa que uma tentativa anterior teve sucesso mas o cliente não recebeu a resposta.
                     var alreadyExists = await context.Bookings.AnyAsync(b => b.Id == booking.Id, cancellationToken);
                     if (alreadyExists)
                     {
@@ -142,7 +135,6 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                         return Result.Success();
                     }
 
-                    // NOTA: Agora incluímos a data no predicado para evitar conflitos em dias diferentes
                     var hasOverlap = await context.Bookings
                         .AnyAsync(b => 
                             b.ProviderId == booking.ProviderId &&
@@ -172,7 +164,6 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                 }
                 catch (Exception ex)
                 {
-                    // Checa por conflitos de concorrência (40001 ou 40P01) PRIMEIRO
                     if (IsConcurrencyError(ex) && attempt < maxRetryAttempts)
                     {
                         logger.LogWarning("Concurrency conflict while validating booking {BookingId}. Retrying (Attempt {Attempt})...", booking.Id, attempt);
@@ -183,11 +174,10 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                         }
                         catch
                         {
-                            // Ignora erro de rollback
                         }
 
-                        // Aguarda um tempo aleatório curto antes de tentar novamente (jitter)
                         await Task.Delay(Random.Shared.Next(50, 200), cancellationToken);
+                        context.Entry(booking).State = EntityState.Detached;
                         continue;
                     }
 
@@ -199,7 +189,6 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                     }
                     catch
                     {
-                        // Ignora erro de rollback
                     }
                     
                     if (IsConcurrencyError(ex))
