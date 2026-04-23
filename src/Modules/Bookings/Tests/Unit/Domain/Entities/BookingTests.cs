@@ -13,7 +13,7 @@ public class BookingTests : BaseUnitTest
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
-        var date = new DateOnly(2026, 4, 22);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30));
         var timeSlot = TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0));
 
         // Act
@@ -201,7 +201,7 @@ public class BookingTests : BaseUnitTest
             Guid.NewGuid(), 
             Guid.NewGuid(), 
             Guid.NewGuid(), 
-            new DateOnly(2026, 4, 22),
+            DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
     }
 }

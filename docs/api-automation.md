@@ -285,7 +285,7 @@ python -m http.server 8000
 
 ### 1. Detecção de Breaking Changes
 
-O CI do backend utiliza a ferramenta `oasdiff` para comparar a especificação da API da branch atual com a branch de destino (`master` ou `develop`). Se uma mudança quebrar a compatibilidade (ex: remover campo, mudar tipo, alterar rota), o build falhará.
+O CI do backend utiliza a ferramenta `oasdiff` para comparar a especificação da API da branch atual com a branch de destino (`master` ou `develop`). O passo de CI `Check for Breaking Changes` identifica mudanças que quebram a compatibilidade (ex: remover campo, mudar tipo, alterar rota) e posta avisos e comentários detalhados no Pull Request para revisão humana, sem interromper o pipeline (`continue-on-error: true`).
 
 ### 2. Mudanças Intencionais (Fase de Desenvolvimento)
 
@@ -315,7 +315,7 @@ Quando o sistema tiver consumidores externos (Mobile ou Terceiros), as seguintes
 O arquivo `.oasdiff-ignore.yaml` deve ser revisado periodicamente para evitar o acúmulo de supressões obsoletas:
 - **Revisão Periódica**: A cada ciclo de release ou a cada 3 meses. As entradas com mais de 3 meses devem ser removidas ou justificadas novamente.
 - **Rastreabilidade**: Cada entrada deve estar vinculada a um ticket ou PR explicando o motivo.
-- **Validação de CI**: O passo de CI `Check for Breaking Changes` validará as entradas ativas.
+- **Validação de CI**: O passo de CI `Check for Breaking Changes` validará as entradas ativas no arquivo `.oasdiff-ignore.yaml` para manter a rastreabilidade das exceções concedidas.
 - **Alternativas**: Antes de adicionar uma supressão, verifique se estratégias de retrocompatibilidade (ex: `/api/v2`, `[Obsolete]`, versionamento por header) são mais adequadas.
 
 ## 📝 Troubleshooting

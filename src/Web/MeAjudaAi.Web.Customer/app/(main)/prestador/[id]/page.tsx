@@ -45,13 +45,17 @@ export default function ProviderProfilePage() {
     const [selectedServiceId, setSelectedServiceId] = useState<string>("");
 
     const { data: providerData, isLoading, error } = useQuery({
-        queryKey: ["public-provider", id, isAuthenticated],
+        queryKey: ["public-provider", id],
         queryFn: async () => {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+            const headers: Record<string, string> = {};
+            
+            if (session?.accessToken) {
+                headers["Authorization"] = `Bearer ${session.accessToken}`;
+            }
+
             const res = await fetch(`${apiUrl}/api/v1/providers/${id}/public`, {
-                headers: session?.accessToken ? {
-                    "Authorization": `Bearer ${session.accessToken}`
-                } : {}
+                headers
             });
 
             if (res.status === 404) return null;

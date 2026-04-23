@@ -21,16 +21,6 @@ public class RejectBookingEndpoint : IEndpoint
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
-            if (string.IsNullOrWhiteSpace(request.Reason))
-            {
-                return Results.Problem("O motivo da rejeição é obrigatório.", statusCode: StatusCodes.Status400BadRequest);
-            }
-
-            if (request.Reason.Length > 500)
-            {
-                return Results.Problem("O motivo da rejeição não pode exceder 500 caracteres.", statusCode: StatusCodes.Status400BadRequest);
-            }
-
             var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
             var correlationId = Guid.TryParse(correlationIdHeader, out var cId) ? cId : Guid.NewGuid();
 

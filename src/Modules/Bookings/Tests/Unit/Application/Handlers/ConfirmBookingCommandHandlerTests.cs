@@ -29,7 +29,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = new DateOnly(2026, 4, 22);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30));
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
@@ -50,7 +50,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = new DateOnly(2026, 4, 22);
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30));
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
@@ -87,7 +87,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), new DateOnly(2026, 4, 22),
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
         _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
@@ -106,7 +106,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), new DateOnly(2026, 4, 22),
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
         _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
@@ -124,7 +124,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), new DateOnly(2026, 4, 22),
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         booking.Confirm(); // Já confirmado, não pode confirmar novamente
         

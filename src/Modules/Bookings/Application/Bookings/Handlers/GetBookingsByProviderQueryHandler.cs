@@ -19,8 +19,8 @@ public sealed class GetBookingsByProviderQueryHandler(
         logger.LogInformation("Getting bookings for provider {ProviderId}", query.ProviderId);
 
         // Prepara parâmetros de paginação e filtros
-        var pageNumber = query.Page ?? 1;
-        var pageSize = query.PageSize ?? 10;
+        var pageNumber = Math.Max(1, query.Page ?? 1);
+        var pageSize = Math.Clamp(query.PageSize ?? 10, 1, 100);
         var fromDate = query.From.HasValue ? DateOnly.FromDateTime(query.From.Value) : (DateOnly?)null;
         var toDate = query.To.HasValue ? DateOnly.FromDateTime(query.To.Value) : (DateOnly?)null;
 

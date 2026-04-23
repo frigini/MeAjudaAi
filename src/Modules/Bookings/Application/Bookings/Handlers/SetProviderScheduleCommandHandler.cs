@@ -71,35 +71,41 @@ public sealed class SetProviderScheduleCommandHandler(
 
         // 3. Buscar ou criar Schedule
         var schedule = await scheduleRepository.GetByProviderIdAsync(command.ProviderId, cancellationToken);
-        bool isNew = false;
-
+        
         if (schedule == null)
         {
             schedule = ProviderSchedule.Create(command.ProviderId);
-            isNew = true;
-        }
-        else
-        {
-            // Limpa as disponibilidades existentes
-            schedule.ClearAvailabilities();
+            
+            // Aplica disponibilidades
+            foreach (var availability in newAvailabilities)
+            {
+                schedule.SetAvailability(availability);
+            }
+
+            try 
+            {
+                await scheduleRepository.AddAsync(schedule, cancellationToken);
+                logger.LogInformation("New schedule for Provider {ProviderId} created successfully.", command.ProviderId);
+                return Result.Success();
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+            {
+                // Provável corrida: outro request criou o schedule. Tenta buscar novamente para atualizar.
+                logger.LogWarning("Conflict detected while adding schedule for Provider {ProviderId}. Falling back to update.", command.ProviderId);
+                schedule = await scheduleRepository.GetByProviderIdAsync(command.ProviderId, cancellationToken);
+                
+                if (schedule == null) throw; // Se ainda for null, algo muito errado aconteceu
+            }
         }
 
-        // Aplica validações já efetuadas
+        // Se chegamos aqui, o schedule existe (ou foi carregado após conflito)
+        schedule.ClearAvailabilities();
         foreach (var availability in newAvailabilities)
         {
             schedule.SetAvailability(availability);
         }
 
-        // 4. Persistir
-        if (isNew)
-        {
-            await scheduleRepository.AddAsync(schedule, cancellationToken);
-        }
-        else
-        {
-            await scheduleRepository.UpdateAsync(schedule, cancellationToken);
-        }
-
+        await scheduleRepository.UpdateAsync(schedule, cancellationToken);
         logger.LogInformation("Schedule for Provider {ProviderId} updated successfully.", command.ProviderId);
 
         return Result.Success();

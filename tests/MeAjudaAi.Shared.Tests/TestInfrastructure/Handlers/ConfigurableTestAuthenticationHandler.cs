@@ -46,7 +46,7 @@ public class ConfigurableTestAuthenticationHandler(
         // Authentication must be explicitly configured via ConfigureUser/ConfigureAdmin/etc.
         if (contextId == null)
         {
-            Console.WriteLine($"[AUTH_DEBUG] HandleAuthenticateAsync: contextId is NULL");
+            Logger.LogDebug("AUTH_DEBUG HandleAuthenticateAsync: contextId is NULL");
             return Task.FromResult(AuthenticateResult.Fail("No authentication configuration set"));
         }
         
@@ -58,7 +58,7 @@ public class ConfigurableTestAuthenticationHandler(
                 // Return success with an empty identity (no claims, no roles, no permissions)
                 // This represents a truly anonymous/unauthenticated user
                 var anonymousIdentity = new System.Security.Claims.ClaimsIdentity(
-                    authenticationType: SchemeName,
+                    authenticationType: null,
                     nameType: null,
                     roleType: null);
                 var anonymousPrincipal = new System.Security.Claims.ClaimsPrincipal(anonymousIdentity);
@@ -69,7 +69,7 @@ public class ConfigurableTestAuthenticationHandler(
             return Task.FromResult(AuthenticateResult.Fail("No authentication configuration set"));
         }
 
-        Console.WriteLine($"[AUTH_DEBUG] HandleAuthenticateAsync: SUCCESS for contextId {contextId}");
+        Logger.LogDebug("AUTH_DEBUG HandleAuthenticateAsync: SUCCESS for contextId {ContextId}", contextId);
         return Task.FromResult(CreateSuccessResult());
     }
 

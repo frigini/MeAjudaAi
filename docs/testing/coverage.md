@@ -69,17 +69,14 @@ Em cada execução do workflow, você pode baixar:
 ## 🎯 Thresholds Configurados
 
 ### **Limites Atuais**
-```yaml
-thresholds: '70 85'
-```
+thresholds: '85 80'
 
-- **70%**: Limite mínimo (warning se abaixo)
-- **85%**: Limite ideal (pass se acima)
+- **85%**: Limite mínimo obrigatório (pipeline falha se abaixo)
+- **80%**: Limite de branches (mínimo recomendado)
 
 ### **Comportamento do Pipeline**
 - **Coverage ≥ 85%**: ✅ Pipeline passa com sucesso
-- **Coverage 70-84%**: ⚠️ Pipeline passa com warning
-- **Coverage < 70%**: ❌ Pipeline falha (modo strict)
+- **Coverage < 85%**: ❌ Pipeline falha (obrigatório)
 
 ## 🔧 Como Melhorar o Coverage
 

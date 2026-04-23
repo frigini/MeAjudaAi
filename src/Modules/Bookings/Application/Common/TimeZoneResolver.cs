@@ -31,6 +31,7 @@ public static class TimeZoneResolver
 
         if (!allowFallback)
         {
+            logger.LogWarning("Strict time zone resolution failed for {TimeZoneId}. No fallback allowed.", timeZoneId);
             return null;
         }
 

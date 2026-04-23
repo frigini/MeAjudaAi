@@ -42,7 +42,7 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         
         // 2. Definir agenda para o prestador
         // Usar lógica de timezone para derivar datas
-        var tz = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
+        var tz = TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
         var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
         var localTomorrow = localNow.Date.AddDays(1);
         int dayOfWeek = (int)localTomorrow.DayOfWeek;

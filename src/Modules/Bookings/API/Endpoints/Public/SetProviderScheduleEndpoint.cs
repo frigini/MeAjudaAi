@@ -41,6 +41,8 @@ public class SetProviderScheduleEndpoint : IEndpoint
             if (isSystemAdmin)
             {
                 targetProviderId = request.ProviderId;
+                var logger = context.RequestServices.GetRequiredService<ILogger<SetProviderScheduleEndpoint>>();
+                logger.LogInformation("Admin {AdminId} is setting schedule for Provider {ProviderId}", userIdClaim, targetProviderId);
             }
             else if (!string.IsNullOrEmpty(providerIdClaim) && Guid.TryParse(providerIdClaim, out var pId))
             {

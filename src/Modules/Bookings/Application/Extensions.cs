@@ -6,7 +6,9 @@ using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Validators;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace MeAjudaAi.Modules.Bookings.Application;
 
@@ -14,6 +16,7 @@ public static class Extensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        services.AddModuleValidators(Assembly.GetExecutingAssembly());
         // Comandos
         services.AddScoped<ICommandHandler<CreateBookingCommand, Result<BookingDto>>, CreateBookingCommandHandler>();
         services.AddScoped<ICommandHandler<SetProviderScheduleCommand, Result>, SetProviderScheduleCommandHandler>();

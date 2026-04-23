@@ -52,7 +52,7 @@ public abstract class BaseDbContext : DbContext
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
-            if (entityType.ClrType.GetProperty("Version") != null)
+            if (entityType.ClrType.GetProperty("Version") != null && entityType.ClrType.Name != "Booking")
             {
                 modelBuilder.Entity(entityType.ClrType).Ignore("Version");
             }

@@ -34,13 +34,15 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
     const queryClient = useQueryClient();
     const [open, setOpen] = useState(false);
     
-    // Inicializa com amanhã em fuso local para evitar problemas de parsing UTC
-    const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    // Base estável para cálculos de data (amanhã às 00:00:00)
+    const baseDate = React.useMemo(() => {
         const d = new Date();
         d.setDate(d.getDate() + 1);
         d.setHours(0, 0, 0, 0);
         return d;
-    });
+    }, []);
+
+    const [selectedDate, setSelectedDate] = useState<Date>(baseDate);
     
     const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
 
@@ -178,7 +180,7 @@ export function BookingModal({ providerId, providerName, serviceId, trigger }: B
                             </label>
                             <input 
                                 type="date" 
-                                min={format(addDays(new Date(), 1), "yyyy-MM-dd")}
+                                min={format(baseDate, "yyyy-MM-dd")}
                                 value={format(selectedDate, "yyyy-MM-dd")}
                                 onChange={(e) => handleDateChange(e.target.value)}
                                 className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#E0702B] outline-none"

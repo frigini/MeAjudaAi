@@ -133,6 +133,15 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                 
                 try
                 {
+                    // Verificação idempotente: se o agendamento com este ID já existir, 
+                    // significa que uma tentativa anterior teve sucesso mas o cliente não recebeu a resposta.
+                    var alreadyExists = await context.Bookings.AnyAsync(b => b.Id == booking.Id, cancellationToken);
+                    if (alreadyExists)
+                    {
+                        logger.LogInformation("Booking {BookingId} already exists. Returning success (Idempotent).", booking.Id);
+                        return Result.Success();
+                    }
+
                     // NOTA: Agora incluímos a data no predicado para evitar conflitos em dias diferentes
                     var hasOverlap = await context.Bookings
                         .AnyAsync(b => 
