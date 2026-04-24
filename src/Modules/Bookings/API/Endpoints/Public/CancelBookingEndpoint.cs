@@ -41,6 +41,7 @@ public class CancelBookingEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status403Forbidden)
         .ProducesProblem(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status409Conflict)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("CancelBooking")
         .WithSummary("Cancela um agendamento.");

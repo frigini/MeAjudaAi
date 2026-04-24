@@ -67,7 +67,6 @@ public sealed class ProviderAuthorizationResolver
 
     private readonly IMemoryCache _cache;
     private readonly ILogger<ProviderAuthorizationResolver> _logger;
-    private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphores = new();
 
     public ProviderAuthorizationResolver(IMemoryCache cache, ILogger<ProviderAuthorizationResolver> logger)
     {
@@ -102,53 +101,55 @@ public sealed class ProviderAuthorizationResolver
 
         var cacheKey = $"{CacheKeyPrefix}{uId}";
 
-        var semaphore = _semaphores.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
-        await semaphore.WaitAsync(cancellationToken);
-        try
+        var cached = await _cache.GetOrCreateAsync(cacheKey, async entry =>
         {
-            if (_cache.TryGetValue(cacheKey, out Guid cachedProviderId))
-            {
-                if (cachedProviderId == Guid.Empty)
-                {
-                    _logger.LogDebug("Cached miss for user {UserId}", uId);
-                    return ProviderAuthorizationResult.NotLinked();
-                }
-                return ProviderAuthorizationResult.Authorized(cachedProviderId);
-            }
-
+            entry.SlidingExpiration = SlidingExpiration;
+            entry.AbsoluteExpirationRelativeToNow = AbsoluteExpiration;
+            
             var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
             
             if (providerResult.IsFailure)
             {
                 _logger.LogWarning("Failed to resolve provider for user {UserId}: {Error}", uId, providerResult.Error.Message);
-                return ProviderAuthorizationResult.UpstreamFailure(providerResult.Error.Message, providerResult.Error.StatusCode);
+                return ProviderResolutionResult.UpstreamFailure(
+                    providerResult.Error.Message, 
+                    providerResult.Error.StatusCode);
             }
 
             if (providerResult.Value == null)
             {
-                _cache.Set(cacheKey, Guid.Empty, new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = MissExpiration
-                });
-                _logger.LogDebug("User {UserId} has no associated provider (cached)", uId);
-                return ProviderAuthorizationResult.NotLinked();
+                entry.AbsoluteExpirationRelativeToNow = MissExpiration;
+                return ProviderResolutionResult.NotLinked();
             }
 
-            var resolvedProviderId = providerResult.Value.Id;
-            _cache.Set(cacheKey, resolvedProviderId, new MemoryCacheEntryOptions
-            {
-                SlidingExpiration = SlidingExpiration,
-                AbsoluteExpirationRelativeToNow = AbsoluteExpiration
-            });
-            _logger.LogDebug("Resolved provider {ProviderId} for user {UserId}", resolvedProviderId, uId);
-            
-            return ProviderAuthorizationResult.Authorized(resolvedProviderId);
-        }
-        finally
+            return ProviderResolutionResult.Found(providerResult.Value.Id);
+        });
+
+        return cached switch
         {
-            semaphore.Release();
-        }
+            { IsFound: true } => ProviderAuthorizationResult.Authorized(cached.ProviderId!.Value),
+            { IsNotLinked: true } => ProviderAuthorizationResult.NotLinked(),
+            { IsUpstreamFailure: true } => ProviderAuthorizationResult.UpstreamFailure(cached.ErrorMessage!, cached.StatusCode),
+            _ => ProviderAuthorizationResult.Unauthorized("Erro ao resolver provider.")
+        };
     }
+}
+
+internal sealed class ProviderResolutionResult
+{
+    public Guid? ProviderId { get; init; }
+    public string? ErrorMessage { get; init; }
+    public int StatusCode { get; init; }
+    public bool IsNotLinked { get; init; }
+    public bool IsUpstreamFailure { get; init; }
+    public bool IsFound => ProviderId.HasValue;
+
+    private ProviderResolutionResult() { }
+
+    public static ProviderResolutionResult NotLinked() => new() { IsNotLinked = true };
+    public static ProviderResolutionResult Found(Guid providerId) => new() { ProviderId = providerId };
+    public static ProviderResolutionResult UpstreamFailure(string message, int statusCode) => 
+        new() { ErrorMessage = message, StatusCode = statusCode, IsUpstreamFailure = true };
 }
 
 public class SetProviderScheduleEndpoint : IEndpoint

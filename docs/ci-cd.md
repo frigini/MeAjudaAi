@@ -379,7 +379,7 @@ variables:
   
   # Quality Gates
   - name: CodeCoverageThreshold
-    value: "85"
+    value: "90"
   - name: SonarQualityGate
     value: "OK"
 

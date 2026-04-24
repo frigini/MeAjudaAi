@@ -4,7 +4,7 @@ Este documento contém o registro de todas as sprints concluídas para fins de a
 
 ---
 
-## ✅ Sprint 12 - Bookings & Messaging Excellence (Concluída em 21 Abr 2026)
+## ✅ Sprint 12 - Bookings & Messaging Excellence (Em conclusão - Meta: 21 Abr 2026)
 
 **Objetivo**: Implementar o sistema de agendamentos e consolidar a infraestrutura de mensageria com Rebus.
 
@@ -70,7 +70,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
 **Status Geral**: Consulte a [Tabela de Sprints](#cronograma-de-sprints) para o status detalhado atualizado.
-**Cobertura de Testes**: Backend 91.2% | Frontend 42 testes Vitest (Verificação via [coverage-report.xml](artifacts/coverage-report.xml) pós-merge)
+**Testes/Cobertura**: Backend — Testes: N/A | Cobertura: 91.2%; Frontend — Testes: 42 (Vitest); Cobertura: N/A (Verificação via [coverage-report.xml](artifacts/coverage-report.xml) pós-merge)
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + NX Monorepo + React 19 + Next.js 15 (Customer, Provider, Admin) + Tailwind v4
 
 ### Marcos Principais

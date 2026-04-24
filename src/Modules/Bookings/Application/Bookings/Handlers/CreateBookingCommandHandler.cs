@@ -21,8 +21,8 @@ public sealed class CreateBookingCommandHandler(
 {
     public async Task<Result<BookingDto>> HandleAsync(CreateBookingCommand command, CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Creating booking for Provider {ProviderId} and Client {ClientId}", 
-            command.ProviderId, command.ClientId);
+        logger.LogInformation("Creating booking for Provider {ProviderId}", command.ProviderId);
+        logger.LogDebug("Creating booking for Client {ClientId}", command.ClientId);
 
         // 0. Validar Intervalo
         if (command.End <= command.Start)
@@ -78,6 +78,7 @@ public sealed class CreateBookingCommandHandler(
         var localStartTime = TimeZoneInfo.ConvertTimeFromUtc(command.Start.UtcDateTime, tz);
 
         var duration = command.End - command.Start;
+        // Note: duration is UTC-based and may shift local wall-clock time during DST transitions
         if (!schedule.IsAvailable(localStartTime, duration))
         {
             return Result<BookingDto>.Failure(Error.BadRequest("Prestador indisponível no horário solicitado."));

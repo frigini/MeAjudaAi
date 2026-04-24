@@ -23,7 +23,7 @@ Branch Coverage: 78.9%
   🌿 Branch Coverage: 78.9%
 
 💡 For detailed coverage report, check the 'Code Coverage Summary' step above
-🎯 Minimum thresholds: 70% (warning) / 85% (good)
+🎯 Minimum thresholds: 80% (warning) / 90% (good)
 ```
 
 ### 2. **Pull Request - Comentários Automáticos**
@@ -37,9 +37,9 @@ Em cada PR, você verá um comentário automático com:
 | Users  | 85.3%     | 78.9%      | ✅      |
 
 ### 🎯 Quality Gates
-- ✅ **Pass**: Coverage ≥ 85%
-- ⚠️ **Warning**: Coverage 70-84%  
-- ❌ **Fail**: Coverage < 70%
+- ✅ **Pass**: Coverage ≥ 90%
+- ⚠️ **Warning**: Coverage 80-89%  
+- ❌ **Fail**: Coverage < 80%
 ```text
 ### 3. **Artifacts de Download**
 Em cada execução do workflow, você pode baixar:
@@ -51,7 +51,7 @@ Em cada execução do workflow, você pode baixar:
 
 ### **Line Coverage (Cobertura de Linhas)**
 - **O que é**: Porcentagem de linhas de código executadas pelos testes
-- **Ideal**: ≥ 85%
+- **Target**: 90%
 - **Mínimo aceitável**: ≥ 70%
 - **Exemplo**: 85.3% = 853 de 1000 linhas foram testadas
 
@@ -167,9 +167,9 @@ reportgenerator -reports:"coverage/**/*.opencover.xml" -targetdir:"coveragerepor
 
 ## 📊 Exemplos de Relatórios
 
-### **Relatório de Sucesso (≥85%)**
+### **Relatório de Sucesso (≥90%)**
 ```
-✅ Coverage: 87.2% (Target: 85%)
+✅ Coverage: 87.2% (Target: 90%)
 📈 Line Coverage: 87.2% (1308/1500 lines)
 🌿 Branch Coverage: 82.4% (412/500 branches)
 🎯 Quality Gate: PASSED
@@ -177,7 +177,7 @@ reportgenerator -reports:"coverage/**/*.opencover.xml" -targetdir:"coveragerepor
 
 ### **Relatório de Warning (70-84%)**
 ```
-⚠️ Coverage: 76.8% (Target: 85%)
+⚠️ Coverage: 76.8% (Target: 90%)
 📈 Line Coverage: 76.8% (1152/1500 lines)  
 🌿 Branch Coverage: 71.2% (356/500 branches)
 🎯 Quality Gate: WARNING - Consider adding more tests
@@ -918,16 +918,16 @@ Line coverage: ~45-55% (vs 27.9% anterior)
 ### P: "E os targets de coverage (80%)?"  
 **R**: Ajuste para valores realistas baseados no novo baseline:
 
-**Targets Progressivos** (alinhados com padrões da indústria):
-- **Mínimo (CI warning)**: 70% line, 60% branch, 70% method
-- **Recomendado**: 85% line, 75% branch, 85% method  
-- **Excelente**: 90%+ line, 80%+ branch, 90%+ method
+**Targets Progressivos** (alinhados com política do projeto: 90/80):
+- **Mínimo (CI)**: 90% line, 80% branch, 90% method
+- **Recomendado**: 92% line, 85% branch, 92% method  
+- **Excelente**: 95%+ line, 90%+ branch, 95%+ method
 
-**Nota**: Os números iniciais (~45-55%) são intermediários. O projeto deve evoluir para o mínimo de 70% em código crítico.
+**Nota**: Quando coverage está ameaçada, times devem preferir excluir arquivos de baixa cobertura (glue/DTO) e adicionar testes de alto impacto ao invés de reduzir thresholds.
 
 ```json
 {
-  "threshold": "70,60,70"
+  "threshold": "90,80,90"
 }
 ```
 

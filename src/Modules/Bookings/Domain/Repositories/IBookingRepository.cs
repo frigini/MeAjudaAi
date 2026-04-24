@@ -22,6 +22,8 @@ public interface IBookingRepository
     Task<IReadOnlyList<Booking>> GetByProviderAndStatusAsync(Guid providerId, EBookingStatus status, CancellationToken cancellationToken = default);
     
     Task<IReadOnlyList<Booking>> GetActiveByProviderAndDateAsync(Guid providerId, DateOnly date, CancellationToken cancellationToken = default);
+    
+    [Obsolete("Use AddIfNoOverlapAsync for atomic overlap-protected inserts", false)]
     Task AddAsync(Booking booking, CancellationToken cancellationToken = default);
     
     /// <summary>
