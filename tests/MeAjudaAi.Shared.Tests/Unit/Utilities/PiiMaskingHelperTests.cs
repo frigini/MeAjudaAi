@@ -35,8 +35,12 @@ public class PiiMaskingHelperTests
 
     [Theory]
     [InlineData("123456789", "123***789")]
+    [InlineData("123456", "1***6")]
     [InlineData("12345", "1***5")]
+    [InlineData("12", "1***2")]
+    [InlineData("1", "1***1")]
     [InlineData(null, "[EMPTY]")]
+    [InlineData("", "[EMPTY]")]
     public void MaskUserId_Should_ReturnMaskedId(string? input, string expected)
     {
         // Act
@@ -49,8 +53,11 @@ public class PiiMaskingHelperTests
     [Theory]
     [InlineData("johndoe@example.com", "jo**@example.com")]
     [InlineData("ab@example.com", "*@example.com")]
+    [InlineData("a@b.com", "*@b.com")]
+    [InlineData("abc@example.com", "ab**@example.com")]
     [InlineData("invalid-email", "***@***")]
     [InlineData(null, "[EMPTY]")]
+    [InlineData("", "[EMPTY]")]
     public void MaskEmail_Should_ReturnMaskedEmail(string? input, string expected)
     {
         // Act
@@ -62,9 +69,11 @@ public class PiiMaskingHelperTests
 
     [Theory]
     [InlineData("+5511999991234", "+5511****1234")]
+    [InlineData("12345678", "******78")]
     [InlineData("1234567", "*****67")]
     [InlineData("123", "****")]
     [InlineData(null, "[EMPTY]")]
+    [InlineData("", "[EMPTY]")]
     public void MaskPhoneNumber_Should_ReturnMaskedPhone(string? input, string expected)
     {
         // Act

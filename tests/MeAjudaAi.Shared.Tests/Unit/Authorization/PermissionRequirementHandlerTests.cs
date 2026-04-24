@@ -81,4 +81,23 @@ public class PermissionRequirementHandlerTests
         // Assert
         context.HasSucceeded.Should().BeFalse();
     }
+
+    [Fact]
+    public async Task HandleAsync_WhenUserIdIsMissing_ShouldFail()
+    {
+        // Arrange
+        var requirement = new PermissionRequirement(EPermission.UsersRead);
+        
+        // No ID claims
+        var identity = new ClaimsIdentity(new Claim[] { }, "TestAuth");
+        var principal = new ClaimsPrincipal(identity);
+        
+        var context = new AuthorizationHandlerContext(new[] { requirement }, principal, null);
+
+        // Act
+        await _handler.HandleAsync(context);
+
+        // Assert
+        context.HasSucceeded.Should().BeFalse();
+    }
 }

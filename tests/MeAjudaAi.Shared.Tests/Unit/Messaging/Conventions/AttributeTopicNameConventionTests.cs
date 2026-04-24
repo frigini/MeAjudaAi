@@ -45,8 +45,26 @@ public class AttributeTopicNameConventionTests
         _fallbackMock.Verify(m => m.GetTopic(typeof(NonAttributedMessage)), Times.Once);
     }
 
+    [Fact]
+    public void GetTopic_Should_ReturnFallbackValue_When_AttributeTopicIsEmpty()
+    {
+        // Arrange
+        _fallbackMock.Setup(m => m.GetTopic(typeof(EmptyAttributedMessage)))
+            .Returns("fallback-topic");
+
+        // Act
+        var result = _sut.GetTopic(typeof(EmptyAttributedMessage));
+
+        // Assert
+        result.Should().Be("fallback-topic");
+        _fallbackMock.Verify(m => m.GetTopic(typeof(EmptyAttributedMessage)), Times.Once);
+    }
+
     [DedicatedTopic("custom-topic")]
     private class AttributedMessage;
+
+    [DedicatedTopic("")]
+    private class EmptyAttributedMessage;
 
     private class NonAttributedMessage;
 }

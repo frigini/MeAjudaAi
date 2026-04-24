@@ -14,6 +14,7 @@ public class PhoneNumberValidatorTests
     [InlineData("+55 11 99999-9999")]
     [InlineData("+55-11-99999-9999")]
     [InlineData("+55.11.99999.9999")] // Now valid with normalized dots
+    [InlineData("+551199999999")] // 8 digits (fixed line)
     public void IsValidInternationalFormat_WithValidNumbers_ShouldReturnTrue(string phoneNumber)
     {
         // Act
@@ -32,6 +33,10 @@ public class PhoneNumberValidatorTests
     [InlineData("+1234567890123456")] // Too long (16 digits)
     [InlineData("+551199999a999")] // Contains letter
     [InlineData("+551199999!999")] // Contains invalid special char
+    [InlineData("+55 (11) 99999-9999")] // Parentheses not currently supported in normalization
+    [InlineData("11999999999")] // Missing DDI and +
+    [InlineData("+")] // Only plus
+    [InlineData(" +5511999999999")] // Leading space
     public void IsValidInternationalFormat_WithInvalidNumbers_ShouldReturnFalse(string? phoneNumber)
     {
         // Act

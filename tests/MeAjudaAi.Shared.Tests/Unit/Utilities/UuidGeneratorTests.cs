@@ -186,9 +186,23 @@ public class UuidGeneratorTests
         result.Should().BeTrue();
     }
 
+    [Fact]
+    public void NewIdStringCompact_RoundTrip_ShouldBeEquivalent()
+    {
+        // Act
+        var compactId = UuidGenerator.NewIdStringCompact();
+        var parsedGuid = Guid.ParseExact(compactId, "N");
+        var backToCompact = parsedGuid.ToString("N");
+
+        // Assert
+        backToCompact.Should().Be(compactId);
+        parsedGuid.Should().NotBe(Guid.Empty);
+    }
+
     [Theory]
-    [InlineData("00000000-0000-0000-0000-000000000000")]
-    public void IsValid_WithDefaultGuidString_ShouldReturnFalse(string guidString)
+    [InlineData("00000000-0000-0000-0000-000000000000", false)]
+    [InlineData("11111111-1111-1111-1111-111111111111", true)]
+    public void IsValid_WithVariousGuidStrings_ShouldReturnExpected(string guidString, bool expected)
     {
         // Arrange
         var guid = Guid.Parse(guidString);
@@ -197,22 +211,6 @@ public class UuidGeneratorTests
         var result = UuidGenerator.IsValid(guid);
 
         // Assert
-        result.Should().BeFalse();
+        result.Should().Be(expected);
     }
-
-    [Fact]
-    public void NewIdString_AndNewIdStringCompact_ShouldRepresentSameConcept()
-    {
-        // Act
-        var standardId = UuidGenerator.NewIdString();
-        var compactId = UuidGenerator.NewIdStringCompact();
-
-        // Faz parse de ambos para verificar que são GUIDs válidos
-        var standardGuid = Guid.Parse(standardId);
-        var compactGuid = Guid.ParseExact(compactId, "N");
-
-        // Assert
-        standardGuid.Should().NotBe(Guid.Empty);
-        compactGuid.Should().NotBe(Guid.Empty);
     }
-}
