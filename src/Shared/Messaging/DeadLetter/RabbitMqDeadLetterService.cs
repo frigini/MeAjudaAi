@@ -143,7 +143,7 @@ public sealed class RabbitMqDeadLetterService(
                 {
                     logger.LogError(ex, "Failed to deserialize dead letter message from queue {Queue}. Message will be rejected.", deadLetterQueueName);
                     await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: false, cancellationToken);
-                    return false;
+                    return;
                 }
 
                 if (failedMessageInfo?.MessageId == messageId)
@@ -267,7 +267,7 @@ public sealed class RabbitMqDeadLetterService(
                 {
                     logger.LogError(ex, "Failed to deserialize dead letter message from queue {Queue}. Message will be rejected.", deadLetterQueueName);
                     await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: false, cancellationToken);
-                    return false;
+                    return;
                 }
 
                 if (failedMessageInfo?.MessageId == messageId)
