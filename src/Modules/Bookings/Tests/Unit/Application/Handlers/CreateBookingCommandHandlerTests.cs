@@ -306,6 +306,10 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(serviceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
+        var schedule = ProviderSchedule.Create(providerId, "UTC");
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(schedule);
+
         _providersApiMock.Setup(x => x.IsServiceOfferedByProviderAsync(providerId, serviceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(false));
 

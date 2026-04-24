@@ -97,9 +97,14 @@ public sealed class ProviderAuthorizationResolver
         }
 
         var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var uId))
+        if (string.IsNullOrEmpty(userIdClaim))
         {
             return ProviderAuthorizationResult.Unauthorized("Identificação do usuário não encontrada.");
+        }
+
+        if (!Guid.TryParse(userIdClaim, out var uId))
+        {
+            return ProviderAuthorizationResult.Unauthorized("Identificador do usuário inválido.");
         }
 
         var cacheKey = $"{CacheKeyPrefix}{uId}";
