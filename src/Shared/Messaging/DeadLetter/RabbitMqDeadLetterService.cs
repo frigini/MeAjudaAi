@@ -143,8 +143,18 @@ public sealed class RabbitMqDeadLetterService(
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Failed to deserialize dead letter message from queue {Queue}. Message will be rejected.", deadLetterQueueName);
-                    await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: false, cancellationToken);
+                    logger.LogError(ex, "Failed to deserialize dead letter message from queue {Queue}. Moving to quarantine.", deadLetterQueueName);
+                    
+                    try
+                    {
+                        await SendToQuarantineAsync(deadLetterQueueName, result.Body, result.BasicProperties, cancellationToken);
+                        await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                    }
+                    catch
+                    {
+                        // Fallback se a quarentena falhar: devolve para a DLQ
+                        await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: true, cancellationToken);
+                    }
                     return;
                 }
 
@@ -267,8 +277,18 @@ public sealed class RabbitMqDeadLetterService(
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Failed to deserialize dead letter message from queue {Queue}. Message will be rejected.", deadLetterQueueName);
-                    await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: false, cancellationToken);
+                    logger.LogError(ex, "Failed to deserialize dead letter message from queue {Queue}. Moving to quarantine.", deadLetterQueueName);
+                    
+                    try
+                    {
+                        await SendToQuarantineAsync(deadLetterQueueName, result.Body, result.BasicProperties, cancellationToken);
+                        await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                    }
+                    catch
+                    {
+                        // Fallback se a quarentena falhar: devolve para a DLQ
+                        await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: true, cancellationToken);
+                    }
                     return;
                 }
 
@@ -435,6 +455,39 @@ public sealed class RabbitMqDeadLetterService(
         failedMessageInfo.AddFailureAttempt(exception, handlerType);
 
         return failedMessageInfo;
+    }
+
+    private async Task SendToQuarantineAsync(
+        string deadLetterQueueName,
+        ReadOnlyMemory<byte> body,
+        BasicProperties properties,
+        CancellationToken cancellationToken)
+    {
+        var quarantineQueue = $"{deadLetterQueueName}.quarantine";
+        
+        try
+        {
+            await _channel!.QueueDeclareAsync(
+                queue: quarantineQueue,
+                durable: true,
+                exclusive: false,
+                autoDelete: false);
+
+            await _channel.BasicPublishAsync(
+                exchange: "",
+                routingKey: quarantineQueue,
+                mandatory: false,
+                basicProperties: properties,
+                body: body,
+                cancellationToken: cancellationToken);
+
+            logger.LogWarning("Corrupt dead letter message moved to quarantine queue: {Queue}", quarantineQueue);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Critical failure: could not move corrupt message to quarantine queue {Queue}", quarantineQueue);
+            throw; // Re-lança para forçar Nack com requeue se o chamador tratar
+        }
     }
 
     private string GetDeadLetterQueueName(string sourceQueue)

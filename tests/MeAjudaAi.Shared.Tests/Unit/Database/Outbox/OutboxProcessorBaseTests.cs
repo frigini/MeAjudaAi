@@ -86,15 +86,26 @@ public class OutboxProcessorBaseTests
             .ReturnsAsync(new List<OutboxMessage> { message });
 
         var cts = new CancellationTokenSource();
-        _processor.CancelTokenSource = cts; // Custom logic to cancel during dispatch
+        _processor.CancelTokenSource = cts;
+
+        // Capturar o status da mensagem durante a primeira chamada de SaveChangesAsync (quando entra em Processing)
+        EOutboxMessageStatus statusDuringProcessing = EOutboxMessageStatus.Pending;
+        _repositoryMock
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .Callback<CancellationToken>(ct => statusDuringProcessing = message.Status)
+            .Returns(Task.CompletedTask);
 
         // Act
         var act = () => _processor.ProcessPendingMessagesAsync(cancellationToken: cts.Token);
 
         // Assert
         await act.Should().ThrowAsync<OperationCanceledException>();
-        message.Status.Should().Be(EOutboxMessageStatus.Pending);
-        _repositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeast(2));
+        
+        statusDuringProcessing.Should().Be(EOutboxMessageStatus.Processing, "a mensagem deve ter passado pelo estado Processing antes do cancelamento");
+        message.Status.Should().Be(EOutboxMessageStatus.Pending, "a mensagem deve ter sido resetada para Pending após o cancelamento");
+        
+        _repositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeast(2), 
+            "deve salvar pelo menos duas vezes: uma para Processing e outra para o reset após falha/cancelamento");
     }
 
     // Concrete implementation for testing the abstract base
@@ -112,7 +123,7 @@ public class OutboxProcessorBaseTests
             if (CancelTokenSource != null)
             {
                 CancelTokenSource.Cancel();
-                throw new OperationCanceledException(cancellationToken);
+                CancelTokenSource.Token.ThrowIfCancellationRequested();
             }
             if (ShouldThrowException) throw new Exception("Unexpected");
             return Task.FromResult(DispatchResultToReturn);

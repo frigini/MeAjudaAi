@@ -114,7 +114,6 @@ public static class MessagingExtensions
                 configure
                     .Transport(t => t.UseRabbitMq(connectionString, options.DefaultQueueName));
 
-                var useNewtonsoftJson = configuration.GetValue<bool>(UseNewtonsoftJsonKey, false);
                 if (useNewtonsoftJson)
                 {
                     configure.Serialization(s => s.UseNewtonsoftJson());

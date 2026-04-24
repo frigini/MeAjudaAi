@@ -98,6 +98,13 @@ public sealed class CreateBookingCommandHandler(
 
         // 3. Criar booking para validação
         var localEndTime = localStartTime.Add(duration);
+
+        // 3.1 Validar se o agendamento cruza a meia-noite (não suportado pelo modelo TimeSlot atual)
+        if (localStartTime.Date != localEndTime.Date)
+        {
+            return Result<BookingDto>.Failure(Error.Validation("Agendamentos não podem cruzar a meia-noite. Por favor, divida em dois agendamentos distintos."));
+        }
+
         var date = DateOnly.FromDateTime(localStartTime);
         var timeSlot = TimeSlot.FromDateTime(localStartTime, localEndTime);
         
