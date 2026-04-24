@@ -52,7 +52,7 @@ Em cada execução do workflow, você pode baixar:
 ### **Line Coverage (Cobertura de Linhas)**
 - **O que é**: Porcentagem de linhas de código executadas pelos testes
 - **Target**: 90%
-- **Mínimo aceitável**: ≥ 70%
+- **Mínimo aceitável**: ≥ 80% — thresholds: 90/80 in CI
 - **Exemplo**: 85.3% = 853 de 1000 linhas foram testadas
 
 ### **Branch Coverage (Cobertura de Branches)**
@@ -168,26 +168,26 @@ reportgenerator -reports:"coverage/**/*.opencover.xml" -targetdir:"coveragerepor
 ## 📊 Exemplos de Relatórios
 
 ### **Relatório de Sucesso (≥90%)**
-```
-✅ Coverage: 87.2% (Target: 90%)
-📈 Line Coverage: 87.2% (1308/1500 lines)
-🌿 Branch Coverage: 82.4% (412/500 branches)
+```text
+✅ Coverage: 91.2% (Target: 90%)
+📈 Line Coverage: 91.2% (1368/1500 lines)
+🌿 Branch Coverage: 84.2% (421/500 branches)
 🎯 Quality Gate: PASSED
 ```
 
-### **Relatório de Warning (70-84%)**
-```
-⚠️ Coverage: 76.8% (Target: 90%)
-📈 Line Coverage: 76.8% (1152/1500 lines)  
-🌿 Branch Coverage: 71.2% (356/500 branches)
+### **Relatório de Warning (80-89%)**
+```text
+⚠️ Coverage: 86.8% (Target: 90%)
+📈 Line Coverage: 86.8% (1302/1500 lines)  
+🌿 Branch Coverage: 79.3% (396/500 branches)
 🎯 Quality Gate: WARNING - Consider adding more tests
 ```
 
-### **Relatório de Falha (<70%)**
-```
-❌ Coverage: 65.3% (Target: 70%)
-📈 Line Coverage: 65.3% (980/1500 lines)
-🌿 Branch Coverage: 58.6% (293/500 branches)
+### **Relatório de Falha (<80%)**
+```text
+❌ Coverage: 75.3% (Target: 90%)
+📈 Line Coverage: 75.3% (1130/1500 lines)
+🌿 Branch Coverage: 68.1% (341/500 branches)
 🎯 Quality Gate: FAILED - Insufficient test coverage
 ```
 

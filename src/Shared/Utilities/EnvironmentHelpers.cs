@@ -16,9 +16,10 @@ public static class EnvironmentHelpers
     public static bool IsSecurityBypassEnvironment(IHostEnvironment? environment = null)
     {
         // 1. Determinar o nome do ambiente a partir do objeto ou das variáveis de ambiente
-        var envName = environment?.EnvironmentName 
-            ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") 
-            ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var envName = !string.IsNullOrWhiteSpace(environment?.EnvironmentName)
+            ? environment.EnvironmentName
+            : Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") 
+              ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
         if (string.IsNullOrWhiteSpace(envName))
         {

@@ -722,7 +722,7 @@ Write-Host "✅ Configuração de CI/CD (apenas setup) concluída!" -ForegroundC
 
 #### Build Quality
 - ✅ Compilação sem erros ou warnings
-- ✅ Cobertura de código > 85%
+- ✅ Cobertura de código ≥ 90%
 - ✅ Testes unitários 100% passing
 - ✅ Análise estática sem issues críticos
 

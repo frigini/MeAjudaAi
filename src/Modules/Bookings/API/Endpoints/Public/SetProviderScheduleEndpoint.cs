@@ -88,7 +88,7 @@ public sealed class ProviderAuthorizationResolver
         }
 
         var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
-        if (!string.IsNullOrEmpty(providerIdClaim) && Guid.TryParse(providerIdClaim, out var pId))
+        if (!string.IsNullOrEmpty(providerIdClaim) && Guid.TryParse(providerIdClaim, out var pId) && pId != Guid.Empty)
         {
             return ProviderAuthorizationResult.Authorized(pId);
         }
@@ -101,37 +101,41 @@ public sealed class ProviderAuthorizationResolver
 
         var cacheKey = $"{CacheKeyPrefix}{uId}";
 
-        var cached = await _cache.GetOrCreateAsync(cacheKey, async entry =>
+        try
         {
-            entry.SlidingExpiration = SlidingExpiration;
-            entry.AbsoluteExpirationRelativeToNow = AbsoluteExpiration;
-            
-            var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
-            
-            if (providerResult.IsFailure)
+            var cached = await _cache.GetOrCreateAsync(cacheKey, async entry =>
             {
-                _logger.LogWarning("Failed to resolve provider for user {UserId}: {Error}", uId, providerResult.Error.Message);
-                return ProviderResolutionResult.UpstreamFailure(
-                    providerResult.Error.Message, 
-                    providerResult.Error.StatusCode);
-            }
+                entry.SlidingExpiration = SlidingExpiration;
+                entry.AbsoluteExpirationRelativeToNow = AbsoluteExpiration;
+                
+                var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
+                
+                if (providerResult.IsFailure)
+                {
+                    throw new InvalidOperationException(providerResult.Error.Message);
+                }
 
-            if (providerResult.Value == null)
+                if (providerResult.Value == null)
+                {
+                    entry.AbsoluteExpirationRelativeToNow = MissExpiration;
+                    return ProviderResolutionResult.NotLinked();
+                }
+
+                return ProviderResolutionResult.Found(providerResult.Value.Id);
+            });
+
+            return cached switch
             {
-                entry.AbsoluteExpirationRelativeToNow = MissExpiration;
-                return ProviderResolutionResult.NotLinked();
-            }
-
-            return ProviderResolutionResult.Found(providerResult.Value.Id);
-        });
-
-        return cached switch
+                { IsFound: true } => ProviderAuthorizationResult.Authorized(cached.ProviderId!.Value),
+                { IsNotLinked: true } => ProviderAuthorizationResult.NotLinked(),
+                _ => ProviderAuthorizationResult.Unauthorized("Erro ao resolver provider.")
+            };
+        }
+        catch (InvalidOperationException ex)
         {
-            { IsFound: true } => ProviderAuthorizationResult.Authorized(cached.ProviderId!.Value),
-            { IsNotLinked: true } => ProviderAuthorizationResult.NotLinked(),
-            { IsUpstreamFailure: true } => ProviderAuthorizationResult.UpstreamFailure(cached.ErrorMessage!, cached.StatusCode),
-            _ => ProviderAuthorizationResult.Unauthorized("Erro ao resolver provider.")
-        };
+            _logger.LogWarning("Failed to resolve provider for user {UserId}: {Error}", uId, ex.Message);
+            return ProviderAuthorizationResult.UpstreamFailure(ex.Message, 500);
+        }
     }
 }
 

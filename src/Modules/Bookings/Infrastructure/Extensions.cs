@@ -32,7 +32,7 @@ public static class Extensions
                 throw new InvalidOperationException("Bookings connection string is missing.");
             }
 
-            // Development must supply a real connection string for any non-local deployment
+            // Em ambientes não locais, forneça uma string de conexão real
             options.UseNpgsql(connStr, m => 
             {
                 m.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null);

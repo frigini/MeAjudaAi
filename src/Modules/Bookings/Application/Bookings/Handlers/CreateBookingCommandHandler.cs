@@ -78,7 +78,7 @@ public sealed class CreateBookingCommandHandler(
         var localStartTime = TimeZoneInfo.ConvertTimeFromUtc(command.Start.UtcDateTime, tz);
 
         var duration = command.End - command.Start;
-        // Note: duration is UTC-based and may shift local wall-clock time during DST transitions
+        // Nota: duration é baseado em UTC e pode variar o horário local em transições de DST
         if (!schedule.IsAvailable(localStartTime, duration))
         {
             return Result<BookingDto>.Failure(Error.BadRequest("Prestador indisponível no horário solicitado."));
