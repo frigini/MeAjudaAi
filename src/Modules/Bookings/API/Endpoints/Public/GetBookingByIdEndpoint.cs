@@ -21,11 +21,8 @@ public class GetBookingByIdEndpoint : IEndpoint
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
-            var correlationIdHeader = context.Request.Headers["X-Correlation-Id"].ToString();
-            if (!Guid.TryParse(correlationIdHeader, out var correlationId))
-            {
-                correlationId = Guid.NewGuid();
-            }
+            var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
+            var correlationId = Guid.TryParse(correlationIdHeader, out var cId) ? cId : Guid.NewGuid();
 
             var user = context.User;
             var userId = Guid.TryParse(user.FindFirst(AuthConstants.Claims.Subject)?.Value, out var uId) ? uId : (Guid?)null;

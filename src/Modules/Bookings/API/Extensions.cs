@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Bookings.API.Endpoints;
+using MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 using MeAjudaAi.Modules.Bookings.Application;
 using MeAjudaAi.Modules.Bookings.Infrastructure;
 using Microsoft.AspNetCore.Builder;
@@ -11,29 +12,21 @@ namespace MeAjudaAi.Modules.Bookings.API;
 
 public static class Extensions
 {
-    /// <summary>
-    /// Registra os serviços e configurações do módulo de agendamentos no container de DI.
-    /// </summary>
     public static IServiceCollection AddBookingsModule(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         services.AddApplication();
         services.AddInfrastructure(configuration, environment);
+        services.AddSingleton<ProviderAuthorizationResolver>();
 
         return services;
     }
 
-    /// <summary>
-    /// Configura e mapeia os middlewares do módulo de agendamentos.
-    /// </summary>
     public static WebApplication UseBookingsModule(this WebApplication app)
     {
         app.MapBookingsEndpoints();
         return app;
     }
 
-    /// <summary>
-    /// Mapeia os endpoints do módulo de agendamentos.
-    /// </summary>
     public static IEndpointRouteBuilder MapBookingsEndpoints(this IEndpointRouteBuilder endpoints)
     {
         BookingsEndpoints.Map(endpoints);

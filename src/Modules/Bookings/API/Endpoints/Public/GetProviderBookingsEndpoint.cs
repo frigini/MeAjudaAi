@@ -18,7 +18,6 @@ namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 public class GetProviderBookingsEndpoint : IEndpoint
 {
     private const int MaxPageSize = 100;
-    private readonly static ProviderAuthorizationResolver _authResolver = new();
     
     public static void Map(IEndpointRouteBuilder app)
     {
@@ -29,6 +28,7 @@ public class GetProviderBookingsEndpoint : IEndpoint
             [FromServices] IQueryDispatcher dispatcher,
             [FromServices] IProvidersModuleApi providersApi,
             [FromServices] IMemoryCache cache,
+            [FromServices] ProviderAuthorizationResolver authResolver,
             [FromServices] ILogger<GetProviderBookingsEndpoint> logger,
             HttpContext context,
             CancellationToken cancellationToken) =>
@@ -43,16 +43,16 @@ public class GetProviderBookingsEndpoint : IEndpoint
                 ? Math.Clamp(pageSize.Value, 1, MaxPageSize) 
                 : 10;
 
-            var authResult = await _authResolver.ResolveAsync(context, providersApi, cache, logger, cancellationToken);
+            var authResult = await authResolver.ResolveAsync(context, providersApi, cache, logger, cancellationToken);
 
             if (authResult.IsUnauthorized)
             {
-                return Results.Problem(authResult.ErrorMessage, statusCode: authResult.ErrorStatusCode ?? StatusCodes.Status403Forbidden);
+                return Results.Problem(authResult.ErrorMessage, statusCode: authResult.ErrorStatusCode ?? StatusCodes.Status401Unauthorized);
             }
 
             if (authResult.IsNotLinked)
             {
-                return Results.NotFound("Usuário não possui prestador vinculado.");
+                return Results.Problem("Usuário não possui prestador vinculado.", statusCode: StatusCodes.Status404NotFound);
             }
 
             if (!authResult.IsAdmin && authResult.ProviderId.HasValue && authResult.ProviderId.Value != providerId)
@@ -73,6 +73,7 @@ public class GetProviderBookingsEndpoint : IEndpoint
         .RequireAuthorization()
         .Produces<PagedResult<BookingDto>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status403Forbidden)
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status500InternalServerError)

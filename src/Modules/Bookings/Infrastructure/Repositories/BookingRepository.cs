@@ -16,6 +16,13 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
     public async Task<Booking?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await context.Bookings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
+    }
+
+    public async Task<Booking?> GetByIdTrackedAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await context.Bookings
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
 
@@ -158,7 +165,7 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                 }
                 catch (OperationCanceledException)
                 {
-                    // Rethrow is intentional: transaction is managed via await using and DisposeAsync will auto-rollback.
+                    // Re-lançamento intencional: a transação é gerida via await using e DisposeAsync fará rollback automaticamente.
                     throw;
                 }
                 catch (Exception ex)

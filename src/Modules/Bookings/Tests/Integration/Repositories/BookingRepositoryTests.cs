@@ -41,7 +41,9 @@ public class BookingRepositoryTests : BaseDatabaseTest
         var booking = CreateBooking();
 
         // Act
+#pragma warning disable CS0618
         await _repository.AddAsync(booking);
+#pragma warning restore CS0618
 
         // Assert
         var savedBooking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == booking.Id);
@@ -61,11 +63,13 @@ public class BookingRepositoryTests : BaseDatabaseTest
         var existingBooking = Booking.Create(
             providerId, Guid.NewGuid(), Guid.NewGuid(), date,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(12, 0)));
-        await _repository.AddAsync(existingBooking);
+        
+        await _context.Bookings.AddAsync(existingBooking);
+        await _context.SaveChangesAsync();
 
         var newBooking = Booking.Create(
             providerId, Guid.NewGuid(), Guid.NewGuid(), date,
-            TimeSlot.Create(new TimeOnly(12, 0), new TimeOnly(13, 0))); // Adjacente
+            TimeSlot.Create(new TimeOnly(12, 0), new TimeOnly(13, 0)));
 
         // Act
         var result = await _repository.AddIfNoOverlapAsync(newBooking);
@@ -84,11 +88,13 @@ public class BookingRepositoryTests : BaseDatabaseTest
         var existingBooking = Booking.Create(
             providerId, Guid.NewGuid(), Guid.NewGuid(), date,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(12, 0)));
-        await _repository.AddAsync(existingBooking);
+        
+        await _context.Bookings.AddAsync(existingBooking);
+        await _context.SaveChangesAsync();
 
         var newBooking = Booking.Create(
             providerId, Guid.NewGuid(), Guid.NewGuid(), date,
-            TimeSlot.Create(new TimeOnly(11, 0), new TimeOnly(13, 0))); // Sobrepõe
+            TimeSlot.Create(new TimeOnly(11, 0), new TimeOnly(13, 0)));
 
         // Act
         var result = await _repository.AddIfNoOverlapAsync(newBooking);
@@ -142,7 +148,7 @@ public class BookingRepositoryTests : BaseDatabaseTest
         var day2 = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(2);
         var day3 = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(3);
 
-        // Creating bookings with same times but different dates and different TimeSlot instances
+        // Criando bookings com mesmos horários, mas datas diferentes e instâncias TimeSlot distintas
         var booking1 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), day2, 
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         var booking2 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), day3, 

@@ -89,7 +89,7 @@ public class GlobalExceptionHandlerTests
 
         var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
 
-result.Should().BeTrue();
+        result.Should().BeTrue();
         context.Response.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
     }
 
@@ -105,12 +105,21 @@ result.Should().BeTrue();
         var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
 
         result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(500);
+        context.Response.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
         context.Response.ContentType.Should().Be("application/problem+json");
 
         context.Response.Body.Seek(0, SeekOrigin.Begin);
         var body = await new StreamReader(context.Response.Body).ReadToEndAsync();
-        body.Should().Contain("Development error details");
+        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(body, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Status.Should().Be(StatusCodes.Status500InternalServerError);
+        problemDetails.Detail.Should().Contain("Development error details");
+        problemDetails.Extensions.Should().ContainKey("traceId");
+        problemDetails.Extensions["traceId"].ToString().Should().Be("trace-dev-123");
     }
 
     [Fact]
@@ -125,7 +134,7 @@ result.Should().BeTrue();
         var result = await _handler.TryHandleAsync(context, exception, CancellationToken.None);
 
         result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(500);
+        context.Response.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
         context.Response.ContentType.Should().Be("application/problem+json");
 
         context.Response.Body.Seek(0, SeekOrigin.Begin);
@@ -136,7 +145,7 @@ result.Should().BeTrue();
         });
 
         problemDetails.Should().NotBeNull();
-        problemDetails!.Status.Should().Be(500);
+        problemDetails!.Status.Should().Be(StatusCodes.Status500InternalServerError);
         problemDetails.Detail.Should().NotContain("Dados sensíveis");
         problemDetails.Detail.Should().Contain("Ocorreu um erro inesperado");
         problemDetails.Extensions.Should().ContainKey("traceId");

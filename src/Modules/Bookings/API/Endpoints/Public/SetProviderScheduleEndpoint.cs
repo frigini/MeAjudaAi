@@ -28,7 +28,7 @@ public class ProviderAuthorizationResult
     public static ProviderAuthorizationResult Authorized(Guid providerId) => new() { ProviderId = providerId };
     public static ProviderAuthorizationResult NotLinked() => new() { IsNotLinked = true };
     public static ProviderAuthorizationResult Unauthorized(string? message = null, int? statusCode = null) => 
-        new() { IsUnauthorized = true, ErrorMessage = message, ErrorStatusCode = statusCode };
+        new() { IsUnauthorized = true, ErrorMessage = message, ErrorStatusCode = statusCode ?? StatusCodes.Status401Unauthorized };
 }
 
 public class ProviderAuthorizationResolver
@@ -88,7 +88,6 @@ public class ProviderAuthorizationResolver
         {
             cache.Set(cacheKey, Guid.Empty, new MemoryCacheEntryOptions
             {
-                SlidingExpiration = MissExpiration,
                 AbsoluteExpirationRelativeToNow = MissExpiration
             });
             logger.LogDebug("User {UserId} has no associated provider (cached)", uId);
@@ -109,8 +108,6 @@ public class ProviderAuthorizationResolver
 
 public class SetProviderScheduleEndpoint : IEndpoint
 {
-    private readonly static ProviderAuthorizationResolver _authResolver = new();
-    
     public static void Map(IEndpointRouteBuilder app)
     {
         app.MapPost("/schedule", async (
@@ -118,6 +115,7 @@ public class SetProviderScheduleEndpoint : IEndpoint
             [FromServices] ICommandDispatcher dispatcher,
             [FromServices] IProvidersModuleApi providersApi,
             [FromServices] IMemoryCache cache,
+            [FromServices] ProviderAuthorizationResolver authResolver,
             [FromServices] ILogger<SetProviderScheduleEndpoint> logger,
             HttpContext context,
             CancellationToken cancellationToken) =>
@@ -127,16 +125,16 @@ public class SetProviderScheduleEndpoint : IEndpoint
                 return Results.Problem("Corpo da requisição ou disponibilidades ausentes.", statusCode: StatusCodes.Status400BadRequest);
             }
 
-            var authResult = await _authResolver.ResolveAsync(context, providersApi, cache, logger, cancellationToken);
+            var authResult = await authResolver.ResolveAsync(context, providersApi, cache, logger, cancellationToken);
 
             if (authResult.IsUnauthorized)
             {
-                return Results.Problem(authResult.ErrorMessage, statusCode: authResult.ErrorStatusCode ?? StatusCodes.Status403Forbidden);
+                return Results.Problem(authResult.ErrorMessage, statusCode: authResult.ErrorStatusCode ?? StatusCodes.Status401Unauthorized);
             }
 
             if (authResult.IsNotLinked)
             {
-                return Results.NotFound("Usuário não possui prestador vinculado.");
+                return Results.Problem("Usuário não possui prestador vinculado.", statusCode: StatusCodes.Status404NotFound);
             }
 
             Guid targetProviderId;
@@ -151,24 +149,16 @@ public class SetProviderScheduleEndpoint : IEndpoint
                 var userIdClaim = context.User.FindFirst(AuthConstants.Claims.Subject)?.Value;
                 logger.LogInformation("Admin {AdminId} is setting schedule for Provider {ProviderId}", userIdClaim, targetProviderId);
             }
-            else if (authResult.ProviderId.HasValue)
-            {
-                targetProviderId = authResult.ProviderId.Value;
-                logger.LogInformation("Provider {ProviderId} is setting own schedule", targetProviderId);
-            }
             else
             {
-                return Results.Unauthorized();
-            }
+                targetProviderId = authResult.ProviderId!.Value;
 
-            if (targetProviderId == Guid.Empty)
-            {
-                return Results.Problem("ProviderId inválido ou ausente.", statusCode: StatusCodes.Status400BadRequest);
-            }
+                if (request.ProviderId != Guid.Empty && request.ProviderId != targetProviderId)
+                {
+                    return Results.Problem("O ProviderId informado não coincide com o prestador autenticado.", statusCode: StatusCodes.Status400BadRequest);
+                }
 
-            if (!authResult.IsAdmin && request.ProviderId != Guid.Empty && request.ProviderId != targetProviderId)
-            {
-                return Results.Problem("O ProviderId informado não coincide com o prestador autenticado.", statusCode: StatusCodes.Status400BadRequest);
+                logger.LogInformation("Provider {ProviderId} is setting own schedule", targetProviderId);
             }
 
             var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
