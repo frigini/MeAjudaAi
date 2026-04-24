@@ -133,6 +133,7 @@ public sealed class ServiceCatalogsModuleApi(
 
             var dto = new ModuleServiceDto(
                 service.Id.Value,
+                Guid.Empty,
                 service.CategoryId.Value,
                 categoryName,
                 service.Name,
@@ -190,6 +191,7 @@ public sealed class ServiceCatalogsModuleApi(
 
             var dtos = services.Select(s => new ModuleServiceDto(
                 s.Id.Value,
+                Guid.Empty,
                 s.CategoryId.Value,
                 s.Category?.Name ?? ValidationMessages.Catalogs.UnknownCategoryName,
                 s.Name,

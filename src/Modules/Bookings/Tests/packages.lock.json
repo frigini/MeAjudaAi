@@ -665,11 +665,6 @@
           "NetTopologySuite": "[2.0.0, 3.0.0-A)"
         }
       },
-      "Newtonsoft.Json": {
-        "type": "Transitive",
-        "resolved": "13.0.4",
-        "contentHash": "pdgNNMai3zv51W5aq268sujXUyx7SNdE2bj1wZcWjAQrKMFZV260lbqYop1d2GM67JI1huLRwxo9ZqnfF/lC6A=="
-      },
       "Npgsql.DependencyInjection": {
         "type": "Transitive",
         "resolved": "10.0.1",
@@ -1416,8 +1411,8 @@
           "Microsoft.Extensions.Caching.Hybrid": "[10.5.0, )",
           "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.6, )",
           "Microsoft.FeatureManagement.AspNetCore": "[4.4.0, )",
+          "Newtonsoft.Json": "[13.0.4, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
-          "OpenTelemetry.Exporter.Console": "[1.15.3, )",
           "RabbitMQ.Client": "[7.2.1, )",
           "Rebus": "[8.9.2, )",
           "Rebus.RabbitMq": "[10.1.1, )",
@@ -2032,6 +2027,12 @@
         "requested": "[2.7.3, )",
         "resolved": "2.7.3",
         "contentHash": "riS56czrBUgnvTmJqgXXiKUuTZisnvFfi4BzW9vGcjvTMUPsbCrdG5Nohwsx7G+pVwXgZIQOM+MnT/xgT7bisA=="
+      },
+      "Newtonsoft.Json": {
+        "type": "CentralTransitive",
+        "requested": "[13.0.4, )",
+        "resolved": "13.0.4",
+        "contentHash": "pdgNNMai3zv51W5aq268sujXUyx7SNdE2bj1wZcWjAQrKMFZV260lbqYop1d2GM67JI1huLRwxo9ZqnfF/lC6A=="
       },
       "Npgsql.EntityFrameworkCore.PostgreSQL": {
         "type": "CentralTransitive",

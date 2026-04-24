@@ -32,6 +32,7 @@ public class BookingsApiTests : BaseApiTest
         var providerId = await CreateTestProviderAsync();
         await CreateTestScheduleAsync(providerId);
         var serviceId = await CreateTestServiceAsync();
+        await LinkServiceToProviderAsync(providerId, serviceId, "Test Service");
 
         var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
         var start = tomorrow.ToDateTime(new TimeOnly(10, 0));
@@ -113,6 +114,93 @@ public class BookingsApiTests : BaseApiTest
         var result = await ReadJsonAsync<PagedResult<BookingDto>>(response.Content);
         result.Should().NotBeNull();
         result!.Items.Should().BeEmpty(); // No bookings created yet
+    }
+
+    [Fact]
+    public async Task GetBookingById_ShouldReturnOk_WhenBookingExists()
+    {
+        var providerId = await CreateTestProviderAsync();
+        await CreateTestScheduleAsync(providerId);
+        var serviceId = await CreateTestServiceAsync();
+        await LinkServiceToProviderAsync(providerId, serviceId, "Test Service");
+
+        var clientId = Guid.NewGuid();
+        var bookingId = await CreateTestBookingAsync(providerId, clientId, serviceId);
+
+        AuthConfig.ConfigureRegularUser(clientId.ToString());
+        Client.AsTestInstance();
+
+        var response = await Client.GetAsync($"/api/v1/bookings/{bookingId}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var booking = await ReadJsonAsync<BookingDto>(response.Content);
+        booking.Should().NotBeNull();
+        booking!.Id.Should().Be(bookingId);
+    }
+
+    [Fact]
+    public async Task CancelBooking_ShouldReturnNoContent_WhenAuthorized()
+    {
+        var providerId = await CreateTestProviderAsync();
+        await CreateTestScheduleAsync(providerId);
+        var serviceId = await CreateTestServiceAsync();
+        await LinkServiceToProviderAsync(providerId, serviceId, "Test Service");
+
+        var clientId = Guid.NewGuid();
+        var bookingId = await CreateTestBookingAsync(providerId, clientId, serviceId);
+
+        AuthConfig.ConfigureRegularUser(clientId.ToString());
+        Client.AsTestInstance();
+
+        var response = await Client.PutAsJsonAsync($"/api/v1/bookings/{bookingId}/cancel", new { Reason = "Test Cancel" });
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task GetMyBookings_ShouldReturnOk_WhenAuthorized()
+    {
+        var providerId = await CreateTestProviderAsync();
+        await CreateTestScheduleAsync(providerId);
+        var serviceId = await CreateTestServiceAsync();
+        await LinkServiceToProviderAsync(providerId, serviceId, "Test Service");
+
+        var clientId = Guid.NewGuid();
+        await CreateTestBookingAsync(providerId, clientId, serviceId);
+
+        AuthConfig.ConfigureRegularUser(clientId.ToString());
+        Client.AsTestInstance();
+
+        var response = await Client.GetAsync("/api/v1/bookings/my");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await ReadJsonAsync<PagedResult<BookingDto>>(response.Content);
+        result.Should().NotBeNull();
+        result!.Items.Should().NotBeEmpty();
+    }
+
+    private async Task<Guid> CreateTestBookingAsync(Guid providerId, Guid clientId, Guid serviceId)
+    {
+        using var scope = Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<BookingsDbContext>();
+        
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var slot = TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0));
+        var booking = Booking.Create(providerId, clientId, serviceId, tomorrow, slot);
+        
+        context.Bookings.Add(booking);
+        await context.SaveChangesAsync();
+        
+        return booking.Id;
+    }
+
+    private async Task LinkServiceToProviderAsync(Guid providerId, Guid serviceId, string serviceName)
+    {
+        using var scope = Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
+        var provider = await context.Providers.FindAsync(new ProviderId(providerId));
+        provider!.AddService(serviceId, serviceName);
+        await context.SaveChangesAsync();
     }
 
     private async Task<Guid> CreateTestProviderAsync()
