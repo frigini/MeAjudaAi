@@ -103,26 +103,32 @@ public sealed class ProviderAuthorizationResolver
 
         try
         {
-            var cached = await _cache.GetOrCreateAsync(cacheKey, async entry =>
+            // Otimização: Usar Lazy<Task<...>> para evitar múltiplas chamadas simultâneas à API para o mesmo usuário
+            var lazyResolution = await _cache.GetOrCreateAsync(cacheKey, async entry =>
             {
                 entry.SlidingExpiration = SlidingExpiration;
                 entry.AbsoluteExpirationRelativeToNow = AbsoluteExpiration;
                 
-                var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
-                
-                if (providerResult.IsFailure)
+                return new Lazy<Task<ProviderResolutionResult>>(async () => 
                 {
-                    throw new UpstreamProviderException(providerResult.Error.Message, providerResult.Error.StatusCode);
-                }
+                    var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
+                    
+                    if (providerResult.IsFailure)
+                    {
+                        throw new UpstreamProviderException(providerResult.Error.Message, providerResult.Error.StatusCode);
+                    }
 
-                if (providerResult.Value == null)
-                {
-                    entry.AbsoluteExpirationRelativeToNow = MissExpiration;
-                    return ProviderResolutionResult.NotLinked();
-                }
+                    if (providerResult.Value == null)
+                    {
+                        entry.AbsoluteExpirationRelativeToNow = MissExpiration;
+                        return ProviderResolutionResult.NotLinked();
+                    }
 
-                return ProviderResolutionResult.Found(providerResult.Value.Id);
+                    return ProviderResolutionResult.Found(providerResult.Value.Id);
+                });
             });
+
+            var cached = await lazyResolution!.Value;
 
             return cached switch
             {
@@ -202,6 +208,10 @@ public class SetProviderScheduleEndpoint : IEndpoint
                 }
                 targetProviderId = request.ProviderId;
                 var userIdClaim = context.User.FindFirst(AuthConstants.Claims.Subject)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim))
+                {
+                    return Results.Problem("Identificador do administrador não encontrado no token.", statusCode: StatusCodes.Status400BadRequest);
+                }
                 logger.LogInformation("Admin {AdminId} is setting schedule for Provider {ProviderId}", userIdClaim, targetProviderId);
             }
             else
@@ -235,7 +245,6 @@ public class SetProviderScheduleEndpoint : IEndpoint
         .Produces(StatusCodes.Status204NoContent)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
-        .ProducesProblem(StatusCodes.Status403Forbidden)
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(BookingsEndpoints.Tag)

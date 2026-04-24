@@ -8,7 +8,7 @@ public sealed class NewtonsoftJsonMessageSerializer : IMessageSerializer
     private static readonly JsonSerializerSettings Settings = new()
     {
         ContractResolver = new CamelCasePropertyNamesContractResolver(),
-        Formatting = Formatting.Indented,
+        Formatting = Formatting.None,
         NullValueHandling = NullValueHandling.Ignore
     };
 

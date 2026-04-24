@@ -84,7 +84,7 @@ Quando a cobertura está ameaçada, os times devem preferir adicionar testes de 
 - **Infraestrutura Design-time**: `*DbContextFactory`.
 - **Endpoints**: Podem ser excluídos globalmente via configuração.
 
-**PROIBIDO EXCLUIR**: Classes do tipo `*Configuration` e `*Extensions`, pois estas contêm lógica de fiação e infraestrutura que deve ser validada via smoke tests ou integration tests.
+**PROIBIDO EXCLUIR**: Classes do tipo `*Configuration`, `*Extensions`, `*.Monitoring.*`, `MeAjudaAi.Shared.Jobs.*` e `MeAjudaAi.Shared.Mediator.*`, pois estas contêm lógica de fiação, monitoramento ou processamento de infraestrutura que deve ser validada via smoke tests ou integration tests.
 
 ## 🔧 Como Melhorar o Coverage
 
@@ -919,7 +919,7 @@ Line coverage: ~45-55% (vs 27.9% anterior)
 ### P: "E os targets de coverage (80%)?"  
 **R**: Ajuste para valores realistas baseados no novo baseline:
 
-**Targets Progressivos** (alinhados com política do projeto: 90/80):
+**Objetivos Progressivos** (alinhados com política do projeto: 90/80):
 - **Mínimo (CI)**: 90% line, 80% branch, 90% method
 - **Recomendado**: 92% line, 85% branch, 92% method  
 - **Excelente**: 95%+ line, 90%+ branch, 95%+ method

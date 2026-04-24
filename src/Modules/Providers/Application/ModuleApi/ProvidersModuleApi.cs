@@ -430,6 +430,10 @@ public sealed class ProvidersModuleApi(
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// Se o provedor não existir, retorna Success(false) de forma defensiva, 
+    /// pois o CreateBookingCommandHandler valida a existência do provedor previamente.
+    /// </remarks>
     public async Task<Result<bool>> IsServiceOfferedByProviderAsync(Guid providerId, Guid serviceId, CancellationToken cancellationToken = default)
     {
         logger.LogDebug("Checking if provider {ProviderId} offers service {ServiceId}", providerId, serviceId);
@@ -448,7 +452,7 @@ public sealed class ProvidersModuleApi(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking if provider {ProviderId} offers service {ServiceId}", providerId, serviceId);
-            return Result<bool>.Failure($"Erro ao verificar se o prestador oferece o serviço: {ex.Message}");
+            return Result<bool>.Failure($"Error checking if provider offers service: {ex.Message}");
         }
     }
 }

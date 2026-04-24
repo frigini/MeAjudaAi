@@ -104,6 +104,12 @@ public class BookingsApiTests : BaseApiTest
     public async Task GetProviderBookings_ShouldReturnOk_WhenAuthorized()
     {
         var providerId = await CreateTestProviderAsync();
+        var otherProviderId = await CreateTestProviderAsync();
+        var serviceId = await CreateTestServiceAsync();
+        await LinkServiceToProviderAsync(otherProviderId, serviceId, "Other Service");
+        
+        // Criar agendamento para o OUTRO provedor
+        await CreateTestBookingAsync(otherProviderId, Guid.NewGuid(), serviceId);
         
         AuthConfig.ConfigureProvider(providerId, "provider-user-id");
         Client.AsTestInstance();
@@ -113,7 +119,7 @@ public class BookingsApiTests : BaseApiTest
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var result = await ReadJsonAsync<PagedResult<BookingDto>>(response.Content);
         result.Should().NotBeNull();
-        result!.Items.Should().BeEmpty(); // No bookings created yet
+        result!.Items.Should().BeEmpty(); // Não deve ver agendamentos de outros provedores
     }
 
     [Fact]
@@ -152,7 +158,8 @@ public class BookingsApiTests : BaseApiTest
         AuthConfig.ConfigureRegularUser(clientId.ToString());
         Client.AsTestInstance();
 
-        var response = await Client.PutAsJsonAsync($"/api/v1/bookings/{bookingId}/cancel", new { Reason = "Test Cancel" });
+        var cancelRequest = new CancelBookingRequest("Test Cancel");
+        var response = await Client.PutAsJsonAsync($"/api/v1/bookings/{bookingId}/cancel", cancelRequest);
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }

@@ -133,7 +133,18 @@ public sealed class RabbitMqDeadLetterService(
             if (result != null)
             {
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
-                var failedMessageInfo = serializer.Deserialize<FailedMessageInfo>(messageBodyJson);
+                FailedMessageInfo? failedMessageInfo = null;
+
+                try
+                {
+                    failedMessageInfo = serializer.Deserialize<FailedMessageInfo>(messageBodyJson);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Failed to deserialize dead letter message from queue {Queue}. Message will be rejected.", deadLetterQueueName);
+                    await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: false, cancellationToken);
+                    return false;
+                }
 
                 if (failedMessageInfo?.MessageId == messageId)
                 {
@@ -197,17 +208,30 @@ public sealed class RabbitMqDeadLetterService(
                 if (result == null) break;
 
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
-                var failedMessageInfo = serializer.Deserialize<FailedMessageInfo>(messageBodyJson);
+                FailedMessageInfo? failedMessageInfo = null;
 
-                if (failedMessageInfo != null)
+                try
                 {
-                    messages.Add(failedMessageInfo);
-                }
+                    failedMessageInfo = serializer.Deserialize<FailedMessageInfo>(messageBodyJson);
 
-                // Importante: Rejeita a mensagem de volta para a fila
-                await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: true, cancellationToken);
-                count++;
+                    if (failedMessageInfo != null)
+                    {
+                        messages.Add(failedMessageInfo);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Failed to deserialize dead letter message during list operation. Queue: {Queue}", deadLetterQueueName);
+                }
+                finally
+                {
+                    // No List, sempre damos Nack com Requeue para a mensagem voltar para a fila
+                    // Mas incrementamos o count para evitar loop infinito se houver mensagens corrompidas
+                    await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: true, cancellationToken);
+                    count++;
+                }
             }
+
         }
         catch (Exception ex)
         {
@@ -233,7 +257,18 @@ public sealed class RabbitMqDeadLetterService(
             if (result != null)
             {
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
-                var failedMessageInfo = serializer.Deserialize<FailedMessageInfo>(messageBodyJson);
+                FailedMessageInfo? failedMessageInfo = null;
+
+                try
+                {
+                    failedMessageInfo = serializer.Deserialize<FailedMessageInfo>(messageBodyJson);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Failed to deserialize dead letter message from queue {Queue}. Message will be rejected.", deadLetterQueueName);
+                    await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: false, cancellationToken);
+                    return false;
+                }
 
                 if (failedMessageInfo?.MessageId == messageId)
                 {

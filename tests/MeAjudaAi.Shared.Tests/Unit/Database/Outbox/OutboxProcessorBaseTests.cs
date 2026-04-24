@@ -89,16 +89,10 @@ public class OutboxProcessorBaseTests
         _processor.CancelTokenSource = cts; // Custom logic to cancel during dispatch
 
         // Act
-        try
-        {
-            await _processor.ProcessPendingMessagesAsync(cancellationToken: cts.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected during this test case
-        }
+        var act = () => _processor.ProcessPendingMessagesAsync(cancellationToken: cts.Token);
 
         // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
         message.Status.Should().Be(EOutboxMessageStatus.Pending);
         _repositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeast(2));
     }

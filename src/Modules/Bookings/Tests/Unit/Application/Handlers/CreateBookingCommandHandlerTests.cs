@@ -356,12 +356,15 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     }
 
     [Fact]
-    public async Task HandleAsync_Should_Fail_When_StartIsExactlyNow()
+    public async Task HandleAsync_Should_Fail_When_StartIsNotInFuture()
     {
         // Arrange
+        // Pequeno recuo de 10ms para garantir que o start NUNCA estará no futuro 
+        // em relação ao UtcNow lido dentro do handler
+        var pastStart = DateTimeOffset.UtcNow.AddMilliseconds(-10);
         var command = new CreateBookingCommand(
             Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-            DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1), Guid.NewGuid());
+            pastStart, pastStart.AddHours(1), Guid.NewGuid());
 
         // Act
         var result = await _sut.HandleAsync(command);

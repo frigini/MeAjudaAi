@@ -7,7 +7,8 @@ public sealed class SystemTextJsonMessageSerializer : IMessageSerializer
     private static readonly JsonSerializerOptions Options = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = true
+        WriteIndented = false,
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
     };
 
     public string Serialize<T>(T obj) => JsonSerializer.Serialize(obj, Options);
