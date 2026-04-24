@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -7,6 +8,7 @@ namespace MeAjudaAi.Shared.Exceptions;
 /// <summary>
 /// Extension methods para configuração de Exception Handling
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class ExceptionsExtensions
 {
     public static IServiceCollection AddErrorHandling(this IServiceCollection services)

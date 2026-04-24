@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.Shared.Authorization.Core;
 
@@ -6,6 +7,7 @@ namespace MeAjudaAi.Shared.Authorization.Core;
 /// Compatibility layer for Permission type. 
 /// This provides backward compatibility while migrating to EPermission enum.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class Permission
 {
     // System permissions

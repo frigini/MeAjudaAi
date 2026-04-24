@@ -1,9 +1,7 @@
-using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Messaging.Strategy;
 
 namespace MeAjudaAi.Shared.Messaging.Options;
 
-[ExcludeFromCodeCoverage]
 public static class ModuleNames
 {
     public const string Users = "Users";
@@ -17,7 +15,6 @@ public static class ModuleNames
     public const string ServiceCatalogs = "ServiceCatalogs";
 }
 
-[ExcludeFromCodeCoverage]
 public sealed class RabbitMqOptions
 {
     public const string SectionName = "Messaging:RabbitMQ";

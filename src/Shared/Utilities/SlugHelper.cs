@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -8,7 +7,6 @@ namespace MeAjudaAi.Shared.Utilities;
 /// <summary>
 /// Helper para geração de slugs amigáveis para URL
 /// </summary>
-[ExcludeFromCodeCoverage]
 public static partial class SlugHelper
 {
     [GeneratedRegex(@"[^a-z0-9\s-]")]

@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Shared.Endpoints;
 
+[ExcludeFromCodeCoverage]
 public static class EndpointMappingExtensions
 {
     public static IEndpointRouteBuilder MapEndpoint<TEndpoint>(this IEndpointRouteBuilder app)

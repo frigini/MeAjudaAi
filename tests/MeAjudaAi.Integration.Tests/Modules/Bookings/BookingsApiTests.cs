@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
+using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
@@ -73,6 +74,45 @@ public class BookingsApiTests : BaseApiTest
         var availability = await ReadJsonAsync<AvailabilityDto>(response.Content);
         availability.Should().NotBeNull();
         availability!.Slots.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public async Task SetProviderSchedule_ShouldReturnNoContent_WhenRequestIsValid()
+    {
+        var providerId = await CreateTestProviderAsync();
+        var availabilities = new[]
+        {
+            new ProviderScheduleDto(
+                DayOfWeek.Monday,
+                new[] { 
+                    new TimeSlotDto(new TimeOnly(8, 0), new TimeOnly(12, 0)), 
+                    new TimeSlotDto(new TimeOnly(13, 0), new TimeOnly(17, 0)) 
+                })
+        };
+        var request = new SetProviderScheduleRequest(providerId, availabilities);
+
+        AuthConfig.ConfigureProvider(providerId, "provider-user-id");
+        Client.AsTestInstance();
+
+        var response = await Client.PostAsJsonAsync("/api/v1/bookings/schedule", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent, $"server returned: {await response.Content.ReadAsStringAsync()}");
+    }
+
+    [Fact]
+    public async Task GetProviderBookings_ShouldReturnOk_WhenAuthorized()
+    {
+        var providerId = await CreateTestProviderAsync();
+        
+        AuthConfig.ConfigureProvider(providerId, "provider-user-id");
+        Client.AsTestInstance();
+
+        var response = await Client.GetAsync($"/api/v1/bookings/provider/{providerId}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await ReadJsonAsync<PagedResult<BookingDto>>(response.Content);
+        result.Should().NotBeNull();
+        result!.Items.Should().BeEmpty(); // No bookings created yet
     }
 
     private async Task<Guid> CreateTestProviderAsync()

@@ -1,7 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
 namespace MeAjudaAi.Shared.Exceptions;
-
-[ExcludeFromCodeCoverage]
 
 public class ForbiddenAccessException : Exception
 {

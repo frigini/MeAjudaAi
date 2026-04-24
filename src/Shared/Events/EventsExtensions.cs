@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Shared.Events;
@@ -5,6 +6,7 @@ namespace MeAjudaAi.Shared.Events;
 /// <summary>
 /// Extension methods para configuração de Events (Domain Events)
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class EventsExtensions
 {
     public static IServiceCollection AddEvents(this IServiceCollection services)

@@ -31,6 +31,7 @@ internal sealed class MessagingConfiguration
 /// <summary>
 /// Extension methods consolidados para configuração de Messaging, Dead Letter Queue e Message Retry
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class MessagingExtensions
 {
     private const string UseNewtonsoftJsonKey = "Messaging:UseNewtonsoftJson";

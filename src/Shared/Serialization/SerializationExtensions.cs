@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -6,6 +7,7 @@ namespace MeAjudaAi.Shared.Serialization;
 /// <summary>
 /// Extension methods para configuração de Serialization (JSON)
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class SerializationExtensions
 {
     public static IServiceCollection AddCustomSerialization(this IServiceCollection services)

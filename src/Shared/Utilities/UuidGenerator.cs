@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace MeAjudaAi.Shared.Utilities;
@@ -6,7 +5,6 @@ namespace MeAjudaAi.Shared.Utilities;
 /// <summary>
 /// Gerador centralizado de identificadores únicos
 /// </summary>
-[ExcludeFromCodeCoverage]
 public static class UuidGenerator
 {
     /// <summary>

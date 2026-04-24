@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Utilities;
 
 namespace MeAjudaAi.Shared.Events;
@@ -7,6 +8,7 @@ namespace MeAjudaAi.Shared.Events;
 /// são criados no momento da publicação e não precisam de injeção de dependência para testabilidade.
 /// O Id (UUID v7 baseado em tempo) e timestamp representam o momento exato da criação do evento.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public abstract record IntegrationEvent(
     string Source
 ) : IIntegrationEvent

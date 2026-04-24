@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 namespace MeAjudaAi.Shared.Queries;
 
 /// <summary>
 /// Extension methods para configuração de Queries (CQRS)
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class QueriesExtensions
 {
     public static IServiceCollection AddQueries(this IServiceCollection services)
