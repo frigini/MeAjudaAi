@@ -20,6 +20,11 @@ public static class EnvironmentHelpers
             ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") 
             ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
+        if (string.IsNullOrWhiteSpace(envName))
+        {
+            return false;
+        }
+
         var isKnownBypassEnvironment = string.Equals(envName, "Testing", StringComparison.OrdinalIgnoreCase)
             || string.Equals(envName, "Development", StringComparison.OrdinalIgnoreCase)
             || string.Equals(envName, "Integration", StringComparison.OrdinalIgnoreCase);
