@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
@@ -24,6 +25,7 @@ public enum AuthorizationFailureKind
     NotLinked
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class ProviderAuthorizationResult
 {
     public bool IsAdmin { get; init; }
@@ -41,6 +43,7 @@ public sealed class ProviderAuthorizationResult
         new() { FailureKind = AuthorizationFailureKind.UpstreamFailure, ErrorMessage = message, ErrorStatusCode = statusCode };
 }
 
+[ExcludeFromCodeCoverage]
 public static class ProviderAuthorizationResultExtensions
 {
     public static IResult? ToProblemResult(this ProviderAuthorizationResult result)

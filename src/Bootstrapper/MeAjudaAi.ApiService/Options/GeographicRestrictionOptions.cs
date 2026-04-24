@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.ApiService.Options;
 
 /// <summary>
@@ -8,6 +10,7 @@ namespace MeAjudaAi.ApiService.Options;
 /// NOTA: O controle de habilitação é feito via Microsoft.FeatureManagement (FeatureFlags.GeographicRestriction).
 /// Esta classe contém apenas a configuração de quais regiões são permitidas.
 /// </remarks>
+[ExcludeFromCodeCoverage]
 public class GeographicRestrictionOptions
 {
     /// <summary>

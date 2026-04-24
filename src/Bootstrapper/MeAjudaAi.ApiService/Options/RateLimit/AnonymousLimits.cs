@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.ApiService.Options.RateLimit;
 
+[ExcludeFromCodeCoverage]
 public class AnonymousLimits
 {
     [Range(1, int.MaxValue)] public int RequestsPerMinute { get; set; } = 30;

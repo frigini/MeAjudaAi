@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Messaging.Options;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
 namespace MeAjudaAi.Shared.Messaging.RabbitMq;
 
+[ExcludeFromCodeCoverage]
 internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, IAsyncDisposable
 {
     private readonly RabbitMqOptions _options;

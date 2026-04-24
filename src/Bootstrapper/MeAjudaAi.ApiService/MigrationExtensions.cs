@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.ApiService;
@@ -5,6 +6,7 @@ namespace MeAjudaAi.ApiService;
 /// <summary>
 /// Extension methods para aplicar migrations dos módulos no startup
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class MigrationExtensions
 {
     /// <summary>

@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MeAjudaAi.ApiService.Options;
 
+[ExcludeFromCodeCoverage]
 public class CorsOptions
 {
     public const string SectionName = "Cors";

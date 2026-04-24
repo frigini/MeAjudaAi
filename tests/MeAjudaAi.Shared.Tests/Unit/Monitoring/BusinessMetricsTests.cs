@@ -55,4 +55,49 @@ public class BusinessMetricsTests
         // Assert
         act.Should().NotThrow();
     }
+
+    [Fact]
+    public void RecordHelpRequest_Should_NotThrow()
+    {
+        // Arrange
+        using var metrics = new BusinessMetrics("TestMeter");
+
+        // Act
+        var act1 = () => metrics.RecordHelpRequestCreated("cat", "urgent");
+        var act2 = () => metrics.RecordHelpRequestCompleted("cat", TimeSpan.FromMinutes(5));
+        var act3 = () => metrics.RecordHelpRequestDuration(TimeSpan.FromMinutes(5), "cat");
+
+        // Assert
+        act1.Should().NotThrow();
+        act2.Should().NotThrow();
+        act3.Should().NotThrow();
+    }
+
+    [Fact]
+    public void UpdateGauges_Should_NotThrow()
+    {
+        // Arrange
+        using var metrics = new BusinessMetrics("TestMeter");
+
+        // Act
+        var act1 = () => metrics.UpdateActiveUsers(10);
+        var act2 = () => metrics.UpdatePendingHelpRequests(5);
+
+        // Assert
+        act1.Should().NotThrow();
+        act2.Should().NotThrow();
+    }
+
+    [Fact]
+    public void RecordDatabaseQuery_Should_NotThrow()
+    {
+        // Arrange
+        using var metrics = new BusinessMetrics("TestMeter");
+
+        // Act
+        var act = () => metrics.RecordDatabaseQuery(TimeSpan.FromMilliseconds(100), "SELECT");
+
+        // Assert
+        act.Should().NotThrow();
+    }
 }

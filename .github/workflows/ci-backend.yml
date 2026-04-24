@@ -391,7 +391,16 @@ jobs:
 
             **Ação necessária:** Revise os logs do step _Check for Breaking Changes_ acima e garanta que as alterações são intencionais e documentadas em `.oasdiff-ignore.yaml`.
 
-            > Este aviso foi gerado automaticamente pelo CI. O build continua sendo permitido durante a Sprint 12 (`continue-on-error: true`).
+      - name: Clear Breaking Changes PR Comment
+        if: steps.breaking-changes.outcome == 'success'
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          recreate: true
+          header: oasdiff-breaking-changes
+          message: |
+            ## ✅ Contrato da API Validado
+
+            Nenhuma breaking change detectada pelo `oasdiff` em relação à branch base.
 
   security-scan:
     name: Security Scan

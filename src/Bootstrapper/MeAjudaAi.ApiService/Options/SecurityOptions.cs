@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.ApiService.Options;
 
 /// <summary>
 /// Opções de segurança específicas por ambiente
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class SecurityOptions
 {
     public bool EnforceHttps { get; set; }

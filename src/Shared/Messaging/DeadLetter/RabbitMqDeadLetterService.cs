@@ -460,7 +460,7 @@ public sealed class RabbitMqDeadLetterService(
     private async Task SendToQuarantineAsync(
         string deadLetterQueueName,
         ReadOnlyMemory<byte> body,
-        BasicProperties properties,
+        IReadOnlyBasicProperties properties,
         CancellationToken cancellationToken)
     {
         var quarantineQueue = $"{deadLetterQueueName}.quarantine";
@@ -471,13 +471,20 @@ public sealed class RabbitMqDeadLetterService(
                 queue: quarantineQueue,
                 durable: true,
                 exclusive: false,
-                autoDelete: false);
+                autoDelete: false,
+                cancellationToken: cancellationToken);
+
+            var publishProperties = new BasicProperties
+            {
+                Persistent = true,
+                Headers = properties.Headers
+            };
 
             await _channel.BasicPublishAsync(
                 exchange: "",
                 routingKey: quarantineQueue,
                 mandatory: false,
-                basicProperties: properties,
+                basicProperties: publishProperties,
                 body: body,
                 cancellationToken: cancellationToken);
 

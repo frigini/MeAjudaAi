@@ -525,5 +525,45 @@ public class ProvidersModuleApiTests
         result.Value.Should().HaveCount(1);
     }
 
+    [Fact]
+    public async Task IsServiceOfferedByProviderAsync_Should_ReturnTrue_When_ProviderOffersService()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var serviceId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        
+        // Mocking repository instead of handler since the API method uses repository directly
+        var provider = new MeAjudaAi.Modules.Providers.Domain.Entities.Provider(
+            userId, "Test", EProviderType.Individual, null!);
+        provider.AddService(serviceId, "Test Service");
+
+        _providerRepositoryMock.Setup(x => x.GetByIdAsync(new MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId(providerId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(provider);
+
+        // Act
+        var result = await _sut.IsServiceOfferedByProviderAsync(providerId, serviceId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task IsServiceOfferedByProviderAsync_Should_ReturnFalse_When_ProviderNotFound()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        _providerRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((MeAjudaAi.Modules.Providers.Domain.Entities.Provider?)null);
+
+        // Act
+        var result = await _sut.IsServiceOfferedByProviderAsync(providerId, Guid.NewGuid());
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeFalse();
+    }
+
     #endregion
 }

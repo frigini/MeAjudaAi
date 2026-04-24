@@ -40,4 +40,28 @@ public class PhoneNumberValidatorTests
         // Assert
         result.Should().BeFalse();
     }
+
+    [Theory]
+    [InlineData("+5511999999999")]
+    [InlineData("+55 11 99999-9999")]
+    public void IsValid_Should_ReturnTrue_For_ValidBrazilianNumber(string phoneNumber)
+    {
+        // Act
+        var result = PhoneNumberValidator.IsValidInternationalFormat(phoneNumber);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("11999999999")]
+    [InlineData("invalid")]
+    public void IsValid_Should_ReturnFalse_For_InvalidNumber(string? phoneNumber)
+    {
+        // Act
+        var result = PhoneNumberValidator.IsValidInternationalFormat(phoneNumber);
+
+        // Assert
+        result.Should().BeFalse();
+    }
 }

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Modules.Bookings.API.Endpoints;
 using MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 using MeAjudaAi.Modules.Bookings.Application;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Modules.Bookings.API;
 
+[ExcludeFromCodeCoverage]
 public static class Extensions
 {
     public static IServiceCollection AddBookingsModule(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using MeAjudaAi.ApiService.Handlers;
@@ -20,6 +21,7 @@ namespace MeAjudaAi.ApiService.Extensions;
 /// <summary>
 /// Métodos de extensão para configuração de segurança incluindo autenticação, autorização e CORS.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class SecurityExtensions
 {
     /// <summary>

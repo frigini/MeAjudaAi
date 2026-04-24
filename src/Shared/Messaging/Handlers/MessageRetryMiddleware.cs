@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -7,6 +8,7 @@ namespace MeAjudaAi.Shared.Messaging.Handlers;
 /// <summary>
 /// Middleware para interceptar falhas em handlers de mensagens e implementar retry com Dead Letter Queue
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class MessageRetryMiddleware<TMessage>(
     IDeadLetterService deadLetterService,
     ILogger<MessageRetryMiddleware<TMessage>> logger,

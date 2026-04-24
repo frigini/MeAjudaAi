@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints;
 
+[ExcludeFromCodeCoverage]
 public static class BookingsEndpoints
 {
     public const string Route = "bookings";

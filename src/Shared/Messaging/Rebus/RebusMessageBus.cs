@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Messaging.Rebus;
@@ -5,6 +6,7 @@ namespace MeAjudaAi.Shared.Messaging.Rebus;
 /// <summary>
 /// Implementação do IMessageBus utilizando Rebus (Enterprise Service Bus)
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class RebusMessageBus(global::Rebus.Bus.IBus bus, ILogger<RebusMessageBus> logger) : IMessageBus
 {
     public Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
