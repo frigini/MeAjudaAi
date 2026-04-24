@@ -112,7 +112,7 @@ public sealed class ProviderAuthorizationResolver
                 
                 if (providerResult.IsFailure)
                 {
-                    throw new InvalidOperationException(providerResult.Error.Message);
+                    throw new UpstreamProviderException(providerResult.Error.Message, providerResult.Error.StatusCode);
                 }
 
                 if (providerResult.Value == null)
@@ -127,33 +127,33 @@ public sealed class ProviderAuthorizationResolver
             return cached switch
             {
                 { IsFound: true } => ProviderAuthorizationResult.Authorized(cached.ProviderId!.Value),
-                { IsNotLinked: true } => ProviderAuthorizationResult.NotLinked(),
-                _ => ProviderAuthorizationResult.Unauthorized("Erro ao resolver provider.")
+                _ => ProviderAuthorizationResult.NotLinked()
             };
         }
-        catch (InvalidOperationException ex)
+        catch (UpstreamProviderException ex)
         {
             _logger.LogWarning("Failed to resolve provider for user {UserId}: {Error}", uId, ex.Message);
-            return ProviderAuthorizationResult.UpstreamFailure(ex.Message, 500);
+            return ProviderAuthorizationResult.UpstreamFailure(ex.Message, ex.StatusCode);
         }
     }
+}
+
+internal sealed class UpstreamProviderException : Exception
+{
+    public int StatusCode { get; }
+    public UpstreamProviderException(string message, int statusCode) : base(message) => StatusCode = statusCode;
 }
 
 internal sealed class ProviderResolutionResult
 {
     public Guid? ProviderId { get; init; }
-    public string? ErrorMessage { get; init; }
-    public int StatusCode { get; init; }
     public bool IsNotLinked { get; init; }
-    public bool IsUpstreamFailure { get; init; }
     public bool IsFound => ProviderId.HasValue;
 
     private ProviderResolutionResult() { }
 
     public static ProviderResolutionResult NotLinked() => new() { IsNotLinked = true };
     public static ProviderResolutionResult Found(Guid providerId) => new() { ProviderId = providerId };
-    public static ProviderResolutionResult UpstreamFailure(string message, int statusCode) => 
-        new() { ErrorMessage = message, StatusCode = statusCode, IsUpstreamFailure = true };
 }
 
 public class SetProviderScheduleEndpoint : IEndpoint
@@ -171,12 +171,12 @@ public class SetProviderScheduleEndpoint : IEndpoint
         {
             if (request == null)
             {
-                return Results.Problem("Request body is required.", statusCode: StatusCodes.Status400BadRequest);
+                return Results.Problem("Corpo da requisição é obrigatório.", statusCode: StatusCodes.Status400BadRequest);
             }
 
             if (request.Availabilities == null)
             {
-                return Results.Problem("Availabilities property is required.", statusCode: StatusCodes.Status400BadRequest);
+                return Results.Problem("Propriedade 'Availabilities' é obrigatória.", statusCode: StatusCodes.Status400BadRequest);
             }
 
             if (!request.Availabilities.Any())

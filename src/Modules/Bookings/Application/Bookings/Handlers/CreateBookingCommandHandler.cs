@@ -61,6 +61,18 @@ public sealed class CreateBookingCommandHandler(
             return Result<BookingDto>.Failure(Error.NotFound("Serviço não encontrado ou inativo."));
         }
 
+        // 1.7 Validar posse do serviço pelo prestador
+        var serviceOffered = await providersApi.IsServiceOfferedByProviderAsync(command.ProviderId, command.ServiceId, cancellationToken);
+        if (serviceOffered.IsFailure)
+        {
+            return Result<BookingDto>.Failure(serviceOffered.Error);
+        }
+
+        if (!serviceOffered.Value)
+        {
+            return Result<BookingDto>.Failure(Error.NotFound("Serviço não encontrado ou não oferecido por este prestador."));
+        }
+
         // 2. Validar Horário de Trabalho (Schedule)
         var schedule = await scheduleRepository.GetByProviderIdReadOnlyAsync(command.ProviderId, cancellationToken);
         if (schedule == null)

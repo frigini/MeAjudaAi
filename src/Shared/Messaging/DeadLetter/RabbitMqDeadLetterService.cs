@@ -1,7 +1,7 @@
 using System.Text;
-using System.Text.Json;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
+using MeAjudaAi.Shared.Messaging.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
@@ -14,6 +14,7 @@ namespace MeAjudaAi.Shared.Messaging.DeadLetter;
 public sealed class RabbitMqDeadLetterService(
     RabbitMqOptions rabbitMqOptions,
     IOptions<DeadLetterOptions> deadLetterOptions,
+    IMessageSerializer serializer,
     ILogger<RabbitMqDeadLetterService> logger) : IDeadLetterService, IAsyncDisposable, IDisposable
 {
     private readonly DeadLetterOptions _deadLetterOptions = deadLetterOptions.Value;
@@ -46,7 +47,7 @@ public sealed class RabbitMqDeadLetterService(
             await EnsureConnectionAsync();
             await EnsureDeadLetterInfrastructureAsync(deadLetterQueueName);
 
-            var messageBody = Encoding.UTF8.GetBytes(failedMessageInfo.ToJson());
+            var messageBody = Encoding.UTF8.GetBytes(serializer.Serialize(failedMessageInfo));
             var properties = new BasicProperties
             {
                 Persistent = _deadLetterOptions.RabbitMq.EnablePersistence,
@@ -132,7 +133,7 @@ public sealed class RabbitMqDeadLetterService(
             if (result != null)
             {
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
-                var failedMessageInfo = FailedMessageInfoExtensions.FromJson(messageBodyJson);
+                var failedMessageInfo = serializer.Deserialize<FailedMessageInfo>(messageBodyJson);
 
                 if (failedMessageInfo?.MessageId == messageId)
                 {
@@ -196,7 +197,7 @@ public sealed class RabbitMqDeadLetterService(
                 if (result == null) break;
 
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
-                var failedMessageInfo = FailedMessageInfoExtensions.FromJson(messageBodyJson);
+                var failedMessageInfo = serializer.Deserialize<FailedMessageInfo>(messageBodyJson);
 
                 if (failedMessageInfo != null)
                 {
@@ -232,7 +233,7 @@ public sealed class RabbitMqDeadLetterService(
             if (result != null)
             {
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
-                var failedMessageInfo = FailedMessageInfoExtensions.FromJson(messageBodyJson);
+                var failedMessageInfo = serializer.Deserialize<FailedMessageInfo>(messageBodyJson);
 
                 if (failedMessageInfo?.MessageId == messageId)
                 {
@@ -381,7 +382,7 @@ public sealed class RabbitMqDeadLetterService(
         {
             MessageId = Guid.NewGuid().ToString(),
             MessageType = typeof(TMessage).FullName ?? "Unknown",
-            OriginalMessage = JsonSerializer.Serialize(message),
+            OriginalMessage = serializer.Serialize(message),
             SourceQueue = sourceQueue,
             FirstAttemptAt = DateTime.UtcNow.AddMinutes(-attemptCount * 2), // Estimativa
             LastAttemptAt = DateTime.UtcNow,

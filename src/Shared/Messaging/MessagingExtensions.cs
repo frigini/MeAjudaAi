@@ -31,7 +31,6 @@ internal sealed class MessagingConfiguration
 /// <summary>
 /// Extension methods consolidados para configuração de Messaging, Dead Letter Queue e Message Retry
 /// </summary>
-[ExcludeFromCodeCoverage]
 public static class MessagingExtensions
 {
     private const string UseNewtonsoftJsonKey = "Messaging:UseNewtonsoftJson";
@@ -76,6 +75,17 @@ public static class MessagingExtensions
             configureOptions?.Invoke(options);
             return options;
         });
+
+        // Registro do Serializador de Mensagens (usado pelo DeadLetter e infra)
+        var useNewtonsoftJson = configuration.GetValue<bool>(UseNewtonsoftJsonKey, false);
+        if (useNewtonsoftJson)
+        {
+            services.TryAddSingleton<MeAjudaAi.Shared.Messaging.Serialization.IMessageSerializer, MeAjudaAi.Shared.Messaging.Serialization.NewtonsoftJsonMessageSerializer>();
+        }
+        else
+        {
+            services.TryAddSingleton<MeAjudaAi.Shared.Messaging.Serialization.IMessageSerializer, MeAjudaAi.Shared.Messaging.Serialization.SystemTextJsonMessageSerializer>();
+        }
 
         services.AddSingleton<IEventTypeRegistry, EventTypeRegistry>();
 
@@ -143,7 +153,8 @@ public static class MessagingExtensions
 
     public static async Task EnsureMessagingInfrastructureAsync(this IHost host)
     {
-        var isEnabled = host.Services.GetRequiredService<IConfiguration>().GetValue<bool>("Messaging:Enabled", true);
+        var configuration = host.Services.GetRequiredService<IConfiguration>();
+        var isEnabled = configuration.GetValue<bool>("Messaging:Enabled", true);
         if (!isEnabled)
         {
             return;
@@ -153,7 +164,7 @@ public static class MessagingExtensions
         var manager = scope.ServiceProvider.GetRequiredService<IRabbitMqInfrastructureManager>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingConfiguration>>();
 
-        var useNewtonsoftJson = scope.ServiceProvider.GetRequiredService<IConfiguration>().GetValue<bool>(UseNewtonsoftJsonKey, false);
+        var useNewtonsoftJson = configuration.GetValue<bool>(UseNewtonsoftJsonKey, false);
         if (useNewtonsoftJson)
         {
             logger.LogInformation("Messaging: Newtonsoft.Json is ENABLED. Using legacy serializer.");

@@ -428,4 +428,27 @@ public sealed class ProvidersModuleApi(
             return Result<bool>.Failure($"Erro ao verificar se os prestadores oferecem o serviço: {ex.Message}");
         }
     }
+
+    /// <inheritdoc />
+    public async Task<Result<bool>> IsServiceOfferedByProviderAsync(Guid providerId, Guid serviceId, CancellationToken cancellationToken = default)
+    {
+        logger.LogDebug("Checking if provider {ProviderId} offers service {ServiceId}", providerId, serviceId);
+
+        try
+        {
+            var provider = await providerRepository.GetByIdAsync(new ProviderId(providerId), cancellationToken);
+            if (provider == null)
+            {
+                return Result<bool>.Success(false);
+            }
+
+            var offersService = provider.OffersService(serviceId);
+            return Result<bool>.Success(offersService);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error checking if provider {ProviderId} offers service {ServiceId}", providerId, serviceId);
+            return Result<bool>.Failure($"Erro ao verificar se o prestador oferece o serviço: {ex.Message}");
+        }
+    }
 }

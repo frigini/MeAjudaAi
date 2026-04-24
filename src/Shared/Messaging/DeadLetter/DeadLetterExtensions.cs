@@ -11,7 +11,6 @@ namespace MeAjudaAi.Shared.Messaging.DeadLetter;
 /// <summary>
 /// Extensões para configurar o sistema de Dead Letter Queue
 /// </summary>
-[ExcludeFromCodeCoverage]
 public static class DeadLetterExtensions
 {
     /// <summary>

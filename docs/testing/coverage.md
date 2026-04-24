@@ -52,14 +52,14 @@ Em cada execução do workflow, você pode baixar:
 ### **Line Coverage (Cobertura de Linhas)**
 - **O que é**: Porcentagem de linhas de código executadas pelos testes
 - **Target**: 90%
-- **Mínimo aceitável**: ≥ 80% — thresholds: 90/80 in CI
-- **Exemplo**: 85.3% = 853 de 1000 linhas foram testadas
+- **Mínimo aceitável**: ≥ 90% — thresholds: 90/80 in CI
+- **Exemplo**: 90.3% = 903 de 1000 linhas foram testadas
 
 ### **Branch Coverage (Cobertura de Branches)**
 - **O que é**: Porcentagem de condições/branches testadas (if/else, switch)
 - **Ideal**: ≥ 80%
-- **Mínimo aceitável**: ≥ 65%
-- **Exemplo**: 78.9% = 789 de 1000 branches foram testadas
+- **Mínimo aceitável**: ≥ 80%
+- **Exemplo**: 80.9% = 809 de 1000 branches foram testadas
 
 ### **Complexity (Complexidade)**
 - **O que é**: Métrica de complexidade ciclomática do código
@@ -78,12 +78,13 @@ thresholds: '90 80'
 - **Coverage ≥ 90%**: ✅ Pipeline passa com sucesso
 - **Coverage < 90%**: ❌ Pipeline falha (obrigatório)
 
-### **Guidance: Excluir Glue/DTO Code**
-Para alcançar o target de 90%, prefira excluir código de infraestrutura/glue dos testes:
-- **Request/Response/Dto/DTO/IntegrationEvent**: DTOs de API, Requests/Responses
-- ***DbContextFactory**: Classes factory de DbContext (ex: ProvidersDbContextFactory)
-- **Endpoints**: Endpoints são excluídos por convenção
-- **NOTA**: *Configuration e *Extensions NÃO devem ser globalmente excluídos - exclua apenas classes específicas quando necessário
+### **Guidance: Excluir Código da Cobertura**
+Quando a cobertura está ameaçada, os times devem preferir adicionar testes de alto impacto. Se a exclusão for necessária para remover ruído de código sem lógica, utilize o atributo `[ExcludeFromCodeCoverage]` apenas para os seguintes padrões:
+- **Arquivos de Dados/Contratos**: `Request`, `Response`, `Dto`, `DTO`, `IntegrationEvent`.
+- **Infraestrutura Design-time**: `*DbContextFactory`.
+- **Endpoints**: Podem ser excluídos globalmente via configuração.
+
+**PROIBIDO EXCLUIR**: Classes do tipo `*Configuration` e `*Extensions`, pois estas contêm lógica de fiação e infraestrutura que deve ser validada via smoke tests ou integration tests.
 
 ## 🔧 Como Melhorar o Coverage
 
