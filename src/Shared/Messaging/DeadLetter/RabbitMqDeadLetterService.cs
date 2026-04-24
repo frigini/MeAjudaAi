@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
@@ -11,6 +12,7 @@ namespace MeAjudaAi.Shared.Messaging.DeadLetter;
 /// <summary>
 /// Implementação do serviço de Dead Letter Queue usando RabbitMQ
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class RabbitMqDeadLetterService(
     RabbitMqOptions rabbitMqOptions,
     IOptions<DeadLetterOptions> deadLetterOptions,

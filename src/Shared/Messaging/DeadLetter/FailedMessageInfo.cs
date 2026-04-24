@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MeAjudaAi.Shared.Messaging.DeadLetter;
 
 /// <summary>
 /// Informações sobre uma mensagem que falhou durante o processamento
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class FailedMessageInfo
 {
     /// <summary>
@@ -69,6 +72,7 @@ public sealed class FailedMessageInfo
 /// <summary>
 /// Informações sobre uma tentativa de processamento que falhou
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class FailureAttempt
 {
     /// <summary>
@@ -110,6 +114,7 @@ public sealed class FailureAttempt
 /// <summary>
 /// Metadados do ambiente onde a falha ocorreu
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class EnvironmentMetadata
 {
     /// <summary>
