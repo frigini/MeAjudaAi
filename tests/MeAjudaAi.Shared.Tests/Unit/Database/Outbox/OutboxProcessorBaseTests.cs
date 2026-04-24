@@ -77,6 +77,32 @@ public class OutboxProcessorBaseTests
         _processor.OnFailureCalled.Should().BeTrue();
     }
 
+    [Fact]
+    public async Task ProcessPendingMessagesAsync_WhenCancelled_ShouldResetProcessingMessagesToPending()
+    {
+        // Arrange
+        var message = OutboxMessage.Create("T", "P");
+        _repositoryMock.Setup(x => x.GetPendingAsync(It.IsAny<int>(), It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<OutboxMessage> { message });
+
+        var cts = new CancellationTokenSource();
+        _processor.CancelTokenSource = cts; // Custom logic to cancel during dispatch
+
+        // Act
+        try
+        {
+            await _processor.ProcessPendingMessagesAsync(cancellationToken: cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected during this test case
+        }
+
+        // Assert
+        message.Status.Should().Be(EOutboxMessageStatus.Pending);
+        _repositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeast(2));
+    }
+
     // Concrete implementation for testing the abstract base
     private class TestOutboxProcessor(IOutboxRepository<OutboxMessage> repository, ILogger logger) 
         : OutboxProcessorBase<OutboxMessage>(repository, logger)
@@ -85,9 +111,15 @@ public class OutboxProcessorBaseTests
         public bool ShouldThrowException { get; set; }
         public bool OnSuccessCalled { get; private set; }
         public bool OnFailureCalled { get; private set; }
+        public CancellationTokenSource? CancelTokenSource { get; set; }
 
         protected override Task<DispatchResult> DispatchAsync(OutboxMessage message, CancellationToken cancellationToken)
         {
+            if (CancelTokenSource != null)
+            {
+                CancelTokenSource.Cancel();
+                throw new OperationCanceledException(cancellationToken);
+            }
             if (ShouldThrowException) throw new Exception("Unexpected");
             return Task.FromResult(DispatchResultToReturn);
         }

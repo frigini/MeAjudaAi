@@ -253,4 +253,33 @@ public class RegisterCustomerCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Never);
     }
+
+    [Fact]
+    public async Task HandleAsync_ShouldReturnFailure_AndLogCritical_WhenCompensationFails()
+    {
+        // Arrange
+        var command = new RegisterCustomerCommand("John Doe", "email@test.com", "Password123!", "11999999999", true, true);
+        var user = User.Create(new Username("test_user"), new Email(command.Email), "John", "Doe", Guid.NewGuid().ToString(), null).Value!;
+
+        _userDomainServiceMock.Setup(x => x.CreateUserAsync(
+            It.IsAny<Username>(), It.IsAny<Email>(), It.IsAny<string>(), It.IsAny<string>(), 
+            It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<User>.Success(user));
+
+        _userRepositoryMock.Setup(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("DB Error"));
+
+        _userRepositoryMock.Setup(x => x.GetByIdNoTrackingAsync(user.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((User?)null);
+
+        _userDomainServiceMock.Setup(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Keycloak Failure"));
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
+    }
 }

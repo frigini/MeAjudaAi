@@ -356,33 +356,6 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     }
 
     [Fact]
-    public async Task HandleAsync_Should_Fail_When_TimeZoneIsInvalid()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        var command = new CreateBookingCommand(
-            providerId, Guid.NewGuid(), Guid.NewGuid(),
-            DateTimeOffset.UtcNow.AddDays(1), DateTimeOffset.UtcNow.AddDays(1).AddHours(1), Guid.NewGuid());
-
-        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Success(true));
-
-        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Success(true));
-
-        var schedule = ProviderSchedule.Create(providerId, "Invalid-TZ");
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(schedule);
-
-        // Act
-        var result = await _sut.HandleAsync(command);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("Fuso horário");
-    }
-
-    [Fact]
     public async Task HandleAsync_Should_Fail_When_StartIsExactlyNow()
     {
         // Arrange

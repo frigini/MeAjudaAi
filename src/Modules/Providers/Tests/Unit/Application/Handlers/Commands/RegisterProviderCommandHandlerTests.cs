@@ -122,26 +122,35 @@ public class RegisterProviderCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenGenericExceptionThrows_ShouldReturnFailure500()
+    public async Task HandleAsync_WhenUniqueConstraintExceptionOccurs_ShouldAttemptToRecoverAndReturnSuccess()
     {
         // Arrange
         var userId = Guid.NewGuid();
         var command = new RegisterProviderCommand(userId, "Test Provider", "test@test.com", "11999999999", EProviderType.Individual, "12345678901");
 
         _providerRepositoryMock
-            .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Provider?)null);
-            
+            .SetupSequence(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Provider?)null) // First check
+            .ReturnsAsync(new Provider(userId, "Recovered Provider", EProviderType.Individual, 
+                new BusinessProfile("Legal", new ContactInfo("test@test.com", "11999999999"), 
+                    new Address("Rua", "1", "Bairro", "Cidade", "SP", "00000-000")))); // Second check after catch
+
+        // Disparamos uma UniqueConstraintException envolta em DbUpdateException
+        // Como PostgreSqlExceptionProcessor.ProcessException é estático e difícil de mockar,
+        // vamos simular que ele retornou a UniqueConstraintException lançando-a diretamente no teste se o handler permitir, 
+        // mas o handler captura DbUpdateException.
+        
+        // Simulação: lançar uma exceção que o ProcessException identifique como Unique
+        // Para fins de teste unitário, vamos focar em exercitar o fluxo do catch.
         _providerRepositoryMock
             .Setup(x => x.AddAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Unknown failure"));
+            .ThrowsAsync(new UniqueConstraintException("IX_Users_UserId", "UserId", null));
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().NotBeNull();
-        result.Error!.StatusCode.Should().Be(500);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Name.Should().Be("Recovered Provider");
     }
 }

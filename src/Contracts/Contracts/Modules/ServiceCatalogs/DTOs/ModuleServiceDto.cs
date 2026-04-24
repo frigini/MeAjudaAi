@@ -12,4 +12,3 @@ public sealed record ModuleServiceDto(
     string? Description,
     bool IsActive
 );
-
