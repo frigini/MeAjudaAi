@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Providers.Application.ModuleApi;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Queries;
@@ -534,8 +535,10 @@ public class ProvidersModuleApiTests
         var userId = Guid.NewGuid();
         
         // Mocking repository instead of handler since the API method uses repository directly
-        var provider = new MeAjudaAi.Modules.Providers.Domain.Entities.Provider(
-            userId, "Test", EProviderType.Individual, null!);
+        var provider = ProviderBuilder.Create()
+            .WithId(providerId)
+            .WithUserId(userId)
+            .Build();
         provider.AddService(serviceId, "Test Service");
 
         _providerRepositoryMock.Setup(x => x.GetByIdAsync(new MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId(providerId), It.IsAny<CancellationToken>()))
