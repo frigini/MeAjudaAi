@@ -142,18 +142,24 @@ public static class MessagingExtensions
 
     public static async Task EnsureMessagingInfrastructureAsync(this IHost host)
     {
+        var isEnabled = host.Services.GetRequiredService<IConfiguration>().GetValue<bool>("Messaging:Enabled", true);
+        if (!isEnabled)
+        {
+            return;
+        }
+
         using var scope = host.Services.CreateScope();
         var manager = scope.ServiceProvider.GetRequiredService<IRabbitMqInfrastructureManager>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingConfiguration>>();
 
+        var useNewtonsoftJson = scope.ServiceProvider.GetRequiredService<IConfiguration>().GetValue<bool>(UseNewtonsoftJsonKey, false);
+        if (useNewtonsoftJson)
+        {
+            logger.LogInformation("Messaging: Newtonsoft.Json is ENABLED. Using legacy serializer.");
+        }
+
         try
         {
-            var useNewtonsoftJson = scope.ServiceProvider.GetRequiredService<IConfiguration>().GetValue<bool>(UseNewtonsoftJsonKey, false);
-            if (useNewtonsoftJson)
-            {
-                logger.LogInformation("Messaging: Newtonsoft.Json is ENABLED. Using legacy serializer.");
-            }
-
             logger.LogInformation("Ensuring messaging infrastructure (Queues/Exchanges)...");
             await manager.EnsureInfrastructureAsync();
             logger.LogInformation("Messaging infrastructure verified.");

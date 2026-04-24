@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
@@ -27,7 +26,6 @@ public class GetProviderBookingsEndpoint : IEndpoint
             [FromQuery] int? pageSize,
             [FromServices] IQueryDispatcher dispatcher,
             [FromServices] IProvidersModuleApi providersApi,
-            [FromServices] IMemoryCache cache,
             [FromServices] ProviderAuthorizationResolver authResolver,
             [FromServices] ILogger<GetProviderBookingsEndpoint> logger,
             HttpContext context,
@@ -43,14 +41,19 @@ public class GetProviderBookingsEndpoint : IEndpoint
                 ? Math.Clamp(pageSize.Value, 1, MaxPageSize) 
                 : 10;
 
-            var authResult = await authResolver.ResolveAsync(context, providersApi, cache, logger, cancellationToken);
+            var authResult = await authResolver.ResolveAsync(context, providersApi, cancellationToken);
 
-            if (authResult.IsUnauthorized)
+            if (authResult.FailureKind == AuthorizationFailureKind.UpstreamFailure)
             {
-                return Results.Problem(authResult.ErrorMessage, statusCode: authResult.ErrorStatusCode ?? StatusCodes.Status401Unauthorized);
+                return Results.Problem(authResult.ErrorMessage, statusCode: authResult.ErrorStatusCode ?? StatusCodes.Status500InternalServerError);
             }
 
-            if (authResult.IsNotLinked)
+            if (authResult.FailureKind == AuthorizationFailureKind.Unauthorized)
+            {
+                return Results.Problem(authResult.ErrorMessage ?? "Acesso não autorizado.", statusCode: StatusCodes.Status401Unauthorized);
+            }
+
+            if (authResult.FailureKind == AuthorizationFailureKind.NotLinked)
             {
                 return Results.Problem("Usuário não possui prestador vinculado.", statusCode: StatusCodes.Status404NotFound);
             }

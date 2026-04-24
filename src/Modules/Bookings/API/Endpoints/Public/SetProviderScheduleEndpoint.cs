@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Security.Claims;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
@@ -15,20 +16,29 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 
+public enum AuthorizationFailureKind
+{
+    None,
+    Unauthorized,
+    UpstreamFailure,
+    NotLinked
+}
+
 public class ProviderAuthorizationResult
 {
     public bool IsAdmin { get; init; }
     public Guid? ProviderId { get; init; }
-    public bool IsNotLinked { get; init; }
-    public bool IsUnauthorized { get; init; }
+    public AuthorizationFailureKind FailureKind { get; init; }
     public string? ErrorMessage { get; init; }
     public int? ErrorStatusCode { get; init; }
 
     public static ProviderAuthorizationResult Admin() => new() { IsAdmin = true };
     public static ProviderAuthorizationResult Authorized(Guid providerId) => new() { ProviderId = providerId };
-    public static ProviderAuthorizationResult NotLinked() => new() { IsNotLinked = true };
-    public static ProviderAuthorizationResult Unauthorized(string? message = null, int? statusCode = null) => 
-        new() { IsUnauthorized = true, ErrorMessage = message, ErrorStatusCode = statusCode ?? StatusCodes.Status401Unauthorized };
+    public static ProviderAuthorizationResult NotLinked() => new() { FailureKind = AuthorizationFailureKind.NotLinked };
+    public static ProviderAuthorizationResult Unauthorized(string? message = null) => 
+        new() { FailureKind = AuthorizationFailureKind.Unauthorized, ErrorMessage = message };
+    public static ProviderAuthorizationResult UpstreamFailure(string message, int statusCode) => 
+        new() { FailureKind = AuthorizationFailureKind.UpstreamFailure, ErrorMessage = message, ErrorStatusCode = statusCode };
 }
 
 public class ProviderAuthorizationResolver
@@ -38,11 +48,19 @@ public class ProviderAuthorizationResolver
     private static readonly TimeSpan AbsoluteExpiration = TimeSpan.FromMinutes(10);
     private static readonly TimeSpan MissExpiration = TimeSpan.FromMinutes(2);
 
+    private readonly IMemoryCache _cache;
+    private readonly ILogger<ProviderAuthorizationResolver> _logger;
+    private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphores = new();
+
+    public ProviderAuthorizationResolver(IMemoryCache cache, ILogger<ProviderAuthorizationResolver> logger)
+    {
+        _cache = cache;
+        _logger = logger;
+    }
+
     public async Task<ProviderAuthorizationResult> ResolveAsync(
         HttpContext httpContext,
         IProvidersModuleApi providersApi,
-        IMemoryCache cache,
-        ILogger logger,
         CancellationToken cancellationToken = default)
     {
         var user = httpContext.User;
@@ -66,43 +84,57 @@ public class ProviderAuthorizationResolver
         }
 
         var cacheKey = $"{CacheKeyPrefix}{uId}";
-        if (cache.TryGetValue(cacheKey, out Guid cachedProviderId))
+
+        var semaphore = _semaphores.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
+        await semaphore.WaitAsync(cancellationToken);
+        try
         {
-            if (cachedProviderId == Guid.Empty)
+            if (_cache.TryGetValue(cacheKey, out Guid cachedProviderId))
             {
-                logger.LogDebug("Cached miss for user {UserId}", uId);
+                if (cachedProviderId == Guid.Empty)
+                {
+                    _logger.LogDebug("Cached miss for user {UserId}", uId);
+                    return ProviderAuthorizationResult.NotLinked();
+                }
+                return ProviderAuthorizationResult.Authorized(cachedProviderId);
+            }
+
+            var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
+            
+            if (providerResult.IsFailure)
+            {
+                _logger.LogWarning("Failed to resolve provider for user {UserId}: {Error}", uId, providerResult.Error.Message);
+                return ProviderAuthorizationResult.UpstreamFailure(providerResult.Error.Message, providerResult.Error.StatusCode);
+            }
+
+            if (providerResult.Value == null)
+            {
+                _cache.Set(cacheKey, Guid.Empty, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = MissExpiration
+                });
+                _logger.LogDebug("User {UserId} has no associated provider (cached)", uId);
                 return ProviderAuthorizationResult.NotLinked();
             }
-            return ProviderAuthorizationResult.Authorized(cachedProviderId);
-        }
 
-        var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
-        
-        if (providerResult.IsFailure)
-        {
-            logger.LogWarning("Failed to resolve provider for user {UserId}: {Error}", uId, providerResult.Error.Message);
-            return ProviderAuthorizationResult.Unauthorized(providerResult.Error.Message, providerResult.Error.StatusCode);
-        }
-
-        if (providerResult.Value == null)
-        {
-            cache.Set(cacheKey, Guid.Empty, new MemoryCacheEntryOptions
+            var resolvedProviderId = providerResult.Value.Id;
+            _cache.Set(cacheKey, resolvedProviderId, new MemoryCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = MissExpiration
+                SlidingExpiration = SlidingExpiration,
+                AbsoluteExpirationRelativeToNow = AbsoluteExpiration
             });
-            logger.LogDebug("User {UserId} has no associated provider (cached)", uId);
-            return ProviderAuthorizationResult.NotLinked();
+            _logger.LogDebug("Resolved provider {ProviderId} for user {UserId}", resolvedProviderId, uId);
+            
+            return ProviderAuthorizationResult.Authorized(resolvedProviderId);
         }
-
-        var resolvedProviderId = providerResult.Value.Id;
-        cache.Set(cacheKey, resolvedProviderId, new MemoryCacheEntryOptions
+        finally
         {
-            SlidingExpiration = SlidingExpiration,
-            AbsoluteExpirationRelativeToNow = AbsoluteExpiration
-        });
-        logger.LogDebug("Resolved provider {ProviderId} for user {UserId}", resolvedProviderId, uId);
-        
-        return ProviderAuthorizationResult.Authorized(resolvedProviderId);
+            semaphore.Release();
+            if (_semaphores.TryRemove(cacheKey, out var removed))
+            {
+                removed.Dispose();
+            }
+        }
     }
 }
 
@@ -114,25 +146,29 @@ public class SetProviderScheduleEndpoint : IEndpoint
             SetProviderScheduleRequest request,
             [FromServices] ICommandDispatcher dispatcher,
             [FromServices] IProvidersModuleApi providersApi,
-            [FromServices] IMemoryCache cache,
             [FromServices] ProviderAuthorizationResolver authResolver,
             [FromServices] ILogger<SetProviderScheduleEndpoint> logger,
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
-            if (request == null || request.Availabilities == null)
+            if (request == null || request.Availabilities == null || !request.Availabilities.Any())
             {
-                return Results.Problem("Corpo da requisição ou disponibilidades ausentes.", statusCode: StatusCodes.Status400BadRequest);
+                return Results.Problem("A lista de disponibilidades não pode ser vazia.", statusCode: StatusCodes.Status400BadRequest);
             }
 
-            var authResult = await authResolver.ResolveAsync(context, providersApi, cache, logger, cancellationToken);
+            var authResult = await authResolver.ResolveAsync(context, providersApi, cancellationToken);
 
-            if (authResult.IsUnauthorized)
+            if (authResult.FailureKind == AuthorizationFailureKind.UpstreamFailure)
             {
-                return Results.Problem(authResult.ErrorMessage, statusCode: authResult.ErrorStatusCode ?? StatusCodes.Status401Unauthorized);
+                return Results.Problem(authResult.ErrorMessage, statusCode: authResult.ErrorStatusCode ?? StatusCodes.Status500InternalServerError);
             }
 
-            if (authResult.IsNotLinked)
+            if (authResult.FailureKind == AuthorizationFailureKind.Unauthorized)
+            {
+                return Results.Problem(authResult.ErrorMessage ?? "Acesso não autorizado.", statusCode: StatusCodes.Status401Unauthorized);
+            }
+
+            if (authResult.FailureKind == AuthorizationFailureKind.NotLinked)
             {
                 return Results.Problem("Usuário não possui prestador vinculado.", statusCode: StatusCodes.Status404NotFound);
             }
@@ -179,8 +215,8 @@ public class SetProviderScheduleEndpoint : IEndpoint
         .RequireAuthorization()
         .Produces(StatusCodes.Status204NoContent)
         .ProducesProblem(StatusCodes.Status400BadRequest)
-        .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status403Forbidden)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status403Forbidden)
         .ProducesProblem(StatusCodes.Status404NotFound)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("SetProviderSchedule")
