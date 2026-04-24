@@ -24,6 +24,8 @@ public class GetProviderBookingsEndpoint : IEndpoint
             Guid providerId,
             [FromQuery] int? page,
             [FromQuery] int? pageSize,
+            [FromQuery] DateTime? from,
+            [FromQuery] DateTime? to,
             [FromServices] IQueryDispatcher dispatcher,
             [FromServices] IProvidersModuleApi providersApi,
             [FromServices] ProviderAuthorizationResolver authResolver,
@@ -43,30 +45,21 @@ public class GetProviderBookingsEndpoint : IEndpoint
 
             var authResult = await authResolver.ResolveAsync(context, providersApi, cancellationToken);
 
-            if (authResult.FailureKind == AuthorizationFailureKind.UpstreamFailure)
+            var authError = authResult.ToProblemResult();
+            if (authError != null)
             {
-                return Results.Problem(authResult.ErrorMessage, statusCode: authResult.ErrorStatusCode ?? StatusCodes.Status500InternalServerError);
-            }
-
-            if (authResult.FailureKind == AuthorizationFailureKind.Unauthorized)
-            {
-                return Results.Problem(authResult.ErrorMessage ?? "Acesso não autorizado.", statusCode: StatusCodes.Status401Unauthorized);
-            }
-
-            if (authResult.FailureKind == AuthorizationFailureKind.NotLinked)
-            {
-                return Results.Problem("Usuário não possui prestador vinculado.", statusCode: StatusCodes.Status404NotFound);
+                return authError;
             }
 
             if (!authResult.IsAdmin && authResult.ProviderId.HasValue && authResult.ProviderId.Value != providerId)
             {
-                return Results.Forbid();
+                return Results.Problem("Forbidden: provider mismatch", statusCode: StatusCodes.Status403Forbidden);
             }
 
             var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
             var correlationId = Guid.TryParse(correlationIdHeader, out var cId) ? cId : Guid.NewGuid();
 
-            var query = new GetBookingsByProviderQuery(providerId, correlationId, normalizedPage, normalizedPageSize);
+            var query = new GetBookingsByProviderQuery(providerId, correlationId, normalizedPage, normalizedPageSize, from, to);
             var result = await dispatcher.QueryAsync<GetBookingsByProviderQuery, Result<PagedResult<BookingDto>>>(query, cancellationToken);
 
             return result.IsSuccess 

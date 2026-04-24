@@ -24,7 +24,7 @@ public enum AuthorizationFailureKind
     NotLinked
 }
 
-public class ProviderAuthorizationResult
+public sealed class ProviderAuthorizationResult
 {
     public bool IsAdmin { get; init; }
     public Guid? ProviderId { get; init; }
@@ -41,7 +41,24 @@ public class ProviderAuthorizationResult
         new() { FailureKind = AuthorizationFailureKind.UpstreamFailure, ErrorMessage = message, ErrorStatusCode = statusCode };
 }
 
-public class ProviderAuthorizationResolver
+public static class ProviderAuthorizationResultExtensions
+{
+    public static IResult? ToProblemResult(this ProviderAuthorizationResult result)
+    {
+        return result.FailureKind switch
+        {
+            AuthorizationFailureKind.UpstreamFailure => 
+                Results.Problem(result.ErrorMessage, statusCode: result.ErrorStatusCode ?? StatusCodes.Status500InternalServerError),
+            AuthorizationFailureKind.Unauthorized => 
+                Results.Problem(result.ErrorMessage ?? "Acesso não autorizado.", statusCode: StatusCodes.Status401Unauthorized),
+            AuthorizationFailureKind.NotLinked => 
+                Results.Problem("Usuário não possui prestador vinculado.", statusCode: StatusCodes.Status404NotFound),
+            _ => null
+        };
+    }
+}
+
+public sealed class ProviderAuthorizationResolver
 {
     private const string CacheKeyPrefix = "bookings:provider_by_user:";
     private static readonly TimeSpan SlidingExpiration = TimeSpan.FromMinutes(5);
@@ -130,10 +147,6 @@ public class ProviderAuthorizationResolver
         finally
         {
             semaphore.Release();
-            if (_semaphores.TryRemove(cacheKey, out var removed))
-            {
-                removed.Dispose();
-            }
         }
     }
 }
@@ -151,26 +164,27 @@ public class SetProviderScheduleEndpoint : IEndpoint
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
-            if (request == null || request.Availabilities == null || !request.Availabilities.Any())
+            if (request == null)
+            {
+                return Results.Problem("Request body is required.", statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            if (request.Availabilities == null)
+            {
+                return Results.Problem("Availabilities property is required.", statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            if (!request.Availabilities.Any())
             {
                 return Results.Problem("A lista de disponibilidades não pode ser vazia.", statusCode: StatusCodes.Status400BadRequest);
             }
 
             var authResult = await authResolver.ResolveAsync(context, providersApi, cancellationToken);
 
-            if (authResult.FailureKind == AuthorizationFailureKind.UpstreamFailure)
+            var authError = authResult.ToProblemResult();
+            if (authError != null)
             {
-                return Results.Problem(authResult.ErrorMessage, statusCode: authResult.ErrorStatusCode ?? StatusCodes.Status500InternalServerError);
-            }
-
-            if (authResult.FailureKind == AuthorizationFailureKind.Unauthorized)
-            {
-                return Results.Problem(authResult.ErrorMessage ?? "Acesso não autorizado.", statusCode: StatusCodes.Status401Unauthorized);
-            }
-
-            if (authResult.FailureKind == AuthorizationFailureKind.NotLinked)
-            {
-                return Results.Problem("Usuário não possui prestador vinculado.", statusCode: StatusCodes.Status404NotFound);
+                return authError;
             }
 
             Guid targetProviderId;
@@ -218,6 +232,7 @@ public class SetProviderScheduleEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status403Forbidden)
         .ProducesProblem(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("SetProviderSchedule")
         .WithSummary("Define a agenda de horários de trabalho de um prestador.");
