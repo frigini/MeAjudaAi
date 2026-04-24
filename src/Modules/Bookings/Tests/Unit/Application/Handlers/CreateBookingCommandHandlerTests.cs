@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
@@ -135,6 +136,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(404);
+        result.Error.Code.Should().Be(ErrorCodes.Providers.ProviderNotFound);
     }
 
     [Fact]
@@ -155,6 +157,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(400);
+        result.Error.Code.Should().Be(ErrorCodes.Bookings.InvalidTime);
     }
 
     [Fact]
@@ -172,6 +175,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(400);
+        result.Error.Code.Should().Be(ErrorCodes.Bookings.StartNotInFuture);
     }
 
     [Fact]
@@ -203,6 +207,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(400);
+        result.Error.Code.Should().Be(ErrorCodes.Providers.ScheduleNotFound);
     }
 
     [Fact]
@@ -239,6 +244,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(400);
+        result.Error.Code.Should().Be(ErrorCodes.Providers.Unavailable);
     }
 
     [Fact]
@@ -277,6 +283,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(409);
+        result.Error.Code.Should().Be(ErrorCodes.Bookings.Overlap);
     }
 
     [Fact]
@@ -308,7 +315,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(404);
-        result.Error.Message.Should().Contain("não oferecido");
+        result.Error.Code.Should().Be(ErrorCodes.Providers.ServiceNotOffered);
     }
 
     [Fact]
@@ -321,14 +328,14 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
             DateTimeOffset.UtcNow.AddDays(1), DateTimeOffset.UtcNow.AddDays(1).AddHours(1), Guid.NewGuid());
 
         _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Failure(Error.Internal("API Error")));
+            .ReturnsAsync(Result<bool>.Failure(new Error("API Error", 500, ErrorCodes.InternalError)));
 
         // Act
         var result = await _sut.HandleAsync(command);
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Be("API Error");
+        result.Error!.Code.Should().Be(ErrorCodes.InternalError);
     }
 
     [Fact]
@@ -345,14 +352,14 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
             .ReturnsAsync(Result<bool>.Success(true));
 
         _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(serviceId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Failure(Error.Internal("Catalog Error")));
+            .ReturnsAsync(Result<bool>.Failure(new Error("Catalog Error", 500, ErrorCodes.InternalError)));
 
         // Act
         var result = await _sut.HandleAsync(command);
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Be("Catalog Error");
+        result.Error!.Code.Should().Be(ErrorCodes.InternalError);
     }
 
     [Fact]
@@ -371,6 +378,6 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Message.Should().Contain("no futuro");
+        result.Error.Code.Should().Be(ErrorCodes.Bookings.StartNotInFuture);
     }
 }

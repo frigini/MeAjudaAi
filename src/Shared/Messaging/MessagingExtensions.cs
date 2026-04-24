@@ -8,6 +8,7 @@ using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.Rebus;
 using MeAjudaAi.Shared.Messaging.Rebus.Conventions;
+using MeAjudaAi.Shared.Messaging.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -80,11 +81,11 @@ public static class MessagingExtensions
         var useNewtonsoftJson = configuration.GetValue<bool>(UseNewtonsoftJsonKey, false);
         if (useNewtonsoftJson)
         {
-            services.TryAddSingleton<MeAjudaAi.Shared.Messaging.Serialization.IMessageSerializer, MeAjudaAi.Shared.Messaging.Serialization.NewtonsoftJsonMessageSerializer>();
+            services.TryAddSingleton<IMessageSerializer, NewtonsoftJsonMessageSerializer>();
         }
         else
         {
-            services.TryAddSingleton<MeAjudaAi.Shared.Messaging.Serialization.IMessageSerializer, MeAjudaAi.Shared.Messaging.Serialization.SystemTextJsonMessageSerializer>();
+            services.TryAddSingleton<IMessageSerializer, SystemTextJsonMessageSerializer>();
         }
 
         services.AddSingleton<IEventTypeRegistry, EventTypeRegistry>();
@@ -111,15 +112,15 @@ public static class MessagingExtensions
 
                 var connectionString = options.BuildConnectionString();
                 
-                configure
+                var config = configure
                     .Transport(t => t.UseRabbitMq(connectionString, options.DefaultQueueName));
 
                 if (useNewtonsoftJson)
                 {
-                    configure.Serialization(s => s.UseNewtonsoftJson());
+                    config = config.Serialization(s => s.UseNewtonsoftJson());
                 }
 
-                return configure
+                return config
                     .Options(o => 
                     {
                         o.SetMaxParallelism(20);

@@ -4,6 +4,8 @@ using MeAjudaAi.Modules.Providers.Application.ModuleApi;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
+using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using MeAjudaAi.Contracts.Modules.Locations;
 using MeAjudaAi.Contracts.Functional;
@@ -541,7 +543,7 @@ public class ProvidersModuleApiTests
             .Build();
         provider.AddService(serviceId, "Test Service");
 
-        _providerRepositoryMock.Setup(x => x.GetByIdAsync(new MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId(providerId), It.IsAny<CancellationToken>()))
+        _providerRepositoryMock.Setup(x => x.GetByIdAsync(new ProviderId(providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         // Act
@@ -557,8 +559,8 @@ public class ProvidersModuleApiTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        _providerRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.ValueObjects.ProviderId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((MeAjudaAi.Modules.Providers.Domain.Entities.Provider?)null);
+        _providerRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Provider?)null);
 
         // Act
         var result = await _sut.IsServiceOfferedByProviderAsync(providerId, Guid.NewGuid());

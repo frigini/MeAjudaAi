@@ -21,7 +21,8 @@ public static class MigrationExtensions
 
         var dbContextTypes = DiscoverDbContextTypes(logger);
         
-        // Garantir que ServiceCatalogs rode antes de Providers (dependência SQL entre módulos nas migrations)
+        // Ordem de migração (dependências SQL entre módulos): 
+        // Users -> ServiceCatalogs -> Locations -> Documents -> Providers -> Communications -> Ratings -> Payments -> Bookings -> SearchProviders
         var modulePriority = new Dictionary<string, int>
         {
             { "Users", 1 },

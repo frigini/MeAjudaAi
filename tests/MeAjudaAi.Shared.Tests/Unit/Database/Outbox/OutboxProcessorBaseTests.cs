@@ -88,11 +88,11 @@ public class OutboxProcessorBaseTests
         var cts = new CancellationTokenSource();
         _processor.CancelTokenSource = cts;
 
-        // Capturar o status da mensagem durante a primeira chamada de SaveChangesAsync (quando entra em Processing)
-        EOutboxMessageStatus statusDuringProcessing = EOutboxMessageStatus.Pending;
+        // Capturar a sequência de status da mensagem durante as chamadas de SaveChangesAsync
+        var capturedStatuses = new List<EOutboxMessageStatus>();
         _repositoryMock
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Callback<CancellationToken>(ct => statusDuringProcessing = message.Status)
+            .Callback<CancellationToken>(ct => capturedStatuses.Add(message.Status))
             .Returns(Task.CompletedTask);
 
         // Act
@@ -101,7 +101,7 @@ public class OutboxProcessorBaseTests
         // Assert
         await act.Should().ThrowAsync<OperationCanceledException>();
         
-        statusDuringProcessing.Should().Be(EOutboxMessageStatus.Processing, "a mensagem deve ter passado pelo estado Processing antes do cancelamento");
+        capturedStatuses.Should().Contain(EOutboxMessageStatus.Processing, "a mensagem deve ter passado pelo estado Processing antes do cancelamento");
         message.Status.Should().Be(EOutboxMessageStatus.Pending, "a mensagem deve ter sido resetada para Pending após o cancelamento");
         
         _repositoryMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeast(2), 

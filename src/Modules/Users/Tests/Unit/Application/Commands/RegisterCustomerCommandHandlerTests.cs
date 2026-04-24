@@ -281,5 +281,14 @@ public class RegisterCustomerCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
+
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Critical,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Failed to compensate Keycloak user")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 }

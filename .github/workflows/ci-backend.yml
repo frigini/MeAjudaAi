@@ -402,6 +402,18 @@ jobs:
 
             Nenhuma breaking change detectada pelo `oasdiff` em relação à branch base.
 
+      - name: Ensure Breaking Changes PR Comment State
+        if: always() && (steps.breaking-changes.outcome == 'skipped' || steps.breaking-changes.outcome == 'cancelled')
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          recreate: true
+          header: oasdiff-breaking-changes
+          message: |
+            ## ℹ️ Validação de Contrato Indisponível
+
+            A verificação de breaking changes foi **${{ steps.breaking-changes.outcome }}**.
+            Consulte os logs para mais detalhes se necessário.
+
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest

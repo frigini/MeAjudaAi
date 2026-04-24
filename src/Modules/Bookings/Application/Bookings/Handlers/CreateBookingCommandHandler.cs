@@ -1,6 +1,7 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Contracts.Modules.ServiceCatalogs;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Common;
@@ -27,18 +28,24 @@ public sealed class CreateBookingCommandHandler(
         // 0. Validar Intervalo
         if (command.End <= command.Start)
         {
-            return Result<BookingDto>.Failure(Error.BadRequest("O horário de término deve ser após o horário de início."));
+            return Result<BookingDto>.Failure(Error.BadRequest("O horário de término deve ser após o horário de início.", ErrorCodes.Bookings.InvalidTime));
         }
 
         // Tolerância de 1 minuto para agendamentos imediatos
         var minimumLead = TimeSpan.FromMinutes(1);
         if (command.Start < DateTimeOffset.UtcNow.Add(minimumLead))
         {
-            return Result<BookingDto>.Failure(Error.BadRequest("O horário de início deve ser no futuro (mínimo 1 minuto de antecedência)."));
+            return Result<BookingDto>.Failure(Error.BadRequest("O horário de início deve ser no futuro (mínimo 1 minuto de antecedência).", ErrorCodes.Bookings.StartNotInFuture));
         }
 
-        // 1. Validar existência do Provider
-        var providerExists = await providersApi.ProviderExistsAsync(command.ProviderId, cancellationToken);
+        // 1. Validar existência do Provider, Atividade do Serviço e Agenda em paralelo
+        var providerExistsTask = providersApi.ProviderExistsAsync(command.ProviderId, cancellationToken);
+        var serviceActiveTask = serviceCatalogsApi.IsServiceActiveAsync(command.ServiceId, cancellationToken);
+        var scheduleTask = scheduleRepository.GetByProviderIdReadOnlyAsync(command.ProviderId, cancellationToken);
+
+        await Task.WhenAll(providerExistsTask, serviceActiveTask, scheduleTask);
+
+        var providerExists = await providerExistsTask;
         if (providerExists.IsFailure)
         {
             return Result<BookingDto>.Failure(providerExists.Error);
@@ -46,11 +53,10 @@ public sealed class CreateBookingCommandHandler(
         
         if (!providerExists.Value)
         {
-            return Result<BookingDto>.Failure(Error.NotFound("Prestador não encontrado."));
+            return Result<BookingDto>.Failure(Error.NotFound("Prestador não encontrado.", ErrorCodes.Providers.ProviderNotFound));
         }
 
-        // 1.5 Validar ServiceId
-        var serviceActive = await serviceCatalogsApi.IsServiceActiveAsync(command.ServiceId, cancellationToken);
+        var serviceActive = await serviceActiveTask;
         if (serviceActive.IsFailure)
         {
             return Result<BookingDto>.Failure(serviceActive.Error);
@@ -58,10 +64,16 @@ public sealed class CreateBookingCommandHandler(
         
         if (!serviceActive.Value)
         {
-            return Result<BookingDto>.Failure(Error.NotFound("Serviço não encontrado ou inativo."));
+            return Result<BookingDto>.Failure(Error.NotFound("Serviço não encontrado ou inativo.", ErrorCodes.Catalogs.ServiceNotFound));
         }
 
-        // 1.7 Validar posse do serviço pelo prestador
+        var schedule = await scheduleTask;
+        if (schedule == null)
+        {
+            return Result<BookingDto>.Failure(Error.BadRequest("Prestador não possui agenda configurada.", ErrorCodes.Providers.ScheduleNotFound));
+        }
+
+        // 1.7 Validar posse do serviço pelo prestador (depende da validade anterior)
         var serviceOffered = await providersApi.IsServiceOfferedByProviderAsync(command.ProviderId, command.ServiceId, cancellationToken);
         if (serviceOffered.IsFailure)
         {
@@ -70,21 +82,14 @@ public sealed class CreateBookingCommandHandler(
 
         if (!serviceOffered.Value)
         {
-            return Result<BookingDto>.Failure(Error.NotFound("Serviço não encontrado ou não oferecido por este prestador."));
-        }
-
-        // 2. Validar Horário de Trabalho (Schedule)
-        var schedule = await scheduleRepository.GetByProviderIdReadOnlyAsync(command.ProviderId, cancellationToken);
-        if (schedule == null)
-        {
-            return Result<BookingDto>.Failure(Error.BadRequest("Prestador não possui agenda configurada."));
+            return Result<BookingDto>.Failure(Error.NotFound("Serviço não encontrado ou não oferecido por este prestador.", ErrorCodes.Providers.ServiceNotOffered));
         }
 
         // Converte o início para o fuso horário local do prestador para validar DayOfWeek corretamente
         var tz = TimeZoneResolver.ResolveTimeZone(schedule.TimeZoneId, logger, allowFallback: false);
         if (tz == null)
         {
-            return Result<BookingDto>.Failure(Error.BadRequest("Fuso horário do prestador inválido."));
+            return Result<BookingDto>.Failure(Error.BadRequest("Fuso horário do prestador inválido.", ErrorCodes.Validation));
         }
 
         var localStartTime = TimeZoneInfo.ConvertTimeFromUtc(command.Start.UtcDateTime, tz);
@@ -93,7 +98,7 @@ public sealed class CreateBookingCommandHandler(
         // Nota: duration é baseado em UTC e pode variar o horário local em transições de DST
         if (!schedule.IsAvailable(localStartTime, duration))
         {
-            return Result<BookingDto>.Failure(Error.BadRequest("Prestador indisponível no horário solicitado."));
+            return Result<BookingDto>.Failure(Error.BadRequest("Prestador indisponível no horário solicitado.", ErrorCodes.Providers.Unavailable));
         }
 
         // 3. Criar booking para validação
@@ -102,7 +107,7 @@ public sealed class CreateBookingCommandHandler(
         // 3.1 Validar se o agendamento cruza a meia-noite (não suportado pelo modelo TimeSlot atual)
         if (localStartTime.Date != localEndTime.Date)
         {
-            return Result<BookingDto>.Failure(Error.BadRequest("Agendamentos não podem cruzar a meia-noite. Por favor, divida em dois agendamentos distintos."));
+            return Result<BookingDto>.Failure(Error.BadRequest("Agendamentos não podem cruzar a meia-noite. Por favor, divida em dois agendamentos distintos.", ErrorCodes.Bookings.MidnightSpanning));
         }
 
         var date = DateOnly.FromDateTime(localStartTime);
@@ -127,7 +132,7 @@ public sealed class CreateBookingCommandHandler(
         
         if (result.IsFailure)
         {
-            return Result<BookingDto>.Failure(result.Error!);
+            return Result<BookingDto>.Failure(new Error(result.Error!.Message, result.Error.StatusCode, ErrorCodes.Bookings.Overlap));
         }
 
         logger.LogInformation("Booking {BookingId} created successfully.", booking.Id);

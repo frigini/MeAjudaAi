@@ -143,7 +143,9 @@ public sealed class RabbitMqDeadLetterService(
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Failed to deserialize dead letter message from queue {Queue}. Moving to quarantine.", deadLetterQueueName);
+                    var bodyPreview = messageBodyJson.Length > 100 ? messageBodyJson[..100] + "..." : messageBodyJson;
+                    logger.LogError(ex, "Failed to deserialize dead letter message from queue {Queue} (DeliveryTag: {DeliveryTag}). Body Preview: {BodyPreview}. Moving to quarantine.", 
+                        deadLetterQueueName, result.DeliveryTag, bodyPreview);
                     
                     try
                     {
@@ -277,7 +279,9 @@ public sealed class RabbitMqDeadLetterService(
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Failed to deserialize dead letter message from queue {Queue}. Moving to quarantine.", deadLetterQueueName);
+                    var bodyPreview = messageBodyJson.Length > 100 ? messageBodyJson[..100] + "..." : messageBodyJson;
+                    logger.LogError(ex, "Failed to deserialize dead letter message from queue {Queue} (DeliveryTag: {DeliveryTag}). Body Preview: {BodyPreview}. Moving to quarantine.", 
+                        deadLetterQueueName, result.DeliveryTag, bodyPreview);
                     
                     try
                     {

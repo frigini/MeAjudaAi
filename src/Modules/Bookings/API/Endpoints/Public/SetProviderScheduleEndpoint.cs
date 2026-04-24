@@ -106,36 +106,30 @@ public sealed class ProviderAuthorizationResolver
 
         try
         {
-            // Otimização: Usar Lazy<Task<...>> para evitar múltiplas chamadas simultâneas à API para o mesmo usuário
-            var lazyResolution = await _cache.GetOrCreateAsync(cacheKey, async entry =>
+            var cached = await _cache.GetOrCreateAsync(cacheKey, async entry =>
             {
                 entry.SlidingExpiration = SlidingExpiration;
                 entry.AbsoluteExpirationRelativeToNow = AbsoluteExpiration;
                 
-                return new Lazy<Task<ProviderResolutionResult>>(async () => 
+                var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
+                
+                if (providerResult.IsFailure)
                 {
-                    var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
-                    
-                    if (providerResult.IsFailure)
-                    {
-                        throw new UpstreamProviderException(providerResult.Error.Message, providerResult.Error.StatusCode);
-                    }
+                    throw new UpstreamProviderException(providerResult.Error.Message, providerResult.Error.StatusCode);
+                }
 
-                    if (providerResult.Value == null)
-                    {
-                        entry.AbsoluteExpirationRelativeToNow = MissExpiration;
-                        return ProviderResolutionResult.NotLinked();
-                    }
+                if (providerResult.Value == null)
+                {
+                    entry.AbsoluteExpirationRelativeToNow = MissExpiration;
+                    return ProviderResolutionResult.NotLinked();
+                }
 
-                    return ProviderResolutionResult.Found(providerResult.Value.Id);
-                });
+                return ProviderResolutionResult.Found(providerResult.Value.Id);
             });
-
-            var cached = await lazyResolution!.Value;
 
             return cached switch
             {
-                { IsFound: true } => ProviderAuthorizationResult.Authorized(cached.ProviderId!.Value),
+                { IsFound: true } => ProviderAuthorizationResult.Authorized(cached!.ProviderId!.Value),
                 _ => ProviderAuthorizationResult.NotLinked()
             };
         }
