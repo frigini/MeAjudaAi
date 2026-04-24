@@ -39,6 +39,9 @@ public class BookingsEndToEndTests : BaseTestContainerTest
 
         // 1.5 Criar um serviço real
         var serviceId = await CreateTestServiceAsync();
+
+        // 1.7 Vincular serviço ao prestador (Necessário devido à nova validação de segurança)
+        await LinkServiceToProviderAsync(providerIdClaim, serviceId);
         
         // 2. Definir agenda para o prestador
         // Usar lógica de timezone para derivar datas
@@ -129,6 +132,17 @@ public class BookingsEndToEndTests : BaseTestContainerTest
         var updatedBooking = await ReadJsonAsync<BookingDto>(getResponse);
         updatedBooking.Should().NotBeNull();
         updatedBooking!.Status.Should().Be(Contracts.Bookings.Enums.EBookingStatus.Confirmed);
+    }
+
+    private async Task LinkServiceToProviderAsync(Guid providerId, Guid serviceId)
+    {
+        var response = await ApiClient.PostAsync($"/api/v1/providers/{providerId}/services/{serviceId}", null);
+        if (!response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            _output.WriteLine($"Linking service failed: {response.StatusCode} - {content}");
+        }
+        response.EnsureSuccessStatusCode();
     }
 
     private static TimeZoneInfo ResolveBrazilTimeZone()
