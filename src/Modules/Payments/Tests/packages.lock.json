@@ -1120,6 +1120,7 @@
       "meajudaai.modules.bookings.api": {
         "type": "Project",
         "dependencies": {
+          "MeAjudaAi.Modules.Bookings.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Bookings.Infrastructure": "[1.0.0, )"
         }
       },
