@@ -123,6 +123,56 @@ public class UsersCacheServiceTests
     }
 
     [Fact]
+    public async Task GetOrCacheUserByIdAsync_WhenCachedFlagTrueButValueNull_ShouldCallFactoryAndCacheResult()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var user = new UserDto(
+            Id: userId,
+            Username: "testuser",
+            Email: "test@example.com",
+            FirstName: "Test",
+            LastName: "User",
+            FullName: "Test User",
+            KeycloakId: "keycloak123",
+            CreatedAt: DateTime.UtcNow,
+            UpdatedAt: null
+        );
+
+        _cacheServiceMock.Setup(x => x.GetOrCreateAsync<UserDto?>(
+                UsersCacheKeys.UserById(userId),
+                It.IsAny<Func<CancellationToken, ValueTask<UserDto?>>>(),
+                It.IsAny<TimeSpan?>(),
+                It.IsAny<HybridCacheEntryOptions?>(),
+                It.IsAny<IReadOnlyCollection<string>?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((UserDto?)null);
+
+        var factoryCalled = false;
+        Func<CancellationToken, ValueTask<UserDto?>> factory = async ct =>
+        {
+            factoryCalled = true;
+            return user;
+        };
+
+        // Act
+        var result = await _usersCacheService.GetOrCacheUserByIdAsync(userId, factory, _cancellationToken);
+
+        // Assert
+        result.Should().Be(user);
+        factoryCalled.Should().BeTrue();
+        _cacheServiceMock.Verify(
+            x => x.SetAsync(
+                UsersCacheKeys.UserById(userId),
+                user,
+                It.IsAny<TimeSpan?>(),
+                It.IsAny<HybridCacheEntryOptions?>(),
+                It.IsAny<IReadOnlyCollection<string>?>(),
+                _cancellationToken),
+            Times.Once);
+    }
+
+    [Fact]
     public async Task GetOrCacheSystemConfigAsync_ShouldCallCacheService_WithCorrectKey()
     {
         // Arrange
@@ -182,7 +232,7 @@ public class UsersCacheServiceTests
                 user,
                 TimeSpan.FromMinutes(30),
                 It.IsAny<HybridCacheEntryOptions?>(),
-                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && tags.Contains(CacheTags.UserTag(userId))),
+                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && tags.Contains(CacheTags.UserTag(userId)) && tags.Contains(CacheTags.UserEmailTag(user.Email))),
                 _cancellationToken),
             Times.Once);
     }

@@ -44,15 +44,8 @@ public static class ConfigurationEndpoints
         // Configuração do Keycloak - suportar tanto o novo formato (BaseUrl + Realm) quanto o legado (Authority)
         var keycloakAuthority = configuration["Keycloak:Authority"]?.TrimEnd('/');
         
-        if (string.IsNullOrWhiteSpace(keycloakAuthority))
+if (string.IsNullOrWhiteSpace(keycloakAuthority))
         {
-
-
-
-
-
-        
-        
             // Construir Authority a partir de BaseUrl e Realm
             var keycloakBaseUrl = configuration["Keycloak:BaseUrl"];
             if (string.IsNullOrWhiteSpace(keycloakBaseUrl))

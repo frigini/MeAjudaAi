@@ -56,12 +56,12 @@ public static class CspReportEndpoints
                 // ou enviar alertas se houver muitas violações
             }
 
-            return Results.NoContent();
+            return TypedResults.NoContent();
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error processing CSP report");
-            return Results.StatusCode(500);
+            return TypedResults.StatusCode(500);
         }
     }
 }

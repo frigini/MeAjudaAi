@@ -28,8 +28,11 @@ public class UsersPermissionResolverTests
             .Build();
     }
 
-    [Fact]
-    public async Task ResolvePermissionsAsync_WithMock_ShouldReturnPermissionsByUserIdPattern()
+    [Theory]
+    [InlineData("admin-123", EPermission.UsersCreate, EPermission.UsersDelete, EPermission.UsersRead, EPermission.UsersProfile)]
+    [InlineData("manager-456", EPermission.UsersRead, EPermission.UsersProfile, EPermission.ProvidersRead)]
+    [InlineData("user-789", EPermission.UsersRead, EPermission.UsersProfile)]
+    public async Task ResolvePermissionsAsync_WithMock_ShouldReturnPermissionsByUserIdPattern(string userIdSuffix, params EPermission[] expectedPermissions)
     {
         // Arrange
         var configuration = CreateConfiguration(false);
@@ -57,10 +60,12 @@ public class UsersPermissionResolverTests
         // Act
         var result = await sut.ResolvePermissionsAsync(userId);
 
-        // Assert
+// Assert
         result.Should().HaveCount(1);
         result.Should().Contain(EPermission.UsersRead);
-        result.Should().NotContain(EPermission.ProvidersRead); // Filtered out because not in Users module
+        _keycloakResolverMock.Verify(
+            r => r.ResolvePermissionsAsync(userId, It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]

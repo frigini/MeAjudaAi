@@ -98,7 +98,7 @@ public sealed class CreateBookingCommandHandler(
         // Nota: duration é baseado em UTC e pode variar o horário local em transições de DST
         if (!schedule.IsAvailable(localStartTime, duration))
         {
-            return Result<BookingDto>.Failure(Error.BadRequest("Prestador indisponível no horário solicitado.", ErrorCodes.Providers.Unavailable));
+            return Result<BookingDto>.Failure(Error.BadRequest("Prestador indisponível no horário solicitado.", ErrorCodes.Providers.ProviderUnavailable));
         }
 
         // 3. Criar booking para validação

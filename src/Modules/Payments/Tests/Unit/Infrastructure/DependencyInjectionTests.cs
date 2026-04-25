@@ -22,6 +22,7 @@ public class DependencyInjectionTests
         var services = new ServiceCollection();
         var inMemorySettings = new Dictionary<string, string?> {
             {"ConnectionStrings:Payments", DatabaseConstants.DefaultTestConnectionString},
+            {"Stripe:ApiKey", "sk_test_123456789"},
             {"ClientBaseUrl", "https://test.com"},
             {"Payments:SuccessUrl", "success"},
             {"Payments:CancelUrl", "cancel"}

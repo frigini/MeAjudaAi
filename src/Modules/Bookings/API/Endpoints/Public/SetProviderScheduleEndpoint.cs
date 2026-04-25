@@ -158,12 +158,14 @@ public sealed class ProviderAuthorizationResolver
     }
 }
 
+[ExcludeFromCodeCoverage]
 internal sealed class UpstreamProviderException : Exception
 {
     public int StatusCode { get; }
     public UpstreamProviderException(string message, int statusCode) : base(message) => StatusCode = statusCode;
 }
 
+[ExcludeFromCodeCoverage]
 internal sealed class ProviderResolutionResult
 {
     public Guid? ProviderId { get; init; }
@@ -259,7 +261,11 @@ public class SetProviderScheduleEndpoint : IEndpoint
         .Produces(StatusCodes.Status204NoContent)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status403Forbidden)
         .ProducesProblem(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status502BadGateway)
+        .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
+        .ProducesProblem(StatusCodes.Status504GatewayTimeout)
         .ProducesProblem(StatusCodes.Status500InternalServerError)
         .WithTags(BookingsEndpoints.Tag)
         .WithName("SetProviderSchedule")

@@ -35,29 +35,30 @@ public class ServiceEventHandlersTests
         await handler.HandleAsync(domainEvent);
 
         // Assert
-        _messageBusMock.Verify(x => x.PublishAsync(It.Is<ServiceActivatedIntegrationEvent>(e => e.ServiceId == service.Id.Value), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Once);
+        _messageBusMock.Verify(x => x.PublishAsync(It.Is<ServiceActivatedIntegrationEvent>(e => e.ServiceId == service.Id.Value && e.Name == service.Name), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Once);
     }
-[Fact]
-public async Task ServiceActivatedHandler_Should_Throw_When_ServiceNotFound()
-{
-    // Arrange
-    var serviceId = Guid.NewGuid();
-    _serviceRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-        .ReturnsAsync((Service?)null);
 
-    var handler = new ServiceActivatedDomainEventHandler(_serviceRepositoryMock.Object, _messageBusMock.Object, _activatedLoggerMock.Object);
-    var domainEvent = new ServiceActivatedDomainEvent(ServiceId.From(serviceId));
+    [Fact]
+    public async Task ServiceActivatedHandler_Should_Throw_When_ServiceNotFound()
+    {
+        // Arrange
+        var serviceId = Guid.NewGuid();
+        _serviceRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Service?)null);
 
-    // Act
-    var act = () => handler.HandleAsync(domainEvent);
+        var handler = new ServiceActivatedDomainEventHandler(_serviceRepositoryMock.Object, _messageBusMock.Object, _activatedLoggerMock.Object);
+        var domainEvent = new ServiceActivatedDomainEvent(ServiceId.From(serviceId));
 
-    // Assert
-    await act.Should().ThrowAsync<InvalidOperationException>();
-    _messageBusMock.Verify(x => x.PublishAsync(It.IsAny<ServiceActivatedIntegrationEvent>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
-}
+        // Act
+        var act = () => handler.HandleAsync(domainEvent);
 
-[Fact]
-public async Task ServiceDeactivatedHandler_Should_PublishIntegrationEvent()
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>();
+        _messageBusMock.Verify(x => x.PublishAsync(It.IsAny<ServiceActivatedIntegrationEvent>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ServiceDeactivatedHandler_Should_PublishIntegrationEvent()
 {
     // Arrange
     var serviceId = Guid.NewGuid();

@@ -21,6 +21,7 @@ public sealed partial class RegisterCustomerCommandHandler(
 {
     public const string TermsNotAcceptedError = "Você deve aceitar os termos de uso para se cadastrar.";
     public const string PrivacyPolicyNotAcceptedError = "Você deve aceitar a política de privacidade para se cadastrar.";
+    public const string FailedToCompensateKeycloakUserMessage = "CRITICAL: Failed to compensate Keycloak user {UserId} after repository failure. Manual cleanup required.";
 
     [GeneratedRegex(@"[^a-zA-Z0-9._\-]", RegexOptions.Compiled)]
     private static partial Regex SanitizationRegex();

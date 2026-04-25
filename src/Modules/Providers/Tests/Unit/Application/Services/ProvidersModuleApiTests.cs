@@ -552,6 +552,9 @@ public class ProvidersModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeTrue();
+        _providerRepositoryMock.Verify(
+            x => x.GetByIdAsync(new ProviderId(providerId), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -593,6 +596,22 @@ public class ProvidersModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task IsServiceOfferedByProviderAsync_Should_PropagateException_When_RepositoryThrows()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        _providerRepositoryMock.Setup(x => x.GetByIdAsync(new ProviderId(providerId), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act
+        var act = () => _sut.IsServiceOfferedByProviderAsync(providerId, Guid.NewGuid());
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Database error");
     }
 
     #endregion

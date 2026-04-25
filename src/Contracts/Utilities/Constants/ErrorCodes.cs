@@ -18,7 +18,7 @@ public static class ErrorCodes
         public const string ProviderNotFound = "provider_not_found";
         public const string ServiceNotOffered = "service_not_offered";
         public const string ScheduleNotFound = "schedule_not_found";
-        public const string Unavailable = "provider_unavailable";
+        public const string ProviderUnavailable = "provider_unavailable";
     }
 
     public static class Bookings

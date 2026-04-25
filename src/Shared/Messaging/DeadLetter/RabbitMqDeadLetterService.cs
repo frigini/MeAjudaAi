@@ -26,6 +26,7 @@ public sealed class RabbitMqDeadLetterService(
     private readonly SemaphoreSlim _connectionSemaphore = new(1, 1);
     private readonly CancellationTokenSource _disposeCts = new();
     private readonly ConcurrentDictionary<string, bool> _declaredQuarantineQueues = new();
+    private readonly HashSet<ulong> _seenDeliveryTags = new();
     private int _disposedValue; // 0 = not disposed, 1 = disposing/disposed
     private bool _disposed => _disposedValue == 1;
 
@@ -124,7 +125,7 @@ public sealed class RabbitMqDeadLetterService(
         return exponentialDelay > maxDelay ? maxDelay : exponentialDelay;
     }
 
-    public async Task ReprocessDeadLetterMessageAsync(
+public async Task ReprocessDeadLetterMessageAsync(
         string deadLetterQueueName,
         string messageId,
         CancellationToken cancellationToken = default)
@@ -132,7 +133,7 @@ public sealed class RabbitMqDeadLetterService(
         try
         {
             await EnsureConnectionAsync();
-
+ 
             var result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
             if (result != null)
             {
@@ -154,10 +155,18 @@ public sealed class RabbitMqDeadLetterService(
                         await SendToQuarantineAsync(deadLetterQueueName, result.Body, result.BasicProperties, cancellationToken);
                         await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
                     }
-                    catch
+                    catch (Exception quarantineEx)
                     {
-                        // Fallback se a quarentena falhar: devolve para a DLQ
-                        await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: true, cancellationToken);
+                        // Fallback: Acknowledge a mensagem e registre metadados para investigação
+                        // Nack com requeue criaria poison-pill loop
+                        await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                        logger.LogCritical(
+                            quarantineEx,
+                            "Critical: could not move message to quarantine. DeliveryTag: {DeliveryTag}, MessageId: {MessageId}, Body (base64): {BodyBase64}, DeadLetterQueueName: {Queue}",
+                            result.DeliveryTag,
+                            result.BasicProperties.MessageId,
+                            Convert.ToBase64String(result.Body.Span),
+                            deadLetterQueueName);
                     }
                     return;
                 }
@@ -212,6 +221,7 @@ public sealed class RabbitMqDeadLetterService(
         CancellationToken cancellationToken = default)
     {
         var messages = new List<FailedMessageInfo>();
+        var seenDeliveryTags = new HashSet<ulong>();
 
         try
         {
@@ -223,12 +233,27 @@ public sealed class RabbitMqDeadLetterService(
                 var result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
                 if (result == null) break;
 
+                // Deduplicação por DeliveryTag para避免refetch
+                if (_seenDeliveryTags.Contains(result.DeliveryTag))
+                {
+                    await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                    continue;
+                }
+                _seenDeliveryTags.Add(result.DeliveryTag);
+
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
                 FailedMessageInfo? failedMessageInfo = null;
 
                 try
                 {
                     failedMessageInfo = serializer.Deserialize<FailedMessageInfo>(messageBodyJson);
+
+                    // Deduplicação adicional por MessageId se disponível
+                    if (failedMessageInfo?.MessageId != null && messages.Any(m => m.MessageId == failedMessageInfo.MessageId))
+                    {
+                        await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                        continue;
+                    }
 
                     if (failedMessageInfo != null)
                     {
@@ -241,9 +266,9 @@ public sealed class RabbitMqDeadLetterService(
                 }
                 finally
                 {
-                    // No List, sempre damos Nack com Requeue para a mensagem voltar para a fila
-                    // Mas incrementamos o count para evitar loop infinito se houver mensagens corrompidas
-                    await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: true, cancellationToken);
+                    // Damos Ack para remover a mensagem da fila após processamento
+                    // Protegemos contra refetch de mensagens corrompidas
+                    await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
                     count++;
                 }
             }
@@ -290,10 +315,18 @@ public sealed class RabbitMqDeadLetterService(
                         await SendToQuarantineAsync(deadLetterQueueName, result.Body, result.BasicProperties, cancellationToken);
                         await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
                     }
-                    catch
+                    catch (Exception quarantineEx)
                     {
-                        // Fallback se a quarentena falhar: devolve para a DLQ
-                        await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: true, cancellationToken);
+                        // Fallback: Acknowledge a mensagem e registre metadados para investigação
+                        // Nack com requeue criaria poison-pill loop
+                        await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                        logger.LogCritical(
+                            quarantineEx,
+                            "Critical: could not move message to quarantine. DeliveryTag: {DeliveryTag}, MessageId: {MessageId}, Body (base64): {BodyBase64}, DeadLetterQueueName: {Queue}",
+                            result.DeliveryTag,
+                            result.BasicProperties.MessageId,
+                            Convert.ToBase64String(result.Body.Span),
+                            deadLetterQueueName);
                     }
                     return;
                 }

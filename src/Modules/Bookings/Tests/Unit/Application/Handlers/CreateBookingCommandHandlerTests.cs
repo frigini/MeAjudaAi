@@ -244,7 +244,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(400);
-        result.Error.Code.Should().Be(ErrorCodes.Providers.Unavailable);
+        result.Error.Code.Should().Be(ErrorCodes.Providers.ProviderUnavailable);
     }
 
     [Fact]
