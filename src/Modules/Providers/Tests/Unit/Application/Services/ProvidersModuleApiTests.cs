@@ -555,6 +555,31 @@ public class ProvidersModuleApiTests
     }
 
     [Fact]
+    public async Task IsServiceOfferedByProviderAsync_Should_ReturnFalse_When_ProviderDoesNotOfferService()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var serviceId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        
+        var provider = ProviderBuilder.Create()
+            .WithId(providerId)
+            .WithUserId(userId)
+            .Build();
+        // Não adicionamos o serviço
+
+        _providerRepositoryMock.Setup(x => x.GetByIdAsync(new ProviderId(providerId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(provider);
+
+        // Act
+        var result = await _sut.IsServiceOfferedByProviderAsync(providerId, serviceId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task IsServiceOfferedByProviderAsync_Should_ReturnFalse_When_ProviderNotFound()
     {
         // Arrange

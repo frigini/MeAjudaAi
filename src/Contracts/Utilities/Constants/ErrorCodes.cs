@@ -24,6 +24,7 @@ public static class ErrorCodes
     public static class Bookings
     {
         public const string Overlap = "booking_overlap";
+        public const string ConcurrencyConflict = "booking_concurrency_conflict";
         public const string InvalidTime = "invalid_booking_time";
         public const string MidnightSpanning = "midnight_spanning";
         public const string StartNotInFuture = "start_not_in_future";

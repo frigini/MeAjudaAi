@@ -164,7 +164,7 @@ public static class MessagingExtensions
         var manager = scope.ServiceProvider.GetRequiredService<IRabbitMqInfrastructureManager>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingConfiguration>>();
 
-        var useNewtonsoftJson = configuration.GetValue<bool>(UseNewtonsoftJsonKey, false);
+        var useNewtonsoftJson = ResolveUseNewtonsoftJson(configuration);
         if (useNewtonsoftJson)
         {
             logger.LogInformation("Messaging: Newtonsoft.Json is ENABLED. Using legacy serializer.");
@@ -195,4 +195,10 @@ public static class MessagingExtensions
     }
 
     #endregion
+}
+
+    #endregion
+
+    private static bool ResolveUseNewtonsoftJson(IConfiguration cfg) =>
+        cfg.GetValue<bool>(UseNewtonsoftJsonKey, false);
 }

@@ -42,7 +42,8 @@ public class TimeZoneResolverTests
         // Assert
         result.Should().NotBeNull();
         // Em Windows costuma ser "E. South America Standard Time", em Linux "America/Sao_Paulo"
-        // O helper tenta ambos.
+        result!.Id.Should().Match(id => id == "E. South America Standard Time" || id == "America/Sao_Paulo");
+        result.BaseUtcOffset.Should().Be(TimeSpan.FromHours(-3));
     }
 
     [Fact]
@@ -51,12 +52,7 @@ public class TimeZoneResolverTests
         // Arrange
         // Usando Pacific Standard Time para um teste determinístico de DST
         // Em 2024, o horário pula de 02:00 para 03:00 em 10 de Março.
-        TimeZoneInfo pst;
-        try {
-            pst = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-        } catch {
-            pst = TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles");
-        }
+        TimeZoneInfo pst = TestTimeZones.GetPacific();
 
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
@@ -80,12 +76,7 @@ public class TimeZoneResolverTests
         // Arrange
         // Em 2024, o horário volta de 02:00 para 01:00 em 3 de Novembro em PST.
         // 01:30 AM acontece duas vezes.
-        TimeZoneInfo pst;
-        try {
-            pst = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-        } catch {
-            pst = TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles");
-        }
+        TimeZoneInfo pst = TestTimeZones.GetPacific();
 
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
@@ -101,5 +92,17 @@ public class TimeZoneResolverTests
         result.IsSuccess.Should().BeTrue();
         // O maior offset deve ser escolhido (PST é -8, PDT é -7. O Max de {-8, -7} é -7)
         result.Value.Start.Offset.Should().Be(TimeSpan.FromHours(-7));
+    }
+
+    private static class TestTimeZones
+    {
+        public static TimeZoneInfo GetPacific()
+        {
+            try {
+                return TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            } catch {
+                return TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles");
+            }
+        }
     }
 }

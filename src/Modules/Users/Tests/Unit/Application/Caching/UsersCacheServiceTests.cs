@@ -182,7 +182,7 @@ public class UsersCacheServiceTests
                 user,
                 TimeSpan.FromMinutes(30),
                 It.IsAny<HybridCacheEntryOptions?>(),
-                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && tags.Contains($"user:{userId}")),
+                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && tags.Contains(CacheTags.UserTag(userId))),
                 _cancellationToken),
             Times.Once);
     }

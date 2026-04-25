@@ -78,7 +78,8 @@ public class RegisterCustomerCommandValidatorTests
     {
         var command = new RegisterCustomerCommand("Jean Valjean", "", "Password123!", "123456789", true, true);
         var result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(x => x.Email);
+        result.ShouldHaveValidationErrorFor(x => x.Email)
+            .WithErrorMessage("Email é obrigatório");
     }
 
     [Fact]
@@ -86,7 +87,8 @@ public class RegisterCustomerCommandValidatorTests
     {
         var command = new RegisterCustomerCommand("Jean Valjean", "test@test.com", "", "123456789", true, true);
         var result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(x => x.Password);
+        result.ShouldHaveValidationErrorFor(x => x.Password)
+            .WithErrorMessage("Senha é obrigatória");
     }
 
     [Fact]

@@ -31,9 +31,10 @@ public class EnvironmentHelpersTests
         }
         finally
         {
-            // Cleanup
+            // Cleanup - clear both environment variables
             Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
             Environment.SetEnvironmentVariable("INTEGRATION_TESTS", null);
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
         }
     }
 }

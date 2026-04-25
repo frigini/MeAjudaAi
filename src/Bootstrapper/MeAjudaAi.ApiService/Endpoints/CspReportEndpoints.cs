@@ -26,7 +26,7 @@ public static class CspReportEndpoints
     /// <summary>
     /// Recebe e registra violações de CSP.
     /// </summary>
-    private static async Task<IResult> ReceiveCspReport(
+    internal static async Task<IResult> ReceiveCspReport(
         HttpContext context,
         [FromServices] ILogger<Program> logger)
     {
@@ -37,7 +37,7 @@ public static class CspReportEndpoints
 
             if (string.IsNullOrWhiteSpace(reportJson))
             {
-                return Results.BadRequest("Relatório vazio");
+                return TypedResults.BadRequest("Relatório vazio");
             }
 
             // Analisar o relatório CSP

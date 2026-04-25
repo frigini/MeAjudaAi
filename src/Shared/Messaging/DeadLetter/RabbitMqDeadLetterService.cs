@@ -471,20 +471,40 @@ public sealed class RabbitMqDeadLetterService(
         
         try
         {
-            await _channel!.QueueDeclareAsync(
-                queue: quarantineQueue,
-                durable: true,
-                exclusive: false,
-                autoDelete: false,
-                cancellationToken: cancellationToken);
+            if (!_declaredQuarantineQueues.ContainsKey(quarantineQueue))
+            {
+                await _channel!.QueueDeclareAsync(
+                    queue: quarantineQueue,
+                    durable: true,
+                    exclusive: false,
+                    autoDelete: false,
+                    cancellationToken: cancellationToken);
+                
+                _declaredQuarantineQueues.TryAdd(quarantineQueue, true);
+            }
 
             var publishProperties = new BasicProperties
             {
                 Persistent = true,
-                Headers = properties.Headers
+                MessageId = properties.MessageId,
+                CorrelationId = properties.CorrelationId,
+                ContentType = properties.ContentType,
+                ContentEncoding = properties.ContentEncoding,
+                Timestamp = properties.Timestamp
             };
 
-            await _channel.BasicPublishAsync(
+            // Estende headers com metadados de quarentena
+            var headers = properties.Headers != null 
+                ? new Dictionary<string, object?>(properties.Headers) 
+                : new Dictionary<string, object?>();
+            
+            headers["x-quarantine-reason"] = "deserialization_failure";
+            headers["x-original-queue"] = deadLetterQueueName;
+            headers["x-quarantined-at"] = DateTime.UtcNow.ToString("O");
+            
+            publishProperties.Headers = headers;
+
+            await _channel!.BasicPublishAsync(
                 exchange: "",
                 routingKey: quarantineQueue,
                 mandatory: false,

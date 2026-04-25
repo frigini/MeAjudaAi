@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using FluentAssertions;
 using Xunit;
@@ -24,11 +25,11 @@ public class ServiceCatalogsDbContextModelTests
         model.GetDefaultSchema().Should().Be("service_catalogs");
         
         // Check if entities are registered
-        var categoryType = model.FindEntityType(typeof(MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory));
+        var categoryType = model.FindEntityType(typeof(ServiceCategory));
         categoryType.Should().NotBeNull();
         categoryType!.GetSchema().Should().Be("service_catalogs");
 
-        var serviceType = model.FindEntityType(typeof(MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service));
+        var serviceType = model.FindEntityType(typeof(Service));
         serviceType.Should().NotBeNull();
         serviceType!.GetSchema().Should().Be("service_catalogs");
     }

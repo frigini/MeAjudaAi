@@ -201,7 +201,7 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                     
                     if (IsConcurrencyError(ex))
                     {
-                        return Result.Failure(Error.Conflict("Conflito de concorrência ao validar agendamento. Tente novamente em instantes."));
+                        return Result.Failure(Error.Conflict("Conflito de concorrência ao validar agendamento. Tente novamente em instantes.", ErrorCodes.Bookings.ConcurrencyConflict));
                     }
 
                     throw;

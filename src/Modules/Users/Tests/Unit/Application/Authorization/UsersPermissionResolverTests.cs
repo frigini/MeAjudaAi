@@ -21,7 +21,7 @@ public class UsersPermissionResolverTests
     private IConfiguration CreateConfiguration(bool useKeycloak)
     {
         var inMemorySettings = new Dictionary<string, string?> {
-            {"Authorization:UseKeycloak", useKeycloak.ToString().ToLower()}
+            {"Authorization:UseKeycloak", useKeycloak.ToString()}
         };
         return new ConfigurationBuilder()
             .AddInMemoryCollection(inMemorySettings)

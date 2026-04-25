@@ -89,7 +89,7 @@ public sealed class CreateBookingCommandHandler(
         var tz = TimeZoneResolver.ResolveTimeZone(schedule.TimeZoneId, logger, allowFallback: false);
         if (tz == null)
         {
-            return Result<BookingDto>.Failure(Error.BadRequest("Fuso horário do prestador inválido.", ErrorCodes.Validation));
+            return Result<BookingDto>.Failure(Error.BadRequest("Fuso horário do prestador inválido.", ErrorCodes.Bookings.InvalidTime));
         }
 
         var localStartTime = TimeZoneInfo.ConvertTimeFromUtc(command.Start.UtcDateTime, tz);
@@ -125,6 +125,23 @@ public sealed class CreateBookingCommandHandler(
         if (dtoResult.IsFailure)
         {
             return Result<BookingDto>.Failure(dtoResult.Error);
+        }
+
+        // 5. Persistir atomicamente
+        var result = await bookingRepository.AddIfNoOverlapAsync(booking, cancellationToken);
+        
+        if (result.IsFailure)
+        {
+            // Preserva o código de erro original (ex: Overlap ou ConcurrencyConflict)
+            return Result<BookingDto>.Failure(result.Error!);
+        }
+
+        logger.LogInformation("Booking {BookingId} created successfully.", booking.Id);
+
+        return dtoResult;
+    }
+}
+re(dtoResult.Error);
         }
 
         // 5. Persistir atomicamente

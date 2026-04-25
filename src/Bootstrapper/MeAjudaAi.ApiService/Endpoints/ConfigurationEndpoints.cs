@@ -29,9 +29,9 @@ public static class ConfigurationEndpoints
     /// Retorna a configuração do cliente.
     /// Apenas informações não-sensíveis são expostas.
     /// </summary>
-    private static Ok<ClientConfiguration> GetClientConfiguration(
-        [FromServices] IConfiguration configuration,
-        [FromServices] IWebHostEnvironment environment)
+    internal static Ok<ClientConfiguration> GetClientConfiguration(
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
     {
         // Obter URL base da API do host atual ou configuração
         var apiBaseUrl = configuration["ApiBaseUrl"] 

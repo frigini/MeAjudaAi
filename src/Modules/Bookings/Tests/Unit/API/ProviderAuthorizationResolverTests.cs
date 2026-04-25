@@ -63,6 +63,33 @@ public class ProviderAuthorizationResolverTests
     }
 
     [Fact]
+    public async Task ResolveAsync_Should_Fallthrough_When_ProviderIdIsEmpty()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var context = new DefaultHttpContext();
+        var claims = new[] 
+        { 
+            new Claim(AuthConstants.Claims.ProviderId, Guid.Empty.ToString()),
+            new Claim(AuthConstants.Claims.Subject, userId.ToString())
+        };
+        context.User = new ClaimsPrincipal(new ClaimsIdentity(claims));
+
+        var providerId = Guid.NewGuid();
+        var providerDto = CreateModuleProviderDto(providerId);
+        _providersApiMock.Setup(x => x.GetProviderByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleProviderDto?>.Success(providerDto));
+
+        // Act
+        var result = await _sut.ResolveAsync(context, _providersApiMock.Object);
+
+        // Assert
+        // Deve ter ignorado o Guid.Empty e buscado via API
+        result.ProviderId.Should().Be(providerId);
+        _providersApiMock.Verify(x => x.GetProviderByUserIdAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task ResolveAsync_Should_ReturnUnauthorized_When_NoSubjectClaim()
     {
         // Arrange

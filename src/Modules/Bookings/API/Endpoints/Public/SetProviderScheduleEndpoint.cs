@@ -64,9 +64,10 @@ public static class ProviderAuthorizationResultExtensions
 public sealed class ProviderAuthorizationResolver
 {
     private const string CacheKeyPrefix = "bookings:provider_by_user:";
-    private static readonly TimeSpan SlidingExpiration = TimeSpan.FromMinutes(5);
-    private static readonly TimeSpan AbsoluteExpiration = TimeSpan.FromMinutes(10);
-    private static readonly TimeSpan MissExpiration = TimeSpan.FromMinutes(2);
+    // Reduzido para minimizar janela de inconsistência
+    private static readonly TimeSpan SlidingExpiration = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan AbsoluteExpiration = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan MissExpiration = TimeSpan.FromSeconds(30);
 
     private readonly IMemoryCache _cache;
     private readonly ILogger<ProviderAuthorizationResolver> _logger;
@@ -75,6 +76,17 @@ public sealed class ProviderAuthorizationResolver
     {
         _cache = cache;
         _logger = logger;
+    }
+
+    /// <summary>
+    /// Invalida o cache do usuário especificado.
+    /// Chamado por handlers de eventos de integração quando o vínculo muda.
+    /// </summary>
+    public void Invalidate(Guid userId)
+    {
+        var cacheKey = $"{CacheKeyPrefix}{userId}";
+        _cache.Remove(cacheKey);
+        _logger.LogInformation("Cache invalidated for user {UserId}", userId);
     }
 
     public async Task<ProviderAuthorizationResult> ResolveAsync(
