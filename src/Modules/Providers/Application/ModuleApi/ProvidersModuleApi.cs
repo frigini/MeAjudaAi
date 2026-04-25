@@ -472,7 +472,7 @@ public sealed class ProvidersModuleApi(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking if provider {ProviderId} offers service {ServiceId}", providerId, serviceId);
-            return Result<bool>.Failure("Erro ao verificar se o prestador oferece o serviço");
+            return Result<bool>.Failure("Erro ao verificar se o prestador oferece o serviço.");
         }
     }
 }

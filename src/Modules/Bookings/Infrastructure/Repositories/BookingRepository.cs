@@ -135,25 +135,27 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                 
                 try
                 {
-                    var alreadyExists = await context.Bookings.AnyAsync(b => b.Id == booking.Id, cancellationToken);
-                    if (alreadyExists)
+                    // Combina verificação de idempotência (Id igual) e sobreposição no mesmo Provider/Data
+                    // Filtramos por Id igual OU (Provider igual E Data igual E Status ativo E Horários cruzados)
+                    var existingBookings = await context.Bookings
+                        .Where(b => b.Id == booking.Id || 
+                                   (b.ProviderId == booking.ProviderId &&
+                                    b.Date == booking.Date &&
+                                    b.Status != EBookingStatus.Cancelled &&
+                                    b.Status != EBookingStatus.Rejected &&
+                                    b.Status != EBookingStatus.Completed &&
+                                    b.TimeSlot.Start < booking.TimeSlot.End &&
+                                    booking.TimeSlot.Start < b.TimeSlot.End))
+                        .Select(b => new { b.Id })
+                        .ToListAsync(cancellationToken);
+
+                    if (existingBookings.Any(b => b.Id == booking.Id))
                     {
                         logger.LogInformation("Booking {BookingId} already exists. Returning success (Idempotent).", booking.Id);
                         return Result.Success();
                     }
 
-                    var hasOverlap = await context.Bookings
-                        .AnyAsync(b => 
-                            b.ProviderId == booking.ProviderId &&
-                            b.Date == booking.Date &&
-                            b.Status != EBookingStatus.Cancelled &&
-                            b.Status != EBookingStatus.Rejected &&
-                            b.Status != EBookingStatus.Completed &&
-                            b.TimeSlot.Start < booking.TimeSlot.End &&
-                            booking.TimeSlot.Start < b.TimeSlot.End,
-                            cancellationToken);
-
-                    if (hasOverlap)
+                    if (existingBookings.Any())
                     {
                         return Result.Failure(Error.Conflict("Já existe um agendamento para este horário.", ErrorCodes.Bookings.Overlap));
                     }
@@ -184,7 +186,11 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                             logger.LogDebug("Rollback failed during retry (expected in some scenarios): {Error}", rollbackEx.Message);
                         }
 
-                        await Task.Delay(Random.Shared.Next(50, 200), cancellationToken);
+                        // Exponential backoff with jitter
+                        var baseJitter = Random.Shared.Next(50, 200);
+                        var delay = Math.Min((int)(baseJitter * Math.Pow(2, attempt - 1)), 2000);
+                        await Task.Delay(delay, cancellationToken);
+                        
                         context.Entry(booking).State = EntityState.Detached;
                         continue;
                     }
@@ -200,6 +206,10 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                         logger.LogDebug("Rollback failed during error handling (expected in some scenarios): {Error}", rollbackEx.Message);
                     }
                     
+                    // Garante que a entidade seja desanexada em caso de falha fatal ou esgotamento de retries
+                    // para evitar que o ChangeTracker tente inseri-la novamente se o DbContext for reutilizado.
+                    context.Entry(booking).State = EntityState.Detached;
+
                     if (IsConcurrencyError(ex))
                     {
                         return Result.Failure(Error.Conflict("Conflito de concorrência ao validar agendamento. Tente novamente em instantes.", ErrorCodes.Bookings.ConcurrencyConflict));
@@ -229,7 +239,6 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
     {
         try
         {
-            context.Bookings.Update(booking);
             await context.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateConcurrencyException ex)

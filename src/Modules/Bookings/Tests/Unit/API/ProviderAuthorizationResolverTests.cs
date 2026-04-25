@@ -154,7 +154,47 @@ public class ProviderAuthorizationResolverTests
     }
 
     [Fact]
-    public async Task ResolveAsync_Should_HitCache_On_SecondCall()
+    public async Task InvalidateAsync_Should_RemoveFromCache()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var expectedKey = $"bookings:provider_by_user:{userId}";
+
+        // Act
+        await _sut.InvalidateAsync(userId);
+
+        // Assert
+        _cacheMock.Verify(x => x.RemoveAsync(expectedKey, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_Should_Fallthrough_When_ProviderIdClaimIsInvalid()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var context = new DefaultHttpContext();
+        var claims = new[] 
+        { 
+            new Claim(AuthConstants.Claims.ProviderId, "invalid-guid"),
+            new Claim(AuthConstants.Claims.Subject, userId.ToString())
+        };
+        context.User = new ClaimsPrincipal(new ClaimsIdentity(claims));
+
+        var providerId = Guid.NewGuid();
+        var providerDto = CreateModuleProviderDto(providerId);
+        _providersApiMock.Setup(x => x.GetProviderByUserIdAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ModuleProviderDto?>.Success(providerDto));
+
+        // Act
+        var result = await _sut.ResolveAsync(context, _providersApiMock.Object);
+
+        // Assert
+        result.ProviderId.Should().Be(providerId);
+        _providersApiMock.Verify(x => x.GetProviderByUserIdAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_Should_DelegateToCacheService()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -193,7 +233,7 @@ public class ProviderAuthorizationResolverTests
         firstResult.ProviderId.Should().Be(providerId);
         secondResult.ProviderId.Should().Be(providerId);
         
-        // Verifica que a API foi chamada apenas uma vez apesar de duas resoluções
+        // Verifica que a API foi chamada apenas uma vez apesar de duas resoluções (devido à lógica simulada do mock)
         _providersApiMock.Verify(x => x.GetProviderByUserIdAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
     }
 

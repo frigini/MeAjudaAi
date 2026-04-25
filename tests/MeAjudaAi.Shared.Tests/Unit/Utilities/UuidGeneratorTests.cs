@@ -199,18 +199,62 @@ public class UuidGeneratorTests
         parsedGuid.Should().NotBe(Guid.Empty);
     }
 
-    [Theory]
-    [InlineData("00000000-0000-0000-0000-000000000000", false)]
-    [InlineData("11111111-1111-1111-1111-111111111111", true)]
-    public void IsValid_WithVariousGuidStrings_ShouldReturnExpected(string guidString, bool expected)
+    [Fact]
+    public void IsValidString_WithValidGuid_ShouldReturnTrue()
     {
         // Arrange
-        var guid = Guid.Parse(guidString);
+        var validGuid = Guid.NewGuid().ToString();
 
         // Act
-        var result = UuidGenerator.IsValid(guid);
+        var result = UuidGenerator.IsValid(validGuid);
 
         // Assert
-        result.Should().Be(expected);
+        result.Should().BeTrue();
     }
+
+    [Fact]
+    public void IsValidString_WithInvalidGuid_ShouldReturnFalse()
+    {
+        // Arrange
+        var invalidGuid = "not-a-guid";
+
+        // Act
+        var result = UuidGenerator.IsValid(invalidGuid);
+
+        // Assert
+        result.Should().BeFalse();
     }
+
+    [Fact]
+    public void IsValidString_WithNullOrEmpty_ShouldReturnFalse()
+    {
+        // Act & Assert
+        UuidGenerator.IsValid((string?)null).Should().BeFalse();
+        UuidGenerator.IsValid("").Should().BeFalse();
+        UuidGenerator.IsValid("   ").Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsValidString_WithCompactGuid_ShouldReturnTrue()
+    {
+        // Arrange
+        var compactGuid = Guid.NewGuid().ToString("N");
+
+        // Act
+        var result = UuidGenerator.IsValid(compactGuid);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void NewId_ShouldReturnValidVersion7Guid()
+    {
+        // Act
+        var id = UuidGenerator.NewId();
+        
+        // Assert
+        UuidGenerator.IsValid(id).Should().BeTrue();
+        id.ToString()[14].Should().Be('7');
+    }
+}

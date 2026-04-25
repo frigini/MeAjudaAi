@@ -30,4 +30,13 @@ public static class UuidGenerator
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsValid(Guid guid) => guid != Guid.Empty;
+
+    /// <summary>
+    /// Verifica se uma string representa um Guid válido e não vazio
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsValid(string? guidString) => 
+        !string.IsNullOrWhiteSpace(guidString) && 
+        Guid.TryParse(guidString, out var guid) && 
+        guid != Guid.Empty;
 }

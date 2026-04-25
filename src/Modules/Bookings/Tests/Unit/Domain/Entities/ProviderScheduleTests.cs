@@ -102,4 +102,63 @@ public class ProviderScheduleTests : BaseUnitTest
         // Assert
         result.Should().BeFalse();
     }
+
+    [Fact]
+    public void UpdateTimeZone_Should_ChangeTimeZone_When_Valid()
+    {
+        // Arrange
+        var schedule = ProviderSchedule.Create(Guid.NewGuid());
+        var newTimeZone = "UTC";
+
+        // Act
+        schedule.UpdateTimeZone(newTimeZone);
+
+        // Assert
+        schedule.TimeZoneId.Should().Be(newTimeZone);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData(null)]
+    public void UpdateTimeZone_Should_Throw_When_NullOrWhitespace(string? timeZone)
+    {
+        // Arrange
+        var schedule = ProviderSchedule.Create(Guid.NewGuid());
+
+        // Act
+        var act = () => schedule.UpdateTimeZone(timeZone!);
+
+        // Assert
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void UpdateTimeZone_Should_Throw_When_InvalidTimeZoneId()
+    {
+        // Arrange
+        var schedule = ProviderSchedule.Create(Guid.NewGuid());
+
+        // Act
+        var act = () => schedule.UpdateTimeZone("Invalid/TimeZone");
+
+        // Assert
+        act.Should().Throw<ArgumentException>().WithMessage("Invalid TimeZone ID*");
+    }
+
+    [Fact]
+    public void ClearAvailabilities_Should_EmptyTheList()
+    {
+        // Arrange
+        var schedule = ProviderSchedule.Create(Guid.NewGuid());
+        var slot = TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(12, 0));
+        schedule.SetAvailability(Availability.Create(DayOfWeek.Monday, [slot]));
+        schedule.Availabilities.Should().NotBeEmpty();
+
+        // Act
+        schedule.ClearAvailabilities();
+
+        // Assert
+        schedule.Availabilities.Should().BeEmpty();
+    }
 }

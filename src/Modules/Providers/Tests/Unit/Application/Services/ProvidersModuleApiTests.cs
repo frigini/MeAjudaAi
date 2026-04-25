@@ -679,7 +679,7 @@ public class ProvidersModuleApiTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Be("Erro ao verificar se o prestador oferece o serviço");
+        result.Error!.Message.Should().Be("Erro ao verificar se o prestador oferece o serviço.");
     }
 
     #endregion

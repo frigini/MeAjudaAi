@@ -56,6 +56,21 @@ public static class PiiMaskingHelper
     }
 
     /// <summary>
+    /// Mascara um CPF (ex: 123.***.***-00).
+    /// </summary>
+    public static string MaskCpf(string? cpf)
+    {
+        if (string.IsNullOrWhiteSpace(cpf)) return "[EMPTY]";
+        
+        // Remove caracteres não numéricos
+        var digits = new string(cpf.Where(char.IsDigit).ToArray());
+        
+        if (digits.Length != 11) return "****";
+        
+        return $"{digits[..3]}.***.***-{digits[^2..]}";
+    }
+
+    /// <summary>
     /// Retorna "[REDACTED]" se o dado não for nulo ou vazio, caso contrário retorna "[EMPTY]".
     /// </summary>
     public static string MaskSensitiveData(string? data)

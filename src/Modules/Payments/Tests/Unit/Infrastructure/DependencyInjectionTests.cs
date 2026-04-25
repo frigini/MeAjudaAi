@@ -22,7 +22,7 @@ public class DependencyInjectionTests
         var services = new ServiceCollection();
         var inMemorySettings = new Dictionary<string, string?> {
             {"ConnectionStrings:Payments", DatabaseConstants.DefaultTestConnectionString},
-            {"Stripe:ApiKey", "sk_test_123456789"},
+            {"Stripe:ApiKey", "stripe_test_api_key_placeholder"},
             {"ClientBaseUrl", "https://test.com"},
             {"Payments:SuccessUrl", "success"},
             {"Payments:CancelUrl", "cancel"}
@@ -40,7 +40,11 @@ public class DependencyInjectionTests
         services.AddInfrastructure(configuration, envMock.Object);
         services.AddLogging();
         
-        using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        using var provider = services.BuildServiceProvider(new ServiceProviderOptions 
+        { 
+            ValidateScopes = true,
+            ValidateOnBuild = true
+        });
         using var scope = provider.CreateScope();
         var scopedProvider = scope.ServiceProvider;
 
@@ -53,5 +57,7 @@ public class DependencyInjectionTests
         hostedServices.Should().Contain(s => s is ProcessInboxJob);
         
         services.Single(d => d.ServiceType == typeof(ISubscriptionRepository)).Lifetime.Should().Be(ServiceLifetime.Scoped);
+        services.Single(d => d.ServiceType == typeof(IPaymentTransactionRepository)).Lifetime.Should().Be(ServiceLifetime.Scoped);
+        services.Single(d => d.ServiceType == typeof(IPaymentGateway)).Lifetime.Should().Be(ServiceLifetime.Scoped);
     }
 }

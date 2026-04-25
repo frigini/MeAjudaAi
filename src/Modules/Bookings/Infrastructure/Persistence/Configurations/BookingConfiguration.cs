@@ -69,6 +69,12 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .HasColumnName("updated_at")
             .HasColumnType("timestamptz");
 
+        builder.Property(b => b.RowVersion)
+            .HasColumnName("xmin")
+            .HasColumnType("xid")
+            .ValueGeneratedOnAddOrUpdate()
+            .IsConcurrencyToken();
+
         // Índice para busca de agendamentos por prestador e data
         builder.HasIndex(b => new { b.ProviderId, b.Date, b.Status });
 

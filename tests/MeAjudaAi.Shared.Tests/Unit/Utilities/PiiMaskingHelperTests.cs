@@ -82,4 +82,19 @@ public class PiiMaskingHelperTests
         // Assert
         result.Should().Be(expected);
     }
+
+    [Theory]
+    [InlineData("123.456.789-00", "123.***.***-00")]
+    [InlineData("12345678900", "123.***.***-00")]
+    [InlineData("12345", "****")]
+    [InlineData(null, "[EMPTY]")]
+    [InlineData("", "[EMPTY]")]
+    public void MaskCpf_Should_ReturnMaskedCpf(string? input, string expected)
+    {
+        // Act
+        var result = PiiMaskingHelper.MaskCpf(input);
+
+        // Assert
+        result.Should().Be(expected);
+    }
 }

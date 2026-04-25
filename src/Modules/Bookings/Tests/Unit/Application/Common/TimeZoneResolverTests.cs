@@ -81,7 +81,12 @@ public class TimeZoneResolverTests
         var clientId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
         var date = new DateOnly(2024, 11, 3);
-        var slot = TimeSlot.Create(new TimeOnly(1, 30), new TimeOnly(2, 30));
+        // Start is ambiguous (1:30 AM)
+        var start = new TimeOnly(1, 30);
+        // End is NOT ambiguous (2:30 AM) - transition ends at 2:00 AM PDT -> 1:00 AM PST. 
+        // 2:00 AM PDT doesn't exist. 2:00 AM PST exists only once.
+        var end = new TimeOnly(2, 30);
+        var slot = TimeSlot.Create(start, end);
         var booking = Booking.Create(providerId, clientId, serviceId, date, slot);
 
         // Act
@@ -89,12 +94,17 @@ public class TimeZoneResolverTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        // O comportamento do .NET TimeZoneInfo pode variar entre SOs (Windows vs Linux).
-        // No Windows/Ambiente atual, pode preferir o offset padrão (Standard) PST (-8) ou PDT (-7).
-        // Ambos são tecnicamente válidos para o mesmo horário local ambíguo.
-        var validOffsets = pst.GetAmbiguousTimeOffsets(booking.Date.ToDateTime(booking.TimeSlot.Start));
-        validOffsets.Should().Contain(result.Value.Start.Offset);
-        validOffsets.Should().Contain(result.Value.End.Offset);
+        
+        // Start offset should be the maximum of the two ambiguous offsets
+        var startDateTime = booking.Date.ToDateTime(booking.TimeSlot.Start);
+        var startOffsets = pst.GetAmbiguousTimeOffsets(startDateTime);
+        var expectedStartOffset = startOffsets.Max();
+        result.Value.Start.Offset.Should().Be(expectedStartOffset);
+
+        // End offset should be the unambiguous offset for 2:30 AM PST
+        var endDateTime = booking.Date.ToDateTime(booking.TimeSlot.End);
+        var expectedEndOffset = pst.GetUtcOffset(endDateTime);
+        result.Value.End.Offset.Should().Be(expectedEndOffset);
     }
 
     [Fact]

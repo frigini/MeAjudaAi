@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Users.Infrastructure;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Services;
+using MeAjudaAi.Shared.Messaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,11 +29,16 @@ public class DependencyInjectionTests
         services.AddSingleton(envMock.Object);
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton(configuration);
+        services.AddSingleton(Mock.Of<IMessageBus>());
 
         services.AddInfrastructure(configuration);
         services.AddLogging();
         
-        return services.BuildServiceProvider();
+        return services.BuildServiceProvider(new ServiceProviderOptions 
+        { 
+            ValidateScopes = true,
+            ValidateOnBuild = true
+        });
     }
 
     [Fact]
@@ -46,12 +52,23 @@ public class DependencyInjectionTests
 
         // Act
         var provider = BuildProvider(settings);
+        using var scope = provider.CreateScope();
+        var scopedProvider = scope.ServiceProvider;
 
         // Assert
-        provider.GetRequiredService<UsersDbContext>().Should().NotBeNull();
-        provider.GetRequiredService<IUserRepository>().Should().NotBeNull();
-        provider.GetRequiredService<IUserDomainService>().Should().NotBeNull();
-        provider.GetRequiredService<IAuthenticationDomainService>().Should().NotBeNull();
+        scopedProvider.GetRequiredService<UsersDbContext>().Should().NotBeNull();
+        scopedProvider.GetRequiredService<IUserRepository>().Should().NotBeNull();
+        scopedProvider.GetRequiredService<IUserDomainService>().Should().NotBeNull();
+        scopedProvider.GetRequiredService<IAuthenticationDomainService>().Should().NotBeNull();
+        
+        var services = new ServiceCollection();
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(settings)
+            .Build();
+        services.AddInfrastructure(configuration);
+        
+        services.Single(d => d.ServiceType == typeof(IUserRepository)).Lifetime.Should().Be(ServiceLifetime.Scoped);
+        services.Single(d => d.ServiceType == typeof(IUserDomainService)).Lifetime.Should().Be(ServiceLifetime.Scoped);
     }
 
     [Fact]
@@ -69,9 +86,11 @@ public class DependencyInjectionTests
 
         // Act
         var provider = BuildProvider(settings);
+        using var scope = provider.CreateScope();
+        var scopedProvider = scope.ServiceProvider;
 
         // Assert
-        provider.GetRequiredService<IUserDomainService>().Should().NotBeNull();
-        provider.GetRequiredService<IAuthenticationDomainService>().Should().NotBeNull();
+        scopedProvider.GetRequiredService<IUserDomainService>().Should().NotBeNull();
+        scopedProvider.GetRequiredService<IAuthenticationDomainService>().Should().NotBeNull();
     }
 }

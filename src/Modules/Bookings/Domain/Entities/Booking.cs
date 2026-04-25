@@ -16,6 +16,7 @@ public sealed class Booking : BaseEntity
     public EBookingStatus Status { get; private set; }
     public string? RejectionReason { get; private set; }
     public string? CancellationReason { get; private set; }
+    public uint RowVersion { get; private set; } // Optimistic concurrency token (xid in Postgres)
 
     private Booking() { } // Required by EF Core
 

@@ -55,4 +55,28 @@ public class AvailabilityTests : BaseUnitTest
         act.Should().Throw<InvalidOperationException>()
             .WithMessage($"Availability slots for {day} cannot overlap.");
     }
+
+    [Fact]
+    public void Equals_Should_ReturnTrue_When_ValuesAreEqual()
+    {
+        // Arrange
+        var slot1 = TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(12, 0));
+        var avail1 = Availability.Create(DayOfWeek.Monday, [slot1]);
+        var avail2 = Availability.Create(DayOfWeek.Monday, [slot1]);
+
+        // Act & Assert
+        avail1.Equals(avail2).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Equals_Should_ReturnFalse_When_ValuesAreDifferent()
+    {
+        // Arrange
+        var slot1 = TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(12, 0));
+        var avail1 = Availability.Create(DayOfWeek.Monday, [slot1]);
+        var avail2 = Availability.Create(DayOfWeek.Tuesday, [slot1]);
+
+        // Act & Assert
+        avail1.Equals(avail2).Should().BeFalse();
+    }
 }

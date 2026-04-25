@@ -91,4 +91,79 @@ public class TimeSlotTests : BaseUnitTest
         slot1.Should().Be(slot2);
         slot1.Start.Should().Be(new TimeOnly(10, 0));
     }
+
+    [Fact]
+    public void Subtract_Should_Split_Into_Remaining_Segments()
+    {
+        // Arrange
+        var free = TimeSlot.Create(new(9, 0), new(12, 0));
+        var occupied = new[] {
+            TimeSlot.Create(new(9,30), new(10,00)),
+            TimeSlot.Create(new(11,00), new(11,30))
+        };
+
+        // Act
+        var result = free.Subtract(occupied);
+
+        // Assert
+        result.Should().HaveCount(3);
+        result[0].Start.Should().Be(new TimeOnly(9,0));   result[0].End.Should().Be(new TimeOnly(9,30));
+        result[1].Start.Should().Be(new TimeOnly(10,0));  result[1].End.Should().Be(new TimeOnly(11,0));
+        result[2].Start.Should().Be(new TimeOnly(11,30)); result[2].End.Should().Be(new TimeOnly(12,0));
+    }
+
+    [Fact]
+    public void Subtract_WithAdjacentOccupied_ShouldHandleCorrectly()
+    {
+        // Arrange
+        var free = TimeSlot.Create(new(9, 0), new(10, 0));
+        var occupied = new[] {
+            TimeSlot.Create(new(10, 0), new(11, 0))
+        };
+
+        // Act
+        var result = free.Subtract(occupied);
+
+        // Assert
+        result.Should().ContainSingle();
+        result[0].Should().Be(free);
+    }
+    
+    [Fact]
+    public void Subtract_WithTotalOverlap_ShouldReturnEmpty()
+    {
+        // Arrange
+        var free = TimeSlot.Create(new(9, 0), new(10, 0));
+        var occupied = new[] {
+            TimeSlot.Create(new(8, 0), new(11, 0))
+        };
+
+        // Act
+        var result = free.Subtract(occupied);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Equals_Should_ReturnTrue_When_ValuesAreEqual()
+    {
+        // Arrange
+        var slot1 = TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(12, 0));
+        var slot2 = TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(12, 0));
+
+        // Act & Assert
+        slot1.Equals(slot2).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Equals_Should_ReturnFalse_When_ValuesAreDifferent()
+    {
+        // Arrange
+        var slot1 = TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(12, 0));
+        var slot2 = TimeSlot.Create(new TimeOnly(9, 0), new TimeOnly(12, 0));
+
+        // Act & Assert
+        slot1.Equals(slot2).Should().BeFalse();
+    }
 }

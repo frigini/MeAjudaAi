@@ -106,7 +106,12 @@ public class UsersCacheServiceTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        Func<CancellationToken, ValueTask<UserDto?>> factory = ct => ValueTask.FromResult<UserDto?>(null);
+        var factoryCalled = false;
+        Func<CancellationToken, ValueTask<UserDto?>> factory = ct => 
+        {
+            factoryCalled = true;
+            return ValueTask.FromResult<UserDto?>(null);
+        };
 
         _cacheServiceMock
             .Setup(x => x.GetAsync<UserDto?>(
@@ -119,6 +124,7 @@ public class UsersCacheServiceTests
 
         // Assert
         result.Should().BeNull();
+        factoryCalled.Should().BeTrue();
         _cacheServiceMock.Verify(x => x.SetAsync(It.IsAny<string>(), It.IsAny<UserDto>(), It.IsAny<TimeSpan?>(), It.IsAny<HybridCacheEntryOptions?>(), It.IsAny<IReadOnlyCollection<string>?>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -145,10 +151,10 @@ public class UsersCacheServiceTests
             .ReturnsAsync((null, true));
 
         var factoryCalled = false;
-        Func<CancellationToken, ValueTask<UserDto?>> factory = async ct =>
+        Func<CancellationToken, ValueTask<UserDto?>> factory = ct =>
         {
             factoryCalled = true;
-            return user;
+            return ValueTask.FromResult<UserDto?>(user);
         };
 
         // Act

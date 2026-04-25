@@ -68,7 +68,6 @@ public sealed class ProviderAuthorizationResolver
     // Reduzido para minimizar janela de inconsistência
     private static readonly TimeSpan SlidingExpiration = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan AbsoluteExpiration = TimeSpan.FromMinutes(5);
-    private static readonly TimeSpan MissExpiration = TimeSpan.FromSeconds(30);
 
     private readonly ICacheService _cache;
     private readonly ILogger<ProviderAuthorizationResolver> _logger;
@@ -148,7 +147,6 @@ public sealed class ProviderAuthorizationResolver
 
                     return ProviderResolutionResult.Found(providerResult.Value.Id);
                 },
-                expiration: AbsoluteExpiration,
                 options: options,
                 cancellationToken: cancellationToken);
 
@@ -212,6 +210,39 @@ public class SetProviderScheduleEndpoint : IEndpoint
             if (!request.Availabilities.Any())
             {
                 return Results.Problem("A lista de disponibilidades não pode ser vazia.", statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            // Validações detalhadas
+            var seenDays = new HashSet<DayOfWeek>();
+            var index = 0;
+            foreach (var availability in request.Availabilities)
+            {
+                if (availability == null)
+                {
+                    return Results.Problem($"Item de disponibilidade no índice {index} não pode ser nulo.", statusCode: StatusCodes.Status400BadRequest);
+                }
+
+                if (seenDays.Contains(availability.DayOfWeek))
+                {
+                    return Results.Problem($"Dia da semana duplicado na lista: {availability.DayOfWeek}.", statusCode: StatusCodes.Status400BadRequest);
+                }
+                seenDays.Add(availability.DayOfWeek);
+
+                if (availability.Slots == null || !availability.Slots.Any())
+                {
+                    return Results.Problem($"A lista de horários para {availability.DayOfWeek} não pode ser vazia.", statusCode: StatusCodes.Status400BadRequest);
+                }
+
+                var slotIndex = 0;
+                foreach (var slot in availability.Slots)
+                {
+                    if (slot.End <= slot.Start)
+                    {
+                        return Results.Problem($"Horário inválido para {availability.DayOfWeek} no slot {slotIndex}: o término ({slot.End}) deve ser após o início ({slot.Start}).", statusCode: StatusCodes.Status400BadRequest);
+                    }
+                    slotIndex++;
+                }
+                index++;
             }
 
             var authResult = await authResolver.ResolveAsync(context, providersApi, cancellationToken);

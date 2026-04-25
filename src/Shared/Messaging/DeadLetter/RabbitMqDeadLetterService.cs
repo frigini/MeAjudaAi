@@ -124,7 +124,7 @@ public sealed class RabbitMqDeadLetterService(
         return exponentialDelay > maxDelay ? maxDelay : exponentialDelay;
     }
 
-public async Task ReprocessDeadLetterMessageAsync(
+    public async Task ReprocessDeadLetterMessageAsync(
         string deadLetterQueueName,
         string messageId,
         CancellationToken cancellationToken = default)
@@ -200,16 +200,37 @@ public async Task ReprocessDeadLetterMessageAsync(
                 else
                 {
                     // Rejeita a mensagem sem recolocar no início para evitar loop infinito (poison pill)
-                    // Em vez disso, removemos com Nack(requeue:false) e republicamos para o fim da fila
-                    await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: false, cancellationToken);
+                    // Em vez disso, republicamos para o fim da fila ANTES do Ack para evitar perda em caso de falha no publish
                     
+                    var props = result.BasicProperties;
+                    var publishProperties = new BasicProperties
+                    {
+                        Persistent = props.Persistent,
+                        MessageId = props.MessageId,
+                        CorrelationId = props.CorrelationId,
+                        ContentType = props.ContentType,
+                        ContentEncoding = props.ContentEncoding,
+                        Timestamp = props.Timestamp,
+                        Headers = props.Headers != null ? new Dictionary<string, object?>(props.Headers) : null,
+                        DeliveryMode = props.DeliveryMode,
+                        Priority = props.Priority,
+                        ReplyTo = props.ReplyTo,
+                        Expiration = props.Expiration,
+                        Type = props.Type,
+                        UserId = props.UserId,
+                        AppId = props.AppId,
+                        ClusterId = props.ClusterId
+                    };
+
                     await _channel.BasicPublishAsync(
                         exchange: "",
                         routingKey: deadLetterQueueName,
                         mandatory: false,
-                        basicProperties: (BasicProperties)result.BasicProperties,
+                        basicProperties: publishProperties,
                         body: result.Body,
                         cancellationToken: cancellationToken);
+
+                    await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
                 }
             }
         }
@@ -242,14 +263,17 @@ public async Task ReprocessDeadLetterMessageAsync(
                 var result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
                 if (result == null) break;
 
-                // Deduplicação por DeliveryTag para evitar refetch
+                // Deduplicação por DeliveryTag para evitar refetch (inspeção não destrutiva)
                 if (seenDeliveryTags.Contains(result.DeliveryTag))
                 {
+                    // Se já vimos este DeliveryTag e ele voltou, significa que o BasicGetAsync está dando voltas na fila.
+                    // Para evitar loop infinito, damos Ack no duplicado (pois ele já foi requeued uma vez) e paramos.
                     await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
-                    continue;
+                    break; 
                 }
                 seenDeliveryTags.Add(result.DeliveryTag);
 
+                var wasAcked = false;
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
                 FailedMessageInfo? failedMessageInfo = null;
 
@@ -261,6 +285,7 @@ public async Task ReprocessDeadLetterMessageAsync(
                     if (failedMessageInfo?.MessageId != null && seenMessageIds.Contains(failedMessageInfo.MessageId))
                     {
                         await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                        wasAcked = true;
                         continue;
                     }
 
@@ -279,9 +304,12 @@ public async Task ReprocessDeadLetterMessageAsync(
                 }
                 finally
                 {
-                    // Damos Ack para remover a mensagem da fila após processamento
-                    // Protegemos contra refetch de mensagens corrompidas
-                    await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
+                    if (!wasAcked)
+                    {
+                        // Se não foi um duplicado removido via Ack, devolvemos para a fila com Nack(requeue:true)
+                        // Isso garante que a inspeção não seja destrutiva.
+                        await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: true, cancellationToken);
+                    }
                     count++;
                 }
             }
@@ -352,16 +380,37 @@ public async Task ReprocessDeadLetterMessageAsync(
                 else
                 {
                     // Rejeita a mensagem sem recolocar no início para evitar loop infinito
-                    // Em vez disso, removemos com Nack(requeue:false) e republicamos para o fim da fila
-                    await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: false, cancellationToken);
+                    // Em vez disso, republicamos para o fim da fila ANTES do Ack para evitar perda em caso de falha no publish
                     
+                    var props = result.BasicProperties;
+                    var publishProperties = new BasicProperties
+                    {
+                        Persistent = props.Persistent,
+                        MessageId = props.MessageId,
+                        CorrelationId = props.CorrelationId,
+                        ContentType = props.ContentType,
+                        ContentEncoding = props.ContentEncoding,
+                        Timestamp = props.Timestamp,
+                        Headers = props.Headers != null ? new Dictionary<string, object?>(props.Headers) : null,
+                        DeliveryMode = props.DeliveryMode,
+                        Priority = props.Priority,
+                        ReplyTo = props.ReplyTo,
+                        Expiration = props.Expiration,
+                        Type = props.Type,
+                        UserId = props.UserId,
+                        AppId = props.AppId,
+                        ClusterId = props.ClusterId
+                    };
+
                     await _channel.BasicPublishAsync(
                         exchange: "",
                         routingKey: deadLetterQueueName,
                         mandatory: false,
-                        basicProperties: (BasicProperties)result.BasicProperties,
+                        basicProperties: publishProperties,
                         body: result.Body,
                         cancellationToken: cancellationToken);
+
+                    await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
                 }
             }
         }
@@ -528,6 +577,7 @@ public async Task ReprocessDeadLetterMessageAsync(
         
         try
         {
+            // Evitamos declarações redundantes via cache em memória (race condition resolvida via idempotência do RMQ)
             if (!_declaredQuarantineQueues.ContainsKey(quarantineQueue))
             {
                 await _channel!.QueueDeclareAsync(
@@ -540,26 +590,23 @@ public async Task ReprocessDeadLetterMessageAsync(
                 _declaredQuarantineQueues.TryAdd(quarantineQueue, true);
             }
 
+            var props = properties;
             var publishProperties = new BasicProperties
             {
                 Persistent = true,
-                MessageId = properties.MessageId,
-                CorrelationId = properties.CorrelationId,
-                ContentType = properties.ContentType,
-                ContentEncoding = properties.ContentEncoding,
-                Timestamp = properties.Timestamp
+                MessageId = props.MessageId,
+                CorrelationId = props.CorrelationId,
+                ContentType = props.ContentType,
+                ContentEncoding = props.ContentEncoding,
+                Timestamp = props.Timestamp,
+                Headers = props.Headers != null ? new Dictionary<string, object?>(props.Headers) : new Dictionary<string, object?>()
             };
 
             // Estende headers com metadados de quarentena
-            var headers = properties.Headers != null 
-                ? new Dictionary<string, object?>(properties.Headers) 
-                : new Dictionary<string, object?>();
-            
+            var headers = publishProperties.Headers!;
             headers["x-quarantine-reason"] = "deserialization_failure";
             headers["x-original-queue"] = deadLetterQueueName;
             headers["x-quarantined-at"] = DateTime.UtcNow.ToString("O");
-            
-            publishProperties.Headers = headers;
 
             await _channel!.BasicPublishAsync(
                 exchange: "",
@@ -573,6 +620,9 @@ public async Task ReprocessDeadLetterMessageAsync(
         }
         catch (Exception ex)
         {
+            // Se falhou ao declarar, removemos do cache para tentar novamente na próxima
+            _declaredQuarantineQueues.TryRemove(quarantineQueue, out _);
+
             logger.LogError(ex, "Critical failure: could not move corrupt message to quarantine queue {Queue}", quarantineQueue);
             throw; // Re-lança para forçar Nack com requeue se o chamador tratar
         }

@@ -5,7 +5,6 @@ using Xunit;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.Helpers;
 
-[Trait("Category", "Unit")]
 public class StatusTranslationsTests
 {
     [Theory]
@@ -13,25 +12,15 @@ public class StatusTranslationsTests
     [InlineData(EDocumentStatus.Uploaded, "Enviado")]
     [InlineData(EDocumentStatus.Rejected, "Rejeitado")]
     [InlineData(EDocumentStatus.Verified, "Verificado")]
-    public void ToPortuguese_ShouldReturnCorrectTranslation(EDocumentStatus status, string expected)
+    public void ToPortuguese_Should_ReturnCorrectTranslation(EDocumentStatus status, string expected)
     {
-        // Act
-        var result = status.ToPortuguese();
-
-        // Assert
-        result.Should().Be(expected);
+        status.ToPortuguese().Should().Be(expected);
     }
 
     [Fact]
-    public void ToPortuguese_WithUnknownValue_ShouldReturnToString()
+    public void ToPortuguese_WithUnknownStatus_Should_ReturnToString()
     {
-        // Arrange
-        var unknownStatus = (EDocumentStatus)99;
-
-        // Act
-        var result = unknownStatus.ToPortuguese();
-
-        // Assert
-        result.Should().Be("99");
+        var status = (EDocumentStatus)999;
+        status.ToPortuguese().Should().Be("999");
     }
 }

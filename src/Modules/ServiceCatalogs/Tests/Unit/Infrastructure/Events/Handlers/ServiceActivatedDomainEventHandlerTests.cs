@@ -55,4 +55,37 @@ public class ServiceActivatedDomainEventHandlerTests
         await act.Should().ThrowAsync<InvalidOperationException>();
         _messageBusMock.Verify(x => x.PublishAsync(It.IsAny<ServiceActivatedIntegrationEvent>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
     }
+
+    [Fact]
+    public async Task ServiceActivatedHandler_Should_PropagateException_When_PublishFails()
+    {
+        // Arrange
+        var service = Service.Create(ServiceCategoryId.From(Guid.NewGuid()), "Test Service", null, 0);
+        _serviceRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+
+        _messageBusMock.Setup(x => x.PublishAsync(
+                It.IsAny<ServiceActivatedIntegrationEvent>(), 
+                It.IsAny<string?>(), 
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("publish-failed"));
+
+        var handler = new ServiceActivatedDomainEventHandler(_serviceRepositoryMock.Object, _messageBusMock.Object, _loggerMock.Object);
+        var domainEvent = new ServiceActivatedDomainEvent(service.Id);
+
+        // Act
+        var act = () => handler.HandleAsync(domainEvent);
+
+        // Assert
+        await act.Should().ThrowAsync<Exception>().WithMessage("publish-failed");
+        
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Error handling ServiceActivatedDomainEvent")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
 }
