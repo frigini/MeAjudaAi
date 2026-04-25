@@ -17,7 +17,6 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
     public async Task<Booking?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await context.Bookings
-            .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
 
@@ -239,6 +238,7 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
     {
         try
         {
+            context.Bookings.Update(booking);
             await context.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateConcurrencyException ex)
