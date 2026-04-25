@@ -118,7 +118,35 @@ public class TimeSlotTests : BaseUnitTest
     }
 
     [Fact]
-    public void Subtract_WithAdjacentOccupied_ShouldHandleCorrectly()
+    public void FromDateTime_Should_Throw_When_DatesAreDifferent()
+    {
+        // Arrange
+        var start = new DateTime(2026, 4, 22, 10, 0, 0);
+        var end = new DateTime(2026, 4, 23, 11, 0, 0);
+
+        // Act
+        var act = () => TimeSlot.FromDateTime(start, end);
+
+        // Assert
+        act.Should().Throw<ArgumentException>().WithMessage("Start and end must be on the same date*");
+    }
+
+    [Fact]
+    public void FromDateTime_Should_Throw_When_KindsAreDifferent()
+    {
+        // Arrange
+        var start = new DateTime(2026, 4, 22, 10, 0, 0, DateTimeKind.Utc);
+        var end = new DateTime(2026, 4, 22, 11, 0, 0, DateTimeKind.Local);
+
+        // Act
+        var act = () => TimeSlot.FromDateTime(start, end);
+
+        // Assert
+        act.Should().Throw<ArgumentException>().WithMessage("Start and end must have the same DateTimeKind*");
+    }
+
+    [Fact]
+    public void Subtract_Should_ReturnOriginalSlot_When_OccupiedIsAdjacent()
     {
         // Arrange
         var free = TimeSlot.Create(new(9, 0), new(10, 0));
@@ -135,7 +163,7 @@ public class TimeSlotTests : BaseUnitTest
     }
     
     [Fact]
-    public void Subtract_WithTotalOverlap_ShouldReturnEmpty()
+    public void Subtract_Should_ReturnEmpty_When_OccupiedFullyCovers()
     {
         // Arrange
         var free = TimeSlot.Create(new(9, 0), new(10, 0));

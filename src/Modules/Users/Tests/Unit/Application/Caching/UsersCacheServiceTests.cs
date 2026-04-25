@@ -2,10 +2,15 @@ using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Services.Implementations;
 using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Caching.Hybrid;
+using Moq;
+using FluentAssertions;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Caching;
 
+[Trait("Category", "Unit")]
 public class UsersCacheServiceTests
 {
     private readonly Mock<ICacheService> _cacheServiceMock;
@@ -53,13 +58,15 @@ public class UsersCacheServiceTests
                 UsersCacheKeys.UserById(userId),
                 _cancellationToken),
             Times.Once);
+
+        var expectedTags = new HashSet<string> { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UsersList };
         _cacheServiceMock.Verify(
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
                 expectedUser,
                 It.IsAny<TimeSpan?>(),
                 It.IsAny<HybridCacheEntryOptions?>(),
-                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && tags.Contains("users") && tags.Contains("user-by-id") && tags.Contains(CacheTags.UserTag(userId)) && tags.Contains("users-list")),
+                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && new HashSet<string>(tags).SetEquals(expectedTags)),
                 _cancellationToken),
             Times.Once);
     }
@@ -163,13 +170,15 @@ public class UsersCacheServiceTests
         // Assert
         result.Should().Be(user);
         factoryCalled.Should().BeTrue();
+
+        var expectedTags = new HashSet<string> { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UsersList };
         _cacheServiceMock.Verify(
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
                 user,
                 UsersCacheService.DefaultExpiration,
                 It.IsAny<HybridCacheEntryOptions?>(),
-                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && tags.Contains("users") && tags.Contains("user-by-id") && tags.Contains(CacheTags.UserTag(userId)) && tags.Contains("users-list")),
+                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && new HashSet<string>(tags).SetEquals(expectedTags)),
                 _cancellationToken),
             Times.Once);
     }
@@ -228,13 +237,14 @@ public class UsersCacheServiceTests
         await _usersCacheService.SetUserAsync(user, _cancellationToken);
 
         // Assert
+        var expectedTags = new HashSet<string> { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UserByEmail, CacheTags.UserEmailTag(user.Email), CacheTags.UsersList };
         _cacheServiceMock.Verify(
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
                 user,
                 UsersCacheService.DefaultExpiration,
                 It.IsAny<HybridCacheEntryOptions?>(),
-                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && tags.Contains(CacheTags.UserTag(userId)) && tags.Contains(CacheTags.UserEmailTag(user.Email))),
+                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && new HashSet<string>(tags).SetEquals(expectedTags)),
                 _cancellationToken),
             Times.Once);
     }
@@ -356,7 +366,7 @@ public class UsersCacheServiceTests
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null
         );
-        ValueTask<UserDto?> factory(CancellationToken ct) => ValueTask.FromResult<UserDto?>(userData);
+        Func<CancellationToken, ValueTask<UserDto?>> factory = ct => ValueTask.FromResult<UserDto?>(userData);
 
         // Setup GetAsync to return cache miss (not cached)
         _cacheServiceMock
@@ -374,13 +384,15 @@ public class UsersCacheServiceTests
                 UsersCacheKeys.UserById(userId),
                 _cancellationToken),
             Times.Once);
+
+        var expectedTags = new HashSet<string> { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UsersList };
         _cacheServiceMock.Verify(
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
                 userData,
                 It.IsAny<TimeSpan?>(),
                 It.IsAny<HybridCacheEntryOptions?>(),
-                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && tags.Contains("users") && tags.Contains("user-by-id") && tags.Contains(CacheTags.UserTag(userId)) && tags.Contains("users-list")),
+                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && new HashSet<string>(tags).SetEquals(expectedTags)),
                 _cancellationToken),
             Times.Once);
     }

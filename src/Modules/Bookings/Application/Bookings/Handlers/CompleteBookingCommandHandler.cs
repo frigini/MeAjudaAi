@@ -19,7 +19,7 @@ public sealed class CompleteBookingCommandHandler(
     {
         logger.LogInformation("Completing booking {BookingId}", command.BookingId);
 
-        var booking = await bookingRepository.GetByIdAsync(command.BookingId, cancellationToken);
+        var booking = await bookingRepository.GetByIdTrackedAsync(command.BookingId, cancellationToken);
         if (booking == null)
         {
             return Result.Failure(Error.NotFound("Reserva não encontrada."));

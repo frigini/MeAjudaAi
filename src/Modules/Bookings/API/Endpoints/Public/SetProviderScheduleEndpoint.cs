@@ -1,6 +1,7 @@
-using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
+using System.Text.Json.Serialization;
+using FluentValidation;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
@@ -172,13 +173,16 @@ internal sealed class UpstreamProviderException : Exception
 }
 
 [ExcludeFromCodeCoverage]
-public sealed class ProviderResolutionResult
+public sealed record ProviderResolutionResult
 {
     public Guid? ProviderId { get; init; }
     public bool IsNotLinked { get; init; }
+
+    [JsonIgnore]
     public bool IsFound => ProviderId.HasValue;
 
-    private ProviderResolutionResult() { }
+    [JsonConstructor]
+    public ProviderResolutionResult() { }
 
     public static ProviderResolutionResult NotLinked() => new() { IsNotLinked = true };
     public static ProviderResolutionResult Found(Guid providerId) => new() { ProviderId = providerId };
@@ -193,6 +197,7 @@ public class SetProviderScheduleEndpoint : IEndpoint
             [FromServices] ICommandDispatcher dispatcher,
             [FromServices] IProvidersModuleApi providersApi,
             [FromServices] ProviderAuthorizationResolver authResolver,
+            [FromServices] IValidator<SetProviderScheduleRequest> validator,
             [FromServices] ILogger<SetProviderScheduleEndpoint> logger,
             HttpContext context,
             CancellationToken cancellationToken) =>
@@ -202,47 +207,10 @@ public class SetProviderScheduleEndpoint : IEndpoint
                 return Results.Problem("Corpo da requisição é obrigatório.", statusCode: StatusCodes.Status400BadRequest);
             }
 
-            if (request.Availabilities == null)
+            var validationResult = await validator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
             {
-                return Results.Problem("Propriedade 'Availabilities' é obrigatória.", statusCode: StatusCodes.Status400BadRequest);
-            }
-
-            if (!request.Availabilities.Any())
-            {
-                return Results.Problem("A lista de disponibilidades não pode ser vazia.", statusCode: StatusCodes.Status400BadRequest);
-            }
-
-            // Validações detalhadas
-            var seenDays = new HashSet<DayOfWeek>();
-            var index = 0;
-            foreach (var availability in request.Availabilities)
-            {
-                if (availability == null)
-                {
-                    return Results.Problem($"Item de disponibilidade no índice {index} não pode ser nulo.", statusCode: StatusCodes.Status400BadRequest);
-                }
-
-                if (seenDays.Contains(availability.DayOfWeek))
-                {
-                    return Results.Problem($"Dia da semana duplicado na lista: {availability.DayOfWeek}.", statusCode: StatusCodes.Status400BadRequest);
-                }
-                seenDays.Add(availability.DayOfWeek);
-
-                if (availability.Slots == null || !availability.Slots.Any())
-                {
-                    return Results.Problem($"A lista de horários para {availability.DayOfWeek} não pode ser vazia.", statusCode: StatusCodes.Status400BadRequest);
-                }
-
-                var slotIndex = 0;
-                foreach (var slot in availability.Slots)
-                {
-                    if (slot.End <= slot.Start)
-                    {
-                        return Results.Problem($"Horário inválido para {availability.DayOfWeek} no slot {slotIndex}: o término ({slot.End}) deve ser após o início ({slot.Start}).", statusCode: StatusCodes.Status400BadRequest);
-                    }
-                    slotIndex++;
-                }
-                index++;
+                return Results.ValidationProblem(validationResult.ToDictionary());
             }
 
             var authResult = await authResolver.ResolveAsync(context, providersApi, cancellationToken);
@@ -282,7 +250,23 @@ public class SetProviderScheduleEndpoint : IEndpoint
             }
 
             var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
-            var correlationId = Guid.TryParse(correlationIdHeader, out var parsedId) ? parsedId : Guid.NewGuid();
+            Guid correlationId;
+
+            if (!string.IsNullOrEmpty(correlationIdHeader) && Guid.TryParse(correlationIdHeader, out var parsedId))
+            {
+                correlationId = parsedId;
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(correlationIdHeader))
+                {
+                    var maskedHeader = correlationIdHeader.Length > 4 
+                        ? $"...{correlationIdHeader[^4..]}" 
+                        : correlationIdHeader;
+                    logger.LogDebug("Invalid X-Correlation-Id header received: {CorrelationId}. Generating new one.", maskedHeader);
+                }
+                correlationId = Guid.NewGuid();
+            }
 
             var command = new SetProviderScheduleCommand(
                 targetProviderId,
@@ -311,7 +295,3 @@ public class SetProviderScheduleEndpoint : IEndpoint
         .WithSummary("Define a agenda de horários de trabalho de um prestador.");
     }
 }
-
-public record SetProviderScheduleRequest(
-    Guid ProviderId,
-    IEnumerable<ProviderScheduleDto> Availabilities);

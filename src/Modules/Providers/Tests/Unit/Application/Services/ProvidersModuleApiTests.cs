@@ -687,7 +687,7 @@ public class ProvidersModuleApiTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        _providerRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+        _providerRepositoryMock.Setup(x => x.GetByIdAsync(new ProviderId(providerId), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
         // Act
@@ -717,7 +717,7 @@ public class ProvidersModuleApiTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        _providerRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+        _providerRepositoryMock.Setup(x => x.GetByIdAsync(new ProviderId(providerId), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
         // Act

@@ -29,7 +29,7 @@ public sealed class ConfirmBookingCommandHandler(
         var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
         Guid? userProviderId = Guid.TryParse(providerIdClaim, out var pId) ? pId : null;
 
-        var booking = await bookingRepository.GetByIdAsync(command.BookingId, cancellationToken);
+        var booking = await bookingRepository.GetByIdTrackedAsync(command.BookingId, cancellationToken);
         if (booking == null)
         {
             return Result.Failure(Error.NotFound("Reserva não encontrada."));

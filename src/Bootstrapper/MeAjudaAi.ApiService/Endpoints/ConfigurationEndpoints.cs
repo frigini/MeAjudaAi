@@ -43,31 +43,33 @@ public static class ConfigurationEndpoints
 
         // Configuração do Keycloak - suportar tanto o novo formato (BaseUrl + Realm) quanto o legado (Authority)
         var keycloakAuthority = configuration["Keycloak:Authority"]?.TrimEnd('/');
-        
-if (string.IsNullOrWhiteSpace(keycloakAuthority))
+
+        if (string.IsNullOrWhiteSpace(keycloakAuthority))
         {
             // Construir Authority a partir de BaseUrl e Realm
             var keycloakBaseUrl = configuration["Keycloak:BaseUrl"];
             if (string.IsNullOrWhiteSpace(keycloakBaseUrl))
                 throw new InvalidOperationException("Keycloak:BaseUrl ou Keycloak:Authority deve estar configurado");
-            
+
             keycloakBaseUrl = keycloakBaseUrl.TrimEnd('/');
-            
+
             var keycloakRealm = configuration["Keycloak:Realm"];
             if (string.IsNullOrWhiteSpace(keycloakRealm))
                 keycloakRealm = "meajudaai"; // Valor padrão
-            
+
             keycloakRealm = keycloakRealm.Trim('/');
 
             keycloakAuthority = $"{keycloakBaseUrl}/realms/{keycloakRealm}";
         }
-
         var keycloakClientId = configuration["Keycloak:ClientId"] 
             ?? throw new InvalidOperationException("Keycloak:ClientId não configurado");
 
         // URL de logout - usa a URL base do cliente WASM
         var clientBaseUrl = configuration["ClientBaseUrl"] ?? "http://localhost:5165";
         var postLogoutRedirectUri = $"{clientBaseUrl.TrimEnd('/')}/";
+
+        var rawEnableFakeAuth = configuration["FeatureFlags:EnableFakeAuth"]?.Trim();
+        bool.TryParse(rawEnableFakeAuth, out var enableFakeAuth);
 
         var clientConfig = new ClientConfiguration
         {
@@ -89,7 +91,7 @@ if (string.IsNullOrWhiteSpace(keycloakAuthority))
             {
                 EnableReduxDevTools = environment.IsDevelopment(),
                 EnableDebugMode = environment.IsDevelopment(),
-                EnableFakeAuth = string.Equals(configuration["FeatureFlags:EnableFakeAuth"], "true", StringComparison.OrdinalIgnoreCase)
+                EnableFakeAuth = enableFakeAuth
             }
         };
 

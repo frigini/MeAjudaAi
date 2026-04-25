@@ -17,6 +17,7 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
     public async Task<Booking?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await context.Bookings
+            .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
 
@@ -26,28 +27,28 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
 
-    public async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetByProviderIdPagedAsync(Guid providerId, DateOnly? from, DateOnly? to, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetByProviderIdPagedAsync(Guid providerId, DateOnly? fromDate, DateOnly? toDate, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var query = context.Bookings
             .AsNoTracking()
             .Where(b => b.ProviderId == providerId);
 
-        return await GetBookingsPagedAsync(query, from, to, page, pageSize, cancellationToken);
+        return await GetBookingsPagedAsync(query, fromDate, toDate, page, pageSize, cancellationToken);
     }
 
-    public async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetByClientIdPagedAsync(Guid clientId, DateOnly? from, DateOnly? to, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetByClientIdPagedAsync(Guid clientId, DateOnly? fromDate, DateOnly? toDate, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var query = context.Bookings
             .AsNoTracking()
             .Where(b => b.ClientId == clientId);
 
-        return await GetBookingsPagedAsync(query, from, to, page, pageSize, cancellationToken);
+        return await GetBookingsPagedAsync(query, fromDate, toDate, page, pageSize, cancellationToken);
     }
 
     private async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetBookingsPagedAsync(
         IQueryable<Booking> query, 
-        DateOnly? from, 
-        DateOnly? to, 
+        DateOnly? fromDate, 
+        DateOnly? toDate, 
         int page, 
         int pageSize, 
         CancellationToken cancellationToken)
@@ -55,13 +56,14 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
 
-        if (from.HasValue) query = query.Where(b => b.Date >= from.Value);
-        if (to.HasValue) query = query.Where(b => b.Date <= to.Value);
+        if (fromDate.HasValue) query = query.Where(b => b.Date >= fromDate.Value);
+        if (toDate.HasValue) query = query.Where(b => b.Date <= toDate.Value);
 
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query
             .OrderByDescending(b => b.Date)
             .ThenByDescending(b => b.TimeSlot.Start)
+            .ThenBy(b => b.Id) // Desempate estável
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
@@ -192,7 +194,14 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
     {
         try
         {
-            context.Bookings.Update(booking);
+            // Se a entidade não estiver sendo rastreada, anexamos para que o EF detecte mudanças
+            var entry = context.Entry(booking);
+            if (entry.State == EntityState.Detached)
+            {
+                context.Bookings.Attach(booking);
+                entry.State = EntityState.Modified;
+            }
+
             await context.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateConcurrencyException ex)

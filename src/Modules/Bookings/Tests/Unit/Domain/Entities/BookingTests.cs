@@ -140,6 +140,74 @@ public class BookingTests : BaseUnitTest
         booking.DomainEvents.Should().ContainSingle(e => e is BookingCompletedDomainEvent);
     }
 
+    [Theory]
+    [InlineData(EBookingStatus.Cancelled)]
+    [InlineData(EBookingStatus.Completed)]
+    public void Confirm_Should_Throw_When_InTerminalState(EBookingStatus terminalStatus)
+    {
+        // Arrange
+        var booking = CreatePendingBooking();
+        if (terminalStatus == EBookingStatus.Cancelled) booking.Cancel("test");
+        else if (terminalStatus == EBookingStatus.Completed) { booking.Confirm(); booking.Complete(); }
+
+        // Act
+        var act = () => booking.Confirm();
+
+        // Assert
+        act.Should().Throw<InvalidBookingStateException>();
+    }
+
+    [Theory]
+    [InlineData(EBookingStatus.Cancelled)]
+    [InlineData(EBookingStatus.Completed)]
+    public void Reject_Should_Throw_When_InTerminalState(EBookingStatus terminalStatus)
+    {
+        // Arrange
+        var booking = CreatePendingBooking();
+        if (terminalStatus == EBookingStatus.Cancelled) booking.Cancel("test");
+        else if (terminalStatus == EBookingStatus.Completed) { booking.Confirm(); booking.Complete(); }
+
+        // Act
+        var act = () => booking.Reject("test");
+
+        // Assert
+        act.Should().Throw<InvalidBookingStateException>();
+    }
+
+    [Fact]
+    public void Cancel_Should_Throw_When_AlreadyCompleted()
+    {
+        // Arrange
+        var booking = CreatePendingBooking();
+        booking.Confirm();
+        booking.Complete();
+
+        // Act
+        var act = () => booking.Cancel("test");
+
+        // Assert
+        act.Should().Throw<InvalidBookingStateException>();
+    }
+
+    [Theory]
+    [InlineData(EBookingStatus.Cancelled)]
+    [InlineData(EBookingStatus.Rejected)]
+    [InlineData(EBookingStatus.Completed)]
+    public void Complete_Should_Throw_When_InInvalidState(EBookingStatus status)
+    {
+        // Arrange
+        var booking = CreatePendingBooking();
+        if (status == EBookingStatus.Cancelled) booking.Cancel("test");
+        else if (status == EBookingStatus.Rejected) booking.Reject("test");
+        else if (status == EBookingStatus.Completed) { booking.Confirm(); booking.Complete(); }
+
+        // Act
+        var act = () => booking.Complete();
+
+        // Assert
+        act.Should().Throw<InvalidBookingStateException>();
+    }
+
     [Fact]
     public void Complete_Should_Throw_When_Pending()
     {

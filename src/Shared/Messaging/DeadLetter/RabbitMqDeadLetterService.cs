@@ -134,16 +134,15 @@ public sealed class RabbitMqDeadLetterService(
         {
             await EnsureConnectionAsync();
 
-            // Buscamos na fila até encontrar a mensagem ou a fila esvaziar
-            while (true)
+            // Obtemos a contagem atual para evitar loop infinito em caso de falha no publish de volta para a mesma fila
+            var queueDeclareResult = await _channel!.QueueDeclarePassiveAsync(deadLetterQueueName, cancellationToken);
+            var initialCount = queueDeclareResult.MessageCount;
+
+            // Buscamos na fila até encontrar a mensagem ou esgotar a contagem inicial
+            for (uint i = 0; i < initialCount; i++)
             {
                 var result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
-                if (result == null)
-                {
-                    logger.LogWarning("Message {MessageId} not found in dead letter queue {Queue}",
-                        messageId, deadLetterQueueName);
-                    return false;
-                }
+                if (result == null) break;
 
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
                 FailedMessageInfo? failedMessageInfo = null;
@@ -170,7 +169,7 @@ public sealed class RabbitMqDeadLetterService(
                             quarantineEx,
                             "Critical: could not move message to quarantine. DeliveryTag: {DeliveryTag}, MessageId: {MessageId}, PayloadHash: {PayloadHash}, PayloadLength: {PayloadLength}, DeadLetterQueueName: {Queue}",
                             result.DeliveryTag,
-                            result.BasicProperties.MessageId,
+                            result.BasicProperties?.MessageId ?? "null",
                             GetPayloadHash(result.Body),
                             result.Body.Length,
                             deadLetterQueueName);
@@ -215,9 +214,9 @@ public sealed class RabbitMqDeadLetterService(
                     // Rejeita a mensagem sem recolocar no início para evitar loop infinito
                     // Republicamos para o fim da fila ANTES do Ack para evitar perda
                     
-                    var foundId = result.BasicProperties?.MessageId;
+                    var foundId = result.BasicProperties?.MessageId ?? "null";
                     logger.LogWarning("Requested reprocess for MessageId {RequestedId}, but found {FoundId} in queue {Queue}. Republishing to tail.",
-                        messageId, foundId ?? "null", deadLetterQueueName);
+                        messageId, foundId, deadLetterQueueName);
 
                     var props = result.BasicProperties;
                     var publishProperties = new BasicProperties
@@ -249,6 +248,10 @@ public sealed class RabbitMqDeadLetterService(
                     await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
                 }
             }
+
+            logger.LogWarning("Message {MessageId} not found in dead letter queue {Queue} after scanning {Count} messages",
+                messageId, deadLetterQueueName, initialCount);
+            return false;
         }
         catch (Exception ex)
         {
@@ -341,15 +344,13 @@ public sealed class RabbitMqDeadLetterService(
         {
             await EnsureConnectionAsync();
 
-            while (true)
+            var queueDeclareResult = await _channel!.QueueDeclarePassiveAsync(deadLetterQueueName, cancellationToken);
+            var initialCount = queueDeclareResult.MessageCount;
+
+            for (uint i = 0; i < initialCount; i++)
             {
                 var result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
-                if (result == null)
-                {
-                    logger.LogWarning("Message {MessageId} not found in dead letter queue {Queue} for purge",
-                        messageId, deadLetterQueueName);
-                    return false;
-                }
+                if (result == null) break;
 
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
                 FailedMessageInfo? failedMessageInfo = null;
@@ -376,7 +377,7 @@ public sealed class RabbitMqDeadLetterService(
                             quarantineEx,
                             "Critical: could not move message to quarantine during purge. DeliveryTag: {DeliveryTag}, MessageId: {MessageId}, PayloadHash: {PayloadHash}, PayloadLength: {PayloadLength}, DeadLetterQueueName: {Queue}",
                             result.DeliveryTag,
-                            result.BasicProperties.MessageId,
+                            result.BasicProperties?.MessageId ?? "null",
                             GetPayloadHash(result.Body),
                             result.Body.Length,
                             deadLetterQueueName);
@@ -397,9 +398,9 @@ public sealed class RabbitMqDeadLetterService(
                     // Rejeita a mensagem sem recolocar no início para evitar loop infinito
                     // Republicamos para o fim da fila ANTES do Ack para evitar perda
                     
-                    var foundId = result.BasicProperties?.MessageId;
+                    var foundId = result.BasicProperties?.MessageId ?? "null";
                     logger.LogWarning("Requested purge for MessageId {RequestedId}, but found {FoundId} in queue {Queue}. Republishing to tail.",
-                        messageId, foundId ?? "null", deadLetterQueueName);
+                        messageId, foundId, deadLetterQueueName);
 
                     var props = result.BasicProperties;
                     var publishProperties = new BasicProperties
@@ -431,6 +432,10 @@ public sealed class RabbitMqDeadLetterService(
                     await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
                 }
             }
+
+            logger.LogWarning("Message {MessageId} not found in dead letter queue {Queue} for purge after scanning {Count} messages",
+                messageId, deadLetterQueueName, initialCount);
+            return false;
         }
         catch (Exception ex)
         {

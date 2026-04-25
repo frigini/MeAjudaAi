@@ -36,27 +36,29 @@ public class BookingRepositoryTests : BaseDatabaseTest
     }
 
     [Fact]
-    public async Task GetByProviderIdPagedAsync_ShouldApplyPaginationClamping()
+    public async Task GetByProviderIdPagedAsync_ShouldHaveDeterministicOrdering()
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = DateOnly.FromDateTime(DateTime.UtcNow);
+        var date = new DateOnly(2026, 5, 20);
+        var startTime = new TimeOnly(10, 0);
+        var endTime = new TimeOnly(11, 0);
         
-        for (int i = 0; i < 5; i++)
-        {
-            var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date, 
-                TimeSlot.Create(new TimeOnly(10 + i, 0), new TimeOnly(11 + i, 0)));
-            _context.Bookings.Add(booking);
-        }
+        // Criamos agendamentos com exatamente o mesmo dia e horário
+        var b1 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date, TimeSlot.Create(startTime, endTime));
+        var b2 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date, TimeSlot.Create(startTime, endTime));
+        var b3 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date, TimeSlot.Create(startTime, endTime));
+
+        _context.Bookings.AddRange(b1, b2, b3);
         await _context.SaveChangesAsync();
 
-        // Act & Assert - Page < 1 should become 1
-        var (items1, _) = await _repository.GetByProviderIdPagedAsync(providerId, null, null, 0, 10);
-        items1.Should().HaveCount(5);
+        // Act
+        var (items, _) = await _repository.GetByProviderIdPagedAsync(providerId, null, null, 1, 10);
 
-        // Act & Assert - PageSize > 100 should become 100
-        var (items2, _) = await _repository.GetByProviderIdPagedAsync(providerId, null, null, 1, 1000);
-        items2.Should().HaveCount(5);
+        // Assert
+        // A ordenação deve seguir Date DESC, Start DESC, Id ASC (alfabético/GUID)
+        var sortedIds = new[] { b1.Id, b2.Id, b3.Id }.OrderBy(id => id).ToList();
+        items.Select(i => i.Id).Should().Equal(sortedIds);
     }
 
     [Fact]
@@ -221,5 +223,66 @@ public class BookingRepositoryTests : BaseDatabaseTest
 
         // Assert
         result.IsFailure.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task AddIfNoOverlapAsync_WhenBookingStraddlesMidnight_ShouldHandleCorrectly()
+    {
+        // Embora nossa regra de negócio atual (no Aggregate) proíba agendamentos que cruzam meia-noite,
+        // o repositório deve ser capaz de lidar com isso se for persistido.
+        // Na verdade, oAggregate lança exceção, então testamos se dois agendamentos em dias adjacentes NÃO conflitam.
+        
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var day1 = new DateOnly(2026, 5, 20);
+        var day2 = new DateOnly(2026, 5, 21);
+        
+        // Agendamento no final do dia 1
+        var booking1 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), day1, 
+            TimeSlot.Create(new TimeOnly(23, 0), new TimeOnly(23, 59, 59)));
+        
+        // Agendamento no início do dia 2
+        var booking2 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), day2, 
+            TimeSlot.Create(new TimeOnly(0, 0), new TimeOnly(1, 0)));
+
+        // Act
+        var res1 = await _repository.AddIfNoOverlapAsync(booking1);
+        var res2 = await _repository.AddIfNoOverlapAsync(booking2);
+
+        // Assert
+        res1.IsSuccess.Should().BeTrue();
+        res2.IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task AddIfNoOverlapAsync_WithNonUtcTimeZones_ShouldAllowDifferentLocalDays()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var tz = TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo"); // UTC-3
+        
+        // 23:00 Local em SP em 20/05/2026 = 02:00 UTC em 21/05/2026
+        var startUtc1 = new DateTimeOffset(2026, 5, 21, 2, 0, 0, TimeSpan.Zero);
+        var localStart1 = TimeZoneInfo.ConvertTime(startUtc1, tz);
+        var booking1 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
+            DateOnly.FromDateTime(localStart1.DateTime), 
+            TimeSlot.Create(new TimeOnly(23, 0), new TimeOnly(23, 30)));
+        
+        // 01:00 Local em SP em 21/05/2026 = 04:00 UTC em 21/05/2026
+        // Mesmo dia UTC, mas dias locais DIFERENTES (20 vs 21)
+        var startUtc2 = new DateTimeOffset(2026, 5, 21, 4, 0, 0, TimeSpan.Zero);
+        var localStart2 = TimeZoneInfo.ConvertTime(startUtc2, tz);
+        var booking2 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), 
+            DateOnly.FromDateTime(localStart2.DateTime), 
+            TimeSlot.Create(new TimeOnly(1, 0), new TimeOnly(1, 30)));
+
+        // Act
+        var res1 = await _repository.AddIfNoOverlapAsync(booking1);
+        var res2 = await _repository.AddIfNoOverlapAsync(booking2);
+
+        // Assert
+        res1.IsSuccess.Should().BeTrue();
+        res2.IsSuccess.Should().BeTrue();
+        booking1.Date.Should().NotBe(booking2.Date);
     }
 }

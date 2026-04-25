@@ -32,42 +32,51 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
             _providersApiMock.Object,
             _serviceCatalogsApiMock.Object,
             _loggerMock.Object);
+    }
 
-        // Mock padrão para evitar quebra de testes legados
-        _providersApiMock.Setup(x => x.IsServiceOfferedByProviderAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+    private CreateBookingCommand BuildFutureCommand(Guid? providerId = null, Guid? serviceId = null, int daysOffset = 2, int hour = 10)
+    {
+        var start = DateTimeOffset.UtcNow.Date.AddDays(daysOffset).AddHours(hour);
+        return new CreateBookingCommand(
+            providerId ?? Guid.NewGuid(),
+            Guid.NewGuid(),
+            serviceId ?? Guid.NewGuid(),
+            new DateTimeOffset(start, TimeSpan.Zero),
+            new DateTimeOffset(start.AddHours(1), TimeSpan.Zero),
+            Guid.NewGuid());
+    }
+
+    private void SetupHappyPath(Guid providerId, Guid serviceId, ProviderSchedule? schedule = null)
+    {
+        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
+
+        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(serviceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+
+        _providersApiMock.Setup(x => x.IsServiceOfferedByProviderAsync(providerId, serviceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+
+        if (schedule != null)
+        {
+            _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(schedule);
+        }
+
+        _bookingRepoMock.Setup(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success());
     }
 
     [Fact]
     public async Task HandleAsync_Should_CreateBooking_When_Valid()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
-        var baseUtc = DateTimeOffset.UtcNow.Date;
-        var start = baseUtc.AddDays(2).AddHours(10); 
-        var end = start.AddHours(1);
-        
-        var command = new CreateBookingCommand(
-            providerId, Guid.NewGuid(), Guid.NewGuid(),
-            new DateTimeOffset(start, TimeSpan.Zero), 
-            new DateTimeOffset(end, TimeSpan.Zero), 
-            Guid.NewGuid());
-
-        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Success(true));
-
-        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Success(true));
-
-        var schedule = ProviderSchedule.Create(providerId, "UTC");
+        var command = BuildFutureCommand();
+        var schedule = ProviderSchedule.Create(command.ProviderId, "UTC");
         schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
             [TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(18, 0))]));
         
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(schedule);
-
-        _bookingRepoMock.Setup(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Success());
+        SetupHappyPath(command.ProviderId, command.ServiceId, schedule);
 
         // Act
         var result = await _sut.HandleAsync(command);
@@ -80,31 +89,12 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     public async Task HandleAsync_Should_Call_AddIfNoOverlapAsync_Once()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
-        var baseUtc = DateTimeOffset.UtcNow.Date;
-        var day1Start = baseUtc.AddDays(1).AddHours(10);
-        
-        var command = new CreateBookingCommand(
-            providerId, Guid.NewGuid(), Guid.NewGuid(),
-            new DateTimeOffset(day1Start, TimeSpan.Zero), 
-            new DateTimeOffset(day1Start.AddHours(1), TimeSpan.Zero), 
-            Guid.NewGuid());
-
-        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Success(true));
-
-        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Success(true));
-
-        var schedule = ProviderSchedule.Create(providerId, "UTC");
-        schedule.SetAvailability(Availability.Create(day1Start.DayOfWeek, 
+        var command = BuildFutureCommand();
+        var schedule = ProviderSchedule.Create(command.ProviderId, "UTC");
+        schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
             [TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(18, 0))]));
         
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(schedule);
-
-        _bookingRepoMock.Setup(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Success());
+        SetupHappyPath(command.ProviderId, command.ServiceId, schedule);
 
         // Act
         var result = await _sut.HandleAsync(command);
@@ -118,16 +108,8 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     public async Task HandleAsync_Should_Fail_When_ProviderNotFound()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
-        var baseUtc = DateTimeOffset.UtcNow.Date;
-        var start = baseUtc.AddDays(1).AddHours(10);
-        var command = new CreateBookingCommand(
-            providerId, Guid.NewGuid(), Guid.NewGuid(),
-            new DateTimeOffset(start, TimeSpan.Zero), 
-            new DateTimeOffset(start.AddHours(1), TimeSpan.Zero), 
-            Guid.NewGuid());
-
-        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
+        var command = BuildFutureCommand();
+        _providersApiMock.Setup(x => x.ProviderExistsAsync(command.ProviderId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(false));
 
         // Act
@@ -143,13 +125,10 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     public async Task HandleAsync_Should_Fail_When_EndBeforeStart()
     {
         // Arrange
-        var baseUtc = DateTimeOffset.UtcNow.Date;
-        var start = baseUtc.AddDays(1).AddHours(10);
+        var start = DateTimeOffset.UtcNow.Date.AddDays(1).AddHours(10);
         var command = new CreateBookingCommand(
             Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-            new DateTimeOffset(start, TimeSpan.Zero), 
-            new DateTimeOffset(start.AddHours(-1), TimeSpan.Zero), 
-            Guid.NewGuid());
+            start, start.AddHours(-1), Guid.NewGuid());
 
         // Act
         var result = await _sut.HandleAsync(command);
@@ -182,23 +161,15 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     public async Task HandleAsync_Should_Fail_When_ProviderHasNoSchedule()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
-        var baseUtc = DateTimeOffset.UtcNow.Date;
-        var start = baseUtc.AddDays(1).AddHours(10);
-        
-        var command = new CreateBookingCommand(
-            providerId, Guid.NewGuid(), Guid.NewGuid(),
-            new DateTimeOffset(start, TimeSpan.Zero), 
-            new DateTimeOffset(start.AddHours(1), TimeSpan.Zero), 
-            Guid.NewGuid());
-
-        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
+        var command = BuildFutureCommand();
+        _providersApiMock.Setup(x => x.ProviderExistsAsync(command.ProviderId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
-
-        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(command.ServiceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+        _providersApiMock.Setup(x => x.IsServiceOfferedByProviderAsync(command.ProviderId, command.ServiceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
         
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(command.ProviderId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProviderSchedule?)null);
 
         // Act
@@ -214,28 +185,20 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     public async Task HandleAsync_Should_Fail_When_ProviderIsUnavailable()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
-        var baseUtc = DateTimeOffset.UtcNow.Date;
-        var start = baseUtc.AddDays(1).AddHours(10);
-        
-        var command = new CreateBookingCommand(
-            providerId, Guid.NewGuid(), Guid.NewGuid(),
-            new DateTimeOffset(start, TimeSpan.Zero), 
-            new DateTimeOffset(start.AddHours(1), TimeSpan.Zero), 
-            Guid.NewGuid());
-
-        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
+        var command = BuildFutureCommand();
+        _providersApiMock.Setup(x => x.ProviderExistsAsync(command.ProviderId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(command.ServiceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+        _providersApiMock.Setup(x => x.IsServiceOfferedByProviderAsync(command.ProviderId, command.ServiceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
-        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Success(true));
-
-        var schedule = ProviderSchedule.Create(providerId, "UTC");
+        var schedule = ProviderSchedule.Create(command.ProviderId, "UTC");
         // Disponibilidade apenas na parte da tarde
         schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
             [TimeSlot.Create(new TimeOnly(14, 0), new TimeOnly(18, 0))]));
         
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(command.ProviderId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
 
         // Act
@@ -251,28 +214,12 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     public async Task HandleAsync_Should_Fail_When_OverlapDetectedByRepo()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
-        var baseUtc = DateTimeOffset.UtcNow.Date;
-        var start = baseUtc.AddDays(1).AddHours(10);
-        
-        var command = new CreateBookingCommand(
-            providerId, Guid.NewGuid(), Guid.NewGuid(),
-            new DateTimeOffset(start, TimeSpan.Zero), 
-            new DateTimeOffset(start.AddHours(1), TimeSpan.Zero), 
-            Guid.NewGuid());
-
-        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Success(true));
-
-        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Success(true));
-
-        var schedule = ProviderSchedule.Create(providerId, "UTC");
+        var command = BuildFutureCommand();
+        var schedule = ProviderSchedule.Create(command.ProviderId, "UTC");
         schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
             [TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(18, 0))]));
         
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(schedule);
+        SetupHappyPath(command.ProviderId, command.ServiceId, schedule);
 
         _bookingRepoMock.Setup(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Failure(Error.Conflict("Overlap", ErrorCodes.Bookings.Overlap)));
@@ -290,27 +237,21 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     public async Task HandleAsync_Should_Fail_When_ServiceNotOfferedByProvider()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
-        var serviceId = Guid.NewGuid();
-        var baseUtc = DateTimeOffset.UtcNow.Date;
-        var start = baseUtc.AddDays(1).AddHours(10);
-        var command = new CreateBookingCommand(
-            providerId, Guid.NewGuid(), serviceId,
-            new DateTimeOffset(start, TimeSpan.Zero), 
-            new DateTimeOffset(start.AddHours(1), TimeSpan.Zero), 
-            Guid.NewGuid());
-
-        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
+        var command = BuildFutureCommand();
+        _providersApiMock.Setup(x => x.ProviderExistsAsync(command.ProviderId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(command.ServiceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
-        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(serviceId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<bool>.Success(true));
+        var schedule = ProviderSchedule.Create(command.ProviderId, "UTC");
+        // Dá disponibilidade válida para que o erro venha exclusivamente de "ServiceNotOffered"
+        schedule.SetAvailability(Availability.Create(command.Start.DayOfWeek, 
+            [TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(18, 0))]));
 
-        var schedule = ProviderSchedule.Create(providerId, "UTC");
-        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(providerId, It.IsAny<CancellationToken>()))
+        _scheduleRepoMock.Setup(x => x.GetByProviderIdReadOnlyAsync(command.ProviderId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedule);
 
-        _providersApiMock.Setup(x => x.IsServiceOfferedByProviderAsync(providerId, serviceId, It.IsAny<CancellationToken>()))
+        _providersApiMock.Setup(x => x.IsServiceOfferedByProviderAsync(command.ProviderId, command.ServiceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(false));
 
         // Act
@@ -326,12 +267,8 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     public async Task HandleAsync_Should_Fail_When_ProvidersApiFails()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
-        var command = new CreateBookingCommand(
-            providerId, Guid.NewGuid(), Guid.NewGuid(),
-            DateTimeOffset.UtcNow.AddDays(1), DateTimeOffset.UtcNow.AddDays(1).AddHours(1), Guid.NewGuid());
-
-        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
+        var command = BuildFutureCommand();
+        _providersApiMock.Setup(x => x.ProviderExistsAsync(command.ProviderId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Failure(new Error("API Error", 500, ErrorCodes.InternalError)));
 
         // Act
@@ -346,16 +283,11 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
     public async Task HandleAsync_Should_Fail_When_ServiceCatalogsApiFails()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
-        var serviceId = Guid.NewGuid();
-        var command = new CreateBookingCommand(
-            providerId, Guid.NewGuid(), serviceId,
-            DateTimeOffset.UtcNow.AddDays(1), DateTimeOffset.UtcNow.AddDays(1).AddHours(1), Guid.NewGuid());
-
-        _providersApiMock.Setup(x => x.ProviderExistsAsync(providerId, It.IsAny<CancellationToken>()))
+        var command = BuildFutureCommand();
+        _providersApiMock.Setup(x => x.ProviderExistsAsync(command.ProviderId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
 
-        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(serviceId, It.IsAny<CancellationToken>()))
+        _serviceCatalogsApiMock.Setup(x => x.IsServiceActiveAsync(command.ServiceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Failure(new Error("Catalog Error", 500, ErrorCodes.InternalError)));
 
         // Act

@@ -218,7 +218,7 @@ public class UuidGeneratorTests
     }
 
     [Fact]
-    public void IsValidString_WithNewIdString_ShouldReturnTrue()
+    public void IsValidString_WithValidGuid_ShouldReturnTrue()
     {
         // Arrange
         var id = UuidGenerator.NewIdString();
@@ -231,7 +231,7 @@ public class UuidGeneratorTests
     }
 
     [Fact]
-    public void IsValidString_WithNewIdStringCompact_ShouldReturnTrue()
+    public void IsValidString_WithValidCompactGuid_ShouldReturnTrue()
     {
         // Arrange
         var id = UuidGenerator.NewIdStringCompact();

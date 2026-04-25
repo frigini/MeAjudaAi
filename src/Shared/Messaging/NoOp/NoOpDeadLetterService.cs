@@ -43,9 +43,9 @@ public sealed class NoOpDeadLetterService(ILogger<NoOpDeadLetterService> logger)
         string messageId,
         CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("NoOp: Would reprocess message {MessageId} from dead letter queue {Queue}",
+        logger.LogInformation("NoOp: Would reprocess message {MessageId} from dead letter queue {Queue}. Returning false by default.",
             messageId, deadLetterQueueName);
-        return Task.FromResult(true);
+        return Task.FromResult(false);
     }
 
     public Task<IEnumerable<FailedMessageInfo>> ListDeadLetterMessagesAsync(
@@ -62,9 +62,9 @@ public sealed class NoOpDeadLetterService(ILogger<NoOpDeadLetterService> logger)
         string messageId,
         CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("NoOp: Would purge message {MessageId} from dead letter queue {Queue}",
+        logger.LogInformation("NoOp: Would purge message {MessageId} from dead letter queue {Queue}. Returning false by default.",
             messageId, deadLetterQueueName);
-        return Task.FromResult(true);
+        return Task.FromResult(false);
     }
 
     public Task<DeadLetterStatistics> GetDeadLetterStatisticsAsync(CancellationToken cancellationToken = default)

@@ -27,7 +27,7 @@ public sealed class CancelBookingCommandHandler(
             return Result.Failure(Error.Unauthorized("Usuário não autenticado."));
         }
 
-        var booking = await bookingRepository.GetByIdAsync(command.BookingId, cancellationToken);
+        var booking = await bookingRepository.GetByIdTrackedAsync(command.BookingId, cancellationToken);
         if (booking == null)
         {
             return Result.Failure(Error.NotFound("Reserva não encontrada."));

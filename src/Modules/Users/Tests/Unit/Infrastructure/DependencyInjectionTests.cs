@@ -28,7 +28,7 @@ public class DependencyInjectionTests
         envMock.Setup(e => e.EnvironmentName).Returns(Environments.Development);
         services.AddSingleton(envMock.Object);
         services.AddSingleton(TimeProvider.System);
-        services.AddSingleton(configuration);
+        services.AddSingleton<IConfiguration>(configuration);
         services.AddSingleton(Mock.Of<IMessageBus>());
 
         services.AddInfrastructure(configuration);
