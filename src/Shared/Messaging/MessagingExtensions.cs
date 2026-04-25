@@ -183,22 +183,6 @@ public static class MessagingExtensions
         }
     }
 
-    #region Message Retry
-
-    /// <summary>
-    /// Adiciona o middleware de retry para mensagens
-    /// </summary>
-    public static IServiceCollection AddMessageRetryMiddleware(this IServiceCollection services)
-    {
-        services.TryAddScoped<IMessageRetryMiddlewareFactory, MessageRetryMiddlewareFactory>();
-        return services;
-    }
-
-    #endregion
-}
-
-    #endregion
-
     private static bool ResolveUseNewtonsoftJson(IConfiguration cfg) =>
         cfg.GetValue<bool>(UseNewtonsoftJsonKey, false);
 }

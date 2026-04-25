@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using MeAjudaAi.Shared.Messaging.Options;
@@ -24,6 +25,7 @@ public sealed class RabbitMqDeadLetterService(
     private IChannel? _channel;
     private readonly SemaphoreSlim _connectionSemaphore = new(1, 1);
     private readonly CancellationTokenSource _disposeCts = new();
+    private readonly ConcurrentDictionary<string, bool> _declaredQuarantineQueues = new();
     private int _disposedValue; // 0 = not disposed, 1 = disposing/disposed
     private bool _disposed => _disposedValue == 1;
 
