@@ -529,6 +529,74 @@ public class ProvidersModuleApiTests
     }
 
     [Fact]
+    public async Task GetProviderForIndexingAsync_Should_ReturnFailure_When_RepositoryThrows()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        _providerRepositoryMock.Setup(x => x.GetByIdAsync(new ProviderId(providerId), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act
+        var result = await _sut.GetProviderForIndexingAsync(providerId);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().NotBeNull();
+        result.Error!.Message.Should().Contain("Erro ao obter dados para indexação do prestador");
+    }
+
+    [Fact]
+    public async Task HasProvidersOfferingServiceAsync_Should_ReturnTrue_When_ProvidersExist()
+    {
+        // Arrange
+        var serviceId = Guid.NewGuid();
+        _providerRepositoryMock.Setup(x => x.HasProvidersWithServiceAsync(serviceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        // Act
+        var result = await _sut.HasProvidersOfferingServiceAsync(serviceId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task HasProvidersOfferingServiceAsync_Should_ReturnFalse_When_NoProvidersExist()
+    {
+        // Arrange
+        var serviceId = Guid.NewGuid();
+        _providerRepositoryMock.Setup(x => x.HasProvidersWithServiceAsync(serviceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        // Act
+        var result = await _sut.HasProvidersOfferingServiceAsync(serviceId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task HasProvidersOfferingServiceAsync_Should_ReturnFailure_When_RepositoryThrows()
+    {
+        // Arrange
+        var serviceId = Guid.NewGuid();
+        var exceptionMessage = "Database error";
+        _providerRepositoryMock.Setup(x => x.HasProvidersWithServiceAsync(serviceId, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException(exceptionMessage));
+
+        // Act
+        var result = await _sut.HasProvidersOfferingServiceAsync(serviceId);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().NotBeNull();
+        result.Error!.Message.Should().Contain("Erro ao verificar se os prestadores oferecem o serviço");
+        result.Error.Message.Should().Contain(exceptionMessage);
+    }
+
+    [Fact]
     public async Task IsServiceOfferedByProviderAsync_Should_ReturnTrue_When_ProviderOffersService()
     {
         // Arrange
@@ -599,7 +667,7 @@ public class ProvidersModuleApiTests
     }
 
     [Fact]
-    public async Task IsServiceOfferedByProviderAsync_Should_PropagateException_When_RepositoryThrows()
+    public async Task IsServiceOfferedByProviderAsync_Should_ReturnFailure_When_RepositoryThrows()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -607,11 +675,12 @@ public class ProvidersModuleApiTests
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
-        var act = () => _sut.IsServiceOfferedByProviderAsync(providerId, Guid.NewGuid());
+        var result = await _sut.IsServiceOfferedByProviderAsync(providerId, Guid.NewGuid());
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Database error");
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().NotBeNull();
+        result.Error!.Message.Should().Be("Erro ao verificar se o prestador oferece o serviço");
     }
 
     #endregion
