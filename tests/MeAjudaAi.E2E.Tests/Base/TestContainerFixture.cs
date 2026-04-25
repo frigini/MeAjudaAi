@@ -124,7 +124,7 @@ public class TestContainerFixture : IAsyncLifetime
 
         if (_azuriteContainer == null)
         {
-            _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.33.0")
+            _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.30.0")
                 .WithCleanUp(true)
                 .Build();
         }
