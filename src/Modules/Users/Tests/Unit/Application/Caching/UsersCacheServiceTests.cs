@@ -65,6 +65,64 @@ public class UsersCacheServiceTests
     }
 
     [Fact]
+    public async Task GetOrCacheUserByIdAsync_WhenCacheHit_ShouldReturnCachedValue_AndNotCallFactory()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var cachedUser = new UserDto(
+            Id: userId,
+            Username: "cacheduser",
+            Email: "cached@example.com",
+            FirstName: "Cached",
+            LastName: "User",
+            FullName: "Cached User",
+            KeycloakId: "keycloak456",
+            CreatedAt: DateTime.UtcNow,
+            UpdatedAt: null
+        );
+        var factoryCalled = false;
+        Func<CancellationToken, ValueTask<UserDto?>> factory = ct => {
+            factoryCalled = true;
+            return ValueTask.FromResult<UserDto?>(null);
+        };
+
+        _cacheServiceMock
+            .Setup(x => x.GetAsync<UserDto?>(
+                UsersCacheKeys.UserById(userId),
+                _cancellationToken))
+            .ReturnsAsync((cachedUser, true));
+
+        // Act
+        var result = await _usersCacheService.GetOrCacheUserByIdAsync(userId, factory, _cancellationToken);
+
+        // Assert
+        result.Should().Be(cachedUser);
+        factoryCalled.Should().BeFalse();
+        _cacheServiceMock.Verify(x => x.SetAsync(It.IsAny<string>(), It.IsAny<UserDto>(), It.IsAny<TimeSpan?>(), It.IsAny<HybridCacheEntryOptions?>(), It.IsAny<IReadOnlyCollection<string>?>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GetOrCacheUserByIdAsync_WhenFactoryReturnsNull_ShouldNotSetCache()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        Func<CancellationToken, ValueTask<UserDto?>> factory = ct => ValueTask.FromResult<UserDto?>(null);
+
+        _cacheServiceMock
+            .Setup(x => x.GetAsync<UserDto?>(
+                UsersCacheKeys.UserById(userId),
+                _cancellationToken))
+            .ReturnsAsync((null, false));
+
+        // Act
+        var result = await _usersCacheService.GetOrCacheUserByIdAsync(userId, factory, _cancellationToken);
+
+        // Assert
+        result.Should().BeNull();
+        _cacheServiceMock.Verify(x => x.SetAsync(It.IsAny<string>(), It.IsAny<UserDto>(), It.IsAny<TimeSpan?>(), It.IsAny<HybridCacheEntryOptions?>(), It.IsAny<IReadOnlyCollection<string>?>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task GetOrCacheSystemConfigAsync_ShouldCallCacheService_WithCorrectKey()
     {
         // Arrange
@@ -93,6 +151,38 @@ public class UsersCacheServiceTests
                 It.IsAny<TimeSpan?>(),
                 It.IsAny<HybridCacheEntryOptions?>(),
                 It.IsAny<IReadOnlyCollection<string>?>(),
+                _cancellationToken),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task SetUserAsync_ShouldCallCacheService_WithCorrectParameters()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var user = new UserDto(
+            Id: userId,
+            Username: "testuser",
+            Email: "test@example.com",
+            FirstName: "Test",
+            LastName: "User",
+            FullName: "Test User",
+            KeycloakId: "keycloak123",
+            CreatedAt: DateTime.UtcNow,
+            UpdatedAt: null
+        );
+
+        // Act
+        await _usersCacheService.SetUserAsync(user, _cancellationToken);
+
+        // Assert
+        _cacheServiceMock.Verify(
+            x => x.SetAsync(
+                UsersCacheKeys.UserById(userId),
+                user,
+                TimeSpan.FromMinutes(30),
+                It.IsAny<HybridCacheEntryOptions?>(),
+                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && tags.Contains($"user:{userId}")),
                 _cancellationToken),
             Times.Once);
     }
