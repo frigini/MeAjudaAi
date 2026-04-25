@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Bookings.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using System.Data;
 using Npgsql;
 using Microsoft.Extensions.Logging;
