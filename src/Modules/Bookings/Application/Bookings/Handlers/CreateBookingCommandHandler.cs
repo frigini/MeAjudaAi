@@ -141,19 +141,3 @@ public sealed class CreateBookingCommandHandler(
         return dtoResult;
     }
 }
-re(dtoResult.Error);
-        }
-
-        // 5. Persistir atomicamente
-        var result = await bookingRepository.AddIfNoOverlapAsync(booking, cancellationToken);
-        
-        if (result.IsFailure)
-        {
-            return Result<BookingDto>.Failure(new Error(result.Error!.Message, result.Error.StatusCode, ErrorCodes.Bookings.Overlap));
-        }
-
-        logger.LogInformation("Booking {BookingId} created successfully.", booking.Id);
-
-        return dtoResult;
-    }
-}
