@@ -17,7 +17,7 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure;
 [Trait("Category", "Unit")]
 public class DependencyInjectionTests
 {
-    private IServiceProvider BuildProvider(Dictionary<string, string?> settings)
+    private (IServiceCollection Services, ServiceProvider Provider) BuildProvider(Dictionary<string, string?> settings)
     {
         var services = new ServiceCollection();
         IConfiguration configuration = new ConfigurationBuilder()
@@ -34,11 +34,13 @@ public class DependencyInjectionTests
         services.AddInfrastructure(configuration);
         services.AddLogging();
         
-        return services.BuildServiceProvider(new ServiceProviderOptions 
+        var provider = services.BuildServiceProvider(new ServiceProviderOptions 
         { 
             ValidateScopes = true,
             ValidateOnBuild = true
         });
+
+        return (services, provider);
     }
 
     [Fact]
@@ -51,24 +53,21 @@ public class DependencyInjectionTests
         };
 
         // Act
-        var provider = BuildProvider(settings);
-        using var scope = provider.CreateScope();
-        var scopedProvider = scope.ServiceProvider;
+        var (services, provider) = BuildProvider(settings);
+        using (provider)
+        {
+            using var scope = provider.CreateScope();
+            var scopedProvider = scope.ServiceProvider;
 
-        // Assert
-        scopedProvider.GetRequiredService<UsersDbContext>().Should().NotBeNull();
-        scopedProvider.GetRequiredService<IUserRepository>().Should().NotBeNull();
-        scopedProvider.GetRequiredService<IUserDomainService>().Should().NotBeNull();
-        scopedProvider.GetRequiredService<IAuthenticationDomainService>().Should().NotBeNull();
-        
-        var services = new ServiceCollection();
-        IConfiguration configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(settings)
-            .Build();
-        services.AddInfrastructure(configuration);
-        
-        services.Single(d => d.ServiceType == typeof(IUserRepository)).Lifetime.Should().Be(ServiceLifetime.Scoped);
-        services.Single(d => d.ServiceType == typeof(IUserDomainService)).Lifetime.Should().Be(ServiceLifetime.Scoped);
+            // Assert
+            scopedProvider.GetRequiredService<UsersDbContext>().Should().NotBeNull();
+            scopedProvider.GetRequiredService<IUserRepository>().Should().NotBeNull();
+            scopedProvider.GetRequiredService<IUserDomainService>().Should().NotBeNull();
+            scopedProvider.GetRequiredService<IAuthenticationDomainService>().Should().NotBeNull();
+            
+            services.Single(d => d.ServiceType == typeof(IUserRepository)).Lifetime.Should().Be(ServiceLifetime.Scoped);
+            services.Single(d => d.ServiceType == typeof(IUserDomainService)).Lifetime.Should().Be(ServiceLifetime.Scoped);
+        }
     }
 
     [Fact]
@@ -85,12 +84,21 @@ public class DependencyInjectionTests
         };
 
         // Act
-        var provider = BuildProvider(settings);
-        using var scope = provider.CreateScope();
-        var scopedProvider = scope.ServiceProvider;
+        var (services, provider) = BuildProvider(settings);
+        using (provider)
+        {
+            using var scope = provider.CreateScope();
+            var scopedProvider = scope.ServiceProvider;
 
-        // Assert
-        scopedProvider.GetRequiredService<IUserDomainService>().Should().NotBeNull();
-        scopedProvider.GetRequiredService<IAuthenticationDomainService>().Should().NotBeNull();
+            // Assert
+            scopedProvider.GetRequiredService<IUserDomainService>().Should().NotBeNull();
+            scopedProvider.GetRequiredService<IAuthenticationDomainService>().Should().NotBeNull();
+            
+            // Verifica que a persistência não foi quebrada ao habilitar Keycloak
+            scopedProvider.GetRequiredService<IUserRepository>().Should().NotBeNull();
+            scopedProvider.GetRequiredService<UsersDbContext>().Should().NotBeNull();
+
+            services.Single(d => d.ServiceType == typeof(IUserRepository)).Lifetime.Should().Be(ServiceLifetime.Scoped);
+        }
     }
 }

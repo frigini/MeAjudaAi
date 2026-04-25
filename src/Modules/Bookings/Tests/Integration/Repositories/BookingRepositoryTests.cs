@@ -35,17 +35,16 @@ public class BookingRepositoryTests : BaseDatabaseTest
     }
 
     [Fact]
-    public async Task AddAsync_ShouldPersistBooking()
+    public async Task AddIfNoOverlapAsync_ShouldPersistBooking()
     {
         // Arrange
         var booking = CreateBooking();
 
         // Act
-#pragma warning disable CS0618
-        await _repository.AddAsync(booking);
-#pragma warning restore CS0618
+        var result = await _repository.AddIfNoOverlapAsync(booking);
 
         // Assert
+        result.IsSuccess.Should().BeTrue();
         var savedBooking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == booking.Id);
         savedBooking.Should().NotBeNull();
         savedBooking!.ProviderId.Should().Be(booking.ProviderId);

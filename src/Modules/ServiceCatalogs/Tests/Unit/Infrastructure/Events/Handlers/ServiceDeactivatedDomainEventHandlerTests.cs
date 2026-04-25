@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
@@ -29,7 +30,7 @@ public class ServiceDeactivatedDomainEventHandlerTests
 
         // Assert
         _messageBusMock.Verify(x => x.PublishAsync(
-            It.Is<ServiceDeactivatedIntegrationEvent>(e => e.ServiceId == serviceId), 
+            It.Is<ServiceDeactivatedIntegrationEvent>(e => e.ServiceId == serviceId && e.Source == ModuleNames.ServiceCatalogs), 
             It.IsAny<string?>(), 
             It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -43,7 +44,7 @@ public class ServiceDeactivatedDomainEventHandlerTests
                 It.IsAny<ServiceDeactivatedIntegrationEvent>(), 
                 It.IsAny<string?>(), 
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Bus failure"));
+            .ThrowsAsync(new InvalidOperationException("Bus failure"));
 
         var handler = new ServiceDeactivatedDomainEventHandler(_messageBusMock.Object, _loggerMock.Object);
         var domainEvent = new ServiceDeactivatedDomainEvent(ServiceId.From(serviceId));
@@ -52,7 +53,7 @@ public class ServiceDeactivatedDomainEventHandlerTests
         var act = () => handler.HandleAsync(domainEvent);
 
         // Assert
-        await act.Should().ThrowAsync<Exception>().WithMessage("Bus failure");
+        await act.Should().ThrowExactlyAsync<InvalidOperationException>().WithMessage("Bus failure");
         
         _loggerMock.Verify(
             x => x.Log(

@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.ServiceCatalogs;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
@@ -34,7 +35,13 @@ public class ServiceActivatedDomainEventHandlerTests
         await handler.HandleAsync(domainEvent);
 
         // Assert
-        _messageBusMock.Verify(x => x.PublishAsync(It.Is<ServiceActivatedIntegrationEvent>(e => e.ServiceId == service.Id.Value && e.Name == service.Name), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Once);
+        _messageBusMock.Verify(x => x.PublishAsync(
+            It.Is<ServiceActivatedIntegrationEvent>(e => 
+                e.ServiceId == service.Id.Value && 
+                e.Name == service.Name && 
+                e.Source == ModuleNames.ServiceCatalogs), 
+            It.IsAny<string?>(), 
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -53,6 +60,16 @@ public class ServiceActivatedDomainEventHandlerTests
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>();
+        
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Error handling ServiceActivatedDomainEvent")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+
         _messageBusMock.Verify(x => x.PublishAsync(It.IsAny<ServiceActivatedIntegrationEvent>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -68,7 +85,7 @@ public class ServiceActivatedDomainEventHandlerTests
                 It.IsAny<ServiceActivatedIntegrationEvent>(), 
                 It.IsAny<string?>(), 
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("publish-failed"));
+            .ThrowsAsync(new InvalidOperationException("publish-failed"));
 
         var handler = new ServiceActivatedDomainEventHandler(_serviceRepositoryMock.Object, _messageBusMock.Object, _loggerMock.Object);
         var domainEvent = new ServiceActivatedDomainEvent(service.Id);
@@ -77,7 +94,7 @@ public class ServiceActivatedDomainEventHandlerTests
         var act = () => handler.HandleAsync(domainEvent);
 
         // Assert
-        await act.Should().ThrowAsync<Exception>().WithMessage("publish-failed");
+        await act.Should().ThrowExactlyAsync<InvalidOperationException>().WithMessage("publish-failed");
         
         _loggerMock.Verify(
             x => x.Log(

@@ -214,7 +214,7 @@ public class RegisterCustomerCommandHandlerTests
             .ReturnsAsync(Result<User>.Success(user));
 
         _userRepositoryMock.Setup(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("DB Error"));
+            .ThrowsAsync(new InvalidOperationException("DB Error"));
 
         _userRepositoryMock.Setup(x => x.GetByIdNoTrackingAsync(user.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
@@ -227,6 +227,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("Falha ao salvar o cadastro");
         _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -241,7 +242,7 @@ public class RegisterCustomerCommandHandlerTests
             .ReturnsAsync(Result<User>.Success(user));
 
         _userRepositoryMock.Setup(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("DB Error"));
+            .ThrowsAsync(new InvalidOperationException("DB Error"));
 
         _userRepositoryMock.Setup(x => x.GetByIdNoTrackingAsync(user.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
@@ -251,6 +252,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("Falha ao salvar o cadastro");
         _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -267,19 +269,20 @@ public class RegisterCustomerCommandHandlerTests
             .ReturnsAsync(Result<User>.Success(user));
 
         _userRepositoryMock.Setup(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("DB Error"));
+            .ThrowsAsync(new InvalidOperationException("DB Error"));
 
         _userRepositoryMock.Setup(x => x.GetByIdNoTrackingAsync(user.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
         _userDomainServiceMock.Setup(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Keycloak Failure"));
+            .ThrowsAsync(new InvalidOperationException("Keycloak Failure"));
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
         result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("Falha ao salvar o cadastro");
         _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
 
         _loggerMock.Verify(

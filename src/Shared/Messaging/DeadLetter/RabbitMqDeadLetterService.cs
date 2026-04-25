@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography;
 using System.Text;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
@@ -124,7 +125,7 @@ public sealed class RabbitMqDeadLetterService(
         return exponentialDelay > maxDelay ? maxDelay : exponentialDelay;
     }
 
-    public async Task ReprocessDeadLetterMessageAsync(
+    public async Task<bool> ReprocessDeadLetterMessageAsync(
         string deadLetterQueueName,
         string messageId,
         CancellationToken cancellationToken = default)
@@ -132,10 +133,18 @@ public sealed class RabbitMqDeadLetterService(
         try
         {
             await EnsureConnectionAsync();
- 
-            var result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
-            if (result != null)
+
+            // Buscamos na fila até encontrar a mensagem ou a fila esvaziar
+            while (true)
             {
+                var result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
+                if (result == null)
+                {
+                    logger.LogWarning("Message {MessageId} not found in dead letter queue {Queue}",
+                        messageId, deadLetterQueueName);
+                    return false;
+                }
+
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
                 FailedMessageInfo? failedMessageInfo = null;
 
@@ -156,31 +165,33 @@ public sealed class RabbitMqDeadLetterService(
                     }
                     catch (Exception quarantineEx)
                     {
-                        // Fallback: Acknowledge a mensagem e registre metadados para investigação
-                        // Nack com requeue criaria poison-pill loop
                         await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
                         logger.LogCritical(
                             quarantineEx,
-                            "Critical: could not move message to quarantine. DeliveryTag: {DeliveryTag}, MessageId: {MessageId}, Body (base64): {BodyBase64}, DeadLetterQueueName: {Queue}",
+                            "Critical: could not move message to quarantine. DeliveryTag: {DeliveryTag}, MessageId: {MessageId}, PayloadHash: {PayloadHash}, PayloadLength: {PayloadLength}, DeadLetterQueueName: {Queue}",
                             result.DeliveryTag,
                             result.BasicProperties.MessageId,
-                            Convert.ToBase64String(result.Body.Span),
+                            GetPayloadHash(result.Body),
+                            result.Body.Length,
                             deadLetterQueueName);
                     }
-                    return;
+                    continue; // Tenta o próximo
                 }
 
                 if (failedMessageInfo?.MessageId == messageId)
                 {
                     // Reenvia para a fila original
                     var originalMessageBody = Encoding.UTF8.GetBytes(failedMessageInfo.OriginalMessage);
-                    var properties = new BasicProperties();
-                    properties.MessageId = Guid.NewGuid().ToString();
-                    properties.Headers = new Dictionary<string, object?>
+                    var properties = new BasicProperties
                     {
-                        ["reprocessed-from-dlq"] = true,
-                        ["original-message-id"] = messageId,
-                        ["reprocessed-at"] = DateTime.UtcNow.ToString("O")
+                        Persistent = true,
+                        MessageId = Guid.NewGuid().ToString(),
+                        Headers = new Dictionary<string, object?>
+                        {
+                            ["reprocessed-from-dlq"] = true,
+                            ["original-message-id"] = messageId,
+                            ["reprocessed-at"] = DateTime.UtcNow.ToString("O")
+                        }
                     };
 
                     await _channel.BasicPublishAsync(
@@ -196,23 +207,28 @@ public sealed class RabbitMqDeadLetterService(
 
                     logger.LogInformation("Message {MessageId} reprocessed from dead letter queue {Queue}",
                         messageId, deadLetterQueueName);
+                    
+                    return true;
                 }
                 else
                 {
-                    // Rejeita a mensagem sem recolocar no início para evitar loop infinito (poison pill)
-                    // Em vez disso, republicamos para o fim da fila ANTES do Ack para evitar perda em caso de falha no publish
+                    // Rejeita a mensagem sem recolocar no início para evitar loop infinito
+                    // Republicamos para o fim da fila ANTES do Ack para evitar perda
                     
+                    var foundId = result.BasicProperties?.MessageId;
+                    logger.LogWarning("Requested reprocess for MessageId {RequestedId}, but found {FoundId} in queue {Queue}. Republishing to tail.",
+                        messageId, foundId ?? "null", deadLetterQueueName);
+
                     var props = result.BasicProperties;
                     var publishProperties = new BasicProperties
                     {
-                        Persistent = props.Persistent,
+                        Persistent = true,
                         MessageId = props.MessageId,
                         CorrelationId = props.CorrelationId,
                         ContentType = props.ContentType,
                         ContentEncoding = props.ContentEncoding,
                         Timestamp = props.Timestamp,
                         Headers = props.Headers != null ? new Dictionary<string, object?>(props.Headers) : null,
-                        DeliveryMode = props.DeliveryMode,
                         Priority = props.Priority,
                         ReplyTo = props.ReplyTo,
                         Expiration = props.Expiration,
@@ -250,7 +266,6 @@ public sealed class RabbitMqDeadLetterService(
         CancellationToken cancellationToken = default)
     {
         var messages = new List<FailedMessageInfo>();
-        var seenDeliveryTags = new HashSet<ulong>();
         var seenMessageIds = new HashSet<string>();
 
         try
@@ -263,16 +278,8 @@ public sealed class RabbitMqDeadLetterService(
                 var result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
                 if (result == null) break;
 
-                // Deduplicação por DeliveryTag para evitar refetch (inspeção não destrutiva)
-                if (seenDeliveryTags.Contains(result.DeliveryTag))
-                {
-                    // Se já vimos este DeliveryTag e ele voltou, significa que o BasicGetAsync está dando voltas na fila.
-                    // Para evitar loop infinito, damos Ack no duplicado (pois ele já foi requeued uma vez) e paramos.
-                    await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
-                    break; 
-                }
-                seenDeliveryTags.Add(result.DeliveryTag);
-
+                // Em modo de inspeção (list), não queremos remover mensagens da fila,
+                // exceto duplicadas que já processamos nesta iteração.
                 var wasAcked = false;
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
                 FailedMessageInfo? failedMessageInfo = null;
@@ -325,7 +332,7 @@ public sealed class RabbitMqDeadLetterService(
         return messages;
     }
 
-    public async Task PurgeDeadLetterMessageAsync(
+    public async Task<bool> PurgeDeadLetterMessageAsync(
         string deadLetterQueueName,
         string messageId,
         CancellationToken cancellationToken = default)
@@ -334,9 +341,16 @@ public sealed class RabbitMqDeadLetterService(
         {
             await EnsureConnectionAsync();
 
-            var result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
-            if (result != null)
+            while (true)
             {
+                var result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
+                if (result == null)
+                {
+                    logger.LogWarning("Message {MessageId} not found in dead letter queue {Queue} for purge",
+                        messageId, deadLetterQueueName);
+                    return false;
+                }
+
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
                 FailedMessageInfo? failedMessageInfo = null;
 
@@ -357,18 +371,17 @@ public sealed class RabbitMqDeadLetterService(
                     }
                     catch (Exception quarantineEx)
                     {
-                        // Fallback: Acknowledge a mensagem e registre metadados para investigação
-                        // Nack com requeue criaria poison-pill loop
                         await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
                         logger.LogCritical(
                             quarantineEx,
-                            "Critical: could not move message to quarantine. DeliveryTag: {DeliveryTag}, MessageId: {MessageId}, Body (base64): {BodyBase64}, DeadLetterQueueName: {Queue}",
+                            "Critical: could not move message to quarantine during purge. DeliveryTag: {DeliveryTag}, MessageId: {MessageId}, PayloadHash: {PayloadHash}, PayloadLength: {PayloadLength}, DeadLetterQueueName: {Queue}",
                             result.DeliveryTag,
                             result.BasicProperties.MessageId,
-                            Convert.ToBase64String(result.Body.Span),
+                            GetPayloadHash(result.Body),
+                            result.Body.Length,
                             deadLetterQueueName);
                     }
-                    return;
+                    continue;
                 }
 
                 if (failedMessageInfo?.MessageId == messageId)
@@ -376,23 +389,28 @@ public sealed class RabbitMqDeadLetterService(
                     await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
                     logger.LogInformation("Dead letter message {MessageId} purged from queue {Queue}",
                         messageId, deadLetterQueueName);
+                    
+                    return true;
                 }
                 else
                 {
                     // Rejeita a mensagem sem recolocar no início para evitar loop infinito
-                    // Em vez disso, republicamos para o fim da fila ANTES do Ack para evitar perda em caso de falha no publish
+                    // Republicamos para o fim da fila ANTES do Ack para evitar perda
                     
+                    var foundId = result.BasicProperties?.MessageId;
+                    logger.LogWarning("Requested purge for MessageId {RequestedId}, but found {FoundId} in queue {Queue}. Republishing to tail.",
+                        messageId, foundId ?? "null", deadLetterQueueName);
+
                     var props = result.BasicProperties;
                     var publishProperties = new BasicProperties
                     {
-                        Persistent = props.Persistent,
+                        Persistent = true,
                         MessageId = props.MessageId,
                         CorrelationId = props.CorrelationId,
                         ContentType = props.ContentType,
                         ContentEncoding = props.ContentEncoding,
                         Timestamp = props.Timestamp,
                         Headers = props.Headers != null ? new Dictionary<string, object?>(props.Headers) : null,
-                        DeliveryMode = props.DeliveryMode,
                         Priority = props.Priority,
                         ReplyTo = props.ReplyTo,
                         Expiration = props.Expiration,
@@ -491,6 +509,9 @@ public sealed class RabbitMqDeadLetterService(
 
                 _connection = await factory.CreateConnectionAsync();
                 _channel = await _connection.CreateChannelAsync();
+
+                // Limpa o cache de filas declaradas quando o canal é recriado
+                _declaredQuarantineQueues.Clear();
             }
             catch (Exception ex)
             {
@@ -580,11 +601,19 @@ public sealed class RabbitMqDeadLetterService(
             // Evitamos declarações redundantes via cache em memória (race condition resolvida via idempotência do RMQ)
             if (!_declaredQuarantineQueues.ContainsKey(quarantineQueue))
             {
+                var args = new Dictionary<string, object?>
+                {
+                    ["x-message-ttl"] = (int)TimeSpan.FromDays(30).TotalMilliseconds,
+                    ["x-max-length"] = 10000, // Limite de 10k mensagens
+                    ["x-overflow"] = "reject-publish"
+                };
+
                 await _channel!.QueueDeclareAsync(
                     queue: quarantineQueue,
                     durable: true,
                     exclusive: false,
                     autoDelete: false,
+                    arguments: args,
                     cancellationToken: cancellationToken);
                 
                 _declaredQuarantineQueues.TryAdd(quarantineQueue, true);
@@ -616,7 +645,7 @@ public sealed class RabbitMqDeadLetterService(
                 body: body,
                 cancellationToken: cancellationToken);
 
-            logger.LogWarning("Corrupt dead letter message moved to quarantine queue: {Queue}", quarantineQueue);
+            logger.LogWarning("Corrupt dead letter message moved to quarantine queue: {Queue}. Metric: dead_letter_quarantined_total=1", quarantineQueue);
         }
         catch (Exception ex)
         {
@@ -636,6 +665,12 @@ public sealed class RabbitMqDeadLetterService(
     private string GetDeadLetterRoutingKey(string sourceQueue)
     {
         return $"{_deadLetterOptions.RabbitMq.DeadLetterRoutingKey}.{sourceQueue}";
+    }
+
+    private static string GetPayloadHash(ReadOnlyMemory<byte> body)
+    {
+        var hashBytes = SHA256.HashData(body.Span);
+        return Convert.ToHexString(hashBytes).ToLowerInvariant();
     }
 
     private List<string> GetKnownDeadLetterQueues()

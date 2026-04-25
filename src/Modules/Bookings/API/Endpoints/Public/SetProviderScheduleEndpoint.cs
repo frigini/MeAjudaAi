@@ -65,8 +65,8 @@ public static class ProviderAuthorizationResultExtensions
 public sealed class ProviderAuthorizationResolver
 {
     private const string CacheKeyPrefix = "bookings:provider_by_user:";
-    // Reduzido para minimizar janela de inconsistência
-    private static readonly TimeSpan SlidingExpiration = TimeSpan.FromMinutes(1);
+    // TTL para o cache local em memória (L1)
+    private static readonly TimeSpan LocalCacheExpiration = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan AbsoluteExpiration = TimeSpan.FromMinutes(5);
 
     private readonly ICacheService _cache;
@@ -126,7 +126,7 @@ public sealed class ProviderAuthorizationResolver
             var options = new HybridCacheEntryOptions
             {
                 Expiration = AbsoluteExpiration,
-                LocalCacheExpiration = SlidingExpiration
+                LocalCacheExpiration = LocalCacheExpiration
             };
 
             var cached = await _cache.GetOrCreateAsync(

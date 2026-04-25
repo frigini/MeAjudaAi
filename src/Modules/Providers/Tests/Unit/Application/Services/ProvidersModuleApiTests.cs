@@ -682,5 +682,50 @@ public class ProvidersModuleApiTests
         result.Error!.Message.Should().Be("Erro ao verificar se o prestador oferece o serviço.");
     }
 
+    [Fact]
+    public async Task GetProviderForIndexingAsync_Should_Rethrow_OperationCanceledException()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        _providerRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+
+        // Act
+        var act = () => _sut.GetProviderForIndexingAsync(providerId);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
+    public async Task HasProvidersOfferingServiceAsync_Should_Rethrow_OperationCanceledException()
+    {
+        // Arrange
+        var serviceId = Guid.NewGuid();
+        _providerRepositoryMock.Setup(x => x.HasProvidersWithServiceAsync(serviceId, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+
+        // Act
+        var act = () => _sut.HasProvidersOfferingServiceAsync(serviceId);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
+    public async Task IsServiceOfferedByProviderAsync_Should_Rethrow_OperationCanceledException()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        _providerRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+
+        // Act
+        var act = () => _sut.IsServiceOfferedByProviderAsync(providerId, Guid.NewGuid());
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
     #endregion
 }

@@ -79,6 +79,5 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         builder.HasIndex(b => new { b.ProviderId, b.Date, b.Status });
 
         builder.HasIndex(b => b.ClientId);
-        builder.HasIndex(b => b.Status);
     }
 }

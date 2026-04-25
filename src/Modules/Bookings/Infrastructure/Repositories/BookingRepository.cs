@@ -26,16 +26,6 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
 
-    [Obsolete("Use GetByProviderIdPagedAsync(Filter) instead: supports paging and filtering.")]
-    public async Task<IReadOnlyList<Booking>> GetByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default)
-    {
-        return await context.Bookings
-            .AsNoTracking()
-            .Where(b => b.ProviderId == providerId)
-            .OrderByDescending(b => b.CreatedAt)
-            .ToListAsync(cancellationToken);
-    }
-
     public async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetByProviderIdPagedAsync(Guid providerId, DateOnly? from, DateOnly? to, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var query = context.Bookings
@@ -43,16 +33,6 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
             .Where(b => b.ProviderId == providerId);
 
         return await GetBookingsPagedAsync(query, from, to, page, pageSize, cancellationToken);
-    }
-
-    [Obsolete("Use GetByClientIdPagedAsync(Filter) instead: supports paging and filtering.")]
-    public async Task<IReadOnlyList<Booking>> GetByClientIdAsync(Guid clientId, CancellationToken cancellationToken = default)
-    {
-        return await context.Bookings
-            .AsNoTracking()
-            .Where(b => b.ClientId == clientId)
-            .OrderByDescending(b => b.CreatedAt)
-            .ToListAsync(cancellationToken);
     }
 
     public async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetByClientIdPagedAsync(Guid clientId, DateOnly? from, DateOnly? to, int page, int pageSize, CancellationToken cancellationToken = default)
@@ -89,16 +69,6 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
         return (items, totalCount);
     }
 
-    [Obsolete("Use GetAsync(Filter) with Status filter instead: supports paging and filtering.")]
-    public async Task<IReadOnlyList<Booking>> GetByProviderAndStatusAsync(Guid providerId, EBookingStatus status, CancellationToken cancellationToken = default)
-    {
-        return await context.Bookings
-            .AsNoTracking()
-            .Where(b => b.ProviderId == providerId && b.Status == status)
-            .OrderByDescending(b => b.CreatedAt)
-            .ToListAsync(cancellationToken);
-    }
-
     public async Task<IReadOnlyList<Booking>> GetActiveByProviderAndDateAsync(Guid providerId, DateOnly date, CancellationToken cancellationToken = default)
     {
         return await context.Bookings
@@ -109,13 +79,6 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                         b.Status != EBookingStatus.Rejected &&
                         b.Status != EBookingStatus.Completed)
             .ToListAsync(cancellationToken);
-    }
-
-    [Obsolete("Use AddIfNoOverlapAsync for atomic overlap-protected inserts", false)]
-    public async Task AddAsync(Booking booking, CancellationToken cancellationToken = default)
-    {
-        await context.Bookings.AddAsync(booking, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<Result> AddIfNoOverlapAsync(Booking booking, CancellationToken cancellationToken = default)
@@ -194,26 +157,17 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
                         continue;
                     }
 
-                    logger.LogError(ex, "Error while attempting to add booking {BookingId} (Attempt {Attempt})", booking.Id, attempt);
-
-                    try
-                    {
-                        await transaction.RollbackAsync(CancellationToken.None);
-                    }
-                    catch (Exception rollbackEx)
-                    {
-                        logger.LogDebug("Rollback failed during error handling (expected in some scenarios): {Error}", rollbackEx.Message);
-                    }
-                    
                     // Garante que a entidade seja desanexada em caso de falha fatal ou esgotamento de retries
                     // para evitar que o ChangeTracker tente inseri-la novamente se o DbContext for reutilizado.
                     context.Entry(booking).State = EntityState.Detached;
 
                     if (IsConcurrencyError(ex))
                     {
+                        logger.LogWarning(ex, "Concurrency conflict after max retries while attempting to add booking {BookingId} (Attempt {Attempt})", booking.Id, attempt);
                         return Result.Failure(Error.Conflict("Conflito de concorrência ao validar agendamento. Tente novamente em instantes.", ErrorCodes.Bookings.ConcurrencyConflict));
                     }
 
+                    logger.LogError(ex, "Fatal error while attempting to add booking {BookingId} (Attempt {Attempt})", booking.Id, attempt);
                     throw;
                 }
             }

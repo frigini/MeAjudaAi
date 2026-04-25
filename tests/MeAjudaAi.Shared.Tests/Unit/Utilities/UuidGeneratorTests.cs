@@ -199,49 +199,45 @@ public class UuidGeneratorTests
         parsedGuid.Should().NotBe(Guid.Empty);
     }
 
-    [Fact]
-    public void IsValidString_WithValidGuid_ShouldReturnTrue()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("not-a-guid")]
+    [InlineData("00000000-0000-0000-0000-000000000000")]
+    [InlineData("00000000000000000000000000000000")]
+    [InlineData("{00000000-0000-0000-0000-000000000000}")]
+    [InlineData("(00000000-0000-0000-0000-000000000000)")]
+    public void IsValidString_WithInvalidOrEmptyInputs_ShouldReturnFalse(string? input)
     {
-        // Arrange
-        var validGuid = Guid.NewGuid().ToString();
-
         // Act
-        var result = UuidGenerator.IsValid(validGuid);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsValidString_WithInvalidGuid_ShouldReturnFalse()
-    {
-        // Arrange
-        var invalidGuid = "not-a-guid";
-
-        // Act
-        var result = UuidGenerator.IsValid(invalidGuid);
+        var result = UuidGenerator.IsValid(input);
 
         // Assert
         result.Should().BeFalse();
     }
 
     [Fact]
-    public void IsValidString_WithNullOrEmpty_ShouldReturnFalse()
+    public void IsValidString_WithNewIdString_ShouldReturnTrue()
     {
-        // Act & Assert
-        UuidGenerator.IsValid((string?)null).Should().BeFalse();
-        UuidGenerator.IsValid("").Should().BeFalse();
-        UuidGenerator.IsValid("   ").Should().BeFalse();
+        // Arrange
+        var id = UuidGenerator.NewIdString();
+
+        // Act
+        var result = UuidGenerator.IsValid(id);
+
+        // Assert
+        result.Should().BeTrue();
     }
 
     [Fact]
-    public void IsValidString_WithCompactGuid_ShouldReturnTrue()
+    public void IsValidString_WithNewIdStringCompact_ShouldReturnTrue()
     {
         // Arrange
-        var compactGuid = Guid.NewGuid().ToString("N");
+        var id = UuidGenerator.NewIdStringCompact();
 
         // Act
-        var result = UuidGenerator.IsValid(compactGuid);
+        var result = UuidGenerator.IsValid(id);
 
         // Assert
         result.Should().BeTrue();

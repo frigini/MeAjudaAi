@@ -89,7 +89,7 @@ if (string.IsNullOrWhiteSpace(keycloakAuthority))
             {
                 EnableReduxDevTools = environment.IsDevelopment(),
                 EnableDebugMode = environment.IsDevelopment(),
-                EnableFakeAuth = configuration.GetValue<bool>("FeatureFlags:EnableFakeAuth")
+                EnableFakeAuth = string.Equals(configuration["FeatureFlags:EnableFakeAuth"], "true", StringComparison.OrdinalIgnoreCase)
             }
         };
 

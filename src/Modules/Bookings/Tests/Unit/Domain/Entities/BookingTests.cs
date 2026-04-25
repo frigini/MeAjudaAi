@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Contracts.Bookings.Enums;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
+using MeAjudaAi.Modules.Bookings.Domain.Events;
 using FluentAssertions;
 using Xunit;
 
@@ -30,7 +31,7 @@ public class BookingTests : BaseUnitTest
         booking.Date.Should().Be(date);
         booking.TimeSlot.Should().Be(timeSlot);
 
-        booking.DomainEvents.Should().ContainSingle(e => e is MeAjudaAi.Modules.Bookings.Domain.Events.BookingCreatedDomainEvent);
+        booking.DomainEvents.Should().ContainSingle(e => e is BookingCreatedDomainEvent);
     }
 
     [Fact]
@@ -46,7 +47,7 @@ public class BookingTests : BaseUnitTest
         // Assert
         booking.Status.Should().Be(EBookingStatus.Confirmed);
         booking.UpdatedAt.Should().NotBeNull();
-        booking.DomainEvents.Should().ContainSingle(e => e is MeAjudaAi.Modules.Bookings.Domain.Events.BookingConfirmedDomainEvent);
+        booking.DomainEvents.Should().ContainSingle(e => e is BookingConfirmedDomainEvent);
     }
 
     [Fact]
@@ -63,7 +64,7 @@ public class BookingTests : BaseUnitTest
         // Assert
         booking.Status.Should().Be(EBookingStatus.Rejected);
         booking.RejectionReason.Should().Be(reason);
-        booking.DomainEvents.Should().ContainSingle(e => e is MeAjudaAi.Modules.Bookings.Domain.Events.BookingRejectedDomainEvent);
+        booking.DomainEvents.Should().ContainSingle(e => e is BookingRejectedDomainEvent);
     }
 
     [Fact]
@@ -73,7 +74,7 @@ public class BookingTests : BaseUnitTest
         var booking = CreatePendingBooking();
         booking.ClearDomainEvents();
         var reason = "Client changed mind";
-        var previousUpdatedAt = booking.UpdatedAt;
+        var before = DateTime.UtcNow.AddMilliseconds(-100);
 
         // Act
         booking.Cancel(reason);
@@ -82,11 +83,8 @@ public class BookingTests : BaseUnitTest
         booking.Status.Should().Be(EBookingStatus.Cancelled);
         booking.CancellationReason.Should().Be(reason);
         booking.UpdatedAt.Should().NotBeNull();
-        if (previousUpdatedAt != null)
-        {
-            booking.UpdatedAt.Should().BeOnOrAfter(previousUpdatedAt.Value);
-        }
-        booking.DomainEvents.Should().ContainSingle(e => e is MeAjudaAi.Modules.Bookings.Domain.Events.BookingCancelledDomainEvent);
+        booking.UpdatedAt.Should().BeOnOrAfter(before);
+        booking.DomainEvents.Should().ContainSingle(e => e is BookingCancelledDomainEvent);
     }
 
     [Fact]
@@ -97,7 +95,7 @@ public class BookingTests : BaseUnitTest
         booking.Confirm();
         booking.ClearDomainEvents();
         var reason = "Provider emergency";
-        var previousUpdatedAt = booking.UpdatedAt;
+        var before = DateTime.UtcNow.AddMilliseconds(-100);
 
         // Act
         booking.Cancel(reason);
@@ -106,11 +104,8 @@ public class BookingTests : BaseUnitTest
         booking.Status.Should().Be(EBookingStatus.Cancelled);
         booking.CancellationReason.Should().Be(reason);
         booking.UpdatedAt.Should().NotBeNull();
-        if (previousUpdatedAt != null)
-        {
-            booking.UpdatedAt.Should().BeOnOrAfter(previousUpdatedAt.Value);
-        }
-        booking.DomainEvents.Should().ContainSingle(e => e is MeAjudaAi.Modules.Bookings.Domain.Events.BookingCancelledDomainEvent);
+        booking.UpdatedAt.Should().BeOnOrAfter(before);
+        booking.DomainEvents.Should().ContainSingle(e => e is BookingCancelledDomainEvent);
     }
 
     [Fact]
@@ -142,7 +137,7 @@ public class BookingTests : BaseUnitTest
         // Assert
         booking.Status.Should().Be(EBookingStatus.Completed);
         booking.UpdatedAt.Should().NotBeNull();
-        booking.DomainEvents.Should().ContainSingle(e => e is MeAjudaAi.Modules.Bookings.Domain.Events.BookingCompletedDomainEvent);
+        booking.DomainEvents.Should().ContainSingle(e => e is BookingCompletedDomainEvent);
     }
 
     [Fact]

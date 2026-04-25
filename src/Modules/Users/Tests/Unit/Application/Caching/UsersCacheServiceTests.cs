@@ -59,7 +59,7 @@ public class UsersCacheServiceTests
                 expectedUser,
                 It.IsAny<TimeSpan?>(),
                 It.IsAny<HybridCacheEntryOptions?>(),
-                It.IsAny<IReadOnlyCollection<string>?>(),
+                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && tags.Contains("users") && tags.Contains("user-by-id") && tags.Contains(CacheTags.UserTag(userId)) && tags.Contains("users-list")),
                 _cancellationToken),
             Times.Once);
     }
@@ -169,7 +169,7 @@ public class UsersCacheServiceTests
                 user,
                 UsersCacheService.DefaultExpiration,
                 It.IsAny<HybridCacheEntryOptions?>(),
-                It.IsAny<IReadOnlyCollection<string>?>(),
+                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && tags.Contains("users") && tags.Contains("user-by-id") && tags.Contains(CacheTags.UserTag(userId)) && tags.Contains("users-list")),
                 _cancellationToken),
             Times.Once);
     }
@@ -380,7 +380,7 @@ public class UsersCacheServiceTests
                 userData,
                 It.IsAny<TimeSpan?>(),
                 It.IsAny<HybridCacheEntryOptions?>(),
-                It.IsAny<IReadOnlyCollection<string>?>(),
+                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && tags.Contains("users") && tags.Contains("user-by-id") && tags.Contains(CacheTags.UserTag(userId)) && tags.Contains("users-list")),
                 _cancellationToken),
             Times.Once);
     }

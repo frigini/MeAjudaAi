@@ -136,12 +136,9 @@ Todos sob o prefixo `/api/v1/bookings`, com autorização obrigatória.
 ### IBookingRepository
 
 - `GetByIdAsync(id)` — Obtém por ID (tracked para updates)
-- `GetByProviderIdAsync(providerId)` — Lista por prestador
-- `GetByProviderIdReadOnlyAsync(providerId)` — Lista por prestador (sem rastreamento)
-- `GetByClientIdAsync(clientId)` — Lista por cliente
-- `GetByClientIdPagedAsync(clientId, page, pageSize)` — Lista paginada por cliente
-- `GetByProviderAndStatusAsync(providerId, status)` — Filtra por status
-- `AddAsync(booking)` — Adiciona simples
+- `GetByProviderIdPagedAsync(providerId, from, to, page, pageSize)` — Lista paginada por prestador
+- `GetByClientIdPagedAsync(clientId, from, to, page, pageSize)` — Lista paginada por cliente
+- `GetActiveByProviderAndDateAsync(providerId, date)` — Obtém agendamentos ativos para uma data específica
 - `AddIfNoOverlapAsync(booking)` — Adiciona com verificação atômica de sobreposição (Serializable Transaction)
 - `UpdateAsync(booking)` — Atualiza com tratamento de `ConcurrencyConflictException`
 

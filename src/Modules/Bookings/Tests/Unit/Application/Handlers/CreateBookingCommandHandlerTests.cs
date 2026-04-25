@@ -382,6 +382,6 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Code.Should().Be(ErrorCodes.Bookings.StartNotInFuture);
+        result.Error!.Code.Should().Be(ErrorCodes.Bookings.StartNotInFuture);
     }
 }

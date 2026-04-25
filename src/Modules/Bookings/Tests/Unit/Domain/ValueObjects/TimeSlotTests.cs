@@ -90,6 +90,7 @@ public class TimeSlotTests : BaseUnitTest
         // Assert
         slot1.Should().Be(slot2);
         slot1.Start.Should().Be(new TimeOnly(10, 0));
+        slot1.End.Should().Be(new TimeOnly(11, 0));
     }
 
     [Fact]
@@ -102,14 +103,18 @@ public class TimeSlotTests : BaseUnitTest
             TimeSlot.Create(new(11,00), new(11,30))
         };
 
+        var expected = new[]
+        {
+            TimeSlot.Create(new(9, 0), new(9, 30)),
+            TimeSlot.Create(new(10, 0), new(11, 0)),
+            TimeSlot.Create(new(11, 30), new(12, 0))
+        };
+
         // Act
         var result = free.Subtract(occupied);
 
         // Assert
-        result.Should().HaveCount(3);
-        result[0].Start.Should().Be(new TimeOnly(9,0));   result[0].End.Should().Be(new TimeOnly(9,30));
-        result[1].Start.Should().Be(new TimeOnly(10,0));  result[1].End.Should().Be(new TimeOnly(11,0));
-        result[2].Start.Should().Be(new TimeOnly(11,30)); result[2].End.Should().Be(new TimeOnly(12,0));
+        result.Should().BeEquivalentTo(expected, options => options.WithStrictOrdering());
     }
 
     [Fact]

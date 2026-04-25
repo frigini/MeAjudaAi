@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
 using FluentAssertions;
 using Xunit;
 
@@ -12,28 +13,36 @@ public class DocumentMappingTests
     public void Document_Should_HaveCorrectMapping()
     {
         // Arrange
+        using var connection = new SqliteConnection("DataSource=:memory:");
+        connection.Open();
+
         var options = new DbContextOptionsBuilder<DocumentsDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .UseSqlite(connection)
             .Options;
 
-        using var context = new DocumentsDbContext(options);
+        using (var context = new DocumentsDbContext(options))
+        {
+            context.Database.EnsureCreated();
 
-        // Act
-        var entityType = context.Model.FindEntityType(typeof(Document));
+            // Act
+            var entityType = context.Model.FindEntityType(typeof(Document));
 
-        // Assert
-        entityType.Should().NotBeNull();
-        entityType!.GetSchema().Should().Be("documents");
-        entityType.GetTableName().Should().Be("documents");
+            // Assert
+            entityType.Should().NotBeNull();
+            entityType!.GetSchema().Should().Be("documents");
+            entityType.GetTableName().Should().Be("documents");
 
-        var idProperty = entityType.FindProperty(nameof(Document.Id));
-        idProperty.Should().NotBeNull();
-        idProperty!.IsPrimaryKey().Should().BeTrue();
+            var idProperty = entityType.FindProperty(nameof(Document.Id));
+            idProperty.Should().NotBeNull();
+            idProperty!.IsPrimaryKey().Should().BeTrue();
 
-        var providerIdProperty = entityType.FindProperty(nameof(Document.ProviderId));
-        providerIdProperty!.GetColumnName().Should().Be("provider_id");
+            var providerIdProperty = entityType.FindProperty(nameof(Document.ProviderId));
+            providerIdProperty.Should().NotBeNull();
+            providerIdProperty!.GetColumnName().Should().Be("provider_id");
 
-        var statusProperty = entityType.FindProperty(nameof(Document.Status));
-        statusProperty!.GetColumnName().Should().Be("status");
+            var statusProperty = entityType.FindProperty(nameof(Document.Status));
+            statusProperty.Should().NotBeNull();
+            statusProperty!.GetColumnName().Should().Be("status");
+        }
     }
 }

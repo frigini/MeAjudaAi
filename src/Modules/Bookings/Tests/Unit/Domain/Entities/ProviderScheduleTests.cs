@@ -143,7 +143,7 @@ public class ProviderScheduleTests : BaseUnitTest
         var act = () => schedule.UpdateTimeZone("Invalid/TimeZone");
 
         // Assert
-        act.Should().Throw<ArgumentException>().WithMessage("Invalid TimeZone ID*");
+        act.Should().Throw<ArgumentException>().WithMessage("TimeZoneId inválido*");
     }
 
     [Fact]

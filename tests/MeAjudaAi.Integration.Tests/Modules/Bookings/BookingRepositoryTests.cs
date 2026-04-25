@@ -155,4 +155,71 @@ public class BookingRepositoryTests : BaseDatabaseTest
         // Assert
         result.IsSuccess.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task AddIfNoOverlapAsync_WithNonUtcTimeZones_ShouldDetectOverlapCorrectly()
+    {
+        // Este teste simula a lógica do CreateBookingCommandHandler usando um fuso específico
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var tz = TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo"); // -03:00/-02:00
+        
+        // 10:00 AM Local em São Paulo no dia 20/05/2026 (Inverno -03:00)
+        // 10:00 Local = 13:00 UTC
+        var startUtc1 = new DateTimeOffset(2026, 5, 20, 13, 0, 0, TimeSpan.Zero);
+        var endUtc1 = startUtc1.AddHours(1);
+
+        // Convertemos para os valores do agregado
+        var localStart1 = TimeZoneInfo.ConvertTime(startUtc1, tz);
+        var localEnd1 = TimeZoneInfo.ConvertTime(endUtc1, tz);
+        var date1 = DateOnly.FromDateTime(localStart1.DateTime);
+        var slot1 = TimeSlot.Create(TimeOnly.FromDateTime(localStart1.DateTime), TimeOnly.FromDateTime(localEnd1.DateTime));
+        
+        var booking1 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date1, slot1);
+        
+        // Persiste o primeiro
+        (await _repository.AddIfNoOverlapAsync(booking1)).IsSuccess.Should().BeTrue();
+
+        // Tenta um segundo agendamento que sobrepõe (ex: 10:30 Local = 13:30 UTC)
+        var startUtc2 = new DateTimeOffset(2026, 5, 20, 13, 30, 0, TimeSpan.Zero);
+        var endUtc2 = startUtc2.AddHours(1);
+        
+        var localStart2 = TimeZoneInfo.ConvertTime(startUtc2, tz);
+        var localEnd2 = TimeZoneInfo.ConvertTime(endUtc2, tz);
+        var date2 = DateOnly.FromDateTime(localStart2.DateTime);
+        var slot2 = TimeSlot.Create(TimeOnly.FromDateTime(localStart2.DateTime), TimeOnly.FromDateTime(localEnd2.DateTime));
+        
+        var booking2 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date2, slot2);
+
+        // Act
+        var result = await _repository.AddIfNoOverlapAsync(booking2);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("booking_overlap");
+    }
+
+    [Fact]
+    public async Task AddIfNoOverlapAsync_OnDSTTransition_ShouldHandleCorrectly()
+    {
+        // Arrange
+        // Em 2024, PST (Pacific) volta o relógio em 3 de Novembro (ambiguidade 01:00-02:00)
+        var providerId = Guid.NewGuid();
+        var date = new DateOnly(2024, 11, 3);
+        
+        // Primeiro agendamento: 01:00 às 01:30 (PST)
+        var slot1 = TimeSlot.Create(new TimeOnly(1, 0), new TimeOnly(1, 30));
+        var booking1 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date, slot1);
+        (await _repository.AddIfNoOverlapAsync(booking1)).IsSuccess.Should().BeTrue();
+
+        // Segundo agendamento: 01:15 às 01:45 (Conflito direto no local time, independente do offset)
+        var slot2 = TimeSlot.Create(new TimeOnly(1, 15), new TimeOnly(1, 45));
+        var booking2 = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date, slot2);
+
+        // Act
+        var result = await _repository.AddIfNoOverlapAsync(booking2);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+    }
 }
