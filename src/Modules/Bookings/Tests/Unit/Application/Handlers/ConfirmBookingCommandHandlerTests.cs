@@ -11,6 +11,7 @@ using System.Security.Claims;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
+[Trait("Category", "Unit")]
 public class ConfirmBookingCommandHandlerTests : BaseUnitTest
 {
     private readonly Mock<IBookingRepository> _bookingRepoMock = new();
@@ -35,7 +36,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         SetupUser(providerId);
@@ -58,7 +59,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         SetupUser(Guid.NewGuid());
@@ -77,7 +78,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var bookingId = Guid.NewGuid();
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(bookingId, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(bookingId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Booking?)null);
 
         SetupUser(Guid.NewGuid());
@@ -98,7 +99,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         SetupUser(null);
@@ -119,7 +120,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         SetupUser(null, isSystemAdmin: true);
@@ -140,7 +141,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         booking.Confirm(); // Já confirmado, não pode confirmar novamente
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         SetupUser(providerId);

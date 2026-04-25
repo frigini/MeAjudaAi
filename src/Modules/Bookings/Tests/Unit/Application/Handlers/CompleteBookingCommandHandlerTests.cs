@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
+[Trait("Category", "Unit")]
 public class CompleteBookingCommandHandlerTests : BaseUnitTest
 {
     private readonly Mock<IBookingRepository> _bookingRepoMock = new();
@@ -32,7 +33,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         booking.Confirm();
         booking.ClearDomainEvents();
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, false, providerId, Guid.NewGuid()));
@@ -51,7 +52,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         booking.ClearDomainEvents();
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, false, providerId, Guid.NewGuid()));
@@ -71,7 +72,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
         booking.Confirm();
         booking.ClearDomainEvents();
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, false, Guid.NewGuid(), Guid.NewGuid()));
@@ -84,7 +85,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
     [Fact]
     public async Task HandleAsync_Should_Fail_When_BookingNotFound()
     {
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Booking?)null);
 
         var result = await _sut.HandleAsync(new CompleteBookingCommand(Guid.NewGuid(), false, Guid.NewGuid(), Guid.NewGuid()));
@@ -103,7 +104,7 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         booking.ClearDomainEvents();
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, true, null, Guid.NewGuid()));

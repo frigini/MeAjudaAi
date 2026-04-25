@@ -15,6 +15,7 @@ using Xunit;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
+[Trait("Category", "Unit")]
 public class CancelBookingCommandHandlerTests : BaseUnitTest
 {
     private readonly Mock<IBookingRepository> _bookingRepoMock = new();
@@ -39,7 +40,7 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(Guid.NewGuid(), clientId, Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         SetupUser(clientId, null);
@@ -62,7 +63,7 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         SetupUser(Guid.NewGuid(), providerId);
@@ -84,7 +85,7 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         SetupUser(Guid.NewGuid(), null); // Usuário aleatório
@@ -105,7 +106,7 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         SetupUser(Guid.NewGuid(), Guid.NewGuid()); // Outro prestador
@@ -126,7 +127,7 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         SetupUser(Guid.NewGuid(), null, isSystemAdmin: true);
@@ -148,7 +149,7 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(Guid.NewGuid(), clientId, Guid.NewGuid(), tomorrow,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         _bookingRepoMock.Setup(x => x.UpdateAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
@@ -182,7 +183,7 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
     public async Task HandleAsync_Should_Fail_When_BookingNotFound()
     {
         // Arrange
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Booking?)null);
         SetupUser(Guid.NewGuid(), null);
 
@@ -206,7 +207,7 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         // Coloca o booking em um estado que não permite cancelamento (Rejeitado)
         booking.Reject("Some reason");
 
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         SetupUser(clientId, null);

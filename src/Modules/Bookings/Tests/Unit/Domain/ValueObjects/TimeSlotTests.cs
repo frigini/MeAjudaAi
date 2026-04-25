@@ -128,7 +128,7 @@ public class TimeSlotTests : BaseUnitTest
         var act = () => TimeSlot.FromDateTime(start, end);
 
         // Assert
-        act.Should().Throw<ArgumentException>().WithMessage("Start and end must be on the same date*");
+        act.Should().Throw<ArgumentException>().WithMessage("Início e Fim devem ter a mesma Data e Kind.*");
     }
 
     [Fact]
@@ -142,7 +142,7 @@ public class TimeSlotTests : BaseUnitTest
         var act = () => TimeSlot.FromDateTime(start, end);
 
         // Assert
-        act.Should().Throw<ArgumentException>().WithMessage("Start and end must have the same DateTimeKind*");
+        act.Should().Throw<ArgumentException>().WithMessage("Início e Fim devem ter a mesma Data e Kind.*");
     }
 
     [Fact]

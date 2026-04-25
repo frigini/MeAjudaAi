@@ -12,6 +12,7 @@ using System.Security.Claims;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
+[Trait("Category", "Unit")]
 public class RejectBookingCommandHandlerTests : BaseUnitTest
 {
     private readonly Mock<IBookingRepository> _bookingRepoMock = new();
@@ -36,7 +37,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         SetupUser(providerId);
@@ -60,7 +61,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
         var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         SetupUser(Guid.NewGuid()); // Outro provider
@@ -79,7 +80,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         SetupUser(Guid.NewGuid());
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Booking?)null);
 
         // Act
@@ -102,7 +103,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
         booking.Confirm(); // Já confirmado
         booking.ClearDomainEvents();
         
-        _bookingRepoMock.Setup(x => x.GetByIdAsync(booking.Id, It.IsAny<CancellationToken>()))
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
         SetupUser(providerId);
