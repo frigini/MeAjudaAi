@@ -155,7 +155,7 @@ public class BookingRepository(BookingsDbContext context, ILogger<BookingReposit
 
                     if (hasOverlap)
                     {
-                        return Result.Failure(Error.Conflict("Já existe um agendamento para este horário."));
+                        return Result.Failure(Error.Conflict("Já existe um agendamento para este horário.", ErrorCodes.Bookings.Overlap));
                     }
 
                     context.Bookings.Add(booking);

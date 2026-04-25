@@ -12,7 +12,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Caching.Memory;
+using MeAjudaAi.Shared.Caching;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
@@ -69,10 +70,10 @@ public sealed class ProviderAuthorizationResolver
     private static readonly TimeSpan AbsoluteExpiration = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan MissExpiration = TimeSpan.FromSeconds(30);
 
-    private readonly IMemoryCache _cache;
+    private readonly ICacheService _cache;
     private readonly ILogger<ProviderAuthorizationResolver> _logger;
 
-    public ProviderAuthorizationResolver(IMemoryCache cache, ILogger<ProviderAuthorizationResolver> logger)
+    public ProviderAuthorizationResolver(ICacheService cache, ILogger<ProviderAuthorizationResolver> logger)
     {
         _cache = cache;
         _logger = logger;
@@ -82,10 +83,10 @@ public sealed class ProviderAuthorizationResolver
     /// Invalida o cache do usuário especificado.
     /// Chamado por handlers de eventos de integração quando o vínculo muda.
     /// </summary>
-    public void Invalidate(Guid userId)
+    public async Task InvalidateAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var cacheKey = $"{CacheKeyPrefix}{userId}";
-        _cache.Remove(cacheKey);
+        await _cache.RemoveAsync(cacheKey, cancellationToken);
         _logger.LogInformation("Cache invalidated for user {UserId}", userId);
     }
 
@@ -123,26 +124,33 @@ public sealed class ProviderAuthorizationResolver
 
         try
         {
-            var cached = await _cache.GetOrCreateAsync(cacheKey, async entry =>
+            var options = new HybridCacheEntryOptions
             {
-                entry.SlidingExpiration = SlidingExpiration;
-                entry.AbsoluteExpirationRelativeToNow = AbsoluteExpiration;
-                
-                var providerResult = await providersApi.GetProviderByUserIdAsync(uId, cancellationToken);
-                
-                if (providerResult.IsFailure)
-                {
-                    throw new UpstreamProviderException(providerResult.Error.Message, providerResult.Error.StatusCode);
-                }
+                Expiration = AbsoluteExpiration,
+                LocalCacheExpiration = SlidingExpiration
+            };
 
-                if (providerResult.Value == null)
+            var cached = await _cache.GetOrCreateAsync(
+                cacheKey, 
+                async ct =>
                 {
-                    entry.AbsoluteExpirationRelativeToNow = MissExpiration;
-                    return ProviderResolutionResult.NotLinked();
-                }
+                    var providerResult = await providersApi.GetProviderByUserIdAsync(uId, ct);
+                    
+                    if (providerResult.IsFailure)
+                    {
+                        throw new UpstreamProviderException(providerResult.Error.Message, providerResult.Error.StatusCode);
+                    }
 
-                return ProviderResolutionResult.Found(providerResult.Value.Id);
-            });
+                    if (providerResult.Value == null)
+                    {
+                        return ProviderResolutionResult.NotLinked();
+                    }
+
+                    return ProviderResolutionResult.Found(providerResult.Value.Id);
+                },
+                expiration: AbsoluteExpiration,
+                options: options,
+                cancellationToken: cancellationToken);
 
             return cached switch
             {
@@ -166,7 +174,7 @@ internal sealed class UpstreamProviderException : Exception
 }
 
 [ExcludeFromCodeCoverage]
-internal sealed class ProviderResolutionResult
+public sealed class ProviderResolutionResult
 {
     public Guid? ProviderId { get; init; }
     public bool IsNotLinked { get; init; }

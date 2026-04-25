@@ -6,7 +6,8 @@ using MeAjudaAi.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Memory;
+using MeAjudaAi.Shared.Caching;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -20,15 +21,26 @@ public class ProviderAuthorizationResolverTests
 {
     private readonly Mock<ILogger<ProviderAuthorizationResolver>> _loggerMock;
     private readonly Mock<IProvidersModuleApi> _providersApiMock;
+    private readonly Mock<ICacheService> _cacheMock;
     private readonly ProviderAuthorizationResolver _sut;
 
     public ProviderAuthorizationResolverTests()
     {
-        // Usamos um MemoryCache real para exercitar o caminho de cache (extensões de cache são difíceis de mockar)
-        var realCache = new MemoryCache(new MemoryCacheOptions());
         _loggerMock = new Mock<ILogger<ProviderAuthorizationResolver>>();
         _providersApiMock = new Mock<IProvidersModuleApi>();
-        _sut = new ProviderAuthorizationResolver(realCache, _loggerMock.Object);
+        _cacheMock = new Mock<ICacheService>();
+        _sut = new ProviderAuthorizationResolver(_cacheMock.Object, _loggerMock.Object);
+
+        // Setup padrão: executa o factory
+        _cacheMock.Setup(x => x.GetOrCreateAsync(
+                It.IsAny<string>(),
+                It.IsAny<Func<CancellationToken, ValueTask<ProviderResolutionResult>>>(),
+                It.IsAny<TimeSpan?>(),
+                It.IsAny<HybridCacheEntryOptions?>(),
+                It.IsAny<IReadOnlyCollection<string>?>(),
+                It.IsAny<CancellationToken>()))
+            .Returns<string, Func<CancellationToken, ValueTask<ProviderResolutionResult>>, TimeSpan?, HybridCacheEntryOptions?, IReadOnlyCollection<string>?, CancellationToken>(
+                async (key, factory, exp, opt, tags, ct) => await factory(ct));
     }
 
     [Fact]
@@ -152,8 +164,26 @@ public class ProviderAuthorizationResolverTests
         context.User = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
         var providerDto = CreateModuleProviderDto(providerId);
+        var cachedResult = ProviderResolutionResult.Found(providerId);
+        
         _providersApiMock.Setup(x => x.GetProviderByUserIdAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ModuleProviderDto?>.Success(providerDto));
+
+        // Primeira chamada chama o factory, segunda chamada retorna o cache
+        var calls = 0;
+        _cacheMock.Setup(x => x.GetOrCreateAsync(
+                It.IsAny<string>(),
+                It.IsAny<Func<CancellationToken, ValueTask<ProviderResolutionResult>>>(),
+                It.IsAny<TimeSpan?>(),
+                It.IsAny<HybridCacheEntryOptions?>(),
+                It.IsAny<IReadOnlyCollection<string>?>(),
+                It.IsAny<CancellationToken>()))
+            .Returns<string, Func<CancellationToken, ValueTask<ProviderResolutionResult>>, TimeSpan?, HybridCacheEntryOptions?, IReadOnlyCollection<string>?, CancellationToken>(
+                async (key, factory, exp, opt, tags, ct) => 
+                {
+                    if (calls++ == 0) return await factory(ct);
+                    return cachedResult;
+                });
 
         // Act
         var firstResult = await _sut.ResolveAsync(context, _providersApiMock.Object);

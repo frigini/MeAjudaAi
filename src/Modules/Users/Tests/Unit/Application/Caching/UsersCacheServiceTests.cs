@@ -139,14 +139,10 @@ public class UsersCacheServiceTests
             UpdatedAt: null
         );
 
-        _cacheServiceMock.Setup(x => x.GetOrCreateAsync<UserDto?>(
+        _cacheServiceMock.Setup(x => x.GetAsync<UserDto?>(
                 UsersCacheKeys.UserById(userId),
-                It.IsAny<Func<CancellationToken, ValueTask<UserDto?>>>(),
-                It.IsAny<TimeSpan?>(),
-                It.IsAny<HybridCacheEntryOptions?>(),
-                It.IsAny<IReadOnlyCollection<string>?>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((UserDto?)null);
+                _cancellationToken))
+            .ReturnsAsync((null, true));
 
         var factoryCalled = false;
         Func<CancellationToken, ValueTask<UserDto?>> factory = async ct =>
@@ -165,7 +161,7 @@ public class UsersCacheServiceTests
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
                 user,
-                It.IsAny<TimeSpan?>(),
+                UsersCacheService.DefaultExpiration,
                 It.IsAny<HybridCacheEntryOptions?>(),
                 It.IsAny<IReadOnlyCollection<string>?>(),
                 _cancellationToken),
@@ -230,7 +226,7 @@ public class UsersCacheServiceTests
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
                 user,
-                TimeSpan.FromMinutes(30),
+                UsersCacheService.DefaultExpiration,
                 It.IsAny<HybridCacheEntryOptions?>(),
                 It.Is<IReadOnlyCollection<string>?>(tags => tags != null && tags.Contains(CacheTags.UserTag(userId)) && tags.Contains(CacheTags.UserEmailTag(user.Email))),
                 _cancellationToken),

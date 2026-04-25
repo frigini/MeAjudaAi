@@ -275,7 +275,7 @@ public class CreateBookingCommandHandlerTests : BaseUnitTest
             .ReturnsAsync(schedule);
 
         _bookingRepoMock.Setup(x => x.AddIfNoOverlapAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Failure(Error.Conflict("Overlap")));
+            .ReturnsAsync(Result.Failure(Error.Conflict("Overlap", ErrorCodes.Bookings.Overlap)));
 
         // Act
         var result = await _sut.HandleAsync(command);

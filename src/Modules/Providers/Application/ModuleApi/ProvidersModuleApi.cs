@@ -361,7 +361,7 @@ public sealed class ProvidersModuleApi(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting provider indexing data for {ProviderId}", providerId);
-            return Result<ModuleProviderIndexingDto?>.Failure($"Erro ao obter dados para indexação do prestador: {ex.Message}");
+            return Result<ModuleProviderIndexingDto?>.Failure("Erro ao obter dados para indexação do prestador.");
         }
     }
 
@@ -441,7 +441,7 @@ public sealed class ProvidersModuleApi(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking if providers offer service {ServiceId}", serviceId);
-            return Result<bool>.Failure($"Erro ao verificar se os prestadores oferecem o serviço: {ex.Message}");
+            return Result<bool>.Failure("Erro ao verificar se os prestadores oferecem o serviço.");
         }
     }
 

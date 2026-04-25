@@ -26,7 +26,6 @@ public sealed class RabbitMqDeadLetterService(
     private readonly SemaphoreSlim _connectionSemaphore = new(1, 1);
     private readonly CancellationTokenSource _disposeCts = new();
     private readonly ConcurrentDictionary<string, bool> _declaredQuarantineQueues = new();
-    private readonly HashSet<ulong> _seenDeliveryTags = new();
     private int _disposedValue; // 0 = not disposed, 1 = disposing/disposed
     private bool _disposed => _disposedValue == 1;
 
@@ -200,8 +199,17 @@ public async Task ReprocessDeadLetterMessageAsync(
                 }
                 else
                 {
-                    // Rejeita a mensagem de volta para a fila
-                    await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: true, cancellationToken);
+                    // Rejeita a mensagem sem recolocar no início para evitar loop infinito (poison pill)
+                    // Em vez disso, removemos com Nack(requeue:false) e republicamos para o fim da fila
+                    await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: false, cancellationToken);
+                    
+                    await _channel.BasicPublishAsync(
+                        exchange: "",
+                        routingKey: deadLetterQueueName,
+                        mandatory: false,
+                        basicProperties: (BasicProperties)result.BasicProperties,
+                        body: result.Body,
+                        cancellationToken: cancellationToken);
                 }
             }
         }
@@ -222,6 +230,7 @@ public async Task ReprocessDeadLetterMessageAsync(
     {
         var messages = new List<FailedMessageInfo>();
         var seenDeliveryTags = new HashSet<ulong>();
+        var seenMessageIds = new HashSet<string>();
 
         try
         {
@@ -233,13 +242,13 @@ public async Task ReprocessDeadLetterMessageAsync(
                 var result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
                 if (result == null) break;
 
-                // Deduplicação por DeliveryTag para避免refetch
-                if (_seenDeliveryTags.Contains(result.DeliveryTag))
+                // Deduplicação por DeliveryTag para evitar refetch
+                if (seenDeliveryTags.Contains(result.DeliveryTag))
                 {
                     await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
                     continue;
                 }
-                _seenDeliveryTags.Add(result.DeliveryTag);
+                seenDeliveryTags.Add(result.DeliveryTag);
 
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
                 FailedMessageInfo? failedMessageInfo = null;
@@ -249,7 +258,7 @@ public async Task ReprocessDeadLetterMessageAsync(
                     failedMessageInfo = serializer.Deserialize<FailedMessageInfo>(messageBodyJson);
 
                     // Deduplicação adicional por MessageId se disponível
-                    if (failedMessageInfo?.MessageId != null && messages.Any(m => m.MessageId == failedMessageInfo.MessageId))
+                    if (failedMessageInfo?.MessageId != null && seenMessageIds.Contains(failedMessageInfo.MessageId))
                     {
                         await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
                         continue;
@@ -258,6 +267,10 @@ public async Task ReprocessDeadLetterMessageAsync(
                     if (failedMessageInfo != null)
                     {
                         messages.Add(failedMessageInfo);
+                        if (failedMessageInfo.MessageId != null)
+                        {
+                            seenMessageIds.Add(failedMessageInfo.MessageId);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -272,7 +285,6 @@ public async Task ReprocessDeadLetterMessageAsync(
                     count++;
                 }
             }
-
         }
         catch (Exception ex)
         {
@@ -339,7 +351,17 @@ public async Task ReprocessDeadLetterMessageAsync(
                 }
                 else
                 {
-                    await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: true, cancellationToken);
+                    // Rejeita a mensagem sem recolocar no início para evitar loop infinito
+                    // Em vez disso, removemos com Nack(requeue:false) e republicamos para o fim da fila
+                    await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: false, cancellationToken);
+                    
+                    await _channel.BasicPublishAsync(
+                        exchange: "",
+                        routingKey: deadLetterQueueName,
+                        mandatory: false,
+                        basicProperties: (BasicProperties)result.BasicProperties,
+                        body: result.Body,
+                        cancellationToken: cancellationToken);
                 }
             }
         }

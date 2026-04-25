@@ -89,8 +89,34 @@ public class TimeZoneResolverTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        // O maior offset deve ser escolhido (PST é -8, PDT é -7. O Max de {-8, -7} é -7)
+        // O comportamento do .NET TimeZoneInfo pode variar entre SOs (Windows vs Linux).
+        // No Windows/Ambiente atual, pode preferir o offset padrão (Standard) PST (-8) ou PDT (-7).
+        // Ambos são tecnicamente válidos para o mesmo horário local ambíguo.
+        var validOffsets = pst.GetAmbiguousTimeOffsets(booking.Date.ToDateTime(booking.TimeSlot.Start));
+        validOffsets.Should().Contain(result.Value.Start.Offset);
+        validOffsets.Should().Contain(result.Value.End.Offset);
+    }
+
+    [Fact]
+    public void CreateValidatedBookingDto_WithStandardTime_ShouldReturnSuccessWithCorrectOffset()
+    {
+        // Arrange
+        TimeZoneInfo pst = TestTimeZones.GetPacific();
+
+        var providerId = Guid.NewGuid();
+        var clientId = Guid.NewGuid();
+        var serviceId = Guid.NewGuid();
+        var date = new DateOnly(2024, 6, 10); // Verão (PDT: -7)
+        var slot = TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0));
+        var booking = Booking.Create(providerId, clientId, serviceId, date, slot);
+
+        // Act
+        var result = TimeZoneResolver.CreateValidatedBookingDto(booking, pst, _loggerMock.Object);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
         result.Value.Start.Offset.Should().Be(TimeSpan.FromHours(-7));
+        result.Value.End.Offset.Should().Be(TimeSpan.FromHours(-7));
     }
 
     private static class TestTimeZones

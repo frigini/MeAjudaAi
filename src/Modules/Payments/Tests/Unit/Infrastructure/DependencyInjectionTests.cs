@@ -40,12 +40,14 @@ public class DependencyInjectionTests
         services.AddInfrastructure(configuration, envMock.Object);
         services.AddLogging();
         
-        using var provider = services.BuildServiceProvider();
+        using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        using var scope = provider.CreateScope();
+        var scopedProvider = scope.ServiceProvider;
 
-        provider.GetRequiredService<PaymentsDbContext>().Should().NotBeNull();
-        provider.GetRequiredService<ISubscriptionRepository>().Should().NotBeNull();
-        provider.GetRequiredService<IPaymentTransactionRepository>().Should().NotBeNull();
-        provider.GetRequiredService<IPaymentGateway>().Should().NotBeNull();
+        scopedProvider.GetRequiredService<PaymentsDbContext>().Should().NotBeNull();
+        scopedProvider.GetRequiredService<ISubscriptionRepository>().Should().NotBeNull();
+        scopedProvider.GetRequiredService<IPaymentTransactionRepository>().Should().NotBeNull();
+        scopedProvider.GetRequiredService<IPaymentGateway>().Should().NotBeNull();
         
         var hostedServices = provider.GetServices<IHostedService>();
         hostedServices.Should().Contain(s => s is ProcessInboxJob);

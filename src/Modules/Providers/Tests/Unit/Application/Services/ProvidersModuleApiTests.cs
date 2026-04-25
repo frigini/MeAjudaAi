@@ -542,7 +542,7 @@ public class ProvidersModuleApiTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("Erro ao obter dados para indexação do prestador");
+        result.Error!.Message.Should().Be("Erro ao obter dados para indexação do prestador.");
     }
 
     [Fact]
@@ -592,8 +592,7 @@ public class ProvidersModuleApiTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error!.Message.Should().Contain("Erro ao verificar se os prestadores oferecem o serviço");
-        result.Error.Message.Should().Contain(exceptionMessage);
+        result.Error!.Message.Should().Be("Erro ao verificar se os prestadores oferecem o serviço.");
     }
 
     [Fact]
