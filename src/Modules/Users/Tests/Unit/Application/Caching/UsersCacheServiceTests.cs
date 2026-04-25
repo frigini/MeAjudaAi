@@ -23,6 +23,12 @@ public class UsersCacheServiceTests
         _usersCacheService = new UsersCacheService(_cacheServiceMock.Object);
     }
 
+    private static bool TagsMatch(IEnumerable<string>? tags, IEnumerable<string> expectedTags)
+    {
+        if (tags == null) return false;
+        return new HashSet<string>(tags).SetEquals(expectedTags);
+    }
+
     [Fact]
     public async Task GetOrCacheUserByIdAsync_ShouldCallCacheService_WithCorrectParameters()
     {
@@ -59,14 +65,14 @@ public class UsersCacheServiceTests
                 _cancellationToken),
             Times.Once);
 
-        var expectedTags = new HashSet<string> { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UsersList };
+        var expectedTags = new[] { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UsersList };
         _cacheServiceMock.Verify(
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
                 expectedUser,
                 It.IsAny<TimeSpan?>(),
                 It.IsAny<HybridCacheEntryOptions?>(),
-                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && new HashSet<string>(tags).SetEquals(expectedTags)),
+                It.Is<IReadOnlyCollection<string>?>(t => TagsMatch(t, expectedTags)),
                 _cancellationToken),
             Times.Once);
     }
@@ -171,14 +177,14 @@ public class UsersCacheServiceTests
         result.Should().Be(user);
         factoryCalled.Should().BeTrue();
 
-        var expectedTags = new HashSet<string> { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UsersList };
+        var expectedTags = new[] { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UsersList };
         _cacheServiceMock.Verify(
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
                 user,
                 UsersCacheService.DefaultExpiration,
                 It.IsAny<HybridCacheEntryOptions?>(),
-                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && new HashSet<string>(tags).SetEquals(expectedTags)),
+                It.Is<IReadOnlyCollection<string>?>(t => TagsMatch(t, expectedTags)),
                 _cancellationToken),
             Times.Once);
     }
@@ -237,14 +243,14 @@ public class UsersCacheServiceTests
         await _usersCacheService.SetUserAsync(user, _cancellationToken);
 
         // Assert
-        var expectedTags = new HashSet<string> { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UserByEmail, CacheTags.UserEmailTag(user.Email), CacheTags.UsersList };
+        var expectedTags = new[] { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UserByEmail, CacheTags.UserEmailTag(user.Email), CacheTags.UsersList };
         _cacheServiceMock.Verify(
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
                 user,
                 UsersCacheService.DefaultExpiration,
                 It.IsAny<HybridCacheEntryOptions?>(),
-                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && new HashSet<string>(tags).SetEquals(expectedTags)),
+                It.Is<IReadOnlyCollection<string>?>(t => TagsMatch(t, expectedTags)),
                 _cancellationToken),
             Times.Once);
     }
@@ -385,14 +391,14 @@ public class UsersCacheServiceTests
                 _cancellationToken),
             Times.Once);
 
-        var expectedTags = new HashSet<string> { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UsersList };
+        var expectedTags = new[] { CacheTags.Users, CacheTags.UserById, CacheTags.UserTag(userId), CacheTags.UsersList };
         _cacheServiceMock.Verify(
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
                 userData,
                 It.IsAny<TimeSpan?>(),
                 It.IsAny<HybridCacheEntryOptions?>(),
-                It.Is<IReadOnlyCollection<string>?>(tags => tags != null && new HashSet<string>(tags).SetEquals(expectedTags)),
+                It.Is<IReadOnlyCollection<string>?>(t => TagsMatch(t, expectedTags)),
                 _cancellationToken),
             Times.Once);
     }

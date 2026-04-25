@@ -4,10 +4,8 @@ using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Exceptions;
-using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.AspNetCore.Http;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 
@@ -25,7 +23,7 @@ public sealed class CompleteBookingCommandHandler(
             return Result.Failure(Error.NotFound("Reserva não encontrada."));
         }
 
-        // 2. Validar Autorização (Somente o Provider dono ou Admin)
+        // 1. Validar Autorização (Somente o Provider dono ou Admin)
         var isAuthorized = command.IsSystemAdmin || 
                            (command.UserProviderId.HasValue && command.UserProviderId.Value == booking.ProviderId);
 
@@ -42,7 +40,7 @@ public sealed class CompleteBookingCommandHandler(
         catch (InvalidBookingStateException ex)
         {
             logger.LogWarning(ex, "Business rule error completing booking {BookingId}", command.BookingId);
-            return Result.Failure(Error.BadRequest("Apenas agendamentos confirmados podem ser concluídos."));
+            return Result.Failure(Error.BadRequest("Apenas agendamentos confirmados podem ser concluídos.", ErrorCodes.Bookings.InvalidState));
         }
         catch (ConcurrencyConflictException ex)
         {
@@ -53,16 +51,5 @@ public sealed class CompleteBookingCommandHandler(
         logger.LogInformation("Booking {BookingId} completed successfully.", command.BookingId);
 
         return Result.Success();
-    }
-
-    private static bool UserOwnsProvider(ClaimsPrincipal user, Guid expectedProviderId)
-    {
-        var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
-        if (isSystemAdmin) return true;
-
-        var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
-        return !string.IsNullOrEmpty(providerIdClaim) && 
-               Guid.TryParse(providerIdClaim, out var userProviderId) && 
-               userProviderId == expectedProviderId;
     }
 }

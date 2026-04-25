@@ -3,6 +3,7 @@ using MeAjudaAi.Contracts.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
 using Xunit;
@@ -13,6 +14,7 @@ public class ConfigurationEndpointsTests
 {
     private readonly Mock<IConfiguration> _configMock = new();
     private readonly Mock<IWebHostEnvironment> _envMock = new();
+    private readonly Mock<ILogger<Program>> _loggerMock = new();
 
     [Fact]
     public void GetClientConfiguration_Should_ReturnValidConfiguration()
@@ -25,7 +27,7 @@ public class ConfigurationEndpointsTests
         _envMock.Setup(x => x.EnvironmentName).Returns(Environments.Development);
 
         // Act
-        var result = ConfigurationEndpoints.GetClientConfiguration(_configMock.Object, _envMock.Object);
+        var result = ConfigurationEndpoints.GetClientConfiguration(_configMock.Object, _envMock.Object, _loggerMock.Object);
 
         // Assert
         result.Value.Should().NotBeNull();
@@ -46,7 +48,7 @@ public class ConfigurationEndpointsTests
         _envMock.Setup(x => x.EnvironmentName).Returns(Environments.Production);
 
         // Act
-        var result = ConfigurationEndpoints.GetClientConfiguration(_configMock.Object, _envMock.Object);
+        var result = ConfigurationEndpoints.GetClientConfiguration(_configMock.Object, _envMock.Object, _loggerMock.Object);
 
         // Assert
         result.Value!.Keycloak.Authority.Should().Be("https://keycloak.test.com/realms/myrealm");
@@ -60,7 +62,7 @@ public class ConfigurationEndpointsTests
         _configMock.Setup(x => x["Keycloak:Authority"]).Returns("https://keycloak.test.com");
 
         // Act
-        var act = () => ConfigurationEndpoints.GetClientConfiguration(_configMock.Object, _envMock.Object);
+        var act = () => ConfigurationEndpoints.GetClientConfiguration(_configMock.Object, _envMock.Object, _loggerMock.Object);
 
         // Assert
         act.Should().Throw<InvalidOperationException>().WithMessage("*Keycloak:ClientId*");

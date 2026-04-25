@@ -1,5 +1,6 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Bookings.Enums;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
@@ -218,7 +219,7 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(400);
-        result.Error.Message.Should().Contain("Apenas agendamentos pendentes ou confirmados podem ser cancelados.");
+        result.Error.Code.Should().Be(ErrorCodes.Bookings.InvalidState);
     }
 
     private void SetupUser(Guid userId, Guid? providerId, bool isSystemAdmin = false)

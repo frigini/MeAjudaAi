@@ -153,7 +153,7 @@ public sealed class ProviderAuthorizationResolver
 
             return cached switch
             {
-                { IsFound: true } => ProviderAuthorizationResult.Authorized(cached!.ProviderId!.Value),
+                { IsFound: true, ProviderId: Guid providerId } => ProviderAuthorizationResult.Authorized(providerId),
                 _ => ProviderAuthorizationResult.NotLinked()
             };
         }
@@ -173,7 +173,7 @@ internal sealed class UpstreamProviderException : Exception
 }
 
 [ExcludeFromCodeCoverage]
-public sealed record ProviderResolutionResult
+internal sealed record ProviderResolutionResult
 {
     public Guid? ProviderId { get; init; }
     public bool IsNotLinked { get; init; }

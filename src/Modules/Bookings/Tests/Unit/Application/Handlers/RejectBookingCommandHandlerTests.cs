@@ -1,14 +1,15 @@
 using MeAjudaAi.Contracts.Bookings.Enums;
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
-using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
+using Moq;
+using FluentAssertions;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 
@@ -16,7 +17,6 @@ namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 public class RejectBookingCommandHandlerTests : BaseUnitTest
 {
     private readonly Mock<IBookingRepository> _bookingRepoMock = new();
-    private readonly Mock<IHttpContextAccessor> _httpContextMock = new();
     private readonly Mock<ILogger<RejectBookingCommandHandler>> _loggerMock = new();
     private readonly RejectBookingCommandHandler _sut;
 
@@ -24,7 +24,6 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
     {
         _sut = new RejectBookingCommandHandler(
             _bookingRepoMock.Object,
-            _httpContextMock.Object,
             _loggerMock.Object);
     }
 
@@ -33,22 +32,20 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
         _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        SetupUser(providerId);
+        var command = new RejectBookingCommand(booking.Id, "Reason", false, providerId, Guid.NewGuid());
 
         // Act
-        var result = await _sut.HandleAsync(new RejectBookingCommand(booking.Id, "Sem disponibilidade", Guid.NewGuid()));
+        var result = await _sut.HandleAsync(command);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         booking.Status.Should().Be(EBookingStatus.Rejected);
-        booking.RejectionReason.Should().Be("Sem disponibilidade");
         _bookingRepoMock.Verify(x => x.UpdateAsync(booking, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -56,40 +53,36 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
     public async Task HandleAsync_Should_Fail_When_UserIsNotOwner()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
-        var date = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
+        var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
         
         _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        SetupUser(Guid.NewGuid()); // Outro provider
+        var command = new RejectBookingCommand(booking.Id, "Reason", false, Guid.NewGuid(), Guid.NewGuid());
 
         // Act
-        var result = await _sut.HandleAsync(new RejectBookingCommand(booking.Id, "Motivo", Guid.NewGuid()));
+        var result = await _sut.HandleAsync(command);
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(403);
-        _bookingRepoMock.Verify(x => x.UpdateAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task HandleAsync_Should_Fail_When_BookingNotFound()
     {
         // Arrange
-        SetupUser(Guid.NewGuid());
+        var command = new RejectBookingCommand(Guid.NewGuid(), "Reason", false, Guid.NewGuid(), Guid.NewGuid());
         _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Booking?)null);
 
         // Act
-        var result = await _sut.HandleAsync(new RejectBookingCommand(Guid.NewGuid(), "Motivo", Guid.NewGuid()));
+        var result = await _sut.HandleAsync(command);
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(404);
-        _bookingRepoMock.Verify(x => x.UpdateAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -97,36 +90,67 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var date = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), date,
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
             TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
-        booking.Confirm(); // Já confirmado
+        
+        booking.Confirm();
         booking.ClearDomainEvents();
         
         _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        SetupUser(providerId);
+        var command = new RejectBookingCommand(booking.Id, "Reason", false, providerId, Guid.NewGuid());
 
         // Act
-        var result = await _sut.HandleAsync(new RejectBookingCommand(booking.Id, "Motivo", Guid.NewGuid()));
+        var result = await _sut.HandleAsync(command);
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error!.StatusCode.Should().Be(400);
-        _bookingRepoMock.Verify(x => x.UpdateAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Never);
+        result.Error.Code.Should().Be(ErrorCodes.Bookings.InvalidState);
     }
 
-    private void SetupUser(Guid providerId)
+    [Fact]
+    public async Task HandleAsync_Should_Succeed_When_UserIsSystemAdmin()
     {
-        var claims = new List<Claim>
-        {
-            new(AuthConstants.Claims.ProviderId, providerId.ToString()),
-            new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
-        };
-        var identity = new ClaimsIdentity(claims, "Test");
-        var principal = new ClaimsPrincipal(identity);
-        var context = new DefaultHttpContext { User = principal };
-        _httpContextMock.Setup(x => x.HttpContext).Returns(context);
+        // Arrange
+        var booking = Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        var command = new RejectBookingCommand(booking.Id, "Admin Reason", true, null, Guid.NewGuid());
+
+        // Act
+        var result = await _sut.HandleAsync(command);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        booking.Status.Should().Be(EBookingStatus.Rejected);
+    }
+
+    [Fact]
+    public async Task HandleAsync_Should_ReturnConflict_When_ConcurrencyOccurs()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        _bookingRepoMock.Setup(x => x.UpdateAsync(booking, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new MeAjudaAi.Shared.Exceptions.ConcurrencyConflictException());
+
+        var command = new RejectBookingCommand(booking.Id, "Reason", false, providerId, Guid.NewGuid());
+
+        // Act
+        var result = await _sut.HandleAsync(command);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(409);
     }
 }

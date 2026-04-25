@@ -74,7 +74,7 @@ public class BookingTests : BaseUnitTest
         var booking = CreatePendingBooking();
         booking.ClearDomainEvents();
         var reason = "Client changed mind";
-        var before = DateTime.UtcNow.AddMilliseconds(-100);
+        var before = DateTime.UtcNow;
 
         // Act
         booking.Cancel(reason);
@@ -95,7 +95,7 @@ public class BookingTests : BaseUnitTest
         booking.Confirm();
         booking.ClearDomainEvents();
         var reason = "Provider emergency";
-        var before = DateTime.UtcNow.AddMilliseconds(-100);
+        var before = DateTime.UtcNow;
 
         // Act
         booking.Cancel(reason);
@@ -142,13 +142,12 @@ public class BookingTests : BaseUnitTest
 
     [Theory]
     [InlineData(EBookingStatus.Cancelled)]
+    [InlineData(EBookingStatus.Rejected)]
     [InlineData(EBookingStatus.Completed)]
     public void Confirm_Should_Throw_When_InTerminalState(EBookingStatus terminalStatus)
     {
         // Arrange
-        var booking = CreatePendingBooking();
-        if (terminalStatus == EBookingStatus.Cancelled) booking.Cancel("test");
-        else if (terminalStatus == EBookingStatus.Completed) { booking.Confirm(); booking.Complete(); }
+        var booking = BringBookingToStatus(terminalStatus);
 
         // Act
         var act = () => booking.Confirm();
@@ -159,13 +158,12 @@ public class BookingTests : BaseUnitTest
 
     [Theory]
     [InlineData(EBookingStatus.Cancelled)]
+    [InlineData(EBookingStatus.Rejected)]
     [InlineData(EBookingStatus.Completed)]
     public void Reject_Should_Throw_When_InTerminalState(EBookingStatus terminalStatus)
     {
         // Arrange
-        var booking = CreatePendingBooking();
-        if (terminalStatus == EBookingStatus.Cancelled) booking.Cancel("test");
-        else if (terminalStatus == EBookingStatus.Completed) { booking.Confirm(); booking.Complete(); }
+        var booking = BringBookingToStatus(terminalStatus);
 
         // Act
         var act = () => booking.Reject("test");
@@ -178,9 +176,7 @@ public class BookingTests : BaseUnitTest
     public void Cancel_Should_Throw_When_AlreadyCompleted()
     {
         // Arrange
-        var booking = CreatePendingBooking();
-        booking.Confirm();
-        booking.Complete();
+        var booking = BringBookingToStatus(EBookingStatus.Completed);
 
         // Act
         var act = () => booking.Cancel("test");
@@ -196,10 +192,7 @@ public class BookingTests : BaseUnitTest
     public void Complete_Should_Throw_When_InInvalidState(EBookingStatus status)
     {
         // Arrange
-        var booking = CreatePendingBooking();
-        if (status == EBookingStatus.Cancelled) booking.Cancel("test");
-        else if (status == EBookingStatus.Rejected) booking.Reject("test");
-        else if (status == EBookingStatus.Completed) { booking.Confirm(); booking.Complete(); }
+        var booking = BringBookingToStatus(status);
 
         // Act
         var act = () => booking.Complete();
@@ -212,7 +205,7 @@ public class BookingTests : BaseUnitTest
     public void Complete_Should_Throw_When_Pending()
     {
         // Arrange
-        var booking = CreatePendingBooking();
+        var booking = BringBookingToStatus(EBookingStatus.Pending);
 
         // Act
         var act = () => booking.Complete();
@@ -226,8 +219,7 @@ public class BookingTests : BaseUnitTest
     public void Confirm_Should_Throw_When_AlreadyConfirmed()
     {
         // Arrange
-        var booking = CreatePendingBooking();
-        booking.Confirm();
+        var booking = BringBookingToStatus(EBookingStatus.Confirmed);
 
         // Act
         var act = () => booking.Confirm();
@@ -241,8 +233,7 @@ public class BookingTests : BaseUnitTest
     public void Reject_Should_Throw_When_AlreadyConfirmed()
     {
         // Arrange
-        var booking = CreatePendingBooking();
-        booking.Confirm();
+        var booking = BringBookingToStatus(EBookingStatus.Confirmed);
 
         // Act
         var act = () => booking.Reject("Busy");
@@ -250,6 +241,28 @@ public class BookingTests : BaseUnitTest
         // Assert
         act.Should().Throw<InvalidBookingStateException>()
             .WithMessage("Only pending bookings can be rejected.");
+    }
+
+    private static Booking BringBookingToStatus(EBookingStatus status)
+    {
+        var booking = CreatePendingBooking();
+        switch (status)
+        {
+            case EBookingStatus.Confirmed:
+                booking.Confirm();
+                break;
+            case EBookingStatus.Rejected:
+                booking.Reject("test");
+                break;
+            case EBookingStatus.Cancelled:
+                booking.Cancel("test");
+                break;
+            case EBookingStatus.Completed:
+                booking.Confirm();
+                booking.Complete();
+                break;
+        }
+        return booking;
     }
 
     private static Booking CreatePendingBooking()

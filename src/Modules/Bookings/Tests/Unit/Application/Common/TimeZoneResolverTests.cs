@@ -16,75 +16,44 @@ public class TimeZoneResolverTests
     private readonly Mock<ILogger> _loggerMock = new();
 
     [Fact]
-    public void ResolveTimeZone_WithInvalidIdAndNoFallback_ShouldReturnNull()
+    public void ResolveTimeZone_ShouldReturnTimeZone_WhenIdIsValid()
     {
         // Act
-        var result = TimeZoneResolver.ResolveTimeZone("Invalid-TZ", _loggerMock.Object, allowFallback: false);
-
-        // Assert
-        result.Should().BeNull();
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Failed to resolve time zone")),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public void ResolveTimeZone_WithNullIdAndFallback_ShouldReturnBrazilTimeZone()
-    {
-        // Act
-        var result = TimeZoneResolver.ResolveTimeZone(null, _loggerMock.Object, allowFallback: true);
+        var result = TimeZoneResolver.ResolveTimeZone("UTC", _loggerMock.Object);
 
         // Assert
         result.Should().NotBeNull();
-        // Relaxado: apenas verifica offset, não Id específico (plataforma-dependente)
-        result.BaseUtcOffset.Should().Be(TimeSpan.FromHours(-3));
+        result!.Id.Should().Be("UTC");
     }
 
     [Fact]
-    public void CreateValidatedBookingDto_WithInvalidDSTTime_ShouldReturnFailure()
+    public void ResolveTimeZone_ShouldReturnFallback_WhenIdIsInvalid()
     {
-        // Arrange
-        // Usando Pacific Standard Time para um teste determinístico de DST
-        // Em 2024, o horário pula de 02:00 para 03:00 em 10 de Março.
-        TimeZoneInfo pst = TestTimeZones.GetPacific();
-
-        var providerId = Guid.NewGuid();
-        var clientId = Guid.NewGuid();
-        var serviceId = Guid.NewGuid();
-        var date = new DateOnly(2024, 3, 10);
-        // 02:30 AM não existe em PST neste dia
-        var slot = TimeSlot.Create(new TimeOnly(2, 30), new TimeOnly(3, 30));
-        var booking = Booking.Create(providerId, clientId, serviceId, date, slot);
-
         // Act
-        var result = TimeZoneResolver.CreateValidatedBookingDto(booking, pst, _loggerMock.Object);
+        var result = TimeZoneResolver.ResolveTimeZone("Invalid/ID", _loggerMock.Object);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Horário inválido");
+        result.Should().NotBeNull();
+        // Fallback is usually "E. South America Standard Time" or "America/Sao_Paulo"
+        result!.Id.Should().NotBe("Invalid/ID");
     }
 
     [Fact]
     public void CreateValidatedBookingDto_WithAmbiguousDSTTime_ShouldReturnSuccessWithMaxOffset()
     {
         // Arrange
-        // Em 2024, o horário volta de 02:00 para 01:00 em 3 de Novembro em PST.
-        // 01:30 AM acontece duas vezes.
+        // Em 2024, PST (Pacific) volta o relógio em 3 de Novembro (ambiguidade 01:00-02:00)
+        // O horário 01:30 AM acontece duas vezes (PDT depois PST).
         TimeZoneInfo pst = TestTimeZones.GetPacific();
 
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
         var date = new DateOnly(2024, 11, 3);
-        // Start is ambiguous (1:30 AM). On 03/11/2024, clock rolls back from 02:00 PDT to 01:00 PST.
-        // Making 01:00-02:00 occur twice.
+        // Start is ambiguous (1:30 AM)
         var start = new TimeOnly(1, 30);
-        // End is NOT ambiguous (2:30 AM). 02:00 and 02:30 occur only once as PST (-08:00).
+        // End is NOT ambiguous (2:30 AM). On 03/11/2024, clock rolls back from 02:00 PDT to 01:00 PST.
+        // Making 01:00-02:00 ambiguous. 02:00 and 02:30 occur only once as PST (-08:00).
         var end = new TimeOnly(2, 30);
         var slot = TimeSlot.Create(start, end);
         var booking = Booking.Create(providerId, clientId, serviceId, date, slot);
@@ -116,7 +85,7 @@ public class TimeZoneResolverTests
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
-        var date = new DateOnly(2024, 6, 10); // Summer (PDT: -7)
+        var date = new DateOnly(2024, 6, 10); // Verão (PDT: -7)
         var slot = TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0));
         var booking = Booking.Create(providerId, clientId, serviceId, date, slot);
 

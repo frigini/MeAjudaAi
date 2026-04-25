@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
@@ -54,7 +55,7 @@ public sealed class CancelBookingCommandHandler(
         catch (InvalidBookingStateException ex)
         {
             logger.LogWarning(ex, "Business rule error cancelling booking {BookingId}", command.BookingId);
-            return Result.Failure(Error.BadRequest("Apenas agendamentos pendentes ou confirmados podem ser cancelados."));
+            return Result.Failure(Error.BadRequest("Apenas agendamentos pendentes ou confirmados podem ser cancelados.", ErrorCodes.Bookings.InvalidState));
         }
         catch (ConcurrencyConflictException ex)
         {

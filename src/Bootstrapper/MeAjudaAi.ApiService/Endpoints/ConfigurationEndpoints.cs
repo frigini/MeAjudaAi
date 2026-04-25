@@ -31,7 +31,8 @@ public static class ConfigurationEndpoints
     /// </summary>
     internal static Ok<ClientConfiguration> GetClientConfiguration(
         IConfiguration configuration,
-        IWebHostEnvironment environment)
+        IWebHostEnvironment environment,
+        ILogger<Program> logger)
     {
         // Obter URL base da API do host atual ou configuração
         var apiBaseUrl = configuration["ApiBaseUrl"] 
@@ -69,7 +70,10 @@ public static class ConfigurationEndpoints
         var postLogoutRedirectUri = $"{clientBaseUrl.TrimEnd('/')}/";
 
         var rawEnableFakeAuth = configuration["FeatureFlags:EnableFakeAuth"]?.Trim();
-        bool.TryParse(rawEnableFakeAuth, out var enableFakeAuth);
+        if (!bool.TryParse(rawEnableFakeAuth, out var enableFakeAuth) && !string.IsNullOrEmpty(rawEnableFakeAuth))
+        {
+            logger.LogWarning("Invalid value for FeatureFlags:EnableFakeAuth: '{Value}'. Treating as false.", rawEnableFakeAuth);
+        }
 
         var clientConfig = new ClientConfiguration
         {

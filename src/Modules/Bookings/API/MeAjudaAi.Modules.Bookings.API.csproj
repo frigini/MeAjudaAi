@@ -7,6 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>MeAjudaAi.Modules.Bookings.Tests</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Application\MeAjudaAi.Modules.Bookings.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\MeAjudaAi.Modules.Bookings.Infrastructure.csproj" />
   </ItemGroup>

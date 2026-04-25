@@ -21,10 +21,15 @@ public class RejectBookingEndpoint : IEndpoint
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
+            var user = context.User;
+            var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
+            var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
+            Guid? userProviderId = Guid.TryParse(providerIdClaim, out var pId) ? pId : null;
+
             var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
             var correlationId = Guid.TryParse(correlationIdHeader, out var cId) ? cId : Guid.NewGuid();
 
-            var command = new RejectBookingCommand(id, request.Reason, correlationId);
+            var command = new RejectBookingCommand(id, request.Reason, isSystemAdmin, userProviderId, correlationId);
             var result = await dispatcher.SendAsync<RejectBookingCommand, Result>(command, cancellationToken);
 
             return result.Match(

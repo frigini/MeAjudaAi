@@ -28,6 +28,7 @@ public static class ErrorCodes
         public const string InvalidTime = "invalid_booking_time";
         public const string MidnightSpanning = "midnight_spanning";
         public const string StartNotInFuture = "start_not_in_future";
+        public const string InvalidState = "invalid_booking_state";
     }
 
     public static class Catalogs

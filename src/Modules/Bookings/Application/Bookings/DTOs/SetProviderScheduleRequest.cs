@@ -1,5 +1,3 @@
-using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
-
 namespace MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 
 public record SetProviderScheduleRequest(

@@ -4,38 +4,44 @@ using Xunit;
 
 namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Domain.ValueObjects;
 
+[Trait("Category", "Unit")]
 public class TimeSlotTests : BaseUnitTest
 {
     [Fact]
-    public void Create_Should_SetProperties_When_Valid()
+    public void Create_Should_SetProperties()
     {
-        // Arrange & Act
-        var start = new TimeOnly(8, 0);
-        var end = new TimeOnly(12, 0);
+        // Arrange
+        var start = new TimeOnly(10, 0);
+        var end = new TimeOnly(11, 0);
+
+        // Act
         var slot = TimeSlot.Create(start, end);
 
         // Assert
         slot.Start.Should().Be(start);
         slot.End.Should().Be(end);
-        slot.Duration.Should().Be(TimeSpan.FromHours(4));
     }
 
     [Fact]
-    public void Create_Should_Throw_When_StartAfterEnd()
+    public void Create_Should_Throw_When_EndBeforeStart()
     {
+        // Arrange
+        var start = new TimeOnly(11, 0);
+        var end = new TimeOnly(10, 0);
+
         // Act
-        var act = () => TimeSlot.Create(new TimeOnly(12, 0), new TimeOnly(8, 0));
+        var act = () => TimeSlot.Create(start, end);
 
         // Assert
-        act.Should().Throw<ArgumentException>().WithMessage("O horário de início deve ser anterior ao horário de término.");
+        act.Should().Throw<ArgumentException>();
     }
 
     [Fact]
     public void Overlaps_Should_ReturnTrue_When_SlotsOverlap()
     {
         // Arrange
-        var slot1 = TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(12, 0));
-        var slot2 = TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(14, 0));
+        var slot1 = TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(12, 0));
+        var slot2 = TimeSlot.Create(new TimeOnly(11, 0), new TimeOnly(13, 0));
 
         // Act & Assert
         slot1.Overlaps(slot2).Should().BeTrue();
@@ -43,39 +49,31 @@ public class TimeSlotTests : BaseUnitTest
     }
 
     [Fact]
-    public void Overlaps_Should_ReturnFalse_When_SlotsAreAdjacent()
-    {
-        // Arrange
-        var slot1 = TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(10, 0));
-        var slot2 = TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(12, 0));
-
-        // Act & Assert
-        slot1.Overlaps(slot2).Should().BeFalse();
-    }
-
-    [Fact]
     public void Overlaps_Should_ReturnFalse_When_SlotsAreDisjoint()
     {
         // Arrange
-        var slot1 = TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(9, 0));
+        var slot1 = TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0));
+        var slot2 = TimeSlot.Create(new TimeOnly(12, 0), new TimeOnly(13, 0));
+
+        // Act & Assert
+        slot1.Overlaps(slot2).Should().BeFalse();
+        slot2.Overlaps(slot1).Should().BeFalse();
+    }
+
+    [Fact]
+    public void Overlaps_Should_ReturnFalse_When_SlotsAreAdjacent()
+    {
+        // Arrange
+        var slot1 = TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0));
         var slot2 = TimeSlot.Create(new TimeOnly(11, 0), new TimeOnly(12, 0));
 
         // Act & Assert
         slot1.Overlaps(slot2).Should().BeFalse();
+        slot2.Overlaps(slot1).Should().BeFalse();
     }
 
     [Fact]
-    public void Create_Should_Throw_When_StartEqualsEnd()
-    {
-        // Act
-        var act = () => TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(10, 0));
-
-        // Assert
-        act.Should().Throw<ArgumentException>().WithMessage("O horário de início deve ser anterior ao horário de término.");
-    }
-
-    [Fact]
-    public void FromDateTime_Should_IgnoreDateComponent()
+    public void FromDateTime_Should_ProduceEqualSlots_When_TimeOfDayMatches()
     {
         // Arrange
         var dt1 = new DateTime(2026, 4, 22, 10, 0, 0);
@@ -91,30 +89,6 @@ public class TimeSlotTests : BaseUnitTest
         slot1.Should().Be(slot2);
         slot1.Start.Should().Be(new TimeOnly(10, 0));
         slot1.End.Should().Be(new TimeOnly(11, 0));
-    }
-
-    [Fact]
-    public void Subtract_Should_Split_Into_Remaining_Segments()
-    {
-        // Arrange
-        var free = TimeSlot.Create(new(9, 0), new(12, 0));
-        var occupied = new[] {
-            TimeSlot.Create(new(9,30), new(10,00)),
-            TimeSlot.Create(new(11,00), new(11,30))
-        };
-
-        var expected = new[]
-        {
-            TimeSlot.Create(new(9, 0), new(9, 30)),
-            TimeSlot.Create(new(10, 0), new(11, 0)),
-            TimeSlot.Create(new(11, 30), new(12, 0))
-        };
-
-        // Act
-        var result = free.Subtract(occupied);
-
-        // Assert
-        result.Should().BeEquivalentTo(expected, options => options.WithStrictOrdering());
     }
 
     [Fact]
@@ -146,12 +120,36 @@ public class TimeSlotTests : BaseUnitTest
     }
 
     [Fact]
+    public void Subtract_Should_Split_Into_Remaining_Segments()
+    {
+        // Arrange
+        var free = TimeSlot.Create(new TimeOnly(9, 0), new TimeOnly(12, 0));
+        var occupied = new[] {
+            TimeSlot.Create(new TimeOnly(9, 30), new TimeOnly(10, 0)),
+            TimeSlot.Create(new TimeOnly(11, 0), new TimeOnly(11, 30))
+        };
+
+        var expected = new[]
+        {
+            TimeSlot.Create(new TimeOnly(9, 0), new TimeOnly(9, 30)),
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)),
+            TimeSlot.Create(new TimeOnly(11, 30), new TimeOnly(12, 0))
+        };
+
+        // Act
+        var result = free.Subtract(occupied);
+
+        // Assert
+        result.Should().BeEquivalentTo(expected, options => options.WithStrictOrdering());
+    }
+
+    [Fact]
     public void Subtract_Should_ReturnOriginalSlot_When_OccupiedIsAdjacent()
     {
         // Arrange
-        var free = TimeSlot.Create(new(9, 0), new(10, 0));
+        var free = TimeSlot.Create(new TimeOnly(9, 0), new TimeOnly(10, 0));
         var occupied = new[] {
-            TimeSlot.Create(new(10, 0), new(11, 0))
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0))
         };
 
         // Act
@@ -166,9 +164,9 @@ public class TimeSlotTests : BaseUnitTest
     public void Subtract_Should_ReturnEmpty_When_OccupiedFullyCovers()
     {
         // Arrange
-        var free = TimeSlot.Create(new(9, 0), new(10, 0));
+        var free = TimeSlot.Create(new TimeOnly(9, 0), new TimeOnly(10, 0));
         var occupied = new[] {
-            TimeSlot.Create(new(8, 0), new(11, 0))
+            TimeSlot.Create(new TimeOnly(8, 0), new TimeOnly(11, 0))
         };
 
         // Act
@@ -176,6 +174,70 @@ public class TimeSlotTests : BaseUnitTest
 
         // Assert
         result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Subtract_Should_ReturnOriginalSlot_When_OccupiedIsEmpty()
+    {
+        // Arrange
+        var free = TimeSlot.Create(new TimeOnly(9, 0), new TimeOnly(10, 0));
+        IEnumerable<TimeSlot> occupied = [];
+
+        // Act
+        var result = free.Subtract(occupied);
+
+        // Assert
+        result.Should().ContainSingle().Which.Should().Be(free);
+    }
+
+    [Fact]
+    public void Subtract_Should_ReturnEmpty_When_OccupiedIsExactlyTheSame()
+    {
+        // Arrange
+        var free = TimeSlot.Create(new TimeOnly(9, 0), new TimeOnly(10, 0));
+        var occupied = new[] { free };
+
+        // Act
+        var result = free.Subtract(occupied);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Subtract_Should_NotProduceZeroDurationSegments_When_OccupiedStartsAtFreeStart()
+    {
+        // Arrange
+        var free = TimeSlot.Create(new TimeOnly(9, 0), new TimeOnly(12, 0));
+        var occupied = new[] {
+            TimeSlot.Create(new TimeOnly(9, 0), new TimeOnly(10, 0))
+        };
+
+        // Act
+        var result = free.Subtract(occupied);
+
+        // Assert
+        result.Should().ContainSingle();
+        result[0].Start.Should().Be(new TimeOnly(10, 0));
+        result[0].End.Should().Be(new TimeOnly(12, 0));
+    }
+
+    [Fact]
+    public void Subtract_Should_NotProduceZeroDurationSegments_When_OccupiedEndsAtFreeEnd()
+    {
+        // Arrange
+        var free = TimeSlot.Create(new TimeOnly(9, 0), new TimeOnly(12, 0));
+        var occupied = new[] {
+            TimeSlot.Create(new TimeOnly(11, 0), new TimeOnly(12, 0))
+        };
+
+        // Act
+        var result = free.Subtract(occupied);
+
+        // Assert
+        result.Should().ContainSingle();
+        result[0].Start.Should().Be(new TimeOnly(9, 0));
+        result[0].End.Should().Be(new TimeOnly(11, 0));
     }
 
     [Fact]

@@ -14,6 +14,7 @@ using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 
+[Trait("Category", "Unit")]
 public class RegisterCustomerCommandHandlerTests
 {
     private readonly Mock<IUserDomainService> _userDomainServiceMock;
@@ -290,8 +291,7 @@ public class RegisterCustomerCommandHandlerTests
                 LogLevel.Critical,
                 It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(RegisterCustomerCommandHandler.FailedToCompensateKeycloakUserMessage.Split('{')[0]) && 
-                    v.ToString()!.Contains(user.Id.ToString())),
+                    v.ToString()!.Contains(RegisterCustomerCommandHandler.FailedToCompensateKeycloakUserMessage.Replace("{UserId}", user.Id.ToString()))),
                 It.Is<Exception>(ex => ex.Message.Contains("Keycloak Failure")),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);

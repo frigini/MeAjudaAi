@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -52,7 +53,7 @@ public sealed class ConfirmBookingCommandHandler(
         catch (InvalidBookingStateException ex)
         {
             logger.LogWarning(ex, "Business rule error confirming booking {BookingId}", command.BookingId);
-            return Result.Failure(Error.BadRequest("Não foi possível confirmar a reserva."));
+            return Result.Failure(Error.BadRequest("Apenas agendamentos pendentes podem ser confirmados.", ErrorCodes.Bookings.InvalidState));
         }
         catch (ConcurrencyConflictException ex)
         {
