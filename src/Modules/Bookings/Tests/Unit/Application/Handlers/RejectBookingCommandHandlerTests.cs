@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
@@ -66,7 +67,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.StatusCode.Should().Be(403);
+        result.Error!.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
     }
 
     [Fact]
@@ -82,7 +83,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(StatusCodes.Status404NotFound);
     }
 
     [Fact]
@@ -106,7 +107,7 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.StatusCode.Should().Be(400);
+        result.Error!.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
         result.Error.Code.Should().Be(ErrorCodes.Bookings.InvalidState);
     }
 
@@ -151,6 +152,6 @@ public class RejectBookingCommandHandlerTests : BaseUnitTest
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.StatusCode.Should().Be(409);
+        result.Error!.StatusCode.Should().Be(StatusCodes.Status409Conflict);
     }
 }

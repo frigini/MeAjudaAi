@@ -1,5 +1,6 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
+using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -17,18 +18,21 @@ public class CompleteBookingEndpoint : IEndpoint
         app.MapPut("/{id}/complete", async (
             Guid id,
             [FromServices] ICommandDispatcher dispatcher,
-            System.Security.Claims.ClaimsPrincipal user,
+            [FromServices] ProviderAuthorizationResolver authResolver,
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
+            var authResult = await authResolver.ResolveAsync(context.User, cancellationToken);
+            if (authResult.FailureKind != AuthorizationFailureKind.None)
+            {
+                var error = authResult.ToProblemResult();
+                if (error != null) return error;
+            }
+
             var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
             var correlationId = Guid.TryParse(correlationIdHeader, out var cId) ? cId : Guid.NewGuid();
 
-            var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
-            var providerIdClaimValue = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
-            Guid? userProviderId = Guid.TryParse(providerIdClaimValue, out var parsedProviderId) ? parsedProviderId : null;
-
-            var command = new CompleteBookingCommand(id, isSystemAdmin, userProviderId, correlationId);
+            var command = new CompleteBookingCommand(id, authResult.IsAdmin, authResult.ProviderId, correlationId);
             var result = await dispatcher.SendAsync<CompleteBookingCommand, Result>(command, cancellationToken);
 
             return result.Match(

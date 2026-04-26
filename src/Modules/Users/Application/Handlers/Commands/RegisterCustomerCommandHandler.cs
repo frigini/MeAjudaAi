@@ -22,6 +22,7 @@ public sealed partial class RegisterCustomerCommandHandler(
     public const string TermsNotAcceptedError = "Você deve aceitar os termos de uso para se cadastrar.";
     public const string PrivacyPolicyNotAcceptedError = "Você deve aceitar a política de privacidade para se cadastrar.";
     public const string FailedToCompensateKeycloakUserMessage = "CRITICAL: Failed to compensate Keycloak user {UserId} after repository failure. Manual cleanup required.";
+    public const string FailedToSaveRegistrationError = "Falha ao salvar o cadastro. Tente novamente mais tarde.";
 
     [GeneratedRegex(@"[^a-zA-Z0-9._\-]", RegexOptions.Compiled)]
     private static partial Regex SanitizationRegex();
@@ -162,9 +163,7 @@ public sealed partial class RegisterCustomerCommandHandler(
                 }
                 catch (Exception compensationEx)
                 {
-                    logger.LogCritical(compensationEx,
-                        "CRITICAL: Failed to compensate Keycloak user {UserId} after repository failure. Manual cleanup required.",
-                        user.Id);
+                    logger.LogCritical(compensationEx, FailedToCompensateKeycloakUserMessage, user.Id);
                 }
             }
             else
@@ -175,7 +174,7 @@ public sealed partial class RegisterCustomerCommandHandler(
             if (ex is OperationCanceledException)
                 throw;
 
-            return Result<UserDto>.Failure(Error.Internal("Falha ao salvar o cadastro. Tente novamente mais tarde."));
+            return Result<UserDto>.Failure(Error.Internal(FailedToSaveRegistrationError));
         }
 
         logger.LogInformation("Customer registered successfully: {Email} ({Id})", maskedEmail, user.Id);

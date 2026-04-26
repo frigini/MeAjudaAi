@@ -34,8 +34,8 @@ public class TimeZoneResolverTests
 
         // Assert
         result.Should().NotBeNull();
-        // Fallback is usually "E. South America Standard Time" or "America/Sao_Paulo"
-        result!.Id.Should().NotBe("Invalid/ID");
+        // Fallback is usually "E. South America Standard Time" (Windows) or "America/Sao_Paulo" (IANA)
+        result!.Id.Should().BeOneOf("E. South America Standard Time", "America/Sao_Paulo");
     }
 
     [Fact]
@@ -44,7 +44,8 @@ public class TimeZoneResolverTests
         // Arrange
         // Em 2024, PST (Pacific) volta o relógio em 3 de Novembro (ambiguidade 01:00-02:00)
         // O horário 01:30 AM acontece duas vezes (PDT depois PST).
-        TimeZoneInfo pst = TestTimeZones.GetPacific();
+        TimeZoneInfo? pst = TestTimeZones.GetPacific();
+        if (pst == null) return;
 
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
@@ -80,7 +81,8 @@ public class TimeZoneResolverTests
     public void CreateValidatedBookingDto_WithStandardTime_ShouldReturnSuccessWithCorrectOffset()
     {
         // Arrange
-        TimeZoneInfo pst = TestTimeZones.GetPacific();
+        TimeZoneInfo? pst = TestTimeZones.GetPacific();
+        if (pst == null) return;
 
         var providerId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
@@ -98,18 +100,43 @@ public class TimeZoneResolverTests
         result.Value.End.Offset.Should().Be(TimeSpan.FromHours(-7));
     }
 
+    [Fact]
+    public void CreateValidatedBookingDto_WithInvalidTime_ShouldReturnFailure()
+    {
+        // Arrange
+        TimeZoneInfo? pst = TestTimeZones.GetPacific();
+        if (pst == null) return;
+
+        var providerId = Guid.NewGuid();
+        var clientId = Guid.NewGuid();
+        var serviceId = Guid.NewGuid();
+        var date = new DateOnly(2024, 3, 10);
+        // Em 2024, PST (Pacific) pula de 02:00 para 03:00 em 10 de Março.
+        // O horário 02:30 AM não existe.
+        var start = new TimeOnly(2, 30);
+        var end = new TimeOnly(3, 30);
+        var slot = TimeSlot.Create(start, end);
+        var booking = Booking.Create(providerId, clientId, serviceId, date, slot);
+
+        // Act
+        var result = TimeZoneResolver.CreateValidatedBookingDto(booking, pst, _loggerMock.Object);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("Horário inválido");
+    }
+
     private static class TestTimeZones
     {
-        public static TimeZoneInfo GetPacific()
+        public static TimeZoneInfo? GetPacific()
         {
-            try
-            {
-                return TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-            }
-            catch (TimeZoneNotFoundException)
-            {
-                return TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles");
-            }
+            if (TimeZoneInfo.TryFindSystemTimeZoneById("Pacific Standard Time", out var tz))
+                return tz;
+            
+            if (TimeZoneInfo.TryFindSystemTimeZoneById("America/Los_Angeles", out tz))
+                return tz;
+
+            return null;
         }
     }
 }

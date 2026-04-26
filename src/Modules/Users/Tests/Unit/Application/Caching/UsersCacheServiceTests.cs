@@ -25,6 +25,9 @@ public class UsersCacheServiceTests
 
     private static bool TagsMatch(IEnumerable<string>? tags, IEnumerable<string> expectedTags)
     {
+        // Nota: Duplicatas na entrada 'tags' serão colapsadas pelo HashSet.
+        // Se a detecção de tags duplicadas se tornar importante para CacheTags.GetUserRelatedTags,
+        // este método deve ser alterado para comparar contagens antes de usar SetEquals.
         if (tags == null) return false;
         return new HashSet<string>(tags).SetEquals(expectedTags);
     }
@@ -70,7 +73,7 @@ public class UsersCacheServiceTests
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
                 expectedUser,
-                It.IsAny<TimeSpan?>(),
+                It.Is<TimeSpan?>(t => t == UsersCacheService.DefaultExpiration),
                 It.IsAny<HybridCacheEntryOptions?>(),
                 It.Is<IReadOnlyCollection<string>?>(t => TagsMatch(t, expectedTags)),
                 _cancellationToken),
@@ -182,7 +185,7 @@ public class UsersCacheServiceTests
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
                 user,
-                UsersCacheService.DefaultExpiration,
+                It.Is<TimeSpan?>(t => t == UsersCacheService.DefaultExpiration),
                 It.IsAny<HybridCacheEntryOptions?>(),
                 It.Is<IReadOnlyCollection<string>?>(t => TagsMatch(t, expectedTags)),
                 _cancellationToken),
@@ -248,7 +251,7 @@ public class UsersCacheServiceTests
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
                 user,
-                UsersCacheService.DefaultExpiration,
+                It.Is<TimeSpan?>(t => t == UsersCacheService.DefaultExpiration),
                 It.IsAny<HybridCacheEntryOptions?>(),
                 It.Is<IReadOnlyCollection<string>?>(t => TagsMatch(t, expectedTags)),
                 _cancellationToken),
@@ -396,7 +399,7 @@ public class UsersCacheServiceTests
             x => x.SetAsync(
                 UsersCacheKeys.UserById(userId),
                 userData,
-                It.IsAny<TimeSpan?>(),
+                It.Is<TimeSpan?>(t => t == UsersCacheService.DefaultExpiration),
                 It.IsAny<HybridCacheEntryOptions?>(),
                 It.Is<IReadOnlyCollection<string>?>(t => TagsMatch(t, expectedTags)),
                 _cancellationToken),

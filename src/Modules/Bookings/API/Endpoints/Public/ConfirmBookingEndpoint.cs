@@ -1,5 +1,6 @@
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
+using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -7,7 +8,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using System.Security.Claims;
 
 namespace MeAjudaAi.Modules.Bookings.API.Endpoints.Public;
 
@@ -18,16 +18,15 @@ public class ConfirmBookingEndpoint : IEndpoint
         app.MapPut("/{id}/confirm", async (
             Guid id,
             [FromServices] ICommandDispatcher dispatcher,
-            ClaimsPrincipal user,
+            [FromServices] ProviderAuthorizationResolver authResolver,
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
-            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-                              user.FindFirst(AuthConstants.Claims.Subject)?.Value;
-
-            if (!Guid.TryParse(userIdClaim, out var userId))
+            var authResult = await authResolver.ResolveAsync(context.User, cancellationToken);
+            if (authResult.FailureKind != AuthorizationFailureKind.None)
             {
-                return Results.Forbid();
+                var error = authResult.ToProblemResult();
+                if (error != null) return error;
             }
 
             var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].ToString();
@@ -36,7 +35,12 @@ public class ConfirmBookingEndpoint : IEndpoint
                 correlationId = Guid.NewGuid();
             }
 
-            var command = new ConfirmBookingCommand(id, correlationId);
+            var command = new ConfirmBookingCommand(
+                id, 
+                authResult.IsAdmin, 
+                authResult.ProviderId, 
+                correlationId);
+            
             var result = await dispatcher.SendAsync<ConfirmBookingCommand, Result>(command, cancellationToken);
 
             return result.Match(

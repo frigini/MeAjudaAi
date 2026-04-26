@@ -4,31 +4,18 @@ using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Exceptions;
-using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Contracts.Utilities.Constants;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 
 public sealed class ConfirmBookingCommandHandler(
     IBookingRepository bookingRepository,
-    IHttpContextAccessor httpContextAccessor,
     ILogger<ConfirmBookingCommandHandler> logger) : ICommandHandler<ConfirmBookingCommand, Result>
 {
     public async Task<Result> HandleAsync(ConfirmBookingCommand command, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Confirming booking {BookingId}", command.BookingId);
-
-        var user = httpContextAccessor.HttpContext?.User;
-        if (user?.Identity?.IsAuthenticated != true)
-        {
-            return Result.Failure(Error.Unauthorized("Usuário não autenticado."));
-        }
-
-        var isSystemAdmin = string.Equals(user.FindFirst(AuthConstants.Claims.IsSystemAdmin)?.Value, "true", StringComparison.OrdinalIgnoreCase);
-        var providerIdClaim = user.FindFirst(AuthConstants.Claims.ProviderId)?.Value;
-        Guid? userProviderId = Guid.TryParse(providerIdClaim, out var pId) ? pId : null;
 
         var booking = await bookingRepository.GetByIdTrackedAsync(command.BookingId, cancellationToken);
         if (booking == null)
@@ -37,8 +24,8 @@ public sealed class ConfirmBookingCommandHandler(
         }
 
         // 1. Validar Autorização (Somente o Provider dono ou Admin)
-        var isAuthorized = isSystemAdmin || 
-                           (userProviderId.HasValue && userProviderId.Value == booking.ProviderId);
+        var isAuthorized = command.IsSystemAdmin || 
+                           (command.UserProviderId.HasValue && command.UserProviderId.Value == booking.ProviderId);
 
         if (!isAuthorized)
         {

@@ -3,6 +3,7 @@ using MeAjudaAi.Contracts.Models;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Queries;
+using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Utilities.Constants;
@@ -27,7 +28,6 @@ public class GetProviderBookingsEndpoint : IEndpoint
             [FromQuery] DateTime? from,
             [FromQuery] DateTime? to,
             [FromServices] IQueryDispatcher dispatcher,
-            [FromServices] IProvidersModuleApi providersApi,
             [FromServices] ProviderAuthorizationResolver authResolver,
             [FromServices] ILogger<GetProviderBookingsEndpoint> logger,
             HttpContext context,
@@ -43,7 +43,7 @@ public class GetProviderBookingsEndpoint : IEndpoint
                 ? Math.Clamp(pageSize.Value, 1, MaxPageSize) 
                 : 10;
 
-            var authResult = await authResolver.ResolveAsync(context, providersApi, cancellationToken);
+            var authResult = await authResolver.ResolveAsync(context.User, cancellationToken);
 
             var authError = authResult.ToProblemResult();
             if (authError != null)

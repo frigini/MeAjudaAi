@@ -16,7 +16,7 @@ using Moq;
 using FluentAssertions;
 using Xunit;
 
-// Aliases to avoid ambiguity
+// Aliases para evitar ambiguidade
 using ProviderDto = MeAjudaAi.Modules.Providers.Application.DTOs.ProviderDto;
 using BusinessProfileDto = MeAjudaAi.Modules.Providers.Application.DTOs.BusinessProfileDto;
 using ContactInfoDto = MeAjudaAi.Modules.Providers.Application.DTOs.ContactInfoDto;

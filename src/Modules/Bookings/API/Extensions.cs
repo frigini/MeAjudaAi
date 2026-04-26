@@ -18,7 +18,6 @@ public static class Extensions
     {
         services.AddApplication();
         services.AddInfrastructure(configuration, environment);
-        services.AddScoped<ProviderAuthorizationResolver>();
 
         return services;
     }

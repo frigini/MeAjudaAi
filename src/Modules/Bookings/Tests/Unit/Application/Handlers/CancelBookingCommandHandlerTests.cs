@@ -6,10 +6,8 @@ using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
-using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using Moq;
 using FluentAssertions;
 using Xunit;
@@ -20,7 +18,6 @@ namespace MeAjudaAi.Modules.Bookings.Tests.Unit.Application.Handlers;
 public class CancelBookingCommandHandlerTests : BaseUnitTest
 {
     private readonly Mock<IBookingRepository> _bookingRepoMock = new();
-    private readonly Mock<IHttpContextAccessor> _httpContextMock = new();
     private readonly Mock<ILogger<CancelBookingCommandHandler>> _loggerMock = new();
     private readonly CancelBookingCommandHandler _sut;
 
@@ -28,7 +25,6 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
     {
         _sut = new CancelBookingCommandHandler(
             _bookingRepoMock.Object,
-            _httpContextMock.Object,
             _loggerMock.Object);
     }
 
@@ -44,10 +40,8 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        SetupUser(clientId, null);
-
         // Act
-        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Reason", Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Reason", false, null, clientId, Guid.NewGuid()));
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -67,10 +61,8 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        SetupUser(Guid.NewGuid(), providerId);
-
         // Act
-        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Provider Reason", Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Provider Reason", false, providerId, null, Guid.NewGuid()));
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -89,14 +81,12 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        SetupUser(Guid.NewGuid(), null); // Usuário aleatório
-
         // Act
-        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Reason", Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Reason", false, null, Guid.NewGuid(), Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.StatusCode.Should().Be(403);
+        result.Error!.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
     }
 
     [Fact]
@@ -110,14 +100,12 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        SetupUser(Guid.NewGuid(), Guid.NewGuid()); // Outro prestador
-
         // Act
-        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Reason", Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Reason", false, Guid.NewGuid(), null, Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.StatusCode.Should().Be(403);
+        result.Error!.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
     }
 
     [Fact]
@@ -131,10 +119,8 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        SetupUser(Guid.NewGuid(), null, isSystemAdmin: true);
-
         // Act
-        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Admin Reason", Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Admin Reason", true, null, null, Guid.NewGuid()));
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -156,28 +142,12 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.UpdateAsync(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new MeAjudaAi.Shared.Exceptions.ConcurrencyConflictException());
 
-        SetupUser(clientId, null);
-
         // Act
-        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Reason", Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Reason", false, null, clientId, Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.StatusCode.Should().Be(409);
-    }
-
-    [Fact]
-    public async Task HandleAsync_Should_ReturnUnauthorized_When_UserNotAuthenticated()
-    {
-        // Arrange
-        _httpContextMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext()); // Sem usuário
-
-        // Act
-        var result = await _sut.HandleAsync(new CancelBookingCommand(Guid.NewGuid(), "Reason", Guid.NewGuid()));
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error!.StatusCode.Should().Be(401);
+        result.Error!.StatusCode.Should().Be(StatusCodes.Status409Conflict);
     }
 
     [Fact]
@@ -186,14 +156,13 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         // Arrange
         _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Booking?)null);
-        SetupUser(Guid.NewGuid(), null);
 
         // Act
-        var result = await _sut.HandleAsync(new CancelBookingCommand(Guid.NewGuid(), "Reason", Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new CancelBookingCommand(Guid.NewGuid(), "Reason", false, null, null, Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.StatusCode.Should().Be(404);
+        result.Error!.StatusCode.Should().Be(StatusCodes.Status404NotFound);
     }
 
     [Fact]
@@ -211,37 +180,12 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        SetupUser(clientId, null);
-
         // Act
-        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Reason", Guid.NewGuid()));
+        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Reason", false, null, clientId, Guid.NewGuid()));
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.StatusCode.Should().Be(400);
+        result.Error!.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
         result.Error.Code.Should().Be(ErrorCodes.Bookings.InvalidState);
-    }
-
-    private void SetupUser(Guid userId, Guid? providerId, bool isSystemAdmin = false)
-    {
-        var claims = new List<Claim>
-        {
-            new(AuthConstants.Claims.Subject, userId.ToString())
-        };
-
-        if (providerId.HasValue)
-        {
-            claims.Add(new Claim(AuthConstants.Claims.ProviderId, providerId.Value.ToString()));
-        }
-
-        if (isSystemAdmin)
-        {
-            claims.Add(new Claim(AuthConstants.Claims.IsSystemAdmin, "true"));
-        }
-
-        var identity = new ClaimsIdentity(claims, "Test");
-        var principal = new ClaimsPrincipal(identity);
-        var context = new DefaultHttpContext { User = principal };
-        _httpContextMock.Setup(x => x.HttpContext).Returns(context);
     }
 }

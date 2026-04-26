@@ -5,4 +5,6 @@ namespace MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 
 public record ConfirmBookingCommand(
     Guid BookingId,
+    bool IsSystemAdmin,
+    Guid? UserProviderId,
     Guid CorrelationId) : ICommand<Result>;

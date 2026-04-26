@@ -228,7 +228,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Falha ao salvar o cadastro");
+        result.Error.Message.Should().Be(RegisterCustomerCommandHandler.FailedToSaveRegistrationError);
         _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -253,7 +253,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Falha ao salvar o cadastro");
+        result.Error.Message.Should().Be(RegisterCustomerCommandHandler.FailedToSaveRegistrationError);
         _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -283,7 +283,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Falha ao salvar o cadastro");
+        result.Error.Message.Should().Be(RegisterCustomerCommandHandler.FailedToSaveRegistrationError);
         _userDomainServiceMock.Verify(x => x.DeactivateUserInKeycloakAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
 
         _loggerMock.Verify(
