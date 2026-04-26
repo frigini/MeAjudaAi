@@ -141,21 +141,35 @@ public sealed class ProviderAuthorizationResolver(
         CancellationToken cancellationToken = default)
     {
         var authResult = await ResolveAsync(user, cancellationToken);
+        return AuthorizeBookingOperation(
+            authResult.IsAdmin, 
+            authResult.ProviderId, 
+            authResult.UserId, 
+            bookingClientId, 
+            bookingProviderId);
+    }
 
-        if (authResult.IsAdmin) return Result.Success();
+    /// <summary>
+    /// Lógica centralizada de autorização para agendamentos.
+    /// Pode ser usada em Handlers que recebem dados de autorização via Comando.
+    /// </summary>
+    public static Result AuthorizeBookingOperation(
+        bool isSystemAdmin,
+        Guid? userProviderId,
+        Guid? userClientId,
+        Guid? bookingClientId,
+        Guid? bookingProviderId)
+    {
+        if (isSystemAdmin) return Result.Success();
 
         // 1. Verificar se é o Dono (Cliente)
-        if (bookingClientId.HasValue)
+        if (bookingClientId.HasValue && userClientId.HasValue && userClientId.Value == bookingClientId.Value)
         {
-            var userIdClaim = user.FindFirst(AuthConstants.Claims.Subject)?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var userId) && userId == bookingClientId.Value)
-            {
-                return Result.Success();
-            }
+            return Result.Success();
         }
 
         // 2. Verificar se é o Prestador
-        if (bookingProviderId.HasValue && authResult.ProviderId == bookingProviderId.Value)
+        if (bookingProviderId.HasValue && userProviderId.HasValue && userProviderId.Value == bookingProviderId.Value)
         {
             return Result.Success();
         }

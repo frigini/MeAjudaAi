@@ -43,7 +43,6 @@ public class BookingsApiTests : BaseApiTest
             new DateTimeOffset(start.AddHours(1), TimeSpan.Zero));
 
         AuthConfig.ConfigureRegularUser(Guid.NewGuid().ToString());
-        Client.AsTestInstance();
 
         var response = await Client.PostAsJsonAsync("/api/v1/bookings", request);
 
@@ -66,8 +65,7 @@ public class BookingsApiTests : BaseApiTest
         var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
         var dateString = tomorrow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
-        AuthConfig.ConfigureRegularUser("client-id");
-        Client.AsTestInstance();
+        AuthConfig.ConfigureRegularUser(Guid.NewGuid().ToString());
 
         var response = await Client.GetAsync($"/api/v1/bookings/availability/{providerId}?date={dateString}");
 
@@ -92,8 +90,7 @@ public class BookingsApiTests : BaseApiTest
         };
         var request = new SetProviderScheduleRequest(providerId, availabilities);
 
-        AuthConfig.ConfigureProvider(providerId, "provider-user-id");
-        Client.AsTestInstance();
+        AuthConfig.ConfigureProvider(providerId, Guid.NewGuid().ToString());
 
         var response = await Client.PostAsJsonAsync("/api/v1/bookings/schedule", request);
 
@@ -111,8 +108,7 @@ public class BookingsApiTests : BaseApiTest
         // Criar agendamento para o OUTRO provedor
         await CreateTestBookingAsync(otherProviderId, Guid.NewGuid(), serviceId);
         
-        AuthConfig.ConfigureProvider(providerId, "provider-user-id");
-        Client.AsTestInstance();
+        AuthConfig.ConfigureProvider(providerId, Guid.NewGuid().ToString());
 
         var response = await Client.GetAsync($"/api/v1/bookings/provider/{providerId}");
 
@@ -134,7 +130,6 @@ public class BookingsApiTests : BaseApiTest
         var bookingId = await CreateTestBookingAsync(providerId, clientId, serviceId);
 
         AuthConfig.ConfigureRegularUser(clientId.ToString());
-        Client.AsTestInstance();
 
         var response = await Client.GetAsync($"/api/v1/bookings/{bookingId}");
 
@@ -156,7 +151,6 @@ public class BookingsApiTests : BaseApiTest
         var bookingId = await CreateTestBookingAsync(providerId, clientId, serviceId);
 
         AuthConfig.ConfigureRegularUser(clientId.ToString());
-        Client.AsTestInstance();
 
         var cancelRequest = new CancelBookingRequest("Test Cancel");
         var response = await Client.PutAsJsonAsync($"/api/v1/bookings/{bookingId}/cancel", cancelRequest);
@@ -176,7 +170,6 @@ public class BookingsApiTests : BaseApiTest
         await CreateTestBookingAsync(providerId, clientId, serviceId);
 
         AuthConfig.ConfigureRegularUser(clientId.ToString());
-        Client.AsTestInstance();
 
         var response = await Client.GetAsync("/api/v1/bookings/my");
 

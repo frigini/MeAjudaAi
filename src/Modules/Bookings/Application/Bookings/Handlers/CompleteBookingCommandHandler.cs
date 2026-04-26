@@ -2,6 +2,7 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
+using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Utilities.Constants;
@@ -24,12 +25,16 @@ public sealed class CompleteBookingCommandHandler(
         }
 
         // 1. Validar Autorização (Somente o Provider dono ou Admin)
-        var isAuthorized = command.IsSystemAdmin || 
-                           (command.UserProviderId.HasValue && command.UserProviderId.Value == booking.ProviderId);
+        var authResult = ProviderAuthorizationResolver.AuthorizeBookingOperation(
+            command.IsSystemAdmin,
+            command.UserProviderId,
+            null, // Clientes não podem completar
+            null,
+            booking.ProviderId);
 
-        if (!isAuthorized)
+        if (authResult.IsFailure)
         {
-            return Result.Failure(Error.Forbidden("Você não tem permissão para concluir este agendamento."));
+            return authResult;
         }
 
         try

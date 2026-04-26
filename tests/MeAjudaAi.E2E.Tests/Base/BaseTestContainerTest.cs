@@ -539,7 +539,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     /// <summary>
     /// Configura autenticação como usuário regular para testes
     /// </summary>
-    protected static void AuthenticateAsUser(string userId = "test-user-id", string username = "testuser")
+    protected static void AuthenticateAsUser(string userId = "00000000-0000-0000-0000-000000000002", string username = "testuser")
     {
         ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
         ConfigurableTestAuthenticationHandler.ConfigureRegularUser(userId, username);

@@ -24,7 +24,7 @@ public class CancelBookingEndpoint : IEndpoint
             CancellationToken cancellationToken) =>
         {
             var authResult = await authResolver.ResolveAsync(context.User, cancellationToken);
-            if (authResult.FailureKind != AuthorizationFailureKind.None)
+            if (authResult.FailureKind != AuthorizationFailureKind.None && authResult.FailureKind != AuthorizationFailureKind.NotLinked)
             {
                 var error = authResult.ToProblemResult();
                 if (error != null) return error;

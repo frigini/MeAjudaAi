@@ -208,7 +208,7 @@ public class ConfigurableTestAuthenticationHandler(
     /// <param name="userId">O ID do usuário</param>
     /// <param name="userName">O nome de usuário</param>
     /// <param name="email">O email do usuário</param>
-    public static void ConfigureAdmin(string userId = "admin-id", string userName = "admin", string email = "admin@test.com")
+    public static void ConfigureAdmin(string userId = "00000000-0000-0000-0000-000000000001", string userName = "admin", string email = "admin@test.com")
     {
         ConfigureUser(
             userId,
@@ -225,7 +225,7 @@ public class ConfigurableTestAuthenticationHandler(
     /// <param name="userId">O ID do usuário</param>
     /// <param name="username">O nome de usuário</param>
     /// <param name="email">O email do usuário</param>
-    public static void ConfigureRegularUser(string userId = "user-id", string username = "user", string email = "user@test.com")
+    public static void ConfigureRegularUser(string userId = "00000000-0000-0000-0000-000000000002", string username = "user", string email = "user@test.com")
     {
         ConfigureUserWithRoles(userId, username, email, "user");
     }
@@ -233,7 +233,7 @@ public class ConfigurableTestAuthenticationHandler(
     /// <summary>
     /// Configura um usuário prestador com um ID de prestador específico.
     /// </summary>
-    public static void ConfigureProvider(Guid providerId, string userId = "provider-id", string username = "provider", string email = "provider@test.com", bool isSystemAdmin = false)
+    public static void ConfigureProvider(Guid providerId, string userId = "00000000-0000-0000-0000-000000000003", string username = "provider", string email = "provider@test.com", bool isSystemAdmin = false)
     {
         var contextId = GetOrCreateTestContext();
         _userConfigs[contextId] = new UserConfig(

@@ -50,6 +50,26 @@ public class CancelBookingCommandHandlerTests : BaseUnitTest
     }
 
     [Fact]
+    public async Task HandleAsync_Should_Cancel_When_OwnerIdentifiedByUserId()
+    {
+        // Arrange
+        var clientId = Guid.NewGuid();
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var booking = Booking.Create(Guid.NewGuid(), clientId, Guid.NewGuid(), tomorrow,
+            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
+        
+        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+
+        // Act - Simulando o claim vindo do NameIdentifier mapeado para UserClientId no comando
+        var result = await _sut.HandleAsync(new CancelBookingCommand(booking.Id, "Reason", false, null, clientId, Guid.NewGuid()));
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        booking.Status.Should().Be(EBookingStatus.Cancelled);
+    }
+
+    [Fact]
     public async Task HandleAsync_Should_Cancel_When_UserIsProviderOwner()
     {
         // Arrange
