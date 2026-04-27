@@ -180,6 +180,20 @@ public static class MessagingExtensions
             return;
         }
 
+        var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
+                     Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? 
+                     EnvironmentNames.Development;
+        var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
+        var isTestingEnvironment = envName == EnvironmentNames.Testing ||
+                                 envName.Equals("Testing", StringComparison.OrdinalIgnoreCase) ||
+                                 integrationTests == "true" ||
+                                 integrationTests == "1";
+
+        if (isTestingEnvironment)
+        {
+            return;
+        }
+
         using var scope = host.Services.CreateScope();
         var manager = scope.ServiceProvider.GetService<IRabbitMqInfrastructureManager>();
         if (manager is null)

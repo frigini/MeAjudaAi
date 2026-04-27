@@ -121,41 +121,65 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
 
     public async Task CreateQueueAsync(string queueName, bool durable = true)
     {
-        var channel = await GetChannelAsync();
-        _logger.LogDebug("Declaring queue: {QueueName} (durable: {Durable})", queueName, durable);
-        
-        await channel.QueueDeclareAsync(
-            queue: queueName,
-            durable: durable,
-            exclusive: false,
-            autoDelete: false,
-            arguments: null);
+        await _channelLock.WaitAsync();
+        try
+        {
+            var channel = await GetChannelAsync();
+            _logger.LogDebug("Declaring queue: {QueueName} (durable: {Durable})", queueName, durable);
+            
+            await channel.QueueDeclareAsync(
+                queue: queueName,
+                durable: durable,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
+        }
+        finally
+        {
+            _channelLock.Release();
+        }
     }
 
     public async Task CreateExchangeAsync(string exchangeName, string exchangeType = ExchangeType.Topic)
     {
-        var channel = await GetChannelAsync();
-        _logger.LogDebug("Declaring exchange: {ExchangeName} (type: {ExchangeType})", exchangeName, exchangeType);
-        
-        await channel.ExchangeDeclareAsync(
-            exchange: exchangeName,
-            type: exchangeType,
-            durable: true,
-            autoDelete: false,
-            arguments: null);
+        await _channelLock.WaitAsync();
+        try
+        {
+            var channel = await GetChannelAsync();
+            _logger.LogDebug("Declaring exchange: {ExchangeName} (type: {ExchangeType})", exchangeName, exchangeType);
+            
+            await channel.ExchangeDeclareAsync(
+                exchange: exchangeName,
+                type: exchangeType,
+                durable: true,
+                autoDelete: false,
+                arguments: null);
+        }
+        finally
+        {
+            _channelLock.Release();
+        }
     }
 
     public async Task BindQueueToExchangeAsync(string queueName, string exchangeName, string routingKey = "")
     {
-        var channel = await GetChannelAsync();
-        _logger.LogDebug("Binding queue {QueueName} to exchange {ExchangeName} with routing key '{RoutingKey}'",
-            queueName, exchangeName, routingKey);
-        
-        await channel.QueueBindAsync(
-            queue: queueName,
-            exchange: exchangeName,
-            routingKey: routingKey,
-            arguments: null);
+        await _channelLock.WaitAsync();
+        try
+        {
+            var channel = await GetChannelAsync();
+            _logger.LogDebug("Binding queue {QueueName} to exchange {ExchangeName} with routing key '{RoutingKey}'",
+                queueName, exchangeName, routingKey);
+            
+            await channel.QueueBindAsync(
+                queue: queueName,
+                exchange: exchangeName,
+                routingKey: routingKey,
+                arguments: null);
+        }
+        finally
+        {
+            _channelLock.Release();
+        }
     }
 
     public async ValueTask DisposeAsync()

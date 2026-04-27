@@ -20,6 +20,7 @@ public class RabbitMqInfrastructureManagerTests
     private readonly RabbitMqInfrastructureManager _sut;
 
     private readonly List<string> _declaredQueues = new();
+    private readonly List<bool> _declaredQueueDurables = new();
 
     public RabbitMqInfrastructureManagerTests()
     {
@@ -39,6 +40,7 @@ public class RabbitMqInfrastructureManagerTests
             .ReturnsAsync((string name, bool d, bool e, bool a, IDictionary<string, object?> args, bool p, bool nw, CancellationToken ct) => 
             {
                 _declaredQueues.Add(name);
+                _declaredQueueDurables.Add(d);
                 return new QueueDeclareOk(name, 0, 0);
             });
 
@@ -118,6 +120,20 @@ public class RabbitMqInfrastructureManagerTests
 
         // Assert
         _declaredQueues.Should().Contain("my-queue");
+        var index = _declaredQueues.IndexOf("my-queue");
+        _declaredQueueDurables[index].Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task CreateQueueAsync_WithDurableTrue_ShouldPassDurableTrueToChannel()
+    {
+        // Act
+        await _sut.CreateQueueAsync("durable-queue", true);
+
+        // Assert
+        _declaredQueues.Should().Contain("durable-queue");
+        var index = _declaredQueues.IndexOf("durable-queue");
+        _declaredQueueDurables[index].Should().BeTrue();
     }
 
     private class TestEvent { }

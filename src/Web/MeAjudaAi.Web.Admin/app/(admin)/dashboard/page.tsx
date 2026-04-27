@@ -25,7 +25,7 @@ const verificationColors = {
 const typeColors = {
   individual: "#8b5cf6",
   company: "#06b6d4",
-  freelancer: "#D96704", // Brand Secondary Orange
+  freelancer: "#D96704", // Marca secundária — laranja
   cooperative: "#ec4899",
 };
 
