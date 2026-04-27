@@ -31,9 +31,9 @@
       },
       "Microsoft.AspNetCore.Authentication.JwtBearer": {
         "type": "Direct",
-        "requested": "[10.0.6, )",
-        "resolved": "10.0.6",
-        "contentHash": "JVPyTTr5J/Z5PikptDP2g8qwNJBJ09GZ7yHpaPDAMZ0qKeA2ZKqpZhUNJk1clBqZJeMj2T7gZ5o6oOrmLxuBdw==",
+        "requested": "[10.0.7, )",
+        "resolved": "10.0.7",
+        "contentHash": "g8klpd7OFJfJOq1EJKcBO8C8I8Dp0QUWoKDPUvvJYe+xunVyBHq6YxfF2CAc6+rkniV25iaWl+6RK87c25n4lA==",
         "dependencies": {
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "8.0.1"
         }
@@ -65,9 +65,9 @@
       },
       "SonarAnalyzer.CSharp": {
         "type": "Direct",
-        "requested": "[10.24.0.138807, )",
-        "resolved": "10.24.0.138807",
-        "contentHash": "+ZEa1+KhNSulMSatpffgHnovbLGtYL9oukMh8uQp8RBDnPOjEFzvECSa4kfu1D4PJxErksiGOQQ+kDeao1x9jQ=="
+        "requested": "[10.25.0.139117, )",
+        "resolved": "10.25.0.139117",
+        "contentHash": "2iBZIkcgsaUNyIPFqR9ECv5PLbAwV9I/v/PeEiMdkfhWEAnqD7VyNXzukQDlL/D24f5OoUc4MbWF5SgYI7x3CA=="
       },
       "Swashbuckle.AspNetCore": {
         "type": "Direct",
@@ -92,8 +92,8 @@
       },
       "Asp.Versioning.Abstractions": {
         "type": "Transitive",
-        "resolved": "8.1.0",
-        "contentHash": "mpeNZyMdvrHztJwR1sXIUQ+3iioEU97YMBnFA9WLbsPOYhGwDJnqJMmEd8ny7kcmS9OjTHoEuX/bSXXY3brIFA=="
+        "resolved": "10.0.0",
+        "contentHash": "cMRE5nvNMfBgfkb0XFWst/7UtyXCjoAXnV0L4Scx4P9fcf0idgrj1Z0c+3ylsy01K4cOib7dKhCBfpg5z3r0Kg=="
       },
       "AspNetCore.HealthChecks.UI.Core": {
         "type": "Transitive",
@@ -211,13 +211,13 @@
       },
       "Microsoft.EntityFrameworkCore.Abstractions": {
         "type": "Transitive",
-        "resolved": "10.0.6",
-        "contentHash": "4F+e6uxhVmyduu+Ve1INxek94adt4RAddWqykXNDnOOWQrJJ20izw/9qRpZdkLnIW9oj/3qnLWUtsv37U0xJCw=="
+        "resolved": "10.0.7",
+        "contentHash": "TuxExnfIS/bSq3z2CbH0LwZH1oyj9iHhSGneU4fpxl3ikjZGZdSae9gcfnImV1rufH8f/ab1NnHwyL2BLyeZOg=="
       },
       "Microsoft.EntityFrameworkCore.Analyzers": {
         "type": "Transitive",
-        "resolved": "10.0.6",
-        "contentHash": "PIcmALdKzeSJNWmxsLDsS8XKFqiH5+9GzIM+qd3w1efYIwmO0w5304i37/SkfynctHZwkiiQjb2mkoIXU1CGZg=="
+        "resolved": "10.0.7",
+        "contentHash": "eZnMyiJzo249Ejg5CaFScvJS0u7neQfS9DXknAHTO6FHVMM99gO0byNXHGZmA/BOkZ13ngeVziQLHTMOtgescg=="
       },
       "Microsoft.Extensions.AmbientMetadata.Application": {
         "type": "Transitive",
@@ -278,8 +278,8 @@
       },
       "Microsoft.FeatureManagement": {
         "type": "Transitive",
-        "resolved": "4.4.0",
-        "contentHash": "qxvGAv9WJHYfOpixWywJTa1WNTPy5MbQiv+O+UlE6E/LVofiM1+YRR6m41zsHIbAGm1S0PQ0QFuAsOw9DkoKsg==",
+        "resolved": "4.5.0",
+        "contentHash": "9VBxTZUwna9x31+OmOyX0DTBGEuvVrV81fAZ/XRkLESuDu5EZn/o6W8454NWOPHBIUyTGTMpYOFzI8ArkCNmCg==",
         "dependencies": {
           "Microsoft.Bcl.TimeProvider": "8.0.1"
         }
@@ -597,7 +597,7 @@
         "dependencies": {
           "MeAjudaAi.Modules.Bookings.Application": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.6, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.7, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )"
         }
       },
@@ -607,7 +607,7 @@
           "MeAjudaAi.Modules.Communications.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Communications.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore.Relational": "[10.0.6, )"
+          "Microsoft.EntityFrameworkCore.Relational": "[10.0.7, )"
         }
       },
       "meajudaai.modules.communications.application": {
@@ -635,12 +635,12 @@
       "meajudaai.modules.documents.api": {
         "type": "Project",
         "dependencies": {
-          "Asp.Versioning.Http": "[8.1.1, )",
-          "Asp.Versioning.Mvc.ApiExplorer": "[8.1.1, )",
+          "Asp.Versioning.Http": "[10.0.0, )",
+          "Asp.Versioning.Mvc.ApiExplorer": "[10.0.0, )",
           "MeAjudaAi.Modules.Documents.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.AspNetCore.OpenApi": "[10.0.6, )"
+          "Microsoft.AspNetCore.OpenApi": "[10.0.7, )"
         }
       },
       "meajudaai.modules.documents.application": {
@@ -665,19 +665,19 @@
           "MeAjudaAi.Modules.Documents.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.6, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.7, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )"
         }
       },
       "meajudaai.modules.locations.api": {
         "type": "Project",
         "dependencies": {
-          "Asp.Versioning.Http": "[8.1.1, )",
-          "Asp.Versioning.Mvc.ApiExplorer": "[8.1.1, )",
+          "Asp.Versioning.Http": "[10.0.0, )",
+          "Asp.Versioning.Mvc.ApiExplorer": "[10.0.0, )",
           "MeAjudaAi.Modules.Locations.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.AspNetCore.OpenApi": "[10.0.6, )"
+          "Microsoft.AspNetCore.OpenApi": "[10.0.7, )"
         }
       },
       "meajudaai.modules.locations.application": {
@@ -725,9 +725,9 @@
         "type": "Project",
         "dependencies": {
           "MeAjudaAi.Modules.Payments.Application": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.6, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.7, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
-          "Stripe.net": "[51.0.0, )"
+          "Stripe.net": "[51.1.0, )"
         }
       },
       "meajudaai.modules.providers.api": {
@@ -736,7 +736,7 @@
           "MeAjudaAi.Modules.Providers.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Providers.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore.Relational": "[10.0.6, )"
+          "Microsoft.EntityFrameworkCore.Relational": "[10.0.7, )"
         }
       },
       "meajudaai.modules.providers.application": {
@@ -772,7 +772,7 @@
         "type": "Project",
         "dependencies": {
           "MeAjudaAi.Modules.Ratings.Domain": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.6, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.7, )",
           "Npgsql": "[10.0.2, )"
         }
       },
@@ -786,20 +786,20 @@
         "type": "Project",
         "dependencies": {
           "MeAjudaAi.Modules.Ratings.Application": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.6, )",
-          "Microsoft.EntityFrameworkCore.Design": "[10.0.6, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.7, )",
+          "Microsoft.EntityFrameworkCore.Design": "[10.0.7, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )"
         }
       },
       "meajudaai.modules.searchproviders.api": {
         "type": "Project",
         "dependencies": {
-          "Asp.Versioning.Http": "[8.1.1, )",
-          "Asp.Versioning.Mvc.ApiExplorer": "[8.1.1, )",
+          "Asp.Versioning.Http": "[10.0.0, )",
+          "Asp.Versioning.Mvc.ApiExplorer": "[10.0.0, )",
           "MeAjudaAi.Modules.SearchProviders.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.SearchProviders.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.AspNetCore.OpenApi": "[10.0.6, )"
+          "Microsoft.AspNetCore.OpenApi": "[10.0.7, )"
         }
       },
       "meajudaai.modules.searchproviders.application": {
@@ -822,7 +822,7 @@
           "MeAjudaAi.Modules.SearchProviders.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.SearchProviders.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.6, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.7, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite": "[10.0.1, )"
         }
@@ -833,7 +833,7 @@
           "MeAjudaAi.Modules.ServiceCatalogs.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore.Relational": "[10.0.6, )"
+          "Microsoft.EntityFrameworkCore.Relational": "[10.0.7, )"
         }
       },
       "meajudaai.modules.servicecatalogs.application": {
@@ -864,7 +864,7 @@
           "MeAjudaAi.Modules.Users.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Users.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore.Relational": "[10.0.6, )"
+          "Microsoft.EntityFrameworkCore.Relational": "[10.0.7, )"
         }
       },
       "meajudaai.modules.users.application": {
@@ -887,8 +887,8 @@
           "MeAjudaAi.Modules.Users.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Users.Domain": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.6, )",
-          "Microsoft.EntityFrameworkCore.Relational": "[10.0.6, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.7, )",
+          "Microsoft.EntityFrameworkCore.Relational": "[10.0.7, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
           "System.IdentityModel.Tokens.Jwt": "[8.17.0, )"
         }
@@ -896,11 +896,11 @@
       "meajudaai.servicedefaults": {
         "type": "Project",
         "dependencies": {
-          "Aspire.Npgsql": "[13.2.2, )",
+          "Aspire.Npgsql": "[13.2.4, )",
           "Azure.Monitor.OpenTelemetry.AspNetCore": "[1.4.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.Extensions.Http.Resilience": "[10.5.0, )",
-          "Microsoft.FeatureManagement.AspNetCore": "[4.4.0, )",
+          "Microsoft.FeatureManagement.AspNetCore": "[4.5.0, )",
           "OpenTelemetry.Exporter.Console": "[1.15.3, )",
           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.15.3, )",
           "OpenTelemetry.Extensions.Hosting": "[1.15.3, )",
@@ -913,8 +913,8 @@
       "meajudaai.shared": {
         "type": "Project",
         "dependencies": {
-          "Asp.Versioning.Mvc": "[8.1.1, )",
-          "Asp.Versioning.Mvc.ApiExplorer": "[8.1.1, )",
+          "Asp.Versioning.Mvc": "[10.0.0, )",
+          "Asp.Versioning.Mvc.ApiExplorer": "[10.0.0, )",
           "AspNetCore.HealthChecks.Npgsql": "[9.0.0, )",
           "AspNetCore.HealthChecks.Redis": "[9.0.0, )",
           "Dapper": "[2.1.72, )",
@@ -925,12 +925,12 @@
           "Hangfire.Core": "[1.8.23, )",
           "Hangfire.PostgreSql": "[1.21.1, )",
           "MeAjudaAi.Contracts": "[1.0.0, )",
-          "Microsoft.AspNetCore.OpenApi": "[10.0.6, )",
-          "Microsoft.EntityFrameworkCore": "[10.0.6, )",
-          "Microsoft.EntityFrameworkCore.Design": "[10.0.6, )",
+          "Microsoft.AspNetCore.OpenApi": "[10.0.7, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.7, )",
+          "Microsoft.EntityFrameworkCore.Design": "[10.0.7, )",
           "Microsoft.Extensions.Caching.Hybrid": "[10.5.0, )",
-          "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.6, )",
-          "Microsoft.FeatureManagement.AspNetCore": "[4.4.0, )",
+          "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.7, )",
+          "Microsoft.FeatureManagement.AspNetCore": "[4.5.0, )",
           "Newtonsoft.Json": "[13.0.4, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.1, )",
           "RabbitMQ.Client": "[7.2.1, )",
@@ -950,41 +950,41 @@
       },
       "Asp.Versioning.Http": {
         "type": "CentralTransitive",
-        "requested": "[8.1.1, )",
-        "resolved": "8.1.1",
-        "contentHash": "1D/Mzq1MSUSQe1eCY6GeEsu+tIlpzoWZxZkhlcw/uvtVoTrwO+BMl0fSj/XX8oZN1DutWTZqHDHgyDRq+IeSdQ==",
+        "requested": "[10.0.0, )",
+        "resolved": "10.0.0",
+        "contentHash": "xmNm9FM2d20NKy7i1osEQysf7pJ4iJjWnM6e8CoeIhUREqG8nugsfC82pGpmzlatjAJL5T52ieSpyW+GFdSsSQ==",
         "dependencies": {
-          "Asp.Versioning.Abstractions": "8.1.0"
+          "Asp.Versioning.Abstractions": "10.0.0"
         }
       },
       "Asp.Versioning.Mvc": {
         "type": "CentralTransitive",
-        "requested": "[8.1.1, )",
-        "resolved": "8.1.1",
-        "contentHash": "mkJv6eAdlbHbqTdrUcfEYFoZuGL6HoR7O+Lfsvivixp7N5BNhfCFPPOwsBzdIiH1qzdJXyJf+C+DZ08j27PMPg==",
+        "requested": "[10.0.0, )",
+        "resolved": "10.0.0",
+        "contentHash": "W0wZ+0uZ0UK4KstjvEkNBZ0xxhBmxunwNg8582SVyyW7txQmSXibtm8fC4o82LaemPquYskms67bIbJOSrnlug==",
         "dependencies": {
-          "Asp.Versioning.Http": "8.1.1"
+          "Asp.Versioning.Http": "10.0.0"
         }
       },
       "Asp.Versioning.Mvc.ApiExplorer": {
         "type": "CentralTransitive",
-        "requested": "[8.1.1, )",
-        "resolved": "8.1.1",
-        "contentHash": "u8PrP6CjmurgIh0EDfg8Gc/GdpDHgkbv8OLKdxQcWb5W4sp0i9BcdbQlLvRcATjNIJUyr7ZmqXjmdsFfqnuy0g==",
+        "requested": "[10.0.0, )",
+        "resolved": "10.0.0",
+        "contentHash": "H54UOpRoc4RmhQ4RA2lzDz43a/hAu/JN19Yyy/DNmH4XlRxhemfhifJyh9BaXNJOtGa2Dnu2xEeP4VSiTdUdAg==",
         "dependencies": {
-          "Asp.Versioning.Mvc": "8.1.1"
+          "Asp.Versioning.Mvc": "10.0.0"
         }
       },
       "Aspire.Npgsql": {
         "type": "CentralTransitive",
-        "requested": "[13.2.2, )",
-        "resolved": "13.2.2",
-        "contentHash": "nEYgziWN7hksgEQEWy24JypcMCU8gKYcIIyPL05JfdXxUWuPRLotH/KOeuHevAjSEOYkL3dtGakBkJAuPobGmA==",
+        "requested": "[13.2.4, )",
+        "resolved": "13.2.4",
+        "contentHash": "FfKx0Jzv6n1VelJcuRaSmLvyIUjm9x4AAk3Yq5LMlLsORLDi4ABAev8Bns+5075qUt2fF6A2zYPcXVlTiAZemg==",
         "dependencies": {
           "AspNetCore.HealthChecks.NpgSql": "9.0.0",
           "Npgsql.DependencyInjection": "10.0.1",
           "Npgsql.OpenTelemetry": "10.0.1",
-          "OpenTelemetry.Extensions.Hosting": "1.15.0"
+          "OpenTelemetry.Extensions.Hosting": "1.15.3"
         }
       },
       "Azure.AI.DocumentIntelligence": {
@@ -1093,9 +1093,9 @@
       },
       "Microsoft.AspNetCore.OpenApi": {
         "type": "CentralTransitive",
-        "requested": "[10.0.6, )",
-        "resolved": "10.0.6",
-        "contentHash": "WTAQe7MAbbKztRyeCRGZOqqlIqpMHDBz+jKo7LLY6hp4qRqn7iucR24u32KJVxV7mF3tSEfwXH96NgGSiDBw7A==",
+        "requested": "[10.0.7, )",
+        "resolved": "10.0.7",
+        "contentHash": "vKiAcGXG0BwNVw3bOjjWRLnp9tR18dR7MiwpvC94h0yFS+zfnzGHzS/JmmgwUdRixrGxrlIMRAWrVc+2DfAGlg==",
         "dependencies": {
           "Microsoft.OpenApi": "2.0.0"
         }
@@ -1108,45 +1108,45 @@
       },
       "Microsoft.EntityFrameworkCore": {
         "type": "CentralTransitive",
-        "requested": "[10.0.6, )",
-        "resolved": "10.0.6",
-        "contentHash": "eDy7bu3G+51FRC0cPtXTqUI9iAdDYl/XBQ5UguN8NFOA7QNmFvUEf36wA7PZ4ctsnxRN4t3dIvs2VKVE5H+EQQ==",
+        "requested": "[10.0.7, )",
+        "resolved": "10.0.7",
+        "contentHash": "G6yclVO5/csPzzsymV0SemY2NDqE31CP5M3jprF5IuO9wJsh4aUOfYD8HCLuDmM1D1CfReegVic48O2r79d46Q==",
         "dependencies": {
-          "Microsoft.EntityFrameworkCore.Abstractions": "10.0.6",
-          "Microsoft.EntityFrameworkCore.Analyzers": "10.0.6"
+          "Microsoft.EntityFrameworkCore.Abstractions": "10.0.7",
+          "Microsoft.EntityFrameworkCore.Analyzers": "10.0.7"
         }
       },
       "Microsoft.EntityFrameworkCore.Design": {
         "type": "CentralTransitive",
-        "requested": "[10.0.6, )",
-        "resolved": "10.0.6",
-        "contentHash": "0lApALa4Ug14W7DXRk/vjc0fSi6h8OCAueKJH5MN6IU4mslMKiUaMKA7hzl+yFjym60dCOjhTWWa6S0ngl+Aog==",
+        "requested": "[10.0.7, )",
+        "resolved": "10.0.7",
+        "contentHash": "8UMWkJdfwN/tyEZS6zd0s55zE5zaG4owldh+E91vXitHmux3FTP6Hjhgk6RL9Sv+TdO4FMERQIT6VzBtRrb1AQ==",
         "dependencies": {
           "Humanizer.Core": "2.14.1",
           "Microsoft.Build.Framework": "18.0.2",
           "Microsoft.CodeAnalysis.CSharp": "5.0.0",
           "Microsoft.CodeAnalysis.CSharp.Workspaces": "5.0.0",
           "Microsoft.CodeAnalysis.Workspaces.MSBuild": "5.0.0",
-          "Microsoft.EntityFrameworkCore.Relational": "10.0.6",
-          "Microsoft.Extensions.DependencyModel": "10.0.6",
+          "Microsoft.EntityFrameworkCore.Relational": "10.0.7",
+          "Microsoft.Extensions.DependencyModel": "10.0.7",
           "Mono.TextTemplating": "3.0.0",
           "Newtonsoft.Json": "13.0.3"
         }
       },
       "Microsoft.EntityFrameworkCore.Relational": {
         "type": "CentralTransitive",
-        "requested": "[10.0.6, )",
-        "resolved": "10.0.6",
-        "contentHash": "t+pXPUjiAemBTstY57yUAoywOO6znVD3lwy7UERJpji0wmS70XHg0h8EcpX6+7KT6ZVCIndr1pW0GdOobZ4yCg==",
+        "requested": "[10.0.7, )",
+        "resolved": "10.0.7",
+        "contentHash": "midwPufIwXhOJcVhaZpCZGNbjy2QoPfHI+70nw2dGcoULEW9DybMvMPYkRjOJV0eI46a1oVFhU4lFYDEx6YUbg==",
         "dependencies": {
-          "Microsoft.EntityFrameworkCore": "10.0.6"
+          "Microsoft.EntityFrameworkCore": "10.0.7"
         }
       },
       "Microsoft.Extensions.ApiDescription.Server": {
         "type": "CentralTransitive",
-        "requested": "[10.0.6, )",
-        "resolved": "10.0.6",
-        "contentHash": "G7s2uowYhOAMR58ILK75Gt/K4rVffXA/0HknGn6ZoY6uZHlsNxKTlFyU+F7FMeEkiFZcIQGPLAuVayHmxC/Vwg=="
+        "requested": "[10.0.7, )",
+        "resolved": "10.0.7",
+        "contentHash": "VBNJzdInUkjhL/Habj16j3kMHIccjjuWg2zILcapH2QDq5GJF4bfQzJvt2gynuT98PkTpLUvPAsPeefKBDT/mg=="
       },
       "Microsoft.Extensions.Caching.Hybrid": {
         "type": "CentralTransitive",
@@ -1156,18 +1156,18 @@
       },
       "Microsoft.Extensions.Caching.StackExchangeRedis": {
         "type": "CentralTransitive",
-        "requested": "[10.0.6, )",
-        "resolved": "10.0.6",
-        "contentHash": "26xccg2/iKzDb3SYcI/bsQoujno5bb8pUp1WSRZ5BP43qk2L25XgY80cDO0dr2qeu152mcF2Qn2FjLeZn1yZZQ==",
+        "requested": "[10.0.7, )",
+        "resolved": "10.0.7",
+        "contentHash": "TvD0totA8qeyrZ2YeY/qRNgYBy4BvO6dG59ziJDLVnLH4s2jeLUFEFcgA3xzqPhCMMbuz9bJTRwHxkZ/7c87jQ==",
         "dependencies": {
           "StackExchange.Redis": "2.7.27"
         }
       },
       "Microsoft.Extensions.DependencyModel": {
         "type": "CentralTransitive",
-        "requested": "[10.0.6, )",
-        "resolved": "10.0.6",
-        "contentHash": "xHMiq0J/wbyKDQ/tHB1FxylNWZLLlSf61Fw8XRneG6KTovjabNJiWtQoJ1MKCk71Bjr1TG1wAPVe8QZYphihLQ=="
+        "requested": "[10.0.7, )",
+        "resolved": "10.0.7",
+        "contentHash": "gCglFg/9Chu3lyJNytRuQAYM3mXQKNs1i01Cz2bc545QaHQ+LbBb4O5UCfu968Gro3ZVSOZ/ktilmPcaUSGSZA=="
       },
       "Microsoft.Extensions.Http.Resilience": {
         "type": "CentralTransitive",
@@ -1181,11 +1181,11 @@
       },
       "Microsoft.FeatureManagement.AspNetCore": {
         "type": "CentralTransitive",
-        "requested": "[4.4.0, )",
-        "resolved": "4.4.0",
-        "contentHash": "jE5KxeEDUnUsx1w9uOFV5cOfM4E2mg7kf07328xO1x4JdoS0jwkD55nMjTlUPu90ynYX1oCBGC+FHK6ZoqRpxA==",
+        "requested": "[4.5.0, )",
+        "resolved": "4.5.0",
+        "contentHash": "CafI8Ne0xuXRNzHMoRGAX4WRvLxpTE7RceBncgME/fRcPD2KwYrxfZpLyJ/kVfYt8uvHkC2xy0VlStj687mVoA==",
         "dependencies": {
-          "Microsoft.FeatureManagement": "4.4.0"
+          "Microsoft.FeatureManagement": "4.5.0"
         }
       },
       "Microsoft.IdentityModel.Protocols": {
@@ -1406,9 +1406,9 @@
       },
       "Stripe.net": {
         "type": "CentralTransitive",
-        "requested": "[51.0.0, )",
-        "resolved": "51.0.0",
-        "contentHash": "9m29CCGBuFjmpj5Qa5bkAfiIUwx5/YoBikjg8vnyj88ecV6gHMWMtWCJLSZCtyKPYInS7auGdnSNp5HxeGP+XA==",
+        "requested": "[51.1.0, )",
+        "resolved": "51.1.0",
+        "contentHash": "q4Kj14NP0jaGKRkeuCTL2Mwn7BVgVUHowBiGJAX2fGiEIOVbdhpCERlNRTuvirN/5IGae6cCToS0+H/oSX395A==",
         "dependencies": {
           "Newtonsoft.Json": "13.0.3",
           "System.Configuration.ConfigurationManager": "9.0.0"
@@ -1435,9 +1435,9 @@
       },
       "System.IO.Hashing": {
         "type": "CentralTransitive",
-        "requested": "[10.0.6, )",
-        "resolved": "10.0.6",
-        "contentHash": "lbMLkqFekDR4DeFd26eEfrG2HlvixIfs22uk/e2+9/NJ7WxMycVVakcQpuJvvqgc9XxwEgSd/Td+dZA+TjDDwA=="
+        "requested": "[10.0.7, )",
+        "resolved": "10.0.7",
+        "contentHash": "6hsjdSr4VOXSOnhALkYplHpAxnTG1J33YN42IB6nH2fEg4QnJqrZ4Ft+qn7mkrKAOYC8pCSFYwVWw6rQbmwgLQ=="
       }
     }
   }

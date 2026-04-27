@@ -13,7 +13,7 @@
     <!-- Mantendo todos os pacotes Microsoft.Extensions.* na mesma versão major (10.x) para evitar divergências -->
     <PackageVersion Include="bunit.web" Version="1.40.0" />
     <PackageVersion Include="HtmlSanitizer" Version="9.0.892" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.6" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.7" />
     <!-- .NET & Microsoft Core -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
@@ -24,25 +24,25 @@
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.0.2" />
     <PackageVersion Include="Microsoft.NET.StringTools" Version="18.0.2" />
     <!-- ASP.NET Core -->
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.6" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.7" />
     <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.9" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.6" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.7" />
     <!-- Versionamento de API -->
-    <PackageVersion Include="Asp.Versioning.Http" Version="8.1.1" />
-    <PackageVersion Include="Asp.Versioning.Mvc" Version="8.1.1" />
-    <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.1" />
+    <PackageVersion Include="Asp.Versioning.Http" Version="10.0.0" />
+    <PackageVersion Include="Asp.Versioning.Mvc" Version="10.0.0" />
+    <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="10.0.0" />
     <!-- Entity Framework Core -->
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.6" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.7" />
     <!-- EFCore.NamingConventions: Atualizado para 10.0.1 -->
     <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />
     <!-- Microsoft.OpenApi: Mantido em 2.x devido a incompatibilidade com geradores do .NET 10 -->
@@ -55,32 +55,32 @@
     <PackageVersion Include="Npgsql" Version="10.0.2" />
     <!-- Nota: Dapper.AOT é trazido pelo Hangfire.PostgreSql. Inofensivo pois não usamos AOT estrito ainda. -->
     <PackageVersion Include="Dapper" Version="2.1.72" />
-    <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.6" />
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.7" />
     <!-- Extensões Microsoft -->
-    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.6" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.7" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.5.0" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Diagnostics.Abstractions" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.6" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.Abstractions" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.5.0" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.6" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.7" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.5.0" />
     <PackageVersion Include="Polly" Version="8.6.6" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Configuration" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.6" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Configuration" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.7" />
     <!-- Gerenciamento de Funcionalidades -->
-    <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.4.0" />
+    <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.5.0" />
     <!-- OpenTelemetry -->
     <PackageVersion Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.4.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.15.3" />
@@ -100,7 +100,7 @@
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageVersion Include="Serilog.Sinks.Seq" Version="9.0.0" />
     <!-- Documentação -->
-    <PackageVersion Include="Stripe.net" Version="51.0.0" />
+    <PackageVersion Include="Stripe.net" Version="51.1.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.1.7" />
     <PackageVersion Include="Swashbuckle.AspNetCore.Annotations" Version="10.1.7" />
     <!-- Validação -->
@@ -116,7 +116,6 @@
     <PackageVersion Include="Rebus.RabbitMq" Version="10.1.1" />
     <PackageVersion Include="Rebus.Serialization.Json" Version="8.9.2" />
     <PackageVersion Include="Rebus.ServiceProvider" Version="10.7.2" />
-
     <!-- Autenticação e Autorização -->
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.17.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Protocols" Version="8.16.0" />
@@ -135,10 +134,10 @@
     <PackageVersion Include="Azure.Storage.Common" Version="12.26.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.1.7" />
     <!-- System.IO.Hashing: Mantido na v10 para alinhamento com a stack do .NET 10 -->
-    <PackageVersion Include="System.IO.Hashing" Version="10.0.6" />
+    <PackageVersion Include="System.IO.Hashing" Version="10.0.7" />
     <PackageVersion Include="System.Text.Json" Version="10.0.0" />
     <!-- Framework de Testes (Apenas xUnit v3) -->
-    <PackageVersion Include="WireMock.Net" Version="2.3.0" />
+    <PackageVersion Include="WireMock.Net" Version="2.4.0" />
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="coverlet.collector" Version="10.0.0" />
@@ -155,23 +154,23 @@
     <PackageVersion Include="Testcontainers.RabbitMq" Version="4.11.0" />
     <PackageVersion Include="Testcontainers.Redis" Version="4.11.0" />
     <PackageVersion Include="Respawn" Version="7.0.0" />
-    <!-- .NET Aspire - Atualizado para 13.2.2 -->
-    <PackageVersion Include="Aspire.Hosting.Azure.AppContainers" Version="13.2.2" />
-    <PackageVersion Include="Aspire.Hosting.Azure.PostgreSQL" Version="13.2.2" />
-    <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.2.2" />
-    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.2.2" />
-    <!-- Aspire.Hosting.Keycloak: Atualizado para 13.2.2-preview.1.26207.2 (Compatível com Aspire 13.2.2) -->
-    <PackageVersion Include="Aspire.Hosting.Keycloak" Version="13.2.2-preview.1.26207.2" />
-    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.2.2" />
-    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="13.2.2" />
-    <PackageVersion Include="Aspire.Hosting.Redis" Version="13.2.2" />
-    <PackageVersion Include="Aspire.Hosting.Seq" Version="13.2.2" />
-    <PackageVersion Include="Aspire.Npgsql" Version="13.2.2" />
-    <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.2.2" />
+    <!-- .NET Aspire - Atualizado para 13.2.4 -->
+    <PackageVersion Include="Aspire.Hosting.Azure.AppContainers" Version="13.2.4" />
+    <PackageVersion Include="Aspire.Hosting.Azure.PostgreSQL" Version="13.2.4" />
+    <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.2.4" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.2.4" />
+    <!-- Aspire.Hosting.Keycloak: Atualizado para 13.2.4-preview.1.26224.4 (Compatível com Aspire 13.2.4) -->
+    <PackageVersion Include="Aspire.Hosting.Keycloak" Version="13.2.4-preview.1.26224.4" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.2.4" />
+    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="13.2.4" />
+    <PackageVersion Include="Aspire.Hosting.Redis" Version="13.2.4" />
+    <PackageVersion Include="Aspire.Hosting.Seq" Version="13.2.4" />
+    <PackageVersion Include="Aspire.Npgsql" Version="13.2.4" />
+    <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.2.4" />
     <!-- Testes de Arquitetura -->
     <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
     <!-- Análise de Código -->
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.24.0.138807" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.25.0.139117" />
     <!-- Blazor UI & Gerenciamento de Estado -->
     <PackageVersion Include="MudBlazor" Version="8.15.0" />
     <PackageVersion Include="Fluxor.Blazor.Web" Version="6.9.0" />
