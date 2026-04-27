@@ -90,7 +90,8 @@ public sealed class SetProviderScheduleEndpoint : IEndpoint
             {
                 if (!authResult.ProviderId.HasValue)
                 {
-                    return Results.Problem("Authorization resolver did not set ProviderId for non-admin user", statusCode: StatusCodes.Status500InternalServerError);
+                    logger.LogError("Authorization resolver did not set ProviderId for non-admin user {UserId}", authResult.UserId);
+                    return Results.Problem("Erro interno de configuração: identificador do prestador não encontrado.", statusCode: StatusCodes.Status500InternalServerError);
                 }
 
                 targetProviderId = authResult.ProviderId.Value;

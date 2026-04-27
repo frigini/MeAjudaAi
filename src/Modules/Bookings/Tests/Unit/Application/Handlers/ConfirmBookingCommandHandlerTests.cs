@@ -1,10 +1,12 @@
 using MeAjudaAi.Contracts.Functional;
+using MeAjudaAi.Contracts.Bookings.Enums;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Handlers;
 using MeAjudaAi.Modules.Bookings.Domain.Entities;
 using MeAjudaAi.Modules.Bookings.Domain.Repositories;
 using MeAjudaAi.Modules.Bookings.Domain.ValueObjects;
 using MeAjudaAi.Modules.Bookings.Domain.Exceptions;
+using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Contracts.Utilities.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -47,7 +49,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        booking.Status.Should().Be(MeAjudaAi.Contracts.Bookings.Enums.EBookingStatus.Confirmed);
+        booking.Status.Should().Be(EBookingStatus.Confirmed);
         _bookingRepoMock.Verify(x => x.UpdateAsync(booking, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -134,7 +136,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        booking.Status.Should().Be(MeAjudaAi.Contracts.Bookings.Enums.EBookingStatus.Confirmed);
+        booking.Status.Should().Be(EBookingStatus.Confirmed);
     }
 
     [Fact]

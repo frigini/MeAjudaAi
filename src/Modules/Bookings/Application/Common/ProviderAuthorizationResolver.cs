@@ -5,7 +5,6 @@ using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Contracts.Modules.Providers;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Utilities.Constants;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
@@ -143,13 +142,12 @@ public sealed class ProviderAuthorizationResolver(
     {
         var authResult = await ResolveAsync(user, cancellationToken);
         
-        if (authResult.FailureKind != AuthorizationFailureKind.None)
+        if (authResult.FailureKind != AuthorizationFailureKind.None && authResult.FailureKind != AuthorizationFailureKind.NotLinked)
         {
             return authResult.FailureKind switch
             {
                 AuthorizationFailureKind.Unauthorized => Result.Failure(Error.Unauthorized(authResult.ErrorMessage ?? "Acesso não autorizado.")),
-                AuthorizationFailureKind.NotLinked => Result.Failure(Error.NotFound("Usuário não possui prestador vinculado.")),
-                AuthorizationFailureKind.UpstreamFailure => Result.Failure(Error.Internal(authResult.ErrorMessage ?? "Erro ao validar prestador.", statusCode: authResult.ErrorStatusCode ?? StatusCodes.Status502BadGateway)),
+                AuthorizationFailureKind.UpstreamFailure => Result.Failure(new Error(authResult.ErrorMessage ?? "Erro ao validar prestador.", authResult.ErrorStatusCode ?? 502)),
                 _ => Result.Failure(Error.Forbidden(authResult.ErrorMessage ?? "Acesso negado."))
             };
         }

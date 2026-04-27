@@ -22,10 +22,14 @@ public class SetProviderScheduleRequestValidator : AbstractValidator<SetProvider
             .WithMessage("A lista de disponibilidades contém dias da semana duplicados.");
 
         RuleForEach(x => x.Availabilities)
-            .NotNull().WithMessage("Item de disponibilidade não pode ser nulo.")
+            .NotNull().WithMessage("Item de disponibilidade não pode ser nulo.");
+
+        RuleForEach(x => x.Availabilities)
+            .Where(a => a != null)
             .ChildRules(availability => {
                 availability.RuleFor(x => x.Slots)
                     .Cascade(CascadeMode.Stop)
+                    .NotNull().WithMessage(x => $"A lista de horários para {x.DayOfWeek} não pode ser nula.")
                     .NotEmpty().WithMessage(x => $"A lista de horários para {x.DayOfWeek} não pode ser vazia.")
                     .Must((availabilityDto, slots, context) => {
                         var list = slots.ToList();
@@ -36,6 +40,7 @@ public class SetProviderScheduleRequestValidator : AbstractValidator<SetProvider
                                 // Simple overlap check: (StartA < EndB) && (StartB < EndA)
                                 if (list[i].Start < list[j].End && list[j].Start < list[i].End)
                                 {
+                                    context.MessageFormatter.AppendArgument("DayOfWeek", availabilityDto.DayOfWeek);
                                     context.MessageFormatter.AppendArgument("Overlap", $"{i+1} ({list[i].Start}-{list[i].End}) e {j+1} ({list[j].Start}-{list[j].End})");
                                     return false;
                                 }
@@ -44,11 +49,12 @@ public class SetProviderScheduleRequestValidator : AbstractValidator<SetProvider
                         return true;
                     }).WithMessage("A lista de horários para {DayOfWeek} contém sobreposições entre os horários {Overlap}.");
 
-                availability.RuleForEach(x => x.Slots).ChildRules(slot => {
-                    slot.RuleFor(x => x.End)
-                        .GreaterThan(x => x.Start)
-                        .WithMessage((s, end) => $"Horário inválido: o término ({end}) deve ser após o início ({s.Start}).");
-                });
+                availability.RuleForEach(x => x.Slots)
+                    .ChildRules(slot => {
+                        slot.RuleFor(x => x.End)
+                            .GreaterThan(x => x.Start)
+                            .WithMessage((s, end) => $"Horário inválido: o término ({end}) deve ser após o início ({s.Start}).");
+                    });
             });
     }
 }
