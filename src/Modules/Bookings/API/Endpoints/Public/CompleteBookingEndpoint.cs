@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -29,8 +30,7 @@ public class CompleteBookingEndpoint : IEndpoint
                 if (error != null) return error;
             }
 
-            var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
-            var correlationId = Guid.TryParse(correlationIdHeader, out var cId) ? cId : Guid.NewGuid();
+            var correlationId = CorrelationHelper.ParseCorrelationId(context);
 
             var command = new CompleteBookingCommand(id, authResult.IsAdmin, authResult.ProviderId, correlationId);
             var result = await dispatcher.SendAsync<CompleteBookingCommand, Result>(command, cancellationToken);

@@ -141,6 +141,18 @@ public sealed class ProviderAuthorizationResolver(
         CancellationToken cancellationToken = default)
     {
         var authResult = await ResolveAsync(user, cancellationToken);
+        
+        if (authResult.FailureKind != AuthorizationFailureKind.None)
+        {
+            return authResult.FailureKind switch
+            {
+                AuthorizationFailureKind.Unauthorized => Result.Failure(Error.Unauthorized(authResult.ErrorMessage ?? "Acesso não autorizado.")),
+                AuthorizationFailureKind.NotLinked => Result.Failure(Error.NotFound("Usuário não possui prestador vinculado.")),
+                AuthorizationFailureKind.UpstreamFailure => Result.Failure(Error.Internal(authResult.ErrorMessage ?? "Erro ao validar prestador.", statusCode: authResult.ErrorStatusCode ?? StatusCodes.Status502BadGateway)),
+                _ => Result.Failure(Error.Forbidden(authResult.ErrorMessage ?? "Acesso negado."))
+            };
+        }
+
         return AuthorizeBookingOperation(
             authResult.IsAdmin, 
             authResult.ProviderId, 

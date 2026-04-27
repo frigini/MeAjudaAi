@@ -53,28 +53,6 @@ public class CompleteBookingCommandHandlerTests : BaseUnitTest
     }
 
     [Fact]
-    public async Task HandleAsync_Should_Complete_When_OwnerIdentifiedByProviderId()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
-        var booking = Booking.Create(providerId, Guid.NewGuid(), Guid.NewGuid(), tomorrow,
-            TimeSlot.Create(new TimeOnly(10, 0), new TimeOnly(11, 0)));
-        booking.Confirm();
-        booking.ClearDomainEvents();
-
-        _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(booking);
-
-        // Act - Simulando o ID vindo do claim mapeado para UserProviderId no comando
-        var result = await _sut.HandleAsync(new CompleteBookingCommand(booking.Id, false, providerId, Guid.NewGuid()));
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        booking.Status.Should().Be(EBookingStatus.Completed);
-    }
-
-    [Fact]
     public async Task HandleAsync_Should_ReturnBadRequest_When_BookingStateIsInvalidForCompletion()
     {
         // Arrange

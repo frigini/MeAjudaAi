@@ -27,7 +27,7 @@ public class SetProviderScheduleRequestValidator : AbstractValidator<SetProvider
                 availability.RuleFor(x => x.Slots)
                     .Cascade(CascadeMode.Stop)
                     .NotEmpty().WithMessage(x => $"A lista de horários para {x.DayOfWeek} não pode ser vazia.")
-                    .Must((availabilityDto, slots) => {
+                    .Must((availabilityDto, slots, context) => {
                         var list = slots.ToList();
                         for (int i = 0; i < list.Count; i++)
                         {
@@ -35,22 +35,14 @@ public class SetProviderScheduleRequestValidator : AbstractValidator<SetProvider
                             {
                                 // Simple overlap check: (StartA < EndB) && (StartB < EndA)
                                 if (list[i].Start < list[j].End && list[j].Start < list[i].End)
+                                {
+                                    context.MessageFormatter.AppendArgument("Overlap", $"{i+1} ({list[i].Start}-{list[i].End}) e {j+1} ({list[j].Start}-{list[j].End})");
                                     return false;
+                                }
                             }
                         }
                         return true;
-                    }).WithMessage((availabilityDto, slots) => {
-                        var list = slots.ToList();
-                        for (int i = 0; i < list.Count; i++)
-                        {
-                            for (int j = i + 1; j < list.Count; j++)
-                            {
-                                if (list[i].Start < list[j].End && list[j].Start < list[i].End)
-                                    return $"A lista de horários para {availabilityDto.DayOfWeek} contém sobreposições entre os horários {i+1} ({list[i].Start}-{list[i].End}) e {j+1} ({list[j].Start}-{list[j].End}).";
-                            }
-                        }
-                        return $"A lista de horários para {availabilityDto.DayOfWeek} contém sobreposições.";
-                    });
+                    }).WithMessage("A lista de horários para {DayOfWeek} contém sobreposições entre os horários {Overlap}.");
 
                 availability.RuleForEach(x => x.Slots).ChildRules(slot => {
                     slot.RuleFor(x => x.End)

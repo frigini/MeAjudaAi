@@ -159,6 +159,32 @@ public class BookingsApiTests : BaseApiTest
     }
 
     [Fact]
+    public async Task CancelBooking_ShouldReturnNoContent_WhenClientIsNotALinkedProvider()
+    {
+        // 1. Arrange: Criar provedor, serviço e agendamento
+        var providerId = await CreateTestProviderAsync();
+        await CreateTestScheduleAsync(providerId);
+        var serviceId = await CreateTestServiceAsync();
+        await LinkServiceToProviderAsync(providerId, serviceId, "Test Service");
+
+        var clientId = Guid.NewGuid();
+        var bookingId = await CreateTestBookingAsync(providerId, clientId, serviceId);
+
+        // 2. Act: Configurar como usuário regular (sem ProviderId vinculado) e tentar cancelar
+        AuthConfig.ConfigureRegularUser(clientId.ToString());
+
+        var cancelRequest = new CancelBookingRequest("Client cancelling own booking");
+        var response = await Client.PutAsJsonAsync($"/api/v1/bookings/{bookingId}/cancel", cancelRequest);
+
+        // 3. Assert: Deve permitir cancelamento
+        if (response.StatusCode != HttpStatusCode.NoContent)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            response.StatusCode.Should().Be(HttpStatusCode.NoContent, $"Error detail: {error}");
+        }
+    }
+
+    [Fact]
     public async Task GetMyBookings_ShouldReturnOk_WhenAuthorized()
     {
         var providerId = await CreateTestProviderAsync();

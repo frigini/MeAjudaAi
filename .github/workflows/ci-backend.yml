@@ -187,11 +187,20 @@ jobs:
           for module in "${MODULES[@]}"; do
             if [ -f "$module" ]; then
               module_name=$(basename "$module" .csproj)
+              echo "--------------------------------------------------------"
+              echo "🧪 Testing module: $module_name"
               dotnet test "$module" \
                 --configuration Release --no-build \
                 --collect:"XPlat Code Coverage" \
                 --results-directory "./coverage/unit/$module_name" \
                 --settings ./coverlet.runsettings
+
+              # Verify if coverage was produced
+              if ! find "./coverage/unit/$module_name" -name "coverage.cobertura.xml" | grep -q .; then
+                echo "::error::No coverage produced for $module_name (project may have been silently skipped)"
+                exit 1
+              fi
+              echo "✅ Coverage produced for $module_name"
             fi
           done
 

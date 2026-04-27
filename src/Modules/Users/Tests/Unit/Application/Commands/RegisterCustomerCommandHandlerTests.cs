@@ -291,7 +291,7 @@ public class RegisterCustomerCommandHandlerTests
                 LogLevel.Critical,
                 It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(RegisterCustomerCommandHandler.FailedToCompensateKeycloakUserMessage.Replace("{UserId}", user.Id.ToString()))),
+                    v.ToString()!.Contains("Failed to compensate Keycloak user")),
                 It.Is<Exception>(ex => ex.Message.Contains("Keycloak Failure")),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);

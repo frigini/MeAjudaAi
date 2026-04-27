@@ -9,6 +9,7 @@ using MeAjudaAi.Modules.Bookings.Application.Bookings.DTOs;
 using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -36,7 +37,7 @@ public static class ProviderAuthorizationResultExtensions
     }
 }
 
-public class SetProviderScheduleEndpoint : IEndpoint
+public sealed class SetProviderScheduleEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
     {
@@ -87,7 +88,12 @@ public class SetProviderScheduleEndpoint : IEndpoint
             }
             else
             {
-                targetProviderId = authResult.ProviderId!.Value;
+                if (!authResult.ProviderId.HasValue)
+                {
+                    return Results.Problem("Authorization resolver did not set ProviderId for non-admin user", statusCode: StatusCodes.Status500InternalServerError);
+                }
+
+                targetProviderId = authResult.ProviderId.Value;
 
                 if (request.ProviderId != Guid.Empty && request.ProviderId != targetProviderId)
                 {
@@ -97,24 +103,7 @@ public class SetProviderScheduleEndpoint : IEndpoint
                 logger.LogInformation("Provider {ProviderId} is setting own schedule", targetProviderId);
             }
 
-            var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].FirstOrDefault();
-            Guid correlationId;
-
-            if (!string.IsNullOrEmpty(correlationIdHeader) && Guid.TryParse(correlationIdHeader, out var parsedId))
-            {
-                correlationId = parsedId;
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(correlationIdHeader))
-                {
-                    var maskedHeader = correlationIdHeader.Length > 4 
-                        ? $"...{correlationIdHeader[^4..]}" 
-                        : correlationIdHeader;
-                    logger.LogDebug("Invalid X-Correlation-Id header received: {CorrelationId}. Generating new one.", maskedHeader);
-                }
-                correlationId = Guid.NewGuid();
-            }
+            var correlationId = CorrelationHelper.ParseCorrelationId(context);
 
             var command = new SetProviderScheduleCommand(
                 targetProviderId,

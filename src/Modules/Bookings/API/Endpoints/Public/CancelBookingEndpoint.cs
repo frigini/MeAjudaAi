@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using MeAjudaAi.Contracts.Functional;
 using MeAjudaAi.Modules.Bookings.Application.Bookings.Commands;
 using MeAjudaAi.Modules.Bookings.Application.Common;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -30,11 +32,7 @@ public class CancelBookingEndpoint : IEndpoint
                 if (error != null) return error;
             }
 
-            var correlationIdHeader = context.Request.Headers[AuthConstants.Headers.CorrelationId].ToString();
-            if (!Guid.TryParse(correlationIdHeader, out var correlationId))
-            {
-                correlationId = Guid.NewGuid();
-            }
+            var correlationId = CorrelationHelper.ParseCorrelationId(context);
 
             var command = new CancelBookingCommand(
                 id, 
@@ -64,4 +62,5 @@ public class CancelBookingEndpoint : IEndpoint
     }
 }
 
+[ExcludeFromCodeCoverage]
 public record CancelBookingRequest(string Reason);

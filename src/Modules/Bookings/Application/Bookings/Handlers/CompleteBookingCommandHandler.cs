@@ -24,7 +24,7 @@ public sealed class CompleteBookingCommandHandler(
             return Result.Failure(Error.NotFound("Reserva não encontrada."));
         }
 
-        // 1. Validar Autorização (Somente o Provider dono ou Admin)
+        // Validar Autorização (Somente o Provider dono ou Admin)
         var authResult = ProviderAuthorizationResolver.AuthorizeBookingOperation(
             command.IsSystemAdmin,
             command.UserProviderId,

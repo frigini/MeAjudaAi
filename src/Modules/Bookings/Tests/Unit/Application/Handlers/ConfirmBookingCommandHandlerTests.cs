@@ -52,7 +52,7 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
     }
 
     [Fact]
-    public async Task HandleAsync_Should_Confirm_When_OwnerIdentifiedByProviderId()
+    public async Task HandleAsync_Should_ReturnConflict_When_ConcurrencyOccurs()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -63,13 +63,17 @@ public class ConfirmBookingCommandHandlerTests : BaseUnitTest
         _bookingRepoMock.Setup(x => x.GetByIdTrackedAsync(booking.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
 
-        // Act - Simulando o ID vindo do claim mapeado para UserProviderId no comando
+        _bookingRepoMock.Setup(x => x.UpdateAsync(booking, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ConcurrencyConflictException());
+
         var command = new ConfirmBookingCommand(booking.Id, false, providerId, Guid.NewGuid());
+
+        // Act
         var result = await _sut.HandleAsync(command);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        booking.Status.Should().Be(MeAjudaAi.Contracts.Bookings.Enums.EBookingStatus.Confirmed);
+        result.IsFailure.Should().BeTrue();
+        result.Error!.StatusCode.Should().Be(StatusCodes.Status409Conflict);
     }
 
     [Fact]
