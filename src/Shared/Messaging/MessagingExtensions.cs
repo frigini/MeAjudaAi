@@ -134,26 +134,30 @@ public static class MessagingExtensions
             services.TryAddSingleton<RebusMessageBus>();
             services.TryAddSingleton<NoOp.NoOpMessageBus>();
 
-            // Registro da infraestrutura de conexão do RabbitMQ (somente fora de testes)
-            // Em ambiente de Testing, o messaging não precisa de conexão real
-            services.AddSingleton<IConnectionFactory>(provider =>
+            // Registro da infraestrutura de conexão do RabbitMQ
+            // Apenas registrar se Messaging:Enabled for true (ou default true)
+            var isMessagingEnabled = configuration.GetValue<bool>("Messaging:Enabled", true);
+            if (isMessagingEnabled)
             {
-                var options = provider.GetRequiredService<RabbitMqOptions>();
-                return new ConnectionFactory
+                services.AddSingleton<IConnectionFactory>(provider =>
                 {
-                    Uri = new Uri(options.BuildConnectionString())
-                };
-            });
+                    var options = provider.GetRequiredService<RabbitMqOptions>();
+                    return new ConnectionFactory
+                    {
+                        Uri = new Uri(options.BuildConnectionString())
+                    };
+                });
 
-            services.AddSingleton<Lazy<IConnection>>(provider =>
-            {
-                var factory = provider.GetRequiredService<IConnectionFactory>();
-                return new Lazy<IConnection>(() => factory.CreateConnectionAsync().GetAwaiter().GetResult());
-            });
+                services.AddSingleton<Lazy<IConnection>>(provider =>
+                {
+                    var factory = provider.GetRequiredService<IConnectionFactory>();
+                    return new Lazy<IConnection>(() => factory.CreateConnectionAsync().GetAwaiter().GetResult());
+                });
 
-            services.AddSingleton<IConnection>(provider => provider.GetRequiredService<Lazy<IConnection>>().Value);
+                services.AddSingleton<IConnection>(provider => provider.GetRequiredService<Lazy<IConnection>>().Value);
 
-            services.AddSingleton<IRabbitMqInfrastructureManager, RabbitMqInfrastructureManager>();
+                services.AddSingleton<IRabbitMqInfrastructureManager, RabbitMqInfrastructureManager>();
+            }
         }
 
         // Registrar o factory e o IMessageBus baseado no ambiente (sempre disponível)

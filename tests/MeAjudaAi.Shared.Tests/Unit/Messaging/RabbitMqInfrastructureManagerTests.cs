@@ -136,5 +136,76 @@ public class RabbitMqInfrastructureManagerTests
         _declaredQueueDurables[index].Should().BeTrue();
     }
 
+    [Fact]
+    public async Task DisposeAsync_WithOpenChannel_ShouldDisposeChannel()
+    {
+        // Arrange – garante que o canal é criado
+        _registryMock.Setup(r => r.GetAllEventTypesAsync()).ReturnsAsync(new List<Type>());
+        await _sut.EnsureInfrastructureAsync();
+
+        // Act
+        await _sut.DisposeAsync();
+
+        // Assert
+        _channelMock.Verify(c => c.DisposeAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task DisposeAsync_WithoutChannel_ShouldNotThrow()
+    {
+        // Act & Assert — nenhum canal criado, não deve lançar
+        var act = async () => await _sut.DisposeAsync();
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task EnsureInfrastructureAsync_WithNullFullNameEvent_ShouldLogWarningAndSkip()
+    {
+        // Arrange – tipo sem FullName (anonymous/nested edge-case simulado via mock)
+        var typeMock = new Mock<Type>();
+        typeMock.Setup(t => t.FullName).Returns((string?)null);
+        _registryMock.Setup(r => r.GetAllEventTypesAsync())
+            .ReturnsAsync(new List<Type> { typeMock.Object });
+
+        // Act
+        await _sut.EnsureInfrastructureAsync();
+
+        // Assert – nenhum bind deve ter ocorrido
+        _channelMock.Verify(c => c.QueueBindAsync(
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+            It.IsAny<IDictionary<string, object?>>(),
+            It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task EnsureInfrastructureAsync_WhenChannelFails_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        _connectionMock.Setup(c => c.CreateChannelAsync(
+            It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("broker unavailable"));
+
+        // Act & Assert
+        await _sut.Invoking(s => s.EnsureInfrastructureAsync())
+            .Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Failed to create RabbitMQ infrastructure*");
+    }
+
+    [Fact]
+    public async Task GetChannelAsync_WhenCalledTwice_ShouldReuseOpenChannel()
+    {
+        // Arrange – configura IsOpen = true após primeira criação
+        _channelMock.Setup(c => c.IsOpen).Returns(true);
+        _registryMock.Setup(r => r.GetAllEventTypesAsync()).ReturnsAsync(new List<Type>());
+
+        // Act – duas chamadas a EnsureInfrastructureAsync
+        await _sut.EnsureInfrastructureAsync();
+        await _sut.EnsureInfrastructureAsync();
+
+        // Assert – canal criado apenas uma vez
+        _connectionMock.Verify(c => c.CreateChannelAsync(
+            It.IsAny<CreateChannelOptions>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     private class TestEvent { }
 }

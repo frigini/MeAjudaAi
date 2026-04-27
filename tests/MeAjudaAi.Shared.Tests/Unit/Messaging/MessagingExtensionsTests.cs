@@ -1,6 +1,11 @@
 using FluentAssertions;
+using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 
 namespace MeAjudaAi.Shared.Tests.Unit.Messaging;
@@ -78,5 +83,26 @@ public class MessagingExtensionsTests
         options.LockDuration.Should().Be(TimeSpan.FromMinutes(5));
         options.EnableAutoDiscovery.Should().BeTrue();
         options.AssemblyPrefixes.Should().Contain("MeAjudaAi");
+    }
+
+    [Fact]
+    public async Task EnsureMessagingInfrastructureAsync_WhenManagerNotRegistered_ShouldLogWarningAndReturn()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Messaging:Enabled"] = "true"
+            }).Build());
+        services.AddSingleton(Mock.Of<ILogger<MessagingConfiguration>>());
+        // IRabbitMqInfrastructureManager intencionalmente NÃO registrado
+
+        var serviceProvider = services.BuildServiceProvider();
+        var hostMock = new Mock<Microsoft.Extensions.Hosting.IHost>();
+        hostMock.Setup(h => h.Services).Returns(serviceProvider);
+
+        // Act & Assert — não deve lançar, deve retornar normalmente
+        await hostMock.Object.EnsureMessagingInfrastructureAsync();
     }
 }
