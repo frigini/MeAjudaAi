@@ -1,0 +1,12 @@
+{
+  "loading": "Loading...",
+  "error": "An error occurred",
+  "welcome": "Welcome to the Provider Portal",
+  "dashboard": "Dashboard",
+  "services": "Services",
+  "schedule": "Schedule",
+  "profile": "Profile",
+  "logout": "Logout",
+  "notifications": "Notifications",
+  "settings": "Settings"
+}

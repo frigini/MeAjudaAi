@@ -5,21 +5,35 @@ using RabbitMQ.Client;
 
 namespace MeAjudaAi.Shared.Messaging.RabbitMq;
 
-[ExcludeFromCodeCoverage]
 internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, IAsyncDisposable
 {
+    private readonly IConnection _connection;
     private readonly RabbitMqOptions _options;
     private readonly IEventTypeRegistry _eventRegistry;
     private readonly ILogger<RabbitMqInfrastructureManager> _logger;
+    private IChannel? _channel;
 
     public RabbitMqInfrastructureManager(
+        IConnection connection,
         RabbitMqOptions options,
         IEventTypeRegistry eventRegistry,
         ILogger<RabbitMqInfrastructureManager> logger)
     {
+        _connection = connection;
         _options = options;
         _eventRegistry = eventRegistry;
         _logger = logger;
+    }
+
+    private async Task<IChannel> GetChannelAsync()
+    {
+        if (_channel is { IsOpen: true })
+        {
+            return _channel;
+        }
+
+        _channel = await _connection.CreateChannelAsync();
+        return _channel;
     }
 
     public async Task EnsureInfrastructureAsync()
@@ -27,6 +41,7 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
         try
         {
             _logger.LogInformation("Creating RabbitMQ infrastructure...");
+            var channel = await GetChannelAsync();
 
             // Cria fila padrão
             await CreateQueueAsync(_options.DefaultQueueName);
@@ -44,9 +59,15 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
             await CreateExchangeAsync(exchangeName, ExchangeType.Topic);
 
             var allQueues = new List<string> { _options.DefaultQueueName };
-            allQueues.AddRange(_options.DomainQueues.Values);
+            foreach (var queue in _options.DomainQueues.Values)
+            {
+                if (!allQueues.Contains(queue))
+                {
+                    allQueues.Add(queue);
+                }
+            }
 
-            var eventNames = eventTypes.Select(e => e.Name);
+            var eventNames = eventTypes.Select(e => e.Name).Distinct();
             foreach (var eventName in eventNames)
             {
                 foreach (var queueName in allQueues)
@@ -58,7 +79,7 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
                 }
             }
 
-            _logger.LogWarning("RabbitMQ infrastructure setup completed (stub implementation - actual infrastructure pending)");
+            _logger.LogInformation("RabbitMQ infrastructure setup completed successfully");
         }
         catch (Exception ex)
         {
@@ -69,32 +90,52 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
         }
     }
 
-    public Task CreateQueueAsync(string queueName, bool durable = true)
+    public async Task CreateQueueAsync(string queueName, bool durable = true)
     {
-        // Implementação RabbitMQ será adicionada quando necessário
-        _logger.LogDebug("Queue creation requested: {QueueName} (durable: {Durable})", queueName, durable);
-        return Task.CompletedTask;
+        var channel = await GetChannelAsync();
+        _logger.LogDebug("Declaring queue: {QueueName} (durable: {Durable})", queueName, durable);
+        
+        await channel.QueueDeclareAsync(
+            queue: queueName,
+            durable: durable,
+            exclusive: false,
+            autoDelete: false,
+            arguments: null);
     }
 
-    public Task CreateExchangeAsync(string exchangeName, string exchangeType = ExchangeType.Topic)
+    public async Task CreateExchangeAsync(string exchangeName, string exchangeType = ExchangeType.Topic)
     {
-        // Implementação RabbitMQ será adicionada quando necessário
-        _logger.LogDebug("Exchange creation requested: {ExchangeName} (type: {ExchangeType})", exchangeName, exchangeType);
-        return Task.CompletedTask;
+        var channel = await GetChannelAsync();
+        _logger.LogDebug("Declaring exchange: {ExchangeName} (type: {ExchangeType})", exchangeName, exchangeType);
+        
+        await channel.ExchangeDeclareAsync(
+            exchange: exchangeName,
+            type: exchangeType,
+            durable: true,
+            autoDelete: false,
+            arguments: null);
     }
 
-    public Task BindQueueToExchangeAsync(string queueName, string exchangeName, string routingKey = "")
+    public async Task BindQueueToExchangeAsync(string queueName, string exchangeName, string routingKey = "")
     {
-        // Implementação RabbitMQ será adicionada quando necessário
-        _logger.LogDebug("Queue binding requested: {QueueName} to {ExchangeName} with routing key '{RoutingKey}'",
+        var channel = await GetChannelAsync();
+        _logger.LogDebug("Binding queue {QueueName} to exchange {ExchangeName} with routing key '{RoutingKey}'",
             queueName, exchangeName, routingKey);
-        return Task.CompletedTask;
+        
+        await channel.QueueBindAsync(
+            queue: queueName,
+            exchange: exchangeName,
+            routingKey: routingKey,
+            arguments: null);
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
-        // Dispose será implementado quando a conexão RabbitMQ for adicionada
+        if (_channel is not null)
+        {
+            await _channel.CloseAsync();
+            _channel.Dispose();
+        }
         GC.SuppressFinalize(this);
-        return ValueTask.CompletedTask;
     }
 }

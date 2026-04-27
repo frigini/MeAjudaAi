@@ -19,9 +19,9 @@ Este é o planejamento estratégico unificado da plataforma MeAjudaAi.
 ## 🔮 Roadmaps Futuros (MVP Launch & Além)
 
 ### Fase 3: Escala e Provedores Reais (Em Execução)
-*   **RabbitMQ Excellence**: Consolidação total da infraestrutura de mensageria, removendo stubs e dependências diretas de driver.
-*   **i18n Apps Provider/Admin**: Implementação de localização frontend para os apps de Prestador e Administrador.
-*   **UI/UX Admin Portal**: Padronização visual com cores da marca e melhorias de usabilidade no portal administrativo.
+*   **[x] RabbitMQ Excellence**: Consolidação total da infraestrutura de mensageria, removendo stubs e dependências diretas de driver.
+*   **[x] i18n Apps Provider/Admin**: Implementação de localização frontend para os apps de Prestador e Administrador.
+*   **[x] UI/UX Admin Portal**: Padronização visual com cores da marca e melhorias de usabilidade no portal administrativo.
 *   **Provedores de Comunicação (Próximo)**: Substituir Stubs por SendGrid (E-mail), Twilio (SMS) e Firebase (Push).
 *   **Verificação Automatizada (Próximo)**: OCR via Azure AI Vision e integração com APIs de antecedentes criminais.
 

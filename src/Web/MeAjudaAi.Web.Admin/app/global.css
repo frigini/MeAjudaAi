@@ -5,8 +5,15 @@
   --color-primary-foreground: #ffffff;
   --color-primary-hover: #2E4760;
 
-  --color-secondary: #f5f5f5;
-  --color-secondary-foreground: #2e2e2e;
+  --color-secondary: #D96704;
+  --color-secondary-light: #F2AE72;
+  --color-secondary-foreground: #ffffff;
+  --color-secondary-hover: #B85703;
+
+  --color-brand: #E0702B;
+  --color-brand-hover: #c56226;
+
+  --color-cream: #FDFBF7;
 
   --color-muted: #f5f5f5;
   --color-muted-foreground: #666666;
@@ -14,19 +21,19 @@
   --color-destructive: #dc2626;
   --color-destructive-foreground: #ffffff;
 
-  --color-border: #e0e0e0;
-  --color-input: #e0e0e0;
+  --color-border: var(--border);
+  --color-input: var(--input);
 
-  --color-background: #ffffff;
-  --color-surface: #ffffff;
-  --color-surface-raised: #f5f5f5;
-  --color-foreground: #2e2e2e;
-  --color-foreground-subtle: #666666;
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-foreground: var(--foreground);
+  --color-foreground-subtle: var(--foreground-subtle);
 
   --color-card: #ffffff;
   --color-card-foreground: #2e2e2e;
 
-  --color-ring: #395873;
+  --color-ring: #D96704;
 
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;

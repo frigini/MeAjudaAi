@@ -7,6 +7,7 @@ using MeAjudaAi.Shared.Messaging.NoOp;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.Rebus;
+using RabbitMQ.Client;
 using MeAjudaAi.Shared.Messaging.Rebus.Conventions;
 using MeAjudaAi.Shared.Messaging.Serialization;
 using Microsoft.Extensions.Configuration;
@@ -140,6 +141,22 @@ public static class MessagingExtensions
         {
             var factory = serviceProvider.GetRequiredService<IMessageBusFactory>();
             return factory.CreateMessageBus();
+        });
+
+        // Registro da infraestrutura de conexão do RabbitMQ
+        services.AddSingleton<IConnectionFactory>(provider =>
+        {
+            var options = provider.GetRequiredService<RabbitMqOptions>();
+            return new ConnectionFactory
+            {
+                Uri = new Uri(options.BuildConnectionString())
+            };
+        });
+
+        services.AddSingleton<IConnection>(provider =>
+        {
+            var factory = provider.GetRequiredService<IConnectionFactory>();
+            return factory.CreateConnectionAsync().GetAwaiter().GetResult();
         });
 
         services.AddSingleton<IRabbitMqInfrastructureManager, RabbitMqInfrastructureManager>();

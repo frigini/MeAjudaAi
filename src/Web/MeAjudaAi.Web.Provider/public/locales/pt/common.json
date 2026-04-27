@@ -1,0 +1,12 @@
+{
+  "loading": "Carregando...",
+  "error": "Ocorreu um erro",
+  "welcome": "Bem-vindo ao Portal do Prestador",
+  "dashboard": "Painel",
+  "services": "Serviços",
+  "schedule": "Agenda",
+  "profile": "Perfil",
+  "logout": "Sair",
+  "notifications": "Notificações",
+  "settings": "Configurações"
+}
