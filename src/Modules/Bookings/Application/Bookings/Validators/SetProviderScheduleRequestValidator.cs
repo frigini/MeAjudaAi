@@ -32,12 +32,19 @@ public class SetProviderScheduleRequestValidator : AbstractValidator<SetProvider
                     .NotNull().WithMessage(x => $"A lista de horários para {x.DayOfWeek} não pode ser nula.")
                     .NotEmpty().WithMessage(x => $"A lista de horários para {x.DayOfWeek} não pode ser vazia.")
                     .Must((availabilityDto, slots, context) => {
+                        if (slots == null) return true;
                         var list = slots.ToList();
                         for (int i = 0; i < list.Count; i++)
                         {
                             for (int j = i + 1; j < list.Count; j++)
                             {
-                                // Simple overlap check: (StartA < EndB) && (StartB < EndA)
+                                if (list[i] == null || list[j] == null)
+                                {
+                                    context.MessageFormatter.AppendArgument("DayOfWeek", availabilityDto.DayOfWeek);
+                                    context.MessageFormatter.AppendArgument("Overlap", $"item {i + 1} ou {j + 1} é nulo");
+                                    return false;
+                                }
+                                // Verificação simples de interseção: (StartA < EndB) && (StartB < EndA)
                                 if (list[i].Start < list[j].End && list[j].Start < list[i].End)
                                 {
                                     context.MessageFormatter.AppendArgument("DayOfWeek", availabilityDto.DayOfWeek);

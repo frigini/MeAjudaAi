@@ -79,7 +79,8 @@ public sealed class SetProviderScheduleEndpoint : IEndpoint
                     return Results.Problem("ProviderId inválido para operação admin.", statusCode: StatusCodes.Status400BadRequest);
                 }
                 targetProviderId = request.ProviderId;
-                var userIdClaim = context.User.FindFirst(AuthConstants.Claims.Subject)?.Value;
+                var userIdClaim = context.User.FindFirst(AuthConstants.Claims.Subject)?.Value
+                    ?? context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userIdClaim))
                 {
                     return Results.Problem("Identificador do administrador não encontrado no token.", statusCode: StatusCodes.Status400BadRequest);

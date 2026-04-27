@@ -291,7 +291,8 @@ public class RegisterCustomerCommandHandlerTests
                 LogLevel.Critical,
                 It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>((v, t) => 
-                    v.ToString()!.Contains(RegisterCustomerCommandHandler.FailedToCompensateKeycloakUserMessage.Split('{')[0])),
+                    ((IEnumerable<KeyValuePair<string, object>>)v).Any(kvp => kvp.Key == "{OriginalFormat}" && kvp.Value.ToString() == RegisterCustomerCommandHandler.FailedToCompensateKeycloakUserMessage) &&
+                    ((IEnumerable<KeyValuePair<string, object>>)v).Any(kvp => kvp.Key == "UserId" && kvp.Value.ToString() == user.Id.ToString())),
                 It.Is<Exception>(ex => ex.Message.Contains("Keycloak Failure")),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);

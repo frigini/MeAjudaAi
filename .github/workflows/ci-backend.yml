@@ -201,6 +201,9 @@ jobs:
                 exit 1
               fi
               echo "✅ Coverage produced for $module_name"
+            else
+              echo "::error::Module $module not found or path is incorrect"
+              exit 1
             fi
           done
 
